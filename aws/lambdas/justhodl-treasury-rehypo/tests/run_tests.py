@@ -111,4 +111,8 @@ class NativeFails(unittest.TestCase):
         out,_,_=run(fails=doc);self.assertEqual(out['legs']['fails']['quality']['status'],'unavailable')
 
 
-if __name__=='__main__':unittest.main()
+if __name__=='__main__':
+    import subprocess
+    result=subprocess.run([sys.executable,str(ROOT/'tests/dealer_consumer_test_support.py'),'treasury-rehypo'])
+    if result.returncode:sys.exit(result.returncode)
+    unittest.main()

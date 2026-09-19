@@ -283,7 +283,9 @@ def extract_metrics(data,weights):
     stress=repo.get("stress",{})
     fg=crypto.get("fear_greed",{})
     rs=crypto.get("risk_score",{})
-    _pc=(data.get("primary_dealers") or {}).get("corporate") or {}
+    from dealer_research_context import project as dealer_context
+    _pd_context=dealer_context(data.get("primary_dealers") or {})
+    _pc=_pd_context.get("corporate") or {}
     _of=data.get("ofr_stfm") or {}
     _sf=data.get("settlement_fails") or {}
     _ven=((_of.get("repo") or {}).get("venues")) or {}
@@ -361,6 +363,7 @@ def extract_metrics(data,weights):
         "fg_label":fg.get("label","N/A"),
         "crypto_risk":rs.get("score","N/A"),
         # ─── dealer / funding stack (ops 3308) ───
+        "dealer_research_context":_pd_context,
         "dealer_corp_net_b":_pc.get("net_bonds_b"),
         "dealer_regime":_pc.get("regime"),
         "dealer_squeeze":_pc.get("squeeze_setup"),

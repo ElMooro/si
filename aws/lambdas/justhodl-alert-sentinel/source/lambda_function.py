@@ -187,9 +187,12 @@ def snapshot():
         s["ma_break_200"] = tickers_from(ma, ("break", "cross_down", "below"))[:40]
     # ─── dealer / funding stack (ops 3308) ───
     pd_ = gj("data/nyfed-primary-dealer.json")
-    c = (pd_.get("corporate") or {}) if pd_ else {}
-    s["dealer_regime"] = c.get("regime")
-    s["dealer_squeeze"] = bool(c.get("squeeze_setup"))
+    from dealer_research_context import project as dealer_context
+    dc = dealer_context(pd_ or {})
+    c = dc.get("corporate") or {}
+    s["dealer_source_replay"] = dc.get("source_replay")
+    s["dealer_regime"] = None
+    s["dealer_squeeze"] = None
     s["dealer_net_b"] = c.get("net_bonds_b")
     sf_ = gj("data/settlement-fails.json")
     s["fails_spikes"] = (sorted(x.get("key") for x in (sf_.get("classes") or [])

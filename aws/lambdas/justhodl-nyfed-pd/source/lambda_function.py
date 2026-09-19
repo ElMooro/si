@@ -1,24 +1,7 @@
-"""justhodl-nyfed-pd — PRIMARY DEALER NET POSITIONS (the missing ledger column).
+"""Original-response dealer research. Active handler is defined at the end.
 
-Ops-2727 proved the fleet never had real PD positions data (dealer-survey =
-FOMC link tracker; the Aug-2025 shim never wrote a feed). This engine is the
-real thing: NY Fed markets API Primary Dealer statistics — weekly NET
-OUTRIGHT POSITIONS by security class, straight from the dealers' own
-regulatory reporting. It is BOTH the institutional treasuries/credit read
-and an independent cross-check on CFTC spec positioning.
-
-  API        markets.newyorkfed.org/api/pd
-               /list/timeseries.json -> {pd:{timeseries:[{keyid,description}]}}
-               /get/{keyid}.json     -> {pd:{timeseries:[{asofdate,value}]}}
-             (values may be "" or "*" — skip; unit = $ MILLIONS)
-  SPEC       data/config/nyfed-pd-spec.json — catalog-discovered keyids per
-             class (self-heals: if absent/empty, rediscovers from catalog).
-  OUTPUT     data/nyfed-primary-dealer.json:
-               net_positions_usd_b per class, net_treasury_total_b (flat
-               alias the footprint desk reads), wow_b, z_52w, as_of, series.
-             History: data/history/nyfed-pd.json (per-class, last 400 weeks).
-  CONSUMERS  institutional-footprint asset ledger (TREASURIES pd column +
-             primary_dealer_net), bond-desk cross-checks (future).
+Former discovery/score code below is retained as unvalidated legacy source.
+No event can route into it or its legacy signal emitter.
 """
 import json, os, re, time, urllib.request, statistics, math
 from pd_integrity import complete_sum, observation_quality, finalize, METHOD
@@ -230,7 +213,7 @@ def _emit_signal(sid, stype, direction, ticker, benchmark, value,
         return False
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unvalidated_handler(event=None, context=None):
     spec = _j(SPEC_KEY) or {}
     if not spec.get("classes") or (event or {}).get("rediscover"):
         spec = _discover()
@@ -507,3 +490,24 @@ def lambda_handler(event=None, context=None):
             "corp_regime": (corporate or {}).get("regime"),
             "ledger_classes": len(ledger_out),
             "financing_ok": bool(financing), "txn_classes": len(transactions)}
+
+
+def lambda_handler(event=None, context=None):
+    """Publish replayed originals; public HTTP requests only read the current output."""
+    from dealer_research_store import run, raw_reader
+    from dealer_research import CONTRACT, CURRENT
+    try:
+        request = event.get('requestContext', {}) if isinstance(event, dict) else {}
+        if isinstance(request, dict) and request.get('http'):
+            raw = raw_reader(s3, BUCKET)(CURRENT)
+            if json.loads(raw).get('contract') != CONTRACT:
+                raise ValueError('Original dealer research not published yet')
+            return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
+                    'body': raw.decode('utf-8')}
+        result = run(s3, BUCKET)
+        return {'statusCode': 200, 'body': json.dumps(result, allow_nan=False)}
+    except Exception as exc:
+        print('[dealer-research] unavailable: ' + type(exc).__name__)
+        return {'statusCode': 503, 'headers': {'Cache-Control': 'no-store'},
+                'body': json.dumps({'status': 'unavailable', 'reason': 'Original dealer evidence could not be verified',
+                                    'calls_eligible': False, 'sizing_eligible': False, 'portfolio_action': 'WAIT'})}

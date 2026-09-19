@@ -15,4 +15,6 @@ if __name__ == "__main__":
     import unittest
     sys.path.insert(0,str(ROOT/'aws/shared/tests'))
     suite=unittest.defaultTestLoader.discover(str(ROOT/'aws/shared/tests'),pattern='test_hot_money_authority.py')
-    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)
+    if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():sys.exit(1)
+    from dealer_consumer_test_support import run as run_dealer
+    sys.exit(0 if run_dealer('morning-intelligence') else 1)

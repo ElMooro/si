@@ -1,0 +1,1132 @@
+{
+  "contract": "dealer-native-registry.v1",
+  "reference_release": {
+    "observation_date": "2021-12-29",
+    "published_date": "2022-01-06",
+    "role": "Historical definition/reconciliation reference only; not a current data source.",
+    "sha256": "a60555fcf72593ad20e9efced58c43c5f9da1781d6d295b1a61bef0cad346dff",
+    "url": "https://www.newyorkfed.org/medialibrary/media/banking/reportingforms/primarystats/dealpdf.pdf"
+  },
+  "series": {
+    "PDFRN2NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDFRN2NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDFRN2NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDPOSABS-TOT": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "Total - ASSET-BACKED SECURITIES - LONG. - ASSET-BACKED SECURITIES - SHORT.",
+        "keyid": "PDPOSABS-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSABS-TOT",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCS-TOT": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "Total - CORPORATE SECURITIES DEALER POSITION - LONG. - CORPORATE SECURITIES: DEALER POSITION - SHORT.",
+        "keyid": "PDPOSCS-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCS-TOT",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-BELG10": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES BELOW INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 10 YEARS: DEALER POSITION - LONG. - CORPORATE SECURITIES BELOW INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 10 YEARS: DEALER POSITION -SHORT.",
+        "keyid": "PDPOSCSBND-BELG10",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-BELG10",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-BELG13": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES BELOW INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 13 MONTHS BUT LESS THAN OR EQUAL TO 5 YEARS: DEALER POSITION -LONG. - CORPORATE SECURITIES BELOW INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 13 MONTHS BUT LESS THAN OR EQUAL TO 5 YEARS: DEALER POSITION -SHORT.",
+        "keyid": "PDPOSCSBND-BELG13",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-BELG13",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-BELG5L10": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES BELOW INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 5 YEARS BUT LESS THAN OR EQUAL TO 10 YEARS: DEALER POSITION - LONG. - CORPORATE SECURITIES BELOW INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 5 YEARS BUT LESS THAN OR EQUAL TO 10 YEARS: DEALER POSITION -SHORT.",
+        "keyid": "PDPOSCSBND-BELG5L10",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-BELG5L10",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-BELL13": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES BELOW INVESTMENT GRADE DUE IN LESS THAN OR EQUAL TO 13 MONTHS: DEALER POSITION - LONG. - CORPORATE SECURITIES BELOW INVESTMENT GRADE DUE IN LESS THAN OR EQUAL TO 13 MONTHS: DEALER POSITION - SHORT.",
+        "keyid": "PDPOSCSBND-BELL13",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-BELL13",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-G10": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 10 YEARS: DEALER POSITION - LONG. - CORPORATE SECURITIES INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 10 YEARS: DEALER POSITION - SHORT.",
+        "keyid": "PDPOSCSBND-G10",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-G10",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-G13": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES: INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 13 MONTHS BUT LESS THAN OR EQUAL TO 5 YEARS: DEALER POSITION - LONG. - CORPORATE SECURITIES INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 13 MONTHS BUT LESS THAN OR EQUAL TO 5 YEARS: DEALER POSITION - SHORT.",
+        "keyid": "PDPOSCSBND-G13",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-G13",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-G5L10": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 5 YEARS BUT LESS THAN OR EQUAL TO 10 YEARS: DEALER POSITION - LONG. - CORPORATE SECURITIES INVESTMENT GRADE BONDS NOTES AND DEBENTURES DUE IN MORE THAN 5 YEARS BUT LESS THAN OR EQUAL TO 10 YEARS: DEALER POSITION -SHORT.",
+        "keyid": "PDPOSCSBND-G5L10",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-G5L10",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSBND-L13": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES: INVESTMENT GRADE BONDS, NOTES AND DEBENTURES DUE IN LESS THAN OR EQUAL TO 13 MONTHS: DEALER POSITION - LONG. - CORPORATE SECURITIES: INVESTMENT GRADE BONDS, NOTES AND DEBENTURES DUE IN LESS THAN OR EQUAL TO 13 MONTHS: DEALER POSITION - SHORT.",
+        "keyid": "PDPOSCSBND-L13",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSBND-L13",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSCSCP": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "CORPORATE SECURITIES: COMMERCIAL PAPER: DEALER POSITION - LONG. - CORPORATE SECURITIES: COMMERCIAL PAPER: DEALER POSITION - SHORT.",
+        "keyid": "PDPOSCSCP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSCSCP",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSFGS-TOT": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "Total - FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) - DEALER POSITION - LONG - FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) - : DEALER POSITION - SHORT",
+        "keyid": "PDPOSFGS-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSFGS-TOT",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSGST-TOT": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "Total - U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS)) : DEALER POSITION - LONG. - U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS)) : DEALER POSITION - SHORT.",
+        "keyid": "PDPOSGST-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "unresolved",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": "Current catalog scope conflicts with the total-series identity or the reviewed historical release. Retain the original amount; withhold an interpreted aggregate until its definition is reconciled.",
+      "series_id": "PDPOSGST-TOT",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSMBS-TOT": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "Total - Mortgage-backed Securities: Federal Agency and GSE MBS: Long - Mortgage-backed Securities: Federal Agency and GSE MBS: Short",
+        "keyid": "PDPOSMBS-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "unresolved",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": "Current catalog scope conflicts with the total-series identity or the reviewed historical release. Retain the original amount; withhold an interpreted aggregate until its definition is reconciled.",
+      "series_id": "PDPOSMBS-TOT",
+      "valuation_basis": "fair_value"
+    },
+    "PDPOSSMGO-TOT": {
+      "accounting_basis": "trade_date; buyback_positions_at_settlement",
+      "catalog": {
+        "description": "Total - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS : DEALER POSITION - LONG. - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS : DEALER POSITION - SHORT.",
+        "keyid": "PDPOSSMGO-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 13,
+      "definition_status": "reviewed",
+      "family": "net_outright_position",
+      "native_unit": "usd_mn",
+      "note": "Dealer net positions do not identify gross inventory, hedges or remaining market-making capacity.",
+      "reason": null,
+      "series_id": "PDPOSSMGO-TOT",
+      "valuation_basis": "fair_value"
+    },
+    "PDSI10NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI10NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI10NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSI20NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI20NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI20NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSI2NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI2NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI2NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSI30NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI30NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI30NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSI3NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI3NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI3NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSI5NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI5NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI5NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSI7NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDSI7NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDSI7NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDSIOSB-ABSTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - ASSET-BACKED SECURITIES OTHER FINANCING ACTIVITY SECURITIES BORROWED - DEALER FINANCING.",
+        "keyid": "PDSIOSB-ABSTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-ABSTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-CDTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - CORPORATE DEBT OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES BORROWED.",
+        "keyid": "PDSIOSB-CDTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-CDTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-ETOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - EQUITIES OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES BORROWED: OVERNIGHT AND CONTINUING.",
+        "keyid": "PDSIOSB-ETOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-ETOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-FGCMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Other Financing Activity, Securities Borrowed: Federal Agency and GSE CMBS ",
+        "keyid": "PDSIOSB-FGCMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-FGCMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-FGEMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES BORROWED:",
+        "keyid": "PDSIOSB-FGEMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-FGEMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-FGMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Other Financing Activity, Securities Borrowed: Federal Agency and GSE Residential MBS",
+        "keyid": "PDSIOSB-FGMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-FGMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-OTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES BORROWED",
+        "keyid": "PDSIOSB-OTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-OTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-UTSETTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS)) OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES BORROWED",
+        "keyid": "PDSIOSB-UTSETTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-UTSETTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIOSB-UTSTTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - TREASURY INFLATION-PROTECTED SECURITIES (TIPS) OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES BORROWED",
+        "keyid": "PDSIOSB-UTSTTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIOSB-UTSTTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-ABSTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: Asset-backed securities",
+        "keyid": "PDSIRRA-ABSTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-ABSTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-CDTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Other Financing Activity, Securities Borrowed: Federal Agency and GSE Residential MBS",
+        "keyid": "PDSIRRA-CDTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "unresolved",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": "Current catalog scope conflicts with the total-series identity or the reviewed historical release. Retain the original amount; withhold an interpreted aggregate until its definition is reconciled.",
+      "series_id": "PDSIRRA-CDTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-ETOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: Equities",
+        "keyid": "PDSIRRA-ETOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-ETOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-FGCMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: Federal Agency and GSE CMBS",
+        "keyid": "PDSIRRA-FGCMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-FGCMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-FGEMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: Federal Agency and GSE Securities (excluding MBS) ",
+        "keyid": "PDSIRRA-FGEMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-FGEMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-FGMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: Federal Agency and GSE Residential MBS",
+        "keyid": "PDSIRRA-FGMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-FGMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-OTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: Other ",
+        "keyid": "PDSIRRA-OTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-OTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-UTSETTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: U.S. Treasury securities (excluding TIPS)",
+        "keyid": "PDSIRRA-UTSETTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-UTSETTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSIRRA-UTSTTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Reverse Repurchase Agreements: U.S. Treasury Inflation-Protected Securities (TIPS)",
+        "keyid": "PDSIRRA-UTSTTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSIRRA-UTSTTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-ABSTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - ASSET-BACKED SECURITIES OTHER FINANCING ACTIVITY SECURITIES LENT",
+        "keyid": "PDSOOS-ABSTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-ABSTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-CDTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - CORPORATE DEBT OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES LENT",
+        "keyid": "PDSOOS-CDTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-CDTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-ETOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - EQUITIES OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES LENT",
+        "keyid": "PDSOOS-ETOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-ETOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-FGCMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Other Financing Activity, Securities Lent: Federal Agency and GSE CMBS",
+        "keyid": "PDSOOS-FGCMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-FGCMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-FGEMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES LENT",
+        "keyid": "PDSOOS-FGEMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-FGEMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-FGMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Other Financing Activity, Securities Lent: Federal Agency and GSE Residential MBS",
+        "keyid": "PDSOOS-FGMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-FGMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-OTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - OTHER OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES LENT",
+        "keyid": "PDSOOS-OTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-OTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-UTSETTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS)) OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES LENT",
+        "keyid": "PDSOOS-UTSETTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-UTSETTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSOOS-UTSTTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - TREASURY INFLATION-PROTECTED SECURITIES (TIPS) OTHER FINANCING ACTIVITY - DEALER FINANCING SECURITIES LENT",
+        "keyid": "PDSOOS-UTSTTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSOOS-UTSTTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-ABSTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Asset-backed securities - Triparty (excluding GCF)",
+        "keyid": "PDSORA-ABSTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "unresolved",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": "Current catalog scope conflicts with the total-series identity or the reviewed historical release. Retain the original amount; withhold an interpreted aggregate until its definition is reconciled.",
+      "series_id": "PDSORA-ABSTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-CDTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Corporate Debt - Triparty (excluding GCF)",
+        "keyid": "PDSORA-CDTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "unresolved",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": "Current catalog scope conflicts with the total-series identity or the reviewed historical release. Retain the original amount; withhold an interpreted aggregate until its definition is reconciled.",
+      "series_id": "PDSORA-CDTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-ETOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Equities - Triparty (excluding GCF)",
+        "keyid": "PDSORA-ETOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "unresolved",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": "Current catalog scope conflicts with the total-series identity or the reviewed historical release. Retain the original amount; withhold an interpreted aggregate until its definition is reconciled.",
+      "series_id": "PDSORA-ETOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-FGCMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Federal Agency and GSE CMBS",
+        "keyid": "PDSORA-FGCMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSORA-FGCMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-FGEMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Federal Agency and GSE Securities (excluding MBS)",
+        "keyid": "PDSORA-FGEMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSORA-FGEMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-FGMTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Federal Agency and GSE Residential MBS",
+        "keyid": "PDSORA-FGMTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSORA-FGMTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-OTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: Other ",
+        "keyid": "PDSORA-OTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSORA-OTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-UTSETTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: U.S. Treasury securities (excluding TIPS)",
+        "keyid": "PDSORA-UTSETTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSORA-UTSETTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDSORA-UTSTTOT": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "Total - Repurchase Agreements: U.S. Treasury Inflation-Protected Securities (TIPS)",
+        "keyid": "PDSORA-UTSTTOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 25,
+      "definition_status": "reviewed",
+      "family": "financing",
+      "native_unit": "usd_mn",
+      "note": "Gross financing balances do not identify unique collateral or reuse.",
+      "reason": null,
+      "series_id": "PDSORA-UTSTTOT",
+      "valuation_basis": "funds_paid_or_received; securities_only_at_fair_value"
+    },
+    "PDST10NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDST10NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDST10NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDST30NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDST30NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDST30NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDST5NSP": {
+      "accounting_basis": "settlement_date",
+      "catalog": {
+        "description": "SECURITY NET SETTLED POSITION",
+        "keyid": "PDST5NSP",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 33,
+      "definition_status": "reviewed",
+      "family": "specific_issue_position",
+      "native_unit": "usd_mn",
+      "note": "On-the-run identity rolls. A tenor label is not a fixed CUSIP or the full Treasury book.",
+      "reason": null,
+      "series_id": "PDST5NSP",
+      "valuation_basis": "original_issuance_par"
+    },
+    "PDTRAB-TOT": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "Total - ASSET-BACKED SECURITIES: DEALER TRANSACTIONS WITH INTER-DEALER BROKERS. + ASSET-BACKED SECURITIES: DEALER TRANSACTIONS WITH OTHER.",
+        "keyid": "PDTRAB-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRAB-TOT",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRCS-TOT": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "Total - CORPORATE SECURITIES: TRANSACTIONS WITH INTER-DEALER BROKERS + Total - CORPORATE SECURITIES: TRANSACTIONS WITH OTHERS",
+        "keyid": "PDTRCS-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRCS-TOT",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRFGSXM-TOT": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "Total - FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) - DEALER TRANSACTIONS WITH INTER-DEALER BROKERS + FEDERAL AGENCY AND GSE SECURITIES (EXCLUDING MBS) - DEALER TRANSACTIONS WITH OTHERS",
+        "keyid": "PDTRFGSXM-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRFGSXM-TOT",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRGS-EXTB": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS)) BILLS- DEALER TRANSACTIONS WITH INTER-DEALER BROKERS. + U.S. TREASURY SECURITIES (EXCLUDING TREASURY INFLATION-PROTECTED SECURITIES (TIPS)) BILLS - DEALER TRANSACTIONS WITH OTHER.",
+        "keyid": "PDTRGS-EXTB",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRGS-EXTB",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRGS-FRN": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "FLOATING RATE NOTES: DEALER TRANSACTIONS WITH INTER-DEALER BROKERS + FLOATING RATE NOTES: DEALER TRANSACTIONS WITH OTHERS",
+        "keyid": "PDTRGS-FRN",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRGS-FRN",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRGST-TOT": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "Total - U.S. TREASURY INFLATION-PROTECTED SECURITIES (TIPS) DEALER TRANSACTIONS WITH INTER-DEALER BROKERS + Total - U.S. TREASURY INFLATION-PROTECTED SECURITIES (TIPS) DEALER TRANSACTIONS WITH OTHERS",
+        "keyid": "PDTRGST-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRGST-TOT",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRMBS-TOT": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "Total - Mortgage-backed Securities: With Inter-dealer Brokers + Total - Mortgage-backed Securities: With Others",
+        "keyid": "PDTRMBS-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRMBS-TOT",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    },
+    "PDTRSMGO-TOT": {
+      "accounting_basis": "trade_date",
+      "catalog": {
+        "description": "Total - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS WITH INTER-DEALER BROKERS + Total - STATE AND MUNICIPAL GOVERNMENT OBLIGATIONS WITH OTHERS",
+        "keyid": "PDTRSMGO-TOT",
+        "seriesbreak": "SBN2024"
+      },
+      "definition_pdf_page": 19,
+      "definition_status": "unresolved",
+      "family": "transactions",
+      "native_unit": "publisher_units_unverified",
+      "note": "No trading-day divisor or daily/weekly conversion is applied.",
+      "reason": "Current API transaction normalization is not verified against actual trading-day averages. Retain publisher values; do not infer daily average or cumulative weekly total.",
+      "series_id": "PDTRSMGO-TOT",
+      "valuation_basis": "principal_value; temporal_normalization_unverified"
+    }
+  }
+}

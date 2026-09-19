@@ -326,18 +326,14 @@ def send_telegram(text):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _dealer_positioning():
-    """ops 3301: dealer corporate-bond inventory join (FR2004 via
-    justhodl-nyfed-pd). Net short = the market's shock absorber is gone —
-    the mechanism behind 'credit cracks before stocks'."""
+    """Typed original-bound dealer context; net short is not market-making capacity."""
     try:
         d = json.loads(s3.get_object(Bucket=S3_BUCKET,
             Key="data/nyfed-primary-dealer.json")["Body"].read())
-        c = d.get("corporate") or {}
-        if not c:
-            return None
-        return {k: c.get(k) for k in ("net_bonds_b", "regime",
-                "net_5yplus_b", "net_under5y_b", "as_of", "z_52w",
-                "squeeze_setup", "read")}
+        from dealer_research_context import project
+        context = project(d)
+        c = context.get("corporate")
+        return {**c, "source_replay": context.get("source_replay")} if c else None
     except Exception:
         return None
 

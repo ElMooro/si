@@ -273,40 +273,17 @@ def lambda_handler(event=None, context=None):
                   "sells": _dedupe(_val_rows(f13, ("exits", "top_sells", "decreas", "closed")))}
     _usd_map = {r0["t"]: r0.get("usd_m") for r0 in stocks_usd["buys"] + stocks_usd["sells"]}
     adds = list(dict.fromkeys(adds)); exits = list(dict.fromkeys(exits))
-    def _pd_extract():
-        for key in ("data/nyfed-primary-dealer.json", "data/dealer-survey.json"):
-            doc = F[key]
-            if not doc: continue
-            ind = doc.get("indicators") if isinstance(doc.get("indicators"), dict) else None
-            if ind:
-                for k, v in ind.items():
-                    lk = str(k).lower()
-                    if "treasur" in lk and ("position" in lk or "net" in lk) and isinstance(v, dict):
-                        val, dt = _num(v.get("value")), str(v.get("date") or "")
-                        if val is not None and dt[:4] >= "2026":
-                            return val, "%s %s (%s)" % (k, dt, key.split("/")[-1])
-                        if val is not None:
-                            return None, "STALE_SHIM %s dated %s — rejected (real-data rule)" % (k, dt)
-            ls = doc.get("latest_survey")
-            if isinstance(ls, dict):
-                for subs in (("net", "treasur"), ("treasur", "position"), ("net", "position"), ("net",)):
-                    got = _find(ls, subs)
-                    if got is not None:
-                        return got, "latest_survey %s (%s)" % ("+".join(subs), key.split("/")[-1])
-            got = _find(doc, ("net", "treasur")) or _find(doc, ("net", "position"))
-            if got is not None:
-                return got, key.split("/")[-1]
-        return None, "no net-position field in dealer feeds"
-    pd_pos, pd_note = _pd_extract()
+    # Exact typed dealer measurements; a fuzzy key search cannot supply a full Treasury book.
+    from dealer_research_context import project as dealer_context
     _pdfeed = F["data/nyfed-primary-dealer.json"] or {}
-    pd_block = {"net_treasury_b": _pdfeed.get("net_treasury_total_b"),
-                "wow_b": (_pdfeed.get("wow_usd_b") or {}).get("TREASURY_COUPONS"),
-                "as_of": _pdfeed.get("as_of"),
-                "coupons_by_tenor_b": (_pdfeed.get("by_tenor_usd_b") or {}).get("TREASURY_COUPONS"),
-                "tips_by_tenor_b": (_pdfeed.get("by_tenor_usd_b") or {}).get("TIPS"),
-                "read": _pdfeed.get("read")}
-    if pd_pos is not None and "TREASURIES" in asset_ledger:
-        asset_ledger["TREASURIES"]["pd_net_usd_b"] = pd_pos
+    _pd_context = dealer_context(_pdfeed)
+    _specific = _pd_context.get("specific_positions") or {}
+    pd_pos, pd_note = None, "Full Treasury inventory unavailable: catalog total definition requires review; specific issues are a separate scope."
+    pd_block = {"net_treasury_b": None, "wow_b": None, "as_of": _pdfeed.get("as_of"),
+                "coupons_by_tenor_b": (_specific.get("TREASURY_COUPONS") or {}).get("by_original_tenor_usd_bn"),
+                "tips_by_tenor_b": (_specific.get("TIPS") or {}).get("by_original_tenor_usd_bn"),
+                "read": pd_note, "original_research_context": _pd_context,
+                "calls_eligible": False, "sizing_eligible": False}
 
     # ── RISK-NOW composite ──
     naaim_z = _find(F["data/naaim.json"], ("z",)) or _find(F["data/naaim.json"], ("zscore",))

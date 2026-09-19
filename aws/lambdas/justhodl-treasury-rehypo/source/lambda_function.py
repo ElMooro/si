@@ -301,6 +301,13 @@ def lambda_handler(event=None, context=None):
                and financing.get('quality',{}).get('status')=='fresh')
     financing_context={'contract':dc,'data':financing if fin_valid else None,'score_contribution':0,
                        'interpretation':'Treasury ex-TIPS plus TIPS, same week. Gross two-sided balances are not unique collateral.'}
+    if dealer.get('contract')=='dealer-original-research.v1':
+        from dealer_research_context import project as dealer_context
+        reviewed_dealer=dealer_context(dealer)
+        financing_context={'contract':dc,'data':reviewed_dealer.get('treasury_financing'),
+                           'source_replay':reviewed_dealer.get('source_replay'),'score_contribution':0,
+                           'calls_eligible':False,'sizing_eligible':False,
+                           'interpretation':'Same-date original-bound Treasury repo and reverse repo. Two-sided gross is not unique collateral or measured reuse.'}
     # OFR uses different clearing/counterparty universes. Match collateral and
     # tenor mnemonics explicitly; never fall back to a different collateral class.
     for suffix in ('OO-P','AG-P','TOT-P'):

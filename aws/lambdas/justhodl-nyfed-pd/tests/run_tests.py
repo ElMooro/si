@@ -1,4 +1,4 @@
-"""FR2004 regressions execute discovery, the real handler and its output contract."""
+"""Retained legacy regressions plus the active original-source research suite."""
 import copy
 import importlib.util
 import json
@@ -61,7 +61,7 @@ def run(missing=None, stale=False):
     with patch.object(engine,'_j',side_effect=read), patch.object(engine,'_get',side_effect=get), \
          patch.object(engine,'s3',types.SimpleNamespace(put_object=lambda **kw:writes.update({kw['Key']:json.loads(kw['Body'])}))), \
          patch.object(engine.time,'sleep'), patch.object(engine,'_emit_signal',side_effect=AssertionError('unvalidated signal emitted')):
-        result=engine.lambda_handler({'suppress_alerts':True})
+        result=engine._legacy_unvalidated_handler({'suppress_alerts':True})
     assert result['ok']
     return writes[engine.OUT], writes
 
@@ -144,4 +144,9 @@ class NativeFails(unittest.TestCase):
 
 
 if __name__=='__main__':
+    import subprocess
+    result=subprocess.run([sys.executable,str(Path(__file__).with_name('test_research.py'))])
+    if result.returncode:sys.exit(result.returncode)
+    result=subprocess.run([sys.executable,str(ROOT/'tests/dealer_consumer_test_support.py'),'nyfed-pd'])
+    if result.returncode:sys.exit(result.returncode)
     unittest.main()
