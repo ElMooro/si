@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-19T17:40:29.856101+00:00",
+  "observed_at": "2026-09-19T17:40:41.975301+00:00",
   "runs": [
     {
       "id": 35458663794,
@@ -369,10 +369,10 @@
       "id": 35458663782,
       "path": ".github/workflows/pages.yml",
       "head_sha": "6a260bcc804a91ce65b556242b6dcf1a3519201c",
-      "status": "queued",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-09-19T17:37:26Z",
-      "updated_at": "2026-09-19T17:40:19Z",
+      "updated_at": "2026-09-19T17:40:30Z",
       "jobs": [
         {
           "id": 105938598329,
@@ -587,10 +587,10 @@
         {
           "id": 105938814561,
           "name": "deploy",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-09-19T17:40:21Z",
-          "completed_at": null,
+          "completed_at": "2026-09-19T17:40:29Z",
           "steps": [
             {
               "number": 1,
@@ -603,36 +603,53 @@
             {
               "number": 2,
               "name": "Run actions/deploy-pages@v4",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-19T17:40:22Z",
-              "completed_at": null
+              "completed_at": "2026-09-19T17:40:28Z"
             },
             {
               "number": 3,
               "name": "Report deploy outcome",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-19T17:40:28Z",
+              "completed_at": "2026-09-19T17:40:28Z"
             },
             {
               "number": 4,
               "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-19T17:40:28Z",
+              "completed_at": "2026-09-19T17:40:28Z"
             },
             {
               "number": 5,
               "name": "Fail this run when Pages was not deployed",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-09-19T17:40:28Z",
+              "completed_at": "2026-09-19T17:40:28Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-19T17:40:28Z",
+              "completed_at": "2026-09-19T17:40:28Z"
             }
           ]
+        },
+        {
+          "id": 105938842448,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-09-19T17:40:30Z",
+          "completed_at": "2026-09-19T17:40:29Z",
+          "steps": []
         }
       ]
     },
@@ -4801,221 +4818,6 @@
           "started_at": "2026-09-19T15:15:24Z",
           "completed_at": "2026-09-19T15:15:24Z",
           "steps": []
-        }
-      ]
-    },
-    {
-      "id": 35450074930,
-      "path": ".github/workflows/deploy-workers.yml",
-      "head_sha": "8b8c0f1e3ed8a51d9eacdefb366006a5b1d16650",
-      "status": "completed",
-      "conclusion": "success",
-      "created_at": "2026-09-19T14:52:49Z",
-      "updated_at": "2026-09-19T14:54:03Z",
-      "jobs": [
-        {
-          "id": 105915576316,
-          "name": "Worker behavioural tests",
-          "status": "completed",
-          "conclusion": "success",
-          "started_at": "2026-09-19T14:52:52Z",
-          "completed_at": "2026-09-19T14:53:10Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:52:53Z",
-              "completed_at": "2026-09-19T14:52:53Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:52:53Z",
-              "completed_at": "2026-09-19T14:52:58Z"
-            },
-            {
-              "number": 3,
-              "name": "Set up Node",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:52:58Z",
-              "completed_at": "2026-09-19T14:52:59Z"
-            },
-            {
-              "number": 4,
-              "name": "Block published credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:52:59Z",
-              "completed_at": "2026-09-19T14:53:05Z"
-            },
-            {
-              "number": 5,
-              "name": "Brain publication boundaries",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:05Z",
-              "completed_at": "2026-09-19T14:53:07Z"
-            },
-            {
-              "number": 6,
-              "name": "Syntax-check every worker entrypoint",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:07Z",
-              "completed_at": "2026-09-19T14:53:08Z"
-            },
-            {
-              "number": 7,
-              "name": "Run worker test suites",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:08Z",
-              "completed_at": "2026-09-19T14:53:08Z"
-            },
-            {
-              "number": 13,
-              "name": "Post Set up Node",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:08Z",
-              "completed_at": "2026-09-19T14:53:09Z"
-            },
-            {
-              "number": 14,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:09Z",
-              "completed_at": "2026-09-19T14:53:09Z"
-            },
-            {
-              "number": 15,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:09Z",
-              "completed_at": "2026-09-19T14:53:09Z"
-            }
-          ]
-        },
-        {
-          "id": 105915618447,
-          "name": "Deploy changed Workers",
-          "status": "completed",
-          "conclusion": "success",
-          "started_at": "2026-09-19T14:53:13Z",
-          "completed_at": "2026-09-19T14:54:03Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:14Z",
-              "completed_at": "2026-09-19T14:53:15Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:15Z",
-              "completed_at": "2026-09-19T14:53:25Z"
-            },
-            {
-              "number": 3,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:25Z",
-              "completed_at": "2026-09-19T14:53:25Z"
-            },
-            {
-              "number": 4,
-              "name": "Set up Node",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:25Z",
-              "completed_at": "2026-09-19T14:53:29Z"
-            },
-            {
-              "number": 5,
-              "name": "Install wrangler",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:29Z",
-              "completed_at": "2026-09-19T14:53:37Z"
-            },
-            {
-              "number": 6,
-              "name": "Detect changed Workers",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:37Z",
-              "completed_at": "2026-09-19T14:53:37Z"
-            },
-            {
-              "number": 7,
-              "name": "Fetch AI_CHAT_TOKEN from SSM",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:37Z",
-              "completed_at": "2026-09-19T14:53:46Z"
-            },
-            {
-              "number": 8,
-              "name": "Deploy each changed Worker",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:53:46Z",
-              "completed_at": "2026-09-19T14:54:00Z"
-            },
-            {
-              "number": 9,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:54:00Z",
-              "completed_at": "2026-09-19T14:54:00Z"
-            },
-            {
-              "number": 16,
-              "name": "Post Set up Node",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:54:00Z",
-              "completed_at": "2026-09-19T14:54:01Z"
-            },
-            {
-              "number": 17,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:54:01Z",
-              "completed_at": "2026-09-19T14:54:01Z"
-            },
-            {
-              "number": 18,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:54:01Z",
-              "completed_at": "2026-09-19T14:54:01Z"
-            },
-            {
-              "number": 19,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-09-19T14:54:01Z",
-              "completed_at": "2026-09-19T14:54:01Z"
-            }
-          ]
         }
       ]
     },
