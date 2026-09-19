@@ -32,6 +32,7 @@
   .badge { padding: 0.12rem 0.5rem; border-radius: 0.45rem; font-size: 0.64rem; font-weight: 600; white-space: nowrap; }
   @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
 </style>
+<script src="/jh-ciss-desk-evidence.js"></script>
 </head>
 <body>
 
@@ -55,6 +56,7 @@
     </div>
   </div>
 </header>
+<div data-ciss-evidence id="ciss-desk-evidence" style="max-width:1360px;margin:16px auto"></div>
 
 <section class="max-w-[1400px] mx-auto px-4 pt-8 pb-4">
   <div class="mb-5">
@@ -155,7 +157,7 @@
     <div class="flex items-start justify-between flex-wrap gap-2">
       <div>
         <div class="eyebrow mb-1">🌍 Global Sovereign Stress Index · 1990 → today</div>
-        <p class="text-xs text-[var(--text-muted)] mb-2 max-w-3xl">One continuous index built from every sovereign on this desk — 18 10-year spreads vs their bloc's safe asset (Bund / UST), each z-scored on its full own history and logistic-mapped, plus the classic crisis canaries: <b>Swiss unemployment</b>, the <b>CHF</b> and <b>JPY safe-haven bids</b>, and gold. Identical computation across every era. Default view: <b>YoY % change</b> — the line you asked for.</p>
+        <p class="text-xs text-[var(--text-muted)] mb-2 max-w-3xl">One continuous index built from every sovereign on this desk — 18 10-year spreads vs their bloc's safe asset (Bund / UST), each z-scored on its full own history and logistic-mapped, plus the classic crisis canaries: <b>Swiss unemployment</b>, the <b>CHF</b> and <b>JPY safe-haven bids</b>, and gold. Retrospective reconstruction from currently retrieved histories; historical publication-time availability is not established. The crisis-window checks are descriptive, not validated forecast accuracy. Default view: <b>YoY % change</b> — the line you asked for.</p>
       </div>
       <div id="gssi-gauge" class="flex flex-col items-center" style="min-width:250px"></div>
     </div>
@@ -217,7 +219,8 @@ const statusColor = s => ({CRISIS:'var(--red)',STRESS:'var(--red)',ELEVATED:'var
 const pctToStress = p => (p===null||p===undefined)?null:p; // percentile already 0-100
 
 function render(d) {
-  if (!d || !d.ok) { document.getElementById('updated').textContent='load error'; }
+  if (!d) { document.getElementById('updated').textContent='data unavailable'; return; }
+  JHCissDeskEvidence.render(document.getElementById('ciss-desk-evidence'),d);
   document.getElementById('updated').textContent = 'updated ' + new Date(d.generated_at).toLocaleString();
   if (d.headline) document.getElementById('headline').textContent = d.headline;
 
@@ -405,9 +408,9 @@ function renderGSSI(d){
   try { renderGSSIStrip(g); } catch(e) { console.error('[gssi strip]', e); }
   const sc=g.crisis_scorecard||[];
   document.getElementById('gssi-scorecard').innerHTML =
-    `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">Crisis</th><th class="px-2 py-1 text-right">started</th><th class="px-2 py-1 text-right">first warning</th><th class="px-2 py-1 text-right">lead</th><th class="px-2 py-1 text-right">GSSI@start→peak</th></tr></thead><tbody>`+
+    `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">Crisis</th><th class="px-2 py-1 text-right">started</th><th class="px-2 py-1 text-right">retrospective crossing</th><th class="px-2 py-1 text-right">lead</th><th class="px-2 py-1 text-right">GSSI@start→peak</th></tr></thead><tbody>`+
     sc.map(c=>`<tr><td class="px-2 py-1" style="color:var(--text-primary)">${c.crisis}</td><td class="px-2 py-1 text-right" style="color:var(--text-secondary)">${c.started}</td><td class="px-2 py-1 text-right" style="color:${c.detected?'var(--amber)':'var(--red)'}">${c.first_warning||'missed'}</td><td class="px-2 py-1 text-right" style="color:${(c.lead_days||0)>=0?'var(--green)':'var(--amber)'}">${c.lead_days!=null?(c.lead_days>=0?c.lead_days+'d early':Math.abs(c.lead_days)+'d late'):'—'}</td><td class="px-2 py-1 text-right mono" style="color:var(--text-secondary)">${fmt(c.gssi_at_start,0)}→${fmt(c.peak_6m,0)}</td></tr>`).join('')+
-    `</tbody></table><div class="text-[10px] text-[var(--text-muted)] mt-1">Rule: ${(g.detection||{}).rule||''} · detected ${(g.detection||{}).detected}/${(g.detection||{}).total}</div>`;
+    `</tbody></table><div class="text-[10px] text-[var(--text-muted)] mt-1">Rule: ${(g.detection||{}).rule||''} · retrospective matches ${(g.detection||{}).detected}/${(g.detection||{}).total}</div>`;
 
   const cm=(g.components||[]);
   document.getElementById('gssi-canaries').innerHTML =
@@ -569,7 +572,7 @@ function renderSovV2(d){
 }
 
 Promise.all([
-  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress.json?ts=' + Date.now())
+  fetch('/data/sovereign-stress.json?exact=1&ts=' + Date.now())
     .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
   fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress-history.json?ts=' + Date.now())
     .then(r => r.ok ? r.json() : null).catch(() => null),

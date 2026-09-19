@@ -115,16 +115,23 @@
     });
     if(!$('ciss-detail').open)$('ciss-detail').showModal();
   }
+  let auxiliaryData=[];
+  function renderSupplementary(){
+    $('ciss-aux').innerHTML=auxiliaryData.map(({id,label,unit,key,data,error})=>{
+      if(error)return `<article><h3>${esc(label)}</h3><p>Unavailable · ${esc(error)}</p>${link(key,'Auxiliary packet')}</article>`;
+      const q=data.quality||{},age=(Math.floor(Date.now()/DAY)*DAY-Date.parse(q.period_end+'T00:00:00Z'))/DAY;
+      const generated=Date.now()-Date.parse(data.generated_at),expected=id==='eurusd'?'USD':'EUR_bn';
+      const valid=data.unit===expected&&q.status==='fresh'&&finite(age)&&age>=0&&age<=q.max_age_days&&generated>=0&&generated<=72*3600000;
+      return `<article><h3>${esc(label)}</h3><p>${valid?fmt(data.latest):'Unavailable'} <small>${esc(unit)} · ${esc(data.latest_date)}</small></p><p class="muted">${valid?'Dated auxiliary measurement':'Stale, unavailable or unit mismatch'}; original-source replay for this auxiliary is pending.</p>${link(key,'Inspect auxiliary packet')}</article>`;
+    }).join('');
+  }
   async function supplementary(){
     const specs=[['eurusd','EUR/USD reference rate','USD per EUR'],['ilm_usd_claims','Claims on euro-area residents in foreign currency','EUR bn'],['fx_claims_nonea','Claims on non-euro-area residents in foreign currency','EUR bn']];
-    const items=await Promise.all(specs.map(async([id,label,unit])=>{
-      const key='data/ecb-hist/'+id+'.json';try{
-        const data=await get(key),q=data.quality||{},age=(Math.floor(Date.now()/DAY)*DAY-Date.parse(q.period_end+'T00:00:00Z'))/DAY;
-        const generated=Date.now()-Date.parse(data.generated_at),expected=id==='eurusd'?'USD':'EUR_bn';
-        const valid=data.unit===expected&&q.status==='fresh'&&finite(age)&&age>=0&&age<=q.max_age_days&&generated>=0&&generated<=72*3600000;
-        return `<article><h3>${esc(label)}</h3><p>${valid?fmt(data.latest):'Unavailable'} <small>${esc(unit)} · ${esc(data.latest_date)}</small></p><p class="muted">${valid?'Dated auxiliary measurement':'Stale, unavailable or unit mismatch'}; original-source replay for this auxiliary is pending.</p>${link(key,'Inspect auxiliary packet')}</article>`;
-      }catch(error){return `<article><h3>${esc(label)}</h3><p>Unavailable · ${esc(error.message)}</p>${link(key,'Auxiliary packet')}</article>`;}
-    }));$('ciss-aux').innerHTML=items.join('');
+    auxiliaryData=await Promise.all(specs.map(async([id,label,unit])=>{
+      const key='data/ecb-hist/'+id+'.json';
+      try{return {id,label,unit,key,data:await get(key)};}
+      catch(error){return {id,label,unit,key,error:error.message};}
+    }));renderSupplementary();
   }
   async function load(){
     $('ciss-status').textContent='Loading retained ECB measurements…';
@@ -135,12 +142,14 @@
       $('ciss-status').textContent='Collected '+source.generated_at+' · current retrieved vintage; historical as-known-at releases are not reconstructed.';
       $('ciss-proofs').innerHTML=link('data/ciss-stress.json','Full warehouse')+link(packet.replay.manifest_key,'Source replay manifest')+link('data/ciss-sources-verification.json','Deployment verification');
       $('ciss-errors').textContent=JSON.stringify(source.errors,null,2);render();if($('ciss-detail').open)openSeries(selected);await supplementary();
-    }catch(error){packet=null;$('ciss-status').textContent='Measurements unavailable: '+error.message;$('ciss-table-body').innerHTML='';$('ciss-count').textContent='';$('ciss-aux').innerHTML='';$('ciss-errors').textContent='Unavailable';$('ciss-read').textContent='A current qualified ECB source is unavailable.';$('ciss-proofs').innerHTML='';$('ciss-reconcile').textContent='Unavailable';$('ciss-narrative').textContent='';$('ciss-commentary-proof').textContent='';$('ciss-detail').close();}
+    }catch(error){packet=null;auxiliaryData=[];$('ciss-status').textContent='Measurements unavailable: '+error.message;$('ciss-table-body').innerHTML='';$('ciss-count').textContent='';$('ciss-aux').innerHTML='';$('ciss-errors').textContent='Unavailable';$('ciss-read').textContent='A current qualified ECB source is unavailable.';$('ciss-proofs').innerHTML='';$('ciss-reconcile').textContent='Unavailable';$('ciss-narrative').textContent='';$('ciss-commentary-proof').textContent='';$('ciss-detail').close();}
   }
   $('ciss-close').addEventListener('click',()=>$('ciss-detail').close());
   $('ciss-detail').addEventListener('click',e=>{if(e.target===$('ciss-detail'))$('ciss-detail').close();});
   $('ciss-search').addEventListener('input',render);$('ciss-category').addEventListener('change',render);$('ciss-quality').addEventListener('change',render);
   $('ciss-refresh').addEventListener('click',load);
-  setInterval(()=>{if(packet&&signature!==packet.series.map(r=>state(r,packet)).join('|')){render();if($('ciss-detail').open)openSeries(selected);}},60000);
+  const requestedSeries=new URLSearchParams(root.location.search).get('series');
+  if(requestedSeries)$('ciss-search').value=requestedSeries.slice(0,120);
+  setInterval(()=>{if(packet)renderSupplementary();if(packet&&signature!==packet.series.map(r=>state(r,packet)).join('|')){render();if($('ciss-detail').open)openSeries(selected);}},60000);
   load();
 })(typeof window!=='undefined'?window:globalThis);

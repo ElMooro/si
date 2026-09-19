@@ -5,7 +5,7 @@ import sys
 import types
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 SHARED=Path(__file__).resolve().parents[1]
 ROOT=SHARED.parents[1]
 sys.path.insert(0,str(SHARED))
@@ -20,22 +20,35 @@ def load(name):
         m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 
 
+def seal(doc):
+    from ciss_source_model import digest
+    doc['replay']={'manifest_key':'data/ciss-research/runs/'+('a'*64)+'.json',
+                   'output_sha256':digest({k:v for k,v in doc.items() if k!='replay'}),'fixture':'SYNTHETIC'}
+    return doc
+
+
 def warehouse():
+    from ciss_source_model import summarize,csv_series,CONTRACT
+    from test_ciss_source_model import csv_bytes
     rows=[]
     for area in ('U2','US','CN','GB','DE','FR','IT','ES','PT','GR','FI','NL','BE','AT','IE'):
         for indicator in ('SS_CIN','SOV_GDPWN' if area=='U2' else 'SOV_CIN'):
             value=.2 if area=='FR' else .05
-            rows.append({"key":f"CISS.D.{area}.Z0Z.4F.EC.{indicator}.IDX","area":area,"freq":"D","latest_date":TODAY,
-                "latest":value,"percentile_3y":75,"percentile_5y":99 if area=='FR' else 25,
-                "points":[[(NOW.date()-timedelta(days=i*7)).isoformat(),value-i*.0001] for i in reversed(range(60))]})
-    return {"generated_at":NOW.isoformat(),"series":rows,"provenance":"ECB","ea_composite":.05,"ea_composite_date":TODAY}
+            key=f'CISS.D.{area}.Z0Z.4F.EC.{indicator}.IDX'
+            points=[((NOW.date()-timedelta(days=i*7)).isoformat(),str(value-i*.0001),'A') for i in reversed(range(60))]
+            raw=csv_bytes(key,points)
+            row=summarize(key,csv_series(raw,key)[key],{'first_received_at':NOW.isoformat(),'fixture':'SYNTHETIC'},NOW.isoformat(),NOW.isoformat())
+            row['percentile_3y']=75;row['percentile_5y']=99 if area=='FR' else 25
+            rows.append(row)
+    return seal({'contract':CONTRACT,'generated_at':NOW.isoformat(),'series':rows,'provenance':'ECB fixture',
+                 'ea_composite':.05,'ea_composite_date':TODAY})
 
 
 def test_selection_uses_maintained_key_and_exact_latest_zero():
     doc=warehouse()
     row=next(r for r in doc['series'] if r['area']=='DE' and 'SOV_' in r['key']);row['latest']=0
     doc['series'].append({**row,'key':'CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX','latest_date':'2025-04','freq':'M','latest':.9})
-    pts,q,row=select_series(doc,'DE',True,NOW)
+    pts,q,row=select_series(seal(doc),'DE',True,NOW)
     assert q['status']=='fresh' and pts[0]==(TODAY,0) and '.D.' in row['key']
 
 
@@ -79,7 +92,8 @@ def test_fragmentation_actual_handler_rejects_missing_warehouse():
 
 def test_fragmentation_reads_exact_same_current_country_values():
     m=load('justhodl-euro-fragmentation');doc=warehouse();writes=[]
-    yields=[((NOW.date()-timedelta(days=i*31)).isoformat(),3+i*.01) for i in range(15)]
+    completed=NOW.date().replace(day=1)-timedelta(days=1)
+    yields=[((completed-timedelta(days=i*31)).isoformat(),3+i*.01) for i in range(15)]
     with patch.object(m,'s3',types.SimpleNamespace(put_object=lambda **kw:writes.append(kw))), \
          patch.object(m,'read_existing',side_effect=lambda k:doc if k=='data/ciss-stress.json' else {}), \
          patch.object(m,'fred',return_value=yields),patch.object(m,'ciss_series',side_effect=AssertionError('No direct CISS calls')):
@@ -103,6 +117,41 @@ def test_actual_commentary_publisher_uses_deterministic_source_store():
         response=m.lambda_handler({},None)
     assert response['statusCode']==200
     run.assert_called_once_with(m.S3,m.BUCKET)
+
+
+def test_selector_rechecks_acquisition_and_preserves_missing_current_methodology():
+    doc=warehouse();row=next(r for r in doc['series'] if r['area']=='DE' and 'SOV_' in r['key'])
+    row['acquired_at']=(NOW-timedelta(days=4)).isoformat()
+    points,q,_=select_series(seal(doc),'DE',True,NOW)
+    assert not points and q['status']=='stale' and q['publication_date'] is None
+    doc=warehouse();row=next(r for r in doc['series'] if r['area']=='DE' and 'SOV_' in r['key'])
+    doc['series'].append({**row,'key':row['key'].replace('SOV_CIN','SOV_CI')})
+    row['latest']=None;row['quality']={**row['quality'],'status':'missing','missing':['current_observation']}
+    points,q,chosen=select_series(seal(doc),'DE',True,NOW)
+    assert not points and q['status']=='missing' and chosen['key'].endswith('SOV_CIN.IDX')
+    assert q['source_replay']==doc['replay'] and q['calls_eligible'] is False
+    monthly=observation_quality('2026-07','M','2026-09-19T00:00:00Z',datetime(2026,9,19,tzinfo=timezone.utc))
+    assert monthly['period_end']=='2026-07-31' and monthly['publication_date'] is None
+
+
+def test_sovereign_spike_cannot_emit_unvalidated_down_forecast():
+    m=load('justhodl-sovereign-stress');doc=warehouse();writes=[]
+    ledger={'rows':[{'date':(NOW.date()-timedelta(days=i)).isoformat(),'countries':{name:{'s':10} for name in m.COUNTRY_ETF}} for i in reversed(range(1,8))]}
+    signal=Mock(return_value=True);price=Mock(return_value=100)
+    donor={'bond10y_pct':6,'cds_bp':200,'spread_vs_bund_bp':150,'as_of':TODAY}
+    with patch.dict(sys.modules,{'signals_emit':types.SimpleNamespace(log_signal=signal,yprice=price)}), \
+         patch.object(m,'s3',types.SimpleNamespace(put_object=lambda **kw:writes.append(kw))), \
+         patch.object(m,'read_existing',side_effect=lambda key:doc if key=='data/ciss-stress.json' else ledger if key==m.HIST_KEY else {}), \
+         patch.object(m,'wgb_country',return_value=donor),patch.object(m,'fred',return_value=[]), \
+         patch.object(m,'eurostat',return_value=[]),patch.object(m,'_get',return_value=b'{}'),patch.object(m,'build_gssi',return_value=None), \
+         patch.object(m.boto3,'resource',return_value=types.SimpleNamespace(Table=lambda _:object()),create=True):
+        m.lambda_handler({},None)
+    out=json.loads(next(w['Body'] for w in writes if w['Key']==m.OUT_KEY))
+    assert any(d.get('d5',0)>10 for d in out['deltas'].values())
+    signal.assert_not_called();price.assert_not_called()
+    assert out['signals_fired']==[] and out['signal_emission']['enabled'] is False
+    assert out['call'] is None and out['decision']['meaning']=='abstain'
+    assert out['ciss_warehouse']['replay']==doc['replay']
 
 
 def run():

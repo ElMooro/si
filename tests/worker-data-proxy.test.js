@@ -106,7 +106,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
   };
   for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
-      'data/ciss-stress.json','data/ciss-ai.json','data/some-current.json?exact=1']){
+      'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json','data/some-current.json?exact=1']){
     const r=await w.fetch(req('/'+key),env,{waitUntil(){}});
     assert.equal((await r.json()).commit,'newly-published');assert.equal(r.headers.get('Cache-Control'),'no-store');
     assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);
@@ -144,6 +144,18 @@ test('research brief root and data alias read the same object without stale cach
   assert.equal(r.status,403); assert.equal(calls.length,n+1,'must not substitute a different data/ object on failure');
   assert.equal((await w.fetch(new Request('https://justhodl.ai/intelligence-report.json',{method:'POST',body:'{}'}),env,{})).status,405);
   assert.equal(calls.length,n+1);
+});
+
+test('CISS public alias follows the canonical warehouse while exact reads preserve the archived object identity',async()=>{
+  const {env}=fresh(),w=await worker(),calls=[];
+  globalThis.caches={default:{async match(){throw Error('old alias cache must not be read')},async put(){throw Error('alias publication must not be cached')}}};
+  globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return Response.json({source:String(url)});};
+  for(const exact of [false,true]){
+    const r=await w.fetch(req('/data/ciss.json'+(exact?'?exact=1':'')),env,{waitUntil(){}});
+    const key=exact?'data/ciss.json':'data/ciss-stress.json';
+    assert.equal(r.status,200);assert.equal(r.headers.get('X-JH-Artifact-Key'),key);
+    assert.ok(calls.at(-1).url.endsWith('/'+key));assert.equal(calls.at(-1).opts.cache,'no-store');
+  }
 });
 
 function req(pathq, opts) {

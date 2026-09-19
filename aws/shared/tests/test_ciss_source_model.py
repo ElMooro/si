@@ -101,5 +101,17 @@ class CissSourceTests(unittest.TestCase):
         head['observation_period_end']='2026-09-04'
         self.assertEqual(model.commentary(p,'2026-09-19T00:00:00Z')['claims'],[])
 
+    def test_calendar_comparison_keeps_missing_baseline_and_leap_dates(self):
+        key=model.HEAD
+        raw=csv_bytes(key,[('2026-08-14','.1','A'),('2026-08-15','','M'),('2026-09-15','.2','A')])
+        row=model.summarize(key,model.csv_series(raw,key)[key],item(raw)['evidence'],NOW,NOW)
+        self.assertIsNone(row['comparisons']['1m']['value'])
+        self.assertEqual(row['comparisons']['1m']['baseline_period'],'2026-08-15')
+        self.assertEqual(row['comparisons']['1m']['baseline_source_row'],1)
+        raw=csv_bytes(key,[('2023-02-28','.1','A'),('2024-02-29','.2','A')])
+        rows=model.csv_series(raw,key)[key]['rows']
+        comparison=model.calendar_comparison(rows,rows[-1],'D',months=12)
+        self.assertEqual(comparison['target_date'],'2023-02-28');self.assertEqual(comparison['value'],.1)
+
 
 if __name__=='__main__':unittest.main()

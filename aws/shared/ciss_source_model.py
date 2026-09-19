@@ -113,6 +113,27 @@ def category(key):
     return 'other'
 
 
+def calendar_comparison(rows, current, frequency, months=0, days=0):
+    """Exact dated baselines from full source rows, including missing prints."""
+    end=date.fromisoformat(current['period_end'])
+    if months:
+        year,month0=divmod(end.year*12+end.month-1-months,12)
+        target=date(year,month0+1,min(end.day,calendar.monthrange(year,month0+1)[1]))
+    else:target=end-timedelta(days=days)
+    out={'value':None,'baseline_value':None,'baseline_decimal':None,'baseline_period':None,
+         'baseline_source_row':None,'target_date':target.isoformat(),'unit':'index_points'}
+    if frequency=='M':
+        candidates=[p for p in rows if months and p['period']==f'{target.year:04d}-{target.month:02d}']
+    else:
+        candidates=[p for p in rows if 0<=(target-date.fromisoformat(p['period_end'])).days<=7]
+    baseline=candidates[-1] if candidates else None
+    if baseline:
+        out.update(baseline_period=baseline['period'],baseline_source_row=baseline['source_row'])
+        if usable(baseline):out.update(baseline_value=baseline['value'],baseline_decimal=baseline['decimal'])
+        if usable(current) and usable(baseline):out['value']=float(Decimal(current['decimal'])-Decimal(baseline['decimal']))
+    return out
+
+
 def summarize(key, parsed, evidence, acquired_at, generated_at):
     acquired, now = clock(acquired_at), clock(generated_at)
     if acquired > now or clock(evidence['first_received_at']) > acquired: raise ValueError('future acquisition')
@@ -174,6 +195,10 @@ def summarize(key, parsed, evidence, acquired_at, generated_at):
         'discontinued':False, 'maintenance_status':'not independently established',
         'ranking_eligible':live, 'ranking_scope':'historical distribution within this exact series, not a cross-country crisis ranking',
         'call':None,'calls_eligible':False,'sizing_eligible':False,'historical_point_in_time':False}
+    series['comparisons']={name:calendar_comparison(rows,current,freq,**kwargs) for name,kwargs in
+        [('1w',{'days':7}),('1m',{'months':1}),('3m',{'months':3}),('12m',{'months':12})]}
+    if not live:
+        for value in series['comparisons'].values():value['value']=None
     for years in (3,5):
         cutoff=date(now.year-years,now.month,min(now.day,calendar.monthrange(now.year-years,now.month)[1])).isoformat()
         window=[p['value'] for p in good if p['period_end']>=cutoff]
@@ -207,6 +232,7 @@ def build(discoveries, histories, generated_at, errors=None):
                 row.update(latest=None,latest_decimal=None,ranking_eligible=False,pctile=None,zscore=None,
                            chg_1y=None,percentile_3y=None,percentile_5y=None,pct_of_peak=None)
                 row['annual_comparison']['value']=None
+                for value in row['comparisons'].values():value['value']=None
             series.append(row)
         except (ValueError,KeyError,TypeError,OverflowError):issues[key]='INVALID_HISTORY'
     by_key={row['key']:row for row in series};head=by_key.get(HEAD)
@@ -240,6 +266,7 @@ def build(discoveries, histories, generated_at, errors=None):
         head.update(latest=None,latest_decimal=None,ranking_eligible=False,pctile=None,zscore=None,
                     chg_1y=None,percentile_3y=None,percentile_5y=None,pct_of_peak=None)
         head['annual_comparison']['value']=None
+        for value in head['comparisons'].values():value['value']=None
         output['coverage']['fresh']=sum(r['quality']['status']=='fresh' for r in series)
     return output
 

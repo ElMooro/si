@@ -112,7 +112,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json',
-    'ciss-stress.json', 'ciss-ai.json'].includes(key) ||
+    'ciss.json', 'ciss-stress.json', 'ciss-ai.json', 'sovereign-stress.json', 'euro-fragmentation.json'].includes(key) ||
     /^ops\/releases\/[A-Za-z0-9_-]+\.json$/.test(key) ||
     /^[a-z0-9-]+-verification\.json$/.test(key);
 }
@@ -2161,7 +2161,8 @@ export default {
     const exactArtifact = url.searchParams.get("exact") === "1";
     // GitHub Pages does not interpret _redirects. The public research brief
     // has one root S3 object; this explicit alias never applies to exact reads.
-    const artifactKey = !exactArtifact && safePath === "data/intelligence-report.json"
+    const cissAlias = !exactArtifact && safePath === "data/ciss.json";
+    const artifactKey = cissAlias ? "data/ciss-stress.json" : !exactArtifact && safePath === "data/intelligence-report.json"
       ? "intelligence-report.json" : safePath;
     const researchBrief = artifactKey === "intelligence-report.json";
     const freshArtifact = exactArtifact || researchBrief || mutablePublication(safePath);
@@ -2315,7 +2316,7 @@ export default {
         "Cache-Control":  ttl > 0 ? `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}` : "no-store",
         "X-Edge-TTL":     String(ttl),
         "X-Upstream":     upstreamUrl,
-        ...(exactArtifact || researchBrief ? { "X-JH-Artifact-Key": artifactKey } : {}),
+        ...(exactArtifact || researchBrief || cissAlias ? { "X-JH-Artifact-Key": artifactKey } : {}),
         ...corsHeaders(),
       };
       if (lastMod) respHeaders["Last-Modified"] = lastMod;

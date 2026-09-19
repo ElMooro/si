@@ -47,14 +47,14 @@ from datetime import datetime, timedelta, timezone
 from pd_fails_context import load as load_pd_fails
 
 import boto3
-from ciss_vintage import select_series, window_percentile
+from ciss_vintage import select_series, window_percentile, calendar_comparison
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.5.0"
+VERSION = "2.6.0"
 FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -708,13 +708,13 @@ def build_gssi(errors):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
            "method": ("v2 math (ops 3388): per country s_c = 0.45*L(z_lvl) "
-                      "+ 0.55*L(z_vel63), both EXPANDING as-known-then z, "
+                      "+ 0.55*L(z_vel63), both EXPANDING within retrieved-vintage histories, "
                       "L = logistic 0-100. Spread block = stress-weighted "
                       "intensity (weights 1+s/100 — the tail is the signal) "
                       "x co-movement amplifier (0.75+0.5*rho, rho = rolling "
                       "avg pairwise corr of standardized velocities via the "
                       "dispersion identity). GSSI = 0.72*spread + "
-                      "0.28*canary. No future information anywhere."),
+                      "0.28*canary. Historical publication-time availability and out-of-sample forecast validity are not established."),
            "math_baseline": {"v1_detected": "8/14 (ops 3386: full-sample "
                              "level-z, plain mean)"},
            "series_weekly": weekly,
@@ -730,6 +730,9 @@ def build_gssi(errors):
            "detection": {"detected": det, "total": len(scorecard),
                          "rule": "pctile>=85 crossing OR Δ6m>=+12, window "
                                  "[start-270d, start+60d]"}}
+    out.update(historical_point_in_time=False,calibration_status="UNVALIDATED_RETROSPECTIVE_DESCRIPTION",
+               calls_eligible=False,sizing_eligible=False,call=None)
+    out["detection"]["validation_scope"]="Selected retrospective crisis windows, including post-start observations; not out-of-sample forecast accuracy"
     s3.put_object(Bucket=S3_BUCKET, Key=GSSI_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="max-age=300")
@@ -757,15 +760,22 @@ def lambda_handler(event, context):
             percentile_key = "percentile_5y" if sovereign else "percentile_3y"
             percentile = row.get(percentile_key) if obs else None
             if percentile is None and obs: percentile = window_percentile(obs, years, now)
+            comparisons = {str(months)+"m":calendar_comparison(row,months=months) if obs else {} for months in (1,3,12)}
             target[name] = {
-                "level": round(obs[0][1], 4) if obs else None,
+                "level": obs[0][1] if obs else None, "level_decimal":row.get("latest_decimal") if obs else None,
                 "as_of": quality["observation_date"], "quality": quality,
-                "historical_level": row.get("latest") if not obs else None,
-                "change_1m": level_change(obs, 30) if obs else None,
-                "change_3m": level_change(obs, 91) if obs else None,
-                "change_12m": level_change(obs, 366) if obs else None,
-                "level_12m": val_days_ago(obs, 366) if obs else None,
-                "yoy_pct": None, "yoy_change_points": level_change(obs, 366) if obs else None,
+                "historical_level": row.get("last_observed_value") if not obs else None,
+                "historical_date":row.get("last_observed_date") if not obs else None,
+                "change_1m": comparisons["1m"].get("value"),
+                "change_3m": comparisons["3m"].get("value"),
+                "change_12m": comparisons["12m"].get("value"),
+                "level_12m": comparisons["12m"].get("baseline_value"),
+                "yoy_pct": None, "yoy_change_points": comparisons["12m"].get("value"),
+                "comparisons":comparisons, "unit":"dimensionless_index",
+                "source_evidence":row.get("evidence"), "source_row":row.get("source_row"),
+                "source_definition":row.get("source_metadata"), "source_acquired_at":row.get("acquired_at"),
+                "calls_eligible":False, "sizing_eligible":False,
+                "ranking_scope":"Descriptive within-series percentile; not a cross-country crisis probability",
                 percentile_key: percentile,
                 "status": status_from_pct(percentile) if obs else quality["status"].upper(),
                 "ranking_eligible": bool(obs), "source_key": row.get("key"),
@@ -1200,27 +1210,10 @@ def lambda_handler(event, context):
             deltas[name] = {"d5": (round(curv - p5, 1) if p5 is not None else None),
                             "d21": (round(curv - p21, 1) if p21 is not None else None)}
 
-        # transition signal: sovereign crossing hot (>=65) with velocity (Δ5>=10)
-        try:
-            from signals_emit import log_signal, yprice
-            tbl = None
-            for name, e in wgb_all.items():
-                etf = e.get("etf") if isinstance(e, dict) else None
-                sc = (e or {}).get("stress_0_100")
-                d5 = (deltas.get(name) or {}).get("d5")
-                if etf and sc is not None and sc >= 65 and d5 is not None and d5 >= 10:
-                    if tbl is None:
-                        tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
-                    pr = yprice(etf)
-                    ok = log_signal(tbl, "sov-stress-spike", etf, "DOWN", [5, 21], pr,
-                                    confidence=0.55, benchmark="SPY",
-                                    rationale=f"{name} sovereign stress {sc} (+{d5} in 5d) - CDS/spread/yield composite",
-                                    signal_value=str(sc),
-                                    metadata={"engine": "sovereign-stress", "country": name})
-                    if ok:
-                        signals_fired.append({"country": name, "etf": etf, "score": sc, "d5": d5})
-        except Exception as e:
-            errors.append(f"signals: {str(e)[:60]}")
+        # Measurements and heuristic review scores do not establish a forecast.
+        # Preserve the historical ledger, but never emit an ETF DOWN direction
+        # or fixed confidence without a registered, prospectively validated model.
+        signals_fired = []
     except Exception as e:
         errors.append(f"ledger: {str(e)[:60]}")
 
@@ -1261,7 +1254,7 @@ def lambda_handler(event, context):
             "ciss_ea_as_of": (ciss.get("euro_area") or {}).get("as_of"),
             "sovciss_ranking_eligible": bool(sov_ranked),
         },
-        "ciss_warehouse": {"key":"data/ciss-stress.json", "generated_at":warehouse.get("generated_at")},
+        "ciss_warehouse": {"key":"data/ciss-stress.json", "generated_at":warehouse.get("generated_at"), "replay":warehouse.get("replay")},
         "equity_market_stress": equity,
         "sovereign_spreads": sov_spreads,
         "bond_market_read": bond_read,
@@ -1286,6 +1279,15 @@ def lambda_handler(event, context):
         out["europe_stress"].update(score_0_100=None, regime="UNKNOWN", read="Required current ECB observations unavailable.")
         out["headline"] = "Current European stress assessment unavailable."
         out["signals_fired"] = []
+    out.update(calls_eligible=False,sizing_eligible=False,call=None,
+        decision={"verb":"WAIT","meaning":"abstain","reason":"Stress observations and unvalidated heuristic review scores do not establish an asset-return forecast or position size."})
+    out["quality"]["publication_date"] = None
+    out["quality"]["warehouse_generated_at"] = warehouse.get("generated_at")
+    out["quality"]["coverage_scope"] = "CISS/SovCISS source quality only; other modules require separate original-source qualification"
+    out["quality"]["calibration_status"] = "HEURISTIC_REVIEW_ONLY"
+    out["europe_stress"]["score_kind"] = "unvalidated descriptive heuristic; not probability, return forecast or sizing input"
+    out["europe_stress"]["calls_eligible"] = False
+    out["signal_emission"] = {"enabled":False,"reason":"No registered and prospectively validated sovereign-spike forecast protocol"}
     out["field_units"] = {"europe_stress.score_0_100":"score_0_100", "systemic_stress_ciss.*.level":"index_0_1",
                           "sovereign_stress_sovciss.*.level":"index_0_1"}
     # chatgpt-pd-context-v1: context only; sovereign eligibility is unchanged.

@@ -37,7 +37,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
-from ciss_vintage import select_series, observation_quality
+from ciss_vintage import select_series, observation_quality, calendar_comparison
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 try:
     import _fred_shim  # noqa: F401
@@ -125,11 +125,15 @@ def ciss_series(key, last_n=2900):
 def fred(series_id, limit=400, cached=None):
     """FRED observations -> newest-first [(date, float)]."""
     from donor_contract import numeric
+    from ciss_source_model import period_end
+    now = datetime.now(timezone.utc)
+    def completed(day):
+        try:return period_end(day[:7],'M')<=now.date()
+        except (ValueError,TypeError):return False
     rows = sorted([(o['date'],numeric(o.get('value'))) for o in (cached or [])
-                   if isinstance(o,dict) and o.get('date') and numeric(o.get('value')) is not None], reverse=True)
+                   if isinstance(o,dict) and o.get('date') and completed(o['date']) and numeric(o.get('value')) is not None], reverse=True)
     # Shared FRED cache stores original percent values. Observation dates,
     # not cache publication time, decide whether a monthly yield is usable.
-    now = datetime.now(timezone.utc)
     if rows and observation_quality(rows[0][0], 'M', now.isoformat(), now)['status'] == 'fresh':
         return rows[:limit]
     url = ("https://api.stlouisfed.org/fred/series/observations"
@@ -142,7 +146,7 @@ def fred(series_id, limit=400, cached=None):
         if v in (None, ".", ""):
             continue
         try:
-            out.append((o["date"], float(v)))
+            if completed(o['date']):out.append((o["date"], float(v)))
         except (TypeError, ValueError):
             continue
     return out
@@ -221,11 +225,11 @@ def lambda_handler(event, context):
     errors = []
 
     # ── 1. SovCISS (daily) + 10Y yields (monthly) per country ──
-    sov, y10, sov_quality = {}, {}, {}
+    sov, y10, sov_quality, sov_sources = {}, {}, {}, {}
     warehouse = read_existing("data/ciss-stress.json") or {}
     yield_cache = read_existing('data/fred-cache.json') or {}
     for cc in COUNTRIES:
-        sov[cc], sov_quality[cc], _ = select_series(warehouse, cc, True, now)
+        sov[cc], sov_quality[cc], sov_sources[cc] = select_series(warehouse, cc, True, now)
         if not sov[cc]: errors.append("SovCISS/"+cc+": current warehouse observation unavailable")
         try:
             y10[cc] = fred(FRED_10Y[cc], cached=yield_cache.get(FRED_10Y[cc]))
@@ -248,7 +252,10 @@ def lambda_handler(event, context):
     for cc in COUNTRIES:
         s = sov[cc]
         sc = latest(s)
-        pct = percentile(s)
+        source=sov_sources[cc]
+        pct = source.get("percentile_5y") if s else None
+        c1w=calendar_comparison(source,days=7) if s else {}
+        c1m=calendar_comparison(source,months=1) if s else {}
         y = latest(y10.get(cc))
         matched = matched_spread_history(y10.get(cc), y10.get(BENCH))
         spread_bp = round(matched[0][1],1) if matched else None
@@ -260,13 +267,15 @@ def lambda_handler(event, context):
             "name": NAME[cc], "sovciss_quality": sov_quality[cc],
             "group": "benchmark" if cc == BENCH else (
                 "core" if cc in CORE else "periphery"),
-            "sovciss": round(sc, 5) if sc is not None else None,
+            "sovciss": sc, "sovciss_decimal":source.get("latest_decimal") if s else None,
+            "sovciss_source_key":source.get("key"), "sovciss_evidence":source.get("evidence"),
+            "sovciss_source_row":source.get("source_row"), "sovciss_definition":source.get("source_metadata"),
+            "sovciss_source_acquired_at":source.get("acquired_at"),
+            "sovciss_comparisons":{"1w":c1w,"1m":c1m}, "sovciss_percentile_window":"five calendar years of full source observations",
+            "sovciss_calls_eligible":False, "sovciss_sizing_eligible":False,
             "sovciss_percentile": pct,
-            "sovciss_change_1w": (round(level_change(s, 7), 5)
-                                  if level_change(s, 7) is not None else None),
-            "sovciss_change_1m": (round(level_change(s, 30), 5)
-                                  if level_change(s, 30) is not None
-                                  else None),
+            "sovciss_change_1w": c1w.get("value"),
+            "sovciss_change_1m": c1m.get("value"),
             "sovciss_regime": sovciss_regime(pct, sc),
             "yield_10y_pct": round(y, 3) if y is not None else None,
             "spread_vs_bund_bp": spread_bp,
@@ -457,12 +466,20 @@ def lambda_handler(event, context):
     out["quality"] = {"observation_date": min((q["observation_date"] for q in sov_quality.values() if q["observation_date"]),default=None),
         "publication_date":now.isoformat(), "frequency":"daily", "freshness_basis":"canonical_ECB_daily_and_FRED_monthly_observations",
         "status":"incomplete" if missing else "fresh", "missing":missing, "yield_input_quality":yield_quality}
-    out["ciss_warehouse"] = {"key":"data/ciss-stress.json", "generated_at":warehouse.get("generated_at")}
+    out["ciss_warehouse"] = {"key":"data/ciss-stress.json", "generated_at":warehouse.get("generated_at"), "replay":warehouse.get("replay")}
     out["field_units"] = {"fragmentation.score_0_100":"score_0_100", "countries.*.spread_vs_bund_bp":"bp", "countries.*.yield_10y_pct":"pct"}
     out["yield_frequency_note"] = "Monthly OECD average 10-year yields; matched month spreads, not executable live quotes."
     if missing:
         out["fragmentation"].update(score_0_100=None, regime="UNAVAILABLE", read="Required current sovereign/yield inputs are incomplete.")
         out["headline"] = "Fragmentation assessment unavailable; dated observations remain below."
+    out.update(calls_eligible=False,sizing_eligible=False,call=None,
+        decision={"verb":"WAIT","meaning":"abstain","reason":"Dated stress measures and monthly yield averages do not establish a validated forecast or position weight."})
+    out["quality"]["publication_date"]=None
+    out["quality"]["warehouse_generated_at"]=warehouse.get("generated_at")
+    out["quality"]["original_source_scope"]="CISS/SovCISS; monthly yield originals remain a separate migration"
+    out["quality"]["calibration_status"]="HEURISTIC_REVIEW_ONLY"
+    out["fragmentation"]["score_kind"]="unvalidated descriptive heuristic; not crisis probability, forecast or sizing input"
+    out["fragmentation"]["calls_eligible"]=False
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, indent=2).encode("utf-8"),
                   ContentType="application/json", CacheControl="max-age=300")
