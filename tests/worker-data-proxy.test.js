@@ -105,6 +105,8 @@ test('publication proofs and exact reads bypass cached versions; missing public 
     calls.push({url:String(url),opts});return Response.json({commit:'newly-published'});
   };
   for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
+      'data/eurodollar-plumbing.json','eurodollar-plumbing.json','data/funding-research-verification.json',
+      'data/liquidity-reversal.json','data/credit-composite.json','data/settlement-fails.json','data/nyfed-primary-dealer.json','data/primary-dealers.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
       'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',
       'data/risk-radar.json','data/global-stress.json','data/regime-composite.json','data/liquidity-credit-engine.json','data/risk-gate.json',
