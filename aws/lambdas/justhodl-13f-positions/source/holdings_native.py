@@ -188,7 +188,61 @@ def submission_rows(recent):
                        'primary_doc': recent['primaryDocument'][i]})
     if len({v['accession'] for v in result}) != len(result):
         raise ValueError('Duplicate submission accession')
-    return sorted(result, key=lambda v: (v['accepted_at'], v['accession']))
+    return sorted(result, key=lambda v: (clock(v['accepted_at']), v['accession']))
+
+
+def merge_submissions(catalogs):
+    merged = {}
+    for catalog in catalogs:
+        for row in submission_rows(catalog):
+            if row['accession'] in merged and merged[row['accession']] != row:
+                raise ValueError('Conflicting official submission metadata')
+            merged[row['accession']] = row
+    return sorted(merged.values(), key=lambda v: (clock(v['accepted_at']), v['accession']))
+
+
+def selected_periods(candidates):
+    return sorted({v['period_of_report'] for v in candidates if v['form'] in ('13F-HR', '13F-HR/A')}, reverse=True)[:2]
+
+
+def pending_archives(submissions, candidates, acquired):
+    periods = selected_periods(candidates)
+    files = submissions['filings']['files']
+    if not isinstance(files, list) or len(files) > 48:
+        raise ValueError('Review complete submission archive without truncation')
+    for item in files:
+        if (not re.fullmatch(r'CIK\d{10}-submissions-\d{3}\.json', item['name'])
+                or day(item['filingFrom']) > day(item['filingTo'])):
+            raise ValueError('Submission archive identity or bounds differ')
+    if len({v['name'] for v in files}) != len(files):
+        raise ValueError('Duplicate submission archive identity')
+    return [v for v in sorted(files, key=lambda v: (v['filingTo'], v['name']), reverse=True)
+            if v['name'] not in acquired and (len(periods) < 2 or day(v['filingTo']) >= periods[-1])]
+
+
+def verified_catalog(name, submissions, refs, read, at):
+    catalogs = [submissions['filings']['recent']]
+    if any(clock(v['accepted_at']) > clock(refs[name + ':submissions']['acquired_at']) for v in submission_rows(catalogs[0])):
+        raise ValueError('Future filing in acquired recent submissions')
+    acquired, sources = set(), []
+    for item in submissions['filings']['files']:
+        label = name + ':submissions-archive:' + item['name']
+        if label not in refs:
+            continue
+        source = refs[label]
+        raw = original(source, read, 'https://data.sec.gov/submissions/' + item['name'], at)
+        archive = decode(raw)
+        if len(archive['accessionNumber']) != item['filingCount']:
+            raise ValueError('Complete submission archive count differs')
+        rows = submission_rows(archive)
+        if any(clock(v['accepted_at']) > clock(source['acquired_at']) for v in rows):
+            raise ValueError('Future filing in acquired archive')
+        if any(not day(item['filingFrom']) <= v['filed_at'] <= day(item['filingTo']) for v in rows):
+            raise ValueError('Submission archive filing bounds differ')
+        catalogs.append(archive); acquired.add(item['name']); sources.append(source)
+    candidates = merge_submissions(catalogs)
+    pending = pending_archives(submissions, candidates, acquired)
+    return candidates, acquired, sources, pending
 
 
 def parse_cover(raw, filing, cik):
@@ -335,7 +389,7 @@ def resolve_period(filings, complete):
     """Keep history, replace restatements, and refuse ambiguous supplemental overlap."""
     if not complete or not filings:
         return {'status': 'incomplete_chain', 'positions': {}, 'effective_accessions': [], 'chain': []}
-    filings = sorted(filings, key=lambda v: (v['accepted_at'], v['accession']))
+    filings = sorted(filings, key=lambda v: (clock(v['accepted_at']), v['accession']))
     if len({v['period_of_report'] for v in filings}) != 1:
         raise ValueError('Cannot combine report periods')
     rows, effective, chain, supplements = [], [], [], False
@@ -418,7 +472,7 @@ def expected_report_period(at):
 
 
 def build(probe, read, generated_at):
-    if probe.get('contract') != 'holdings-original-source-probe.v1' or clock(probe['generated_at']) > clock(generated_at):
+    if probe.get('contract') not in ('holdings-original-source-probe.v1', 'holdings-original-acquisition.v1') or clock(probe['generated_at']) > clock(generated_at):
         raise ValueError('Retained holdings acquisition contract differs')
     refs, artifacts, funds = probe['refs'], {}, {}
     index_ev = probe['index_source']
@@ -442,10 +496,16 @@ def build(probe, read, generated_at):
         submissions = decode(original(subref, read, url, generated_at))
         if int(submissions['cik']) != int(cik):
             raise ValueError('Submission CIK differs from roster')
-        candidates = submission_rows(submissions['filings']['recent'])
-        if any(clock(v['accepted_at']) > clock(subref['acquired_at']) for v in candidates):
+        candidates, acquired_archives, archive_sources, pending = verified_catalog(name, submissions, refs, read, generated_at)
+        checked_at = max([clock(subref['acquired_at'])] + [clock(v['acquired_at']) for v in archive_sources])
+        if any(clock(v['accepted_at']) > checked_at for v in candidates):
             raise ValueError('Future filing in acquired submissions')
         selected = {k: v for k, v in roster['filings_for_selected_periods'].items()}
+        if probe['contract'] == 'holdings-original-acquisition.v1':
+            required = {v['accession'] for v in candidates if v['form'] in ('13F-HR', '13F-HR/A')
+                        and v['period_of_report'] in selected_periods(candidates)}
+            if pending or set(selected) != required:
+                raise ValueError('Current SEC acquisition omits required history or filings')
         by_accession = {v['accession']: v for v in candidates}
         filing_refs, filing_summaries, periods = {}, {}, defaultdict(list)
         # Candidate metadata from the detector never overrides the official submission.
@@ -461,20 +521,23 @@ def build(probe, read, generated_at):
             relevant = {v['accession'] for v in candidates if v['period_of_report'] == period and v['form'] in ('13F-HR', '13F-HR/A')}
             # An older archive ending before report date cannot contain that period's filing.
             archives_outside = all(day(v['filingTo']) < period for v in submissions['filings']['files'])
-            complete = relevant == {v['accession'] for v in filings} and archives_outside
+            archives_covered = all(day(v['filingTo']) < period or v['name'] in acquired_archives for v in submissions['filings']['files'])
+            complete = relevant == {v['accession'] for v in filings} and archives_covered
             result = resolve_period(filings, complete)
             result['coverage'] = {'official_accessions': sorted(relevant), 'acquired_accessions': sorted(v['accession'] for v in filings),
-                                  'older_archives_excluded_by_filing_dates': archives_outside}
+                                  'older_archives_excluded_by_filing_dates': archives_outside,
+                                  'required_archives_acquired': archives_covered}
             period_results[period] = result
-        holdings_periods = sorted({v['period_of_report'] for v in candidates if v['form'] in ('13F-HR', '13F-HR/A')}, reverse=True)
+        holdings_periods = selected_periods(candidates)
         latest = holdings_periods[0] if holdings_periods else None
         prior = holdings_periods[1] if len(holdings_periods) > 1 else None
         absent = {'status': 'not_acquired', 'positions': {}}
         compared = compare(period_results.get(latest, absent), period_results.get(prior, absent))
-        latest_submission = max(candidates, key=lambda v: (v['period_of_report'], v['accepted_at'])) if candidates else None
+        latest_submission = max(candidates, key=lambda v: (v['period_of_report'], clock(v['accepted_at']))) if candidates else None
         detail = {'contract': 'holdings-native-fund.v1', 'fund': name, 'cik': cik.zfill(10),
                   'official_name': submissions['name'], 'configured_name': roster.get('configured_name'),
                   'submissions_source': subref, 'filings': filing_refs, 'filing_summaries': filing_summaries, 'periods': period_results,
+                  'submissions_archives': archive_sources, 'unacquired_relevant_archives': [v['name'] for v in pending],
                   'current_holdings_period': latest, 'prior_holdings_period': prior, 'comparison': compared,
                   'latest_submission': latest_submission, **PERMISSION}
         funds[name] = {'cik': cik.zfill(10), 'official_name': submissions['name'], 'current_holdings_period': latest,

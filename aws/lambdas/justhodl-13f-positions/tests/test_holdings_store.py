@@ -108,7 +108,7 @@ class HoldingsPublication(unittest.TestCase):
         dispatch = ast.Module(body=[ast.FunctionDef(name='dispatch', args=handler.args,
                   body=[handler.body[0], ast.Raise(exc=ast.Call(func=ast.Name(id='AssertionError', ctx=ast.Load()),
                       args=[ast.Constant(value='legacy reached')], keywords=[]), cause=None)], decorator_list=[])], type_ignores=[])
-        namespace = {'s3': object(), 'S3_BUCKET': 'bucket'}
+        namespace = {'s3': object(), 'S3_BUCKET': 'bucket', 'USER_AGENT': 'SYNTHETIC_TEST'}
         exec(compile(ast.fix_missing_locations(dispatch), '<actual-handler-dispatch>', 'exec'), namespace)
         with patch('holdings_store.handle', return_value='research-only') as call:
             self.assertEqual(namespace['dispatch']({'action': 'holdings_research_refresh', 'probe': {}}, None), 'research-only')

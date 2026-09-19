@@ -14,6 +14,7 @@ import re
 import sys
 
 import holdings_native as model
+import holdings_acquire as acquisition
 
 PRIVATE = 'audit-private/20260909-originals/holdings-research/'
 LEGACY_KEYS = ('data/13f-positions.json', 'data/13f-flows-by-ticker.json', 'data/13f-by-ticker.json',
@@ -136,7 +137,7 @@ def publish(client, bucket, packet):
 def replay(manifest, read):
     if manifest.get('contract') != 'holdings-native-replay.v1':
         raise ValueError('Holdings replay contract differs')
-    modules = (model, sys.modules[__name__])
+    modules = (model, acquisition, acquisition.evidence_store, sys.modules[__name__])
     if set(manifest.get('compilers', {})) != {v.__name__ for v in modules}:
         raise ValueError('Reviewed holdings compiler set differs')
     for module in modules:
@@ -150,14 +151,22 @@ def replay(manifest, read):
     if legacy.get('contract') != 'holdings-legacy-snapshot.v1' or {v['source'] for v in legacy.get('objects', [])} != set(LEGACY_KEYS):
         raise ValueError('Whole preceding products not accounted for')
     output, artifacts = model.build(probe, read, manifest['generated_at'])
-    output.update(legacy_snapshot=inputs['legacy'], acquisition_mode='retained_source_snapshot',
-                  refresh_status='Source audit snapshot. Scheduled collector and legacy consumer migration remain in progress.')
+    decorate(output, probe, inputs['legacy'])
     if output != verified(manifest['output'], read, 'outputs') or model.digest(output) != manifest['output_sha256']:
         raise ValueError('Holdings output replay differs')
     for key, raw in artifacts.items():
         if read(key) != raw:
             raise ValueError('Complete native filing or fund replay differs')
     return output
+
+
+def decorate(output, probe, legacy):
+    live = probe['contract'] == 'holdings-original-acquisition.v1'
+    output.update(legacy_snapshot=legacy, acquisition_mode='official_sec_collection' if live else 'retained_source_snapshot',
+        refresh_status=('SEC submissions and required filing archives were checked for this snapshot. Older holdings remain dated; legacy rankings still require migration.'
+                        if live else 'Source audit snapshot. Automatic source refresh has not been established for this snapshot.'),
+        source_request_count=len(probe['refs']), collection_started_at=probe.get('started_at', probe['generated_at']),
+        collection_request_id=probe.get('request_id'))
 
 
 def run(client, bucket, probe_ref):
@@ -169,15 +178,14 @@ def run(client, bucket, probe_ref):
     body = model.encoded(inputs); key = model.PREFIX + 'inputs/' + model.digest(inputs) + '.json'
     immutable(client, bucket, key, body); input_ref = reference(key, body)
     compilers = {}
-    for module in (model, sys.modules[__name__]):
+    for module in (model, acquisition, acquisition.evidence_store, sys.modules[__name__]):
         code = Path(module.__file__).read_bytes(); sha = hashlib.sha256(code).hexdigest()
         ref = {'key': model.PREFIX + 'compilers/' + sha + '.py', 'sha256': sha}
         immutable(client, bucket, ref['key'], code, 'text/x-python')
         compilers[module.__name__] = ref
     try:
         output, artifacts = model.build(probe, read, stamp)
-        output.update(legacy_snapshot=legacy, acquisition_mode='retained_source_snapshot',
-                      refresh_status='Source audit snapshot. Scheduled collector and legacy consumer migration remain in progress.')
+        decorate(output, probe, legacy)
         count = len(artifacts)
         with ThreadPoolExecutor(max_workers=6) as pool:
             list(pool.map(lambda item: immutable(client, bucket, *item), artifacts.items()))
@@ -203,7 +211,7 @@ def run(client, bucket, probe_ref):
         raise
 
 
-def handle(event, client, bucket):
+def handle(event, client, bucket, user_agent=None):
     headers = {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}
     if event.get('action') == 'holdings_research_read':
         try:
@@ -213,7 +221,11 @@ def handle(event, client, bucket):
                 raise
             return {'statusCode': 503, 'headers': headers, 'body': json.dumps({'status': 'not_published'})}
         return {'statusCode': 200, 'headers': headers, 'body': raw.decode('utf-8')}
-    if event.get('action') != 'holdings_research_refresh' or not isinstance(event.get('probe'), dict):
+    if event.get('action') == 'holdings_research_collect':
+        probe_ref = acquisition.acquire(client, bucket, user_agent, request_id=event.get('request_id'))
+    elif event.get('action') == 'holdings_research_refresh' and isinstance(event.get('probe'), dict):
+        probe_ref = event['probe']
+    else:
         raise ValueError('Explicit retained-source research action and probe required')
-    result = run(client, bucket, event['probe'])
+    result = run(client, bucket, probe_ref)
     return {'statusCode': 200, 'headers': headers, 'body': json.dumps(result)}

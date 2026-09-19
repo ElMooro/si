@@ -32,5 +32,20 @@
     "name": "justhodl-13f-positions-sched",
     "expression": "rate(2 hours)",
     "description": "13F holdings full refresh every 2h; sec-13f detector fires instant rebuilds on new EDGAR filings"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-holdings-originals-research",
+    "cron": "cron(40 0/2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Complete SEC holdings originals and reproducible disclosure research every two hours; explicit action excludes legacy rankings and notifications",
+    "input": {
+      "action": "holdings_research_collect",
+      "notify": false
+    },
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
   }
 }
