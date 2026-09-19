@@ -62,11 +62,13 @@
    `<details><summary>Inspect original responses and definitions</summary><ul>${links||'<li>Comparison originals are attached to its two input series.</li>'}</ul><pre>${esc(JSON.stringify(r.definition||{},null,2))}</pre></details>`;
  }
  function history(h,page=0){
-  if(!h)return {page:0,pages:1,count:0,html:'No retained history.'};const pages=Math.max(1,Math.ceil(h.rows.length/40));page=Math.max(0,Math.min(pages-1,page));
-  const cols=Object.keys(h.rows[0]);return {page,pages,count:h.rows.length,html:table(cols,[...h.rows].reverse().slice(page*40,page*40+40).map(r=>cols.map(k=>esc(typeof r[k]==='object'&&r[k]!==null?JSON.stringify(r[k]):r[k]))))};
+  if(!h)return {page:0,pages:1,count:0,html:'No retained history.'};const size=h.unit==='contracts'?12:40,pages=Math.max(1,Math.ceil(h.rows.length/size));page=Math.max(0,Math.min(pages-1,page));
+  const slice=[...h.rows].reverse().slice(page*size,page*size+size);
+  if(h.unit==='contracts')return {page,pages,count:h.rows.length,html:table(['Report date','Open interest','Classification','Long','Short','Spreading','Net','Net / OI · %','Original row'],slice.flatMap(r=>Object.entries(r.categories).map(([k,v])=>[esc(r.date),number(r.open_interest),words(k),number(v.long),number(v.short),number(v.spreading),number(v.net_contracts),esc(v.net_pct_oi_decimal),esc(r.row_index)])))};
+  const cols=['date',...Object.keys(h.rows[0]).filter(k=>k!=='date')];return {page,pages,count:h.rows.length,html:table(cols,slice.map(r=>cols.map(k=>esc(typeof r[k]==='object'&&r[k]!==null?JSON.stringify(r[k]):r[k]))))};
  }
  function chart(h,range=260){
-  if(!h)return '<p>No retained history.</p>';if(h.unit==='contracts')return '<p>The complete five-category positions and open-interest reconciliation are available in the table below.</p>';
+  if(!h)return '<p>No retained history.</p>';if(h.unit==='contracts')return '<p>Leveraged-fund net positions as a percentage of reported JPY futures open interest. This is positioning, not global carry size or an unwind probability.</p>'+chart({...h,id:'Leveraged funds · net / OI',unit:'percent of open interest',rows:h.rows.map(r=>({date:r.date,value_decimal:r.categories.leveraged_funds.net_pct_oi_decimal}))},range);
   const rows=(range?h.rows.slice(-range):h.rows).map(r=>({...r,value:r.value_decimal===null?null:Number(r.value_decimal)})),valid=rows.filter(r=>r.value!==null&&Number.isFinite(r.value));
   if(!valid.length)return '<p>No numeric observations in this range.</p>';
   const W=1050,H=250,pad=60,min=Math.min(...valid.map(r=>r.value)),max=Math.max(...valid.map(r=>r.value)),span=max-min||1,from=Date.parse(rows[0].date),to=Date.parse(rows.at(-1).date),xs=d=>pad+(Date.parse(d)-from)/Math.max(86400000,to-from)*(W-2*pad),ys=v=>H-pad-(v-min)/span*(H-2*pad);
