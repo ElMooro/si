@@ -846,8 +846,10 @@ def lambda_handler(event, context):
         "correlation_regime": {"r20d": _get(xaregime, "regime_20d", "regime"), "r60d": _get(xaregime, "regime_60d", "regime"),
                                "top_alert": (_xa_alerts[0].get("msg") if _xa_alerts else None),
                                "breaks": [b.get("pair") for b in _xa_breaks[:3]]},
-        "tic": {"stress": _get(ticflows, "composite_tic_stress"), "regime": _get(ticflows, "regime"),
-                "note": _get(ticflows, "interpretation")},
+        "tic": {"stress": None, "regime": "MONITOR_ONLY", "source_regime": _get(ticflows, "regime"),
+                "note": _get(ticflows, "interpretation"), "generated_at":_get(ticflows,"generated_at"),
+                "observation_date":_get(ticflows,"observation_date"),"quality":_get(ticflows,"quality"),"replay":_get(ticflows,"replay"),
+                "calls_eligible":False,"sizing_eligible":False,"additional_independent_votes":0},
         "commodity_curve": {"regime": _get(commcurves, "composite_regime"), "signal": _get(commcurves, "composite_signal")},
         "correlation_break": {"signal": _get(corrbreaks, "signal"), "z": _get(corrbreaks, "frobenius_z_score_1y")},
     }

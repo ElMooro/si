@@ -178,14 +178,15 @@ def dollar_leg(doc, ff):
           .get("lt_total") or {})
     off_z = (hs.get("official") or {}).get("z_10y")
     legs["official_flows_monthly"] = {
-        "z": off_z, "fires": (off_z is not None
-                              and off_z <= -1.0),
-        "rule": "TIC LT-total official flows z <= -1.0"}
+        "z": None, "source_z": off_z, "fires": False,
+        "available": False, "qualification": "MONITOR_ONLY",
+        "rule": "Descriptive TIC transactions have no qualified stress-vote authority"}
     sh_z = (((ff or {}).get("signals") or {})
             .get("safe_haven") or {}).get("z_10y")
     legs["safe_haven_monthly"] = {
-        "z": sh_z, "fires": (sh_z is not None and sh_z <= -1.5),
-        "rule": "safe-haven rotation z <= -1.5"}
+        "z": None, "source_z": sh_z, "fires": False,
+        "available": False, "qualification": "MONITOR_ONLY",
+        "rule": "Treasury-minus-equity transactions do not identify safe-haven intent"}
     cz = ((doc.get("custody") or {}).get("z_13wchg_10y")
           if (doc.get("custody") or {}).get("status") == "LIVE"
           else None)
@@ -196,11 +197,14 @@ def dollar_leg(doc, ff):
     avail = [k for k, v in legs.items()
              if v.get("z") is not None]
     firing = [k for k in avail if legs[k]["fires"]]
-    status = ("STRESS" if len(firing) >= 2
+    status = ("UNKNOWN" if not avail else "STRESS" if len(firing) >= 2
               else "WATCH" if len(firing) == 1 else "CALM")
     return {"doctrine": "STRESS-ONLY: this leg can only warn, "
                         "never turn the gate bullish",
             "legs": legs, "available": len(avail),
+            "tic_context": {"generated_at":(ff or {}).get("generated_at"), "observation_date":(ff or {}).get("latest_month"),
+                            "quality":(ff or {}).get("quality"), "replay":(ff or {}).get("replay"),
+                            "additional_independent_votes":0,"calls_eligible":False,"sizing_eligible":False},
             "legs_firing": len(firing), "firing": firing,
             "status": status}
 

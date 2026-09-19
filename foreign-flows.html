@@ -1,165 +1,18 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>US Foreign Portfolio Flows · TIC/CSLT · JustHodl AI</title>
-<meta name="description" content="Monthly foreign capital into US assets by destination: Treasuries, equities, corporate bonds, agency/MBS, T-bills — with risk-appetite, safe-haven and private-vs-official signals, country holdings decomposition and release history. Source: Treasury TIC via the 2026 CSLT dataset on FRED.">
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Foreign Securities Research — JustHodl.AI</title>
+<meta name="description" content="Trace foreign securities holdings, net transactions and valuation changes to original Treasury evidence and complete dated histories.">
 <style>
-:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
-a{color:var(--cyan);text-decoration:none}
-.header{min-height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:8px 24px;background:var(--bg-1);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
-.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
-.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--cyan)}
-.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 70px}
-.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
-.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:860px}
-.badge{display:none;background:var(--amber);color:#000;border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;font-family:var(--mono);vertical-align:middle;margin-left:10px}
-.sec{margin-top:30px}
-.sec h2{font-size:15px;font-family:var(--mono);color:var(--fg-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px}
-.card .k{font-size:11px;font-family:var(--mono);color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px}
-.card .v{font-size:22px;font-weight:800;color:var(--fg-0);margin-top:4px;font-family:var(--mono)}
-.card .s{font-size:11px;color:var(--fg-3);margin-top:3px}
-.pos{color:var(--green)!important}.neg{color:var(--red)!important}.amb{color:var(--amber)!important}
-table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-th{font-family:var(--mono);font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;text-align:right;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-1)}
-th:first-child,td:first-child{text-align:left}
-td{padding:8px 12px;font-family:var(--mono);font-size:13px;text-align:right;border-bottom:1px solid var(--border);color:var(--fg-1)}
-tr:last-child td{border-bottom:none}
-.note{color:var(--fg-3);font-size:11px;margin-top:10px;max-width:1000px}
-.chip{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;opacity:.8}
-.chip b{font-size:12px;font-family:var(--mono)}
-.chip .w{font-size:11px;color:var(--fg-3);margin-top:3px}
-</style></head><body>
-<div class="header"><div class="brand"><div class="brand-dot"></div>JustHodl<span style="color:var(--cyan)">.AI</span></div>
-<div class="nav"><a href="/capital-flow.html">capital-flow</a><a href="/foreign-flows.html" class="active">us tic/cslt</a><a href="/global-flows.html">world macro</a><a href="/hot-money.html">hot money</a></div></div>
-<div class="wrap">
-
-<div class="hero"><h1>🇺🇸 US Foreign Portfolio Flows <span class="grad">TIC / CSLT</span><span class="badge" id="nr">NEW RELEASE</span></h1>
-<p id="sub">Foreign purchases minus sales of US securities, by destination. Monthly, ~1.5-month lag, banked permanently. Loading…</p></div>
-<div class="sec"><h2>Flows by destination — latest month ($B)</h2><div class="cards" id="flows"></div></div>
-<div class="sec"><h2>Signals</h2><div class="cards" id="sigs"></div><div class="note" id="split"></div></div>
-<div class="sec"><h2>Weekly official pulse — Fed H.4.1</h2><div class="cards" id="pulse"></div>
-<div class="note">The Fed's own weekly ledger of foreign official accounts — six weeks ahead of TIC. Dollar-leg is STRESS-ONLY: it can warn the risk-gate, never turn it bullish. Engine: justhodl-official-pulse.</div></div>
-<div class="sec"><h2>History — 10 years monthly ($B)</h2><div id="hist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div></div>
-<div class="sec"><h2>Official vs Private — all split families ($B)</h2><div id="splits"></div>
-<div class="note">Each family reconciled at runtime: all = official + private within tolerance, or the family is marked and excluded — never silently summed.</div></div>
-<div class="sec"><h2>Foreign absorption of Treasury supply</h2><div class="cards" id="abscards" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"></div><div id="abstab" style="margin-top:10px"></div>
-<div class="note">absorption = TIC foreign Treasury net buying ÷ net marketable issuance (MSPD 5-class sum). Paydown months show no percentage — never faked. Falling share against rising supply is the stress read even when the raw flow is positive.</div></div>
-<div class="sec"><h2>Auction tape — indirect bidders (foreign proxy)</h2><div id="auct"></div></div>
-<div class="sec"><h2>LT-Treasury holdings by country ($B)</h2><div id="ctry"></div>
-<div class="note">Δholdings = transactions + valuation change + other adjustments — the rightmost column is the honest "other" term. Country attribution carries custodial bias (BE/UK/LU/IE/KY are custody centers).</div></div>
-<div class="sec"><h2>LT-Equity holdings by country ($B)</h2><div id="ctryeq"></div>
-<div class="note">Foreign holdings of US equities by country — holdings and Δ12m only; never diffed into flows (valuation dominates equity deltas). Transactions decomposition by country: queued.</div></div>
-<div class="sec"><h2>Release history</h2><div id="rel" class="note">loading…</div></div>
-<div class="note">Flows are TIC <b>transactions</b> — never computed as holdings deltas (valuation-change trap). Direct real-estate purchases (NAR annual survey) and TIC banking-channel flows (B-tables) are queued probes — not monthly CSLT, so not faked here. Engine: justhodl-foreign-flows.</div>
-<script>
-const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
-const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
-const zs=z=>z==null?"":" \u00b7 z "+(z>0?"+":"")+z;
-const acc=f=>!f?"":('<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);color:'+(f.indexOf("BUY")>0?"var(--green)":"var(--red)")+'">'+f.replace("_"," ")+'</span>');
-async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
-const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
-
-(async function(){
-  const d=await jget("/data/foreign-flows.json");
-  if(!d||d.status!=="LIVE"){document.getElementById("sub").textContent="feed "+(d&&d.status||"unavailable")+(d&&d.why?" \u2014 "+d.why:"");return;}
-  S_("sub",()=>{
-    document.getElementById("sub").textContent="Data month "+(d.latest_month||"")+" \u00b7 published as of "+(d.as_of||"")+" \u00b7 monthly, ~1.5-month lag \u00b7 banked permanently under the Deny-Delete zone.";
-    if(d.new_release)document.getElementById("nr").style.display="inline-block";});
-  S_("flows",()=>{
-    const F=d.flows_bn||{};let h="";
-    for(const[k,lab]of[["total","Total LT securities"],["treas","US Treasuries (LT+ST)"],["equity","US Equities"],["corp","Corporate bonds"],["agency","Agency / MBS"],["tbills","T-bills (ST)"]]){
-      const v=F[k]||{};
-      h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(v.latest)+'">'+fN(v.latest)+'B</div><div class="s">3m '+fN(v.sum_3m)+' \u00b7 12m '+fN(v.sum_12m)+zs(v.z_10y)+'</div></div>';}
-    document.getElementById("flows").innerHTML=h;});
-  S_("signals",()=>{
-    const S=d.signals||{};let h="";
-    for(const[k,lab]of[["risk_appetite","Risk appetite"],["safe_haven","Safe-haven rotation"],["total_demand","Total foreign demand"],["official_private","Private \u2212 Official"]]){
-      const s=S[k]||{};
-      if(s.latest_bn==null){h+='<div class="card"><div class="k">'+lab+'</div><div class="v">\u2013</div><div class="s">'+(s.why||"")+'</div></div>';continue;}
-      h+='<div class="card"><div class="k">'+lab+'</div><div class="v'+cls(s.latest_bn)+'">'+fN(s.latest_bn)+'B</div><div class="s">12m '+fN(s.sum_12m_bn)+zs(s.z_10y)+'</div></div>';}
-    document.getElementById("sigs").innerHTML=h;
-    const hs=((d.holder_splits||{}).lt_total)||{};
-    if(hs.status==="OK")document.getElementById("split").innerHTML="LT total split: private <b>"+fN((hs.private||{}).latest)+"B</b> vs official <b>"+fN((hs.official||{}).latest)+"B</b> (recon gap "+fN(hs.recon_gap_bn,2)+"B \u2014 runtime-reconciled).";});
-  S_("hist",()=>{
-    const H=d.hist_10y||{};
-    const HL={total:"Total LT",treas:"Treasuries",equity:"Equities",corp:"Corp bonds",agency:"Agency/MBS",tbills:"T-bills",sig_risk_appetite:"Risk appetite",sig_safe_haven:"Safe-haven",sig_total_demand:"Total demand",sig_official_private:"Private \u2212 Official"};
-    function chart(name,hh){
-      const v=hh.vals,dts=hh.dates;if(!v||v.length<12)return"";
-      const W=340,Hh=96,n=v.length,bw=W/n;
-      const mx=Math.max(...v.map(Math.abs))||1;
-      let s='<div class="card" style="padding:10px"><div class="k">'+(HL[name]||name)+' <span style="float:right;color:var(--fg-2)">'+fN(v[v.length-1])+'B</span></div>';
-      s+='<svg width="100%" viewBox="0 0 '+W+' '+Hh+'" style="margin-top:6px"><line x1="0" y1="'+(Hh/2)+'" x2="'+W+'" y2="'+(Hh/2)+'" stroke="#1c2433"/>';
-      v.forEach((x,i)=>{const bh=Math.abs(x)/mx*(Hh/2-4);const y=x>=0?Hh/2-bh:Hh/2;
-        s+='<rect x="'+(i*bw)+'" y="'+y+'" width="'+Math.max(0.8,bw-0.7)+'" height="'+Math.max(0.6,bh)+'" fill="'+(x>=0?"#26ffaf":"#ff5577")+'" opacity="0.8"/>';});
-      s+='</svg><div class="s">'+dts[0].slice(0,7)+' \u2192 '+dts[dts.length-1].slice(0,7)+' \u00b7 monthly net flow</div></div>';
-      return s;}
-    let hh="";for(const k of Object.keys(HL))if(H[k])hh+=chart(k,H[k]);
-    document.getElementById("hist").innerHTML=hh||'<div class="note">history pending next engine run</div>';});
-  S_("splits",()=>{
-    const SPn={lt_total:"LT total",lt_treas:"LT Treasuries",st_treas:"T-bills (ST)",lt_corp:"Corp bonds",lt_equity:"Equities",lt_agency:"Agency/MBS"};
-    const SP=d.holder_splits||{};const spr=Object.entries(SP);
-    if(!spr.length)return;
-    let ts='<table><tr><th>family</th><th>official</th><th>off 12m</th><th>private</th><th>prv 12m</th><th>recon gap</th><th>status</th></tr>';
-    for(const[f,r]of spr){
-      if(r.status!=="OK"){ts+='<tr><td>'+(SPn[f]||f)+'</td><td colspan="5" style="color:var(--fg-3)">'+r.status+' \u2014 '+(r.why||"")+'</td><td>'+r.status+'</td></tr>';continue;}
-      ts+='<tr><td>'+(SPn[f]||f)+'</td><td class="'+cls(r.official.latest)+'">'+fN(r.official.latest)+'</td><td>'+fN(r.official.sum_12m)+'</td><td class="'+cls(r.private.latest)+'">'+fN(r.private.latest)+'</td><td>'+fN(r.private.sum_12m)+'</td><td>'+fN(r.recon_gap_bn,2)+'</td><td style="color:var(--green)">OK</td></tr>';}
-    document.getElementById("splits").innerHTML=ts+'</table>';});
-  S_("absorption",()=>{
-    const A=d.absorption||{};if(A.status!=="LIVE")return;
-    const g=A.agg_12m||{};
-    document.getElementById("abscards").innerHTML=
-      '<div class="card"><div class="k">12m foreign buying</div><div class="v'+cls(g.foreign_bn)+'">'+fN(g.foreign_bn)+'B</div><div class="s">TIC Treasury net (LT+ST)</div></div>'+
-      '<div class="card"><div class="k">12m net issuance</div><div class="v">'+fN(g.net_issuance_bn)+'B</div><div class="s">MSPD marketable, held by public</div></div>'+
-      '<div class="card"><div class="k">Foreign absorption share</div><div class="v'+(g.pct!=null&&g.pct<10?" neg":"")+'">'+(g.pct==null?"\u2013":g.pct+"%")+'</div><div class="s">of marginal supply, 12m</div></div>';
-    let at='<table><tr><th>month</th><th>foreign ($B)</th><th>net issuance ($B)</th><th>absorption</th></tr>';
-    for(const r of (A.rows||[]).slice().reverse())at+='<tr><td>'+r.month+'</td><td class="'+cls(r.foreign_bn)+'">'+fN(r.foreign_bn)+'</td><td>'+fN(r.net_issuance_bn)+'</td><td>'+(r.absorption_pct==null?('<span style="color:var(--fg-3)">'+(r.note||"\u2013")+'</span>'):r.absorption_pct+"%")+'</td></tr>';
-    document.getElementById("abstab").innerHTML=at+'</table>';});
-  S_("auctions",()=>{
-    const AU=d.auctions||{};if(AU.status!=="LIVE")return;
-    let au='<div class="note" style="margin-bottom:8px">avg indirect '+AU.avg_indirect_pct_60d+'% across '+AU.n_auctions_60d+' auctions, 60d</div><table><tr><th>date</th><th>type</th><th>term</th><th>indirect %</th><th>bid-to-cover</th><th>high yield</th></tr>';
-    for(const r of AU.recent||[])au+='<tr><td>'+r.date+'</td><td>'+r.type+'</td><td>'+r.term+'</td><td class="'+(r.indirect_pct>=70?"pos":(r.indirect_pct<55?"neg":""))+'">'+r.indirect_pct+'%</td><td>'+(r.bid_to_cover||"\u2013")+'</td><td>'+(r.high_yield||"\u2013")+'</td></tr>';
-    document.getElementById("auct").innerHTML=au+'</table>';});
-  S_("ctry",()=>{
-    const C=d.country_lt_treasury||{};const rows=Object.entries(C).filter(([,r])=>r&&r.status==="OK");
-    if(!rows.length)return;
-    let t='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
-    for(const[n,r]of rows)t+='<tr'+(r.composite?' style="border-top:2px solid var(--border-bright);background:var(--bg-1)"':'')+'><td>'+(r.composite?'\u2211 ':'')+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
-    document.getElementById("ctry").innerHTML=t+'</table>';});
-  S_("ctryeq",()=>{
-    const E=d.country_lt_equity||{};const er=Object.entries(E).filter(([,r])=>r&&r.status==="OK");
-    if(!er.length)return;
-    let t2='<table><tr><th>country</th><th>holdings</th><th>\u039412m</th><th>tx 3m</th><th>tx 12m</th><th>accel</th><th>valchg 12m</th><th>other</th></tr>';
-    for(const[n,r]of er)t2+='<tr><td>'+n.replace(/_/g," ")+'</td><td>'+fN(r.holdings_bn)+'</td><td class="'+cls(r.d12m_holdings_bn)+'">'+fN(r.d12m_holdings_bn)+'</td><td class="'+cls(r.tx_3m_bn)+'">'+fN(r.tx_3m_bn)+'</td><td class="'+cls(r.tx_12m_bn)+'">'+fN(r.tx_12m_bn)+'</td><td>'+acc(r.accel)+'</td><td>'+fN(r.valchg_12m_bn)+'</td><td>'+fN(r.identity_gap_bn)+'</td></tr>';
-    document.getElementById("ctryeq").innerHTML=t2+'</table>';});
-  S_("releases",async()=>{});
-  try{
-    const rel=await jget("/foreign-flows/releases.json");
-    const rr=(rel&&rel.rows||[]).slice(-12).reverse();
-    document.getElementById("rel").innerHTML=rr.length?rr.map(r=>"<div>"+r.detected+" \u2014 month "+r.month+": "+(r.alert||"")+"</div>").join(""):"no releases logged yet \u2014 the badge flips on the next monthly TIC ingest.";
-  }catch(e){console.warn("sec releases",e)}
-  try{
-    const op=await jget("/data/official-pulse.json");
-    const el=document.getElementById("pulse");
-    if(el){
-      if(op&&op.status==="LIVE"){let ph="";
-        const rr2=op.foreign_rrp||{};
-        ph+='<div class="card"><div class="k">Foreign RRP pool \u00b7 '+(rr2.latest_date||"")+'</div><div class="v">'+fN(rr2.latest_bn)+'B</div><div class="s">4w '+fN(rr2.chg_4w_bn)+' \u00b7 13w '+fN(rr2.chg_13w_bn)+zs(rr2.z_13wchg_10y)+'</div></div>';
-        const cu=op.custody||{};
-        if(cu.status==="LIVE")ph+='<div class="card"><div class="k">FRBNY custody \u00b7 '+(cu.latest_date||"")+'</div><div class="v">'+fN(cu.latest_bn)+'B</div><div class="s">4w '+fN(cu.chg_4w_bn)+' \u00b7 13w '+fN(cu.chg_13w_bn)+zs(cu.z_13wchg_10y)+'</div></div>';
-        else ph+='<div class="card"><div class="k">FRBNY custody</div><div class="v">\u2013</div><div class="s">'+((cu.why||"")+"").slice(0,80)+'</div></div>';
-        const dl=op.dollar_leg||{};
-        const col=dl.status==="STRESS"?"neg":(dl.status==="WATCH"?"amb":"pos");
-        ph+='<div class="card"><div class="k">Dollar-leg (stress-only)</div><div class="v '+col+'">'+(dl.status||"\u2013")+'</div><div class="s">'+((dl.why||"")+"").slice(0,90)+'</div></div>';
-        el.innerHTML=ph;
-      }else el.innerHTML='<div class="note">official-pulse '+((op&&op.status)||"unavailable")+' \u2014 '+((op&&op.why)||"")+'</div>';
-    }
-  }catch(e){console.warn("sec pulse",e)}
-})();
-</script>
-</div><script src="/freshness.js"></script><script src="/sidebar.js" defer></script>
-</body></html>
+:root{--bg:#0b0e13;--card:#12161f;--fg:#d7dde8;--dim:#a5afbd;--bd:#28323f;--cyan:#d5b372}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1250px;margin:auto;padding:28px 18px 70px}a{color:var(--cyan);overflow-wrap:anywhere}h1{font-size:clamp(26px,3vw,38px);line-height:1.2;margin:.4em 0}h2{font-size:22px;margin:6px 0 14px}p{margin:10px 0}.eyebrow{font-size:12px;letter-spacing:1.5px;color:var(--cyan)}.dim{color:var(--dim);font-size:12px}.panel{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:22px;margin:18px 0;min-width:0;overflow-wrap:anywhere}.lead-nav{display:flex;gap:18px;flex-wrap:wrap}#state{color:var(--cyan)}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid var(--bd);border-radius:10px;background:var(--card);padding:18px;min-width:0}.metric div{font-size:12px;min-height:48px;color:var(--dim)}.metric strong{display:block;font-size:27px;overflow-wrap:anywhere}.metric span{font-size:11px;color:var(--dim)}.controls{display:flex;gap:15px;align-items:end;flex-wrap:wrap;margin:18px 0}.controls label{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}.controls select{width:100%;max-width:100%}button,input,select{font:inherit;color:var(--fg);background:#161e2a;border:1px solid #4a5669;border-radius:6px;padding:10px 12px;min-height:44px;min-width:0}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.text-button{color:var(--cyan)}.table-scroll{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;font-size:13px}th{text-align:left;color:var(--dim);font-size:12px}td,th{padding:11px;border-bottom:1px solid var(--bd);vertical-align:top;min-width:110px}.pagination{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:15px}#chart svg{width:100%;height:auto;display:block}#chart text{fill:var(--dim);font-size:13px}details{margin-top:18px;border-top:1px solid var(--bd);padding-top:12px}summary{cursor:pointer;min-height:44px}code{font-size:12px;overflow-wrap:anywhere;white-space:pre-wrap}.scenario-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.scenario-grid label{display:flex;flex-direction:column;gap:5px}.scenario-grid input{width:100%}.scenario-grid button{align-self:end}.warning{border-left:3px solid var(--cyan);padding:10px 14px;background:#201e1a}#scenario-result{margin:14px 0}#permanent{display:inline-block;min-height:40px;padding:8px 0}@media(max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.controls{display:block}.controls label{margin:10px 0}.scenario-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){main{padding:18px 10px 55px}.panel{padding:16px}.metric{padding:12px}.metric strong{font-size:23px}.table-scroll table{min-width:580px}.scenario-grid{grid-template-columns:1fr}}
+</style></head><body><main>
+<nav class="lead-nav" aria-label="Research links"><a href="/calls.html">Calls</a><a href="/capital-inflows.html">Cross-border transactions</a><a href="/auctions.html">Treasury auctions</a><a href="/carry.html">Income & funding scenarios</a></nav>
+<header class="panel"><div class="eyebrow">FOREIGN SECURITIES · ORIGINAL TREASURY EVIDENCE</div><h1>Separate holdings from buying.</h1><p>Inspect what foreign investors held, what they transacted, and what valuation or other changes explain. Every selected history links to a reproducible research snapshot.</p><p id="state" aria-live="polite">Verifying retained research…</p><p class="dim" id="asof"></p><a id="permanent">Permanent research snapshot</a></header>
+<section aria-label="Reported monthly transactions"><div class="cards" id="cards"></div></section>
+<div class="controls"><label for="selection">Reported area or group<select id="selection"></select></label><label for="family">Security family<select id="family"></select></label><label for="measure">Measurement<select id="measure"><option value="pos">Reported holdings</option><option value="net">Net transactions</option><option value="valchg">Valuation changes</option></select></label></div>
+<p class="warning">Custody or residence does not identify the ultimate owner. Countries, regional totals, official investors and issuer groups overlap. Do not sum them together or infer investor intent from a holdings change.</p>
+<section class="panel" id="detail" aria-label="Selected original evidence"></section>
+<section class="panel"><h2 id="history-title">Complete source history</h2><div class="controls"><label for="history-kind">History view<select id="history-kind"><option value="native">Reported monthly series</option><option value="decomposition">Monthly holdings-change reconciliation</option></select></label><label for="range">Chart range<select id="range"><option value="24">Latest 24 months</option><option value="120" selected>Latest 120 months</option><option value="0">All retained months</option></select></label></div><div id="chart"></div><details><summary>Exact monthly records and source row references</summary><div id="history"></div><div class="pagination"><button id="prev" type="button" disabled>Previous records</button><span id="page-count" aria-live="polite"></span><button id="next" type="button" disabled>Next records</button></div></details><button id="download-history" type="button" disabled>Download complete selected group history</button></section>
+<section class="panel"><h2>Reconcile the context</h2><p id="comparison"></p><a id="comparison-link">Inspect all holdings-table comparisons</a><div id="context"></div></section>
+<section class="panel"><h2>Connect a hypothesis to portfolio consequences</h2><p>Foreign-flow research does not supply a reliable conversion from a dollar of inflow to a market return. Enter a price change and your exposure to inspect the consequence of your own hypothesis.</p><form id="scenario-form" class="scenario-grid"><label for="s-exposure">USD asset exposure<input id="s-exposure" type="number" min="0.01" max="1000000000000" step="any" required></label><label for="s-priceMove">Entered price change · %<input id="s-priceMove" type="number" min="-100" max="1000" step="any" required></label><label for="s-income">Cash income over horizon · USD<input id="s-income" type="number" min="0" max="1000000000000" step="any" required></label><label for="s-costs">Fees and funding over horizon · USD<input id="s-costs" type="number" min="0" max="1000000000000" step="any" required></label><label for="s-days">Scenario horizon · days<input id="s-days" type="number" min="1" max="3650" step="1" required></label><button type="submit">Calculate entered scenario</button></form><div id="scenario-result" aria-live="polite">No assumptions entered.</div><button id="download-scenario" type="button" disabled>Download assumptions and calculation</button><p class="dim">USD exposure and same-horizon cash amounts only. Price change, income, tax and funding assumptions are not inferred from TIC; include relevant expenses in costs. No portfolio account is read or changed.</p></section>
+<section class="panel"><h2>Evidence, release timing and reproduction</h2><p id="calendar"></p><div id="evidence"></div><p class="warning">These are measurements, not a validated return model. No de-dollarization probability, auction-failure probability, price target or allocation is inferred.</p><details><summary>Related monitors and prior release log</summary><p class="dim">These separate feeds are not part of the verified snapshot above.</p><button id="legacy-load" type="button">Inspect dated official-pulse context</button><p id="legacy-context"></p><a href="/foreign-flows/releases.json">Prior release-detection log</a> · <a href="/data/tic-flows.json">TIC holdings view of the canonical evidence</a></details></section>
+</main><script src="/jh-tic-research.js" defer></script><script src="/jh-foreign-research.js" defer></script><script src="/jh-foreign-page.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>

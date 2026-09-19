@@ -122,7 +122,7 @@ def maybe_telegram(msg):
         print(f"[tg] err: {e}")
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     t0 = time.time()
     print("[tic-flows] starting")
 
@@ -286,3 +286,18 @@ def lambda_handler(event, context):
         "body": json.dumps({"ok": True, "composite": score, "regime": regime,
                               "n_holders": len(holders_list)}),
     }
+
+
+def lambda_handler(event=None, context=None):
+    """Read verified source artifacts; no FRED collection, paid AI or alerts."""
+    import tic_view
+    try:
+        event=event or {}
+        if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
+            output=json.loads(tic_view.reader(s3,S3_BUCKET)(tic_view.CURRENT))
+            if output.get('contract')!=tic_view.CONTRACT:raise ValueError('reviewed holdings view unavailable')
+        else:output=tic_view.run(s3,S3_BUCKET)
+        return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':tic_view.encoded(output).decode()}
+    except Exception as exc:
+        print('[tic-view] '+type(exc).__name__)
+        return {'statusCode':503,'body':json.dumps({'ok':False,'reason':'Verified holdings view unavailable; prior publication retained.'})}

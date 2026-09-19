@@ -2,8 +2,8 @@
   "function_name": "justhodl-foreign-flows",
   "runtime": "python3.12",
   "timeout": 600,
-  "memory": 512,
-  "description": "US Foreign Portfolio Flows (TIC/CSLT): six destination flows + signals + official/private splits + 21-country LT-Treasury matrix (holdings/tx/valchg, honest gap) + LT-equity holdings; Deny-Delete banks; release detection. Daily 21:30 UTC.",
+  "memory": 2048,
+  "description": "Original Treasury foreign securities research: complete CSLT histories, dated stock/transaction/valuation reconciliation, Table5 comparison and fiscal/auction context. Replayable, research only; daily21:30UTC.",
   "inherit_env": [
     {
       "from_function": "dollar-strength-agent",

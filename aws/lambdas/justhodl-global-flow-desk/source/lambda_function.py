@@ -233,13 +233,16 @@ def lambda_handler(event=None, context=None):
     # ── hot money world map ──
     sv = _j("data/sovereign-fiscal.json", {}) or {}
     tic = _j("data/tic-flows.json", {}) or {}
+    # Preserve monthly securities context without treating holdings changes or
+    # unqualified transaction amounts as country hot-money votes.
     tic_ctry = {}
-    for doc in (sv, tic):
-        for h in (doc.get("holders") or doc.get("countries") or doc.get("by_country") or []):
-            if not isinstance(h, dict): continue
-            nm = h.get("country") or h.get("name")
-            d = _num(h.get("chg_12m_usd_b") or h.get("net_purchases_12m") or h.get("delta") or h.get("chg"))
-            if nm and d is not None: tic_ctry[nm] = d
+    tic_context = {"generated_at":tic.get("generated_at"),"observation_date":tic.get("observation_date"),
+        "quality":tic.get("quality"),"replay":tic.get("replay"),"holdings":tic.get("top_holders"),
+        "legacy_holder_inputs":tic.get("holders") or tic.get("countries") or tic.get("by_country"),
+        "sovereign_holder_inputs":sv.get("holders") or sv.get("countries") or sv.get("by_country"),
+        "sovereign_generated_at":sv.get("generated_at"),"net_purchases":tic.get("net_purchases"),
+        "calls_eligible":False,"sizing_eligible":False,"additional_independent_votes":0,
+        "interpretation":"Dated securities context; holdings changes are not transactions or a calibrated hot-money signal."}
     fx = _j("data/polygon-fx-regime.json", {}) or {}
     fx_mom = {}
     for p in (fx.get("pairs") or []):
@@ -276,6 +279,7 @@ def lambda_handler(event=None, context=None):
         e["verdict"] = "HOT MONEY IN" if e["score"] > 18 else "HOT MONEY OUT" if e["score"] < -18 else "NEUTRAL"
     ctry_rank = sorted(countries.items(), key=lambda kv: kv[1]["score"], reverse=True)
     hot = {"countries": {c: e for c, e in ctry_rank},
+           "tic_context": tic_context,
            "top_inflows": [c for c, e in ctry_rank[:5]],
            "top_outflows": [c for c, e in ctry_rank[-5:]][::-1],
            "n_scored": len(countries),

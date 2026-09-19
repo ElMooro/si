@@ -655,7 +655,7 @@ def build():
     return doc
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     doc = build()
     _put(OUT_KEY, doc)
     return {"ok": doc.get("status") == "LIVE", "v": VERSION,
@@ -663,3 +663,22 @@ def lambda_handler(event, context):
             "latest_month": doc.get("latest_month"),
             "new_release": doc.get("new_release"),
             "n_series": len(doc.get("flows_bn") or {})}
+
+
+def lambda_handler(event=None, context=None):
+    """Original foreign-flow research; public HTTP never invokes collection."""
+    from foreign_research import CONTRACT, CURRENT, encoded
+    from foreign_store import raw_reader, run
+    try:
+        event=event or {}
+        if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
+            packet=json.loads(raw_reader(s3,BUCKET)(CURRENT))
+            if packet.get('contract')!=CONTRACT:raise ValueError('reviewed foreign publication unavailable')
+            return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':encoded(packet).decode()}
+        from managed_secret import managed_secret
+        key=managed_secret(('FRED_KEY','FRED_API_KEY'),('/justhodl/fred/api-key',))
+        result=run(s3,BUCKET,key,context)
+        return {'statusCode':200,'body':encoded(result).decode()}
+    except Exception as exc:
+        print('[foreign-research] '+type(exc).__name__)
+        return {'statusCode':503,'body':json.dumps({'ok':False,'reason':'Original foreign-flow research unavailable; last verified publication retained.'})}

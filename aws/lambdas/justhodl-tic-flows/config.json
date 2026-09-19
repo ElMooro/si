@@ -1,10 +1,10 @@
 {
-  "timeout": 120,
+  "timeout": 300,
   "schedule": {
     "name": "justhodl-tic-flows-sched",
-    "expression": "cron(15 14 ? * TUE *)",
-    "description": "Flow-fleet revival (ops 2720)"
+    "expression": "cron(45 21 * * ? *)",
+    "description": "Verified holdings view after the daily foreign-flow collection"
   },
-  "description": "TIC Flows \u2014 foreign Treasury holdings + de-dollarization tracker",
-  "memory": 256
+  "description": "TIC holdings view of the verified foreign-flow snapshot; exact calendars, immutable evidence and zero additional independent votes.",
+  "memory": 512
 }
