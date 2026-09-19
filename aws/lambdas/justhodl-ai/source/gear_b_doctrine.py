@@ -33,6 +33,7 @@ def _wrap_gear_b() -> bool:
 
     orig_tick = gear_b.tick
     orig_promo = gear_b.promotion
+    orig_status = gear_b.public_status
     if getattr(orig_tick, "_doctrine", False):
         return True
 
@@ -45,6 +46,7 @@ def _wrap_gear_b() -> bool:
             region=region, launch=False,
         )
         if not launch:
+            preview["doctrine"] = self_improve.VERSION
             return preview
         try:
             control = gear_b.load_control(s3, private_bucket)
@@ -72,10 +74,25 @@ def _wrap_gear_b() -> bool:
             raw, candidate_eval or {}, champion_eval or {}, market_eval=market_eval, market_base=market_base
         )
 
+    def public_status(s3, private_bucket: str, policy: Dict[str, Any]) -> Dict[str, Any]:
+        out = dict(orig_status(s3, private_bucket, policy) or {})
+        out["doctrine"] = self_improve.VERSION
+        out["doctrine_tick_wrapped"] = True
+        ds = out.get("dataset") or {}
+        try:
+            why = self_improve.refuse_repeat_sft([], ds, gear_b.load_control(s3, private_bucket))
+        except Exception:
+            why = None
+        out["doctrine_would_refuse_sft"] = bool(why)
+        out["doctrine_refuse_reason"] = (why or "")[:180] or None
+        return out
+
     tick._doctrine = True  # type: ignore[attr-defined]
     promotion._doctrine = True  # type: ignore[attr-defined]
+    public_status._doctrine = True  # type: ignore[attr-defined]
     gear_b.tick = tick
     gear_b.promotion = promotion
+    gear_b.public_status = public_status
     return True
 
 
