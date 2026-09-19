@@ -167,11 +167,16 @@ def project(name, doc):
         for scope, key in (('treasury','gross_bn'),('headline','combined_bn')):
             row = doc.get(scope) if isinstance(doc.get(scope),dict) else {}
             quality = row.get('quality') if isinstance(row.get('quality'),dict) else {}
+            declared_scope=row.get('scope_id') if row.get('scope_id') is not None else row.get('scope')
+            field_units=row.get('field_units') if isinstance(row.get('field_units'),dict) else {}
+            def declared_unit(value):
+                return value if value in (None,'usd_bn','USD_bn_par') else '__unrecognized_unit__'
             date = row.get('as_of')
             try: datetime.strptime(date, '%Y-%m-%d')
             except (TypeError,ValueError): date = None
-            out[scope] = {'as_of': date, 'scope_id': row.get('scope_id') if row.get('scope_id') in ('treasury_incl_tips','ust_ex_tips') else None,
-                'unit': row.get('unit') if row.get('unit') == 'usd_bn' else None,
+            out[scope] = {'as_of': date, 'scope_id': declared_scope if declared_scope in ('treasury_incl_tips','ust_ex_tips') else None,
+                'unit': declared_unit(row.get('unit')),
+                'field_units':{field:declared_unit(field_units.get(field)) for field in ('ftd_bn','ftr_bn',key)},
                 'complete': row.get('complete') is not False, 'declared_quality': quality.get('status') if quality.get('status') in ('fresh','stale') else None,
                 'ftd_bn': number(row.get('ftd_bn')), 'ftr_bn': number(row.get('ftr_bn')), 'combined_bn': number(row.get(key))}
     return out
@@ -222,7 +227,10 @@ def fails(source, at, availability):
     for key, scope in (('treasury','treasury_incl_tips'),('headline','ust_ex_tips')):
         r = source[key]; reasons=[]
         if r['scope_id'] != scope: reasons.append('scope_unverified')
-        if r['unit'] != 'usd_bn': reasons.append('unit_unverified')
+        units=list(r['field_units'].values())
+        units_ok=r['unit'] in (None,'usd_bn','USD_bn_par') and (
+            all(u=='usd_bn' for u in units) or (r['unit'] in ('usd_bn','USD_bn_par') and all(u is None for u in units)))
+        if not units_ok: reasons.append('unit_unverified')
         vals=[r[k] for k in ('ftd_bn','ftr_bn','combined_bn')]
         if any(x is None or x < 0 for x in vals): reasons.append('incomplete_values')
         elif abs(Decimal(str(vals[0]))+Decimal(str(vals[1]))-Decimal(str(vals[2]))) > Decimal('0.02'): reasons.append('gross_reconciliation_failed')

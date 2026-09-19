@@ -128,6 +128,19 @@ class ModelTests(unittest.TestCase):
         a=m.build(inputs())['research_ideas'][0]['decision_id'];i=inputs();i['generated_at']='2026-09-19T09:31:00Z'
         b=m.build(i)['research_ideas'][0]['decision_id'];self.assertNotEqual(a,b)
         self.assertEqual(a,m.build(inputs())['research_ideas'][0]['decision_id'])
+    def test_actual_field_units_and_scope_alias_are_retained_without_guessing(self):
+        docs=fixture();f=docs['settlement_fails'];f['treasury']['unit']='USD_bn_par'
+        f['treasury']['field_units']={k:'usd_bn' for k in ('ftd_bn','ftr_bn','gross_bn')}
+        f['headline'].pop('unit');f['headline'].pop('scope_id');f['headline']['scope']='ust_ex_tips'
+        f['headline']['field_units']={k:'usd_bn' for k in ('ftd_bn','ftr_bn','combined_bn')}
+        out=m.build(inputs(docs))['pd_settlement_fails']
+        self.assertEqual(out['display_values']['combined_bn'],190.24)
+        self.assertEqual(out['unit'],'USD_bn_par');self.assertEqual(out['ust_ex_tips']['scope_id'],'ust_ex_tips')
+        self.assertEqual(out['ust_ex_tips']['display_values']['combined_bn'],173)
+        f['treasury']['field_units']['ftd_bn']='usd_mn'
+        self.assertIsNone(m.build(inputs(docs))['pd_settlement_fails']['display_values'])
+        f['headline']['scope_id']='unrecognized'
+        self.assertIn('scope_unverified',m.build(inputs(docs))['pd_settlement_fails']['ust_ex_tips']['reasons'])
     def test_brief_cites_exact_decisions_and_stale_stays_stale(self):
         o=m.build(inputs());ref={'manifest_key':m.PREFIX+'runs/'+'a'*64+'.json','output_sha256':m.digest(o)}
         b=m.build_brief(o,AT,ref);self.assertIn(o['research_ideas'][0]['decision_id'],b['brief_markdown']);self.assertTrue(b['brief_markdown'].endswith('**WAIT**'))
