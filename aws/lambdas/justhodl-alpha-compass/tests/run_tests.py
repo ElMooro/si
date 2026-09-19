@@ -30,7 +30,7 @@ with patch.dict(sys.modules, {
          patch.object(engine,'update_track_record',return_value=({'entries':[]},{'graded_this_run':0,'quotes_available':0})), \
          patch.object(engine,'run_deltas',return_value=({'entered':['test'],'dropped':[],'moves':[]},{})), \
          patch.object(engine,'send_telegram') as telegram:
-        result = engine.handler({'suppress_alerts':True},None)
+        result = engine._legacy_unvalidated_handler({'suppress_alerts':True},None)
     assert result['statusCode']==200
     telegram.assert_not_called()
     doc = writes[engine.OUT_KEY]
@@ -41,3 +41,5 @@ with patch.dict(sys.modules, {
     assert doc['pd_settlement_fails']['calls_eligible'] is False
     assert engine.HIST_KEY in writes
 print('Alpha Compass publication and suppression checks passed')
+from alpha_research_tests import run as run_research
+run_research()

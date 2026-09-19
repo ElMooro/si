@@ -5,14 +5,12 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
   "timeout": 120,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Claude-synthesized morning brief (#5). Reads alpha-score+confluence+regime+sentiment+smart-money, calls Claude haiku, writes markdown brief + sends Telegram.",
+  "description": "Deterministic public Alpha brief, bound to an independently replayed Compass snapshot. No paid AI, private account reads or automatic notifications.",
   "environment": {},
-  "inherit_env": {
-    "from_function": "justhodl-telegram-bot",
-    "keys": ["TELEGRAM_TOKEN", "ANTHROPIC_API_KEY"]
-  },
   "schedule": {
     "rule_name": "justhodl-alpha-daily-brief",
     "cron": "cron(30 11 * * ? *)",

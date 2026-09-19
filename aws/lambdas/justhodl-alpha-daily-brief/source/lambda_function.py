@@ -29,9 +29,9 @@ PIPELINE
 9. Send to Telegram (truncated to 4000 char limit)
 
 Schedule: 11:30 UTC daily (7:30 AM ET pre-market open)
-Cost: ~\$0.01/day for one Claude haiku call
+Legacy cost estimate: ~$0.01/day for one Claude haiku call; active path uses no paid AI.
 """
-import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
+# Legacy paid synthesis below is retained for audit and has no active event route.
 import json
 import os
 import time
@@ -427,7 +427,7 @@ def send_telegram(text, chat_id):
         return False
 
 
-def lambda_handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     started = time.time()
     print(f"=== ALPHA DAILY BRIEF · {datetime.now(timezone.utc).isoformat()} ===")
 
@@ -488,3 +488,14 @@ def lambda_handler(event, context):
         "telegram_sent": telegram_sent,
         "elapsed_seconds": round(elapsed, 2),
     })}
+
+
+def lambda_handler(event, context):
+    """Stage33: deterministic brief bound to a replayed public Alpha snapshot."""
+    from alpha_research_store import run_brief
+    try:
+        result = run_brief(s3, S3_BUCKET)
+        return {"statusCode": 200 if result['published'] else 409, "body": json.dumps(result)}
+    except Exception as exc:
+        print('Alpha brief publication failed: ' + type(exc).__name__)
+        return {"statusCode": 503, "body": json.dumps({"error": type(exc).__name__})}

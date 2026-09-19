@@ -108,7 +108,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
       'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',
       'data/risk-radar.json','data/global-stress.json','data/regime-composite.json','data/liquidity-credit-engine.json','data/risk-gate.json',
-      'data/quantum-desk.json','data/quantum-desk-history.json','data/liquidity-inflection.json','data/liquidity-inflection-decisive-call.json','data/global-liquidity.json','data/global-liquidity-history.json','data/cb-injection.json','data/hot-money.json','data/hot-money-research/ledger.json','data/providers/twse/bfi82u-foreign.json','data/providers/tpex/insti-foreign.json','data/vintage/_index.json','data/vintage/WTREGEN.json','data/vintage/RRPONTSYD.json','data/some-current.json?exact=1']){
+      'data/quantum-desk.json','data/quantum-desk-history.json','data/liquidity-inflection.json','data/liquidity-inflection-decisive-call.json','data/global-liquidity.json','data/global-liquidity-history.json','data/cb-injection.json','data/alpha-compass.json','data/alpha-brief.json','data/alpha-brief.md','data/hot-money.json','data/hot-money-research/ledger.json','data/providers/twse/bfi82u-foreign.json','data/providers/tpex/insti-foreign.json','data/vintage/_index.json','data/vintage/WTREGEN.json','data/vintage/RRPONTSYD.json','data/some-current.json?exact=1']){
     const r=await w.fetch(req('/'+key),env,{waitUntil(){}});
     assert.equal((await r.json()).commit,'newly-published');assert.equal(r.headers.get('Cache-Control'),'no-store');
     assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);

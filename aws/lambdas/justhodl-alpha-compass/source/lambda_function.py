@@ -809,7 +809,7 @@ def build_card(setup, rank, magdist, scorecard, emap, risk_mult,
 # ───────────────────────────── handler ─────────────────────────────
 
 @track_errors
-def handler(event, context):
+def _legacy_unvalidated_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
 
@@ -981,6 +981,17 @@ def handler(event, context):
     return {"statusCode": 200,
             "body": json.dumps({"ok": True, "cards": len(cards),
                                 "regime": regime["label"]})}
+
+
+def handler(event, context):
+    """Stage33: public projection replay only; no private sizer, notes or messages."""
+    from alpha_research_store import run_compass
+    try:
+        result = run_compass(s3, BUCKET)
+        return {"statusCode": 200 if result['published'] else 409, "body": json.dumps(result)}
+    except Exception as exc:
+        print('Alpha research publication failed: ' + type(exc).__name__)
+        return {"statusCode": 503, "body": json.dumps({"error": type(exc).__name__})}
 
 
 lambda_handler = handler

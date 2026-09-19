@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Alpha Compass · JustHodl.AI</title>
-<!-- AC_SCHEMA_2.0 -->
-<meta name="description" content="The desk sheet: top conviction calls with regime fusion, tradeable expression, realised-distribution stats, quarter-Kelly sizing, and a self-grading track record.">
+<!-- AC_SCHEMA_3.0 -->
+<meta name="description" content="Reproducible Alpha research with dated evidence, separate cohorts, qualification gaps and explicit hypothetical portfolio consequences.">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -169,224 +169,41 @@ a{color:var(--blue);text-decoration:none}
   .topbar-right span:nth-child(2){display:none}
   .track-recent{margin-left:0}
 }
+
+.research-label{font:11px JetBrains Mono,monospace;letter-spacing:1px;color:var(--yellow);margin-bottom:8px}
+h1{font-size:28px}h2{font-size:20px;margin-bottom:12px}h3{font-size:17px;margin-bottom:10px}
+p{margin:9px 0}.muted{color:var(--t2)}.warning{color:var(--yellow)}
+.research-section{background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:20px;margin:18px 0;min-width:0}
+#ideas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.call-card{min-width:0}.call-card:hover{transform:none}details{margin-top:14px}summary{cursor:pointer;color:var(--blue);padding:7px 0}
+.table-scroll{overflow:auto;max-width:100%;margin:12px 0}table{border-collapse:collapse;width:100%;font-size:12px}td,th{padding:10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--brd)}th{color:var(--t2);font-size:11px}
+code{overflow-wrap:anywhere;font-size:11px}#brief{overflow-wrap:anywhere}#evidence a{display:inline-block;max-width:100%;min-height:40px;padding:8px 4px;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 DM Sans,sans-serif}
+.controls{display:flex;gap:16px;flex-wrap:wrap;margin:15px 0}.controls label{display:flex;flex-direction:column;gap:5px}.controls input,.controls select,button{font:inherit;padding:9px;background:var(--bg2);color:var(--t1);border:1px solid var(--brd2);border-radius:5px}button{cursor:pointer}.controls input{width:190px}a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}
+#ts{font-size:11px;color:var(--t2);overflow-wrap:anywhere}.topbar{position:relative}.topbar-right{flex-wrap:wrap}.footer-note{font-size:12px}
+@media(max-width:900px){#ideas{grid-template-columns:1fr}.topbar{flex-wrap:wrap;gap:12px}.research-section{padding:14px}.call-card{padding:16px}}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-left">
-    <a href="https://justhodl.ai" class="logo">JUSTHODL.AI</a>
-    <div class="logo-sub">Alpha Compass</div>
-  </div>
-  <div class="topbar-right">
-    <span><span class="live-dot"></span> LIVE</span>
-    <span id="ts">Loading...</span>
-    <a href="/" class="back-link">Terminal</a>
-  </div>
-</div>
-
-<div class="container">
-  <div id="app">
-    <div class="loading"><div class="spinner"></div>
-      <div class="mono" style="color:var(--t3);font-size:12px">Assembling the desk sheet…</div>
-    </div>
-  </div>
-</div>
-
-<script>
-const FEEDS=['data/alpha-compass.json',
-  'https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-compass.json'];
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=(v,d=1,suf='')=>v==null||isNaN(v)?'—':(+v).toFixed(d)+suf;
-const sgnCls=v=>v==null?'':(v>0?'pos':v<0?'neg':'');
-const dirCls=d=>{d=String(d||'').toUpperCase();return d.startsWith('RISK-ON')?'up':d.startsWith('RISK-OFF')?'down':'neutral'};
-const dirIcon=d=>({up:'▲',down:'▼',neutral:'●'})[dirCls(d)];
-const age=iso=>{if(!iso)return null;const m=(Date.now()-new Date(iso))/6e4;
-  return m<90?Math.round(m)+'m':m<2880?(m/60).toFixed(1)+'h':Math.round(m/1440)+'d'};
-
-async function load(){
-  for(const u of FEEDS){try{
-    const r=await fetch(u+'?t='+Date.now(),{cache:'no-store'});
-    if(r.ok){const j=await r.json();if(j&&j.top_calls)return j;}
-  }catch(e){}}
-  return null;
-}
-
-function regimeStrip(d){
-  const r=d.regime||{};
-  const chips=(r.sources||[]).map(s=>`<div class="rchip">
-    <span class="k">${esc(s.label)}</span>
-    <span class="v" style="color:${esc(s.color||'#8896b0')}">${esc(s.value??'—')}${s.score!=null?` (${fmt(s.score,0)})`:''}</span></div>`).join('');
-  return `<div class="regime-strip">
-    <div class="regime-top">
-      <span class="regime-label">Macro Regime</span>
-      <span class="regime-dot" style="background:${esc(r.color||'#888')}"></span>
-      <span class="regime-value" style="color:${esc(r.color||'#888')}">${esc(r.label||'Unknown')}</span>
-      ${r.risk_multiplier!=null?`<span class="rchip"><span class="k">RISK MULT</span><span class="v">×${fmt(r.risk_multiplier,2)}</span></span>`:''}
-      <span class="regime-meta">${d.generated_at?'as of '+age(d.generated_at)+' ago':''}</span>
-    </div>
-    ${chips?`<div class="regime-chips">${chips}</div>`:''}
-    ${r.playbook?`<div class="playbook">▸ ${esc(r.playbook)}</div>`:''}
-  </div>`;
-}
-
-function trackStrip(d){
-  const t=d.track_record;if(!t)return'';
-  const c=(w,o)=>`<div class="track-cell"><span class="tk">${w}</span>
-    <span class="big ${sgnCls(o.avg_ret)}">${o.n?fmt(o.hit_rate*100,0,'%'):'—'}</span>
-    <span class="tk" style="letter-spacing:0">${o.n?`${o.n} graded · avg ${fmt(o.avg_ret,1,'%')}`:'no graded calls yet'}</span></div>`;
-  const rec=(t.recent||[]).map(e=>`<span class="tr-pill ${e.ret>0?'pos':'neg'}" title="${esc(e.subject)} · ${e.d}">${esc(e.tk)} ${e.ret>0?'+':''}${fmt(e.ret,1)}%</span>`).join('');
-  return `<div class="track-strip">
-    <div class="track-cell"><span class="tk">Compass Track Record</span>
-      <span class="tk" style="letter-spacing:0;color:var(--t2)">self-graded · ${t.open_calls??0} open</span></div>
-    ${c('30-day hit',t.trail_30d||{})}${c('90-day hit',t.trail_90d||{})}
-    <div class="track-recent">${rec}</div></div>`;
-}
-
-function changesBar(d){
-  const c=d.changes;if(!c)return'';
-  const bits=[];
-  (c.entered||[]).forEach(s=>bits.push(`<span class="ch-chip up">NEW <b>${esc(s)}</b></span>`));
-  (c.dropped||[]).forEach(s=>bits.push(`<span class="ch-chip dn">OUT <b>${esc(s)}</b></span>`));
-  (c.moves||[]).forEach(m=>bits.push(`<span class="ch-chip ${m.delta>0?'up':'dn'}">${esc(m.subject)} <b>${m.delta>0?'+':''}${fmt(m.delta,0)}</b></span>`));
-  return bits.length?`<div class="changes-bar"><span class="ch-chip" style="border-color:var(--brd2)">Δ since last run</span>${bits.join('')}</div>`:'';
-}
-
-function distBar(st){
-  if(!st||st.p25==null||st.p75==null)return'';
-  const lo=Math.min(st.p25,0),hi=Math.max(st.p75,0),span=hi-lo||1;
-  const x=v=>((v-lo)/span*100).toFixed(1)+'%';
-  return `<div class="dist-wrap">
-    <div class="dist-lbls"><span>p25 ${fmt(st.p25,1)}%</span><span>median ${fmt(st.median,1)}%</span><span>p75 ${fmt(st.p75,1)}%</span></div>
-    <div class="dist-bar">
-      <div class="dist-range" style="left:${x(st.p25)};width:${(Math.max(st.p75-st.p25,0)/span*100).toFixed(1)}%"></div>
-      <div class="dist-zero" style="left:${x(0)}"></div>
-      ${st.median!=null?`<div class="dist-median" style="left:${x(st.median)}"></div>`:''}
-    </div></div>`;
-}
-
-function tierBadge(st){
-  const s=(st&&st.source)||'prior';
-  const lbl={magdist:'REALISED DIST',scorecard:'SCORECARD EST',prior:'PRIOR ONLY'}[s]||s;
-  return `<span class="tier-badge tier-${esc(s)}">${lbl}</span>`;
-}
-
-function expressBlock(ex){
-  if(!ex)return'';
-  const vehs=(ex.vehicles||[]).map(v=>`<span class="veh ${v.side.toLowerCase()}">${v.side==='SHORT'?'−':v.side==='LONG'?'+':'~'} ${esc(v.ticker)}</span>`).join('');
-  const names=(ex.names||[]).map(n=>{
-    const lv=[n.entry!=null?`in ${fmt(n.entry,2)}`:null,n.stop!=null?`stop ${fmt(n.stop,2)}`:null,n.target!=null?`tgt ${fmt(n.target,2)}`:null].filter(Boolean).join(' · ');
-    return `<span class="name-chip"><span class="nc-t">${esc(n.ticker)}</span>
-      <span class="nc-m"> ${esc(n.verdict||'')}${n.score!=null?' · '+fmt(n.score,0):''}${lv?' · '+lv:''}</span>
-      ${n.kill_risk?`<span class="nc-kill">⚠ ${esc(n.kill_risk)}</span>`:''}</span>`;}).join('');
-  return `<div class="express"><div class="lbl">Express via</div>
-    ${vehs?`<div class="veh-row">${vehs}</div>`:''}${names}
-    ${ex.note?`<div class="note">${esc(ex.note)}</div>`:''}</div>`;
-}
-
-function card(c){
-  const st=c.stats||{},sz=c.sizing||{};
-  const dc=c.delta_conviction;
-  return `<div class="call-card ${dirCls(c.direction)}">
-    <div class="cc-rank">#${c.rank}</div>
-    <div class="cc-head"><div>
-      <div class="cc-subject">${esc(c.subject)}</div>
-      <span class="cc-direction ${dirCls(c.direction)}">${dirIcon(c.direction)} ${esc(c.direction||'')}</span>
-    </div><div class="cc-conviction">
-      <div class="num">${fmt(c.conviction,0)}</div><div class="lbl">${esc(c.confidence_band||'CONVICTION')}</div>
-      ${dc!=null&&dc!==0?`<div class="delta-chip ${dc>0?'pos':'neg'}">${dc>0?'▲':'▼'} ${Math.abs(dc)}</div>`:''}
-    </div></div>
-    <div class="gauge"><div class="gauge-fill" style="width:${Math.min(100,c.conviction||0)}%"></div></div>
-    <div class="cc-thesis">${esc(c.thesis||'')}</div>
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      ${tierBadge(st)}
-      <span class="mono" style="font-size:9.5px;color:var(--t3)">${st.horizon_days?st.horizon_days+'d horizon':''}${st.matched_signals?' · via '+esc(st.matched_signals.slice(0,2).join('+')):''}${st.n?' · n='+st.n:''}</span>
-    </div>
-    ${distBar(st)}
-    <div class="cc-grid">
-      <div class="row"><span class="k">Win rate</span><span class="v">${st.win_rate!=null?fmt(st.win_rate*100,0,'%'):'—'}</span></div>
-      <div class="row"><span class="k">Sample (n)</span><span class="v">${st.n??'—'}</span></div>
-      <div class="row"><span class="k">Median</span><span class="v ${sgnCls(st.median)}">${fmt(st.median,1,'%')}</span></div>
-      <div class="row"><span class="k">Stop / Target</span><span class="v"><span class="neg">${fmt(c.stop_pct,1,'%')}</span> / <span class="pos">${fmt(c.target_pct,1,'%')}</span></span></div>
-      <div class="row"><span class="k">Size (¼-Kelly)</span><span class="v warn">${fmt(sz.kelly_pct,2,'%')}</span></div>
-      <div class="row"><span class="k">$ at 100k</span><span class="v">${sz.dollar_at_100k!=null?'$'+sz.dollar_at_100k.toLocaleString():'—'}</span></div>
-      <div class="row"><span class="k">Engines</span><span class="v">${c.n_engines??'—'} / ${c.n_families??'—'} fam</span></div>
-      <div class="row"><span class="k">Agreement</span><span class="v">${fmt(c.agreement_pct,0,'%')}</span></div>
-    </div>
-    ${sz.basis?`<div class="mono" style="font-size:9.5px;color:var(--t3);margin:-4px 0 8px">size basis: ${esc(sz.basis)}</div>`:''}
-    ${c.stop_target_basis?`<div class="mono" style="font-size:9.5px;color:var(--t3);margin:-2px 0 8px">stop/target: ${esc(c.stop_target_basis)}</div>`:''}
-    ${expressBlock(c.express)}
-    <div class="cc-engines"><div class="lbl">Contributing engines</div>
-      ${(c.engines||[]).slice(0,5).map(e=>`<div class="cc-engine"><span class="e-name">${esc(e.name||e.family||'')}</span><span class="e-read">${esc((e.read||'').slice(0,60))}</span></div>`).join('')}
-    </div>
-    ${c.invalidation?`<div class="cc-invalidation"><b>Invalidation:</b> ${esc(c.invalidation)}</div>`:''}
-  </div>`;
-}
-
-function watchRow(c){
-  const st=c.stats||{},sz=c.sizing||{},ex=c.express||{};
-  const dc=c.delta_conviction;
-  return `<tr>
-    <td>${c.rank}</td>
-    <td>${esc(c.subject)}</td>
-    <td><span class="pill ${dirCls(c.direction)==='up'?'pill-up':dirCls(c.direction)==='down'?'pill-dn':'pill-neut'}">${esc((c.direction||'').split(' /')[0])}</span></td>
-    <td><b>${fmt(c.conviction,0)}</b>${dc?` <span class="${dc>0?'mono':''}" style="color:${dc>0?'var(--green)':'var(--red)'};font-size:10px">${dc>0?'+':''}${dc}</span>`:''}</td>
-    <td>${tierBadge(st)}</td>
-    <td class="${sgnCls(st.median)}" style="color:${st.median>0?'var(--green)':st.median<0?'var(--red)':'inherit'}">${fmt(st.median,1,'%')}</td>
-    <td>${st.win_rate!=null?fmt(st.win_rate*100,0,'%'):'—'}</td>
-    <td>${fmt(sz.kelly_pct,2,'%')}</td>
-    <td>${esc(ex.primary||'—')}</td>
-    <td style="color:var(--red)">${fmt(c.stop_pct,1,'%')}</td>
-    <td style="color:var(--green)">${fmt(c.target_pct,1,'%')}</td>
-  </tr>`;
-}
-
-function coverage(d){
-  const cv=d.coverage||{},t=cv.miss_summary_30d_totals||{};
-  const items=Object.entries(t).map(([k,v])=>`<div class="it"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('');
-  return `<div class="coverage"><h3>📡 30-day Coverage State</h3>
-    <div class="row">${items||'<span style="color:var(--t3)">no miss data</span>'}</div>
-    ${cv.note?`<div class="note">${esc(cv.note)}</div>`:''}
-    ${prov(d)}</div>`;
-}
-
-function prov(d){
-  const sf=d.source_feeds||{};
-  const chips=Object.entries(sf).map(([k,m])=>{
-    const a=m&&m.as_of?age(m.as_of):null;
-    return `<span class="prov-chip ${m&&m.present?'fresh':'missing'}">${esc(k)}${a?' · '+a:m&&m.present?'':' · MISSING'}</span>`;
-  }).join('');
-  return `<div class="provenance">${chips}</div>`;
-}
-
-function render(d){
-  $('#ts').textContent=new Date(d.generated_at).toLocaleString();
-  const top=(d.top_calls||[]).map(card).join('');
-  const wl=(d.watchlist||[]);
-  $('#app').innerHTML=`
-    ${regimeStrip(d)}
-    ${trackStrip(d)}
-    ${changesBar(d)}
-    <div class="section-head"><h2>Top conviction calls</h2><span class="badge">${(d.top_calls||[]).length} of ${(d.top_calls||[]).length+wl.length}</span></div>
-    <div class="calls-grid">${top}</div>
-    ${wl.length?`<div class="section-head"><h2>Watchlist</h2><span class="badge">${wl.length} setups</span></div>
-    <div class="wl-wrap"><table class="watchlist-table">
-      <thead><tr><th>#</th><th>Subject</th><th>Dir</th><th>Conv</th><th>Evidence</th><th>Median</th><th>Win%</th><th>Size</th><th>Express</th><th>Stop</th><th>Target</th></tr></thead>
-      <tbody>${wl.map(watchRow).join('')}</tbody></table></div>`:''}
-    ${coverage(d)}
-    <div class="footer-note">
-      <b>This is the consumer surface, not the brain.</b> The 270+ engines underneath produce signals; the conviction-engine ranks them; magnitude-distributions attaches realised return profiles where a graded stack exists; where it doesn't yet, the evidence badge says so honestly (SCORECARD EST or PRIOR ONLY) instead of printing dashes. Sizing is quarter-Kelly scaled by the sizer's regime risk-multiplier. The track-record strip grades this page's own past calls with real prints — no memory-holing. Research &amp; analytics, not investment advice. Generated ${esc(new Date(d.generated_at).toLocaleString())}.
-    </div>`;
-}
-
-load().then(d=>{
-  if(!d){$('#app').innerHTML='<div class="loading"><div class="mono" style="color:var(--red)">Feed unavailable — data/alpha-compass.json. The 3h synthesis run will restore it.</div></div>';return;}
-  render(d);
-});
-</script>
-<script src="/jh-page-ai.js" defer></script>
-<script src="/jh-pd-context.js?v=1" data-packet="/data/alpha-compass.json" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+<div class="topbar"><div class="topbar-left"><a href="/" class="logo">JUSTHODL.AI</a><span class="logo-sub">Alpha research</span></div><div class="topbar-right"><a href="/alpha-compass.html">Load latest research</a><a href="/calls.html">Calls</a><a href="/portfolio.html">Portfolio evidence</a></div></div>
+<main class="container">
+<section id="hero" class="research-section" aria-live="polite">Loading reproducible research…</section><p id="ts"></p>
+<h2>Research ideas and qualification</h2><p>Fixed theme order. Source conviction is descriptive and cannot authorize a trade. Open an idea to inspect its evidence.</p><div id="ideas"></div>
+<section class="research-section"><h2>Regime views</h2><div id="regimes"></div></section>
+<section class="research-section"><h2>Shared evidence families</h2><div id="dependency"></div></section>
+<section class="research-section"><h2>Hypothetical portfolio consequences</h2><p>Enter your own assumptions for a direct long or short unleveraged equity/ETF exposure. This calculator is separate from the research ideas and does not set a position size. It does not model inverse or leveraged funds.</p>
+<form id="payoff"><div class="controls">
+<label>Notional, USD<input id="notional" inputmode="decimal" autocomplete="off" placeholder="Your assumed notional" required></label>
+<label>Price move, %<input id="shock" inputmode="decimal" autocomplete="off" placeholder="Your assumed price move" required></label>
+<label>Total entered cost, bps<input id="cost" inputmode="decimal" autocomplete="off" placeholder="Your assumed costs" required></label>
+<label>Direct exposure<select id="side" aria-label="Direct exposure"><option value="long">Long</option><option value="short">Short</option></select></label></div>
+<button type="submit">Calculate hypothetical P&amp;L</button></form><p id="payoff-result" role="status">No calculation until assumptions are entered.</p>
+<p>Actual portfolio impact is unavailable here: reconciled positions, cash, NAV, instrument exposure, dated prices, FX, validated costs and approved limits must be bound to a recommendation first. <a href="/portfolio.html">Review portfolio evidence</a>.</p></section>
+<section class="research-section"><h2>Source availability</h2><div id="sources"></div></section>
+<section class="research-section"><h2>Settlement context</h2><div id="fails"></div></section>
+<section class="research-section"><h2>Daily research brief</h2><p id="brief-age"></p><div id="brief">Loading the deterministic brief…</div><p id="brief-links"></p></section>
+<section class="research-section"><h2>Reproduce this research</h2><div id="evidence"></div></section>
+<p class="footer-note">Evidence retention and exact replay establish what this compiler used and produced. Original provider lineage, point-in-time availability, independent strategy validation and account-bound sizing remain separate qualification requirements.</p>
+</main>
+<script src="/jh-alpha-research.js" defer></script><script src="/jh-alpha-page.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
+</body></html>
