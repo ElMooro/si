@@ -616,7 +616,8 @@ def lambda_handler(event, context):
             rp_votes += 35
         elif "BULL" in str(yc_regime).upper() and "STEEP" in str(yc_regime).upper():
             rp_votes += 20
-    cr_regime = _get(credit, "composite_regime")
+    from credit_research import qualified_signal as qualified_credit_signal, context as credit_context
+    cr_regime = qualified_credit_signal(credit)
     if cr_regime is not None:
         rp_max += 25
         if str(cr_regime).upper() in ("STRESS", "WIDENING", "ELEVATED", "RISK-OFF"):
@@ -1000,7 +1001,7 @@ def lambda_handler(event, context):
         "sahm": sahm,
         "yield_curve_regime": yc_regime, "yield_curve_decomp": yc_decomp,
         "vol_regime": vol_regime, "dollar_regime": dollar_regime, "eps_revision_breadth": eps_breadth,
-        "credit_regime": cr_regime,
+        "credit_regime": cr_regime, "credit_research_context": credit_context(credit),
         "sector_risk_appetite": sr_app, "regime_composite": _get(rcomp, "meta_regime"),
         "scenario_playbook": scenario_playbook,
     }

@@ -671,11 +671,13 @@ def capital_availability():
     out = {}
     try:
         cs = json.loads(S3.get_object(Bucket=BUCKET, Key="data/credit-stress.json")["Body"].read())
-        hy = (cs.get("current_bps") or {}).get("BAMLH0A0HYM2")
-        out["hy_oas_pct"] = hy
-        out["credit_regime"] = cs.get("composite_regime")
-        out["capital_cost"] = ("CHEAP" if (hy is not None and hy < 3.5)
-                               else "EXPENSIVE" if (hy is not None and hy > 5.5) else "NORMAL")
+        from credit_research import context as credit_context
+        research = credit_context(cs)
+        hy = (research['measurements'].get('BAMLH0A0HYM2') or {}).get('value_pct')
+        out['hy_oas_pct'] = hy
+        out['credit_research_context'] = research
+        out['credit_regime'] = None
+        out['capital_cost'] = None  # OAS alone is not an issuer's all-in funding cost.
     except Exception as e:
         print(f"[capavail] credit-stress {str(e)[:50]}")
     today = datetime.now(timezone.utc).date()
@@ -698,8 +700,10 @@ def capital_availability():
         out["issuers_by_industry"] = {k: sorted(set(v)) for k, v in sorted(bysec.items())}
     cheap = out.get("capital_cost") == "CHEAP"
     rising = out.get("issuance_trend") == "RISING"
-    out["supply_response_funded"] = bool(cheap and rising)
-    out["read"] = ("Capital cheap + issuance rising — supply response is being funded; tight industries face future relief (fade)"
+    out["supply_response_funded"] = None if out.get("capital_cost") is None else bool(cheap and rising)
+    out["read"] = ("Sector funding sufficiency is unclassified. Index OAS and filing counts do not establish issuers' all-in cost or capital raised."
+                   if out.get("capital_cost") is None else
+                   "Capital cheap + issuance rising — supply response is being funded; tight industries face future relief (fade)"
                    if (cheap and rising) else
                    "Capital not flooding in — supply response constrained, tightness can persist")
     return out

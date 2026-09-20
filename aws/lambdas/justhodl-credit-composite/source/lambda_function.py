@@ -170,6 +170,8 @@ def score_lenses(docs):
                     'reason': 'No registered out-of-sample strategy permission for this lens',
                     'calls_eligible': False, 'sizing_eligible': False}
               for name, key in names.items()}
+    from credit_research import context as credit_context
+    lenses['credit_stress']['measurement_context'] = credit_context(docs.get('credit') or {})
     lenses['dealer_positioning']['measurement_context'] = dealer
     lenses['corporate_fails']['source_replay'] = (docs.get('fails') or {}).get('replay')
     return lenses, None

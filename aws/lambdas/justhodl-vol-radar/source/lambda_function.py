@@ -118,18 +118,10 @@ def lambda_handler(event, context):
         gex_b = num(dix_cur.get("gex"))
 
     # credit stress -- pull the strongest HY z-score available
-    cred_z = None
-    cred_regime = ((credit.get("regimes") or {}).get("hy_regime")
-                   if isinstance(credit.get("regimes"), dict) else None)
-    cmet = credit.get("metrics") or credit.get("current") or {}
-    if isinstance(cmet, dict):
-        zs = []
-        for v in cmet.values():
-            if isinstance(v, dict) and isinstance(
-                    v.get("z_score_60d"), (int, float)):
-                zs.append(v["z_score_60d"])
-        if zs:
-            cred_z = max(zs)
+    from credit_research import context as credit_context, qualified_signal as qualified_credit_signal
+    credit_research_context = credit_context(credit)
+    cred_z = qualified_credit_signal(credit)
+    cred_regime = None
 
     euro_score = num(euro.get("composite_score"))
     capit_score = num(capit.get("capitulation_score"))
@@ -341,6 +333,7 @@ def lambda_handler(event, context):
     radar_note = " ".join(bits)
 
     out = {
+        "credit_research_context": credit_research_context,
         "schema_version": SCHEMA,
         "engine": "justhodl-vol-radar",
         "generated_at": now.isoformat(),

@@ -1,6 +1,6 @@
 {
-  "timeout": 120,
-  "schedule": "cron(0 20 ? * MON-FRI *)",
-  "description": "FRED ICE BofA OAS credit stress engine \u2014 daily 20:00 UTC after FRED publishes",
+  "timeout": 300,
+  "schedule": "cron(10 22 ? * MON-FRI *)",
+  "description": "Native FRED credit research with original replay, typed measurements and explicit abstention",
   "memory": 512
 }

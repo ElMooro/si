@@ -100,7 +100,8 @@ def lambda_handler(event, context):
 
     crisis = __import__("crisis_authority").decision_view(get_s3_json("data/crisis-composite.json"))
     internals = get_s3_json("data/market-internals.json")
-    credit = get_s3_json("data/credit-stress.json")
+    from credit_research import decision_view as credit_decision_view
+    credit = credit_decision_view(get_s3_json("data/credit-stress.json"))
     vol = get_s3_json("data/vol-surface.json")
     euro = get_s3_json("data/eurodollar-stress.json")
     insider = get_s3_json("data/insider-aggregate.json")
@@ -208,6 +209,7 @@ def lambda_handler(event, context):
     prior_signal = hist["snapshots"][-1]["signal"] if hist.get("snapshots") else None
 
     out = {
+        "credit_research_context": credit.get("research_context"),
         "schema_version": "1.0",
         "method": "capitulation_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),

@@ -42,11 +42,18 @@ class DealerConsumers(unittest.TestCase):
             q=copy.deepcopy(p);change(q['groups']['corp_bonds']);self.assertIsNone(project(q,AT)['corporate'])
 
     def test_credit_stress_actual_dealer_reader_uses_context_and_not_squeeze(self):
-        c=fixture.Storage();c.objects['data/nyfed-primary-dealer.json']=json.dumps(packet()).encode()
-        scope={'s3':c,'S3_BUCKET':'fixture','json':json};functions('justhodl-credit-stress',{'_dealer_positioning'},scope)
-        result=scope['_dealer_positioning']();self.assertIsNotNone(result);self.assertIsNone(result['squeeze_setup']);self.assertFalse(result['calls_eligible'])
+        sys.path.insert(0,str(ROOT/'aws/lambdas/justhodl-credit-stress/tests'))
+        from credit_fixtures import fixture as credit_fixture
+        from native_credit_tests import Memory
+        import credit_research_store as credit_store
+        inputs,bodies=credit_fixture();c=Memory();c.objects.update(bodies)
+        c.objects['data/nyfed-primary-dealer.json']=json.dumps(packet()).encode()
+        inputs['dealer']=credit_store.collect_dealer(c,'fixture')
+        result=credit_store.compile_output(inputs,credit_store.reader(c,'fixture'))['dealer_positioning']
+        self.assertIsNotNone(result);self.assertIsNone(result['squeeze_setup']);self.assertFalse(result['calls_eligible'])
         c.objects['data/nyfed-primary-dealer.json']=b'{"corporate":{"net_bonds_b":-100,"squeeze_setup":true}}'
-        self.assertIsNone(scope['_dealer_positioning']())
+        inputs['dealer']=credit_store.collect_dealer(c,'fixture')
+        self.assertIsNone(credit_store.compile_output(inputs,credit_store.reader(c,'fixture'))['dealer_positioning'])
 
     def test_credit_composite_actual_handler_never_emits_or_authorizes(self):
         c=fixture.Storage();legacy=b'{"generated_at":"2026-01-01T00:00:00Z","composite":99,"plans":[{"etf":"HYG"}]}'

@@ -155,14 +155,9 @@ def lambda_handler(event, context):
            ", %.0fth pctl" % vrp_pctl if vrp_pctl is not None else ""))
 
     # T5 credit complacency -- HY spreads pinned tight
-    cred_z = None
-    cmet = credit.get("metrics") or credit.get("current") or {}
-    if isinstance(cmet, dict):
-        zs = [v["z_score_60d"] for v in cmet.values()
-              if isinstance(v, dict)
-              and isinstance(v.get("z_score_60d"), (int, float))]
-        if zs:
-            cred_z = min(zs)   # most-negative = tightest
+    from credit_research import context as credit_context, qualified_signal as qualified_credit_signal
+    credit_research_context = credit_context(credit)
+    cred_z = qualified_credit_signal(credit)
     if cred_z is not None:
         p = 2 if cred_z < -1.2 else 1 if cred_z < -0.4 else 0
         tc("credit_complacency", "Credit spreads pinned tight", p, 2,
@@ -267,6 +262,7 @@ def lambda_handler(event, context):
     radar_note = " ".join(bits)
 
     out = {
+        "credit_research_context": credit_research_context,
         "schema_version": SCHEMA,
         "engine": "justhodl-market-extremes",
         "generated_at": now.isoformat(),
