@@ -655,7 +655,7 @@ def build_canaries(fred, sib=None):
             "trend.")
 
     # 10) OFFSHORE DOLLAR FUNDING STRESS (eurodollar engine) -------------
-    ed = read_json(EURODOLLAR_KEY)
+    ed = __import__("eurodollar_research").decision_view(read_json(EURODOLLAR_KEY))
     ed_score = None
     for k in ("stress_score", "composite", "composite_score", "score",
               "stress", "stress_index", "eurodollar_stress", "level"):

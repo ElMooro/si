@@ -272,7 +272,7 @@ def gather_signals():
                              "regime": vr.get("regime")}
 
     # Eurodollar Stress (funding plumbing)
-    es = read_json("data/eurodollar-stress.json")
+    es = __import__("eurodollar_research").decision_view(read_json("data/eurodollar-stress.json"))
     esv = es.get("composite_score")
     if isinstance(esv, (int, float)):
         intensity = clamp((esv - 30) / 50.0, -1.0, 1.0)

@@ -12,3 +12,10 @@ if __name__ == "__main__":
     sys.path.insert(0, str(ROOT/"tests"))
     from research_brief_consumer_test_support import run as run_research
     run_research("ai-brief")
+
+if __name__ == "__main__":
+    from pathlib import Path
+    import sys
+    sys.path.insert(0,str(Path(__file__).resolve().parents[4]/"tests"))
+    from eurodollar_consumer_test_support import run as run_eurodollar_consumers
+    run_eurodollar_consumers()

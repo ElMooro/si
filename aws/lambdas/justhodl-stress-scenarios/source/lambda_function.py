@@ -332,7 +332,7 @@ def lambda_handler(event, context):
         "report": get_s3_json("data/report.json", {}),
         "credit_stress": get_s3_json("data/credit-stress.json", {}),
         "regime_composite": get_s3_json("data/regime-composite.json", {}),
-        "eurodollar_stress": get_s3_json("data/eurodollar-stress.json", {}),
+        "eurodollar_stress": __import__("eurodollar_research").decision_view(get_s3_json("data/eurodollar-stress.json", {})),
         "divergence": get_s3_json("data/divergence.json", {}),
         "correlation_breaks": get_s3_json("data/correlation-breaks.json", {}),
         "khalid_index": get_s3_json("data/report.json", {}).get("khalid_index", {})

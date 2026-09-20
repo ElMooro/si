@@ -218,7 +218,7 @@ def rule_correlation_regime(scores, evidence):
 
 
 def rule_eurodollar_stress(scores, evidence):
-    d = fs3("data/eurodollar-stress.json")
+    d = __import__("eurodollar_research").decision_view(fs3("data/eurodollar-stress.json"))
     score = d.get("composite_stress_score") or d.get("composite_score")
     if score is None:
         return

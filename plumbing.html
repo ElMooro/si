@@ -627,6 +627,7 @@ FEEDS.forEach(function(f){
  c.innerHTML='<div style="color:#5d7285;font-size:10px;letter-spacing:1px">'+f.replace('.json','').toUpperCase()+'</div><div class="v" style="color:#dfe9f2;font-size:20px;font-weight:700;margin:5px 0 2px">\u2026</div><div class="s" style="color:#69808f;font-size:10px"></div>';
  g.appendChild(c);
  fetch('/data/'+f+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+  if(f==='eurodollar-stress.json'){c.querySelector('.v').textContent='Research context';c.querySelector('.s').innerHTML='<a href="#eurodollar-context">Inspect dated measurements; no stress score</a>';return;}
   var n=pick(d,NK),s=pickS(d,SK);
   var ts=d.as_of||d.generated_at||d.updated_at||d.timestamp;
   var age=ts?((Date.now()-new Date(ts).getTime())/36e5):null;
@@ -670,5 +671,7 @@ FEEDS.forEach(function(f){
 })();
 </script>
 <script src="/sidebar.js" defer></script>
+<section id="eurodollar-context" class="card" style="margin:26px auto;max-width:1200px;padding:20px;overflow-wrap:anywhere" aria-live="polite">Loading canonical USD context…</section>
+<script src="/jh-eurodollar-research.js?v=20260920-native1" defer></script>
 </body>
 </html>

@@ -609,7 +609,7 @@ def log_eurodollar_stress():
     Mid-range (30-70) is skipped — only fire on actionable extremes for calibration.
     """
     d = fs3("data/eurodollar-stress.json") or {}
-    score = d.get("composite_score") or d.get("composite_stress_score") or d.get("composite")
+    score = __import__("eurodollar_research").qualified_score(d)
     if score is None:
         return []
     try:

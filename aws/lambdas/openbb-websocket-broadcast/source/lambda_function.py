@@ -172,7 +172,8 @@ def _build_summary(key, body_bytes):
     if key == "data/eurodollar-stress.json":
         return {
             "updated": True,
-            "stress_score": j.get("stress_score") or j.get("composite_score"),
+            "stress_score": __import__("eurodollar_research").qualified_score(j),
+            "research_context": __import__("eurodollar_research").context(j),
             "as_of": j.get("generated_at") or j.get("as_of"),
         }
     if key == "data/nobrainers.json":

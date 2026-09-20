@@ -360,6 +360,9 @@ def fetch_internal(series_id):
     """Pull from internal S3 composite. Tries history array first, falls back to single-point."""
     if series_id not in INTERNAL_SERIES_MAP:
         return None
+    if series_id == "eurodollar_stress":
+        # No qualified score history; use the dated native measurements on Funding.
+        return None
     s3_key, history_field, value_field = INTERNAL_SERIES_MAP[series_id]
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=s3_key)

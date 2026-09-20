@@ -104,7 +104,7 @@ def lambda_handler(event, context):
     credit = credit_decision_view(get_s3_json("data/credit-stress.json"))
     from volatility_research import decision_view as volatility_decision_view
     vol = volatility_decision_view(get_s3_json("data/vol-surface.json"))
-    euro = get_s3_json("data/eurodollar-stress.json")
+    euro = __import__("eurodollar_research").decision_view(get_s3_json("data/eurodollar-stress.json"))
     insider = get_s3_json("data/insider-aggregate.json")
 
     washout = []   # list of (label, intensity 0-100, weight)
@@ -210,6 +210,7 @@ def lambda_handler(event, context):
     prior_signal = hist["snapshots"][-1]["signal"] if hist.get("snapshots") else None
 
     out = {
+        "eurodollar_research_context": euro.get("research_context"),
         "credit_research_context": credit.get("research_context"),
         "volatility_research_context": vol.get("research_context"),
         "schema_version": "1.0",

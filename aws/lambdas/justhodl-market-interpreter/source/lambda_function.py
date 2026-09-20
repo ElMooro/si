@@ -182,7 +182,7 @@ def interpret_one(ctx, ref):
     regime = ""
     rsrc = ctx.get("regime_source") or {}
     if rsrc.get("key"):
-        d = s3io.get_json(rsrc["key"], default={})
+        d = __import__("eurodollar_research").guard(rsrc["key"],s3io.get_json(rsrc["key"], default={}))
         if d and rsrc.get("field"):
             v = d.get(rsrc["field"])
             if v is not None:

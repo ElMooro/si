@@ -159,7 +159,7 @@ def compute_top_score(state):
         reasons.append(f"VIX term: {contango}")
 
     # 8. Eurodollar stress
-    ed_score = safe_float(get_path(state["eurodollar_stress"], "composite_score"))
+    ed_score = __import__("eurodollar_research").qualified_score(state["eurodollar_stress"])
     if ed_score is not None and ed_score >= 60:
         score += 10
         reasons.append(f"Eurodollar stress {ed_score:.0f}")
@@ -209,7 +209,7 @@ def compute_bottom_score(state):
         reasons.append(f"{n_breaks} correlation breaks (chaos)")
 
     # 6. Eurodollar stress high
-    ed_score = safe_float(get_path(state["eurodollar_stress"], "composite_score"))
+    ed_score = __import__("eurodollar_research").qualified_score(state["eurodollar_stress"])
     if ed_score is not None and ed_score >= 65:
         score += 10
         reasons.append(f"Funding stress {ed_score:.0f}")

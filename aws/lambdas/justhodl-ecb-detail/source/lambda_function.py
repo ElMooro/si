@@ -345,10 +345,11 @@ def lambda_handler(event, context):
 
     # ── 6. cross-reference (do not rebuild) ──
     cbi = read_existing("data/cb-injection.json") or {}
-    eds = read_existing("data/eurodollar-stress.json") or {}
+    eds = __import__("eurodollar_research").decision_view(read_existing("data/eurodollar-stress.json"))
     cross = {
         "cb_injection_global_impulse":
             (cbi.get("global_injection_impulse") or {}).get("label"),
+        "eurodollar_research_context": eds.get("research_context"),
         "eurodollar_stress_score":
             eds.get("score") or eds.get("stress_score"),
     }

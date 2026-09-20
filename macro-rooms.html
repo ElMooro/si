@@ -113,9 +113,9 @@ body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.4 ui-sans-serif,syste
     return '<div class="wr-panel"><h3>'+esc(title)+' · '+rows.length+' series</h3><table><thead><tr><th>Series</th><th>Level</th><th>1m</th><th>3m</th><th>1y</th><th></th><th></th></tr></thead><tbody>'+body+"</tbody></table></div>";
   }
   function room(el, title, fresh, score, headline, panels){
-    var color=score>=70?"#ef4444":score>=45?"#f59e0b":score>=22?"#eab308":"#22c55e";
+    var color=score==null?"#a5afbd":score>=70?"#ef4444":score>=45?"#f59e0b":score>=22?"#eab308":"#22c55e";
     el.innerHTML='<div class="wr-kicker"><span>'+esc(title)+'</span><span>'+esc(fresh)+'</span></div>'+
-      '<div class="wr-head"><svg class="wr-ring" viewBox="0 0 88 88"><circle cx="44" cy="44" r="36" fill="none" stroke="#2a241c" stroke-width="7"/><circle cx="44" cy="44" r="36" fill="none" stroke="'+color+'" stroke-width="7" stroke-dasharray="'+(226*Math.min(score,100)/100).toFixed(1)+' 226" stroke-linecap="round" transform="rotate(-90 44 44)"/></svg>'+
+      '<div class="wr-head"><svg class="wr-ring" viewBox="0 0 88 88"><circle cx="44" cy="44" r="36" fill="none" stroke="#2a241c" stroke-width="7"/><circle cx="44" cy="44" r="36" fill="none" stroke="'+color+'" stroke-width="7" stroke-dasharray="'+(score==null?0:226*Math.min(score,100)/100).toFixed(1)+' 226" stroke-linecap="round" transform="rotate(-90 44 44)"/></svg>'+
       '<div><p class="wr-headline">'+esc(headline)+'</p><p class="wr-sub">Double-click a row for full history.</p></div></div>'+
       '<div class="wr-grid">'+panels.join("")+'</div>';
     el.querySelectorAll("tr[data-hk]").forEach(function(tr){
@@ -172,17 +172,16 @@ body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.4 ui-sans-serif,syste
       {hk:"ftr",label:"Treasury fails to receive",meta:"NY Fed FR 2004",level:fmt(fl.treasury&&fl.treasury.ftr_bn,1)+"bn",unit:"",d1:null,d2:null,d3:null,spark:lastN(ftr,60),flag:"GREEN"},
       {hk:"fgross",label:"Treasury combined",meta:"gross",level:fmt(fl.treasury&&fl.treasury.gross_bn,1)+"bn",unit:"",d1:null,d2:null,d3:null,spark:lastN(HIST.fgross,60),flag:"GREEN"}
     ];
-    var sigs=(ed.signals||ed.hot_signals||[]).slice(0,12).map(function(s,i){
-      var hk="ed-"+i; HIST[hk]=s.history||[];
-      return {hk:hk,label:s.name||s.id||("signal "+i),meta:s.state||"",level:fmt(s.level!=null?s.level:s.score,2),unit:"",d1:s.z,d2:null,d3:null,spark:lastN(HIST[hk],60),flag:flagOf(s.z,null)};
-    });
-    var score=(rg.composite&&rg.composite.score)||(ed.composite_score)||40;
-    room($("risk-room"),"Risk war room", rg.generated_at||fl.generated_at||"", Math.abs(Number(score))||40,
+    var sigs=[]; // Native USD context is verified in its own dated panel below.
+    var score=null; // This overview has no qualified joint investment score.
+    room($("risk-room"),"Risk war room", rg.generated_at||fl.generated_at||"", score,
       (rg.posture&&(rg.posture.label||rg.posture.mode)) || (fl.signal&&fl.signal.regime) || "Risk legs + Treasury fails + eurodollar",
-      [panelHtml("Risk-gate legs", legRows), panelHtml("Treasury fails FTD / FTR", failRows), panelHtml("Eurodollar signals", sigs)]);
+      [panelHtml("Risk-gate legs", legRows), panelHtml("Treasury fails FTD / FTR", failRows), '<p><a href="#eurodollar-context">Inspect verified USD context</a>. No composite investment vote.</p>']);
   }).catch(function(e){ $("risk-room").textContent="Risk feeds unavailable: "+e; });
 })();
 </script>
 <script src="/jh-pd-fails-strip.js?v=5633"></script>
+<section id="eurodollar-context" class="wr-room" aria-live="polite">Loading canonical USD context…</section>
+<script src="/jh-eurodollar-research.js?v=20260920-native1" defer></script>
 </body>
 </html>

@@ -250,7 +250,7 @@ def lambda_handler(event, context):
 
     # Repo stress inputs
     eurodollar = get_s3_json("data/eurodollar-stress.json", {})
-    es_score = eurodollar.get("score") if eurodollar else None
+    es_score = __import__("eurodollar_research").qualified_score(eurodollar)
     try: es_score = float(es_score) if es_score is not None else None
     except (TypeError, ValueError): es_score = None
 

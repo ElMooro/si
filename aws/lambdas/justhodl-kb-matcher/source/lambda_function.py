@@ -70,7 +70,8 @@ def build_today_state():
     if sf.get("tail_bp") is not None:
         st["sofr_tail"] = {"value": sf["tail_bp"], "chg": sf.get("z")}
     ed = s3j("data/eurodollar-stress.json") or {}
-    esc = ed.get("composite_score") or ed.get("score")
+    st["eurodollar_research"] = __import__("eurodollar_research").context(ed)
+    esc = __import__("eurodollar_research").qualified_score(ed)
     if isinstance(esc, (int, float)):
         st["eurodollar_stress"] = {"value": esc, "chg": None}
     li = s3j("data/liquidity-inflection.json") or {}

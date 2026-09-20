@@ -255,13 +255,15 @@ def safe_get(d, *keys, default=None):
 # ---------- Framework elevation detectors ----------
 def detect_eurodollar_stress(eds, gs, ds):
     """Return (elevation_score 0-100, evidence_dict)."""
-    score = safe_get(eds, "score") or safe_get(eds, "stress_score") or 0
+    score = __import__("eurodollar_research").qualified_score(eds)
     evidence = {
         "eurodollar_stress_score": score,
+        "research_context": __import__("eurodollar_research").context(eds),
+        "status": "ABSTAIN" if score is None else "qualified",
         "global_stress_score": __import__("gsi_authority").qualified_score(gs),
         "dollar_stance": safe_get(ds, "stance"),
     }
-    return (int(score) if isinstance(score, (int, float)) else 0), evidence
+    return (int(score) if isinstance(score, (int, float)) else None), evidence
 
 
 def detect_treasury_auction_crisis(ac, signal_board):
@@ -277,7 +279,9 @@ def detect_treasury_auction_crisis(ac, signal_board):
 
 def detect_dollar_shortage(eds, ds, gs):
     """Combines eurodollar stress + dollar surge + global stress."""
-    eds_score = safe_get(eds, "score") or 0
+    eds_score = __import__("eurodollar_research").qualified_score(eds)
+    if eds_score is None:
+        return None, {"status":"ABSTAIN","eurodollar_score":None,"research_context":__import__("eurodollar_research").context(eds)}
     dollar_score = safe_get(ds, "score") or safe_get(ds, "composite") or 0
     gs_score = __import__("gsi_authority").qualified_score(gs)
     # Dollar shortage = simultaneously high eurodollar stress AND dollar surge
@@ -431,12 +435,12 @@ def lambda_handler(event=None, context=None):
         evidence_map[fwk] = evidence
 
     # Permanent Portfolio as default when nothing else dominates
-    pp_score, pp_evidence = detect_permanent_portfolio(list(scores.values()))
+    pp_score, pp_evidence = detect_permanent_portfolio([v for v in scores.values() if v is not None])
     scores["PERMANENT_PORTFOLIO"] = pp_score
     evidence_map["PERMANENT_PORTFOLIO"] = pp_evidence
 
     # Determine primary framework (highest score, must be >=50 to be "active")
-    sorted_fwks = sorted(scores.items(), key=lambda x: -x[1])
+    sorted_fwks = sorted(((k,v) for k,v in scores.items() if v is not None), key=lambda x: -x[1])
     primary = sorted_fwks[0]
     secondary = sorted_fwks[1] if len(sorted_fwks) > 1 else None
 

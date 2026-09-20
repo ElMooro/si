@@ -374,7 +374,7 @@ def check_yield_curve(alerts):
 
 
 def check_eurodollar_stress(alerts):
-    d = load_json("data/eurodollar-stress.json")
+    d = __import__("eurodollar_research").decision_view(load_json("data/eurodollar-stress.json"))
     composite = d.get("composite_stress_score") or d.get("composite_score")
     regime = d.get("regime")
     if composite is None:
