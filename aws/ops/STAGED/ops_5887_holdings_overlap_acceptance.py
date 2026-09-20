@@ -21,6 +21,7 @@ sys.path[:0] = [str(ROOT/'aws/ops'), str(ROOT/'aws/shared'), str(ROOT/'scripts')
 from ops_report import report
 from acceptance_invoke import invoke_when_available
 from replay_holdings_overlap import verify_current
+from replay_fred_vintage import read_public
 from reskin_site import reskin_text
 import holdings_overlap as model
 import overlap_store as store
@@ -53,13 +54,14 @@ def built_bytes(name, body):
     return clean
 
 
-def main():
+def main(*, accepted_run=None, prior_runtime=None, prior_invocation=None,
+         report_name='ops_5887_holdings_overlap_acceptance'):
     s3 = boto3.client('s3', region_name='us-east-1')
     lam = boto3.client('lambda', region_name='us-east-1', config=Config(
         read_timeout=330, tcp_keepalive=True, retries={'max_attempts': 0}))
     scheduler = boto3.client('scheduler', region_name='us-east-1')
     raw = store.reader(s3, BUCKET)
-    with report('ops_5887_holdings_overlap_acceptance') as r:
+    with report(report_name) as r:
         commit = subprocess.check_output(['git', 'log', '-1', '--format=%H', '--', 'aws/lambdas/'+FN], text=True).strip()
         receipt = model.decode(public('data/ops/releases/'+FN+'.json')[0])
         config = lam.get_function_configuration(FunctionName=FN)
@@ -95,25 +97,32 @@ def main():
         assert denied('https://'+BUCKET+'.s3.amazonaws.com/'+private) and denied('https://justhodl.ai/'+private)
         r.kv(whole_legacy_product_preserved={'sha256': PRECEDING_SHA, 'bytes': PRECEDING_BYTES}, anonymous_denied=True)
 
-        started = datetime.now(timezone.utc).isoformat()
-        response, rejected = invoke_when_available(lam, dict(FunctionName=FN, InvocationType='RequestResponse',
-            LogType='Tail', Payload=b'{"action":"overlap_refresh","notify":false}'), wait_seconds=180)
-        result = json.loads(response['Payload'].read())
-        assert not response.get('FunctionError'), 'Execution failed; inspect before another invocation'
-        assert result['statusCode'] == 200
-        invoked = json.loads(result['body'])
-        assert invoked.get('published') or invoked.get('reason') == 'source_and_compiler_unchanged', 'Unexpected invocation outcome'
-        tail = base64.b64decode(response.get('LogResult', '')).decode('utf-8', 'replace')
-        runtime = {}
-        for key, pattern in {'request_id': r'REPORT RequestId:\s*([a-f0-9-]+)',
-                'duration_ms': r'\bDuration:\s*([0-9.]+)\s*ms', 'memory_size_mb': r'Memory Size:\s*(\d+)\s*MB',
-                'max_memory_used_mb': r'Max Memory Used:\s*(\d+)\s*MB'}.items():
-            match = re.search(pattern, tail); assert match, 'Runtime REPORT missing '+key
-            runtime[key] = match[1]
-        runtime.update(duration_ms=float(runtime['duration_ms']), memory_size_mb=int(runtime['memory_size_mb']),
-                       max_memory_used_mb=int(runtime['max_memory_used_mb']))
+        if accepted_run is None:
+            started = datetime.now(timezone.utc).isoformat()
+            response, rejected = invoke_when_available(lam, dict(FunctionName=FN, InvocationType='RequestResponse',
+                LogType='Tail', Payload=b'{"action":"overlap_refresh","notify":false}'), wait_seconds=180)
+            result = json.loads(response['Payload'].read())
+            assert not response.get('FunctionError'), 'Execution failed; inspect before another invocation'
+            assert result['statusCode'] == 200
+            invoked = json.loads(result['body'])
+            assert invoked.get('published') or invoked.get('reason') == 'source_and_compiler_unchanged', 'Unexpected invocation outcome'
+            tail = base64.b64decode(response.get('LogResult', '')).decode('utf-8', 'replace')
+            runtime = {}
+            for key, pattern in {'request_id': r'REPORT RequestId:\s*([a-f0-9-]+)',
+                    'duration_ms': r'\bDuration:\s*([0-9.]+)\s*ms', 'memory_size_mb': r'Memory Size:\s*(\d+)\s*MB',
+                    'max_memory_used_mb': r'Max Memory Used:\s*(\d+)\s*MB'}.items():
+                match = re.search(pattern, tail); assert match, 'Runtime REPORT missing '+key
+                runtime[key] = match[1]
+            runtime.update(duration_ms=float(runtime['duration_ms']), memory_size_mb=int(runtime['memory_size_mb']),
+                           max_memory_used_mb=int(runtime['max_memory_used_mb']))
+            r.kv(invocation_started=started, published=invoked['published'], rejected_before_acceptance=rejected, runtime=runtime)
+        else:
+            packet = model.decode(public(model.CURRENT)[0])
+            assert packet['replay']['sha256'] == accepted_run, 'Accepted output superseded; inspect without reinvoking'
+            assert prior_runtime and prior_invocation, 'Prior invocation evidence required'
+            invoked = {'published': True, 'replay': packet['replay']}; runtime = prior_runtime
+            r.kv(finalization_engine_invocations=0, prior_invocation=prior_invocation, prior_runtime=runtime)
         assert runtime['duration_ms'] < 300000 and runtime['max_memory_used_mb'] < runtime['memory_size_mb']
-        r.kv(invocation_started=started, published=invoked['published'], rejected_before_acceptance=rejected, runtime=runtime)
 
         body, headers = public(model.CURRENT); packet = model.decode(body)
         assert body == raw(model.CURRENT), 'Public current packet differs from storage'
@@ -124,7 +133,8 @@ def main():
         assert packet['clusters'] == [] and packet['compatibility']['legacy_trade_scoring'] == 'retired'
         cache, checked = {}, set()
         def read(key):
-            if key not in cache: cache[key] = public(key)[0]; checked.add(key)
+            # Evidence hashes bind original content, not its gzip storage envelope.
+            if key not in cache: cache[key] = read_public(key); checked.add(key)
             return cache[key]
         manifest, output = verify_current(read, run=packet['replay']['sha256'])
         assert {k: v for k, v in packet.items() if k != 'replay'} == output
@@ -161,6 +171,8 @@ def main():
             'scopes': scope_details, 'original_sec_to_overlap_reproduced': True, 'public_artifacts_replayed': len(checked),
             'whole_legacy_product_preserved': {'sha256': PRECEDING_SHA, 'bytes': PRECEDING_BYTES},
             'anonymous_archive_denied': True, 'invocation_published': invoked['published'], 'runtime': runtime,
+            'engine_invocations_this_op': 0 if accepted_run else 1, 'prior_invocation': prior_invocation,
+            'verification_reader': 'Bounded public archive reader validates decompressed original evidence; complete original-content hash checks remain unchanged.',
             'schedule': schedule, 'paid_ai_calls': 0, 'notifications_sent': 0, 'private_account_reads': 0, 'portfolio_writes': 0,
             'remaining': 'No transaction, conviction, diversification, forecast or sizing authority. Other consumers, CapitalFlow, time-valid security mapping and recurring independent replay remain unfinished.'}
         key = 'data/holdings-overlap-verification.json'
