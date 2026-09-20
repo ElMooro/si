@@ -228,3 +228,5 @@ if __name__ == "__main__":
     tests = [fn for name, fn in sorted(globals().items()) if name.startswith("test_") and callable(fn)]
     for test in tests: test()
     print(f"TradingView macro contracts passed: {len(tests)}")
+    import subprocess
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_fred_levels.py'))], check=True)

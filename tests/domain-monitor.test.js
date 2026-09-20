@@ -20,3 +20,11 @@ test('all catalog rows remain reachable through complete pagination',()=>{
   assert.deepEqual(seen,rows);assert.equal(m.paginate(rows,999).last,10483);
   assert.deepEqual(m.paginate([],4),{rows:[],page:0,pages:1,total:0,first:0,last:0});
 });
+test('native rate differences use percentage points and evidence links require pinned manifests',()=>{
+  assert.equal(m.comparison({value:4.97,prev:4.96,unit:'Percent',change_unit:'percentage_points'}).unit,'percentage points');
+  const key='data/fred-levels/runs/'+'a'.repeat(64)+'.json';
+  assert.equal(m.evidence({contract_version:'fred-native-level.v1',replay:{key}}),'/'+key);
+  for(const path of ['https://evil.test/x','data/fred-levels/runs/../../private','javascript:alert(1)'])
+    assert.equal(m.evidence({contract_version:'fred-native-level.v1',replay:{key:path}}),null);
+  assert.deepEqual(m.comparison({contract_version:'fred-native-level.v1',value:1e29,prev:1e29,change:.1,change_unit:'Index'}),{value:.1,unit:'Index'});
+});

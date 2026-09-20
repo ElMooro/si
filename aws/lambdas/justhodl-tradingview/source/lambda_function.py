@@ -32,6 +32,8 @@ from datetime import datetime, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 from evidence_store import capture
+from fred_level_io import Collector, body as fred_body, publish as publish_vault, refresh_public
+from fred_level_model import series_for, merge_observation, mark_unavailable
 from macro_observations import CURATED_YOY, YOY_CONTRACT, calendar_yoy, valid_yoy_row
 
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
@@ -39,11 +41,12 @@ FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.31.0 calendar YoY and archived source evidence"
+MARKER = "tradingview-vault v3.32.0 native FRED definitions and canonical aliases"
 JPLG_CONTRACT = "boj-loan-growth-yoy.v1"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
+_FRED_LEVELS = None
 _FLEET_CACHE = {}
 
 EQ_EX = {"NASDAQ", "NYSE", "AMEX", "DUS", "MC", "TSE", "HKEX", "TWSE", "KRX"}
@@ -235,26 +238,10 @@ def fleet_value(key, path):
 
 
 def fred_latest(series_id):
-    _FRED_CALLS["n"] += 1
-    url = (f"https://api.stlouisfed.org/fred/series/observations?series_id={series_id}"
-           f"&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=3")
-    for attempt in range(2):
-        try:
-            time.sleep(0.55)
-            req = urllib.request.Request(url, headers={"User-Agent": "JH-TV-Vault/3.0"})
-            with urllib.request.urlopen(req, timeout=15) as r:
-                obs = [o for o in json.loads(r.read()).get("observations", [])
-                       if o.get("value") not in (None, "", ".")]
-            if not obs:
-                return None
-            cur = float(obs[0]["value"])
-            prev = float(obs[1]["value"]) if len(obs) > 1 else None
-            return {"value": cur, "prev": prev, "asof": obs[0]["date"],
-                    "chg_pct": round((cur / prev - 1) * 100, 3) if prev else None}
-        except Exception:
-            if attempt == 0:
-                time.sleep(2.0)
-    return None
+    global _FRED_LEVELS
+    if _FRED_LEVELS is None:
+        _FRED_LEVELS = Collector(s3, S3_BUCKET, FRED_KEY)
+    return _FRED_LEVELS.get(series_id)
 
 
 def fred_yoy(series_id):
@@ -1549,6 +1536,12 @@ def ladder(row):
 
 
 def lambda_handler(event, context):
+    global _FRED_LEVELS
+    _FRED_LEVELS = Collector(s3, S3_BUCKET, FRED_KEY)
+    _FRED_CALLS["n"] = 0
+    # Explicit maintenance path: existing PUBLIC rows only, no private registry or paid adapters.
+    if isinstance(event, dict) and event.get('public_fred_refresh') is True:
+        return refresh_public(s3, S3_BUCKET, OUT_KEY, _FRED_LEVELS, ALIASES, context, event.get('series'))
     import time as _tm
     _T0 = _tm.time()
 
@@ -1562,12 +1555,18 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     print(f"[tv-vault] {MARKER}")
 
+    previous_raw, previous_etag, prev = None, None, {}
     try:
-        prev = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=OUT_KEY)["Body"].read())
+        previous_response = s3.get_object(Bucket=S3_BUCKET, Key=OUT_KEY)
+        previous_raw, previous_etag = fred_body(previous_response), previous_response['ETag']
+        prev = json.loads(previous_raw)
         cache = {r["symbol"]: r for r in prev.get("symbols") or []}
-    except Exception:
+    except Exception as exc:
+        if getattr(exc, 'response', {}).get('Error', {}).get('Code') not in ('NoSuchKey', '404'):
+            raise  # Do not overwrite a pointer whose predecessor could not be read.
         cache = {}
 
+    _FRED_LEVELS.seed(cache.values())
     brain = get_brain()
     PH("brain-loaded")
     reg = build_registry(brain)
@@ -1752,6 +1751,25 @@ def lambda_handler(event, context):
             n_cached += row.get("cached") is True
             n_pending += row.get("status") == "PENDING_RESOLUTION"
             continue
+        # Source identity precedes per-symbol cadence caches and substitute resolvers.
+        sid = series_for({**c, **row, 'resolved_via': c.get('resolved_via')}, {**_gen, **ALIASES})
+        if sid:
+            allow_native = not out_of_time and _ladder_spent < LADDER_WALL_S
+            if context is not None:
+                allow_native = allow_native and context.get_remaining_time_in_millis() >= 180000
+            native_started = time.time()
+            observation = _FRED_LEVELS.get(sid, allowed=allow_native)
+            _ladder_spent += time.time()-native_started
+            if observation:
+                merge_observation(row, observation)
+                row['cached'] = sid in _FRED_LEVELS.reused
+            else:
+                row.update({k:v for k,v in c.items() if k not in ('symbol','category','exchanges','note_ids','n_notes','note_snippet','note_text')})
+                mark_unavailable(row, sid)
+            n_live += row.get('status') == 'LIVE'
+            n_cached += row.get('cached') is True
+            n_pending += row.get('status') in ('PENDING_RESOLUTION', 'STALE')
+            continue
         fetched_at = c.get("fetched_at")
         fresh_days = CADENCE.get(row["cadence"], 0)
         if not force and fetched_at:
@@ -1932,6 +1950,12 @@ def lambda_handler(event, context):
                             "deferred (ladder wall budget)"
         row["fetched_at"] = now.isoformat()
 
+    # A second-chance FRED resolution joins the same canonical response as aliases.
+    for row in rows:
+        sid = series_for(row, {**_gen, **ALIASES})
+        if sid in _FRED_LEVELS.memo and _FRED_LEVELS.memo[sid]:
+            merge_observation(row, _FRED_LEVELS.memo[sid])
+            row['cached'] = sid in _FRED_LEVELS.reused
     rows.sort(key=lambda r: (-r["n_notes"], r["symbol"]))
     by_cat = defaultdict(list)
     by_status = defaultdict(int)
@@ -1941,7 +1965,10 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-tradingview",
-        "version": "3.31.0",
+        "version": "3.32.0",
+        "fred_level_refresh": {"contract": "fred-native-level.v1", "generated_at": _FRED_LEVELS.now.isoformat(),
+            "updated_series": sorted(sid for sid, value in _FRED_LEVELS.memo.items() if value),
+            "failures": _FRED_LEVELS.failures, "source_requests": _FRED_LEVELS.requests},
         "marker": MARKER,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "started_at": now.isoformat(),
@@ -1972,8 +1999,10 @@ def lambda_handler(event, context):
     for public_row in out["symbols"]:
         public_row.pop("note_snippet", None)
         public_row["note_text_private"] = True
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str),
-                  ContentType="application/json", CacheControl="max-age=900")
+    # Reconcile counters after canonical alias normalization.
+    out['n_live'] = by_status.get('LIVE', 0)
+    out['coverage_pct'] = round(out['n_live']/max(1,len(rows))*100,1)
+    publish_vault(s3, S3_BUCKET, OUT_KEY, sanitize_public(OUT_KEY, out), previous_raw, previous_etag)
     print(f"[tv-vault] DONE {out['elapsed_s']}s live={n_live}/{len(rows)} "
           f"cached={n_cached} fred_calls={_FRED_CALLS['n']}")
     return {"ok": True, "n_symbols": len(rows), "n_live": n_live,

@@ -119,12 +119,13 @@ const page=JHDomainMonitor.paginate(rows,pageIndex);pageIndex=page.page;
  document.querySelector('#tbl tbody').innerHTML=page.rows.map(r=>{try{
  const v=r.value==null?'—':(typeof r.value==='number'?r.value.toLocaleString(undefined,{maximumFractionDigits:3}):esc(r.value));
  const comparison=JHDomainMonitor.comparison(r);
+ const evidence=JHDomainMonitor.evidence(r);
  const ch=comparison.value===null?'—':`<span>${comparison.value>0?'+':''}${esc(comparison.value.toLocaleString(undefined,{maximumFractionDigits:6}))}</span><div class="dim">${esc(comparison.unit)}</div>`;
  const dm=DOMIDX[r.symbol]||{};
  const dcell=dm.domain?`<span class="pill p-${dm.domain}">${dm.domain}</span><div class="dim" style="font-size:9.5px;margin-top:2px"><span class="c-${esc(dm.confidence)}">${esc(dm.confidence||'')}</span> · ${esc(dm.tier||'')} · ${esc(dm.role||'')}</div>`:'<span class="dim">—</span>';
  return `<tr><td class="mono"><b>${esc(r.symbol)}</b><div class="dim" style="font-size:10px">${esc(Array.isArray(r.exchanges)?r.exchanges.join(','):'')}</div></td>
- <td>${dcell}</td><td>${esc(r.category)}</td><td class="mono">${v}</td><td class="mono">${ch}</td>
- <td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span><div class="dim" style="font-size:10px">${esc(r.source)}</div><div class="dim" style="font-size:10px">observation: ${esc(r.observation_date||r.asof||'unavailable')}</div></td>
+ <td>${dcell}</td><td>${esc(r.category)}</td><td class="mono">${v}<div class="dim">${esc(r.unit||'unit unverified')}</div></td><td class="mono">${ch}<div class="dim">from ${esc(r.previous_observation_date||'unverified period')}</div></td>
+ <td><span class="badge b-${esc(r.status)}">${esc(r.status)}</span><div class="dim" style="font-size:10px">${esc(r.source)}</div><div class="dim" style="font-size:10px">observation: ${esc(r.observation_date||r.asof||'unavailable')}</div>${evidence?`<details><summary>Source evidence</summary><div>${esc(r.definition)} · ${esc(r.frequency)} · ${esc(r.seasonal_adjustment)}</div><div>Collected ${esc(r.fetched_at)}. ${esc(r.quality?.status)}; release calendar unverified.</div><a href="${evidence}" target="_blank" rel="noopener">Retained inputs and replay</a></details>`:''}</td>
  <td class="mono">${r.n_notes}<div class="dim" style="font-size:9.5px">${esc((r.note_ids||[]).slice(0,2).join(' '))}</div></td>
  <td class="ev">${esc((dm.evidence||'').slice(0,190))}${dm.margin!=null?`<div class="dim" style="font-size:9.5px">margin ${dm.margin}</div>`:''}</td>
  <td class="note">Private note · <a href="/brain.html">open Brain</a></td></tr>`}catch(e){console.warn('row render failed',r&&r.symbol,e);return ''}}).join('')}
