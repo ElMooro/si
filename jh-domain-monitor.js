@@ -11,6 +11,9 @@
       note:'Publication time is not observation time. Mixed periods, note-derived polarities and source dependence do not establish expected returns, independent votes or position sizes.'};
   }
   function comparison(row){
+    if(row?.contract_version==='native-market-observation.v1'){
+      return finite(row.value)&&finite(row.prev)&&finite(row.chg_pct)?{value:row.chg_pct,unit:row.previous_observation_date?'% vs previous provider bar':'% vs undated provider previous close'}:{value:null,unit:'Comparison unavailable — missing source baseline'};
+    }
     if(row?.contract_version==='fred-native-level.v1'){
       return finite(row.value)&&finite(row.prev)&&finite(row.change)?{value:row.change,unit:row.change_unit==='percentage_points'?'percentage points':row.change_unit}:{value:null,unit:'Comparison unavailable'};
     }
@@ -26,6 +29,7 @@
   }
   function evidence(row){
     const key=row?.replay?.key;
+    if(row?.contract_version==='native-market-observation.v1'&&typeof key==='string'&&/^data\/price-observations\/runs\/[a-f0-9]{64}\.json$/.test(key))return '/'+key;
     return row?.contract_version==='fred-native-level.v1'&&typeof key==='string'&&/^data\/fred-levels\/runs\/[a-f0-9]{64}\.json$/.test(key)?'/'+key:null;
   }
   const api={CONTRACT,describe,comparison,paginate,evidence};

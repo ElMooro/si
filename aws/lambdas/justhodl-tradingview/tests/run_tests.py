@@ -230,3 +230,4 @@ if __name__ == "__main__":
     print(f"TradingView macro contracts passed: {len(tests)}")
     import subprocess
     subprocess.run([sys.executable, str(Path(__file__).with_name('test_fred_levels.py'))], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_prices.py'))], check=True)

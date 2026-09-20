@@ -47,6 +47,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(out['coverage']['voting'],0);self.assertIsNone(out['breadth_component'])
         self.assertEqual(out['coverage']['not_voting']['unchanged'],1)
 
+    def test_unqualified_native_market_comparison_cannot_become_a_macro_vote(self):
+        row=self.row(110,100,source='yahoo:GC=F',contract_version='native-market-observation.v1',
+                     chg_pct=10,comparison_eligible=False)
+        self.assertEqual(model.change(row,{}),(None,'native_price_comparison_unqualified'))
+        out=self.build([row]);self.assertEqual(out['n_directional_comparisons'],0)
+        self.assertEqual(out['n_comparison_unavailable'],1)
+
     def test_missing_nonfinite_boolean_and_untyped_values_do_not_vote(self):
         for value in (None,True,'12',float('inf'),float('nan')):
             out=self.build([self.row(value,None,chg_pct=1)])

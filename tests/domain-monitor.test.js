@@ -28,3 +28,12 @@ test('native rate differences use percentage points and evidence links require p
     assert.equal(m.evidence({contract_version:'fred-native-level.v1',replay:{key:path}}),null);
   assert.deepEqual(m.comparison({contract_version:'fred-native-level.v1',value:1e29,prev:1e29,change:.1,change_unit:'Index'}),{value:.1,unit:'Index'});
 });
+test('market comparisons retain undated and missing baselines and safe source manifests',()=>{
+  const row={contract_version:'native-market-observation.v1',value:101,prev:100,chg_pct:1};
+  assert.match(m.comparison(row).unit,/undated provider/);
+  assert.match(m.comparison({...row,previous_observation_date:'2026-09-17'}).unit,/previous provider bar/);
+  assert.equal(m.comparison({...row,prev:null}).value,null);
+  const key='data/price-observations/runs/'+'b'.repeat(64)+'.json';
+  assert.equal(m.evidence({...row,replay:{key}}),'/'+key);
+  assert.equal(m.evidence({...row,replay:{key:'javascript:alert(1)'}}),null);
+});

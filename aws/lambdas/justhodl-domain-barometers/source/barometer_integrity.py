@@ -15,6 +15,8 @@ def finite(value):
 
 def change(row, previous):
     """Prefer a signed level difference; no percentage division across negative/zero levels."""
+    if row.get('contract_version') == 'native-market-observation.v1' and row.get('comparison_eligible') is not True:
+        return None, 'native_price_comparison_unqualified'
     current, prior = finite(row.get('value')), finite(row.get('prev'))
     if current is not None and prior is not None:
         result = current-prior

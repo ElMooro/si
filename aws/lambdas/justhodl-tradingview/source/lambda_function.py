@@ -34,6 +34,8 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 from evidence_store import capture
 from fred_level_io import Collector, body as fred_body, publish as publish_vault, refresh_public
 from fred_level_model import series_for, merge_observation, mark_unavailable
+from price_io import Collector as PriceCollector, refresh_public as refresh_public_prices
+import price_model
 from macro_observations import CURATED_YOY, YOY_CONTRACT, calendar_yoy, valid_yoy_row
 
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
@@ -41,12 +43,13 @@ FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLY_KEY = os.environ.get("POLYGON_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/tradingview.json"
-MARKER = "tradingview-vault v3.32.0 native FRED definitions and canonical aliases"
+MARKER = "tradingview-vault v3.33.0 replayable market observations and dated comparisons"
 JPLG_CONTRACT = "boj-loan-growth-yoy.v1"
 
 s3 = boto3.client("s3")
 _FRED_CALLS = {"n": 0}
 _FRED_LEVELS = None
+_PRICE_LEVELS = None
 _FLEET_CACHE = {}
 
 EQ_EX = {"NASDAQ", "NYSE", "AMEX", "DUS", "MC", "TSE", "HKEX", "TWSE", "KRX"}
@@ -305,22 +308,10 @@ def resolve_curated_yoy_row(row, cached, now, force=False, allow_fetch=True):
 
 
 def yahoo_quote(sym):
-    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/"
-           f"{urllib.request.quote(sym)}?range=5d&interval=1d")
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            res = json.loads(r.read())["chart"]["result"][0]
-        closes = [c for c in res["indicators"]["quote"][0]["close"] if c is not None]
-        if not closes:
-            return None
-        cur = closes[-1]
-        prev = closes[-2] if len(closes) > 1 else None
-        return {"value": round(cur, 4), "prev": round(prev, 4) if prev else None,
-                "chg_pct": round((cur / prev - 1) * 100, 3) if prev else None,
-                "asof": "yahoo_5d"}
-    except Exception:
-        return None
+    global _PRICE_LEVELS
+    if _PRICE_LEVELS is None:
+        _PRICE_LEVELS = PriceCollector(s3, S3_BUCKET, FMP_KEY, POLY_KEY)
+    return _PRICE_LEVELS.get('yahoo', sym)
 
 
 def ecb_latest(flow_key):
@@ -343,42 +334,20 @@ def ecb_latest(flow_key):
 
 
 def poly_prev(sym):
-    if not POLY_KEY:
-        return None
-    url = f"https://api.polygon.io/v2/aggs/ticker/{sym}/prev?apiKey={POLY_KEY}"
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JH-TV-Vault/3.0"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            res = json.loads(r.read()).get("results") or []
-        if not res:
-            return None
-        c, o = res[0].get("c"), res[0].get("o")
-        return {"value": c, "prev": o,
-                "chg_pct": round((c / o - 1) * 100, 3) if (c and o) else None,
-                "asof": "polygon_prev"}
-    except Exception:
-        return None
+    global _PRICE_LEVELS
+    if _PRICE_LEVELS is None:
+        _PRICE_LEVELS = PriceCollector(s3, S3_BUCKET, FMP_KEY, POLY_KEY)
+    return _PRICE_LEVELS.get('polygon', sym)
 
 
 def fmp_quotes(symbols):
-    out = {}
-    for i in range(0, len(symbols), 40):
-        chunk = symbols[i:i + 40]
-        url = (f"https://financialmodelingprep.com/stable/batch-quote?"
-               f"symbols={','.join(chunk)}&apikey={FMP_KEY}")
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JH-TV-Vault/3.0"})
-            with urllib.request.urlopen(req, timeout=25) as r:
-                for q in json.loads(r.read()):
-                    if isinstance(q, dict) and q.get("price") is not None:
-                        out[q.get("symbol")] = {"value": q.get("price"),
-                                                "prev": q.get("previousClose"),
-                                                "chg_pct": q.get("changePercentage"),
-                                                "asof": "live"}
-        except Exception:
-            pass
-        time.sleep(0.25)
-    return out
+    # Batch quote requests stay cheap; exact profiles/units are acquired under
+    # the same bounded collector when the corresponding row is processed.
+    global _PRICE_LEVELS
+    if _PRICE_LEVELS is None:
+        _PRICE_LEVELS = PriceCollector(s3, S3_BUCKET, FMP_KEY, POLY_KEY)
+    _PRICE_LEVELS.prefetch_fmp(symbols)
+    return {}
 
 
 def get_brain():
@@ -1536,12 +1505,15 @@ def ladder(row):
 
 
 def lambda_handler(event, context):
-    global _FRED_LEVELS
+    global _FRED_LEVELS, _PRICE_LEVELS
     _FRED_LEVELS = Collector(s3, S3_BUCKET, FRED_KEY)
+    _PRICE_LEVELS = PriceCollector(s3, S3_BUCKET, FMP_KEY, POLY_KEY, context=context)
     _FRED_CALLS["n"] = 0
     # Explicit maintenance path: existing PUBLIC rows only, no private registry or paid adapters.
     if isinstance(event, dict) and event.get('public_fred_refresh') is True:
         return refresh_public(s3, S3_BUCKET, OUT_KEY, _FRED_LEVELS, ALIASES, context, event.get('series'))
+    if isinstance(event, dict) and event.get('public_price_refresh') is True:
+        return refresh_public_prices(s3, S3_BUCKET, OUT_KEY, _PRICE_LEVELS, ALIASES, event.get('instruments'))
     import time as _tm
     _T0 = _tm.time()
 
@@ -1567,6 +1539,7 @@ def lambda_handler(event, context):
         cache = {}
 
     _FRED_LEVELS.seed(cache.values())
+    _PRICE_LEVELS.seed(cache.values())
     brain = get_brain()
     PH("brain-loaded")
     reg = build_registry(brain)
@@ -1678,7 +1651,7 @@ def lambda_handler(event, context):
     if len(fmp_syms) > FMP_CAP:
         _known = [x for x in fmp_syms if x in cache]
         _new = [x for x in fmp_syms if x not in cache]
-        fmp_syms = (_known + _new)[:FMP_CAP]
+        fmp_syms = sorted(_known + _new, key=lambda x: (cache.get(x, {}).get("native_price_attempted_at", ""), x))[:FMP_CAP]
         print(f"[vault] fmp batch capped to {len(fmp_syms)}")
 
     fmp_vals = fmp_quotes(fmp_syms)
@@ -1769,6 +1742,20 @@ def lambda_handler(event, context):
             n_live += row.get('status') == 'LIVE'
             n_cached += row.get('cached') is True
             n_pending += row.get('status') in ('PENDING_RESOLUTION', 'STALE')
+            continue
+        price_identity = price_model.identity_for({**c, **row, 'resolved_via': c.get('resolved_via')}, {**_gen, **ALIASES})
+        if price_identity:
+            observation = _PRICE_LEVELS.get(*price_identity, allowed=not out_of_time)
+            row.update({k:v for k,v in c.items() if k not in ('symbol','category','exchanges','note_ids','n_notes','note_snippet','note_text')})
+            if observation:
+                price_model.merge_observation(row, observation, {**_gen, **ALIASES})
+                row['cached'] = price_identity in _PRICE_LEVELS.reused
+            else:
+                price_model.mark_unavailable(row, price_identity)
+            row['native_price_attempted_at'] = _PRICE_LEVELS.now.isoformat()
+            n_live += row.get('status') == 'LIVE'
+            n_cached += row.get('cached') is True
+            n_pending += row.get('status') in ('PENDING_RESOLUTION','STALE','MAPPING_REVIEW')
             continue
         fetched_at = c.get("fetched_at")
         fresh_days = CADENCE.get(row["cadence"], 0)
@@ -1956,6 +1943,13 @@ def lambda_handler(event, context):
         if sid in _FRED_LEVELS.memo and _FRED_LEVELS.memo[sid]:
             merge_observation(row, _FRED_LEVELS.memo[sid])
             row['cached'] = sid in _FRED_LEVELS.reused
+    # Ladder successes retain their complete native contract; no renewed cache clock.
+    for row in rows:
+        identity = price_model.identity_for(row, {**_gen, **ALIASES})
+        if identity in _PRICE_LEVELS.memo and _PRICE_LEVELS.memo[identity]:
+            price_model.merge_observation(row, _PRICE_LEVELS.memo[identity], {**_gen, **ALIASES})
+            row['cached'] = identity in _PRICE_LEVELS.reused
+            row['native_price_attempted_at'] = _PRICE_LEVELS.now.isoformat()
     rows.sort(key=lambda r: (-r["n_notes"], r["symbol"]))
     by_cat = defaultdict(list)
     by_status = defaultdict(int)
@@ -1965,7 +1959,10 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-tradingview",
-        "version": "3.32.0",
+        "version": "3.33.0",
+        "price_observation_refresh": {"contract": price_model.CONTRACT, "generated_at": _PRICE_LEVELS.clock().isoformat(),
+            "updated_instruments": sorted(":".join(k) for k,v in _PRICE_LEVELS.memo.items() if v),
+            "failures": _PRICE_LEVELS.failures, "source_requests": _PRICE_LEVELS.requests},
         "fred_level_refresh": {"contract": "fred-native-level.v1", "generated_at": _FRED_LEVELS.now.isoformat(),
             "updated_series": sorted(sid for sid, value in _FRED_LEVELS.memo.items() if value),
             "failures": _FRED_LEVELS.failures, "source_requests": _FRED_LEVELS.requests},
