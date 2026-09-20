@@ -189,6 +189,7 @@ class OwnedReadContractTests(unittest.TestCase):
     def test_owned_prompt_carries_the_skeleton_and_repair_prompt_carries_the_error(self):
         p = mr.build_prompt(BOARD, PLAY, None, True, mr.OWNED_BUDGET, schema_hint=True)
         self.assertIn('"stocks": {"stance": "RISK_ON|SELECTIVE|DEFENSIVE|AVOID"', p); self.assertIn("Copy exactly this shape", p)
+        self.assertIn("at least 2 dated calls", p)                     # 2026-09-19: a read with 0 calls (like that morning's) is never graded
         self.assertNotIn("Copy exactly this shape", mr.build_prompt(BOARD, PLAY, None, True))
         rp = mr.repair_prompt('{"stocks": {"stance": "DEFENSIVE"}}', "validation: stocks.read must be a non-empty string")
         self.assertIn("stocks.read must be a non-empty string", rp); self.assertIn(mr.SCHEMA_SKELETON, rp); self.assertIn('"stance": "DEFENSIVE"', rp)

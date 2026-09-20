@@ -367,7 +367,8 @@ def build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[
     text = _build_prompt(board, play, lessons, playbook_text, budget)
     if schema_hint:
         text = text[:-len("Produce the JSON.")] if text.endswith("Produce the JSON.") else text + "\n"
-        text += "Produce the JSON. Copy exactly this shape (same keys, stances only from the lists, ticker only from CANDIDATES, no other keys, no prose before or after):\n" + SCHEMA_SKELETON
+        text += ("Produce the JSON. Copy exactly this shape (same keys, stances only from the lists, ticker only from CANDIDATES, no other keys, no prose before or after). "
+                 "calls: when CANDIDATES is non-empty make at least 2 dated calls (your best two, each with the confidence you actually hold) -- an empty calls array is the one answer that can never be graded:\n") + SCHEMA_SKELETON
     return text
 
 
