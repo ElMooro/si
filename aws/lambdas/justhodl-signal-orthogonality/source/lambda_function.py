@@ -165,6 +165,7 @@ def lambda_handler(event, context):
                                 in (s.get("dims") or {}).items()}}}
                  for s in gsi_snaps if s.get("gsi") is not None]
 
+    snaps = __import__("gsi_authority").filter_history(snaps)
     if len(snaps) < MIN_N:
         report = {
             "as_of": datetime.now(timezone.utc).isoformat(),

@@ -486,7 +486,7 @@ def lambda_handler(event, context):
     tnoise = load("data/treasury-noise.json", "treasury_noise")
     crisis = load("data/crisis-composite.json", "crisis_composite")
     canary = load("data/crisis-canaries.json", "crisis_canaries")
-    gstress = load("data/global-stress.json", "global_stress")
+    gstress = __import__("gsi_authority").decision_view(load("data/global-stress.json", "global_stress"))
     sysstress = load("data/systemic-stress.json", "systemic_stress")
     rmap = load("data/regime-map.json", "risk_map")
     rrisk = load("data/risk-regime.json", "risk_regime")
@@ -1010,7 +1010,7 @@ def lambda_handler(event, context):
     fund_stress = num(_get(tnoise, "treasury_stress")) or num(_get(tnoise, "funding_stress"))
     crisis_score = num(_get(crisis, "master_crisis_score"))
     canary_score = num(_get(canary, "composite_score"))
-    gstress_idx = num(_get(gstress, "global_stress_index"))
+    gstress_idx = __import__("gsi_authority").qualified_score(gstress)
     sys_score = num(_get(sysstress, "composite", "score_0_100"))
 
     comps = {"global_stress": (gstress_idx, 0.25), "crisis_composite": (crisis_score, 0.20),

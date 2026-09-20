@@ -1072,7 +1072,7 @@ def run_backfill(days=200):
                                 "elapsed_s": round(time.time() - t0, 1)})}
 
 
-def lambda_handler(event, context):
+def _legacy_unqualified_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     if isinstance(event, dict) and event.get("test_telegram"):
@@ -1390,3 +1390,16 @@ def lambda_handler(event, context):
         "worst": worst["market"] if worst else None,
         "telegram_alert": alerted,
         "build_seconds": out["build_seconds"]})}
+
+
+# Stage 52: the active path is public original-source research only. Event flags
+# cannot select legacy backfill, calibrations, private contexts or notifications.
+def lambda_handler(event=None, context=None):
+    from global_research_store import run
+    try:
+        fmp_key=FMP or ssm.get_parameter(Name='/justhodl/fmp-api-key',WithDecryption=True)['Parameter']['Value']
+        fred_key=FRED_KEY or ssm.get_parameter(Name='/justhodl/fred/api-key',WithDecryption=True)['Parameter']['Value']
+        result=run(s3,S3_BUCKET,fred_key,fmp_key)
+        return {'statusCode':200 if result['published'] else 409,'body':json.dumps(result)}
+    except Exception as exc:
+        return {'statusCode':503,'body':json.dumps({'ok':False,'error':type(exc).__name__})}

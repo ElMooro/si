@@ -337,6 +337,11 @@ def norm_global_stress(d):
     are already canaries here), the eq/bond/global composites (the card
     carries the index), and tier DISPERSION (the CCC-BB member canary is
     already live in the funding mechanism)."""
+    from gsi_authority import qualified_score
+    if qualified_score(d) is None:
+        return ({"key":"global_stress","label":"Global Stress research","score":None,"band":"UNQUALIFIED",
+                 "headline":"Descriptive market measurements; no qualified canary or forecast lead time.",
+                 "n_total":0,"n_firing":0,"scale":None}, [])
     cans = []
     for arr_key, kind in (("equities", "equity"), ("bonds", "bond")):
         for r in (d.get(arr_key) or []):

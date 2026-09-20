@@ -224,7 +224,7 @@ def gather_signals():
     out = {}
 
     # GSI -- map 0-100 stress to -1..+1 (35 neutral, 75+ -> +1)
-    gs = read_json("data/global-stress.json")
+    gs = __import__("gsi_authority").decision_view(read_json("data/global-stress.json"))
     gsi = gs.get("global_stress_index")
     if isinstance(gsi, (int, float)):
         intensity = clamp((gsi - 35) / 40.0, -1.0, 1.0)
@@ -637,7 +637,7 @@ def _best_asset_now():
         if isinstance(v, (int, float)) and v >= 70:
             reasons.append("crisis-composite %s=%.0f" % (k, v))
             break
-    gsi = _ba_s3json("data/global-stress.json")
+    gsi = __import__("gsi_authority").decision_view(_ba_s3json("data/global-stress.json"))
     for k in ("gsi", "score", "composite"):
         v = gsi.get(k)
         if isinstance(v, (int, float)) and v >= 70:

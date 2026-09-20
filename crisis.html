@@ -1191,6 +1191,11 @@ FEEDS.forEach(function(f){
  c.innerHTML='<div style="color:#5d7285;font-size:10px;letter-spacing:1px">'+f.replace('.json','').toUpperCase()+'</div><div class="v" style="color:#dfe9f2;font-size:20px;font-weight:700;margin:5px 0 2px">\u2026</div><div class="s" style="color:#69808f;font-size:10px"></div>';
  g.appendChild(c);
  fetch('/data/'+f+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+  if(f==='global-stress.json'){
+   c.querySelector('.v').textContent='Research only';
+   c.querySelector('.s').textContent='No qualified composite score. Open Global Stress for dated source measurements.';
+   return;
+  }
   var n=pick(d,NK),s=pickS(d,SK);
   var ts=d.as_of||d.generated_at||d.updated_at||d.timestamp;
   var age=ts?((Date.now()-new Date(ts).getTime())/36e5):null;

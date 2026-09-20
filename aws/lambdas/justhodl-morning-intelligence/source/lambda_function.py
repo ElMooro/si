@@ -769,7 +769,7 @@ def extract_metrics(data,weights):
                 (dr.get("technicals") or {}).get("double_bottom")),
         })(),
         # Global Stress Matrix (world equity & bond stress — global-stress)
-        **(lambda gs=data.get("global_stress", {}): {
+        **(lambda gs=__import__("gsi_authority").decision_view(data.get("global_stress", {})): {
             "global_stress_index": gs.get("global_stress_index"),
             "global_stress_level": gs.get("global_stress_level"),
             "global_equity_stress": gs.get("equity_stress"),

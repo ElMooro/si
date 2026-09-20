@@ -254,7 +254,7 @@ def lambda_handler(event, context):
             sum(s * w for _, s, w, _ in available) / wsum) if wsum else None
 
     # ---- 3. comparison vs morning batch -------------------------------
-    gsi_doc = read_json(GSI_KEY)
+    gsi_doc = __import__("gsi_authority").decision_view(read_json(GSI_KEY))
     morning_gsi = gsi_doc.get("global_stress_index")
     drift = None
     if pulse is not None and isinstance(morning_gsi, (int, float)):

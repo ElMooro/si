@@ -955,3 +955,10 @@ One Stress Research invocation (`2348d608-f597-4be1-8ff7-84cfc030c559`) plus one
 Live desktop and 390×844 checks confirmed three aligned source cards, available-history selection back to each actual inception, monthly reference labels, expanded original-record links/row indices, readable mobile tables and zero captured console errors. Viewport reset. All four verify_release calls pass; runtime and acceptance pushes verify green.
 
 Next: Global Stress original ETF identities and separate split-/dividend-adjusted prices; align returns by exact dates, distinguish USD-listed proxies from local underlying markets, preserve mismatched-duration limitations, and retire unqualified calibration authority. Original provider definitions: https://site.financialmodelingprep.com/developer/docs and https://site.financialmodelingprep.com/it/faqs?code=marketPerformance distinguish split-only full/light data from split-and-dividend-adjusted data. No Global Stress producer will be invoked during preflight.
+
+
+## Stage 52 - Global Stress source research and consumer qualification (prepared)
+
+Ops 5907 preflight passed on 2026-09-20 at 08:09Z (run 35498748180): 54 original provider probes, five complete protected predecessor products, no producer or consumer invocation. This batch preserves 14 ETF identities and the full original 10-series FRED input set, separates price and dividend-adjusted histories, matches both return endpoints for correlations, and retains original bytes plus deterministic replay. The 15 affected runtimes include the native producer, two status-only calibrators and 12 direct consumers. The Crisis feed card no longer recursively treats an arbitrary research number as a score. Four live page surfaces and the mutable-data edge are included.
+
+Offline acceptance: 28 native/storage/actual-consumer tests plus seven inherited CISS tests, 633 frontend tests, existing changed-engine runners, privacy and source wiring checks. Source and live deployment acceptance are pending; do not infer a verified release from this entry. No private account reads, paid AI calls, portfolio writes or notifications are authorized for acceptance.

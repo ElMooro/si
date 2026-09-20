@@ -136,10 +136,10 @@ def n_eurodollar_plumbing(d):
 
 def n_global_stress(d):
     # global_stress_index 0-100; high = world equity/bond stress = risk-off.
-    gsi = d.get("global_stress_index")
+    gsi = __import__("gsi_authority").qualified_score(d)
     lvl = d.get("global_stress_level") or "n/a"
     if not isinstance(gsi, (int, float)):
-        return 0, "Global stress n/a"
+        return None, "Global stress research is not qualified to vote"
     sig = -2 if gsi >= 75 else -1 if gsi >= 55 else 1 if gsi < 32 else 0
     return sig, f"Global market stress {lvl} ({gsi}/100)"
 

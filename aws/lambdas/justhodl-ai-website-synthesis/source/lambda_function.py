@@ -252,6 +252,8 @@ def fetch_engine(engine_name: str, spec: dict) -> tuple:
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
         d = json.loads(obj["Body"].read())
+        if engine_name == "global_stress":
+            d = __import__("gsi_authority").decision_view(d)
         last_modified = obj["LastModified"]
         age_s = (datetime.now(timezone.utc) - last_modified).total_seconds()
         age_min = round(age_s / 60, 1)

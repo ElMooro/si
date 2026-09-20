@@ -258,7 +258,7 @@ def detect_eurodollar_stress(eds, gs, ds):
     score = safe_get(eds, "score") or safe_get(eds, "stress_score") or 0
     evidence = {
         "eurodollar_stress_score": score,
-        "global_stress_score": safe_get(gs, "global_stress_index"),
+        "global_stress_score": __import__("gsi_authority").qualified_score(gs),
         "dollar_stance": safe_get(ds, "stance"),
     }
     return (int(score) if isinstance(score, (int, float)) else 0), evidence
@@ -279,7 +279,7 @@ def detect_dollar_shortage(eds, ds, gs):
     """Combines eurodollar stress + dollar surge + global stress."""
     eds_score = safe_get(eds, "score") or 0
     dollar_score = safe_get(ds, "score") or safe_get(ds, "composite") or 0
-    gs_score = safe_get(gs, "global_stress_index") or 0
+    gs_score = __import__("gsi_authority").qualified_score(gs)
     # Dollar shortage = simultaneously high eurodollar stress AND dollar surge
     combined = 0
     if isinstance(eds_score, (int, float)) and eds_score >= 60:
@@ -297,13 +297,13 @@ def detect_dollar_shortage(eds, ds, gs):
 def detect_dollar_smile_left(ds, gs, crisis):
     """USD strong + global stress + crisis elevated."""
     dollar = safe_get(ds, "score") or 0
-    gs_score = safe_get(gs, "global_stress_index") or 0
+    gs_score = __import__("gsi_authority").qualified_score(gs)
     crisis_score = safe_get(crisis, "score") or 0
     combined = 0
     if isinstance(dollar, (int, float)) and dollar >= 60:
         if (isinstance(gs_score, (int, float)) and gs_score >= 60) or \
            (isinstance(crisis_score, (int, float)) and crisis_score >= 50):
-            combined = min(90, (dollar + max(gs_score, crisis_score)) / 2)
+            combined = min(90, (dollar + max(v for v in (gs_score, crisis_score) if isinstance(v, (int, float)))) / 2)
     evidence = {"dollar": dollar, "global_stress": gs_score,
                 "crisis": crisis_score, "combined": combined}
     return int(combined), evidence
@@ -312,7 +312,7 @@ def detect_dollar_smile_left(ds, gs, crisis):
 def detect_dollar_smile_right(ds, gs, crisis, signal_board):
     """USD strong + low global stress + risk-on posture."""
     dollar = safe_get(ds, "score") or 0
-    gs_score = safe_get(gs, "global_stress_index") or 100
+    gs_score = __import__("gsi_authority").qualified_score(gs)
     crisis_score = safe_get(crisis, "score") or 100
     posture = safe_get(signal_board, "posture")
     combined = 0
@@ -386,7 +386,7 @@ def lambda_handler(event=None, context=None):
     eds = fetch_s3_json("data/eurodollar-stress.json")
     ac = fetch_s3_json("data/auction-crisis.json")
     ds = fetch_s3_json("data/dollar-radar.json")
-    gs = fetch_s3_json("data/global-stress.json")
+    gs = __import__("gsi_authority").decision_view(fetch_s3_json("data/global-stress.json"))
     crisis = fetch_s3_json("data/crisis-composite.json")
     canary = fetch_s3_json("data/canary-grid.json")
     signal_board = fetch_s3_json("data/signal-board.json")

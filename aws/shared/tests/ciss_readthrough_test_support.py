@@ -109,7 +109,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(out['assessment_coverage']['assessed'],1)
         self.assertEqual(out['n_carried'],0)
 
-    def test_actual_global_handler_has_no_unvalidated_floor_or_notification_on_verification(self):
+    def test_retained_global_legacy_has_no_unvalidated_ciss_floor(self):
         m=load('justhodl-global-stress');writes=[];p=packet()
         p['ea_regime']='CRISIS';p=seal(p) # even a bound legacy label grants no authority
         get=lambda **k: {'Body':io.BytesIO(json.dumps(p).encode())}
@@ -125,7 +125,7 @@ class Tests(unittest.TestCase):
                 funcs[name]=None
             for name,value in funcs.items():stack.enter_context(patch.object(m,name,return_value=value))
             stack.enter_context(patch.object(m,'send_telegram',alert))
-            response=m.lambda_handler({'suppress_alerts':True},None)
+            response=m._legacy_unqualified_handler({'suppress_alerts':True},None)
         out=json.loads(next(w['Body'] for w in writes if w['Key']==m.OUT_KEY))
         self.assertEqual(response['statusCode'],200)
         self.assertEqual(out['global_stress_index'],20)

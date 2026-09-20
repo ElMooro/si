@@ -202,7 +202,7 @@ def comp_dollar(d):
 def comp_global_stress(d):
     # global-stress emits global_stress_index 0-100 (high = world equity and
     # bond stress already visible in the tape) -- a direct crisis reading.
-    return clamp(dig(d, "global_stress_index"))
+    return __import__("gsi_authority").qualified_score(d)
 
 
 def comp_ciss(d):
