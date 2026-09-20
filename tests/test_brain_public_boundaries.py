@@ -58,7 +58,8 @@ class PublicBoundaryTests(unittest.TestCase):
             "series_source": types.SimpleNamespace(fetch=lambda *a: {"2025-01-01": -0.2, "2026-08-01": 0.2}),
             "private_artifact": types.SimpleNamespace(publish_private=lambda kind, doc: private.append((kind, json.loads(json.dumps(doc))))),
         }):
-            scope = runpy.run_path(str(source(engine)))
+            with patch.object(sys, "path", [str(source(engine).parent), *sys.path]):
+                scope = runpy.run_path(str(source(engine)))
         # Dynamic imports during a handler call must also stay in the fake AWS boundary.
         handler = scope.get("lambda_handler")
         if handler:

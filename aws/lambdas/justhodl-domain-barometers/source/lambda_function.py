@@ -39,7 +39,7 @@ CONSUMES  data/brain.json, data/tradingview.json, data/risk-gate.json,
 EMITS     data/domain-barometers.json
 """
 from public_brain_projection import sanitize_public
-from consume_brain import load_constitution, overlay_payload
+from barometer_integrity import CONTRACT, finite, change, change_unit, publication_quality, permissions, root_admission
 import json
 import math
 import re
@@ -49,7 +49,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-MARKER = "domain-barometers v1.4 ops4010 six-country"
+MARKER = "domain-rule-monitor v1.1 observation integrity"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/domain-barometers.json"
 LEDGER_KEY = "domain-barometers/history-ledger.json"
@@ -307,8 +307,8 @@ def classify(brain, rows):
         o = sorted(sc.items(), key=lambda kv: -kv[1])
         best = o[0][0]
         mg = o[0][1] - o[1][1] if len(o) > 1 else 1.0
-        top = sorted(set(tk), key=lambda w: -(logp[best][w] -
-                     max(logp[x][w] for x in DOMS if x != best)))[:6]
+        top = sorted(set(tk), key=lambda w: (-(logp[best][w] -
+                     max(logp[x][w] for x in DOMS if x != best)), w))[:6]
         return best, mg, top
 
     dom, tier, evid, marg, nids = {}, {}, {}, {}, {}
@@ -329,7 +329,7 @@ def classify(brain, rows):
             evid[s] = f"subject of {len(ds)} doctrine notes {sorted(ds)}; private corpus classification {dom[s]}"
         nids[s] = ids
     for nid, d in ANCHORS.items():
-        for s in note_syms.get(nid, ()):
+        for s in sorted(note_syms.get(nid, ())):
             if s in vset and s not in dom:
                 dom[s], tier[s], evid[s] = d, "T1b", f"named inside doctrine note {nid}"
                 nids[s] = [nid]
@@ -364,11 +364,11 @@ def classify(brain, rows):
             continue
         votes = Counter()
         for nid, _b in (subj.get(s, []) + ment.get(s, [])):
-            for p in note_syms.get(nid, ()):
+            for p in sorted(note_syms.get(nid, ())):
                 if p != s and tier.get(p, "").startswith(("T1", "T2")):
                     votes[dom[p]] += 1
         if votes:
-            d, k = votes.most_common(1)[0]
+            d, k = sorted(votes.items(), key=lambda kv: (-kv[1], kv[0]))[0]
             dom[s], tier[s], evid[s] = d, "T3", f"co-occurs in his notes with {k} {d} metrics"
 
     fam = defaultdict(list)
@@ -377,7 +377,7 @@ def classify(brain, rows):
     for f, mem in fam.items():
         known = Counter(dom[m] for m in mem if m in dom)
         if known:
-            d = known.most_common(1)[0][0]
+            d = sorted(known.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
             for m in mem:
                 if m not in dom:
                     dom[m], tier[m], evid[m] = d, "T4", f"same family as {f}* ({d})"
@@ -386,7 +386,7 @@ def classify(brain, rows):
     for s, d in dom.items():
         if tier[s].startswith(("T1", "T2")):
             catvote[cat_of.get(s)][d] += 1
-    prior = {c: v.most_common(1)[0][0] for c, v in catvote.items() if v}
+    prior = {c: sorted(v.items(), key=lambda kv: (-kv[1], kv[0]))[0][0] for c, v in catvote.items() if v}
     for s in vault_syms:
         if s in dom:
             continue
@@ -423,24 +423,8 @@ def polarity(sym, cat):
 
 
 def effective_change(r, prev_vals):
-    """The feed supplies chg_pct only on some adapter paths (Yahoo ^MOVE and
-    every FRED yoy/single-observation path return a level with no change).
-    ops 3967 showed that silently dropped 39 LIVE directional metrics —
-    including MOVE, his most-cited RISK anchor at 42 notes. So derive it:
-    feed first, then the row's own prev, then this engine's ledger."""
-    ch = r.get("chg_pct")
-    if ch is not None:
-        return float(ch), "feed"
-    v = r.get("value")
-    if not isinstance(v, (int, float)):
-        return None, None
-    pv = r.get("prev")
-    if isinstance(pv, (int, float)) and pv:
-        return (v / pv - 1) * 100, "row_prev"
-    lv = prev_vals.get(r["symbol"])
-    if isinstance(lv, (int, float)) and lv:
-        return (v / lv - 1) * 100, "ledger"
-    return None, None
+    """Compatibility entry point; unknown ledger units/vintages never supply a baseline."""
+    return change(r, prev_vals)
 
 
 def build_barometers(rows, dom, gate, cat_of, prev_vals):
@@ -449,6 +433,7 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
                "RISK": ("credit", "structure"),
                "MACRO": ("dollar", "growth")}
     legs = (gate or {}).get("legs") or {}
+    admission = root_admission(rows, dom, cat_of, polarity, ASSET_CATS, ASSET_SYMS)
     out = {}
     for d in DOMS:
         # (a) gate component: legs are scored -2..+2 -> 0..100
@@ -456,7 +441,7 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
         for lk in LEG_MAP[d]:
             leg = legs.get(lk) or {}
             sc = leg.get("score_fused", leg.get("score"))
-            if sc is None:
+            if finite(sc) is None or not -2 <= sc <= 2:
                 continue
             scores.append(float(sc))
             used.append({"leg": lk, "score": round(float(sc), 3),
@@ -464,7 +449,8 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
         gate_c = (sum(scores) / len(scores) + 2) / 4 * 100 if scores else None
 
         # (b) vault breadth: signed share of live drivers moving favourably
-        up = dn = 0
+        up = dn = flat = unavailable = 0
+        excluded = Counter()
         n_asset = n_drv = n_drv_live = n_dir = 0
         movers = []
         for r in rows:
@@ -487,16 +473,29 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
             n_dir += 1
             ch, chsrc = effective_change(r, prev_vals)
             if ch is None:
+                unavailable += 1
                 continue
             signed = pol * float(ch)
-            (up, dn) = (up + 1, dn) if signed > 0 else (up, dn + 1)
-            movers.append({"symbol": s, "chg_pct": round(float(ch), 3),
+            root = admission[id(r)]
+            if not root["vote_eligible"]: excluded[root["exclusion"]] += 1
+            elif signed > 0: up += 1
+            elif signed < 0: dn += 1
+            else: flat += 1
+            movers.append({"symbol": s, **root,
+                           "chg_pct": round(float(ch), 3) if chsrc == "provider_reported_percent" else None,
+                           "change_value": ch, "change_unit": change_unit(r, chsrc),
+                           "current_value": finite(r.get("value")), "previous_value": finite(r.get("prev")),
+                           "source": r.get("source"), "series_id": r.get("series_id"),
+                           "observation_date": r.get("observation_date") or r.get("asof"),
+                           "comparison_observation_date": r.get("previous_observation_date"),
+                           "frequency": r.get("frequency"), "source_quality": r.get("quality"),
+                           "period_alignment_verified": False,
                            "chg_source": chsrc, "polarity": pol,
                            "signed": round(signed, 3),
                            "polarity_basis": basis, "why": why})
         n = up + dn
         breadth_c = (up / n * 100) if n else None
-        movers.sort(key=lambda m: m["signed"])
+        movers.sort(key=lambda m: m["symbol"])
 
         parts = [c for c in (gate_c, breadth_c) if c is not None]
         score = round(sum(parts) / len(parts), 1) if parts else None
@@ -510,12 +509,19 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
             "gate_component": None if gate_c is None else round(gate_c, 1),
             "breadth_component": None if breadth_c is None else round(breadth_c, 1),
             "gate_legs_used": used,
-            "n_drivers_live": n, "n_favourable": up, "n_adverse": dn,
+            "n_drivers_live": n, "n_favourable": up, "n_adverse": dn, "n_unchanged": flat,
+            "n_directional_comparisons": n, "n_comparisons": len(movers), "n_comparison_unavailable": unavailable,
+            "n_excluded_comparisons": sum(excluded.values()), "excluded_provider_roots": dict(excluded),
+            "dependency_guard": "Named aliases of one provider series vote once; differing values, periods, transformations, domains or polarity abstain. Cross-provider and economic-factor independence remains unvalidated.",
             "disagreement": disagree,
             "disagreement_note": ("gate depth and vault breadth disagree by >25 points — "
-                                  "treat this barometer as unstable and size down"
+                                  "descriptive components disagree; no position-size inference is qualified"
                                   if disagree else None),
-            "worst_movers": movers[:6], "best_movers": movers[-6:][::-1],
+            "worst_movers": [], "best_movers": [],
+            "driver_comparisons": movers,
+            "magnitude_ranking": "unavailable: changes have different units and periods",
+            "measurement_contract": CONTRACT,
+            "permissions": permissions(),
             "coverage": {
                 "classified": sum(1 for x in rows if dom.get(x["symbol"]) == d),
                 "drivers": n_drv, "live_drivers": n_drv_live,
@@ -523,16 +529,15 @@ def build_barometers(rows, dom, gate, cat_of, prev_vals):
                 "not_voting": {"is_a_prediction_target": n_asset,
                                "no_live_value": n_drv - n_drv_live,
                                "direction_not_stated_in_your_notes": n_drv_live - n_dir,
-                               "no_measurable_move_yet": n_dir - n},
-                "note": "voting is the honest denominator — a metric with no live value "
-                        "or no stated direction is excluded rather than guessed at",
+                               "no_measurable_move_yet": unavailable, "unchanged": flat, **dict(excluded)},
+                "note": "Directional denominator excludes unchanged and unavailable comparisons. "
+                        "LIVE is an upstream label, not independently verified observation freshness.",
             },
-            "interpretation": "100 = maximally supportive of risk assets, 0 = maximally hostile",
+            "interpretation": "Unvalidated rule index. Favourable/adverse means agreement with configured note polarity, not a measured expected return.",
             "breadth_uses": "SIGN of each driver's move only. Magnitudes shown in the mover "
                             "lists are informational — percent change is meaningless for "
                             "index-level series that oscillate around zero (CFNAI et al).",
         }
-    out = overlay_payload(out, constitution)
     return out
 
 
@@ -549,7 +554,7 @@ def predict(bar, gate, rot):
     posture = (gate or {}).get("posture")
 
     def z(v):
-        return 0.0 if v is None else (v - 50) / 50.0    # -1..+1
+        return 0.0 if finite(v) is None else (v - 50) / 50.0    # -1..+1
 
     zl, zr, zm = z(L), z(R), z(M)
     preds = {}
@@ -585,8 +590,10 @@ def predict(bar, gate, rot):
                   "leaves the system [tv-ab761f92999efe68]",
     }
     for cls, (wl, wr, wm) in W.items():
+        complete = all(finite(v) is not None for v in (L, R, M))
         raw = wl * zl + wr * zr + wm * zm
-        rp = rot_prior.get(cls)
+        rp = finite(rot_prior.get(cls))
+        if rp is not None and not -1 <= rp <= 1: rp = None
         blended = raw if rp is None else 0.75 * raw + 0.25 * float(rp)
         direction = ("BULLISH" if blended >= 0.30 else "LEAN_BULLISH" if blended >= 0.10
                      else "NEUTRAL" if blended > -0.10
@@ -596,10 +603,13 @@ def predict(bar, gate, rot):
         drv = sorted((("liquidity", wl * zl), ("risk", wr * zr), ("macro", wm * zm)),
                      key=lambda kv: -abs(kv[1]))
         preds[cls] = {
-            "direction": direction, "score": round(blended, 3),
-            "conviction": conviction,
-            "dominant_driver": drv[0][0],
-            "driver_contributions": {k: round(v, 3) for k, v in drv},
+            "direction": direction if complete else "WAIT", "score": round(blended, 3) if complete else None,
+            "conviction": conviction if complete else None,
+            "status": "unvalidated_rule_mapping" if complete else "insufficient_domain_observations",
+            "missing_domains": [d for d, v in (("LIQUIDITY",L),("RISK",R),("MACRO",M)) if finite(v) is None],
+            "permissions": permissions(),
+            "dominant_driver": drv[0][0] if complete else None,
+            "driver_contributions": {k: round(v, 3) for k, v in drv} if complete else {},
             "rotation_prior_used": rp,
             "brain_basis": CITE[cls],
             "proxies": ASSET_CLASSES.get(cls, []),
@@ -607,11 +617,10 @@ def predict(bar, gate, rot):
     return {
         "asset_classes": preds,
         "regime_context": {"rotation_regime": regime, "risk_gate_posture": posture,
-                           "sizing_multiplier": (gate or {}).get("sizing_multiplier")},
-        "how_to_read": "score is a -1..+1 expectation from the three barometers, "
-                       "blended 75/25 with the rotation-dashboard regime prior. It is a "
-                       "POSITIONING TILT, not a price target and not a timing signal — "
-                       "macro gates sizing, technicals time entries [tv-c8640dea0c15ee5c].",
+                           "sizing_multiplier": None},
+        "how_to_read": "Unvalidated linear rule mapping from three descriptive barometers and an optional legacy rotation prior. "
+                       "It is not an expected return, probability, recommendation or position size. Missing domains produce WAIT.",
+        "permissions": permissions(),
     }
 
 
@@ -626,70 +635,23 @@ def load_prev_values():
 
 
 def update_ledger(bar, rows, now):
-    """Append today's barometer state + asset proxy levels. Forward returns
-    are computed on later runs against these stamps. Day one: n_obs 0."""
-    led = gj(LEDGER_KEY, {"observations": []}) or {"observations": []}
-    obs = led.get("observations") or []
-    px = {}
-    idx = {r["symbol"]: r for r in rows}
-    for cls, proxies in ASSET_CLASSES.items():
-        for p in proxies:
-            r = idx.get(p)
-            if r and r.get("status") == "LIVE" and isinstance(r.get("value"), (int, float)):
-                px[cls] = {"proxy": p, "value": float(r["value"])}
-                break
-    vals = {r["symbol"]: r["value"] for r in rows
-            if r.get("status") == "LIVE" and isinstance(r.get("value"), (int, float))}
-    obs.append({"date": now.strftime("%Y-%m-%d"), "ts": now.isoformat(),
-                "values": vals,
-                "barometers": {d: (bar[d] or {}).get("score_0_100") for d in DOMS},
-                "states": {d: (bar[d] or {}).get("state") for d in DOMS},
-                "proxy_levels": px})
-    seen, dedup = set(), []
-    for o in sorted(obs, key=lambda o: o["date"]):
-        if o["date"] in seen:
-            dedup[-1] = o
-            continue
-        seen.add(o["date"])
-        dedup.append(o)
-    dedup = dedup[-1500:]
-
-    graded, n_pairs = {}, 0
-    by_date = {o["date"]: o for o in dedup}
-    dates = sorted(by_date)
-    for h in (21, 63):
-        for i, d0 in enumerate(dates):
-            j = i + h
-            if j >= len(dates):
-                break
-            a, b = by_date[d0], by_date[dates[j]]
-            for cls, pa in (a.get("proxy_levels") or {}).items():
-                pb = (b.get("proxy_levels") or {}).get(cls)
-                if not pb or pb["proxy"] != pa["proxy"] or not pa["value"]:
-                    continue
-                ret = (pb["value"] / pa["value"] - 1) * 100
-                st = (a.get("states") or {}).get("LIQUIDITY")
-                if not st:
-                    continue
-                k = f"{cls}|{st}|{h}d"
-                g = graded.setdefault(k, {"n": 0, "sum": 0.0})
-                g["n"] += 1
-                g["sum"] += ret
-                n_pairs += 1
-    table = {k: {"n": v["n"], "mean_fwd_return_pct": round(v["sum"] / v["n"], 2)}
-             for k, v in graded.items() if v["n"] >= 3}
-    led = {"engine": "justhodl-domain-barometers", "updated_at": now.isoformat(),
-           "observations": dedup}
-    s3.put_object(Bucket=S3_BUCKET, Key=LEDGER_KEY, Body=json.dumps(led, default=str),
-                  ContentType="application/json")
+    """Preserve the old ledger; unavailable timing cannot become a performance claim."""
+    led = gj(LEDGER_KEY, None)
+    observations = led.get("observations") if isinstance(led, dict) else None
+    count = len(observations) if isinstance(observations, list) else None
     return {
-        "n_observations": len(dedup),
-        "n_forward_pairs": n_pairs,
-        "status": "ACCRUING" if len(table) == 0 else "GRADING",
-        "conditional_forward_returns": table,
-        "honesty": "this table is EMPTY until the ledger has enough history. The engine "
-                   "never reports a backtest it has not actually accumulated. Grading "
-                   "follows his doctrine: event-study / regime P&L, never daily IC.",
+        "n_observations": count,
+        "history_updated_at": led.get("updated_at") if isinstance(led, dict) else None,
+        "history_write_status": "paused_pending_native_observation_and_price_identity",
+        "history_key": LEDGER_KEY,
+        "n_forward_pairs": None,
+        "status": "UNVALIDATED_LEGACY_LEDGER" if count is not None else "MISSING_LEGACY_LEDGER",
+        "horizon_basis": "Legacy keys represented 21 or 63 recorded observations, not calendar or trading days.",
+        "costs_included": False, "out_of_sample_validated": False, "may_size": False,
+        "conditional_forward_returns": {}, "returns_withheld": True,
+        "honesty": "The complete historical ledger is unchanged and the prior public result is preserved for audit. "
+                   "Unverified observation/price timing cannot establish strategy returns or sizing evidence. "
+                   "No new collection-dated price sample or conditional-return claim is published.",
     }
 
 
@@ -700,8 +662,8 @@ def lambda_handler(event, context):
     print(f"[barometers] {MARKER}")
 
     brain = gj("data/brain.json") or {}
-    constitution = load_constitution(__import__("boto3").client("s3"))
     vault = gj("data/tradingview.json") or {}
+    _bus = {}
     # ops4216 BUS WAVE-1: beyond-book indicators join as drivers —
     # suffix-filtered to polarity-resolvable families only, so the
     # honest denominator widens with signal, never with noise.
@@ -747,14 +709,15 @@ def lambda_handler(event, context):
             "brain_note_ids": nids.get(s, [])[:4],
             "role": "asset" if is_asset else "driver",
             "polarity": pol, "polarity_why": why, "polarity_basis": basis,
-            "category": cat, "status": r.get("status"), "value": r.get("value"),
-            "chg_pct": r.get("chg_pct"), "asof": r.get("asof"),
+            "category": cat, "status": r.get("status"), "value": finite(r.get("value")),
+            "source_value_valid": finite(r.get("value")) is not None,
+            "chg_pct": finite(r.get("chg_pct")), "asof": r.get("asof"),
             "source": r.get("source"), "n_notes": r.get("n_notes"),
             "note_text_private": True,
         })
 
     prev_vals, prev_date = load_prev_values()
-    bar = build_barometers(rows, dom, gate, cat_of, prev_vals)
+    bar = build_barometers(rows, {s:d for s,d in dom.items() if tier.get(s) != "T6"}, gate, cat_of, prev_vals)
     pred = predict(bar, gate, rot)
     grade = update_ledger(bar, rows, now)
 
@@ -768,7 +731,10 @@ def lambda_handler(event, context):
 
     out = {
         "engine": "justhodl-domain-barometers",
-        "version": "1.0",
+        "version": "1.1",
+        "contract": CONTRACT,
+        "permissions": permissions(),
+        "quality": publication_quality({"tradingview":vault,"indicator_bus":_bus,"risk_gate":gate,"rotation":rot}, now),
         "marker": MARKER,
         "generated_at": now.isoformat(),
         "brain_constitution": {
@@ -795,6 +761,8 @@ def lambda_handler(event, context):
         },
         "classification_audit": {
             "n_symbols": len(sym_out), "n_weak_labeled_notes": n_lab,
+            "unclassified_votes_excluded": sum(t == "T6" for t in tier.values()),
+            "equal_vote_tie_policy": "stable lexical domain order; not evidence of higher classification confidence",
             "tier_counts": dict(tc), "domain_counts": dict(dc),
             "from_his_own_notes": own,
             "from_his_own_notes_pct": round(own / max(1, len(sym_out)) * 100, 1),
@@ -807,12 +775,11 @@ def lambda_handler(event, context):
         "grading": grade,
         "by_domain": by_dom,
         "symbols": sym_out,
-        "consume_as": "domain = how Khalid's notes frame the metric; barometer = the state of "
-                      "that domain 0-100; predictions = positioning tilt per asset class. "
-                      "Macro gates sizing before selection [nmq5x0cp7zp4j].",
+        "consume_as": "Domain labels describe note-derived classification. Barometers and asset-class mappings are unvalidated descriptive rules. "
+                      "Source periods, freshness, dependence and predictive performance are not qualified; do not use these outputs to size positions.",
         "elapsed_s": round(time.time() - t0, 1),
     }
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str),
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), default=str, allow_nan=False),
                   ContentType="application/json", CacheControl="max-age=600")
     print(f"[barometers] DONE {out['elapsed_s']}s "
           f"M={bar['MACRO']['score_0_100']} L={bar['LIQUIDITY']['score_0_100']} "
