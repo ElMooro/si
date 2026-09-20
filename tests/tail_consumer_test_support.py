@@ -17,8 +17,15 @@ class Boundaries(unittest.TestCase):
     def test_cycle_and_implied_probability_actual_reads_drop_legacy_density(self):
         line=next(l for l in source('justhodl-cycle-clock').splitlines() if '"tail_research"' in l)
         ns={'load':lambda *a:CANARY};exec(textwrap.dedent(line),ns);self.assertIsNone(ns['tailrisk']['system_tail_gauge'])
-        line=next(l for l in source('justhodl-implied-prob').splitlines() if '"tail_research"' in l)
-        ns={'json':json,'S3':Client(),'BUCKET':'b'};exec(textwrap.dedent(line),ns);self.assertEqual(ns['tr']['indices'],[])
+        sys.path[:0]=[str(ROOT/'aws/lambdas/justhodl-implied-prob/source'),str(ROOT/'aws/lambdas/justhodl-implied-prob/tests')]
+        from implied_fixture import fixture as implied_fixture
+        import implied_research_store as implied_store
+        client,inputs,_,_=implied_fixture()
+        client.objects['data/tail-risk.json']=json.dumps(CANARY).encode()
+        inputs['legacy']['data/tail-risk.json']=implied_store.snapshot(client,'b','data/tail-risk.json')
+        output=implied_store.compile_output(inputs,implied_store.reader(client,'b'))
+        self.assertFalse(output['option_snapshot_context']['available'])
+        self.assertIsNone(output['spy']['density_moves_30d']);self.assertIs(output['calls_eligible'],False)
     def test_stress_strategist_and_quantum_actual_dynamic_readers(self):
         ns={'json':json,'s3':Client(),'S3_BUCKET':'b'};read=actual('justhodl-stress-index','_read_s3_json',ns)
         self.assertIsNone(read('data/tail-risk.json')['system_tail_gauge']);self.assertEqual(read('other.json'),CANARY)

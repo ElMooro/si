@@ -1292,6 +1292,26 @@
           "purpose": "Native option snapshot publication; legacy score history retained as unqualified context."
         }
       }
+    },
+    "implied-prob.html": {
+      "primary_engines": [
+        "justhodl-implied-prob"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-implied-prob": [
+          "data/implied-prob.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-implied-prob": {
+          "source": "aws/lambdas/justhodl-implied-prob/source/implied_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Native dated rate and coincident-model research; former forecasts and score histories have no investment authority."
+        }
+      }
     }
   }
 }
