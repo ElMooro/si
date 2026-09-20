@@ -293,10 +293,8 @@ def build_context(message):
 
     aaii = get_s3('data/aaii-sentiment.json')
     if aaii:
-        bull = aaii.get('bullish_pct')
-        bear = aaii.get('bearish_pct')
-        regime_a = aaii.get('regime') or aaii.get('signal')
-        lines.append(f"[AAII SENTIMENT] Bull:{bull}%  Bear:{bear}%  Regime:{regime_a}")
+        from aaii_research import context as aaii_research_context, describe
+        lines.append('[AAII SENTIMENT] '+describe(aaii_research_context(aaii)))
 
     # Earnings calendar — always show next 5 watchlist names with earnings in 7d
     earnings = get_s3('data/earnings-tracker.json')
@@ -999,9 +997,8 @@ def call_claude(message, context, history=None):
         + context +
         "\n\nINSTRUCTIONS:\n"
         "- Cite exact prices from [LIVE STOCK] and [LIVE CRYPTO] tags\n"
-        "- NEVER say you lack real-time data — you have it above\n"
-        "- Cross-reference signals: when KI is high AND VIX curve is steep AND AAII is bearish-extreme,\n"
-        "  call out the confluence as a tradeable setup\n"
+        "- Distinguish observation dates from retrieval time; state missing and stale data explicitly.\n"
+        "- AAII is descriptive survey research. Do not turn it or correlated context into a tradeable setup.\n"
         "- Reference 13F institutional flows when the user asks about specific stocks\n"
         "- Use 8-K red flags as catalysts — explain WHAT the event was and likely market reaction\n"
         "- Be concise, institutional-quality, actionable. Decisive over hedged.\n"

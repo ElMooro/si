@@ -1,0 +1,889 @@
+{
+  "artifacts": {
+    "data/aaii-research/inputs/0766d35f74a828012bea0bc30b0124bdcfacfd5c47862bbdf334723bdc3f523a.json": "{\"contract\":\"aaii-native-inputs.v1\",\"generated_at\":\"2026-09-20T14:00:00+00:00\",\"sources\":{\"main\":{\"acquired_at\":\"2026-09-20T14:00:00+00:00\",\"evidence\":{\"access\":\"protected_AWS_IAM_source_archive\",\"bytes\":1810,\"key\":\"audit-private/20260909-originals/aaii-sentiment/f7c4dd471932c7320e4cf3b650304adf682d46d291d9fe95429e24fa45ddbcdd.bin\",\"provider\":\"aaii\",\"sha256\":\"f7c4dd471932c7320e4cf3b650304adf682d46d291d9fe95429e24fa45ddbcdd\",\"source_url\":\"https://www.aaii.com/sentimentsurvey\"}},\"results\":{\"acquired_at\":\"2026-09-20T14:00:00+00:00\",\"evidence\":{\"access\":\"protected_AWS_IAM_source_archive\",\"bytes\":1630,\"key\":\"audit-private/20260909-originals/aaii-sentiment/af5936394c7ab41918c87c46165e5acd3b4a6f5e9c17dacc472ead5c570079e6.bin\",\"provider\":\"aaii\",\"sha256\":\"af5936394c7ab41918c87c46165e5acd3b4a6f5e9c17dacc472ead5c570079e6\",\"source_url\":\"https://www.aaii.com/sentimentsurvey/sent_results\"}}},\"started_at\":\"2026-09-20T13:59:30+00:00\"}",
+    "data/aaii-research/outputs/1c080257a0d22cbec0f0dd91659ada08d8b41642a1b03c0ae7ab3d7d7091633b.json": "{\"as_of\":\"2026-09-16\",\"backfilled_rows\":22,\"call\":null,\"calls_eligible\":false,\"collection\":{\"completed_at\":\"2026-09-20T14:00:00+00:00\",\"method\":\"Two labelled publisher pages reacquired; year anchored to explicit survey date.\",\"original_replay_access\":\"Existing authorized AWS IAM; whole original HTML is not anonymously redistributed.\",\"source_count\":2,\"started_at\":\"2026-09-20T13:59:30+00:00\"},\"contract\":\"aaii-native-research.v1\",\"decision\":{\"abstain\":true,\"reason\":\"descriptive_survey_without_qualified_forecast\",\"verb\":\"WAIT\"},\"execution_eligible\":false,\"extremes\":{\"is_bearish_extreme\":null,\"is_bullish_extreme\":null},\"forecast_qualified\":false,\"generated_at\":\"2026-09-20T14:00:00+00:00\",\"historical_avg\":{\"bearish\":null,\"bullish\":null,\"neutral\":null,\"spread\":null},\"history\":[{\"bearish_pct\":39.3,\"bull_bear_spread_pp\":-1.3,\"bullish_pct\":38.0,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":22,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-04-22\"},{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":21,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-04-29\"},{\"bearish_pct\":44.4,\"bull_bear_spread_pp\":-11.5,\"bullish_pct\":32.9,\"neutral_pct\":22.6,\"printed_sum_pct\":99.9,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":20,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-05-06\"},{\"bearish_pct\":37.6,\"bull_bear_spread_pp\":2.1,\"bullish_pct\":39.7,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":19,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-05-13\"},{\"bearish_pct\":39.3,\"bull_bear_spread_pp\":-1.3,\"bullish_pct\":38.0,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":18,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-05-20\"},{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":17,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-05-27\"},{\"bearish_pct\":44.4,\"bull_bear_spread_pp\":-11.5,\"bullish_pct\":32.9,\"neutral_pct\":22.6,\"printed_sum_pct\":99.9,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":16,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-06-03\"},{\"bearish_pct\":37.6,\"bull_bear_spread_pp\":2.1,\"bullish_pct\":39.7,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":15,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-06-10\"},{\"bearish_pct\":39.3,\"bull_bear_spread_pp\":-1.3,\"bullish_pct\":38.0,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":14,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-06-17\"},{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":13,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-06-24\"},{\"bearish_pct\":44.4,\"bull_bear_spread_pp\":-11.5,\"bullish_pct\":32.9,\"neutral_pct\":22.6,\"printed_sum_pct\":99.9,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":12,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-07-01\"},{\"bearish_pct\":37.6,\"bull_bear_spread_pp\":2.1,\"bullish_pct\":39.7,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":11,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-07-08\"},{\"bearish_pct\":39.3,\"bull_bear_spread_pp\":-1.3,\"bullish_pct\":38.0,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":10,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-07-15\"},{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":9,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-07-22\"},{\"bearish_pct\":44.4,\"bull_bear_spread_pp\":-11.5,\"bullish_pct\":32.9,\"neutral_pct\":22.6,\"printed_sum_pct\":99.9,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":8,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-07-29\"},{\"bearish_pct\":37.6,\"bull_bear_spread_pp\":2.1,\"bullish_pct\":39.7,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":7,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-08-05\"},{\"bearish_pct\":39.3,\"bull_bear_spread_pp\":-1.3,\"bullish_pct\":38.0,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":6,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-08-12\"},{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":5,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"}],\"week_ending\":\"2026-08-19\"},{\"bearish_pct\":44.4,\"bull_bear_spread_pp\":-11.5,\"bullish_pct\":32.9,\"neutral_pct\":22.6,\"printed_sum_pct\":99.9,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":4,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"},{\"container_heading\":\"Recent weekly results\",\"line\":1,\"selector\":\".ssv2-card .datebars\",\"source\":\"main\"}],\"week_ending\":\"2026-08-26\"},{\"bearish_pct\":37.6,\"bull_bear_spread_pp\":2.1,\"bullish_pct\":39.7,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":3,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"},{\"container_heading\":\"Recent weekly results\",\"line\":1,\"selector\":\".ssv2-card .datebars\",\"source\":\"main\"}],\"week_ending\":\"2026-09-02\"},{\"bearish_pct\":39.3,\"bull_bear_spread_pp\":-1.3,\"bullish_pct\":38.0,\"neutral_pct\":22.7,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":2,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"},{\"container_heading\":\"Recent weekly results\",\"line\":1,\"selector\":\".ssv2-card .datebars\",\"source\":\"main\"}],\"week_ending\":\"2026-09-09\"},{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":1,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"},{\"container_heading\":\"Recent weekly results\",\"line\":1,\"selector\":\".ssv2-card .datebars\",\"source\":\"main\"}],\"week_ending\":\"2026-09-16\"}],\"history_26w\":[{\"bearish\":0.393,\"bull_bear_spread\":-0.013,\"bullish\":0.38,\"neutral\":0.227,\"week_ending\":\"2026-04-22\"},{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-04-29\"},{\"bearish\":0.444,\"bull_bear_spread\":-0.115,\"bullish\":0.329,\"neutral\":0.226,\"week_ending\":\"2026-05-06\"},{\"bearish\":0.376,\"bull_bear_spread\":0.021,\"bullish\":0.397,\"neutral\":0.227,\"week_ending\":\"2026-05-13\"},{\"bearish\":0.393,\"bull_bear_spread\":-0.013,\"bullish\":0.38,\"neutral\":0.227,\"week_ending\":\"2026-05-20\"},{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-05-27\"},{\"bearish\":0.444,\"bull_bear_spread\":-0.115,\"bullish\":0.329,\"neutral\":0.226,\"week_ending\":\"2026-06-03\"},{\"bearish\":0.376,\"bull_bear_spread\":0.021,\"bullish\":0.397,\"neutral\":0.227,\"week_ending\":\"2026-06-10\"},{\"bearish\":0.393,\"bull_bear_spread\":-0.013,\"bullish\":0.38,\"neutral\":0.227,\"week_ending\":\"2026-06-17\"},{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-06-24\"},{\"bearish\":0.444,\"bull_bear_spread\":-0.115,\"bullish\":0.329,\"neutral\":0.226,\"week_ending\":\"2026-07-01\"},{\"bearish\":0.376,\"bull_bear_spread\":0.021,\"bullish\":0.397,\"neutral\":0.227,\"week_ending\":\"2026-07-08\"},{\"bearish\":0.393,\"bull_bear_spread\":-0.013,\"bullish\":0.38,\"neutral\":0.227,\"week_ending\":\"2026-07-15\"},{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-07-22\"},{\"bearish\":0.444,\"bull_bear_spread\":-0.115,\"bullish\":0.329,\"neutral\":0.226,\"week_ending\":\"2026-07-29\"},{\"bearish\":0.376,\"bull_bear_spread\":0.021,\"bullish\":0.397,\"neutral\":0.227,\"week_ending\":\"2026-08-05\"},{\"bearish\":0.393,\"bull_bear_spread\":-0.013,\"bullish\":0.38,\"neutral\":0.227,\"week_ending\":\"2026-08-12\"},{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-08-19\"},{\"bearish\":0.444,\"bull_bear_spread\":-0.115,\"bullish\":0.329,\"neutral\":0.226,\"week_ending\":\"2026-08-26\"},{\"bearish\":0.376,\"bull_bear_spread\":0.021,\"bullish\":0.397,\"neutral\":0.227,\"week_ending\":\"2026-09-02\"},{\"bearish\":0.393,\"bull_bear_spread\":-0.013,\"bullish\":0.38,\"neutral\":0.227,\"week_ending\":\"2026-09-09\"},{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-09-16\"}],\"history_scope\":{\"current_vintage\":true,\"first_week\":\"2026-04-22\",\"full_1987_history\":false,\"historical_availability_known\":false,\"last_week\":\"2026-09-16\",\"note\":\"All rows in the reviewed public recent-results table. No paid/member history is fetched; prior snapshots remain archived.\",\"rows\":22},\"interpretation\":\"Weekly survey observations only. A contrarian return forecast has not been qualified on point-in-time data after costs.\",\"latest\":{\"bearish\":0.533,\"bull_bear_spread\":-0.245,\"bullish\":0.288,\"neutral\":0.179,\"week_ending\":\"2026-09-16\"},\"observation\":{\"bearish_pct\":53.3,\"bull_bear_spread_pp\":-24.5,\"bullish_pct\":28.8,\"neutral_pct\":17.9,\"printed_sum_pct\":100.0,\"rounding_tolerance_pp\":0.15,\"source_evidence\":[{\"anchor_line\":1,\"selector\":\".ssv2-gauge-week\",\"source\":\"main\",\"value_selector\":\".ssv2-gauge-bars .ssv2-snum\"},{\"exact_header\":[\"Reported Date\",\"Bullish\",\"Neutral\",\"Bearish\"],\"line\":1,\"row\":1,\"selector\":\"table\",\"source\":\"results\",\"year_basis\":\"explicit publisher main-page anchor and descending recent rows\"},{\"container_heading\":\"Recent weekly results\",\"line\":1,\"selector\":\".ssv2-card .datebars\",\"source\":\"main\"}],\"week_ending\":\"2026-09-16\"},\"portfolio_consequences\":{\"automatic_position_change\":false,\"forced_liquidation\":false,\"reason\":\"Survey opinions alone do not determine exposure. Portfolio scenarios need explicit holdings and shock assumptions.\",\"scenario_page\":\"/position-sizer.html\",\"target_weights\":null},\"publisher_gauge_averages\":{\"method\":\"Publisher-displayed gauge averages; not independently recomputed from full 1987 history.\",\"selector\":\".ssv2-gauge-bars .ssv2-savg\",\"source\":\"main\",\"values\":{\"bearish_pct\":31.5,\"bullish_pct\":37.5,\"neutral_pct\":31.0}},\"quality\":{\"cross_checked_weeks\":[\"2026-09-16\",\"2026-09-09\",\"2026-09-02\",\"2026-08-26\"],\"errors\":[],\"freshness\":{\"pipeline_check_due_at\":\"2026-09-22T02:00:00+00:00\",\"policy\":\"Weekly Thursday 19:00 UTC monitoring deadline; source publication instant unknown. Check source at least every 36 hours.\",\"source_due_at\":\"2026-09-24T19:00:00+00:00\",\"valid_until\":\"2026-09-22T02:00:00+00:00\"},\"history_missing_weeks\":[],\"status\":\"fresh\",\"status_means\":\"Source date, labelled columns and publisher-page reconciliation; not predictive qualification.\"},\"sizing_eligible\":false,\"source\":\"aaii_labelled_public_sections\",\"source_evidence\":{\"main\":{\"acquired_at\":\"2026-09-20T14:00:00+00:00\",\"evidence\":{\"access\":\"protected_AWS_IAM_source_archive\",\"bytes\":1810,\"key\":\"audit-private/20260909-originals/aaii-sentiment/f7c4dd471932c7320e4cf3b650304adf682d46d291d9fe95429e24fa45ddbcdd.bin\",\"provider\":\"aaii\",\"sha256\":\"f7c4dd471932c7320e4cf3b650304adf682d46d291d9fe95429e24fa45ddbcdd\",\"source_url\":\"https://www.aaii.com/sentimentsurvey\"}},\"results\":{\"acquired_at\":\"2026-09-20T14:00:00+00:00\",\"evidence\":{\"access\":\"protected_AWS_IAM_source_archive\",\"bytes\":1630,\"key\":\"audit-private/20260909-originals/aaii-sentiment/af5936394c7ab41918c87c46165e5acd3b4a6f5e9c17dacc472ead5c570079e6.bin\",\"provider\":\"aaii\",\"sha256\":\"af5936394c7ab41918c87c46165e5acd3b4a6f5e9c17dacc472ead5c570079e6\",\"source_url\":\"https://www.aaii.com/sentimentsurvey/sent_results\"}}},\"survey\":{\"confidence_interval\":null,\"outlook_months\":6,\"period\":\"Thursday 00:01 through Wednesday 23:59 America/New_York\",\"population\":\"Participating AAII members; self-selected online responses, not all investors or portfolio positions.\",\"provider\":\"AAII\",\"publication\":\"Thursday morning per publisher; exact publication timestamp unavailable.\",\"question_count\":1,\"representative_population_claim\":false,\"respondent_count\":null},\"units\":{\"bull_bear_spread\":\"percentage_points\",\"legacy_latest_and_history_26w\":\"fractions; spread is difference of fractions\",\"survey_categories\":\"percent_of_respondents\"},\"version\":\"2.0.0\",\"z_scores\":{\"bearish\":null,\"bullish\":null,\"spread\":null}}",
+    "data/aaii-research/runs/5c1a319896e6c14902e48fe7bfce229b6cfab12e148242aaed93a59e3a2936b7.json": "{\"compilers\":{\"aaii_research_model\":{\"key\":\"data/aaii-research/compilers/731f3761ae479978e0a376f682769f76c343ca13fe56fa9233160d3e2344ec33.py\",\"sha256\":\"731f3761ae479978e0a376f682769f76c343ca13fe56fa9233160d3e2344ec33\"},\"aaii_research_store\":{\"key\":\"data/aaii-research/compilers/751e186d4f4f92603fa22f8017777b79641b5ea622c355b544ad864430869864.py\",\"sha256\":\"751e186d4f4f92603fa22f8017777b79641b5ea622c355b544ad864430869864\"}},\"contract\":\"aaii-native-replay.v1\",\"generated_at\":\"2026-09-20T14:00:00+00:00\",\"input\":{\"bytes\":932,\"key\":\"data/aaii-research/inputs/0766d35f74a828012bea0bc30b0124bdcfacfd5c47862bbdf334723bdc3f523a.json\",\"sha256\":\"0766d35f74a828012bea0bc30b0124bdcfacfd5c47862bbdf334723bdc3f523a\"},\"output\":{\"bytes\":15732,\"key\":\"data/aaii-research/outputs/1c080257a0d22cbec0f0dd91659ada08d8b41642a1b03c0ae7ab3d7d7091633b.json\",\"sha256\":\"1c080257a0d22cbec0f0dd91659ada08d8b41642a1b03c0ae7ab3d7d7091633b\"},\"output_sha256\":\"1c080257a0d22cbec0f0dd91659ada08d8b41642a1b03c0ae7ab3d7d7091633b\",\"scope\":\"Retained complete publisher HTML, labelled survey sections, explicit date anchor and cross-page reconciliation. No forecast or historical availability claim.\"}"
+  },
+  "packet": {
+    "as_of": "2026-09-16",
+    "backfilled_rows": 22,
+    "call": null,
+    "calls_eligible": false,
+    "collection": {
+      "completed_at": "2026-09-20T14:00:00+00:00",
+      "method": "Two labelled publisher pages reacquired; year anchored to explicit survey date.",
+      "original_replay_access": "Existing authorized AWS IAM; whole original HTML is not anonymously redistributed.",
+      "source_count": 2,
+      "started_at": "2026-09-20T13:59:30+00:00"
+    },
+    "contract": "aaii-native-research.v1",
+    "decision": {
+      "abstain": true,
+      "reason": "descriptive_survey_without_qualified_forecast",
+      "verb": "WAIT"
+    },
+    "execution_eligible": false,
+    "extremes": {
+      "is_bearish_extreme": null,
+      "is_bullish_extreme": null
+    },
+    "forecast_qualified": false,
+    "generated_at": "2026-09-20T14:00:00+00:00",
+    "historical_avg": {
+      "bearish": null,
+      "bullish": null,
+      "neutral": null,
+      "spread": null
+    },
+    "history": [
+      {
+        "bearish_pct": 39.3,
+        "bull_bear_spread_pp": -1.3,
+        "bullish_pct": 38.0,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 22,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-04-22"
+      },
+      {
+        "bearish_pct": 53.3,
+        "bull_bear_spread_pp": -24.5,
+        "bullish_pct": 28.8,
+        "neutral_pct": 17.9,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 21,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-04-29"
+      },
+      {
+        "bearish_pct": 44.4,
+        "bull_bear_spread_pp": -11.5,
+        "bullish_pct": 32.9,
+        "neutral_pct": 22.6,
+        "printed_sum_pct": 99.9,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 20,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-05-06"
+      },
+      {
+        "bearish_pct": 37.6,
+        "bull_bear_spread_pp": 2.1,
+        "bullish_pct": 39.7,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 19,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-05-13"
+      },
+      {
+        "bearish_pct": 39.3,
+        "bull_bear_spread_pp": -1.3,
+        "bullish_pct": 38.0,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 18,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-05-20"
+      },
+      {
+        "bearish_pct": 53.3,
+        "bull_bear_spread_pp": -24.5,
+        "bullish_pct": 28.8,
+        "neutral_pct": 17.9,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 17,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-05-27"
+      },
+      {
+        "bearish_pct": 44.4,
+        "bull_bear_spread_pp": -11.5,
+        "bullish_pct": 32.9,
+        "neutral_pct": 22.6,
+        "printed_sum_pct": 99.9,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 16,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-06-03"
+      },
+      {
+        "bearish_pct": 37.6,
+        "bull_bear_spread_pp": 2.1,
+        "bullish_pct": 39.7,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 15,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-06-10"
+      },
+      {
+        "bearish_pct": 39.3,
+        "bull_bear_spread_pp": -1.3,
+        "bullish_pct": 38.0,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 14,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-06-17"
+      },
+      {
+        "bearish_pct": 53.3,
+        "bull_bear_spread_pp": -24.5,
+        "bullish_pct": 28.8,
+        "neutral_pct": 17.9,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 13,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-06-24"
+      },
+      {
+        "bearish_pct": 44.4,
+        "bull_bear_spread_pp": -11.5,
+        "bullish_pct": 32.9,
+        "neutral_pct": 22.6,
+        "printed_sum_pct": 99.9,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 12,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-07-01"
+      },
+      {
+        "bearish_pct": 37.6,
+        "bull_bear_spread_pp": 2.1,
+        "bullish_pct": 39.7,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 11,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-07-08"
+      },
+      {
+        "bearish_pct": 39.3,
+        "bull_bear_spread_pp": -1.3,
+        "bullish_pct": 38.0,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 10,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-07-15"
+      },
+      {
+        "bearish_pct": 53.3,
+        "bull_bear_spread_pp": -24.5,
+        "bullish_pct": 28.8,
+        "neutral_pct": 17.9,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 9,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-07-22"
+      },
+      {
+        "bearish_pct": 44.4,
+        "bull_bear_spread_pp": -11.5,
+        "bullish_pct": 32.9,
+        "neutral_pct": 22.6,
+        "printed_sum_pct": 99.9,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 8,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-07-29"
+      },
+      {
+        "bearish_pct": 37.6,
+        "bull_bear_spread_pp": 2.1,
+        "bullish_pct": 39.7,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 7,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-08-05"
+      },
+      {
+        "bearish_pct": 39.3,
+        "bull_bear_spread_pp": -1.3,
+        "bullish_pct": 38.0,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 6,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-08-12"
+      },
+      {
+        "bearish_pct": 53.3,
+        "bull_bear_spread_pp": -24.5,
+        "bullish_pct": 28.8,
+        "neutral_pct": 17.9,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 5,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          }
+        ],
+        "week_ending": "2026-08-19"
+      },
+      {
+        "bearish_pct": 44.4,
+        "bull_bear_spread_pp": -11.5,
+        "bullish_pct": 32.9,
+        "neutral_pct": 22.6,
+        "printed_sum_pct": 99.9,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 4,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          },
+          {
+            "container_heading": "Recent weekly results",
+            "line": 1,
+            "selector": ".ssv2-card .datebars",
+            "source": "main"
+          }
+        ],
+        "week_ending": "2026-08-26"
+      },
+      {
+        "bearish_pct": 37.6,
+        "bull_bear_spread_pp": 2.1,
+        "bullish_pct": 39.7,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 3,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          },
+          {
+            "container_heading": "Recent weekly results",
+            "line": 1,
+            "selector": ".ssv2-card .datebars",
+            "source": "main"
+          }
+        ],
+        "week_ending": "2026-09-02"
+      },
+      {
+        "bearish_pct": 39.3,
+        "bull_bear_spread_pp": -1.3,
+        "bullish_pct": 38.0,
+        "neutral_pct": 22.7,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 2,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          },
+          {
+            "container_heading": "Recent weekly results",
+            "line": 1,
+            "selector": ".ssv2-card .datebars",
+            "source": "main"
+          }
+        ],
+        "week_ending": "2026-09-09"
+      },
+      {
+        "bearish_pct": 53.3,
+        "bull_bear_spread_pp": -24.5,
+        "bullish_pct": 28.8,
+        "neutral_pct": 17.9,
+        "printed_sum_pct": 100.0,
+        "rounding_tolerance_pp": 0.15,
+        "source_evidence": [
+          {
+            "exact_header": [
+              "Reported Date",
+              "Bullish",
+              "Neutral",
+              "Bearish"
+            ],
+            "line": 1,
+            "row": 1,
+            "selector": "table",
+            "source": "results",
+            "year_basis": "explicit publisher main-page anchor and descending recent rows"
+          },
+          {
+            "container_heading": "Recent weekly results",
+            "line": 1,
+            "selector": ".ssv2-card .datebars",
+            "source": "main"
+          }
+        ],
+        "week_ending": "2026-09-16"
+      }
+    ],
+    "history_26w": [
+      {
+        "bearish": 0.393,
+        "bull_bear_spread": -0.013,
+        "bullish": 0.38,
+        "neutral": 0.227,
+        "week_ending": "2026-04-22"
+      },
+      {
+        "bearish": 0.533,
+        "bull_bear_spread": -0.245,
+        "bullish": 0.288,
+        "neutral": 0.179,
+        "week_ending": "2026-04-29"
+      },
+      {
+        "bearish": 0.444,
+        "bull_bear_spread": -0.115,
+        "bullish": 0.329,
+        "neutral": 0.226,
+        "week_ending": "2026-05-06"
+      },
+      {
+        "bearish": 0.376,
+        "bull_bear_spread": 0.021,
+        "bullish": 0.397,
+        "neutral": 0.227,
+        "week_ending": "2026-05-13"
+      },
+      {
+        "bearish": 0.393,
+        "bull_bear_spread": -0.013,
+        "bullish": 0.38,
+        "neutral": 0.227,
+        "week_ending": "2026-05-20"
+      },
+      {
+        "bearish": 0.533,
+        "bull_bear_spread": -0.245,
+        "bullish": 0.288,
+        "neutral": 0.179,
+        "week_ending": "2026-05-27"
+      },
+      {
+        "bearish": 0.444,
+        "bull_bear_spread": -0.115,
+        "bullish": 0.329,
+        "neutral": 0.226,
+        "week_ending": "2026-06-03"
+      },
+      {
+        "bearish": 0.376,
+        "bull_bear_spread": 0.021,
+        "bullish": 0.397,
+        "neutral": 0.227,
+        "week_ending": "2026-06-10"
+      },
+      {
+        "bearish": 0.393,
+        "bull_bear_spread": -0.013,
+        "bullish": 0.38,
+        "neutral": 0.227,
+        "week_ending": "2026-06-17"
+      },
+      {
+        "bearish": 0.533,
+        "bull_bear_spread": -0.245,
+        "bullish": 0.288,
+        "neutral": 0.179,
+        "week_ending": "2026-06-24"
+      },
+      {
+        "bearish": 0.444,
+        "bull_bear_spread": -0.115,
+        "bullish": 0.329,
+        "neutral": 0.226,
+        "week_ending": "2026-07-01"
+      },
+      {
+        "bearish": 0.376,
+        "bull_bear_spread": 0.021,
+        "bullish": 0.397,
+        "neutral": 0.227,
+        "week_ending": "2026-07-08"
+      },
+      {
+        "bearish": 0.393,
+        "bull_bear_spread": -0.013,
+        "bullish": 0.38,
+        "neutral": 0.227,
+        "week_ending": "2026-07-15"
+      },
+      {
+        "bearish": 0.533,
+        "bull_bear_spread": -0.245,
+        "bullish": 0.288,
+        "neutral": 0.179,
+        "week_ending": "2026-07-22"
+      },
+      {
+        "bearish": 0.444,
+        "bull_bear_spread": -0.115,
+        "bullish": 0.329,
+        "neutral": 0.226,
+        "week_ending": "2026-07-29"
+      },
+      {
+        "bearish": 0.376,
+        "bull_bear_spread": 0.021,
+        "bullish": 0.397,
+        "neutral": 0.227,
+        "week_ending": "2026-08-05"
+      },
+      {
+        "bearish": 0.393,
+        "bull_bear_spread": -0.013,
+        "bullish": 0.38,
+        "neutral": 0.227,
+        "week_ending": "2026-08-12"
+      },
+      {
+        "bearish": 0.533,
+        "bull_bear_spread": -0.245,
+        "bullish": 0.288,
+        "neutral": 0.179,
+        "week_ending": "2026-08-19"
+      },
+      {
+        "bearish": 0.444,
+        "bull_bear_spread": -0.115,
+        "bullish": 0.329,
+        "neutral": 0.226,
+        "week_ending": "2026-08-26"
+      },
+      {
+        "bearish": 0.376,
+        "bull_bear_spread": 0.021,
+        "bullish": 0.397,
+        "neutral": 0.227,
+        "week_ending": "2026-09-02"
+      },
+      {
+        "bearish": 0.393,
+        "bull_bear_spread": -0.013,
+        "bullish": 0.38,
+        "neutral": 0.227,
+        "week_ending": "2026-09-09"
+      },
+      {
+        "bearish": 0.533,
+        "bull_bear_spread": -0.245,
+        "bullish": 0.288,
+        "neutral": 0.179,
+        "week_ending": "2026-09-16"
+      }
+    ],
+    "history_scope": {
+      "current_vintage": true,
+      "first_week": "2026-04-22",
+      "full_1987_history": false,
+      "historical_availability_known": false,
+      "last_week": "2026-09-16",
+      "note": "All rows in the reviewed public recent-results table. No paid/member history is fetched; prior snapshots remain archived.",
+      "rows": 22
+    },
+    "interpretation": "Weekly survey observations only. A contrarian return forecast has not been qualified on point-in-time data after costs.",
+    "latest": {
+      "bearish": 0.533,
+      "bull_bear_spread": -0.245,
+      "bullish": 0.288,
+      "neutral": 0.179,
+      "week_ending": "2026-09-16"
+    },
+    "observation": {
+      "bearish_pct": 53.3,
+      "bull_bear_spread_pp": -24.5,
+      "bullish_pct": 28.8,
+      "neutral_pct": 17.9,
+      "printed_sum_pct": 100.0,
+      "rounding_tolerance_pp": 0.15,
+      "source_evidence": [
+        {
+          "anchor_line": 1,
+          "selector": ".ssv2-gauge-week",
+          "source": "main",
+          "value_selector": ".ssv2-gauge-bars .ssv2-snum"
+        },
+        {
+          "exact_header": [
+            "Reported Date",
+            "Bullish",
+            "Neutral",
+            "Bearish"
+          ],
+          "line": 1,
+          "row": 1,
+          "selector": "table",
+          "source": "results",
+          "year_basis": "explicit publisher main-page anchor and descending recent rows"
+        },
+        {
+          "container_heading": "Recent weekly results",
+          "line": 1,
+          "selector": ".ssv2-card .datebars",
+          "source": "main"
+        }
+      ],
+      "week_ending": "2026-09-16"
+    },
+    "portfolio_consequences": {
+      "automatic_position_change": false,
+      "forced_liquidation": false,
+      "reason": "Survey opinions alone do not determine exposure. Portfolio scenarios need explicit holdings and shock assumptions.",
+      "scenario_page": "/position-sizer.html",
+      "target_weights": null
+    },
+    "publisher_gauge_averages": {
+      "method": "Publisher-displayed gauge averages; not independently recomputed from full 1987 history.",
+      "selector": ".ssv2-gauge-bars .ssv2-savg",
+      "source": "main",
+      "values": {
+        "bearish_pct": 31.5,
+        "bullish_pct": 37.5,
+        "neutral_pct": 31.0
+      }
+    },
+    "quality": {
+      "cross_checked_weeks": [
+        "2026-09-16",
+        "2026-09-09",
+        "2026-09-02",
+        "2026-08-26"
+      ],
+      "errors": [],
+      "freshness": {
+        "pipeline_check_due_at": "2026-09-22T02:00:00+00:00",
+        "policy": "Weekly Thursday 19:00 UTC monitoring deadline; source publication instant unknown. Check source at least every 36 hours.",
+        "source_due_at": "2026-09-24T19:00:00+00:00",
+        "valid_until": "2026-09-22T02:00:00+00:00"
+      },
+      "history_missing_weeks": [],
+      "status": "fresh",
+      "status_means": "Source date, labelled columns and publisher-page reconciliation; not predictive qualification."
+    },
+    "replay": {
+      "manifest_key": "data/aaii-research/runs/5c1a319896e6c14902e48fe7bfce229b6cfab12e148242aaed93a59e3a2936b7.json",
+      "output_sha256": "1c080257a0d22cbec0f0dd91659ada08d8b41642a1b03c0ae7ab3d7d7091633b"
+    },
+    "sizing_eligible": false,
+    "source": "aaii_labelled_public_sections",
+    "source_evidence": {
+      "main": {
+        "acquired_at": "2026-09-20T14:00:00+00:00",
+        "evidence": {
+          "access": "protected_AWS_IAM_source_archive",
+          "bytes": 1810,
+          "key": "audit-private/20260909-originals/aaii-sentiment/f7c4dd471932c7320e4cf3b650304adf682d46d291d9fe95429e24fa45ddbcdd.bin",
+          "provider": "aaii",
+          "sha256": "f7c4dd471932c7320e4cf3b650304adf682d46d291d9fe95429e24fa45ddbcdd",
+          "source_url": "https://www.aaii.com/sentimentsurvey"
+        }
+      },
+      "results": {
+        "acquired_at": "2026-09-20T14:00:00+00:00",
+        "evidence": {
+          "access": "protected_AWS_IAM_source_archive",
+          "bytes": 1630,
+          "key": "audit-private/20260909-originals/aaii-sentiment/af5936394c7ab41918c87c46165e5acd3b4a6f5e9c17dacc472ead5c570079e6.bin",
+          "provider": "aaii",
+          "sha256": "af5936394c7ab41918c87c46165e5acd3b4a6f5e9c17dacc472ead5c570079e6",
+          "source_url": "https://www.aaii.com/sentimentsurvey/sent_results"
+        }
+      }
+    },
+    "survey": {
+      "confidence_interval": null,
+      "outlook_months": 6,
+      "period": "Thursday 00:01 through Wednesday 23:59 America/New_York",
+      "population": "Participating AAII members; self-selected online responses, not all investors or portfolio positions.",
+      "provider": "AAII",
+      "publication": "Thursday morning per publisher; exact publication timestamp unavailable.",
+      "question_count": 1,
+      "representative_population_claim": false,
+      "respondent_count": null
+    },
+    "units": {
+      "bull_bear_spread": "percentage_points",
+      "legacy_latest_and_history_26w": "fractions; spread is difference of fractions",
+      "survey_categories": "percent_of_respondents"
+    },
+    "version": "2.0.0",
+    "z_scores": {
+      "bearish": null,
+      "bullish": null,
+      "spread": null
+    }
+  }
+}

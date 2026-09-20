@@ -124,18 +124,20 @@ def lambda_handler(event, context):
     # T3 sentiment euphoria -- AAII bulls crowded
     latest = aaii.get("latest") or {}
     extremes = aaii.get("extremes") or {}
-    spread = num(latest.get("bull_bear_spread"))
-    bull_ext = bool(extremes.get("is_bullish_extreme"))
-    if spread is not None or bull_ext:
+    from aaii_research import context, qualified_signal
+    aaii_context = context(aaii)
+    spread = aaii_context.get("bull_bear_spread_pp") / 100 if aaii_context["available"] else None  # documented legacy fraction
+    bull_ext = bool(extremes.get("is_bullish_extreme")) if qualified_signal(aaii) is not None else False
+    if qualified_signal(aaii) is not None and (spread is not None or bull_ext):
         if bull_ext:
             p = 2
-        elif spread is not None and spread > 18:
+        elif spread is not None and spread * 100 > 18:
             p = 1
         else:
             p = 0
         tc("sentiment_euphoria", "Investor sentiment euphoric", p, 2,
-           "AAII bull-bear spread %s%s"
-           % ("%+.0f" % spread if spread is not None else "?",
+           "AAII bull-bear spread %s pp%s"
+           % ("%+.1f" % (spread * 100) if spread is not None else "?",
               ", bullish extreme" if bull_ext else ""))
 
     # T4 complacency -- a rich, crowded volatility risk premium
@@ -296,6 +298,8 @@ def lambda_handler(event, context):
             "cape_pct_above_avg": cape_pct,
             "breadth_score": breadth,
             "aaii_bull_bear_spread": spread,
+            "aaii_bull_bear_spread_unit": "fraction_difference",
+            "aaii_research": aaii_context,
             "vrp_regime": vrp_regime,
             "hy_credit_z": cred_z,
             "insider_buy_sell_ratio_30d": ins_ratio,

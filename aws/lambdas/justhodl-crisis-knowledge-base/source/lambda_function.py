@@ -572,11 +572,10 @@ def get_current_state():
     # 4. AAII sentiment
     aaii = gs3("data/aaii-sentiment.json")
     if aaii:
-        state["indicators"]["aaii"] = {
-            "bull_pct": aaii.get("bullish_pct"),
-            "bear_pct": aaii.get("bearish_pct"),
-            "regime": aaii.get("regime") or aaii.get("signal"),
-        }
+        from aaii_research import context
+        research = context(aaii)
+        state["indicators"]["aaii"] = {"bull_pct": research.get("bullish_pct"),
+            "bear_pct": research.get("bearish_pct"), "regime": None, "research": research}
 
     # 5. Bond regime
     br = gs3("regime/current.json")

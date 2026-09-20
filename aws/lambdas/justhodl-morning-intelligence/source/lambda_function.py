@@ -271,6 +271,7 @@ def load_all():
     return {k:__import__("crisis_authority").guard(v,fs3(v)) for k,v in keys.items()}
 
 def extract_metrics(data,weights):
+    from aaii_research import context as aaii_research_context, describe as describe_aaii
     d=data.get("main",{})
     intel=data.get("intel",{})
     crypto=data.get("crypto",{})
@@ -467,13 +468,11 @@ def extract_metrics(data,weights):
         "alerts":alerts,
         "top_weights":top_w,
         # ═══════ Tier S+A — added 2026-05-03 ═══════════════════════
-        # AAII sentiment — extreme readings are contrarian indicators
-        **(lambda a=data.get("aaii", {}): {
-            "aaii_bullish": a.get("bullish_pct"),
-            "aaii_bearish": a.get("bearish_pct"),
-            "aaii_spread": (a.get("bullish_pct", 0) or 0) - (a.get("bearish_pct", 0) or 0)
-                           if a.get("bullish_pct") is not None else None,
-            "aaii_extreme": a.get("regime") or a.get("signal"),
+        # Native AAII observation context; no manufactured neutral/contrarian regime.
+        **(lambda a=aaii_research_context(data.get("aaii", {})): {
+            "aaii_bullish": a.get("bullish_pct"), "aaii_bearish": a.get("bearish_pct"),
+            "aaii_spread": a.get("bull_bear_spread_pp"), "aaii_spread_unit": "percentage_points",
+            "aaii_extreme": None, "aaii_research": a,
         })(),
         # Options gamma — dealer positioning
         **(lambda g=data.get("options_gamma", {}): {
@@ -1229,6 +1228,7 @@ def self_improve(outcomes,templates,accuracy):
     return templates,analysis
 
 def build_brief(templates,m,perf,err_analysis,weights,accuracy):
+    from aaii_research import context as aaii_research_context, describe as describe_aaii
     now_et=datetime.now(timezone(timedelta(hours=-5)))
     date_str=now_et.strftime("%a %b %d, %Y")
     pl=[]
@@ -1271,7 +1271,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "PICKS: "+str(", ".join(m["picks"])),
         "ALERTS: "+str(", ".join(m["alerts"]) or "none"),
         # ═══ Tier S+A — added 2026-05-03 ═══════════════════════════
-        "AAII: bull:"+str(m.get("aaii_bullish") or "?")+"% bear:"+str(m.get("aaii_bearish") or "?")+"% spread:"+str(m.get("aaii_spread") or "?")+" regime:"+str(m.get("aaii_extreme") or "neutral"),
+        describe_aaii(m.get("aaii_research", {})),
         "GAMMA(GEX): "+str(m.get("gex_total") or "?")+" regime:"+str(m.get("gex_regime") or "?")+" flip:"+str(m.get("gex_flip_strike") or "?"),
         "LABOR: signal:"+str(m.get("labor_signal") or "?")+" score:"+str(m.get("labor_score") or "?")+" claims_4wk:"+str(m.get("claims_4wk") or "?"),
         "OECD_CLI: us:"+str(m.get("oecd_us") or "?")+" signal:"+str(m.get("oecd_signal") or "?"),

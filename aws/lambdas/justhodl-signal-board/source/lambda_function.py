@@ -1057,7 +1057,10 @@ def n_ici(d):
 
 
 def n_aaii(d):
-    """AAII individual-investor survey — contrarian at extremes (bull-bear spread)."""
+    """AAII observations remain research context until a forecast is qualified."""
+    from aaii_research import context, describe
+    return None, describe(context(d))
+    # Prior unqualified normalizer retained below for audit; never reached.
     L = d.get("latest") or {}
     sp = L.get("bull_bear_spread")
     if not isinstance(sp, (int, float)):

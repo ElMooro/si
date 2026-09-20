@@ -805,13 +805,16 @@ def lambda_handler(event, context):
         "vov_state": _get(vvix, "state"), "tail_state": _get(skewtail, "state"),
     }
     # ── positioning / sentiment / internals ──
-    aaii_l = _get(aaii, "latest", default={}) or {}; aaii_x = _get(aaii, "extremes", default={}) or {}
+    from aaii_research import context as aaii_research_context
+    aaii_context = aaii_research_context(aaii)
+    aaii_l = (_get(aaii, "latest", default={}) or {}) if aaii_context["available"] else {}
+    aaii_x = {}  # no qualified forecast; source freshness does not authorize a score
     positioning = {
         "aaii_bull_pct": round((aaii_l.get("bullish") or 0) * 100) if aaii_l.get("bullish") is not None else None,
         "aaii_bear_pct": round((aaii_l.get("bearish") or 0) * 100) if aaii_l.get("bearish") is not None else None,
         "aaii_spread_z": _get(aaii, "z_scores", "spread"),
-        "aaii_extreme": ("EXTREME_BULL" if aaii_x.get("is_bullish_extreme") else
-                         "EXTREME_BEAR" if aaii_x.get("is_bearish_extreme") else "normal"),
+        "aaii_extreme": None,
+        "aaii_research": aaii_context,
         "aaii_note": _get(aaii, "interpretation"),
         "retail_regime": _get(retail, "market_regime"), "retail_note": _get(retail, "market_regime_signal"),
         "credit_equity_state": _get(crediteq, "state"), "credit_equity_note": _get(crediteq, "regime_explanation"),

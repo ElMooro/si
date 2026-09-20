@@ -341,7 +341,9 @@ def lambda_handler(event, context):
             import boto3 as _b3a
             _aj = json.loads(_b3a.client("s3", region_name="us-east-1").get_object(
                 Bucket="justhodl-dashboard-live", Key="data/aaii-sentiment.json")["Body"].read())
-            _sp = (_aj.get("latest") or {}).get("bull_bear_spread")
+            from aaii_research import context as aaii_context, qualified_signal
+            _aaii_context = aaii_context(_aj)
+            _sp = (_aj.get("latest") or {}).get("bull_bear_spread") if qualified_signal(_aj) is not None else None
             _hist = [h.get("bull_bear_spread") for h in (_aj.get("history_26w") or [])
                      if isinstance(h.get("bull_bear_spread"), (int, float))]
             _aold = days_since((_aj.get("latest") or {}).get("week_ending") or "")
@@ -360,7 +362,8 @@ def lambda_handler(event, context):
                                 "lookback": len(_hist), "days_old": _aold,
                                 "n_history": len(_hist), "provisional": len(_hist) < 16})
             else:
-                signals.append({"id": "AAII_SPREAD", "ok": False, "error": "insufficient",
+                signals.append({"id": "AAII_SPREAD", "ok": False, "error": "unqualified_survey_forecast",
+                                "research_context": _aaii_context,
                                 "cadence": "weekly"})
         except Exception as _ea:
             signals.append({"id": "AAII_SPREAD", "ok": False, "error": str(_ea)[:60],

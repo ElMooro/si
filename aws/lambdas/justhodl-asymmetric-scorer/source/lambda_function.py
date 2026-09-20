@@ -266,15 +266,17 @@ def load_cross_pollination():
 
     # 4. AAII broad-market signal (applies to ALL tickers equally)
     aaii_latest = aaii_data.get("latest", {}) or {}
-    aaii_extremes = aaii_data.get("extremes", {}) or {}
+    from aaii_research import context, qualified_signal
+    aaii_context = context(aaii_data)
+    aaii_extremes = (aaii_data.get("extremes", {}) or {}) if qualified_signal(aaii_data) is not None else {}
     aaii_market_pts = 0
     aaii_market_signal = None
     if aaii_extremes.get("is_bearish_extreme"):
         aaii_market_pts = +5
-        aaii_market_signal = f"aaii_extreme_bearish (spread {aaii_latest.get('bull_bear_spread', 0)*100:+.0f}% — contrarian tailwind)"
+        aaii_market_signal = f"aaii_extreme_bearish (spread {aaii_latest.get('bull_bear_spread', 0)*100:+.0f}pp — contrarian tailwind)"
     elif aaii_extremes.get("is_bullish_extreme"):
         aaii_market_pts = -5
-        aaii_market_signal = f"aaii_extreme_bullish (spread {aaii_latest.get('bull_bear_spread', 0)*100:+.0f}% — contrarian headwind)"
+        aaii_market_signal = f"aaii_extreme_bullish (spread {aaii_latest.get('bull_bear_spread', 0)*100:+.0f}pp — contrarian headwind)"
 
     # Now build per-ticker scores. Iterate the union of all tickers we know.
     all_tickers = set(insider_clusters_by_tkr.keys()) | set(insider_bigs_by_tkr.keys()) \
@@ -337,6 +339,7 @@ def load_cross_pollination():
         "by_ticker": out,
         "broad_market": {
             "aaii_pts": aaii_market_pts,
+            "aaii_research": aaii_context,
             "aaii_signal": aaii_market_signal,
             "btc_mvrv": (onchain_data.get("btc") or {}).get("mvrv"),
             "onchain_extreme_signals": (onchain_data.get("btc") or {}).get("extreme_signals", []),
