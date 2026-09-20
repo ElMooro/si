@@ -80,7 +80,7 @@ def lambda_handler(event, context):
 
     vc = read_json("data/vix-curve.json") or {}
     vch = read_json("data/vix-curve-history.json") or {}
-    vrp = read_json("data/vrp.json") or {}
+    vrp = __import__("vrp_research").decision_view(read_json("data/vrp.json"))
     volreg = read_json("data/vol-regime.json") or {}
     dix = read_json("data/dix.json") or {}
     credit = read_json("data/credit-stress.json") or {}
