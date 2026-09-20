@@ -56,11 +56,13 @@ class ConsumerCases(unittest.TestCase):
                 self.assertNotEqual(out.get('concentration_warning'),False)
 
     def test_capitulation_has_no_volatility_washout_vote(self):
-        text=source('capitulation');start=text.index('    from volatility_research import decision_view')
-        end=text.index('\n',text.index('    vol =',start))+1
-        ns={'get_s3_json':lambda key:{'regime':'PANIC','composite_stress_score':100}}
-        exec(textwrap.dedent(text[start:end]),ns)
-        self.assertIsNone(ns['vol']['regime']);self.assertIsNone(ns['vol']['composite_stress_score'])
+        from extremes_native_test_support import synthesis_with
+        out=synthesis_with('volatility',{'regime':'PANIC','composite_stress_score':100},self.at)
+        self.assertEqual(out['measurements'],[]);self.assertIsNone(out['capitulation_score'])
+        out=synthesis_with('volatility',self.packet,self.at)
+        self.assertEqual(len(out['measurements']),16);self.assertEqual(out['decision']['eligible_votes'],0)
+        direct={r['series_id'] for r in out['measurements'] if r['series_id'].startswith('CBOE:')}
+        self.assertEqual(direct,{'CBOE:SKEW','CBOE:VVIX'})
 
     def test_kb_actual_state_has_no_unqualified_vix_rule_value(self):
         tree=ast.parse(source('kb-matcher'));node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='build_today_state')

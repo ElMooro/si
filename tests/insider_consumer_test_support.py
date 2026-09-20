@@ -21,11 +21,14 @@ class Boundaries(unittest.TestCase):
         p=deepcopy(self.packet);p['calls_eligible']=True;self.assertFalse(adapter.context(p,self.at)['available'])
         for at in ('2026-09-18T00:00:00Z','2026-09-23T00:00:00Z'):self.assertFalse(adapter.context(self.packet,datetime.fromisoformat(at))['available'])
     def test_extremes_and_capitulation_cannot_get_insider_timing_vote(self):
+        from extremes_native_test_support import synthesis_with
         bad={'regime':'INSIDERS_ACCUMULATING','headline_ratio_30d_dollar':99,'windows':{'last_30d':{'buy_sell_ratio_dollar':99}}}
-        for fn,reader in (('justhodl-capitulation','get_s3_json'),('justhodl-market-extremes','read_json')):
-            line=next(l for l in source(fn).splitlines() if 'insider_research' in l)
-            ns={reader:lambda key:bad};exec(textwrap.dedent(line),ns)
-            self.assertIsNone(ns['insider']['regime']);self.assertEqual(ns['insider']['windows'],{});self.assertIsNone(ns['insider']['headline_ratio_30d_dollar'])
+        for engine in ('capitulation','market-extremes'):
+            out=synthesis_with('insider',bad,self.at,engine)
+            self.assertEqual(out['contexts']['insider'],{});self.assertIsNone(out['signal'])
+            out=synthesis_with('insider',self.packet,self.at,engine)
+            self.assertTrue(out['eligibility']['insider']['research_context_available']);self.assertEqual(out['decision']['eligible_votes'],0)
+
     def test_spinoff_cluster_cannot_add_unqualified_points(self):
         line=next(l for l in source('justhodl-spinoff-desk').splitlines() if 'insider_research' in l)
         ns={'json':json,'obj':{'Body':io.BytesIO(json.dumps({'notable_cluster_buys':[{'symbol':'TEST'}]}).encode())}}

@@ -592,7 +592,7 @@ def rule_crisis_composite(scores, evidence):
 def rule_capitulation(scores, evidence):
     """Capitulation engine — a GENERATIONAL/STRONG buy is the rare washout
     entry; tilt aggressively to risk when it fires with stabilisation."""
-    d = fs3("data/capitulation.json")
+    d = __import__("extremes_research").decision_view(fs3("data/capitulation.json"))
     sig = d.get("signal")
     if sig not in ("GENERATIONAL_BUY", "STRONG_BUY"):
         return

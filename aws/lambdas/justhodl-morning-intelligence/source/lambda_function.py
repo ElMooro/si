@@ -268,7 +268,7 @@ def load_all():
         "gold_equity_rotation":"data/gold-equity-rotation.json",
         "sector_flow_state":"data/sector-flow-state.json",
     }
-    return {k:__import__("crisis_authority").guard(v,fs3(v)) for k,v in keys.items()}
+    return {k:__import__("extremes_research").guard(v,__import__("crisis_authority").guard(v,fs3(v))) for k,v in keys.items()}
 
 def extract_metrics(data,weights):
     from credit_research import morning_fields as credit_morning_fields
@@ -1299,7 +1299,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         # ═══ Economic Release Calendar — the ECO screen (2026-05-19) ══
         "ECON_CALENDAR: next major US release: "+str(m.get("econ_next_major") or "none")+" in "+str(m.get("econ_next_major_days") if m.get("econ_next_major_days") is not None else "?")+"d (consensus "+str(m.get("econ_next_major_consensus") or "?")+"). This week: "+str(m.get("econ_this_week_releases") or 0)+" releases, "+str(m.get("econ_this_week_tier1") or 0)+" tier-1"+((" — "+"; ".join(m.get("econ_this_week_tier1_events") or [])) if m.get("econ_this_week_tier1_events") else "")+". Recent surprises: "+str(m.get("econ_recent_above") or 0)+" above / "+str(m.get("econ_recent_below") or 0)+" below consensus.",
         # ═══ Market Cycle Extremes Radar — tops & bottoms (2026-05-19) ═
-        "MARKET_CYCLE: posture "+str(m.get("cycle_posture") or "?")+" — cycle position "+str(m.get("cycle_position") if m.get("cycle_position") is not None else "?")+"/100 (0=capitulation bottom, 100=euphoria top). Top-risk "+str(m.get("cycle_top_risk") if m.get("cycle_top_risk") is not None else "?")+"/100, capitulation "+str(m.get("cycle_capitulation") if m.get("cycle_capitulation") is not None else "?")+"/100"+((" — top signs firing: "+"; ".join(m.get("cycle_top_signs") or [])) if m.get("cycle_top_signs") else "")+".",
+        "MARKET_CYCLE: dated research only. No validated top/bottom forecast, cycle-position score or portfolio recommendation. WAIT is abstention. Source: https://justhodl.ai/market-extremes.html",
         # ═══ Dollar Radar — pump/dump pressure (2026-05-19) ════════════
         "DOLLAR_RADAR: Dollar Pressure "+str(m.get("dollar_pressure") if m.get("dollar_pressure") is not None else "?")+"/±100 — regime "+str(m.get("dollar_regime") or "?")+" ("+str(m.get("dollar_canaries_pump") or 0)+" pump vs "+str(m.get("dollar_canaries_dump") or 0)+" dump canaries firing). Positive = USD squeeze/PUMP (risk-off, tighter global dollar liquidity); negative = DUMP (Fed QE/repo liquidity flood, risk-on)."+(" Dollar index double-top — reversal-lower risk." if m.get("dollar_double_top") else "")+(" Dollar index double-bottom — reversal-higher risk." if m.get("dollar_double_bottom") else ""),
         # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)

@@ -32,3 +32,10 @@ if __name__ == "__main__":
     if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():sys.exit(1)
     from dealer_consumer_test_support import run as run_dealer
     sys.exit(0 if run_dealer('morning-intelligence') else 1)
+
+if __name__ == '__main__':
+    from pathlib import Path
+    import sys
+    sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests'))
+    from extremes_consumer_test_support import run as run_extremes_consumers
+    run_extremes_consumers()

@@ -85,7 +85,7 @@ def lambda_handler(event, context):
     dix = read_json("data/dix.json") or {}
     credit = read_json("data/credit-stress.json") or {}
     euro = read_json("data/eurodollar-plumbing.json") or {}
-    capit = read_json("data/capitulation.json") or {}
+    capit = __import__("extremes_research").decision_view(read_json("data/capitulation.json")) or {}
 
     cur = vc.get("current") or {}
     spreads = vc.get("spreads") or {}

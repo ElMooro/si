@@ -40,12 +40,13 @@ class ConsumerCases(unittest.TestCase):
         self.assertFalse(adapter.context(p,self.at)['available'])
 
     def test_extremes_and_vol_radar_do_not_relabel_another_series_hy(self):
-        for fn,start,end in (('market-extremes','    from credit_research import context','    if cred_z is not None:'),
-                             ('vol-radar','    from credit_research import context','    euro_score =')):
-            text=source(fn);a=text.index(start);b=text.index(end,a)
-            ns={'credit':{'metrics':{'OTHER':{'z_score_60d':-99}},'calls_eligible':True}}
-            exec(textwrap.dedent(text[a:b]),ns)
-            self.assertIsNone(ns['cred_z']);self.assertFalse(ns['credit_research_context']['available'])
+        from extremes_native_test_support import synthesis_with
+        bad={'metrics':{'OTHER':{'z_score_60d':-99}},'calls_eligible':True}
+        out=synthesis_with('credit',bad,self.at,'market-extremes')
+        self.assertEqual(out['measurements'],[]);self.assertIsNone(out['scores']['top_risk'])
+        text=source('vol-radar');a=text.index('    from credit_research import context');b=text.index('    euro_score =',a)
+        ns={'credit':bad};exec(textwrap.dedent(text[a:b]),ns)
+        self.assertIsNone(ns['cred_z']);self.assertFalse(ns['credit_research_context']['available'])
 
     def test_cycle_clock_unqualified_credit_adds_no_neutral_weight(self):
         text=source('cycle-clock');a=text.index('    from credit_research import qualified_signal');b=text.index('    if nowcast_regime',a)
@@ -54,10 +55,12 @@ class ConsumerCases(unittest.TestCase):
         self.assertEqual((ns['rp_max'],ns['rp_votes']),(0,0));self.assertIsNone(ns['cr_regime'])
 
     def test_capitulation_does_not_promote_legacy_crisis_label(self):
-        text=source('capitulation');a=text.index('    from credit_research import decision_view');b=text.index('\n',text.index('    credit =',a))+1
-        ns={'get_s3_json':lambda key:{'composite_regime':'CRISIS','composite_score':99}}
-        exec(textwrap.dedent(text[a:b]),ns)
-        self.assertIsNone(ns['credit']['composite_regime']);self.assertNotIn('composite_score',ns['credit'])
+        from extremes_native_test_support import synthesis_with
+        out=synthesis_with('credit',{'composite_regime':'CRISIS','composite_score':99},self.at)
+        self.assertEqual(out['measurements'],[]);self.assertIsNone(out['capitulation_score'])
+        out=synthesis_with('credit',self.packet,self.at)
+        self.assertEqual(len(out['measurements']),28);self.assertEqual(out['decision']['eligible_votes'],0)
+        self.assertTrue(all(r['unit']=='Percent' and r['calls_eligible'] is False for r in out['measurements']))
 
     def test_bottleneck_uses_percent_not_corrected_bps_and_no_funding_cost_label(self):
         tree=ast.parse(source('bottleneck-boom'));node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='capital_availability')

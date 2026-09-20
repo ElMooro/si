@@ -849,7 +849,7 @@ def check_breadth_thrust(state: dict) -> List[str]:
 
 def check_capitulation(state: dict) -> List[str]:
     """Capitulation buys — extreme washout, mean-reversion opportunity."""
-    doc = _read_json("data/capitulation.json")
+    doc = __import__("extremes_research").decision_view(_read_json("data/capitulation.json"))
     if not doc:
         return []
     items = doc.get("candidates") or doc.get("signals") or doc.get("items") or []

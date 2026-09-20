@@ -69,15 +69,11 @@ class ConsumerTests(unittest.TestCase):
             self.assertIsNone(out['broad_market']['aaii_signal'])
 
     def test_market_extremes_never_compares_fractions_with_eighteen_points(self):
-        path = ROOT/'aws/lambdas/justhodl-market-extremes/source/lambda_function.py'
-        source = path.read_text(encoding='utf-8')
-        block = source[source.index('    # T3 sentiment'):source.index('    # T4 complacency')]
-        code = compile('def check(aaii, num, tc):\n'+block+'\n    return aaii_context, spread\n', str(path), 'exec')
-        ns = {}; exec(code, ns); contributions = []
-        with patch.object(adapter, 'context', return_value=adapter.context(self.packet, self.at)):
-            doc, spread = ns['check'](self.packet, lambda n:n, lambda *args:contributions.append(args))
-        self.assertEqual(spread, -.245); self.assertEqual(contributions, [])
-        self.assertEqual(doc['bull_bear_spread_pp'], -24.5)
+        from extremes_native_test_support import synthesis_with
+        out=synthesis_with('aaii',self.packet,self.at,'market-extremes')
+        spread=next(r for r in out['measurements'] if r['series_id']=='AAII:bull_bear_spread_pp')
+        self.assertEqual(spread['value'],-24.5);self.assertEqual(spread['unit'],'percentage_points')
+        self.assertEqual(out['decision']['eligible_votes'],0);self.assertIsNone(out['scores']['top_risk'])
 
     def test_shared_helper_is_in_every_changed_consumer_package(self):
         sys.path.insert(0, str(ROOT/'aws/ops/checks'))

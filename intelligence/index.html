@@ -435,7 +435,7 @@ function renderDefcon(cc, cap, ch, bs) {
   document.getElementById('defcon-kpis').innerHTML = `
     <div class="kpi ${dcls}"><div class="label">DEFCON Level</div><div class="val ${dcls}">${lvl==null?'\u2014':lvl}</div><div class="sub">${cc.defcon_name||''}</div></div>
     <div class="kpi ${scls}"><div class="label">Master Crisis Score</div><div class="val ${scls}">${fmtNum(score,1)}</div><div class="sub">trend ${cc.trend||'n/a'}</div></div>
-    <div class="kpi ${capCls}"><div class="label">Capitulation</div><div class="val ${capCls}" style="font-size:15px">${(capSig||'\u2014').replace(/_/g,' ')}</div><div class="sub">score ${cap?fmtNum(cap.capitulation_score,0):'\u2014'}</div></div>
+    <div class="kpi info"><div class="label">Capitulation research</div><div class="val" style="font-size:15px"><a href="/capitulation.html">Inspect dated evidence</a></div><div class="sub">No qualified market-turn score</div></div>
     <div class="kpi ${chReg?regCls(chReg):'info'}"><div class="label">China Liquidity</div><div class="val" style="font-size:16px">${chReg||'\u2014'}</div><div class="sub">credit impulse ${ci==null?'\u2014':fmtNum(ci,1)+'pp'}</div></div>
     <div class="kpi ${bsReg?regCls(bsReg):'info'}"><div class="label">Bank Funding</div><div class="val" style="font-size:16px">${bsReg||'\u2014'}</div><div class="sub">reserves/GDP ${rg==null?'\u2014':fmtNum(rg,1)+'%'}</div></div>
   `;

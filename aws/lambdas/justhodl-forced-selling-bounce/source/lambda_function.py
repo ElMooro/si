@@ -299,7 +299,7 @@ def evaluate_c4_gamma_unwind():
 
 
 def evaluate_c5_capitulation_posture():
-    me = fetch_s3_json("data/market-extremes.json")
+    me = __import__("extremes_research").decision_view(fetch_s3_json("data/market-extremes.json"))
     rr = fetch_s3_json("data/reversal-radar.json")
 
     detail = {}

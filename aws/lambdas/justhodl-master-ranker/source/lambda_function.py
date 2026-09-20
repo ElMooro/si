@@ -939,7 +939,7 @@ def collect_macro_signals():
         })
 
     # Capitulation engine — surface when a buy signal fires
-    capit = fetch_json("data/capitulation.json")
+    capit = __import__("extremes_research").decision_view(fetch_json("data/capitulation.json"))
     if capit and capit.get("signal") in ("GENERATIONAL_BUY", "STRONG_BUY", "CAPITULATION_WAIT"):
         out.append({
             "type": "capitulation",
@@ -992,7 +992,7 @@ def get_regime_context():
     # ── Risk Pack overlay — master crisis read + canary turning point ──
     crisis = __import__("crisis_authority").decision_view(fetch_json("data/crisis-composite.json")) or {}
     leading = fetch_json("data/leading-markets.json") or {}
-    capit = fetch_json("data/capitulation.json") or {}
+    capit = __import__("extremes_research").decision_view(fetch_json("data/capitulation.json")) or {}
     defcon = crisis.get("defcon_level")
     tp_signal = leading.get("turning_point_signal")
     cap_signal = capit.get("signal")

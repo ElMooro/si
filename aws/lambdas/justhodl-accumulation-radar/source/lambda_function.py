@@ -241,7 +241,7 @@ def lambda_handler(event=None, context=None):
             if t and t not in si_map:
                 si_map[t] = {"short_pct": _it.get("latest_short_pct"), "dtc": _it.get("days_to_cover")}
     # capitulation (market washout gauge) — bottoms are more reliable when the tape is capitulating
-    _cap = _read("data/capitulation.json") or {}
+    _cap = __import__("extremes_research").decision_view(_read("data/capitulation.json")) or {}
     _cap_sig = str(_cap.get("signal") or "").upper()
     _cap_score = _cap.get("capitulation_score")
     market_washout = ("CAPITUL" in _cap_sig or "WASHOUT" in _cap_sig

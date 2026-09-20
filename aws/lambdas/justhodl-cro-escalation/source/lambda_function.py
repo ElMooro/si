@@ -613,7 +613,7 @@ def lambda_handler(event, context):
     # into EUPHORIA or CAPITULATION. Same no-spam discipline as the
     # vol-radar track: cyc_alerted persists across runs so a standing
     # extreme is not re-pinged; leaving the extreme re-arms it.
-    mx = read_json("data/market-extremes.json") or {}
+    mx = __import__("extremes_research").decision_view(read_json("data/market-extremes.json")) or {}
     mx_posture = mx.get("posture")
     mx_scores = mx.get("scores") or {}
     cyc_alerted = (prior.get("cycle_extreme") or {}).get("posture_alerted")

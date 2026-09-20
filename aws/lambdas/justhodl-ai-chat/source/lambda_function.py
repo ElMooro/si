@@ -216,7 +216,7 @@ def build_context(message):
                 lines.append(f"[CRISIS PLAYBOOK] {play[:280]}")
 
     # ─── CAPITULATION / OPPORTUNITY — the buy-side counterpart ──────
-    cap = get_s3('data/capitulation.json')
+    cap = __import__('extremes_research').decision_view(get_s3('data/capitulation.json'))
     if cap:
         sig = cap.get('signal')
         if sig:

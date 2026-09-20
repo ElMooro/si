@@ -11,3 +11,10 @@ if __name__=='__main__':
     suite.addTests(unittest.TestLoader().loadTestsFromName('test_capital_research_boundary.Tests.test_flow_handler_excludes_universe_score_agreement_and_old_downstream_revision'))
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)
+
+if __name__ == '__main__':
+    from pathlib import Path
+    import sys
+    sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests'))
+    from extremes_consumer_test_support import run as run_extremes_consumers
+    run_extremes_consumers()

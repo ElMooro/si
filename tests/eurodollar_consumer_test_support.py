@@ -76,7 +76,10 @@ class ConsumerCases(unittest.TestCase):
         ns=functions('justhodl-kb-matcher',['build_today_state'],{'s3j':lambda key:{'composite_score':99} if key=='data/eurodollar-stress.json' else {},'fred_last':lambda *a:[]})
         out=ns['build_today_state']();self.assertNotIn('eurodollar_stress',out);self.assertIn('eurodollar_research',out)
     def test_detail_and_capitulation_actual_read_boundaries(self):
-        for fn,var,reader in [('justhodl-boj-detail','eds','read_existing'),('justhodl-ecb-detail','eds','read_existing'),('justhodl-snb-detail','eds','read_existing'),('justhodl-capitulation','euro','get_s3_json')]:
+        from extremes_native_test_support import synthesis_with
+        out=synthesis_with('funding',{'score':99,'composite_score':99},datetime.fromisoformat(STAMP))
+        self.assertEqual(out['measurements'],[]);self.assertIsNone(out['capitulation_score'])
+        for fn,var,reader in [('justhodl-boj-detail','eds','read_existing'),('justhodl-ecb-detail','eds','read_existing'),('justhodl-snb-detail','eds','read_existing')]:
             line=next(l for l in source(fn).splitlines() if 'eurodollar_research' in l and 'decision_view' in l)
             ns={reader:lambda key:{'score':99,'composite_score':99}};exec(textwrap.dedent(line),ns)
             self.assertIsNone(ns[var]['score']);self.assertIsNone(ns[var]['composite_score'])
