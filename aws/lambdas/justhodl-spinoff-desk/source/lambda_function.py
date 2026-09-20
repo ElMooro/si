@@ -405,7 +405,7 @@ def lambda_handler(event, context):
     insider_syms = set()
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=INSIDER_KEY)
-        idoc = json.loads(obj["Body"].read())
+        idoc = __import__("insider_research").decision_view(json.loads(obj["Body"].read()))
         for row in idoc.get("notable_cluster_buys", []) or []:
             sym = row.get("symbol") or row.get("ticker")
             if sym:

@@ -104,7 +104,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="kpi"><h3>Potential 25x+</h3><div class="v t25" id="k_25">—</div><div class="vsub">strong compounders</div></div>
     <div class="kpi"><h3>Hiring inflections</h3><div class="v" id="k_hire" style="color:var(--cyan)">—</div><div class="vsub">scaling pre-revenue</div></div>
     <div class="kpi"><h3>Global liquidity</h3><div class="v mono" id="k_liq" style="font-size:15px">—</div><div class="vsub" id="k_liq_sub">tide for risk</div></div>
-    <div class="kpi"><h3>Insider regime</h3><div class="v mono" id="k_ins" style="font-size:15px">—</div><div class="vsub" id="k_ins_sub">market-wide</div></div>
+    <div class="kpi"><h3>Insider filings</h3><div class="v mono" id="k_ins" style="font-size:15px">—</div><div class="vsub" id="k_ins_sub">bounded sample</div></div>
     <div class="kpi"><h3>Coffee-can</h3><div class="v mono" id="k_cc">—</div><div class="vsub">holdings tracked</div></div>
   </section>
 
@@ -251,30 +251,7 @@ function renderMacro(gl,ia){
       <strong>Liquidity regime — <span class="${rc}">${esc(gl.regime)}</span></strong>${esc(gl.regime_read||"")}</div>`;
   }else{h+='<div class="empty">GLOBAL LIQUIDITY DATA NOT YET AVAILABLE</div>';}
 
-  h+='<h2>Market-Wide Insider Behaviour</h2>';
-  if(ia&&!ia.err){
-    const w=ia.windows||{},w30=w.last_30d||{},w7=w.last_7d||{};
-    const irc=ia.regime==="INSIDERS_ACCUMULATING"?"pos":ia.regime==="INSIDERS_DISTRIBUTING"?"neg":"warnc";
-    const bd=w30.buy_usd||0,sd=w30.sell_usd||0,tot=bd+sd||1;
-    h+=`<div class="macro-grid">
-      <div class="metric"><div class="lbl">30d Buy/Sell ($)</div><div class="big ${irc}">${(ia.headline_ratio_30d_dollar||0).toFixed(3)}</div>
-        <div class="sub">buys ${w30.buy_count||0} · sells ${w30.sell_count||0}</div>
-        <div class="bars"><span class="pos" style="width:${bd/tot*100}%;background:var(--green)"></span><span style="width:${sd/tot*100}%;background:var(--red)"></span></div>
-        <div class="sub dim">$${fmtB(bd/1e9)} bought vs $${fmtB(sd/1e9)} sold</div></div>
-      <div class="metric"><div class="lbl">7d Buy/Sell ($)</div><div class="big">${(w7.buy_sell_ratio_dollar||0).toFixed(3)}</div>
-        <div class="sub">most recent week</div></div>
-      <div class="metric"><div class="lbl">Cluster Buys</div><div class="big" style="color:var(--cyan)">${(ia.notable_cluster_buys||[]).length}</div>
-        <div class="sub">2+ insiders, same company, 30d</div></div>
-    </div>
-    <div class="callout" style="border-left-color:${irc==='pos'?'var(--green)':irc==='neg'?'var(--red)':'var(--orange)'};margin-top:12px">
-      <strong>Insider regime — <span class="${irc}">${esc(ia.regime)}</span></strong>${esc(ia.regime_read||"")}</div>`;
-    const cb=ia.notable_cluster_buys||[];
-    if(cb.length){
-      h+='<table><thead><tr><th>Ticker</th><th>Insiders Buying</th><th>Total $</th></tr></thead><tbody>';
-      cb.forEach(c=>{h+=`<tr><td><span class="tk">${esc(c.symbol)}<small>${esc((c.name||"").slice(0,24))}</small></span></td><td>${c.n_buyers}</td><td>$${(c.total_usd||0).toLocaleString()}</td></tr>`;});
-      h+='</tbody></table>';
-    }
-  }else{h+='<div class="empty">INSIDER AGGREGATE DATA NOT YET AVAILABLE</div>';}
+  h+='<h2>Insider filing research</h2><p>A bounded vendor sample with distinct filing and transaction dates. Currency and plan status are unverified; no market-wide dollar ratio or timing regime is inferred.</p><p><a href="/insider-research.html">Open verified sample, source evidence and explicit exposure scenario</a></p>';
   document.getElementById("macro_body").innerHTML=h;
 }
 
@@ -337,8 +314,7 @@ function renderCC(d){
   if(gl){const g=gl.global_liquidity_index||{};
     document.getElementById("k_liq").textContent="$"+(g.total_usd_trillions||0).toFixed(1)+"T";
     document.getElementById("k_liq_sub").textContent=esc(gl.regime||"");}
-  if(ia&&!ia.err){document.getElementById("k_ins").textContent=(ia.headline_ratio_30d_dollar||0).toFixed(2);
-    document.getElementById("k_ins_sub").textContent=(ia.regime||"").replace("INSIDERS_","").toLowerCase();}
+  document.getElementById("k_ins").textContent="Sample only";
   document.getElementById("k_cc").textContent=cc?(cc.n_holdings??0):0;
   renderHire(hv);renderMacro(gl,ia);renderCC(cc);
 })();

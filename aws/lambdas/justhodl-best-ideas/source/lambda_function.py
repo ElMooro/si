@@ -168,6 +168,9 @@ def harvest(spec):
             Bucket=S3_BUCKET, Key=key)["Body"].read())
     except Exception as e:
         return {}, f"unreadable: {str(e)[:80]}"
+    if key == "data/insider-aggregate.json":
+        from insider_research import qualified_signal
+        if qualified_signal(obj) is None: return {}, "research_only_unqualified_insider_sample"
     lst = dig(obj, path)
     if not isinstance(lst, list) or not lst:
         if isinstance(obj, dict):

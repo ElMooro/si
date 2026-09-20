@@ -1,0 +1,324 @@
+{
+  "packet": {
+    "contract": "insider-native-research.v1",
+    "schema_version": "2.0",
+    "method": "bounded_vendor_insider_research",
+    "generated_at": "2026-09-20T17:30:00+00:00",
+    "as_of": "2026-09-18",
+    "elapsed_s": 0.0,
+    "n_transactions": null,
+    "n_transactions_note": "A SEC transaction count is unavailable; use explicitly named vendor representation counts.",
+    "data_coverage_days": 0,
+    "coverage": {
+      "requested_pages": 1,
+      "rows_received": 7,
+      "object_rows_received": 7,
+      "distinct_representation_count": 6,
+      "duplicate_representations": 1,
+      "eligible_representations": 4,
+      "excluded_representations": 2,
+      "excluded_reason_counts": {
+        "amendment_requires_reconciliation": 1,
+        "future_or_after_filing_transaction": 1
+      },
+      "first_filing_date": "2026-09-18",
+      "latest_filing_date": "2026-09-18",
+      "first_transaction_date": "2026-09-17",
+      "latest_transaction_date": "2026-09-17",
+      "stop_reason": "page_limit",
+      "population_complete": false,
+      "page_snapshot_consistent": false,
+      "transaction_codes": {
+        "P-Purchase": 5,
+        "S-Sale": 1
+      },
+      "form_types": {
+        "4": 5,
+        "4/A": 1
+      },
+      "note": "Date extrema are sample ranges, never proof of complete window coverage. Mutable vendor pages are not an atomic SEC census."
+    },
+    "quality": {
+      "status": "partial",
+      "source_level": "vendor_reported",
+      "SEC_filings_independently_verified": false,
+      "amendments_reconciled": false,
+      "economic_transaction_deduplication_verified": false,
+      "currency_verified": false,
+      "plan_classification_available": false,
+      "independent_investment_votes": 0
+    },
+    "freshness": {
+      "pipeline_check_due_at": "2026-09-22T00:30:00+00:00",
+      "sample_valid_until": "2026-09-22T00:30:00+00:00",
+      "basis": "Existing weekday 22:30 UTC schedule plus two hours; collection clock does not establish transaction freshness.",
+      "latest_filing_date": "2026-09-18"
+    },
+    "windows": {
+      "last_7d": {
+        "days": 7,
+        "date_basis": "transaction_date",
+        "from_date": "2026-09-14",
+        "through_date": "2026-09-20",
+        "population_complete": false,
+        "representation_count": 4,
+        "buy_count": 3,
+        "sell_count": 1,
+        "buy_sell_ratio_count": 3.0,
+        "ratio_count_unavailable_reason": null,
+        "buy_usd": null,
+        "sell_usd": null,
+        "buy_sell_ratio_dollar": null,
+        "dollar_amounts_complete": false,
+        "unpriced_rows": 1,
+        "unknown_currency_rows": 4,
+        "amounts_by_explicit_currency": {},
+        "reporting_CIKs": 2,
+        "issuer_CIKs": 1,
+        "membership_sha256": "1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e",
+        "plan_status": "unknown_not_excluded",
+        "cluster_buys": []
+      },
+      "last_30d": {
+        "days": 30,
+        "date_basis": "transaction_date",
+        "from_date": "2026-08-22",
+        "through_date": "2026-09-20",
+        "population_complete": false,
+        "representation_count": 4,
+        "buy_count": 3,
+        "sell_count": 1,
+        "buy_sell_ratio_count": 3.0,
+        "ratio_count_unavailable_reason": null,
+        "buy_usd": null,
+        "sell_usd": null,
+        "buy_sell_ratio_dollar": null,
+        "dollar_amounts_complete": false,
+        "unpriced_rows": 1,
+        "unknown_currency_rows": 4,
+        "amounts_by_explicit_currency": {},
+        "reporting_CIKs": 2,
+        "issuer_CIKs": 1,
+        "membership_sha256": "1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e",
+        "plan_status": "unknown_not_excluded",
+        "cluster_buys": [
+          {
+            "issuer_cik": "0000000123",
+            "symbol": "TEST",
+            "reported_symbols": [
+              "TEST"
+            ],
+            "name": "Issuer CIK 0000000123",
+            "n_buyers": 2,
+            "representation_count": 3,
+            "total_usd": null,
+            "filing_urls": [
+              "https://www.sec.gov/Archives/edgar/data/123/123456/form4.xml"
+            ],
+            "first_transaction_date": "2026-09-17",
+            "last_transaction_date": "2026-09-17",
+            "membership_sha256": "e65efb9c4b503c92b52dd77f35f7dce665dde888a323d45bb2da57eb1baf5d4c",
+            "interpretation": "P-coded vendor representations across reported securities; plans, amendments and SEC transaction-line identity unqualified.",
+            "forecast_qualified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false,
+            "execution_eligible": false
+          }
+        ]
+      },
+      "last_90d": {
+        "days": 90,
+        "date_basis": "transaction_date",
+        "from_date": "2026-06-23",
+        "through_date": "2026-09-20",
+        "population_complete": false,
+        "representation_count": 4,
+        "buy_count": 3,
+        "sell_count": 1,
+        "buy_sell_ratio_count": 3.0,
+        "ratio_count_unavailable_reason": null,
+        "buy_usd": null,
+        "sell_usd": null,
+        "buy_sell_ratio_dollar": null,
+        "dollar_amounts_complete": false,
+        "unpriced_rows": 1,
+        "unknown_currency_rows": 4,
+        "amounts_by_explicit_currency": {},
+        "reporting_CIKs": 2,
+        "issuer_CIKs": 1,
+        "membership_sha256": "1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e",
+        "plan_status": "unknown_not_excluded",
+        "cluster_buys": []
+      }
+    },
+    "filing_windows": {
+      "last_7d": {
+        "days": 7,
+        "date_basis": "filing_date",
+        "from_date": "2026-09-14",
+        "through_date": "2026-09-20",
+        "population_complete": false,
+        "representation_count": 4,
+        "buy_count": 3,
+        "sell_count": 1,
+        "buy_sell_ratio_count": 3.0,
+        "ratio_count_unavailable_reason": null,
+        "buy_usd": null,
+        "sell_usd": null,
+        "buy_sell_ratio_dollar": null,
+        "dollar_amounts_complete": false,
+        "unpriced_rows": 1,
+        "unknown_currency_rows": 4,
+        "amounts_by_explicit_currency": {},
+        "reporting_CIKs": 2,
+        "issuer_CIKs": 1,
+        "membership_sha256": "1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e",
+        "plan_status": "unknown_not_excluded",
+        "cluster_buys": []
+      },
+      "last_30d": {
+        "days": 30,
+        "date_basis": "filing_date",
+        "from_date": "2026-08-22",
+        "through_date": "2026-09-20",
+        "population_complete": false,
+        "representation_count": 4,
+        "buy_count": 3,
+        "sell_count": 1,
+        "buy_sell_ratio_count": 3.0,
+        "ratio_count_unavailable_reason": null,
+        "buy_usd": null,
+        "sell_usd": null,
+        "buy_sell_ratio_dollar": null,
+        "dollar_amounts_complete": false,
+        "unpriced_rows": 1,
+        "unknown_currency_rows": 4,
+        "amounts_by_explicit_currency": {},
+        "reporting_CIKs": 2,
+        "issuer_CIKs": 1,
+        "membership_sha256": "1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e",
+        "plan_status": "unknown_not_excluded",
+        "cluster_buys": []
+      },
+      "last_90d": {
+        "days": 90,
+        "date_basis": "filing_date",
+        "from_date": "2026-06-23",
+        "through_date": "2026-09-20",
+        "population_complete": false,
+        "representation_count": 4,
+        "buy_count": 3,
+        "sell_count": 1,
+        "buy_sell_ratio_count": 3.0,
+        "ratio_count_unavailable_reason": null,
+        "buy_usd": null,
+        "sell_usd": null,
+        "buy_sell_ratio_dollar": null,
+        "dollar_amounts_complete": false,
+        "unpriced_rows": 1,
+        "unknown_currency_rows": 4,
+        "amounts_by_explicit_currency": {},
+        "reporting_CIKs": 2,
+        "issuer_CIKs": 1,
+        "membership_sha256": "1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e",
+        "plan_status": "unknown_not_excluded",
+        "cluster_buys": []
+      }
+    },
+    "security_labels": {
+      "Common Stock": 4
+    },
+    "notable_cluster_buys": [
+      {
+        "issuer_cik": "0000000123",
+        "symbol": "TEST",
+        "reported_symbols": [
+          "TEST"
+        ],
+        "name": "Issuer CIK 0000000123",
+        "n_buyers": 2,
+        "representation_count": 3,
+        "total_usd": null,
+        "filing_urls": [
+          "https://www.sec.gov/Archives/edgar/data/123/123456/form4.xml"
+        ],
+        "first_transaction_date": "2026-09-17",
+        "last_transaction_date": "2026-09-17",
+        "membership_sha256": "e65efb9c4b503c92b52dd77f35f7dce665dde888a323d45bb2da57eb1baf5d4c",
+        "interpretation": "P-coded vendor representations across reported securities; plans, amendments and SEC transaction-line identity unqualified.",
+        "forecast_qualified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    ],
+    "headline_ratio_30d_dollar": null,
+    "regime": null,
+    "regime_read": "Descriptive filing sample only. No market-timing, net buying or insider-conviction inference.",
+    "call": null,
+    "portfolio_action": "WAIT",
+    "forecast_qualified": false,
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "methodology": "Exact P/P-Purchase and S/S-Sale codes; dated Form 4 vendor rows; matching A/D direction; positive securitiesTransacted only; issuer and reporting CIK identities. No securitiesOwned substitution or absolute-value repair. Separate inclusive transaction-date and filing-date windows. Planned trades cannot be identified or excluded from this endpoint.",
+    "lineage": {
+      "sample_membership_sha256": "bd35406f06ab07f9909843e216ab9e7877d0c47dc3aab0cfb5dec3d8dba8781a",
+      "root_provider": "Financial Modeling Prep",
+      "root_endpoint": "https://financialmodelingprep.com/stable/insider-trading/latest",
+      "sources": [
+        {
+          "page": 0,
+          "acquired_at": "2026-09-20T17:30:00+00:00",
+          "evidence": {
+            "key": "audit-private/20260909-originals/insider-research/0b2393e4cecf439dc460a4bbb9843ec0d7116970d7c0ec2bc73bfe43b7b6f387.bin",
+            "sha256": "0b2393e4cecf439dc460a4bbb9843ec0d7116970d7c0ec2bc73bfe43b7b6f387",
+            "bytes": 2682,
+            "provider": "Financial Modeling Prep",
+            "request_url": "https://financialmodelingprep.com/stable/insider-trading/latest?page=0&limit=1000",
+            "access": "protected_AWS_IAM_source_archive"
+          }
+        }
+      ],
+      "membership_recipe": "Canonical whole-row representation SHA-256, first encountered page and zero-based row index, exclusion reasons; replay from protected originals.",
+      "reference_definitions": [
+        "https://www.sec.gov/edgar/searchedgar/ownershipformcodes.html",
+        "https://www.sec.gov/files/form4.pdf"
+      ]
+    },
+    "limitations": [
+      "No complete market population or SEC amendment reconciliation.",
+      "No verified currency or 10b5-1 plan flags.",
+      "P/S include private and derivative transactions.",
+      "No point-in-time backtest or independent investment vote.",
+      "A vendor row representation may duplicate an economic transaction or joint-owner filing."
+    ],
+    "history_reference": {
+      "legacy_key": "data/insider-aggregate-history.json",
+      "used_in_calculations": false,
+      "qualification": "legacy_unverified_snapshots_retained_unchanged"
+    },
+    "portfolio_consequence": {
+      "automatic_position_change": false,
+      "interpretation": "Insider sample counts do not identify your exposure, expected return or position size. Any portfolio scenario needs explicit holdings and a separately entered price shock."
+    },
+    "collection": {
+      "started_at": "2026-09-20T17:30:00+00:00",
+      "completed_at": "2026-09-20T17:30:00+00:00",
+      "pages_retained": 1,
+      "maximum_pages": 1,
+      "source_bytes": 2682,
+      "stop_reason": "page_limit",
+      "unqualified_filing_snapshot": true
+    },
+    "replay": {
+      "manifest_key": "data/insider-research/runs/b782074120909ca665265224a91d0fbe44c8ee2e1864c9e4427bf9bafcddef4f.json",
+      "output_sha256": "eba35a54c95553218c7454782a3d1aa98f6e706ea6e27c113a0036b6a4dcc1ed"
+    }
+  },
+  "artifacts": {
+    "data/insider-research/inputs/c7422a586ada0f627b801cb0315c8abb1ad46bcd29df66772cb66c8c75221669.json": "{\"collection\":{\"max_pages\":1,\"pages\":[{\"acquired_at\":\"2026-09-20T17:30:00+00:00\",\"evidence\":{\"access\":\"protected_AWS_IAM_source_archive\",\"bytes\":2682,\"key\":\"audit-private/20260909-originals/insider-research/0b2393e4cecf439dc460a4bbb9843ec0d7116970d7c0ec2bc73bfe43b7b6f387.bin\",\"provider\":\"Financial Modeling Prep\",\"request_url\":\"https://financialmodelingprep.com/stable/insider-trading/latest?page=0&limit=1000\",\"sha256\":\"0b2393e4cecf439dc460a4bbb9843ec0d7116970d7c0ec2bc73bfe43b7b6f387\"},\"page\":0}],\"source_bytes\":2682,\"stop_reason\":\"page_limit\"},\"contract\":\"insider-native-inputs.v1\",\"generated_at\":\"2026-09-20T17:30:00+00:00\",\"started_at\":\"2026-09-20T17:30:00+00:00\"}",
+    "data/insider-research/outputs/eba35a54c95553218c7454782a3d1aa98f6e706ea6e27c113a0036b6a4dcc1ed.json": "{\"as_of\":\"2026-09-18\",\"call\":null,\"calls_eligible\":false,\"collection\":{\"completed_at\":\"2026-09-20T17:30:00+00:00\",\"maximum_pages\":1,\"pages_retained\":1,\"source_bytes\":2682,\"started_at\":\"2026-09-20T17:30:00+00:00\",\"stop_reason\":\"page_limit\",\"unqualified_filing_snapshot\":true},\"contract\":\"insider-native-research.v1\",\"coverage\":{\"distinct_representation_count\":6,\"duplicate_representations\":1,\"eligible_representations\":4,\"excluded_reason_counts\":{\"amendment_requires_reconciliation\":1,\"future_or_after_filing_transaction\":1},\"excluded_representations\":2,\"first_filing_date\":\"2026-09-18\",\"first_transaction_date\":\"2026-09-17\",\"form_types\":{\"4\":5,\"4/A\":1},\"latest_filing_date\":\"2026-09-18\",\"latest_transaction_date\":\"2026-09-17\",\"note\":\"Date extrema are sample ranges, never proof of complete window coverage. Mutable vendor pages are not an atomic SEC census.\",\"object_rows_received\":7,\"page_snapshot_consistent\":false,\"population_complete\":false,\"requested_pages\":1,\"rows_received\":7,\"stop_reason\":\"page_limit\",\"transaction_codes\":{\"P-Purchase\":5,\"S-Sale\":1}},\"data_coverage_days\":0,\"elapsed_s\":0.0,\"execution_eligible\":false,\"filing_windows\":{\"last_30d\":{\"amounts_by_explicit_currency\":{},\"buy_count\":3,\"buy_sell_ratio_count\":3.0,\"buy_sell_ratio_dollar\":null,\"buy_usd\":null,\"cluster_buys\":[],\"date_basis\":\"filing_date\",\"days\":30,\"dollar_amounts_complete\":false,\"from_date\":\"2026-08-22\",\"issuer_CIKs\":1,\"membership_sha256\":\"1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e\",\"plan_status\":\"unknown_not_excluded\",\"population_complete\":false,\"ratio_count_unavailable_reason\":null,\"reporting_CIKs\":2,\"representation_count\":4,\"sell_count\":1,\"sell_usd\":null,\"through_date\":\"2026-09-20\",\"unknown_currency_rows\":4,\"unpriced_rows\":1},\"last_7d\":{\"amounts_by_explicit_currency\":{},\"buy_count\":3,\"buy_sell_ratio_count\":3.0,\"buy_sell_ratio_dollar\":null,\"buy_usd\":null,\"cluster_buys\":[],\"date_basis\":\"filing_date\",\"days\":7,\"dollar_amounts_complete\":false,\"from_date\":\"2026-09-14\",\"issuer_CIKs\":1,\"membership_sha256\":\"1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e\",\"plan_status\":\"unknown_not_excluded\",\"population_complete\":false,\"ratio_count_unavailable_reason\":null,\"reporting_CIKs\":2,\"representation_count\":4,\"sell_count\":1,\"sell_usd\":null,\"through_date\":\"2026-09-20\",\"unknown_currency_rows\":4,\"unpriced_rows\":1},\"last_90d\":{\"amounts_by_explicit_currency\":{},\"buy_count\":3,\"buy_sell_ratio_count\":3.0,\"buy_sell_ratio_dollar\":null,\"buy_usd\":null,\"cluster_buys\":[],\"date_basis\":\"filing_date\",\"days\":90,\"dollar_amounts_complete\":false,\"from_date\":\"2026-06-23\",\"issuer_CIKs\":1,\"membership_sha256\":\"1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e\",\"plan_status\":\"unknown_not_excluded\",\"population_complete\":false,\"ratio_count_unavailable_reason\":null,\"reporting_CIKs\":2,\"representation_count\":4,\"sell_count\":1,\"sell_usd\":null,\"through_date\":\"2026-09-20\",\"unknown_currency_rows\":4,\"unpriced_rows\":1}},\"forecast_qualified\":false,\"freshness\":{\"basis\":\"Existing weekday 22:30 UTC schedule plus two hours; collection clock does not establish transaction freshness.\",\"latest_filing_date\":\"2026-09-18\",\"pipeline_check_due_at\":\"2026-09-22T00:30:00+00:00\",\"sample_valid_until\":\"2026-09-22T00:30:00+00:00\"},\"generated_at\":\"2026-09-20T17:30:00+00:00\",\"headline_ratio_30d_dollar\":null,\"history_reference\":{\"legacy_key\":\"data/insider-aggregate-history.json\",\"qualification\":\"legacy_unverified_snapshots_retained_unchanged\",\"used_in_calculations\":false},\"limitations\":[\"No complete market population or SEC amendment reconciliation.\",\"No verified currency or 10b5-1 plan flags.\",\"P/S include private and derivative transactions.\",\"No point-in-time backtest or independent investment vote.\",\"A vendor row representation may duplicate an economic transaction or joint-owner filing.\"],\"lineage\":{\"membership_recipe\":\"Canonical whole-row representation SHA-256, first encountered page and zero-based row index, exclusion reasons; replay from protected originals.\",\"reference_definitions\":[\"https://www.sec.gov/edgar/searchedgar/ownershipformcodes.html\",\"https://www.sec.gov/files/form4.pdf\"],\"root_endpoint\":\"https://financialmodelingprep.com/stable/insider-trading/latest\",\"root_provider\":\"Financial Modeling Prep\",\"sample_membership_sha256\":\"bd35406f06ab07f9909843e216ab9e7877d0c47dc3aab0cfb5dec3d8dba8781a\",\"sources\":[{\"acquired_at\":\"2026-09-20T17:30:00+00:00\",\"evidence\":{\"access\":\"protected_AWS_IAM_source_archive\",\"bytes\":2682,\"key\":\"audit-private/20260909-originals/insider-research/0b2393e4cecf439dc460a4bbb9843ec0d7116970d7c0ec2bc73bfe43b7b6f387.bin\",\"provider\":\"Financial Modeling Prep\",\"request_url\":\"https://financialmodelingprep.com/stable/insider-trading/latest?page=0&limit=1000\",\"sha256\":\"0b2393e4cecf439dc460a4bbb9843ec0d7116970d7c0ec2bc73bfe43b7b6f387\"},\"page\":0}]},\"method\":\"bounded_vendor_insider_research\",\"methodology\":\"Exact P/P-Purchase and S/S-Sale codes; dated Form 4 vendor rows; matching A/D direction; positive securitiesTransacted only; issuer and reporting CIK identities. No securitiesOwned substitution or absolute-value repair. Separate inclusive transaction-date and filing-date windows. Planned trades cannot be identified or excluded from this endpoint.\",\"n_transactions\":null,\"n_transactions_note\":\"A SEC transaction count is unavailable; use explicitly named vendor representation counts.\",\"notable_cluster_buys\":[{\"calls_eligible\":false,\"execution_eligible\":false,\"filing_urls\":[\"https://www.sec.gov/Archives/edgar/data/123/123456/form4.xml\"],\"first_transaction_date\":\"2026-09-17\",\"forecast_qualified\":false,\"interpretation\":\"P-coded vendor representations across reported securities; plans, amendments and SEC transaction-line identity unqualified.\",\"issuer_cik\":\"0000000123\",\"last_transaction_date\":\"2026-09-17\",\"membership_sha256\":\"e65efb9c4b503c92b52dd77f35f7dce665dde888a323d45bb2da57eb1baf5d4c\",\"n_buyers\":2,\"name\":\"Issuer CIK 0000000123\",\"reported_symbols\":[\"TEST\"],\"representation_count\":3,\"sizing_eligible\":false,\"symbol\":\"TEST\",\"total_usd\":null}],\"portfolio_action\":\"WAIT\",\"portfolio_consequence\":{\"automatic_position_change\":false,\"interpretation\":\"Insider sample counts do not identify your exposure, expected return or position size. Any portfolio scenario needs explicit holdings and a separately entered price shock.\"},\"quality\":{\"SEC_filings_independently_verified\":false,\"amendments_reconciled\":false,\"currency_verified\":false,\"economic_transaction_deduplication_verified\":false,\"independent_investment_votes\":0,\"plan_classification_available\":false,\"source_level\":\"vendor_reported\",\"status\":\"partial\"},\"regime\":null,\"regime_read\":\"Descriptive filing sample only. No market-timing, net buying or insider-conviction inference.\",\"schema_version\":\"2.0\",\"security_labels\":{\"Common Stock\":4},\"sizing_eligible\":false,\"windows\":{\"last_30d\":{\"amounts_by_explicit_currency\":{},\"buy_count\":3,\"buy_sell_ratio_count\":3.0,\"buy_sell_ratio_dollar\":null,\"buy_usd\":null,\"cluster_buys\":[{\"calls_eligible\":false,\"execution_eligible\":false,\"filing_urls\":[\"https://www.sec.gov/Archives/edgar/data/123/123456/form4.xml\"],\"first_transaction_date\":\"2026-09-17\",\"forecast_qualified\":false,\"interpretation\":\"P-coded vendor representations across reported securities; plans, amendments and SEC transaction-line identity unqualified.\",\"issuer_cik\":\"0000000123\",\"last_transaction_date\":\"2026-09-17\",\"membership_sha256\":\"e65efb9c4b503c92b52dd77f35f7dce665dde888a323d45bb2da57eb1baf5d4c\",\"n_buyers\":2,\"name\":\"Issuer CIK 0000000123\",\"reported_symbols\":[\"TEST\"],\"representation_count\":3,\"sizing_eligible\":false,\"symbol\":\"TEST\",\"total_usd\":null}],\"date_basis\":\"transaction_date\",\"days\":30,\"dollar_amounts_complete\":false,\"from_date\":\"2026-08-22\",\"issuer_CIKs\":1,\"membership_sha256\":\"1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e\",\"plan_status\":\"unknown_not_excluded\",\"population_complete\":false,\"ratio_count_unavailable_reason\":null,\"reporting_CIKs\":2,\"representation_count\":4,\"sell_count\":1,\"sell_usd\":null,\"through_date\":\"2026-09-20\",\"unknown_currency_rows\":4,\"unpriced_rows\":1},\"last_7d\":{\"amounts_by_explicit_currency\":{},\"buy_count\":3,\"buy_sell_ratio_count\":3.0,\"buy_sell_ratio_dollar\":null,\"buy_usd\":null,\"cluster_buys\":[],\"date_basis\":\"transaction_date\",\"days\":7,\"dollar_amounts_complete\":false,\"from_date\":\"2026-09-14\",\"issuer_CIKs\":1,\"membership_sha256\":\"1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e\",\"plan_status\":\"unknown_not_excluded\",\"population_complete\":false,\"ratio_count_unavailable_reason\":null,\"reporting_CIKs\":2,\"representation_count\":4,\"sell_count\":1,\"sell_usd\":null,\"through_date\":\"2026-09-20\",\"unknown_currency_rows\":4,\"unpriced_rows\":1},\"last_90d\":{\"amounts_by_explicit_currency\":{},\"buy_count\":3,\"buy_sell_ratio_count\":3.0,\"buy_sell_ratio_dollar\":null,\"buy_usd\":null,\"cluster_buys\":[],\"date_basis\":\"transaction_date\",\"days\":90,\"dollar_amounts_complete\":false,\"from_date\":\"2026-06-23\",\"issuer_CIKs\":1,\"membership_sha256\":\"1efe6bff143686d4c8985375ebaefcc66242016a716cfdeda5351ad887e5878e\",\"plan_status\":\"unknown_not_excluded\",\"population_complete\":false,\"ratio_count_unavailable_reason\":null,\"reporting_CIKs\":2,\"representation_count\":4,\"sell_count\":1,\"sell_usd\":null,\"through_date\":\"2026-09-20\",\"unknown_currency_rows\":4,\"unpriced_rows\":1}}}",
+    "data/insider-research/runs/b782074120909ca665265224a91d0fbe44c8ee2e1864c9e4427bf9bafcddef4f.json": "{\"compilers\":{\"insider_research_model\":{\"key\":\"data/insider-research/compilers/19f03c56846ea8808b61faf6f6fee8cce018becf9c08138ef256c853719c62c0.py\",\"sha256\":\"19f03c56846ea8808b61faf6f6fee8cce018becf9c08138ef256c853719c62c0\"},\"insider_research_store\":{\"key\":\"data/insider-research/compilers/280556cb723fc3c1e6e8fc245f5e7d8ff21e26877bea379161688d4ac620465e.py\",\"sha256\":\"280556cb723fc3c1e6e8fc245f5e7d8ff21e26877bea379161688d4ac620465e\"}},\"contract\":\"insider-native-replay.v1\",\"generated_at\":\"2026-09-20T17:30:00+00:00\",\"input\":{\"bytes\":670,\"key\":\"data/insider-research/inputs/c7422a586ada0f627b801cb0315c8abb1ad46bcd29df66772cb66c8c75221669.json\",\"sha256\":\"c7422a586ada0f627b801cb0315c8abb1ad46bcd29df66772cb66c8c75221669\"},\"output\":{\"bytes\":9241,\"key\":\"data/insider-research/outputs/eba35a54c95553218c7454782a3d1aa98f6e706ea6e27c113a0036b6a4dcc1ed.json\",\"sha256\":\"eba35a54c95553218c7454782a3d1aa98f6e706ea6e27c113a0036b6a4dcc1ed\"},\"output_sha256\":\"eba35a54c95553218c7454782a3d1aa98f6e706ea6e27c113a0036b6a4dcc1ed\",\"scope\":\"Exact bounded FMP page originals; vendor representation counts and separate filing/transaction date windows. No SEC population, plan, currency or timing qualification.\"}"
+  }
+}

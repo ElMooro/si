@@ -520,9 +520,7 @@ function renderFleet(d){
   const SC=F.sell_cluster&&F.sell_cluster.data;
   if(SC){const rows=(SC.clusters||SC.rows||[]).slice(0,5);
     h+=card('SELL CLUSTERS · ex-10b5-1'+age(F.sell_cluster),rows.length?rows.map(r=>row(esc(r.ticker||r.symbol)+' <span class="v3-dim">'+esc(r.sellers||r.n_insiders||'')+'</span>',fmtUsd(r.total_value||r.value),'v3-neg')).join(''):'<div class="v3-dim" style="font-size:12px">no sell clusters</div>');}
-  const AG=F.aggregate&&F.aggregate.data;
-  if(AG){const v=AG.ratio??AG.buy_sell_ratio??AG.insider_ratio;
-    h+=card('MARKET-WIDE RATIO'+age(F.aggregate),'<div style="font-size:22px" class="v3-mono">'+(v!=null?(+v).toFixed(2):'—')+'</div><div class="v3-dim" style="font-size:11px">'+esc(AG.regime||AG.signal||'')+'</div>');}
+  h+=card('INSIDER FILING SAMPLE','<a href="/insider-research.html">Open verified sample and distinct date windows</a><p class="v3-dim">No market-wide dollar ratio or timing inference.</p>');
   const BC=F.buyback_confluence&&F.buyback_confluence.data;
   if(BC){const rows=(BC.confluence||BC.tickers||BC.rows||[]).slice(0,5);
     h+=card('INSIDER × BUYBACK'+age(F.buyback_confluence),rows.length?rows.map(r=>row(esc(r.ticker||r.symbol),'<span class="v3-dim">'+esc(r.note||r.signal||'')+'</span>')).join(''):'<div class="v3-dim" style="font-size:12px">no double-signals</div>');}

@@ -660,7 +660,7 @@ def fetch_insider_fleet(s3):
             out["ledger"].append({"feed": name, "status": "missing", "note": age})
             continue
         stale = isinstance(age, (int, float)) and age > maxh
-        out["sections"][name] = {"age_h": age, "stale": stale, "data": _slim_v2(d)}
+        out["sections"][name] = {"age_h": age, "stale": stale, "data": _slim_v2(__import__("insider_research").guard(key,d))}
         out["ledger"].append({"feed": name,
                               "status": "stale" if stale else "ok", "age_h": age})
     return out

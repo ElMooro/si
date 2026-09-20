@@ -507,7 +507,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,t
   if(ra!=null)bn+=`<span class="chip"><b>Risk Appetite</b> ${esc((ra&&ra.label)||asText(ra))}${ra&&ra.score!=null?` (${Math.round(ra.score)})`:""}</span>`;
   if(mc&&typeof mc==="object")bn+=`<span class="chip"><b>Regime</b> ${esc(mc.regime_label||"")}${mc.cycle_phase?` · ${esc(mc.cycle_phase)}`:""}${mc.macro_stress_score!=null?` · stress ${Math.round(mc.macro_stress_score)}`:""}</span>`;
   else if(mc!=null)bn+=`<span class="chip"><b>Macro</b> ${esc(asText(mc))}</span>`;
-  if(ins&&(ins.snapshots||[]).length){const _s=ins.snapshots[ins.snapshots.length-1];bn+=`<span class="chip"><b>Insiders</b> ${esc(String(_s.regime||"").replace(/_/g," ").toLowerCase())}${_s.ratio_30d_dollar!=null?` (buy/sell ${(+_s.ratio_30d_dollar).toFixed(2)})`:""}</span>`;}
+  bn+=`<span class="chip"><a href="/insider-research.html">Insider filings · dated partial sample</a></span>`;
   if(lf&&lf.regime){const _nm=(lf.deltas&&lf.deltas['1m'])?lf.deltas['1m'].net:null;const _dr=lf.regime==='draining';bn+=`<span class="chip" style="border-color:${_dr?'var(--red)':'var(--green)'}"><b>Liquidity</b> ${esc(lf.regime)}${_nm!=null?` (${_nm>=0?'+':''}$${Math.round(_nm)}B/1m)`:''}</span>`;}
   if(sb&&sb.factor_regime){bn+=`<span class="chip"><b>Factor</b> ${esc(String(sb.factor_regime).replace(/_/g,' ').toLowerCase())}${(sb.leading_factor&&sb.leading_factor!==sb.lagging_factor)?` · ${esc(sb.leading_factor)} leads`:''}</span>`;}
   document.getElementById("banner").innerHTML=bn;

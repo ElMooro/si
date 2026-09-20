@@ -105,7 +105,7 @@ def lambda_handler(event, context):
     from volatility_research import decision_view as volatility_decision_view
     vol = volatility_decision_view(get_s3_json("data/vol-surface.json"))
     euro = __import__("eurodollar_research").decision_view(get_s3_json("data/eurodollar-stress.json"))
-    insider = get_s3_json("data/insider-aggregate.json")
+    insider = __import__("insider_research").decision_view(get_s3_json("data/insider-aggregate.json"))
 
     washout = []   # list of (label, intensity 0-100, weight)
 

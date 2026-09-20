@@ -83,7 +83,7 @@ def lambda_handler(event, context):
     internals = read_json("data/market-internals.json") or {}
     aaii = read_json("data/aaii-sentiment.json") or {}
     credit = read_json("data/credit-stress.json") or {}
-    insider = read_json("data/insider-aggregate.json") or {}
+    insider = __import__("insider_research").decision_view(read_json("data/insider-aggregate.json"))
     retail = read_json("data/retail-sentiment.json") or {}
     vrp = read_json("data/vrp.json") or {}
     capit = read_json("data/capitulation.json") or {}
