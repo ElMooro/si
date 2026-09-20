@@ -566,7 +566,8 @@ class PublicMigrationTests(unittest.TestCase):
             migration.bounded_read(io.BytesIO(b"12345"), 4)
 
     def test_private_seed_kinds_exclude_raw_tradingview_corpus(self):
-        self.assertEqual(len(migration.MIRRORED_KEYS), 26)
+        self.assertEqual(len(migration.MIRRORED_KEYS), 27)
+        self.assertEqual(migration.MIRRORED_ARTIFACTS["data/brain-constitution.json"], "brain-constitution")
         self.assertNotIn("data/tradingview-notes.json", migration.MIRRORED_KEYS)
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/snapshot.json"], "portfolio-snapshot")
         self.assertEqual(migration.MIRRORED_ARTIFACTS["portfolio/sizing.json"], "portfolio-sizing")

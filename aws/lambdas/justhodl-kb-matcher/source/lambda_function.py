@@ -62,14 +62,9 @@ def build_today_state():
     if len(dx) > 5:
         st["dollar"] = {"value": dx[-1][1], "chg": round(dx[-1][1] - dx[max(0, len(dx) - 21)][1], 2)}
     vs = s3j("data/vol-surface.json") or {}
-    term = vs.get("term") or {}
-    spot = next((x for x in (term.get("spot"), term.get("vix_spot"), term.get("vix"),
-                              vs.get("vix_spot"), vs.get("spot_vix"),
-                              (vs.get("composite") or {}).get("vix"),
-                              (vs.get("cross") or {}).get("vix"))
-                 if isinstance(x, (int, float))), None)
-    if isinstance(spot, (int, float)):
-        st["vix"] = {"value": spot, "chg": None}
+    from volatility_research import context as volatility_context
+    st["volatility_research"] = volatility_context(vs)
+    # Descriptive index context is not a qualified knowledge-rule trade vote.
     cn = s3j("data/crisis-canaries.json") or {}
     sf = ((cn.get("canaries") or {}).get("sofr_tail") or {})
     if sf.get("tail_bp") is not None:

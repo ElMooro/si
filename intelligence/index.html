@@ -244,13 +244,10 @@ tr:hover td{background:rgba(255,255,255,.015);}
   <div class="tab-pane" id="pane-volsurface">
     <div class="kpi-grid" id="volsurface-kpis"><div class="loading spin">loading vol-surface</div></div>
     <div class="panel">
-      <h3>Underlyings <span class="tag">14 FRED vol indexes</span></h3>
-      <div id="volsurface-table"></div>
+      <h3>Underlyings <span class="tag">14 FRED distribution identities + VVIX / SKEW</span></h3>
+      <div id="volsurface-table" style="max-width:100%;overflow:auto"></div>
     </div>
-    <div class="panel">
-      <h3>Single-name equity VIX <span class="tag">Bloomberg OPV cross-section</span></h3>
-      <div id="volsurface-equity"></div>
-    </div>
+    <p><a href="/volatility.html">Open Volatility Research and position scenarios</a></p>
     <div class="interp" id="volsurface-interp"></div>
   </div>
 
@@ -357,6 +354,7 @@ tr:hover td{background:rgba(255,255,255,.015);}
   </div>
 </main>
 
+<script src="/jh-volatility-research.js?v=20260920-native1"></script>
 <script>
 const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/';
 const ENDPOINTS = {
@@ -724,43 +722,18 @@ function renderESI(d) {
 }
 
 // ─── VOL SURFACE ──────────────────────────────────────────────────
-function renderVolSurface(d) {
-  if (!d) return;
-  const reg = d.regime, sc = d.composite_stress_score;
-  const skew = d.skew || {}, vvix = d.vvix || {}, term = d.term_structure || {};
-  const cross = d.cross_asset || {}, disp = d.equity_dispersion || {};
-  const reCls = sc>=70?'neg':sc>=50?'warning':sc>=35?'gold':'pos';
-  document.getElementById('volsurface-kpis').innerHTML = `
-    <div class="kpi ${reCls}"><div class="label">Regime</div><div class="val ${reCls}">${reg}</div><div class="sub">composite ${sc}/100</div></div>
-    <div class="kpi info"><div class="label">VIX 30d → 3M</div><div class="val">${fmtNum(term.spot,2)} → ${fmtNum(term.back,2)}</div><div class="sub">${term.regime} (slope ${fmtNum(term.slope_30d_3m_yearized,3)})</div></div>
-    <div class="kpi gold"><div class="label">SKEW</div><div class="val">${fmtNum(skew.value,1)}</div><div class="sub">${skew.regime} · pctile ${fmtNum(skew.pctile_252d,0)} · tail-mult ${fmtNum(skew.tail_mult,2)}</div></div>
-    <div class="kpi accent"><div class="label">VVIX</div><div class="val">${fmtNum(vvix.value,1)}</div><div class="sub">${vvix.regime} · pctile ${fmtNum(vvix.pctile_252d,0)}</div></div>
-    <div class="kpi info"><div class="label">Equity dispersion</div><div class="val">${disp.regime||'—'}</div><div class="sub">cv ${fmtNum(disp.coef_var,3)}</div></div>
-  `;
-  const u = d.underlyings || {};
-  const order = ['VIX_30D','VIX_3M','NDX_VOL','RUT_VOL','DJIA_VOL','EEM_VOL','EWZ_VOL','OIL_VOL','GOLD_VOL'];
-  const rows = order.filter(k=>u[k]).map(k => {
-    const v = u[k];
-    const p = v.pctile_252d;
-    const pCls = p>=80?'t-neg':p>=60?'t-warn':p>=40?'t-info':'t-pos';
-    return `<tr><td>${k}</td><td class="t-mute">${v.for}</td><td>${fmtNum(v.value,2)}</td>
-      <td class="${pCls}">${fmtNum(p,0)}</td><td class="t-mute">${v.date||'—'}</td></tr>`;
-  }).join('');
-  document.getElementById('volsurface-table').innerHTML = `<table>
-    <thead><tr><th>Index</th><th>Underlying</th><th>Spot</th><th>Pctile 252d</th><th>As of</th></tr></thead>
-    <tbody>${rows||'<tr><td colspan=5 class=t-mute>no underlying data</td></tr>'}</tbody></table>`;
-  const eqNames = ['AAPL_VOL','GOOG_VOL','AMZN_VOL','GS_VOL','IBM_VOL'];
-  const eqRows = eqNames.filter(k=>u[k]).map(k=>{
-    const v = u[k];
-    const p = v.pctile_252d;
-    const pCls = p>=80?'t-neg':p>=60?'t-warn':p>=40?'t-info':'t-pos';
-    return `<tr><td class="t-info">${v.for}</td><td>${fmtNum(v.value,2)}</td><td class="${pCls}">${fmtNum(p,0)}</td></tr>`;
-  }).join('');
-  document.getElementById('volsurface-equity').innerHTML = `<table>
-    <thead><tr><th>Name</th><th>Implied Vol</th><th>Pctile 252d</th></tr></thead>
-    <tbody>${eqRows||'<tr><td colspan=3 class=t-mute>no equity-VIX data</td></tr>'}</tbody></table>`;
-  const alerts = (d.alerts||[]).map(a=>`<li>${a}</li>`).join('');
-  document.getElementById('volsurface-interp').innerHTML = `<b>Reading:</b> regime <b>${reg}</b> at ${sc}/100. Term ${term.regime}. SKEW ${fmtNum(skew.value,1)} = ${skew.regime}. Cross-asset: OIL/VIX ${fmtNum(cross.oil_vix_ratio,2)}${cross.oil_dominant?' (oil-dominant)':''}, RUT/VIX ${fmtNum(cross.rut_vix_ratio,2)}${cross.smallcap_stress?' (smallcap stress)':''}. ${alerts?'<br><b>Alerts:</b><ul>'+alerts+'</ul>':''}`;
+async function renderVolSurface(d) {
+  const host=document.getElementById('volsurface-kpis');
+  if(!d){host.textContent='Verified volatility research unavailable.';return;}
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  try {
+    const api=window.JHVolatilityResearch;
+    await api.verifyPacket(d,window.fetch.bind(window),controller.signal);
+    host.textContent='Dated index research · trade and sizing authority withheld';
+    document.getElementById('volsurface-table').innerHTML=api.table(d);
+    document.getElementById('volsurface-interp').textContent='Source-defined index levels. Open Volatility Research for original-source evidence, dated comparisons and explicit vega scenarios.';
+  } catch(e){host.textContent='Verified volatility research unavailable.';}
+  finally{clearTimeout(timer);}
 }
 
 // ─── MARKET INTERNALS ─────────────────────────────────────────────
@@ -1024,7 +997,7 @@ function renderLiquidity(d) {
   if (a) renderAuction(a);
   if (l) renderLending(l);
   if (esi) renderESI(esi);
-  if (vs) renderVolSurface(vs);
+  renderVolSurface(vs);
   if (mi) renderInternals(mi);
   if (hm) renderHeatmap(hm);
   if (cds) renderCDS(cds);

@@ -1,61 +1,10 @@
-"""
-justhodl-tail-hedge -- the firm Tail Hedge Overlay.
-===================================================
-WHY THIS EXISTS
----------------
-The firm risk stack ends with a CRO Risk Board, and that board's
-standing finding is unambiguous: the binding constraint is TAIL_STRESS.
-The 15-scenario stress desk models the book losing more than the soft
-loss limit in a COVID-class crash. Statistical risk (99% 1-day VaR) is
-small -- this is not a normal-vol problem, it is a convex tail problem.
+"""Legacy hypothetical tail-scenario overlay under qualification review.
 
-A multi-strategy fund whose CRO board flags tail stress as the number
-one vulnerability does exactly one thing next: it runs a tail-hedge
-overlay -- a small, deliberately convex sleeve of protection that is a
-drag in calm regimes and pays explosively in a crash, sized so the
-worst modelled scenario is brought back inside the loss limit.
-
-The Factor Risk Model already sizes hedges, but those are LINEAR
-factor-neutralising trades (short IWM to flatten a SIZE bet). They
-shrink day-to-day VaR. They do nothing for crash convexity. A tail
-hedge is a different instrument for a different risk, so this is a new
-engine, not a rebuild.
-
-WHAT THIS ENGINE IS NOT
------------------------
-It places no trades. Like every engine in the risk stack it is an
-advisory overlay: it reads the deployed risk outputs and SIZES and
-RECOMMENDS a hedge sleeve. Execution stays with the operator.
-
-HOW IT IS BUILT  (institution-grade, four design rules)
-  1 COST-BUDGETED  -- protection bleeds carry; an always-on hedge
-    destroys calm-regime returns. The sleeve is sized to a premium
-    budget, not to a fear level.
-  2 SCENARIO-TARGETED -- an equity crash, a rates shock and a momentum
-    unwind need different instruments. The worst named scenario from
-    firm-stress is classified and mapped to the right hedge sleeve.
-  3 BOOK-AWARE  -- the book is not the index. The tail loss is the one
-    firm-stress already modelled on the actual firm book; net market
-    beta and net exposure describe the residual directional risk the
-    hedge has to cover.
-  4 REGIME-TIMED -- protection is cheapest in calm regimes. The overlay
-    ACCUMULATES cheap and MONETIZES into stress, with an explicit
-    harvest signal -- the opposite of panic-buying after the move.
-
-SIZING TARGET
--------------
-  gap = worst_scenario_loss - soft_loss_limit       (a negative pp gap)
-  required_protection = |gap|                       (% of book to recover)
-  hedge_budget = required_protection / payoff_multiple
-  annualised_carry = hedge_budget * roll_factor * carry_multiplier
-The objective is concrete and auditable: spend `hedge_budget` of premium
-so the convex sleeve returns `required_protection` of book in the worst
-named scenario, dragging the worst-case loss back to the soft limit.
-
-OUTPUT   data/tail-hedge.json  (+ append data/tail-hedge-history.json)
-SCHEDULE daily 04:30 UTC -- after the firm-risk-board (04:00), so the
-overlay always reads a complete, fresh risk stack and the board's own
-binding-constraint readout.
+Existing scenario inputs and named payoff illustrations remain visible. They do
+not establish a priced option payoff or an executable hedge. Volatility indices
+are dated research context only; carry, insurance ratio and hedge timing are
+withheld until contract identity, executable prices and reviewed models exist.
+No trade is placed. Public-producer acceptance does not invoke this consumer.
 """
 import json
 import time
@@ -73,9 +22,8 @@ SCHEMA = "1.0"
 STALE_HOURS = 30.0
 HIST_CAP = 180
 
-# Annualisation of a rolling ~3-month protection sleeve. Rolling spreads
-# does not re-pay full premium each roll, so this is below a naive 4x.
-ROLL_FACTOR = 3.6
+# Retired heuristic retained as a null compatibility field.
+ROLL_FACTOR = None
 
 # Engine inputs -- all already produced by the deployed risk stack.
 ENGINES = {
@@ -282,10 +230,7 @@ def lambda_handler(event, context):
     regime_score = (round(sum(regime_inputs) / len(regime_inputs), 1)
                     if regime_inputs else None)
 
-    # protection costs more when vol is already bid.
-    # REAL hedge-cost read from the options surface (Massive vol-surface + dealer gamma).
-    # The engine's own doctrine says protection is cheapest in calm regimes; this measures that
-    # from actual skew + VIX term structure instead of inferring it only from macro stress.
+    # Preserve dated index context; hedge cost requires actual contract terms.
     try:
         _vs = read_json("data/vol-surface.json")[0] or {}
     except Exception:
@@ -294,71 +239,30 @@ def lambda_handler(event, context):
         _dg = read_json("data/dealer-gex.json")[0] or {}
     except Exception:
         _dg = {}
-    _skew = _vs.get("skew") or {}
-    _ts = _vs.get("term_structure") or {}
-    skew_pctile = num(_skew.get("pctile_252d"))
-    term_ratio = num(_ts.get("ratio_30d_3m"))
-    term_inverted = bool(_ts.get("inverted"))
-    gamma_regime = (_dg.get("market_composite") or {}).get("composite_regime") or "UNKNOWN"
-    if skew_pctile is not None:
-        hedge_cost_read = ("EXPENSIVE" if (skew_pctile >= 80 or term_inverted)
-                           else "CHEAP" if (skew_pctile <= 35 and not term_inverted) else "FAIR")
-    else:
-        hedge_cost_read = "UNKNOWN"
-    vol_cost_context = {
-        "skew_pctile_252d": skew_pctile, "skew_regime": _skew.get("regime"),
-        "vix_term_ratio_30d_3m": term_ratio, "term_inverted": term_inverted,
-        "vol_surface_regime": _vs.get("regime"), "gamma_regime": gamma_regime,
-        "hedge_cost_read": hedge_cost_read,
-        "note": ("Real options-surface read of how cheap/expensive tail protection is right now "
-                 "(skew percentile + VIX term structure + dealer gamma) -- Massive options data."),
-    }
+    from volatility_research import cost_context as volatility_cost_context
+    vol_cost_context = volatility_cost_context(_vs, _dg)
+    carry_multiplier = None  # Index ranks and macro regimes do not supply a quoted hedge cost.
 
-    rs_for_cost = regime_score if regime_score is not None else 40.0
-    # blend the macro-stress proxy with the actual options-surface cost (skew percentile)
-    if skew_pctile is not None:
-        rs_for_cost = round(0.5 * rs_for_cost + 0.5 * skew_pctile, 1)
-    carry_multiplier = round(1.0 + rs_for_cost / 100.0, 2)
-
-    board_red = (board_posture or "").upper() == "RED"
-    if regime_score is None:
-        stance = "HOLD"
-        stance_reason = ("No regime feed -- hold the current hedge and "
-                         "re-time on the next eurodollar-stress / canary "
-                         "update.")
-    elif board_red or regime_score >= 65.0:
-        stance = "MONETIZE"
-        stance_reason = ("Stress is realising (regime score %.0f / firm "
-                         "posture %s) -- harvest the convex leg into the "
-                         "move and re-risk as protection gets rich."
-                         % (regime_score, board_posture or "n/a"))
-    elif regime_score <= 35.0:
-        stance = "ACCUMULATE"
-        stance_reason = ("Calm regime (score %.0f) -- protection is cheap; "
-                         "this is the window to build or roll the sleeve "
-                         "forward at low premium." % regime_score)
-    else:
-        stance = "HOLD"
-        stance_reason = ("Mid regime (score %.0f) -- carry the existing "
-                         "sleeve; neither accumulate nor harvest."
-                         % regime_score)
+    stance = "WAIT"
+    stance_reason = ("Hedge timing is unqualified: macro scores and volatility-index "
+                     "ranks do not establish executable premiums or a monetization rule.")
 
     # ---------------------------------------------------------------------
     # 5) HEDGE SIZING.
     # ---------------------------------------------------------------------
     hedge_budget = 0.0
-    annualised_carry = 0.0
+    annualised_carry = None
     expected_payoff = 0.0
     if hedge_required and payoff_multiple > 0:
         hedge_budget = round(required_protection / payoff_multiple, 3)
-        annualised_carry = round(
-            hedge_budget * ROLL_FACTOR * carry_multiplier, 2)
+        # Cost needs actual premiums, expiry and an explicit roll convention.
+        annualised_carry = None
         expected_payoff = required_protection
 
     # insurance ratio = tail payoff per year of carry. Below ~1 the hedge
     # only pays if the tail hits inside a year; that is the honest cost.
     insurance_ratio = (round(expected_payoff / annualised_carry, 2)
-                       if annualised_carry > 0 else None)
+                       if annualised_carry is not None and annualised_carry > 0 else None)
 
     # ---------------------------------------------------------------------
     # 6) POSTURE + SEVERITY.
@@ -406,11 +310,11 @@ def lambda_handler(event, context):
     else:
         headline = ("HEDGE RECOMMENDED -- %s loses %.1f%%, %.1fpp past "
                     "the %.0f%% soft limit. Size ~%.2f%% of book in %s; "
-                    "covers ~%.1f%% in the tail for ~%.2f%%/yr carry."
+                    "modelled tail coverage ~%.1f%%; contract carry cost is unavailable."
                     % ((worst_scenario or "worst scenario").split(" (")[0],
                        worst_loss, required_protection, soft_limit,
                        hedge_budget, sleeve["label"].lower(),
-                       expected_payoff, annualised_carry))
+                       expected_payoff))
 
     # ---------------------------------------------------------------------
     # 8) CONSISTENCY CHECKS.
@@ -441,10 +345,9 @@ def lambda_handler(event, context):
     # sleeve costing more than ~3%/yr is mis-sized or the regime is
     # extreme -- flag it for review rather than silently recommend it.
     if hedge_required:
-        cheap = annualised_carry <= 3.0
         checks.append({
-            "check": "carry_within_budget", "ok": cheap,
-            "detail": ("annualised carry %.2f%%/yr" % annualised_carry)})
+            "check": "carry_within_budget", "ok": None,
+            "detail": "Unverified: actual contract premiums, expiry and roll costs are unavailable."})
 
     checks.append({
         "check": "critical_feeds_fresh", "ok": n_critical_bad == 0,
@@ -531,11 +434,6 @@ def lambda_handler(event, context):
                      "scenarios loses %.1f%%, still inside the %.0f%% soft "
                      "loss limit, so the book carries no structural breach."
                      % (n_scen or "the", worst_loss, soft_limit))
-        if stance == "ACCUMULATE":
-            bits.append("The regime is calm (score %.0f), so protection is "
-                        "cheap -- an opportunistic starter sleeve can be "
-                        "pre-positioned even though it is not mandated."
-                        % regime_score)
     else:
         bits.append("A tail hedge is recommended. The binding scenario is "
                      "%s: it loses %.1f%% of book, %.1fpp beyond the %.0f%% "
@@ -552,12 +450,7 @@ def lambda_handler(event, context):
                     "pulling the worst case back to the soft limit."
                     % (sleeve["label"], sleeve["instruments"],
                        hedge_budget, payoff_multiple, expected_payoff))
-        bits.append("Carry: about %.2f%% per year at the current regime "
-                    "(carry multiplier %.2fx). Tail payoff per year of "
-                    "carry is %s."
-                    % (annualised_carry, carry_multiplier,
-                       ("%.1fx" % insurance_ratio)
-                       if insurance_ratio is not None else "n/a"))
+        bits.append("Carry and the insurance ratio are unclassified: actual contract premiums, expiry and roll costs are required. Volatility-index ranks do not estimate these costs.")
     bits.append("Regime stance: %s. %s" % (stance, stance_reason))
     if net_beta is not None:
         bits.append("Book context: net market beta %.2f, net exposure "
@@ -576,6 +469,9 @@ def lambda_handler(event, context):
     # 12) ASSEMBLE + WRITE.
     # ---------------------------------------------------------------------
     out = {
+        "forecast_qualified": False, "calls_eligible": False,
+        "sizing_eligible": False, "execution_eligible": False,
+        "qualification": "Legacy scenario sizing remains an unqualified illustration; no executable hedge-cost or timing model.",
         "schema_version": SCHEMA,
         "engine": "justhodl-tail-hedge",
         "method": "tail_hedge_overlay",
@@ -660,20 +556,8 @@ def lambda_handler(event, context):
             "stale_hours": STALE_HOURS,
         },
 
-        "how_to_read": (
-            "The firm Tail Hedge Overlay. It reads the 15-scenario stress "
-            "desk, the factor risk model and the firm book, and sizes a "
-            "deliberately convex protection sleeve so the worst modelled "
-            "scenario is pulled back inside the soft loss limit. The sleeve "
-            "is scenario-targeted (the worst named scenario picks the "
-            "instrument), cost-budgeted (sized to a premium budget, not a "
-            "fear level) and regime-timed (accumulate cheap, monetise into "
-            "stress). It places no trades -- it sizes and recommends."),
-        "disclaimer": (
-            "Built on a hypothetical research book with no costs, slippage "
-            "or financing. Hedge sizing uses stylised option payoff and "
-            "carry rules of thumb, not live option chains. Research and "
-            "education only, not investment advice."),
+        "how_to_read": "Legacy hypothetical scenario illustration. Named payoff multiples have not been validated against actual contracts. Cost, carry, insurance ratio and hedge timing are withheld pending a reviewed contract model.",
+        "disclaimer": "No trade or portfolio change is produced. Illustrative sizing is not a qualified recommendation.",
     }
 
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
