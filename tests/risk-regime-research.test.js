@@ -24,6 +24,14 @@ test('history preserves visible gaps and dates',()=>{
  const html=ui.history([{date:'2026-09-01',value:0},{date:'2026-09-02',value:null},{date:'2026-09-03',value:1}],'Index');
  assert.equal((html.match(/ M /g)||[]).length,2);assert.doesNotMatch(html,/ L /);assert.match(html,/Missing rows break/);
 });
+test('history uses elapsed calendar time instead of equal-width provider rows',()=>{
+ const html=ui.history([{date:'2026-09-01',value:0},{date:'2026-09-02',value:1},{date:'2026-09-11',value:2}],'index points');
+ assert.match(html,/L 66\.40 /);assert.doesNotMatch(html,/L 300\.00 /);
+});
+test('open-interest timing is visible before expanding methodology',()=>{
+ const p=packet();p.option_cohorts.HYG={symbol:'HYG',pagination_complete:true,contracts:2,pages:1,expiries:[{expiry:'2026-10-16',contracts:2,volume_rows_in_session:1,volume_coverage:.5,put_call_open_interest_ratio:4.6}],universe:{}};
+ const html=ui.render(p);assert.match(html,/4.6 · undated/);assert.match(html,/1 page · expiry/);assert.match(html,/OI and IV observation timestamps are not supplied/);
+});
 test('page loads the reviewed renderer and coherent single packet',()=>{
  const html=fs.readFileSync('risk-regime.html','utf8');assert.match(html,/jh-risk-regime-research\.js\?v=50/);assert.match(html,/aria-live="polite"/);
  assert.doesNotMatch(html,/Loading ~40|size multiplier|fetch\(/);
