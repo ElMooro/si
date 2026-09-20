@@ -688,7 +688,8 @@ def lambda_handler(event=None, context=None):
         raise RuntimeError("SPY history short: %d (poly_key=%s)"
                            % (len(spy), bool(POLY)))
     regime = regime_of(spy)
-    rr = s3_json("data/risk-regime.json") or {}
+    from risk_regime_authority import decision_view
+    rr = decision_view(s3_json("data/risk-regime.json") or {})
 
     closes, volumes, bar_dates = {}, {}, {}
     for t in UNIVERSE:

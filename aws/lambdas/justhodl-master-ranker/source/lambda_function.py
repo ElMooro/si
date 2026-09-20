@@ -1062,7 +1062,8 @@ def lambda_handler(event, context):
                                   "complex": _c.get("complex"), "divergence": _c.get("flow_price_divergence")}
 
     # ── Risk-On/Risk-Off regime overlay (cross-asset RORO synthesizer) ──
-    _rr = feeds.get("risk_regime") or {}
+    from risk_regime_authority import decision_view
+    _rr = decision_view(feeds.get("risk_regime") or {})
     _rr_score = _rr.get("risk_regime_score")
     _rr_regime = _rr.get("risk_regime") or "NEUTRAL"
     # ── Composite liquidity-inflection regime (slower macro tide) ──

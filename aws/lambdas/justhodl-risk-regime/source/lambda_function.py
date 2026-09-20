@@ -1,4 +1,11 @@
-"""justhodl-risk-regime — authoritative cross-asset Risk-On/Risk-Off synthesizer.
+"""justhodl-risk-regime — original-source cross-asset research.
+
+The active handler at the end delegates to regime_store and regime_model.
+It records dated measurements and replay evidence, with no score, trade,
+notification or sizing authority. The old implementation below is retained
+for migration review; its private-context/transition path is never called.
+
+Retired implementation notes:
 
 Fuses the entitled Massive data (FX RORO + options put/call & skew) with FRED VIX
 and HY credit as cross-confirmation (Massive VIX/futures are NOT entitled — probed
@@ -23,7 +30,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/risk-regime.json"
 STATE_KEY = "data/risk-regime-state.json"
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
-TG_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
+TG_TOKEN = ""  # Retired transition path; active public research never loads notification credentials.
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 try:
@@ -249,7 +256,7 @@ def liquidity_block():
     return score, m
 
 
-def lambda_handler(event, context):
+def _legacy_unqualified_handler(event, context):
     t0 = time.time()
     # FX block (already computed upstream)
     fx = _read("data/polygon-fx-regime.json") or {}
@@ -687,3 +694,12 @@ def lambda_handler(event, context):
     print(f"[risk-regime] score={score} {regime} | blocks={[b for b,_,_ in blocks]} | {out['elapsed_s']}s")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "risk_regime_score": score,
             "risk_regime": regime, "blocks": [b for b, _, _ in blocks], "tells": all_tells[:6]})}
+
+
+# Stage50: active path uses public originals only. Legacy code remains inspectable,
+# but is never selected by the handler or by an event flag.
+def lambda_handler(event, context):
+    from regime_store import run
+    event = event or {}
+    result = run(S3, BUCKET, FRED_KEY, MKEY, validation_only=event.get('validation_only') is True)
+    return {'statusCode': 200, 'body': json.dumps(result)}

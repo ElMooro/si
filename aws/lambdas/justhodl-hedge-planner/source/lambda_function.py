@@ -293,12 +293,14 @@ def lambda_handler(event, context):
     # to the lower band. A tight, clamped multiplier so it tilts but never
     # overrides the tail-desk sizing, and never breaches the hard spend cap.
     rr = feeds.get("risk-regime", {}) if isinstance(feeds.get("risk-regime"), dict) else {}
+    from risk_regime_authority import decision_view
+    rr = decision_view(rr, permission="sizing_eligible")
     rr_score = num(rr.get("risk_regime_score"))
     rr_regime = rr.get("risk_regime") or "UNKNOWN"
     rr_posture = rr.get("posture", {}) if isinstance(rr.get("posture"), dict) else {}
-    rr_hedge_stance = (rr_posture.get("hedge") or "normal")
+    rr_hedge_stance = rr_posture.get("hedge") if rr_score is not None else None
     roro_bias = 1.0
-    roro_urgency = "normal"
+    roro_urgency = "unavailable — Risk Regime overlay excluded"
     if rr_score is not None:
         if rr_score <= -35:        # RISK_OFF / FLIGHT_TO_QUALITY
             roro_bias, roro_urgency = 1.18, "elevated — lean into protection"
@@ -317,7 +319,9 @@ def lambda_handler(event, context):
         "risk_regime": rr_regime,
         "risk_regime_score": rr_score,
         "hedge_stance": rr_hedge_stance,
-        "budget_bias_mult": roro_bias,
+        "budget_bias_mult": roro_bias if rr_score is not None else None,
+        "applied": rr_score is not None,
+        "exclusion_reason": rr.get("exclusion_reason"),
         "urgency": roro_urgency,
         "target_budget_pre_roro_pct": pre_roro_budget,
         "target_budget_post_roro_pct": target_budget,

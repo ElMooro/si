@@ -786,7 +786,7 @@ def extract_metrics(data,weights):
                                  or "")[:220],
         })(),
         # Cross-asset Risk-On/Risk-Off synthesizer (risk-regime)
-        **(lambda rr=data.get("risk_regime", {}): {
+        **(lambda rr=__import__("risk_regime_authority").decision_view(data.get("risk_regime", {}), permission="sizing_eligible"): {
             "roro_score": rr.get("risk_regime_score"),
             "roro_regime": rr.get("risk_regime"),
             "roro_posture": (rr.get("posture") or {}).get("beta_tilt"),

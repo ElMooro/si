@@ -25,7 +25,8 @@ def rd(key):
 
 
 def lambda_handler(event=None, context=None):
-    rr = rd("data/risk-regime.json")
+    from risk_regime_authority import decision_view
+    rr = decision_view(rd("data/risk-regime.json"))
     fx = rd("data/polygon-fx-regime.json")
     ci = rd("data/capital-inflows.json")
     ger = rd("data/gold-equity-rotation.json")

@@ -303,7 +303,8 @@ def layer1_regime():
     if not quad:
         out["degraded"].append("nowcast-desk quadrant unavailable — prior = MIXED (neutral)")
 
-    rr = read_feed("data/risk-regime.json") or {}
+    from risk_regime_authority import decision_view
+    rr = decision_view(read_feed("data/risk-regime.json") or {})
     out["roro"] = {
         "score": rr.get("score"),
         "regime": rr.get("regime"),

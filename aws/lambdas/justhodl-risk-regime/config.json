@@ -1,10 +1,10 @@
 {
-  "timeout": 120,
+  "timeout": 240,
   "memory": 512,
   "environment": {},
   "schedule": {
     "expression": "cron(45 12 ? * MON-FRI *)",
     "name": "justhodl-risk-regime-daily",
-    "description": "Daily 8:45am ET \u2014 authoritative cross-asset RORO synthesizer (after fx-regime)"
+    "description": "Public cross-asset source observations and replay; no qualified trade or sizing score"
   }
 }

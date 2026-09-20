@@ -183,6 +183,8 @@ def lambda_handler(event, context):
 
     # backdrop context (not a vote)
     liq_regime = liq.get("regime")
+    from risk_regime_authority import decision_view
+    rr = decision_view(rr)
     rr_score = rr.get("risk_regime_score")
     rr_regime = rr.get("risk_regime")
     HIGH_BETA = {"Technology", "Consumer Discretionary", "Energy", "Financials",

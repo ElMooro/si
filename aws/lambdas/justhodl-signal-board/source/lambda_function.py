@@ -1010,7 +1010,10 @@ def n_estimate_revisions(d):
 def n_risk_regime(d):
     """Authoritative cross-asset Risk-On/Risk-Off synthesizer (Massive FX+options
     + FRED VIX/credit). + = risk-on, - = risk-off."""
-    s = d.get("risk_regime_score")
+    from risk_regime_authority import qualified_score
+    s = qualified_score(d)
+    if s is None:
+        return None, 'Risk Regime research abstains; no qualified vote'
     if not isinstance(s, (int, float)):
         return 0, "RORO n/a"
     sig = 2 if s >= 35 else 1 if s >= 12 else 0 if s > -12 else -1 if s > -35 else -2

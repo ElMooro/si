@@ -283,6 +283,11 @@ def build_overlay():
                 and o.get("decision_qualification", {}).get("status") == "qualified"):
             out.append({"key": key, "label": label, "stress": None, "status": "unqualified_carry"})
             continue
+        if key == "data/risk-regime.json":
+            from risk_regime_authority import qualified_score
+            if qualified_score(o) is None:
+                out.append({"key": key, "label": label, "stress": None, "status": "unqualified_risk_regime"})
+                continue
         raw = _dig(o, field)
         if not isinstance(raw, (int, float)):
             out.append({"key": key, "label": label, "stress": None, "status": "no_score"})

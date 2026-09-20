@@ -60,7 +60,8 @@ def lambda_handler(event, context):
                    "alpha_status": r.get("alpha_status"), "grade": r.get("grade"),
                    "n": r.get("alpha_n") or r.get("n_scored"), "by_regime": r.get("by_regime") or {}}
 
-    rr = _read("data/risk-regime.json") or {}
+    from risk_regime_authority import decision_view
+    rr = decision_view(_read("data/risk-regime.json") or {})
     regime = rr.get("regime") or rr.get("regime_label") or rr.get("label")
 
     # 1. PROVEN-ENGINE GUARD

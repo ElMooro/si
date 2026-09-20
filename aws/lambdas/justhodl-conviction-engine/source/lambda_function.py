@@ -158,7 +158,10 @@ def n_opportunity(d):
 
 def n_risk_regime(d):
     """Authoritative cross-asset RORO synthesizer -> -2..+2, surfacing its overlays."""
-    s = d.get("risk_regime_score")
+    from risk_regime_authority import qualified_score
+    s = qualified_score(d)
+    if s is None:
+        return None, 'Risk Regime research abstains; no qualified vote'
     lab = (d.get("risk_regime") or "").upper()
     if isinstance(s, (int, float)):
         sig = 2 if s >= 40 else 1 if s >= 12 else -2 if s <= -40 else -1 if s <= -12 else 0

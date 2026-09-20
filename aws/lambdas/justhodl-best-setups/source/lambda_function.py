@@ -382,6 +382,8 @@ def lambda_handler(event, context):
     lead_lag = read_json("data/lead-lag-graph.json") or {}
     orthogonality = read_json("data/signal-orthogonality.json") or {}
     _screener_doc = read_json("screener/data.json") or {}
+    from risk_regime_authority import decision_view
+    risk_regime = decision_view(risk_regime)
     _rr_score = risk_regime.get("risk_regime_score")
     _rr_regime = risk_regime.get("risk_regime") or "NEUTRAL"
     RR_HIGH_BETA = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",

@@ -1076,6 +1076,8 @@ def lambda_handler(event, context):
     }
 
     # ──────────────────── CROSS-ASSET RISK (RORO) ────────────────────
+    from risk_regime_authority import decision_view
+    rrisk = decision_view(rrisk)
     roro = num(_get(rrisk, "risk_regime_score"))
     risk = {
         "roro_score": roro,
@@ -1083,7 +1085,8 @@ def lambda_handler(event, context):
         "posture": _get(rrisk, "posture"),
         "components": _get(rrisk, "components"),
         "tells": _get(rrisk, "tells"),
-        "read": ("risk-on" if (roro or 0) > 15 else "risk-off" if (roro or 0) < -15 else "neutral"),
+        "read": ("unavailable" if roro is None else "risk-on" if roro > 15 else "risk-off" if roro < -15 else "neutral"),
+        "exclusion_reason": rrisk.get("exclusion_reason"),
         "fomc_context": _get(fomc, "regime_context"),
     }
 
