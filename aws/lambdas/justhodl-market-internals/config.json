@@ -2,6 +2,6 @@
   "function_name": "justhodl-market-internals",
   "memory": 3008,
   "timeout": 900,
-  "description": "US market internals COMPUTED from the Polygon grouped-daily feed Khalid already pays for: advancers/decliners, adv-dec line, up/down volume, TRIN, new 52w highs/lows, % above 50/200 DMA. Replaces the USI vendor feed at zero incremental cost. Writes data/market-internals.json.",
-  "schedule": {"rule_name": "market-internals-daily", "cron": "cron(40 22 ? * TUE-SAT *)"}
+  "description": "Native US grouped-daily breadth research with session-specific populations, protected original responses and retained replay. No trading or portfolio authority.",
+  "schedule": {"rule_name": "market-internals-daily", "cron": "cron(40 12 ? * TUE-SAT *)"}
 }

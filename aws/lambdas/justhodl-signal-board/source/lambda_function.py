@@ -775,14 +775,9 @@ def n_us_cycle(d):
 
 
 def n_market_internals(d):
-    mc = d.get("mcclellan") or {}
-    osc = mc.get("oscillator")
-    if osc is None:
-        return 0, "Internals n/a"
-    if (d.get("zweig_thrust") or {}).get("fired"):
-        return 2, f"ZWEIG BREADTH THRUST {d['zweig_thrust'].get('date')}"
-    sig = 2 if osc <= -100 else 1 if osc <= -70 else -1 if osc >= 100 else 0
-    return sig, f"McClellan {osc} ({mc.get('state')}), summation {mc.get('summation')}"
+    # Native breadth is descriptive. A producer flag or legacy alias cannot
+    # substitute for a separately qualified forecast and investment mandate.
+    return None, 'Market Internals: ABSTAIN; participation research has no qualified investment vote'
 
 
 def n_us_money(d):

@@ -480,41 +480,15 @@ def map_symbol(sym, fred_search=None):
         if y:
             return "MARKET", y, 0.85, "index → Yahoo"
         return "MARKET", f"^{t}", 0.5, "index (best-effort Yahoo)"
+    if ex == "JH_BREADTH":
+        # Explicit native namespace: mixed listed-security research population,
+        # never an asserted vendor/exchange-specific series replacement.
+        if t in ("ADVANCERS", "DECLINERS", "UNCHANGED", "ADVDEC_LINE", "UP_VOLUME", "DOWN_VOLUME",
+                 "TRIN", "NEW_HIGHS", "NEW_LOWS", "PCT_ABOVE_50DMA", "PCT_ABOVE_200DMA"):
+            return "INTERNALS", t, 1.0, "JustHodl native mixed-security breadth; source and metric identity, not forecast confidence"
+        return None, None, 0, "native_breadth_measure_unavailable"
     if ex == "USI":
-        # US market internals — we COMPUTE these from the Polygon grouped
-        # feed Khalid already pays for (ops 3185). No vendor needed.
-        code = re.sub(r"\.(US|NY|NQ)$", "", t)
-        m = {"ADV": "ADVANCERS", "ADVN": "ADVANCERS", "ADVQ": "ADVANCERS",
-             "DECL": "DECLINERS", "DECN": "DECLINERS", "DECQ": "DECLINERS",
-             "UNCH": "UNCHANGED", "ADVDEC": "ADVDEC_LINE",
-             "UVOL": "UP_VOLUME", "DVOL": "DOWN_VOLUME",
-             "TRIN": "TRIN", "TICK": "TICK",
-             "HIGH": "NEW_HIGHS", "LOW": "NEW_LOWS",
-             "NEWHI": "NEW_HIGHS", "NEWLO": "NEW_LOWS",
-             "PCTABOVE50MA": "PCT_ABOVE_50DMA",
-             "PCTABOVE200MA": "PCT_ABOVE_200DMA",
-             "ACTV": "ADVANCERS", "BASPRD": "ADVDEC_LINE"}.get(code)
-        if m:
-            return "INTERNALS", m, 0.8, "computed from Polygon grouped daily"
-        # McClellan family = pure transform over the computed A/D line
-        if "MCCL" in code or "MCO" == code or "SUMMATION" in code \
-                or "MCSUM" in code:
-            tr = "mcclellan_sum" if ("SUM" in code) else "mcclellan_osc"
-            return ("DERIVED", f"INTERNALS~ADVDEC_LINE~{tr}", 0.75,
-                    f"{tr} computed over the A/D line (ops 3194)")
-        # exchange-scoped variants (TRINQ, ADVN.NQ...) → all-market computed
-        base = code[:-1] if len(code) > 3 and code[-1] in "QNA" else code
-        m2 = {"ADV": "ADVANCERS", "DECL": "DECLINERS", "DEC": "DECLINERS",
-              "UNCH": "UNCHANGED", "ADVDEC": "ADVDEC_LINE", "UVOL":
-              "UP_VOLUME", "DVOL": "DOWN_VOLUME", "TRIN": "TRIN",
-              "HIGH": "NEW_HIGHS", "LOW": "NEW_LOWS"}.get(base)
-        if m2:
-            return ("INTERNALS", m2, 0.6,
-                    "exchange-scoped tile → all-market computed (proxy, "
-                    "ops 3194)")
-        if code.startswith(("TICK", "TIKI", "PREM")):
-            return None, None, 0, "usi_intraday_only"
-        return None, None, 0, "usi_unmapped"
+        return None, None, 0, "vendor_scope_unverified; native mixed-security alternative requires explicit JH_BREADTH identity"
     if ex in ("EUREX", "ICEEUR", "ICEEU", "ICE"):
         root = re.sub(r"\d*!?$", "", t)
         hit = EU_FUT_PROXY.get(root)
@@ -689,26 +663,28 @@ def _stooq(sid, start):
 
 
 _INTERNALS_CACHE = {}
+_INTERNALS_CACHE_AT = 0.0
 
 
 def _internals(metric, start):
-    """US market internals we compute ourselves from the Polygon grouped
-    feed — the vendor charge for these ($$$/mo) buys nothing we cannot
-    calculate from data Khalid already owns."""
-    global _INTERNALS_CACHE
-    if not _INTERNALS_CACHE:
+    """Read bounded native breadth research; numeric consumers cannot bridge gaps."""
+    from breadth_series import native_suffix
+    global _INTERNALS_CACHE, _INTERNALS_CACHE_AT
+    if _time.monotonic()-_INTERNALS_CACHE_AT >= 300 or not _INTERNALS_CACHE_AT:
         try:
             import boto3
-            b = boto3.client("s3", region_name="us-east-1").get_object(
-                Bucket=os.environ.get("S3_BUCKET",
-                                      "justhodl-dashboard-live"),
-                Key="data/market-internals.json")["Body"].read()
-            _INTERNALS_CACHE = json.loads(b).get("series") or {}
-        except Exception as e:
-            print(f"[series_source] internals unavailable: {str(e)[:70]}")
-            _INTERNALS_CACHE = {"__none__": {}}
-    ser = _INTERNALS_CACHE.get(metric) or {}
-    return {d: float(v) for d, v in ser.items() if d >= start}
+            obj = boto3.client("s3", region_name="us-east-1").get_object(
+                Bucket=os.environ.get("S3_BUCKET", "justhodl-dashboard-live"), Key="data/market-internals.json")
+            try:
+                raw = obj["Body"].read(24*1024*1024+1)
+            finally:
+                obj["Body"].close()
+            if len(raw) > 24*1024*1024: raise ValueError("bounded breadth packet required")
+            _INTERNALS_CACHE = json.loads(raw)
+        except Exception:
+            _INTERNALS_CACHE = {}
+        _INTERNALS_CACHE_AT = _time.monotonic()
+    return native_suffix(_INTERNALS_CACHE, metric, start)
 
 
 EODHD_KEY = os.environ.get("EODHD_API_KEY", "")
