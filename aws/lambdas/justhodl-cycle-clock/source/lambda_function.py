@@ -532,7 +532,7 @@ def lambda_handler(event, context):
     bankstress = load("data/bank-stress.json", "bank_stress")
     commcurves = load("data/commodity-curves.json", "commodity_curves")
     # Phase 7 — Fed path, COT positioning, stress scenarios, tail risk
-    fedwatch = load("data/fedwatch.json", "fedwatch")
+    fedwatch = __import__("fedwatch_research").decision_view(load("data/fedwatch.json", "fedwatch"))
     stressscen = load("data/stress-scenarios.json", "stress_scenarios")
     tailrisk = __import__("tail_research").decision_view(load("data/tail-risk.json", "tail_risk"))
     cissstress = load("data/ciss-stress.json", "ciss")

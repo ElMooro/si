@@ -300,7 +300,7 @@ def todays_surprise():
     # On decision day the 2y often hasn't posted yet (FRED H.15 lags ~1 business day),
     # so a same-day 2y read can't reflect the decision → prefer the statement tone.
     two_y_fresh = (latest_2y_date == today_str)
-    fw = gj("data/fedwatch.json") or {}
+    fw = __import__("fedwatch_research").decision_view(gj("data/fedwatch.json"))
     priced = None
     try:
         nxt = (fw.get("meetings") or fw.get("probabilities") or [None])[0]

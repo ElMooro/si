@@ -3,7 +3,7 @@
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
  "n_pages": 41,
- "n_wired": 168,
+ "n_wired": 167,
  "wired": [
   {
    "engine": "justhodl-consensus-bottom",
@@ -594,14 +594,6 @@
    "feed": "data/fed-pivot-factor-trades.json",
    "page": "lce.html",
    "title": "FED PIVOT FACTOR ROUTER",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-fedwatch-rate-probability",
-   "feed": "data/fedwatch.json",
-   "page": "lce.html",
-   "title": "FEDWATCH RATE PROBABILITY",
    "schema_version": "unspecified",
    "via": "jh-wire.js"
   },

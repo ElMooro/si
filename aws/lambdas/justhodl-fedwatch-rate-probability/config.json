@@ -4,14 +4,18 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
-  "timeout": 120,
-  "architectures": ["x86_64"],
+  "timeout": 180,
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "FedWatch Rate Probability (R5). CME FedWatch-equivalent rate-path tracker from Yahoo ZQ fed funds futures + FRED Fed Funds target. Per-meeting implied move + 25bp bucket probabilities + 6mo scenario. Daily 23 UTC after futures close. data/fedwatch.json.",
-  "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "description": "Dated federal-funds futures and policy-rate research with original-source replay. Retains provider clocks and contract identities; no unqualified meeting probabilities or CME-equivalence claim.",
+  "environment": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
   "schedule": {
     "rule_name": "justhodl-fedwatch-rate-probability-daily",
     "cron": "cron(0 23 * * ? *)",
-    "description": "FedWatch daily 23 UTC after futures EOD"
+    "description": "Dated Fed funds futures research daily at 23 UTC; provider bars are not certified closing prices"
   }
 }

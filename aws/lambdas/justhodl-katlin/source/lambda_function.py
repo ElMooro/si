@@ -1650,7 +1650,7 @@ def load_feeds():
     F["asof"]["commodity_curves"] = cmc.get("generated_at")
     sy = s3_json("data/sympathetic-momentum.json", {}) or {}
     F["sympathetic"] = sy
-    F["fedwatch"] = s3_json("data/fedwatch.json", {}) or {}
+    F["fedwatch"] = __import__("fedwatch_research").decision_view(s3_json("data/fedwatch.json", {}))
     # crypto feeds
     F["crypto_etf"] = s3_json("data/crypto-etf-flows.json", {}) or {}
     F["crypto_exch"] = s3_json("data/crypto-exchange-flows.json", {}) or {}

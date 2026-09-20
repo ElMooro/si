@@ -1312,6 +1312,27 @@
           "purpose": "Native dated rate and coincident-model research; former forecasts and score histories have no investment authority."
         }
       }
+    },
+    "fedwatch.html": {
+      "primary_engines": [
+        "justhodl-fedwatch-rate-probability"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-fedwatch-rate-probability": [
+          "data/fedwatch.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-fedwatch-rate-probability": {
+          "source": "aws/lambdas/justhodl-fedwatch-rate-probability/source/fedwatch_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Native dated contract observations and policy rates; only CURRENT is the mutable public entry point, with retained run/output verification."
+        }
+      },
+      "reason": "Native dated contract observations and canonical policy rates; current packet is the public entry point, with retained run/output verification."
     }
   }
 }
