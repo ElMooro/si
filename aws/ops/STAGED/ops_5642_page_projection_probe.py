@@ -19,6 +19,10 @@ def main():
         r.log("reasoning: run=%s families=%s" % (rx.get("run_id"), json.dumps(rx.get("families"))))
         ce = ai.get("coding_exam") or {}
         r.log("coding: base=%s learning_pts=%s verdict=%s" % (ce.get("base_score"), ce.get("learning_pts"), str(ce.get("verdict"))[:160]))
+        gb = ai.get("gear_b") or {}
+        r.log("gear_b: " + json.dumps({k: gb.get(k) for k in ("status", "dataset", "latest_job", "generation", "jobs_today", "champion", "last_decision") if k in gb}, default=str)[:700])
+        ce2 = ai.get("coding_exam") or {}
+        r.log("coding candidates: " + json.dumps(ce2.get("candidates"), default=str)[:500])
         sb, mr = ai.get("scoreboard") or {}, ai.get("market_read") or {}
         r.kv(generated_at=ai.get("generated_at"), voice=str(sb.get("voice"))[:120], read_path=sb.get("read_path"), calls_made=sb.get("calls_made"), calls_this_read=sb.get("calls_this_read"),
              stances=json.dumps(mr.get("stances")), decision_status=mr.get("decision_status"), n_blockers=mr.get("n_blockers"), calls_ledgered_while_advisory=mr.get("calls_ledgered_while_advisory"))
