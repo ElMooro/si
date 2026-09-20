@@ -3,8 +3,8 @@
   "read_only": true,
   "aws_sdk_calls": 0,
   "scope": "PUBLIC_HTTP_RESPONSE_AND_BROWSER_CORS_ONLY",
-  "source_sha": "245e5e386bca56324da8db2a5468296fc27972ba",
-  "observed_at": "2026-09-20T13:19:57.632243+00:00",
+  "source_sha": "2dbcaa91d19e54168477d3a329d0fafcc6b9a080",
+  "observed_at": "2026-09-20T13:28:35.642369+00:00",
   "requests": [
     {
       "path": "/health",
@@ -21,7 +21,7 @@
       "quote_count": null,
       "sector_count": null,
       "provider_status": "HANDLER_READY",
-      "elapsed_s": 0.1
+      "elapsed_s": 0.5
     },
     {
       "path": "/",
@@ -38,7 +38,7 @@
       "quote_count": 24,
       "sector_count": 0,
       "provider_status": "PARTIAL",
-      "elapsed_s": 0.71
+      "elapsed_s": 2.1
     }
   ],
   "raw_response_bodies_reported": 0,
