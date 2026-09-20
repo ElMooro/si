@@ -111,7 +111,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
-  return ['report.json', 'report-measurements.json', 'khalid-adaptive.json',
+  return ['report.json', 'report-measurements.json', 'khalid-adaptive.json', 'risk-regime.json',
     'capital-flow.json', 'deep-value-overlap.json', 'equity-confluence.json', 'best-setups.json', 'industry-rotation.json', 'engine-conflicts.json', 'narrative-vs-tape.json',
     'ciss.json', 'ciss-stress.json', 'ciss-ai.json', 'sovereign-stress.json', 'euro-fragmentation.json', 'risk-radar.json', 'global-stress.json', 'regime-composite.json', 'liquidity-credit-engine.json', 'risk-gate.json',
     'quantum-desk.json', 'quantum-desk-history.json', 'liquidity-inflection.json', 'eurodollar-plumbing.json', 'yen-carry.json', 'carry-surface.json', 'capital-inflows.json', 'foreign-flows.json', 'tic-flows.json', 'official-pulse.json', 'etf-true-flows.json', 'global-flow-desk.json', 'holdings-research.json', '13f-positions.json', '13f-flows-by-ticker.json', '13f-by-ticker.json', '13f-desk.json', 'compound-signals.json', 'attention-confluence.json', 'flow-confluence.json', 'master-ranker.json', 'smart-money-clusters.json',
