@@ -4,6 +4,7 @@ from pathlib import Path
 import hashlib
 import io
 import json
+import re
 import sys
 import urllib.request
 import zipfile
@@ -34,6 +35,17 @@ PRECEDING = {
 }
 
 
+def built_bytes(name, raw):
+    if not name.endswith('.html'):
+        return raw
+    # Cloudflare appends precisely this public analytics node plus a newline.
+    # Everything else must still hash exactly to the pinned Pages artifact.
+    pattern = rb'<script\b[^>]*\bsrc="https://static\.cloudflareinsights\.com/beacon\.min\.js/v[a-f0-9]+"[^>]*></script>\n?'
+    clean, count = re.subn(pattern, b'', raw)
+    assert count <= 1, 'Unexpected multiple edge analytics nodes'
+    return clean
+
+
 def main():
     s3 = boto3.client('s3', region_name='us-east-1')
     lam = boto3.client('lambda', region_name='us-east-1')
@@ -49,10 +61,10 @@ def main():
         artifacts = {}
         for name in [v[1] for v in TARGETS.values()] + ['jh-holdings-boundary.js', 'jh-holdings-boundary.css']:
             body = public(name)[0]; digest = hashlib.sha256(body).hexdigest()
-            assert digest == build['files_sha256'][name], 'Exact built artifact differs: '+name
+            assert hashlib.sha256(built_bytes(name, body)).hexdigest() == build['files_sha256'][name], 'Exact built artifact differs: '+name
             if name.endswith(('.js', '.css')):
                 assert body == reskin_text((ROOT/name).read_text(encoding='utf-8')).encode(), 'Reviewed palette transformation differs'
-            artifacts[name] = digest
+            artifacts[name] = {'public_sha256': digest, 'build_sha256': build['files_sha256'][name]}
         preserved = []
         for key, (sha, size) in PRECEDING.items():
             destination = PRIVATE+sha+'.bin'; body = raw(destination)
@@ -98,7 +110,7 @@ def main():
                  'controlled_invocation_report': 'aws/ops/reports/latest/ops_5884_holdings_derived_acceptance.md',
                  'finalization_engine_invocations': 0, 'paid_ai_calls': 0, 'notifications_sent': 0,
                  'private_account_reads': 0, 'portfolio_writes': 0,
-                 'verification_correction': 'Compare CSS with the reviewed deploy-time palette transformation and exact commit-bound build manifest.',
+                 'verification_correction': 'Compare the reviewed palette transformation and exact commit-bound build hashes; remove only the known edge analytics node and its added newline for HTML comparison.',
                  'remaining': 'Other indirect holdings paths, native overlap research, CapitalFlow and whole-composite replay are unfinished; these exclusions do not establish forecast or sizing authority.'}
         key = 'data/holdings-derived-consumer-verification.json'
         s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(proof, sort_keys=True).encode(), ContentType='application/json', CacheControl='no-store')
