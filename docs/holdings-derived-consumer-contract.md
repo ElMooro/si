@@ -31,3 +31,9 @@ consumers before the ranker, and checks public JSON, HTML, JS and CSS. It publis
 Remaining work includes the native disclosure-overlap replacement, other indirect
 consumers (including old CapitalFlow and stealth composites), point-in-time replay
 of whole composite decisions, and independently qualified portfolio consequences.
+
+The first acceptance completed all four controlled refreshes, then failed because
+it compared built CSS against pre-reskin source bytes. Ops 5885 finalizes that
+same run without reinvoking engines: exact live packet hashes, private preceding
+product backups, the reviewed palette transformation and commit-bound page/asset
+hashes must all match. The failed report remains part of the audit trail.

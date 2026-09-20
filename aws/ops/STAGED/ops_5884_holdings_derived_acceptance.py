@@ -15,8 +15,9 @@ import boto3
 from botocore.config import Config
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path[:0] = [str(ROOT/'aws/ops'), str(ROOT/'aws/shared')]
+sys.path[:0] = [str(ROOT/'aws/ops'), str(ROOT/'aws/shared'), str(ROOT/'scripts')]
 from ops_report import report
+from reskin_site import reskin_text
 from acceptance_invoke import invoke_when_available
 from holdings_derived_boundary import BASIS, compound_rows, current_basis, flow_rows
 
@@ -94,6 +95,7 @@ def main():
             assert raw(dest) == body
             assert denied('https://'+BUCKET+'.s3.amazonaws.com/'+dest) and denied('https://justhodl.ai/'+dest)
             preserved.append({'source': key, 'sha256': sha, 'bytes': len(body)})
+        r.kv(whole_preceding_products_preserved=preserved)
         observations = {}
         for fn, (key, page) in TARGETS.items():
             started = datetime.now(timezone.utc)
@@ -135,7 +137,7 @@ def main():
                                 'known_direct_and_cluster_paths_excluded': True}
             r.kv(consumer=fn, acceptance=observations[fn])
         for name in ('jh-holdings-boundary.js', 'jh-holdings-boundary.css'):
-            assert public(name)[0] == (ROOT/name).read_bytes(), 'Public asset differs: '+name
+            assert public(name)[0] == reskin_text((ROOT/name).read_text(encoding='utf-8')).encode(), 'Built public asset differs: '+name
         proof = {'contract': 'holdings-derived-consumer-verification.v1', 'generated_at': datetime.now(timezone.utc).isoformat(),
                  'releases': releases, 'consumers': observations, 'whole_preceding_products_preserved': preserved,
                  'score_basis': BASIS, 'paid_ai_calls': 0, 'notifications_sent': 0,
