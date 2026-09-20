@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 3.9s  
+**Finished:** 2026-09-20T21:04:05+00:00  
+
+## Data
+
+| engine_invocations | next_work | notifications_sent | originals_anonymously_denied | packet_inventory | paid_ai_calls | portfolio_writes | private_account_reads | provider_requests | retained_manifest | runtime |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | Review timestamped option originals and contracts before any density or hedge-price claim. Preserve predecessor and history. | 0 | True | {'data/tail-risk.json': {'bytes': 3006, 'shape': 'dict', 'contract': None, 'generated_at': '2026-09-19T21:35:40.453788+00:00', 'as_of': None, 'updated_at': None, 'replay': None, 'quality': None, 'composite': None, 'history_rows': 0, 'version': '1.0.0', 'system_tail_gauge': 42.4, 'tail_regime': 'WATCH', 'tail_valuation': 'CHEAP', 'data_source': 'Polygon /v3/snapshot/options OTM IV smile (greeks+IV) + Breeden-Litzenberger', 'indices': [{'ticker': 'IWM', 'spot': 284.1, 'front_exp': '2026-10-16', 'back_exp': '2026-11-20', 'atm_iv': 0.1632, 'put10_iv': 0.225, 'put25_iv': 0.1913, 'call25_iv': 0.156, 'p_drop_10': 0.0292, 'p_drop_20': 0.0089, 'tail_stress': 40.8}, {'ticker': 'SPY', 'spot': 761.69, 'front_exp': '2026-10-16', 'back_exp': '2026-11-20', 'atm_iv': 0.1091, 'put10_iv': 0.1788, 'put25_iv': 0.1379, 'call25_iv': 0.1148, 'p_drop_10': 0.0151, 'p_drop_20': 0.0083, 'tail_stress': 40.1}, {'ticker': 'QQQ', 'spot': 721.45, 'front_exp': '2026-10-16', 'back_exp': '2026-11-20', 'atm_iv': 0.1649, 'put10_iv': 0.2367, 'put25_iv': 0.1941, 'call25_iv': 0.1505, 'p_drop_10': 0.0347, 'p_drop_20': 0.011, 'tail_stress': 47.5}]}, 'data/tail-risk-history.json': {'bytes': 23469, 'shape': 'dict', 'contract': None, 'generated_at': None, 'as_of': None, 'updated_at': None, 'replay': None, 'quality': None, 'composite': None, 'history_rows': 0, 'history_coverage': {'IWM': {'rows': 82, 'first': '2026-06-20', 'last': '2026-09-19'}, 'SPY': {'rows': 82, 'first': '2026-06-20', 'last': '2026-09-19'}, 'QQQ': {'rows': 82, 'first': '2026-06-20', 'last': '2026-09-19'}}}} | 0 | 0 | 0 | 0 | {'key': 'audit-private/20260909-originals/tail-research/4a847e428b26a51db1295a66c84a7463c12fb1e8f255be0227f2ce70405ab9d4.bin', 'sha256': '4a847e428b26a51db1295a66c84a7463c12fb1e8f255be0227f2ce70405ab9d4', 'bytes': 2465} | {'code_sha256': '6+lpleLNylnOQJDtKTDjm4OMmFWO1sc/KrORP07t1E4=', 'source_files_checked': 2, 'handler_bytes': 16030, 'timeout': 180, 'memory_mb': 512, 'receipt': {'status': 'missing_predecessor_receipt'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-tail-risk-daily', 'state': 'ENABLED', 'expression': 'cron(0 13 ? * TUE-SAT *)', 'native_targets': 1}]} |
+
+## Log
+
