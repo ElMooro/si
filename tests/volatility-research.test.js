@@ -45,3 +45,9 @@ test('both pages use verified native research and no old tail multiplier',()=>{
  const block=intel.slice(intel.indexOf('async function renderVolSurface'),intel.indexOf('// ─── MARKET INTERNALS'));
  assert.match(block,/await api.verifyPacket/);assert.doesNotMatch(block,/tail_mult|composite_stress_score/);
 });
+
+test('rendered punctuation preserves UTF-8 without mojibake',()=>{
+ const html=api.render(p,at)+api.scenario(1000,5);
+ assert.ok(html.includes('Research only · WAIT'));
+ assert.ok(html.includes('×'));assert.doesNotMatch(html,/Â|â€|�/);
+});
