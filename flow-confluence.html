@@ -23,7 +23,9 @@ h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font
 .foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
 </style><link rel="stylesheet" href="/jh-holdings-boundary.css">
 <script src="/jh-holdings-boundary.js"></script>
-</head><body><div class="wrap" style="padding-bottom:0"><aside id="holdings-boundary" aria-label="Holdings evidence status"></aside></div><div class="wrap" id="w"><div class="loading">Loading flow confluence…</div></div>
+<link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-capital-boundary.js"></script>
+</head><body><div class="wrap" style="padding-bottom:0"><aside id="capital-boundary" aria-label="CapitalFlow evidence status"></aside><aside id="holdings-boundary" aria-label="Holdings evidence status"></aside></div><div class="wrap" id="w"><div class="loading">Loading flow confluence…</div></div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
@@ -43,13 +45,14 @@ function card(b){const[c,bgc,lbl]=POS[b.posture]||POS.MIXED;
 (async function(){
   const d=await gj('data/flow-confluence.json');const w=document.getElementById('w');
   if(!d||!d.by_posture){w.innerHTML='<div class="hd"><h1>Flow Confluence</h1></div><div class="loading">No data yet — runs daily.</div>';return;}
+  JHCapitalBoundary.render(document.getElementById("capital-boundary"), d);
   JHHoldingsBoundary.render(document.getElementById("holdings-boundary"), d);
   const c=d.counts||{};
   let h=`<div class="hd"><h1>💰 Flow Confluence</h1><div class="sub">Flow and positioning research screens, with direct 13F and smart-money cluster contributions excluded.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
   h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
   h+=`<div class="counts"><span class="chip"><b>${c.names||0}</b> names</span><span class="chip"><b>${c.multi_engine||0}</b> multi-engine</span><span class="chip" style="color:var(--vio)"><b>${c.short_squeeze_setup||0}</b> squeeze-setup</span><span class="chip" style="color:var(--grn)"><b>${c.accumulation||0}</b> accumulation</span><span class="chip" style="color:var(--red)"><b>${c.distribution||0}</b> distribution</span></div>`;
   const multi=d.multi_engine_confluence||[];
-  if(multi.length){h+=`<div class="sec hero">🎯 Multi-engine confluence <span class="n">— ${multi.length} names where ≥2 flow engines agree</span></div><div class="grid">${multi.map(card).join('')}</div>`;}
+  if(multi.length){h+=`<div class="sec hero">🎯 Multi-engine confluence <span class="n">— ${multi.length} names appearing in ≥2 engines; independence unverified</span></div><div class="grid">${multi.map(card).join('')}</div>`;}
   const order=['SHORT_SQUEEZE_SETUP','ACCUMULATION','DISTRIBUTION','STEALTH_ACCUMULATION','ACCUMULATION_LEAN','DISTRIBUTION_LEAN'];
   for(const p of order){const arr=(d.by_posture||{})[p]||[];if(!arr.length)continue;
     h+=`<div class="sec">${(POS[p]||[])[2]||p} <span class="n">— ${arr.length}</span></div><div class="grid">${arr.map(card).join('')}</div>`;}

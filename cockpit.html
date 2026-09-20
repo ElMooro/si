@@ -38,7 +38,9 @@ a{color:var(--cyan);text-decoration:none}
 .loading{text-align:center;padding:30px;color:var(--fg-3);font-family:var(--mono);font-size:12px}
 .empty{color:var(--fg-3);font-size:12.5px;font-style:italic;padding:8px 0}
 .cta{display:block;text-align:center;background:rgba(167,139,250,0.1);border:1px solid var(--violet);border-radius:10px;padding:13px;margin-bottom:16px;color:var(--violet);font-weight:600}
-</style></head><body>
+</style><link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-capital-boundary.js"></script>
+</head><body>
 <header class="header">
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
   <nav class="nav"><a href="/">Home</a><a href="/cockpit.html" class="active">🎛 Cockpit</a><a href="/brain.html">🧠 Brain</a><a href="/journal.html">📓 Journal</a><a href="/my-portfolio.html">Portfolio</a></nav>
@@ -47,6 +49,7 @@ a{color:var(--cyan);text-decoration:none}
   <div class="hero"><h1>Your <span class="grad">Cockpit</span></h1>
   <p>The whole system in one view — filtered through your Brain. Updated continuously by your engines.</p></div>
   <div id="cta"></div>
+  <aside id="capital-boundary" aria-label="CapitalFlow evidence status"></aside>
   <div id="regime" class="regime-strip"></div>
   <div class="grid" id="grid"><div class="loading">Loading your cockpit…</div></div>
 </div>
@@ -118,20 +121,19 @@ async function load(){
   }else h+=`<div class="empty">No sized positions yet.</div>`;
   h+=`</div>`;
 
-  // Narrative vs Tape — quiet accumulation
-  h+=`<div class="card"><h2 style="color:var(--cyan)">🤫 QUIET ACCUMULATION<span class="more">contrarian</span></h2>`;
-  const qa=(nvt&&nvt.quiet_accumulation)||[];
+  JHCapitalBoundary.render(document.getElementById("capital-boundary"), nvt);
+  // Descriptive dislocation context, without a claim of institutional trading.
+  h+=`<div class="card"><h2 style="color:var(--cyan)">DISLOCATION CANDIDATES<span class="more">research</span></h2>`;
+  const qa=JHCapitalBoundary.narrativeRows(nvt);
   if(qa.length){
     h+=qa.slice(0,7).map(x=>`<div class="row"><span class="tk">${esc(x.ticker)}</span><span class="muted" style="font-size:11.5px">${esc(x.tape)}</span></div>`).join('');
-    h+=`<div class="muted" style="margin-top:7px">Unloved by the narrative, but smart money is buying.</div>`;
-  }else h+=`<div class="empty">Nothing flagged right now.</div>`;
+    h+=`<div class="muted" style="margin-top:7px">Upstream dislocation flags; narrative coverage may be incomplete. These records do not establish institutional buying or expected returns.</div>`;
+  }else h+=`<div class="empty">No qualified dislocation records are available in this output.</div>`;
   h+=`</div>`;
 
   // Crowded & fading
   h+=`<div class="card"><h2 style="color:var(--red)">🔥 CROWDED &amp; FADING<span class="more">contrarian</span></h2>`;
-  const cfd=(nvt&&nvt.crowded_fading)||[];
-  if(cfd.length)h+=cfd.slice(0,7).map(x=>`<div class="row"><span class="tk">${esc(x.ticker)}</span><span class="muted" style="font-size:11.5px">${esc(x.tape)}</span></div>`).join('');
-  else h+=`<div class="empty">No loud-but-fading names right now.</div>`;
+  h+=`<div class="empty">Stock-flow evidence for this comparison is unavailable. An empty list does not establish the absence of selling.</div>`;
   h+=`</div>`;
 
   // Regime playbook
@@ -145,7 +147,7 @@ async function load(){
   h+=`<div class="card wide"><h2 style="color:var(--orange)">⚔️ THE SYSTEM ARGUING WITH ITSELF</h2>`;
   const cf=(conflicts&&conflicts.conflicts)||[];
   if(cf.length)h+=cf.slice(0,6).map(c=>`<div class="conflict"><span class="ctype">${esc(c.type)} · ${esc(c.ticker)}</span><div class="cbull">▲ ${esc(c.bull)}</div><div class="cbear">▼ ${esc(c.bear)}</div><div class="muted" style="margin-top:3px">→ ${esc(c.resolution||'')}</div></div>`).join('');
-  else h+=`<div class="empty">No engine conflicts right now — the signals broadly agree.</div>`;
+  else h+=`<div class="empty">No conflict records are available in this output. This does not establish agreement or complete coverage.</div>`;
   h+=`</div>`;
 
   g.innerHTML=h;

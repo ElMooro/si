@@ -210,7 +210,7 @@ def lambda_handler(event, context):
                       **{p.lower(): len(v) for p, v in by_posture.items()}},
            "multi_engine_confluence": multi[:40],
            "by_posture": by_posture,
-           "ticker_map": {b["ticker"]: {"posture": b["posture"], "score": b["score"], "n_engines": b["n_engines"],
+           "ticker_map": {b["ticker"]: {"posture": b["posture"], "score": b["score"], "n_engines": b["n_engines"], "engines": b["engines"],
                                         "heavy_short": b["heavy_short"], "stealth": b["stealth"], "tags": b["tags"]}
                           for b in book},
            "overlays": {"regime_haircut": hair, "regime_state": state or None,

@@ -31,15 +31,18 @@ a{color:var(--cyan);text-decoration:none}
 .chip.v{color:var(--cyan);border-color:var(--cyan)}.chip.c{color:var(--green);border-color:var(--green)}.chip.i{color:var(--violet);border-color:var(--violet)}
 .loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
 .disc{margin-top:24px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;border-top:1px solid var(--border);padding-top:14px}
-</style></head><body>
+</style><link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-capital-boundary.js"></script>
+</head><body>
 <header class="header"><div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
 <nav class="nav"><a href="/">Home</a><a href="/opportunities.html">Opportunities</a><a href="/dislocations.html">Laggards</a><a href="/backlog.html">Backlog</a><a href="/deep-value-overlap.html" class="active">Overlap Board</a><a href="/glossary.html">Glossary</a>
     <a href="/compounders.html">Compounders</a><a href="/capital-flow.html">Capital Flow</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/track-public.html">Track Record</a>
   </nav><div id="fresh-slot" style="padding:6px 24px"></div>
   <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
+<aside id="capital-boundary" aria-label="CapitalFlow evidence status"></aside>
 <div class="hero"><h1>Deep Value + Catalyst <span class="grad">Overlap</span></h1>
-<p>The master board. Stocks that are <b>cheap on multiple valuation lenses</b>, carrying <b>catalysts</b> (insider, capital flow, short-squeeze, estimate revisions, backlog acceleration), with an <b>inflection</b> — risk-gated by Altman-Z. The convergence engine for catching deep value before it booms.</p></div>
+<p>Compare valuation screens, catalyst flags and inflection measures. CapitalFlow reported-value changes are excluded from catalysts and distress flags in the revised calculation. Other inputs and expected-return performance still require validation.</p></div>
 <div class="tabs"><span class="tab active" data-t="prime">Prime Setups</span><span class="tab" data-t="elite">Elite (2+ catalysts)</span><span class="tab" data-t="board">Full Board</span></div>
 <div id="content"><div class="loading">Loading the overlap board…</div></div>
 </div>
@@ -50,6 +53,7 @@ let DATA=null,tab='prime';
 async function load(){
   try{const r=await fetch(`${PROXY}/data/deep-value-overlap.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
   if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Board not available yet — refreshes daily 17:00 UTC.</div>';return;}
+  JHCapitalBoundary.render(document.getElementById("capital-boundary"), DATA);
   render();
 }
 function card(r){
@@ -81,7 +85,7 @@ load();
 <script src="/auth.js"></script>
 <script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
 <script src="/freshness.js"></script><script>window.addEventListener("load",function(){if(window.Freshness)Freshness.fromUrl("fresh-slot","/data/deep-value-overlap.json",{label:"Data"});});</script>
-  <script src="/jh-enhance.js" data-feed="data/deep-value-overlap.json" data-bars="board:ticker:overlap_score" data-title="Deep-value overlap — conviction score" data-sub="names flagged by multiple value screens" ></script>
+  <script src="/jh-enhance.js" data-feed="data/deep-value-overlap.json" data-bars="board:ticker:overlap_score" data-title="Deep-value overlap — heuristic screen score" data-sub="names flagged by multiple value screens" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

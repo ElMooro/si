@@ -76,8 +76,47 @@ def flow_rows(packet):
         engines = row.get('engines') if isinstance(row, dict) else None
         if not isinstance(engines, list) or not all(isinstance(v, str) for v in engines):
             continue
-        if (not engines or len(engines) != len(set(engines)) or len(engines) != row.get('n_engines')
-                or any(v in ('13f', 'smart-money', 'capital-flow') for v in engines)):
+        if not _flow_components(row):
             continue
         result.append(row)
     return result
+
+
+# These names identify the current producer's components; they do not establish
+# source independence or predictive validity. Unknown revisions fail closed.
+FLOW_COMPONENTS = frozenset(('dark-pool', 'etf-lookthrough', 'short-interest',
+    'finra-short', 'stealth', 'options-flow', 'squeeze', 'insider', 'buyback', 'insider-buyback'))
+FLOW_POSTURES = frozenset(('SHORT_SQUEEZE_SETUP', 'ACCUMULATION', 'DISTRIBUTION',
+    'STEALTH_ACCUMULATION', 'ACCUMULATION_LEAN', 'DISTRIBUTION_LEAN', 'MIXED'))
+
+
+def _flow_components(row):
+    engines = row.get('engines') if isinstance(row, dict) else None
+    return (isinstance(engines, list) and bool(engines)
+        and all(isinstance(v, str) and v in FLOW_COMPONENTS for v in engines)
+        and len(engines) == len(set(engines))
+        and type(row.get('n_engines')) is int and row['n_engines'] == len(engines))
+
+
+def flow_annotations(packet):
+    """Inspect the actual annotation components, not just the packet revision."""
+    if not current_basis(packet) or not capital_current_basis(packet):
+        return {}
+    rows = packet.get('ticker_map')
+    if not isinstance(rows, dict):
+        return {}
+    out = {}
+    for ticker, row in rows.items():
+        if not isinstance(ticker, str) or not ticker or not _flow_components(row):
+            continue
+        score = row.get('score')
+        if type(score) not in (int, float) or not math.isfinite(score):
+            continue
+        if not isinstance(row.get('posture'), str) or row['posture'] not in FLOW_POSTURES:
+            continue
+        if any(type(row.get(v)) is not bool for v in ('heavy_short', 'stealth')):
+            continue
+        if not isinstance(row.get('tags'), list) or not all(isinstance(v, str) for v in row['tags']):
+            continue
+        out[ticker] = {k: row[k] for k in ('posture', 'score', 'n_engines', 'engines', 'heavy_short', 'stealth', 'tags')}
+    return out

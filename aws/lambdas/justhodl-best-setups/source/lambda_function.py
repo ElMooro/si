@@ -25,7 +25,8 @@ SCHEDULE: hourly (after trade-tickets + signals refresh).
 """
 from public_brain_projection import sanitize_public
 from consume_brain import load_constitution
-from capital_research_boundary import context as capital_context, current_basis as capital_current_basis
+from capital_research_boundary import context as capital_context
+from holdings_derived_boundary import flow_annotations
 import json
 import time
 from datetime import datetime, timezone
@@ -367,7 +368,7 @@ def lambda_handler(event, context):
     options_confl = read_json("data/options-confluence.json") or {}
     flow_confl = read_json("data/flow-confluence.json") or {}
     opt_map = options_confl.get("ticker_map") or {}
-    flow_map = (flow_confl.get("ticker_map") or {}) if capital_current_basis(flow_confl) else {}
+    flow_map = flow_annotations(flow_confl)
     earn_confl = read_json("data/earnings-confluence.json") or {}
     earn_map = {r.get("ticker"): r for r in (earn_confl.get("confluence_book") or []) if r.get("ticker")}
     trust_by = {}

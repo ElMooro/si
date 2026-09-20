@@ -6,5 +6,6 @@ sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/shared/tests')]
 if __name__=='__main__':
     suite=unittest.TestLoader().discover(str(ROOT/'aws/shared/tests'),pattern='test_risk_gate_authority.py')
     suite.addTests(unittest.TestLoader().loadTestsFromName('test_capital_research_boundary.Tests.test_best_setups_full_handler_legacy_scores_cannot_add_names_or_signals'))
+    suite.addTests(unittest.TestLoader().loadTestsFromName('test_capital_research_boundary.Tests.test_best_setups_rejects_legacy_flow_hidden_behind_new_envelope'))
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)

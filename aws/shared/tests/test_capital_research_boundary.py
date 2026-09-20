@@ -12,7 +12,7 @@ sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).res
 from capital_research_boundary import BASIS, SOURCE, context, current_basis
 from ciss_vintage_test_support import load
 from test_holdings_derived_boundary import Storage
-from holdings_derived_boundary import BASIS as HOLDINGS_BASIS, flow_rows
+from holdings_derived_boundary import BASIS as HOLDINGS_BASIS, flow_rows, flow_annotations
 
 
 def legacy(value):
@@ -115,6 +115,40 @@ class Tests(unittest.TestCase):
                 m.lambda_handler({}, None)
             out = db.writes[m.OUT_KEY]; self.assertTrue(current_basis(out)); self.assertIsNone(out['join_hits']['capital_flow'])
             self.assertTrue(out['ladder']); self.assertTrue(all('capital_flow' not in r.get('smart_money', {}) for r in out['ladder']))
+
+    def test_flow_annotations_require_actual_components_and_both_revisions(self):
+        m = load('justhodl-flow-confluence'); db = Storage({'data/dark-pool.json': {'top_accumulation': [{'ticker':'KO'}]}})
+        with patch.object(m, 's3', db): m.lambda_handler({}, None)
+        output = db.writes[m.OUT_KEY]
+        self.assertEqual(flow_annotations(output), output['ticker_map'])
+        self.assertEqual(output['ticker_map']['KO']['engines'], ['dark-pool'])
+        changes = ({'engines':['capital-flow']}, {'engines':['13f']}, {'engines':['smart-money']},
+            {'engines':['CapitalFlow']}, {'engines':[]}, {'engines':['dark-pool','dark-pool'], 'n_engines':2},
+            {'engines':['dark-pool'], 'n_engines':True}, {'n_engines':99}, {'score':float('nan')},
+            {'score':float('inf')}, {'posture':[]}, {'heavy_short':1}, {'tags':{}}, {'engines':None})
+        for values in changes:
+            bad = deepcopy(output); bad['ticker_map']['KO'].update(values)
+            self.assertEqual(flow_annotations(bad), {}, values)
+        for name in ('holdings_exclusions','capital_flow_exclusion'):
+            bad = deepcopy(output); del bad[name]; self.assertEqual(flow_annotations(bad), {})
+
+    def test_best_setups_rejects_legacy_flow_hidden_behind_new_envelope(self):
+        good = {'holdings_exclusions': {'basis': HOLDINGS_BASIS}, 'capital_flow_exclusion': context({}),
+            'ticker_map': {'KO': {'posture':'ACCUMULATION', 'score':1.05, 'engines':['dark-pool','options-flow'],
+                'n_engines':2, 'tags':['research'], 'heavy_short':False, 'stealth':False}}}
+        for mode in ('current','missing_components','capital_flow','missing_holdings_revision'):
+            packet = deepcopy(good)
+            if mode == 'missing_components': del packet['ticker_map']['KO']['engines']
+            if mode == 'capital_flow': packet['ticker_map']['KO']['engines'][1] = 'capital-flow'
+            if mode == 'missing_holdings_revision': del packet['holdings_exclusions']
+            m = load('justhodl-best-setups'); db = Storage({'data/flow-confluence.json': packet,
+                'data/insider-clusters.json': {'clusters':[{'ticker':'KO','n_insiders':4,'total_value':1000000}]}})
+            with patch.object(m,'s3',db), patch.object(m,'_risk_gate_doc',return_value={}), patch.object(m,'load_constitution',return_value={'ok':False}), patch.dict(sys.modules,{'wl_fusion':types.SimpleNamespace(load=lambda:{},context=lambda *a:None,multiplier=lambda *a:(1,None))}):
+                m.lambda_handler({},None)
+            rows = db.writes[m.OUTPUT_KEY]['top_setups']; self.assertTrue(rows)
+            for row in rows:
+                self.assertEqual('flow_confluence' in row, mode == 'current')
+                self.assertEqual('Flow: ACCUMULATION' in row.get('why',''), mode == 'current')
 
 
 if __name__ == '__main__': unittest.main()
