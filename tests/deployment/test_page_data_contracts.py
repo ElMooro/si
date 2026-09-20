@@ -333,3 +333,13 @@ def test_dedicated_context_scope_requires_actual_writer_and_pinned_literal_const
         try:validated_primary_scopes(role,engines,root,'page.html')
         except ValueError:pass
         else:raise AssertionError('unbound scope accepted')
+
+
+def test_large_evidence_bootstrap_preserves_early_utf8_detection():
+    from build_page_data_contracts import install_html
+    source = '<!doctype html><html><head><meta charset="UTF-8"><title>FX × price — scenario</title></head><body>€</body></html>'
+    out = install_html(source, [], {'records': ['large public evidence contract'] * 200})
+    assert b'<meta charset="utf-8">' in out.encode()[:1024]
+    assert out.count('charset=') == 1
+    assert 'FX × price — scenario' in out and '€' in out
+    assert install_html(out, [], {'records': ['large public evidence contract'] * 200}) == out

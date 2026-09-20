@@ -112,14 +112,10 @@ async function load(){
   }else h+=`<div class="empty">Log decisions in the Journal to build your track record.</div>`;
   h+=`</div>`;
 
-  // Position sizing
-  h+=`<div class="card"><h2 style="color:var(--amber)">📐 SIZED FOR THE REGIME</h2>`;
-  const sp=(sizer&&sizer.sized_positions)||[];
-  if(sp.length){
-    h+=sp.slice(0,6).map(p=>`<div class="row"><span class="tk">${esc(p.ticker)}</span><span class="muted" style="font-size:11px">conv ${p.conviction}</span><div class="size-bar"><div class="f" style="width:${Math.min(100,p.suggested_size_pct/8*100)}%"></div></div><span style="font-family:var(--mono);font-size:12px;color:var(--amber)">${p.size_band}</span></div>`).join('');
-    h+=`<div class="muted" style="margin-top:8px">posture ${sizer.posture_mult}× · regime ${sizer.regime?sizer.regime.combined_mult:'—'}× · sizes shrink as macro deteriorates</div>`;
-  }else h+=`<div class="empty">No sized positions yet.</div>`;
-  h+=`</div>`;
+  // Explicit scenarios never turn an upstream score into an allocation.
+  h+=`<div class="card"><h2 style="color:var(--amber)">PORTFOLIO SCENARIOS</h2>`;
+  const scenarioReady=sizer?.contract==='portfolio-scenario-availability.v1';
+  h+=`<p>${scenarioReady?'The reviewed scenario model is available.':'Model publication is not yet verified.'} Enter hypothetical weights, price and FX shocks to calculate portfolio consequences.</p><p class="muted">Research scores do not establish expected returns or recommended weights. No portfolio allocation is inferred here.</p><a href="/position-sizer.html">Calculate and replay a scenario →</a></div>`;
 
   JHCapitalBoundary.render(document.getElementById("capital-boundary"), nvt);
   // Descriptive dislocation context, without a claim of institutional trading.

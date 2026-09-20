@@ -255,12 +255,14 @@ def install_html(source,apis,page_contract=None,asset_version=None):
     source=re.sub(r'<script\b[^>]*\bid=["\']jh-api-data-contract["\'][^>]*>.*?</script>','',source,flags=re.I|re.S)
     source=re.sub(r'<script\b[^>]*\bsrc=["\']/jh-data-inspector\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>','',source,flags=re.I|re.S)
     source=re.sub(r'(<head\b[^>]*>)\s*',r'\1',source,count=1,flags=re.I)
+    # Large evidence bootstraps must not push UTF-8 detection past the first 1024 bytes.
+    source=re.sub(r'<meta\b[^>]*\bcharset\s*=\s*["\']?[^>]*>\s*','',source,flags=re.I)
     encoded=json.dumps(apis,separators=(',',':')).replace('<','\\u003c')
     page_json=json.dumps(page_contract,separators=(',',':')).replace('<','\\u003c') if page_contract is not None else None
     page_tag='<script id="jh-page-data-contract" type="application/json">'+page_json+'</script>' if page_json is not None else ''
     version=asset_version or hashlib.sha256((ROOT/'jh-data-inspector.js').read_bytes()).hexdigest()[:16]
     if not re.fullmatch(r'[a-f0-9]{16}',version):raise ValueError('Invalid inspector content hash')
-    tag=page_tag+'<script id="jh-api-data-contract" type="application/json">'+encoded+'</script><script src="/jh-data-inspector.js?v='+version+'" data-contract="page-data-contract.v1"></script>'
+    tag='<meta charset="utf-8">'+page_tag+'<script id="jh-api-data-contract" type="application/json">'+encoded+'</script><script src="/jh-data-inspector.js?v='+version+'" data-contract="page-data-contract.v1"></script>'
     return re.sub(r'<head\b[^>]*>',lambda m:m[0]+tag,source,count=1,flags=re.I) if re.search(r'<head\b',source,re.I) else tag+source
 
 def main():

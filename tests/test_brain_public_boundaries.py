@@ -51,13 +51,22 @@ def function(engine, name, env):
 class PublicBoundaryTests(unittest.TestCase):
     def load(self, engine, s3):
         private = []
+        fake_boto = types.SimpleNamespace(client=lambda *a, **kw: s3)
         with patch.dict(sys.modules, {
-            "boto3": types.SimpleNamespace(client=lambda *a, **kw: s3),
+            "boto3": fake_boto,
             "anthropic_shim": types.ModuleType("anthropic_shim"),
             "series_source": types.SimpleNamespace(fetch=lambda *a: {"2025-01-01": -0.2, "2026-08-01": 0.2}),
             "private_artifact": types.SimpleNamespace(publish_private=lambda kind, doc: private.append((kind, json.loads(json.dumps(doc))))),
         }):
             scope = runpy.run_path(str(source(engine)))
+        # Dynamic imports during a handler call must also stay in the fake AWS boundary.
+        handler = scope.get("lambda_handler")
+        if handler:
+            def isolated_handler(*args, **kwargs):
+                with patch.dict(sys.modules, {"boto3": fake_boto}):
+                    return handler(*args, **kwargs)
+            isolated_handler.__wrapped__ = handler
+            scope["lambda_handler"] = isolated_handler
         return scope, private
 
     def assert_public(self, doc):
@@ -120,34 +129,27 @@ class PublicBoundaryTests(unittest.TestCase):
         self.assertTrue(out["conflicts"][0]["private_review_ref"]["rule_violation"])
         self.assert_public(out)
 
-    def test_position_sizer_uses_private_posture_but_emits_only_enum(self):
-        s3 = S3({"data/brain.json": {"directive": {"risk_posture": "aggressive because " + MARKER}},
-                 "data/best-setups.json": {"top_setups": [{"ticker": "NVDA", "conviction": 90}]}})
-        scope, _ = self.load("position-sizer", s3)
-        scope["lambda_handler"]()
-        out = s3.writes["data/position-sizing.json"]
-        self.assertEqual(out["posture_mult"], 1.3)
-        self.assertEqual(out["risk_posture"], "aggressive")
-        self.assertTrue(out["sized_positions"])
+    def test_position_sizer_no_longer_reads_private_posture(self):
+        directory = source("position-sizer").parent
+        with patch.object(sys, "path", [str(directory), str(directory.parent / "tests"), *sys.path]):
+            import scenario_publication
+            from scenario_test_support import S3 as ScenarioS3
+            s3 = ScenarioS3()
+            s3.docs["data/brain.json"] = json.dumps({"directive": {"risk_posture": MARKER}}).encode()
+            s3.docs["data/brain-constitution.json"] = json.dumps({"risk_posture": MARKER}).encode()
+            scope, _ = self.load("position-sizer", s3)
+            scope["lambda_handler"]()
+            out = json.loads(s3.docs["data/position-sizing.json"])
+        self.assertIsNone(out["posture_mult"])
+        self.assertIsNone(out["risk_posture"])
+        self.assertEqual(out["sized_positions"], [])
+        self.assertNotIn("data/brain.json", s3.reads)
+        self.assertNotIn("data/brain-constitution.json", s3.reads)
         self.assert_public(out)
 
-    def test_constitution_receipt_in_public_outputs_is_enum_and_counts_only(self):
-        # A REAL constitution (the fixtures above never supply one): its posture is note-derived prose
-        # and must reach public payloads only as an enum + counts + hash.
-        constitution = {"engine": "brain-sync", "content_hash": "abc123", "risk_posture": "aggressive because " + MARKER,
-                        "hard_rules": ["never " + MARKER, "size " + MARKER], "themes": [MARKER], "investor_profile": MARKER,
-                        "avoid": [MARKER], "sector_tilts": {"energy": "overweight " + MARKER}}
-        s3 = S3({"data/brain-constitution.json": constitution,
-                 "data/best-setups.json": {"top_setups": [{"ticker": "NVDA", "conviction": 90}]}})
-        scope, _ = self.load("position-sizer", s3)
-        scope["lambda_handler"]()
-        out = s3.writes["data/position-sizing.json"]
-        self.assertEqual(out["posture_mult"], 1.3)
-        self.assertEqual(out["risk_posture"], "aggressive")
-        self.assertEqual(out["brain_constitution"], {"consumed": True, "content_hash": "abc123", "risk_posture": "aggressive",
-                                                     "n_hard_rules": 2, "n_themes": 1})
-        self.assert_public(out)
+    def test_constitution_receipt_remains_enum_and_counts_only_for_other_consumers(self):
         import consume_brain
+        constitution = {"engine": "brain-sync", "content_hash": "abc123", "hard_rules": [MARKER], "themes": [MARKER]}
         for raw in ("balanced but " + MARKER, None, "", "DEFENSIVE: " + MARKER):
             self.assertNotIn(MARKER, json.dumps(consume_brain.overlay_payload({}, {**constitution, "risk_posture": raw})))
 
@@ -170,7 +172,7 @@ class PublicBoundaryTests(unittest.TestCase):
         s3 = S3({"data/brain.json": {"notes": [{"id": "note_1", "text": MARKER}]},
                  "data/tradingview.json": {"symbols": [{"symbol": "VIX", "category": "vol", "status": "LIVE", "value": 20, "note_snippet": MARKER}]}})
         scope, _ = self.load("domain-barometers", s3)
-        env = scope["lambda_handler"].__globals__
+        env = scope["lambda_handler"].__wrapped__.__globals__
         env.update({"classify": lambda brain, rows: ({"VIX": "RISK"}, {"VIX": "T1"}, {"VIX": "private note reference"}, {}, {"VIX": ["note_1"]}, {"VIX": "HIGH"}, {}, 1),
                     "load_prev_values": lambda: ({}, None), "update_ledger": lambda *a: {}, "predict": lambda *a: {},
                     "build_barometers": lambda *a: {d: {"score_0_100": 50} for d in ("MACRO", "LIQUIDITY", "RISK")}})

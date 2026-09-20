@@ -1,94 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Position Sizer · JustHodl.AI</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⚖️</text></svg>">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="jh-primary-engine" content="justhodl-position-sizer">
+<title>Portfolio Scenarios · JustHodl</title>
 <style>
-:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;--mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;}
-*{box-sizing:border-box}
-body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
-.container{max-width:1180px;margin:0 auto;padding:24px}
-header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
-h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
-h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:22px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
-nav.crumbs{margin-top:10px}
-nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
-nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
-.hero{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:20px 22px;margin-bottom:16px}
-.hero .lab{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
-.hero .call{font-family:var(--mono);font-size:17px;font-weight:700;margin:5px 0 2px;color:var(--cyan)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:6px}
-.kv{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px 15px}
-.kv .k{font-family:var(--mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
-.kv .v{font-family:var(--mono);font-size:20px;font-weight:700;margin-top:4px}
-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
-th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
-td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
-tr:hover td{background:var(--panel2)}
-.num{text-align:right}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
-.loading{text-align:center;padding:42px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
-.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
+:root{color-scheme:dark;--bg:#0b111b;--panel:#121d2b;--text:#e4ecf6;--muted:#b0c0d3;--line:#33465d;--accent:#80d7ed}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,sans-serif}main{max-width:1240px;margin:auto;padding:24px}a{color:var(--accent)}nav{display:flex;gap:22px;margin-bottom:28px}h1{font-size:32px;line-height:1.2;margin-bottom:12px}h2{font-size:21px}p{max-width:100ch}small,.muted{color:var(--muted)}section,form{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin:22px 0}.fields,.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:18px}label{display:block;font-size:14px;color:var(--muted)}input,button{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px}input:not([type=checkbox]):not([type=file]){width:100%;margin-top:5px}input:disabled{opacity:.5}button{cursor:pointer}button:hover{border-color:var(--accent)}button:disabled{opacity:.45;cursor:default}button.primary{background:#13576c;border-color:var(--accent)}:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.table-wrap{overflow:auto;max-width:100%}table{border-collapse:collapse;width:100%;min-width:820px}th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--muted)}td input{min-width:112px}td:first-child input{min-width:180px}.metrics>div{background:var(--bg);padding:15px;border-radius:8px}.metrics span,.metrics strong{display:block}.metrics span{font-size:13px;color:var(--muted)}.metrics strong{font-size:19px;margin-top:8px;overflow-wrap:anywhere}#error,.warning{color:#ffd09a}#model-status{font-size:13px;overflow-wrap:anywhere}#model-status a{display:block;margin-top:8px}details{margin-top:16px}code{overflow-wrap:anywhere}#results:empty{display:none}@media(max-width:600px){main{padding:15px}form,section{padding:15px}h1{font-size:27px}.fields,.metrics{grid-template-columns:1fr}}
 </style>
+<script src="/jh-portfolio-scenario.js" defer></script>
+<script src="/jh-portfolio-scenario-page.js" defer></script>
 </head>
-<body>
-<div class="container">
-  <header>
-    <h1>⚖️ Position Sizer</h1>
-    <p class="subtitle">Risk-budgeted position sizing — how much, not just what. A Kelly-fraction core scaled by a regime risk multiplier, with a per-position cap and a recommended total exposure. Turns signal conviction into sized actions instead of equal-weight guesses.</p>
-    <nav class="crumbs"><a href="/index.html">desk</a><a href="/pm-decision.html">pm decision</a><a href="/signal-board.html">signal board</a></nav>
-  </header>
-  <div id="hero"><div class="loading">LOADING SIZER…</div></div>
-  <h2>Risk Budget</h2>
-  <div class="grid" id="budget"><div class="loading">…</div></div>
-  <h2>Sized Positions &amp; Setups</h2>
-  <div class="card"><div id="positions"><div class="loading">…</div></div></div>
-  <p class="timestamp" id="ts"></p>
-</div>
-<script>
-const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/portfolio/sizer-v2.json";
-const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const fmt=v=>typeof v==="number"?(Number.isInteger(v)?v:v.toFixed(2)):esc(v);
-function cards(obj){
-  if(!obj||typeof obj!=="object")return"";
-  return Object.entries(obj).filter(([k,v])=>typeof v==="number").map(([k,v])=>
-    `<div class="kv"><div class="k">${esc(k.replace(/_/g,' '))}</div><div class="v">${fmt(v)}${/pct|exposure/.test(k)?'<span style="font-size:11px;color:var(--dim)">%</span>':''}</div></div>`).join("");
-}
-function rows(list){
-  if(!Array.isArray(list)||!list.length)return"";
-  const keys=[...new Set(list.flatMap(o=>Object.keys(o||{})))].slice(0,7);
-  let h=`<table><thead><tr>${keys.map(k=>`<th>${esc(k.replace(/_/g,' '))}</th>`).join("")}</tr></thead><tbody>`;
-  for(const o of list.slice(0,40)){
-    h+=`<tr>${keys.map(k=>{const v=o?.[k];return `<td class="${typeof v==='number'?'num':''}">${typeof v==='number'?fmt(v):esc(v==null?'—':(typeof v==='object'?JSON.stringify(v):v))}</td>`;}).join("")}</tr>`;
-  }
-  return h+`</tbody></table>`;
-}
-(async()=>{
-  let d=null;try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
-  if(!d){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="call" style="color:var(--orange)">DATA UNAVAILABLE</div></div>`;document.getElementById("budget").innerHTML="";document.getElementById("positions").innerHTML="";return;}
-  document.getElementById("hero").innerHTML=`
-    <div class="hero" style="border-left-color:var(--cyan)">
-      <div class="lab">Decisive Call</div>
-      <div class="call">${esc(d.decisive_call||d.summary||"—")}</div>
-    </div>`;
-  document.getElementById("budget").innerHTML=cards({
-    current_exposure_pct:d.current_exposure_pct,
-    recommended_exposure_pct:d.recommended_exposure_pct,
-    kelly_fraction:d.kelly_fraction,
-    max_single_position_pct:d.max_single_position_pct,
-    risk_multiplier:d.risk_multiplier!=null?d.risk_multiplier:d.risk_mult,
-    n_positions:d.n_positions, n_setups:d.n_setups
-  })||`<div class="loading">no budget detail</div>`;
-  const body=rows(d.positions)||rows(d.setups)||rows(d.actions);
-  document.getElementById("positions").innerHTML=body||`<div class="loading">no sized positions — the sizer needs an active signal portfolio</div>`;
-  document.getElementById("ts").textContent="engine: justhodl-position-sizer-v2 · generated "+(d.generated_at||"?");
-})();
-</script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+<body><main>
+<nav aria-label="Research navigation"><a href="/index.html">Research desk</a><a href="/cockpit.html">Cockpit</a><a href="/portfolio-risk.html">Portfolio risk</a></nav>
+<header><p class="muted">PORTFOLIO RESEARCH / EXPLICIT SCENARIOS</p><h1>What would these assumptions do to a portfolio?</h1>
+<p>Enter signed exposures and price shocks to reconcile position P&amp;L, currency effects, cash, financing and costs. Every result retains its exact inputs and calculation. The old score-to-allocation rule has been retired.</p>
+<p class="muted">Inputs stay in this page's memory. Export downloads them only when you choose. This tool does not load accounts, send positions to a server, recommend weights or place trades.</p></header>
+<section aria-labelledby="scope"><h2 id="scope">Model scope</h2><p>Static cash securities, including signed short exposure, over one explicit horizon. FX means the change in the base-currency value of one unit of the position currency. Use zero FX for a position already denominated in the base currency.</p>
+<details><summary>Read assumptions and exclusions</summary><p>Residual cash equals 100% minus net security weights. Positive residual cash receives the entered cash rate; negative residual cash pays that same entered borrowing rate. Enter a rate for the stated horizon, not an annual rate. Short proceeds are assumed fully available: segregation, collateral, margin calls and intraperiod liquidation are not modeled. Include assumed borrow fees, trading costs and other expenses in aggregate costs.</p><p>Price shocks exclude dividends and coupons. Options, futures, default recovery, nonlinear payoffs, path dependence, probabilities and expected returns are outside this model. Currency codes are your labels, not verified instrument mappings. No missing input defaults to zero. The 1000% gross computation bound is not an approved risk limit.</p><p>Base return = (1 + local price return) × (1 + FX return) − 1. Position impact = signed NAV weight × base return. Total impact = position impacts + residual cash/financing − costs. Currency amounts display two decimals; exact fractions remain in the export.</p></details></section>
+<form id="scenario" autocomplete="off">
+<h2>1. State the assumptions</h2><div class="fields">
+<label>Scenario label<input id="label" required maxlength="120" placeholder="Name this hypothesis"></label>
+<label>Horizon<input id="horizon" required maxlength="120" placeholder="For example: five trading days"></label>
+<label>Base currency label<input id="base" required maxlength="3" placeholder="USD"></label>
+<div><label>Initial NAV, in base currency<input id="nav" required inputmode="decimal" placeholder="Exact decimal amount"></label><label><input id="nav-missing" type="checkbox"> NAV unavailable — calculate percentages only</label></div>
+<label>Cash or borrowing rate for this horizon, %<input id="rate" required inputmode="decimal" placeholder="Enter 0 explicitly if assumed zero"></label>
+<label>Aggregate costs, % of initial NAV<input id="cost" required inputmode="decimal" placeholder="Enter 0 explicitly if assumed zero"></label>
+</div><h2>2. Specify every position and shock</h2><p class="muted">Long weights are positive; short weights are negative. All weights refer to initial NAV. Enter exact decimals with at most six decimal places.</p>
+<div class="table-wrap"><table><thead><tr><th>Position label</th><th>Currency</th><th>Signed weight %</th><th>Local price shock %</th><th>FX shock %</th><th>Action</th></tr></thead><tbody id="positions"></tbody></table></div>
+<div class="actions"><button type="button" id="add">Add position</button><button type="button" id="example">Load synthetic example</button><button class="primary" type="submit">Calculate consequences</button></div>
+<p id="error" role="status" aria-live="polite"></p>
+</form>
+<section id="results" aria-live="polite"></section>
+<section><h2>3. Retain and replay the evidence</h2><p>Export includes every input, every output, exact rational amounts and the model's SHA-256. Import recalculates the complete result. Anyone with the matching reviewed repository version can independently run <code>node scripts/replay_portfolio_scenario.cjs export.json</code>. The verifier never executes code from an export.</p>
+<div class="actions"><button type="button" id="download" disabled>Download verified scenario</button><label>Replay an exported scenario<input type="file" id="import" accept="application/json,.json"></label></div><p id="model-status" role="status">Checking published model…</p></section>
+</main></body></html>
