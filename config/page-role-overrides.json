@@ -1252,6 +1252,26 @@
           "purpose": "Exact native current packet; its retained run links bind immutable outputs and protected source originals."
         }
       }
+    },
+    "valuations-macro.html": {
+      "primary_engines": [
+        "justhodl-valuations-agent"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-valuations-agent": [
+          "valuations-data.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-valuations-agent": {
+          "source": "aws/lambdas/justhodl-valuations-agent/source/valuation_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Native dated valuation input publication; whole predecessors remain retained and unqualified."
+        }
+      }
     }
   }
 }

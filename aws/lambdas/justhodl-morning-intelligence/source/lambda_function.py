@@ -268,7 +268,7 @@ def load_all():
         "gold_equity_rotation":"data/gold-equity-rotation.json",
         "sector_flow_state":"data/sector-flow-state.json",
     }
-    return {k:__import__("retail_research").guard(v,__import__("extremes_research").guard(v,__import__("crisis_authority").guard(v,fs3(v)))) for k,v in keys.items()}
+    return {k:__import__("valuation_research").guard(v,__import__("retail_research").guard(v,__import__("extremes_research").guard(v,__import__("crisis_authority").guard(v,fs3(v))))) for k,v in keys.items()}
 
 def extract_metrics(data,weights):
     from credit_research import morning_fields as credit_morning_fields

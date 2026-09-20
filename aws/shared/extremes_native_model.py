@@ -6,7 +6,7 @@ provider parsers. Upstream run references remain the route to original evidence.
 from datetime import date,datetime,time,timedelta,timezone
 from decimal import Decimal,localcontext,ROUND_HALF_EVEN
 import hashlib,json,math,re
-import credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research,retail_research
+import credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research,retail_research,valuation_research
 
 CONTRACT='extremes-native-research.v1'
 PREFIX='data/extremes-research/'
@@ -22,13 +22,13 @@ SOURCES={
  'aaii':('data/aaii-sentiment.json','aaii-native-research.v1','aaii-research'),
  'fails':('data/settlement-fails.json','fr2004-fails-research.v1','fails-research'),
  'capitulation':('data/capitulation.json',CONTRACT,'extremes-research'),
- 'valuation':('valuations-data.json',None,None),
+ 'valuation':('valuations-data.json',valuation_research.CONTRACT,'valuation-research'),
  'retail':('data/retail-sentiment.json',retail_research.CONTRACT,'retail-research'),
  'vrp':('data/vrp.json',vrp_research.CONTRACT,'vrp-research')}
 INPUTS={
  'capitulation':('crisis','breadth','credit','volatility','funding','insider','fails'),
  'market-extremes':('valuation','breadth','aaii','credit','insider','retail','vrp','capitulation','fails')}
-COMPANIONS=(credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research,retail_research)
+COMPANIONS=(credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research,retail_research,valuation_research)
 
 def encoded(doc):return json.dumps(doc,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
 def sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -77,8 +77,8 @@ def project(name,p,at):
     """Keep dated measurements distinct; no default scores or synthetic votes."""
     rows=[];summary={};generated=clock(p['generated_at'])
     if generated>at:raise ValueError('Future upstream publication')
-    if name in ('credit','volatility','funding','vrp'):
-        adapter={'credit':credit_research,'volatility':volatility_research,'funding':eurodollar_research,'vrp':vrp_research}[name]
+    if name in ('credit','volatility','funding','vrp','valuation'):
+        adapter={'credit':credit_research,'volatility':volatility_research,'funding':eurodollar_research,'vrp':vrp_research,'valuation':valuation_research}[name]
         ctx=adapter.context(p,at)
         if not ctx['available']:return [],{},'upstream_current_context_unavailable'
         for key,m in ctx['measurements'].items():
@@ -87,7 +87,7 @@ def project(name,p,at):
             if name=='credit':value=m['value_pct'];unit='Percent';label=m['definition']
             else:value=m['value'];unit=raw['source_unit'];label=raw.get('definition',m.get('label',sid))
             if isinstance(label,dict):label=label.get('title') or sid
-            extra={'provider_family':'ICE_BofA' if sid.startswith('BAML') else 'Cboe' if name=='volatility' or sid.startswith('VIX') or sid=='VXVCLS' else 'S&P_Dow_Jones_Indices' if sid=='SP500' else 'Federal_Reserve_or_Treasury',
+            extra={'provider_family':'US_EIA' if sid in ('DCOILWTICO','DCOILBRENTEU','DHHNGSP') else 'US_BEA' if sid=='GDP' else 'US_BLS' if sid=='CPIAUCSL' else 'Moodys' if sid in ('BAA','AAA') else 'ICE_BofA' if sid.startswith('BAML') else 'Cboe' if name=='volatility' or sid.startswith('VIX') or sid=='VXVCLS' else 'S&P_Dow_Jones_Indices' if sid=='SP500' else 'Federal_Reserve_or_Treasury',
                 'descriptive_statistics':raw.get('descriptive_statistics'),'source_url':m['source_url']}
             identity_id='CBOE:'+sid if name=='volatility' and raw['provider']=='Cboe' else root_id(sid)
             rows.append(observation(name,identity_id,label,value,unit,day,valid.isoformat(),p,'measurements.'+key,extra))

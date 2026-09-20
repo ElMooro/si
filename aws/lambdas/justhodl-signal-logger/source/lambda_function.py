@@ -413,7 +413,7 @@ def lambda_handler(event,context):
         p4,cf4=pm[ph.upper()]
         logged.append(log_sig("market_phase",ph,p4,cf4,"SPY",[14,30,60],meta={"phase":ph}))
     # valuations-data.json
-    vd=fs3("valuations-data.json")
+    vd=__import__("valuation_research").decision_view(fs3("valuations-data.json"))
     cape=vd.get("cape") or vd.get("CAPE")
     if cape is not None:
         cape=float(cape)

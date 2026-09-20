@@ -37,7 +37,7 @@ test('editing assumptions invalidates the previous displayed consequence',()=>{
  try{api.bindScenario();form.onsubmit({preventDefault(){}});assert.match(out.textContent,/-\$10,000.00/);form.elements.shock.value='5';form.oninput();assert.match(out.textContent,/Assumptions changed/);form.onsubmit({preventDefault(){}});assert.match(out.textContent,/\$5,000.00/);}finally{globalThis.document=prior;}
 });
 test('both pages load the verified renderer and Intelligence links to evidence',()=>{
- for(const engine of ['capitulation','market-extremes']){const html=fs.readFileSync(path.join(__dirname,'..',engine+'.html'),'utf8');assert.match(html,/jh-extremes-research.js\?v=20260920-native3/);assert.ok(html.includes('data-extremes-engine="'+engine+'"'));assert.match(html,/id="extremes-scenario"/);}
+ for(const engine of ['capitulation','market-extremes']){const html=fs.readFileSync(path.join(__dirname,'..',engine+'.html'),'utf8');assert.match(html,/jh-extremes-research.js\?v=20260920-native4/);assert.ok(html.includes('data-extremes-engine="'+engine+'"'));assert.match(html,/id="extremes-scenario"/);assert.match(html,/valuations-macro.html/);}
  const intel=fs.readFileSync(path.join(__dirname,'../intelligence/index.html'),'utf8');assert.match(intel,/href="\/capitulation.html">Inspect dated evidence/);assert.doesNotMatch(intel,/score \$\{cap\?fmtNum\(cap.capitulation_score/);
 });
 test('declared local scripts exist in the publication tree',()=>{

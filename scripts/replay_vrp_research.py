@@ -6,7 +6,7 @@ No producer invocation, account data, credential acquisition or publication.
 from pathlib import Path
 import argparse,json,sys
 ROOT=Path(__file__).resolve().parents[1]
-sys.path[:0]=[str(ROOT/'aws/lambdas/justhodl-vrp-stress/source'),str(ROOT/'aws/shared')]
+sys.path[:0]=[str(ROOT/'aws/lambdas/justhodl-vrp/source'),str(ROOT/'aws/shared')]
 import vrp_research_store as store
 
 

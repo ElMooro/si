@@ -4,7 +4,7 @@
  const esc=x=>String(x??'Unavailable').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:6}):'Unavailable';
  const engines=['capitulation','market-extremes'];
- function safe(key){return typeof key==='string'&&/^data\/(?:extremes|crisis|breadth|credit|volatility|eurodollar|insider|aaii|fails|vrp|retail)-research\/(?:runs|outputs)\/[a-f0-9]{64}\.json$/.test(key);}
+ function safe(key){return typeof key==='string'&&/^data\/(?:extremes|crisis|breadth|credit|volatility|eurodollar|insider|aaii|fails|vrp|retail|valuation)-research\/(?:runs|outputs)\/[a-f0-9]{64}\.json$/.test(key);}
  function typed(p){return p?.contract===CONTRACT&&engines.includes(p.engine)&&flags.every(k=>p[k]===false)&&p.call===null&&p.signal===null&&p.capitulation_score===null&&p.cycle_position===null&&p.posture===null&&Array.isArray(p.measurements)&&p.measurements.every(r=>flags.every(k=>r[k]===false)&&typeof r.value==='number'&&Number.isFinite(r.value)&&typeof r.unit==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.observation_date)&&Number.isFinite(Date.parse(r.valid_until)))&&p.quality&&p.eligibility&&p.dependency_graph&&Number.isFinite(Date.parse(p.generated_at))&&Number.isFinite(Date.parse(p.freshness?.pipeline_check_due_at));}
  function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v;}
  async function sha(raw){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');}
