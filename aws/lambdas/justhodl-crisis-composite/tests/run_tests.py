@@ -18,10 +18,13 @@ with patch.dict(sys.modules,{'boto3':types.SimpleNamespace(client=lambda *a,**k:
     with patch.object(e,'s3',fake),patch.object(e,'get_s3_json',side_effect=get), \
          patch.object(e,'COMPONENTS',[('data/fixture.json',1,lambda _:20,'Fixture')]), \
          patch.object(e,'_massive_cross_asset',return_value={}),patch.object(e,'maybe_telegram') as telegram:
-        result=e.lambda_handler({'suppress_alerts':True},None)
+        result=e._legacy_unqualified_handler({'suppress_alerts':True},None)
     assert result['statusCode']==200
     assert writes['data/defcon.json']==writes[e.S3_KEY]
     assert json.loads(writes[e.S3_KEY])['master_crisis_score']==20
     assert len(json.loads(writes[e.S3_HISTORY_KEY])['snapshots'])==2
     telegram.assert_not_called()
-print('DEFCON alias parity, unchanged score, history and alert suppression passed')
+print('Retained legacy DEFCON alias parity, score/history preservation and alert suppression passed')
+import subprocess
+subprocess.run([sys.executable,str(Path(__file__).with_name('test_native_research.py'))],check=True)
+subprocess.run([sys.executable,str(Path(__file__).with_name('test_consumer_boundaries.py'))],check=True)

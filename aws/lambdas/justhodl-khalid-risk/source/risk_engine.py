@@ -92,6 +92,8 @@ def age_hours(value: Any, now: datetime) -> float | None:
 def contract_error(spec: dict, payload: dict) -> str | None:
     if not isinstance(payload, dict):
         return "payload must be object"
+    if spec.get('id') == 'crisis' and payload.get('contract') == 'crisis-research.v1':
+        return __import__('crisis_authority').research_error(payload)
     contract = spec.get("contract") or {}
     missing = [key for key in contract.get("required_all") or [] if payload.get(key) is None]
     if missing:
@@ -170,6 +172,8 @@ def semantic_error(source_id: str, payload: dict) -> str | None:
             missing.append("panels")
         return "bond risk fields missing: " + ", ".join(missing) if missing else None
     if source_id == "crisis":
+        if payload.get('contract') == 'crisis-research.v1':
+            return __import__('crisis_authority').research_error(payload)
         components = rows(payload.get("components"))
         reported = number(payload.get("components_available"))
         if not components or reported is None:
@@ -336,13 +340,14 @@ def auction_summary(auction: dict) -> tuple[float | None, str, str, list[dict]]:
 
 
 def base_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dict:
+    crisis = __import__('crisis_authority').decision_view(crisis)
     posture = str(risk_gate.get("posture") or "UNKNOWN").upper()
     composite = number(risk_gate.get("composite")); sizing = number(risk_gate.get("sizing_multiplier")); defcon = number(crisis.get("defcon_level"))
     bad = [x for x in source_health if x.get("critical") and x.get("status") != "FRESH"]
     reasons = []
-    if bad or posture not in {"RISK_ON","NEUTRAL","RISK_OFF","SEVERE"} or composite is None or sizing is None or not 0 <= sizing <= 1 or defcon is None:
+    if bad or posture not in {"RISK_ON","NEUTRAL","RISK_OFF","SEVERE"} or composite is None or sizing is None or not 0 <= sizing <= 1:
         mode = "DATA_HOLD"; reasons.append("Critical risk inputs are stale, missing, or outside their contract")
-    elif posture in {"SEVERE","RISK_OFF"} or defcon <= 2:
+    elif posture in {"SEVERE","RISK_OFF"}:
         mode = "DEFENSIVE"; reasons.append("Master risk gate or crisis DEFCON vetoes new risk")
     elif posture == "NEUTRAL":
         mode = "SELECTIVE"; reasons.append("Only fully confirmed asymmetric setups may pass")
@@ -359,7 +364,7 @@ def base_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dic
 
 def build_board(active: dict[str, dict], source_health: list[dict], policy: dict) -> tuple[dict, dict]:
     policy = {**policy, "reasons": list(policy.get("reasons") or [])}
-    risk_gate=mapping(active.get("risk_gate")); crisis=mapping(active.get("crisis")); bond=mapping(active.get("bond_warroom")); dollar=mapping(active.get("dollar_radar")); euro=mapping(active.get("euro_fragmentation")); auction=mapping(active.get("auction_desk")); eurodollar=mapping(active.get("eurodollar_stress")); credit=mapping(active.get("credit_composite")); vol=mapping(active.get("fifx_vol")); liquidity=mapping(active.get("global_liquidity")); cycle=mapping(active.get("cycle_clock")); fx=mapping(active.get("fx_intelligence")); settlement=mapping(active.get("settlement_fails"))
+    risk_gate=mapping(active.get("risk_gate")); crisis=__import__("crisis_authority").decision_view(mapping(active.get("crisis"))); bond=mapping(active.get("bond_warroom")); dollar=mapping(active.get("dollar_radar")); euro=mapping(active.get("euro_fragmentation")); auction=mapping(active.get("auction_desk")); eurodollar=mapping(active.get("eurodollar_stress")); credit=mapping(active.get("credit_composite")); vol=mapping(active.get("fifx_vol")); liquidity=mapping(active.get("global_liquidity")); cycle=mapping(active.get("cycle_clock")); fx=mapping(active.get("fx_intelligence")); settlement=mapping(active.get("settlement_fails"))
     heartbeat=mapping(bond.get("heartbeat")); bond_equity=mapping(bond.get("equity_risk")); shortage=mapping(bond.get("eurodollar_shortage"))
     frag=mapping(euro.get("fragmentation")); countries=mapping(euro.get("countries")); italy=mapping(countries.get("IT")); spain=mapping(countries.get("ES"))
     btp=number(italy.get("spread_vs_bund_bp")); ites=None
@@ -383,7 +388,7 @@ def build_board(active: dict[str, dict], source_health: list[dict], policy: dict
     gate_composite=number(risk_gate.get("composite")); gate_score=clamp(50-gate_composite*25) if gate_composite is not None else None
     cards=[
         card(source_health,"risk_gate","Master risk gate",gate_score,risk_gate.get("posture"),"Authoritative master capital gate.",[{"label":"Composite","value":gate_composite},{"label":"Sizing multiplier","value":number(risk_gate.get("sizing_multiplier")),"unit":"x"}]),
-        card(source_health,"crisis","Crisis composite coverage",crisis_score,f"DEFCON {int(defcon)}" if defcon is not None else "UNKNOWN","Coverage and cadence are audited before use.",[{"label":"Crisis score","value":crisis_score,"unit":"/100"},{"label":"Components available","value":crisis.get("components_available")}]),
+        card(source_health,"crisis","Crisis research",crisis_score,"RESEARCH_ONLY","Native observations have no qualified portfolio policy.",[{"label":"Crisis score","value":crisis_score,"unit":"/100"},{"label":"Components available","value":crisis.get("components_available")}]),
         card(source_health,"credit_composite","ICE BofA + credit plumbing",credit_score,risk_level(credit_score),"Credit deterioration is the primary continuous cap modifier.",[{"label":"Credit composite","value":credit_score,"unit":"/100"}]),
         card(source_health,"eurodollar_stress","Eurodollar shortage",eurodollar_score,eurodollar.get("severity") or eurodollar.get("regime"),"Offshore-dollar and money-market stress.",[{"label":"Stress composite","value":eurodollar_score,"unit":"/100"},{"label":"Signals used","value":number(eurodollar.get("n_signals_used"))},{"label":"Failures","value":number(eurodollar.get("n_failures"))}]),
         card(source_health,"settlement_fails","U.S. Treasury settlement fails",settlement_score,settlement_regime,"Weekly US Treasury scope including TIPS; ex-TIPS plus TIPS only, never all-asset totals.",[{"label":"Fails to deliver","value":number(treasury.get("ftd_bn")),"unit":"USD bn par"},{"label":"Fails to receive","value":number(treasury.get("ftr_bn")),"unit":"USD bn par"},{"label":"Gross fails","value":number(treasury.get("gross_bn")),"unit":"USD bn par"},{"label":"Gross z-score","value":number(treasury_stats.get("z"))},{"label":"Gross percentile","value":number(treasury_stats.get("pctile")),"unit":"%"},{"label":"Observation as-of","value":treasury.get("as_of")}]),

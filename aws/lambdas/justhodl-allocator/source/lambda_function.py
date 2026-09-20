@@ -568,7 +568,7 @@ def rule_global_business_cycle(scores, evidence):
 def rule_crisis_composite(scores, evidence):
     """Master Crisis Composite (DEFCON) — the platform's headline risk read.
     High DEFCON tilts hard to defensives; all-clear tilts to risk."""
-    d = fs3("data/crisis-composite.json")
+    d = __import__("crisis_authority").decision_view(fs3("data/crisis-composite.json"))
     lvl = d.get("defcon_level")
     if lvl is None:
         return

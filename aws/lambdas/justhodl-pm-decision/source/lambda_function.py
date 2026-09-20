@@ -63,16 +63,17 @@ def _run_private(event, context):
     ranker = get_s3("data/master-ranker.json")
     allocator = get_s3("data/allocator.json")
     risk = get_s3("portfolio/risk.json")
-    crisis = get_s3("data/crisis-composite.json")
+    crisis = __import__("crisis_authority").decision_view(get_s3("data/crisis-composite.json"))
     capit = get_s3("data/capitulation.json")
     darkpool = get_s3("data/dark-pool.json")
 
     rc = ranker.get("regime_context") or {}
 
     # ── 1. POSTURE — from the regime_context directive built in master-ranker ──
-    posture = rc.get("risk_posture")
-    defcon = rc.get("defcon_level") if rc.get("defcon_level") is not None else crisis.get("defcon_level")
-    defcon_name = rc.get("defcon_name") or crisis.get("defcon_name")
+    # Cached ranker posture/DEFCON can still contain the retired Crisis policy.
+    posture = None
+    defcon = crisis.get("defcon_level")
+    defcon_name = crisis.get("defcon_name")
     tp_signal = rc.get("leading_markets_signal")
     cap_signal = rc.get("capitulation_signal") or capit.get("signal")
     if not posture:
@@ -221,9 +222,9 @@ def _run_private(event, context):
     # ── 6. TRIGGERS — what flips the call ──
     triggers = []
     if defcon is not None and defcon >= 3:
-        triggers.append(f"Flip DEFENSIVE if crisis-composite falls to DEFCON 2")
+        triggers.append("Crisis research is descriptive; no DEFCON positioning trigger is qualified")
     if defcon is not None and defcon <= 3:
-        triggers.append(f"Flip CONSTRUCTIVE if crisis-composite recovers to DEFCON 4-5")
+        triggers.append("Crisis research is descriptive; no DEFCON positioning trigger is qualified")
     triggers.append("Flip AGGRESSIVE if the capitulation engine prints GENERATIONAL_BUY / STRONG_BUY")
     triggers.append("Flip CAUTIOUS if leading-markets prints TOP_WARNING or a 2nd canary bucket flashes")
     if dark_pool_flags:

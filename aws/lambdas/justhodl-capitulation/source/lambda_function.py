@@ -98,7 +98,7 @@ def lambda_handler(event, context):
     t0 = time.time()
     print(f"[capitulation] starting {datetime.now(timezone.utc).isoformat()}")
 
-    crisis = get_s3_json("data/crisis-composite.json")
+    crisis = __import__("crisis_authority").decision_view(get_s3_json("data/crisis-composite.json"))
     internals = get_s3_json("data/market-internals.json")
     credit = get_s3_json("data/credit-stress.json")
     vol = get_s3_json("data/vol-surface.json")

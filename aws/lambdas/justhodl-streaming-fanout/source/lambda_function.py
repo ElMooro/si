@@ -176,6 +176,8 @@ def _extract_summary(engine, body):
     """Pick the small set of fields we want to broadcast."""
     if engine["name"] == "global_stress":
         body = __import__("gsi_authority").decision_view(body)
+    if engine["name"] == "crisis_composite":
+        body = __import__("crisis_authority").decision_view(body)
     summary = {"engine": engine["name"]}
     for f in engine["summary_fields"]:
         v = body.get(f)
@@ -188,6 +190,8 @@ def _is_meaningful_delta(engine, prev_summary, curr_summary):
     """Apply the per-engine delta rule. Returns (bool, reason)."""
     if engine["name"] == "global_stress":
         return False, "unqualified_global_stress"
+    if engine["name"] == "crisis_composite":
+        return False, "unqualified_crisis_composite"
     if prev_summary is None:
         return True, "first-broadcast"
 

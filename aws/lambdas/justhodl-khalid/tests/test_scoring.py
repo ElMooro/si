@@ -179,7 +179,9 @@ def test_risk_off_blocks_entries():
         {"defcon_level": 3},
         [],
     )
-    assert out["mode"] == "DEFENSIVE"
+    assert out["mode"] == "DEFENSIVE"  # independent risk-gate veto remains
+    assert out["crisis_defcon"] is None
+    assert out["forced_liquidation"] is False
     assert out["allows_new_entries"] is False
 
 
@@ -668,6 +670,7 @@ def test_real_bond_warroom_shape_maps_heartbeat_equity_and_spreads():
     assert metrics["BTP-Bund"] == 142
     assert metrics["Italy-Spain"] == 31
     assert tightened["mode"] in {"SELECTIVE", "SELECTIVE_RISK_ON"}
+    assert tightened["crisis_defcon"] is None
 
 
 def test_risk_board_is_tighten_only_and_credit_is_primary_cap_modifier():

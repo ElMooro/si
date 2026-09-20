@@ -152,7 +152,7 @@ def build_risk_board(
     """Build the displayed board and tighten a copy of the capital policy."""
     policy = {**policy, "reasons": list(policy.get("reasons") or [])}
     risk_gate = _dict(feeds.get("risk_gate"))
-    crisis = _dict(feeds.get("crisis"))
+    crisis = __import__("crisis_authority").decision_view(_dict(feeds.get("crisis")))
     bond = _dict(feeds.get("bond_warroom"))
     dollar = _dict(feeds.get("dollar_radar"))
     euro = _dict(feeds.get("euro_fragmentation"))
@@ -259,8 +259,8 @@ def build_risk_board(
                   {"label": "Sizing multiplier", "value": _num(risk_gate.get("sizing_multiplier")), "unit": "x"},
               ]), 
         _card(source_health, "crisis", "black_swan", "Crisis composite coverage",
-              crisis_score, f"DEFCON {int(defcon)}" if defcon is not None else "UNKNOWN",
-              "Component coverage and age are audited before the crisis composite can control capital.", [
+              crisis_score, f"DEFCON {int(defcon)}" if defcon is not None else "RESEARCH_ONLY",
+              "Native observations remain research-only until an independent policy is qualified.", [
                   {"label": "Crisis score", "value": crisis_score, "unit": "/100"},
                   {"label": "Components available", "value": crisis.get("components_available")},
                   {"label": "Available rows", "value": crisis_available},

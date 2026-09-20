@@ -147,7 +147,7 @@ class Boundaries(unittest.TestCase):
     def test_actual_router_does_not_convert_missing_gsi_to_zero_or_hundred(self):
         scope=actual('regime-conditional-router',['detect_dollar_shortage','detect_dollar_smile_left','detect_dollar_smile_right'],{'safe_get':lambda d,k:d.get(k) if isinstance(d,dict) else None})
         score,e=scope['detect_dollar_smile_left']({'score':70},self.SPOOF,{'score':0});self.assertEqual(score,0);self.assertIsNone(e['global_stress'])
-        score,e=scope['detect_dollar_smile_left']({'score':70},self.SPOOF,{'score':60});self.assertEqual(score,65)
+        score,e=scope['detect_dollar_smile_left']({'score':70},self.SPOOF,{'score':60});self.assertEqual(score,0);self.assertIsNone(e['crisis'])
         score,e=scope['detect_dollar_smile_right']({'score':70},self.SPOOF,{'score':0},{});self.assertEqual(score,0);self.assertIsNone(e['global_stress'])
     def test_actual_fanout_cannot_broadcast_unqualified_gsi(self):
         scope=actual('streaming-fanout',['_extract_summary','_is_meaningful_delta'])

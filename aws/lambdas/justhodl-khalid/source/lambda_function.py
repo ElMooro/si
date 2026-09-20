@@ -294,6 +294,8 @@ def _risk_payload_error(name: str, payload: dict) -> str | None:
         return "bond risk fields are missing: " + ", ".join(missing) if missing else None
     if name != "crisis":
         return None
+    if payload.get('contract') == 'crisis-research.v1':
+        return __import__('crisis_authority').research_error(payload)
     components = payload.get("components")
     reported = number(payload.get("components_available"))
     defcon = number(payload.get("defcon_level"))

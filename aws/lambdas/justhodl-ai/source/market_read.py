@@ -143,6 +143,7 @@ def build_board(s3, public_bucket: str, private_bucket: Optional[str] = None) ->
     for name, (key, sla_h, private) in SOURCES.items():
         source_bucket = (private_bucket or public_bucket) if private else public_bucket
         d = _get(s3, source_bucket, key)
+        if d is not None: d = __import__("crisis_authority").guard(key, d)
         st = _stamp(d)
         age = _age_h(st)
         status = "MISSING" if d is None else ("FUTURE" if age is not None and age < -MAX_FUTURE_SKEW_H else ("STALE" if (age is None or age > sla_h) else "FRESH"))

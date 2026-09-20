@@ -35,8 +35,10 @@ def test_recovery_redeploys_original_source_changes_and_shared_importers():
             path=repo/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(data)
         git('init');git('config','user.name','test');git('config','user.email','test@example.invalid')
         write('.github/workflows/deploy-lambdas.yml', WORKFLOW.read_text())
+        for helper in ('scripts/shared_dependents.py','aws/ops/checks/release_package_evidence.py'):
+            write(helper,(ROOT/helper).read_text(encoding='utf-8'))
         write('aws/lambdas/engine-a/source/lambda_function.py','old=1\n')
-        write('aws/lambdas/engine-c/source/lambda_function.py','from donor import value\n')
+        write('aws/lambdas/engine-c/source/lambda_function.py',"value=__import__('donor').value\n")
         write('aws/shared/donor.py','value=1\n')
         git('add','.');git('commit','-m','baseline');base=git('rev-parse','HEAD')
         write('aws/lambdas/engine-a/source/lambda_function.py','fixed=1\n')

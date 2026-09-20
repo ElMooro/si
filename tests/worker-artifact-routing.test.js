@@ -33,3 +33,24 @@ test('exact mode preserves private containment before all cache and origin reads
  }
  assert.equal(state.calls.length,0);assert.equal(state.keys.length,0);
 });
+
+test('DEFCON alias always reads the canonical Crisis packet without cache; exact mode retains identity',async()=>{
+ const worker=(await import(source)).default;
+ for(const suffix of ['', '?exact=1']){
+  const state=setup();globalThis.fetch=async input=>{state.calls.push(String(input));return Response.json({key:new URL(String(input)).pathname});};
+  const response=await worker.fetch(new Request('https://justhodl-data-proxy.raafouis.workers.dev/data/defcon.json'+suffix),{},state.context);
+  const expected=suffix?'data/defcon.json':'data/crisis-composite.json';
+  assert.equal(response.status,200);assert.equal(response.headers.get('X-JH-Artifact-Key'),expected);
+  assert.equal(response.headers.get('Cache-Control'),'no-store');assert.equal((await response.json()).key,'/'+expected);
+  assert.equal(state.calls.length,1);assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);
+ }
+});
+
+test('Crisis current and history publications cannot be hidden behind edge caches',async()=>{
+ const worker=(await import(source)).default;
+ for(const key of ['crisis-composite.json','crisis-composite-history.json']){
+  const state=setup();globalThis.fetch=async input=>{state.calls.push(String(input));return Response.json({ok:true});};
+  const response=await worker.fetch(new Request('https://justhodl-data-proxy.raafouis.workers.dev/data/'+key),{},state.context);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);
+ }
+});

@@ -25,9 +25,17 @@ def shared_imports(root, sources):
         path = queue.pop()
         if path.suffix != '.py':
             continue
-        tree = ast.parse(path.read_text())
+        tree = ast.parse(path.read_text(encoding='utf-8'))
+        dynamic_names={'__import__','import_module'}
+        for item in ast.walk(tree):
+            if isinstance(item,ast.ImportFrom) and item.module=='importlib':
+                dynamic_names.update(alias.asname or alias.name for alias in item.names if alias.name=='import_module')
         for node in ast.walk(tree):
             names = [node.module.split('.')[0]] if isinstance(node, ast.ImportFrom) and node.module else [a.name.split('.')[0] for a in node.names] if isinstance(node, ast.Import) else []
+            if isinstance(node,ast.Call) and node.args and isinstance(node.args[0],ast.Constant) and isinstance(node.args[0].value,str):
+                fn=node.func
+                if (isinstance(fn,ast.Name) and fn.id in dynamic_names) or (isinstance(fn,ast.Attribute) and fn.attr=='import_module'):
+                    names.append(node.args[0].value.split('.')[0])
             for name in names:
                 if name in shared and name not in needed:
                     needed.add(name)

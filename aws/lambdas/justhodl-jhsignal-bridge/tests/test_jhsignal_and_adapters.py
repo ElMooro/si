@@ -149,6 +149,9 @@ class TestAdapters:
         sigs, reports = signals_from_artifacts
         assert set(reports) == set(registry.engines)
         for eid, r in reports.items():
+            if eid == "crisis_composite":
+                assert not r.signals and r.source_status == "UNQUALIFIED"
+                continue
             assert r.source_status == "OK", (eid, r.diagnostics)
             assert r.signals, eid
             assert not r.rejected, (eid, r.rejected)
@@ -185,8 +188,7 @@ class TestAdapters:
         assert gex["score"] < 0 and gex["metadata"]["veto"]["type"] == "SOFT" and gex["horizon"] == "TACTICAL"
         rg = by[("risk_gate", "market:US_EQUITY", "risk_posture")]
         assert rg["metadata"]["veto"] is None and rg["entity_type"] == "market" and abs(rg["confidence"] - 0.75) < 1e-9
-        cc = by[("crisis_composite", "market:US_EQUITY", "systemic_stress")]
-        assert cc["score"] > 0 and cc["metadata"]["veto"] is None
+        assert ("crisis_composite", "market:US_EQUITY", "systemic_stress") not in by
         assert by[("katlin", "crypto:BTC", "katlin_bottom_setup")]["entity_type"] == "crypto"
         assert ("katlin", "crypto:BTC", "katlin_catalyst") in by and by[("katlin", "crypto:BTC", "katlin_catalyst")]["evidence"][0]["value"].startswith("spot ETF")
         assert ("katlin", "equity:TSM", "katlin_catalyst") not in by
@@ -205,7 +207,7 @@ class TestAdapters:
         from jh_adapters import adapter_for
         crisis = registry.get("crisis_composite"); rg = registry.get("risk_gate"); lce = registry.get("liquidity_credit_engine")
         r = adapter_for(crisis, universe, now=now).parse_existing_output({"generated_at": ts(1), "master_crisis_score": 86.0, "defcon_level": 2, "components": [{"available": True}]}, {})
-        assert r.signals[0]["metadata"]["veto"]["type"] == "HARD" and r.signals[0]["score"] <= -0.8
+        assert not r.signals and r.source_status == "UNQUALIFIED"  # legacy score cannot grant a veto
         r = adapter_for(rg, universe, now=now).parse_existing_output({"generated_at": ts(1), "posture": "SEVERE", "composite": -8, "sizing_multiplier": 0.2, "legs": {"a": {"value": 1}}}, {})
         assert r.signals[0]["metadata"]["veto"]["type"] == "HARD"
         r = adapter_for(rg, universe, now=now).parse_existing_output({"generated_at": ts(1), "posture": "RISK_OFF", "composite": -4, "sizing_multiplier": 0.45, "legs": {"a": {"value": 1}}}, {})

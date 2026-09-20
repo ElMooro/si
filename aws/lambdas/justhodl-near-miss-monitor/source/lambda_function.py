@@ -274,6 +274,9 @@ def handler(event, context):
     for cfg in NEAR_MISS_CONFIGS:
         sig = cfg["signal_type"]
         key = cfg["snapshot_key"]
+        if key == "data/crisis-composite.json":
+            diagnostics.append({"signal_type":sig,"skipped":True,"reason":"Crisis research has no qualified alert threshold"})
+            continue
         extractor_name = cfg["extractor"]
         params = cfg.get("params") or {}
 

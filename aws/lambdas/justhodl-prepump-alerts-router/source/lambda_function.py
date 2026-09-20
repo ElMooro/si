@@ -904,6 +904,8 @@ def check_52wk_breakout(state: dict) -> List[str]:
 def check_crisis_composite(state: dict) -> List[str]:
     """Composite crisis score level changes."""
     doc = _read_json("data/crisis-composite.json")
+    if __import__("crisis_authority").qualified_score(doc) is None:
+        return []  # Keep prior alert state; absence is not a transition to calm.
     if not doc:
         return []
     score = doc.get("composite_score") or doc.get("score") or 0

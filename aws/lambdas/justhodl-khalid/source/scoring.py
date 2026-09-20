@@ -44,6 +44,8 @@ def first_number(*values: Any) -> float | None:
 
 def contract_error(spec: dict, payload: dict) -> str | None:
     """Validate the explicit adapter contract for one source artifact."""
+    if spec.get('id') == 'crisis' and payload.get('contract') == 'crisis-research.v1':
+        return __import__('crisis_authority').research_error(payload)
     contract = spec.get("contract") or {}
     required_all = contract.get("required_all") or []
     required_any = contract.get("required_any") or []
@@ -477,6 +479,7 @@ def rank_candidates(candidates: list[dict]) -> list[dict]:
 
 
 def risk_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dict:
+    crisis = __import__("crisis_authority").decision_view(crisis)
     posture = str(risk_gate.get("posture") or "UNKNOWN").upper()
     composite = number(risk_gate.get("composite"))
     sizing = number(risk_gate.get("sizing_multiplier"))
@@ -493,7 +496,6 @@ def risk_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dic
         or composite is None
         or sizing is None
         or not 0 <= sizing <= 1
-        or defcon is None
     ):
         mode = "DATA_HOLD"
         reasons.append("Critical risk inputs are stale, missing, or outside their contract")
@@ -514,6 +516,8 @@ def risk_policy(risk_gate: dict, crisis: dict, source_health: list[dict]) -> dic
         "risk_gate_composite": composite,
         "risk_gate_sizing_multiplier": sizing,
         "sizing_multiplier": sizing if sizing is not None else 0.0,
+        "forced_liquidation": False,
+        "crisis_qualification": "research_only",
         "crisis_defcon": int(defcon) if defcon is not None else None,
         "reasons": reasons,
         "default_shelter": {

@@ -268,7 +268,7 @@ def load_all():
         "gold_equity_rotation":"data/gold-equity-rotation.json",
         "sector_flow_state":"data/sector-flow-state.json",
     }
-    return {k:fs3(v) for k,v in keys.items()}
+    return {k:__import__("crisis_authority").guard(v,fs3(v)) for k,v in keys.items()}
 
 def extract_metrics(data,weights):
     d=data.get("main",{})
@@ -696,7 +696,7 @@ def extract_metrics(data,weights):
             "plumbing_phase": p.get("phase"),
         })(),
         # ─── MASTER CRISIS COMPOSITE — single DEFCON read ─────────────
-        **(lambda c=data.get("crisis_composite", {}): {
+        **(lambda c=__import__("crisis_authority").decision_view(data.get("crisis_composite", {})): {
             "crisis_defcon": c.get("defcon_level"),
             "crisis_defcon_name": c.get("defcon_name"),
             "crisis_score": c.get("master_crisis_score"),

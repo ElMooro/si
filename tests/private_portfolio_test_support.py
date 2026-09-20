@@ -115,7 +115,7 @@ def run(engine):
         assert any(w["Key"] == key for w in store.writes)
         assert (kind, store.docs[key]) in mirrors
         assert all(w.get("CacheControl") == "private, no-store" for w in store.writes)
-        if engine in {"portfolio-risk", "portfolio-sizer", "portfolio-catalysts", "pm-decision"}:
+        if engine in {"portfolio-risk", "portfolio-sizer", "portfolio-catalysts"}:
             assert SYMBOL in json.dumps(store.docs[key]), engine
         if engine in {'portfolio-risk', 'portfolio-sizer', 'pm-decision'}:
             assert store.docs[key]['permissions']['sizing_eligible'] is False
@@ -129,6 +129,10 @@ def run(engine):
             assert store.docs[key]['summary']['nav'] is None
             assert all(row['action'] == 'WAIT' and row['shares_delta'] is None and row['dollar_delta'] is None for row in store.docs[key]['positions'])
         if engine == "pm-decision":
+            # Retired cached Crisis posture cannot turn this high-beta fixture
+            # into a trim candidate. Held-book coverage is still calculated.
+            assert SYMBOL not in json.dumps(store.docs[key])
+            assert store.docs[key]['portfolio']['n_positions'] == 1
             assert ("pm-decision-history", store.docs["data/pm-decision-history.json"]) in mirrors
             assert store.docs[key]['call_verb'] == 'WAIT'
             assert all(store.docs[key]['actions'][name] == [] for name in ('trim','add','hedge'))

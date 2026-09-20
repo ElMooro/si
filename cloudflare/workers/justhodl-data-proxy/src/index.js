@@ -113,6 +113,7 @@ function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json', 'risk-regime.json', 'jsi.json', 'jsi-history.json', 'jsi-calibration.json',
     'global-stress-history.json', 'gsi-calibration.json', 'gsi-horizons.json',
+    'crisis-composite.json', 'defcon.json', 'crisis-composite-history.json',
     'capital-flow.json', 'deep-value-overlap.json', 'equity-confluence.json', 'best-setups.json', 'industry-rotation.json', 'engine-conflicts.json', 'narrative-vs-tape.json',
     'ciss.json', 'ciss-stress.json', 'ciss-ai.json', 'sovereign-stress.json', 'euro-fragmentation.json', 'risk-radar.json', 'global-stress.json', 'regime-composite.json', 'liquidity-credit-engine.json', 'risk-gate.json',
     'quantum-desk.json', 'quantum-desk-history.json', 'liquidity-inflection.json', 'eurodollar-plumbing.json', 'yen-carry.json', 'carry-surface.json', 'capital-inflows.json', 'foreign-flows.json', 'tic-flows.json', 'official-pulse.json', 'etf-true-flows.json', 'global-flow-desk.json', 'holdings-research.json', '13f-positions.json', '13f-flows-by-ticker.json', '13f-by-ticker.json', '13f-desk.json', 'compound-signals.json', 'attention-confluence.json', 'flow-confluence.json', 'master-ranker.json', 'smart-money-clusters.json',
@@ -2167,7 +2168,8 @@ export default {
     // GitHub Pages does not interpret _redirects. The public research brief
     // has one root S3 object; this explicit alias never applies to exact reads.
     const cissAlias = !exactArtifact && safePath === "data/ciss.json";
-    const artifactKey = cissAlias ? "data/ciss-stress.json" : !exactArtifact && safePath === "data/intelligence-report.json"
+    const crisisAlias = !exactArtifact && safePath === "data/defcon.json";
+    const artifactKey = crisisAlias ? "data/crisis-composite.json" : cissAlias ? "data/ciss-stress.json" : !exactArtifact && safePath === "data/intelligence-report.json"
       ? "intelligence-report.json" : safePath;
     const researchBrief = artifactKey === "intelligence-report.json";
     const freshArtifact = exactArtifact || researchBrief || mutablePublication(safePath);
@@ -2321,7 +2323,7 @@ export default {
         "Cache-Control":  ttl > 0 ? `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}` : "no-store",
         "X-Edge-TTL":     String(ttl),
         "X-Upstream":     upstreamUrl,
-        ...(exactArtifact || researchBrief || cissAlias ? { "X-JH-Artifact-Key": artifactKey } : {}),
+        ...(exactArtifact || researchBrief || cissAlias || crisisAlias ? { "X-JH-Artifact-Key": artifactKey } : {}),
         ...corsHeaders(),
       };
       if (lastMod) respHeaders["Last-Modified"] = lastMod;

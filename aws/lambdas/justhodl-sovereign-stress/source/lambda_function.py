@@ -1016,7 +1016,7 @@ def lambda_handler(event, context):
         + ".")
 
     # cross-reference (do not rebuild)
-    crisis = read_existing("data/crisis-composite.json") or {}
+    crisis = __import__("crisis_authority").decision_view(read_existing("data/crisis-composite.json")) or {}
     eds = read_existing("data/eurodollar-plumbing.json") or {}
     cross = {
         "crisis_composite": crisis.get("score") or crisis.get("composite"),

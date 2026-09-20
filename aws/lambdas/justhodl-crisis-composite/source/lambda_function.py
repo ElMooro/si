@@ -296,7 +296,7 @@ def to_defcon(score):
     return 5, "ALL CLEAR", "var(--green)", DEFCON[-1][4]
 
 
-def lambda_handler(event, context):
+def _legacy_unqualified_handler(event, context):
     t0 = time.time()
     print(f"[crisis-composite] starting {datetime.now(timezone.utc).isoformat()}")
 
@@ -418,3 +418,14 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "master_crisis_score": round(master, 1),
         "defcon_level": level, "defcon_name": name, "trend": trend})}
+
+
+# Active publication uses public original-source research only. Legacy event
+# flags cannot enable private contexts, positioning playbooks or notifications.
+def lambda_handler(event=None,context=None):
+    from crisis_research_store import run
+    try:
+        result=run(s3,S3_BUCKET)
+        return {'statusCode':200 if result['published'] else 409,'body':json.dumps(result)}
+    except Exception as exc:
+        return {'statusCode':503,'body':json.dumps({'ok':False,'error':type(exc).__name__})}

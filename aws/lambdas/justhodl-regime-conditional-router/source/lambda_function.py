@@ -298,7 +298,7 @@ def detect_dollar_smile_left(ds, gs, crisis):
     """USD strong + global stress + crisis elevated."""
     dollar = safe_get(ds, "score") or 0
     gs_score = __import__("gsi_authority").qualified_score(gs)
-    crisis_score = safe_get(crisis, "score") or 0
+    crisis_score = __import__("crisis_authority").qualified_score(crisis)
     combined = 0
     if isinstance(dollar, (int, float)) and dollar >= 60:
         if (isinstance(gs_score, (int, float)) and gs_score >= 60) or \
@@ -313,7 +313,7 @@ def detect_dollar_smile_right(ds, gs, crisis, signal_board):
     """USD strong + low global stress + risk-on posture."""
     dollar = safe_get(ds, "score") or 0
     gs_score = __import__("gsi_authority").qualified_score(gs)
-    crisis_score = safe_get(crisis, "score") or 100
+    crisis_score = __import__("crisis_authority").qualified_score(crisis)
     posture = safe_get(signal_board, "posture")
     combined = 0
     if isinstance(dollar, (int, float)) and dollar >= 55:
@@ -329,7 +329,7 @@ def detect_dollar_smile_right(ds, gs, crisis, signal_board):
 def detect_plant_and_harvest(signal_board, crisis, vol_radar):
     """Risk-on posture + low crisis + low vol."""
     posture = safe_get(signal_board, "posture")
-    crisis_score = safe_get(crisis, "score") or 100
+    crisis_score = __import__("crisis_authority").qualified_score(crisis)
     vol = safe_get(vol_radar, "spike_risk_score") or 100
     combined = 0
     if isinstance(posture, str) and posture.upper() in (
@@ -387,7 +387,7 @@ def lambda_handler(event=None, context=None):
     ac = fetch_s3_json("data/auction-crisis.json")
     ds = fetch_s3_json("data/dollar-radar.json")
     gs = __import__("gsi_authority").decision_view(fetch_s3_json("data/global-stress.json"))
-    crisis = fetch_s3_json("data/crisis-composite.json")
+    crisis = __import__("crisis_authority").decision_view(fetch_s3_json("data/crisis-composite.json"))
     canary = fetch_s3_json("data/canary-grid.json")
     signal_board = fetch_s3_json("data/signal-board.json")
     vol_radar = fetch_s3_json("data/vol-radar.json")

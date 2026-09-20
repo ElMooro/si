@@ -233,7 +233,7 @@ def gather_signals():
                       "level": gs.get("global_stress_level")}
 
     # Crisis composite -- 0-100 master_crisis_score
-    cc = read_json("data/crisis-composite.json")
+    cc = __import__("crisis_authority").decision_view(read_json("data/crisis-composite.json"))
     crisis = cc.get("master_crisis_score") or cc.get("composite_score")
     if isinstance(crisis, (int, float)):
         intensity = clamp((crisis - 35) / 40.0, -1.0, 1.0)
@@ -631,7 +631,7 @@ def _best_asset_now():
         reasons.append("us10y-sentinel %s (%s)" % (
             sent.get("tier"),
             str(sent.get("tier_reason", ""))[:90]))
-    cc = _ba_s3json("data/crisis-composite.json")
+    cc = __import__("crisis_authority").decision_view(_ba_s3json("data/crisis-composite.json"))
     for k in ("composite", "score", "level"):
         v = cc.get(k)
         if isinstance(v, (int, float)) and v >= 70:

@@ -117,6 +117,8 @@ def n_canary_grid(d):
 
 
 def n_crisis_composite(d):
+    if __import__("crisis_authority").qualified_score(d) is None:
+        return None, "Crisis research has no qualified directional vote"
     lvl = d.get("defcon_level")
     nm = d.get("defcon_name") or d.get("label") or ""
     # DEFCON 5 = calm (risk-on) ... DEFCON 1 = crisis (risk-off)

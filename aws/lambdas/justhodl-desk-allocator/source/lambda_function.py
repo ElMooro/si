@@ -351,7 +351,7 @@ def read_regime():
     risk-on, negative is risk-off.
     """
     sb = get_json("data/signal-board.json")
-    cc = get_json("data/crisis-composite.json")
+    cc = __import__("crisis_authority").decision_view(get_json("data/crisis-composite.json"))
 
     sb_comp = None
     sb_posture = "UNAVAILABLE"
@@ -367,7 +367,7 @@ def read_regime():
         crisis_score = cc.get("master_crisis_score")
         defcon = cc.get("defcon_level")
     # crisis 0..100 (higher = worse) -> risk axis: 50 is neutral
-    crisis_norm = clamp(-((crisis_score or 50.0) - 50.0) / 50.0, -1.0, 1.0) \
+    crisis_norm = clamp(-(crisis_score - 50.0) / 50.0, -1.0, 1.0) \
         if crisis_score is not None else None
 
     parts, wts = [], []
@@ -380,9 +380,11 @@ def read_regime():
     if parts:
         blended = sum(p * w for p, w in zip(parts, wts)) / sum(wts)
     else:
-        blended = 0.0
+        blended = None
 
-    if blended >= 0.45:
+    if blended is None:
+        label = "UNAVAILABLE"
+    elif blended >= 0.45:
         label = "RISK-ON"
     elif blended >= 0.12:
         label = "MILDLY RISK-ON"
@@ -394,7 +396,7 @@ def read_regime():
         label = "RISK-OFF"
 
     return {
-        "blended_risk_axis": round(blended, 3),
+        "blended_risk_axis": round(blended, 3) if blended is not None else None,
         "label": label,
         "signal_board_posture": sb_posture,
         "signal_board_composite": sb_comp,
@@ -503,7 +505,7 @@ def lambda_handler(event, context):
 
     # ---- step 4: regime tilt ----
     for r in rows:
-        mult = 1.0 + TILT_GAIN * risk_axis * r["risk_beta"]
+        mult = 1.0 if risk_axis is None else 1.0 + TILT_GAIN * risk_axis * r["risk_beta"]
         r["regime_mult"] = round(clamp(mult, TILT_LO, TILT_HI), 3)
 
     # ---- step 5: inverse-vol parity x regime x health, cap, normalise ----

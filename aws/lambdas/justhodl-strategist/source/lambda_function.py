@@ -245,6 +245,7 @@ def load(key):
         if key == "data/risk-regime.json":
             from risk_regime_authority import decision_view
             d = decision_view(d)
+        d = __import__("crisis_authority").guard(key,d)
         lm = o["LastModified"]
         age_h = (datetime.now(timezone.utc) - lm).total_seconds() / 3600.0
         return key, d, age_h

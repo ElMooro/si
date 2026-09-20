@@ -1,8 +1,8 @@
 {
-  "memory": 256,
+  "memory": 512,
   "timeout": 60,
   "runtime": "python3.12",
-  "description": "Master Crisis Composite \u2014 fuses all risk engines into one DEFCON 5-1 score",
+  "description": "Native Crisis research: original FRED/ECB observations and date-matched comparisons; no qualified DEFCON or portfolio policy",
   "environment": {},
   "inherit_env": [
     {
@@ -16,6 +16,6 @@
   "schedule": {
     "rule_name": "crisis-composite-hourly",
     "cron": "cron(15 * * * ? *)",
-    "description": "Master Crisis Composite hourly refresh"
+    "description": "Public original-source Crisis research hourly refresh"
   }
 }

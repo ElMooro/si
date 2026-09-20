@@ -330,11 +330,20 @@ class CrisisCompositeAdapter(SignalAdapter):
     (existing fusion-policy hard_veto threshold) or DEFCON <= 2; SOFT veto at >= 65 (risk_off threshold)."""
     signal_type, category = "systemic_stress", "risk"
 
+    def parse_existing_output(self, doc, meta):
+        result = super().parse_existing_output(doc, meta)
+        if result.data_asof is not None and __import__('crisis_authority').qualified_score(doc) is None:
+            result.source_status = 'UNQUALIFIED'
+            result.diagnostics = ['Crisis source observations have no independently qualified directional or veto policy']
+        return result
+
     def validate_source(self, doc):
-        return _f(doc.get("master_crisis_score")) is not None
+        return __import__("crisis_authority").qualified_score(doc) is not None
 
     def rows(self, doc):
-        m = _f(doc["master_crisis_score"]); lvl = doc.get("defcon_level")
+        m = __import__("crisis_authority").qualified_score(doc)
+        if m is None: return
+        lvl = doc.get("defcon_level")
         comps = doc.get("components") or []
         n_tot = len(comps) if isinstance(comps, list) else 0
         n_ok = sum(1 for c in comps if isinstance(c, dict) and c.get("available", c.get("score") is not None)) if n_tot else 0

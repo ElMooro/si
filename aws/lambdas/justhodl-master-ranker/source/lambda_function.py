@@ -926,7 +926,7 @@ def collect_macro_signals():
             })
 
     # Master Crisis Composite — surface when stress is elevated (DEFCON <= 3)
-    crisis = fetch_json("data/crisis-composite.json")
+    crisis = __import__("crisis_authority").decision_view(fetch_json("data/crisis-composite.json"))
     if crisis and (crisis.get("defcon_level") or 5) <= 3:
         lvl = crisis.get("defcon_level")
         out.append({
@@ -990,7 +990,7 @@ def get_regime_context():
     _liqcomp = _liqc.get("composite") or {}
 
     # ── Risk Pack overlay — master crisis read + canary turning point ──
-    crisis = fetch_json("data/crisis-composite.json") or {}
+    crisis = __import__("crisis_authority").decision_view(fetch_json("data/crisis-composite.json")) or {}
     leading = fetch_json("data/leading-markets.json") or {}
     capit = fetch_json("data/capitulation.json") or {}
     defcon = crisis.get("defcon_level")

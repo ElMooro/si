@@ -201,7 +201,7 @@ def build_context(message):
     # crisis-composite fuses every dedicated risk engine into one DEFCON
     # level (5 all-clear → 1 crisis). This is THE headline risk number;
     # the AI should weight it heavily when framing any risk discussion.
-    cc = get_s3('data/crisis-composite.json')
+    cc = __import__("crisis_authority").decision_view(get_s3('data/crisis-composite.json'))
     if cc:
         defcon = cc.get('defcon_level')
         cscore = cc.get('master_crisis_score')

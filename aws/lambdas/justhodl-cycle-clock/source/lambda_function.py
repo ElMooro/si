@@ -484,7 +484,7 @@ def lambda_handler(event, context):
     lce = load("data/liquidity-credit-engine.json", "liquidity_credit")
     plumb = load("data/eurodollar-plumbing.json", "plumbing")
     tnoise = load("data/treasury-noise.json", "treasury_noise")
-    crisis = load("data/crisis-composite.json", "crisis_composite")
+    crisis = __import__("crisis_authority").decision_view(load("data/crisis-composite.json", "crisis_composite"))
     canary = load("data/crisis-canaries.json", "crisis_canaries")
     gstress = __import__("gsi_authority").decision_view(load("data/global-stress.json", "global_stress"))
     sysstress = load("data/systemic-stress.json", "systemic_stress")
