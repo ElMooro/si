@@ -1,6 +1,24 @@
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const source=pathToFileURL(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/src/index.js')).href;
+test('valuation page loader has deployed routes and reads the exact root object uncached',async()=>{
+ const fs=require('node:fs'),page=require('../jh-valuation-research.js'),worker=(await import(source)).default;
+ const config=fs.readFileSync(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/wrangler.toml'),'utf8');
+ const routes=[...config.matchAll(/pattern\s*=\s*"([^"]+)"/g)].map(m=>m[1]);
+ for(const host of ['justhodl.ai','www.justhodl.ai']){
+  const state=setup();assert.ok(routes.includes(host+'/valuations-data.json'),'Missing public root route for '+host);
+  globalThis.fetch=async(input,options)=>{state.calls.push({url:String(input),options});return Response.json({contract:'valuation-native-research.v1'});};
+  const packet=await page.load('valuations-data.json',async(key,options)=>{
+   assert.equal(key,'/valuations-data.json');assert.equal(options.cache,'no-store');
+   const response=await worker.fetch(new Request('https://'+host+key),{},state.context);
+   assert.equal(response.headers.get('Cache-Control'),'no-store');
+   assert.equal(response.status,200);return response;
+  });
+  assert.equal(packet.doc.contract,'valuation-native-research.v1');assert.equal(state.calls.length,1);
+  assert.equal(new URL(state.calls[0].url).pathname,'/valuations-data.json');assert.equal(state.calls[0].options.cache,'no-store');
+  assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);
+ }
+});
 function setup(){
  const calls=[],keys=[],stored=new Map(),waits=[];
  globalThis.caches={default:{async match(req){keys.push(req.url);return stored.get(req.url)?.clone();},async put(req,response){stored.set(req.url,response.clone());}}};
