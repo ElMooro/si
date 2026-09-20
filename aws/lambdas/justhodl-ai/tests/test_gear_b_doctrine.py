@@ -1,11 +1,13 @@
 """Runtime wrap must intercept Gear-B before another GPU hour."""
 from __future__ import annotations
 
+import os
 import types
 import sys
 
 
 def test_wrap_refuses_old_family(monkeypatch=None):
+    os.environ["JH_AI_DOCTRINE"] = "1"
     gb = types.ModuleType("gear_b")
 
     def tick(*a, launch=True, **k):
