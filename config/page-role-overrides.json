@@ -1272,6 +1272,26 @@
           "purpose": "Native dated valuation input publication; whole predecessors remain retained and unqualified."
         }
       }
+    },
+    "tail-risk.html": {
+      "primary_engines": [
+        "justhodl-tail-risk"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-tail-risk": [
+          "data/tail-risk.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-tail-risk": {
+          "source": "aws/lambdas/justhodl-tail-risk/source/tail_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Native option snapshot publication; legacy score history retained as unqualified context."
+        }
+      }
     }
   }
 }

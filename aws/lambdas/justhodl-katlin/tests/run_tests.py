@@ -209,3 +209,8 @@ if __name__ == "__main__":
         fn(mod)
         print("ok", name)
     print("katlin war-room tests passed: %d" % len(tests))
+
+if __name__=='__main__':
+    import subprocess,sys
+    from pathlib import Path
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/tail_consumer_test_support.py')],check=True)

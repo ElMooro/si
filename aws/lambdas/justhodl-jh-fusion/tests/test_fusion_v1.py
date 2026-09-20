@@ -137,13 +137,19 @@ class TestRunLevel:
                 assert h["capital_decision"] == "BLOCKED" and any(v["reason"].startswith("CAPITAL_DECISION_BLOCKED") for v in h["hard_vetoes"])
 
     def test_noncritical_family_missing_only_lowers_coverage(self, snapshot, registry, universe_doc, flags):
+        baseline = F.run_fusion(snapshot, registry_doc=registry.doc, universe_doc=universe_doc, flags=flags, now=NOW)
         snap = copy.deepcopy(snapshot)
         for eid, lst in snap["entities"].items():
             snap["entities"][eid] = [s for s in lst if s["family"] != "FLOW"]
         res = F.run_fusion(snap, registry_doc=registry.doc, universe_doc=universe_doc, flags=flags, now=NOW)
-        assert res["critical_dependencies"]["capital_blocked"] is False
+        # The legacy crisis fixture is already unqualified. Removing noncritical
+        # FLOW evidence must not erase that block or add another critical failure.
+        assert res["critical_dependencies"] == baseline["critical_dependencies"]
+        assert any("crisis_composite" in f["reason"] for f in res["critical_dependencies"]["failures"])
         nv = res["entities"]["equity:NVDA"]["horizons"]
-        assert all(h["capital_decision"] != "BLOCKED" for h in nv.values())
+        before = baseline["entities"]["equity:NVDA"]["horizons"]
+        assert all(h["capital_decision"] == before[k]["capital_decision"] for k,h in nv.items())
+        assert any(h["fusion_coverage"] < before[k]["fusion_coverage"] for k,h in nv.items())
         assert any("FLOW" in h["missing_families"] for h in nv.values())
 
     def test_pilot_universe_end_to_end(self, snapshot, registry, universe_doc, flags):
@@ -219,6 +225,7 @@ class TestHandlersEndToEnd:
         monkeypatch.setattr(R, "load_flags", lambda **kw: dict(R.DEFAULT_FLAGS, FUSION_STATE_DDB_ENABLED=False, FUSION_SIGNAL_BUS_ENABLED=False))
 
     def test_bridge_then_fusion(self, artifacts, monkeypatch):
+        monkeypatch.setattr(J, "utcnow", lambda: NOW)
         fake = FakeS3(artifacts, now=NOW)
         self._patch(monkeypatch, fake)
         import importlib

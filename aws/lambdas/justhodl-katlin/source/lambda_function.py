@@ -1660,7 +1660,7 @@ def load_feeds():
     F["crypto_score"] = s3_json("data/crypto-scorecard.json", {}) or {}
     # war-room feeds
     for name, key in WAR_ROOM_FEEDS:
-        F[name] = __import__("crisis_authority").guard(key,s3_json(key, {}) or {})
+        F[name] = __import__("tail_research").guard(key,__import__("crisis_authority").guard(key,s3_json(key, {}) or {}))
     F["backtest"] = s3_json(BACKTEST_KEY, None)
     # secondary accumulation reads from the fleet (radar / whales / stealth / fortress) -> per-ticker booleans.
     # Fleet payloads are shape-polymorphic (accumulation-radar's `bottoms` is {"stocks":[...],"etfs":[...]}, whales may
@@ -3596,7 +3596,7 @@ def refresh_permission(event=None):
         return {"ok": False, "status": "NO_RESEARCH_ARTIFACT", "reason": "Full daily research must publish before permission can refresh"}
     out = json.loads(json.dumps(previous))
     research_at = previous.get("research_generated_at") or (None if previous.get("permission_refreshed_at") else previous.get("generated_at"))
-    F = {name: __import__("crisis_authority").guard(key,s3_json(key, {}) or {}) for name, key in WAR_ROOM_FEEDS}
+    F = {name: __import__("tail_research").guard(key,__import__("crisis_authority").guard(key,s3_json(key, {}) or {})) for name, key in WAR_ROOM_FEEDS}
     F["crypto_cycle"] = s3_json("data/crypto-cycle-risk.json", {}) or {}
     wr = war_room(F)
     research_fresh = fresh_timestamp(research_at, now, 36.0)

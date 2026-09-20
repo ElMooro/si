@@ -542,15 +542,16 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"[implied] earnings section failed: {e}")
 
-    # ── Real fat-tailed crash probabilities from justhodl-tail-risk ──
-    # Breeden-Litzenberger risk-neutral density supersedes the log-normal p_down above.
+    # Retained option-snapshot context has no qualified crash-density authority.
+    # decision_view withholds predecessor probability rows from this enrichment.
     tail_blk = None
     try:
-        tr = json.loads(S3.get_object(Bucket=BUCKET, Key="data/tail-risk.json")["Body"].read())
+        tr = __import__("tail_research").decision_view(json.loads(S3.get_object(Bucket=BUCKET, Key="data/tail-risk.json")["Body"].read()))
         tail_blk = {"system_tail_gauge": tr.get("system_tail_gauge"),
                     "tail_regime": tr.get("tail_regime"),
                     "tail_valuation": tr.get("tail_valuation"),
-                    "generated_at": tr.get("generated_at")}
+                    "generated_at": tr.get("generated_at"), "research_context": tr.get("research_context"),
+                    "density_qualified": False, "calls_eligible": False}
         tr_idx = {r["ticker"]: r for r in (tr.get("indices") or [])}
         for blk, tk in ((spy, "SPY"), (qqq, "QQQ")):
             ri = tr_idx.get(tk)

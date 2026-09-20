@@ -113,7 +113,7 @@ function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json', 'risk-regime.json', 'jsi.json', 'jsi-history.json', 'jsi-calibration.json',
     'global-stress-history.json', 'gsi-calibration.json', 'gsi-horizons.json',
-    'crisis-composite.json', 'defcon.json', 'crisis-composite-history.json', 'crisis-plumbing.json', 'market-internals.json', 'aaii-sentiment.json', 'credit-stress.json', 'vol-surface.json', 'eurodollar-stress.json', 'insider-aggregate.json', 'capitulation.json', 'market-extremes.json', 'vrp.json', 'retail-sentiment.json', 'valuations-data.json',
+    'crisis-composite.json', 'defcon.json', 'crisis-composite-history.json', 'crisis-plumbing.json', 'market-internals.json', 'aaii-sentiment.json', 'credit-stress.json', 'vol-surface.json', 'eurodollar-stress.json', 'insider-aggregate.json', 'capitulation.json', 'market-extremes.json', 'vrp.json', 'retail-sentiment.json', 'valuations-data.json', 'tail-risk.json',
     'capital-flow.json', 'deep-value-overlap.json', 'equity-confluence.json', 'best-setups.json', 'industry-rotation.json', 'engine-conflicts.json', 'narrative-vs-tape.json',
     'ciss.json', 'ciss-stress.json', 'ciss-ai.json', 'sovereign-stress.json', 'euro-fragmentation.json', 'risk-radar.json', 'global-stress.json', 'regime-composite.json', 'liquidity-credit-engine.json', 'risk-gate.json',
     'quantum-desk.json', 'quantum-desk-history.json', 'liquidity-inflection.json', 'eurodollar-plumbing.json', 'yen-carry.json', 'carry-surface.json', 'capital-inflows.json', 'foreign-flows.json', 'tic-flows.json', 'official-pulse.json', 'etf-true-flows.json', 'global-flow-desk.json', 'holdings-research.json', '13f-positions.json', '13f-flows-by-ticker.json', '13f-by-ticker.json', '13f-desk.json', 'compound-signals.json', 'attention-confluence.json', 'flow-confluence.json', 'master-ranker.json', 'smart-money-clusters.json',
@@ -122,7 +122,7 @@ function mutablePublication(path) {
     /^aaii-research\/requests\/[a-f0-9]{64}\.json$/.test(key) ||
     /^credit-research\/requests\/[a-f0-9]{64}\.json$/.test(key) ||
     /^volatility-research\/requests\/[a-f0-9]{64}\.json$/.test(key) ||
-    /^(?:insider-research|eurodollar-research|extremes-research|vrp-research|retail-research|valuation-research)\/requests\/[a-f0-9]{64}\.json$/.test(key) ||
+    /^(?:insider-research|eurodollar-research|extremes-research|vrp-research|retail-research|valuation-research|tail-research)\/requests\/[a-f0-9]{64}\.json$/.test(key) ||
     /^vintage\/(?:_index|[A-Z0-9_]+)\.json$/.test(key) ||
     /^ops\/releases\/[A-Za-z0-9_-]+\.json$/.test(key) ||
     /^[a-z0-9-]+-verification\.json$/.test(key);

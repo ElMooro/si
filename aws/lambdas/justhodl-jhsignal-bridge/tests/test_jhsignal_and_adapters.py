@@ -149,7 +149,7 @@ class TestAdapters:
         sigs, reports = signals_from_artifacts
         assert set(reports) == set(registry.engines)
         for eid, r in reports.items():
-            if eid == "crisis_composite":
+            if eid in ("crisis_composite", "tail_risk"):
                 assert not r.signals and r.source_status == "UNQUALIFIED"
                 continue
             assert r.source_status == "OK", (eid, r.diagnostics)
@@ -181,9 +181,7 @@ class TestAdapters:
         assert ins["direction"] in ("bullish", "strong_bullish") and abs(ins["score"] - (0.45 + 0.1 + 0.25)) < 1e-6 and ins["magnitude"] == 6_200_000
         assert by[("institutional_13f_flows", "equity:META", "whale_net_flow")]["score"] == -0.7
         assert by[("institutional_13f_flows", "equity:NVDA", "whale_net_flow")]["score"] == 1.0
-        qqq_tail = by[("tail_risk", "etf:QQQ", "crash_probability")]
-        assert qqq_tail["score"] < 0 and qqq_tail["metadata"]["veto"]["type"] == "SOFT"
-        assert by[("tail_risk", "etf:SPY", "crash_probability")]["metadata"]["veto"] is None
+        assert not any(key[0] == "tail_risk" for key in by)
         gex = by[("dealer_gex", "equity:TSLA", "gamma_regime")]
         assert gex["score"] < 0 and gex["metadata"]["veto"]["type"] == "SOFT" and gex["horizon"] == "TACTICAL"
         rg = by[("risk_gate", "market:US_EQUITY", "risk_posture")]

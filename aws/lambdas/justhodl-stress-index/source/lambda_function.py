@@ -149,7 +149,7 @@ def fred_full(series_id):
 
 def _read_s3_json(key):
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read().decode())
+        return __import__("tail_research").guard(key,json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read().decode()))
     except Exception:
         return None
 

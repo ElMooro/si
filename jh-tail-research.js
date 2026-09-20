@@ -1,0 +1,56 @@
+(function(root){'use strict';
+ const PREFIX='data/tail-research/',CURRENT='data/tail-risk.json',CONTRACT='tail-native-research.v1',flags=['forecast_qualified','calls_eligible','sizing_eligible','execution_eligible'];
+ const esc=x=>String(x??'Unavailable').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const finite=x=>typeof x==='number'&&Number.isFinite(x),fmt=x=>finite(x)?x.toLocaleString('en-US',{maximumFractionDigits:4}):'Unavailable';
+ function typed(p){return p?.contract===CONTRACT&&p.engine==='justhodl-tail-risk'&&flags.every(k=>p[k]===false)&&['system_tail_gauge','tail_regime','tail_valuation','call','score','regime'].every(k=>p[k]===null)&&Array.isArray(p.indices)&&p.indices.length===3&&p.indices.map(r=>r.ticker).sort().join(',')==='IWM,QQQ,SPY'&&p.indices.every(r=>flags.every(k=>r[k]===false)&&['p_drop_10','p_drop_20','tail_stress'].every(k=>r[k]===null)&&Array.isArray(r.terms)&&r.terms.length===2)&&Number.isFinite(Date.parse(p.generated_at))&&Number.isFinite(Date.parse(p.freshness?.collection_started_at))&&Number.isFinite(Date.parse(p.freshness?.sample_valid_until));}
+ function safe(key){return typeof key==='string'&&/^data\/tail-research\/(?:runs|outputs)\/[a-f0-9]{64}\.json$/.test(key);}
+ function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v;}
+ async function sha(raw){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');}
+ async function load(key,fetcher,signal){if(key!==CURRENT&&!safe(key))throw Error('Unapproved research path');const r=await fetcher('/'+key,{cache:key===CURRENT?'no-store':'default',signal});if(!r.ok)throw Error('HTTP '+r.status);const raw=await r.arrayBuffer();if(raw.byteLength>4*1024*1024)throw Error('Research byte bound');return {raw,doc:JSON.parse(new TextDecoder().decode(raw))};}
+ async function verifyPacket(p,fetcher,signal){
+  if(!typed(p)||!/^data\/tail-research\/runs\/[a-f0-9]{64}\.json$/.test(p.replay?.manifest_key||''))throw Error('Native research required');
+  const key=p.replay.manifest_key,run=await load(key,fetcher,signal),m=run.doc;
+  if(key!==PREFIX+'runs/'+await sha(run.raw)+'.json'||m.contract!=='tail-native-replay.v1'||m.generated_at!==p.generated_at||m.output_sha256!==p.replay.output_sha256)throw Error('Retained run differs');
+  const ref=m.output;if(ref?.key!==PREFIX+'outputs/'+m.output_sha256+'.json'||ref.sha256!==m.output_sha256)throw Error('Output reference differs');
+  const out=await load(ref.key,fetcher,signal);if(out.raw.byteLength!==ref.bytes||await sha(out.raw)!==ref.sha256)throw Error('Output bytes differ');
+  const {replay,...body}=p;if(JSON.stringify(stable(body))!==JSON.stringify(stable(out.doc)))throw Error('Current body differs');return p;
+ }
+ function current(p,at){const start=Date.parse(p.freshness.collection_started_at),end=Date.parse(p.generated_at),due=Date.parse(p.freshness.sample_valid_until);return start<=end&&end<=at&&at<due&&due-start===26*3600000&&end-start<=150000;}
+ function table(headers,rows,label){return '<div class="xr-scroll" role="region" aria-label="'+esc(label)+'" tabindex="0"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map((v,i)=>'<'+(i?'td':'th scope="row"')+'>'+esc(v)+'</'+(i?'td':'th')+'>').join('')+'</tr>').join('')+'</tbody></table></div>';}
+ function render(p,at=Date.now()){
+  if(!typed(p))return '<p role="status">Verified option research unavailable.</p>';
+  const active=current(p,at);let h='<h2>Option snapshot evidence</h2><p class="xr-state">'+(active?'Partial research · captured sample':'Retained research · capture refresh overdue')+' · WAIT means abstention</p><p>Collected '+esc(p.freshness.collection_started_at)+' to '+esc(p.generated_at)+'. Capture check due '+esc(p.freshness.sample_valid_until)+'. Individual quote clocks remain separate.</p>';
+  h+='<p>Vendor IV and Greeks have no independent observation timestamps in this feed. The values below describe captured model outputs. They do not establish a current executable hedge, crash probability, or whether protection is cheap.</p>';
+  h+=table(['Underlying','Returned rows','Identity-qualified rows','Pages','Pagination','Dated quotes within age ceiling'],p.indices.map(r=>[r.ticker,r.sample.returned_rows,r.sample.eligible_identity_rows,r.sample.pages_received,r.sample.pagination_complete?'All returned pages; non-atomic capture':r.sample.stop_reason,r.sample.with_qualified_quote]),'Option source coverage');
+  h+='<p>The requested expiry range is 25–75 calendar days. Each target selects the closest expiry present in the captured sample. A stopped pagination can miss other expiries and contracts. Duplicate contract IDs are excluded.</p>';
+  for(const r of p.indices){h+='<details'+(r.ticker==='SPY'?' open':'')+'><summary>'+esc(r.ticker)+' · inspect selected contracts and source clocks</summary>';
+   h+='<p>Excluded rows: '+esc(Object.entries(r.sample.excluded_reasons||{}).map(([k,n])=>k+': '+n).join('; ')||'None')+'. Source completion: '+esc(r.sample.stop_reason)+'.</p>';
+   for(const t of r.terms){h+='<h3>'+esc(r.ticker)+' · target '+esc(t.target_calendar_days)+' days · selected '+esc(t.expiration_date)+' ('+esc(t.calendar_days_to_expiry)+' calendar days)</h3>';
+    const rows=Object.entries(t.selections||{}).map(([label,s])=>{const c=s.contract;if(!c)return [label,'No contract within delta tolerance',s.target_delta,'Unavailable','Unavailable','Unavailable','Unavailable','Unavailable','Unavailable'];
+     const q=c.quote,quoteUsable=active&&q.quality.status==='within_age_ceiling'&&at-Date.parse(q.observed_at)<=96*3600000;
+     return [label+' · '+c.contract_id,'Strike '+fmt(c.strike)+' USD; '+c.exercise_style+'; '+c.shares_per_contract+' shares',fmt(c.provider_delta)+' / target '+s.target_delta+' / error '+fmt(s.actual_delta_error),fmt(finite(c.provider_implied_volatility)?c.provider_implied_volatility*100:null)+'% · observation clock unknown',
+      fmt(q.bid)+' / '+fmt(q.ask)+' USD · '+(quoteUsable?'dated quote, not executable':'unqualified or historical'),q.observed_at,fmt(c.underlying_mark.value)+' USD · '+(c.underlying_mark.observed_at||'clock unavailable'),c.received_at,'Page '+c.evidence.page+', row '+c.evidence.row_index];});
+    h+=table(['Selection','Contract terms','Reported delta','Vendor IV','Bid / ask','Quote timestamp','Underlying mark','Receipt time','Original response location'],rows,r.ticker+' '+t.target_calendar_days+' day selected contracts');
+    h+=table(['Captured model comparison','Value · volatility percentage points','Observation time'],Object.entries(t.comparisons||{}).map(([k,v])=>[k.replaceAll('_',' '),fmt(v.value),'Unknown; no synchronized surface claim']),r.ticker+' '+t.target_calendar_days+' day vendor comparisons');
+   }
+   h+='<p>Back minus front call25–put25 difference: '+fmt(r.descriptive_term_difference.value)+' volatility percentage points. '+(r.same_selected_expiry?'Both targets selected the same expiry; term difference is withheld.':'Actual expiry dates above apply; this is an undated vendor-model comparison.')+'</p></details>';
+  }
+  h+='<h3>Model qualification</h3><ul>'+p.methodology.limits.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+  h+='<h3>Trace and reproduce</h3><p><a href="/'+esc(safe(p.replay?.manifest_key)?p.replay.manifest_key:CURRENT)+'">Retained native run</a> · <a href="/data/tail-research-verification.json">Deployment acceptance</a> · <a href="https://massive.com/docs/rest/options/snapshots/option-chain-snapshot">Provider field definitions</a> · <a href="https://www.optionseducation.org/advancedconcepts/equity-vs-index-options">Exercise and settlement conventions</a></p><p>The page verifies current values against retained run and output bytes. The matching reviewed compiler can reconstruct every selected contract from protected original responses using its page and zero-based row reference. The older score history remains retained; it is not a validated performance record.</p><button type="button" data-tail-refresh>Refresh and verify</button>';
+  return h;
+ }
+ function scenario(shares,price,contracts,strike,premium,settlement){
+  const raw=[shares,price,contracts,strike,premium,settlement];if(raw.some(v=>String(v??'').trim()===''))throw Error('Enter every scenario assumption.');
+  const [s,p,n,k,c,x]=raw.map(Number);if(![s,p,n,k,c,x].every(Number.isFinite)||Math.abs(s)>1e9||p<=0||p>1e9||!Number.isInteger(n)||n<0||n>1e6||k<=0||k>1e9||c<0||c>1e9||x<0||x>1e9)throw Error('Use finite prices, positive initial price and strike, nonnegative premium/settlement and a whole nonnegative put-contract count.');
+  const stock=s*(x-p),cost=n*100*c,payoff=n*100*Math.max(k-x,0),put=payoff-cost,total=stock+put;
+  if(![stock,cost,payoff,put,total].every(v=>Number.isFinite(v)&&Math.abs(v)<=1e15))throw Error('Scenario exceeds the arithmetic bound.');
+  return {stock_pnl:stock,put_premium:cost,put_intrinsic:payoff,put_pnl:put,total_pnl:total};
+ }
+ function bindScenario(){const form=root.document?.getElementById('tail-scenario'),out=root.document?.getElementById('tail-scenario-output');if(!form||!out)return;
+  form.oninput=()=>{out.textContent='Assumptions changed; calculate the entered scenario again.';};
+  form.onsubmit=e=>{e.preventDefault();try{const r=scenario(...['shares','price','contracts','strike','premium','settlement'].map(k=>form.elements[k].value));const usd=n=>n.toLocaleString('en-US',{style:'currency',currency:'USD'});out.textContent='Stock price P&L '+usd(r.stock_pnl)+'; put intrinsic payoff '+usd(r.put_intrinsic)+' less '+usd(r.put_premium)+' premium gives '+usd(r.put_pnl)+' put P&L. Combined expiry price P&L '+usd(r.total_pnl)+'. Assumes the same underlying, 100-share contracts, fixed positions and holding to expiry. Excludes dividends, financing, fees, early exercise and physical settlement costs.';}catch(err){out.textContent=err.message;}};
+ }
+ async function mount(node){let controller,sequence=0;async function refresh(){controller?.abort();controller=new AbortController();const seq=++sequence;node.innerHTML='<p role="status">Verifying retained option snapshot…</p>';try{const p=(await load(CURRENT,root.fetch.bind(root),controller.signal)).doc;await verifyPacket(p,root.fetch.bind(root),controller.signal);if(seq!==sequence)return;node.innerHTML=render(p);node.querySelector('[data-tail-refresh]').onclick=refresh;}catch(err){if(seq!==sequence||err.name==='AbortError')return;node.innerHTML='<p role="status">Verified current option research unavailable. No crash-probability or hedge-timing recommendation.</p><button type="button" data-tail-refresh>Retry verification</button>';node.querySelector('[data-tail-refresh]').onclick=refresh;}}await refresh();}
+ const api={typed,current,load,verifyPacket,render,scenario,bindScenario};if(typeof module==='object'&&module.exports)module.exports=api;
+ if(root.document){const start=()=>{root.document.querySelectorAll('[data-tail-research]').forEach(mount);bindScenario();};if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',start);else start();}
+})(globalThis);

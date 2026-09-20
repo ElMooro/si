@@ -365,14 +365,21 @@ class CrisisCompositeAdapter(SignalAdapter):
 
 
 class TailRiskAdapter(SignalAdapter):
-    """indices[] rows (SPY/QQQ/IWM): tail_stress 0-100 -> score = -(ts - 30)/70; SOFT veto at >= 70.
-    Confidence from how many of the four tail components were measured (p_drop_10, skew, RR, skew index)."""
+    """Retained legacy mapping; no snapshot has qualified directional or veto authority."""
     signal_type, category = "crash_probability", "risk"
 
+    def parse_existing_output(self, doc, meta):
+        result = super().parse_existing_output(doc, meta)
+        if result.data_asof is not None:
+            result.source_status = 'UNQUALIFIED'
+            result.diagnostics = ['Option snapshots have no qualified crash-density, directional or veto policy']
+        return result
+
     def validate_source(self, doc):
-        return isinstance(doc.get("indices"), list)
+        return __import__("tail_research").qualified_score(doc) is not None
 
     def rows(self, doc):
+        if __import__("tail_research").qualified_score(doc) is None: return
         for r in doc["indices"]:
             if not isinstance(r, dict):
                 yield {"skip": "not isinstance(r, dict)"}

@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
 if __name__=='__main__':
     suite=unittest.defaultTestLoader.discover(str(ROOT/'aws/shared/tests'),pattern='test_global_liquidity_authority.py')
-    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)
+    if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():raise SystemExit(1)
 
 if __name__=='__main__':
     from pathlib import Path
@@ -26,3 +26,8 @@ if __name__=='__main__':
     sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests'))
     from retail_consumer_test_support import run as run_retail
     run_retail()
+
+if __name__=='__main__':
+    import subprocess,sys
+    from pathlib import Path
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/tail_consumer_test_support.py')],check=True)
