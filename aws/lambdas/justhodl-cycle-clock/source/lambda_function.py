@@ -495,7 +495,7 @@ def lambda_handler(event, context):
     credit = load("data/credit-stress.json", "credit_stress")
     secrot = load("data/sector-rotation.json", "sector_rotation")
     rcomp = load("data/regime-composite.json", "regime_composite")
-    fomc = load("data/fomc-reaction.json", "fomc_reaction")
+    fomc = __import__("fomc_research").decision_view(load("data/fomc-reaction.json", "fomc_reaction"))
     sovf = load("data/sovereign-fiscal.json", "sovereign_fiscal")
     sfails = load("data/settlement-fails.json", "settlement_fails")
     analogs_d = load("data/historical-analogs.json", "historical_analogs")

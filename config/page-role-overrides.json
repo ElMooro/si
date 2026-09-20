@@ -1333,6 +1333,27 @@
         }
       },
       "reason": "Native dated contract observations and canonical policy rates; current packet is the public entry point, with retained run/output verification."
+    },
+    "fomc.html": {
+      "primary_engines": [
+        "justhodl-fomc-reaction"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-fomc-reaction": [
+          "data/fomc-reaction.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-fomc-reaction": {
+          "source": "aws/lambdas/justhodl-fomc-reaction/source/fomc_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Native scheduled-event observations with source replay; legacy calibration and grading have no investment authority."
+        }
+      },
+      "reason": "Native scheduled-event observations with source replay; legacy calibration and grading have no investment authority."
     }
   }
 }
