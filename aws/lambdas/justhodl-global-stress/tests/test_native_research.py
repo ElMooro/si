@@ -100,6 +100,15 @@ class Native(unittest.TestCase):
     def test_no_sources_is_abstention_not_zero_stress(self):
         self.i['sources']={};out=self.build();self.assertEqual(len(out['source_failures']),24);self.assertEqual(out['decision']['verb'],'WAIT')
         self.assertIsNone(out['global_stress_index']);self.assertFalse(out['calls_eligible'])
+    def test_complete_output_matches_portable_reference_digest(self):
+        expected=(FIXTURES/'expected-output.sha256').read_text().strip()
+        self.assertEqual(m.digest(self.build()),expected)
+    def test_ambient_decimal_precision_and_rounding_cannot_change_replay(self):
+        from decimal import localcontext,ROUND_UP
+        expected=self.build()
+        with localcontext() as ctx:
+            ctx.prec=8;ctx.rounding=ROUND_UP
+            self.assertEqual(self.build(),expected)
     def test_immutable_replay_and_tamper_rejection(self):
         store=Storage()
         for name,ref in self.i['sources'].items():s.immutable(store,'b',ref['key'],self.b[name])

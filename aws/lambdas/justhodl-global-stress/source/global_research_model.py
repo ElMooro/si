@@ -1,7 +1,7 @@
 """Original-source cross-market research; descriptive comparisons confer no trade authority."""
 from datetime import date,datetime,timedelta,timezone
-from decimal import Decimal,InvalidOperation
-import hashlib,json,math,statistics
+from decimal import Decimal,InvalidOperation,localcontext,ROUND_HALF_EVEN
+import hashlib,json
 from urllib.parse import parse_qs,urlsplit
 
 CONTRACT='global-stress-research.v1'
@@ -41,6 +41,11 @@ def number(v):
         n=Decimal(str(v))
         return n if n.is_finite() and abs(n)<Decimal('1e40') else None
     except (InvalidOperation,ValueError):return None
+def exported(value):
+    """A fixed decimal policy removes platform libm/FMA differences without relaxing replay."""
+    if value is None:return None
+    rounded=value.quantize(Decimal('1e-12'),rounding=ROUND_HALF_EVEN)
+    return float(rounded) if rounded else 0.0
 def safe_url(v,path):
     u=urlsplit(v)
     host='api.stlouisfed.org' if path.startswith('/fred/') else 'financialmodelingprep.com'
@@ -66,14 +71,14 @@ def metric(value,unit,rows,formula,reason=None):
 def performance(rows,field,intervals):
     window=rows[-intervals-1:]
     valid=len(window)==intervals+1 and all(r[field] is not None for r in window)
-    value=100*(float(Decimal(window[-1][field])/Decimal(window[0][field]))-1) if valid else None
+    value=exported(100*(Decimal(window[-1][field])/Decimal(window[0][field])-1)) if valid else None
     return metric(value,'percent',window,'100 * (last / first - 1); '+str(intervals)+' observed intervals',None if valid else 'insufficient_or_missing_observations')
 def interval_returns(rows,field):
     out={}
     for a,b in zip(rows,rows[1:]):
         gap=(date.fromisoformat(b['date'])-date.fromisoformat(a['date'])).days
         if a[field] is not None and b[field] is not None and 0<gap<=7:
-            out[(a['date'],b['date'])]=math.log(float(Decimal(b[field])/Decimal(a[field])))
+            out[(a['date'],b['date'])]=(Decimal(b[field])/Decimal(a[field])).ln()
     return out
 def instrument(inputs,bodies,symbol):
     profile,pr=original(inputs,bodies,'profile:'+symbol,'/stable/profile',{'symbol':symbol})
@@ -101,12 +106,16 @@ def instrument(inputs,bodies,symbol):
         rows.append({'date':day,'close':a.get('decimal'),'adjusted_close':b.get('decimal'),
             'price_row_index':a.get('row_index'),'adjusted_row_index':b.get('row_index')})
     latest=rows[-1];w20=rows[-21:];returns=interval_returns(w20,'adjusted_close')
-    vol=statistics.stdev(returns.values())*math.sqrt(252)*100 if len(returns)==20 else None
+    vol=None
+    if len(returns)==20:
+        mean=sum(returns.values())/20
+        variance=sum((v-mean)**2 for v in returns.values())/19
+        vol=exported((variance*252).sqrt()*100)
     w252=rows[-252:];w200=rows[-200:]
     dd_ok=len(w252)==252 and all(r['adjusted_close'] is not None for r in w252)
     ma_ok=len(w200)==200 and all(r['adjusted_close'] is not None for r in w200)
-    dd=100*(float(Decimal(latest['adjusted_close'])/max(Decimal(r['adjusted_close']) for r in w252))-1) if dd_ok else None
-    trend=100*(float(Decimal(latest['adjusted_close'])/(sum(Decimal(r['adjusted_close']) for r in w200)/200))-1) if ma_ok else None
+    dd=exported(100*(Decimal(latest['adjusted_close'])/max(Decimal(r['adjusted_close']) for r in w252)-1)) if dd_ok else None
+    trend=exported(100*(Decimal(latest['adjusted_close'])/(sum(Decimal(r['adjusted_close']) for r in w200)/200)-1)) if ma_ok else None
     return {'symbol':symbol,'isin':isin,'exchange':exchange,'currency':'USD','label':label,'group':group,'title':p.get('companyName'),
         'observation_date':latest['date'],'close':float(latest['close']) if latest['close'] is not None else None,
         'adjusted_close':float(latest['adjusted_close']) if latest['adjusted_close'] is not None else None,
@@ -146,11 +155,11 @@ def fred(inputs,bodies,sid):
     latest=rows[-1];target=str(date.fromisoformat(latest['date'])-timedelta(weeks=13));prior=next((r for r in rows if r['date']==target),None)
     scale=100 if unit=='Percent' else 1
     delta=(Decimal(latest['decimal'])-Decimal(prior['decimal']))*scale if prior and prior['decimal'] is not None and latest['decimal'] is not None else None
-    return {'series_id':sid,'title':meta['title'],'value':latest['value'],'unit':'percent' if unit=='Percent' else 'index_points','observation_date':latest['date'],
+    return {'series_id':sid,'title':meta['title'],'value':latest['value'],'value_decimal':latest['decimal'],'unit':'percent' if unit=='Percent' else 'index_points','observation_date':latest['date'],
         'frequency':meta['frequency'],'seasonal_adjustment':meta['seasonal_adjustment'],'source_row_index':latest['row_index'],
         'provider_updated_at':meta.get('last_updated'),'acquired_at':ref['acquired_at'],'first_publication_at':None,'current_vintage_date':inputs['evaluation_date'],
         'quality':quality(latest['date'],inputs['evaluation_date'],latest['value'] is not None),'history':rows,'originals':{'definition':dr,'observations':ref},
-        'change':{'value':float(delta) if delta is not None else None,'unit':'basis_points' if unit=='Percent' else 'index_points','start_date':target,'end_date':latest['date'],
+        'change':{'value':exported(delta),'unit':'basis_points' if unit=='Percent' else 'index_points','start_date':target,'end_date':latest['date'],
             'baseline_row_index':prior['row_index'] if prior else None,'current_row_index':latest['row_index'],'formula':'(latest - exact 13-calendar-week baseline) × '+str(scale),
             'reason':None if delta is not None else 'missing_exact_dated_comparison'},**PERMISSIONS}
 
@@ -164,7 +173,9 @@ def correlations(instruments):
             dates=sorted(set(a)&set(b));union=set(a)|set(b);value=None
             if len(dates)>=40:
                 xs=[a[d] for d in dates];ys=[b[d] for d in dates]
-                if statistics.pstdev(xs)>0 and statistics.pstdev(ys)>0:value=statistics.correlation(xs,ys)
+                mx=sum(xs)/len(xs);my=sum(ys)/len(ys)
+                vx=sum((x-mx)**2 for x in xs);vy=sum((y-my)**2 for y in ys)
+                if vx>0 and vy>0:value=exported(sum((x-mx)*(y-my) for x,y in zip(xs,ys))/(vx*vy).sqrt())
             pairs.append({'left':left,'right':right,'value':value,'unit':'correlation_-1_1','n_matched_intervals':len(dates),
                 'n_available_union_intervals':len(union),'matched_intervals':[list(d) for d in dates],
                 'reason':None if value is not None else 'fewer_than_40_matching_intervals_or_zero_variance',**PERMISSIONS})
@@ -174,12 +185,12 @@ def correlations(instruments):
 def credit_dispersion(measurements):
     a=measurements.get('BAMLH0A3HYC',{});b=measurements.get('BAMLH0A1HYBB',{});day=a.get('observation_date')
     same=next((r for r in b.get('history',[]) if r['date']==day),None)
-    va=number(a.get('value'));vb=number(same.get('decimal')) if same else None
-    return {'value':float((va-vb)*100) if va is not None and vb is not None else None,'unit':'basis_points','observation_date':day,
+    va=number(a.get('value_decimal'));vb=number(same.get('decimal')) if same else None
+    return {'value':exported((va-vb)*100) if va is not None and vb is not None else None,'unit':'basis_points','observation_date':day,
         'left':'BAMLH0A3HYC','right':'BAMLH0A1HYBB','left_row_index':a.get('source_row_index'),'right_row_index':same.get('row_index') if same else None,
         'formula':'(CCC-and-lower OAS − BB OAS) × 100 at the latest CCC observation date',**PERMISSIONS}
 
-def build(inputs,bodies):
+def _build(inputs,bodies):
     if inputs.get('contract')!='global-stress-inputs.v1' or str(clock(inputs['generated_at']).date())!=inputs['evaluation_date']:raise ValueError('input contract or date differs')
     evaluation=date.fromisoformat(inputs['evaluation_date'])
     if inputs['history_start']!=str(evaluation-timedelta(days=800)) or inputs['price_end']!=str(evaluation-timedelta(days=1)):raise ValueError('collection bounds differ')
@@ -194,7 +205,10 @@ def build(inputs,bodies):
         except (KeyError,ValueError,TypeError,IndexError,AttributeError) as exc:
             failures[sid]=str(exc) if isinstance(exc,ValueError) else type(exc).__name__
             measurements[sid]={'series_id':sid,'value':None,'unit':'index_points' if sid=='VIXCLS' else 'percent','history':[],'quality':{'status':'unavailable'},**PERMISSIONS}
-    return {'contract':CONTRACT,'version':'2.0.0','generated_at':inputs['generated_at'],'ok':not failures,
+    return {'contract':CONTRACT,'version':'2.0.1','generated_at':inputs['generated_at'],'ok':not failures,
+        'numerical_policy':{'arithmetic':'Decimal, precision 50, ROUND_HALF_EVEN, decimal logarithm and square root',
+            'derived_output_decimal_places':12,'native_source_values':'Original decimals retained; no derived rounding is applied to source records',
+            'replay':'Exact equality and output hash; no tolerance or ignored fields'},
         'instruments':instruments,'measurements':measurements,'correlations':correlations(instruments),'credit_dispersion':credit_dispersion(measurements),
         'source_failures':failures,'context':inputs.get('context',{}),
         'quality':{'status':'research_only','fresh_instruments':sum(r['quality']['status']=='fresh' for r in instruments.values()),'expected_instruments':14,
@@ -217,3 +231,10 @@ def build(inputs,bodies):
             'rates':'DGS10 is a nominal Treasury yield, not MOVE or implied rate volatility.',
             'authority':'No arbitrary blend, calibration weights, crisis probability, automated alert or portfolio multiplier.',
             'dependencies':'Country ETFs overlap broad-market ETFs; credit categories overlap. Correlations are not independent votes.'},**PERMISSIONS}
+
+
+def build(inputs,bodies):
+    # Isolate all arithmetic from ambient context and machine floating-point libraries.
+    with localcontext() as ctx:
+        ctx.prec=50;ctx.rounding=ROUND_HALF_EVEN
+        return _build(inputs,bodies)

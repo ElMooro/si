@@ -21,6 +21,14 @@ return. The window covers the last 60 union observation end dates and requires
 40 matched intervals with nonzero variance. No forward fill, row-position
 alignment, causal contagion interpretation or trading probability is permitted.
 
+Derived arithmetic uses a scoped 50-digit Decimal context with ROUND_HALF_EVEN,
+including decimal logarithms and square roots. Exported derived measurements
+round to 12 decimal places; original provider decimals remain unchanged. Replay
+requires exact output equality and its complete hash, with no tolerance or
+ignored fields. A fixed real-source fixture digest must match on Windows and
+the Linux runner before publication. This policy prevents platform-specific
+binary floating-point differences from breaking an otherwise identical replay.
+
 Ten native FRED definitions bind identity, units, daily frequency, unadjusted
 seasonality, current vintage and complete pagination. VIX remains index points;
 Treasury yields and credit OAS remain percent. Yield/OAS changes convert to basis
