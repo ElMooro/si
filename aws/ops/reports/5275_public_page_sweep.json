@@ -1,11 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "19fe9ef27eb534ec84c134e08d690f1fdb946df1",
-  "observed_at": "2026-09-20T13:37:47.146405+00:00",
-  "ok": true,
+  "observed_at": "2026-09-20T13:39:41.541207+00:00",
+  "ok": false,
   "routes_checked": 519,
-  "verified_routes": 519,
-  "failed_routes": [],
+  "verified_routes": 518,
+  "failed_routes": [
+    "why-cross-signal.html"
+  ],
   "source_equivalent_builds": {
     "19fe9ef27eb534ec84c134e08d690f1fdb946df1": true
   },
@@ -4633,12 +4635,12 @@
     },
     {
       "route": "why-cross-signal.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "19fe9ef27eb534ec84c134e08d690f1fdb946df1",
-      "inspector_present": true,
-      "bytes_read": 40452,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "why-now.html",
@@ -4687,7 +4689,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35513916834,
+  "deployment_run_id": 35514041589,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-20T13:37:47.148947+00:00"
+  "check_finished_at": "2026-09-20T13:39:41.543420+00:00"
 }
