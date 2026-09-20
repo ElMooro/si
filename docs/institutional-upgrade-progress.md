@@ -931,3 +931,14 @@ Validation: 50 Risk Regime engine cases, actual consumer authority cases, all ei
 Stage 49 rotation follow-through: the scheduled 07:15:57Z price run attempted 64 roots, refreshed 32 instruments and explicitly reported 32 provider/budget failures. Public replay verified 34 retained instrument vintages / 38 alias rows; this proves bounded rotation, not whole-catalog coverage. Remaining aliases and the Domain Barometers natural refresh still need follow-through.
 
 Next: native Stress Index research, frequency/vintage correctness, and guards preventing unvalidated historical ranks from controlling portfolios. The full platform is not yet institutionally qualified.
+
+
+## Stage 51 — native Stress Research prepared (2026-09-20)
+
+Ops 5905 (run 35497582110) verified the actual Stress Index runtime bytes and preserved all four complete public JSI products, with anonymous access denied for the archived originals. It captured 26 original FRED definition/history responses for 13 native series without invoking any engine, reading private accounts, sending notifications or writing portfolios. The ICE credit-spread series currently starts in September 2023; the old all-era composite claim therefore had unsupported coverage.
+
+The candidate retains each source's native frequency, unit, missing rows, actual finite span and current vintage. Calendar-dated changes replace the synthetic daily-grid 63-row transform. Same-date SOFR–IORB and HY–IG comparisons retain row references; 2/5/10-year midranks require actual span and sufficient native observations. Full provider requests/bytes, compiled inputs/output and exact reviewed compiler are retained for deterministic replay before conditional publication. The old implementation is audit-only; the active handler does not emit QQQ signals, read calibrated weights, invoke AI or access private accounts.
+
+The companion qualification publisher retires in-sample weight authority without deleting prior reports or SSM history. Proven Portfolio excludes unqualified JSI ranks, recursive percentile fallbacks, neutral-50 substitution and prior JSI signal types; Alert Sentinel excludes unqualified transitions. These downstream producers will not be invoked by acceptance. The page becomes a dated source desk with native-history windows and explicit scenario linkage, and the edge serves current JSI publications without caching stale copies.
+
+Validation before ship: 24 native/storage/actual-consumer tests plus four inherited carry cases; existing Alert Sentinel runner; 624 frontend cases; deployment 413 static plus 12 shell; existing Risk Regime native/authority suites, privacy, wiring and secrets. Further acceptance must prove exact commit receipts, actual deployed source bytes, public replay, page/build identity, and cadence. This is descriptive research, not a qualified forecasting model.

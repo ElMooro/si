@@ -9,11 +9,11 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "JSI calibrator \u2014 fits spine component weights on the full 1990-2026 FRED sample (IC vs forward SPY drawdown, multi-regime) + overlay feed weights on accrued snapshots. Writes SSM /justhodl/jsi/spine-weights + overlay-weights + data/jsi-calibration.json.",
+  "description": "JSI qualification status; current-vintage research is unqualified for forecasts and sizing; no SSM weight writes.",
   "env": {},
   "schedule": {
     "rule_name": "jsi-calibrator-weekly",
     "cron": "cron(30 9 ? * SUN *)",
-    "description": "JSI calibrator weekly \u2014 Sundays 09:30 UTC"
+    "description": "JSI qualification status; current-vintage research is unqualified for forecasts and sizing; no SSM weight writes."
   }
 }

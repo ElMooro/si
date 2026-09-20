@@ -301,7 +301,7 @@ def _put_ssm(name, obj):
                       Type="String", Overwrite=True)
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unqualified_handler(event=None, context=None):
     t0 = time.time()
     spine = calibrate_spine()
     overlay = calibrate_overlay()
@@ -341,6 +341,30 @@ def lambda_handler(event=None, context=None):
         "overlay_n": overlay.get("sample_size"),
         "elapsed_s": report["elapsed_s"],
     })}
+
+
+# Stage 51: publish qualification status only. No source fitting or SSM weight writes.
+def lambda_handler(event=None, context=None):
+    import hashlib
+    from jsi_authority import calibration_status
+    raw=s3.get_object(Bucket=S3_BUCKET,Key='data/jsi.json')['Body'].read(16*1024*1024+1)
+    if len(raw)>16*1024*1024:raise ValueError('public research exceeds byte bound')
+    packet=calibration_status(json.loads(raw),datetime.now(timezone.utc).isoformat())
+    try:
+        old=s3.get_object(Bucket=S3_BUCKET,Key=REPORT_KEY)
+        previous=old['Body'].read(16*1024*1024+1)
+        if len(previous)>16*1024*1024:raise ValueError('previous status exceeds byte bound')
+        key='audit-private/20260909-originals/stress-index/'+hashlib.sha256(previous).hexdigest()+'.bin'
+        try:s3.put_object(Bucket=S3_BUCKET,Key=key,Body=previous,ContentType='application/octet-stream',CacheControl='no-store',IfNoneMatch='*')
+        except Exception as exc:
+            if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('PreconditionFailed','412','ConditionalRequestConflict','409'):raise
+        if s3.get_object(Bucket=S3_BUCKET,Key=key)['Body'].read()!=previous:raise ValueError('preserved calibration differs')
+        condition={'IfMatch':old['ETag']}
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('NoSuchKey','404'):raise
+        condition={'IfNoneMatch':'*'}
+    s3.put_object(Bucket=S3_BUCKET,Key=REPORT_KEY,Body=json.dumps(packet,allow_nan=False).encode(),ContentType='application/json',CacheControl='no-store',**condition)
+    return {'statusCode':200,'body':json.dumps({'status':'research_only','ssm_weight_writes':0,'private_account_reads':0,'notifications_sent':0,'portfolio_writes':0})}
 
 
 if __name__ == "__main__":

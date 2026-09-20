@@ -142,13 +142,14 @@ def yprice(sym):
 
 def qualifying_types(sc):
     """(type -> tier) from the scorecard; explicit status wins, derived else."""
+    from jsi_authority import UNQUALIFIED_SIGNAL_TYPES
     out = {}
     rows = sc.get("scorecard") or sc.get("signal_types") or sc.get("rows") or []
     if isinstance(rows, dict):
         rows = [dict(v, signal_type=k) for k, v in rows.items()]
     for r in rows:
         st = r.get("signal_type")
-        if not st:
+        if not st or st in UNQUALIFIED_SIGNAL_TYPES:
             continue
         status = str(r.get("alpha_status") or r.get("status") or "").lower()
         n = r.get("n_scored") or r.get("n") or 0
@@ -230,56 +231,17 @@ def lambda_handler(event, context):
 
     # ── ops 3413: regime throttle + orthogonality caps + earnings + conflicts ──
     jsi = rj("data/jsi.json")  # ops 3525: stress-index.json was a phantom key (no writer fleet-wide)
-    _pv, _psrc = None, "default"
-    for _path in (("latest",), ("v2", "latest"), ("signal_state",), ("v2",)):
-        _o = jsi
-        for _k in _path:
-            _o = _o.get(_k) if isinstance(_o, dict) else None
-        if isinstance(_o, dict):
-            for _k in ("pctile", "percentile", "pct"):
-                if isinstance(_o.get(_k), (int, float)):
-                    _pv, _psrc = float(_o[_k]), "/".join(_path) + "." + _k
-                    break
-        if _pv is not None:
-            break
-    if _pv is None:
-        def _pw(o, depth=0):
-            if depth > 4 or not isinstance(o, dict):
-                return None
-            for k, v in o.items():
-                if "pctile" in str(k) and isinstance(v, (int, float)):
-                    return float(v)
-                r = _pw(v, depth + 1)
-                if r is not None:
-                    return r
-            return None
-        _pv = _pw(jsi)
-        _psrc = "walker" if _pv is not None else "default"
-    if _pv is None:
-        try:
-            _h = rj("data/jsi-history.json")
-            _rows = ((_h.get("rows") or _h.get("series") or [])
-                     if isinstance(_h, dict) else (_h if isinstance(_h, list) else []))
-            _vals = [float(r.get("v") if isinstance(r, dict) else r)
-                     for r in _rows
-                     if (r.get("v") if isinstance(r, dict) else r) is not None]
-            if len(_vals) > 500:
-                import bisect as _b
-                _cur = _vals[-1]
-                _pv = _b.bisect_right(sorted(_vals), _cur) / len(_vals) * 100.0
-                _psrc = "jsi-history.self"
-        except Exception:
-            pass
-    if _pv is None:
-        _pv = 50.0
+    from jsi_authority import qualified_percentile
+    _pv = qualified_percentile(jsi)
+    _psrc = 'qualified_model' if _pv is not None else 'unqualified_research'
     gssi = ((rj("data/sovereign-gssi.json").get("latest") or {}).get("gssi")
             or 0)
     gross_scale = 1.0
-    regime_note = []
-    if _pv >= 90:
+    regime_note = [] if _pv is not None else ["JSI excluded: no qualified sizing model"]
+    if _pv is not None and _pv >= 90:
         gross_scale *= 0.70
         regime_note.append(f"JSI {int(_pv)}p → ×0.70")
-    elif _pv >= 75:
+    elif _pv is not None and _pv >= 75:
         gross_scale *= 0.85
         regime_note.append(f"JSI {int(_pv)}p → ×0.85")
     if gssi >= 60:
@@ -423,7 +385,7 @@ def lambda_handler(event, context):
            "elapsed_s": round(time.time() - t0, 2),
            "mode": mode,
            "regime": {"gross_scale": gross_scale, "notes": regime_note,
-                      "jsi_pctile": _pv, "jsi_src": _psrc, "gssi": gssi},
+                      "jsi_pctile": _pv, "jsi_src": _psrc, "jsi_applied": _pv is not None, "gssi": gssi},
            "n_conflicts": sum(1 for p in book if p.get("conflict")),
            "n_earnings_window": sum(1 for p in book
                                     if p.get("earnings_in_window")),
@@ -449,3 +411,49 @@ def lambda_handler(event, context):
           f"nav={nav} spy_nav={spy_nav} {round(time.time() - t0, 1)}s")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "mode": mode,
                                                    "n": len(book), "nav": nav})}
+
+
+def _legacy_unqualified_jsi_percentile(jsi):
+    _pv, _psrc = None, "default"
+    for _path in (("latest",), ("v2", "latest"), ("signal_state",), ("v2",)):
+        _o = jsi
+        for _k in _path:
+            _o = _o.get(_k) if isinstance(_o, dict) else None
+        if isinstance(_o, dict):
+            for _k in ("pctile", "percentile", "pct"):
+                if isinstance(_o.get(_k), (int, float)):
+                    _pv, _psrc = float(_o[_k]), "/".join(_path) + "." + _k
+                    break
+        if _pv is not None:
+            break
+    if _pv is None:
+        def _pw(o, depth=0):
+            if depth > 4 or not isinstance(o, dict):
+                return None
+            for k, v in o.items():
+                if "pctile" in str(k) and isinstance(v, (int, float)):
+                    return float(v)
+                r = _pw(v, depth + 1)
+                if r is not None:
+                    return r
+            return None
+        _pv = _pw(jsi)
+        _psrc = "walker" if _pv is not None else "default"
+    if _pv is None:
+        try:
+            _h = rj("data/jsi-history.json")
+            _rows = ((_h.get("rows") or _h.get("series") or [])
+                     if isinstance(_h, dict) else (_h if isinstance(_h, list) else []))
+            _vals = [float(r.get("v") if isinstance(r, dict) else r)
+                     for r in _rows
+                     if (r.get("v") if isinstance(r, dict) else r) is not None]
+            if len(_vals) > 500:
+                import bisect as _b
+                _cur = _vals[-1]
+                _pv = _b.bisect_right(sorted(_vals), _cur) / len(_vals) * 100.0
+                _psrc = "jsi-history.self"
+        except Exception:
+            pass
+    if _pv is None:
+        _pv = 50.0
+    return _pv, _psrc

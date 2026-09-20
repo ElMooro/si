@@ -9,11 +9,11 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "JustHodl Stress Index (JSI) \u2014 unified stress gauge: FRED 1990 spine (VIX/NFCI/KCFSI/FSI/curve/OAS z-scored on own history) + 12 live stress-feed overlay. Publishes data/jsi.json + data/jsi-history.json with percentile-since-1990 and crisis markers.",
+  "description": "Dated native-frequency stress research with original FRED bytes and deterministic replay; no score or signal authority.",
   "env": {},
   "schedule": {
     "rule_name": "jsi-6h",
     "cron": "rate(6 hours)",
-    "description": "JSI refresh every 6h \u2014 FRED spine + live overlay + historical percentile"
+    "description": "Dated native-frequency stress research with original FRED bytes and deterministic replay; no score or signal authority."
   }
 }

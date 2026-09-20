@@ -53,7 +53,7 @@ def load_calibrated_spine_weights():
             return {sid: float(w[sid]) for sid, *_ in SPINE}, "calibrated"
     except Exception:
         pass
-    return {sid: wt for sid, _, _, wt, _ in SPINE}, "prior"
+    return {sid: wt for sid, _, _, wt, _, _ in SPINE}, "prior"
 
 # ── SPINE: FRED components with real inception. Each tuple:
 #    (series_id, label, polarity, weight, inception, mode)
@@ -618,7 +618,7 @@ def _write_overlay_snapshot(overlay_components, jsi_now, jsi_spine):
                   ContentType="application/json")
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unqualified_handler(event=None, context=None):
     t0 = time.time()
 
     # 1) Historical spine (1990 → today), identical method across all eras.
@@ -759,6 +759,13 @@ def lambda_handler(event=None, context=None):
         "n_hist": len(vals), "span": f"{dates[0]}→{dates[-1]}",
         "n_overlay": n_overlay, "elapsed_s": payload["elapsed_s"],
     })}
+
+
+# Stage 51: active entry point reads public sources only; legacy signal path is unreachable.
+def lambda_handler(event=None, context=None):
+    from stress_store import run
+    result=run(s3,S3_BUCKET,FRED_KEY,validation_only=isinstance(event,dict) and event.get('validation_only') is True)
+    return {'statusCode':200,'body':json.dumps(result)}
 
 
 if __name__ == "__main__":

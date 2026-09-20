@@ -109,7 +109,8 @@ def snapshot():
     s["gssi_comove_hot"] = bool(((gs.get("latest") or {}).get("comove") or 0) >= 0.5)
 
     # ops 3377: JustHodl Stress Index — regime + flare watch
-    jsi = gj("data/jsi.json")
+    from jsi_authority import alert_view
+    jsi = alert_view(gj("data/jsi.json"))
     s["jsi_regime"] = jsi.get("regime")
     s["jsi_score"] = jsi.get("jsi")
     s["jsi_flare"] = bool(((jsi.get("v2") or {}).get("velocity") or {}).get("flare"))

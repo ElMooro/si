@@ -21,3 +21,6 @@ for carry in ({'unwind_overlay':{'cohort_fragility':99}},
     assert rows[0]['status']=='unqualified_carry' and rows[0]['stress'] is None
     assert score==25 and count==1
 print('Stress-index carry consumer boundary: 4 qualification cases passed')
+
+import subprocess,sys
+subprocess.run([sys.executable,str(Path(__file__).with_name("test_native_research.py"))],check=True)
