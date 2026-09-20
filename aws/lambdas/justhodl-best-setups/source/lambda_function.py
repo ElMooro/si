@@ -329,7 +329,7 @@ def lambda_handler(event, context):
     overlap = read_json("data/deep-value-overlap.json") or {}
     political = read_json("data/political-intel.json") or {}
     executive = read_json("data/executive-intel.json") or {}
-    retail = read_json("data/retail-sentiment.json") or {}
+    retail = __import__("retail_research").decision_view(read_json("data/retail-sentiment.json"))
     preds_doc = read_json("data/predictions-snapshots/latest.json") or {}
     tickets_doc = read_json("data/trade-tickets.json") or {}
     calibration = read_json("data/cascade-calibration.json") or {}

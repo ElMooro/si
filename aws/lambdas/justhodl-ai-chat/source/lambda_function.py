@@ -623,7 +623,7 @@ def build_context(message):
                 lines.append(f"[{tkr} INSIDER CLUSTER] {ni} insiders bought ${tv:.1f}M · {c.get('first_buy')} to {c.get('last_buy')} · {(c.get('highest_role') or '')[:40]}")
 
     # ─── Retail Sentiment (Bloomberg-Gap #9 · 30-min refresh) ─────
-    rs = get_s3('data/retail-sentiment.json')
+    rs = __import__('retail_research').decision_view(get_s3('data/retail-sentiment.json'))
     if rs:
         regime_r = rs.get('market_regime')
         sig_r = rs.get('market_regime_signal', '')

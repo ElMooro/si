@@ -6,7 +6,7 @@ provider parsers. Upstream run references remain the route to original evidence.
 from datetime import date,datetime,time,timedelta,timezone
 from decimal import Decimal,localcontext,ROUND_HALF_EVEN
 import hashlib,json,math,re
-import credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research
+import credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research,retail_research
 
 CONTRACT='extremes-native-research.v1'
 PREFIX='data/extremes-research/'
@@ -23,12 +23,12 @@ SOURCES={
  'fails':('data/settlement-fails.json','fr2004-fails-research.v1','fails-research'),
  'capitulation':('data/capitulation.json',CONTRACT,'extremes-research'),
  'valuation':('valuations-data.json',None,None),
- 'retail':('data/retail-sentiment.json',None,None),
+ 'retail':('data/retail-sentiment.json',retail_research.CONTRACT,'retail-research'),
  'vrp':('data/vrp.json',vrp_research.CONTRACT,'vrp-research')}
 INPUTS={
  'capitulation':('crisis','breadth','credit','volatility','funding','insider','fails'),
  'market-extremes':('valuation','breadth','aaii','credit','insider','retail','vrp','capitulation','fails')}
-COMPANIONS=(credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research)
+COMPANIONS=(credit_research,volatility_research,eurodollar_research,aaii_research,insider_research,breadth_series,vrp_research,retail_research)
 
 def encoded(doc):return json.dumps(doc,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
 def sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -133,6 +133,11 @@ def project(name,p,at):
         summary={k:ctx[k] for k in ('as_of','source_valid_until','coverage','note')}
         summary['transaction_windows']={k:{f:w[f] for f in ('from_date','through_date','buy_count','sell_count','buy_sell_ratio_count','population_complete','unknown_currency_rows')} for k,w in ctx['windows'].items()}
         summary['root']='FMP:SEC_filing_representations'
+    elif name=='retail':
+        ctx=retail_research.context(p,at)
+        if not ctx['available']:return [],{},'upstream_current_attention_sample_unavailable'
+        summary={k:ctx[k] for k in ('generated_at','source_valid_until','communities','note')}
+        summary['roots']=['APEWISDOM:overlapping_community_samples','STOCKTWITS:bounded_message_samples']
     elif name=='fails':
         q=p['quality'];acquired=clock(q['acquired_at'])
         valid=min(acquired+timedelta(hours=36),clock(q['next_expected_publication_date'])+timedelta(hours=24))
@@ -154,7 +159,7 @@ def project(name,p,at):
         if p.get('engine')!='capitulation' or at>=clock(p['freshness']['pipeline_check_due_at']):return [],{},'nested_research_unavailable'
         summary={'nested_source_series':sorted(p['dependency_graph']['series']),'upstream_replay':p['replay'],
             'note':'Lineage reference only. Its constituent observations are not added again as independent confirmations.'}
-    if name not in ('insider','capitulation') and not rows:return [],{},'no_current_native_measurements'
+    if name not in ('insider','capitulation','retail') and not rows:return [],{},'no_current_native_measurements'
     return rows,summary,'retained_upstream_context'
 
 def graph(rows,contexts):
@@ -173,6 +178,8 @@ def graph(rows,contexts):
         else:overlap.append(item)
     if contexts.get('insider',{}).get('root'):
         series[contexts['insider']['root']]={'insider'};families.setdefault('FMP_SEC_filing_sample',set()).add(contexts['insider']['root'])
+    for sid in contexts.get('retail',{}).get('roots',[]):
+        series[sid]={'retail'};families.setdefault('vendor_attention_samples',set()).add(sid)
     return {'series':{k:sorted(v) for k,v in sorted(series.items())},'provider_families':{k:sorted(v) for k,v in sorted(families.items())},
         'same_series_date_overlaps':overlap,'same_series_date_conflicts':conflicts,'independent_investment_votes':0,
         'definition_conflicts':[{'series_id':sid,'observation_date':day,'units':sorted(units)} for (sid,day),units in sorted(definitions.items()) if len(units)>1],

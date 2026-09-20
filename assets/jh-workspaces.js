@@ -147,7 +147,7 @@ const JH_WS = {
     };
     const keys = Object.keys(this.FEEDS);
     const values = await Promise.all(keys.map(k => get(this.FEEDS[k])));
-    keys.forEach((k, i) => { if (values[i]) State[k] = values[i]; });
+    keys.forEach((k, i) => { if (values[i]) State[k] = k === 'retail' ? {research_context: values[i], biggest_velocity_surges: [], calls_eligible: false} : values[i]; });
     try { await JHF.load(); } catch (e) { console.warn('[jh-ws] fusion load', e); }
     return State;
   },

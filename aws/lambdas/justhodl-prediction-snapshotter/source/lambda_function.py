@@ -47,7 +47,7 @@ def lambda_handler(event, context):
     insider = _read_json("data/insider-clusters.json") or {}
     activist = _read_json("data/activist-13d.json") or {}
     tickets = _read_json("data/trade-tickets.json") or {}
-    retail = _read_json("data/retail-sentiment.json") or {}
+    retail = __import__("retail_research").decision_view(_read_json("data/retail-sentiment.json"))
     news = _read_json("sentiment/data.json") or {}
     political = _read_json("data/political-intel.json") or {}
     executive = _read_json("data/executive-intel.json") or {}

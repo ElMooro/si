@@ -1033,23 +1033,23 @@ table.tbl tr:last-child td{border-bottom: none}
     <section class="card col-12" id="retailHero" style="border-left:3px solid #22d3ee;background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.04) 60%,rgba(38,255,175,.03))">
       <div class="card-head">
         <div>
-          <div class="card-title">📱 RETAIL SENTIMENT <span style="color:#22d3ee;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(34,211,238,.15);padding:2px 8px;border-radius:3px;margin-left:6px">LIVE</span></div>
-          <div class="card-subtitle" id="rtSub">What retail is buying, talking about &amp; excited about — Reddit × StockTwits, paired with price · loading…</div>
+          <div class="card-title">📱 PUBLIC ATTENTION <span style="color:#22d3ee;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(34,211,238,.15);padding:2px 8px;border-radius:3px;margin-left:6px">RESEARCH</span></div>
+          <div class="card-subtitle" id="rtSub">Inspect dated public samples and their coverage limits.</div>
         </div>
-        <a href="/retail-edges.html" class="card-action" style="color:#22d3ee">OPEN DESK →</a>
+        <a href="/retail/" class="card-action" style="color:#22d3ee">OPEN DESK →</a>
       </div>
       <div id="retailBody" style="display:grid;grid-template-columns:1.1fr 1.3fr 3fr;gap:16px;align-items:start">
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Regime</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Status</div>
           <div id="rtRegime" style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
           <div id="rtMentions" style="font-size:12px;color:var(--muted);margin-top:2px">— mentions</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Buzz vs price</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Investment authority</div>
           <div id="rtMomDiv" style="font-size:13px;line-height:1.7;color:var(--text)">—</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">🔥 Hottest right now</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Evidence</div>
           <div id="rtHottest" style="font-size:12px;line-height:1.9;color:var(--text)">loading…</div>
         </div>
       </div>
@@ -2865,29 +2865,9 @@ function renderPrePumpRadar(){
    FETCH ORCHESTRATION — parallel, fault-tolerant
    ────────────────────────────────────────────────────────────── */
 function renderRetailHero(){
-  const d = STATE.data.retail; if(!d) return;
-  const r = d.ranked || {}, md = d.market_regime_data || {};
-  const regime = d.market_regime || '—';
-  const rc = {MANIA:'#ff3d5a',ELEVATED:'#fb923c',NORMAL:'#22d3ee',QUIET:'#8b96a8'}[regime] || 'var(--text)';
-  const el = id => document.getElementById(id);
-  if(el('rtRegime')){ el('rtRegime').textContent = regime; el('rtRegime').style.color = rc; }
-  if(el('rtMentions')) el('rtMentions').textContent = (md.total_mentions!=null ? md.total_mentions.toLocaleString() : '—') + ' mentions' + (md.delta_pct!=null ? ` (${md.delta_pct>=0?'+':''}${md.delta_pct}% vs prior)` : '');
-  if(el('rtSub')) el('rtSub').textContent = `What retail is buying, talking about & excited about — Reddit × StockTwits, paired with price · ${d.n_with_price||0} price-confirmed`;
-  const mom = r.momentum_confirmed||[], div = r.fading_divergence||[];
-  if(el('rtMomDiv')){
-    const momS = mom.slice(0,3).map(e=>e.ticker).join(', ') || 'none';
-    const divS = div.slice(0,3).map(e=>e.ticker).join(', ') || 'none';
-    el('rtMomDiv').innerHTML = `<span style="color:#26ffaf">🚀 ${mom.length} confirmed</span> <span style="color:var(--muted)">${momS}</span><br><span style="color:#ff5577">⚠ ${div.length} diverging</span> <span style="color:var(--muted)">${divS}</span>`;
-  }
-  const hot = (r.hottest||[]).slice(0,5);
-  if(el('rtHottest')){
-    el('rtHottest').innerHTML = hot.length ? hot.map(e=>{
-      const chg = e.change_pct;
-      const chgStr = chg==null ? '' : `<span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(1)}%</span>`;
-      const bz = {MOMENTUM:'🚀',IGNITION:'✨',DIVERGENCE:'⚠',RISING:'↑',FADING:'↓',STEADY:'·'}[e.buzz_state]||'·';
-      return `<span style="display:inline-block;margin-right:16px;white-space:nowrap"><b style="color:var(--text)">${e.ticker}</b> <span style="color:#fbbf24">${e.heat||0}🔥</span> ${bz} ${chgStr}</span>`;
-    }).join('') : 'no data';
-  }
+  const text={rtRegime:'Research only',rtMentions:'Sampled attention',rtSub:'Dated community mentions and tagged-message samples; no flow, timing or price-confirmation signal.',rtMomDiv:'Investment vote unavailable'};
+  for(const [id,value] of Object.entries(text)){const el=document.getElementById(id);if(el)el.textContent=value;}
+  const host=document.getElementById('rtHottest');if(host)host.innerHTML='<a href="/retail/">Inspect source dates, sample coverage and retained evidence</a>';
 }
 
 async function loadAll(){
@@ -3058,5 +3038,6 @@ setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
+<aside style="padding:12px 20px;font:14px system-ui"><a href="/retail/">Public attention research: dated samples and source evidence</a>. Mentions are descriptive; no qualified retail timing or flow signal.</aside>
 </body>
 </html>

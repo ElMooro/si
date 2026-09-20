@@ -4,7 +4,7 @@
  const esc=x=>String(x??'Unavailable').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:6}):'Unavailable';
  const engines=['capitulation','market-extremes'];
- function safe(key){return typeof key==='string'&&/^data\/(?:extremes|crisis|breadth|credit|volatility|eurodollar|insider|aaii|fails|vrp)-research\/(?:runs|outputs)\/[a-f0-9]{64}\.json$/.test(key);}
+ function safe(key){return typeof key==='string'&&/^data\/(?:extremes|crisis|breadth|credit|volatility|eurodollar|insider|aaii|fails|vrp|retail)-research\/(?:runs|outputs)\/[a-f0-9]{64}\.json$/.test(key);}
  function typed(p){return p?.contract===CONTRACT&&engines.includes(p.engine)&&flags.every(k=>p[k]===false)&&p.call===null&&p.signal===null&&p.capitulation_score===null&&p.cycle_position===null&&p.posture===null&&Array.isArray(p.measurements)&&p.measurements.every(r=>flags.every(k=>r[k]===false)&&typeof r.value==='number'&&Number.isFinite(r.value)&&typeof r.unit==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.observation_date)&&Number.isFinite(Date.parse(r.valid_until)))&&p.quality&&p.eligibility&&p.dependency_graph&&Number.isFinite(Date.parse(p.generated_at))&&Number.isFinite(Date.parse(p.freshness?.pipeline_check_due_at));}
  function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v;}
  async function sha(raw){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');}
@@ -42,6 +42,7 @@
   const scopes=p.pd_settlement_fails?.scopes;
   if(scopes){h+='<h3>Settlement fails · separate scopes</h3><ul>';for(const [name,s] of Object.entries(scopes))h+='<li>'+esc(name)+': FTD '+fmt(s.ftd_bn)+' + FTR '+fmt(s.ftr_bn)+' = '+fmt(s.combined_bn)+' USD billion · '+esc(s.as_of)+'</li>';h+='</ul><p>'+esc(p.pd_settlement_fails.note)+'</p>';}
   if(p.contexts.insider?.coverage)h+='<p>Insider context: '+fmt(p.contexts.insider.coverage.rows_received)+' vendor rows in a bounded filing sample. Currency, plan and transaction identity limits remain. <a href="/insider-research.html">Inspect the filing research</a>.</p>';
+  if(p.contexts.retail?.note)h+='<p>Attention context: '+esc(p.contexts.retail.note)+' <a href="/retail/">Inspect dated community and message samples</a>. Valid until '+esc(p.contexts.retail.source_valid_until)+'.</p>';
   h+='<h3>Reproduce this decision</h3><p>'+link(p.replay,'Inspect retained synthesis run')+' · <a href="/data/extremes-research-verification.json">Deployment acceptance</a></p><p>'+esc(p.replay_scope)+'</p><p>Whole upstream snapshots are retained privately. Prior cycle history remains archived as unverified legacy output and is excluded from this calculation.</p><button type="button" data-extremes-refresh>Refresh and verify</button>';
   return h;
  }

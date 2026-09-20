@@ -291,7 +291,7 @@ def fetch_engine_raw(spec_name: str, spec: dict) -> tuple:
     """Fetch + parse a single engine's data file. Returns (spec_name, items_list, age_h)."""
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=spec["key"])
-        d = json.loads(obj["Body"].read())
+        d = __import__("retail_research").guard(spec["key"],json.loads(obj["Body"].read()))
         age_h = (datetime.now(timezone.utc) - obj["LastModified"]).total_seconds() / 3600
         if spec.get("is_dict"):
             # by_ticker dict — convert to list with synthetic ticker field

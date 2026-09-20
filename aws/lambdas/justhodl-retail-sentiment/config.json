@@ -1,6 +1,6 @@
 {
   "timeout": 180,
-  "schedule": "cron(0,30 * ? * * *)",
-  "description": "Retail sentiment engine \u2014 ApeWisdom + StockTwits every 30 min",
-  "memory": 512
+  "description": "Public retail attention samples: retained originals, explicit missing baselines and descriptive-only replay; existing daily rule unchanged",
+  "memory": 512,
+  "schedule": "cron(10 19 * * ? *)"
 }

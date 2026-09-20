@@ -516,7 +516,7 @@ def lambda_handler(event, context):
     vvix = load("data/vvix-vov-regime.json", "vvix")
     skewtail = load("data/skew-tail-hedging.json", "skew_tail")
     aaii = load("data/aaii-sentiment.json", "aaii")
-    retail = load("data/retail-sentiment.json", "retail_sentiment")
+    retail = __import__("retail_research").decision_view(load("data/retail-sentiment.json", "retail_sentiment"))
     crediteq = load("data/credit-equity-divergence.json", "credit_equity")
     breadth = load("data/breadth-thrust.json", "breadth_thrust")
     goldeq = load("data/gold-equity-rotation.json", "gold_equity")

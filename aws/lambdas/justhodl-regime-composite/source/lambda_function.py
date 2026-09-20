@@ -434,6 +434,11 @@ def fetch_module(cfg, ciss_packet=None, now=None):
         out["error"] = str(e)[:120]
         return out
 
+    if cfg['key']=='data/retail-sentiment.json':
+        q=__import__('retail_research').context(payload,now)
+        out.update(regime=None,signal=q['reason'],polarity=None,vote_eligible=False,
+                   descriptive_eligible=False,source_context=q,evidence_family='public_attention_sample')
+        return out
     if cfg.get('derive') == 'thirteenf':
         q = holdings_context(payload, cfg['key'])
         out.update(regime=None, signal=q['reason'], polarity=None, vote_eligible=False,

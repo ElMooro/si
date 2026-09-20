@@ -3649,7 +3649,7 @@ class DataService {
     State.cascade = cascade;
     State.insider = insider;
     State.options = options;
-    State.retail = retail;
+    State.retail = {research_context: retail, biggest_velocity_surges: [], biggest_rank_climbers: [], calls_eligible: false};
     State.trade_tickets = tickets;
     State.ai_rationales = ai;
     State.predictions = preds;
@@ -11451,5 +11451,6 @@ class JHF {
 </script>
 <script src="/sidebar.js" defer></script>
 <script src="/jh-chart-risk.js?v=20260917c"></script>
+<aside style="padding:12px 20px;font:14px system-ui"><a href="/retail/">Public attention research: dated samples and source evidence</a>. Mentions are descriptive; no qualified retail timing or flow signal.</aside>
 </body>
 </html>

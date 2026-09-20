@@ -223,7 +223,7 @@ def send_email(out):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    retail = _read("data/retail-sentiment.json") or {}
+    retail = __import__("retail_research").decision_view(_read("data/retail-sentiment.json"))
     stwt = _read("data/stocktwits.json") or {}
     buzz = _read("data/buzz-velocity.json") or {}
     newswire = _read("data/news-wire.json") or {}

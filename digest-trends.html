@@ -175,7 +175,7 @@ footer{margin-top:48px;padding:20px 22px;border-top:1px solid var(--border);colo
       <div class="tbl-wrap"><table class="data" id="tickets-tbl"><thead><tr><th>TICKER</th><th class="num">ENTRY</th><th class="num">STOP</th><th class="num">TP3</th><th class="num">R:R</th></tr></thead><tbody><tr><td colspan="5" class="loading">Loading…</td></tr></tbody></table></div>
     </section>
     <section class="section" style="margin-bottom:0">
-      <div class="section-hdr"><h2>📱 Retail Sentiment Surges</h2><span class="badge">Velocity %</span></div>
+      <div class="section-hdr"><h2>Public attention research</h2><span class="badge">Descriptive sample</span></div>
       <div id="retail-list"><div class="loading">Loading retail data…</div></div>
     </section>
   </div>
@@ -288,20 +288,7 @@ function renderTickets(tickets) {
 }
 
 function renderRetail(retail) {
-  const wrap = document.getElementById('retail-list');
-  const surges = ((retail || {}).ranked || {}).biggest_velocity_surges
-    || (retail || {}).velocity_surges || (retail || {}).surges
-    || (retail || {}).top_30_by_mentions || [];
-  if (!surges.length) { wrap.innerHTML = '<div class="empty">No retail data available. The retail-sentiment Lambda surfaces Reddit/social mention velocity surges.</div>'; return; }
-  let stale = '';
-  const ga = (retail || {}).generated_at;
-  if (ga) { const ageH = (Date.now() - new Date(ga).getTime()) / 3.6e6; if (ageH > 36) stale = `<div class="empty" style="padding:4px 0 8px;color:var(--gold)">⚠ as of ${ga.slice(0,10)} — feed refreshing</div>`; }
-  const max = Math.max(...surges.map(s => Math.abs(s.velocity_pct || s.change_pct || 0)));
-  wrap.innerHTML = stale + surges.slice(0,8).map(s => {
-    const pct = s.velocity_pct || s.change_pct || 0;
-    const w = max > 0 ? Math.min(100, (Math.abs(pct)/max)*100) : 0;
-    return `<div class="retail-row"><div class="tk">${s.ticker || '—'}</div><div class="bar"><div class="bar-fill" style="width:${w}%"></div></div><div class="pct">${pct>=0?'+':''}${(pct||0).toLocaleString('en-US',{maximumFractionDigits:0})}%</div><div class="mentions">${s.mentions || '—'} mentions</div></div>`;
-  }).join('');
+  document.getElementById('retail-list').innerHTML='<p>Attention samples supply descriptive context, not an investment signal. <a href="/retail/">Inspect source dates, coverage and original-response evidence</a>.</p>';
 }
 
 function renderAlertDist(snapshot) {
@@ -392,5 +379,6 @@ setInterval(loadAll, 60000);
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
+<aside style="padding:12px 20px;font:14px system-ui"><a href="/retail/">Public attention research: dated samples and source evidence</a>. Mentions are descriptive; no qualified retail timing or flow signal.</aside>
 </body>
 </html>

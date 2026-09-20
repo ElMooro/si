@@ -77,3 +77,10 @@ if __name__=='__main__':
     suite=unittest.TestLoader().discover(str(Path(__file__).resolve().parents[3]/'shared/tests'),pattern='test_holdings_authority.py')
     if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():raise SystemExit(1)
     print(f'Meta-regime source and permission contracts passed: {len(tests)}')
+
+if __name__=='__main__':
+    from pathlib import Path
+    import sys
+    sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests'))
+    from retail_consumer_test_support import run as run_retail
+    run_retail()

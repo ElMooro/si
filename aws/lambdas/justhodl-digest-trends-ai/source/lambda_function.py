@@ -106,7 +106,7 @@ def gather_system_state() -> dict:
         "pnl_stats": _read_json("data/pnl-stats.json") or {},
         "cascade": _read_json("data/theme-cascade.json") or {},
         "tickets": _read_json("data/trade-tickets.json") or {},
-        "retail": _read_json("data/retail-sentiment.json") or {},
+        "retail": __import__("retail_research").decision_view(_read_json("data/retail-sentiment.json")),
         "monitor": _read_json("data/trade-monitor-snapshots.json") or {},
     }
     return state
@@ -222,7 +222,7 @@ JSON schema:
     "headline_metric": "string e.g. '15 open positions, $0 realized'",
     "calibration_status": "string e.g. 'Building dataset — 158 predictions captured today'",
     "best_opportunity": "string e.g. 'INTC: +53% TP3, R:R 3:1'",
-    "retail_signal": "string e.g. 'HPQ +4600% mentions — social momentum surge'"
+    "retail_signal": "string: attention samples do not supply investment signals"
   }
 }
 
@@ -252,7 +252,7 @@ CASCADE LAGGARDS:
 TRADE TICKETS (entry/stop/tp3/RR):
 {json.dumps(context['trade_tickets_top'])}
 
-RETAIL SENTIMENT SURGES (velocity %):
+RETAIL: unqualified attention; do not infer a trading signal from missing samples:
 {json.dumps(context['retail_sentiment_surges'])}
 
 LIVE POSITIONS P&L:
