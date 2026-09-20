@@ -2,18 +2,28 @@
 
 Doctrine: do not train the model to sound like a better analyst.
 Train the loop that can prove the next answer is less wrong than the last one.
+
+Install is a no-op outside the Lambda runtime so factory unit tests keep the
+unwrapped contract.
 """
 from __future__ import annotations
 
+import os
 from typing import Any, Dict
 
 _INSTALLED = False
+
+
+def _in_lambda_runtime() -> bool:
+    return bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or os.environ.get("JH_AI_DOCTRINE") == "1")
 
 
 def install() -> bool:
     global _INSTALLED
     if _INSTALLED:
         return True
+    if not _in_lambda_runtime():
+        return False
     ok = False
     try:
         ok = _wrap_gear_b() or ok
