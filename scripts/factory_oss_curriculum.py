@@ -244,11 +244,21 @@ def cmd_write(args):
     s3 = boto3.client("s3", region_name="us-east-1")
     checker = "factory-code-exam:%s" % git_sha()
     written = exists = skipped = 0
+    judged = {"rows": 0, "passed": 0, "failed_by_family": {}, "passed_by_family": {}, "report": None}
     for line in Path(args.infile).read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
         row = json.loads(line)
-        if "_report" in row or row.get("passed") is not True:
+        if "_report" in row:
+            judged["report"] = row.get("_report"); skipped += 1
+            continue
+        judged["rows"] += 1
+        fam = str(row.get("family"))
+        if row.get("passed") is True:
+            judged["passed"] += 1; judged["passed_by_family"][fam] = judged["passed_by_family"].get(fam, 0) + 1
+        else:
+            judged["failed_by_family"][fam] = judged["failed_by_family"].get(fam, 0) + 1
+        if row.get("passed") is not True:
             skipped += 1
             continue
         doc = {"schema_version": "factory-curriculum-row.v1", "task_id": row["task_id"], "kind": row["kind"], "family": row["family"],
@@ -265,6 +275,10 @@ def cmd_write(args):
                 exists += 1
             else:
                 raise
+    # 2026-09-20: the yield of a supply run is otherwise only in the job log, which no lane can read
+    summary = {"schema_version": "factory-curriculum-run.v1", "run_id": args.run_id, "checker": checker, "written": written, "exists": exists, "skipped": skipped, **judged}
+    s3.put_object(Bucket=PRIVATE, Key="factory/curriculum/code/runs/%s.json" % args.run_id, Body=json.dumps(summary, indent=1).encode("utf-8"), ContentType="application/json")
+    print(json.dumps(summary))
     print(json.dumps({"written": written, "exists": exists, "skipped": skipped, "checker": checker}))
 
 
