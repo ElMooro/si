@@ -207,7 +207,9 @@ jobs:
 
           # These static deployment tests and every selected Lambda's local
           # checks complete before the deployment step can mutate AWS.
-          python3 -m pip install -q boto3
+          # A custom run_tests.py may launch pytest too. Install its test runtime
+          # before either runner branch; schema checks must not silently skip.
+          python3 -m pip install -q boto3 pytest jsonschema
           python3 scripts/check_secrets.py
           python3 tests/deployment/run_tests.py
           if [ -f tests/test_brain_public_boundaries.py ]; then
@@ -237,7 +239,6 @@ jobs:
             elif ls "$dir/tests"/test_*.py >/dev/null 2>&1; then
               # engines without their own runner (jh-fusion, jhsignal-bridge, symdir, invest) run under pytest
               echo "── $fn: pytest"
-              python3 -m pip install -q pytest
               PYTHONPATH="aws/shared:$dir/source:$dir/tests" python3 -m pytest -q "$dir/tests" -x
             fi
           done
