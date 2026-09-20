@@ -88,6 +88,8 @@ jobs:
           EXPECTED_RELEASE_SHA: ${{ github.event.inputs.expected_sha }}
         run: |
           set -e
+          # Detection failures must leave the same redacted evidence as later failures.
+          exec > >(tee -a "$RUNNER_TEMP/detect.log") 2>&1
           # Use the actual commit that triggered this workflow, not HEAD —
           # during rapid multi-push sequences HEAD may be newer than the
           # triggering event's sha, causing diffs to miss the real change.
@@ -169,10 +171,10 @@ jobs:
             if [ -n "$parent_sha" ] && [ "$parent_sha" != "0000000000000000000000000000000000000000" ]; then
               range_files=$(git diff --name-only "$parent_sha" "$triggering_sha") || { echo "::error::git diff $parent_sha..$triggering_sha failed"; exit 1; }
               changed=$(echo "$range_files" | grep '^aws/lambdas/' || true)
-              shared_changed=$(echo "$range_files" | grep -E '^aws/shared/.*\.py$' || true)
+              shared_changed=$(echo "$range_files" | grep -E '^aws/shared/[A-Za-z0-9_]+\.py$' || true)
             else
               changed=$(git diff --name-only HEAD^ HEAD | grep '^aws/lambdas/' || true)
-              shared_changed=$(git diff --name-only HEAD^ HEAD | grep -E '^aws/shared/.*\.py$' || true)
+              shared_changed=$(git diff --name-only HEAD^ HEAD | grep -E '^aws/shared/[A-Za-z0-9_]+\.py$' || true)
             fi
             targets=$(echo "$changed" | awk -F/ '{print $3}' | sort -u | paste -sd ' ' -)
             # Harden (2026-06-29): a changed shared module must redeploy the
@@ -270,9 +272,9 @@ jobs:
           bash scripts/deploy_lambdas.sh 2>&1 | tee "$RUNNER_TEMP/deploy.log"
 
       - name: Commit a redacted failure report to main (lanes cannot read job logs)
-        if: failure() && (steps.preflight.outcome == 'failure' || steps.deploy.outcome == 'failure')
+        if: failure() && (steps.detect.outcome == 'failure' || steps.preflight.outcome == 'failure' || steps.deploy.outcome == 'failure')
         env:
-          FAILED_STEP: ${{ steps.deploy.outcome == 'failure' && 'deploy' || 'preflight' }}
+          FAILED_STEP: ${{ steps.deploy.outcome == 'failure' && 'deploy' || steps.preflight.outcome == 'failure' && 'preflight' || 'detect' }}
           TARGETS: ${{ steps.detect.outputs.targets }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |

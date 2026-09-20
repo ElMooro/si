@@ -1199,3 +1199,12 @@ Initial checks passed all 22 engine runners, 19 native cases, eight canonical re
 Original-source replay does not establish a point-in-time investment model. Release calendars, historical first availability, fitted stress/return forecasts, FX basket reconstruction and qualification of the other legacy consumers remain open. This stage does not complete the platform objective.
 
 Final candidate checks completed successfully: all 22 selected engine runners, 712 frontend cases, 415 deployment plus 12 shell cases, selected configs, wiring, privacy and staged-file secrets. A final compatibility review retained failures/count/duration/threshold fields with explicit unavailable semantics; its 19 native and 12 consumer cases plus nine frontend cases were rerun successfully. Portable output SHA-256 f7287d076e92bea6581c12f2552eee952c91947cd5af9eeff2d44e8047770c76; complete frontend fixture 117,819 bytes. Live acceptance remains the next step.
+
+
+### Stage 59 deployment detection repair
+
+Runtime fcadc6d7f5d06e2199fa3546701721c2b8994da3 landed atomically, including the 117,819-byte fixture. Worker deployment succeeded. Lambda run 35524875795 stopped during changed-function detection before any update: the workflow selected a new aws/shared/tests/ file although shared_dependents.py correctly accepts only top-level deployable modules. Its original report condition omitted detection failures; the exact job traceback was retrieved and a redacted report reconstructed at aws/ops/reports/deploy-failures/fcadc6d-35524875795.md.
+
+The repair restricts both shared-module filters to the helper's documented path grammar, tests a mixed module/test release, and captures/reports detection failures. The explicit importer closure matches the 21 reviewed shared-module consumers plus the separately changed Chart Data function. A single pinned recovery dispatch requests these 22 tested functions at the exact fcadc6d7 source SHA (request chatgpt-eurodollar-fcadc6d7-recovery-1). Ops 5934 remains pinned to that runtime and will accept only exact receipts, real AWS package bytes, canonical-original replay and live HTML/JSON. No consumer invocation is authorized by this acceptance.
+
+The deployment repair passed all 417 deployment and 12 shell checks. The pinned recovery is run 35525070831; final runtime acceptance remains outstanding.

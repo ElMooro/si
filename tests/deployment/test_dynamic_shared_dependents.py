@@ -24,3 +24,24 @@ def test_native_workflow_uses_same_transitive_analysis_as_package_evidence():
     assert 'python3 scripts/shared_dependents.py $shared_changed' in source
     assert 'for _pass in 1 2 3' not in source
     assert 'if [ -n "$shared_changed" ]' in source
+
+
+def test_workflow_shared_filter_excludes_test_files_in_mixed_release():
+    import re
+    source=(ROOT/'.github/workflows/deploy-lambdas.yml').read_text(encoding='utf-8')
+    filters=re.findall(r"shared_changed=.*?grep -E '([^']+)'",source)
+    assert len(filters)==2
+    changed=['aws/shared/canonical_fred_replay.py','aws/shared/eurodollar_research.py',
+             'aws/shared/tests/test_canonical_fred_replay.py','aws/lambdas/engine/source/lambda_function.py']
+    for pattern in filters:
+        assert [p for p in changed if re.search(pattern,p)]==changed[:2]
+        assert not re.search(pattern,'aws/shared/nested/not_a_bundled_module.py')
+
+
+def test_detection_failure_is_captured_and_included_in_failure_report():
+    source=(ROOT/'.github/workflows/deploy-lambdas.yml').read_text(encoding='utf-8')
+    detect=source.split('- name: Detect changed Lambdas',1)[1].split('- name: Run deployment preflight tests',1)[0]
+    assert 'exec > >(tee -a "$RUNNER_TEMP/detect.log") 2>&1' in detect
+    report=source.split('- name: Commit a redacted failure report',1)[1]
+    assert "steps.detect.outcome == 'failure'" in report
+    assert "steps.preflight.outcome == 'failure' && 'preflight' || 'detect'" in report
