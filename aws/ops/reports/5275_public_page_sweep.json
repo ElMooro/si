@@ -1,11 +1,46 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-  "observed_at": "2026-09-20T15:39:52.234257+00:00",
-  "ok": true,
+  "observed_at": "2026-09-20T15:52:15.778825+00:00",
+  "ok": false,
   "routes_checked": 519,
-  "verified_routes": 519,
-  "failed_routes": [],
+  "verified_routes": 485,
+  "failed_routes": [
+    "alpha-atlas.html",
+    "archive/exponential-search-dashboard.html",
+    "audit.html",
+    "capture-gap.html",
+    "catalyst.html",
+    "classic-dashboard.html",
+    "compare.html",
+    "credit-before-equity.html",
+    "crypto-risk.html",
+    "engine-data.html",
+    "factor-regime.html",
+    "flow-lookthrough.html",
+    "global-cycle/index.html",
+    "hot-money.html",
+    "insider-clusters.html",
+    "ka/index.html",
+    "liquidity.html",
+    "macro-leads.html",
+    "merger-arb-risk.html",
+    "methodology.html",
+    "momentum.html",
+    "nasdaq-datalink.html",
+    "pead-signals.html",
+    "pm-decision.html",
+    "ppi-acceleration.html",
+    "rebalance-radar.html",
+    "research.html",
+    "risk-regime.html",
+    "rotation/index.html",
+    "russell-recon.html",
+    "universe-heatmap.html",
+    "vix-curve.html",
+    "workspace.html",
+    "yield-curve.html"
+  ],
   "source_equivalent_builds": {
     "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e": true
   },
@@ -142,12 +177,12 @@
     },
     {
       "route": "alpha-atlas.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 10245,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "alpha-compass.html",
@@ -277,12 +312,12 @@
     },
     {
       "route": "archive/exponential-search-dashboard.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 8925,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "archive/macroeconomic-platform.html",
@@ -376,12 +411,12 @@
     },
     {
       "route": "audit.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 35087,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "backlog.html",
@@ -736,12 +771,12 @@
     },
     {
       "route": "capture-gap.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 59544,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "carry-surface.html",
@@ -772,12 +807,12 @@
     },
     {
       "route": "catalyst.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 11661,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "catalyst/index.html",
@@ -907,12 +942,12 @@
     },
     {
       "route": "classic-dashboard.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 180583,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "cockpit.html",
@@ -943,12 +978,12 @@
     },
     {
       "route": "compare.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 34863,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "compass.html",
@@ -1087,12 +1122,12 @@
     },
     {
       "route": "credit-before-equity.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 12259,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "credit-desk.html",
@@ -1186,12 +1221,12 @@
     },
     {
       "route": "crypto-risk.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 19208,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "crypto.html",
@@ -1618,12 +1653,12 @@
     },
     {
       "route": "engine-data.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 3257,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "engine-leaderboard.html",
@@ -1649,7 +1684,7 @@
       "http_status": 200,
       "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
       "inspector_present": true,
-      "bytes_read": 866533,
+      "bytes_read": 866532,
       "product_source_matches_release": true
     },
     {
@@ -1780,12 +1815,12 @@
     },
     {
       "route": "factor-regime.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 13962,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "factor-returns.html",
@@ -1924,12 +1959,12 @@
     },
     {
       "route": "flow-lookthrough.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 18797,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "flow.html",
@@ -2140,12 +2175,12 @@
     },
     {
       "route": "global-cycle/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 68308,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "global-flow-desk.html",
@@ -2338,12 +2373,12 @@
     },
     {
       "route": "hot-money.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 10705,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "hot-stocks.html",
@@ -2446,12 +2481,12 @@
     },
     {
       "route": "insider-clusters.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 25877,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "insider-desk.html",
@@ -2617,12 +2652,12 @@
     },
     {
       "route": "ka/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 51256,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "katlin.html",
@@ -2716,12 +2751,12 @@
     },
     {
       "route": "liquidity.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 60522,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "live-pulse.html",
@@ -2824,12 +2859,12 @@
     },
     {
       "route": "macro-leads.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 25088,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "macro-predict.html",
@@ -2923,12 +2958,12 @@
     },
     {
       "route": "merger-arb-risk.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 19290,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "merger-arb.html",
@@ -2950,12 +2985,12 @@
     },
     {
       "route": "methodology.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 13405,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ml-predictions.html",
@@ -2977,12 +3012,12 @@
     },
     {
       "route": "momentum.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 27679,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "my-portfolio.html",
@@ -3004,12 +3039,12 @@
     },
     {
       "route": "nasdaq-datalink.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 11785,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "news-velocity/index.html",
@@ -3220,12 +3255,12 @@
     },
     {
       "route": "pead-signals.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 19458,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "performance.html",
@@ -3283,12 +3318,12 @@
     },
     {
       "route": "pm-decision.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 17882,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "pnl-attribution.html",
@@ -3382,12 +3417,12 @@
     },
     {
       "route": "ppi-acceleration.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 13093,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "pre-pump-radar.html",
@@ -3499,12 +3534,12 @@
     },
     {
       "route": "rebalance-radar.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 12201,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "regime-map.html",
@@ -3544,12 +3579,12 @@
     },
     {
       "route": "research.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 15828,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "resilience.html",
@@ -3616,12 +3651,12 @@
     },
     {
       "route": "risk-regime.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 9882,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "risk.html",
@@ -3661,21 +3696,21 @@
     },
     {
       "route": "rotation/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 27224,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "russell-recon.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 22158,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "rv-iv-scanner.html",
@@ -4426,12 +4461,12 @@
     },
     {
       "route": "universe-heatmap.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 17692,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "upside-radar.html",
@@ -4498,12 +4533,12 @@
     },
     {
       "route": "vix-curve.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 15551,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "vix/index.html",
@@ -4660,12 +4695,12 @@
     },
     {
       "route": "workspace.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 10393,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "yen-carry.html",
@@ -4678,16 +4713,16 @@
     },
     {
       "route": "yield-curve.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "c21783154e22b8d6c89e0bd4a39e6c8dd07b862e",
-      "inspector_present": true,
-      "bytes_read": 39498,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35520167240,
+  "deployment_run_id": 35520805898,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-20T15:39:52.236260+00:00"
+  "check_finished_at": "2026-09-20T15:52:15.780487+00:00"
 }
