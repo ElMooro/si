@@ -207,6 +207,7 @@ def lambda_handler(event, context):
     lists = [l for l in (src.get("lists") or [])
              if not str(l.get("id", "")).startswith("e2e-")]
     smap = (s3_get(MAP_KEY) or {}).get("map") or {}
+    smap, withheld_breadth_mappings = SS.filter_mappings(smap)
     if not lists or not smap:
         s3_put(OUT_KEY, {"generated_at": now.isoformat(),
                          "status": "WAITING_MAP"})

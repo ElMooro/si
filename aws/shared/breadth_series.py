@@ -8,6 +8,32 @@ from datetime import datetime, timezone, date
 import hashlib
 import json
 import math
+import re
+
+
+def unverified_breadth_mapping(symbol, entry):
+    entry = entry if isinstance(entry, dict) else {}
+    source = str(entry.get('source', '')).upper()
+    identity = str(entry.get('id', entry.get('source_id', ''))).upper()
+    symbol = str(symbol).upper()
+    return (symbol.startswith('USI:') or source == 'INTERNALS' or
+        bool(re.search(r'(?:^|~)INTERNALS(?:~|$)', identity)) or
+        source == 'FORMULA' and 'USI:' in identity or
+        source == 'BREADTH_NATIVE' and symbol != 'JH_BREADTH:'+identity)
+
+
+def filter_mappings(mappings):
+    """Withhold cached aliases and formulas depending on them; keep input untouched."""
+    accepted = {key: entry for key, entry in mappings.items() if isinstance(entry, dict) and not unverified_breadth_mapping(key, entry)}
+    while True:
+        remove = []
+        for key, entry in accepted.items():
+            if entry.get('source') != 'FORMULA': continue
+            operands = [s.strip().upper() for s in re.split(r'[+\-*/()]', str(entry.get('id', '')))]
+            if any(symbol in mappings and symbol not in accepted for symbol in operands): remove.append(key)
+        if not remove: break
+        for key in remove: accepted.pop(key)
+    return accepted, set(mappings)-set(accepted)
 
 
 def native_suffix(packet, metric, start, at=None):

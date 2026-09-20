@@ -22,6 +22,7 @@ title + confidence so every mapping stays auditable.
 import csv
 import io
 import json
+from breadth_series import filter_mappings, unverified_breadth_mapping
 import threading as _thr
 import time as _time
 
@@ -485,7 +486,7 @@ def map_symbol(sym, fred_search=None):
         # never an asserted vendor/exchange-specific series replacement.
         if t in ("ADVANCERS", "DECLINERS", "UNCHANGED", "ADVDEC_LINE", "UP_VOLUME", "DOWN_VOLUME",
                  "TRIN", "NEW_HIGHS", "NEW_LOWS", "PCT_ABOVE_50DMA", "PCT_ABOVE_200DMA"):
-            return "INTERNALS", t, 1.0, "JustHodl native mixed-security breadth; source and metric identity, not forecast confidence"
+            return "BREADTH_NATIVE", t, 1.0, "JustHodl native mixed-security breadth; source and metric identity, not forecast confidence"
         return None, None, 0, "native_breadth_measure_unavailable"
     if ex == "USI":
         return None, None, 0, "vendor_scope_unverified; native mixed-security alternative requires explicit JH_BREADTH identity"
@@ -970,6 +971,9 @@ def fetch(source, sid, start="1990-01-01"):
         if source == "EODHD":
             return _eodhd(sid, start)
         if source == "INTERNALS":
+            # Persisted pre-native mappings lack a verified market/universe scope.
+            return {}
+        if source == "BREADTH_NATIVE":
             return _internals(sid, start)
         if source == "WORLDBANK":
             return _worldbank(sid, start)

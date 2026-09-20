@@ -232,6 +232,7 @@ def lambda_handler(event, context):
     lists = [l for l in (src.get("lists") or [])
              if not str(l.get("id", "")).startswith("e2e-")]
     smap = (s3_get(MAP_KEY) or {}).get("map") or {}
+    smap, withheld_breadth_mappings = SS.filter_mappings(smap)
     # ops 3183: names make the panels legible to humans AND to engines —
     # "Global price of Agr. Raw Material Index" is reasoning material;
     # "FRED:PRAWMINDEXM" is not.

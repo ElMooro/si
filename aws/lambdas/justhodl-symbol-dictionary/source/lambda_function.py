@@ -200,6 +200,7 @@ def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     smap = (s3_get(MAP_KEY) or {}).get("map") or {}
+    smap, withheld_breadth_mappings = SS.filter_mappings(smap)
     wl = s3_get(LISTS_KEY) or {}
     lists = [l for l in (wl.get("lists") or [])
              if not str(l.get("id", "")).startswith("e2e-")]
@@ -209,6 +210,7 @@ def lambda_handler(event, context):
         return {"ok": False, "error": "no watchlists"}
 
     dic = (s3_get(OUT_KEY) or {}).get("dictionary") or {}
+    withheld_breadth_mappings.update(sym for sym, row in dic.items() if SS.unverified_breadth_mapping(sym, row))
     wb_catalog(sorted({v["id"].split("|")[1] for v in smap.values()
                        if v.get("source") == "WORLDBANK"
                        and "|" in str(v.get("id"))}))
@@ -217,7 +219,7 @@ def lambda_handler(event, context):
 
     todo = [s for s in universe
             if s not in dic or not dic[s].get("name")
-            or dic[s].get("provisional")]
+            or dic[s].get("provisional") or s in withheld_breadth_mappings]
     print(f"[dict] {len(universe)} symbols, {len(todo)} need a name")
 
     def resolve(sym):
@@ -225,6 +227,10 @@ def lambda_handler(event, context):
         src, sid = m.get("source"), m.get("id")
         base = {"source": src, "source_id": sid,
                 "confidence": m.get("confidence")}
+        if sym in withheld_breadth_mappings or sym.startswith('USI:'):
+            return sym, {'name': sym, 'source': None, 'source_id': None, 'confidence': 0,
+                'category': 'unverified_source_scope', 'provisional': True,
+                'note': 'Vendor/exchange breadth equivalence is unverified; explicit native JH_BREADTH identity is required.'}
         # 1. curated (indices / FX / commodities)
         if sid in CURATED:
             n, cat = CURATED[sid]
