@@ -33,6 +33,7 @@ import urllib.request
 import urllib.error
 from collections import defaultdict
 import boto3
+from holdings_derived_boundary import BASIS, CLUSTER, exclusions
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -63,6 +64,13 @@ FEEDS = {
     "microcap_sq":    ("data/microcap-float-squeeze.json", "summary.top_25_overall",  "symbol"),
     "pead":           ("data/pead-signals.json",           "summary.top_30_overall",  "symbol"),
 }
+
+
+def load_packet(key):
+    try:
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {}
 
 
 def load_feed(key, path, sym_field):
@@ -97,9 +105,14 @@ def load_feed(key, path, sym_field):
 def aggregate():
     presence = defaultdict(lambda: {"systems": set(), "scores": {}, "details": {}})
     feed_stats = {}
+    holding_inputs = {}
 
     for name, (key, path, sym_field) in FEEDS.items():
-        records = load_feed(key, path, sym_field)
+        if name == "smart_money":
+            holding_inputs[key] = load_packet(key)
+            records = []  # No universe, weight or agreement contribution.
+        else:
+            records = load_feed(key, path, sym_field)
         feed_stats[name] = len(records)
         print(f"[compound] {name}: {len(records)} entries")
         for c in records:
@@ -255,6 +268,7 @@ def aggregate():
     ranked.sort(key=lambda x: (-x["n_systems"], -x["compound_score"]))
     # ── ops 4334: archetype (reversal join), 90d percentile, prime
     # artifact — the fingerprint that called AAPL/GOOGL/MSFT, encoded.
+    _rv = {}
     try:
         _rv = json.loads(S3.get_object(
             Bucket=BUCKET, Key="data/trend-reversal.json"
@@ -384,10 +398,11 @@ def aggregate():
         )["Body"].read())
     except Exception:
         _h = {"days": []}
-    _prior_vals = [v for day in _h.get("days") or []
+    _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS]
+    _prior_vals = [v for day in _qualified_days
                    for v in (day.get("scores") or {}).values()]
     _prior_by = {}
-    for day in _h.get("days") or []:
+    for day in _qualified_days:
         for k2, v in (day.get("scores") or {}).items():
             _prior_by.setdefault(k2, []).append(v)
     for r in ranked:
@@ -405,7 +420,7 @@ def aggregate():
     _today = _dt.now(_tz.utc).strftime("%Y-%m-%d")
     _days = [d for d in _h.get("days") or []
              if d.get("d") != _today][-89:]
-    _days.append({"d": _today,
+    _days.append({"d": _today, "score_basis": BASIS,
                   "scores": {r["symbol"]: r["compound_score"]
                              for r in ranked[:400]}})
     S3.put_object(Bucket=BUCKET,
@@ -417,10 +432,8 @@ def aggregate():
         Bucket=BUCKET, Key="data/prime-convergence.json",
         Body=json.dumps({
             "generated_at": _dt.now(_tz.utc).isoformat(),
-            "note": "n_systems>=5 with the core triad (options "
-                    "flow + smart-money + rev accel) — the "
-                    "fingerprint validated 2026-08-03 on "
-                    "AAPL/GOOGL/MSFT",
+            "note": "Heuristic screen: at least four systems across three declared families. Independence and forward returns are not established; 13F clusters are excluded.",
+            "holdings_exclusions": exclusions(holding_inputs),
             "n": len(_prime),
             "rows": [{k: r[k] for k in
                       ("symbol", "compound_score", "desk_score",
@@ -436,6 +449,7 @@ def aggregate():
 
     return {
         "feed_stats": feed_stats,
+        "holdings_exclusions": exclusions(holding_inputs),
         "presence": presence,
         "multi": multi,
         "ranked": ranked,
@@ -468,7 +482,7 @@ def detect_new_alerts(ranked, prior_state):
                 "symbol": sym, "type": "TIER_3_EMERGED",
                 "n_systems": n, "score": score,
                 "systems": r["systems"],
-                "reason": f"{sym} now flagged by {n} independent systems: {', '.join(r['systems'])}",
+                "reason": f"{sym} now flagged by {n} systems (independence unverified): {', '.join(r['systems'])}",
             })
             new_alerted.append(key_t3)
 
@@ -589,9 +603,10 @@ def lambda_handler(event=None, context=None):
     feed_stats = agg["feed_stats"]
     print(f"[compound] aggregated: {len(agg['presence'])} names, {len(agg['multi'])} multi-signal")
 
+    suppress_alerts = isinstance(event, dict) and (event.get("suppress_alerts") is True or event.get("notify") is False)
     # Delta detection
     prior_state = load_prior_state()
-    new_alerts, new_alerted = detect_new_alerts(ranked, prior_state)
+    new_alerts, new_alerted = ([], prior_state.get("alerted_keys", [])) if suppress_alerts else detect_new_alerts(ranked, prior_state)
     print(f"[compound] new alerts this run: {len(new_alerts)}")
 
     out = {
@@ -599,6 +614,10 @@ def lambda_handler(event=None, context=None):
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 2),
         "feed_stats": feed_stats,
+        "holdings_exclusions": agg["holdings_exclusions"],
+        "notifications_suppressed": suppress_alerts,
+        "score_basis": BASIS,
+        "history_comparability": "Percentiles use only snapshots with this score_basis; earlier snapshots are retained but excluded.",
         "stats": {
             "n_total_names": len(agg["presence"]),
             "n_multi_signal": len(agg["multi"]),
@@ -621,10 +640,11 @@ def lambda_handler(event=None, context=None):
         "last_compound_count": len(agg["multi"]),
         "last_3plus_count": sum(1 for r in ranked if r["n_systems"] >= 3),
     }
-    S3.put_object(Bucket=BUCKET, Key=STATE_KEY,
-                   Body=json.dumps(new_state).encode(),
-                   ContentType="application/json")
-    print(f"[compound] wrote state: {len(new_alerted)} alerted_keys tracked")
+    if not suppress_alerts:
+        S3.put_object(Bucket=BUCKET, Key=STATE_KEY,
+                      Body=json.dumps(new_state).encode(),
+                      ContentType="application/json")
+    print("[compound] alert state retained" if suppress_alerts else f"[compound] wrote state: {len(new_alerted)} alerted_keys tracked")
 
     if new_alerts:
         emit_alerts(new_alerts, agg)

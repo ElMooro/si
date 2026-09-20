@@ -21,7 +21,9 @@ h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font
 .eng{margin-top:6px}.echip{display:inline-block;font-size:9px;color:var(--fg3);border:1px solid var(--bd);border-radius:4px;padding:0 5px;margin:0 3px 3px 0}
 .tags{margin-top:4px;font-size:10.5px;color:var(--cyan)}
 .foot{color:var(--fg3);font-size:11px;margin-top:22px;line-height:1.5}.loading{color:var(--fg3);padding:40px 0}
-</style></head><body><div class="wrap" id="w"><div class="loading">Loading flow confluence…</div></div>
+</style><link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-holdings-boundary.js"></script>
+</head><body><div class="wrap" style="padding-bottom:0"><aside id="holdings-boundary" aria-label="Holdings evidence status"></aside></div><div class="wrap" id="w"><div class="loading">Loading flow confluence…</div></div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
@@ -41,8 +43,9 @@ function card(b){const[c,bgc,lbl]=POS[b.posture]||POS.MIXED;
 (async function(){
   const d=await gj('data/flow-confluence.json');const w=document.getElementById('w');
   if(!d||!d.by_posture){w.innerHTML='<div class="hd"><h1>Flow Confluence</h1></div><div class="loading">No data yet — runs daily.</div>';return;}
+  JHHoldingsBoundary.render(document.getElementById("holdings-boundary"), d);
   const c=d.counts||{};
-  let h=`<div class="hd"><h1>💰 Flow Confluence</h1><div class="sub">The 35-engine flow/positioning cluster — 13F, dark pool, ETF look-through, short positioning, stealth — fused into one posture per name.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
+  let h=`<div class="hd"><h1>💰 Flow Confluence</h1><div class="sub">Flow and positioning research screens, with direct 13F and smart-money cluster contributions excluded.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · v${esc(d.version||'')}</div></div>`;
   h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
   h+=`<div class="counts"><span class="chip"><b>${c.names||0}</b> names</span><span class="chip"><b>${c.multi_engine||0}</b> multi-engine</span><span class="chip" style="color:var(--vio)"><b>${c.short_squeeze_setup||0}</b> squeeze-setup</span><span class="chip" style="color:var(--grn)"><b>${c.accumulation||0}</b> accumulation</span><span class="chip" style="color:var(--red)"><b>${c.distribution||0}</b> distribution</span></div>`;
   const multi=d.multi_engine_confluence||[];

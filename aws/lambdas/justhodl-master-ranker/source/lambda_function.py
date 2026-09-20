@@ -63,6 +63,7 @@ from datetime import datetime, timezone
 
 import boto3
 from holdings_authority import context as holdings_context
+from holdings_derived_boundary import DIRECT, CLUSTER, exclusions, compound_rows, flow_rows, current_basis
 from private_artifact import public_source_allowed
 
 try:
@@ -259,12 +260,15 @@ def build_ticker_index():
         "earnings_quality_hi": fetch_json("data/earnings-quality.json", max_age_h=200),
     }
 
+    feeds["holdings_exclusions"] = exclusions({DIRECT: feeds["institutional_13f"], CLUSTER: feeds["smart_money"]})
+    feeds["holdings_exclusions"]["composite_basis_present"] = {k: current_basis(feeds[k]) for k in ("compound", "flow_confluence")}
+
     # Index: ticker → {system_name: {score, details}}
     idx = {}
 
     # 1. compound — primary spine
     if feeds["compound"]:
-        for c in (feeds["compound"].get("compound") or []):
+        for c in compound_rows(feeds["compound"]):
             sym = c.get("symbol")
             if not sym:
                 continue
@@ -329,18 +333,7 @@ def build_ticker_index():
                 "has_cfo": r.get("has_cfo"),
             }
 
-    # 6. smart money 13F
-    if feeds["smart_money"]:
-        for r in (feeds["smart_money"].get("clusters") or []):
-            sym = r.get("ticker")
-            if not sym:
-                continue
-            idx.setdefault(sym, {})["smart_money"] = {
-                "score": r.get("score"),
-                "flag": r.get("flag"),
-                "n_funds": r.get("n_funds_holding"),
-                "legend_buyers": r.get("legend_buyers"),
-            }
+    # 6. Clustered 13F remains research context, never a conviction vote.
 
     # 6a. corporate buybacks — genuine net-of-dilution accumulation (justhodl-buyback-engine).
     #     Only the real classes contribute (DILUTION_OFFSET / net issuers are excluded), so
@@ -367,8 +360,10 @@ def build_ticker_index():
     # 6b. fused confluence synthesizers — a name confirmed by a synthesizer (several
     #     independent engines stacked) is higher-quality than one raw-engine flag.
     for _key in ("options_confluence", "flow_confluence"):
+        if _key == "flow_confluence" and not current_basis(feeds.get(_key)):
+            continue  # Old stored scores can contain retired 13F contributions.
         if feeds.get(_key):
-            for r in (feeds[_key].get("multi_engine_confluence") or []):
+            for r in (flow_rows(feeds[_key]) if _key == "flow_confluence" else (feeds[_key].get("multi_engine_confluence") or [])):
                 sym = r.get("ticker")
                 if not sym:
                     continue
@@ -1515,6 +1510,7 @@ def lambda_handler(event, context):
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regime_context": regime_ctx,
         "holdings_context": feeds["institutional_13f_context"],
+        "holdings_exclusions": feeds["holdings_exclusions"],
         "risk_regime": {
             "score": _rr_score, "regime": _rr_regime,
             "posture": _rr.get("posture"),

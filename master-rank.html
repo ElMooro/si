@@ -179,6 +179,8 @@ a { color: inherit; }
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
 <script src="/liquidity-pulse.js" defer></script>
+<link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-holdings-boundary.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -192,6 +194,7 @@ a { color: inherit; }
       </div>
     </div>
 
+<aside id="holdings-boundary" aria-label="Holdings evidence status"></aside>
     <div class="hero">
       <div class="spotlight" id="spotlight"><div class="loader">Loading…</div></div>
       <div class="regime-panel">
@@ -573,6 +576,7 @@ async function load() {
   const [r] = await Promise.all([fetch(FEED_URL + '?_=' + Date.now()), loadWatchlist()]);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
+    JHHoldingsBoundary.render(document.getElementById("holdings-boundary"), DATA);
     renderHeader();
     renderTickers();
     renderMacro();

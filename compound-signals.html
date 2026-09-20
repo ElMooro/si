@@ -114,6 +114,8 @@ body{background-image:radial-gradient(ellipse at 60% -10%,rgba(168,85,247,.06),t
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
 <script src="/liquidity-pulse.js" defer></script>
+<link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-holdings-boundary.js"></script>
 </head>
 <body>
 
@@ -137,10 +139,11 @@ body{background-image:radial-gradient(ellipse at 60% -10%,rgba(168,85,247,.06),t
 </nav>
 
 <main class="shell">
+<aside id="holdings-boundary" aria-label="Holdings evidence status"></aside>
   <section class="hero fade-in">
     <span class="hero-eyebrow">Multi-System Signal Fusion</span>
-    <h1 class="hero-title">When five <em>independent systems</em> agree on the same name.</h1>
-    <p class="hero-blurb">Cross-references the nobrainer-hunter, insider-cluster scanner, smart-money 13F tracker, deep-value screener, and EPS-revision-velocity detector. Stocks appearing on 2+ systems are statistically very rare and historically very high return — when independent measurements line up, the signal compounds.</p>
+    <h1 class="hero-title">Compare <em>overlapping research screens</em> on the same name.</h1>
+    <p class="hero-blurb">Compare fundamental, insider and technical screens. A repeated name is a research lead; common source data can cause agreement. The score is a heuristic, with no demonstrated forward-return or position-sizing authority.</p>
 
     <div class="feed-strip" id="feed-strip">
       <a href="/nobrainers.html" class="feed-card">
@@ -179,15 +182,15 @@ body{background-image:radial-gradient(ellipse at 60% -10%,rgba(168,85,247,.06),t
   </section>
 
   <div class="primer fade-in">
-    <h3>Why compound signals matter</h3>
-    <p>Each of the five underlying systems is independently designed and uses different data sources. <strong>Nobrainers</strong> looks at theme-supply inflection in mid-cap commodities. <strong>Insider clusters</strong> watches SEC Form 4 filings. <strong>Smart money</strong> tracks 13F filings of legendary funds. <strong>Deep value</strong> screens for net-cash + revenue. <strong>EPS velocity</strong> detects accelerating consensus.</p>
-    <p>Because these systems use independent inputs, when the same name appears on 2+ lists it's <strong>not coincidence</strong> — it's convergent evidence. When 3+ systems flag the same stock, the historical hit rate is extreme. These are the rare setups where multiple independent patterns agree, and the asymmetric upside is largest.</p>
+    <h3>What agreement means</h3>
+    <p>Several screens may highlight the same name. Their counts describe overlapping rules, not independent capital flows or validated investment returns.</p>
+    <p>13F and smart-money cluster inferences are excluded from the revised calculation. Other shared dependencies and forward returns still need validation. Compare dates, original evidence and the downside scenario before treating a research lead as a portfolio decision.</p>
   </div>
 
   <section class="section fade-in">
     <div class="section-eyebrow">Tier-3 — three or more systems agree</div>
     <h2 class="section-title">Highest-conviction signals</h2>
-    <p class="section-blurb">Stocks flagged by 3+ independent systems. Statistically very rare; historically very high return when present.</p>
+    <p class="section-blurb">Names appearing in three or more screens. Shared inputs can explain agreement; forward returns are unverified.</p>
     <div class="compound-grid" id="tier3-grid">
       <div class="empty">Loading…</div>
     </div>
@@ -196,7 +199,7 @@ body{background-image:radial-gradient(ellipse at 60% -10%,rgba(168,85,247,.06),t
   <section class="section fade-in">
     <div class="section-eyebrow">Tier-2 — two systems agree</div>
     <h2 class="section-title">Cross-confirmed signals</h2>
-    <p class="section-blurb">Stocks flagged by 2 independent systems. Strong setups worth a position.</p>
+    <p class="section-blurb">Names appearing in two screens. Inclusion is a research lead; position size requires separate evidence.</p>
     <div class="compound-grid" id="tier2-grid">
       <div class="empty">Loading…</div>
     </div>
@@ -208,7 +211,7 @@ body{background-image:radial-gradient(ellipse at 60% -10%,rgba(168,85,247,.06),t
   <div class="foot-grid">
     <div class="foot-section">
       <span class="foot-label">Sources</span>
-      <span><strong style="color:var(--t1)">5 independent systems</strong></span>
+      <span><strong style="color:var(--t1)">Research screen inputs</strong></span>
       <span>nobrainers / insiders / 13F / value / EPS</span>
     </div>
     <div class="foot-section">
@@ -311,12 +314,13 @@ async function loadCompound() {
 (async () => {
   try {
     const data = await loadCompound();
+    JHHoldingsBoundary.render(document.getElementById("holdings-boundary"), data);
     const stats = data.stats || {};
     const fs = data.feed_stats || {};
 
     // Feed counts
     for (const k of ['nobrainers','insiders','smart_money','deep_value','eps_velocity']) {
-      document.getElementById('cnt-' + k).textContent = (fs[k] != null) ? fs[k] : '—';
+      document.getElementById('cnt-' + k).textContent = k === 'smart_money' && data.holdings_exclusions ? 'Excluded' : ((fs[k] != null) ? fs[k] : '—');
     }
 
     if (data.generated_at) {

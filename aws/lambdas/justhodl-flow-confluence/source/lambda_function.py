@@ -26,8 +26,9 @@ consumable by best-setups/master-ranker.
 import json, time
 from datetime import datetime, timezone
 import boto3
+from holdings_derived_boundary import DIRECT, CLUSTER, exclusions
 
-VERSION = "1.1"
+VERSION = "1.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/flow-confluence.json"
 s3 = boto3.client("s3", "us-east-1")
@@ -69,18 +70,8 @@ def lambda_handler(event, context):
         if stealth: a["stealth"] = True
         if tag and tag not in a["tags"]: a["tags"].append(tag)
 
-    pos = _read("data/13f-positions.json")
-    for it in (pos.get("most_bought") or []):
-        if isinstance(it, dict): add(_tk(it), "13f", 0.7, tag="13F institutions adding")
-    for it in (pos.get("most_sold") or []):
-        if isinstance(it, dict): add(_tk(it), "13f", -0.7, tag="13F institutions trimming")
-
-    for it in (_read("data/smart-money-clusters.json").get("clusters") or []):
-        if not isinstance(it, dict): continue
-        nb, ns = it.get("n_buyers") or 0, it.get("n_sellers") or 0
-        if nb or ns:
-            d = 0.6 if nb > ns else (-0.6 if ns > nb else 0.0)
-            add(_tk(it), "smart-money", d, tag="smart-money cluster buying" if d > 0 else None)
+    holding_inputs = {DIRECT: _read(DIRECT), CLUSTER: _read(CLUSTER)}
+    # Retained as source context; no ticker universe, score or agreement votes.
 
     dp = _read("data/dark-pool.json")
     for it in (dp.get("top_accumulation") or []):
@@ -216,10 +207,8 @@ def lambda_handler(event, context):
 
     out = {"engine": "flow-confluence", "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
-           "thesis": ("Fuses the fragmented flow/positioning cluster into one net posture per name. A name bought by "
-                      "institutions AND accumulating in the dark pool AND seeing ETF inflows (n_engines >= 2) is "
-                      "corroborated smart-money movement; a single feed is noise. Heavy short + accumulation/covering "
-                      "= SHORT_SQUEEZE_SETUP."),
+           "holdings_exclusions": exclusions(holding_inputs),
+           "thesis": "Heuristic flow/positioning screen. Direct 13F and derived smart-money clusters contribute no score or agreement count. Other indirect paths, independence and predictive performance remain unqualified.",
            "alpha_gate": "ALPHA_NEGATIVE flow engines dropped (e.g. etf_rotation) via engine-trust.",
            "counts": {"names": len(book), "multi_engine": len(multi),
                       **{p.lower(): len(v) for p, v in by_posture.items()}},

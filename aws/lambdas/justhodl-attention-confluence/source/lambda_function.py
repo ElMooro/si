@@ -17,7 +17,7 @@ Each name is scored 0-100 on BOTH sides, then classified by STAGE:
   STEALTH      — smart firing, crowd quiet        → accumulation before the crowd (alpha)
   IGNITING     — smart firing + crowd waking up   → confirmation, still early
   CROWDED/LATE — crowd loud, no smart confirm     → chase / reversal risk (avoid)
-  DISTRIBUTION — insiders/funds selling into hype → avoid
+  DISTRIBUTION — distribution indicators alongside crowd attention → avoid
   WATCH        — partial / inconclusive
 
 confluence_smart = number of INDEPENDENT informed families firing (the "2+
@@ -28,6 +28,7 @@ Real data only. Research, not investment advice.
 """
 import json, math, os, datetime
 import boto3
+from holdings_derived_boundary import DIRECT, CLUSTER, exclusions
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/attention-confluence.json"
@@ -118,40 +119,14 @@ def x_options(j):
     return out
 
 def x_13f(j):
-    out = {}
-    rows = (j.get("most_bought", []) or [])
-    nas = [safe(r.get("net_action_score")) for r in rows if r.get("net_action_score") is not None]
-    nmax = max(nas) if nas else 1.0
-    for r in rows:
-        t = up(r.get("ticker"))
-        if not t:
-            continue
-        na = safe(r.get("net_action_score"))
-        norm = clamp(na / nmax * 100.0) if nmax > 0 else 0.0
-        out[t] = {"n_funds_holding": r.get("n_funds_holding"), "n_funds_adding": r.get("n_funds_adding"),
-                  "n_new": r.get("n_funds_new_position"), "net_action_score": round(na, 2),
-                  "norm": round(norm, 1), "fund_actions": r.get("fund_actions")}
-    # mark sellers (for distribution)
-    for r in (j.get("most_sold", []) or []):
-        t = up(r.get("ticker"))
-        if t and t not in out:
-            out[t] = {"selling": True, "net_action_score": safe(r.get("net_action_score")),
-                      "n_funds_exiting": r.get("n_funds_exiting"), "norm": 0.0}
-        elif t:
-            out[t]["selling"] = True
-    return out
+    """Disclosure context has no validated directional score."""
+    return {}
+
 
 def x_smart_money(j):
-    out = {}
-    for c in j.get("clusters", []) or []:
-        t = up(c.get("ticker"))
-        if not t:
-            continue
-        out[t] = {"score": clamp(c.get("score")), "flag": c.get("flag"),
-                  "signal_types": c.get("signal_types"), "n_buyers": c.get("n_buyers"),
-                  "n_new": c.get("n_new"), "legend_buyers": c.get("legend_buyers") or [],
-                  "name": c.get("name")}
-    return out
+    """Legacy clustered holdings do not establish transactions or edge."""
+    return {}
+
 
 def x_dark_pool(j):
     out = {}
@@ -213,8 +188,9 @@ def lambda_handler(event=None, context=None):
     A = x_attention(att)
     IC = x_insider_clusters(_read("data/insider-clusters.json"))
     OP = x_options(_read("data/options-flow-scanner.json"))
-    F13 = x_13f(_read("data/13f-positions.json"))
-    SM = x_smart_money(_read("data/smart-money-clusters.json"))
+    holding_inputs = {DIRECT: _read(DIRECT), CLUSTER: _read(CLUSTER)}
+    F13 = x_13f(holding_inputs[DIRECT])
+    SM = x_smart_money(holding_inputs[CLUSTER])
     DP = x_dark_pool(_read("data/dark-pool.json"))
     CG = x_congress(_read("data/political-stocks.json"))
     AC = x_analyst_clusters(_read("data/rating-change-cluster.json"))
@@ -281,7 +257,6 @@ def lambda_handler(event=None, context=None):
 
         fam = [("insider", insider_s, 0.24, 35),
                ("options", options_s, 0.18, 30),
-               ("funds", funds_s, 0.20, 35),
                ("buyback", buyback_s, 0.18, 45),
                ("darkpool", darkpool_s, 0.12, 40),
                ("congress", congress_s, 0.08, 40),
@@ -438,12 +413,13 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "engine": "attention-confluence",
-        "version": "1.0.0",
+        "version": "1.0.1",
+        "holdings_exclusions": exclusions(holding_inputs),
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "thesis": ("The edge is the divergence between informed accumulation and crowd attention. "
                    "Smart money positions before the crowd arrives (STEALTH); when both fire it is "
                    "confirmation (IGNITING); loud retail with no smart confirmation is a chase/reversal "
-                   "risk (CROWDED); insiders/funds selling into hype is DISTRIBUTION."),
+                   "risk (CROWDED); distribution indicators alongside crowd attention is DISTRIBUTION."),
         "universe_n": len(universe),
         "n_scored": len(tickers),
         "counts": counts,
@@ -456,20 +432,20 @@ def lambda_handler(event=None, context=None):
                    "stocktwits_trending": att.get("stocktwits_trending", [])},
         "tickers": tickers,
         "scoring": {
-            "smart_families": {"insider": 0.24, "options": 0.18, "funds": 0.20, "buyback": 0.18,
+            "smart_families": {"insider": 0.24, "options": 0.18, "buyback": 0.18,
                                "darkpool": 0.12, "congress": 0.08, "analyst": 0.10},
             "crowd_families": {"retail": 0.42, "theme": 0.23, "search": 0.35},
             "stage_rules": {"STEALTH": "smart>=45 & confluence>=2 & crowd<40",
                             "IGNITING": "smart firing & crowd>=38",
                             "CROWDED": "crowd>=55 & smart weak",
-                            "DISTRIBUTION": "fund/insider selling & crowd>=38"},
+                            "DISTRIBUTION": "non-13F distribution indicator & crowd>=38"},
         },
         "sources": ["Finnhub insider/analyst (via attention-signals)", "Form 4 insider clusters",
-                    "options-flow-scanner", "13F + smart-money clusters", "FINRA dark-pool",
+                    "options-flow-scanner", "13F + smart-money clusters (excluded research context)", "FINRA dark-pool",
                     "Quiver Congress", "rating-change clusters", "GDELT/Stocktwits/Wikipedia attention"],
         "caveats": ("Attention leads ~2 weeks then mean-reverts (Da/Engelberg/Gao). STEALTH is the "
                     "asymmetric setup; CROWDED is shown to be avoided, not chased. Confluence>=2 means "
-                    "two independent informed families agree. Research only, not investment advice."),
+                    "two declared families pass heuristic thresholds; independence and edge are unverified. Research only, not investment advice."),
     }
 
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),

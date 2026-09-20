@@ -33,7 +33,7 @@ class Tests(unittest.TestCase):
 
     def test_actual_ranker_index_excludes_holdings_but_retains_source_context(self):
         m = load('justhodl-master-ranker'); m.engine_trust = None
-        base = {'compound': [{'symbol': 'KO', 'compound_score': 50, 'n_systems': 1}]}
+        base = {'holdings_exclusions': {'basis': 'holdings-direct-and-cluster-excluded.v1'}, 'compound': [{'symbol': 'KO', 'compound_score': 50, 'n_systems': 1, 'systems': ['fixture'], 'scores': {'fixture': 50}}]}
         baseline = None
         for p in (None, packet(), packet(-10**12)):
             with patch.object(m, 'fetch_json', side_effect=lambda key, **kw: p if key == 'data/13f-positions.json' else base if key == 'data/compound-signals.json' else {}):

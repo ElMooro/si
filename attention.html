@@ -79,6 +79,8 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--orange)}
 .loading{text-align:center;color:var(--fg-3);font-family:var(--fm);padding:70px 0}
 @media(max-width:640px){.wrap{padding:18px 14px 60px}.hdr h1{font-size:19px}.grid,.panels{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="/jh-holdings-boundary.css">
+<script src="/jh-holdings-boundary.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -88,15 +90,16 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--orange)}
     <h1>Smart Accumulation vs Crowd Attention</h1>
     <div class="meta" id="meta">loading…</div>
   </div>
-  <div class="hero"><p><b>The edge is the divergence between informed accumulation and crowd attention.</b>
+<aside id="holdings-boundary" aria-label="Holdings evidence status"></aside>
+  <div class="hero"><p><b>Compare non-13F research indicators with crowd attention.</b>
    Smart money — <b style="color:var(--green)">insider clusters</b>, <b style="color:var(--cyan)">options flow</b>,
-   <b style="color:var(--green)">13F funds</b>, <b style="color:var(--cyan)">dark pool</b>, <b style="color:var(--violet)">Congress</b> —
+   <b style="color:var(--cyan)">dark pool</b>, <b style="color:var(--violet)">Congress</b> —
    positions <i>before</i> the crowd (<b style="color:var(--violet)">retail, search, themes</b>) arrives. Each name is scored 0–100 on both
    sides and staged: <b style="color:var(--green)">Stealth</b> (accumulation before the crowd) → <b style="color:var(--orange)">Igniting</b> (both firing) →
    <b style="color:var(--amber)">Crowded</b> (chase risk) → <b style="color:var(--red)">Distribution</b> (selling into hype).</p></div>
   <div class="ctx" id="ctx"></div>
   <div class="legend">
-    <span class="lg">⚙ N = independent informed families confirming (the 2+ bar)</span>
+    <span class="lg">⚙ N = declared families passing thresholds; independence is unverified</span>
     <span class="lg" style="color:var(--green)">🟢 smart score</span>
     <span class="lg" style="color:var(--violet)">🟣 crowd score</span>
     <span class="lg">divergence = smart − crowd</span>
@@ -144,6 +147,7 @@ function panel(title,sub,inner){return `<div class="panel"><h3>${title} ${sub?`<
 function chipList(rows){return rows.length?`<div class="chips">${rows.join("")}</div>`:`<div class="empty">Nothing qualifying right now.</div>`;}
 
 function render(d,sa){
+ JHHoldingsBoundary.render(document.getElementById("holdings-boundary"), d);
   const c=document.getElementById("content");
   if(!d){c.innerHTML='<div class="loading">Could not load attention data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const gen=d.generated_at?new Date(d.generated_at):null, cc=d.counts||{};
