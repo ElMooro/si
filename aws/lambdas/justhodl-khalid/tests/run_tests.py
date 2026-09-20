@@ -6,6 +6,7 @@ import sys
 import types
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / 'shared'))
 
 # Importing the real handler must never discover AWS credentials or access S3.
 class NoCloud:
