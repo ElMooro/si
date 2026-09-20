@@ -498,7 +498,7 @@ def generate_names_brief(ctx_id, cfg, episode_ref):
 
         cross_data = {}
         for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
-            d = s3io.get_json(feed_key, default={})
+            d = __import__("plumbing_authority").guard(feed_key, s3io.get_json(feed_key, default={}))
             if d:
                 cross_data[cid] = d
 
@@ -882,7 +882,7 @@ def generate_portfolio_brief(ctx_id, cfg, episode_ref):
         cross_data = {}
         consensus = None
         for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
-            d = s3io.get_json(feed_key, default={})
+            d = __import__("plumbing_authority").guard(feed_key, s3io.get_json(feed_key, default={}))
             if d:
                 cross_data[cid] = d
                 if cid == "consensus":
@@ -2598,7 +2598,7 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
         sources = cfg.get("read_sources") or {}
         feeds = {}
         for k, key in sources.items():
-            feeds[k] = s3io.get_json(key, default={}) or {}
+            feeds[k] = __import__("plumbing_authority").guard(key, s3io.get_json(key, default={})) or {}
 
         equity_brief    = feeds.get("equity_brief")
         macro_brief     = feeds.get("macro_brief")

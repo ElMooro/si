@@ -459,7 +459,8 @@ def lambda_handler(event,context):
     # When the calibrator runs Sundays it will weight these by realized accuracy.
     try:
         cp=fs3("data/crisis-plumbing.json")
-        if cp:
+        if cp and __import__("plumbing_authority").qualified_for_signals(cp):
+            # Retained legacy implementation; no registered policy may enter.
             # Confidence ladder: CRISIS=0.85, ELEVATED=0.75, WATCH=0.65, NORMAL=0.45
             CONF={"CRISIS":0.85,"ELEVATED":0.75,"WATCH":0.65,"NORMAL":0.45}
             # Direction: most stress signals predict equities DOWN

@@ -40,14 +40,10 @@ test('control choices are bounded and default to dividend-adjusted research',()=
  const html=ui.render(packet(),{basis:'unknown',horizon:'unknown'});assert.match(html,/value="adjusted" selected/);assert.match(html,/value="63" selected/);
  assert.match(ui.render(packet(),{horizon:'all'}),/value="all" selected/);
 });
-test('actual Crisis feed card cannot turn any research number into a global score',()=>{
- const source=fs.readFileSync('crisis.html','utf8');
- const start=source.indexOf("fetch('/data/'+f+'?t='+Date.now())");
- const bodyStart=source.indexOf('.then(function(d){',start)+'.then(function(d){'.length;
- const end=source.indexOf('}).catch(function()',bodyStart);
- assert.ok(start>0&&bodyStart>start&&end>bodyStart);
- const renderCard=new Function('f','d','c','pick','pickS','NK','SK',source.slice(bodyStart,end));
- const nodes={'.v':{},'.s':{}},fail=()=>{throw new Error('recursive score picker must not run');};
- renderCard('global-stress.json',{global_stress_index:99,instruments:{SPY:{close:761}}},{querySelector:k=>nodes[k]},fail,fail,[],[]);
- assert.equal(nodes['.v'].textContent,'Research only');assert.match(nodes['.s'].textContent,/No qualified composite/);
+test('native Plumbing page cannot turn global research numbers into an imported score',()=>{
+ const plumbing=require('../jh-plumbing-research.js');
+ const p={contract:'plumbing-research.v1',calls_eligible:false,sizing_eligible:false,execution_eligible:false,forecast_eligible:false,
+  decision:{verb:'WAIT'},composite:{composite_stress_score:null},measurements:Object.fromEntries(Array.from({length:53},(_,i)=>['S'+i,{}])),
+  context:{global_stress:{global_stress_index:99,instruments:{SPY:{close:761}}}}};
+ const html=plumbing.render(p);assert.match(html,/href="\/global-stress.html"/);assert.doesNotMatch(html,/global_stress_index|>99<|761/);
 });

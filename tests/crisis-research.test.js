@@ -39,12 +39,11 @@ test('DEFCON page uses one native source controller and preserves related-source
  const page=fs.readFileSync('defcon.html','utf8');assert.match(page,/jh-crisis-research.js\?v=53/);assert.match(page,/aria-live="polite"/);assert.doesNotMatch(page,/s3.us-east-1|ai-brief-kit|master_crisis_score\|\|0/);
  assert.match(ui.render(packet(),{now}),/Capitulation/);assert.match(ui.render(packet(),{now}),/China liquidity/);
 });
-test('Crisis plumbing card never recursively converts research values into a score',()=>{
- const source=fs.readFileSync('crisis.html','utf8'),start=source.indexOf("fetch('/data/'+f+'?t='+Date.now())");
- const bodyStart=source.indexOf('.then(function(d){',start)+'.then(function(d){'.length,end=source.indexOf('}).catch(function()',bodyStart);
- const render=new Function('f','d','c','pick','pickS','NK','SK',source.slice(bodyStart,end));
- const nodes={'.v':{},'.s':{}},deny=()=>{throw Error('recursive score picker called');};
- render('crisis-composite.json',{master_crisis_score:99,measurements:{SOFR:{value:3.85}}},{querySelector:k=>nodes[k]},deny,deny,[],[]);
- assert.equal(nodes['.v'].textContent,'Research only');assert.match(nodes['.s'].textContent,/No qualified DEFCON/);
- assert.doesNotMatch(source,/mc=pick\(d,NK\)|arguments.callee.caller/);
+test('native Plumbing page links to Crisis without ingesting its old DEFCON score',()=>{
+ const plumbing=require('../jh-plumbing-research.js');
+ const p={contract:'plumbing-research.v1',calls_eligible:false,sizing_eligible:false,execution_eligible:false,forecast_eligible:false,
+  decision:{verb:'WAIT'},composite:{composite_stress_score:null},measurements:Object.fromEntries(Array.from({length:53},(_,i)=>['S'+i,{}])),
+  context:{crisis_composite:{master_crisis_score:99,defcon_level:1,playbook:'FORCED EXIT'}}};
+ const html=plumbing.render(p,now);assert.match(html,/href="\/defcon.html"/);assert.doesNotMatch(html,/FORCED EXIT|master_crisis_score|>99</);
+ assert.doesNotMatch(fs.readFileSync('crisis.html','utf8'),/pick\(d,NK\)|arguments.callee.caller/);
 });

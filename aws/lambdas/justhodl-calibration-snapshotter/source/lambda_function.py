@@ -184,9 +184,12 @@ def lambda_handler(event=None, context=None):
     # 1. Pull SSM
     weights = safe_get_ssm("/justhodl/calibration/weights") or {}
     accuracy_raw = safe_get_ssm("/justhodl/calibration/accuracy") or {}
+    excluded_weights = {k:v for k,v in weights.items() if __import__("plumbing_authority").legacy_signal(k)}
+    weights = __import__("plumbing_authority").eligible_weights(weights)
+    accuracy_raw = __import__("plumbing_authority").eligible_weights(accuracy_raw)
     print(f"[snapshotter] weights: {len(weights)}, accuracy: {len(accuracy_raw)}")
 
-    if not weights:
+    if not weights and not excluded_weights:
         return {"statusCode": 500, "body": json.dumps({"error": "no weights in SSM"})}
 
     # accuracy SSM is nested: {signal: {accuracy, n, avg_return}}. Flatten the
@@ -213,9 +216,9 @@ def lambda_handler(event=None, context=None):
 
     # 3. Build summary
     n_weights = len(weights)
-    n_calibrated_n30 = sum(1 for k, v in outcome_counts.items() if v >= 30)
+    n_calibrated_n30 = sum(1 for k, v in outcome_counts.items() if k in weights and v >= 30)
     weight_pairs = sorted(weights.items(), key=lambda x: -float(x[1]))
-    median_weight = sorted([float(v) for v in weights.values()])[n_weights // 2] if n_weights else 0
+    median_weight = sorted([float(v) for v in weights.values()])[n_weights // 2] if n_weights else None
 
     # Weighted-mean accuracy: sum(weight * acc) / sum(weights for signals with both)
     num = denom = 0.0
@@ -241,6 +244,8 @@ def lambda_handler(event=None, context=None):
         "available_at": now.isoformat(),
         "training_end_at": now.isoformat(),
         "model_version": "calibrator-ssm-weights",
+        "excluded_legacy_weights": excluded_weights,
+        "exclusion_reason": "Crisis Plumbing historical buckets are audit-only, not qualified forecasting weights.",
         "code_version": "snapshotter-2.0",
         "point_in_time_rule": "usable for a decision only when available_at <= decision timestamp",
         "iso_week": label,
@@ -258,7 +263,7 @@ def lambda_handler(event=None, context=None):
             "n_signals_calibrated_n30": n_calibrated_n30,
             "highest_weight": {"signal": weight_pairs[0][0], "weight": float(weight_pairs[0][1])} if weight_pairs else None,
             "lowest_weight": {"signal": weight_pairs[-1][0], "weight": float(weight_pairs[-1][1])} if weight_pairs else None,
-            "median_weight": float(median_weight),
+            "median_weight": float(median_weight) if median_weight is not None else None,
             "weighted_mean_accuracy": round(weighted_mean_acc, 4) if weighted_mean_acc is not None else None,
         },
         "duration_s": round(time.time() - started, 2),

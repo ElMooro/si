@@ -245,6 +245,8 @@ def run_calibration():
         Attr("is_legacy").ne(True)
     )
     all_outcomes = [decimal_to_float(o) for o in all_outcomes]
+    denied = [o for o in all_outcomes if __import__("plumbing_authority").legacy_signal(o.get("signal_type"))]
+    all_outcomes = [o for o in all_outcomes if not __import__("plumbing_authority").legacy_signal(o.get("signal_type"))]
 
     print(f"[CALIBRATE] Total outcomes to analyze: {len(all_outcomes)}")
 
@@ -330,6 +332,8 @@ def run_calibration():
     report = {
         "generated_at":           now.isoformat(),
         "total_outcomes":         len(all_outcomes),
+        "qualification_exclusions": {"crisis_plumbing_outcomes":len(denied),
+            "reason":"Historical records retained in the outcome ledger; legacy crisis buckets cannot receive forecast weights."},
         "signal_types_tracked":   len(by_type),
         "weights":                weights,
         "accuracy_by_type":       accuracy_by_type,

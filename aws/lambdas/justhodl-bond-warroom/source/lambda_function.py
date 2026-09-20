@@ -962,7 +962,7 @@ def lambda_handler(event, ctx):
     ff = {"usd_funding_stress_z": fleet["usd_funding"].get("stress_z"), "usd_funding_generated": fleet["usd_funding"].get("generated"),
           "eurodollar_plumbing": {k: fleet["eurodollar_plumbing"].get(k) for k in ("composite_score", "verdict", "severity", "generated_at")},
           "move_index": {k: fleet["move_index"].get(k) for k in ("level", "change_1d", "regime", "percentile", "generated_at")},
-          "crisis_plumbing": (fleet["crisis_plumbing"].get("composite") or {}) | {"generated_at": fleet["crisis_plumbing"].get("generated_at")} if isinstance(fleet["crisis_plumbing"].get("composite"), dict) else None}
+          "crisis_plumbing": __import__("plumbing_authority").decision_view(fleet["crisis_plumbing"])}
 
     # bank what only this engine fetches, so data.html / chart-pro serve it as official-yields:{slug}
     for key_ in ("JP02Y", "JP10Y", "JP30Y"):

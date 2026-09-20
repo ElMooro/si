@@ -91,6 +91,21 @@ def test_compare_and_swap_exhaustion_retains_immutable_history():
     assert len(json.loads(s3.objects['calibration/index.json'])['versions']) == 2
 
 
+def test_legacy_crisis_weights_remain_audit_only_even_when_no_other_weights_exist():
+    s3 = suite.MemoryS3()
+    mod = producer(s3, 12)
+    mod.safe_get_ssm = lambda name: {'crisis_index_nfci': 1.5} if name.endswith('weights') else {'crisis_index_nfci': {'accuracy': 0.99, 'n': 80}}
+    mod.count_outcomes_60d = lambda: ({'crisis_index_nfci': 80}, 1)
+    result = mod.lambda_handler()
+    assert result['statusCode'] == 200
+    key = next(k for k in s3.objects if k.startswith('calibration/versions/'))
+    doc = json.loads(s3.objects[key])
+    assert doc['weights'] == {} and doc['accuracy'] == {}
+    assert doc['excluded_legacy_weights'] == {'crisis_index_nfci': 1.5}
+    assert doc['summary']['n_signals_calibrated_n30'] == 0
+    assert doc['summary']['median_weight'] is None and doc['summary']['weighted_mean_accuracy'] is None
+
+
 if __name__ == '__main__':
     mod = suite._load()
     suite.test_real_snapshotter_preserves_same_week_and_same_second_versions(mod)

@@ -105,14 +105,14 @@ def ai(prompt,max_tokens=800):
 def load_weights():
     raw=gp(WEIGHTS_PARAM)
     if raw:
-        try: return json.loads(raw)
+        try: return __import__("plumbing_authority").eligible_weights(json.loads(raw))
         except: pass
     return {}
 
 def load_accuracy():
     raw=gp(ACCURACY_PARAM)
     if raw:
-        try: return json.loads(raw)
+        try: return __import__("plumbing_authority").eligible_weights(json.loads(raw))
         except: pass
     return {}
 
@@ -691,7 +691,7 @@ def extract_metrics(data,weights):
                             if (r.get("recommendations") or r.get("positions") or []) else None,
         })(),
         # Crisis plumbing (early warning system)
-        **(lambda p=data.get("crisis_plumbing", {}): {
+        **(lambda p=__import__("plumbing_authority").decision_view(data.get("crisis_plumbing", {})): {
             "plumbing_status": p.get("status") or p.get("regime"),
             "plumbing_phase": p.get("phase"),
         })(),

@@ -24,9 +24,15 @@
   function mount(sf, flow) {
     var hd = (sf && sf.headline) || {};
     var gross = (flow && flow.pd_settlement_fails) || {};
+    var treasury = (sf && sf.treasury) || {};
     // These scopes overlap. Missing headline values must never fall back to gross.
     if ((hd.scope_id || hd.scope) !== 'ust_ex_tips') hd = {};
-    if (gross.scope_id !== 'treasury_incl_tips' || gross.unit !== 'usd_bn') gross = {};
+    if (gross.scope_id !== 'treasury_incl_tips' || gross.unit !== 'usd_bn') {
+      // The older flow projection has no scope_id. Use the explicitly scoped
+      // canonical Treasury record rather than infer a scope from its note.
+      gross = treasury.scope_id === 'treasury_incl_tips' && treasury.field_units && treasury.field_units.gross_bn === 'usd_bn'
+        ? { as_of: treasury.as_of, combined_bn: treasury.gross_bn } : {};
+    }
     var box = el();
     box.textContent = "PD settlement fails · weekly reported amounts\n" +
       "UST ex-TIPS · " + dated(hd) + " · FTD " + n(hd.ftd_bn) + " · FTR " + n(hd.ftr_bn) + " · total " + n(hd.combined_bn) +

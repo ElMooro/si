@@ -209,7 +209,7 @@ def load_calibration_weights():
                 weights[name] = float(p["Value"])
             except (ValueError, TypeError):
                 pass
-        return weights
+        return __import__("plumbing_authority").eligible_weights(weights)
     except Exception as e:
         print(f"[master-ranker] calibration load failed: {e} — using flat weights")
         return {}
