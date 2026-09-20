@@ -103,7 +103,9 @@ def parse_session(raw, day, acquired_at):
         price, volume, instant = (number(row.get(key)) for key in ('c', 'v', 't'))
         if price <= 0 or volume < 0 or instant != instant.to_integral_value(): raise ValueError('invalid price, volume or clock')
         native = datetime.fromtimestamp(int(instant)/1000, EASTERN)
-        if native.date().isoformat() != day or any((native.hour, native.minute, native.second, native.microsecond)):
+        # Grouped-daily t denotes the END of the aggregate window, not midnight.
+        # Bind its Eastern session date without inventing a uniform close time.
+        if native.date().isoformat() != day:
             raise ValueError('native aggregate date differs from the request')
         # Preserve every returned price for history, even when that session's
         # price/volume filter would exclude the security from the current census.
@@ -226,6 +228,8 @@ def _compute(expected_days, source_reader, generated_at):
             'historical_filter_applied': False, 'security_types': 'provider mixed listed-security population; not an exchange or common-stock index',
             'identity_limit': 'provider-symbol continuity; historical issuer/security identity is not independently reconstructed',
             'adjustment_basis': 'split-adjusted provider price response collection; no dividends or total-return inference',
+            'native_timestamp_role': 'Provider aggregate-window end in Unix milliseconds, bound to the requested Eastern session date; no uniform close time assumed.',
+            'timestamp_definition_source': 'https://massive.com/docs/rest/stocks/aggregates/daily-market-summary.md',
             'vintage_limit': 'Individually acquired responses in one bounded collection; the provider does not supply an atomic revision snapshot or historical availability timestamps.'},
         'calls_eligible': False, 'forecast_eligible': False, 'sizing_eligible': False, 'execution_eligible': False,
         'breadth_score': None, 'state': 'RESEARCH_ONLY', 'decision': {'verb': 'WAIT', 'abstain': True},

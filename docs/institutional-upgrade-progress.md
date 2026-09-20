@@ -1051,3 +1051,14 @@ The 5917–5919 audit established the wrong credential path, failed sessions mar
 - The page verifies its retained output, exposes the full native window, source evidence and searchable constituent contributions, and links explicit Portfolio scenarios. WAIT means abstain; all investment authorities remain false.
 - Offline acceptance: 30 native/storage/fault cases; six selected engine runners; 668 frontend cases; 415 deployment + 12 shell cases; configuration, wiring, privacy and secrets checks passed. Portable synthetic digest: `64f00746747b07b73bcd61c0d8525436bf4ea123cc654cac143f050f83f4633e`.
 - This entry records a tested candidate, **not a live acceptance**. Exact runtime receipts, original replay, source completeness, scoped schedule cleanup and live browser inspection follow the ship. The 253-session current-vintage reconstruction is not the full historical/issuer-identity rebuild and does not establish point-in-time predictive performance.
+
+
+### Stage 55 acceptance found and corrected an aggregate-clock bug
+
+Initial runtime `3a3408be40f4c60c41beab29bdbab6952894534e` deployed all six exact packages, pages and worker. Ops 5922 / run 35512637011 rejected live acceptance because the native parser incorrectly required midnight. All 253 complete originals were retained, and the diagnostic packet correctly exposed 253 unavailable sessions; no forecast or position was authorized.
+
+Read-only ops 5923 / run 35512933105 examined all 3,038,792 retained rows: every row belonged to the requested Eastern date, all timestamps were 16:00 ET, all counts reconciled, and all responses were adjusted/OK. Massive's grouped-daily definition identifies `t` as the end of the aggregate window. The corrected parser binds the native Eastern date without inventing a midnight requirement. Its regression fixtures now use the observed 16:00 convention and test other same-date window ends; wrong-day rows still fail.
+
+The first clock-audit dispatch (35512876909) ran before its script commit landed and failed at file preflight, with no AWS operation. Its log was inspected; the published script then completed as 35512933105. No producer invocation was repeated during diagnosis. Both redundant breadth schedule targets were already removed by 5922, leaving the single 12:40 UTC Tuesday–Saturday target.
+
+Corrected local checks: 31 native/storage cases; 415 deployment + 12 shell cases. Corrected portable digest `7319864a6d79a0357cafcb2a3dd07f8d3434958f1c13ffcb384d5d3b74ac7c7b`. The next acceptance will reconstruct the first run's retained originals under the corrected compiler before allowing a new source acquisition. Live acceptance remains pending.

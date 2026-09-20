@@ -24,7 +24,7 @@ def bind(day, doc):
 def fixtures():
     out = {}
     for i, day in enumerate(DAYS):
-        t = int(datetime.fromisoformat(day).replace(tzinfo=m.EASTERN).timestamp()*1000)
+        t = int(datetime.fromisoformat(day).replace(tzinfo=m.EASTERN).timestamp()*1000)+16*3600000
         rows = [{'T': 'A', 'c': 100+i/10, 'v': 100000, 't': t},
                 {'T': 'B', 'c': 300-i/10, 'v': 200000, 't': t},
                 {'T': 'C', 'c': 1+i/100, 'v': 50000 if i == 252 else 5, 't': t},
@@ -105,6 +105,16 @@ class NativeBreadthTests(unittest.TestCase):
     def test_native_date_mismatch_rejects_whole_session(self):
         self.change_latest(lambda doc: doc['results'][0].update(t=doc['results'][0]['t']-86400000))
         self.assertEqual(self.compute()['quality']['status'], 'unavailable')
+
+    def test_native_aggregate_end_is_not_invented_as_midnight(self):
+        # Reviewed 5923 retained source census established intraday/end-of-window
+        # timestamps; the contract binds the ET date, not an artificial midnight.
+        for offset in (16*3600000, 20*3600000-1, 24*3600000-1):
+            self.inputs = fixtures()
+            self.change_latest(lambda doc: [row.update(t=row['t']-16*3600000+offset) for row in doc['results']])
+            out = self.compute()
+            self.assertEqual(out['quality']['status'], 'fresh')
+            self.assertEqual(out['latest']['PCT_ABOVE_200DMA'][1], 66.666667)
 
     def test_source_identity_hash_and_clock_are_bound(self):
         for change in (lambda item: item['evidence'].update(sha256='0'*64),
