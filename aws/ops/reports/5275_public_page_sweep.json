@@ -1,13 +1,11 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "abb565325bffc97c899817eccf4b40aa144d13f3",
-  "observed_at": "2026-09-20T17:14:29.073471+00:00",
-  "ok": false,
+  "observed_at": "2026-09-20T17:16:28.294401+00:00",
+  "ok": true,
   "routes_checked": 519,
-  "verified_routes": 518,
-  "failed_routes": [
-    "rotation-chains.html"
-  ],
+  "verified_routes": 519,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "abb565325bffc97c899817eccf4b40aa144d13f3": true
   },
@@ -3636,12 +3634,12 @@
     },
     {
       "route": "rotation-chains.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "URLError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "abb565325bffc97c899817eccf4b40aa144d13f3",
+      "inspector_present": true,
+      "bytes_read": 15178,
+      "product_source_matches_release": true
     },
     {
       "route": "rotation-dashboard.html",
@@ -4689,7 +4687,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35525087469,
+  "deployment_run_id": 35525120556,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-20T17:14:29.075189+00:00"
+  "check_finished_at": "2026-09-20T17:16:28.296454+00:00"
 }
