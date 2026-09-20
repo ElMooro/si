@@ -54,6 +54,25 @@ def built_bytes(name, body):
     return clean
 
 
+def verified_pages(commit):
+    build = model.decode(public('build-manifest.json')[0]); built_commit = build['commit_sha']
+    assert re.fullmatch('[a-f0-9]{40}', built_commit), 'Complete Pages commit required'
+    # Pages rebakes every 15 minutes, including after ops-only report commits.
+    # A descendant build is acceptable only with unchanged source/build inputs.
+    subprocess.run(['git', 'merge-base', '--is-ancestor', commit, built_commit], cwd=ROOT, check=True)
+    subprocess.run(['git', 'diff', '--quiet', commit, built_commit, '--', '.',
+                    ':(exclude)aws/ops/**', ':(exclude)docs/**'], cwd=ROOT, check=True)
+    artifacts = {}
+    for name in ('smart-money.html', 'jh-holdings-overlap.js', 'jh-holdings-overlap-page.js'):
+        assert subprocess.check_output(['git', 'show', commit+':'+name], cwd=ROOT) == (ROOT/name).read_bytes()
+        live = public(name)[0]
+        assert hashlib.sha256(built_bytes(name, live)).hexdigest() == build['files_sha256'][name], 'Built page artifact differs: '+name
+        if name.endswith('.js'): assert live == reskin_text((ROOT/name).read_text(encoding='utf-8')).encode()
+        else: assert b'jh-holdings-overlap-page.js' in live and b'jh-holdings-overlap.js' in live
+        artifacts[name] = {'public_sha256': hashlib.sha256(live).hexdigest(), 'build_sha256': build['files_sha256'][name]}
+    return build, artifacts
+
+
 def main(*, accepted_run=None, prior_runtime=None, prior_invocation=None,
          report_name='ops_5887_holdings_overlap_acceptance'):
     s3 = boto3.client('s3', region_name='us-east-1')
@@ -153,19 +172,13 @@ def main(*, accepted_run=None, prior_runtime=None, prior_invocation=None,
         r.kv(original_sec_to_overlap_reproduced=True, public_artifacts_replayed=len(checked),
              manager_disclosures=disclosures, counts=output['counts'], scopes=scope_details)
 
-        build = model.decode(public('build-manifest.json')[0]); assert build['commit_sha'] == commit
-        artifacts = {}
-        for name in ('smart-money.html', 'jh-holdings-overlap.js', 'jh-holdings-overlap-page.js'):
-            live = public(name)[0]
-            assert hashlib.sha256(built_bytes(name, live)).hexdigest() == build['files_sha256'][name], 'Built page artifact differs: '+name
-            if name.endswith('.js'): assert live == reskin_text((ROOT/name).read_text(encoding='utf-8')).encode()
-            else: assert b'jh-holdings-overlap-page.js' in live and b'jh-holdings-overlap.js' in live
-            artifacts[name] = {'public_sha256': hashlib.sha256(live).hexdigest(), 'build_sha256': build['files_sha256'][name]}
+        build, artifacts = verified_pages(commit)
         assert model.decode(public('data/ops/releases/'+FN+'.json')[0])['commit'] == commit
         assert lam.get_function_configuration(FunctionName=FN)['CodeSha256'] == config['CodeSha256']
         proof = {'contract': 'holdings-overlap-verification.v1', 'generated_at': datetime.now(timezone.utc).isoformat(),
             'commit': commit, 'code_sha256': config['CodeSha256'], 'actual_packaged_sources': sources,
-            'pages_commit': commit, 'built_artifacts': artifacts, 'replay': packet['replay'],
+            'pages_commit': build['commit_sha'], 'page_source_commit': commit,
+            'pages_source_unchanged_since_release': True, 'built_artifacts': artifacts, 'replay': packet['replay'],
             'source': output['source'], 'source_generated_at': output['source_generated_at'],
             'calculated_at': output['generated_at'], 'counts': output['counts'], 'manager_disclosures': disclosures,
             'scopes': scope_details, 'original_sec_to_overlap_reproduced': True, 'public_artifacts_replayed': len(checked),
