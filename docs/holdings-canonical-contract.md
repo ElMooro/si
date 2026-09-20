@@ -13,7 +13,7 @@ four outputs. Run `python scripts/replay_holdings_canonical.py` with the matchin
 reviewed release checkout to reproduce both layers. Archived Python is evidence,
 not code to download and execute.
 
-Every manager appears in `by_fund`. `positions_ref` holds the complete immutable
+Every manager appears in `by_fund`. The total count includes the whole retained roster; the parsed count requires a complete current public amendment chain. Comparable-disclosure counts additionally require the prior chain. Unavailable managers remain visible and are counted separately. `positions_ref` holds the complete immutable
 fund document: `periods[report_date].positions` contains all reported positions;
 `comparison.rows` contains the full current/prior union. `security_indexes`
 indexes every comparison by report-period cohort and native security identity.

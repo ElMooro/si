@@ -81,6 +81,7 @@ def build(research, binding, read):
             'period_of_report': current, 'positions_ref': summary['detail'],
             'positions_count': len(current_data.get('positions', {})),
             'comparison_count': len(compared['rows']),
+            'comparison_available': compared['eligible_for_disclosure_comparison'],
             'current_chain_status': current_data.get('status', 'not_acquired'),
             'effective_accessions': current_data.get('effective_accessions', []),
             'valuation_reviews': current_data.get('valuation_reviews', []),
@@ -114,10 +115,14 @@ def build(research, binding, read):
                  'scope': 'All native comparisons in this report-period cohort, including prior-only disclosures. No summation across managers or period cohorts.',
                  **model.PERMISSION}
         refs[period] = retain('indexes', index, artifacts)
+    complete_funds = sum(v['current_chain_status'] == 'complete_selected_public_chain' for v in funds.values())
     common = {
         'contract': CONTRACT, 'version': '3.0.0', 'generated_at': research['generated_at'],
         'source_generated_at': research['source_generated_at'], 'research': binding,
-        'funds_total': len(funds), 'funds_parsed': len(funds),
+        'funds_total': len(funds), 'funds_parsed': complete_funds,
+        'funds_without_complete_current_chain': len(funds) - complete_funds,
+        'funds_with_comparable_disclosures': sum(v['comparison_available'] for v in funds.values()),
+        'fund_count_definition': 'Total is the retained manager roster; parsed requires a complete current public amendment chain. Comparable additionally requires the prior public chain.',
         'funds': research['funds'], 'by_fund': funds,
         'report_period_cohorts': research['report_period_cohorts'],
         'current_cohort_count': research['current_cohort_count'],

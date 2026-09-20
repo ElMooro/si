@@ -72,6 +72,26 @@ class CanonicalHoldings(unittest.TestCase):
             c.build(research, binding, store.reader(s3, 'fixture'))
         self.assertEqual(s3.writes, [])
 
+    def test_retained_manager_without_holdings_is_not_counted_as_parsed(self):
+        s3, research, binding = fixture()
+        summary = research['funds']['BERKSHIRE']
+        doc = json.loads(s3.objects[summary['detail']['key']])
+        doc.update(periods={}, current_holdings_period=None, prior_holdings_period=None,
+                   comparison=m.compare({}, {}))
+        raw = m.encoded(doc); key = m.PREFIX+'funds/'+m.digest(doc)+'.json'; s3.objects[key] = raw
+        summary.update(detail=store.reference(key, raw), current_holdings_period=None,
+                       prior_holdings_period=None, comparison_counts={})
+        research.update(report_period_cohorts={'unavailable': ['BERKSHIRE']}, current_cohort_count=0)
+        binding['output_sha256'] = m.digest(research)
+        products, _ = c.build(research, binding, store.reader(s3, 'fixture'))
+        packet = products[c.CURRENT]
+        self.assertEqual(packet['funds_total'], 1)
+        self.assertEqual(packet['funds_parsed'], 0)
+        self.assertEqual(packet['funds_without_complete_current_chain'], 1)
+        self.assertEqual(packet['funds_with_comparable_disclosures'], 0)
+        self.assertIn('BERKSHIRE', packet['by_fund'])
+        self.assertEqual(packet['manager_comparison_count'], 0)
+
     def test_source_binding_cannot_be_replaced_by_forged_eligibility(self):
         s3, research, binding = fixture(); research['calls_eligible'] = True
         with self.assertRaisesRegex(ValueError, 'binding differs'):
