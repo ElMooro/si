@@ -1231,6 +1231,27 @@
       "evidence": [
         "13f.html"
       ]
+    },
+    "retail/index.html": {
+      "primary_engines": [
+        "justhodl-retail-sentiment"
+      ],
+      "primary_exclusive": true,
+      "reason": "Native public attention research has one current publication; retired delivery state and legacy histories are not current analytical outputs.",
+      "primary_output_keys": {
+        "justhodl-retail-sentiment": [
+          "data/retail-sentiment.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-retail-sentiment": {
+          "source": "aws/lambdas/justhodl-retail-sentiment/source/retail_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Exact native current packet; its retained run links bind immutable outputs and protected source originals."
+        }
+      }
     }
   }
 }

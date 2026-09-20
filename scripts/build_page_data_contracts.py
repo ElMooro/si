@@ -17,6 +17,9 @@ REPOSITORY_ASSETS={
  'nav-manifest.json':'Repository navigation manifest',
 }
 PUBLIC_PREFIXES={'data','screener','etf-flows','macro','sentiment','air','regime','base-rates','divergence','plumbing-composite','risk','calibration','analytics','backtest','cot','foreign-flows','opportunities','reports','signals'}
+# Retired delivery state contains account-derived flags. It is protected by the
+# additive ops5943 S3 deny, not an analytical output of the native producer.
+RETIRED_PRIVATE_OUTPUTS={'data/retail-alert-state.json','data/retail-alerts.json'}
 PUBLIC_EXACT={'intelligence-report.json','liquidity-data.json','ecb_data.json','edge-data.json','flow-data.json','repo-data.json','treasury_historical_comprehensive.json','valuations-data.json','crypto-intel.json','config/engine-contracts.json',
               'data/proven-portfolio.json','data/proven-portfolio-history.json','data/strategy-portfolio.json','data/simulated-portfolio.json','data/forward-orders.json','predictions.json','portfolio/signal-portfolio-state.json','portfolio/signal-portfolio-history.json','portfolio/sizer-v2.json','data/brain-compiler.json','data/trade-journal.json'}
 
@@ -74,7 +77,7 @@ def access_rules():
 
 def public_key(key):
     _,private,prefixes=access_rules()
-    return (key.endswith(('.json','.json.gz')) and '*' not in key and '..' not in key.split('/') and key not in private and not key.startswith(prefixes)
+    return (key.endswith(('.json','.json.gz')) and '*' not in key and '..' not in key.split('/') and key not in private and key not in RETIRED_PRIVATE_OUTPUTS and not key.startswith(prefixes)
             and (key in PUBLIC_EXACT or (not SENSITIVE.search(key) and key.split('/')[0] in PUBLIC_PREFIXES and not any(part.startswith('_') for part in key.split('/')))))
 
 def add_archive_index_relationships(emap,engines,root):
