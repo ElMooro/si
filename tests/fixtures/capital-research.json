@@ -1,0 +1,516 @@
+{
+  "packet": {
+    "accumulating": [],
+    "additional_independent_votes": 0,
+    "by_ticker": {},
+    "call": null,
+    "calls_eligible": false,
+    "category_rotation": [],
+    "compatibility": {
+      "consumer_migration_complete": false,
+      "empty_rankings_mean": "No qualified stock cash-flow ranking, not no institutional activity.",
+      "legacy_stock_flow_scores": "retired"
+    },
+    "contract": "capital-evidence-research.v1",
+    "counts": {
+      "configured_etfs": 1,
+      "current_cohort_managers": 1,
+      "disclosure_comparisons": 2,
+      "managers": 1,
+      "managers_with_comparisons": 1
+    },
+    "dependency_roots": [
+      "ETF_ISSUER_OBSERVATIONS",
+      "US_SEC:13F"
+    ],
+    "distributing": [],
+    "dollar_flow_in": [],
+    "dollar_flow_out": [],
+    "engine": "capital-flow",
+    "etf_flows_in": [],
+    "etf_flows_out": [],
+    "execution_eligible": false,
+    "foreign_transactions": {
+      "context": {
+        "source_status": "unavailable"
+      },
+      "interpretation": "Keep the Treasury series definition, monthly period and USD-million unit. Securities holdings are separate from transactions; no sum with ETF estimates or manager values.",
+      "json_pointer": "/tic_context",
+      "measurement": "monthly_treasury_securities_transactions",
+      "source": {
+        "manifest": {
+          "bytes": 326,
+          "key": "data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json",
+          "sha256": "60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467"
+        },
+        "output": {
+          "bytes": 430,
+          "key": "data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json",
+          "sha256": "047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a"
+        }
+      }
+    },
+    "fund_issuance": {
+      "funds": {
+        "TEST": {
+          "comparison": {
+            "value_decimal": "-7.5"
+          },
+          "measurement": "retained fixture"
+        }
+      },
+      "interpretation": "Changes in issuer-reported fund shares valued at NAV. This does not measure stock purchases, investor identity or national capital flows.",
+      "json_pointer": "/funds",
+      "measurement": "nav_valued_share_change_estimate",
+      "period": {
+        "end_date": "2026-09-17",
+        "issuer_observations": 5,
+        "start_date": "2026-09-10"
+      },
+      "quality": {
+        "status": "partial"
+      },
+      "research_snapshot": "/global-flow-desk.html?run=60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467",
+      "source": {
+        "manifest": {
+          "bytes": 326,
+          "key": "data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json",
+          "sha256": "60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467"
+        },
+        "output": {
+          "bytes": 430,
+          "key": "data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json",
+          "sha256": "047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a"
+        }
+      },
+      "source_generated_at": "2026-09-20T03:00:00+00:00",
+      "unit": "usd"
+    },
+    "generated_at": "2026-09-20T03:00:00+00:00",
+    "legacy_contexts": {
+      "data/capital-flow-history.json": {
+        "artifact": {
+          "bytes": 73,
+          "key": "data/capital-research/legacy/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.json",
+          "sha256": "9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91"
+        },
+        "interpretation": "Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.",
+        "qualification": "unqualified_legacy_calculation"
+      },
+      "data/capital-flow.json": {
+        "artifact": {
+          "bytes": 97,
+          "key": "data/capital-research/legacy/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.json",
+          "sha256": "d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed"
+        },
+        "interpretation": "Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.",
+        "qualification": "unqualified_legacy_calculation"
+      }
+    },
+    "lens_conflicts": [],
+    "managers": {
+      "SYNTHETIC": {
+        "bridge": {
+          "bytes": 5290,
+          "key": "data/capital-research/managers/5414092e062cf445db3467dce1ba7d8590a28f5abac164ba6b893c9c52702ce2.json",
+          "sha256": "5414092e062cf445db3467dce1ba7d8590a28f5abac164ba6b893c9c52702ce2"
+        },
+        "bridge_status_counts": {
+          "exact_reported_value_identity": 1,
+          "identity_not_reported_in_both_periods": 1
+        },
+        "cik": "0000000001",
+        "comparison_available": true,
+        "current_chain_status": "complete_selected_public_chain",
+        "current_cohort": true,
+        "current_report_period": "2026-06-30",
+        "fund": "SYNTHETIC",
+        "native_fund": {
+          "bytes": 1219,
+          "key": "data/holdings-research/funds/53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c.json",
+          "sha256": "53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c"
+        },
+        "official_name": "SYNTHETIC MANAGER",
+        "prior_chain_status": "complete_selected_public_chain",
+        "prior_report_period": "2026-03-31",
+        "record_count": 2,
+        "value_reviews": {
+          "current": [],
+          "prior": []
+        }
+      }
+    },
+    "measurement_families": [
+      "reported_holdings_value_bridge",
+      "nav_valued_fund_share_change",
+      "monthly_treasury_transactions"
+    ],
+    "methodology": "Separate measured quantities and periods, with an exact per-security accounting bridge. No guessed percentage scale, ticker join, trade inference or blend of correlated inputs.",
+    "portfolio_impact": null,
+    "quality": {
+      "scope": "Source collection age, holdings report periods and fund-issuance observation dates remain separate. Coverage is partial; no market-wide total or stock cash flow is measured.",
+      "status": "partial",
+      "unavailable_manager_comparisons": []
+    },
+    "replay": {
+      "bytes": 3539,
+      "key": "data/capital-research/runs/845f0e0a80e75e3dc65dde7cbd67a93ee09345952dc5b21efe8cb9eaf9dd53fa.json",
+      "sha256": "845f0e0a80e75e3dc65dde7cbd67a93ee09345952dc5b21efe8cb9eaf9dd53fa"
+    },
+    "required_period_for_current_cohort": "2026-06-30",
+    "retired_model_inputs": {
+      "data/etf-flows.json": "Trading volume and returns are not fund issuance or redemptions.",
+      "data/etf-fund-flows.json": "Unqualified fallback is not substituted for original issuer observations.",
+      "provider_symbol_positions_summary": "Whole legacy enrichment remains in retained context; historical API originals were not retained, so valuation changes are not qualified as transactions.",
+      "screener/data.json": "Ownership percentage scales and independent investor identity were not established."
+    },
+    "sector_dollar_flows": [],
+    "sizing_eligible": false,
+    "source": {
+      "fund_flows": {
+        "manifest": {
+          "bytes": 326,
+          "key": "data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json",
+          "sha256": "60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467"
+        },
+        "output": {
+          "bytes": 430,
+          "key": "data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json",
+          "sha256": "047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a"
+        }
+      },
+      "holdings": {
+        "manifest": {
+          "bytes": 503,
+          "key": "data/holdings-research/canonical/runs/e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971.json",
+          "sha256": "e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971"
+        },
+        "native_research": {
+          "manifest_key": "data/holdings-research/runs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json",
+          "output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "output": {
+          "bytes": 838,
+          "key": "data/holdings-research/canonical/products/b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81.json",
+          "sha256": "b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81"
+        }
+      }
+    },
+    "source_clocks": {
+      "fund_flows": {
+        "calculated_at": "2026-09-20T03:00:00+00:00",
+        "collection_stale": false,
+        "fresh_until": "2026-09-22T03:00:00+00:00",
+        "source_age_hours": 0.0,
+        "source_generated_at": "2026-09-20T03:00:00+00:00"
+      },
+      "holdings": {
+        "calculated_at": "2026-09-20T03:00:00+00:00",
+        "collection_stale": false,
+        "fresh_until": "2026-09-22T03:00:00+00:00",
+        "source_age_hours": 0.0,
+        "source_generated_at": "2026-09-20T03:00:00+00:00"
+      }
+    },
+    "summary": {
+      "n_scored": null
+    },
+    "top_new_positions": [],
+    "version": "3.0.0"
+  },
+  "manifest": {
+    "compilers": {
+      "capital_bridge.py": {
+        "bytes": 10515,
+        "key": "data/capital-research/compilers/cdd13b50cd74bafe417a8d650b276a1613c90c4aa795ad2cd32d1d47a7eb5c72.py",
+        "sha256": "cdd13b50cd74bafe417a8d650b276a1613c90c4aa795ad2cd32d1d47a7eb5c72"
+      },
+      "capital_research.py": {
+        "bytes": 12057,
+        "key": "data/capital-research/compilers/e652e8cb26a893be28745c1ba0de68d42305741b3810b20fe15de07a182d917a.py",
+        "sha256": "e652e8cb26a893be28745c1ba0de68d42305741b3810b20fe15de07a182d917a"
+      },
+      "capital_store.py": {
+        "bytes": 7830,
+        "key": "data/capital-research/compilers/5c2c995c8c1e28bd6dd7cfc3c1f46bc69a84286c8969636f26e778ea88b2a3b6.py",
+        "sha256": "5c2c995c8c1e28bd6dd7cfc3c1f46bc69a84286c8969636f26e778ea88b2a3b6"
+      }
+    },
+    "contract": "capital-evidence-replay.v1",
+    "generated_at": "2026-09-20T03:00:00+00:00",
+    "legacy_contexts": {
+      "data/capital-flow-history.json": {
+        "artifact": {
+          "bytes": 73,
+          "key": "data/capital-research/legacy/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.json",
+          "sha256": "9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91"
+        },
+        "interpretation": "Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.",
+        "qualification": "unqualified_legacy_calculation"
+      },
+      "data/capital-flow.json": {
+        "artifact": {
+          "bytes": 97,
+          "key": "data/capital-research/legacy/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.json",
+          "sha256": "d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed"
+        },
+        "interpretation": "Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.",
+        "qualification": "unqualified_legacy_calculation"
+      }
+    },
+    "output": {
+      "bytes": 7220,
+      "key": "data/capital-research/outputs/a1bfa89a76f1c21c9215aa6a7350ba755036536380a6069f5c879e088a1bc403.json",
+      "sha256": "a1bfa89a76f1c21c9215aa6a7350ba755036536380a6069f5c879e088a1bc403"
+    },
+    "source": {
+      "fund_flows": {
+        "manifest": {
+          "bytes": 326,
+          "key": "data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json",
+          "sha256": "60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467"
+        },
+        "output": {
+          "bytes": 430,
+          "key": "data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json",
+          "sha256": "047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a"
+        }
+      },
+      "holdings": {
+        "manifest": {
+          "bytes": 503,
+          "key": "data/holdings-research/canonical/runs/e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971.json",
+          "sha256": "e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971"
+        },
+        "native_research": {
+          "manifest_key": "data/holdings-research/runs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json",
+          "output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "output": {
+          "bytes": 838,
+          "key": "data/holdings-research/canonical/products/b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81.json",
+          "sha256": "b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81"
+        }
+      }
+    },
+    "whole_preceding_products": {
+      "data/capital-flow-history.json": {
+        "bytes": 73,
+        "private_key": "audit-private/20260909-originals/capital-research/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.bin",
+        "sha256": "9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91"
+      },
+      "data/capital-flow.json": {
+        "bytes": 97,
+        "private_key": "audit-private/20260909-originals/capital-research/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.bin",
+        "sha256": "d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed"
+      }
+    }
+  },
+  "doc": {
+    "additional_independent_votes": 0,
+    "bridge_status_counts": {
+      "exact_reported_value_identity": 1,
+      "identity_not_reported_in_both_periods": 1
+    },
+    "call": null,
+    "calls_eligible": false,
+    "cik": "0000000001",
+    "comparison_available": true,
+    "contract": "capital-holdings-value-bridge.v1",
+    "corporate_actions_adjusted": false,
+    "current_chain_status": "complete_selected_public_chain",
+    "current_report_period": "2026-06-30",
+    "execution_eligible": false,
+    "execution_inferred": false,
+    "fund": "SYNTHETIC",
+    "interpretation": "An accounting identity, not causal price attribution or transactions. Corporate actions, discretion changes, public omissions and interim trades are unresolved. No cross-manager dollar total.",
+    "method": "Exact symmetric arithmetic identity: change in reported quantity times mean implied reported value per share, plus change in implied reported value per share times mean reported quantity.",
+    "official_name": "SYNTHETIC MANAGER",
+    "prior_chain_status": "complete_selected_public_chain",
+    "prior_report_period": "2026-03-31",
+    "record_count": 2,
+    "rounding": "Exact rational terms are retained per security. Scope totals sum cent-rounded security terms with an explicit adjustment; adding the adjustment, unmatched disclosures and undecomposed changes reconciles the full reported table. Decimal displays use half-even rounding.",
+    "rows": [
+      {
+        "bridge": {
+          "current_implied_reported_value_per_share_usd": {
+            "denominator": "1",
+            "display_decimal": "12.00000000",
+            "numerator": "12"
+          },
+          "display_rounding_residual_usd": {
+            "denominator": "1",
+            "display_decimal": "0.00",
+            "numerator": "0"
+          },
+          "prior_implied_reported_value_per_share_usd": {
+            "denominator": "1",
+            "display_decimal": "10.00000000",
+            "numerator": "10"
+          },
+          "quantity_term_usd": {
+            "denominator": "1",
+            "display_decimal": "22.00",
+            "numerator": "22"
+          },
+          "reported_value_change_usd": {
+            "denominator": "1",
+            "display_decimal": "44.00",
+            "numerator": "44"
+          },
+          "status": "exact_reported_value_identity",
+          "unit_value_term_usd": {
+            "denominator": "1",
+            "display_decimal": "22.00",
+            "numerator": "22"
+          }
+        },
+        "current": {
+          "detail_pointer": "/periods/2026-06-30/positions/1bbf4248ec05f1fb41ad18ac0196fdf2050c0ce07e613b839d0ba8a1d93b4dc9",
+          "native_rows": 1,
+          "quantity": "12",
+          "reported_value_usd": "144"
+        },
+        "identity": {
+          "class": "COM",
+          "cusip": "111111111",
+          "put_call": null,
+          "quantity_type": "SH"
+        },
+        "issuer_names": [
+          "SYNTHETIC 111111111"
+        ],
+        "position_id": "1bbf4248ec05f1fb41ad18ac0196fdf2050c0ce07e613b839d0ba8a1d93b4dc9",
+        "prior": {
+          "detail_pointer": "/periods/2026-03-31/positions/1bbf4248ec05f1fb41ad18ac0196fdf2050c0ce07e613b839d0ba8a1d93b4dc9",
+          "native_rows": 1,
+          "quantity": "10",
+          "reported_value_usd": "100"
+        },
+        "reported_quantity_change": {
+          "denominator": "1",
+          "display_decimal": "2.000000",
+          "numerator": "2"
+        },
+        "reported_value_change_usd": {
+          "denominator": "1",
+          "display_decimal": "44.00",
+          "numerator": "44"
+        },
+        "status": "matched_public_identity"
+      },
+      {
+        "bridge": {
+          "status": "identity_not_reported_in_both_periods"
+        },
+        "current": {
+          "detail_pointer": "/periods/2026-06-30/positions/91fff0f44b638034fbb13c1f9dc06b2c88a5955a422a85dc9ce030742f43a1fc",
+          "native_rows": 1,
+          "quantity": "1",
+          "reported_value_usd": "3"
+        },
+        "identity": {
+          "class": "COM",
+          "cusip": "222222222",
+          "put_call": null,
+          "quantity_type": "SH"
+        },
+        "issuer_names": [
+          "SYNTHETIC 222222222"
+        ],
+        "position_id": "91fff0f44b638034fbb13c1f9dc06b2c88a5955a422a85dc9ce030742f43a1fc",
+        "prior": null,
+        "reported_quantity_change": null,
+        "reported_value_change_usd": null,
+        "status": "newly_present_in_public_disclosure"
+      }
+    ],
+    "scopes": {
+      "SH|NONE": {
+        "absent_prior_reported_value_usd": {
+          "denominator": "1",
+          "display_decimal": "0.00",
+          "numerator": "0"
+        },
+        "change_in_reported_table_value_usd": {
+          "denominator": "1",
+          "display_decimal": "47.00",
+          "numerator": "47"
+        },
+        "current_reported_value_usd": {
+          "denominator": "1",
+          "display_decimal": "147.00",
+          "numerator": "147"
+        },
+        "decomposed_identity_count": 1,
+        "display_rounding_adjustment_usd": {
+          "denominator": "1",
+          "display_decimal": "0.00",
+          "numerator": "0"
+        },
+        "identity_count": 2,
+        "matched_reported_value_change_usd": {
+          "denominator": "1",
+          "display_decimal": "44.00",
+          "numerator": "44"
+        },
+        "matched_value_change_not_decomposed_usd": {
+          "denominator": "1",
+          "display_decimal": "0.00",
+          "numerator": "0"
+        },
+        "newly_disclosed_reported_value_usd": {
+          "denominator": "1",
+          "display_decimal": "3.00",
+          "numerator": "3"
+        },
+        "prior_reported_value_usd": {
+          "denominator": "1",
+          "display_decimal": "100.00",
+          "numerator": "100"
+        },
+        "sum_display_quantity_terms_usd": {
+          "denominator": "1",
+          "display_decimal": "22.00",
+          "numerator": "22"
+        },
+        "sum_display_unit_value_terms_usd": {
+          "denominator": "1",
+          "display_decimal": "22.00",
+          "numerator": "22"
+        }
+      }
+    },
+    "sizing_eligible": false,
+    "source": {
+      "manifest": {
+        "bytes": 503,
+        "key": "data/holdings-research/canonical/runs/e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971.json",
+        "sha256": "e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971"
+      },
+      "native_fund": {
+        "bytes": 1219,
+        "key": "data/holdings-research/funds/53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c.json",
+        "sha256": "53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c"
+      },
+      "native_research": {
+        "manifest_key": "data/holdings-research/runs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json",
+        "output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "output": {
+        "bytes": 838,
+        "key": "data/holdings-research/canonical/products/b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81.json",
+        "sha256": "b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81"
+      }
+    },
+    "value_reviews": {
+      "current": [],
+      "prior": []
+    }
+  },
+  "objects": {
+    "data/capital-flow.json": "{\"accumulating\":[],\"additional_independent_votes\":0,\"by_ticker\":{},\"call\":null,\"calls_eligible\":false,\"category_rotation\":[],\"compatibility\":{\"consumer_migration_complete\":false,\"empty_rankings_mean\":\"No qualified stock cash-flow ranking, not no institutional activity.\",\"legacy_stock_flow_scores\":\"retired\"},\"contract\":\"capital-evidence-research.v1\",\"counts\":{\"configured_etfs\":1,\"current_cohort_managers\":1,\"disclosure_comparisons\":2,\"managers\":1,\"managers_with_comparisons\":1},\"dependency_roots\":[\"ETF_ISSUER_OBSERVATIONS\",\"US_SEC:13F\"],\"distributing\":[],\"dollar_flow_in\":[],\"dollar_flow_out\":[],\"engine\":\"capital-flow\",\"etf_flows_in\":[],\"etf_flows_out\":[],\"execution_eligible\":false,\"foreign_transactions\":{\"context\":{\"source_status\":\"unavailable\"},\"interpretation\":\"Keep the Treasury series definition, monthly period and USD-million unit. Securities holdings are separate from transactions; no sum with ETF estimates or manager values.\",\"json_pointer\":\"/tic_context\",\"measurement\":\"monthly_treasury_securities_transactions\",\"source\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}}},\"fund_issuance\":{\"funds\":{\"TEST\":{\"comparison\":{\"value_decimal\":\"-7.5\"},\"measurement\":\"retained fixture\"}},\"interpretation\":\"Changes in issuer-reported fund shares valued at NAV. This does not measure stock purchases, investor identity or national capital flows.\",\"json_pointer\":\"/funds\",\"measurement\":\"nav_valued_share_change_estimate\",\"period\":{\"end_date\":\"2026-09-17\",\"issuer_observations\":5,\"start_date\":\"2026-09-10\"},\"quality\":{\"status\":\"partial\"},\"research_snapshot\":\"/global-flow-desk.html?run=60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\",\"source\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}},\"source_generated_at\":\"2026-09-20T03:00:00+00:00\",\"unit\":\"usd\"},\"generated_at\":\"2026-09-20T03:00:00+00:00\",\"legacy_contexts\":{\"data/capital-flow-history.json\":{\"artifact\":{\"bytes\":73,\"key\":\"data/capital-research/legacy/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.json\",\"sha256\":\"9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91\"},\"interpretation\":\"Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.\",\"qualification\":\"unqualified_legacy_calculation\"},\"data/capital-flow.json\":{\"artifact\":{\"bytes\":97,\"key\":\"data/capital-research/legacy/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.json\",\"sha256\":\"d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed\"},\"interpretation\":\"Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.\",\"qualification\":\"unqualified_legacy_calculation\"}},\"lens_conflicts\":[],\"managers\":{\"SYNTHETIC\":{\"bridge\":{\"bytes\":5290,\"key\":\"data/capital-research/managers/5414092e062cf445db3467dce1ba7d8590a28f5abac164ba6b893c9c52702ce2.json\",\"sha256\":\"5414092e062cf445db3467dce1ba7d8590a28f5abac164ba6b893c9c52702ce2\"},\"bridge_status_counts\":{\"exact_reported_value_identity\":1,\"identity_not_reported_in_both_periods\":1},\"cik\":\"0000000001\",\"comparison_available\":true,\"current_chain_status\":\"complete_selected_public_chain\",\"current_cohort\":true,\"current_report_period\":\"2026-06-30\",\"fund\":\"SYNTHETIC\",\"native_fund\":{\"bytes\":1219,\"key\":\"data/holdings-research/funds/53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c.json\",\"sha256\":\"53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c\"},\"official_name\":\"SYNTHETIC MANAGER\",\"prior_chain_status\":\"complete_selected_public_chain\",\"prior_report_period\":\"2026-03-31\",\"record_count\":2,\"value_reviews\":{\"current\":[],\"prior\":[]}}},\"measurement_families\":[\"reported_holdings_value_bridge\",\"nav_valued_fund_share_change\",\"monthly_treasury_transactions\"],\"methodology\":\"Separate measured quantities and periods, with an exact per-security accounting bridge. No guessed percentage scale, ticker join, trade inference or blend of correlated inputs.\",\"portfolio_impact\":null,\"quality\":{\"scope\":\"Source collection age, holdings report periods and fund-issuance observation dates remain separate. Coverage is partial; no market-wide total or stock cash flow is measured.\",\"status\":\"partial\",\"unavailable_manager_comparisons\":[]},\"replay\":{\"bytes\":3539,\"key\":\"data/capital-research/runs/845f0e0a80e75e3dc65dde7cbd67a93ee09345952dc5b21efe8cb9eaf9dd53fa.json\",\"sha256\":\"845f0e0a80e75e3dc65dde7cbd67a93ee09345952dc5b21efe8cb9eaf9dd53fa\"},\"required_period_for_current_cohort\":\"2026-06-30\",\"retired_model_inputs\":{\"data/etf-flows.json\":\"Trading volume and returns are not fund issuance or redemptions.\",\"data/etf-fund-flows.json\":\"Unqualified fallback is not substituted for original issuer observations.\",\"provider_symbol_positions_summary\":\"Whole legacy enrichment remains in retained context; historical API originals were not retained, so valuation changes are not qualified as transactions.\",\"screener/data.json\":\"Ownership percentage scales and independent investor identity were not established.\"},\"sector_dollar_flows\":[],\"sizing_eligible\":false,\"source\":{\"fund_flows\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}},\"holdings\":{\"manifest\":{\"bytes\":503,\"key\":\"data/holdings-research/canonical/runs/e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971.json\",\"sha256\":\"e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971\"},\"native_research\":{\"manifest_key\":\"data/holdings-research/runs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json\",\"output_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},\"output\":{\"bytes\":838,\"key\":\"data/holdings-research/canonical/products/b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81.json\",\"sha256\":\"b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81\"}}},\"source_clocks\":{\"fund_flows\":{\"calculated_at\":\"2026-09-20T03:00:00+00:00\",\"collection_stale\":false,\"fresh_until\":\"2026-09-22T03:00:00+00:00\",\"source_age_hours\":0.0,\"source_generated_at\":\"2026-09-20T03:00:00+00:00\"},\"holdings\":{\"calculated_at\":\"2026-09-20T03:00:00+00:00\",\"collection_stale\":false,\"fresh_until\":\"2026-09-22T03:00:00+00:00\",\"source_age_hours\":0.0,\"source_generated_at\":\"2026-09-20T03:00:00+00:00\"}},\"summary\":{\"n_scored\":null},\"top_new_positions\":[],\"version\":\"3.0.0\"}",
+    "data/capital-research/outputs/a1bfa89a76f1c21c9215aa6a7350ba755036536380a6069f5c879e088a1bc403.json": "{\"accumulating\":[],\"additional_independent_votes\":0,\"by_ticker\":{},\"call\":null,\"calls_eligible\":false,\"category_rotation\":[],\"compatibility\":{\"consumer_migration_complete\":false,\"empty_rankings_mean\":\"No qualified stock cash-flow ranking, not no institutional activity.\",\"legacy_stock_flow_scores\":\"retired\"},\"contract\":\"capital-evidence-research.v1\",\"counts\":{\"configured_etfs\":1,\"current_cohort_managers\":1,\"disclosure_comparisons\":2,\"managers\":1,\"managers_with_comparisons\":1},\"dependency_roots\":[\"ETF_ISSUER_OBSERVATIONS\",\"US_SEC:13F\"],\"distributing\":[],\"dollar_flow_in\":[],\"dollar_flow_out\":[],\"engine\":\"capital-flow\",\"etf_flows_in\":[],\"etf_flows_out\":[],\"execution_eligible\":false,\"foreign_transactions\":{\"context\":{\"source_status\":\"unavailable\"},\"interpretation\":\"Keep the Treasury series definition, monthly period and USD-million unit. Securities holdings are separate from transactions; no sum with ETF estimates or manager values.\",\"json_pointer\":\"/tic_context\",\"measurement\":\"monthly_treasury_securities_transactions\",\"source\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}}},\"fund_issuance\":{\"funds\":{\"TEST\":{\"comparison\":{\"value_decimal\":\"-7.5\"},\"measurement\":\"retained fixture\"}},\"interpretation\":\"Changes in issuer-reported fund shares valued at NAV. This does not measure stock purchases, investor identity or national capital flows.\",\"json_pointer\":\"/funds\",\"measurement\":\"nav_valued_share_change_estimate\",\"period\":{\"end_date\":\"2026-09-17\",\"issuer_observations\":5,\"start_date\":\"2026-09-10\"},\"quality\":{\"status\":\"partial\"},\"research_snapshot\":\"/global-flow-desk.html?run=60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\",\"source\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}},\"source_generated_at\":\"2026-09-20T03:00:00+00:00\",\"unit\":\"usd\"},\"generated_at\":\"2026-09-20T03:00:00+00:00\",\"legacy_contexts\":{\"data/capital-flow-history.json\":{\"artifact\":{\"bytes\":73,\"key\":\"data/capital-research/legacy/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.json\",\"sha256\":\"9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91\"},\"interpretation\":\"Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.\",\"qualification\":\"unqualified_legacy_calculation\"},\"data/capital-flow.json\":{\"artifact\":{\"bytes\":97,\"key\":\"data/capital-research/legacy/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.json\",\"sha256\":\"d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed\"},\"interpretation\":\"Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.\",\"qualification\":\"unqualified_legacy_calculation\"}},\"lens_conflicts\":[],\"managers\":{\"SYNTHETIC\":{\"bridge\":{\"bytes\":5290,\"key\":\"data/capital-research/managers/5414092e062cf445db3467dce1ba7d8590a28f5abac164ba6b893c9c52702ce2.json\",\"sha256\":\"5414092e062cf445db3467dce1ba7d8590a28f5abac164ba6b893c9c52702ce2\"},\"bridge_status_counts\":{\"exact_reported_value_identity\":1,\"identity_not_reported_in_both_periods\":1},\"cik\":\"0000000001\",\"comparison_available\":true,\"current_chain_status\":\"complete_selected_public_chain\",\"current_cohort\":true,\"current_report_period\":\"2026-06-30\",\"fund\":\"SYNTHETIC\",\"native_fund\":{\"bytes\":1219,\"key\":\"data/holdings-research/funds/53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c.json\",\"sha256\":\"53dee2c9340bb8df90e7a8dfb50260e3ba0495ec832a36e3dc4deee5cf7d9a5c\"},\"official_name\":\"SYNTHETIC MANAGER\",\"prior_chain_status\":\"complete_selected_public_chain\",\"prior_report_period\":\"2026-03-31\",\"record_count\":2,\"value_reviews\":{\"current\":[],\"prior\":[]}}},\"measurement_families\":[\"reported_holdings_value_bridge\",\"nav_valued_fund_share_change\",\"monthly_treasury_transactions\"],\"methodology\":\"Separate measured quantities and periods, with an exact per-security accounting bridge. No guessed percentage scale, ticker join, trade inference or blend of correlated inputs.\",\"portfolio_impact\":null,\"quality\":{\"scope\":\"Source collection age, holdings report periods and fund-issuance observation dates remain separate. Coverage is partial; no market-wide total or stock cash flow is measured.\",\"status\":\"partial\",\"unavailable_manager_comparisons\":[]},\"required_period_for_current_cohort\":\"2026-06-30\",\"retired_model_inputs\":{\"data/etf-flows.json\":\"Trading volume and returns are not fund issuance or redemptions.\",\"data/etf-fund-flows.json\":\"Unqualified fallback is not substituted for original issuer observations.\",\"provider_symbol_positions_summary\":\"Whole legacy enrichment remains in retained context; historical API originals were not retained, so valuation changes are not qualified as transactions.\",\"screener/data.json\":\"Ownership percentage scales and independent investor identity were not established.\"},\"sector_dollar_flows\":[],\"sizing_eligible\":false,\"source\":{\"fund_flows\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}},\"holdings\":{\"manifest\":{\"bytes\":503,\"key\":\"data/holdings-research/canonical/runs/e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971.json\",\"sha256\":\"e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971\"},\"native_research\":{\"manifest_key\":\"data/holdings-research/runs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json\",\"output_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},\"output\":{\"bytes\":838,\"key\":\"data/holdings-research/canonical/products/b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81.json\",\"sha256\":\"b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81\"}}},\"source_clocks\":{\"fund_flows\":{\"calculated_at\":\"2026-09-20T03:00:00+00:00\",\"collection_stale\":false,\"fresh_until\":\"2026-09-22T03:00:00+00:00\",\"source_age_hours\":0.0,\"source_generated_at\":\"2026-09-20T03:00:00+00:00\"},\"holdings\":{\"calculated_at\":\"2026-09-20T03:00:00+00:00\",\"collection_stale\":false,\"fresh_until\":\"2026-09-22T03:00:00+00:00\",\"source_age_hours\":0.0,\"source_generated_at\":\"2026-09-20T03:00:00+00:00\"}},\"summary\":{\"n_scored\":null},\"top_new_positions\":[],\"version\":\"3.0.0\"}",
+    "data/capital-research/runs/845f0e0a80e75e3dc65dde7cbd67a93ee09345952dc5b21efe8cb9eaf9dd53fa.json": "{\"compilers\":{\"capital_bridge.py\":{\"bytes\":10515,\"key\":\"data/capital-research/compilers/cdd13b50cd74bafe417a8d650b276a1613c90c4aa795ad2cd32d1d47a7eb5c72.py\",\"sha256\":\"cdd13b50cd74bafe417a8d650b276a1613c90c4aa795ad2cd32d1d47a7eb5c72\"},\"capital_research.py\":{\"bytes\":12057,\"key\":\"data/capital-research/compilers/e652e8cb26a893be28745c1ba0de68d42305741b3810b20fe15de07a182d917a.py\",\"sha256\":\"e652e8cb26a893be28745c1ba0de68d42305741b3810b20fe15de07a182d917a\"},\"capital_store.py\":{\"bytes\":7830,\"key\":\"data/capital-research/compilers/5c2c995c8c1e28bd6dd7cfc3c1f46bc69a84286c8969636f26e778ea88b2a3b6.py\",\"sha256\":\"5c2c995c8c1e28bd6dd7cfc3c1f46bc69a84286c8969636f26e778ea88b2a3b6\"}},\"contract\":\"capital-evidence-replay.v1\",\"generated_at\":\"2026-09-20T03:00:00+00:00\",\"legacy_contexts\":{\"data/capital-flow-history.json\":{\"artifact\":{\"bytes\":73,\"key\":\"data/capital-research/legacy/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.json\",\"sha256\":\"9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91\"},\"interpretation\":\"Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.\",\"qualification\":\"unqualified_legacy_calculation\"},\"data/capital-flow.json\":{\"artifact\":{\"bytes\":97,\"key\":\"data/capital-research/legacy/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.json\",\"sha256\":\"d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed\"},\"interpretation\":\"Complete earlier public calculation retained for audit. These scores and dollar-flow labels are not qualified transactions or forecasting evidence.\",\"qualification\":\"unqualified_legacy_calculation\"}},\"output\":{\"bytes\":7220,\"key\":\"data/capital-research/outputs/a1bfa89a76f1c21c9215aa6a7350ba755036536380a6069f5c879e088a1bc403.json\",\"sha256\":\"a1bfa89a76f1c21c9215aa6a7350ba755036536380a6069f5c879e088a1bc403\"},\"source\":{\"fund_flows\":{\"manifest\":{\"bytes\":326,\"key\":\"data/flow-desk-research/runs/60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467.json\",\"sha256\":\"60f850bb3063ed5f5ea30d96bdaa11c374d756e3972b575cc4a8da136d44d467\"},\"output\":{\"bytes\":430,\"key\":\"data/flow-desk-research/outputs/047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a.json\",\"sha256\":\"047f7d16ec880d9a8f362ff19d0a58cbdfa117871cef50baa271db182d952c8a\"}},\"holdings\":{\"manifest\":{\"bytes\":503,\"key\":\"data/holdings-research/canonical/runs/e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971.json\",\"sha256\":\"e1531275afea1f8605fed316d2a921a679f8279c96bcf03823a8d4f1222b2971\"},\"native_research\":{\"manifest_key\":\"data/holdings-research/runs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.json\",\"output_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},\"output\":{\"bytes\":838,\"key\":\"data/holdings-research/canonical/products/b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81.json\",\"sha256\":\"b511a1c79ca0aedadca4f4a3a91a7ea2f15218a8f3d858dc8d005ebb81661e81\"}}},\"whole_preceding_products\":{\"data/capital-flow-history.json\":{\"bytes\":73,\"private_key\":\"audit-private/20260909-originals/capital-research/9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91.bin\",\"sha256\":\"9404cf9bbfef403addf69b78673bf5a82d19fabdc83951f033f574b982598a91\"},\"data/capital-flow.json\":{\"bytes\":97,\"private_key\":\"audit-private/20260909-originals/capital-research/d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed.bin\",\"sha256\":\"d8947ef076d3dcead97c871236be6cff0b8010774056b99b7c65b1c82561dbed\"}}}"
+  }
+}

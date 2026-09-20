@@ -30,6 +30,7 @@ This is a VIEW over other engines, not a new signal — it deliberately does NOT
 emit top_picks (no harvester logging) to avoid circular grading. Research, not advice.
 """
 import json, time
+from capital_research_boundary import context as capital_context, current_basis as capital_current_basis
 from datetime import datetime, timezone
 
 VERSION = "1.0"
@@ -45,7 +46,6 @@ FAMILY_SUPER = {
     "squeeze":     ("technical",   ["squeeze_risk", "eng:squeeze-fuel", "squeeze_fuel"]),
     "catalyst":    ("technical",   ["eng:boom-radar", "boom_radar"]),
     "flow_micro":  ("flow",        ["eng:dark-pool", "dark_pool", "eng:flow-lookthrough"]),
-    "flow_macro":  ("flow",        ["etf_flow_extreme", "etf_rotation", "eng:capital-flow"]),
     "revision":    ("fundamental", ["eng:estimate-revisions", "estimate_revisions", "eng:analyst-actions"]),
     "pead":        ("fundamental", ["earnings_pead", "eng:earnings-tracker"]),
     "value":       ("fundamental", ["deep_value", "eng:deep-value-overlap", "value_overlap"]),
@@ -63,7 +63,6 @@ SOURCES = [
     ("boom-radar.json",        "catalyst",   ["top_picks", "high_conviction"],              "score",      4,   None),
     ("dark-pool.json",         "flow_micro", ["top_accumulation"],                          "score",      100, None),
     ("flow-lookthrough.json",  "flow_micro", ["top_picks", "inflow_leaders", "actual_accumulation"], "score", 100, None),
-    ("capital-flow.json",      "flow_macro", ["accumulating"],                              "score",      100, None),
     ("estimate-revisions.json","revision",   ["top_picks"],                                 "score",      100, None),
     ("analyst-actions.json",   "revision",   ["top_picks"],                                 "score",      40,  None),
     ("earnings-tracker.json",  "pead",       ["pead_signals"],                              "pead_score", 100, ("_eps_pos", True)),
@@ -106,6 +105,7 @@ def family_status(scorecard_rows, alpha_proven, cands):
 def lambda_handler(event, context):
     t0 = time.time()
     diag = []
+    capital_evidence = capital_context(_read("data/capital-flow.json"))
 
     # ── FDR gating inputs ──
     ea = _read("data/engine-alpha.json") or {}
@@ -136,6 +136,9 @@ def lambda_handler(event, context):
     engines_seen = []
     for fn, fam, lists, skey, sdiv, bull in SOURCES:
         d = _read("data/" + fn)
+        if fn == 'deep-value-overlap.json' and not capital_current_basis(d):
+            diag.append('Previous Deep Value calculation excluded until its CapitalFlow path is retired')
+            continue
         if not d:
             diag.append("MISS %s" % fn); continue
         gen = str(d.get("generated_at", ""))[:10]
@@ -237,7 +240,7 @@ def lambda_handler(event, context):
         },
         "methodology": (
             "9 source engines collapsed into 9 families -> 4 INDEPENDENT super-families (technical: resilience/"
-            "squeeze/boom; flow: dark-pool/flow-lookthrough/capital-flow; fundamental: estimate-revisions/"
+            "squeeze/boom; flow: dark-pool/flow-lookthrough; fundamental: estimate-revisions/"
             "analyst-actions/earnings-PEAD; structural: options-analytics/supply-chain). Within a family only the "
             "strongest read counts; correlated families inside a super-family give diminishing credit. Confluence "
             "= 22 * n_eff * (0.65 + 0.45*avg_strength), n_eff = #independent supers + 0.30*(extra families). "
@@ -260,6 +263,7 @@ def lambda_handler(event, context):
                       "scores untouched pending scorecard)"}
     except Exception as _e:
         print("[dollar-context] %s" % _e)
+    out['capital_flow_exclusion'] = capital_evidence
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
     print("[equity-confluence v1] mode=%s proven_supers=%s | names any=%d 2+fam=%d 3+super=%d proven_book=%d" % (

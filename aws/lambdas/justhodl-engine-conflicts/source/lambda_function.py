@@ -13,6 +13,7 @@ For each conflict we present BOTH sides so the user decides with eyes open.
 OUTPUT: data/engine-conflicts.json · SCHEDULE: every 6h.
 """
 from public_brain_projection import sanitize_public
+from capital_research_boundary import context as capital_context
 import json, time
 from datetime import datetime, timezone
 import boto3
@@ -49,8 +50,6 @@ def lambda_handler(event=None, context=None):
     for r in [*(disl.get("buy_the_laggard") or []), *(disl.get("top_dislocations") or [])]:
         tk = (r.get("ticker") or "").upper()
         if tk: cheap[tk] = r
-    accum = {(r.get("ticker") or r.get("symbol") or "").upper() for r in (cf.get("accumulating") or [])}
-    distrib = {(r.get("ticker") or r.get("symbol") or "").upper() for r in (cf.get("distributing") or [])}
     devil_by = devils.get("by_ticker") or {}
 
     conflicts = []
@@ -64,14 +63,7 @@ def lambda_handler(event=None, context=None):
                 "bear": f"But momentum is {round(m,1)}% — possible falling knife; the discount may be deserved.",
                 "resolution": "Wait for a momentum turn / base before the value thesis is confirmed."})
 
-    # FLOW vs PRICE (accumulating but weak tape)
-    for tk in accum:
-        m = mom.get(tk)
-        if m is not None and m < -6:
-            conflicts.append({"ticker": tk, "type": "FLOW vs PRICE",
-                "bull": "Capital-flow: institutions accumulating.",
-                "bear": f"But price is {round(m,1)}% — accumulation hasn't shown in the tape yet.",
-                "resolution": "Smart money may be early; size for patience or wait for price confirmation."})
+    # CapitalFlow value bridges do not support a stock-flow versus price conflict.
 
     # CONVICTION vs DEVIL (high conviction but devil flags a rule violation)
     for s in (bs.get("top_setups") or [])[:20]:
@@ -91,6 +83,7 @@ def lambda_handler(event=None, context=None):
         if k not in seen: seen.add(k); uniq.append(c)
 
     out = {"engine": "engine-conflicts", "version": "1.0",
+           "capital_flow_exclusion": capital_context(cf),
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "conflicts": uniq[:25], "n_conflicts": len(uniq),

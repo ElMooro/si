@@ -27,6 +27,7 @@ import json, time
 from datetime import datetime, timezone
 import boto3
 from holdings_derived_boundary import DIRECT, CLUSTER, exclusions
+from capital_research_boundary import context as capital_context
 
 VERSION = "1.2"
 BUCKET = "justhodl-dashboard-live"
@@ -87,13 +88,7 @@ def lambda_handler(event, context):
         for it in (fl.get("actual_distribution") or []):
             if isinstance(it, dict): add(_tk(it), "etf-lookthrough", -0.6 * lift, tag="ETF outflow")
 
-    inc, lift = gated("capital-flow")
-    if inc:
-        cf = _read("data/capital-flow.json")
-        for it in (cf.get("accumulating") or []):
-            if isinstance(it, dict): add(_tk(it), "capital-flow", 0.5 * lift)
-        for it in (cf.get("distributing") or []):
-            if isinstance(it, dict): add(_tk(it), "capital-flow", -0.5 * lift)
+    capital_evidence = capital_context(_read("data/capital-flow.json"))
 
     si = _read("data/short-interest.json")
     for bk in ("top_squeeze_risk", "top_crowded_shorts", "top_high_dtc"):
@@ -208,7 +203,8 @@ def lambda_handler(event, context):
     out = {"engine": "flow-confluence", "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "holdings_exclusions": exclusions(holding_inputs),
-           "thesis": "Heuristic flow/positioning screen. Direct 13F and derived smart-money clusters contribute no score or agreement count. Other indirect paths, independence and predictive performance remain unqualified.",
+           "capital_flow_exclusion": capital_evidence,
+           "thesis": "Heuristic flow/positioning screen. Direct 13F, smart-money clusters and CapitalFlow contribute no score or agreement count. Other indirect paths, independence and predictive performance remain unqualified.",
            "alpha_gate": "ALPHA_NEGATIVE flow engines dropped (e.g. etf_rotation) via engine-trust.",
            "counts": {"names": len(book), "multi_engine": len(multi),
                       **{p.lower(): len(v) for p, v in by_posture.items()}},

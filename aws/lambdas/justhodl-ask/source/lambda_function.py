@@ -91,13 +91,13 @@ def build_context():
                                      "mom_20d": (d.get("momentum") or {}).get("ret_20d")}
                                     for d in (disl.get("cheap_and_inflecting") or [])[:15]]
     cf = read_json("data/capital-flow.json") or {}
-    ctx["capital_accumulating"] = [{"t": x.get("ticker"), "name": x.get("name"),
-                                     "sector": x.get("sector"), "flow_score": x.get("flow_score"),
-                                     "lenses": x.get("lenses")} for x in (cf.get("accumulating") or [])[:20]]
-    ctx["capital_distributing"] = [{"t": x.get("ticker"), "flow_score": x.get("flow_score")}
-                                    for x in (cf.get("distributing") or [])[:10]]
-    ctx["etf_flows"] = [{"t": e.get("ticker"), "cat": e.get("category"),
-                          "net_flow_5d": e.get("net_flow_5d_usd")} for e in (cf.get("etf_flows_in") or [])[:10]]
+    from capital_research_boundary import context as capital_context
+    ctx["capital_flow_exclusion"] = capital_context(cf)
+    ctx["capital_accumulating"] = None
+    ctx["capital_distributing"] = None
+    ctx["etf_flows"] = None
+    ctx["capital_research"] = {"page": "/capital-flow.html", "stock_cash_flow": "not_measured",
+        "instruction": "No institutional-buying or stock-flow narrative from this input. Inspect the retained research for distinct definitions, units and periods."}
     bv = read_json("data/bond-vol.json") or {}
     ctx["bond_vol"] = {"regime": bv.get("regime"), "z": bv.get("composite_z_score"),
                         "risk_posture": bv.get("risk_posture"),

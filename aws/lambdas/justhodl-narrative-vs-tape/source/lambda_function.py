@@ -12,6 +12,7 @@ OUTPUT: data/narrative-vs-tape.json · SCHEDULE: every 4h.
 import json, time
 from datetime import datetime, timezone
 import boto3
+from capital_research_boundary import context as capital_context
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/narrative-vs-tape.json"
@@ -48,15 +49,6 @@ def lambda_handler(event=None, context=None):
             try: sent[tk.upper()] = float(s)
             except (ValueError, TypeError): pass
 
-    # tape: accumulating / distributing sets
-    accum = set()
-    distrib = set()
-    for r in (cf.get("accumulating") or []):
-        t = (r.get("ticker") or r.get("symbol") or "").upper()
-        if t: accum.add(t)
-    for r in (cf.get("distributing") or []):
-        t = (r.get("ticker") or r.get("symbol") or "").upper()
-        if t: distrib.add(t)
     cheap_inflecting = set()
     for r in [*(disl.get("buy_the_laggard") or []), *(disl.get("top_dislocations") or [])]:
         t = (r.get("ticker") or "").upper()
@@ -69,24 +61,22 @@ def lambda_handler(event=None, context=None):
     buzz_vals = sorted(buzz.values())
     hi_buzz = buzz_vals[int(len(buzz_vals) * 0.7)] if len(buzz_vals) >= 5 else 1e9
 
-    for tk, b in buzz.items():
-        if b >= hi_buzz and tk in distrib:
-            crowded_fading.append({"ticker": tk, "buzz": round(b, 2), "tape": "institutions distributing",
-                                   "edge": "Story is loud but smart money is leaving — likely priced in."})
-    for tk in (accum | cheap_inflecting):
+    # The retained dislocation screen is not evidence of institutional trading.
+    for tk in cheap_inflecting:
         b = buzz.get(tk, 0); sv = sent.get(tk, 0)
         if b < hi_buzz and (b == 0 or sv <= 0):
             quiet_accum.append({"ticker": tk, "buzz": round(b, 2), "sentiment": round(sv, 2),
-                                "tape": "institutions accumulating" + (" + cheap & inflecting" if tk in cheap_inflecting else ""),
-                                "edge": "Unloved by the narrative but smart money is buying — contrarian setup."})
+                                "tape": "Upstream dislocation screen: cheap & inflecting",
+                                "edge": "Low narrative coverage alongside an unqualified dislocation screen; no institutional buying or expected-return inference."})
 
     out = {"engine": "narrative-vs-tape", "version": "1.0",
+           "capital_flow_exclusion": capital_context(cf),
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "crowded_fading": crowded_fading[:15],
            "quiet_accumulation": sorted(quiet_accum, key=lambda x: x["buzz"])[:15],
            "n_buzz_tracked": len(buzz),
-           "note": "Where the loud story disagrees with what capital flow actually shows."}
+           "note": "Narrative and dislocation research. The legacy quiet_accumulation key is retained for compatibility; its records do not establish buying. Crowded-fading stock-flow evidence is unavailable."}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[narrative-vs-tape] {len(crowded_fading)} crowded-fading, {len(quiet_accum)} quiet-accum")

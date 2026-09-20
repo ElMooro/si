@@ -1200,12 +1200,6 @@ def lambda_handler(event=None, context=None):
            ((s3_json("data/dark-pool.json") or {}).get("board") or [])
            if r0.get("ticker")}
     _cf = s3_json("data/capital-flow.json") or {}
-    _cft = {}
-    for side in ("accumulating", "distributing"):
-        for r0 in (_cf.get(side) or []):
-            t0 = r0.get("ticker") or r0.get("etf")
-            if t0:
-                _cft[t0] = side.upper()
     _oc = {r0.get("ticker"): r0.get("posture") or r0.get("state")
            for r0 in ((s3_json("data/options-confluence.json") or {}
                        ).get("multi_engine_confluence") or [])
@@ -1229,9 +1223,6 @@ def lambda_handler(event=None, context=None):
         if _dp.get(t) and _dp[t] != "NEUTRAL":
             sm["dark_pool"] = _dp[t]
             join_hits["dark_pool"] += 1
-        if t in _cft:
-            sm["capital_flow"] = _cft[t]
-            join_hits["capital_flow"] += 1
         if _oc.get(t):
             sm["options"] = _oc[t]
             join_hits["options"] += 1
@@ -1651,6 +1642,10 @@ def lambda_handler(event=None, context=None):
                                         None))},
         "rank_note": rank_note,
         "warns": warns[:20]}
+    from capital_research_boundary import context as capital_context
+    out['capital_flow_exclusion'] = capital_context(_cf)
+    # A retired join is unavailable, not a measured count of zero activity.
+    out['join_hits']['capital_flow'] = None
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json",

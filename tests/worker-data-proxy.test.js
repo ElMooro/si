@@ -112,6 +112,8 @@ test('publication proofs and exact reads bypass cached versions; missing public 
       'data/foreign-flows.json','foreign-flows.json','data/tic-flows.json','tic-flows.json','data/foreign-research-verification.json','data/official-pulse.json','official-pulse.json','data/official-research-verification.json',
       'data/etf-true-flows.json','etf-true-flows.json','data/etf-research-verification.json',
       'data/global-flow-desk.json','global-flow-desk.json','data/flow-desk-research-verification.json',
+      'data/capital-flow.json','capital-flow.json','data/capital-research-verification.json',
+      'data/deep-value-overlap.json','data/equity-confluence.json','data/best-setups.json','data/industry-rotation.json','data/engine-conflicts.json','data/narrative-vs-tape.json',
       'data/holdings-research.json','holdings-research.json','data/holdings-research-verification.json',
       'data/13f-positions.json','13f-positions.json','data/13f-flows-by-ticker.json','13f-flows-by-ticker.json','data/13f-by-ticker.json','13f-by-ticker.json','data/13f-desk.json','13f-desk.json','data/holdings-canonical-verification.json',
       'data/compound-signals.json','compound-signals.json','data/attention-confluence.json','attention-confluence.json','data/flow-confluence.json','flow-confluence.json','data/master-ranker.json','master-ranker.json','data/holdings-derived-consumer-verification.json', 'data/smart-money-clusters.json','smart-money-clusters.json','data/holdings-overlap-verification.json',

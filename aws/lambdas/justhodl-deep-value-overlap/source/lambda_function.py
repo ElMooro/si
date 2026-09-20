@@ -20,6 +20,7 @@ SCHEDULE: daily 17:00 UTC (after the upstream engines refresh).
 import json, time
 from datetime import datetime, timezone
 import boto3
+from capital_research_boundary import context as capital_context
 
 REGION = "us-east-1"; BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deep-value-overlap.json"
@@ -53,8 +54,6 @@ def lambda_handler(event=None, context=None):
     disl_i = {}
     for r in ([*(disl.get("buy_the_laggard") or []), *(disl.get("top_dislocations") or [])]):
         disl_i.setdefault(r.get("ticker"), r)
-    cf_acc = {r.get("ticker"): r for r in (cf.get("accumulating") or [])}
-    cf_dist = {r.get("ticker") for r in (cf.get("distributing") or [])}
     squeeze = {r.get("ticker"): r for r in (finra.get("squeeze_candidates") or [])}
     ins = {}
     for c in (insider.get("clusters") or insider.get("items") or insider.get("top_clusters") or []):
@@ -89,7 +88,6 @@ def lambda_handler(event=None, context=None):
         # ── Catalyst layer ──
         catalysts_hit = []
         if tk in ins: catalysts_hit.append("insider cluster")
-        if tk in cf_acc: catalysts_hit.append("institutions accumulating")
         if tk in squeeze: catalysts_hit.append("short-squeeze setup")
         rev = (o.get("estimate_revision") or {}).get("direction")
         if rev == "UP": catalysts_hit.append("estimates revised up")
@@ -111,8 +109,6 @@ def lambda_handler(event=None, context=None):
         altman = sf(o.get("altman_z") or o.get("altmanZ"))
         de = sf(o.get("debt_to_equity") or o.get("debtToEquity"))
         distress = (altman is not None and altman < 1.8) or (de is not None and de > 3)
-        if tk in cf_dist:
-            distress = True  # institutions actively selling = avoid
 
         # ── Need cheap + at least one catalyst; skip pure-rich or no-catalyst ──
         if n_cheap < 1 or n_cat < 1:
@@ -148,6 +144,7 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "engine": "deep-value-overlap", "version": "1.0",
+        "capital_flow_exclusion": capital_context(cf),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "n_scored": len(rows),
@@ -156,7 +153,7 @@ def lambda_handler(event=None, context=None):
         "board": rows[:120],
         "method": ("Joins value lenses (value score, EV/Sales dislocation, P/E vs "
                    "industry, forward PEG, FCF yield) with catalysts (insider, "
-                   "capital flow, short-squeeze, estimate revisions, backlog "
+                   "short-squeeze, estimate revisions, backlog "
                    "acceleration, FDA/gov/earnings) and inflection (compounder, "
                    "Rule-of-40, growth), risk-gated by Altman-Z & leverage. "
                    "Score = cheapness x catalyst breadth x inflection."),

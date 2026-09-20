@@ -11,6 +11,7 @@ from unittest.mock import patch
 sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).resolve().parent)]
 from ciss_vintage_test_support import load
 from holdings_derived_boundary import BASIS, DIRECT, CLUSTER, compound_rows, current_basis, flow_rows
+from capital_research_boundary import context as capital_context
 
 
 def legacy(value):
@@ -50,7 +51,7 @@ class Tests(unittest.TestCase):
             self.assertEqual(compound_rows({**base, 'compound': [row]}), [])
         for engines in (['13f', 'dark-pool'], ['smart-money', 'dark-pool'], ['dark-pool', 'dark-pool']):
             self.assertEqual(flow_rows({**base, 'multi_engine_confluence': [{'engines': engines, 'n_engines': 2}]}), [])
-        self.assertEqual(len(flow_rows({**base, 'multi_engine_confluence': [
+        self.assertEqual(len(flow_rows({**base, 'capital_flow_exclusion': capital_context({}), 'multi_engine_confluence': [
             {'engines': ['dark-pool', 'options-flow'], 'n_engines': 2}]})), 1)
 
     def test_compound_exclusion_precedes_universe_multiplier_and_history(self):

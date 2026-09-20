@@ -25,6 +25,7 @@ SCHEDULE: hourly (after trade-tickets + signals refresh).
 """
 from public_brain_projection import sanitize_public
 from consume_brain import load_constitution
+from capital_research_boundary import context as capital_context, current_basis as capital_current_basis
 import json
 import time
 from datetime import datetime, timezone
@@ -366,7 +367,7 @@ def lambda_handler(event, context):
     options_confl = read_json("data/options-confluence.json") or {}
     flow_confl = read_json("data/flow-confluence.json") or {}
     opt_map = options_confl.get("ticker_map") or {}
-    flow_map = flow_confl.get("ticker_map") or {}
+    flow_map = (flow_confl.get("ticker_map") or {}) if capital_current_basis(flow_confl) else {}
     earn_confl = read_json("data/earnings-confluence.json") or {}
     earn_map = {r.get("ticker"): r for r in (earn_confl.get("confluence_book") or []) if r.get("ticker")}
     trust_by = {}
@@ -822,11 +823,7 @@ def lambda_handler(event, context):
                 normalize(rev.get("delta_pp"), 1, 8),
                 f"analyst estimates revised +{rev.get('delta_pp')}pp")
 
-    # 7d. Capital flow — institutions + capital accumulating (13F + inst QoQ + ETF)
-    for c in (capital_flow.get("accumulating") or [])[:40]:
-        add(c.get("ticker"), c.get("sector"), "CAPITAL_FLOW",
-            normalize(c.get("flow_score"), 8, 60),
-            "institutions accumulating · " + " · ".join(c.get("lenses") or []))
+    # CapitalFlow is descriptive context. It supplies no scored stock signal.
 
     # 7d2. Sector capital-flow radar — stocks riding an ACCELERATING sector ETF-complex inflow
     #      (real ETF Global creations/redemptions; the pump-setup window before the sector runs).
@@ -1760,6 +1757,7 @@ def lambda_handler(event, context):
             "note": "league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked"}
     except Exception as _e:
         output["industry_context"]["industry_boom"] = {"error": str(_e)[:90]}
+    output['capital_flow_exclusion'] = capital_context(capital_flow)
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
                   Body=json.dumps(sanitize_public(OUTPUT_KEY, output), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=600")

@@ -41,7 +41,7 @@ def sf(v):
     except Exception: return None
 
 
-def lambda_handler(event=None, context=None):
+def legacy_lambda_handler(event=None, context=None):
     t0 = time.time()
     f13 = read_json("data/13f-positions.json") or {}
     etf = read_json("data/etf-flows.json") or {}
@@ -468,3 +468,19 @@ def lambda_handler(event=None, context=None):
     return {"statusCode": 200, "body": json.dumps({"ok": True, "accumulating": len(accumulating),
                                                      "distributing": len(distributing),
                                                      "etf_flows": len(etf_flows)})}
+
+
+def lambda_handler(event=None, context=None):
+    """Publish distinct, reproducible research; the legacy stock-flow score is retired."""
+    import capital_research as model
+    import capital_store as store
+    event = dict(event or {})
+    if OUT_KEY != model.CURRENT:
+        raise ValueError('Unexpected capital research output key')
+    if event.get('action') == 'capital_read' or event.get('requestContext'):
+        body = store.reader(s3, BUCKET)(model.CURRENT)
+        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
+                'body': body.decode()}
+    if event.get('action') not in (None, 'capital_refresh'):
+        raise ValueError('Unknown capital research action; legacy scoring is retired')
+    return {'statusCode': 200, 'body': json.dumps(store.run(s3, BUCKET))}

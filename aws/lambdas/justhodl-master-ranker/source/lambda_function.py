@@ -64,6 +64,7 @@ from datetime import datetime, timezone
 import boto3
 from holdings_authority import context as holdings_context
 from holdings_derived_boundary import DIRECT, CLUSTER, exclusions, compound_rows, flow_rows, current_basis
+from capital_research_boundary import current_basis as capital_current_basis
 from private_artifact import public_source_allowed
 
 try:
@@ -262,6 +263,7 @@ def build_ticker_index():
 
     feeds["holdings_exclusions"] = exclusions({DIRECT: feeds["institutional_13f"], CLUSTER: feeds["smart_money"]})
     feeds["holdings_exclusions"]["composite_basis_present"] = {k: current_basis(feeds[k]) for k in ("compound", "flow_confluence")}
+    feeds["holdings_exclusions"]["composite_basis_present"]["flow_confluence"] = current_basis(feeds['flow_confluence']) and capital_current_basis(feeds['flow_confluence'])
 
     # Index: ticker → {system_name: {score, details}}
     idx = {}
@@ -360,7 +362,7 @@ def build_ticker_index():
     # 6b. fused confluence synthesizers — a name confirmed by a synthesizer (several
     #     independent engines stacked) is higher-quality than one raw-engine flag.
     for _key in ("options_confluence", "flow_confluence"):
-        if _key == "flow_confluence" and not current_basis(feeds.get(_key)):
+        if _key == "flow_confluence" and not (current_basis(feeds.get(_key)) and capital_current_basis(feeds.get(_key))):
             continue  # Old stored scores can contain retired 13F contributions.
         if feeds.get(_key):
             for r in (flow_rows(feeds[_key]) if _key == "flow_confluence" else (feeds[_key].get("multi_engine_confluence") or [])):

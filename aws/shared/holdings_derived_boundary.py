@@ -8,6 +8,7 @@ import json
 import math
 
 from holdings_authority import context
+from capital_research_boundary import current_basis as capital_current_basis
 
 BASIS = 'holdings-direct-and-cluster-excluded.v1'
 DIRECT = 'data/13f-positions.json'
@@ -65,7 +66,7 @@ def compound_rows(packet):
 
 
 def flow_rows(packet):
-    if not current_basis(packet):
+    if not current_basis(packet) or not capital_current_basis(packet):
         return []
     rows = packet.get('multi_engine_confluence')
     if not isinstance(rows, list):
@@ -76,7 +77,7 @@ def flow_rows(packet):
         if not isinstance(engines, list) or not all(isinstance(v, str) for v in engines):
             continue
         if (not engines or len(engines) != len(set(engines)) or len(engines) != row.get('n_engines')
-                or any(v in ('13f', 'smart-money') for v in engines)):
+                or any(v in ('13f', 'smart-money', 'capital-flow') for v in engines)):
             continue
         result.append(row)
     return result
