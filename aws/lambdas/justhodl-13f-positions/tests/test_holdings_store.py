@@ -100,19 +100,6 @@ class HoldingsPublication(unittest.TestCase):
         self.assertEqual(len(failed), 1)
         self.assertFalse(json.loads(s3.objects[failed[0]])['published'])
 
-    def test_explicit_research_branch_runs_before_legacy_handler(self):
-        tree = ast.parse((Path(__file__).parents[1] / 'source/lambda_function.py').read_text(encoding='utf-8'))
-        handler = next(v for v in tree.body if isinstance(v, ast.FunctionDef) and v.name == 'lambda_handler')
-        # Execute the actual dispatch statement alone. Legacy work is represented
-        # by a failure sentinel that must be unreachable for the research action.
-        dispatch = ast.Module(body=[ast.FunctionDef(name='dispatch', args=handler.args,
-                  body=[handler.body[0], ast.Raise(exc=ast.Call(func=ast.Name(id='AssertionError', ctx=ast.Load()),
-                      args=[ast.Constant(value='legacy reached')], keywords=[]), cause=None)], decorator_list=[])], type_ignores=[])
-        namespace = {'s3': object(), 'S3_BUCKET': 'bucket', 'USER_AGENT': 'SYNTHETIC_TEST'}
-        exec(compile(ast.fix_missing_locations(dispatch), '<actual-handler-dispatch>', 'exec'), namespace)
-        with patch('holdings_store.handle', return_value='research-only') as call:
-            self.assertEqual(namespace['dispatch']({'action': 'holdings_research_refresh', 'probe': {}}, None), 'research-only')
-            self.assertEqual(call.call_count, 1)
 
 
 if __name__ == '__main__':

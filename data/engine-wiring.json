@@ -2,17 +2,9 @@
  "v": 2,
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
- "n_pages": 42,
- "n_wired": 169,
+ "n_pages": 41,
+ "n_wired": 168,
  "wired": [
-  {
-   "engine": "justhodl-13f-positions",
-   "feed": "data/13f-positions.json",
-   "page": "13f.html",
-   "title": "13F POSITIONS (buys / sells / new / exit)",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
   {
    "engine": "justhodl-consensus-bottom",
    "feed": "data/consensus-bottom.json",

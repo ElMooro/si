@@ -1,4 +1,6 @@
 """
+Historical producer documentation (inactive; canonical handler is authoritative).
+
 justhodl-13f-positions — Parse 13F infotables, extract holdings,
                          compute BUYS / SELLS / NEW / EXIT vs prior quarter
 
@@ -1593,6 +1595,14 @@ def aggregate_by_ticker(fund_results):
 
 
 def lambda_handler(event, context):
+    # Canonical native source only. The former producer remains inactive below
+    # for audit; no event action can invoke price guesses or transaction scores.
+    from holdings_canonical import handle
+    return handle(event, s3, S3_BUCKET, USER_AGENT,
+                  request_id=getattr(context, 'aws_request_id', None))
+
+
+def legacy_lambda_handler(event, context):
     # Institutional source acceptance is isolated from legacy prices and alerts.
     if isinstance(event, dict) and event.get('action') in ('holdings_research_refresh', 'holdings_research_read', 'holdings_research_collect'):
         from holdings_store import handle

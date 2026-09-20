@@ -26,19 +26,19 @@
   "eventbridge_rules": [
     "justhodl-13f-positions-sched"
   ],
-  "description": "Parse 13F infotables from 18 institutional funds. NEW/ADD/TRIM/EXIT vs prior quarter, industry flows, new-since ledger. Per-accession cache.",
+  "description": "Original SEC holdings with exact units, native identities, amendment chains and reproducible comparisons; no inferred purchases, sales or ticker guesses.",
   "memory": 1024,
   "schedule": {
     "name": "justhodl-13f-positions-sched",
     "expression": "rate(2 hours)",
-    "description": "13F holdings full refresh every 2h; sec-13f detector fires instant rebuilds on new EDGAR filings"
+    "description": "Reconcile canonical holdings every 2h; collect SEC originals only if over 2h old. New-filing events collect immediately."
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-holdings-originals-research",
     "cron": "cron(40 0/2 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "Complete SEC holdings originals and reproducible disclosure research every two hours; explicit action excludes legacy rankings and notifications",
+    "description": "Complete SEC originals and canonical holdings every two hours; no legacy rankings, paidAI or notifications",
     "input": {
       "action": "holdings_research_collect",
       "notify": false
