@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """scripts/bake_right_rail.py — Design audit Sec8-C: per-page insight rail.
 Computes ONLY real, derivable data at deploy time:
-  - feeds: this page's actual data/*.json + cot/*.json refs, with LIVE freshness
+  - feeds: this page's actual data/*.json + cot/*.json refs, with explicitly dated file metadata
   - related: siblings from the audit's own IA taxonomy (given reference data)
   - feedsInto: small curated map of KNOWN documented consumption relationships
   - interpret: page's own non-generic <meta name=description> if present
 No section is invented. Empty section -> omitted entirely by the renderer.
 Idempotent (skips pages already carrying __jhRail). Two-pass: collect all
-unique feed keys first, fetch freshness CONCURRENTLY once, then assemble.
+unique feed keys first, fetch file metadata CONCURRENTLY once, then assemble.
 """
-import glob, json, re, sys, time
+import glob, html, json, re, sys, time
+from datetime import datetime, timezone
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from email.utils import parsedate_to_datetime
 
@@ -68,30 +70,36 @@ def category_for(stem):
     return None
 
 
-def fetch_age(key, live):
+def fetch_metadata(key, live):
     if not live:
         return None
     import urllib.request
     try:
-        r = urllib.request.urlopen(urllib.request.Request(
-            f"{BUCKET}/{key}?t={int(time.time())}", headers={"User-Agent": "Mozilla/5.0 jh"}), timeout=12)
-        lm = r.headers.get("Last-Modified")
-        return (time.time() - parsedate_to_datetime(lm).timestamp()) / 3600 if lm else None
+        request = urllib.request.Request(f"{BUCKET}/{key}", method="HEAD",
+                                         headers={"User-Agent": "justhodl-verify-release/1.0"})
+        with urllib.request.urlopen(request, timeout=12) as response:
+            modified = response.headers.get("Last-Modified")
+        if not modified:
+            return None
+        value = parsedate_to_datetime(modified)
+        if value.tzinfo is None or value > datetime.now(timezone.utc):
+            return None
+        return value.astimezone(timezone.utc).isoformat()
     except Exception:
         return None
 
 
 def main(build_dir=".", live=True):
-    man = json.loads(open(f"{build_dir}/nav-manifest.json", encoding="utf-8").read())
+    man = json.loads((Path(build_dir)/"nav-manifest.json").read_text(encoding="utf-8"))
     titles = {p["href"].lstrip("/"): p["title"] for c in man["categories"] for p in c["pages"]}
 
     plan = {}
     all_keys = set()
     for path in glob.glob(f"{build_dir}/*.html"):
-        fname = path.split("/")[-1]
+        fname = Path(path).name
         if fname in EXCLUDE:
             continue
-        s = open(path, encoding="utf-8", errors="replace").read()
+        s = Path(path).read_text(encoding="utf-8", errors="replace")
         if "__jhRail" in s or len(s) < 2000:
             continue
         direct = set(re.findall(r'["\'/](data/[a-z0-9_\-./]+?\.json)', s))
@@ -107,50 +115,13 @@ def main(build_dir=".", live=True):
         plan[path] = {"fname": fname, "text": s, "refs": refs[:6]}
         all_keys.update(refs[:6])
 
-    # ops 3203: one site-wide research chip — top theme pressure + first
-    # divergence from data/wl-fusion.json. Real data or nothing.
-    research = None
-    try:
-        import urllib.request
-        fus = None
-        for _u in (f"{BUCKET}/data/wl-fusion.json?t={int(time.time())}",
-                   "https://s3.amazonaws.com/justhodl-dashboard-live"
-                   "/data/wl-fusion.json"):
-            try:
-                req = urllib.request.Request(
-                    _u, headers={"User-Agent": "Mozilla/5.0 jh"})
-                fus = json.loads(
-                    urllib.request.urlopen(req, timeout=12).read())
-                print(f"[rail] research source ok via {_u.split('/')[2]}: "
-                      f"{len(fus.get('themes') or {})} themes")
-                break
-            except Exception as _fe:
-                print(f"[rail] research fetch {_u.split('/')[2]} failed: "
-                      f"{str(_fe)[:70]}")
-        if fus is None:
-            raise RuntimeError("both research sources failed")
-        th = fus.get("themes") or {}
-        if th:
-            top = max(th.items(),
-                      key=lambda kv: kv[1].get("pressure_pctile") or 0)
-            div = (fus.get("divergences") or [None])[0]
-            research = {
-                "theme": top[0],
-                "pressure": top[1].get("pressure_pctile"),
-                "verdict": top[1].get("verdict"),
-                "firing": top[1].get("n_firing"),
-                "of": top[1].get("n_active"),
-                "div": (div.get("text") or div.get("note") or "")[:110]
-                       if isinstance(div, dict) else "",
-                "href": "/panels.html",
-            }
-    except Exception as _e:
-        print(f"[rail] research chip skipped: {str(_e)[:80]}")
-        research = None
+    # Navigation only. Cached composite labels cannot become current page advice.
+    research = {"href": "/panels.html", "kind": "reference_only"}
+    snapshot_at = datetime.now(timezone.utc).isoformat()
 
     ages = {}
     with ThreadPoolExecutor(max_workers=16) as ex:
-        for k, a in zip(all_keys, ex.map(lambda k: fetch_age(k, live), all_keys)):
+        for k, a in zip(all_keys, ex.map(lambda k: fetch_metadata(k, live), all_keys)):
             ages[k] = a
 
     baked = 0
@@ -170,20 +141,21 @@ def main(build_dir=".", live=True):
                         break
                 if len(related) == 4:
                     break
-        feeds = [{"label": k.split("/")[-1].replace(".json", ""), "h": ages.get(k)} for k in refs]
+        feeds = [{"label": k.split("/")[-1].replace(".json", ""), "href": "/" + k, "modified_at": ages.get(k)} for k in refs]
         fi = FEEDS_INTO.get(stem, [])
-        title = titles.get(fname, "")
+        title = html.unescape(titles.get(fname, ""))
         m = re.search(r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']{20,200})["\']', s, re.I)
-        interpret = m.group(1).strip() if m else ""
+        interpret = html.unescape(m.group(1).strip()) if m else ""
         if GENERIC_META in interpret.lower():
             interpret = ""
-        data = {"title": title, "feeds": feeds, "related": related, "feedsInto": fi, "interpret": interpret}
+        data = {"snapshot_at": snapshot_at, "title": title, "feeds": feeds, "related": related, "feedsInto": fi, "interpret": interpret}
         if research:
             data["research"] = research
-        inject = ("<script>window.__jhRail=" + json.dumps(data, separators=(",", ":")) + ";</script>"
+        payload = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+        inject = ("<script>window.__jhRail=" + payload + ";</script>"
                   '<script src="/jh-right-rail.js" defer></script>')
         s2 = s.replace("</body>", inject + "</body>", 1) if "</body>" in s else s + inject
-        open(path, "w", encoding="utf-8").write(s2)
+        Path(path).write_bytes(s2.encode("utf-8"))
         baked += 1
     print(f"right-rail baked into {baked}/{len(glob.glob(build_dir + '/*.html'))} pages")
     return baked

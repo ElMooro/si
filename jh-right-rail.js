@@ -12,7 +12,7 @@
   var hasRel = D.related && D.related.length;
   var hasFeeds = D.feedsInto && D.feedsInto.length;
   var hasInterp = D.interpret && D.interpret.trim();
-  var hasRes = D.research && D.research.theme;
+  var hasRes = D.research && typeof D.research === 'object';
   if (!hasProv && !hasRel && !hasFeeds && !hasInterp && !hasRes) return;
 
   function esc(s) {
@@ -20,26 +20,19 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function ageLabel(h) {
-    if (h == null) return "";
-    if (h < 1) return "fresh";
-    if (h < 24) return Math.round(h) + "h ago";
-    return Math.round(h / 24) + "d ago";
+  function sourceLink(f) {
+    var safe = typeof f.href === 'string' && /^\/(?:data|cot)\/[A-Za-z0-9_./-]+\.json$/.test(f.href) && !f.href.includes('..');
+    return safe ? '<a href="' + esc(f.href) + '">' + esc(f.label) + '</a>' : esc(f.label);
   }
-  function ageClass(h) {
-    if (h == null) return "";
-    return h < 24 ? "jhr-ok" : h < 48 ? "jhr-mid" : "jhr-stale";
+  function stamp(s) {
+    return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(s) && /(?:Z|[+-]\d{2}:\d{2})$/.test(s) && Number.isFinite(Date.parse(s)) ? s : null;
   }
 
   var sections = "";
   if (hasRes) {
-    var R = D.research;
-    sections += '<div class="jhr-sec"><div class="jhr-h">HIS RESEARCH</div>' +
-      '<p class="jhr-p"><a href="' + esc(R.href || "/panels.html") + '">' +
-      esc(R.theme) + " " + esc(R.pressure != null ? R.pressure + "p" : "") +
-      " " + esc(R.verdict || "") + "</a> · firing " +
-      esc(R.firing != null ? R.firing : "?") + "/" + esc(R.of != null ? R.of : "?") +
-      (R.div ? "<br>≠ " + esc(R.div) : "") + "</p></div>";
+    // Legacy payloads may contain unqualified, cached scores and divergences.
+    sections += '<div class="jhr-sec"><div class="jhr-h">RELATED RESEARCH</div>' +
+      '<p class="jhr-p"><a href="/panels.html">Open panels research</a>. Check its source dates and qualification on that desk.</p></div>';
   }
   if (hasInterp) {
     sections += '<div class="jhr-sec"><div class="jhr-h">' + esc(D.title || "ABOUT") +
@@ -58,10 +51,12 @@
       }).join("") + "</ul></div>";
   }
   if (hasProv) {
-    sections += '<div class="jhr-sec"><div class="jhr-h">DATA PROVENANCE</div><ul class="jhr-prov">' +
+    sections += '<div class="jhr-sec"><div class="jhr-h">SOURCE REFERENCES</div>' +
+      '<p class="jhr-p">Page snapshot' + (stamp(D.snapshot_at) ? ' at ' + esc(stamp(D.snapshot_at)) : ' · capture time unavailable') +
+      '. File modification times do not establish observation freshness. Open each source for its current data and dates.</p><ul class="jhr-prov">' +
       D.feeds.map(function (f) {
-        return '<li><span class="jhr-key">' + esc(f.label) + '</span>' +
-          '<span class="jhr-age ' + ageClass(f.h) + '">' + esc(ageLabel(f.h)) + "</span></li>";
+        return '<li><span class="jhr-key">' + sourceLink(f) + '</span>' +
+          '<span class="jhr-age">' + (stamp(f.modified_at) ? 'File modified ' + esc(stamp(f.modified_at)) : 'Live status unverified') + "</span></li>";
       }).join("") + "</ul></div>";
   }
 

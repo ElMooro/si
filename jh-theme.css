@@ -98,9 +98,10 @@ button{font-family:var(--jh-mono)}
 .jhr-list a{font:12.5px var(--jh-sans);color:var(--jh-ink);text-decoration:none}
 .jhr-list a:hover{color:var(--jh-amber)}
 .jhr-prov{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.jhr-prov li{display:flex;justify-content:space-between;gap:10px;font-size:11px}
+.jhr-prov li{display:flex;flex-direction:column;gap:2px;font-size:11px}
 .jhr-key{color:var(--jh-dim);font-family:var(--jh-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.jhr-age{font-family:var(--jh-mono);white-space:nowrap}
+.jhr-age{font-family:var(--jh-mono);white-space:normal;overflow-wrap:anywhere}
+.jhr-panel .jhr-p{overflow-wrap:anywhere}
 .jhr-age.jhr-ok{color:var(--jh-green)}
 .jhr-age.jhr-mid{color:var(--jh-amber)}
 .jhr-age.jhr-stale{color:var(--jh-red)}
