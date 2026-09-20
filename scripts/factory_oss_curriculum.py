@@ -22,6 +22,7 @@ import gzip
 import hashlib
 import io
 import json
+import re
 import subprocess
 import sys
 import urllib.request
@@ -90,8 +91,17 @@ def mbpp_rows(raw: bytes):
                "solution": clean_text(row.get("code")), "tests": clean_text(setup + "\n" + tests), "timeout_s": 8}
 
 
+APPS_DIFFICULTIES = ("introductory", "interview")     # 2026-09-19: interview problems join the supply (harder tasks teach more)
+APPS_SOLUTIONS_PER_TASK = 4                            # try several reference solutions: APPS keeps many, and the first is often Python 2
+
+
+def looks_python2(src: str) -> bool:
+    return bool(re.search(r"^\s*print\s+[^(]", src, re.M) or "raw_input(" in src or re.search(r"\bxrange\(", src) or re.search(r"except\s+\w+\s*,\s*\w+:", src))
+
+
 def apps_rows(max_rows: int):
-    """APPS train split through the Hugging Face datasets library (runner only)."""
+    """APPS train split through the Hugging Face datasets library (runner only). Yields up to APPS_SOLUTIONS_PER_TASK
+    candidate rows per problem (same task_id; the verifier judges each, the write step keeps the first that passes)."""
     from datasets import load_dataset  # type: ignore
 
     src = SOURCES["apps"]
@@ -107,7 +117,8 @@ def apps_rows(max_rows: int):
     for row in ds:
         if n >= max_rows:
             break
-        if str(row.get("difficulty")) != "introductory":
+        difficulty = str(row.get("difficulty"))
+        if difficulty not in APPS_DIFFICULTIES:
             continue
         try:
             solutions = json.loads(row.get("solutions") or "[]")
@@ -121,10 +132,14 @@ def apps_rows(max_rows: int):
         if not tests:
             continue
         pid = str(row.get("problem_id"))
-        yield {"task_id": "apps-%s" % pid, "kind": src["kind"], "family": "apps-introductory", "license": src["license"],
-               "source_url": "https://huggingface.co/datasets/%s" % src["hf"], "citation": src["citation"],
-               "source_sha": sha(("apps:" + pid + "\n" + str(row.get("question") or "") + "\n" + tests).encode("utf-8")), "prompt": str(row.get("question") or "").strip(),
-               "solution": _as_function(str(solutions[0])), "tests": tests, "timeout_s": 12}
+        candidates = [str(sol) for sol in solutions if not looks_python2(str(sol))][:APPS_SOLUTIONS_PER_TASK]
+        if not candidates:
+            continue
+        for i, sol in enumerate(candidates):
+            yield {"task_id": "apps-%s" % pid, "kind": src["kind"], "family": "apps-" + difficulty, "license": src["license"],
+                   "source_url": "https://huggingface.co/datasets/%s" % src["hf"], "citation": src["citation"],
+                   "source_sha": sha(("apps:" + pid + "\n" + str(row.get("question") or "") + "\n" + tests).encode("utf-8")), "prompt": str(row.get("question") or "").strip(),
+                   "solution": _as_function(sol), "tests": tests, "timeout_s": 12, "candidate": i}
         n += 1
 
 
