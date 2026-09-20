@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-smart-money-cluster",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Complete native 13F disclosure overlap by reporting cohort and instrument scope. Reproducible research; no trade or conviction inference.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-smart-money-cluster-hourly",
+    "cron": "cron(55 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Refresh disclosure overlap after native SEC collection; unchanged sources retain their original publication clock.",
+    "input": {"action": "overlap_refresh", "notify": false},
+    "retry_policy": {"MaximumRetryAttempts": 2, "MaximumEventAgeInSeconds": 3600}
+  }
+}

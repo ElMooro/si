@@ -114,7 +114,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
       'data/global-flow-desk.json','global-flow-desk.json','data/flow-desk-research-verification.json',
       'data/holdings-research.json','holdings-research.json','data/holdings-research-verification.json',
       'data/13f-positions.json','13f-positions.json','data/13f-flows-by-ticker.json','13f-flows-by-ticker.json','data/13f-by-ticker.json','13f-by-ticker.json','data/13f-desk.json','13f-desk.json','data/holdings-canonical-verification.json',
-      'data/compound-signals.json','compound-signals.json','data/attention-confluence.json','attention-confluence.json','data/flow-confluence.json','flow-confluence.json','data/master-ranker.json','master-ranker.json','data/holdings-derived-consumer-verification.json',
+      'data/compound-signals.json','compound-signals.json','data/attention-confluence.json','attention-confluence.json','data/flow-confluence.json','flow-confluence.json','data/master-ranker.json','master-ranker.json','data/holdings-derived-consumer-verification.json', 'data/smart-money-clusters.json','smart-money-clusters.json','data/holdings-overlap-verification.json',
       'data/liquidity-reversal.json','data/credit-composite.json','data/settlement-fails.json','data/nyfed-primary-dealer.json','data/primary-dealers.json',
       'data/report.json','data/report-measurements.json','data/khalid-adaptive.json',
       'data/ciss-stress.json','data/ciss-ai.json','data/sovereign-stress.json','data/euro-fragmentation.json',

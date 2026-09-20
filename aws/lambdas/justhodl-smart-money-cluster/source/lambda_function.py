@@ -1,5 +1,8 @@
 """
-justhodl-smart-money-cluster — Detect high-conviction smart-money signals
+Retired implementation retained for audit. The configured handler below now
+publishes native disclosure overlap. Legacy formulas never run.
+
+Historical justhodl-smart-money-cluster — Detect high-conviction smart-money signals
 from 13F filings.
 
 Pattern detection:
@@ -25,12 +28,11 @@ import urllib.error
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
-from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/smart-money-clusters.json")
-FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+FMP_KEY = None  # Retired collector is unreachable; no secret lookup on import.
 
 S3 = boto3.client("s3", region_name=REGION)
 
@@ -209,7 +211,7 @@ def build_rationale(agg, scoring, quote):
     return " — ".join(parts)
 
 
-def lambda_handler(event=None, context=None):
+def legacy_lambda_handler(event=None, context=None):
     started = time.time()
     print("[smart-money] starting smart-money cluster scanner")
 
@@ -357,3 +359,20 @@ def lambda_handler(event=None, context=None):
             "top_5": [{"ticker": c["ticker"], "score": c["score"], "flag": c["flag"]} for c in scored[:5]],
         }),
     }
+
+
+def lambda_handler(event=None, context=None):
+    """Only native disclosure research is reachable through the configured entry."""
+    import holdings_overlap as model
+    import overlap_store as store
+    event = dict(event or {})
+    if S3_KEY != model.CURRENT:
+        raise ValueError('Unexpected overlap output key; review configuration')
+    if event.get('action') == 'overlap_read' or event.get('requestContext'):
+        body = store.reader(S3, BUCKET)(model.CURRENT)
+        return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
+                'body': body.decode()}
+    if event.get('action') not in (None, 'overlap_refresh'):
+        raise ValueError('Unknown overlap action; legacy scoring is retired')
+    result = store.run(S3, BUCKET)
+    return {'statusCode': 200, 'body': json.dumps(result)}

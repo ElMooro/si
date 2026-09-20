@@ -1,0 +1,21 @@
+const test=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+global.crypto=crypto.webcrypto;
+const api=require('../jh-holdings-overlap.js');
+const id=n=>String(n).padStart(64,'0');
+function fixture(){
+  const source={native_research:{manifest_key:'data/holdings-research/runs/'+id(9)+'.json'}},ref={security_count:3,pair_count:3};
+  const packet={source,funds:{A:{},B:{},C:{}},cohorts:{'2026-06-30':{funds:['A','B','C'],scopes:{'SH|NONE':ref}}}};
+  const row=(n,reporters)=>({position_id:id(n),identity:{cusip:'11111111'+n,class:'COM',quantity_type:'SH',put_call:null},issuer_names:['SYNTHETIC <unsafe> '+n],reporters:reporters.map(([fund,q])=>({fund,reported_quantity:q,positive_reported_quantity:BigInt(q)>0n})),reported_manager_count:reporters.length,positive_quantity_manager_count:reporters.filter(v=>BigInt(v[1])>0n).length});
+  const doc={contract:'holdings-overlap-scope.v1',report_period:'2026-06-30',instrument_scope:'SH|NONE',source,funds:['A','B','C'],security_count:3,manager_disclosure_count:4,positive_manager_disclosure_count:3,
+    securities:[row(1,[['A','100000000000000000000'],['B','2']]),row(2,[['A','0']]),row(3,[['B','3']])],
+    pairs:[{fund_a:'A',fund_b:'B',count_a:1,count_b:2,shared_count:1,union_count:2,shared_position_ids:[id(1)],jaccard_pct:'50.000000',coverage_a_pct:'100.000000',coverage_b_pct:'50.000000'},
+      {fund_a:'A',fund_b:'C',count_a:1,count_b:0,shared_count:0,union_count:1,shared_position_ids:[],jaccard_pct:'0.000000',coverage_a_pct:'0.000000',coverage_b_pct:null},
+      {fund_a:'B',fund_b:'C',count_a:2,count_b:0,shared_count:0,union_count:2,shared_position_ids:[],jaccard_pct:'0.000000',coverage_a_pct:'0.000000',coverage_b_pct:null}]};
+  return {packet,doc};
+}
+test('all rows and manager pairs reconcile independently using exact quantities',()=>{const {packet,doc}=fixture();assert.equal(api.validateScope(doc,packet,'2026-06-30','SH|NONE'),doc);assert.equal(api.pct(1,6),'16.666667');assert.equal(api.pct(1,512),'0.195312');assert.equal(api.pct(3,512),'0.585938');assert.equal(api.pct(0,0),null);});
+test('missing rows, wrong counts, scope mixing and forged overlap ratios fail',()=>{for(const mutate of [d=>d.securities.pop(),d=>d.pairs[0].shared_count=2,d=>d.pairs[0].jaccard_pct='99.000000',d=>d.securities[0].reporters[0].reported_quantity='0',d=>d.securities[0].identity.put_call='CALL',d=>d.pairs.pop()]){const {packet,doc}=fixture();mutate(doc);assert.throws(()=>api.validateScope(doc,packet,'2026-06-30','SH|NONE'));}});
+test('filters preserve zero disclosures and complete pagination without sharing across pairs',()=>{const {doc}=fixture();assert.equal(api.rows(doc,'A','B','shared','').count,1);assert.equal(api.rows(doc,'A','B','zero','').count,1);assert.equal(api.rows(doc,'A','B','a','').count,1);assert.equal(api.rows(doc,'A','B','b','').count,2);const result=api.rows(doc,'A','B','all','',99,2);assert.equal(result.count,3);assert.equal(result.pages,2);assert.equal(result.page,1);assert.equal(result.rows.length,1);assert.equal(api.rows(doc,'A','B','all','111111112').count,1);});
+test('original evidence link pins the native source rather than latest mutable ownership',()=>{const {packet,doc}=fixture();const u=api.originalLink(packet,'A',doc.securities[0]);assert.match(u,/run=0+9/);assert.match(u,/fund=A/);assert.match(u,/search=111111111/);assert.throws(()=>api.originalLink(packet,'MISSING',doc.securities[0]));});
+test('truncated or misbound immutable scope cannot render',async()=>{const raw=Buffer.from(JSON.stringify(fixture().doc)),sha=crypto.createHash('sha256').update(raw).digest('hex'),ref={key:api.PREFIX+'scopes/'+sha+'.json',sha256:sha,bytes:raw.length};assert.equal((await api.verified(async()=>new Response(raw),ref,'scopes')).security_count,3);await assert.rejects(()=>api.verified(async()=>new Response(raw.subarray(0,-1)),ref,'scopes'),/hash or length/);await assert.rejects(()=>api.verified(async()=>new Response(raw),{...ref,key:'data/private.json'},'scopes'),/identity/);});
+test('legacy packet fails explicitly instead of showing a fabricated empty research result',async()=>{await assert.rejects(()=>api.load(async()=>Response.json({clusters:[]}),null),/not published yet/);});
