@@ -105,14 +105,22 @@ def apps_rows(max_rows: int):
     from datasets import load_dataset  # type: ignore
 
     src = SOURCES["apps"]
-    try:
-        ds = load_dataset(src["hf"], split="train", trust_remote_code=False)
-    except Exception as first:  # noqa: BLE001 -- script-backed hub datasets are refused by datasets>=3; use the parquet conversion
+    ds, errors = None, {}
+    # 2026-09-20: the hf:// glob resolved to a single parquet shard (~500 problems), so every supply run re-fetched the same
+    # ~840 candidates whatever --max said. Load the parquet conversion branch as a dataset first (all shards), then the
+    # script-backed dataset, then the glob as a last resort.
+    for label, loader in (("parquet-branch", lambda: load_dataset(src["hf"], split="train", revision="refs/convert/parquet")),
+                          ("direct", lambda: load_dataset(src["hf"], split="train", trust_remote_code=False)),
+                          ("glob", lambda: load_dataset("parquet", data_files="hf://datasets/%s@refs/convert/parquet/all/train/*.parquet" % src["hf"], split="train"))):
         try:
-            ds = load_dataset("parquet", data_files="hf://datasets/%s@refs/convert/parquet/all/train/*.parquet" % src["hf"], split="train")
-        except Exception as second:  # noqa: BLE001
-            print(json.dumps({"apps": "unavailable", "direct": str(first)[:160], "parquet": str(second)[:160]}), file=sys.stderr)
-            return
+            ds = loader()
+            print(json.dumps({"apps_loader": label, "rows": len(ds)}), file=sys.stderr)
+            break
+        except Exception as exc:  # noqa: BLE001
+            errors[label] = str(exc)[:160]
+    if ds is None:
+        print(json.dumps({"apps": "unavailable", **errors}), file=sys.stderr)
+        return
     n = 0
     for row in ds:
         if n >= max_rows:
