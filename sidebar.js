@@ -19,7 +19,7 @@ h+='<div style="font-size:10px;opacity:.6;margin:10px 0 4px">ALL PAGES A&ndash;Z
 panel.innerHTML=h;
 document.body.appendChild(btn);document.body.appendChild(panel);
 var here=location.pathname.split("/").pop()||"index.html";
-function row(p){return '<a href="'+p+'" style="display:block;padding:4px 6px;border-radius:5px;color:'+(p===here?"#26ffaf":"#c7d2e3")+';text-decoration:none" onmouseover="this.style.background=\'#131c2b\'" onmouseout="this.style.background=\'\'">'+lab(p)+'</a>';}
+function row(p){return '<a href="/'+p+'" style="display:block;padding:4px 6px;border-radius:5px;color:'+(p===here?"#26ffaf":"#c7d2e3")+';text-decoration:none" onmouseover="this.style.background=\'#131c2b\'" onmouseout="this.style.background=\'\'">'+lab(p)+'</a>';}
 function render(q){
   q=(q||"").toLowerCase();
   document.getElementById("sb_core").innerHTML=CORE.filter(function(p){return lab(p).indexOf(q)>=0}).map(row).join("");
