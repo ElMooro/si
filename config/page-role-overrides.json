@@ -1627,6 +1627,26 @@
         }
       },
       "reason": "Dated original-source profiles, complete constituents and matched reported fund flows; independently checked clocks, exact retained evidence and user-assumed fund scenarios without investment voting authority."
+    },
+    "option-chain-research.html": {
+      "primary_engines": [
+        "justhodl-polygon-options-flow"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-polygon-options-flow": [
+          "data/option-flow-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-polygon-options-flow": {
+          "source": "aws/lambdas/justhodl-polygon-options-flow/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Dedicated source-bound option-chain research and user-assumed expiration payoff"
+        }
+      }
     }
   }
 }

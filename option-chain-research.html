@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Option Chain Research · JustHodl</title>
+<meta name="description" content="Inspect captured option chains, exact field provenance, missing observations and reproducible hypothetical expiration payoffs.">
+<link rel="stylesheet" href="/jh-option-research.css">
+<script defer src="/jh-option-research.js"></script>
+<script defer src="/jh-option-research-page.js"></script>
+</head>
+<body>
+<main class="or-desk" data-option-research>
+<header class="or-header"><div><p class="or-eyebrow">JUSTHODL / OPTIONS RESEARCH</p><h1>Option chains, with the evidence</h1><p>Inspect the source observation before using the number.</p></div><nav aria-label="Related research"><a href="/options.html">Options desk</a><a href="/gex/">GEX models</a><a href="/tail-risk.html">Tail research</a></nav></header>
+<div class="or-status" data-or-status role="status" aria-live="polite">Verifying the latest research publication…</div>
+<section class="or-panel" aria-labelledby="or-overview-title"><div class="or-section-heading"><h2 id="or-overview-title">Coverage and clocks</h2><button type="button" data-or-refresh>Refresh publication</button></div><div data-or-overview></div></section>
+<section class="or-panel" aria-labelledby="or-universe-title"><h2 id="or-universe-title">Research watchlist</h2><label class="or-field">Find an underlying<input type="search" data-or-query placeholder="For example, SPY" autocomplete="off"></label><div class="or-inventory" data-or-inventory></div><details><summary>Why these names are included</summary><div data-or-universe></div></details></section>
+<section class="or-panel" aria-labelledby="or-chain-title"><h2 id="or-chain-title">Inspect a captured chain</h2><label class="or-field">Underlying<select data-or-symbol aria-label="Underlying" disabled><option>Loading…</option></select></label><div data-or-chain></div><details><summary>Daily bars by their own update date</summary><p>These are each contract’s most recent reported bars. A sum across different dates does not represent today’s trading volume.</p><div data-or-dates></div></details></section>
+<section class="or-panel" aria-labelledby="or-records-title"><h2 id="or-records-title">Contract records</h2><div class="or-controls"><label class="or-field">Original source page<select data-or-page disabled><option>Choose a chain</option></select></label><label class="or-field">Find on this page<input type="search" data-or-contract-query placeholder="Contract identifier" autocomplete="off"></label><button type="button" data-or-prev disabled>Previous page</button><button type="button" data-or-next disabled>Next page</button></div><div data-or-records></div><div class="or-evidence" data-or-row-detail>Select a contract to inspect all values, units and clocks.</div></section>
+<section class="or-panel" aria-labelledby="or-scenario-title"><h2 id="or-scenario-title">Your hypothetical expiration payoff</h2><p data-or-scenario-selection>Select a verified standard contract above.</p><p>Enter your own assumptions. Positive contracts are long; negative contracts are short. Inputs stay in this browser.</p><form class="or-scenario" data-or-scenario><label class="or-field">Signed contracts<input name="quantity" inputmode="numeric" type="text" value="0" required></label><label class="or-field">Assumed premium · USD/share<input name="premium" inputmode="decimal" type="text" value="0" required></label><label class="or-field">Assumed underlying at expiration · USD/share<input name="spot" inputmode="decimal" type="text" value="0" required></label><label class="or-field">Assumed total costs · USD<input name="cost" inputmode="decimal" type="text" value="0" required></label><button type="submit">Calculate hypothetical payoff</button></form><div data-or-scenario-output role="status" aria-live="polite">No scenario calculated.</div><p class="or-note">This is an expiration payoff calculation. Early assignment, physical settlement, financing, taxes and other holdings require separate analysis.</p></section>
+<section class="or-panel" aria-labelledby="or-method-title"><h2 id="or-method-title">Definitions and replay</h2><p>Every displayed numeric field has a unit, a validity state and an original page/row reference. Missing data stays missing. Invalid reported values remain visible and are excluded from calculations.</p><div data-or-replay></div><ul><li><a href="https://massive.com/docs/rest/options/snapshots/option-chain-snapshot">Provider snapshot definitions and pagination</a></li><li><a href="https://www.optionseducation.org/referencelibrary/faq/general-information">OIC: open interest and volume</a></li><li><a href="https://www.optionseducation.org/advancedconcepts/gamma">OIC: gamma conventions</a></li><li><a href="https://www.optionseducation.org/strategies/all-strategies/long-call">OIC: long call payoff</a> · <a href="https://www.optionseducation.org/strategies/all-strategies/long-put">long put payoff</a> · <a href="https://www.optionseducation.org/strategies/all-strategies/naked-call-uncovered-call-short-call">uncovered short call risk</a></li></ul></section>
+<footer class="or-footer">Captured observations support research. Forecasting, position sizing and execution remain unqualified for this dataset.</footer>
+</main>
+<script defer src="/jh-nav-drawer.js"></script>
+<script defer src="/sidebar.js"></script>
+</body>
+</html>

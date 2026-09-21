@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>⚡ Options Desk · JustHodl.AI</title>
-<meta name="description" content="Options research hub: verified captured-chain records and hypothetical expiration payoffs alongside separately unqualified legacy options models.">
+<meta name="description" content="Institutional options command center — dealer gamma/vanna/charm exposure, GEX-by-strike profile, term structure, IV skew, 0DTE, per-name analytics board, unusual flow, DIX, OPEX pinning, catalyst skew and earnings-IV. Computed from raw Polygon options greeks.">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--panel-2:#141a24;--border:#1c2330;--border-hi:#2a3548;
 --accent:#a78bfa;--gold:#fbbf24;--info:#22d3ee;--pos:#00e676;--neg:#ff3d5a;--warn:#fb923c;--crit:#ef4444;
@@ -51,8 +51,6 @@ tr:last-child td{border-bottom:none}
 svg text{font-family:var(--font-mono)}
 .chip-list span{display:inline-block;margin:2px 3px 2px 0}
 </style>
-<script defer src="/jh-option-research.js"></script>
-<script defer src="/jh-option-research-hub.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -60,12 +58,10 @@ svg text{font-family:var(--font-mono)}
 <div><h1>⚡ Options Desk <span class="badge">OPTIONS HUB v2</span></h1>
 <div class="sub" id="asof">loading options intelligence…</div></div>
 <div class="nav-links">
-<a href="/option-chain-research.html">Chain evidence &amp; payoff</a>
 <a href="/gex/">📐 GEX Detail</a><a href="/options-analytics.html">🔬 Per-Name</a>
 <a href="/options-scanner.html">📡 Flow</a><a href="/index.html">🏠 Home</a></div>
 </header>
 
-<div class="readout"><b>Captured-chain research:</b> <a href="/option-chain-research.html">Inspect exact source records and calculate an assumed expiration payoff</a>. The other models below remain separately unqualified; their scores do not establish observed dealer ownership or a validated investment edge.</div>
 <div id="hero"></div>
 
 <h2 class="sec">Gamma Profile — where dealers are forced to hedge</h2>
@@ -90,7 +86,7 @@ svg text{font-family:var(--font-mono)}
 <h2 class="sec">Confluence &amp; flow</h2>
 <div class="grid2">
 <div class="card"><h3>MULTI-ENGINE CONFLUENCE <span class="fresh" id="f-conf"></span></h3><div id="conf"></div></div>
-<div class="card"><h3>CAPTURED OPTION-CHAIN RESEARCH <span class="fresh" id="f-flow"></span></h3><div id="flow" data-option-research-hub></div></div>
+<div class="card"><h3>UNUSUAL OPTIONS FLOW <span class="fresh" id="f-flow"></span></h3><div id="flow"></div></div>
 </div>
 
 <h2 class="sec">Per-name options analytics board</h2>
@@ -176,10 +172,10 @@ function gauge(val,lo,hi,mid,label){
 }
 
 Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.json'),F('options-analytics.json'),
- F('options-flow-scanner.json'),F('dix.json'),F('opex-calendar.json'),
+ F('polygon-options-flow.json'),F('options-flow-scanner.json'),F('dix.json'),F('opex-calendar.json'),
  F('dealer-gex-history.json'),F('catalyst-skew-premove.json'),F('earnings-iv-crush.json'),F('volatility-squeeze.json')
 ]).then(function(res){
- const dg=res[0],og=res[1],conf=res[2],oa=res[3],of=res[4],dix=res[5],opex=res[6],gh=res[7],cat=res[8],eiv=res[9],vsq=res[10];
+ const dg=res[0],og=res[1],conf=res[2],oa=res[3],pf=res[4],of=res[5],dix=res[6],opex=res[7],gh=res[8],cat=res[9],eiv=res[10],vsq=res[11];
  const spy=(dg&&dg.underlyings&&dg.underlyings.SPY)||{};
  const mc=(dg&&dg.market_composite)||{};
  const gexb=spy.total_dealer_gex_billions,flip=spy.zero_gamma_flip_level,spot=spy.spot||(og&&og.spot);
@@ -234,6 +230,13 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
     return '<tr><td class="sym">'+it.ticker+'</td><td><span class="tag '+(bull?'pB':'pb')+'">'+((it.posture||'').replace('_FLOW','').replace('_',' '))+'</span></td><td class="dim">'+it.n_engines+'×</td><td class="'+pc(it.score)+'">'+N(it.score,1)+'</td><td>'+(fl.join('')||'<span class="mute">—</span>')+'</td></tr>';}).join('')+'</table>';
  } else document.getElementById('conf').innerHTML='<div class="err">confluence unavailable</div>';
  setFresh('f-conf',conf&&conf.generated_at); }catch(_e){console.error('opt-section',_e);} 
+
+ try{ let fh='';if(pf&&(pf.extreme_call_flow||pf.bullish_call_flow)){const rows=[].concat(pf.extreme_call_flow||[],pf.bullish_call_flow||[]).slice(0,10);
+  fh+='<table><tr><th>Ticker</th><th>C/P</th><th>V/OI</th><th>IV</th><th>Blk</th><th>Alert</th></tr>'+rows.map(r=>{var _alv=r.alert_level;var al=(_alv===3?'EXTREME':_alv===2?'NOTABLE':_alv===1?'ELEVATED':String(_alv||'—').toUpperCase());var alc=(_alv>=3?'neg':_alv===2?'gold':'dim');
+   return '<tr><td class="sym">'+r.ticker+'</td><td class="pos">'+N(r.cv_pv_ratio,0)+'×</td><td class="dim">'+N(r.vol_oi_ratio,2)+'</td><td>'+(r.mean_iv?(100*r.mean_iv).toFixed(0)+'%':'—')+'</td><td class="'+((r.n_smart_money_blocks||0)>0?'gold':'mute')+'">'+(r.n_smart_money_blocks||0)+'</td><td class="'+alc+'">'+(al||'—')+'</td></tr>';}).join('')+'</table>';}
+ if(of&&of.all_qualifying){const top=of.all_qualifying.filter(x=>/TIER_A/i.test(x.tier||'')).slice(0,6);if(top.length)fh+='<div class="mute" style="font-size:10px;margin:8px 0 4px">TIER-A scanner:</div><div class="chip-list">'+top.map(x=>'<span class="tag pB">'+x.symbol+' '+N(x.score,0)+'</span>').join('')+'</div>';}
+ document.getElementById('flow').innerHTML=fh||'<div class="err">flow unavailable</div>';
+ setFresh('f-flow',(pf&&pf.generated_at)||(of&&of.generated_at)); }catch(_e){console.error('opt-section',_e);} 
 
  try{ if(oa&&oa.board){window.__board=oa.board;
   window.__sortBoard=function(key){const dir=(window.__lastKey===key)?(window.__lastDir*-1):-1;window.__lastKey=key;window.__lastDir=dir;
@@ -315,7 +318,7 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
  else document.getElementById('vsq').innerHTML='<div class="err">unavailable</div>';
  setFresh('f-vs',vsq&&vsq.generated_at,30); }catch(_e){console.error('opt-section',_e);} 
 
- document.getElementById('foot').innerHTML='Sources: dealer-gex (DEX/VEX/vanna/charm/skew/by-strike/by-expiry/0DTE) · options-gamma · options-confluence · options-analytics (58-name board) · option-flow-research (verified captured records) · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. The captured-chain dataset has source replay. Other legacy models have not passed that qualification; open interest alone does not identify dealer positions. Click board headers to sort. Not investment advice.';
+ document.getElementById('foot').innerHTML='Sources: dealer-gex (DEX/VEX/vanna/charm/skew/by-strike/by-expiry/0DTE) · options-gamma · options-confluence · options-analytics (58-name board) · polygon-options-flow · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. SpotGamma-grade dealer positioning from raw Polygon options greeks + OI. Click board headers to sort. Not investment advice.';
 }).catch(function(e){document.getElementById('asof').textContent='load error: '+e;});
 </script>
 
