@@ -275,6 +275,15 @@ def _stdio_tests(io_pairs: dict) -> str:
         return ""
     lines = [STDIO_PREAMBLE.rstrip("\n")]
     for i, (inp, out) in enumerate(zip(inputs[:8], outputs[:8])):
+        # 2026-09-21: APPS also stores a case as a list of lines (or a bare number); 1,107 of 5,000 problems were dropped for that
+        if isinstance(inp, list):
+            inp = "\n".join(str(x) for x in inp) + "\n"
+        if isinstance(out, list):
+            out = "\n".join(str(x) for x in out) + "\n"
+        if isinstance(inp, (int, float)) and not isinstance(inp, bool):
+            inp = str(inp) + "\n"
+        if isinstance(out, (int, float)) and not isinstance(out, bool):
+            out = str(out) + "\n"
         if not isinstance(inp, str) or not isinstance(out, str):
             return ""
         lines.append("assert __run(%r).split() == %r.split(), 'case %d'" % (inp, out, i))
