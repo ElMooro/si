@@ -223,7 +223,7 @@ def harvest(spec):
 
 def _load_json(key):
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()))
     except Exception:
         return None
 

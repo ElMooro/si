@@ -420,7 +420,7 @@ def lambda_handler(event, context):
     # ETF rebalance is the highest-confidence reconstitution signal.
     flow_idx = {}
     try:
-        _fl = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/flow-lookthrough.json")["Body"].read())
+        _fl = __import__("provider_flow_research").guard("data/flow-lookthrough.json", json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/flow-lookthrough.json")["Body"].read()))
         for ev in (_fl.get("index_events") or _fl.get("index_events_agg") or []):
             tk = (ev.get("ticker") or "").upper().strip()
             if tk:

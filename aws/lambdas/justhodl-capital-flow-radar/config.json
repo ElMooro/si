@@ -3,13 +3,13 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 256,
-  "timeout": 120,
+  "memory": 2048,
+  "timeout": 300,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Dated ETF creations/redemptions by core and leveraged groups; no uncalibrated pump predictions.",
+  "description": "Original provider fund-flow research with exact response retention and replay; dated observations and matched groups, no investment votes.",
   "schedule": {
     "name": "justhodl-capital-flow-radar-sched",
     "expression": "cron(20 22 ? * MON-FRI *)",

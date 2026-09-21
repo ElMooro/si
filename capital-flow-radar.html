@@ -1,116 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Capital Flow Radar · JustHodl.AI</title>
-<style>
-:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px}
-a{color:var(--cyan);text-decoration:none}
-.wrap{max-width:1180px;margin:0 auto}
-h1{font-size:20px;letter-spacing:.5px;font-weight:700}
-.sub{color:var(--dim);font-size:12px;margin-top:3px}
-.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
-.tide{display:flex;gap:8px;flex-wrap:wrap}
-.chip{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 11px;font-size:12px}
-.chip b{color:#fff}
-.chip.on{border-color:var(--grn);color:var(--grn)} .chip.off{border-color:var(--red);color:var(--red)} .chip.neu{border-color:var(--amb);color:var(--amb)}
-.statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:18px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
-.stat .v{font-size:21px;font-weight:700;color:#fff} .stat .l{color:var(--dim);font-size:11px;margin-top:2px}
-h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:22px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
-h2.g{border-color:var(--grn)} h2.r{border-color:var(--red)} h2.a{border-color:var(--amb)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 13px;position:relative;overflow:hidden}
-.card.pump{border-left:4px solid var(--grn)} .card.over{border-left:4px solid var(--red)}
-.card .nm{font-size:15px;font-weight:700;color:#fff}
-.card .rg{font-size:11px;margin:3px 0 8px} .pump .rg{color:var(--grn)} .over .rg{color:var(--red)}
-.pp{position:absolute;top:11px;right:12px;font-size:22px;font-weight:800}
-.pump .pp{color:var(--grn)} .over .pp{color:var(--red)}
-.row{display:flex;justify-content:space-between;font-size:11.5px;padding:2px 0;border-top:1px dashed var(--line)}
-.row .k{color:var(--dim)}
-.flowpos{color:var(--grn)} .flowneg{color:var(--red)}
-.stocks{margin-top:8px;font-size:11px;color:var(--cyan);word-spacing:2px}
-.verdict{font-size:11px;color:var(--dim);margin-top:7px;font-style:italic;line-height:1.45}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:680px){.cols{grid-template-columns:1fr}}
-.lev{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px 0}
-.lev .h{padding:8px 13px;font-weight:700;border-bottom:1px solid var(--line)}
-.lev .h.g{color:var(--grn)} .lev .h.r{color:var(--red)}
-.lev .li{display:flex;justify-content:space-between;padding:6px 13px;font-size:12px;border-bottom:1px solid var(--panel2)}
-.lev .li .th{color:var(--txt);text-transform:capitalize}
-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
-th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;cursor:pointer;position:sticky;top:0;background:var(--bg)}
-td:first-child,th:first-child{text-align:left}
-tr:hover td{background:var(--panel2)}
-.tag{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700}
-.tag.pump{background:rgba(22,199,132,.15);color:var(--grn)} .tag.over{background:rgba(234,57,67,.15);color:var(--red)}
-.tag.steady{background:rgba(63,182,220,.13);color:var(--cyan)} .tag.late{background:rgba(240,160,32,.14);color:var(--amb)} .tag.out{background:rgba(234,57,67,.1);color:var(--red)}
-.div{color:var(--red);font-weight:700}
-.loading{color:var(--dim);padding:40px;text-align:center}
-.foot{color:var(--dim);font-size:11px;margin-top:22px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
-.cascade .card{border-left:4px solid var(--cyan)}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="topbar">
-    <div>
-      <h1>⚡ Capital Flow Radar</h1>
-      <div class="sub">ETF creations and redemptions · effective dates, complete coverage and separate leveraged legs</div>
-    </div>
-    <div class="tide" id="tide"></div>
-  </div>
-  <div class="statbar" id="statbar"></div>
-  <div id="content"><div class="loading">⟳ tracking capital flows…</div></div>
-  <div class="foot" id="foot"></div>
-</div>
-<script>
-const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
-  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
-  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
-async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
-const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt=v=>{if(v==null)return"—";const a=Math.abs(v);const s=v<0?"-":"+";if(a>=1e9)return s+"$"+(a/1e9).toFixed(2)+"B";if(a>=1e6)return s+"$"+(a/1e6).toFixed(0)+"M";if(a>=1e3)return s+"$"+(a/1e3).toFixed(0)+"K";return s+"$"+a.toFixed(0);};
-const cls=v=>v==null?"":v>=0?"flowpos":"flowneg";
-function render(d){
-  const age=Date.now()-Date.parse(d.generated_at);
-  if(d.methodology_version!=='dated-etf-radar.v2'||!Number.isFinite(age)||age<0||age>4*864e5)throw new Error('Current validated flow measurements are unavailable');
-  const all=d.complexes||[],q=d.quality||{};
-  document.getElementById('tide').innerHTML='<div class="chip">Measurements only · no calibrated trade calls</div>';
-  document.getElementById('statbar').innerHTML=
-    `<div class="stat"><div class="v">${q.complete_complexes??'—'} / ${q.total_complexes??'—'}</div><div class="l">Complete core complexes</div></div>`+
-    `<div class="stat"><div class="v">${esc(q.status||'unavailable')}</div><div class="l">Coverage status</div></div>`;
-  const number=v=>v==null?'—':Number(v).toFixed(2);
-  const current=g=>{const dates=g.observation_dates||[];return dates.length===1&&dates.every(date=>{const a=Date.now()-Date.parse(date);return Number.isFinite(a)&&a>=0&&a<=6*864e5;});};
-  let h=`<h2>Core ETF creations and redemptions</h2><div class="sub">Five and 21 reported observations, matched across every core member. Blank values mean incomplete, stale or mismatched evidence. Sector groups overlap.</div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Complex / coverage</th><th>Effective date</th><th>Daily net</th><th>5 observations</th><th>21 observations</th><th>5 obs / AUM</th><th>Recent − prior pace</th></tr></thead><tbody>`;
-  h+=all.map(c=>{const g=c.core||{},live=current(g),f5=live?c.flow_5obs_usd:null;
-    return `<tr><td><b>${esc(c.complex)}</b><div class="sub">${g.coverage_count??0}/${g.required_count??0} current · ${esc(live?g.status:'stale or unavailable')}
-      <details><summary>Members</summary>${esc((g.required||[]).join(', '))}${g.missing?.length?'<br>Unavailable: '+esc(g.missing.join(', ')):''}</details></div></td>
-      <td>${esc((g.observation_dates||[]).join(' / '))||'—'}</td><td>${fmt(live?c.net_flow_daily_usd:null)}</td>
-      <td class="${cls(f5)}">${fmt(f5)}</td><td>${fmt(live?c.flow_21obs_usd:null)}</td>
-      <td>${live&&c.pct_aum_5obs!=null?number(c.pct_aum_5obs)+'%':'—'}</td><td>${fmt(live?c.recent_minus_prior_pace_usd_per_observation:null)}</td></tr>`;
-  }).join('')+'</tbody></table></div>';
-  const boards=[d.unique_leveraged_aggregate,...(d.leveraged_comparisons||[])].filter(Boolean);
-  h+=`<h2>Leveraged ETF fund flows — separate legs</h2><div class="sub">Bull minus inverse is an unscaled comparison. Total fund creation adds both legs. Neither measures net underlying exposure or identifies who invested.</div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Group</th><th>Bull funds · 5 obs</th><th>Inverse funds · 5 obs</th><th>Bull − inverse</th><th>Total creations</th><th>Coverage</th></tr></thead><tbody>`;
-  h+=boards.map(r=>{const b=r.bull||{},s=r.bear||{},live=current(b)&&current(s);return `<tr><td>${esc(r.name)}</td>
-    <td>${fmt(current(b)?b.flow_5obs_usd:null)}</td><td>${fmt(current(s)?s.flow_5obs_usd:null)}</td>
-    <td>${fmt(live?r.bull_minus_bear_flow_5obs_usd:null)}</td><td>${fmt(live?r.total_fund_flow_5obs_usd:null)}</td>
-    <td>${b.coverage_count??0}/${b.required_count??0} bull · ${s.coverage_count??0}/${s.required_count??0} inverse</td></tr>`;}).join('')+'</tbody></table></div>';
-  document.getElementById('content').innerHTML=h;
-  document.getElementById('foot').textContent=`${d.methodology} ${d.caveats} Published ${d.generated_at}; donor published ${d.donor_generated_at||'unavailable'}.`;
-}
-function failure(e){document.getElementById('statbar').innerHTML='';document.getElementById('tide').innerHTML='';document.getElementById('content').innerHTML='<div class="loading">'+esc(e.message)+'</div>';}
-load('data/capital-flow-radar.json').then(render).catch(failure);
-setInterval(()=>load('data/capital-flow-radar.json').then(render).catch(failure),300000);
-</script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capital Flow Radar · JustHodl</title><meta name="description" content="Compare configured fund groups with matched dates, explicit missing members and deduplicated leveraged flows.">
+<link rel="stylesheet" href="/jh-sector-research.css?v=20260921-native1"><style>[data-pf-funds] .xr-scroll{max-height:440px;overscroll-behavior:contain}[data-pf-funds] th{position:sticky;top:0;background:#18202b}</style></head>
+<body><main data-provider-mode="radar"><a href="/">JUSTHODL·AI</a><h1>Capital Flow Radar</h1>
+<p>Compare configured fund groups with matched dates, explicit missing members and deduplicated leveraged flows. Follow each measurement to its original response and distinguish observations from portfolio assumptions.</p>
+<nav aria-label="Related research"><a href="/flows.html">Fund observations</a><a href="/capital-flow-radar.html">Matched fund groups</a><a href="/etf-research.html">Issuer share changes</a><a href="/sector-flow.html">Sector evidence</a><a href="/calls.html">Calls</a></nav>
+<section data-provider-flows aria-label="Verified fund-flow research"><p role="status">Loading retained research…</p></section>
+<section><h2>Your hypothetical NAV shock</h2><p>Use the selected fund above. Enter a signed USD exposure: positive for long, negative for short. You choose the NAV shock and costs; fund flows supply no assumed price impact. These inputs stay in your browser.</p>
+<form data-pf-scenario><label>Signed fund exposure · USD<input name="exposure" type="number" step="any" value="0" autocomplete="off"></label>
+<label>Your assumed NAV shock · %<input name="shock" type="number" step="any" value="0" autocomplete="off"></label>
+<label>Your assumed total costs · USD<input name="cost" type="number" step="any" min="0" value="0" autocomplete="off"></label>
+<button type="submit">Calculate my hypothetical scenario</button></form><div data-pf-scenario-output aria-live="polite">No scenario calculated.</div>
+<p>This is a linear mark-to-NAV scenario with constant units. It does not simulate a leveraged fund's path, market-price premium or discount, liquidity, distributions, taxes, borrow or financing. Include your own cost assumption; no trade or allocation is proposed.</p></section>
+</main><script src="/jh-provider-flows.js?v=20260921-native1" defer></script></body></html>

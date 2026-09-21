@@ -1522,6 +1522,48 @@
         }
       },
       "reason": "Canonical same-period ETF price and selected issuer NAV/share evidence, with separately dated stock-volume coverage. Capital Fusion is a projection of the same retained roots and contributes no independent vote."
+    },
+    "flows.html": {
+      "primary_engines": [
+        "justhodl-etf-fund-flows"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-etf-fund-flows": [
+          "data/provider-fund-flow-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-etf-fund-flows": {
+          "source": "aws/lambdas/justhodl-etf-fund-flows/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Provider-reported creation/redemption observations, original response hashes, acquisition/vintage dates, matched reporting windows and explicitly assumed signed NAV scenarios. No investor identity or trading authority."
+        }
+      },
+      "reason": "Provider-reported creation/redemption observations, original response hashes, acquisition/vintage dates, matched reporting windows and explicitly assumed signed NAV scenarios. No investor identity or trading authority."
+    },
+    "capital-flow-radar.html": {
+      "primary_engines": [
+        "justhodl-capital-flow-radar"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-capital-flow-radar": [
+          "data/capital-flow-radar.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-capital-flow-radar": {
+          "source": "aws/lambdas/justhodl-capital-flow-radar/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Matched provider-flow groups replayed from the same canonical originals. Missing legs and partial totals remain separate. This projection contributes no additional evidence vote."
+        }
+      },
+      "reason": "Matched provider-flow groups replayed from the same canonical originals. Missing legs and partial totals remain separate. This projection contributes no additional evidence vote."
     }
   }
 }

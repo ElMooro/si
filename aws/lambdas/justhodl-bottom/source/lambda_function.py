@@ -193,7 +193,7 @@ def s3_json(key, default=None, quiet=False):
         body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
         if key.endswith(".gz"):
             body = gzip.decompress(body)
-        return json.loads(body)
+        return __import__("provider_flow_research").guard(key, json.loads(body))
     except Exception as e:
         if not quiet:
             log("feed miss %s: %s" % (key, str(e)[:80]))

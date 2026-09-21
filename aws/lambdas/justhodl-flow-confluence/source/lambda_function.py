@@ -39,7 +39,7 @@ TRUST_KEY = {"capital-flow": "capital_flow", "etf-flows": "etf_rotation",
 
 
 def _read(key):
-    try: return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    try: return __import__("provider_flow_research").guard(key, json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
     except Exception: return {}
 
 def _tk(x):

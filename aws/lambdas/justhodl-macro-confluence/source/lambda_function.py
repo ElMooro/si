@@ -95,7 +95,7 @@ ALT_ASSET_TICKERS = {"BTCUSD": "crypto", "XLE": "energy", "GLD": "gold"}
 def _get(key, default=None):
     try:
         o = s3.get_object(Bucket=BUCKET, Key=key)
-        return json.loads(o["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(o["Body"].read()))
     except Exception as e:
         print(f"[macro-confluence] {key} unreadable: {str(e)[:150]}")
         return default

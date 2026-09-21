@@ -39,7 +39,7 @@ s3 = boto3.client("s3", region_name="us-east-1")
 def _read_json(key: str) -> Optional[dict]:
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(obj["Body"].read()))
     except Exception as e:
         print(f"[read] {key}: {e}")
         return None

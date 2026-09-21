@@ -92,7 +92,7 @@ BUCKETS = {
 }
 
 def _s3json(k, d=None):
-    try: return json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
+    try: return __import__("provider_flow_research").guard(k, json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read()))
     except Exception: return d
 
 def _fred(series, limit=900):

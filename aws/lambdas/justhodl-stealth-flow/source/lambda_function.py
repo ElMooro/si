@@ -28,7 +28,7 @@ ddb = boto3.resource("dynamodb", "us-east-1")
 def lambda_handler(event, context):
     t0 = time.time()
     try:
-        doc = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=SRC_KEY)["Body"].read())
+        doc = __import__("provider_flow_research").guard(SRC_KEY, json.loads(s3.get_object(Bucket=S3_BUCKET, Key=SRC_KEY)["Body"].read()))
     except Exception as e:
         print(f"[stealth] source unreadable: {str(e)[:80]}")
         doc = {}
@@ -71,14 +71,14 @@ def lambda_handler(event, context):
                 benchmark=str(h["bench"]),
                 metadata={"engine": "stealth-flow", "quadrant": h["quadrant"]}):
             logged += 1
-    out = {"ok": True, "version": VERSION,
+    out = {"ok": True, "version": VERSION, "status": "research_only",
+           "reason": "No independently qualified flow event-study edge",
+           "call": None, "portfolio_action": "WAIT",
+           **__import__("provider_flow_research").PERMISSIONS,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
            "recent_stealth": hits, "n_recent": len(hits), "logged": logged,
-           "methodology": ("Fresh (<=2d) STEALTH-quadrant detections from the "
-                           "ETF flow event study, emitted as graded UP "
-                           "signals vs their ladder benchmark. PROVEN gate "
-                           "controls promotion.")}
+           "methodology": "Legacy event-study claims are unqualified. Dated flow observations live in data/provider-fund-flow-research.json; they produce no trade signal."}
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="max-age=600")

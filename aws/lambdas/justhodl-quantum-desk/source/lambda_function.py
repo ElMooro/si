@@ -343,6 +343,8 @@ def read_source(name, spec):
             doc = json.loads(obj["Body"].read())
             age_h = round(
                 (_now() - obj["LastModified"]).total_seconds() / 3600.0, 1)
+        if __import__("provider_flow_research").covered(key):
+            return None, {"status": "research_only", "age_h": age_h, "key": key, "reason": "flow_observations_do_not_qualify_an_investment_vote"}
         stale = age_h is not None and age_h > spec["max_age_h"]
         return __import__("nowcast_research").guard(key,__import__("cycle_research").guard(key,__import__("tail_research").guard(key,doc))), {"status": "stale" if stale else "ok",
                      "age_h": age_h, "key": key}

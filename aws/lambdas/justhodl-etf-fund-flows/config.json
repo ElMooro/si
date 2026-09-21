@@ -4,12 +4,12 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "timeout": 300,
-  "memory": 1024,
+  "memory": 2048,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Publishes ETF fund-flow observations, flow/AUM changes, composite signals, per-ticker context and dated history. Provider failures use fixed diagnostic categories.",
+  "description": "Original provider fund-flow research with exact response retention and replay; dated observations and matched groups, no investment votes.",
   "environment_keys": [
     "POLYGON_KEY"
   ],

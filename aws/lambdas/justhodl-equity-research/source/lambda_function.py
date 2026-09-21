@@ -2628,12 +2628,12 @@ def fetch_etf_flow_context(payload: dict) -> str:
         if sector:
             try:
                 obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
-                ctx = json.loads(obj["Body"].read())
+                ctx = __import__("provider_flow_research").guard("etf-flows/per-ticker-context.json", json.loads(obj["Body"].read()))
                 by_sector = (ctx.get("context") or {}).get("by_sector") or {}
                 sector_ctx = by_sector.get(sector)
                 if sector_ctx and sector_ctx.get("prompt_snippet"):
                     snippets.append(f"[SECTOR ETF FLOWS] {sector_ctx['prompt_snippet']}")
-                else:
+                elif ctx:
                     global_regime = (ctx.get("context") or {}).get("global_regime", "UNKNOWN")
                     smart_dumb = (ctx.get("context") or {}).get("smart_vs_dumb_label", "MIXED")
                     risk_label = (ctx.get("context") or {}).get("risk_on_off_label", "MIXED")
@@ -2652,7 +2652,7 @@ def fetch_etf_flow_context(payload: dict) -> str:
         if ticker:
             try:
                 obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/stock-exposure-lookup.json")
-                lookup = json.loads(obj["Body"].read())
+                lookup = __import__("provider_flow_research").guard("etf-flows/stock-exposure-lookup.json", json.loads(obj["Body"].read()))
                 exposure = lookup.get(ticker)
                 if exposure:
                     n_etfs = exposure.get("n_etfs_holding", 0)

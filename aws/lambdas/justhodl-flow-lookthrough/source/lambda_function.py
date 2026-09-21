@@ -64,7 +64,7 @@ def massive_key():
 
 def getj(key):
     try:
-        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
     except Exception:
         return None
 
@@ -231,7 +231,10 @@ def lambda_handler(event, context):
     t0 = time.time()
     flows = getj(FLOWS_KEY)
     if not flows or not flows.get("metrics"):
-        return {"statusCode": 500, "body": "no etf-flows/daily.json"}
+        return {"statusCode": 200, "body": json.dumps({"status": "research_only",
+            "reason": "Fund-flow observations do not identify underlying stock purchases; holdings replay is pending",
+            "canonical_key": "data/provider-fund-flow-research.json", "published": False,
+            "call": None, "portfolio_action": "WAIT", **__import__("provider_flow_research").PERMISSIONS})}
     metrics = flows["metrics"]
 
     mcap = {}

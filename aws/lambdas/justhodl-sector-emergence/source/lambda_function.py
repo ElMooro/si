@@ -81,7 +81,7 @@ def lambda_handler(event=None, context=None):
     # external legs (best-effort)
     def _read(k):
         try:
-            return json.loads(S3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
+            return __import__("provider_flow_research").guard(k, json.loads(S3.get_object(Bucket=BUCKET, Key=k)["Body"].read()))
         except Exception:
             return {}
     regime = (_read("data/regime-map.json").get("regime") or {}).get("label")

@@ -71,7 +71,7 @@ _KEY = {}
 
 def _get_json(key):
     try:
-        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
     except Exception:
         return None
 

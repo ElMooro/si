@@ -456,7 +456,7 @@ def lambda_handler(event, context):
         # ── Sector flow context ──────────────────────────────────────────
         if sector:
             obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/per-ticker-context.json")
-            ctx = json.loads(obj["Body"].read())
+            ctx = __import__("provider_flow_research").guard("etf-flows/per-ticker-context.json", json.loads(obj["Body"].read()))
             by_sector = (ctx.get("context") or {}).get("by_sector") or {}
             sector_ctx = by_sector.get(sector)
             if sector_ctx and sector_ctx.get("prompt_snippet"):
@@ -464,7 +464,7 @@ def lambda_handler(event, context):
         # ── Constituent pressure on THIS specific ticker ─────────────────
         try:
             obj = s3.get_object(Bucket=S3_BUCKET, Key="etf-flows/constituent-pressure.json")
-            press_doc = json.loads(obj["Body"].read())
+            press_doc = __import__("provider_flow_research").guard("etf-flows/constituent-pressure.json", json.loads(obj["Body"].read()))
             stock_pressure = next(
                 (p for p in (press_doc.get("all_constituents") or [])
                  if p.get("stock") == ticker),

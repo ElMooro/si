@@ -84,8 +84,10 @@ def flow_rows(packet):
 
 # These names identify the current producer's components; they do not establish
 # source independence or predictive validity. Unknown revisions fail closed.
-FLOW_COMPONENTS = frozenset(('dark-pool', 'etf-lookthrough', 'short-interest',
-    'finra-short', 'stealth', 'options-flow', 'squeeze', 'insider', 'buyback', 'insider-buyback'))
+# ETF flow/look-through and stealth have no qualified flow-to-return model.
+# Reject stored composites that still include those components.
+FLOW_COMPONENTS = frozenset(('dark-pool', 'short-interest',
+    'finra-short', 'options-flow', 'squeeze', 'insider', 'buyback', 'insider-buyback'))
 FLOW_POSTURES = frozenset(('SHORT_SQUEEZE_SETUP', 'ACCUMULATION', 'DISTRIBUTION',
     'STEALTH_ACCUMULATION', 'ACCUMULATION_LEAN', 'DISTRIBUTION_LEAN', 'MIXED'))
 

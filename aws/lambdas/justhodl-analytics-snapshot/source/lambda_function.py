@@ -247,7 +247,7 @@ def lambda_handler(event, context):
     etf_flow_rows = []
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=ETF_FLOWS_KEY)
-        flow_doc = json.loads(obj["Body"].read())
+        flow_doc = __import__("provider_flow_research").guard(ETF_FLOWS_KEY, json.loads(obj["Body"].read()))
         for m in (flow_doc.get("metrics") or []):
             if m.get("error"):
                 continue

@@ -498,7 +498,9 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"error": f"Could not read flow data: {str(e)[:200]}"})}
 
-    metrics = daily.get("metrics", [])
+    from provider_flow_research import inventory, holdings_inventory, PERMISSIONS
+    metrics = list(inventory(daily).values())
+    # Holdings collection continues; provider flow scores are not source holdings or stock purchases.
     donor_docs,donor_receipts=load_inputs(s3,S3_BUCKET,[("data/etf-true-flows.json",48,("by_etf",))])
     true_flow_applied=true_flow_rows(metrics,donor_docs["data/etf-true-flows.json"])
     all_etfs = select_etfs_for_constituents(metrics, mode="all")
@@ -525,23 +527,23 @@ def lambda_handler(event, context):
     print(f"[constituents] got constituents for {n_ok}/{len(all_etfs)} ETFs")
 
     # 3. Compute high-z pressure (focused: high signal only)
-    pressure = compute_implied_pressure(high_z, constituents_map)
+    pressure = []  # Fund creations/redemptions do not identify stock purchases.
     print(f"[constituents] high-z pressure: {len(pressure)} unique stocks")
 
     # 4. Compute complete per-stock ETF exposure map (all-ETF coverage)
-    per_stock_exposure = compute_per_stock_etf_exposure(all_etfs, constituents_map)
+    per_stock_exposure = holdings_inventory(all_etfs, constituents_map)
     print(f"[constituents] per-stock exposure: {len(per_stock_exposure)} stocks with ETF holdings")
 
     # 4b. ops 3870 — sector/country/price-return join + cross-sectional
     # flow-vs-price quadrant, mutates per_stock_exposure in place (additive
     # fields only — nothing above this line changes shape).
     enrich_meta = enrich_sector_and_price(per_stock_exposure)
-    quadrant_meta = classify_stock_quadrant(per_stock_exposure)
+    quadrant_meta = {"n_with_zscore": 0, "quadrant_counts": {}, "status": "not_qualified"}
 
     # 5. Sort per-stock exposure by abs aggregate flow (top movers across the whole universe)
     top_aggregate = sorted(
         per_stock_exposure.values(),
-        key=lambda x: abs(x.get("total_aggregate_flow_5d_usd", 0)),
+        key=lambda x: x.get("n_etfs_holding", 0),
         reverse=True,
     )
 
@@ -565,7 +567,11 @@ def lambda_handler(event, context):
     output = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of_etf_flows_date": daily.get("generated_at"),
-        "threshold_z": INSTITUTIONAL_FLOW_THRESHOLD,
+        "threshold_z": None,
+        "contract": "etf-holdings-compatibility.v1",
+        "qualification": "source_holdings_not_yet_replayed",
+        "flow_interpretation": "Holding membership is retained; implied stock purchases and flow quadrants are unavailable.",
+        "call": None, "portfolio_action": "WAIT", **PERMISSIONS,
         "elapsed_s": elapsed,
         "mode": "all_etfs",
         "n_etfs_total": len(all_etfs),
@@ -655,8 +661,7 @@ def lambda_handler(event, context):
 
     print(f"[constituents] DONE — {n_ok}/{len(all_etfs)} ETFs, "
           f"{len(per_stock_exposure)} stocks, "
-          f"top mover: {top_aggregate[0]['stock'] if top_aggregate else '—'} "
-          f"(${(top_aggregate[0]['total_aggregate_flow_5d_usd'] if top_aggregate else 0)/1e6:+.0f}M)")
+          "holdings membership retained; stock-flow inference unavailable")
 
     return {
         "statusCode": 200,

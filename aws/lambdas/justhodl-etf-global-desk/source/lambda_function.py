@@ -396,7 +396,7 @@ def _put(key, obj):
 
 def _load_s3(key):
     try:
-        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
     except Exception:
         return None
 

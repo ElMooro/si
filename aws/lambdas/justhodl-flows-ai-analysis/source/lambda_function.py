@@ -165,7 +165,7 @@ Begin your response with `{` and end with `}` — no prose outside the JSON obje
 def _read_json(key: str) -> Optional[dict]:
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(obj["Body"].read()))
     except Exception as e:
         print(f"[read] {key}: {e}")
         return None
@@ -679,6 +679,16 @@ def deliver_telegram_digest(analysis: dict, macro: dict) -> dict:
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[flows-ai] starting at {datetime.now(timezone.utc).isoformat()}")
+
+    # Provider observations have no qualified trading authority; the native
+    # producer owns their deterministic public research/compatibility views.
+    # Do not call a paid model or notification service on a scheduled legacy run.
+    return {"statusCode": 200, "body": json.dumps({
+        "status": "research_only", "canonical_key": "data/provider-fund-flow-research.json",
+        "reason": "Legacy AI sizing and flow forecasts are not qualified",
+        "call": None, "portfolio_action": "WAIT",
+        "paid_ai_calls": 0, "notifications_sent": 0, "portfolio_writes": 0,
+        **__import__("provider_flow_research").PERMISSIONS})}
 
     # 1. Load all inputs
     print("[flows-ai] loading flow data...")

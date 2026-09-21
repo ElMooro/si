@@ -222,7 +222,7 @@ def s3_json(key, default=None):
         body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
         if key.endswith(".gz"):
             body = gzip.decompress(body)
-        return json.loads(body)
+        return __import__("provider_flow_research").guard(key, json.loads(body))
     except Exception as e:
         log("feed miss %s: %s" % (key, str(e)[:80]))
         return default
@@ -707,7 +707,7 @@ def s3_json_quiet(key):
         body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
         if key.endswith(".gz"):
             body = gzip.decompress(body)
-        return json.loads(body)
+        return __import__("provider_flow_research").guard(key, json.loads(body))
     except Exception:
         return None
 

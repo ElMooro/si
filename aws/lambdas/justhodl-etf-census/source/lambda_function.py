@@ -67,38 +67,9 @@ def s3json(key):
 
 
 def flow_records():
-    """Tolerant reader over the fleet's flow feeds. Returns
-    {TICKER: {category, aum_b, flow fields...}} + the vocabulary."""
-    out, vocab = {}, set()
-    d = s3json("etf-flows/daily.json") or {}
-    m = d.get("metrics")
-    if isinstance(m, dict) and m:
-        for t, r in m.items():
-            if isinstance(r, dict):
-                out[str(t).upper()] = dict(r)
-                vocab |= set(r.keys())
-    ptc = s3json("etf-flows/per-ticker-context.json") or {}
-    for cand in (ptc, ptc.get("tickers"), ptc.get("by_ticker"),
-                 ptc.get("context")):
-        if isinstance(cand, dict) and len(cand) > 50:
-            for t, r in cand.items():
-                if isinstance(r, dict) and str(t).isupper() \
-                        and len(str(t)) <= 6:
-                    rec = out.setdefault(str(t).upper(), {})
-                    for k, v in r.items():
-                        rec.setdefault(k, v)
-                    vocab |= set(r.keys())
-            break
-    legacy = (s3json("data/etf-flows.json") or {}).get("by_etf") or {}
-    for t, r in legacy.items():
-        if isinstance(r, dict):
-            rec = out.setdefault(str(t).upper(), {})
-            for k, v in r.items():
-                rec.setdefault(k, v)
-            vocab |= set(r.keys())
-    print(f"[etf-census] flow records={len(out)} "
-          f"vocab={sorted(vocab)[:30]}")
-    return out
+    """Keep every configured fund identity without inheriting old flow scores."""
+    from provider_flow_research import inventory
+    return inventory(None)
 
 
 def price_weekly(sym):

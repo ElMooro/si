@@ -34,7 +34,7 @@ OUT_KEY = "data/theme-rotation.json"
 
 def _read_s3_json(key):
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        return __import__("provider_flow_research").guard(key, json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()))
     except Exception:
         return None
 FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))

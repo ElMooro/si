@@ -175,6 +175,10 @@ def fetch_json(key, default=None, max_age_h=None):
     (return default) so stale data never silently contaminates a decision. Every
     load is recorded in _FEED_HEALTH for transparency. Feeds with no max_age_h are
     age-tracked but never auto-excluded (cadence may legitimately be slow)."""
+    if __import__("provider_flow_research").covered(key):
+        _FEED_HEALTH.append({"key": key, "age_h": None, "stale": None, "used": False,
+                             "exclusion": "provider_flow_or_derived_pressure_not_qualified"})
+        return default
     if not public_source_allowed(key):
         _FEED_HEALTH.append({'key': key, 'age_h': None, 'stale': None, 'used': False,
                              'missing': True, 'exclusion': 'private_source_not_read_by_public_ranker'})
