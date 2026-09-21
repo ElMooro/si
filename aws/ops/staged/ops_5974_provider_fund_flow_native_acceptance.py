@@ -230,10 +230,30 @@ def preflight_replay(read,protected_keys):
     return audit,results
 
 
-def main():
+def completed_request(s3,module,fn):
+    """Recovery reads a completed request; it has no Lambda client or dispatch."""
+    assert fn in KINDS,'Only reviewed producer evidence may be read'
+    kind=KINDS[fn];request='chatgpt-'+fn+'-'+COMMIT[:12]+'-1'
+    key=module.request_key(kind,request)
+    claim=json.loads(module.bounded(s3.get_object(Bucket=BUCKET,Key=module.request_key(kind,request+'-dispatch'))['Body']))
+    status=json.loads(module.bounded(s3.get_object(Bucket=BUCKET,Key=key)['Body']))
+    assert claim.get('contract')=='provider-flow-native-dispatch.v1' and claim.get('request_id')==request
+    assert claim.get('status')=='accepted_async' and status.get('request_id')==request and status.get('kind')==kind
+    assert status.get('status')=='complete' and status.get('published') is True,'Recovery requires completed publication evidence'
+    return {'request_id':request,'status_key':key,'invoke_sent':False,'status':status}
+
+
+def public_alias_target(key):
+    assert key in store.ALIASES,'Only reviewed compatibility aliases'
+    # reviewed-artifacts.js intentionally serves both daily aliases from the
+    # inspected root object. Preserve that existing diagnostic privacy check.
+    return 'etf-flows/daily.json' if key=='data/etf-flows/daily.json' else key
+
+
+def main(report_name='ops_5974_provider_fund_flow_native_acceptance',resume_only=False):
     lam=boto3.client('lambda',region_name='us-east-1',config=Config(read_timeout=310,connect_timeout=10,retries={'max_attempts':0},tcp_keepalive=True))
     s3=boto3.client('s3',region_name='us-east-1');events=boto3.client('events',region_name='us-east-1')
-    with report('ops_5974_provider_fund_flow_native_acceptance') as r:
+    with report(report_name) as r:
         subprocess.run([sys.executable,str(ROOT/'tests/test_provider_flow_acceptance.py')],cwd=ROOT,check=True)
         for fn in PRODUCERS:subprocess.run([sys.executable,str(ROOT/'aws/lambdas'/fn/'tests/run_tests.py')],cwd=ROOT,check=True)
         runtimes={fn:runtime(lam,fn) for fn in FUNCTIONS};r.kv(runtimes=runtimes)
@@ -263,7 +283,8 @@ def main():
         requests={};profiles={};packets={};replays={};hashes={}
         for fn in PRODUCERS:
             kind=KINDS[fn];prefix,current,contract=store.KINDS[kind]
-            request=invoke_public(lam,s3,store,fn);requests[fn]=request;r.kv(**{kind+'_request':request})
+            request=completed_request(s3,store,fn) if resume_only else invoke_public(lam,s3,store,fn)
+            requests[fn]=request;r.kv(**{kind+'_request':request})
             profiles[fn]=execution_profile(boto3.client('logs',region_name='us-east-1'),fn,request['status'])
             if kind=='flow':assert request['status']['compatibility_publications']==dict.fromkeys(store.ALIASES,True)
             raw=public(current);packet=json.loads(raw);assert json.loads(read(current))==packet
@@ -287,8 +308,11 @@ def main():
             assert packets['radar'][field]==canonical[field]==packets['flow'][field]
         aliases={}
         for key in store.ALIASES:
-            actual=json.loads(public(key));assert actual==json.loads(read(key))==model.compatibility(packets['flow'],key)
-            aliases[key]={'contract':actual['contract'],'canonical':actual['canonical'],'all_300_identities_preserved':len(actual['inventory'])==300}
+            assert json.loads(read(key))==model.compatibility(packets['flow'],key)
+            target=public_alias_target(key);actual=json.loads(public(key))
+            assert actual==model.compatibility(packets['flow'],target)
+            aliases[key]={'contract':actual['contract'],'canonical':actual['canonical'],'stored_key':key,
+                'public_source_key':target,'all_300_identities_preserved':len(actual['inventory'])==300}
         independent=independent_arithmetic(packets['flow'],read)
         def check_denial(key):
             assert denied('https://justhodl.ai/'+key) and denied('https://'+BUCKET+'.s3.amazonaws.com/'+key),'Protected original anonymously accessible'
@@ -298,7 +322,10 @@ def main():
             'independent_source_arithmetic':independent,'radar_is_same_canonical_evidence':True,'schedules':schedules,'compatibility_aliases':aliases,
             'protected_artifacts_checked':len(protected_keys),'protected_artifacts_anonymously_denied':True,
             'audit_originals_replayed':audit_replays,'whole_predecessors_preserved':True,
-            'provider_requests':requests[PRODUCERS[0]]['status']['provider_requests'],'private_account_reads':0,
+            'provider_requests':requests[PRODUCERS[0]]['status']['provider_requests'],
+            'acceptance_mode':'completed_publication_replay' if resume_only else 'initial_publication',
+            'producer_invocations_this_acceptance':sum(v['invoke_sent'] for v in requests.values()),
+            'provider_requests_this_acceptance':0 if resume_only else requests[PRODUCERS[0]]['status']['provider_requests'],'private_account_reads':0,
             'paid_ai_calls':0,'notifications_sent':0,'signals_emitted':0,'portfolio_writes':0,'unreviewed_consumer_invocations':0,
             'pages_commit':pages_commit,'assets':{name:build['files_sha256'][name] for name in ASSETS}}
         raw=model.encoded(proof);key='data/provider-flow-research-verification.json'
@@ -308,6 +335,8 @@ def main():
             execution_profiles=profiles,compatibility_aliases_verified=len(aliases),protected_artifacts_checked=len(protected_keys),
             originals_anonymously_denied=True,whole_predecessors_preserved=True,schedules=schedules,
             provider_requests=proof['provider_requests'],private_account_reads=0,paid_ai_calls=0,
+            producer_invocations_this_acceptance=proof['producer_invocations_this_acceptance'],
+            provider_requests_this_acceptance=proof['provider_requests_this_acceptance'],
             notifications_sent=0,signals_emitted=0,portfolio_writes=0,unreviewed_consumer_invocations=0)
 
 

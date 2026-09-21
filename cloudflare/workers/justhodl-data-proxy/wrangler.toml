@@ -10,6 +10,21 @@ workers_dev = true
 # a class defect: the domain never had a /data/* route; legacy pages used
 # absolute proxy URLs, this month's pages use the clean relative form).
 routes = [
+  # Exact legacy public flow aliases; do not expose the archive namespace.
+  { pattern = "justhodl.ai/etf-flows/daily.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/daily.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/measurements.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/measurements.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/composite.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/composite.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/event-study.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/event-study.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/rotation.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/rotation.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/per-ticker-context.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/per-ticker-context.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/ai-analysis.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/ai-analysis.json", zone_name = "justhodl.ai" },
   { pattern = "justhodl.ai/valuations-data.json", zone_name = "justhodl.ai" },
   { pattern = "www.justhodl.ai/valuations-data.json", zone_name = "justhodl.ai" },
   { pattern = "justhodl.ai/intelligence-report.json", zone_name = "justhodl.ai" },

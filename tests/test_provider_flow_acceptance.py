@@ -99,4 +99,27 @@ class SourceArithmetic(unittest.TestCase):
         with self.assertRaises(AssertionError):self.check(p,self.read)
 
 
+class ReadOnlyRecovery(unittest.TestCase):
+    def test_recovery_has_no_dispatch_client_and_requires_completed_identity(self):
+        namespace={'COMMIT':'a'*40,'BUCKET':'fixture','KINDS':KINDS,'json':json}
+        fn=actual('completed_request',namespace);module=types.SimpleNamespace(request_key=lambda k,x:k+'/'+x,bounded=lambda b:b.read())
+        name='justhodl-etf-fund-flows';request='chatgpt-'+name+'-'+'a'*12+'-1';key='flow/'+request
+        state={key:{'request_id':request,'kind':'flow','status':'complete','published':True},
+            key+'-dispatch':{'contract':'provider-flow-native-dispatch.v1','request_id':request,'status':'accepted_async'}}
+        s3=types.SimpleNamespace(get_object=lambda **kw:{'Body':io.BytesIO(json.dumps(state[kw['Key']]).encode())})
+        self.assertFalse(fn(s3,module,name)['invoke_sent'])
+        state[key]['status']='running'
+        with self.assertRaises(AssertionError):fn(s3,module,name)
+        state[key]['status']='complete';state[key]['request_id']='other'
+        with self.assertRaises(AssertionError):fn(s3,module,name)
+        with self.assertRaises(AssertionError):fn(s3,module,'justhodl-ai-brief')
+
+    def test_daily_alias_keeps_existing_reviewed_root_object(self):
+        keys=tuple('etf-flows/'+n+'.json' for n in ('daily','measurements','composite','event-study','rotation','per-ticker-context','ai-analysis'))
+        aliases=keys+tuple('data/'+k for k in keys)
+        fn=actual('public_alias_target',{'store':types.SimpleNamespace(ALIASES=aliases)})
+        for key in aliases:self.assertEqual(fn(key),'etf-flows/daily.json' if key=='data/etf-flows/daily.json' else key)
+        with self.assertRaises(AssertionError):fn('private/account.json')
+
+
 if __name__=='__main__':unittest.main(verbosity=2)
