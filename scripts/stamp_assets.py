@@ -50,7 +50,7 @@ def discover_assets(root: Path):
 
 def _pat(assets):
     alts = "|".join(re.escape(a) for a in sorted(assets, key=len, reverse=True))
-    return re.compile('"(' + alts + r')(\?v=[A-Za-z0-9]+)?"')
+    return re.compile('"(' + alts + r')(\?v=[A-Za-z0-9._-]+)?"')
 
 
 def compute_versions(root: Path):
@@ -101,7 +101,7 @@ def compute_versions(root: Path):
 
 def rewrite_html(root: Path, ver):
     alts = "|".join(re.escape(a) for a in sorted(ver, key=len, reverse=True))
-    pat = re.compile('(src|href)="(' + alts + r')(\?v=[A-Za-z0-9]+)?"')
+    pat = re.compile('(src|href)="(' + alts + r')(\?v=[A-Za-z0-9._-]+)?"')
     n_files = n_refs = 0
     for p in root.rglob("*.html"):
         s = p.read_text(errors="ignore")
