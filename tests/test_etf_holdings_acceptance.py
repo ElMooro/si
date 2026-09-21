@@ -3,8 +3,9 @@ from pathlib import Path
 from datetime import datetime,timezone
 import ast,io,json,types,unittest
 ROOT=Path(__file__).resolve().parents[1]
-PATH=ROOT/'aws/ops/staged/ops_5978_etf_holdings_native_acceptance.py'
+PATH=ROOT/'aws/ops/staged/ops_5980_etf_holdings_recovery_acceptance.py'
 KINDS={'justhodl-etf-constituents':'holdings','justhodl-flow-lookthrough':'lookthrough'}
+RECOVERY={'manifest_key':'data/etf-holdings-research/runs/'+'b'*64+'.json','output_sha256':'c'*64}
 class Conflict(Exception):pass
 class Missing(Exception):pass
 
@@ -16,21 +17,24 @@ def actual(name,ns):
 
 class NativeAcceptance(unittest.TestCase):
     def arrange(self,ambiguous=False):
-        state=types.SimpleNamespace(objects={},calls=0,request=None)
+        state=types.SimpleNamespace(objects={},calls=0,request=None,payloads=[])
         def get_object(**kw):
             if kw['Key'] not in state.objects:raise Missing()
             return {'Body':io.BytesIO(json.dumps(state.objects[kw['Key']]).encode())}
         def write(client,bucket,key,doc,**condition):
             if condition.get('IfNoneMatch')=='*' and key in state.objects:raise Conflict()
             state.objects[key]=dict(doc)
-        def complete():state.objects[state.request]={'status':'complete','published':True}
+        def complete():state.objects[state.request]={'status':'complete','published':True,'provider_requests_this_execution':0,
+            'recovered_from':RECOVERY,'replay':{'output_sha256':RECOVERY['output_sha256']},
+            'generated_at':'2026-09-21T08:33:09.319214+00:00','provider_requests':1194}
         def invoke(**kw):
-            state.calls+=1;request=json.loads(kw['Payload'])['request_id'];kind=KINDS[kw['FunctionName']];state.request=kind+'/'+request
+            state.calls+=1;payload=json.loads(kw['Payload']);state.payloads.append(payload)
+            request=payload['request_id'];kind=KINDS[kw['FunctionName']];state.request=kind+'/'+request
             self.assertIn(state.request+'-dispatch',state.objects);self.assertEqual(kw['InvocationType'],'Event')
             if ambiguous:raise ConnectionError('Acknowledgment lost')
             complete();return {'StatusCode':202}
         module=types.SimpleNamespace(request_key=lambda k,x:k+'/'+x,status_write=write,conflict=lambda e:isinstance(e,Conflict),missing=lambda e:isinstance(e,Missing),bounded=lambda b:b.read())
-        ns={'COMMIT':'a'*40,'BUCKET':'fixture','KINDS':KINDS,'datetime':datetime,'timezone':timezone,'json':json,
+        ns={'COMMIT':'a'*40,'RECOVERY':RECOVERY,'BUCKET':'fixture','KINDS':KINDS,'datetime':datetime,'timezone':timezone,'json':json,
             'model':types.SimpleNamespace(encoded=lambda d:json.dumps(d).encode()),'time':types.SimpleNamespace(monotonic=lambda:0,sleep=lambda s:complete()),
             'invoke_when_available':lambda lam,kw:(lam.invoke(**kw),0)}
         return actual('invoke_public',ns),types.SimpleNamespace(invoke=invoke),types.SimpleNamespace(get_object=get_object),module,state
@@ -43,6 +47,16 @@ class NativeAcceptance(unittest.TestCase):
         for name in KINDS:
             self.assertTrue(fn(lam,s3,module,name)['invoke_sent']);self.assertFalse(fn(lam,s3,module,name)['invoke_sent'])
         self.assertEqual(state.calls,2)
+    def test_only_holdings_recovers_the_exact_retained_run(self):
+        fn,lam,s3,module,state=self.arrange()
+        for name in KINDS:fn(lam,s3,module,name)
+        self.assertEqual(state.payloads[0]['recover_run'],RECOVERY)
+        self.assertEqual(set(state.payloads[1]),{'request_id'})
+    def test_runtime_commit_mapping_preserves_unchanged_equity(self):
+        fn=actual('expected_commit',{'FUNCTIONS':(*KINDS,'justhodl-equity-confluence'),'COMMIT':'new','ORIGINAL_COMMIT':'old'})
+        self.assertEqual(fn('justhodl-equity-confluence'),'old')
+        for name in KINDS:self.assertEqual(fn(name),'new')
+        with self.assertRaises(ValueError):fn('justhodl-ai-brief')
     def test_ambiguous_dispatch_is_observed_without_resending(self):
         fn,lam,s3,module,state=self.arrange(True)
         with self.assertRaises(ConnectionError):fn(lam,s3,module,'justhodl-etf-constituents')
