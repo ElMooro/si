@@ -95,6 +95,7 @@ def mbpp_rows(raw: bytes):
 APPS_DIFFICULTIES = ("introductory", "interview")     # 2026-09-19: interview problems join the supply (harder tasks teach more)
 APPS_SOLUTIONS_PER_TASK = 2                            # try two reference solutions: APPS keeps many, the first is often Python 2; two keeps a 1,000-problem verify under an hour
 APPS_TARBALL = "https://people.eecs.berkeley.edu/~hendrycks/APPS.tar.gz"   # the original release: 5,000 train problems, no hub loader in the way
+LOADER_LOG: Dict[str, object] = {}                     # which APPS loader served the run and how the others failed (goes into the run summary)
 
 
 def looks_python2(src: str) -> bool:
@@ -119,6 +120,7 @@ def apps_tarball_rows(max_rows: int):
                 continue
             fh = tar.extractfile(member)
             problems.setdefault(pid, {})[fname] = fh.read().decode("utf-8", "replace") if fh else ""
+    LOADER_LOG.update({"apps_loader": "tarball", "problems": len(problems), "bytes": len(raw)})
     print(json.dumps({"apps_loader": "tarball", "problems": len(problems)}), file=sys.stderr)
     n = 0
     for pid in sorted(problems, key=lambda p: int(p) if p.isdigit() else p):
@@ -159,6 +161,7 @@ def apps_rows(max_rows: int):
         if yielded:
             return
     except Exception as exc:  # noqa: BLE001
+        LOADER_LOG["tarball_error"] = str(exc)[:200]
         print(json.dumps({"apps_loader": "tarball-failed", "error": str(exc)[:200]}), file=sys.stderr)
     from datasets import load_dataset  # type: ignore
 
@@ -172,10 +175,12 @@ def apps_rows(max_rows: int):
                           ("glob", lambda: load_dataset("parquet", data_files="hf://datasets/%s@refs/convert/parquet/all/train/*.parquet" % src["hf"], split="train"))):
         try:
             ds = loader()
+            LOADER_LOG.update({"apps_loader": label, "rows": len(ds)})
             print(json.dumps({"apps_loader": label, "rows": len(ds)}), file=sys.stderr)
             break
         except Exception as exc:  # noqa: BLE001
             errors[label] = str(exc)[:160]
+    LOADER_LOG["hub_errors"] = errors
     if ds is None:
         print(json.dumps({"apps": "unavailable", **errors}), file=sys.stderr)
         return
