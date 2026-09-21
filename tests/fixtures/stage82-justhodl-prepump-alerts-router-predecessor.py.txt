@@ -588,7 +588,7 @@ def check_options_flow(state: dict) -> List[str]:
 
 def check_fx_regime(state: dict) -> List[str]:
     """Polygon FX regime — alert on new signals only."""
-    doc = __import__("fx_research_context").context(_read_json("data/polygon-fx-regime.json"))
+    doc = _read_json("data/polygon-fx-regime.json")
     if not doc:
         return []
     signals = doc.get("regime_signals") or []

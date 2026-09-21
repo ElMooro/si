@@ -1668,6 +1668,27 @@
         }
       },
       "reason": "Recorded composition of exact option and ETF parent publications, shared measurement families and instrument evidence pointers; no independent investment vote or forecast authority."
+    },
+    "fx-research.html": {
+      "primary_engines": [
+        "justhodl-polygon-fx-regime"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-polygon-fx-regime": [
+          "data/fx-quote-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-polygon-fx-regime": {
+          "source": "aws/lambdas/justhodl-polygon-fx-regime/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Recorded original FX quote bars, dated direct and inverse comparisons, source row evidence and explicit hypothetical currency exposure; no forecast or investment authority."
+        }
+      },
+      "reason": "Recorded original FX quote bars, dated direct and inverse comparisons, source row evidence and explicit hypothetical currency exposure; no forecast or investment authority."
     }
   }
 }

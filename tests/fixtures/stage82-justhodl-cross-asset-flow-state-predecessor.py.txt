@@ -27,7 +27,7 @@ def rd(key):
 def lambda_handler(event=None, context=None):
     from risk_regime_authority import decision_view
     rr = decision_view(rd("data/risk-regime.json"))
-    fx = __import__("fx_research_context").context(rd("data/polygon-fx-regime.json"))
+    fx = rd("data/polygon-fx-regime.json")
     ci = rd("data/capital-inflows.json")
     ger = rd("data/gold-equity-rotation.json")
     dr = rd("data/dollar-radar.json")
@@ -56,7 +56,7 @@ def lambda_handler(event=None, context=None):
 
     roro = fx.get("fx_roro") or {}
     dollar_fx = {
-        "dollar_regime": dr.get("regime"), "fx_research": fx,
+        "dollar_regime": dr.get("regime"),
         "fx_roro_score": roro.get("fx_roro_score"), "fx_roro_regime": roro.get("fx_roro_regime"),
         "em_basket_5d_pct": roro.get("em_basket_5d_pct"),
         "gold_silver_ratio_chg_5d": roro.get("gold_silver_ratio_chg_5d"),

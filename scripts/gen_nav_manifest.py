@@ -47,6 +47,7 @@ def title_of(p):
 
 
 FORCE = {  # ops 3302
+    "/fx-research.html": "Macro & Liquidity",
     "/market-evidence.html": "Research & Tools",
     "/khalid.html": "System & Meta",           # Khalid cross-asset risk and opportunity engine
     "/fusion.html": "System & Meta",           # ops 5215 JustHodl Intelligence Network fusion desk

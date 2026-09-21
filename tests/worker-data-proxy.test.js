@@ -651,3 +651,13 @@ test('composite current and retired rank aliases bypass mutable edge caches',asy
   assert.equal(r.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');
  }
 });
+
+test('FX original publication and retired regime alias bypass edge caches',async()=>{
+ const {env}=fresh(),w=await worker(),calls=[];
+ globalThis.caches={default:{async match(){throw Error('FX head must bypass cache')},async put(){throw Error('FX head cannot be cached')}}};
+ globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return Response.json({ok:true});};
+ for(const key of ['fx-quote-research.json','polygon-fx-regime.json']){
+  const r=await w.fetch(req('/data/'+key),env,{waitUntil(){}});assert.equal(r.status,200);
+  assert.equal(r.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');
+ }
+});

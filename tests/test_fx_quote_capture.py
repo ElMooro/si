@@ -91,7 +91,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(originals),c.MAX_PAGES);self.assertEqual(budget.requests,c.MAX_PAGES)
     def test_every_existing_pair_is_preserved(self):
         import ast
-        tree=ast.parse((ROOT/'aws/lambdas/justhodl-polygon-fx-regime/source/lambda_function.py').read_text(encoding='utf-8'))
+        tree=ast.parse((ROOT/'tests/fixtures/stage82-justhodl-polygon-fx-regime-predecessor.py.txt').read_text(encoding='utf-8'))
         assignment=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='FX_PAIRS' for t in n.targets))
         self.assertEqual(c.PAIRS,ast.literal_eval(assignment.value));self.assertEqual(len(c.PAIRS),19)
 if __name__=='__main__':unittest.main(verbosity=2)

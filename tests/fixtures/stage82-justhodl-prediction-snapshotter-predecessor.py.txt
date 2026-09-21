@@ -42,7 +42,7 @@ def lambda_handler(event, context):
     radar = _read_json("data/convergence-radar.json") or {}
     early = _read_json("data/early-movers.json") or {}
     options = _read_json("data/polygon-options-flow.json") or {}
-    fx = __import__("fx_research_context").context(_read_json("data/polygon-fx-regime.json"))
+    fx = _read_json("data/polygon-fx-regime.json") or {}
     futures = _read_json("data/polygon-futures-curves.json") or {}
     insider = _read_json("data/insider-clusters.json") or {}
     activist = _read_json("data/activist-13d.json") or {}
@@ -405,7 +405,7 @@ def lambda_handler(event, context):
 
     # Macro context (shared across all tickers)
     macro_context = {
-        "fx_signals": fx.get("regime_signals") or [], "fx_research": fx,
+        "fx_signals": fx.get("regime_signals") or [],
         "fx_usd_synth_20d": (fx.get("regime_metrics") or {}).get("usd_synthetic_20d_pct"),
         "futures_signals": (futures.get("signals") or []) if futures.get("identity_ok") else [],
         "futures_identity_ok": bool(futures.get("identity_ok")),
