@@ -64,7 +64,7 @@ def snapshot(client,bucket,key):
     immutable(client,bucket,target,raw,'application/octet-stream')
     return {'source_key':key,'key':target,'sha256':digest,'bytes':len(raw)}
 
-def source(ref,key,read):
+def source(ref,key,read,metadata_only=False):
     digest=ref.get('sha256','')
     if (ref.get('source_key')!=key or not re.fullmatch('[a-f0-9]{64}',digest)
         or ref.get('key')!=PRIVATE+digest+'.bin' or type(ref.get('bytes')) is not int):raise ValueError('Source identity differs')
@@ -72,13 +72,14 @@ def source(ref,key,read):
     if len(raw)!=ref['bytes'] or model.sha(raw)!=digest:raise ValueError('Source bytes differ')
     doc=json.loads(raw)
     if not isinstance(doc,dict):raise ValueError('Declared source shape required')
+    if metadata_only:return {k:doc.get(k) for k in ('generated_at','as_of')}
     return doc
 
 def compile_output(inputs,read):
     if inputs.get('contract')!='sector-tilt-inputs.v1':raise ValueError('Unsupported input contract')
     packet=source(inputs['market'],SOURCES[0],read)
     if set(inputs['legacy'])!=set(SOURCES[1:]):raise ValueError('Exact retained input inventory required')
-    legacy={key:source(ref,key,read) if ref else None for key,ref in inputs['legacy'].items()}
+    legacy={key:source(ref,key,read,metadata_only=True) if ref else None for key,ref in inputs['legacy'].items()}
     reconstructed=sector_store.replay(packet.get('replay') or {},read)
     if reconstructed!={k:v for k,v in packet.items() if k!='replay'}:raise ValueError('Sector input differs from original-source replay')
     return model.build(packet,inputs['generated_at'],legacy,inputs['legacy'])

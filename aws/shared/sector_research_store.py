@@ -63,7 +63,7 @@ def snapshot(client,bucket,key):
     immutable(client,bucket,target,raw,'application/octet-stream')
     return {'source_key':key,'key':target,'sha256':digest,'bytes':len(raw)}
 
-def source(ref,key,read):
+def source(ref,key,read,metadata_only=False):
     digest=ref.get('sha256','')
     if (ref.get('source_key')!=key or not re.fullmatch('[a-f0-9]{64}',digest)
         or ref.get('key')!=PRIVATE+digest+'.bin' or type(ref.get('bytes')) is not int):raise ValueError('Source identity differs')
@@ -71,14 +71,20 @@ def source(ref,key,read):
     if len(raw)!=ref['bytes'] or model.sha(raw)!=digest:raise ValueError('Source bytes differ')
     doc=json.loads(raw)
     if not isinstance(doc,dict):raise ValueError('Declared source shape required')
+    if metadata_only:return {k:doc.get(k) for k in ('generated_at','as_of')}
     return doc
 
 def compile_output(inputs,read):
     if inputs.get('contract')!='sector-native-inputs.v1':raise ValueError('Unsupported input contract')
     packet=source(inputs['market'],SOURCES[0],read)
     if set(inputs['legacy'])!=set(SOURCES[1:]):raise ValueError('Exact retained input inventory required')
-    legacy={key:source(ref,key,read) if ref else None for key,ref in inputs['legacy'].items()}
+    # Whole originals stay retained and byte-verified. Only their clocks enter
+    # this descriptive context; do not hold nine parsed packet trees at once.
+    legacy={key:source(ref,key,read,metadata_only=True) if ref else None for key,ref in inputs['legacy'].items()}
     originals=sector_market_replay.restore(packet,model.SYMBOLS,read)
+    # Selected observations are verified above; unrelated report trees have no
+    # role in sector arithmetic and need not remain live during compilation.
+    packet={'generated_at':packet['generated_at']}
     return model.build(packet,originals,inputs['generated_at'],legacy,inputs['legacy'])
 
 

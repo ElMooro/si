@@ -8,7 +8,9 @@ PERMISSIONS=sectors.PERMISSIONS;clock=sectors.clock;sha=sectors.sha;encoded=sect
 def build(packet,generated_at,legacy,refs):
     if packet.get('contract')!=sectors.CONTRACT or any(packet.get(k) is not False for k in PERMISSIONS):raise ValueError('Native unqualified sector research required')
     if clock(packet['generated_at'])>clock(generated_at):raise ValueError('Future sector publication')
-    source=deepcopy(packet);tilts=[]
+    # Preserve output/input independence without copying unused source histories
+    # and expanded relative-performance trails a second time during replay.
+    source={key:deepcopy(packet[key]) for key in ('sectors','risk_sample','quality')};tilts=[]
     for row in source['sectors']:
         tilts.append({'ticker':row['symbol'],'symbol':row['symbol'],'name':row['name'],'reference_date':row['reference_date'],
             'price':row['price'],'comparisons':row['comparisons'],'regime_tilt_score':None,'regime_tilt_label':'UNAVAILABLE',

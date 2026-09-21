@@ -3,8 +3,8 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 256,
-  "timeout": 180,
+  "memory": 1024,
+  "timeout": 300,
   "architectures": [
     "x86_64"
   ],

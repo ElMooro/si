@@ -118,6 +118,15 @@ def storage():
 
 
 class SectorStoreTests(unittest.TestCase):
+    def test_context_projection_validates_whole_bytes_without_holding_unused_trees(self):
+        import sector_research_store as store
+        client=storage();key=store.SOURCES[2]
+        whole={'generated_at':STAMP,'large_unused_tree':[{'source_row':i,'values':list(range(20))} for i in range(1000)]}
+        client.objects[key]=model.encoded(whole);ref=store.snapshot(client,'b',key)
+        self.assertEqual(store.source(ref,key,store.reader(client,'b'),metadata_only=True),{'generated_at':STAMP,'as_of':None})
+        self.assertEqual(json.loads(client.objects[ref['key']]),whole)
+        client.objects[ref['key']]+=b' '
+        with self.assertRaises(ValueError):store.source(ref,key,store.reader(client,'b'),metadata_only=True)
     def test_original_replay_idempotent_success_and_whole_legacy_preservation(self):
         import sector_research_store as store
         from unittest.mock import patch
@@ -146,6 +155,12 @@ class SectorStoreTests(unittest.TestCase):
 
 
 class SectorTiltTests(unittest.TestCase):
+    def test_tilt_selected_copy_cannot_mutate_verified_rotation_input(self):
+        import sector_tilt_model as tilt
+        packet,sources,_=fixtures();p=model.build(packet,sources,STAMP);p['replay']={'manifest_key':'retained'}
+        before=deepcopy(p);out=tilt.build(p,STAMP,{},{});out['tilts'][0]['comparisons']['21']['value']=999
+        out['scenario_data']['return_rows'][0]['returns_percent']['XLK']=999
+        self.assertEqual(p,before)
     def test_tilt_reconstructs_rotation_originals_and_preserves_no_prescription(self):
         import sector_research_store as rotation,sector_tilt_store as tilt
         from unittest.mock import patch
