@@ -1,0 +1,11 @@
+{"apps_loader": "tarball", "problems": 5000}
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/scripts/factory_oss_curriculum.py", line 371, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/runner/work/si/si/scripts/factory_oss_curriculum.py", line 366, in main
+    {"fetch": cmd_fetch, "exam": cmd_exam, "write": cmd_write}[args.cmd](args)
+  File "/home/runner/work/si/si/scripts/factory_oss_curriculum.py", line 279, in cmd_fetch
+    f.write(json.dumps({"_fetch": {**LOADER_LOG, "counts": n}}) + "\n")     # loader provenance rides with the candidates into the run summary
+                                     ^^^^^^^^^^
+NameError: name 'LOADER_LOG' is not defined
