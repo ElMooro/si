@@ -227,6 +227,10 @@ def classify_correlation_regime(corr_breaks, dollar, vol, bond_regime):
     """Score each of 6 named regimes 0-100 from underlying signals."""
     scores = {k: 0 for k in REGIME_TRADES.keys() if k != "NORMAL"}
     evidence = {k: {} for k in scores}
+    # Missing or descriptive Dollar research is not evidence of weak USD.
+    scores["REFLATION_CARRY"] = None
+    evidence["REFLATION_CARRY"] = {"status":"ABSTAIN", "reason":"No qualified Dollar forecast",
+        "research_context": __import__("dollar_research_context").context(dollar)}
 
     if not isinstance(corr_breaks, dict):
         return scores, evidence
@@ -308,19 +312,6 @@ def classify_correlation_regime(corr_breaks, dollar, vol, bond_regime):
             scores["DEFLATION_FEAR"] = min(90, 50 + abs(z) * 12)
             evidence["DEFLATION_FEAR"] = vix_tlt
 
-    # 6. REFLATION_CARRY: BTC/QQQ rising correlation + dollar stance neutral/weak
-    if btc_qqq:
-        curr = btc_qqq.get("current_corr") or 0
-        z = btc_qqq.get("z_delta") or 0
-        if curr > 0.6 and z > 0:
-            dollar_stance = safe_get(dollar, "stance") or ""
-            if isinstance(dollar_stance, str) and "STRONG" not in dollar_stance.upper():
-                scores["REFLATION_CARRY"] = 65
-                evidence["REFLATION_CARRY"] = {
-                    "btc_qqq_corr": curr,
-                    "dollar_stance": dollar_stance,
-                }
-
     return scores, evidence
 
 
@@ -349,7 +340,7 @@ def lambda_handler(event=None, context=None):
         corr_breaks, dollar, vol_radar, bond_regime)
 
     # Primary = highest, secondary = 2nd-highest if >=40, else None
-    sorted_regimes = sorted(scores.items(), key=lambda x: -x[1])
+    sorted_regimes = sorted(((k,v) for k,v in scores.items() if v is not None), key=lambda x: -x[1])
     primary_regime, primary_score = (sorted_regimes[0]
                                        if sorted_regimes else
                                        ("NORMAL", 0))

@@ -366,7 +366,7 @@ def lambda_handler(event=None, context=None):
     # Cross-context regimes
     cross_regimes = {}
     for cid, conf in CONTEXT_KEYS.items():
-        d = __import__("eurodollar_research").guard(conf["key"],_safe_read(conf["key"]))
+        d = __import__("dollar_research_context").guard(conf["key"], __import__("eurodollar_research").guard(conf["key"],_safe_read(conf["key"])))
         if d:
             cross_regimes[cid] = {
                 "regime": d.get(conf["regime_field"]),

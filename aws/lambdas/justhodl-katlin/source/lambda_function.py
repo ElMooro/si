@@ -1933,7 +1933,7 @@ def war_room(F):
     except Exception as e_:
         missing.append("leg error: %s" % str(e_)[:80])
     try:
-        dr = F["dollar"]
+        dr = __import__("dollar_research_context").decision_view(F["dollar"])
         drg = str(dr.get("regime") or "")
         dpr = dr.get("dollar_pressure")
         if drg:

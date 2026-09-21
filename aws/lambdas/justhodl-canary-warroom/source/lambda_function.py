@@ -164,26 +164,12 @@ def norm_leading_markets(d):
 
 
 def norm_dollar(d):
-    cans = []
-    for c in (d.get("canaries") or []):
-        lean = (c.get("lean") or c.get("signal") or "")
-        lu = str(lean).upper()
-        firing = lu not in ("", "NEUTRAL", "FLAT")
-        st = 55 if "PUMP" in lu or lu.startswith(("1", "2", "+")) else \
-             42 if "DUMP" in lu or lu.startswith("-") else 30
-        if not firing:
-            st = 30
-        cans.append({"mechanism": "dollar", "mech_label": "Dollar",
-                     "name": c.get("label"), "stress": st,
-                     "band": "WATCH" if firing else _band(st),
-                     "lead_months": 1, "value": c.get("reading"),
-                     "detail": "%s — %s" % (lean, c.get("detail") or ""),
-                     "firing": bool(firing)})
-    card = {"key": "dollar", "label": "Dollar Direction", "score": d.get("dollar_pressure"),
-            "band": d.get("regime"), "headline": d.get("headline"),
-            "n_total": len(d.get("canaries") or []), "n_firing": len(cans),
-            "scale": "-100 dump .. +100 pump"}
-    return card, cans
+    research = __import__("dollar_research_context").context(d)
+    return {"key":"dollar", "label":"Dollar observations", "score":None,
+        "band":"ABSTAIN", "headline":research["note"], "research_context":research,
+        "n_total":0, "n_firing":0, "independent_investment_votes":0,
+        "calls_eligible":False, "sizing_eligible":False}, []
+
 
 
 def norm_vol(d):

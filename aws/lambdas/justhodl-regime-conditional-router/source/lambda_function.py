@@ -261,7 +261,7 @@ def detect_eurodollar_stress(eds, gs, ds):
         "research_context": __import__("eurodollar_research").context(eds),
         "status": "ABSTAIN" if score is None else "qualified",
         "global_stress_score": __import__("gsi_authority").qualified_score(gs),
-        "dollar_stance": safe_get(ds, "stance"),
+        "dollar_stance": safe_get(__import__("dollar_research_context").decision_view(ds), "stance"),
     }
     return (int(score) if isinstance(score, (int, float)) else None), evidence
 
@@ -278,56 +278,24 @@ def detect_treasury_auction_crisis(ac, signal_board):
 
 
 def detect_dollar_shortage(eds, ds, gs):
-    """Combines eurodollar stress + dollar surge + global stress."""
-    eds_score = __import__("eurodollar_research").qualified_score(eds)
-    if eds_score is None:
-        return None, {"status":"ABSTAIN","eurodollar_score":None,"research_context":__import__("eurodollar_research").context(eds)}
-    dollar_score = safe_get(ds, "score") or safe_get(ds, "composite") or 0
-    gs_score = __import__("gsi_authority").qualified_score(gs)
-    # Dollar shortage = simultaneously high eurodollar stress AND dollar surge
-    combined = 0
-    if isinstance(eds_score, (int, float)) and eds_score >= 60:
-        if isinstance(dollar_score, (int, float)) and dollar_score >= 60:
-            combined = min(95, (eds_score + dollar_score) / 2)
-    evidence = {
-        "eurodollar_score": eds_score,
-        "dollar_score": dollar_score,
-        "global_stress": gs_score,
-        "combined_shortage_score": combined,
-    }
-    return int(combined), evidence
+    return None, {"status":"ABSTAIN", "dollar_score":None,
+        "research_context": __import__("dollar_research_context").context(ds),
+        "reason":"No independently qualified Dollar forecast supports this framework."}
+
 
 
 def detect_dollar_smile_left(ds, gs, crisis):
-    """USD strong + global stress + crisis elevated."""
-    dollar = safe_get(ds, "score") or 0
-    gs_score = __import__("gsi_authority").qualified_score(gs)
-    crisis_score = __import__("crisis_authority").qualified_score(crisis)
-    combined = 0
-    if isinstance(dollar, (int, float)) and dollar >= 60:
-        if (isinstance(gs_score, (int, float)) and gs_score >= 60) or \
-           (isinstance(crisis_score, (int, float)) and crisis_score >= 50):
-            combined = min(90, (dollar + max(v for v in (gs_score, crisis_score) if isinstance(v, (int, float)))) / 2)
-    evidence = {"dollar": dollar, "global_stress": gs_score,
-                "crisis": crisis_score, "combined": combined}
-    return int(combined), evidence
+    return None, {"status":"ABSTAIN", "dollar_score":None,
+        "research_context": __import__("dollar_research_context").context(ds),
+        "reason":"No independently qualified Dollar forecast supports this framework."}
+
 
 
 def detect_dollar_smile_right(ds, gs, crisis, signal_board):
-    """USD strong + low global stress + risk-on posture."""
-    dollar = safe_get(ds, "score") or 0
-    gs_score = __import__("gsi_authority").qualified_score(gs)
-    crisis_score = __import__("crisis_authority").qualified_score(crisis)
-    posture = safe_get(signal_board, "posture")
-    combined = 0
-    if isinstance(dollar, (int, float)) and dollar >= 55:
-        if (isinstance(gs_score, (int, float)) and gs_score < 40) and \
-           (isinstance(crisis_score, (int, float)) and crisis_score < 35):
-            combined = min(90, dollar + 20)
-    evidence = {"dollar": dollar, "global_stress": gs_score,
-                "crisis": crisis_score, "posture": posture,
-                "combined": combined}
-    return int(combined), evidence
+    return None, {"status":"ABSTAIN", "dollar_score":None,
+        "research_context": __import__("dollar_research_context").context(ds),
+        "reason":"No independently qualified Dollar forecast supports this framework."}
+
 
 
 def detect_plant_and_harvest(signal_board, crisis, vol_radar):

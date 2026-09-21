@@ -137,7 +137,7 @@ def lambda_handler(event, context):
         if not t or t["verdict"] == "QUIET":
             continue
         for key, fields in feeds:
-            doc = __import__("crisis_authority").guard(key,gj(key))
+            doc = __import__("dollar_research_context").guard(key, __import__("crisis_authority").guard(key,gj(key)))
             if not doc:
                 continue
             if key == "data/global-liquidity.json" and doc.get("calls_eligible") is not True:

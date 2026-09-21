@@ -30,7 +30,7 @@ def lambda_handler(event=None, context=None):
     fx = __import__("fx_research_context").context(rd("data/polygon-fx-regime.json"))
     ci = rd("data/capital-inflows.json")
     ger = rd("data/gold-equity-rotation.json")
-    dr = rd("data/dollar-radar.json")
+    dr = __import__("dollar_research_context").decision_view(rd("data/dollar-radar.json"))
     etf = rd("data/etf-true-flows.json")
     dp = rd("data/dark-pool.json")
 
@@ -56,7 +56,7 @@ def lambda_handler(event=None, context=None):
 
     roro = fx.get("fx_roro") or {}
     dollar_fx = {
-        "dollar_regime": dr.get("regime"), "fx_research": fx,
+        "dollar_regime": dr.get("regime"), "dollar_research": dr["research_context"], "fx_research": fx,
         "fx_roro_score": roro.get("fx_roro_score"), "fx_roro_regime": roro.get("fx_roro_regime"),
         "em_basket_5d_pct": roro.get("em_basket_5d_pct"),
         "gold_silver_ratio_chg_5d": roro.get("gold_silver_ratio_chg_5d"),

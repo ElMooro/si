@@ -110,15 +110,9 @@ def n_canary_grid(d):
 
 
 def n_dollar_radar(d):
-    # dollar_pressure -100 (DUMP) .. +100 (PUMP). A dollar PUMP (squeeze) is
-    # risk-off; a dollar DUMP (a liquidity flood) is risk-on.
-    p = d.get("dollar_pressure")
-    if not isinstance(p, (int, float)):
-        return 0, "Dollar pressure n/a"
-    reg = d.get("regime") or "n/a"
-    sig = (-2 if p >= 50 else -1 if p >= 20 else
-           2 if p <= -50 else 1 if p <= -20 else 0)
-    return sig, f"Dollar {reg} (pressure {p:+.0f})"
+    __import__("dollar_research_context").context(d)
+    return None, "Dollar observations are descriptive; no qualified directional vote"
+
 
 
 def n_eurodollar_plumbing(d):

@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/lambdas/justhodl-eurodollar-stress/tests')]
 from native_eurodollar_tests import model,store,store_fixture,Storage,STAMP
 import eurodollar_research as adapter
-FUNCTIONS=('justhodl-ai-brief', 'justhodl-alert-router', 'justhodl-allocator', 'justhodl-auction-interpreter', 'justhodl-boj-detail', 'justhodl-calibration-fleet', 'justhodl-capitulation', 'justhodl-chart-data', 'justhodl-dollar-radar', 'justhodl-ecb-detail', 'justhodl-kb-matcher', 'justhodl-market-interpreter', 'justhodl-master-allocator', 'justhodl-page-ai-commentary', 'justhodl-regime-conditional-router', 'justhodl-repo-lending', 'justhodl-reversal-radar', 'justhodl-snb-detail', 'justhodl-stress-scenarios', 'justhodl-wave-signal-logger', 'openbb-websocket-broadcast')
+FUNCTIONS=('justhodl-ai-brief', 'justhodl-alert-router', 'justhodl-allocator', 'justhodl-auction-interpreter', 'justhodl-boj-detail', 'justhodl-calibration-fleet', 'justhodl-capitulation', 'justhodl-chart-data', 'justhodl-ecb-detail', 'justhodl-kb-matcher', 'justhodl-market-interpreter', 'justhodl-master-allocator', 'justhodl-page-ai-commentary', 'justhodl-regime-conditional-router', 'justhodl-repo-lending', 'justhodl-reversal-radar', 'justhodl-snb-detail', 'justhodl-stress-scenarios', 'justhodl-wave-signal-logger', 'openbb-websocket-broadcast')
 def source(fn):return (ROOT/'aws/lambdas'/fn/'source/lambda_function.py').read_text(encoding='utf-8')
 def functions(fn,names,ns):
     nodes=[n for n in ast.parse(source(fn)).body if isinstance(n,ast.FunctionDef) and n.name in names]

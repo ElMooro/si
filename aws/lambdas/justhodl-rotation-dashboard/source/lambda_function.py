@@ -314,7 +314,7 @@ def layer1_regime():
         out["degraded"].append("risk-regime unavailable — RORO tilt neutralised")
 
     out["prior"] = REGIME_PRIOR.get(regime, {})
-    dr = read_feed("data/dollar-radar.json") or {}
+    dr = __import__("dollar_research_context").decision_view(read_feed("data/dollar-radar.json"))
     # Probe ops 3817: the 3m change is NESTED at bbdxy.dxy_synth.chg_3m_pct,
     # not top-level. Reading it top-level silently neutralised the dollar tilt.
     bb = dr.get("bbdxy") or {}
@@ -331,7 +331,8 @@ def layer1_regime():
         "regime": dr.get("regime"),
         "pressure": dr.get("dollar_pressure"),
         "headline": dr.get("headline"),
-        "source_path": "bbdxy.dxy_synth.chg_3m_pct",
+        "source_path": "data/dollar-radar.json",
+        "research_context": dr["research_context"], "calls_eligible": False, "sizing_eligible": False,
     }
     if dxy_3m is not None:
         out["dollar"]["direction"] = ("FALLING" if dxy_3m < -1 else
@@ -351,7 +352,7 @@ def layer1_regime():
             out["dollar_tilt_applied"] = tilt
             out["_prior_after_dollar"] = pr
     else:
-        out["degraded"].append("dollar-radar 3m change unavailable")
+        out["degraded"].append("Dollar observations abstain: no qualified forecast or allocation tilt")
 
     # ── GLOBAL RECESSION — CONTEXT ONLY, NEVER RANK (ops 3850) ──────────────
     # justhodl-global-recession now carries physical confirmation for 9 economies

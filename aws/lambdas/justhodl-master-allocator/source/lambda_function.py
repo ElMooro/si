@@ -243,7 +243,7 @@ def gather_signals():
                                    or cc.get("severity")}
 
     # Dollar Radar -- -100..+100 dollar_pressure (PUMP positive)
-    dr = read_json("data/dollar-radar.json")
+    dr = __import__("dollar_research_context").decision_view(read_json("data/dollar-radar.json"))
     dp = dr.get("dollar_pressure")
     if isinstance(dp, (int, float)):
         # positive (PUMP) -> negative for EM, positive for cash

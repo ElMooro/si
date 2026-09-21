@@ -758,7 +758,8 @@ def extract_metrics(data,weights):
             ][:4],
         })(),
         # Dollar Radar (pump/dump pressure — dollar-radar engine)
-        **(lambda dr=data.get("dollar_radar", {}): {
+        **(lambda dr=__import__("dollar_research_context").decision_view(data.get("dollar_radar", {})): {
+            "dollar_research": dr["research_context"],
             "dollar_pressure": dr.get("dollar_pressure"),
             "dollar_regime": dr.get("regime"),
             "dollar_canaries_pump": dr.get("canaries_pump"),
@@ -1303,7 +1304,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         # ═══ Market Cycle Extremes Radar — tops & bottoms (2026-05-19) ═
         "MARKET_CYCLE: dated research only. No validated top/bottom forecast, cycle-position score or portfolio recommendation. WAIT is abstention. Source: https://justhodl.ai/market-extremes.html",
         # ═══ Dollar Radar — pump/dump pressure (2026-05-19) ════════════
-        "DOLLAR_RADAR: Dollar Pressure "+str(m.get("dollar_pressure") if m.get("dollar_pressure") is not None else "?")+"/±100 — regime "+str(m.get("dollar_regime") or "?")+" ("+str(m.get("dollar_canaries_pump") or 0)+" pump vs "+str(m.get("dollar_canaries_dump") or 0)+" dump canaries firing). Positive = USD squeeze/PUMP (risk-off, tighter global dollar liquidity); negative = DUMP (Fed QE/repo liquidity flood, risk-on)."+(" Dollar index double-top — reversal-lower risk." if m.get("dollar_double_top") else "")+(" Dollar index double-bottom — reversal-higher risk." if m.get("dollar_double_bottom") else ""),
+        "DOLLAR_RESEARCH: Dated source observations only. No qualified dollar forecast, squeeze, liquidity-flood interpretation or investment vote. Reference: "+json.dumps(m.get("dollar_research") or {},default=str),
         # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)
         "GLOBAL_STRESS: world-markets stress index "+str(m.get("global_stress_index") if m.get("global_stress_index") is not None else "?")+"/100 ("+str(m.get("global_stress_level") or "?")+") — equity stress "+str(m.get("global_equity_stress") if m.get("global_equity_stress") is not None else "?")+", bond stress "+str(m.get("global_bond_stress") if m.get("global_bond_stress") is not None else "?")+". Most stressed: "+str(m.get("global_worst_market") or "none")+((". Flashing red (ACUTE): "+"; ".join(m.get("global_flashing_red"))) if m.get("global_flashing_red") else ". Nothing flashing red.")+"",
         "EARLY_WARNING_WARROOM: barometer "+str(m.get("warroom_barometer") if m.get("warroom_barometer") is not None else "?")+"/100 ("+str(m.get("warroom_band") or "?")+") — equal-weight mean stress of all "+str(m.get("warroom_n_votes") or "?")+" watched canaries across six mechanisms (macro leads, funding plumbing, market leadership, dollar, vol). Master: "+str(m.get("warroom_headline") or "?")+"",

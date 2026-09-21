@@ -252,15 +252,7 @@ def lambda_handler(event, context):
         "diagnostics": diag[-12:],
     }
     try:
-        _dr = _read("data/dollar-radar.json") or {}
-        _rt = _dr.get("risk_transmission") or {}
-        out["dollar_context"] = {
-            "dollar_pressure": _dr.get("dollar_pressure"),
-            "dollar_regime": _dr.get("regime"),
-            "risk_transmission_score": _rt.get("score"),
-            "risk_transmission_verdict": _rt.get("verdict"),
-            "source": "justhodl-dollar-radar v2 dial (additive context; "
-                      "scores untouched pending scorecard)"}
+        out["dollar_context"] = __import__("dollar_research_context").context(_read("data/dollar-radar.json"))
     except Exception as _e:
         print("[dollar-context] %s" % _e)
     out['capital_flow_exclusion'] = capital_evidence

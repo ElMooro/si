@@ -1,0 +1,30 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+global.crypto=require('node:crypto').webcrypto;
+const A=require('../jh-option-research.js'),D=require('../jh-dollar-research.js');
+const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/dollar-native.json'),'utf8'));
+const fetcher=async url=>new Response(fixture.artifacts[url.slice(1)]||'',{status:fixture.artifacts[url.slice(1)]?200:404});
+const loaded=()=>D.verifyPacket(structuredClone(fixture.publication),fetcher);
+const assumptions={initial:'10000',return_pct:'5',entry:'1.1',future:'1',cost:'10'};
+test('all 32 series bind complete recorded input output and compiler hashes',async()=>{const p=await loaded();assert.equal(Object.keys(p.series).length,32);assert.ok(Object.isFrozen(p.series.DEXUSEU));
+  const e=D.evidence(p,'DEXUSEU');assert.equal(Object.keys(e.recorded_artifacts.run.compilers).length,7);assert.equal(Object.keys(e.recorded_artifacts.input.captures).length,10);assert.equal(e.research.quote.currency,'EUR');});
+test('pinned navigation never substitutes the latest publication',async()=>{const seen=[],id=fixture.publication.replay.manifest_key.split('/').pop().slice(0,-5);
+  const p=await D.recordedRun(id,async url=>{seen.push(url);return fetcher(url);});assert.deepEqual(p,fixture.publication);assert.ok(seen.every(url=>!url.includes('dollar-radar.json')));
+  assert.equal(D.recordedUrl(p,'DEXJPUS'),'/dollar.html?series=DEXJPUS&run='+id);});
+test('a modified output input or compiler is rejected before export',async()=>{const p=structuredClone(fixture.publication);p.series.DEXUSEU.latest_observation.value=99;await assert.rejects(()=>D.verifyPacket(p,fetcher));
+  const run=JSON.parse(fixture.artifacts[fixture.publication.replay.manifest_key]);for(const ref of [run.input,run.output,run.compilers.dollar_research_model])
+    await assert.rejects(()=>D.verifyPacket(structuredClone(fixture.publication),async url=>new Response((fixture.artifacts[url.slice(1)]||'')+(url==='/'+ref.key?' ':''))),/bytes differ/);});
+test('wrong authority currency identity missing source or future row is refused',async()=>{for(const edit of [p=>p.calls_eligible=true,p=>p.regime='PUMP',p=>p.series.DEXUSEU.quote.numerator='EUR',p=>delete p.series.DEXSDUS,p=>p.series.DEXUSEU.history.at(-1).date='2099-01-01']){
+  const p=structuredClone(fixture.publication);edit(p);await assert.rejects(()=>D.verifyPacket(p,fetcher),/Descriptive/);}});
+test('private foreign and malformed recorded identities never issue a request',async()=>{let calls=0;for(const key of ['data/trade-tickets.json','audit-private/a.bin','https://example.com/a',D.PREFIX+'requests/'+'a'.repeat(64)+'.json'])await assert.rejects(()=>D.load(key,async()=>calls++),/Unapproved/);
+  for(const id of ['bad','','../latest'])await assert.rejects(()=>D.recordedRun(id,async()=>calls++),/Exact/);assert.equal(calls,0);});
+test('exposure consequence separates local return FX and interaction exactly',async()=>{const p=await loaded(),r=D.scenario(p,'DEXUSEU',assumptions);assert.equal(r.initial_usd,'11000');assert.equal(r.local_return_effect_usd,'550');assert.equal(r.fx_effect_usd,'-1000');assert.equal(r.interaction_effect_usd,'-50');assert.equal(r.net_change_usd,'-510');assert.equal(r.quote_direction,'USD per one EUR');assert.deepEqual(r.run,p.replay);});
+test('currency cash short exposures and smallest decimal moves remain explicit',async()=>{const p=await loaded();assert.equal(D.scenario(p,'DEXUSEU',{...assumptions,return_pct:'0'}).net_change_usd,'-1010');
+  assert.equal(D.scenario(p,'DEXUSEU',{...assumptions,initial:'-10000'}).net_change_usd,'490');
+  assert.equal(D.scenario(p,'DEXJPUS',{initial:'1',return_pct:'0',entry:'0.01',future:'0.01000001',cost:'0'}).net_change_usd,'0.00000001');});
+test('invalid missing assumptions zero rates and losses below total loss are rejected',async()=>{const p=await loaded();for(const [k,v] of [['initial','0'],['initial','1e6'],['return_pct','-100.0001'],['return_pct',''],['entry','0'],['future','Infinity'],['cost',''],['cost','-1'],['cost','0.000000001']])assert.throws(()=>D.scenario(p,'DEXUSEU',{...assumptions,[k]:v}));
+  assert.throws(()=>D.scenario(p,'DTWEXBGS',assumptions),/currency/);assert.throws(()=>D.scenario(structuredClone(p),'DEXUSEU',assumptions),/Verify/);assert.throws(()=>D.evidence(p,'UNKNOWN'),/select/);});
+test('recorded age does not turn into current freshness and display has explicit units',async()=>{const p=await loaded(),r=p.series.DEXUSEU;assert.match(D.review(r,Date.parse(r.source_review_due_at)+1),/overdue/);
+  assert.match(D.comparisonsView(p,'DGS10'),/percentage points/);assert.match(D.comparisonsView(p,'DEXUSEU'),/USD strength/);assert.match(D.chart(p,'DEXUSEU'),/current retained vintage/);});
+test('page preserves pinned controls and clears scenario and export on failures or edits',()=>{const html=fs.readFileSync(path.join(__dirname,'../dollar.html'),'utf8'),js=fs.readFileSync(path.join(__dirname,'../jh-dollar-research-page.js'),'utf8');
+  assert.match(html,/data-dr-status role="status" aria-live="polite"/);assert.match(html,/jh-dollar-research-page.js/);assert.doesNotMatch(html,/echarts|jh-enhance|interp-kit/);
+  assert.match(js,/oninput=\(\)=>clearScenario\(\)/);assert.match(js,/clearScenario\(true\)/);assert.match(js,/No latest or legacy substitute/);assert.match(js,/controller\?\.abort\(\)/);});

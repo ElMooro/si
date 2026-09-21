@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Dollar research: trade-weighted indices, bilateral FX, legacy basket and technical context; native Eurodollar observations are non-voting. data/dollar-radar.json.",
+  "description": "Recorded Dollar research: original Fed indices, explicit FX quote direction, dated yield/liquidity context and exact replay. No forecast votes or notifications.",
   "environment": {
     "TELEGRAM_CHAT_ID": "8678089260"
   },
@@ -18,6 +18,6 @@
     "cron": "cron(15 1,7,13,19 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
-    "description": "Dollar Radar - every 6h via EventBridge Scheduler, re-scoring the dollar pump/dump canary composite as the FRED liquidity, rate and volatility feeds update."
+    "description": "Dollar original-source research every six hours; reconstruct pinned canonical observations, retain evidence and publish after replay."
   }
 }

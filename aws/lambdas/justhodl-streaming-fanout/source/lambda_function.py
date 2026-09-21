@@ -192,6 +192,8 @@ def _is_meaningful_delta(engine, prev_summary, curr_summary):
         return False, "unqualified_global_stress"
     if engine["name"] == "crisis_composite":
         return False, "unqualified_crisis_composite"
+    if engine["name"] == "dollar_radar":
+        return False, "unqualified_dollar_forecast"
     if prev_summary is None:
         return True, "first-broadcast"
 
@@ -274,7 +276,7 @@ def lambda_handler(event, context):
 
     for engine in TRACKED:
         action = {"engine": engine["name"], "channel": engine["channel"]}
-        curr = _read_json(engine["s3_key"])
+        curr = __import__("dollar_research_context").guard(engine["s3_key"], _read_json(engine["s3_key"]))
         if not curr:
             action["status"] = "source missing"
             actions.append(action)

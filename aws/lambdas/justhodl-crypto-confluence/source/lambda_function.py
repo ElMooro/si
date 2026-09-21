@@ -296,16 +296,7 @@ def lambda_handler(event=None, context=None):
         print(f"[loop] {str(e)[:80]}")
 
     try:
-        _dr = _read("data/dollar-radar.json") or {}
-        _rt = _dr.get("risk_transmission") or {}
-        out["dollar_context"] = {
-            "dollar_pressure": _dr.get("dollar_pressure"),
-            "dollar_regime": _dr.get("regime"),
-            "risk_transmission_score": _rt.get("score"),
-            "risk_transmission_verdict": _rt.get("verdict"),
-            "source": "justhodl-dollar-radar v2 (crypto is the highest-"
-                      "beta expression of the dollar/rates mix; additive "
-                      "context, not folded into scores)"}
+        out["dollar_context"] = __import__("dollar_research_context").context(_read("data/dollar-radar.json"))
     except Exception as _e:
         print("[dollar-context] %s" % _e)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
