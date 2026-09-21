@@ -78,6 +78,25 @@ class RetainedDesk(unittest.TestCase):
             changed=copy.deepcopy(packet);changed[field]=value
             with self.subTest(field=field),self.assertRaisesRegex(ValueError,'prior desk contract'):
                 store.recorded_output(changed,store.reader(db,'fixture'))
+    def test_source_qualified_candidate_compiler_replays_only_exact_reviewed_bytes(self):
+        db,i=fixture();packet=self.native(db,i);run=json.loads(db.objects[packet['replay']['manifest_key']])
+        raw=(Path(__file__).resolve().parents[3]/'tests/fixtures/etf-desk-store-pre-publisher.py.txt').read_bytes()
+        digest=model.sha(raw);self.assertIn(digest,store.COMPATIBLE_COMPILERS['etf_desk_store'])
+        key=model.PREFIX+'compilers/'+digest+'.py';db.objects[key]=raw
+        run['compilers']['etf_desk_store']={'key':key,'sha256':digest}
+        body=model.encoded(run);manifest=model.PREFIX+'runs/'+model.sha(body)+'.json';db.objects[manifest]=body
+        ref={**packet['replay'],'manifest_key':manifest}
+        self.assertEqual(store.replay(ref,store.reader(db,'fixture')),{k:v for k,v in packet.items() if k!='replay'})
+        db.objects[key]+=b' '
+        with self.assertRaises(ValueError):store.replay(ref,store.reader(db,'fixture'))
+    def test_explicit_publisher_keeps_conditional_write_and_private_request_record(self):
+        db,i=fixture();packet=self.native(db,i);calls=[]
+        def publisher(client,bucket,key,raw,condition):
+            calls.append((key,condition));client.put_object(Bucket=bucket,Key=key,Body=raw,**condition)
+        self.assertTrue(store.conditional(db,'fixture',model.CURRENT,packet,publisher))
+        self.assertEqual(calls,[(model.CURRENT,{'IfNoneMatch':'*'})])
+        self.assertTrue(store.request_key('private-request').startswith(store.PRIVATE+'requests/'))
+        self.assertNotIn('private-request',store.request_key('private-request'))
     def test_publication_same_clock_and_component_regressions_are_rejected(self):
         db,i=fixture();packet=self.native(db,i)
         self.assertTrue(store.conditional(db,'fixture',model.CURRENT,packet))

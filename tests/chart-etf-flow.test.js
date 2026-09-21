@@ -20,21 +20,13 @@ function loadFuse() {
   return ctx.JHEtfFuse;
 }
 
-test("desk no longer slices fund-flow tape to 40 sessions", () => {
-  assert.match(lambda, /VERSION = "1\.7\.0"/);
-  assert.match(lambda, /max_pages=50/);
-  assert.match(lambda, /etf-flow-hist\/%s\.json/);
-  assert.doesNotMatch(lambda, /for r in rows\[:40\]/);
-  assert.match(worker, /etf-flow-hist/);
-  assert.match(worker, /allFundFlows/);
-  assert.match(worker, /no fund_flow tape/);
-  assert.doesNotMatch(worker, /out\.results = rows/);
-  assert.match(fuseSrc, /function fullHist/);
-  assert.match(fuseSrc, /if \(!rows\.length\) \{ delete histCache/);
-  assert.match(fuseSrc, /var daily = step > 0 && step < 36 \* 3600/);
-  assert.match(deskSrc, /hydrateFullHist/);
-  assert.match(deskSrc, /F\.bare\(active\) !== t/);
-  assert.match(engine, /nH\.toLocaleString\(\)\+" sess"/);
+test("native desk retains whole predecessor and never refills from an unverified proxy", () => {
+  const preserved=fs.readFileSync(path.join(root,"aws/lambdas/justhodl-etf-global-desk/source/legacy_etf_global_desk.py"),"utf8");
+  assert.match(preserved,/VERSION = "1\.7\.0"/);assert.match(preserved,/max_pages=50/);
+  assert.match(lambda,/etf_desk_store/);assert.match(lambda,/publish_current/);
+  assert.doesNotMatch(fuseSrc,/\/poly\/etf/);assert.match(fuseSrc,/verifyPacket/);
+  assert.match(deskSrc,/#tabs \.tab\.on\[data-id\]/);
+  assert.match(deskSrc,/retrospectively/);assert.match(worker,/etf-flow-hist/);
 });
 
 test("alignHist sums weekly buckets and one print per session on 1m", () => {
@@ -86,13 +78,10 @@ test("alignHist sums weekly buckets and one print per session on 1m", () => {
   assert.equal(gapped[1].d, "2026-09-16");
 });
 
-test("mergeHist unions tapes by date and never drops a later print", () => {
-  const F = loadFuse();
-  const a = [{ d: "2026-07-20", f: 1 }, { d: "2026-09-14", f: 2 }];
-  const b = [{ d: "2012-01-03", f: 9 }, { d: "2026-09-14", f: 3 }];
-  const m = F.mergeHist(a, b);
-  assert.equal(m[0].d, "2012-01-03");
-  assert.equal(m[m.length - 1].d, "2026-09-14");
-  assert.equal(m[m.length - 1].f, 3);
-  assert.equal(m.length, 3);
+test("native histories reject unverified rows and conflicting source vintages", () => {
+  const F=loadFuse(),sha="a".repeat(64),a={d:"2026-09-14",f:2,history_sha256:sha};
+  assert.throws(()=>F.mergeHist([{d:"2012-01-03",f:9}],[]),/Verified native/);
+  assert.throws(()=>F.mergeHist([a],[{...a,f:3}]),/different source vintages/);
+  const merged=F.mergeHist([a],[a,{d:"2026-09-15",f:0,history_sha256:sha}]);
+  assert.equal(merged.length,2);assert.equal(merged[1].f,0);assert.equal(F.markers(merged,[]).length,0);
 });

@@ -23,7 +23,7 @@ READERS = {
     'fortress': ['s3_json'], 'industry-rotation': ['s3_json'], 'katlin': ['s3_json', 's3_json_quiet'],
     'macro-confluence': ['_get'], 'theme-cascade': ['_read_json'], 'theme-cascade-backtest': ['_read_json'],
     'theme-rotation': ['_read_s3_json'], 'sector-emergence': ['_read'],
-    'best-ideas': ['_load_json'], 'boom-radar': ['getj'], 'etf-global-desk': ['_load_s3'],
+    'best-ideas': ['_load_json'], 'boom-radar': ['getj'],
     'impact-graph': ['_get_json'], 'flow-confluence': ['_read'], 'flows-ai-analysis': ['_read_json']}
 
 
@@ -87,6 +87,16 @@ class NativeHandlers(unittest.TestCase):
 
 
 class FlowBoundaries(unittest.TestCase):
+    def test_native_desk_requires_original_canonical_evidence_instead_of_legacy_scores(self):
+        import etf_desk_store as desk
+        from test_etf_desk_store import fixture
+        with mock.patch.object(desk.catalog,'DESK',('SPY','VOO','BND')),mock.patch.dict(desk.flow_catalog.ETF_UNIVERSE,
+                {'SPY':{'category':'broad'},'VOO':{'category':'broad'}},clear=True):
+            db,inputs=fixture();read=desk.reader(db,'fixture')
+            inputs['canonical_flows']={'source_key':desk.flow_model.CURRENT,
+                **desk.protect(db,'fixture',desk.model.encoded(CANARY),read)}
+            with self.assertRaises(ValueError):desk.compile_output(inputs,read,lambda *a:self.fail('No artifact from unqualified source'))
+
     def test_actual_consumer_readers_exclude_the_family_and_preserve_unrelated_data(self):
         for short, names in READERS.items():
             for name in names:

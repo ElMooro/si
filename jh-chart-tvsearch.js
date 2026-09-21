@@ -502,6 +502,7 @@
             fmtBig(num(h.position) || num(h.shares)) + "</td></tr>";
         }).join("") + "</tbody></table>");
     }
+    if (window.JHEtfFuse && window.JHEtfFuse.native) html += '<p><a href="/flow-lookthrough.html">Inspect complete dated ETF memberships</a>. Fund flows and position changes do not establish stock purchases.</p>';
     var etfH = pack.etfHolders || [];
     if (etfH.length) {
       var dem = window.JHEtfFuse ? window.JHEtfFuse.impliedDemand(etfH) : null;
@@ -602,6 +603,10 @@
       }).join("") + "</tbody></table>");
   }
   function renderPolyEtf(pack, opts) {
+    if (window.JHEtfFuse && window.JHEtfFuse.native) {
+      var nativeRow = pack.etfRow, A = window.JHEtfDeskResearch;
+      return nativeRow && nativeRow.native && A ? A.fundView(nativeRow.packet, nativeRow.ticker) + '<p><a href="/etf.html?fund=' + encodeURIComponent(nativeRow.ticker) + '">Inspect complete profiles, all constituents and source flow history</a></p>' : '<div class=empty>No verified fund in this configured desk. <a href="/flow-lookthrough.html">Inspect dated security memberships</a>.</div>';
+    }
     opts = opts || {};
     var compact = !!opts.compact;
     var F = window.JHEtfFuse;
@@ -876,6 +881,7 @@
   }
 
   function renderDerivedFlow(pack) {
+    if (window.JHEtfFuse && window.JHEtfFuse.native) return '<p>ETF-derived risk, stock-buying and concentration claims are unqualified. <a href="/etf.html">Inspect dated fund measurements</a> and <a href="/flow-lookthrough.html">reported security memberships</a>. They contribute zero investment votes.</p>';
     var F = window.JHEtfFuse;
     var der = pack.derived || {};
     var desk = pack.etfRow || {};
@@ -1582,7 +1588,7 @@
         pack.src.push("Polygon news/div/splits/related");
       }
     } catch (e5) {}
-    try {
+    if (!(window.JHEtfFuse && window.JHEtfFuse.native)) try {
       var r5 = await fetch(PROXY + "/poly/etf?ticker=" + encodeURIComponent(t));
       var j5 = await r5.json();
       if (j5) {
@@ -1658,6 +1664,7 @@
   }
 
   async function loadKind(sym, kind) {
+    if (kind === "etf" && window.JHEtfFuse && window.JHEtfFuse.native) return {native: true};
     var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
     var t = jhFundTicker(sym);
     var map = { tech: "tech", short: "short", opt: "options", etf: "etf" };

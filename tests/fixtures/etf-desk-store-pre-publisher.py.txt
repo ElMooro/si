@@ -27,9 +27,6 @@ ALIASES=CONTEXTS[:6]
 MIGRATION=model.PREFIX+'migration.json'
 COMPILERS=(native,model,catalog,collector,flow_native,flow_model,flow_collect,flow_store,flow_catalog,
     holdings_native,holdings_model,holdings_collect,holdings_store,sys.modules[__name__])
-# Exact source-qualified candidate store; current code must still reconstruct
-# every original byte/result. Retained compiler source is never executed.
-COMPATIBLE_COMPILERS={'etf_desk_store':frozenset(('8efcdf2fb7ae5061de51b1e0a5e980b931da1c4025d358dfbfb4726240164750',))}
 now=holdings_store.now
 code,missing,conflict,bounded=holdings_store.code,holdings_store.missing,holdings_store.conflict,holdings_store.bounded
 
@@ -191,9 +188,6 @@ def compile_output(inputs,read,emit):
     if type(inputs.get('original_provider_bytes')) is not int or not 0<=inputs['original_provider_bytes']<=384*1024*1024:raise ValueError('Bounded provider evidence bytes required')
     flow_packet=source(inputs['canonical_flows'],flow_model.CURRENT,read)
     holding_packet=source(inputs['canonical_holdings'],holdings_model.CURRENT,read)
-    for packet,contract in ((flow_packet,flow_model.CONTRACT),(holding_packet,holdings_model.CONTRACT)):
-        if packet.get('contract')!=contract or not isinstance(packet.get('replay'),dict):
-            raise ValueError('Canonical original-source contract and replay required')
     warm_sources(flow_packet,holding_packet,read)
     for packet,store_ in ((flow_packet,flow_store),(holding_packet,holdings_store)):
         if store_.replay(packet['replay'],read)!={k:v for k,v in packet.items() if k!='replay'}:raise ValueError('Canonical packet differs from original replay')
@@ -241,14 +235,7 @@ def verified_run(ref,read):
     if set(run['compilers'])!={m.__name__ for m in COMPILERS}:raise ValueError('Desk compiler inventory differs')
     for module in COMPILERS:
         body=Path(module.__file__).read_bytes();digest=model.sha(body);expected={'key':model.PREFIX+'compilers/'+digest+'.py','sha256':digest}
-        ref=run['compilers'][module.__name__]
-        if ref==expected:
-            if read(expected['key'])!=body:raise ValueError('Matching reviewed desk compiler required')
-        elif ref.get('sha256') in COMPATIBLE_COMPILERS.get(module.__name__,()):
-            old=ref['sha256']
-            if ref!={'key':model.PREFIX+'compilers/'+old+'.py','sha256':old} or model.sha(read(ref['key']))!=old:
-                raise ValueError('Reviewed predecessor desk compiler bytes differ')
-        else:raise ValueError('Matching reviewed desk compiler required')
+        if run['compilers'][module.__name__]!=expected or read(expected['key'])!=body:raise ValueError('Matching reviewed desk compiler required')
     return run
 
 
@@ -312,7 +299,7 @@ def regresses(old,new):
     return False
 
 
-def conditional(client,bucket,key,packet,publish=None):
+def conditional(client,bucket,key,packet):
     if key not in (model.CURRENT,*ALIASES):raise ValueError('Reviewed public desk target required')
     at=model.clock(packet['generated_at'])
     for _ in range(4):
@@ -326,8 +313,7 @@ def conditional(client,bucket,key,packet,publish=None):
             if not missing(exc):raise
             condition={'IfNoneMatch':'*'}
         try:
-            if publish is not None and key==model.CURRENT:publish(client,bucket,key,model.encoded(packet),condition)
-            else:status_write(client,bucket,key,packet,**condition)
+            status_write(client,bucket,key,packet,**condition)
             live=json.loads(bounded(client.get_object(Bucket=bucket,Key=key)['Body']))
             if live!=packet and model.clock(live['generated_at'])<=at:raise ValueError('Desk public readback differs')
             return True
@@ -347,7 +333,7 @@ def compatibility(packet,target):
 
 def request_key(request_id):
     if not isinstance(request_id,str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}',request_id):raise ValueError('Bounded desk request identity required')
-    return PRIVATE+'requests/'+model.sha(request_id.encode())+'.json'
+    return model.PREFIX+'requests/'+model.sha(request_id.encode())+'.json'
 
 
 def collect(client,bucket,credential,read,deadline):
@@ -362,7 +348,7 @@ def collect(client,bucket,credential,read,deadline):
         'provider_requests':p_requests+hold.requests+flows.requests,'original_provider_bytes':p_bytes+hold.source_bytes+flows.source_bytes}
 
 
-def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=900,recover_run=None,publish=None):
+def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=900,recover_run=None):
     end=time.monotonic()+max(1,min(remaining_seconds,900));key=request_key(request_id)
     status={'contract':'etf-desk-request.v1','request_id':request_id,'execution_id':execution_id,'started_at':now(),'status':'running','phase':'preserve'}
     try:status_write(client,bucket,key,status,IfNoneMatch='*')
@@ -394,7 +380,7 @@ def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90
         ref=retain(client,bucket,inputs,output,read,checkpoint)
         status['phase']='publish';status_write(client,bucket,key,status);published=False;aliases={}
         if output['quality']['status']!='unavailable':
-            packet={**output,'replay':ref};published=conditional(client,bucket,model.CURRENT,packet,publish)
+            packet={**output,'replay':ref};published=conditional(client,bucket,model.CURRENT,packet)
             if published:
                 for target in ALIASES:aliases[target]=conditional(client,bucket,target,compatibility(packet,target))
         result={**status,'status':'complete','phase':'complete','completed_at':now(),'published':published,

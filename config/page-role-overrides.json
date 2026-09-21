@@ -1606,6 +1606,27 @@
         }
       },
       "reason": "Original-source replay of canonical ETF holdings, exact-identity fund membership and unadjusted position comparisons; no additional investment vote."
+    },
+    "etf.html": {
+      "primary_engines": [
+        "justhodl-etf-global-desk"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-etf-global-desk": [
+          "data/etf-desk-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-etf-global-desk": {
+          "source": "aws/lambdas/justhodl-etf-global-desk/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Dated original-source profiles, complete constituents and matched reported fund flows; independently checked clocks, exact retained evidence and user-assumed fund scenarios without investment voting authority."
+        }
+      },
+      "reason": "Dated original-source profiles, complete constituents and matched reported fund flows; independently checked clocks, exact retained evidence and user-assumed fund scenarios without investment voting authority."
     }
   }
 }

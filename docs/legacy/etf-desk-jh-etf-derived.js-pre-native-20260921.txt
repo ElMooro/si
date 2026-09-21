@@ -296,10 +296,6 @@
   };
 
   function htmlFor(d, view) {
-    if (d && d.native) {
-      var A = w.JHEtfDeskResearch;
-      return A && A.typed(d.packet) ? A.summary(d.packet) + '<p><a href="/etf.html">Inspect each fund and its exact source fields</a> · <a href="/flow-lookthrough.html">Dated security memberships</a>. Fund flows do not establish underlying purchases, crowding or a risk regime.</p>' : '<p>Verified ETF context unavailable.</p>';
-    }
     var keys = VIEWS[view] || VIEWS.all;
     var v = d.verdicts || {};
     var head = '<div class="kpis">' +
@@ -325,7 +321,7 @@
     el.innerHTML = '<p class="note">Loading ETF Global derived desk…</p>';
     var loader = F().derived ? F().derived() : fetch("/data/etf-derived.json?t=" + Date.now()).then(function (r) { return r.json(); });
     return loader.then(function (d) {
-      if (!d || d.status === "EMPTY" || (!d.native && !d.verdicts && !d.thematic_vs_index)) {
+      if (!d || d.status === "EMPTY" || (!d.verdicts && !d.thematic_vs_index)) {
         el.innerHTML = '<p class="note">Derived desk not harvested yet. Next etf-global-desk run writes data/etf-derived.json.</p>';
         return d;
       }

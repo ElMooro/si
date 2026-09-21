@@ -35,7 +35,8 @@ test('etf.html and strong.html are real desks, not stubs', () => {
   const strong = fs.readFileSync(path.join(__dirname, '../strong.html'), 'utf8');
   assert.ok(etf.length > 2500);
   assert.ok(strong.length > 2500);
-  assert.match(etf, /ETF DESK/);
+  assert.match(etf, /ETF Research Desk/);
+  assert.match(etf, /jh-etf-desk-page\.js/);
   assert.match(strong, /STRENGTH vs S/);
   assert.doesNotMatch(etf, /\[object Object\]|undefined%/);
   assert.doesNotMatch(strong, /\[object Object\]|undefined%/);

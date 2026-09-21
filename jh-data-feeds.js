@@ -38,7 +38,8 @@
     ["data/etf-global.json", "ETF Global harvest"],
     ["data/etf-desk.json", "ETF Global desk (flows+profiles+holdings)"],
     ["data/etf-holdings-index.json", "ETF holdings look-through"],
-    ["data/etf-derived.json", "ETF derived (crowding, px/flow, factor, credit, crypto wrapper)"]
+    ["data/etf-derived.json", "ETF compatibility context (zero investment votes)"],
+    ["data/etf-desk-research.json", "Dated ETF profiles, full constituents and matched source flows"]
   ];
   function el(tag, css, html) {
     var n = document.createElement(tag);

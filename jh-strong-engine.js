@@ -64,6 +64,7 @@
     var pack = await Promise.all([D.quotes(tickers), D.ohlc("SPY", "6mo"), D.feed("data/etf-flows.json"), D.feed("data/etf-desk.json"), D.feed("data/etf-derived.json")]);
     var qx = pack[0] || {}, spyBars = pack[1] || [], flows = (pack[2] && pack[2].by_etf) || {};
     var paid = (pack[3] && pack[3].by_etf) || {};
+    if (w.JHEtfFuse && w.JHEtfFuse.native) { flows = {}; paid = {}; }
     var spyH = D.horizons(D.closesOf(spyBars));
     if (qx.SPY && qx.SPY.changePct != null) spyH.d = D.round(qx.SPY.changePct, 2);
 
@@ -94,10 +95,21 @@
       };
     });
 
+    // Native ETF fields are descriptive context; they never change this unqualified return score.
+    var nativeDesk = null;
+    try { if (window.JHEtfFuse && window.JHEtfFuse.native) nativeDesk = await window.JHEtfFuse.desk(); } catch (_) {}
+    if (nativeDesk && window.JHEtfDeskResearch) rows.forEach(function (r) {
+      var fund = nativeDesk.funds[r.ticker];
+      r.flow1d = fund ? window.JHEtfDeskResearch.windowValue(fund, 1) : null;
+      r.flowLabel = r.flow1d == null ? "UNAVAILABLE" : "REPORTED FUND FLOW";
+      r.flowObservation = fund && fund.flows.latest_effective_date;
+      r.nativeFund = fund || null;
+      r.nativeEtfContext = true;
+    });
     var deskDoc = pack[3] || {};
     var derived = pack[4] || {};
     var byDer = (derived && derived.by_ticker) || {};
-    if (window.JHEtfFuse && deskDoc.by_etf) {
+    if (window.JHEtfFuse && !window.JHEtfFuse.native && deskDoc.by_etf) {
       rows.forEach(function (r) {
         var der = byDer[r.ticker] || {};
         r.crowding = der.crowding_pct;
@@ -123,7 +135,7 @@
       sources: {
         quotes: "Polygon snapshot",
         history: "Warehouse / Yahoo daily",
-        flows: "Massive ETF Global creations when the name is a fund; look-through demand when it is a stock",
+        flows: "Verified dated fund flows when covered; no underlying stock-buying inference. ETF context contributes zero investment votes.",
         definition: "Strength = asset return − S&P 500 return on D / W / M / 3M. Composite 35/30/20/15."
       }
     };
