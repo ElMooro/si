@@ -105,4 +105,36 @@ class SourceArithmetic(unittest.TestCase):
         with self.assertRaises(AssertionError):self.check(self.packet,self.read)
 
 
+class ParserEvidencePrefetch(unittest.TestCase):
+    def setUp(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import hashlib
+        path=ROOT/'aws/ops/staged/ops_5981_etf_holdings_parser_acceptance.py'
+        node=next(n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef) and n.name=='warm_refs')
+        self.sha=lambda raw:hashlib.sha256(raw).hexdigest()
+        ns={'ThreadPoolExecutor':ThreadPoolExecutor,'model':types.SimpleNamespace(sha=self.sha)}
+        exec(compile(ast.Module(body=[node],type_ignores=[]),str(path),'exec'),ns)
+        self.warm=ns['warm_refs']
+        self.ref={'key':'immutable/fixture','sha256':self.sha(b'evidence'),'bytes':8}
+    def test_duplicate_identical_references_are_read_once(self):
+        calls=[]
+        def read(key):calls.append(key);return b'evidence'
+        self.assertEqual(self.warm([None,self.ref,dict(self.ref)],read),1)
+        self.assertEqual(calls,['immutable/fixture'])
+    def test_conflicting_references_are_rejected_before_reads(self):
+        calls=[]
+        with self.assertRaises(AssertionError):
+            self.warm([self.ref,{**self.ref,'bytes':9}],lambda key:calls.append(key))
+        self.assertEqual(calls,[])
+    def test_corrupt_body_and_read_failure_propagate(self):
+        with self.assertRaises(AssertionError):self.warm([self.ref],lambda key:b'corrupt!')
+        def failed(key):raise ConnectionError('Unavailable immutable object')
+        with self.assertRaises(ConnectionError):self.warm([self.ref],failed)
+    def test_prefetch_inventory_is_bounded_before_network(self):
+        calls=[]
+        with self.assertRaises(AssertionError):
+            self.warm([{**self.ref,'key':str(i)} for i in range(10001)],lambda key:calls.append(key))
+        self.assertEqual(calls,[])
+
+
 if __name__=='__main__':unittest.main(verbosity=2)
