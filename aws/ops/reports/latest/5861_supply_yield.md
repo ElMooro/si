@@ -1,26 +1,11 @@
 # ops 5861 -- supply run yields
 
-**Status:** failure  
-**Duration:** 0.5s  
-**Finished:** 2026-09-21T01:15:31+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/STAGED/ops_5861_supply_yield.py", line 16, in main
-    d = json.loads(s3.get_object(Bucket=PRI, Key=k)["Body"].read())
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/json/__init__.py", line 346, in loads
-    return _default_decoder.decode(s)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/json/decoder.py", line 341, in decode
-    raise JSONDecodeError("Extra data", s, end)
-json.decoder.JSONDecodeError: Extra data: line 2 column 1 (char 45)
-
-```
+**Status:** success  
+**Duration:** 0.4s  
+**Finished:** 2026-09-21T01:16:27+00:00  
 
 ## Log
-
+- `01:16:27` 09-20 17:26 35525354648 judged=1380 passed=1380 passed_by_family={"apps-interview": 858, "apps-introductory": 522} failed_by_family={} written=0 exists=1380 fetch=null report={"checker": "factory-code-verify:v4-supervisor-judge", "failed": 296, "malformed": 0, "partial_judge": 0, "passed": 1380, "refused_static": 0, "refused_suites": 0, "seen": 1676, "timeouts": 0}
+- `01:16:27` 09-21 00:57 35549173223 judged=420 passed=420 passed_by_family={"apps-interview": 226, "apps-introductory": 194} failed_by_family={} written=116 exists=304 fetch=null report={"checker": "factory-code-verify:v4-supervisor-judge", "failed": 95, "malformed": 0, "partial_judge": 0, "passed": 420, "refused_static": 0, "refused_suites": 0, "seen": 515, "timeouts": 0}
+- `01:16:27` 09-21 01:13 35550016904 judged=421 passed=420 passed_by_family={"apps-interview": 226, "apps-introductory": 194} failed_by_family={"None": 1} written=0 exists=420 fetch=null report={"checker": "factory-code-verify:v4-supervisor-judge", "failed": 95, "malformed": 0, "partial_judge": 0, "passed": 420, "refused_static": 0, "refused_suites": 0, "seen": 515, "timeouts": 0}
+- `01:16:27` ✅ done
