@@ -15,6 +15,24 @@ test('only approved evidence paths are requested',async()=>{
   let calls=0;for(const key of ['data/trade-tickets.json','audit-private/original.bin','https://example.com/data',api.PREFIX+'requests/'+'a'.repeat(64)+'.json'])await assert.rejects(()=>api.load(key,async()=>{calls++;}),/Unapproved/);
   assert.equal(calls,0);
 });
+test('recorded capture never reads the mutable current publication',async()=>{
+  const id=fixture.publication.replay.manifest_key.split('/').pop().slice(0,-5),requests=[];
+  const p=await api.recordedRun(id,async(url,options)=>{requests.push(url);assert.notEqual(url,'/'+api.CURRENT);return fetcher(url,options);});
+  assert.deepEqual(p,fixture.publication);assert.ok(requests.length>0);
+  const c=await api.chain(p,'SPY',fetcher),rows=await api.records(c,0,fetcher);
+  assert.equal(api.scenario(p,rows[0],{quantity:'2',premium:'1.125',spot:'102.25',cost:'3.50'}).net_usd,'221.5');
+  assert.equal(api.recordedUrl(p,'SPY'),'/option-chain-research.html?underlying=SPY&run='+id);
+});
+test('invalid recorded references do not fetch or silently fall back to current',async()=>{
+  let calls=0;
+  for(const id of ['',null,'../private','a'.repeat(63),'https://example.test/run'])await assert.rejects(()=>api.recordedRun(id,()=>{calls++;}),/Exact recorded/);
+  assert.equal(calls,0);assert.throws(()=>api.recordedUrl(fixture.publication,'SPY'),/Verified/);
+});
+test('recorded run hash and output authority are verified',async()=>{
+  const id=fixture.publication.replay.manifest_key.split('/').pop().slice(0,-5);
+  await assert.rejects(()=>api.recordedRun(id,async url=>new Response(fixture.artifacts[url.slice(1)]+' ')),/run differs/);
+  const {p}=await loaded();assert.throws(()=>api.recordedUrl(p,'../../other'),/Verified/);
+});
 test('changed numeric body, authorities and run bytes rejected',async()=>{
   const p=structuredClone(fixture.publication);p.chains.SPY.coverage.returned_rows=3;
   await assert.rejects(()=>api.verifyPacket(p,fetcher),/differs/);

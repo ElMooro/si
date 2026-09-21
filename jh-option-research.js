@@ -57,6 +57,18 @@
     if(!same(body,output))throw Error('Current option research differs from retained output');
     verifiedPackets.add(p);return freeze(p);
   }
+  async function recordedRun(id,fetcher,signal){
+    if(!digest(id))throw Error('Exact recorded option run required');
+    const key=PREFIX+'runs/'+id+'.json',item=await load(key,fetcher,signal),run=item.doc;
+    if(await sha(item.raw)!==id||run?.contract!=='option-flow-replay.v1'||!clock(run.generated_at)||
+      !reference(run.output,'outputs')||run.output_sha256!==run.output.sha256)throw Error('Recorded option run differs');
+    const output=await retained(run.output,'outputs',fetcher,signal);
+    return verifyPacket({...output,replay:{manifest_key:key,output_sha256:run.output_sha256}},fetcher,signal);
+  }
+  function recordedUrl(p,symbol){
+    if(!verifiedPackets.has(p)||!ticker(symbol)||!p.chains[symbol])throw Error('Verified captured underlying required');
+    return '/option-chain-research.html?underlying='+encodeURIComponent(symbol)+'&run='+p.replay.manifest_key.slice((PREFIX+'runs/').length,-5);
+  }
   async function chain(p,symbol,fetcher,signal){
     if(!typed(p)||!verifiedPackets.has(p)||!ticker(symbol)||!p.chains[symbol])throw Error('Choose a captured underlying from a verified publication');
     const item=await retained(p.chains[symbol].chain,'chains',fetcher,signal);
@@ -165,6 +177,6 @@
       run:p.replay,evidence:r.evidence,
       scope:'User-assumed expiration payoff, not a forecast, live quote, mark-to-market value or size recommendation. Physical exercise, early assignment, financing, taxes and changes in other holdings are outside this calculation.'};
   }
-  const api={CONTRACT,PREFIX,CURRENT,esc,exact,ticker,clock,typed,stable,same,sha,bytes,load,retained,verifyPacket,chain,unpack,records,overview,inventory,chainView,dateGroups,rowTable,rowView,scenario,table,metric};
+  const api={CONTRACT,PREFIX,CURRENT,esc,exact,ticker,clock,typed,stable,same,sha,bytes,load,retained,verifyPacket,recordedRun,recordedUrl,chain,unpack,records,overview,inventory,chainView,dateGroups,rowTable,rowView,scenario,table,metric};
   root.JHOptionResearch=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

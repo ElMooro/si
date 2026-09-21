@@ -4,7 +4,8 @@
     const A=root.JHOptionResearch;if(!A||!host)return;
     const q=s=>host.querySelector(s),fetcher=root.fetch.bind(root),form=q('[data-or-scenario]'),result=q('[data-or-scenario-output]');
     let packet=null,currentChain=null,rows=[],selected=null,controller=null,publication=0,selection=0,pageRequest=0;
-    const requested=new URL(root.location.href).searchParams.get('underlying');let symbol=A.ticker(requested)?requested:'SPY';
+    const params=new URL(root.location.href).searchParams,requested=params.get('underlying'),pinned=params.get('run');let symbol=A.ticker(requested)?requested:'SPY';
+    if(pinned!==null)q('[data-or-refresh]').textContent='Recheck recorded publication';
     let lastReview='';
     function invalidate(){selected=null;form.reset();q('[data-or-scenario-selection]').textContent='Select a verified standard contract above.';result.textContent='Source or selection changed; select a contract and recalculate your hypothetical scenario.';}
     function clear(){
@@ -60,6 +61,8 @@
       const token=++selection,version=publication,expected=packet,t=symbol;pageRequest++;clear();
       q('[data-or-chain]').textContent='Verifying the captured chain and page inventory…';
       try{
+        if(packet)q('[data-or-replay]').innerHTML='<p><a href="'+A.esc(A.recordedUrl(packet,t))+'">Link to this recorded capture</a> · <a href="/option-chain-research.html?underlying='+A.esc(t)+'">Latest capture for '+A.esc(t)+'</a></p>'+
+          '<p><a href="/'+A.esc(packet.replay.manifest_key)+'">Open this exact run manifest</a></p><p class="or-digest">Output SHA-256 '+A.esc(packet.replay.output_sha256)+'</p>';
         const c=await A.chain(expected,t,fetcher,controller.signal);
         if(token!==selection||version!==publication||expected!==packet)return;
         currentChain=c;q('[data-or-chain]').innerHTML=A.chainView(c);q('[data-or-dates]').innerHTML=A.dateGroups(c);
@@ -72,17 +75,19 @@
     }
     async function refresh(){
       const version=++publication;selection++;pageRequest++;controller?.abort();controller=new AbortController();packet=null;clear();
-      q('[data-or-status]').textContent='Verifying the latest publication and its retained output…';q('[data-or-symbol]').disabled=true;
+      q('[data-or-status]').textContent=pinned!==null?'Verifying the requested recorded capture…':'Verifying the latest publication and its retained output…';q('[data-or-symbol]').disabled=true;
       for(const name of ['overview','inventory','universe','replay'])q('[data-or-'+name+']').textContent='';
       try{
-        const item=await A.load(A.CURRENT,fetcher,controller.signal),verified=await A.verifyPacket(item.doc,fetcher,controller.signal);
+        const verified=pinned!==null?await A.recordedRun(pinned,fetcher,controller.signal):await A.verifyPacket((await A.load(A.CURRENT,fetcher,controller.signal)).doc,fetcher,controller.signal);
         if(version!==publication)return;packet=verified;if(!packet.chains[symbol])symbol=packet.universe.selected[0];
         q('[data-or-symbol]').innerHTML=packet.universe.selected.map(t=>'<option value="'+t+'">'+t+'</option>').join('');q('[data-or-symbol]').value=symbol;q('[data-or-symbol]').disabled=false;
         overview();inventory();q('[data-or-universe]').innerHTML='<p>'+A.esc(packet.universe.scope)+'</p><p>'+A.esc(packet.universe.selection_rule)+'</p><div class="or-universe-list">Deferred: '+A.esc(packet.universe.deferred.join(', ')||'None')+'</div>'+
           A.table(['Underlying','Selection evidence'],packet.universe.selected.map(t=>[t,packet.universe.origins[t].map(o=>o.kind==='public_baseline_continuity'?'Previously published watchlist':o.source_key+' '+o.pointer).join('; ')]),'Watchlist provenance');
-        q('[data-or-replay]').innerHTML='<p><a href="/'+A.esc(packet.replay.manifest_key)+'">Open this exact run manifest</a></p><p class="or-digest">Output SHA-256 '+A.esc(packet.replay.output_sha256)+'</p>';
-        q('[data-or-status]').textContent='Publication verified. Inspect a captured chain below.';await inspect();
-      }catch(error){if(version===publication&&error.name!=='AbortError')q('[data-or-status]').textContent=error.message+' — previously displayed calculations have been cleared.';}
+        q('[data-or-status]').textContent=pinned!==null?'Recorded publication verified. This view stays on the capture from '+packet.generated_at+'.':'Publication verified. Inspect a captured chain below.';await inspect();
+      }catch(error){if(version===publication&&error.name!=='AbortError'){
+        q('[data-or-status]').textContent=error.message+' — previously displayed calculations have been cleared.';
+        if(pinned!==null)q('[data-or-replay]').innerHTML='<p><a href="/option-chain-research.html">Open the latest publication</a></p>';
+      }}
     }
     q('[data-or-refresh]').onclick=()=>void refresh();q('[data-or-query]').oninput=inventory;
     q('[data-or-symbol]').onchange=()=>{symbol=q('[data-or-symbol]').value;void inspect();};
