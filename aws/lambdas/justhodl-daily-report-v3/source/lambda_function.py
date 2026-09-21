@@ -217,6 +217,8 @@ STOCK_TICKERS = [
     'SPY','QQQ','DIA','IWM','VTI','VOO','RSP','MDY',
     # Sectors
     'XLF','XLE','XLK','XLV','XLI','XLU','XLP','XLY','XLB','XLC','XLRE',
+    # Retained sector comparison wrappers; no additional investment vote.
+    'SMH','XBI','KRE','XOP',
     # Mega Caps - Tech
     'AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','AVGO','CRM','AMD',
     'NFLX','INTC','CSCO','ORCL','ADBE','QCOM','TXN','NOW','SHOP','UBER',
@@ -253,6 +255,8 @@ STOCK_TICKERS = [
 ]
 
 TICKER_NAMES = {
+    'SMH':'Semiconductor ETF', 'XBI':'Biotechnology ETF',
+    'KRE':'Regional Banking ETF', 'XOP':'Oil & Gas Exploration and Production ETF',
     'SPY':'S&P 500 ETF','QQQ':'NASDAQ 100 ETF','DIA':'Dow Jones ETF','IWM':'Russell 2000 ETF',
     'VTI':'Total Stock Market','VOO':'Vanguard S&P 500','RSP':'Equal Weight S&P','MDY':'S&P MidCap 400',
     'XLF':'Financial Sector','XLE':'Energy Sector','XLK':'Technology Sector','XLV':'Healthcare Sector',

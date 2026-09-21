@@ -1472,7 +1472,7 @@ def lambda_handler(event, context):
                 for v in o:
                     _ocwalk(v)
         _ocwalk(_oc)
-        _sfs = read_json("data/sector-flow-state.json", {}) or {}
+        _sfs = __import__('sector_research').decision_view(read_json("data/sector-flow-state.json", {})) or {}
         _sec_ctx = {}
 
         def _sfwalk2(o):

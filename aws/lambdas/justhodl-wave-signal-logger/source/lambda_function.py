@@ -410,7 +410,7 @@ def log_auction_crisis():
 
 
 def log_sector_breadth():
-    d = fs3("data/sector-rotation.json")
+    d = __import__('sector_research').decision_view(fs3("data/sector-rotation.json"))
     breadth = d.get("market_breadth")
     if not breadth:
         return []

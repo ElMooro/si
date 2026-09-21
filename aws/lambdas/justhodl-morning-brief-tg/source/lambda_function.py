@@ -91,7 +91,7 @@ def build_brief():
     divergence_v2 = fetch_json("data/divergence-v2.json") or {}
     divergence_interp = fetch_json("data/divergence-interpreted.json") or {}
     # Phase D: sector tilt + pairs scanner (sprints 5+6)
-    sector_tilt = fetch_json("data/sector-tilt.json") or {}
+    sector_tilt = __import__('sector_research').decision_view(fetch_json("data/sector-tilt.json")) or {}
     pairs_scan = fetch_json("data/pairs-scanner.json") or {}
     # Phase E: Fed-speak sentiment + Global-macro per-country regime
     fed_speak = fetch_json("data/fed-speak.json") or {}

@@ -1,0 +1,25 @@
+{
+  "function_name": "justhodl-sector-tilt",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 180,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Replay sector originals into descriptive exposure inputs; no prescribed weights, provider, account or notification access.",
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-sector-tilt-research-hourly",
+    "cron": "cron(46 * * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Public sector exposure research after hourly Rotation",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 0,
+      "MaximumEventAgeInSeconds": 900
+    }
+  }
+}

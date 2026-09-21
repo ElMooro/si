@@ -45,10 +45,10 @@ test('Pages replace unverified regime cards with research and keep the whole pre
  assert.equal(fs.statSync(path.join(__dirname,'../aws/lambdas/justhodl-macro-nowcast/source/legacy_macro_nowcast.py')).size,26143);
 });
 test('Sector context cannot turn a predecessor tilt into a recommendation',()=>{
- const vm=require('node:vm'),html=fs.readFileSync(path.join(__dirname,'../sector-tilt.html'),'utf8');
- const start=html.indexOf('function reportedSectorContext('),end=html.indexOf('function esc(',start),context={};vm.runInNewContext(html.slice(start,end),context);
- const out=context.reportedSectorContext({regime:'MUDDLE',tilts:[{ticker:'XLU',regime_tilt_score:3,implication:'CONFIRMED_BUY',rs_20d:2}]});
- assert.equal(out.regime,null);assert.equal(out.tilts[0].regime_tilt_score,null);assert.equal(out.tilts[0].implication,'WAIT');assert.equal(out.tilts[0].rs_20d,2);assert.equal(out.summary.top_buy_opportunities.length,0);
+ const sectors=require('../jh-sector-research.js'),html=fs.readFileSync(path.join(__dirname,'../sector-tilt.html'),'utf8');
+ const predecessor={regime:'MUDDLE',tilts:[{ticker:'XLU',regime_tilt_score:3,implication:'CONFIRMED_BUY',rs_20d:2}]};
+ assert.equal(sectors.typed(predecessor),false);assert.throws(()=>sectors.render(predecessor),/Native sector research required/);
+ const out=sectors.decisionView(predecessor);assert.equal(out.portfolio_action,'WAIT');assert.deepEqual(out.tilts,[]);assert.equal(out.sizing_eligible,false);
  assert.doesNotMatch(html,/data-bars="tilts:ticker:regime_tilt_score"/);
  const alpha=fs.readFileSync(path.join(__dirname,'../alpha/index.html'),'utf8');assert.match(alpha,/regime_picks:\[\],regime_avoids:\[\]/);assert.match(alpha,/regime-confidence'\).textContent='Unavailable'/);
 });

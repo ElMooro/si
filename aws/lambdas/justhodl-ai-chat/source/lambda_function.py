@@ -810,7 +810,7 @@ def build_context(message):
                              f"{n_trim} trimming, {n_new} new pos, {n_exit} exiting · bias: {bias}")
 
     # ─── Sector Rotation (always-on; cross-asset cycle context) ──
-    rot = get_s3('data/sector-rotation.json')
+    rot = __import__('sector_research').decision_view(get_s3('data/sector-rotation.json'))
     if rot:
         summary = rot.get('summary') or {}
         leaders = summary.get('top_3_leaders') or []

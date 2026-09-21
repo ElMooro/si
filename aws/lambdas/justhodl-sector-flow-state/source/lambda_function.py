@@ -48,7 +48,7 @@ def rrg_quad(rank, slope):
 
 
 def lambda_handler(event, context):
-    sec = rj("data/sector-rotation.json")
+    sec = __import__('sector_research').decision_view(rj("data/sector-rotation.json"))
     liq = rj("data/liquidity-flow.json")
     mf = rj("data/money-flow-state.json")
     mf_sector = {s.get("sector"): s.get("net_flow_usd") for s in (mf.get("sectors") or []) if s.get("sector")}
@@ -108,6 +108,8 @@ def lambda_handler(event, context):
         })
     out.sort(key=lambda x: -x["conviction"])
     doc = {
+        'sector_research_context':sec.get('research_context'),'portfolio_action':'WAIT','call':None,
+        'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False,'forecast_qualified':False,
         "engine": "justhodl-sector-flow-state", "version": "1.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "liquidity_regime": liq.get("regime"),

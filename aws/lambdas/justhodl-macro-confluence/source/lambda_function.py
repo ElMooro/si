@@ -195,7 +195,7 @@ def lambda_handler(event=None, context=None):
     per_stock = cp.get("per_stock_exposure") or {}
     capit_by_sector, stealth_by_sector, total_by_sector = _quadrant_clusters_by_sector(per_stock)
 
-    sfs = _get("data/sector-flow-state.json", {})
+    sfs = __import__('sector_research').decision_view(_get("data/sector-flow-state.json", {}))
     sfs_by_sector = {s.get("name"): s for s in (sfs.get("sectors") or []) if s.get("name")}
 
     rd = _get("data/rotation-dashboard.json", {})

@@ -2,8 +2,8 @@
  "v": 2,
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
- "n_pages": 40,
- "n_wired": 166,
+ "n_pages": 39,
+ "n_wired": 161,
  "wired": [
   {
    "engine": "justhodl-consensus-bottom",
@@ -930,46 +930,6 @@
    "feed": "data/canary-grid.json",
    "page": "risk-gate.html",
    "title": "CANARY GRID (early-warning strip)",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-trade-evaluator",
-   "feed": "data/trade-journal.json",
-   "page": "sectors.html",
-   "title": "TRADE EVALUATOR",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-trend-engine",
-   "feed": "data/trend-engine.json",
-   "page": "sectors.html",
-   "title": "TREND ENGINE",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-upside-thesis",
-   "feed": "data/upside-theses.json",
-   "page": "sectors.html",
-   "title": "UPSIDE THESIS",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-volatility-squeeze-hunter",
-   "feed": "data/volatility-squeeze.json",
-   "page": "sectors.html",
-   "title": "VOLATILITY SQUEEZE HUNTER",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-industry-rotation",
-   "feed": "data/industry-rotation.json",
-   "page": "sectors.html",
-   "title": "INDUSTRY ROTATION",
    "schema_version": "unspecified",
    "via": "jh-wire.js"
   },

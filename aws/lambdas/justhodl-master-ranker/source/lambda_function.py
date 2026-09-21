@@ -848,7 +848,7 @@ def collect_macro_signals():
                 })
 
     # Sector-tilt MISALIGNED BUY
-    tilt = fetch_json("data/sector-tilt.json")
+    tilt = __import__('sector_research').decision_view(fetch_json("data/sector-tilt.json"))
     if tilt:
         misaligned = [t for t in (tilt.get("tilts") or [])
                        if t.get("alignment") == "MISALIGNED"
@@ -1208,7 +1208,7 @@ def lambda_handler(event, context):
         return None
 
     # sector-flow-state overlay (fused RRG-quadrant + posture conviction feed)
-    _sf = fetch_json("data/sector-flow-state.json") or {}
+    _sf = __import__('sector_research').decision_view(fetch_json("data/sector-flow-state.json")) or {}
     sf_by_name = {s.get("name"): s for s in (_sf.get("sectors") or []) if s.get("name")}
     _SF_NORM = {"Consumer Cyclical": "Consumer Discretionary", "Financial Services": "Financials",
                 "Basic Materials": "Materials", "Consumer Defensive": "Consumer Staples"}

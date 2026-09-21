@@ -680,7 +680,7 @@ def lambda_handler(event=None, context=None):
     intel       = load_json("intelligence-report.json")
     cal         = load_json("data/calibration-snapshot.json")
     cal_latest  = load_json("calibration/model-latest.json")          # snapshotter ledger w/ full ranked weights
-    sectors     = load_json("data/sector-rotation.json")
+    sectors     = __import__('sector_research').decision_view(load_json("data/sector-rotation.json"))
     momentum    = load_json("data/momentum-scanner.json")
     allocator   = load_json("data/allocator.json")
     asymmetric  = load_json("opportunities/asymmetric-equity.json")

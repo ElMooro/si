@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/jh-sector-research.js?v=20260921-native1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sector Flow · Early Momentum · JustHodl.AI</title>
@@ -491,6 +492,8 @@ function renderFusion(scf){
 }
 
 function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic,scf){
+  // Sector price research supplies no legacy conviction, allocation or flow vote.
+  sec=JHSectorResearch.decisionView(); sfs=JHSectorResearch.decisionView(); scf=JHSectorResearch.decisionView();
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -549,7 +552,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,t
       <span class="cat">${esc(x.category||"")}</span><div class="bar-wrap"></div>
       ${x.aum_est_b?`<span class="ph" style="color:var(--fg-3)">$${(+x.aum_est_b).toFixed(0)}B AUM</span>`:""}
       <span class="val">${money(x.net_flow_1d_usd)}</span></div>`).join("")+`</div>`;
-  } else h+='<div class="empty">No net ETF creations today — true 1-day flows are sparse (only register on share-creation days). Sector-rotation scores above are the continuous read.</div>';
+  } else h+='<div class="empty">No net ETF creations today — true 1-day flows are sparse (only register on share-creation days). Matched sector price evidence is available on the Sector Research page.</div>';
   // outflows
   if(outflows.length){
     h+=`<div class="sec-hdr"><span class="dot r"></span><h2>ETF Outflows</h2><span class="ct">${outflows.length}</span></div>`;
@@ -608,6 +611,7 @@ setTimeout(()=>location.reload(),600000);
 (function(){
   const PX='https://justhodl-data-proxy.raafouis.workers.dev/data/sector-capital-fusion.json?ts='+Date.now();
   fetch(PX).then(r=>r.ok?r.json():null).then(F=>{
+    F=JHSectorResearch.decisionView();
     if(!F||!F.sectors) return;
     const rows=F.sectors.filter(x=>x.technicals&&x.technicals.ma);
     if(!rows.length) return;

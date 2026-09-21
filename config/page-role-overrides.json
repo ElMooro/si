@@ -1417,6 +1417,69 @@
         }
       },
       "reason": "Original-source weekly activity, claims and financial conditions with explicit calendar gaps and overlapping evidence; no qualified investment regime."
+    },
+    "rotation/index.html": {
+      "primary_engines": [
+        "justhodl-sector-rotation"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-sector-rotation": [
+          "data/sector-rotation.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-sector-rotation": {
+          "source": "aws/lambdas/justhodl-sector-rotation/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
+        }
+      },
+      "reason": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
+    },
+    "sectors.html": {
+      "primary_engines": [
+        "justhodl-sector-rotation"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-sector-rotation": [
+          "data/sector-rotation.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-sector-rotation": {
+          "source": "aws/lambdas/justhodl-sector-rotation/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
+        }
+      },
+      "reason": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
+    },
+    "sector-tilt.html": {
+      "primary_engines": [
+        "justhodl-sector-tilt"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-sector-tilt": [
+          "data/sector-tilt.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-sector-tilt": {
+          "source": "aws/lambdas/justhodl-sector-tilt/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
+        }
+      },
+      "reason": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
     }
   }
 }

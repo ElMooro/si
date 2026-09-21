@@ -100,7 +100,7 @@ def sgn(x, thr=0.3):
 def lambda_handler(event, context):
     t0 = datetime.now(timezone.utc)
 
-    rot = rj("data/sector-rotation.json")
+    rot = __import__('sector_research').decision_view(rj("data/sector-rotation.json"))
     mfs = rj("data/money-flow-state.json")
     cfr = rj("data/capital-flow-radar.json")
     dp = rj("data/dark-pool.json")
@@ -354,6 +354,8 @@ def lambda_handler(event, context):
         print(f"[technicals join] {str(_e)[:80]}")
 
     doc = {
+        'sector_research_context':rot.get('research_context'),'portfolio_action':'WAIT','call':None,
+        'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False,'forecast_qualified':False,
         "engine": "justhodl-sector-capital-fusion", "version": "1.0.0",
         "generated_at": t0.isoformat(),
         "duration_s": round((datetime.now(timezone.utc) - t0).total_seconds(), 2),
@@ -372,7 +374,7 @@ def lambda_handler(event, context):
                         "confluence = lenses agreeing with net direction (|z|>=0.3); divergence = price-RS "
                         "vs smart-money (tape+13F+dark-pool) disagree. Sources: sector-rotation, money-flow-state, "
                         "capital-flow-radar, dark-pool, liquidity-flow, risk-regime."),
-        "sources_ok": {"sector-rotation": bool(rot), "money-flow-state": bool(mfs),
+        "sources_ok": {"sector-rotation": bool((rot.get("research_context") or {}).get("available")), "money-flow-state": bool(mfs),
                        "capital-flow-radar": bool(cfr), "dark-pool": bool(dp),
                        "liquidity-flow": bool(liq), "risk-regime": bool(rr)},
     }

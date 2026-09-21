@@ -614,22 +614,11 @@ function renderHeader() {
   document.getElementById('regimeMeta').innerHTML='<a href="/macro-nowcast.html">Dated macro research →</a>';
   document.getElementById('forwardBias').textContent='No qualified macro return forecast';
 
-  // Sector rotation
-  const s = DATA.sectors || {};
-  const leaders = s.leaders || [];
-  const laggards = s.laggards || [];
-  if (leaders[0]) {
-    document.getElementById('sectorLeader').textContent =
-      `${leaders[0].emoji || ''} ${leaders[0].name}`;
-    document.getElementById('sectorLeaderMeta').textContent =
-      `${leaders[0].ticker} · 20d RS ${fmtPct(leaders[0].rs_vs_spy?.['20'], 1)}`;
-  }
-  if (laggards[0]) {
-    document.getElementById('sectorLaggard').textContent =
-      `${laggards[0].emoji || ''} ${laggards[0].name}`;
-    document.getElementById('sectorLaggardMeta').textContent =
-      `${laggards[0].ticker} · 20d RS ${fmtPct(laggards[0].rs_vs_spy?.['20'], 1)}`;
-  }
+  // Native sector research is descriptive; legacy leader fields have no authority.
+  document.getElementById('sectorLeader').textContent='No qualified allocation';
+  document.getElementById('sectorLaggard').textContent='No qualified allocation';
+  document.getElementById('sectorLeaderMeta').innerHTML='<a href="/rotation/">Matched sector evidence →</a>';
+  document.getElementById('sectorLaggardMeta').innerHTML='<a href="/sector-tilt.html">Your exposure scenarios →</a>';
 
   // Stats
   document.getElementById('nTotal').textContent = ROWS.length;

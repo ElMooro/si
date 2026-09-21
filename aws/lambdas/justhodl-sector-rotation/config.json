@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Sector rotation and money flow across 11 SPDR sectors and 14 ratios; scores relative strength, money flow, trend, volume, regime leadership and sub-sector confirmation, with early-rotation alerts.",
+  "description": "Matched-date sector ETF price research and retrospective covariance from retained originals; no regime allocation, provider request or notification.",
   "environment": {},
   "inherit_env": [
     {
@@ -27,8 +27,8 @@
     }
   ],
   "schedule": {
-    "name": "justhodl-sector-rotation-sched",
-    "expression": "cron(5 21 ? * MON-FRI *)",
-    "description": "Flow-fleet revival (ops 2720)"
+    "name": "justhodl-sector-rotation-hourly",
+    "expression": "cron(38 * * * ? *)",
+    "description": "Reconstruct public sector research from canonical stored sources"
   }
 }

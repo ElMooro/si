@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Canonical fused SECTOR CONVICTION feed. Fuses sector-rotation (rotation_score, RRG quadrant, ETF-flow-confirm, money-flow) + liquidity-flow backdrop into one per-sector conviction + posture + confluence. Emits data/sector-flow-state.json for deal-scanner/master-ranker/best-setups/bottleneck-boom.",
+  "description": "Legacy sector-flow projection retained for compatibility. Native sector price research supplies no conviction or allocation vote; output explicitly abstains. Publishes data/sector-flow-state.json for reviewed downstream consumers.",
   "schedule": {
     "name": "justhodl-sector-flow-state-sched",
     "expression": "cron(15 21 ? * MON-FRI *)",

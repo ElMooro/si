@@ -689,7 +689,7 @@ def check_etf_flows(alerts):
 
 
 def check_sector_rotation(alerts):
-    d = load_json("data/sector-rotation.json")
+    d = __import__('sector_research').decision_view(load_json("data/sector-rotation.json"))
     breadth = d.get("market_breadth")
     if breadth in ("BROAD_LEADERSHIP", "NARROW_LEADERSHIP"):
         n_lead = len(d.get("leaders", []))

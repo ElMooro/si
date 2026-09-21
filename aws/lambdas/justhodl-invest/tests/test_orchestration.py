@@ -266,7 +266,7 @@ def test_institutional_edge_sources_wire_into_tier3_and_tier2(monkeypatch):
     # Tier 2: institutional_confirmation is additive context, present
     # alongside the existing IR/excess-return gate, not replacing it
     conf = gate["institutional_confirmation"]
-    assert conf["sector_flow"]["conviction"] == 0.62
+    assert conf["sector_flow"] is None  # Unqualified fused sector scores are not institutional confirmation.
     assert conf["insider_cluster"]["z_vs_own_history"] == 1.8
     assert gate["pass"] is True  # unaffected by institutional_confirmation being present
 

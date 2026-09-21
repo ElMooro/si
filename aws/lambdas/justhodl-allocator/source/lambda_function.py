@@ -173,7 +173,7 @@ def rule_yield_curve(scores, evidence):
 
 
 def rule_sector_breadth(scores, evidence):
-    d = fs3("data/sector-rotation.json")
+    d = __import__('sector_research').decision_view(fs3("data/sector-rotation.json"))
     breadth = d.get("market_breadth")
     if not breadth:
         return
@@ -321,7 +321,7 @@ def rule_btc_signals(scores, evidence):
 
 def rule_sector_momentum(scores, evidence):
     """Use sector momentum quintile to tilt SPY/QQQ/IWM proxies."""
-    d = fs3("data/sector-rotation.json")
+    d = __import__('sector_research').decision_view(fs3("data/sector-rotation.json"))
     sectors = d.get("sectors") or []
     # If XLK (top tech) is LEADER + momentum quintile 4, boost QQQ
     xlk = next((s for s in sectors if s.get("ticker") == "XLK"), None)

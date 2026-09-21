@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "v3 institutional deal-win engine: full-market PR/news tape vs exhaustive US-listed universe (incl. ADRs), event taxonomy, counterparty quality, promo/chase guards, SEC 8-K confirmation, census+13F overlays, base-rate ledger, graded deal-win signals. Every 3h.",
+  "description": "Deal/news scan across US-listed names and ADRs with event taxonomy, counterparty checks, SEC 8-K confirmation, census/13F overlays and a base-rate ledger. Unqualified sector research cannot add signal or allocation votes. Every 3h.",
   "schedule": {
     "rule_name": "deal-scanner-daily",
     "cron": "cron(5 */3 * * ? *)",

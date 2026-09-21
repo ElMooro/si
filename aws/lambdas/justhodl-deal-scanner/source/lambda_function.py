@@ -692,9 +692,9 @@ SECTOR_TO_SPDR = {
 def load_sector_signal():
     """Sector rotation scores + which SPDR sectors are rotating IN (early-momentum tailwind)."""
     try:
-        d = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/sector-rotation.json")["Body"].read())
+        d = __import__('sector_research').decision_view(json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/sector-rotation.json")["Body"].read()))
     except Exception:
-        return {}, set()
+        return {}, set(), {}, {}
     scores = {x.get("symbol"): x.get("rotation_score") for x in d.get("sectors", []) if x.get("symbol")}
     rin = set()
     ra = d.get("rotation_alerts") or {}
@@ -704,7 +704,7 @@ def load_sector_signal():
                 rin.add(it["sym"])
     conv_map, posture_map = {}, {}
     try:
-        sfs = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/sector-flow-state.json")["Body"].read())
+        sfs = __import__('sector_research').decision_view(json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/sector-flow-state.json")["Body"].read()))
         for x in sfs.get("sectors", []):
             if x.get("symbol"):
                 conv_map[x["symbol"]] = x.get("conviction")

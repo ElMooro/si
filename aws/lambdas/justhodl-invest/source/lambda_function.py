@@ -221,7 +221,7 @@ def get_institutional_sector_confirmation(proxy) -> dict:
     read must never look like an industry failing the gate."""
     out = {"sector_flow": None, "insider_cluster": None}
     if proxy.spdr_sector:
-        doc = fleet_io.get_json(SECTOR_FLOW_STATE_KEY)
+        doc = __import__('sector_research').decision_view(fleet_io.get_json(SECTOR_FLOW_STATE_KEY))
         row = fleet_io.dig(doc, f"sectors[symbol={proxy.proxy_etf}]") if doc else None
         if isinstance(row, dict):
             out["sector_flow"] = {

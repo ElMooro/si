@@ -30,13 +30,16 @@ class Boundaries(unittest.TestCase):
         self.assertFalse(p['calls_eligible'])
 
     def test_null_or_unknown_sector_regime_never_becomes_muddle(self):
-        ns={'SECTOR_TILT_MATRIX':{'XLF':{'MUDDLE':1}}};normalize=actual('justhodl-sector-tilt','normalize_regime',ns)
-        for value in (None,'','UNAVAILABLE','something new'):self.assertIsNone(normalize(value))
-        ns.update(TILT_LABELS={0:'NEUTRAL'})
-        card=actual('justhodl-sector-tilt','build_tilt_card',ns)('XLF',None,{'rs_vs_spy':{'20':8}})
-        self.assertIsNone(card['regime_tilt_score']);self.assertEqual(card['implication'],'WAIT');self.assertFalse(card['calls_eligible'])
-        summary=actual('justhodl-sector-tilt','build_summary',{}) ([card])
-        self.assertEqual(summary['n_unavailable'],1);self.assertEqual(summary['n_neutral'],0);self.assertEqual(summary['top_buy_opportunities'],[])
+        sys.path.insert(0,str(ROOT/'aws/shared/tests'))
+        from test_sector_research import fixtures
+        import sector_research_model,sector_tilt_model
+        source,sources,_=fixtures();native=sector_research_model.build(source,sources,source['generated_at'])
+        native['replay']={'manifest_key':'data/sector-research/runs/'+'a'*64+'.json','output_sha256':sector_research_model.sha(sector_research_model.encoded(native))}
+        out=sector_tilt_model.build(native,source['generated_at'],{'data/macro-nowcast.json':CANARY},{})
+        self.assertIsNone(out['regime']);self.assertEqual(out['summary']['n_unavailable'],11);self.assertEqual(out['summary']['n_neutral'],0)
+        self.assertEqual(out['summary']['top_buy_opportunities'],[])
+        for card in out['tilts']:
+            self.assertIsNone(card['regime_tilt_score']);self.assertEqual(card['implication'],'WAIT');self.assertFalse(card['calls_eligible'])
 
     def test_actual_reads_drop_legacy_score_and_do_not_change_other_packets(self):
         f=actual('justhodl-quantum-desk','read_source',{'LOCAL_DIR':None,'json':json,'s3':Client(),'BUCKET':'b','_now':lambda:datetime.now(timezone.utc)})
