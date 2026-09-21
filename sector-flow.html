@@ -325,6 +325,11 @@ function renderIndustries(fg){
 }
 
 function renderMoneyFlow(mf){
+  const native=mf?.contract==='money-volume-research.v1'&&mf.calls_eligible===false&&mf.sizing_eligible===false;
+  return `<div class="sec-hdr"><span class="dot g"></span><h2>Price and turnover research</h2></div><p>${native?'Matched-session stock and sector evidence is available.':'Verified price-volume research is not yet available here.'} Price return times turnover is a proxy, not investor net capital flow. <a href="/money-flow.html">Inspect original-source evidence, coverage and your exposure</a>.</p>`;
+}
+// Complete predecessor renderer retained for source comparison; never called.
+function legacyRenderMoneyFlow(mf){
   if(!mf||!(mf.stocks_in||[]).length)return"";
   const secs=(mf.sectors||[]);
   const maxAbs=Math.max(1,...secs.map(s=>Math.abs(+s.net_flow_usd||0)));

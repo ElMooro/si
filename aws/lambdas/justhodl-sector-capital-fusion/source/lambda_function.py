@@ -101,7 +101,7 @@ def lambda_handler(event, context):
     t0 = datetime.now(timezone.utc)
 
     rot = __import__('sector_research').decision_view(rj("data/sector-rotation.json"))
-    mfs = rj("data/money-flow-state.json")
+    mfs = __import__('money_volume_research').decision_view(rj("data/money-flow-state.json"))
     cfr = rj("data/capital-flow-radar.json")
     dp = rj("data/dark-pool.json")
     liq = rj("data/liquidity-flow.json")

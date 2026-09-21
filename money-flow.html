@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Price and Turnover Research · JustHodl</title><meta name="description" content="Dated stock, industry and sector price-volume research with source replay, explicit coverage and user-entered exposure comparisons.">
+<link rel="stylesheet" href="/jh-sector-research.css?v=20260921-native1"></head>
+<body><main><a href="/">JUSTHODL·AI</a><h1>Price and Turnover Research</h1>
+<p>Understand price movement and trading activity, trace the observations, and compare your own exposure with the retained sample.</p>
+<nav aria-label="Related research"><a href="/sector-flow.html">Sector evidence</a><a href="/rotation/">Sector prices</a><a href="/etf-research.html">ETF issuance research</a><a href="/market-internals.html">Market breadth</a><a href="/calls.html">Calls</a></nav>
+<section data-money-volume aria-label="Verified price-volume research"><p role="status">Loading retained research…</p></section>
+<section><h2>Your exposure to the retained stock sample</h2><p>Enter a stock ticker and signed starting USD exposure. Positive is long; negative is short. Inputs stay in this browser. This is a historical price comparison, not a recommended position.</p>
+<form data-volume-scenario><label>Stock symbol<input name="ticker" type="text" maxlength="20" autocomplete="off" spellcheck="false"></label><label>Signed starting exposure · USD<input name="exposure" type="number" step="any" value="0" autocomplete="off"></label><button type="submit">Calculate retained stock sample</button></form>
+<p data-volume-scenario-output aria-live="polite">No scenario calculated.</p><p>Price P&amp;L holds implied starting shares constant. Exposure divided by observed turnover is only a scale comparison: execution impact, spread, borrow availability, fees, dividends, financing and future liquidity are not measured.</p></section>
+</main><script src="/jh-money-volume.js?v=20260921-native1" defer></script></body></html>

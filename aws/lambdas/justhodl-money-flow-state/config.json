@@ -4,12 +4,12 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
-  "timeout": 120,
+  "timeout": 300,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Whole-market dollar money-flow by stock/industry/sector. Polygon grouped-daily x universe sector/industry map -> per-stock signed dollar flow, rolled up. Emits data/money-flow-state.json.",
+  "description": "Replays six retained market sessions for dated stock, industry and sector price-volume research. Trading turnover and return-times-turnover are proxies, not investor net capital flows. No allocation authority.",
   "schedule": {
     "name": "justhodl-money-flow-state-sched",
     "expression": "cron(40 20 ? * MON-FRI *)",

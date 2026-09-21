@@ -50,7 +50,7 @@ def rrg_quad(rank, slope):
 def lambda_handler(event, context):
     sec = __import__('sector_research').decision_view(rj("data/sector-rotation.json"))
     liq = rj("data/liquidity-flow.json")
-    mf = rj("data/money-flow-state.json")
+    mf = __import__('money_volume_research').decision_view(rj("data/money-flow-state.json"))
     mf_sector = {s.get("sector"): s.get("net_flow_usd") for s in (mf.get("sectors") or []) if s.get("sector")}
     sectors = sec.get("sectors") or []
     liq_drain = (liq.get("regime") == "draining")

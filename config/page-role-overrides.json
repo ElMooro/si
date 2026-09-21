@@ -1480,6 +1480,27 @@
         }
       },
       "reason": "Matched-date ETF price evidence and original-source replay; signed exposure scenarios are retrospective and do not prescribe an allocation."
+    },
+    "money-flow.html": {
+      "primary_engines": [
+        "justhodl-money-flow-state"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-money-flow-state": [
+          "data/money-flow-state.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-money-flow-state": {
+          "source": "aws/lambdas/justhodl-money-flow-state/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Six matched original market sessions, retained current classification and explicitly labeled price-volume proxies. Historical exposure arithmetic supplies no trade or allocation authority."
+        }
+      },
+      "reason": "Six matched original market sessions, retained current classification and explicitly labeled price-volume proxies. Historical exposure arithmetic supplies no trade or allocation authority."
     }
   }
 }
