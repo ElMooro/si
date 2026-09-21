@@ -15,6 +15,7 @@ from reversal_research_catalog import extend_catalog as include_reversal_series
 from funding_research_catalog import extend_catalog as include_funding_series
 from plumbing_research_catalog import extend_catalog as include_plumbing_series
 from implied_research_catalog import extend_catalog as include_implied_series
+from activity_source_catalog import extend_catalog as include_activity_series
 from daily_macro_store import run as publish_daily_macro
 from daily_market_store import collect as collect_market_sources
 import json, urllib.request, os, time, boto3
@@ -2197,6 +2198,7 @@ def lambda_handler(event, context):
         catalog = {sid: {'category': cat, 'display_name': name}
                    for sid, (cat, name) in FRED_SERIES.items()}
         catalog = include_implied_series(include_plumbing_series(include_funding_series(include_reversal_series(include_cb_series(include_inflection_series(include_risk_gate_series(include_lce_series(catalog))))))))
+        catalog = include_activity_series(catalog)
         remaining = context.get_remaining_time_in_millis()/1000 if context else 900
         try:
             result = run_source_research(s3, S3_BUCKET, catalog, FRED_KEY,

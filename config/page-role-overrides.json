@@ -1396,6 +1396,27 @@
         }
       },
       "reason": "Original-source common-month macro measurements and explicit indicator arithmetic; historical outcomes have no qualified GDP forecast or portfolio authority."
+    },
+    "activity-nowcast.html": {
+      "primary_engines": [
+        "justhodl-activity-nowcast"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-activity-nowcast": [
+          "data/activity-nowcast.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-activity-nowcast": {
+          "source": "aws/lambdas/justhodl-activity-nowcast/source/activity_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Original-source weekly activity, claims and financial conditions with explicit calendar gaps and overlapping evidence; no qualified investment regime."
+        }
+      },
+      "reason": "Original-source weekly activity, claims and financial conditions with explicit calendar gaps and overlapping evidence; no qualified investment regime."
     }
   }
 }

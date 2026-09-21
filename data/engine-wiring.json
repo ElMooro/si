@@ -2,8 +2,8 @@
  "v": 2,
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
- "n_pages": 41,
- "n_wired": 167,
+ "n_pages": 40,
+ "n_wired": 166,
  "wired": [
   {
    "engine": "justhodl-consensus-bottom",
@@ -18,14 +18,6 @@
    "feed": "data/sequence-alpha.json",
    "page": "accumulation.html",
    "title": "3-STEP ACCUMULATION SEQUENCE",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-gap-metrics",
-   "feed": "data/baltic-dry.json",
-   "page": "activity-nowcast.html",
-   "title": "FREIGHT PULSE (BDRY)",
    "schema_version": "unspecified",
    "via": "jh-wire.js"
   },

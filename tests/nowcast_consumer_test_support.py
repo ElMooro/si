@@ -21,8 +21,13 @@ class Boundaries(unittest.TestCase):
         self.assertEqual(f(80,'Tech',None),(80,0))
 
     def test_activity_cannot_subtract_differently_scaled_indices(self):
-        f=actual('justhodl-activity-nowcast','divergence',{'s3':Client(),'S3_BUCKET':'b','json':json})
-        p=f(-60);self.assertFalse(p['available']);self.assertIsNone(p['gap']);self.assertIsNone(p['monthly_regime'])
+        sys.path.insert(0,str(ROOT/'aws/lambdas/justhodl-activity-nowcast/tests'))
+        from activity_fixture import fixture,store
+        client,inputs,_,_=fixture()
+        p=store.compile_output(inputs,store.reader(client,'b'))
+        self.assertFalse(p['divergence']['available']);self.assertIsNone(p['divergence']['gap'])
+        self.assertIsNone(p['regime']);self.assertIsNone(p['activity_index'])
+        self.assertFalse(p['calls_eligible'])
 
     def test_null_or_unknown_sector_regime_never_becomes_muddle(self):
         ns={'SECTOR_TILT_MATRIX':{'XLF':{'MUDDLE':1}}};normalize=actual('justhodl-sector-tilt','normalize_regime',ns)
