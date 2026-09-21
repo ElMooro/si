@@ -46,3 +46,12 @@ test('Sector pages use the verified renderer and consumers receive no legacy rec
  const worker=fs.readFileSync(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/src/index.js'),'utf8');assert.match(worker,/'sector-rotation.json', 'sector-tilt.json'/);assert.match(worker,/activity-research\|sector-research\|sector-tilt-research/);
  for(const [fn,bytes] of [['sector-rotation',35346],['sector-tilt',18200]])assert.equal(fs.statSync(path.join(__dirname,'../aws/lambdas/justhodl-'+fn+'/source/legacy_'+fn.replaceAll('-','_')+'.py')).size,bytes);
 });
+test('Every native sector related-research link resolves to a repository page',()=>{
+ for(const name of ['rotation/index.html','sectors.html','sector-tilt.html']){
+  const html=fs.readFileSync(path.join(__dirname,'..',name),'utf8');
+  for(const match of html.matchAll(/href="(\/[^"?#]*)"/g)){
+   const route=match[1],target=route.endsWith('/')?route+'index.html':route;
+   assert.ok(fs.existsSync(path.join(__dirname,'..',target.slice(1))),name+' has missing related route '+route);
+  }
+ }
+});
