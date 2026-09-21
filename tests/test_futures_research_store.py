@@ -26,6 +26,27 @@ class Memory:
 
 
 class Tests(unittest.TestCase):
+    def test_parallel_record_failure_cannot_publish_either_head(self):
+        real=store.immutable
+        def write(client,bucket,ref,raw,read):
+            if '/records/' in ref['key']:raise OSError('synthetic record write failure')
+            return real(client,bucket,ref,raw,read)
+        with patch.object(store,'immutable',side_effect=write):
+            with self.assertRaisesRegex(RuntimeError,'inspect retained'):self.run_()
+        self.assertNotIn(model.CURRENT,self.memory.data)
+        self.assertEqual(self.memory.data[model.LEGACY],self.legacy)
+
+    def test_parallel_record_readback_failure_preserves_previous_heads(self):
+        original_get=self.memory.get_object
+        def get(**kw):
+            result=original_get(**kw)
+            if '/records/' in kw['Key']:result['Body']=BytesIO(b'corrupt')
+            return result
+        with patch.object(self.memory,'get_object',side_effect=get):
+            with self.assertRaises(RuntimeError):self.run_()
+        self.assertNotIn(model.CURRENT,self.memory.data)
+        self.assertEqual(self.memory.data[model.LEGACY],self.legacy)
+
     def setUp(self):
         self.memory=Memory();originals,self.sources=fixture();self.memory.data.update(originals)
         self.legacy=model.encoded({'engine':'justhodl-polygon-futures-curves','version':'2.0.1','product_data':{'preserve':'whole'},'identity':{'preserve':'whole'},'signals':['unqualified']})

@@ -138,6 +138,23 @@ def compile_output(inputs,read,emit):
     return {**model.compile_output(inputs['sources'],inputs['generated_at'],read,emit),'predecessors':inputs['predecessors']}
 
 
+def materialize(client,bucket,inputs,read):
+    """Independent content-addressed blocks may write concurrently; all must verify."""
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        pending={};total=0
+        def emit(kind,doc):
+            nonlocal total
+            raw=model.encoded(doc);ref=model.ref(raw,kind)
+            if ref['key'] not in pending:
+                total+=len(raw)
+                if len(pending)>=2048 or total>64*1024*1024:raise ValueError('Bounded futures record materialization required')
+                pending[ref['key']]=pool.submit(immutable,client,bucket,ref,raw,read)
+            return ref
+        output=compile_output(inputs,read,emit)
+        for future in pending.values():future.result()
+    return output
+
+
 def verified_run(identity,read):
     if (not isinstance(identity,dict) or set(identity)!={'manifest_key','output_sha256'}
             or not isinstance(identity['manifest_key'],str) or not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json',identity['manifest_key'])
@@ -256,9 +273,7 @@ def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90
             inputs={'contract':'futures-original-inputs.v1','generated_at':now(),'predecessors':predecessors,**collection}
         raw=model.encoded(inputs);ref=model.ref(raw,'inputs');immutable(client,bucket,ref,raw,read)
         checkpoint(phase='compile',retained_input=ref)
-        def emit(kind,doc):
-            raw=model.encoded(doc);ref=model.ref(raw,kind);immutable(client,bucket,ref,raw,read);return ref
-        output=compile_output(inputs,read,emit)
+        output=materialize(client,bucket,inputs,read)
         if expected is not None and output!=expected:raise ValueError('Recovered futures output differs')
         identity=retain(client,bucket,inputs,output,read,checkpoint);checkpoint(phase='publish')
         published=alias=False

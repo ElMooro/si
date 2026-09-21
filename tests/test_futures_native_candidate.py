@@ -2,7 +2,7 @@ from pathlib import Path
 import sys,unittest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/ops/staged')]
-import ops_6014_futures_native_candidate as audit
+import ops_6015_futures_parallel_native_candidate as audit
 
 
 class Tests(unittest.TestCase):
