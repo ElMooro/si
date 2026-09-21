@@ -1501,6 +1501,27 @@
         }
       },
       "reason": "Six matched original market sessions, retained current classification and explicitly labeled price-volume proxies. Historical exposure arithmetic supplies no trade or allocation authority."
+    },
+    "sector-flow.html": {
+      "primary_engines": [
+        "justhodl-sector-flow-state"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-sector-flow-state": [
+          "data/sector-flow-state.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-sector-flow-state": {
+          "source": "aws/lambdas/justhodl-sector-flow-state/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Canonical same-period ETF price and selected issuer NAV/share evidence, with separately dated stock-volume coverage. Capital Fusion is a projection of the same retained roots and contributes no independent vote."
+        }
+      },
+      "reason": "Canonical same-period ETF price and selected issuer NAV/share evidence, with separately dated stock-volume coverage. Capital Fusion is a projection of the same retained roots and contributes no independent vote."
     }
   }
 }

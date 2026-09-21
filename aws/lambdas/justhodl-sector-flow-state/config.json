@@ -3,13 +3,13 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 256,
-  "timeout": 60,
+  "memory": 2048,
+  "timeout": 300,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Legacy sector-flow projection retained for compatibility. Native sector price research supplies no conviction or allocation vote; output explicitly abstains. Publishes data/sector-flow-state.json for reviewed downstream consumers.",
+  "description": "Reproducible sector research with dated price, issuer share-change and stock-turnover evidence; no investment voting.",
   "schedule": {
     "name": "justhodl-sector-flow-state-sched",
     "expression": "cron(15 21 ? * MON-FRI *)",

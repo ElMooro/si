@@ -35,7 +35,8 @@ test('Research renders safe labels and local page routes exist',()=>{
  const p=structuredClone(f.packet);p.sector_measurements[0].label='<img src=x onerror=evil()>';const html=api.render(p);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);
  const page=fs.readFileSync(path.join(__dirname,'../money-flow.html'),'utf8');assert.match(page,/jh-money-volume.js\?v=20260921-native1/);assert.doesNotMatch(page,/jh-wire.js|jh-page-ai.js/);
  for(const match of page.matchAll(/href="(\/[^"?#]*)"/g)){const route=match[1],target=route.endsWith('/')?route+'index.html':route;assert.ok(fs.existsSync(path.join(__dirname,'..',target.slice(1))),route);}
- const old=fs.readFileSync(path.join(__dirname,'../sector-flow.html'),'utf8');assert.match(old,/function legacyRenderMoneyFlow/);assert.match(old,/Inspect original-source evidence/);
+ const old=fs.readFileSync(path.join(__dirname,'../docs/legacy/sector-flow-pre-native-20260921.html.txt'),'utf8');assert.match(old,/function legacyRenderMoneyFlow/);assert.match(old,/Inspect original-source evidence/);
+ const sector=fs.readFileSync(path.join(__dirname,'../sector-flow.html'),'utf8');assert.match(sector,/\/money-flow.html/);
  const worker=fs.readFileSync(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/src/index.js'),'utf8');assert.match(worker,/'money-flow-state.json'/);assert.match(worker,/\|money-volume-research/);
  assert.equal(fs.statSync(path.join(__dirname,'../aws/lambdas/justhodl-money-flow-state/source/legacy_money_flow_state.py')).size,6199);
 });

@@ -38,11 +38,12 @@ class SectorBoundaries(unittest.TestCase):
             ns={'fetch_json':lambda *a:CANARY};exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-sector-assignment','exec'),ns)
             self.assertEqual(ns[name]['tilts'],[]);self.assertEqual(ns[name]['sectors'],[]);self.assertEqual(ns[name]['portfolio_action'],'WAIT')
     def test_sector_flow_projection_emits_no_default_underweight(self):
-        writes=[];ns={'rj':lambda _:CANARY,'datetime':datetime,'timezone':timezone,'json':json,'SPDR_TO_GICS':{},'BUCKET':'b',
-            'S3':types.SimpleNamespace(put_object=lambda **kw:writes.append(kw))}
-        out=actual('justhodl-sector-flow-state','lambda_handler',ns)({},None)
-        self.assertEqual(out['n'],0);self.assertEqual(out['ow'],[]);self.assertEqual(out['uw'],[])
-        packet=json.loads(writes[0]['Body']);self.assertEqual(packet['portfolio_action'],'WAIT');self.assertFalse(packet['calls_eligible'])
+        def forbidden(*a,**kw):self.fail('Legacy canary must not publish')
+        ns={'json':json,'CONTRACT':'sector-fusion-research.v1','PUBLISHED_KEY':'data/sector-flow-state.json',
+            'boto3':types.SimpleNamespace(client=lambda *a,**kw:None),'Config':lambda **kw:None,
+            'reader':lambda *a:lambda k:json.dumps(CANARY).encode(),'run':forbidden}
+        out=actual('justhodl-sector-flow-state','lambda_handler',ns)({'action':'current_state'},None)
+        self.assertEqual(out['statusCode'],503);self.assertNotIn('UNDERWEIGHT',out['body'])
     def test_context_verifies_body_clock_and_only_descriptive_authority(self):
         packet,sources,_=fixtures();p=model.build(packet,sources,STAMP);p['replay']={'manifest_key':'data/sector-research/runs/'+'a'*64+'.json','output_sha256':model.sha(model.encoded(p))};at=datetime.fromisoformat(STAMP)
         self.assertTrue(guard.context(p,at)['available']);self.assertFalse(guard.context(p,at+timedelta(hours=27))['available'])

@@ -1,129 +1,26 @@
-"""
-justhodl-sector-flow-state — canonical fused SECTOR CONVICTION feed.
-
-Every other engine that wants a sector view (deal-scanner, master-ranker, best-setups,
-bottleneck-boom) currently re-derives it ad hoc from different sources. This engine fuses
-the sector signals already computed by sector-rotation into ONE per-sector conviction +
-posture + confluence, blends in the market-wide liquidity backdrop (Druckenmiller's master
-variable), and emits a single source-of-truth:  s3://justhodl-dashboard-live/data/sector-flow-state.json
-
-conviction = rotation_score
-           + RRG-quadrant adj  (Leading +8 / Improving +5 / Weakening -5 / Lagging -8)
-           + ETF-flow-confirm  (STRONG_INFLOW +6 ... STRONG_OUTFLOW -6)
-           + money-flow        (MFI>60 +3 / <40 -3)
-           + liquidity tilt    (draining -2 to risk-on sectors)
-confluence = count of agreeing bullish signals (RRG up, inflow, MFI strong, RS accelerating, cycle-favored)
-posture    = OVERWEIGHT (conv>=62 & confluence>=3) / UNDERWEIGHT (conv<=42) / NEUTRAL
-"""
+"""Reproducible sector research; HTTP reads and idempotent scheduled publication."""
 import json
 import boto3
-from datetime import datetime, timezone
-
-S3 = boto3.client("s3")
-BUCKET = "justhodl-dashboard-live"
-RISK_ON = {"XLK", "XLY", "XLF", "XLC", "XLB", "XLE", "XLI", "XLRE"}
-SPDR_TO_GICS = {"XLK": "Technology", "XLV": "Healthcare", "XLF": "Financial Services",
-                "XLE": "Energy", "XLI": "Industrials", "XLB": "Basic Materials",
-                "XLP": "Consumer Defensive", "XLY": "Consumer Cyclical", "XLU": "Utilities",
-                "XLRE": "Real Estate", "XLC": "Communication Services"}
+from botocore.config import Config
+from sector_fusion_model import CONTRACT as CONTRACT
+from sector_fusion_store import reader,run
+PUBLISHED_KEY='data/sector-flow-state.json'
+KIND='flow'
 
 
-def rj(key):
-    try:
-        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
-    except Exception as e:
-        print(f"[rj] {key}: {str(e)[:60]}")
-        return {}
-
-
-def rrg_quad(rank, slope):
-    strong, rising = rank >= 50, slope >= 0
-    if strong and rising:
-        return "Leading"
-    if strong and not rising:
-        return "Weakening"
-    if not strong and not rising:
-        return "Lagging"
-    return "Improving"
-
-
-def lambda_handler(event, context):
-    sec = __import__('sector_research').decision_view(rj("data/sector-rotation.json"))
-    liq = rj("data/liquidity-flow.json")
-    mf = __import__('money_volume_research').decision_view(rj("data/money-flow-state.json"))
-    mf_sector = {s.get("sector"): s.get("net_flow_usd") for s in (mf.get("sectors") or []) if s.get("sector")}
-    sectors = sec.get("sectors") or []
-    liq_drain = (liq.get("regime") == "draining")
-    out = []
-    for s in sectors:
-        sym = s.get("symbol")
-        if not sym:
-            continue
-        base = float(s.get("rotation_score") or 0)
-        rank = float(s.get("rs_pct_rank_1y") or 50)
-        slope = float(s.get("rs_slope_21d_pct_per_day") or 0)
-        quad = rrg_quad(rank, slope)
-        q_adj = {"Leading": 8, "Improving": 5, "Weakening": -5, "Lagging": -8}[quad]
-        fc = str(s.get("etf_flow_confirm") or "").upper()
-        flow_adj = {"STRONG_INFLOW": 6, "INFLOW": 3, "NEUTRAL": 0, "OUTFLOW": -3, "STRONG_OUTFLOW": -6}.get(fc, 0)
-        mfi = float(s.get("money_flow_index_14") or 50)
-        mfi_adj = 3 if mfi > 60 else -3 if mfi < 40 else 0
-        liq_adj = -2 if (liq_drain and sym in RISK_ON) else 0
-        dollar_flow = mf_sector.get(SPDR_TO_GICS.get(sym))
-        dollar_adj, dollar_confirms = 0, None
-        if dollar_flow is not None:
-            strong = base >= 55
-            if strong and dollar_flow > 0:
-                dollar_adj, dollar_confirms = 3, True
-            elif strong and dollar_flow < 0:
-                dollar_adj, dollar_confirms = -4, False   # rotation strong but dollars leaving = distribution
-            elif (not strong) and dollar_flow < 0:
-                dollar_adj, dollar_confirms = -2, True     # dollars confirm the weakness
-            elif (not strong) and dollar_flow > 0:
-                dollar_adj = 2                              # early dollars in
-        conv = max(0.0, min(100.0, base + q_adj + flow_adj + mfi_adj + liq_adj + dollar_adj))
-        drivers = []
-        if quad in ("Leading", "Improving"):
-            drivers.append(f"RRG {quad}")
-        if flow_adj > 0:
-            drivers.append(f"flow {fc.replace('_', ' ').lower()}")
-        if mfi > 60:
-            drivers.append("money-flow strong")
-        if "RS_ACCELERATING" in (s.get("rotation_in_flags") or []):
-            drivers.append("RS accelerating")
-        if s.get("in_current_cycle"):
-            drivers.append("cycle-favored")
-        if dollar_confirms is True and dollar_flow and dollar_flow > 0:
-            drivers.append("dollars flowing in")
-        elif dollar_confirms is False:
-            drivers.append("\u26a0 dollars diverging (distribution)")
-        conf = len(drivers)
-        posture = "OVERWEIGHT" if (conv >= 62 and conf >= 3) else "UNDERWEIGHT" if (conv <= 42) else "NEUTRAL"
-        out.append({
-            "symbol": sym, "name": s.get("name"), "conviction": round(conv, 1), "posture": posture,
-            "quadrant": quad, "confluence": conf, "drivers": drivers,
-            "rotation_score": round(base, 1), "rs_rank_1y": round(rank, 1), "rs_slope": round(slope, 4),
-            "flow_confirm": fc or None, "in_cycle": bool(s.get("in_current_cycle")),
-            "dollar_flow_usd": dollar_flow, "dollar_confirms": dollar_confirms,
-        })
-    out.sort(key=lambda x: -x["conviction"])
-    doc = {
-        'sector_research_context':sec.get('research_context'),'portfolio_action':'WAIT','call':None,
-        'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False,'forecast_qualified':False,
-        "engine": "justhodl-sector-flow-state", "version": "1.1.0",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "liquidity_regime": liq.get("regime"),
-        "cycle_phase": (sec.get("macro_context") or {}).get("cycle_phase"),
-        "n_sectors": len(out),
-        "overweight": [x["symbol"] for x in out if x["posture"] == "OVERWEIGHT"],
-        "underweight": [x["symbol"] for x in out if x["posture"] == "UNDERWEIGHT"],
-        "sectors": out,
-        "methodology": ("Fused per-sector conviction = rotation_score + RRG-quadrant + ETF-flow-confirm "
-                        "+ money-flow + liquidity tilt; confluence = count of agreeing signals; posture from "
-                        "conviction+confluence. Source: sector-rotation + liquidity-flow."),
-        "consumers": "deal-scanner, master-ranker, best-setups, bottleneck-boom (map ticker -> SPDR sector)",
-    }
-    S3.put_object(Bucket=BUCKET, Key="data/sector-flow-state.json",
-                  Body=json.dumps(doc).encode(), ContentType="application/json")
-    print(f"emitted sector-flow-state: {len(out)} sectors, OW={doc['overweight']}, UW={doc['underweight']}")
-    return {"ok": True, "n": len(out), "ow": doc["overweight"], "uw": doc["underweight"]}
+def lambda_handler(event=None,context=None):
+    event=event if isinstance(event,dict) else {}
+    if event.get('validate_only') is True:
+        return {'statusCode':200,'body':json.dumps({'validation_only':True,'contract':CONTRACT,'published':False})}
+    client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=5,read_timeout=20,
+        retries={'max_attempts':2},max_pool_connections=8,tcp_keepalive=True))
+    bucket='justhodl-dashboard-live'
+    if (event.get('requestContext') or {}).get('http') or event.get('httpMethod') or event.get('action')=='current_state':
+        packet=json.loads(reader(client,bucket)(PUBLISHED_KEY))
+        if packet.get('contract')!=CONTRACT:
+            return {'statusCode':503,'body':json.dumps({'reason':'native_sector_evidence_unavailable'})}
+        return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':json.dumps(packet)}
+    execution_id=getattr(context,'aws_request_id',None)
+    if not execution_id:raise ValueError('AWS execution identity required')
+    result=run(client,bucket,KIND,event.get('request_id',execution_id),execution_id)
+    return {'statusCode':200 if result['status']=='complete' else 202 if result['status']=='running' else 500,'body':json.dumps(result)}
