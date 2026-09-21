@@ -29,7 +29,7 @@ def main():
         r.kv(enabled=ctl.get("enabled"), launch=ctl.get("launch"), approved_at=approved, daily_budget=ctl.get("daily_budget_usd"), season_cap=ctl.get("season_cap_usd"),
              max_jobs_per_day=ctl.get("max_jobs_per_day"), season_committed_usd=round(season.get("usd", 0), 2), season_jobs=season.get("jobs"), today_jobs=today.get("jobs"), records=len(records))
         r.section("2. Supersede the stale gen-21 manifest")
-        key = "factory/bursts/jobs/superseded-gen-21-20260921.json"
+        key = "factory/gearb/jobs/superseded-gen-21-20260921.json"          # JOBS_PREFIX (the cost ledger), where latest_unlaunched_manifest looks
         try:
             s3.head_object(Bucket=PRI, Key=key); r.log("already superseded")
         except Exception:  # noqa: BLE001
@@ -55,8 +55,9 @@ def main():
             r.kv(scheduler_input=str((sch.get_schedule(Name="justhodl-ai-gearb", GroupName="default").get("Target") or {}).get("Input"))[:200])
         except Exception as e:  # noqa: BLE001
             r.log("schedule lookup: %s" % str(e)[:120])
-        resp = lam.invoke(FunctionName="justhodl-ai", InvocationType="RequestResponse", Payload=json.dumps({"mode": "gearb", "body": {"launch": True}}).encode())   # what the hourly schedule sends
+        resp = lam.invoke(FunctionName="justhodl-ai", InvocationType="RequestResponse", Payload=json.dumps({"mode": "gearb", "launch": True, "body": {"launch": True}}).encode())
         out = json.loads(resp["Payload"].read()); res = out.get("result") or out
+        r.log("raw tick result: " + json.dumps(out, default=str)[:1200])
         r.kv(built=json.dumps(res.get("built"))[:300], launched=json.dumps(res.get("launched"))[:300], refusal=res.get("refusal"), examined=json.dumps(res.get("examined"))[:200])
         (r.ok if res.get("launched") else r.warn)("launched" if res.get("launched") else "not launched: %s" % res.get("refusal"))
 
