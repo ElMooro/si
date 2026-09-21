@@ -12,16 +12,12 @@ import option_research_rows as codec
 PRIVATE = model.PRIVATE
 MAX = model.MAX_ARTIFACT
 COMPILERS = (capture, contracts, codec, model, sys.modules[__name__])
-# Managed native runs used 639-656 seconds after source capture. Leave a
-# conservative margin for retained replay/publication inside Lambda's 900s cap.
-POST_CAPTURE_RESERVE_SECONDS = 780
 # The failed candidate's first compilation used the declared discovery order;
 # serialization sorted its dictionary. The reviewed fix restores that declared
 # order on replay. Old code is authenticated and retained, never executed here.
 COMPATIBLE_COMPILERS = {
     'option_flow_research': frozenset(('f9ead37ce9e48bb8e4b597b8481c9d544ffee9b396c129d98cbba1b8e48f33ee',)),
-    'option_flow_store': frozenset(('f5284a6eaead655f2d73471f3bb114ed016aaa708ce07c3e70d0e1d1a31782cd',
-        'b79dfe1dbb004007edfacbd2fffb852430300e6ed876b7dfa5d81dcb210e6180',))}
+    'option_flow_store': frozenset(('f5284a6eaead655f2d73471f3bb114ed016aaa708ce07c3e70d0e1d1a31782cd',))}
 now = capture.now
 
 
@@ -288,13 +284,11 @@ def run(client, bucket, request_id, execution_id, credential='', remaining_secon
         if recover_run is not None:
             inputs, expected = recovery_inputs(recover_run, read); checkpoint(recovered_from=recover_run)
         else:
-            if end - time.monotonic() <= POST_CAPTURE_RESERVE_SECONDS + 5:
-                raise RuntimeError('Insufficient source collection and replay budget')
             discovery = {name: snapshot(client, bucket, name, read) for name in model.DISCOVERY}
             predecessors = {name: snapshot(client, bucket, name, read) for name in (model.LEGACY, model.CURRENT)}
             selection = model.universe(discovery, read)
             checkpoint(phase='collect_originals', selected=selection['selected'], discovery=discovery, predecessors=predecessors)
-            collection = collect(client, bucket, credential, selection, read, end - POST_CAPTURE_RESERVE_SECONDS, key)
+            collection = collect(client, bucket, credential, selection, read, end - 360, key)
             inputs = {'contract': 'option-flow-inputs.v1', 'generated_at': now(), 'discovery': discovery,
                 'predecessors': predecessors, 'universe': selection, **collection}
         raw = model.encoded(inputs); identity = model.ref(raw, 'inputs'); immutable(client, bucket, identity['key'], raw, read)

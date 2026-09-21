@@ -71,6 +71,27 @@ class StoreTests(unittest.TestCase):
     def test_replay_rejects_compiler_tamper(self):
         s3,inputs,out,ref=self.candidate();run=json.loads(s3.data[ref['manifest_key']]);key=next(iter(run['compilers'].values()))['key'];s3.data[key]+=b'\n'
         with self.assertRaises(ValueError):store.replay(ref,store.reader(s3,'bucket'))
+    def test_reserved_validation_budget_limits_collection(self):
+        s3=S3()
+        with patch.object(store.time,'monotonic',return_value=1000),patch.object(store,'collect',side_effect=RuntimeError('stop')) as collect:
+            with self.assertRaises(RuntimeError):store.run(s3,'bucket','budget-test','execution',credential='synthetic',remaining_seconds=900)
+        self.assertEqual(collect.call_args.args[5],1120)
+        self.assertNotIn(model.CURRENT,s3.data)
+    def test_short_execution_budget_does_not_start_source_collection(self):
+        s3=S3()
+        with patch.object(store,'collect') as collect,patch.object(store,'snapshot') as snapshot:
+            with self.assertRaises(RuntimeError):store.run(s3,'bucket','short-budget','execution',credential='synthetic',remaining_seconds=780)
+        collect.assert_not_called();snapshot.assert_not_called()
+        status=json.loads(s3.data[store.request_key('short-budget')]);self.assertEqual(status['status'],'failed')
+    def test_budget_repair_replays_exact_predecessor_store(self):
+        s3,inputs,out,ref=self.candidate();manifest=json.loads(s3.data[ref['manifest_key']])
+        raw=(ROOT/'tests/fixtures/option_flow_store-pre-reserve-fix.py.txt').read_bytes()
+        previous=model.ref(raw,'compilers');self.assertIn(previous['sha256'],store.COMPATIBLE_COMPILERS['option_flow_store'])
+        s3.data[previous['key']]=raw;manifest['compilers']['option_flow_store']=previous
+        raw=model.encoded(manifest);key=model.ref(raw,'runs')['key'];s3.data[key]=raw
+        self.assertEqual(store.replay({**ref,'manifest_key':key},store.reader(s3,'bucket')),out)
+        s3.data[previous['key']]+=b'\n'
+        with self.assertRaises(ValueError):store.replay({**ref,'manifest_key':key},store.reader(s3,'bucket'))
     def test_replay_rejects_record_tamper(self):
         s3,inputs,out,ref=self.candidate();key=next(k for k in s3.data if '/rows/' in k);s3.data[key]+=b' '
         with self.assertRaises(ValueError):store.replay(ref,store.reader(s3,'bucket'))
