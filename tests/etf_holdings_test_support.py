@@ -35,6 +35,12 @@ def check_handlers(test):
             test.assertEqual(handler({'request_id':'once'},ctx)['statusCode'],200)
         test.assertEqual(runner.call_args.args[2:5],(kind,'once','fixture-execution'))
         test.assertEqual(runner.call_args.kwargs['remaining_seconds'],820)
+        test.assertIsNone(runner.call_args.kwargs['recover_run'])
+        recover={'manifest_key':'reviewed-retained-run','output_sha256':'retained-output'}
+
+        with mock.patch.dict(os.environ,{'POLYGON_KEY':'fixture-provider-secret'}):
+            test.assertEqual(handler({'request_id':'recover','recover_run':recover},ctx)['statusCode'],200)
+        test.assertEqual(runner.call_args.kwargs['recover_run'],recover)
         test.assertEqual(runner.call_args.kwargs['credential'],'fixture-provider-secret' if kind=='holdings' else '')
         db=Storage();candidate={'contract':contract,'generated_at':'2026-09-21T07:00:00Z'}
         test.assertTrue(store.conditional(db,'fixture',key,candidate,ns['publish_current']))

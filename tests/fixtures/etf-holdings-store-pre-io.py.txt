@@ -1,7 +1,5 @@
 """Protected originals, bounded replay, immutable row pages and conditional publication."""
-from collections import OrderedDict, deque
-from concurrent.futures import ThreadPoolExecutor
-from threading import Lock
+from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 import json, re, sys, time
@@ -22,8 +20,6 @@ CONTEXTS = ('etf-flows/constituent-pressure.json', 'etf-flows/stock-exposure-loo
 CACHE_PREFIXES = ('etf-flows/constituents/', 'etf-constituents-v2/')
 ALIASES = CONTEXTS[:2] + CONTEXTS[-2:]
 MIGRATION = model.PREFIX + 'migration.json'
-# Reviewed predecessor differs only in storage/runtime orchestration. Never execute retained code.
-COMPATIBLE_IO_STORES = frozenset(('91f6e5d6ec12f30523b30221577cb42c245732ac9cb9a420131bfe26d9f9087e',))
 
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -49,50 +45,20 @@ def source_key(key):
         bool(re.fullmatch(r'(?:etf-flows/constituents|etf-constituents-v2)/[A-Z][A-Z0-9.\-]{0,14}\.json', key)))
 
 
-def reader(client, bucket, capacity=512 * 1024 * 1024):
-    """One bounded cache shared by acquisition, compilation and original replay."""
-    cache = OrderedDict();size = 0;lock = Lock()
-    def remember(key, raw):
-        nonlocal size
-        if not artifact(key) or not isinstance(raw, bytes) or len(raw) > MAX or key.rsplit('/', 1)[-1].split('.')[0] != model.sha(raw):
-            raise ValueError('Only verified content-addressed bytes may enter the replay cache')
-        if len(raw) > capacity: return
-        with lock:
-            if key in cache: size -= len(cache.pop(key))
-            while cache and size + len(raw) > capacity:
-                _, previous = cache.popitem(last=False);size -= len(previous)
-            cache[key] = raw;size += len(raw)
+def reader(client, bucket, capacity=96 * 1024 * 1024):
+    cache = OrderedDict();size = 0
     def read(key):
+        nonlocal size
         if not (artifact(key) or source_key(key) or key == MIGRATION): raise ValueError('Unreviewed research read')
-        if artifact(key):
-            with lock:
-                if key in cache:
-                    cache.move_to_end(key);return cache[key]
+        if artifact(key) and key in cache:
+            cache.move_to_end(key);return cache[key]
         raw = bounded(client.get_object(Bucket=bucket, Key=key)['Body'])
-        if artifact(key): remember(key, raw)
+        if artifact(key) and len(raw) <= capacity:
+            while cache and size + len(raw) > capacity:
+                _, old = cache.popitem(last=False);size -= len(old)
+            cache[key] = raw;size += len(raw)
         return raw
-    read.remember = remember
     return read
-
-
-class ArtifactWriter:
-    """Bounded parallel writes; every readback completes before replay/publication."""
-    def __init__(self, client, bucket, read, workers=6, pending_limit=12):
-        if not 1 <= workers <= 6 or not workers <= pending_limit <= 12: raise ValueError('Reviewed writer bounds required')
-        self.client, self.bucket, self.read = client, bucket, read
-        self.pool = ThreadPoolExecutor(max_workers=workers);self.pending = deque();self.limit = pending_limit
-    def __enter__(self): return self
-    def write(self, key, body):
-        immutable(self.client, self.bucket, key, body)
-        self.read.remember(key, body)
-    def __call__(self, key, body):
-        if len(self.pending) >= self.limit: self.pending.popleft().result()
-        self.pending.append(self.pool.submit(self.write, key, body))
-    def __exit__(self, exc_type, exc, tb):
-        try:
-            if exc_type is None:
-                while self.pending: self.pending.popleft().result()
-        finally: self.pool.shutdown(wait=True, cancel_futures=True)
 
 
 def immutable(client, bucket, key, raw, kind='application/json'):
@@ -106,10 +72,9 @@ def immutable(client, bucket, key, raw, kind='application/json'):
     if bounded(client.get_object(Bucket=bucket, Key=key)['Body']) != raw: raise ValueError('Immutable readback differs')
 
 
-def protect(client, bucket, raw, read=None):
+def protect(client, bucket, raw):
     digest = model.sha(raw);key = PRIVATE + digest + '.bin'
     immutable(client, bucket, key, raw, 'application/octet-stream')
-    if read is not None: read.remember(key, raw)
     return {'key': key, 'sha256': digest, 'bytes': len(raw)}
 
 
@@ -122,11 +87,11 @@ def protected(ref, read):
     return raw
 
 
-def snapshot(client, bucket, key, read=None):
+def snapshot(client, bucket, key):
     if not source_key(key): raise ValueError('Unreviewed predecessor snapshot')
     raw = bounded(client.get_object(Bucket=bucket, Key=key)['Body'])
     if not isinstance(json.loads(raw), (dict, list)): raise ValueError('Whole structured predecessor required')
-    return {'source_key': key, **protect(client, bucket, raw, read)}
+    return {'source_key': key, **protect(client, bucket, raw)}
 
 
 def source(ref, key, read):
@@ -144,8 +109,8 @@ def validate_contexts(contexts, read):
     if not contexts[CONTEXTS[0]]: raise ValueError('Whole constituent predecessor required')
 
 
-def preserve(client, bucket, read=None):
-    read = read or reader(client, bucket)
+def preserve(client, bucket):
+    read = reader(client, bucket)
     try: marker = json.loads(read(MIGRATION))
     except Exception as exc:
         if not missing(exc): raise
@@ -157,13 +122,13 @@ def preserve(client, bucket, read=None):
                 if len(keys) > 2000: raise ValueError('Reviewed legacy inventory bound exceeded')
         refs = {}
         for key in sorted(keys):
-            try: refs[key] = snapshot(client, bucket, key, read)
+            try: refs[key] = snapshot(client, bucket, key)
             except Exception as error:
                 if not missing(error): raise
                 refs[key] = None
         validate_contexts(refs, read)
         body = {'contract': 'etf-holdings-preservation.v1', 'preserved_at': now(), 'contexts': refs}
-        marker = protect(client, bucket, model.encoded(body), read)
+        marker = protect(client, bucket, model.encoded(body))
         try: status_write(client, bucket, MIGRATION, marker, IfNoneMatch='*')
         except Exception as error:
             if not conflict(error): raise
@@ -220,42 +185,6 @@ def compile_output(inputs, read, emit):
     return model.lookthrough(packet, inputs['generated_at'], inputs['canonical_source'], inputs.get('previous'))
 
 
-def verify_compilers(run, prefix, read):
-    if set(run['compilers']) != {m.__name__ for m in COMPILERS}: raise ValueError('Compiler inventory differs')
-    for module in COMPILERS:
-        body = Path(module.__file__).read_bytes();digest = model.sha(body)
-        expected = {'key': prefix + 'compilers/' + digest + '.py', 'sha256': digest}
-        ref = run['compilers'][module.__name__]
-        if ref == expected:
-            if read(expected['key']) != body: raise ValueError('Matching reviewed compiler required')
-        elif module is sys.modules[__name__] and ref.get('sha256') in COMPATIBLE_IO_STORES:
-            old = ref['sha256']
-            if ref != {'key': prefix + 'compilers/' + old + '.py', 'sha256': old} or model.sha(read(ref['key'])) != old:
-                raise ValueError('Reviewed predecessor orchestration bytes differ')
-        else: raise ValueError('Matching reviewed compiler required')
-
-
-def recovery_inputs(ref, read):
-    """Resume reviewed immutable inputs, preserving all original measurement clocks."""
-    if not isinstance(ref, dict) or set(ref) != {'manifest_key', 'output_sha256'}: raise ValueError('Exact retained recovery reference required')
-    key = ref['manifest_key']
-    if not isinstance(key, str) or not re.fullmatch(re.escape(model.PREFIX) + r'runs/[a-f0-9]{64}\.json', key):
-        raise ValueError('Only a retained holdings run can be recovered')
-    raw = read(key);run = json.loads(raw)
-    if key != model.PREFIX + 'runs/' + model.sha(raw) + '.json' or run.get('contract') != 'etf-holdings-replay.v1' or run.get('kind') != 'holdings':
-        raise ValueError('Recovery run identity differs')
-    verify_compilers(run, model.PREFIX, read)
-    inputs = checked(run['input'], model.PREFIX, 'inputs', read)
-    output = checked(run['output'], model.PREFIX, 'outputs', read)
-    if (inputs.get('kind') != 'holdings' or output.get('contract') != model.CONTRACT
-            or output['generated_at'] != run['generated_at'] or inputs['generated_at'] != run['generated_at']
-            or run['output_sha256'] != ref['output_sha256'] or model.sha(model.encoded(output)) != ref['output_sha256']
-            or not model.clock(output['generated_at']) <= model.clock(now()) < model.clock(output['source_valid_until'])
-            or any(output.get(k) is not False for k in model.PERMISSIONS)):
-        raise ValueError('Recovery output or source-clock contract differs')
-    return inputs, output
-
-
 def replay(ref, read):
     key = ref.get('manifest_key', '')
     matches = [kind for kind, (prefix, _, _) in KINDS.items() if re.fullmatch(re.escape(prefix) + r'runs/[a-f0-9]{64}\.json', key)]
@@ -263,7 +192,11 @@ def replay(ref, read):
     kind = matches[0];prefix, _, contract = KINDS[kind];raw = read(key);run = json.loads(raw)
     if key != prefix + 'runs/' + model.sha(raw) + '.json' or run.get('contract') != 'etf-holdings-replay.v1' or run.get('kind') != kind:
         raise ValueError('Research run identity differs')
-    verify_compilers(run, prefix, read)
+    if set(run['compilers']) != {m.__name__ for m in COMPILERS}: raise ValueError('Compiler inventory differs')
+    for module in COMPILERS:
+        body = Path(module.__file__).read_bytes();digest = model.sha(body)
+        expected = {'key': prefix + 'compilers/' + digest + '.py', 'sha256': digest}
+        if run['compilers'][module.__name__] != expected or read(expected['key']) != body: raise ValueError('Matching reviewed compiler required')
     inputs = checked(run['input'], prefix, 'inputs', read)
     if inputs.get('kind') != kind: raise ValueError('Run/input kind differs')
     def verify_part(part_key, body):
@@ -275,23 +208,21 @@ def replay(ref, read):
     return output
 
 
-def retain(client, bucket, inputs, output, read=None, checkpoint=None):
-    read = read or reader(client, bucket)
+def retain(client, bucket, inputs, output):
     kind = inputs['kind'];prefix = KINDS[kind][0];refs = {}
     if len(model.encoded(output)) > model.MAX_PUBLIC_ARTIFACT: raise ValueError('Public research root exceeds browser bound')
     for name, doc in (('input', inputs), ('output', output)):
         raw = model.encoded(doc);digest = model.sha(raw);key = prefix + name + 's/' + digest + '.json'
-        immutable(client, bucket, key, raw);read.remember(key, raw);refs[name] = {'key': key, 'sha256': digest, 'bytes': len(raw)}
+        immutable(client, bucket, key, raw);refs[name] = {'key': key, 'sha256': digest, 'bytes': len(raw)}
     compilers = {}
     for module in COMPILERS:
         raw = Path(module.__file__).read_bytes();digest = model.sha(raw);key = prefix + 'compilers/' + digest + '.py'
-        immutable(client, bucket, key, raw, 'text/x-python');read.remember(key, raw);compilers[module.__name__] = {'key': key, 'sha256': digest}
+        immutable(client, bucket, key, raw, 'text/x-python');compilers[module.__name__] = {'key': key, 'sha256': digest}
     run = {'contract': 'etf-holdings-replay.v1', 'kind': kind, 'generated_at': output['generated_at'],
         **refs, 'compilers': compilers, 'output_sha256': refs['output']['sha256']}
-    raw = model.encoded(run);key = prefix + 'runs/' + model.sha(raw) + '.json';immutable(client, bucket, key, raw);read.remember(key, raw)
+    raw = model.encoded(run);key = prefix + 'runs/' + model.sha(raw) + '.json';immutable(client, bucket, key, raw)
     ref = {'manifest_key': key, 'output_sha256': refs['output']['sha256']}
-    if checkpoint is not None: checkpoint(ref)
-    if replay(ref, read) != output: raise ValueError('Retained original replay differs')
+    if replay(ref, reader(client, bucket)) != output: raise ValueError('Retained original replay differs')
     return ref
 
 
@@ -343,7 +274,7 @@ def compatibility(packet, target):
         'independent_investment_votes': 0, **model.permissions()}
 
 
-def run(client, bucket, kind, request_id, execution_id, credential='', remaining_seconds=840, publish=None, recover_run=None):
+def run(client, bucket, kind, request_id, execution_id, credential='', remaining_seconds=840, publish=None):
     budget_end = time.monotonic() + max(1, min(remaining_seconds, 840));key = request_key(kind, request_id)
     status = {'contract': 'etf-holdings-request.v1', 'kind': kind, 'request_id': request_id,
         'execution_id': execution_id, 'started_at': now(), 'status': 'running', 'phase': 'preserve'}
@@ -352,45 +283,30 @@ def run(client, bucket, kind, request_id, execution_id, credential='', remaining
         if not conflict(exc): raise
         return json.loads(bounded(client.get_object(Bucket=bucket, Key=key)['Body']))
     try:
-        read = reader(client, bucket);expected_output = None
-        if recover_run is not None:
-            if kind != 'holdings': raise ValueError('Only canonical holdings support original-input recovery')
-            inputs, expected_output = recovery_inputs(recover_run, read)
-            status['recovered_from'] = recover_run
-        elif kind == 'holdings':
-            contexts = preserve(client, bucket, read)
-            try: previous = snapshot(client, bucket, model.CURRENT, read)
+        if kind == 'holdings':
+            contexts = preserve(client, bucket)
+            try: previous = snapshot(client, bucket, model.CURRENT)
             except Exception as exc:
                 if not missing(exc): raise
                 previous = None
-            acquisition = collector.Collector(credential, lambda raw: protect(client, bucket, raw, read), budget_end - 180)
+            acquisition = collector.Collector(credential, lambda raw: protect(client, bucket, raw), budget_end - 180)
             status['phase'] = 'collect_originals';status_write(client, bucket, key, status)
             collections, requests, source_bytes = acquisition.collect()
             inputs = {'contract': 'etf-holdings-inputs.v1', 'kind': kind, 'generated_at': now(),
                 'query_date': acquisition.query_date, 'contexts': contexts, 'collections': collections,
                 'provider_requests': requests, 'original_provider_bytes': source_bytes, 'previous': previous}
         else:
-            canonical = snapshot(client, bucket, model.CURRENT, read)
-            try: previous = snapshot(client, bucket, model.LOOK_CURRENT, read)
+            canonical = snapshot(client, bucket, model.CURRENT)
+            try: previous = snapshot(client, bucket, model.LOOK_CURRENT)
             except Exception as exc:
                 if not missing(exc): raise
                 previous = None
             inputs = {'contract': 'etf-lookthrough-inputs.v1', 'kind': kind, 'generated_at': now(),
                 'canonical_source': canonical, 'previous': previous}
-        input_raw = model.encoded(inputs);input_digest = model.sha(input_raw)
-        input_key = KINDS[kind][0] + 'inputs/' + input_digest + '.json'
-        immutable(client, bucket, input_key, input_raw);read.remember(input_key, input_raw)
-        status.update(phase='compile', phase_started_at=now(),
-            retained_input={'key': input_key, 'sha256': input_digest, 'bytes': len(input_raw)},
-            provider_requests_this_execution=0 if recover_run is not None else inputs.get('provider_requests', 0))
-        status_write(client, bucket, key, status)
-        with ArtifactWriter(client, bucket, read) as emit:
-            output = compile_output(inputs, read, emit)
-        if expected_output is not None and output != expected_output: raise ValueError('Recovered original calculation differs')
-        status.update(phase='retained_replay', phase_started_at=now());status_write(client, bucket, key, status)
-        def checkpoint(ref):
-            status['candidate_replay'] = ref;status_write(client, bucket, key, status)
-        ref = retain(client, bucket, inputs, output, read, checkpoint)
+        status['phase'] = 'compile';status_write(client, bucket, key, status)
+        output = compile_output(inputs, reader(client, bucket), lambda k, b: immutable(client, bucket, k, b))
+        status['phase'] = 'retained_replay';status_write(client, bucket, key, status)
+        ref = retain(client, bucket, inputs, output)
         status['phase'] = 'publish';status_write(client, bucket, key, status)
         published = False;aliases = {}
         if output['quality']['status'] != 'unavailable':

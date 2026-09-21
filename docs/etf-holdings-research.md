@@ -31,3 +31,10 @@ A browser-only hypothetical calculation uses the user's signed USD fund position
 The runner must verify exact commit receipts and actual ZIP/import closures for all affected functions, replay all eight preserved preflight snapshots, invoke only the two reviewed public producers once, replay their complete originals, independently check source-row arithmetic and memberships, prove protected originals remain inaccessible anonymously, and verify public assets and aliases. A green workflow alone is insufficient. Runtime memory/time headroom, source dates, large snapshots, stale inputs, signed assumptions and mobile browser behavior are separate acceptance checks.
 
 The remaining qualification work includes issuer/vendor weight reconciliation, derivative exposure mapping, security master history and corporate-action adjustment, compatible valuation dates/currencies, supported user portfolio inputs and out-of-sample predictive evidence. This stage deliberately does not claim those capabilities.
+
+
+## Runtime recovery
+
+The first full execution reached retained replay but timed out at840seconds with442MBpeak memory. Its complete inputs and candidate output remain available, so collection does not need repeating. The repaired runtime uses six bounded concurrent immutable writers and a512MBcontent-verified cache shared across compilation and replay. Every write/readback future completes before publication. Input and candidate-run checkpoints make incomplete executions inspectable.
+
+Recovery is a runner-invoked operation on an exact retained run. It checks source clocks, input/output hashes and all numerical compiler bytes, allowing only the pinned predecessor storage implementation. It reconstructs the original output exactly, keeps its original clocks and records zero new provider requests. Unknown historical code is neither trusted nor executed; no private-account or paid-AI path is introduced.

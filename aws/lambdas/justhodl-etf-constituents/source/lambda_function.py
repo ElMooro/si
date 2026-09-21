@@ -37,6 +37,6 @@ def lambda_handler(event=None, context=None):
     remaining = context.get_remaining_time_in_millis() / 1000 if hasattr(context, 'get_remaining_time_in_millis') else 840
     credential = (os.environ.get('POLYGON_KEY') or os.environ.get('POLYGON_API_KEY') or '') if KIND == 'holdings' else ''
     result = run(client, bucket, KIND, event.get('request_id', execution_id), execution_id,
-                 credential=credential, remaining_seconds=remaining, publish=publish_current)
+                 credential=credential, remaining_seconds=remaining, publish=publish_current, recover_run=event.get('recover_run'))
     return {'statusCode': 200 if result['status'] == 'complete' else 202 if result['status'] == 'running' else 500,
             'body': json.dumps(result)}
