@@ -46,7 +46,7 @@ test('Scenario form invalidates assumptions and handles unavailable research',()
 test('Pages preserve source escaping, all predecessor content and related research routes',()=>{
  const p=structuredClone(flow);p.complexes[0].name='<img src=x onerror=evil()>';assert.match(api.groupTable(p,'5'),/&lt;img/);assert.doesNotMatch(api.groupTable(p,'5'),/<img/);
  for(const page of ['flows.html','capital-flow-radar.html']){
-  const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-provider-flows.js\?v=20260921-native1/);assert.doesNotMatch(source,/jh-page-ai.js|ai-analysis.json/);
+  const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-provider-flows.js\?v=20260921-native2/);assert.doesNotMatch(source,/jh-page-ai.js|ai-analysis.json/);
   for(const match of source.matchAll(/href="(\/[^"?#]*)"/g)){const route=match[1],target=route.endsWith('/')?route+'index.html':route;assert.ok(fs.existsSync(path.join(__dirname,'..',target.slice(1))),route);}
   const old=fs.readFileSync(path.join(__dirname,'../docs/legacy/provider-flow-'+page.replace('.html','')+'-pre-native-20260921.html.txt'),'utf8');assert.ok(old.length>5000);
  }

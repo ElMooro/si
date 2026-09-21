@@ -266,11 +266,11 @@ def main(report_name='ops_5974_provider_fund_flow_native_acceptance',resume_only
             assert (ROOT/('docs/legacy/provider-flow-'+page+'-pre-native-20260921.html.txt')).read_bytes()==subprocess.check_output(['git','show','98e1ad68a:'+page+'.html'],cwd=ROOT)
         build=json.loads(public('build-manifest.json'));pages_commit=build['commit_sha']
         subprocess.run(['git','merge-base','--is-ancestor',PAGE_COMMIT,pages_commit],cwd=ROOT,check=True)
-        subprocess.run(['git','diff','--quiet',PAGE_COMMIT,pages_commit,'--',*ASSETS],cwd=ROOT,check=True)
+        subprocess.run(['git','diff','--quiet','HEAD',pages_commit,'--',*ASSETS],cwd=ROOT,check=True)
         for name in ASSETS:
             served=public(name);clean,count=re.subn(rb'<script\b[^>]*\bsrc="https://static\.cloudflareinsights\.com/beacon\.min\.js/v[a-f0-9]+"[^>]*></script>\n?',b'',served)
             assert count<=1 and model.sha(clean)==build['files_sha256'][name],'Built asset differs: '+name
-            if name.endswith('.html'):assert b'jh-provider-flows.js?v=20260921-native1' in served
+            if name.endswith('.html'):assert b'jh-provider-flows.js?v=20260921-native2' in served
         schedules=[]
         for fn in PRODUCERS:
             cfg=lam.get_function_configuration(FunctionName=fn);names=[]
