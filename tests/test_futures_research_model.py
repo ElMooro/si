@@ -49,6 +49,19 @@ def change(blobs,sources,name,mutate):
     blobs[ref['key']]=raw;page['original']=ref
 
 
+def add_calendar(blobs,sources,product='ES'):
+    names=[name for name in sources if name.startswith(product+':bars:')]
+    for name in names:
+        change(blobs,sources,name,lambda d:d['results'][-1].update(session_end_date=ASOF,
+            window_start=int(datetime(2026,9,21,tzinfo=timezone.utc).timestamp())*1000000000+1))
+    page=sources[names[0]]['pages'][0];bars=json.loads(blobs[page['original']['key']])['results'];events=[]
+    for row in bars:
+        day=date.fromisoformat(row['session_end_date'])
+        for event,stamp in [('open',(day-timedelta(days=1)).isoformat()+'T22:00:00Z'),('close',day.isoformat()+'T21:00:00Z')]:
+            events.append({'product_code':product,'trading_venue':C.PRODUCTS[product],'session_end_date':day.isoformat(),'event':event,'timestamp':stamp})
+    change(blobs,sources,product+':schedules',lambda d:d.update(results=events*3))
+
+
 class Tests(unittest.TestCase):
     def test_every_original_row_is_retained_and_exact_changes_have_dated_endpoints(self):
         blobs,sources=fixture();out,emitted=compile_(blobs,sources)
@@ -123,4 +136,18 @@ class Tests(unittest.TestCase):
         out,_=compile_(blobs,sources);r=out['products']['ES']['contracts'][0]
         self.assertEqual(r['coverage']['returned_rows'],2);self.assertTrue(r['comparisons']['close']['1']['available'])
         self.assertFalse(r['comparisons']['close']['5']['available']);self.assertEqual(r['comparisons']['close']['1']['elapsed_calendar_days'],2)
+    def test_completed_session_view_excludes_partial_latest_without_dropping_original(self):
+        blobs,sources=fixture();add_calendar(blobs,sources);out,_=compile_(blobs,sources)
+        p=out['products']['ES'];r=p['contracts'][0]
+        self.assertEqual(p['session_calendar']['repeated_event_identity_rows'],92)
+        self.assertEqual(r['coverage']['returned_rows'],23);self.assertEqual(r['coverage']['scheduled_ended_rows'],22)
+        self.assertEqual(r['coverage']['scheduled_open_rows'],1);self.assertEqual(r['coverage']['unqualified_calendar_rows'],0)
+        self.assertEqual(r['comparisons']['close']['1']['to']['ordinal'],22)
+        self.assertEqual(r['scheduled_ended_comparisons']['close']['1']['to']['ordinal'],21)
+        self.assertIs(r['latest_reported_row']['session_status']['scheduled_session_ended_by_capture'],False)
+    def test_calendar_ambiguity_withholds_completed_comparison_but_retains_reported_data(self):
+        blobs,sources=fixture();add_calendar(blobs,sources)
+        change(blobs,sources,'ES:schedules',lambda d:d['results'][0].update(trading_venue='WRONG'))
+        out,_=compile_(blobs,sources);r=out['products']['ES']['contracts'][0]
+        self.assertTrue(r['comparisons']['close']['1']['available']);self.assertFalse(r['scheduled_ended_comparisons']['close']['1']['available'])
 if __name__=='__main__':unittest.main(verbosity=2)

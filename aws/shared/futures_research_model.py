@@ -5,6 +5,7 @@ from decimal import Decimal,localcontext,ROUND_HALF_EVEN
 from fractions import Fraction
 import json,re
 import futures_source_capture as capture
+import futures_session_calendar as calendar
 
 CONTRACT='futures-original-research.v1'
 CURRENT='data/futures-research.json'
@@ -125,7 +126,8 @@ def bar(row,ordinal,source,ticker,definition):
 
 
 def endpoint(row,field):return {'ordinal':row['ordinal'],'ticker':row['ticker'],'session_end_date':row['session_end_date'],
-    'window_start_ns':row['window_start_ns'],'field':field,'reported_decimal':row['values'][field]['decimal'],'source':row['source']}
+    'window_start_ns':row['window_start_ns'],'field':field,'reported_decimal':row['values'][field]['decimal'],'source':row['source'],
+    'session_status':row['session_status']}
 def comparison(ordered,n,field,available):
     out={'requested_row_offset':n,'price_field':field,'available':False,'from':None,'to':None,
         'absolute_change_decimal':None,'percent_change_decimal':None,**PERMISSIONS}
@@ -200,6 +202,8 @@ def compile_output(sources,generated_at,read,emit):
     start,asof=next(iter(windows));products={};expected_names=set(required)
     for product in capture.PRODUCTS:
         definitions,points,complete=parsed[product+':products'];meta=specification(product,definitions,points,complete,asof)
+        events,_,calendar_complete=parsed[product+':schedules']
+        session_calendar=calendar.reconcile(events,product,capture.PRODUCTS[product],start,asof,calendar_complete)
         contracts,pointers,catalog_complete=parsed[product+':contracts']
         selection=capture.select_contracts(contracts,product,asof,catalog_complete);series=[]
         for chosen in selection['selected']:
@@ -207,18 +211,24 @@ def compile_output(sources,generated_at,read,emit):
             if name not in parsed:raise ValueError('Selected futures contract capture missing')
             original,bar_pointers,done=parsed[name];definition=contracts[chosen['source_row_index']]
             bars=[bar(r,i,bar_pointers[i],ticker,definition) for i,r in enumerate(original)]
+            for row in bars:row['session_status']=calendar.status(session_calendar,row['session_end_date'],row['source']['acquired_at'])
             dates=[r['session_end_date'] for r in bars];times=[r['window_start_ns'] for r in bars]
             identity=bool(bars) and all(r['identity_and_clock_qualified'] for r in bars)
             chronology=identity and len(set(dates))==len(dates) and len(set(times))==len(times)
             ordered=sorted(bars,key=lambda r:r['session_end_date']) if chronology else []
             if chronology and any(int(b['window_start_ns'])<=int(a['window_start_ns']) for a,b in zip(ordered,ordered[1:])):
                 chronology=False;ordered=[]
+            ended=[r for r in ordered if r['session_status']['scheduled_session_ended_by_capture'] is True]
             series.append({'ticker':ticker,'definition':typed(contracts[chosen['source_row_index']]),
                 'definition_source':pointers[chosen['source_row_index']],'dataset':name,'chronology_unambiguous':chronology,
                 'coverage':{'returned_rows':len(bars),'pagination_complete':done,'invalid_identity_or_clock_rows':sum(not r['identity_and_clock_qualified'] for r in bars),
                     'missing_settlement_rows':sum(r['values']['settlement_price']['state']=='missing' for r in bars),
+                    'scheduled_ended_rows':len(ended),'scheduled_open_rows':sum(r['session_status']['scheduled_session_ended_by_capture'] is False for r in bars),
+                    'unqualified_calendar_rows':sum(r['session_status']['scheduled_session_ended_by_capture'] is None for r in bars),
                     'full_calendar_coverage_verified':False,'bar_finality_independently_verified':False},
                 'comparisons':{field:{str(n):comparison(ordered,n,field,done and chronology) for n in (1,5,20)} for field in ('close','settlement_price')},
+                'scheduled_ended_comparisons':{field:{str(n):comparison(ended,n,field,done and chronology) for n in (1,5,20)} for field in ('close','settlement_price')},
+                'scheduled_ended_source_ordinals':[r['ordinal'] for r in ended],
                 'latest_reported_row':bars[ordered[-1]['ordinal']] if ordered else None,
                 '_ordered':ordered,**PERMISSIONS})
         curves=[matched_curve(a,b,field,meta['available'] and meta['quantity_conversion_qualified'] and a['coverage']['pagination_complete'] and b['coverage']['pagination_complete'])
@@ -226,7 +236,7 @@ def compile_output(sources,generated_at,read,emit):
         for item in series:item.pop('_ordered')
         products[product]={'product_code':product,'venue':capture.PRODUCTS[product],'specification':meta,'contract_selection':selection,
             'contracts':series,'matched_curves':curves,'schedule_dataset':product+':schedules',
-            'scheduled_session_end_independently_matched':False,**PERMISSIONS}
+            'session_calendar':session_calendar,**PERMISSIONS}
     if set(sources)!=expected_names:raise ValueError('Unexpected futures source dataset')
     completed=max(clock(s['completed_at']) for s in sources.values()).isoformat()
     return {'contract':CONTRACT,'generated_at':generated_at,'source_capture_completed_at':completed,
@@ -241,6 +251,6 @@ def compile_output(sources,generated_at,read,emit):
         'limits':['Nearest expiry is not necessarily the most liquid or safe delivery contract.',
             'Matching session labels does not establish synchronized intraday prices or final bars.',
             'Row offsets do not establish trading-day coverage. No continuous contract or roll return is constructed.',
-            'Schedules are retained evidence; their product identity and session finality have not yet been independently reconciled.',
+            'Scheduled-ended comparisons use only matched calendar ends at each original bar acquisition; this does not prove final provider bars.',
             'Provider quantity conversions are not broker margin, costs, delivery eligibility or an execution instruction.'],
         'call':None,'score':None,'portfolio_action':'WAIT','independent_investment_votes':0,**PERMISSIONS}

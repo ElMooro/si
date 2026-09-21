@@ -3,8 +3,8 @@ import json,sys,unittest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'tests'),str(ROOT/'aws/shared'),str(ROOT/'aws/ops/staged')]
 import futures_research_model as model
-import ops_6010_futures_calculation_candidate as audit
-from test_futures_research_model import fixture,compile_,change
+import ops_6011_futures_calendar_candidate as audit
+from test_futures_research_model import fixture,compile_,change,add_calendar
 class Tests(unittest.TestCase):
     def data(self):
         originals,sources=fixture();out,artifacts=compile_(originals,sources)
@@ -40,4 +40,13 @@ class Tests(unittest.TestCase):
         change(originals,sources,'ES:bars:ESH7',lambda d:d['results'][-1].pop('settlement_price'))
         out,artifacts=compile_(originals,sources);r=audit.independent(out,sources,{**originals,**artifacts}.__getitem__)
         self.assertLess(r['exact_price_comparisons'],84);self.assertLess(r['exact_common_session_spreads'],14)
+    def test_calendar_and_completed_only_views_reconcile_against_original_event_rows(self):
+        blobs,sources=fixture();add_calendar(blobs,sources);out,artifacts=compile_(blobs,sources)
+        r=audit.independent(out,sources,{**blobs,**artifacts}.__getitem__)
+        self.assertGreater(r['exact_price_comparisons'],84)
+    def test_changed_calendar_or_promotion_of_partial_session_is_rejected(self):
+        for edit in (lambda p:p['session_calendar']['sessions']['2026-09-21'].update(scheduled_close_utc='2026-09-21T18:00:00Z'),
+            lambda p:p['contracts'][0]['coverage'].update(scheduled_ended_rows=23)):
+            blobs,sources=fixture();add_calendar(blobs,sources);out,artifacts=compile_(blobs,sources);edit(out['products']['ES'])
+            with self.assertRaises(AssertionError):audit.independent(out,sources,{**blobs,**artifacts}.__getitem__)
 if __name__=='__main__':unittest.main(verbosity=2)

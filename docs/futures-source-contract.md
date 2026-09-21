@@ -41,8 +41,13 @@ each leg's latest date, so an old common session stays visible. They do not impl
 simultaneous closes, session finality, supply conditions, a continuous future or
 roll yield. Product unit conversions use exact reviewed USD quotations and
 provider-reported quantities; historical multiplier stability is not established.
-Schedule records remain unqualified for session-finality decisions until their
-product identities and event meanings are reconciled.
+Calendar reconciliation groups repeated identities while preserving every source
+ordinal. A scheduled end requires a complete, scoped dataset, an unambiguous
+closing time, and earlier opening events. Each price endpoint compares that
+scheduled end with its own acquisition clock. A second comparison view includes
+only rows whose matched scheduled end had passed; the original view is retained.
+Unknown or ambiguous calendars do not silently become completed sessions. Neither
+view asserts that the provider's bars are final or will never be revised.
 
 ## Primary definitions reviewed on 2026-09-21
 
