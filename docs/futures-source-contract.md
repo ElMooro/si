@@ -29,6 +29,21 @@ provider returns negative prices, zero settlement or nulls. Public heads and
 schedules remain unchanged. Later native qualification must reconstruct the
 calculations and preserve these limitations.
 
+The calculation candidate emits immutable typed records for every returned
+dataset. Each published measurement names its original response and row, and
+preserves exact decimals and nanoseconds. Close and settlement comparisons are
+separate. Absolute changes support zero and negative prices; percentage changes
+require a positive base. Missing settlements are neither substituted with closes
+nor silently replaced with an earlier session.
+
+Adjacent-contract spreads use the latest common returned session date and report
+each leg's latest date, so an old common session stays visible. They do not imply
+simultaneous closes, session finality, supply conditions, a continuous future or
+roll yield. Product unit conversions use exact reviewed USD quotations and
+provider-reported quantities; historical multiplier stability is not established.
+Schedule records remain unqualified for session-finality decisions until their
+product identities and event meanings are reconciled.
+
 ## Primary definitions reviewed on 2026-09-21
 
 [Provider futures overview](https://massive.com/docs/rest/futures/overview)
