@@ -1,0 +1,5 @@
+"""Reviewed ETF desk scope; preserve every configured predecessor fund.
+
+Membership is an inventory, not a recommendation or independently qualified taxonomy.
+"""
+DESK = ('SPY', 'VOO', 'IVV', 'QQQ', 'QQQM', 'IWM', 'VTI', 'DIA', 'RSP', 'XLK', 'SMH', 'XLF', 'XLE', 'XLV', 'XLY', 'XLP', 'XLI', 'XLU', 'XLB', 'XLRE', 'XLC', 'XBI', 'KRE', 'SOXX', 'ARKK', 'TLT', 'IEF', 'SHY', 'BIL', 'TIP', 'GOVT', 'TBT', 'SGOV', 'AGG', 'BND', 'LQD', 'HYG', 'JNK', 'USHY', 'EMB', 'FALN', 'VCIT', 'BKLN', 'GLD', 'IAU', 'SLV', 'GDX', 'GDXJ', 'PPLT', 'CPER', 'USO', 'UNG', 'DBC', 'DBA', 'EEM', 'VWO', 'EFA', 'IEFA', 'VEA', 'FXI', 'EWJ', 'EWZ', 'INDA', 'MCHI', 'EWT', 'EWY', 'ECH', 'EPU', 'EFNL', 'IBIT', 'FBTC', 'ETHA', 'BITO', 'MTUM', 'QUAL', 'USMV', 'MOAT', 'VLUE', 'IWF', 'IWD', 'VUG', 'VTV', 'UUP', 'UDN', 'FXE', 'FXY', 'KWEB', 'XHB', 'ITA', 'PAVE', 'BOTZ', 'HACK', 'TQQQ', 'UPRO', 'SOXL', 'TNA', 'UDOW', 'SPXL', 'QLD', 'SSO', 'TECL', 'FAS', 'SQQQ', 'SPXU', 'SOXS', 'TZA', 'SDOW', 'SPXS', 'QID', 'SDS', 'TECS', 'FAZ', 'SH', 'PSQ', 'UVXY', 'SVXY')
