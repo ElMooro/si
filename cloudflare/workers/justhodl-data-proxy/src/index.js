@@ -112,6 +112,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
   if (['fx-quote-research.json', 'polygon-fx-regime.json'].includes(key)) return true;
+  if (['futures-research.json', 'polygon-futures-curves.json'].includes(key)) return true;
   if (['massive-research.json', 'massive-signals.json', 'massive-capability.json', 'polygon-options.json', 'polygon-ratios.json'].includes(key)) return true;
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json', 'risk-regime.json', 'jsi.json', 'jsi-history.json', 'jsi-calibration.json',
     'global-stress-history.json', 'gsi-calibration.json', 'gsi-horizons.json',

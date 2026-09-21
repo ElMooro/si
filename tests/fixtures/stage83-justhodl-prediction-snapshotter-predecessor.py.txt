@@ -43,7 +43,7 @@ def lambda_handler(event, context):
     early = _read_json("data/early-movers.json") or {}
     options = _read_json("data/polygon-options-flow.json") or {}
     fx = __import__("fx_research_context").context(_read_json("data/polygon-fx-regime.json"))
-    futures = __import__("futures_research_context").context(_read_json("data/polygon-futures-curves.json")) or {}
+    futures = _read_json("data/polygon-futures-curves.json") or {}
     insider = _read_json("data/insider-clusters.json") or {}
     activist = _read_json("data/activist-13d.json") or {}
     tickets = _read_json("data/trade-tickets.json") or {}
@@ -409,7 +409,7 @@ def lambda_handler(event, context):
         "fx_usd_synth_20d": (fx.get("regime_metrics") or {}).get("usd_synthetic_20d_pct"),
         "futures_signals": (futures.get("signals") or []) if futures.get("identity_ok") else [],
         "futures_identity_ok": bool(futures.get("identity_ok")),
-        "futures_status": futures.get("status"), "futures_research": futures,
+        "futures_status": futures.get("status"),
     }
 
     elapsed = round(time.time() - t0, 1)

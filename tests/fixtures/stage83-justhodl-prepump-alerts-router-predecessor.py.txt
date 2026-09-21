@@ -613,7 +613,7 @@ def check_fx_regime(state: dict) -> List[str]:
 
 def check_futures_curves(state: dict) -> List[str]:
     """Polygon futures curves — VIX backwardation, oil, metals breakouts."""
-    doc = __import__("futures_research_context").context(_read_json("data/polygon-futures-curves.json"))
+    doc = _read_json("data/polygon-futures-curves.json")
     if not doc or not doc.get("identity_ok"):
         return []
     signals = doc.get("signals") or []

@@ -1689,6 +1689,27 @@
         }
       },
       "reason": "Recorded original FX quote bars, dated direct and inverse comparisons, source row evidence and explicit hypothetical currency exposure; no forecast or investment authority."
+    },
+    "futures-research.html": {
+      "primary_engines": [
+        "justhodl-polygon-futures-curves"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-polygon-futures-curves": [
+          "data/futures-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-polygon-futures-curves": {
+          "source": "aws/lambdas/justhodl-polygon-futures-curves/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Recorded dated futures contracts, original specifications and calendar events, separate close and settlement comparisons, explicit hypothetical contract exposure; no forecast or investment authority."
+        }
+      },
+      "reason": "Recorded dated futures contracts, original specifications and calendar events, separate close and settlement comparisons, explicit hypothetical contract exposure; no forecast or investment authority."
     }
   }
 }
