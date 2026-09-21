@@ -5,7 +5,7 @@ import copy,hashlib,io,json,sys,unittest
 ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'tests')]
 import option_flow_store as store
 import option_flow_research as model
-from test_option_flow_research import fixture
+from test_option_flow_research import fixture,original,RECEIVED
 
 
 class Error(Exception):
@@ -39,6 +39,35 @@ class StoreTests(unittest.TestCase):
         s3,inputs,out,ref=self.candidate();before=dict(s3.data)
         self.assertEqual(store.replay(ref,store.reader(s3,'bucket')),out);self.assertEqual(before,s3.data)
         self.assertNotIn(model.CURRENT,s3.data);self.assertNotIn(model.LEGACY,s3.data)
+    def test_full_retention_replay_keeps_multi_source_discovery_order(self):
+        blobs,inputs=fixture()
+        inputs['discovery']={key:original(doc,blobs,key) for key,doc in zip(model.DISCOVERY,
+            [{'alert_tier':['ZZZ']},{'items':[{'ticker':'YYY','tier':'HIGH'}]},{'leaders':['XXX']}])}
+        inputs['universe']=model.universe(inputs['discovery'],blobs.__getitem__)
+        for symbol in ('ZZZ','YYY','XXX'):
+            url=model.capture.next_url(model.capture.initial_url(symbol),symbol)
+            ref=original({'status':'OK','results':[]},blobs)
+            inputs['chains'][symbol]={'underlying':symbol,'started_at':RECEIVED,'completed_at':RECEIVED,
+                'pagination_complete':True,'stop':'complete_returned_pagination','pages':[{
+                    'page':1,'acquired_at':RECEIVED,'request_url':url,'request_sha256':model.sha(url.encode()),
+                    'status':'received','http_status':200,'original':ref}]}
+            inputs['source_bytes']+=ref['bytes'];inputs['provider_requests']+=1
+        s3=S3(blobs);read=store.reader(s3,'bucket')
+        with store.ArtifactWriter(s3,'bucket',read) as emit:out=store.compile_output(inputs,read,emit)
+        ref=store.retain(s3,'bucket',inputs,out,read)
+        self.assertEqual(store.replay(ref,store.reader(s3,'bucket')),out)
+        self.assertEqual(out['universe']['selected'],['SPY','ZZZ','YYY','XXX'])
+    def test_reviewed_predecessor_compilers_need_their_exact_retained_bytes(self):
+        s3,inputs,out,ref=self.candidate();manifest=json.loads(s3.data[ref['manifest_key']])
+        for name in store.COMPATIBLE_COMPILERS:
+            raw=(ROOT/'tests/fixtures'/(name+'-pre-order-fix.py.txt')).read_bytes()
+            previous=model.ref(raw,'compilers');self.assertIn(previous['sha256'],store.COMPATIBLE_COMPILERS[name])
+            s3.data[previous['key']]=raw;manifest['compilers'][name]=previous
+        raw=model.encoded(manifest);key=model.ref(raw,'runs')['key'];s3.data[key]=raw
+        previous_ref={**ref,'manifest_key':key}
+        self.assertEqual(store.replay(previous_ref,store.reader(s3,'bucket')),out)
+        s3.data[previous['key']]+=b'\n'
+        with self.assertRaises(ValueError):store.replay(previous_ref,store.reader(s3,'bucket'))
     def test_replay_rejects_compiler_tamper(self):
         s3,inputs,out,ref=self.candidate();run=json.loads(s3.data[ref['manifest_key']]);key=next(iter(run['compilers'].values()))['key'];s3.data[key]+=b'\n'
         with self.assertRaises(ValueError):store.replay(ref,store.reader(s3,'bucket'))

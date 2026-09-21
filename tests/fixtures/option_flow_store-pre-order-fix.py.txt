@@ -12,12 +12,6 @@ import option_research_rows as codec
 PRIVATE = model.PRIVATE
 MAX = model.MAX_ARTIFACT
 COMPILERS = (capture, contracts, codec, model, sys.modules[__name__])
-# The failed candidate's first compilation used the declared discovery order;
-# serialization sorted its dictionary. The reviewed fix restores that declared
-# order on replay. Old code is authenticated and retained, never executed here.
-COMPATIBLE_COMPILERS = {
-    'option_flow_research': frozenset(('f9ead37ce9e48bb8e4b597b8481c9d544ffee9b396c129d98cbba1b8e48f33ee',)),
-    'option_flow_store': frozenset(('f5284a6eaead655f2d73471f3bb114ed016aaa708ce07c3e70d0e1d1a31782cd',))}
 now = capture.now
 
 
@@ -176,13 +170,8 @@ def verified_run(identity, read):
     if set(run.get('compilers', {})) != {m.__name__ for m in COMPILERS}: raise ValueError('Option compiler inventory differs')
     for module in COMPILERS:
         body = Path(module.__file__).read_bytes(); expected = model.ref(body, 'compilers')
-        recorded = run['compilers'][module.__name__]
-        if recorded == expected:
-            if read(expected['key']) != body: raise ValueError('Matching reviewed option compiler required')
-        elif recorded.get('sha256') in COMPATIBLE_COMPILERS.get(module.__name__, ()):
-            prior = read(recorded['key'])
-            if recorded != model.ref(prior, 'compilers'): raise ValueError('Reviewed predecessor option compiler bytes differ')
-        else: raise ValueError('Matching reviewed option compiler required')
+        if run['compilers'][module.__name__] != expected or read(expected['key']) != body:
+            raise ValueError('Matching reviewed option compiler required')
     return run
 
 

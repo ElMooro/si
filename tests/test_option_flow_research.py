@@ -37,6 +37,12 @@ class ModelTests(unittest.TestCase):
     def test_private_source_substitution_rejected(self):
         blobs={};c={k:None for k in model.DISCOVERY};c[model.DISCOVERY[0]]=original({},blobs,'data/trade-tickets.json')
         with self.assertRaises(ValueError):model.universe(c,blobs.__getitem__)
+    def test_declared_discovery_priority_survives_sorted_json_retention(self):
+        blobs={};contexts={key:original(doc,blobs,key) for key,doc in zip(model.DISCOVERY,
+            [{'alert_tier':['ZZZ']},{'items':[{'ticker':'YYY','tier':'HIGH'}]},{'leaders':['XXX']}])}
+        before=model.universe(contexts,blobs.__getitem__)
+        after=model.universe(json.loads(model.encoded(contexts)),blobs.__getitem__)
+        self.assertEqual(before,after);self.assertEqual(after['selected'],['SPY','ZZZ','YYY','XXX'])
     def test_complete_chain_publication_keeps_exact_zero_and_clocks(self):
         blobs,inputs=fixture();out=model.build(inputs,blobs.__getitem__,blobs.__setitem__)
         chain=model.checked(out['chains']['SPY']['chain'],blobs.__getitem__,'chains')

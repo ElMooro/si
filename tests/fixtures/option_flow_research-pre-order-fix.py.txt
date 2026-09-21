@@ -69,8 +69,7 @@ def universe(contexts, read):
         except ValueError: issues.append({'origin': origin, 'reason': 'invalid_symbol'}); return
         names.setdefault(value, []).append(origin)
     for i, name in enumerate(CONTINUITY): add(name, {'kind': 'public_baseline_continuity', 'position': i})
-    for key in DISCOVERY:
-        identity = contexts[key]
+    for key, identity in contexts.items():
         if identity is None:
             evidence[key] = {'status': 'unavailable', 'original': None}; continue
         if identity.get('source_key') != key: raise ValueError('Discovery source identity differs')
