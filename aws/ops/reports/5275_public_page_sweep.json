@@ -1,12 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "22fdf4bc814b1dec081c2a46f913bf1bd416f17a",
-  "observed_at": "2026-09-21T11:18:28.592717+00:00",
+  "observed_at": "2026-09-21T11:40:47.691197+00:00",
   "ok": false,
   "routes_checked": 549,
-  "verified_routes": 548,
+  "verified_routes": 547,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "fortress.html"
   ],
   "source_equivalent_builds": {
     "22fdf4bc814b1dec081c2a46f913bf1bd416f17a": true
@@ -1705,7 +1706,7 @@
       "http_status": 200,
       "build_sha": "22fdf4bc814b1dec081c2a46f913bf1bd416f17a",
       "inspector_present": true,
-      "bytes_read": 877542,
+      "bytes_read": 877446,
       "product_source_matches_release": true
     },
     {
@@ -2115,12 +2116,12 @@
     },
     {
       "route": "fortress.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "22fdf4bc814b1dec081c2a46f913bf1bd416f17a",
-      "inspector_present": true,
-      "bytes_read": 68791,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "forward-orders.html",
@@ -4959,7 +4960,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35593129630,
+  "deployment_run_id": 35595120214,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-21T11:18:28.596631+00:00"
+  "check_finished_at": "2026-09-21T11:40:47.693346+00:00"
 }
