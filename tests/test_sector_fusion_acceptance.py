@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 import ast,io,json,types,unittest
 ROOT=Path(__file__).resolve().parents[1]
-PATH=ROOT/'aws/ops/staged/ops_5971_sector_fusion_native_acceptance.py'
+PATH=ROOT/'aws/ops/staged/ops_5972_sector_fusion_native_recovery_acceptance.py'
 KINDS={'justhodl-sector-flow-state':'flow','justhodl-sector-capital-fusion':'capital'}
 class Conflict(Exception):pass
 class Missing(Exception):pass
