@@ -11,11 +11,11 @@ def main():
     s3 = boto3.client("s3", region_name="us-east-1")
     with report("5861_supply_yield") as r:
         r.heading("ops 5861 -- supply run yields")
-        keys = sorted((o["Key"], o["LastModified"]) for o in s3.list_objects_v2(Bucket=PRI, Prefix="factory/curriculum/code/runs/").get("Contents", []))
+        keys = sorted((o["Key"], o["LastModified"]) for o in s3.list_objects_v2(Bucket=PRI, Prefix="factory/curriculum/code/runs/").get("Contents", []) if o["Key"].endswith(".json"))
         for k, lm in keys[-3:]:
             d = json.loads(s3.get_object(Bucket=PRI, Key=k)["Body"].read())
-            r.log("%s %s judged=%s passed=%s passed_by_family=%s failed_by_family=%s written=%s exists=%s report=%s" % (
-                lm.strftime("%m-%d %H:%M"), d.get("run_id"), d.get("rows"), d.get("passed"), json.dumps(d.get("passed_by_family")), json.dumps(d.get("failed_by_family"))[:200], d.get("written"), d.get("exists"), json.dumps(d.get("report"))[:300]))
+            r.log("%s %s judged=%s passed=%s passed_by_family=%s failed_by_family=%s written=%s exists=%s fetch=%s report=%s" % (
+                lm.strftime("%m-%d %H:%M"), d.get("run_id"), d.get("rows"), d.get("passed"), json.dumps(d.get("passed_by_family")), json.dumps(d.get("failed_by_family"))[:200], d.get("written"), d.get("exists"), json.dumps(d.get("fetch"))[:200], json.dumps(d.get("report"))[:300]))
         r.ok("done" if keys else "no run summaries yet")
 
 
