@@ -274,7 +274,7 @@
       (spine.length ? blk("Filing identifiers — SEC / 13F spine", table(spine)) : "");
   }
   // ---- On-chain desk: CryptoQuant EOD on-chain (BTC/ETH proxies only). Never LIVE, never mixed with equity/ETF flow.
-  var CQ_PROXIES = { BTC: 1, ETH: 1, IBIT: 1, FBTC: 1, BITB: 1, ETHA: 1, MSTR: 1, COIN: 1, MARA: 1, RIOT: 1, "BTC-USD": 1, "ETH-USD": 1, BTCUSD: 1, ETHUSD: 1 };
+  var CQ_PROXIES = { BTC: 1, ETH: 1, IBIT: 1, FBTC: 1, BITB: 1, ETHA: 1, MSTR: 1, COIN: 1, MARA: 1, RIOT: 1, "BTC-USD": 1, "ETH-USD": 1, BTCUSD: 1, ETHUSD: 1, BTCUSDT: 1, ETHUSDT: 1, SOL: 1, "SOL-USD": 1, SOLUSDT: 1 };
   var CQ_ONCHAIN = null, CQ_SERIES = null;
   async function cqPack(t) {
     t = jhFundTicker(t);
@@ -289,10 +289,29 @@
     for (var i = 0; i < keys.length; i++) { var v = m[keys[i]]; if (v && typeof v === "object") return v; }
     return null;
   }
+  function cqFmt(v) {
+    if (v == null || !isFinite(+v)) return "—";
+    v = +v;
+    var a = Math.abs(v);
+    if (a >= 1e12) return (v / 1e12).toFixed(2) + "T";
+    if (a >= 1e9) return (v / 1e9).toFixed(2) + "B";
+    if (a >= 1e6) return (v / 1e6).toFixed(2) + "M";
+    if (a >= 1000) return v.toFixed(1);
+    if (a >= 1) return v.toFixed(3);
+    if (a >= 0.01) return v.toFixed(4);
+    return v.toExponential(2);
+  }
   function renderChain(d) {
     var c = d && d.chain;
-    if (!c || !c.proxy) return "<div class=note>On-chain: no CQ series — this symbol is not a BTC/ETH proxy (IBIT, FBTC, BITB, ETHA, MSTR, COIN, MARA, RIOT, BTC, ETH)</div>";
-    var m = (c.onchain && c.onchain.metrics) || {};
+    var serDoc = (c && c.series) || {};
+    var ser = serDoc.series || {};
+    var twins = serDoc.twins || {};
+    var ids = Object.keys(ser);
+    if (!ids.length) {
+      if (!c || !c.proxy) return "<div class=note>On-chain: no CQ series — this symbol is not a BTC/ETH proxy (IBIT, FBTC, BITB, ETHA, MSTR, COIN, MARA, RIOT, BTC, ETH). Search CQ:btc_mvrv (or any harvest id) on the chart.</div>";
+      return "<div class=note>CryptoQuant harvest present but series empty</div>";
+    }
+    var m = (c && c.onchain && c.onchain.metrics) || {};
     var head = [
       ["MVRV", ["btc_mvrv", "mvrv"]], ["SOPR", ["btc_sopr", "sopr"]], ["MPI", ["btc_mpi", "mpi"]], ["Whale ratio", ["btc_whale_ratio", "whale_ratio", "exchange_whale_ratio"]],
       ["Exchange netflow", ["btc_exch_netflow", "btc_exchange_netflow", "exch_netflow", "netflow"]], ["NUPL", ["btc_nupl", "nupl"]], ["SSR", ["btc_ssr", "ssr", "stablecoin_supply_ratio"]], ["Realized price", ["btc_realized_price", "realized_price"]]
@@ -300,15 +319,28 @@
     var kp = head.map(function (h) {
       var v = cqMetric(m, h[1]);
       var val = v ? (v.value != null ? v.value : (v.latest != null ? v.latest : v.last)) : null;
-      return kpi(h[0], fmt(num(val)) + (v && v.as_of ? " <small>" + esc(String(v.as_of).slice(0, 10)) + "</small>" : ""));
+      if (val == null && ser[h[1][0]] && ser[h[1][0]].v) val = ser[h[1][0]].v[ser[h[1][0]].v.length - 1];
+      return kpi(h[0], cqFmt(val) + (v && v.as_of ? " <small>" + esc(String(v.as_of).slice(0, 10)) + "</small>" : ""));
     }).join("");
-    var label = (c.onchain && c.onchain.label) || "CryptoQuant EOD on-chain";
-    var stamp = c.onchain && (c.onchain.generated_at || c.onchain.as_of);
-    var ser = (c.series && (c.series.series || c.series)) || {};
-    var counts = Object.keys(ser).filter(function (k) { return Array.isArray(ser[k]); }).slice(0, 8).map(function (k) { return [esc(k), ser[k].length + " pts"]; });
+    var label = (c && c.onchain && c.onchain.label) || "CryptoQuant EOD on-chain";
+    var stamp = (c && c.onchain && (c.onchain.generated_at || c.onchain.as_of)) || serDoc.generated_at;
+    var html = "<table class=cqtab><thead><tr><th>Series</th><th>Last</th><th>Span</th><th>n</th><th></th></tr></thead><tbody>";
+    ids.forEach(function (k) {
+      var row = ser[k] || {};
+      var twin = twins[k];
+      var last = row.v && row.v.length ? row.v[row.v.length - 1] : null;
+      var first = (twin && twin.d && twin.d[0]) || (row.d && row.d[0]) || "";
+      var lastD = (row.d && row.d[row.d.length - 1]) || "";
+      var n = (row.d && row.d.length) || 0;
+      if (twin && twin.d && twin.d.length > n) n = twin.d.length;
+      html += "<tr><td>" + esc(k) + "</td><td>" + esc(cqFmt(last)) + "</td><td>" +
+        esc(String(first).slice(0, 10) + " → " + String(lastD).slice(0, 10)) + "</td><td>" +
+        esc(String(n)) + "</td><td><button type=button data-cq=\"" + esc(k) + "\">Chart</button></td></tr>";
+    });
+    html += "</tbody></table>";
     return "<div class=kpi>" + kp + "</div>" +
-      blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (cadence EOD; never LIVE; not blended with ETF or FMP data)",
-          counts.length ? table(counts) : "<div class=note>series file present but empty</div>");
+      blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (cadence EOD; never LIVE; twins extend some series to 2010; not blended with ETF or FMP)",
+        html);
   }
   function renderValFmp(f) {
     var r = f.row;
@@ -1418,6 +1450,19 @@
     var src = (pack.src && pack.src.length) ? pack.src.join(" · ") : "computed from chart bars";
     body.innerHTML = html + "<div class=src>" + esc(src) + " · delayed · not advice</div>";
     bindHoldFilter();
+    bindCqCharts(body);
+  }
+
+  function bindCqCharts(body) {
+    if (!body) return;
+    body.querySelectorAll("[data-cq]").forEach(function (b) {
+      b.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var id = "CQ:" + b.getAttribute("data-cq");
+        if (window.jhGoSymbol) window.jhGoSymbol(id);
+      };
+    });
   }
 
   function bindHoldFilter() {

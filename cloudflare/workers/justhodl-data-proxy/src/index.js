@@ -1,7 +1,7 @@
 import { factoryGateway } from './factory-gateway.js';
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
-import {warehouseOHLC, formingSession} from './warehouse-ohlc.js';
+import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, mergeBarsPrefer, yahooResultToBars, binanceSymbol, binanceKlinesToBars} from './warehouse-ohlc.js';
 /**
  * justhodl-data-proxy v2.1.0
  *
@@ -72,6 +72,61 @@ function jsonResp(obj, status) {
   return new Response(JSON.stringify(obj), {
     status: status || 200,
     headers: { "Content-Type": "application/json", ...corsHeaders() },
+  });
+}
+
+const YF_UA = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept": "application/json" };
+
+async function fetchYahooDaily(symbol) {
+  const sym = yahooChartSymbol(symbol);
+  if (!sym || !/^[A-Za-z0-9.=^\-]{1,20}$/.test(sym)) return [];
+  const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&period1=0&period2=${Math.floor(Date.now() / 1000)}`;
+  const resp = await fetch(yUrl, { headers: YF_UA, cf: { cacheTtl: 300, cacheEverything: true } });
+  if (!resp.ok) return [];
+  return yahooResultToBars(await resp.json());
+}
+
+async function fetchBinanceDaily(symbol) {
+  const pair = binanceSymbol(symbol);
+  if (!pair || !/^[A-Z0-9]{5,20}$/.test(pair)) return [];
+  const out = [];
+  let endTime = Date.now();
+  for (let page = 0; page < 12; page++) {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(pair)}&interval=1d&limit=1000&endTime=${endTime}`;
+    const resp = await fetch(url, { cf: { cacheTtl: 300, cacheEverything: true } });
+    if (!resp.ok) break;
+    const rows = await resp.json();
+    if (!Array.isArray(rows) || !rows.length) break;
+    const bars = binanceKlinesToBars(rows);
+    if (!bars.length) break;
+    out.unshift(...bars);
+    const firstMs = Number(rows[0][0]);
+    if (!Number.isFinite(firstMs) || rows.length < 1000) break;
+    endTime = firstMs - 1;
+    if (endTime < 1262304000000) break; // 2010-01-01
+  }
+  const m = new Map();
+  for (const b of out) m.set(b.time, b);
+  return [...m.values()].sort((a, b) => a.time - b.time);
+}
+
+/* Katlin crypto-bars start 2020-09-05. Yahoo BTC-USD is 2014-09-17; Binance BTCUSDT 2017-08.
+ * Warehouse wins overlapping days (it is the live bank). Older vendor bars prepend. Equities skip. */
+async function extendCryptoDaily(ticker, warm) {
+  if (!warm || !isCryptoWarehouse(warm.warehouse_key) || (warm.span && warm.span !== "day") || (warm.mult && warm.mult !== 1)) return warm;
+  let hist = [];
+  try { hist = await fetchYahooDaily(ticker); } catch (eY) { hist = []; }
+  if (hist.length < 2) {
+    try { hist = await fetchBinanceDaily(ticker); } catch (eB) { hist = []; }
+  }
+  if (hist.length < 2) return warm;
+  const merged = mergeBarsPrefer(hist, warm.bars);
+  if (merged.length <= warm.bars.length) return warm;
+  return Object.assign({}, warm, {
+    bars: merged,
+    source: "warehouse+yahoo",
+    yahoo_n: hist.length,
+    warehouse_n: warm.bars.length
   });
 }
 
@@ -1756,44 +1811,44 @@ export default {
     }
 
     if (url.pathname === "/yf-ohlc") {
-      // GET /yf-ohlc?symbol=BTC-USD&range=1y → Yahoo Finance chart (crypto/forex/etc)
+      // GET /yf-ohlc?symbol=BTC-USD&range=max → Yahoo Finance chart.
+      // nowarehouse=1 skips the katlin/tv bank so the engine can merge 2014+ Yahoo
+      // onto the 2020 crypto warehouse. Equities still prefer the warehouse.
       const symbol = (url.searchParams.get("symbol") || "").trim();
       const range = (url.searchParams.get("range") || "1y").trim();
       const interval = ["1d","1wk","1mo"].includes((url.searchParams.get("interval") || "1d").trim()) ? (url.searchParams.get("interval") || "1d").trim() : "1d";
+      const forceYahoo = url.searchParams.get("nowarehouse") === "1" || url.searchParams.get("force") === "yahoo";
       if (!symbol || !/^[A-Za-z0-9.=^\-]{1,20}$/.test(symbol)) {
         return new Response(JSON.stringify({ error: "invalid symbol" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      try {
-        const warm = await warehouseOHLC(BUCKET_BASE, symbol, {"1d":"day","1wk":"week","1mo":"month"}[interval],1,env.SYMDIR_URL || "");
-        if (warm) return new Response(JSON.stringify({symbol, ...warm, count:warm.bars.length}), {headers:{"Content-Type":"application/json", "X-Source":"warehouse", ...corsHeaders()}});
-      } catch (e) {
-        return new Response(JSON.stringify({error:"warehouse lookup failed"}), {status:502,headers:{"Content-Type":"application/json",...corsHeaders()}});
+      if (!forceYahoo) {
+        try {
+          const warm = await warehouseOHLC(BUCKET_BASE, symbol, {"1d":"day","1wk":"week","1mo":"month"}[interval],1,env.SYMDIR_URL || "");
+          if (warm) {
+            const ext = interval === "1d" ? await extendCryptoDaily(symbol, warm) : warm;
+            return new Response(JSON.stringify({symbol, ...ext, count:ext.bars.length}), {headers:{"Content-Type":"application/json", "X-Source":ext.source || "warehouse", ...corsHeaders()}});
+          }
+        } catch (e) {
+          return new Response(JSON.stringify({error:"warehouse lookup failed"}), {status:502,headers:{"Content-Type":"application/json",...corsHeaders()}});
+        }
       }
-      const yCacheKey = new Request(`https://yf.cache/warehouse-v1/${symbol}/${range}/${interval}`, { method: "GET" });
+      const yCacheKey = new Request(`https://yf.cache/${forceYahoo ? "nowarehouse" : "warehouse"}-v1/${symbol}/${range}/${interval}`, { method: "GET" });
       const yc = caches.default;
       const yhit = await yc.match(yCacheKey);
       if (yhit) { const b = await yhit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
       try {
-        const yUrl = range === "max"
+        const yUrl = range === "max" || forceYahoo
           ? `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&period1=0&period2=${Math.floor(Date.now() / 1000)}`
           : `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${encodeURIComponent(range)}`;
         const resp = await fetch(yUrl, {
-          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept": "application/json" },
+          headers: YF_UA,
           cf: { cacheTtl: 300, cacheEverything: true },
         });
         const data = await resp.json();
-        const res = data.chart && data.chart.result && data.chart.result[0];
-        const ts = (res && res.timestamp) || [];
-        const q = (res && res.indicators && res.indicators.quote && res.indicators.quote[0]) || {};
-        const bars = [];
-        for (let i = 0; i < ts.length; i++) {
-          if (q.close && q.close[i] != null && q.open[i] != null) {
-            bars.push({ time: ts[i], open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], value: (q.volume && q.volume[i]) || 0 });
-          }
-        }
-        const out = JSON.stringify({ symbol, bars, count: bars.length });
-        const finalResp = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300", "X-Cache": "MISS", ...corsHeaders() } });
+        const bars = yahooResultToBars(data);
+        const out = JSON.stringify({ symbol, bars, count: bars.length, source: "yahoo" });
+        const finalResp = new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300", "X-Cache": "MISS", "X-Source": "yahoo", ...corsHeaders() } });
         ctx.waitUntil(yc.put(yCacheKey, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=300" } })));
         return finalResp;
       } catch (e) {
@@ -1944,7 +1999,10 @@ export default {
       if (!tail) {
         try {
           const warm = await warehouseOHLC(BUCKET_BASE,ticker,span,mult,env.SYMDIR_URL || "");
-          if (warm) return new Response(JSON.stringify({ticker,...warm,count:warm.bars.length}), {headers:{"Content-Type":"application/json","X-Source":"warehouse",...corsHeaders()}});
+          if (warm) {
+            const ext = (span === "day" && mult === 1) ? await extendCryptoDaily(ticker, warm) : warm;
+            return new Response(JSON.stringify({ticker,...ext,count:ext.bars.length}), {headers:{"Content-Type":"application/json","X-Source":ext.source || "warehouse",...corsHeaders()}});
+          }
         } catch (e) {
           return new Response(JSON.stringify({error:"warehouse lookup failed"}), {status:502,headers:{"Content-Type":"application/json",...corsHeaders()}});
         }

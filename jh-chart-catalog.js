@@ -85,16 +85,6 @@
     H(["retail sales", "rsafs"], "FRED:RSAFS", "Advance retail sales", "macro", "FRED monthly · full history", "economy"),
     H(["sp500 fred"], "FRED:SP500", "S&P 500 (FRED)", "macro", "FRED daily · full history", "economy"),
 
-    H(["mvrv", "btc mvrv"], "CQ:btc_mvrv", "BTC MVRV", "chain", "CryptoQuant EOD · harvest history (not live)", "onchain"),
-    H(["sopr", "btc sopr"], "CQ:btc_sopr", "BTC SOPR", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["nupl"], "CQ:btc_nupl", "BTC NUPL", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["mpi", "miners position"], "CQ:btc_mpi", "BTC miner position index", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["whale ratio"], "CQ:btc_whale_ratio", "BTC whale ratio", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["exchange netflow", "btc netflow"], "CQ:btc_exchange_netflow", "BTC exchange netflow", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["ssr", "stablecoin supply ratio"], "CQ:btc_ssr", "BTC SSR", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["realized price"], "CQ:btc_realized_price", "BTC realized price", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-    H(["eth mvrv"], "CQ:eth_mvrv", "ETH MVRV", "chain", "CryptoQuant EOD · harvest history", "onchain"),
-
     H(["ciss", "euro stress", "sovereign stress"], "CISS:ea", "EA CISS composite", "stress", "ECB CISS · harvest history from 2000", "stress"),
 
     H(["13f", "13-f", "institutional ownership", "smart money 13f"], "DESK:inst", "13F institutional book", "inst", "SEC 13F · quarterly lagged snapshot", "desk"),
@@ -108,6 +98,84 @@
     H(["pressure", "buying pressure"], "DESK:press", "Buying / selling pressure", "flows", "ETF look-through · inferred", "desk"),
     H(["liquidity pulse", "rrp liquidity"], "FRED:RRPONTSYD", "ON RRP (liquidity pulse)", "stress", "FRED daily · full history", "stress")
   ];
+
+  /* Every harvest series in /data/cryptoquant-series.json. extra is honest:
+   * daily EOD from 2025-07; twins (when present) extend to 2010 at coarser spacing. */
+  var CQ_META = [
+    ["btc_exchange_netflow", "BTC exchange netflow", ["netflow", "exchange netflow", "btc netflow"]],
+    ["btc_exchange_inflow", "BTC exchange inflow", ["exchange inflow", "inflow"]],
+    ["btc_exchange_outflow", "BTC exchange outflow", ["exchange outflow", "outflow"]],
+    ["btc_exchange_reserve", "BTC exchange reserve", ["exchange reserve", "exchange balance"]],
+    ["btc_exchange_addr_in", "BTC exchange depositing addresses", ["depositing addresses", "exchange addresses"]],
+    ["btc_mpi", "BTC miner position index", ["mpi", "miner position", "miners position"]],
+    ["btc_whale_ratio", "BTC whale ratio", ["whale ratio", "whale"]],
+    ["btc_fund_flow_ratio", "BTC fund flow ratio", ["fund flow ratio", "fund flow"]],
+    ["btc_stablecoins_ratio", "BTC stablecoins ratio", ["stablecoins ratio"]],
+    ["btc_exchange_supply_ratio", "BTC exchange supply ratio", ["exchange supply ratio"]],
+    ["btc_mvrv", "BTC MVRV", ["mvrv", "btc mvrv"]],
+    ["btc_sopr", "BTC SOPR", ["sopr", "btc sopr"]],
+    ["btc_sopr_ratio", "BTC SOPR ratio", ["sopr ratio"]],
+    ["btc_nupl", "BTC NUPL", ["nupl"]],
+    ["btc_realized_price", "BTC realized price", ["realized price"]],
+    ["btc_ssr", "BTC SSR", ["ssr", "stablecoin supply ratio"]],
+    ["btc_nvt", "BTC NVT", ["nvt"]],
+    ["btc_nvt_golden", "BTC NVT golden", ["nvt golden"]],
+    ["btc_nvm", "BTC NVM", ["nvm"]],
+    ["btc_puell", "BTC Puell multiple", ["puell", "puell multiple"]],
+    ["btc_stock_to_flow", "BTC stock-to-flow", ["stock to flow", "s2f", "stock-to-flow"]],
+    ["btc_miner_netflow", "BTC miner netflow", ["miner netflow"]],
+    ["btc_miner_outflow", "BTC miner outflow", ["miner outflow"]],
+    ["btc_miner_reserve", "BTC miner reserve", ["miner reserve"]],
+    ["btc_tx_count", "BTC transaction count", ["tx count", "transaction count"]],
+    ["btc_addresses_active", "BTC active addresses", ["active addresses", "addresses active"]],
+    ["btc_fees_total", "BTC fees total", ["fees total", "btc fees"]],
+    ["btc_fees_tx_mean", "BTC mean fee", ["mean fee", "fee per tx"]],
+    ["btc_blockreward", "BTC block reward", ["block reward"]],
+    ["btc_difficulty", "BTC difficulty", ["difficulty"]],
+    ["btc_hashrate", "BTC hashrate", ["hashrate", "hash rate"]],
+    ["btc_utxo_count", "BTC UTXO count", ["utxo"]],
+    ["btc_velocity", "BTC velocity", ["velocity"]],
+    ["btc_tokens_transferred", "BTC tokens transferred", ["tokens transferred"]],
+    ["btc_supply_total", "BTC supply", ["btc supply", "circulating supply"]],
+    ["btc_open_interest", "BTC open interest", ["open interest", "oi"]],
+    ["btc_funding_rates", "BTC funding rates", ["funding", "funding rates"]],
+    ["btc_liquidations", "BTC liquidations", ["liquidations"]],
+    ["btc_taker_ratio", "BTC taker buy ratio", ["taker ratio", "taker buy"]],
+    ["btc_coinbase_premium", "BTC Coinbase premium", ["coinbase premium"]],
+    ["eth_exchange_netflow", "ETH exchange netflow", ["eth netflow"]],
+    ["eth_exchange_inflow", "ETH exchange inflow", ["eth inflow"]],
+    ["eth_exchange_outflow", "ETH exchange outflow", ["eth outflow"]],
+    ["eth_exchange_reserve", "ETH exchange reserve", ["eth reserve"]],
+    ["eth_addresses_active", "ETH active addresses", ["eth addresses"]],
+    ["eth_tx_count", "ETH transaction count", ["eth tx"]],
+    ["eth_open_interest", "ETH open interest", ["eth oi", "eth open interest"]],
+    ["eth_funding_rates", "ETH funding rates", ["eth funding"]],
+    ["eth_mvrv", "ETH MVRV", ["eth mvrv"]],
+    ["stablecoin_exchange_reserve", "Stablecoin exchange reserve", ["stablecoin reserve"]],
+    ["stablecoin_exchange_netflow", "Stablecoin exchange netflow", ["stablecoin netflow"]],
+    ["stablecoin_exchange_inflow", "Stablecoin exchange inflow", ["stablecoin inflow"]],
+    ["stablecoin_exchange_outflow", "Stablecoin exchange outflow", ["stablecoin outflow"]],
+    ["stablecoin_supply_total", "Stablecoin supply", ["stablecoin supply"]],
+    ["usdc_exchange_reserve", "USDC exchange reserve", ["usdc reserve"]]
+  ];
+  var CQ_COLORS = ["#f0b429", "#2962ff", "#26c6da", "#ab47bc", "#ff6d00", "#089981", "#f23645", "#7e57c2", "#00897b", "#e91e63"];
+  CQ_META.forEach(function (row) {
+    var q = row[2].concat([row[0], row[0].replace(/_/g, " ")]);
+    CURATED.push(H(q, "CQ:" + row[0], row[1], "chain", "CryptoQuant EOD · harvest (not live); twins extend some series to 2010", "onchain"));
+  });
+  function cqOscSpecs() {
+    return CQ_META.map(function (row, i) {
+      return {
+        id: "cq_" + row[0],
+        n: row[1],
+        on: 0,
+        cat: "On-chain",
+        c: CQ_COLORS[i % CQ_COLORS.length],
+        k: "cq",
+        cq: row[0]
+      };
+    });
+  }
 
   function norm(q) {
     return String(q || "").toLowerCase().replace(/[^a-z0-9:+.\- ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -199,6 +267,7 @@
       out.push(hit);
     }
     if (!n) return out.slice(0, limit);
+    if (/cq|on.?chain|cryptoquant|mvrv|sopr|nupl|hashrate|puell/i.test(n)) limit = Math.max(limit, 54);
     if (SYM) {
       var i, row, sc;
       for (i = 0; i < SYM.length; i++) {
@@ -214,6 +283,15 @@
         if (row.s.toLowerCase().indexOf(n) !== 0 && (row.n || "").toLowerCase().indexOf(n) !== 0) continue;
         push({ s: row.chart, name: row.n || row.s, extra: row.extra, type: row.type, cat: row.cat }, 70);
       }
+    }
+    if (CQ && CQ.series && n.length >= 2) {
+      var cqWant = n.replace(/^cq:/, "").replace(/\s+/g, "_");
+      Object.keys(CQ.series).forEach(function (id) {
+        var blob = id.replace(/_/g, " ");
+        if (id.toLowerCase().indexOf(cqWant) < 0 && blob.indexOf(n) < 0) return;
+        var meta = CQ_META.filter(function (r) { return r[0] === id; })[0];
+        push({ s: "CQ:" + id, name: meta ? meta[1] : id, extra: "CryptoQuant EOD · harvest", type: "onchain", cat: "chain" }, 85);
+      });
     }
     if (INST && n.length >= 1) {
       var hits = [];
@@ -265,7 +343,8 @@
       loadJson("/data/symbology/master.json").catch(function () { return null; }),
       loadJson("/data/indicator-bus.json").catch(function () { return null; }),
       loadJson("/data/provider-catalog.json").catch(function () { return null; }),
-      loadJson(PROXY + "/data/symdir/instruments.json.gz").catch(function () { return loadJson("/data/symdir/instruments.json.gz").catch(function () { return null; }); })
+      loadJson(PROXY + "/data/symdir/instruments.json.gz").catch(function () { return loadJson("/data/symdir/instruments.json.gz").catch(function () { return null; }); }),
+      loadCQ().catch(function () { return null; })
     ]).then(function (pack) {
       var master = pack[0], bus = pack[1], catalog = pack[2], instr = pack[3];
       if (master && master.by_ticker) {
@@ -476,6 +555,41 @@
     return k;
   }
 
+  function mergeDv(a, b) {
+    var m = {}, i, t;
+    function put(row, prefer) {
+      if (!row || !row.d || !row.v) return;
+      for (i = 0; i < row.d.length && i < row.v.length; i++) {
+        t = String(row.d[i]).slice(0, 10);
+        if (!t) continue;
+        if (prefer || !m[t]) m[t] = +row.v[i];
+      }
+    }
+    put(a, false);
+    put(b, true);
+    var dates = Object.keys(m).sort();
+    return { d: dates, v: dates.map(function (k) { return m[k]; }) };
+  }
+  function cqRow(doc, k) {
+    k = String(k || "");
+    var ser = (doc.series && (doc.series[k] || doc.series[k.toLowerCase()])) || null;
+    var twin = (doc.twins && (doc.twins[k] || doc.twins[k.toLowerCase()])) || null;
+    if (!ser && doc.series) {
+      var want = k.toLowerCase().replace(/^btc_/, "");
+      Object.keys(doc.series).forEach(function (id) {
+        if (!ser && id.toLowerCase().indexOf(want) >= 0) ser = doc.series[id];
+      });
+    }
+    if (!twin && doc.twins) {
+      var want2 = k.toLowerCase().replace(/^btc_/, "");
+      Object.keys(doc.twins).forEach(function (id) {
+        if (!twin && id.toLowerCase().indexOf(want2) >= 0) twin = doc.twins[id];
+      });
+    }
+    if (ser && twin) return mergeDv(twin, ser);
+    return ser || twin || null;
+  }
+
   async function klines(sym) {
     var s = String(sym || "");
     if (isWarehouse(s) && !/^CQ:|^CISS:|^DESK:|^DATA:/i.test(s)) {
@@ -491,21 +605,13 @@
     if (/^CQ:/i.test(s)) {
       var doc = await loadCQ();
       var k = cqKey(s);
-      var row = (doc.series && (doc.series[k] || doc.series[k.toLowerCase()])) ||
-        (doc.twins && (doc.twins[k] || doc.twins[k.toLowerCase()]));
-      if (!row && doc.series) {
-        var want = k.toLowerCase().replace(/^btc_/, "");
-        Object.keys(doc.series).forEach(function (id) {
-          if (!row && id.toLowerCase().indexOf(want) >= 0) row = doc.series[id];
-        });
-        if (!row && doc.twins) Object.keys(doc.twins).forEach(function (id) {
-          if (!row && id.toLowerCase().indexOf(want) >= 0) row = doc.twins[id];
-        });
-      }
+      var row = cqRow(doc, k);
       if (!row) return null;
       var d = dvBars(row.d, row.v);
       if (d.length < 8) return null;
       var src = "CryptoQuant EOD · " + d.length + " pts " + String(row.d[0]).slice(0, 10) + " → " + String(row.d[row.d.length - 1]).slice(0, 10);
+      if (String(row.d[0]).slice(0, 4) < "2025") src += " · twins+harvest";
+      else src += " · harvest (not live)";
       return { d: d, src: src };
     }
     if (/^CISS:/i.test(s)) {
@@ -542,6 +648,8 @@
     mapRow: mapRow,
     go: go,
     klines: klines,
-    curated: CURATED
+    curated: CURATED,
+    cqOscSpecs: cqOscSpecs,
+    cqMeta: CQ_META
   };
 })(typeof window !== "undefined" ? window : globalThis);

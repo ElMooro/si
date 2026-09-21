@@ -205,6 +205,33 @@
     {id:"adrpct",n:"ADR used %",on:0,cat:"Volatility",p:20,ob:100,os:50,c:"#089981"},
     {id:"vsspx",n:"vs S&P 500",on:0,cat:"Stats",c:"#2962ff",h:136}
   ];
+  var cqOscCache={};
+  function ensureCqOsc(){
+    if(!window.JHChartCatalog || typeof window.JHChartCatalog.cqOscSpecs!=="function") return;
+    var specs=window.JHChartCatalog.cqOscSpecs()||[];
+    for(var i=0;i<specs.length;i++){
+      var s=specs[i];
+      if(!s||!s.id) continue;
+      if(OSC.some(function(o){ return o.id===s.id; })) continue;
+      OSC.push(s);
+    }
+  }
+  function cqOscPoints(key){
+    var row=cqOscCache[key];
+    if(!row||row==="pending") return [];
+    return row;
+  }
+  function loadCqOsc(key){
+    if(!key||cqOscCache[key]) return;
+    cqOscCache[key]="pending";
+    var p=(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function")
+      ? window.JHChartCatalog.klines("CQ:"+key)
+      : Promise.resolve(null);
+    p.then(function(r){
+      cqOscCache[key]=(r&&r.d||[]).map(function(b){ return {time:b.time,value:b.close}; });
+      if(lastBars.length) paint(lastBars);
+    }).catch(function(){ cqOscCache[key]=[]; });
+  }
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
   var active="SPY", tf="1d", mode="price", kind="candles", scaleMode=0;
@@ -287,6 +314,14 @@
     if(/BUSD$/.test(s)) return s.slice(0,-4)+"-USD";
     if(/USDC$/.test(s)) return s.slice(0,-4)+"-USD";
     return s;
+  }
+  function isCryptoTape(t, raw){
+    if(/crypto-bars/i.test(String((raw&&raw.warehouse_key)||""))) return true;
+    t=String(t||"").toUpperCase();
+    if(/(USDT|BUSD|USDC)$/.test(t)) return true;
+    if(/^(BTC|ETH|SOL|XRP|ADA|DOGE|AVAX|DOT|LINK|LTC|BCH|ATOM|NEAR|APT|SUI|PEPE|SHIB)-USD$/.test(t)) return true;
+    if(/^(BTCUSD|ETHUSD)$/.test(t)) return true;
+    return false;
   }
   function resolveSym(raw){
     var orig=String(raw||"").trim();
@@ -1841,6 +1876,17 @@
                 if(yd.length>=8){ d=mergeByDay(d, yd); src="polygon+yahoo"; }
               }catch(eY){}
             }
+            if(isCryptoTape(t, raw) || isCryptoTape(ys, raw)){
+              try{
+                var yrawC=await fetchJson(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range=max&interval=1d&nowarehouse=1");
+                var ydC=asDaily(cleanWildTicks(toBars(yrawC)));
+                if(ydC.length>=8){
+                  var n0=d.length, t0=d.length?d[0].time:0;
+                  d=mergeByDay(ydC, d);
+                  if(d.length>n0 || (d.length && d[0].time<t0)) src=(src||"warehouse")+"+yahoo";
+                }
+              }catch(eC){}
+            }
             d=stripMixInBars(d);
           }
           d=resampleToTf(d, tfId);
@@ -2822,6 +2868,16 @@
           if(veVs && pack.last) veVs.textContent="RS "+pack.last.rs.toFixed(2)+"  1d "+fmtXs(pack.last.d1)+"  YTD "+fmtXs(pack.last.ytd)+"  1y "+fmtXs(pack.last.y)+"  all "+fmtXs(pack.last.all)+(pack.last.beta!=null?"  β"+pack.last.beta.toFixed(2):"")+"  n="+pack.n;
         } else {
           var veMiss=head.querySelector(".osc-v"); if(veMiss) veMiss.textContent="no overlap";
+        }
+      }
+      else if(o.k==="cq" || /^cq_/.test(o.id)){
+        var ck=o.cq || String(o.id||"").replace(/^cq_/,"");
+        var pts=cqOscPoints(ck);
+        if(!pts.length){
+          loadCqOsc(ck);
+          if(head.querySelector(".osc-v")) head.querySelector(".osc-v").textContent="CryptoQuant EOD — loading…";
+        } else {
+          addO(pts, o.c||"#f0b429");
         }
       }
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
@@ -5449,7 +5505,7 @@
   window.jhOpenCmp=openCmp;
   window.jhOpenDataTypeMenu=openDataType;
   window.jhGoSymbol=goSymbol;
-  window.jhQx={tickSize:tickSize,tickFromBars:tickFromBars,tickPrec:tickPrec,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,crossedAlert:crossedAlert,retCal:retCal,barsFitTf:barsFitTf,escHtml:escHtml,medianGap:medianGap,expectedGap:expectedGap,safeHref:safeHref,retsByTime:retsByTime,alignedRets:alignedRets};
+  window.jhQx={tickSize:tickSize,tickFromBars:tickFromBars,tickPrec:tickPrec,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,crossedAlert:crossedAlert,retCal:retCal,barsFitTf:barsFitTf,escHtml:escHtml,medianGap:medianGap,expectedGap:expectedGap,safeHref:safeHref,retsByTime:retsByTime,alignedRets:alignedRets,isCryptoTape:isCryptoTape};
   window.jhFmtXs=fmtXs;
   window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSetScale=function(m){ scaleMode=+m||0; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
@@ -5464,6 +5520,7 @@
   window.jhNumish=numish;
   window.klines=klines;
   if(window.jhWatchSet) window.jhWatchSet(false);
+  ensureCqOsc();
   if(layout>1) setLayout(layout);
   loadLists().then(function(){ renderList(); fillStack(); });
   loadIntel(); loadNews();

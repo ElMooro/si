@@ -81,3 +81,57 @@ test('weekend tail is empty and never contacts vendor',async()=>{
   assert.equal(formingSession(new Date('2026-09-11T18:00:00Z')),true);
   assert.deepEqual(aggregateBars([{time:1}], 'minute',1,'day'),[]);
 });
+
+function yahooChart(ts, closes) {
+  return Response.json({
+    chart: {
+      result: [{
+        timestamp: ts,
+        indicators: { quote: [{ open: closes, high: closes, low: closes, close: closes, volume: closes.map(() => 1) }] }
+      }]
+    }
+  });
+}
+
+test('yf-ohlc nowarehouse=1 skips the crypto bank and returns Yahoo', async () => {
+  const r = await request('/yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1', {}, u => {
+    assert.equal(u.hostname, 'query1.finance.yahoo.com');
+    return yahooChart([1410912000], [455]);
+  });
+  assert.equal(r.status, 200);
+  assert.equal(r.doc.source, 'yahoo');
+  assert.equal(r.doc.count, 1);
+  assert.equal(r.doc.bars[0].close, 455);
+  assert.equal(r.doc.warehouse_key, undefined);
+});
+
+test('crypto daily /ohlc prepends Yahoo and warehouse wins overlap', async () => {
+  const cryptoBank = {
+    bars: [[1599264000, 10000, 10100, 9900, 10050, 10], [1601856000, 11000, 11100, 10900, 11050, 10]],
+    last_date: '2020-10-05'
+  };
+  const r = await request(
+    '/ohlc?ticker=BTC-USD&span=day&days=12000',
+    { 'data/warm/katlin/crypto-bars/BTC.json.gz': cryptoBank },
+    u => {
+      assert.equal(u.hostname, 'query1.finance.yahoo.com');
+      return yahooChart([1410912000, 1599264000], [455, 8888]);
+    }
+  );
+  assert.equal(r.status, 200);
+  assert.equal(r.doc.source, 'warehouse+yahoo');
+  assert.equal(r.doc.bars[0].close, 455);
+  const overlap = r.doc.bars.find(b => b.time === 1599264000);
+  assert.ok(overlap);
+  assert.equal(overlap.close, 10050);
+  assert.equal(r.doc.bars[r.doc.bars.length - 1].close, 11050);
+});
+
+test('equity daily /ohlc never fetches Yahoo when the tv-bars bank is present', async () => {
+  const r = await request('/ohlc?ticker=AAPL&span=day&days=12000', { 'data/warm/tv-bars/universe/US__AAPL.json.gz': bank });
+  assert.equal(r.status, 200);
+  assert.equal(r.doc.source, 'warehouse');
+  assert.equal(r.doc.count, 2);
+  assert(r.calls.every(u => u.includes('.amazonaws.com/') || u.startsWith('https://bank.example/')));
+});
+

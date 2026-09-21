@@ -68,3 +68,84 @@ export function formingSession(now = new Date()) {
   const minutes = Number(p.hour)*60+Number(p.minute);
   return !['Sat','Sun'].includes(p.weekday) && minutes >= 570 && minutes <= 960;
 }
+
+export function utcDay(t) {
+  t = Number(t) || 0;
+  if (t > 1e12) t = Math.floor(t / 1000);
+  if (!Number.isFinite(t) || t <= 0) return 0;
+  return Math.floor(t / 86400) * 86400;
+}
+
+export function yahooChartSymbol(ticker) {
+  const t = String(ticker || "").trim().toUpperCase();
+  if (/USDT$/.test(t)) return t.slice(0, -4) + "-USD";
+  if (/BUSD$/.test(t)) return t.slice(0, -4) + "-USD";
+  if (/USDC$/.test(t)) return t.slice(0, -4) + "-USD";
+  if (t === "BTCUSD") return "BTC-USD";
+  if (t === "ETHUSD") return "ETH-USD";
+  return t;
+}
+
+export function binanceSymbol(ticker) {
+  const t = String(ticker || "").trim().toUpperCase();
+  if (/(USDT|BUSD|USDC)$/.test(t)) return t.replace(/BUSD$|USDC$/, "USDT");
+  if (/^[A-Z0-9]{2,10}-USD$/.test(t)) return t.replace("-USD", "USDT");
+  if (t === "BTCUSD") return "BTCUSDT";
+  if (t === "ETHUSD") return "ETHUSDT";
+  return t;
+}
+
+export function isCryptoWarehouse(key) {
+  return /crypto-bars/i.test(String(key || ""));
+}
+
+/* newer wins on the same UTC day. Use Yahoo (or Binance) as `older` and the
+ * katlin Polygon bank as `newer` so 2020+ prints stay on the warehouse tape
+ * and 2014–2020 (Yahoo BTC-USD) fills the hole. Equities never call this. */
+export function mergeBarsPrefer(older, newer) {
+  const m = new Map();
+  function put(row) {
+    const t = utcDay(row && row.time);
+    if (!t) return;
+    m.set(t, {
+      time: t,
+      open: row.open, high: row.high, low: row.low, close: row.close,
+      value: row.value != null ? row.value : (row.volume || 0)
+    });
+  }
+  for (const row of older || []) put(row);
+  for (const row of newer || []) put(row);
+  return [...m.values()].sort((a, b) => a.time - b.time);
+}
+
+export function yahooResultToBars(data) {
+  const res = data && data.chart && data.chart.result && data.chart.result[0];
+  const ts = (res && res.timestamp) || [];
+  const q = (res && res.indicators && res.indicators.quote && res.indicators.quote[0]) || {};
+  const bars = [];
+  for (let i = 0; i < ts.length; i++) {
+    if (q.close && q.close[i] != null && q.open && q.open[i] != null) {
+      bars.push({
+        time: ts[i],
+        open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i],
+        value: (q.volume && q.volume[i]) || 0
+      });
+    }
+  }
+  return bars;
+}
+
+export function binanceKlinesToBars(rows) {
+  const bars = [];
+  for (const b of rows || []) {
+    if (!b || b[0] == null || b[4] == null) continue;
+    const t = Math.floor(Number(b[0]) / 1000);
+    if (!Number.isFinite(t) || t <= 0) continue;
+    bars.push({
+      time: t,
+      open: +b[1], high: +b[2], low: +b[3], close: +b[4],
+      value: +b[5] || 0
+    });
+  }
+  return bars;
+}

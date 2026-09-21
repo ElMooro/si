@@ -232,6 +232,7 @@
         if (s.id === "hv") keys += " historical volatility realized vol";
         if (s.id === "beta" || s.id === "rsline" || s.id === "corrspy" || s.id === "vsspx") keys += " spy spx s&p 500 relative strength beta correlation vs";
         if (s.id === "vsspx") keys += " gspc cash index outperformance entire history rs line";
+        if (s.cat === "On-chain" || s.k === "cq" || /^cq_/.test(s.id)) keys += " cryptoquant onchain on-chain mvrv sopr nupl hashrate puell cq";
         if (s.id === "fibauto" || s.id === "fibpiv") keys += " fibonacci retracement pivot";
         if (s.id === "gmma" || s.id === "ribbon") keys += " guppy ribbon multiple moving average ema";
         if (s.id === "kama") keys += " kaufman adaptive ama";
@@ -574,6 +575,9 @@
       rsline: ["RS vs SPY", "Stats", "Price relative, rebased to 100 at the first aligned bar. Now joined to S&P 500 cash on NY session days (same engine as vs S&P 500). Prefer the vs S&P 500 pane for RS 50/200 and full-history excess.", "Rising RS = outperforming. Does not adjust for beta.", "Relative strength line."]
     };
     var pack = TAPE[id] || STUDY[id];
+    if (!pack && (String(id).indexOf("cq_") === 0 || (window.OSC || []).some(function (o) { return o.id === id && o.k === "cq"; }))) {
+      pack = ["CryptoQuant", "On-chain", "CryptoQuant EOD harvest series plotted as its own pane. Daily harvest starts 2025-07; twins (MVRV, NUPL, hashrate, supply, …) extend to 2010 at coarser spacing. Not live.", "Add from Indicators → Oscillators → On-chain, or search CQ:btc_mvrv (and every other harvest id) in the symbol box.", "Never mixed with ETF flow, FMP, or Polygon prints. Empty pane = harvest miss, not a live outage."];
+    }
     var title, tag, what, how, cave;
     if (pack) {
       title = pack[0]; tag = pack[1]; what = pack[2]; how = pack[3]; cave = pack[4];

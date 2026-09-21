@@ -24,7 +24,7 @@ function loadQx() {
 }
 
 test("chart.html cache-busts the quality engine", () => {
-  assert.match(html, /jh-chart-engine\.js\?v=20260916aa-fix/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260921ab-cq/);
   assert.match(html, /jh-chart-quality\.js\?v=20260915ae-qx/);
   assert.match(html, /font-variant-numeric:tabular-nums/);
   assert.doesNotMatch(html, /\[object Object\]/);
