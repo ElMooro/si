@@ -8,6 +8,12 @@ from test_option_flow_store import S3
 
 
 class Tests(unittest.TestCase):
+    def test_every_package_identity_exists_in_repository(self):
+        for name in (op.FUNCTION,*op.CONSUMERS):
+            root=ROOT/'aws/lambdas'/name
+            config=json.loads((root/'config.json').read_bytes())
+            self.assertEqual(config.get('function_name',name),name)
+            self.assertTrue((root/'source/lambda_function.py').is_file())
     def test_original_retention_and_readback_use_whole_bytes(self):
         raw=b'{"close":1.123456789012345678901,"missing":null,"zero":0}'
         s3=S3();ref=op.retain(s3,raw)

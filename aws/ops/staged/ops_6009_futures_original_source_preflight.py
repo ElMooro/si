@@ -21,7 +21,7 @@ from massive import get_massive_key
 BUCKET='justhodl-dashboard-live';FUNCTION='justhodl-polygon-futures-curves'
 PRIVATE='audit-private/20260909-originals/futures-research/'
 PACKETS=('data/polygon-futures-curves.json',)
-CONSUMERS=tuple('justhodl-'+name for name in ('crisis-composite','prepump-alerts-router','prediction-snapshotter','polygon-signals-composite'))
+CONSUMERS=tuple('justhodl-'+name for name in ('crisis-composite','prepump-alerts-router','prediction-snapshotter','massive-signals'))
 REQUEST='chatgpt-futures-original-source-6009'
 STATUS=PRIVATE+'requests/'+capture.sha(REQUEST.encode())+'.json'
 MAX=16*1024*1024
@@ -76,6 +76,7 @@ def main():
     events=boto3.client('events',region_name='us-east-1');scheduler=boto3.client('scheduler',region_name='us-east-1')
     with report('ops_6009_futures_original_source_preflight') as r:
         subprocess.run([sys.executable,str(ROOT/'tests/test_futures_source_capture.py')],cwd=ROOT,check=True)
+        subprocess.run([sys.executable,str(ROOT/'tests/test_futures_source_preflight.py')],cwd=ROOT,check=True)
         r.kv(request_status_key=STATUS)
         try:previous=json.loads(get(s3,STATUS))
         except Exception as exc:
