@@ -127,6 +127,7 @@ def main():
             'peak_runner_rss_kib':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
             'scope':'Captured populations only. No ownership inference, provider collection, native invocation or public head mutation.'}
         retained=baseline.retain(s3,upstream.encoded(manifest));protected.add(retained['key'])
+        r.kv(retained_candidate=retained,counts=dict(counts),arithmetic_complete=True,privacy_acceptance_pending=True)
         def check(key):assert denied('https://justhodl.ai/'+key) and denied('https://'+BUCKET+'.s3.amazonaws.com/'+key)
         with ThreadPoolExecutor(max_workers=8) as pool:
             for _ in pool.map(check,sorted(protected)):pass
