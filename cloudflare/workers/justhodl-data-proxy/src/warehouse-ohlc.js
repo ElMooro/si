@@ -113,7 +113,15 @@ export function mergeBarsPrefer(older, newer) {
       value: row.value != null ? row.value : (row.volume || 0)
     });
   }
-  for (const row of older || []) put(row);
+  for (const row of older || []) {
+    const t = utcDay(row && row.time);
+    if (!t) continue;
+    m.set(t, {
+      time: t,
+      open: row.open, high: row.high, low: row.low, close: row.close,
+      value: 0
+    });
+  }
   for (const row of newer || []) put(row);
   return [...m.values()].sort((a, b) => a.time - b.time);
 }

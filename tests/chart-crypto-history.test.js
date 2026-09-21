@@ -69,8 +69,10 @@ test("mergeBarsPrefer keeps warehouse prints on overlap and prepends Yahoo", asy
   const m = mergeBarsPrefer(older, newer);
   assert.equal(m.length, 3);
   assert.equal(m[0].close, 455);
+  assert.equal(m[0].value, 0);
   assert.equal(utcDay(m[0].time), 1410912000);
   assert.equal(m[1].close, 10050);
+  assert.equal(m[1].value, 10);
   assert.equal(m[2].close, 11050);
 });
 

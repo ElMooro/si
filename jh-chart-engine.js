@@ -1882,6 +1882,7 @@
                 var ydC=asDaily(cleanWildTicks(toBars(yrawC)));
                 if(ydC.length>=8){
                   var n0=d.length, t0=d.length?d[0].time:0;
+                  for(var yi=0;yi<ydC.length;yi++) ydC[yi].volume=0;
                   d=mergeByDay(ydC, d);
                   if(d.length>n0 || (d.length && d[0].time<t0)) src=(src||"warehouse")+"+yahoo";
                 }
