@@ -136,10 +136,11 @@ def apps_tarball_rows(max_rows: int):
         difficulty = str(meta.get("difficulty"))
         if difficulty not in APPS_DIFFICULTIES or not solutions or not io_pairs.get("inputs"):
             continue
-        tests = _stdio_tests(io_pairs)
+        call_based = bool(io_pairs.get("fn_name"))
+        tests = _call_tests(io_pairs) if call_based else _stdio_tests(io_pairs)
         if not tests:
             continue
-        candidates = [str(sol) for sol in solutions if not looks_python2(str(sol))][:APPS_SOLUTIONS_PER_TASK]
+        candidates = [str(sol) for sol in solutions if not looks_python2(str(sol)) and (not call_based or "class Solution" in str(sol))][:APPS_SOLUTIONS_PER_TASK]
         if not candidates:
             continue
         question = (doc.get("question.txt") or "").strip()
@@ -147,7 +148,7 @@ def apps_tarball_rows(max_rows: int):
             yield {"task_id": "apps-%s" % pid, "kind": src["kind"], "family": "apps-" + difficulty, "license": src["license"],
                    "source_url": "https://huggingface.co/datasets/%s" % src["hf"], "citation": src["citation"],
                    "source_sha": sha(("apps:" + pid + "\n" + question + "\n" + tests).encode("utf-8")), "prompt": question,
-                   "solution": _as_function(sol), "tests": tests, "timeout_s": 12, "candidate": i}
+                   "solution": sol if call_based else _as_function(sol), "tests": tests, "timeout_s": 12, "candidate": i, "call_based": call_based}
         n += 1
 
 
@@ -238,6 +239,23 @@ def __run(stdin_text):
 """
 
 
+def _call_tests(io_pairs: dict) -> str:
+    """Call-based APPS problems (input_output.json carries fn_name; inputs are argument lists, outputs return values):
+    LeetCode-style `class Solution` methods judged like MBPP function tasks. 2026-09-21: these were dropped entirely
+    (three of four APPS problems), which is why 1,000-problem runs surfaced ~260."""
+    fn = io_pairs.get("fn_name")
+    inputs, outputs = io_pairs.get("inputs") or [], io_pairs.get("outputs") or []
+    if not fn or not isinstance(fn, str) or not fn.isidentifier() or len(inputs) != len(outputs) or not inputs:
+        return ""
+    lines = []
+    for i, (inp, out) in enumerate(zip(inputs[:8], outputs[:8])):
+        if not isinstance(inp, list):
+            return ""
+        expected = out[0] if isinstance(out, list) and len(out) == 1 else out
+        lines.append("assert Solution().%s(*%r) == %r, 'case %d'" % (fn, inp, expected, i))
+    return "\n".join(lines)
+
+
 def _stdio_tests(io_pairs: dict) -> str:
     inputs, outputs = io_pairs.get("inputs") or [], io_pairs.get("outputs") or []
     if len(inputs) != len(outputs) or not inputs:
@@ -323,6 +341,9 @@ def cmd_write(args):
         row = json.loads(line)
         if "_report" in row:
             judged["report"] = row.get("_report"); skipped += 1
+            continue
+        if "_fetch" in row:
+            judged["fetch"] = row.get("_fetch"); skipped += 1
             continue
         judged["rows"] += 1
         fam = str(row.get("family"))
