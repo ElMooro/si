@@ -2338,9 +2338,12 @@ def _gear_b_tick(*, launch: bool) -> Dict[str, Any]:
     s3 = client("s3")
     policy = cg.load_policy(s3, PRIVATE_BUCKET)
     projected, _ = _projected(policy)
-    return gear_b.tick(client("sagemaker"), s3, private_bucket=PRIVATE_BUCKET, public_bucket=PUBLIC_BUCKET, policy=policy,
+    out = gear_b.tick(client("sagemaker"), s3, private_bucket=PRIVATE_BUCKET, public_bucket=PUBLIC_BUCKET, policy=policy,
                        role_arn=execution_role(), projected=projected, pricing=client("pricing"),
                        describe_card=lambda mid, ver: sm_hub.describe_model(client("sagemaker"), mid, ver), region=REGION, launch=launch)
+    # 2026-09-21: the hourly tick refused to launch for 41 h and nothing recorded why -- every tick's result is kept
+    _safe(lambda: gear_b.put_json(s3, PRIVATE_BUCKET, "factory/gearb/last_tick.json", {**{k: v for k, v in out.items() if k != "polled"}, "launch_arg": bool(launch), "polled_n": len(out.get("polled") or [])}))
+    return out
 
 
 GEAR_B_ACTIONS = {
