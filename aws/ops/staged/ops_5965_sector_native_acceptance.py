@@ -16,7 +16,7 @@ import sector_research_model as model
 from replay_sector_research import verify as replay_verify
 BUCKET='justhodl-dashboard-live'
 COMMIT='cc78b3e809e7d9c7c3375db420dc26b2d078d2b8'
-PAGE_COMMIT=COMMIT
+PAGE_COMMIT='6e39f6020b7dad0672351fcf4b7536c51aa1e705'
 FUNCTIONS=('justhodl-ai-brief', 'justhodl-ai-chat', 'justhodl-alert-router', 'justhodl-allocator', 'justhodl-best-setups', 'justhodl-daily-report-v3', 'justhodl-deal-scanner', 'justhodl-invest', 'justhodl-macro-confluence', 'justhodl-master-ranker', 'justhodl-morning-brief-tg', 'justhodl-morning-intelligence', 'justhodl-sector-capital-fusion', 'justhodl-sector-flow-state', 'justhodl-sector-rotation', 'justhodl-sector-tilt', 'justhodl-wave-signal-logger')
 ASSETS=('rotation/index.html','sectors.html','sector-tilt.html','jh-sector-research.js','jh-sector-research.css','alpha-scoreboard.html','sector-flow.html')
 AUDIT=('0f2626f156592935f76faa19e4e9e2413394c745b7a74c3d3ce4060b2311b5a4',62188)
@@ -177,8 +177,8 @@ def main():
             assert (ROOT/'aws/lambdas'/fn/'source'/name).read_bytes()==raw and len(raw)==size
             legacy[fn]={'bytes':size,'sha256':model.sha(raw)}
         build=json.loads(public('build-manifest.json'));pages_commit=build['commit_sha']
-        subprocess.run(['git','merge-base','--is-ancestor',COMMIT,pages_commit],cwd=ROOT,check=True)
-        subprocess.run(['git','diff','--quiet',COMMIT,pages_commit,'--',*ASSETS],cwd=ROOT,check=True)
+        subprocess.run(['git','merge-base','--is-ancestor',PAGE_COMMIT,pages_commit],cwd=ROOT,check=True)
+        subprocess.run(['git','diff','--quiet',PAGE_COMMIT,pages_commit,'--',*ASSETS],cwd=ROOT,check=True)
         for name in ASSETS:
             served=public(name);clean,count=re.subn(rb'<script\b[^>]*\bsrc="https://static\.cloudflareinsights\.com/beacon\.min\.js/v[a-f0-9]+"[^>]*></script>\n?',b'',served)
             assert count<=1 and model.sha(clean)==build['files_sha256'][name],'Built asset differs: '+name
