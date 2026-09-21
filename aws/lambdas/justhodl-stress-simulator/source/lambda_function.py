@@ -232,7 +232,7 @@ def _load_betas():
 
 def _current_regime():
     """Read current regime from macro-nowcast.json."""
-    data = _read_json(NOWCAST_KEY) or {}
+    data = __import__('nowcast_research').decision_view(_read_json(NOWCAST_KEY))
     cur = data.get("current_regime") or data.get("regime") or {}
     if isinstance(cur, str):
         return {"regime": cur, "confidence": None}
@@ -384,7 +384,8 @@ def simulate(shocks, portfolio=None, regime_override=None):
             "after": round(ki_after, 1) if ki_after is not None else None,
             "delta": round(ki_delta, 1) if ki_delta is not None else None,
         },
-        "regime_change_probability": round(regime_change_p, 3),
+        "regime_change_probability": None,
+        "regime_probability_status": "UNQUALIFIED_HEURISTIC_NO_PROBABILITY",
         "shock_magnitude_score": round(shock_magnitude, 2),
         "historical_analogs": analog_top,
     }

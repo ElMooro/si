@@ -451,27 +451,12 @@ const REGIME_ICONS = {
 };
 
 function renderRegimeBanner(){
-  if(!confluenceData && !regimeData) return;
-  const regime = (confluenceData && confluenceData.regime)
-                  || (regimeData && regimeData.regime) || 'UNKNOWN';
-  const conf = (confluenceData && confluenceData.regime_confidence)
-                || (regimeData && regimeData.regime_confidence) || 0;
-  const logic = (regimeData && regimeData.regime_logic) || '';
-  document.getElementById('regime-name').textContent = regime;
-  document.getElementById('regime-icon').textContent = REGIME_ICONS[regime] || '🌀';
-  document.getElementById('regime-confidence').textContent = (conf * 100).toFixed(0) + '%';
-  document.getElementById('regime-logic').textContent = logic;
-  // Sector preferences
-  const prefs = (regimeData && regimeData.regime_sector_preferences) || {};
-  const sorted = Object.entries(prefs).sort((a,b) => b[1] - a[1]);
-  const sectorsEl = document.getElementById('regime-sectors');
-  sectorsEl.innerHTML = sorted.map(([sec, adj]) => {
-    const sign = adj >= 0 ? '+' : '';
-    const color = adj > 5 ? 'var(--pos)' : adj < -5 ? 'var(--neg)'
-                : adj > 0 ? 'var(--gold)' : adj < 0 ? 'var(--text-mute)' : 'var(--text-dim)';
-    return `<span style="padding:2px 7px;border-radius:3px;background:rgba(28,35,48,.5);color:${color}">${sign}${adj} ${escapeHtml(sec.substring(0,16))}</span>`;
-  }).join('');
-  document.getElementById('regime-banner').style.display = 'block';
+  document.getElementById('regime-name').textContent='Unqualified';
+  document.getElementById('regime-icon').textContent='—';
+  document.getElementById('regime-confidence').textContent='Unavailable';
+  document.getElementById('regime-logic').textContent='No qualified macro regime, confidence or sector preference.';
+  document.getElementById('regime-sectors').innerHTML='<a href="/macro-nowcast.html">Inspect dated macro research →</a>';
+  document.getElementById('regime-banner').style.display='block';
 }
 
 function renderConfluence(){
@@ -554,7 +539,8 @@ async function loadRegime(){
   try {
     const resp = await fetch(REGIME_URL + '?t=' + Date.now());
     if(!resp.ok) return;
-    regimeData = await resp.json();
+    const received=await resp.json();
+    regimeData={...received,regime:null,regime_confidence:null,regime_picks:[],regime_avoids:[],regime_sector_preferences:{}};
     renderRegimeBanner();
     renderRegimePicks();
   } catch(err) { console.warn('Regime load failed:', err); }

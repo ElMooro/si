@@ -164,7 +164,7 @@ def load_s3_json(key, default=None):
 def normalize_regime(regime_str):
     """Map various regime label formats to our matrix keys."""
     if not regime_str:
-        return "MUDDLE"  # safe default
+        return None  # Missing regime is abstention.
     r = regime_str.upper().strip()
     # Direct hits
     if r in SECTOR_TILT_MATRIX["XLF"]:
@@ -188,7 +188,7 @@ def normalize_regime(regime_str):
         "NEUTRAL": "MUDDLE",
         "MIXED": "MUDDLE",
     }
-    return aliases.get(r, "MUDDLE")
+    return aliases.get(r)
 
 
 def classify_alignment(tilt_score, momentum_state, rs_20d):
@@ -281,6 +281,13 @@ def build_tilt_card(ticker, regime, sector_data):
     flow_signal = sector_data.get("flow_signal")
     momentum_quintile = sector_data.get("momentum_quintile")
 
+    if regime is None:
+        return {'ticker':ticker,'name':name,'emoji':emoji,'regime':None,'regime_tilt_score':None,
+            'regime_tilt_label':'UNAVAILABLE','current_state':current_state,'rs_20d':rs_20d,'rs_63d':rs_63d,
+            'last_close':last_close,'flow_z':flow_z,'flow_signal':flow_signal,'momentum_quintile':momentum_quintile,
+            'alignment':'UNAVAILABLE','implication':'WAIT','urgency':None,
+            'rationale':'No qualified macro regime; no sector prescription.',
+            'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False,'forecast_qualified':False}
     alignment, implication, urgency = classify_alignment(
         tilt_score, current_state, rs_20d
     )
@@ -316,8 +323,8 @@ def build_tilt_card(ticker, regime, sector_data):
 
 def build_summary(tilts):
     """Aggregate stats across all 11 sector tilts."""
-    n_overweight = sum(1 for t in tilts if t["regime_tilt_score"] >= 1)
-    n_underweight = sum(1 for t in tilts if t["regime_tilt_score"] <= -1)
+    n_overweight = sum(1 for t in tilts if isinstance(t["regime_tilt_score"],(int,float)) and t["regime_tilt_score"] >= 1)
+    n_underweight = sum(1 for t in tilts if isinstance(t["regime_tilt_score"],(int,float)) and t["regime_tilt_score"] <= -1)
     n_neutral = sum(1 for t in tilts if t["regime_tilt_score"] == 0)
 
     n_aligned = sum(1 for t in tilts if t["alignment"] == "ALIGNED")
@@ -326,11 +333,11 @@ def build_summary(tilts):
     # The actionable opportunities (sorted by tilt magnitude × urgency)
     buys = sorted(
         [t for t in tilts if t["implication"] == "BUY_OPPORTUNITY"],
-        key=lambda t: (-abs(t["regime_tilt_score"]), t["rs_20d"] or 0),
+        key=lambda t: (-abs(t["regime_tilt_score"] or 0), t["rs_20d"] or 0),
     )
     fades = sorted(
         [t for t in tilts if t["implication"] == "FADE_OPPORTUNITY"],
-        key=lambda t: (-abs(t["regime_tilt_score"]), -(t["rs_20d"] or 0)),
+        key=lambda t: (-abs(t["regime_tilt_score"] or 0), -(t["rs_20d"] or 0)),
     )
     confirmed_buys = sorted(
         [t for t in tilts if t["implication"] == "CONFIRMED_BUY"],
@@ -341,6 +348,7 @@ def build_summary(tilts):
         "n_overweight": n_overweight,
         "n_underweight": n_underweight,
         "n_neutral": n_neutral,
+        "n_unavailable": sum(t["regime_tilt_score"] is None for t in tilts),
         "n_aligned": n_aligned,
         "n_misaligned": n_misaligned,
         "top_buy_opportunities": [t["ticker"] for t in buys[:3]],
@@ -353,7 +361,7 @@ def lambda_handler(event, context):
     started = time.time()
 
     # 1. Load fresh inputs
-    nowcast = load_s3_json(S3_KEY_NOWCAST)
+    nowcast = __import__('nowcast_research').decision_view(load_s3_json(S3_KEY_NOWCAST))
     rotation = load_s3_json(S3_KEY_ROTATION)
 
     if not nowcast:
@@ -386,7 +394,7 @@ def lambda_handler(event, context):
         # MISALIGNED ahead of ALIGNED ahead of NEUTRAL
         {"MISALIGNED": 0, "ALIGNED": 1, "NEUTRAL": 2}.get(t["alignment"], 3),
         # Then by tilt magnitude (strongest tilts first)
-        -abs(t["regime_tilt_score"]),
+        -abs(t["regime_tilt_score"] or 0),
         # Then by urgency
         {"HIGH": 0, "MEDIUM": 1, "LOW": 2}.get(t["urgency"], 3),
     ))
@@ -396,6 +404,9 @@ def lambda_handler(event, context):
     payload = {
         "schema_version": "1.0",
         "method": "macro_regime_to_sector_tilt_v1",
+        "research_context": nowcast["research_context"],
+        "calls_eligible":False,"sizing_eligible":False,"execution_eligible":False,"forecast_qualified":False,
+        "portfolio_action":"WAIT",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regime": regime,
         "regime_raw": raw_regime,

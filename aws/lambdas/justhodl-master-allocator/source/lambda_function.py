@@ -292,7 +292,7 @@ def gather_signals():
                          "regime": car.get("regime")}
 
     # Macro nowcast -- expecting a recession-probability-style score
-    mn = read_json("data/macro-nowcast.json")
+    mn = __import__('nowcast_research').decision_view(read_json("data/macro-nowcast.json"))
     mnv = (mn.get("recession_probability") or mn.get("score")
            or mn.get("composite_score"))
     if isinstance(mnv, (int, float)):

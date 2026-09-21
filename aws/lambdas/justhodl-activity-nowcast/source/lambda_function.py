@@ -154,32 +154,10 @@ def divergence(activity_index):
     except Exception:
         return {"available": False,
                 "read": "monthly composite (macro-nowcast) unavailable"}
-    monthly = d.get("normalized_score")
-    if monthly is None:
-        monthly = d.get("score")
-    monthly_regime = d.get("regime") or d.get("label")
-    if not isinstance(monthly, (int, float)):
-        return {"available": False, "monthly_regime": monthly_regime,
-                "read": "monthly composite score not numeric"}
-    gap = round(activity_index - monthly, 1)
-    if gap <= -12:
-        flag = "HIGH-FREQ LEADING LOWER"
-        read = ("High-frequency activity has rolled over well below the "
-                "monthly composite — early warning of a slowdown the "
-                "official data has not yet printed.")
-    elif gap >= 12:
-        flag = "HIGH-FREQ LEADING HIGHER"
-        read = ("High-frequency data is running hotter than the monthly "
-                "composite — a recovery may be arriving ahead of the "
-                "official prints.")
-    else:
-        flag = "ALIGNED"
-        read = ("High-frequency nowcast and the monthly composite agree — "
-                "no leading divergence.")
-    return {"available": True, "monthly_score": round(monthly, 1),
-            "monthly_regime": monthly_regime,
-            "highfreq_index": activity_index, "gap": gap,
-            "flag": flag, "read": read}
+    d = __import__('nowcast_research').decision_view(d)
+    return {'available':False,'monthly_regime':None,'monthly_score':None,'gap':None,
+            'research_context':d['research_context'],
+            'read':'No qualified regime or calibrated comparison between the two differently scaled indices.'}
 
 
 def lambda_handler(event, context):

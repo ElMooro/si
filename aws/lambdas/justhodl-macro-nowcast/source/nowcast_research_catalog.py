@@ -1,0 +1,5 @@
+"""Reviewed source identities and disclosed judgmental legacy weights."""
+SPECS = {'INDPRO': ('Industrial Production: Total Index', 'Index 2017=100', 'M', 'SA'), 'PAYEMS': ('All Employees, Total Nonfarm', 'Thousands of Persons', 'M', 'SA'), 'RSAFS': ('Advance Retail Sales: Retail Trade and Food Services', 'Millions of Dollars', 'M', 'SA'), 'HOUST': ('New Privately-Owned Housing Units Started: Total Units', 'Thousands of Units', 'M', 'SAAR'), 'UMCSENT': ('University of Michigan: Consumer Sentiment', 'Index 1966:Q1=100', 'M', 'NSA'), 'T10Y2Y': ('10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity', 'Percent', 'D', 'NSA'), 'UNRATE': ('Unemployment Rate', 'Percent', 'M', 'SA'), 'SP500': ('S&P 500', 'Index', 'D', 'NSA'), 'RRSFS': ('Advance Real Retail and Food Services Sales', 'Millions of 1982-84 CPI Adjusted Dollars', 'M', 'SA')}
+SERIES=tuple(SPECS)
+WEIGHTS={'INDPRO':'0.20','PAYEMS':'0.25','RSAFS':'0.20','HOUST':'0.10','UMCSENT':'0.10','T10Y2Y':'0.10','UNRATE':'-0.05'}
+YOY=('INDPRO','PAYEMS','RSAFS','HOUST','RRSFS')

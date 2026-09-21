@@ -490,7 +490,7 @@ def generate_names_brief(ctx_id, cfg, episode_ref):
     result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key"),
               "brief_type": "names"}
     try:
-        primary = s3io.get_json(cfg["primary_feed"], default={})
+        primary = __import__('nowcast_research').guard(cfg["primary_feed"],s3io.get_json(cfg["primary_feed"], default={}))
         if not primary:
             result["status"] = "ERR_NO_PRIMARY"
             result["err"] = f"{cfg['primary_feed']} empty"
@@ -498,7 +498,7 @@ def generate_names_brief(ctx_id, cfg, episode_ref):
 
         cross_data = {}
         for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
-            d = __import__("plumbing_authority").guard(feed_key, s3io.get_json(feed_key, default={}))
+            d = __import__("plumbing_authority").guard(feed_key, __import__('nowcast_research').guard(feed_key,s3io.get_json(feed_key, default={})))
             if d:
                 cross_data[cid] = d
 
@@ -706,11 +706,11 @@ def generate_synthesis_brief(ctx_id, cfg, episode_ref):
         regime_briefs = {}
         name_briefs = {}
         for src in (cfg.get("synthesis_sources") or []):
-            d = s3io.get_json(src, default={})
+            d = __import__('nowcast_research').guard(src,s3io.get_json(src, default={}))
             if d:
                 regime_briefs[src.replace("data/", "").replace(".json", "")] = d
         for src in (cfg.get("synthesis_name_sources") or []):
-            d = s3io.get_json(src, default={})
+            d = __import__('nowcast_research').guard(src,s3io.get_json(src, default={}))
             if d:
                 name_briefs[src.replace("data/", "").replace(".json", "")] = d
 
@@ -882,7 +882,7 @@ def generate_portfolio_brief(ctx_id, cfg, episode_ref):
         cross_data = {}
         consensus = None
         for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
-            d = __import__("plumbing_authority").guard(feed_key, s3io.get_json(feed_key, default={}))
+            d = __import__("plumbing_authority").guard(feed_key, __import__('nowcast_research').guard(feed_key,s3io.get_json(feed_key, default={})))
             if d:
                 cross_data[cid] = d
                 if cid == "consensus":
@@ -1755,7 +1755,7 @@ def generate_frontrun_brief(ctx_id, cfg, episode_ref):
         flow_sources = cfg.get("flow_sources") or {}
         feeds = {}
         for fid, feed_key in flow_sources.items():
-            d = s3io.get_json(feed_key, default={})
+            d = __import__('nowcast_research').guard(feed_key,s3io.get_json(feed_key, default={}))
             if d:
                 feeds[fid] = d
 
@@ -2143,7 +2143,7 @@ def generate_macro_frontrun_brief(ctx_id, cfg, episode_ref):
         pillar_feeds_cfg = cfg.get("pillar_feeds") or {}
         feeds = {}
         for pid, feed_key in pillar_feeds_cfg.items():
-            d = s3io.get_json(feed_key, default={})
+            d = __import__('nowcast_research').guard(feed_key,s3io.get_json(feed_key, default={}))
             if d:
                 feeds[pid] = d
 
@@ -2598,7 +2598,7 @@ def generate_alerts_digest(ctx_id, cfg, episode_ref):
         sources = cfg.get("read_sources") or {}
         feeds = {}
         for k, key in sources.items():
-            feeds[k] = __import__("plumbing_authority").guard(key, s3io.get_json(key, default={})) or {}
+            feeds[k] = __import__("plumbing_authority").guard(key, __import__('nowcast_research').guard(key,s3io.get_json(key, default={}))) or {}
 
         equity_brief    = feeds.get("equity_brief")
         macro_brief     = feeds.get("macro_brief")
@@ -3780,7 +3780,7 @@ def _generate_regime_brief(ctx_id, cfg, episode_ref):
     t0 = time.time()
     result = {"context_id": ctx_id, "title": cfg.get("title"), "output_key": cfg.get("output_key")}
     try:
-        primary = s3io.get_json(cfg["primary_feed"], default={})
+        primary = __import__('nowcast_research').guard(cfg["primary_feed"],s3io.get_json(cfg["primary_feed"], default={}))
         if not primary:
             result["status"] = "ERR_NO_PRIMARY"
             result["err"] = f"{cfg['primary_feed']} empty or missing"
@@ -3788,7 +3788,7 @@ def _generate_regime_brief(ctx_id, cfg, episode_ref):
 
         cross_data = {}
         for cid, feed_key in (cfg.get("cross_feeds") or {}).items():
-            d = s3io.get_json(feed_key, default={})
+            d = __import__('nowcast_research').guard(feed_key,s3io.get_json(feed_key, default={}))
             if d:
                 cross_data[cid] = d
 

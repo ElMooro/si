@@ -388,21 +388,9 @@ setInterval(load, 5 * 60 * 1000);
 // macro regime call. This badge surfaces the current macro-nowcast
 // classification at a glance, with a link to /macro-data.html for
 // the full SVG chart + 10y replay + SPY-by-regime table.
-async function loadNowcastBadge(){
-  const el = document.getElementById('macroNowcastBadge');
-  if (!el) return;
-  try {
-    const r = await fetch(`${BUCKET}/data/macro-nowcast.json?t=${Date.now()}`);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    const score = d.normalized_score;
-    const regime = d.regime || '—';
-    const icon = {'STRONG EXPANSION':'🟢','EXPANSION':'🟢','MUDDLE':'🟡','SLOWING':'🟠','CONTRACTION RISK':'🔴'}[regime] || '⚪';
-    const sign = score >= 0 ? '+' : '';
-    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="text-decoration:none" title="Composite z-score from 7 FRED series · 10y historical replay · SPY forward returns by regime"><b>${icon} ${regime} ${sign}${score?.toFixed(2)}</b></a>`;
-  } catch(e) {
-    el.innerHTML = `📊 macro: <a href="/macro-data.html" style="text-decoration:none"><b>view →</b></a>`;
-  }
+function loadNowcastBadge(){
+  const el=document.getElementById('macroNowcastBadge');
+  if(el)el.innerHTML='<a href="/macro-nowcast.html">Monthly macro research · sources and dated comparisons →</a>';
 }
 loadNowcastBadge();
 setInterval(loadNowcastBadge, 5 * 60 * 1000);

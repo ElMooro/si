@@ -2,9 +2,11 @@
   "function_name": "justhodl-macro-nowcast",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_mb": 256,
-  "timeout_s": 120,
+  "memory_mb": 512,
+  "timeout_s": 300,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "environment_keys": ["S3_BUCKET"],
-  "description": "Composite real-time macro nowcast — weighted z-score from 7 FRED series already in data/report.json. Runs every 6h."
+  "environment_keys": [
+    "S3_BUCKET"
+  ],
+  "description": "Original-source monthly macro research; exact reference-month index, no qualified GDP/regime forecast. Existing daily 18:43 UTC schedule."
 }

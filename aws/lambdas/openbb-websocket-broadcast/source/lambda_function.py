@@ -139,6 +139,7 @@ def _build_summary(key, body_bytes):
             "as_of": j.get("as_of") or j.get("generated_at"),
         }
     if key == "data/macro-nowcast.json":
+        j = __import__('nowcast_research').decision_view(j)
         return {
             "updated": True,
             "regime": (j.get("current_regime") or {}).get("regime") if isinstance(j.get("current_regime"), dict) else j.get("regime"),

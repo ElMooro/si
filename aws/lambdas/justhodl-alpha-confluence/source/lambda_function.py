@@ -65,8 +65,8 @@ REGIME_SECTOR_MAP = {
     },
 }
 
-DEFAULT_REGIME = "SLOWING"
-DEFAULT_REGIME_CONFIDENCE = 0.70
+DEFAULT_REGIME = None
+DEFAULT_REGIME_CONFIDENCE = None
 
 s3 = boto3.client("s3", region_name="us-east-1")
 lam_client = boto3.client("lambda", region_name="us-east-1")
@@ -87,30 +87,9 @@ def _tkmap(key):
 
 
 def get_current_regime():
-    try:
-        resp = lam_client.invoke(
-            FunctionName="justhodl-macro-nowcast",
-            InvocationType="RequestResponse",
-            Payload=json.dumps({"action": "current_state"}).encode())
-        body = resp["Payload"].read().decode("utf-8")
-        d = json.loads(body)
-        if isinstance(d, dict) and "body" in d:
-            inner = json.loads(d["body"]) if isinstance(d["body"], str) else d["body"]
-        else:
-            inner = d
-        regime = (inner.get("current_regime")
-                  or inner.get("regime")
-                  or (inner.get("state") or {}).get("regime")
-                  or (inner.get("nowcast") or {}).get("regime"))
-        conf = (inner.get("confidence")
-                or inner.get("regime_confidence")
-                or (inner.get("state") or {}).get("confidence")
-                or 0.7)
-        if regime:
-            return str(regime).upper(), float(conf)
-    except Exception as e:
-        print(f"  macro-nowcast invoke failed: {str(e)[:100]} — using default {DEFAULT_REGIME}")
-    return DEFAULT_REGIME, DEFAULT_REGIME_CONFIDENCE
+    """Read existing research only; missing regime is abstention, never 70% confidence."""
+    view=__import__('nowcast_research').decision_view(_s3j('data/macro-nowcast.json'))
+    return view['regime'],view['confidence']
 
 
 def compute_confluence_count(components):
@@ -173,7 +152,7 @@ def lambda_handler(event, context):
         return {"statusCode": 500, "body": json.dumps({"err": f"alpha-score read: {e}"})}
     print(f"  loaded {len(stocks)} stocks from alpha-score")
     regime, regime_confidence = get_current_regime()
-    print(f"  regime: {regime} (confidence {regime_confidence:.2f})")
+    print(f"  qualified regime: {regime}; confidence: {regime_confidence}")
     prev_stocks_by_sym = {}
     try:
         prev = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=PREV_STATE_KEY)["Body"].read())
@@ -240,7 +219,7 @@ def lambda_handler(event, context):
     regime_ranked = sorted(
         [r for r in confluence_records if r["alpha_score"] is not None],
         key=lambda r: -r["regime_adj_score"])
-    regime_picks = regime_ranked[:40]
+    regime_picks = regime_ranked[:40] if regime is not None else []
     regime_avoids = sorted(
         [r for r in confluence_records if r["regime_adj"] <= -8 and r["alpha_score"] is not None],
         key=lambda r: r["regime_adj_score"])[:20]
@@ -281,6 +260,8 @@ def lambda_handler(event, context):
         "regime": regime,
         "regime_confidence": regime_confidence,
         "regime_sector_preferences": REGIME_SECTOR_MAP.get(regime, {}),
+        "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False, "execution_eligible": False,
+        "portfolio_action": "WAIT", "regime_status": "UNQUALIFIED",
         "regime_logic": _regime_explanation(regime),
         "regime_picks": regime_picks,
         "regime_avoids": regime_avoids,
@@ -324,4 +305,4 @@ def _regime_explanation(regime):
         "STAGFLATION": "Slow growth + high inflation. Real assets (Energy, Materials) win big. Long-duration tech struggles.",
         "RECOVERY":  "Coming out of recession. Cyclicals, financials, industrials lead. Defensives lag.",
         "TIGHTENING": "Fed actively raising rates. Most sectors face headwinds. Quality + cash flow matter most.",
-    }.get(regime, "Mixed signals — apply standard alpha rankings.")
+    }.get(regime, "No qualified macro regime; no regime-derived sector adjustment or picks.")

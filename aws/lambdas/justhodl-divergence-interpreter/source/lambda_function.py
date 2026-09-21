@@ -330,7 +330,15 @@ def lambda_handler(event, context):
 
     # 1. Load fresh divergence-v2 + macro-nowcast
     div_data = load_s3_json(S3_KEY_DIV)
-    nowcast_data = load_s3_json(S3_KEY_NOW)
+    nowcast_data = __import__('nowcast_research').decision_view(load_s3_json(S3_KEY_NOW))
+    if nowcast_data['calls_eligible'] is not True:
+        payload={'as_of':datetime.now(timezone.utc).isoformat(),'regime':None,'regime_composite_z':None,
+            'research_context':nowcast_data['research_context'],'interpretation':'Monthly macro research has no qualified regime. No tactical interpretation is produced.',
+            'call':None,'portfolio_action':'WAIT','calls_eligible':False,'sizing_eligible':False,
+            'forecast_qualified':False,'execution_eligible':False,'alert_reasons':[],
+            'paid_ai_calls':0,'notifications_sent':0,'status':'ABSTAIN_UNQUALIFIED_MACRO'}
+        S3.put_object(Bucket=BUCKET,Key=S3_KEY_OUT,Body=json.dumps(payload).encode(),ContentType='application/json',CacheControl='no-store')
+        return {'statusCode':200,'body':json.dumps(payload)}
 
     if not div_data or not nowcast_data:
         return {

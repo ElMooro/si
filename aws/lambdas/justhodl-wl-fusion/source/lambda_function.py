@@ -53,8 +53,8 @@ PLATFORM = {
 
 def gj(key):
     try:
-        return __import__("cycle_research").guard(key,json.loads(S3.get_object(Bucket=BUCKET, Key=key)
-                          ["Body"].read()))
+        return __import__("nowcast_research").guard(key,__import__("cycle_research").guard(key,json.loads(S3.get_object(Bucket=BUCKET, Key=key)
+                          ["Body"].read())))
     except Exception:
         return None
 

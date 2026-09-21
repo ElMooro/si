@@ -981,7 +981,7 @@ REGIME_FORWARDS = {
 
 
 def get_regime_context():
-    nowcast = fetch_json("data/macro-nowcast.json", max_age_h=96) or {}
+    nowcast = __import__('nowcast_research').decision_view(fetch_json("data/macro-nowcast.json", max_age_h=96))
     regime = nowcast.get("regime") or "UNKNOWN"
     fwds = REGIME_FORWARDS.get(regime, {})
     _liqc = (fetch_json("data/liquidity-inflection.json", max_age_h=48) or {})

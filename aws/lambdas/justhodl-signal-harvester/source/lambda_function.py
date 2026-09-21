@@ -211,7 +211,7 @@ def get_price(sym, identity=None):
 
 def current_regime():
     for key in ("data/khalid-index.json", "data/regime-read.json", "data/macro-nowcast.json"):
-        d = _read(key)
+        d = __import__('nowcast_research').guard(key,_read(key))
         if isinstance(d, dict):
             r = d.get("regime") or (d.get("khalid_index", {}) or {}).get("regime") \
                 or d.get("regime_label") or (d.get("macro_context", {}) or {}).get("regime_label")

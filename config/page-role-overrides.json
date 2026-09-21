@@ -1375,6 +1375,27 @@
         }
       },
       "reason": "Native cycle measurements and dependency inventory with source replay; legacy phases, vote percentages and posture grades have no investment authority."
+    },
+    "macro-nowcast.html": {
+      "primary_engines": [
+        "justhodl-macro-nowcast"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-macro-nowcast": [
+          "data/macro-nowcast.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-macro-nowcast": {
+          "source": "aws/lambdas/justhodl-macro-nowcast/source/nowcast_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Original-source common-month macro measurements and explicit indicator arithmetic; historical outcomes have no qualified GDP forecast or portfolio authority."
+        }
+      },
+      "reason": "Original-source common-month macro measurements and explicit indicator arithmetic; historical outcomes have no qualified GDP forecast or portfolio authority."
     }
   }
 }

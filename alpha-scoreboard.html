@@ -271,7 +271,7 @@ const FEEDS = {
   insider:     'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/insider-clusters.json',
   smart_money: 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/smart-money-clusters.json',
   deep_value:  'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/deep-value.json',
-  macro:       'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/macro-nowcast.json',
+
   sectors:     'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/sector-rotation.json',
   research:    'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/alpha-scoreboard-research.json',
 };
@@ -610,18 +610,9 @@ function renderTable() {
 }
 
 function renderHeader() {
-  const m = DATA.macro || {};
-  const regime = m.regime || '—';
-  const regimeEl = document.getElementById('regime');
-  regimeEl.textContent = regime;
-  regimeEl.className = 'value regime-' + regime.replace(/\s+/g, '-');
-
-  document.getElementById('regimeMeta').textContent =
-    `score: ${m.normalized_score ?? '—'} · coverage ${m.coverage_pct ?? '—'}%`;
-
-  const fwd = REGIME_FORWARDS[regime] || REGIME_FORWARDS[regime?.toUpperCase()];
-  document.getElementById('forwardBias').textContent =
-    fwd ? `12m ${fwd['12m']}` : '—';
+  document.getElementById('regime').textContent='Unqualified';
+  document.getElementById('regimeMeta').innerHTML='<a href="/macro-nowcast.html">Dated macro research →</a>';
+  document.getElementById('forwardBias').textContent='No qualified macro return forecast';
 
   // Sector rotation
   const s = DATA.sectors || {};
