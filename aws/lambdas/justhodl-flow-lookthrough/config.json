@@ -3,8 +3,8 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "timeout": 840,
-  "memory": 1792,
-  "description": "Single-name flow-pressure board via ETF constituent look-through",
+  "memory": 3072,
+  "description": "Source-replayed ETF holding memberships and position comparisons; no inferred purchases, sales or extra evidence votes.",
   "environment": {
     "S3_BUCKET": "justhodl-dashboard-live"
   },

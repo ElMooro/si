@@ -10,6 +10,12 @@ workers_dev = true
 # a class defect: the domain never had a /data/* route; legacy pages used
 # absolute proxy URLs, this month's pages use the clean relative form).
 routes = [
+  # Exact public compatibility objects; no holdings archive wildcard.
+  { pattern = "justhodl.ai/etf-flows/constituent-pressure.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/stock-exposure-lookup.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/constituent-pressure.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/stock-exposure-lookup.json", zone_name = "justhodl.ai" },
+
   # Exact legacy public flow aliases; do not expose the archive namespace.
   { pattern = "justhodl.ai/etf-flows/daily.json", zone_name = "justhodl.ai" },
   { pattern = "www.justhodl.ai/etf-flows/daily.json", zone_name = "justhodl.ai" },

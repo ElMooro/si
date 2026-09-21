@@ -19,7 +19,7 @@ CANARY = {'generated_at': '2026-09-21T06:00:00Z', 'calls_eligible': True,
     'top_constituents_by_pressure': [{'stock': 'SPY', 'total_pressure_5d_usd': 1e12}]}
 READERS = {
     'ai-rerating-radar': ['_read'], 'apac-flows': ['_j'], 'bond-desk': ['_s3json'],
-    'bottom': ['s3_json'], 'flow-anomaly-detector': ['_read_json'], 'flow-lookthrough': ['getj'],
+    'bottom': ['s3_json'], 'flow-anomaly-detector': ['_read_json'], 'equity-confluence': ['_read'],
     'fortress': ['s3_json'], 'industry-rotation': ['s3_json'], 'katlin': ['s3_json', 's3_json_quiet'],
     'macro-confluence': ['_get'], 'theme-cascade': ['_read_json'], 'theme-cascade-backtest': ['_read_json'],
     'theme-rotation': ['_read_s3_json'], 'sector-emergence': ['_read'],
@@ -152,32 +152,9 @@ class FlowBoundaries(unittest.TestCase):
             self.assertFalse(h._flow_components(row))
         self.assertTrue(h._flow_components({'engines': ['dark-pool'], 'n_engines': 1}))
 
-    def test_actual_holdings_handler_keeps_membership_without_missing_as_zero(self):
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        import contextlib
-        client = Client()
-        def forbidden(*a, **kw): self.fail('Legacy pressure/quadrant inference must not execute')
-        ns = dict(json=json, time=time, datetime=datetime, timezone=timezone,
-            s3=client, S3_BUCKET='b', INSTITUTIONAL_FLOW_THRESHOLD=1.5,
-            TOP_N_CONSTITUENTS=50, MAX_WORKERS=6, ThreadPoolExecutor=ThreadPoolExecutor,
-            as_completed=as_completed,
-            load_inputs=lambda *a: ({'data/etf-true-flows.json': {}}, {}), true_flow_rows=lambda *a: 0,
-            fetch_constituents=lambda t: {'etf': t, 'processed_date': '2026-09-18',
-                'top_constituents': [{'stock': 'AAPL', 'name': 'Fixture', 'weight_pct': 5}],
-                'n_constituents': 1, 'n_total_holdings': 1},
-            enrich_sector_and_price=lambda *a: {'n_with_sector': 0, 'n_with_price_return': 0},
-            compute_implied_pressure=forbidden, compute_per_stock_etf_exposure=forbidden,
-            classify_stock_quadrant=forbidden)
-        actual('etf-constituents', 'select_etfs_for_constituents', ns)
-        with contextlib.redirect_stdout(io.StringIO()):
-            result = actual('etf-constituents', 'lambda_handler', ns)({}, None)
-        self.assertEqual(result['statusCode'], 200)
-        packet = client.writes['etf-flows/constituent-pressure.json']
-        self.assertGreater(packet['n_etfs_total'], 280)
-        self.assertEqual(packet['top_constituents_by_pressure'], [])
-        self.assertEqual(packet['quadrant_counts'], {}); self.assertFalse(packet['calls_eligible'])
-        self.assertIsNone(packet['per_stock_exposure']['AAPL']['total_aggregate_flow_daily_usd'])
-        self.assertIsNone(client.writes['etf-flows/stock-exposure-lookup.json']['AAPL']['quadrant'])
+    def test_actual_native_holdings_handlers_keep_validation_http_and_collection_separate(self):
+        from etf_holdings_test_support import check_handlers
+        check_handlers(self)
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

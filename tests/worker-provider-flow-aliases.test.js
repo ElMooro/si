@@ -1,9 +1,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
-test('legacy flow routes expose only the seven already-public compatibility objects on each host',()=>{
+test('legacy flow routes expose only the nine reviewed compatibility objects on each host',()=>{
  const source=fs.readFileSync(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/wrangler.toml'),'utf8');
  const routes=[...source.matchAll(/pattern\s*=\s*"([^"]+)"/g)].map(m=>m[1]).filter(p=>p.includes('/etf-flows/'));
- const expected=['justhodl.ai','www.justhodl.ai'].flatMap(host=>['daily','measurements','composite','event-study','rotation','per-ticker-context','ai-analysis'].map(n=>host+'/etf-flows/'+n+'.json'));
+ const expected=['justhodl.ai','www.justhodl.ai'].flatMap(host=>['daily','measurements','composite','event-study','rotation','per-ticker-context','ai-analysis','constituent-pressure','stock-exposure-lookup'].map(n=>host+'/etf-flows/'+n+'.json'));
  assert.deepEqual(routes.slice().sort(),expected.sort());assert.ok(routes.every(p=>!p.includes('*')));
 });
 test('daily aliases still use the existing content review and reject raw transport diagnostics',async()=>{

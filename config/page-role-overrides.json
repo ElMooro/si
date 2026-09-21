@@ -1564,6 +1564,48 @@
         }
       },
       "reason": "Matched provider-flow groups replayed from the same canonical originals. Missing legs and partial totals remain separate. This projection contributes no additional evidence vote."
+    },
+    "etf-holdings.html": {
+      "primary_engines": [
+        "justhodl-etf-constituents"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-etf-constituents": [
+          "data/etf-holdings-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-etf-constituents": {
+          "source": "aws/lambdas/justhodl-etf-constituents/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Complete original-source holdings, distinct observation clocks, exact identifiers, explicit unit limitations and user-assumed exposure scenarios."
+        }
+      },
+      "reason": "Complete original-source holdings, distinct observation clocks, exact identifiers, explicit unit limitations and user-assumed exposure scenarios."
+    },
+    "flow-lookthrough.html": {
+      "primary_engines": [
+        "justhodl-flow-lookthrough"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-flow-lookthrough": [
+          "data/flow-lookthrough.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-flow-lookthrough": {
+          "source": "aws/lambdas/justhodl-flow-lookthrough/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Original-source replay of canonical ETF holdings, exact-identity fund membership and unadjusted position comparisons; no additional investment vote."
+        }
+      },
+      "reason": "Original-source replay of canonical ETF holdings, exact-identity fund membership and unadjusted position comparisons; no additional investment vote."
     }
   }
 }

@@ -141,15 +141,40 @@ def test_true_flow_producer_dividend_zero_and_five_observation_baseline():
     got,_=compute({'XLK':row},history[-1:],{'XLK':90},{'XLK':10},{},{},'2026-09-09','2026-09-05')
     assert got[0]['net_flow_1d_usd']==90 and got[0]['net_flow_5d_usd'] is None and not got[0]['flow_windows']['5d']['available']
 
-def test_complete_holdings_producer_and_actual_flow_attribution_include_row_101():
-    holdings=[{'asset':f'S{i}','weightPercentage':1,'marketValue':100,'updatedAt':'2026-09-08'} for i in range(101)]
-    scope=producer_functions('etf-constituents',['fetch_constituents','fetch_constituents_polygon','compute_per_stock_etf_exposure'],
-       {'fmp_holdings':lambda *a,**k:holdings,'FMP_KEY':'offline','POLYGON_KEY':'','FETCH_TIMEOUT':1,'pctf':lambda x:float(x) if x is not None else None,'datetime':datetime,'timezone':timezone})
-    result=scope['fetch_constituents']('XLK');assert len(result['top_constituents'])==101,result
-    etfs=[{'ticker':'XLK','daily_flow_usd':100,'flow_5d_usd':500,'flow_21d_usd':2100}]
-    true_flow_rows(etfs,flow_doc())
-    mapped=scope['compute_per_stock_etf_exposure'](etfs,{'XLK':result})
-    assert len(mapped)==101 and mapped['S100']['total_aggregate_flow_daily_usd']==0 and mapped['S100']['total_aggregate_flow_5d_usd']==-1
+def test_complete_holdings_preserve_late_pages_without_inferred_flow_attribution():
+    import etf_holdings_native as native
+    import etf_holdings_model as holdings_model
+    raw={};rows=[{'composite_ticker':'SPY','constituent_ticker':f'S{i}','figi':f'SYNTHETIC-{i}',
+        'effective_date':'2026-09-17','processed_date':'2026-09-18','weight':.001,
+        'shares_held':i,'market_value':100,'constituent_rank':i+1} for i in range(501)]
+    rows[100].update(constituent_ticker=None,figi=None,asset_class='Cash',shares_held=0,market_value=0)
+    def original(url,values,following=None):
+        doc={'status':'OK','results':values,'count':len(values)}
+        if following:doc['next_url']=following
+        body=native.encoded(doc);digest=native.sha(body);key=native.PRIVATE+digest+'.bin';raw[key]=body
+        return {'url':url,'original':{'key':key,'sha256':digest,'bytes':len(body)},'acquired_at':'2026-09-21T06:00:00Z'}
+    next_page=native.ENDPOINT+'?cursor=synthetic-second-page'
+    collection={'ticker':'SPY','cutoff':'2026-09-21','status':'complete_returned_snapshot',
+        'selection':original(native.selection_url('SPY','2026-09-21'),[rows[0]]),
+        'pages':[original(native.snapshot_url('SPY','2026-09-18'),rows[:100],next_page),original(next_page,rows[100:])]}
+    packet=native.reconstruct(collection,raw.__getitem__,'2026-09-21T07:00:00Z')
+    assert len(packet['rows'])==501 and packet['quality']['pagination_complete']
+    cash=packet['rows'][100];late=packet['rows'][-1]
+    assert cash['constituent_ticker'] is None and cash['shares_held_raw_decimal']=='0' and cash['identity_key'] is None
+    assert late['constituent_ticker']=='S500' and late['source']['page']==1 and late['source']['row_index']==400
+    original_row=json.loads(raw[collection['pages'][1]['original']['key']])['results'][late['source']['row_index']]
+    assert original_row['shares_held']==int(late['shares_held_raw_decimal'])==500
+    artifacts={};retained=holdings_model.retain_snapshot(packet,lambda k,v:artifacts.__setitem__(k,v))
+    snapshot=json.loads(artifacts[retained['snapshot']['key']])
+    index=[r for part in snapshot['index_parts'] for r in json.loads(artifacts[part['key']])['rows']]
+    public_rows=[r for part in snapshot['parts'] for r in json.loads(artifacts[part['key']])['rows']]
+    assert len(index)==len(public_rows)==501 and public_rows[-1]==late
+    assert {r['row_id'] for r in index}=={r['row_id'] for r in packet['rows']}
+    comparison=native.compare(packet,packet)
+    assert not comparison['comparable_snapshots']
+    assert all(r['inferred_trade_usd'] is None and r['shares_held_change_raw_decimal'] is None for r in comparison['rows'])
+    assert not packet['quality']['weight_unit_certified'] and not packet['quality']['market_value_currency_certified']
+
 
 def test_liquidity_high_low_changes_volatility_without_inventing_spread_score():
     bars=[{'c':100,'v':10000,'h':101,'l':99,'t':NOW.timestamp()*1000} for _ in range(20)]
