@@ -8,6 +8,21 @@ from test_option_flow_store import S3
 
 
 class Tests(unittest.TestCase):
+    def test_each_consumer_receipt_uses_its_exact_source_and_configuration_commit(self):
+        rows=[{'function':op.CONSUMERS[0],'code_sha256':'one'},{'function':op.CONSUMERS[1],'code_sha256':'two'}]
+        receipts=[json.dumps({'commit':'a'*40,'code_sha256':'one'}),json.dumps({'commit':'b'*40,'code_sha256':'two'})]
+        with patch.object(op,'source_commit',side_effect=['a'*40,'b'*40]),patch.object(op,'public',side_effect=receipts):
+            self.assertEqual(op.consumer_receipts(rows),{op.CONSUMERS[0]:'a'*40,op.CONSUMERS[1]:'b'*40})
+    def test_consumer_receipt_commit_or_package_mismatch_is_rejected(self):
+        row={'function':op.CONSUMERS[0],'code_sha256':'exact'}
+        for receipt in ({'commit':'b'*40,'code_sha256':'exact'},{'commit':'a'*40,'code_sha256':'different'}):
+            with patch.object(op,'source_commit',return_value='a'*40),patch.object(op,'public',return_value=json.dumps(receipt)):
+                with self.assertRaises(AssertionError):op.consumer_receipts([row])
+    def test_consumer_commit_includes_config_and_transitive_shared_source(self):
+        fn=op.CONSUMERS[0];source='aws/lambdas/'+fn+'/source';helper=ROOT/'aws/shared/option_population_context.py'
+        with patch.object(op.subprocess,'check_output',side_effect=[source+'/lambda_function.py\n','a'*40+'\n']) as git,patch.object(op,'shared_imports',return_value=[helper]):
+            self.assertEqual(op.source_commit(fn),'a'*40)
+            self.assertEqual(git.call_args.args[0],['git','log','-1','--format=%H','--',source,'aws/lambdas/'+fn+'/config.json','aws/shared/option_population_context.py'])
     def test_existing_native_publication_is_adopted_without_invocation(self):
         packet={'contract':op.desk.CONTRACT,'replay':op.RECOVERY};s3=S3({op.desk.CURRENT:json.dumps(packet).encode()})
         with patch.object(op,'completed_request',return_value={'invoke_sent':False}) as complete,patch.object(op,'invoke_when_available') as invoke:

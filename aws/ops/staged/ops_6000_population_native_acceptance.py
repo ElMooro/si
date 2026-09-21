@@ -13,7 +13,7 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path[:0]=[str(ROOT/'aws/ops'),str(ROOT/'aws/ops/staged'),str(ROOT/'aws/ops/checks'),str(ROOT/'aws/shared')]
 from ops_report import report
 from acceptance_invoke import invoke_when_available
-from release_package_evidence import check_packages
+from release_package_evidence import check_packages,shared_imports
 from ops_5975_etf_constituent_source_preflight import runtime
 from ops_5966_sector_tilt_runtime_diagnosis import parse_runtime
 from ops_5996_option_population_qualification import independent
@@ -102,11 +102,30 @@ def execution_profile(logs,status):
     return {'execution_id':execution,'managed_reports':values,'completed_request':True}
 
 
-def main():
+def source_commit(function):
+    assert function in CONSUMERS,'Reviewed consumer required'
+    source='aws/lambdas/'+function+'/source'
+    files=[ROOT/p for p in subprocess.check_output(['git','ls-files',source],cwd=ROOT,text=True).splitlines()]
+    paths=[source,'aws/lambdas/'+function+'/config.json',*[p.relative_to(ROOT).as_posix() for p in shared_imports(ROOT,files)]]
+    commit=subprocess.check_output(['git','log','-1','--format=%H','--',*paths],cwd=ROOT,text=True).strip()
+    assert re.fullmatch('[a-f0-9]{40}',commit),'Exact consumer source/configuration commit required'
+    return commit
+
+
+def consumer_receipts(packages):
+    commits={}
+    for row in packages:
+        expected=source_commit(row['function']);receipt=json.loads(public('data/ops/releases/'+row['function']+'.json'))
+        assert receipt['commit']==expected and receipt['code_sha256']==row['code_sha256'],row['function']
+        commits[row['function']]=expected
+    return commits
+
+
+def main(report_name='ops_6000_population_native_acceptance'):
     s3=boto3.client('s3',region_name='us-east-1',config=Config(max_pool_connections=24))
     lam=boto3.client('lambda',region_name='us-east-1',config=Config(read_timeout=60,connect_timeout=10,retries={'max_attempts':0}))
     events=boto3.client('events',region_name='us-east-1');scheduler=boto3.client('scheduler',region_name='us-east-1')
-    with report('ops_6000_population_native_acceptance') as r:
+    with report(report_name) as r:
         subprocess.run([sys.executable,str(ROOT/'aws/lambdas'/FUNCTION/'tests/run_tests.py')],cwd=ROOT,check=True)
         paths=['aws/lambdas/'+FUNCTION+'/source','aws/lambdas/'+FUNCTION+'/config.json',*['aws/shared/'+m.__name__+'.py' for m in store.COMPILERS]]
         commit=subprocess.check_output(['git','log','-1','--format=%H','--',*paths],cwd=ROOT,text=True).strip();assert re.fullmatch('[a-f0-9]{40}',commit)
@@ -120,10 +139,10 @@ def main():
             assert actual[field]==qualified['predecessor_runtime'][field]
         assert upstream.sha((ROOT/'tests/fixtures/dealer-gex-v1.3.0.py.txt').read_bytes())=='f1e66c10c0f0029bb11db3bbeb3d3f7402cc6cd8a11ad06c3a34912c2e98b321'
         # Every consumer is inspected, never invoked. Qualified aliases are checked too.
-        packages=check_packages(lam,ROOT,CONSUMERS);assert all(row['pass'] for row in packages),packages
-        for row in packages:
-            receipt=json.loads(public('data/ops/releases/'+row['function']+'.json'))
-            assert receipt['commit']==commit and receipt['code_sha256']==row['code_sha256'],row['function']
+        packages=check_packages(lam,ROOT,CONSUMERS)
+        failures=[{k:v for k,v in row.items() if k!='files'}|{'source_mismatches':[f for f in row['files'] if not f['match']]} for row in packages if not row['pass']]
+        assert not failures,failures
+        consumer_commits=consumer_receipts(packages)
         assert json.loads(public('data/ops/releases/'+FUNCTION+'.json'))['commit']==commit
         build=json.loads(public('build-manifest.json'));pages_commit=build['commit_sha']
         subprocess.run(['git','merge-base','--is-ancestor',commit,pages_commit],cwd=ROOT,check=True)
@@ -133,7 +152,7 @@ def main():
             assert n<=1 and upstream.sha(clean)==build['files_sha256'][name],name
             if name in ('gex/index.html','0dte/index.html'):assert b'/jh-option-populations-page.js' in raw
         history_before=read(desk.HISTORY);history_ref=source_store.protect(s3,BUCKET,history_before)
-        r.kv(commit=commit,runtime=actual,consumer_packages=packages,pages_commit=pages_commit,whole_current_history=history_ref,qualified_replay=RECOVERY)
+        r.kv(commit=commit,runtime=actual,consumer_packages=packages,consumer_release_commits=consumer_commits,pages_commit=pages_commit,whole_current_history=history_ref,qualified_replay=RECOVERY)
         request=invoke(lam,s3,commit);r.kv(completed_request=request)
         profile=execution_profile(boto3.client('logs',region_name='us-east-1'),request['status'])
         raw=public(desk.CURRENT);packet=json.loads(raw);assert packet==current(s3) and packet['replay']==request['status']['replay']
@@ -167,7 +186,7 @@ def main():
             for _ in pool.map(deny,sorted(protected)):pass
         assert runtime(lam,s3,events,scheduler,FUNCTION)==actual
         proof={'contract':'option-population-native-acceptance.v1','generated_at':store.now(),'commit':commit,
-            'runtime_package':actual,'consumer_packages':packages,'request':request,'execution_profile':profile,
+            'runtime_package':actual,'consumer_packages':packages,'consumer_release_commits':consumer_commits,'request':request,'execution_profile':profile,
             'publication':{'key':desk.CURRENT,'sha256':upstream.sha(raw),'bytes':len(raw),'replay':packet['replay'],'generated_at':packet['generated_at'],'source_capture_completed_at':packet['source_capture_completed_at']},
             'qualified_candidate':RECOVERY,'original_replay_matches':True,'independent_source_checks':checks,'counts':dict(counts),
             'source_run':source['replay'],'whole_predecessor_history':history_ref,'whole_predecessor_history_rows':len(json.loads(history_before)['history']),
