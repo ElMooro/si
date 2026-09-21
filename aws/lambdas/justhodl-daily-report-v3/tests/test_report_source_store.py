@@ -139,6 +139,7 @@ class ReportStoreTests(unittest.TestCase):
         from plumbing_research_catalog import extend_catalog as plumbing_catalog,SERIES as PLUMBING_SERIES
         from implied_research_catalog import extend_catalog as implied_catalog,SERIES as IMPLIED_SERIES
         from activity_source_catalog import extend_catalog as activity_catalog,SERIES as ACTIVITY_SERIES
+        from dollar_source_catalog import extend_catalog as dollar_catalog,SERIES as DOLLAR_SERIES
         path=ROOT/'aws/lambdas/justhodl-daily-report-v3/source/lambda_function.py'
         node=next(n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
         calls=[]
@@ -146,6 +147,7 @@ class ReportStoreTests(unittest.TestCase):
              'include_lce_series':extend_catalog,'include_risk_gate_series':risk_catalog,'include_inflection_series':inflection_catalog,'include_cb_series':cb_catalog,'include_reversal_series':reversal_catalog,'include_funding_series':funding_catalog,'include_plumbing_series':plumbing_catalog,
              'include_implied_series':implied_catalog,
              'include_activity_series':activity_catalog,
+             'include_dollar_series':dollar_catalog,
              'FRED_SERIES':{'ICSA':('macro','Initial Claims')},'run_source_research':lambda *a,**kw:calls.append((a[2],kw)) or {'published':True}}
         exec(compile(ast.Module(body=[node],type_ignores=[]),str(path),'exec'),env)
         out=env['lambda_handler']({'action':'research_measurements'},None)
@@ -160,6 +162,7 @@ class ReportStoreTests(unittest.TestCase):
         self.assertTrue(set(FUNDING_SERIES)<=set(calls[0][0]))
         self.assertTrue(set(IMPLIED_SERIES)<=set(calls[0][0]))
         self.assertTrue(set(ACTIVITY_SERIES)<=set(calls[0][0]))
+        self.assertTrue(set(DOLLAR_SERIES)<=set(calls[0][0]))
         original={'DFEDTARL':{'category':'reviewed','display_name':'Original identity'}}
         expanded=implied_catalog(original)
         self.assertEqual(expanded['DFEDTARL'],original['DFEDTARL'])

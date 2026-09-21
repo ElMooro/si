@@ -7,6 +7,7 @@ Portfolio Construction | Risk Signals | Auto 8AM+6PM ET
 """
 from tenor_research_model import public_summary as tenor_research_summary
 from report_source_store import run as run_source_research
+from dollar_source_catalog import extend_catalog as include_dollar_series
 from lce_research_catalog import extend_catalog as include_lce_series
 from risk_gate_research_catalog import extend_catalog as include_risk_gate_series
 from inflection_research_catalog import extend_catalog as include_inflection_series
@@ -2203,6 +2204,7 @@ def lambda_handler(event, context):
                    for sid, (cat, name) in FRED_SERIES.items()}
         catalog = include_implied_series(include_plumbing_series(include_funding_series(include_reversal_series(include_cb_series(include_inflection_series(include_risk_gate_series(include_lce_series(catalog))))))))
         catalog = include_activity_series(catalog)
+        catalog = include_dollar_series(catalog)
         remaining = context.get_remaining_time_in_millis()/1000 if context else 900
         try:
             result = run_source_research(s3, S3_BUCKET, catalog, FRED_KEY,
