@@ -1,12 +1,14 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "12e863c6f583819cf0ece3f8ba1a915e6a530939",
-  "observed_at": "2026-09-21T14:01:54.348976+00:00",
+  "observed_at": "2026-09-21T14:21:46.299364+00:00",
   "ok": false,
   "routes_checked": 550,
-  "verified_routes": 549,
+  "verified_routes": 547,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "crypto-confluence.html",
+    "gf-value.html"
   ],
   "source_equivalent_builds": {
     "12e863c6f583819cf0ece3f8ba1a915e6a530939": true
@@ -1188,12 +1190,12 @@
     },
     {
       "route": "crypto-confluence.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "12e863c6f583819cf0ece3f8ba1a915e6a530939",
-      "inspector_present": true,
-      "bytes_read": 12044,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "crypto-emergence.html",
@@ -1705,7 +1707,7 @@
       "http_status": 200,
       "build_sha": "12e863c6f583819cf0ece3f8ba1a915e6a530939",
       "inspector_present": true,
-      "bytes_read": 877438,
+      "bytes_read": 877377,
       "product_source_matches_release": true
     },
     {
@@ -2250,12 +2252,12 @@
     },
     {
       "route": "gf-value.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "12e863c6f583819cf0ece3f8ba1a915e6a530939",
-      "inspector_present": true,
-      "bytes_read": 18873,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "global-cycle.html",
@@ -4968,7 +4970,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35609019171,
+  "deployment_run_id": 35611304722,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-21T14:01:54.351623+00:00"
+  "check_finished_at": "2026-09-21T14:21:46.301284+00:00"
 }
