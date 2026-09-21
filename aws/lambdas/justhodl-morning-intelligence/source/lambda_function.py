@@ -836,7 +836,9 @@ def extract_metrics(data,weights):
         })(),
         # ─── Dealer GEX & Positioning (Bloomberg-Gap #1) ─────────────────
         # Critical institutional input: drives intraday equity behavior
-        **(lambda g=data.get("dealer_gex", {}): {
+        **(lambda g=__import__("option_population_context").context(data.get("dealer_gex", {})): {
+            "gex_research_note": g["evidence_note"],
+            "gex_canonical_reference": g["canonical"],
             "gex_composite_regime": (g.get("market_composite") or {}).get("composite_regime"),
             "gex_index_signs": (g.get("market_composite") or {}).get("index_gex_signs"),
             "gex_composite_signal": (g.get("market_composite") or {}).get("composite_signal"),
@@ -852,7 +854,7 @@ def extract_metrics(data,weights):
                   "gex_b": s.get("gex_billions"), "regime": s.get("regime")}
                 for s in (g.get("squeeze_candidates") or [])[:3]
             ],
-            "gex_n_squeeze": len(g.get("squeeze_candidates") or []),
+            "gex_n_squeeze": None,  # absence of qualified rankings is not an observed zero
             "gex_generated_at": g.get("generated_at"),
         })(),
         # ─── Sector Rotation (Roadmap #4) ───────────────────────────────

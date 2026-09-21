@@ -289,7 +289,7 @@ def gather_page_context(page: str) -> dict:
         if is_private_source(path):
             continue
         key = path.split("/")[-1].replace(".json", "").replace("-", "_")
-        ctx[key] = __import__("eurodollar_research").guard(path,__import__("crisis_authority").guard(path,_read_json(path) or {}))
+        ctx[key] = __import__("option_population_context").guard(path,__import__("eurodollar_research").guard(path,__import__("crisis_authority").guard(path,_read_json(path) or {})))
     return ctx
 
 

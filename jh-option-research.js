@@ -69,6 +69,13 @@
     if(!verifiedPackets.has(p)||!ticker(symbol)||!p.chains[symbol])throw Error('Verified captured underlying required');
     return '/option-chain-research.html?underlying='+encodeURIComponent(symbol)+'&run='+p.replay.manifest_key.slice((PREFIX+'runs/').length,-5);
   }
+  function recordTarget(params){
+    if(!params.has('page')&&!params.has('row'))return null;
+    const page=params.get('page'),row=params.get('row');
+    if(!digest(params.get('run'))||!ticker(params.get('underlying'))||!/^\d{1,3}$/.test(page||'')||!/^\d{1,3}$/.test(row||'')||
+      Number(page)<1||Number(page)>128||Number(row)>249)throw Error('Recorded run, underlying and exact source page/row are required');
+    return {symbol:params.get('underlying'),page:Number(page),row:Number(row)};
+  }
   async function chain(p,symbol,fetcher,signal){
     if(!typed(p)||!verifiedPackets.has(p)||!ticker(symbol)||!p.chains[symbol])throw Error('Choose a captured underlying from a verified publication');
     const item=await retained(p.chains[symbol].chain,'chains',fetcher,signal);
@@ -177,6 +184,6 @@
       run:p.replay,evidence:r.evidence,
       scope:'User-assumed expiration payoff, not a forecast, live quote, mark-to-market value or size recommendation. Physical exercise, early assignment, financing, taxes and changes in other holdings are outside this calculation.'};
   }
-  const api={CONTRACT,PREFIX,CURRENT,esc,exact,ticker,clock,typed,stable,same,sha,bytes,load,retained,verifyPacket,recordedRun,recordedUrl,chain,unpack,records,overview,inventory,chainView,dateGroups,rowTable,rowView,scenario,table,metric};
+  const api={CONTRACT,PREFIX,CURRENT,esc,exact,ticker,clock,typed,stable,same,sha,bytes,load,retained,verifyPacket,recordedRun,recordedUrl,recordTarget,chain,unpack,records,overview,inventory,chainView,dateGroups,rowTable,rowView,scenario,table,metric};
   root.JHOptionResearch=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

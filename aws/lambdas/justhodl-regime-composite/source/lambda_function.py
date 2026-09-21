@@ -423,7 +423,7 @@ def fetch_module(cfg, ciss_packet=None, now=None):
         return out
     try:
         resp = S3.get_object(Bucket=BUCKET, Key=cfg["key"])
-        payload = json.loads(resp["Body"].read())
+        payload = __import__("option_population_context").guard(cfg["key"],json.loads(resp["Body"].read()))
         mod_at = resp.get("LastModified")
         if mod_at:
             out["modified"] = mod_at.isoformat()[:19]
@@ -434,6 +434,11 @@ def fetch_module(cfg, ciss_packet=None, now=None):
         out["error"] = str(e)[:120]
         return out
 
+    if cfg['key']=='data/dealer-gex.json':
+        out.update(regime=None,signal=payload['evidence_note'],polarity=None,vote_eligible=False,
+                   descriptive_eligible=False,source_context=payload,evidence_family='captured_option_populations',
+                   missing=not payload['native_reference_available'],age_basis='Source acquisition clock; independent OI/Greek observation dates unknown')
+        return out
     if cfg['key']=='data/retail-sentiment.json':
         q=__import__('retail_research').context(payload,now)
         out.update(regime=None,signal=q['reason'],polarity=None,vote_eligible=False,

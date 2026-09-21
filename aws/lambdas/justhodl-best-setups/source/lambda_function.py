@@ -1493,8 +1493,8 @@ def lambda_handler(event, context):
                                                    or _uni.get("universe") or [])
         _tk_sec = {str(u.get("symbol") or u.get("ticker")).upper(): u.get("sector")
                    for u in _ul if isinstance(u, dict) and u.get("sector")}
-        _og = read_json("data/dealer-gex.json", {}) or {}
-        _og = _og.get("underlyings") or _og
+        _og = __import__("option_population_context").context(read_json("data/dealer-gex.json", {}))
+        _og = _og.get("underlyings") or {}
         # dealer-gex underlyings is keyed BY symbol (no inner ticker field):
         # extract levels directly — flip scalar + top wall strikes + front max-pain
         _walls = {}

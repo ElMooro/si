@@ -50,12 +50,15 @@ def lambda_handler(event, context):
     sources = {}
 
     gex, gex_lm = _read("data/dealer-gex.json")
-    gex = gex or {}
+    gex = __import__("option_population_context").context(gex)
     gamma_regime = (gex.get("market_composite") or {}).get("composite_regime")
     sources["dealer_gex"] = {
-        "as_of": gex.get("generated_at") or _iso(gex_lm),
-        "provenance": "CBOE (not Massive)",
-        "ok": bool(gex),
+        "as_of": gex.get("source_capture_completed_at"),
+        "provenance": "Retained option population research; source reference carries provider identity",
+        "ok": False,  # source presence does not qualify a dealer signal
+        "research_available": gex["native_reference_available"],
+        "canonical": gex["canonical"],
+        "reason": gex["evidence_note"],
     }
     for c in gex.get("squeeze_candidates", []) or []:
         sym = c.get("symbol")
@@ -173,11 +176,11 @@ def lambda_handler(event, context):
     out = {
         "engine": "massive-signals", "version": VERSION,
         "generated_at": now,
-        "thesis": "Unified Massive-data layer with honest labels: CBOE gamma, options *aggregate* anomalies, "
-                  "true ETF Global $ flows, FX, identity-checked futures.",
+        "thesis": "Combined research inputs. Captured option populations have no qualified directional gamma signal; "
+                  "other legacy model inputs retain their separate qualification limits.",
         "market": {
             "gamma_regime": gamma_regime,
-            "gamma_provenance": "CBOE",
+            "gamma_provenance": "Unqualified dealer inference; see the canonical option population reference",
             "smallcap_bid": smallcap_bid,
             "iwm_flow_5d_usd": iwm_flow,
             "iwm_flow_z": iwm_z,
@@ -195,7 +198,7 @@ def lambda_handler(event, context):
         "tickers": tickers,
         "sources": sources,
         "caveats": (
-            "Gamma is CBOE, not Massive. Options features are daily-aggregate anomalies — "
+            "Dealer gamma inference is retired; retained option populations provide source evidence only. Other options features are daily-aggregate anomalies — "
             "Starter has no trades/quotes so there are no sweeps or smart-money blocks. "
             "Futures unused unless identity_ok. Benzinga Earnings is scheduled to cancel 2026-10-10."
         ),

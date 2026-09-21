@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 import sys
 from pathlib import Path
 import unittest
+from unittest import mock
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(Path(__file__).parent))
 from test_inflection_authority import functions
@@ -30,15 +31,26 @@ class Tests(unittest.TestCase):
                     '    accum_bottoms =', {'data':{'hot_money':packet}})
         self.assertEqual(out['hm_in'], []); self.assertEqual(out['hm_out'], []); self.assertEqual(out['hotm'], {})
 
-    def test_etf_context_keeps_original_and_observation_window_without_capital_signal(self):
+    def test_native_etf_keeps_whole_context_without_promoting_it_to_fund_flows(self):
         now = datetime(2026,9,19,8,tzinfo=timezone.utc); stamp=now.isoformat()
         p={'contract':'hot-money-research.v1','calls_eligible':False,'generated_at':stamp,'replay':{'manifest_key':'fixture'},
            'countries':{'taiwan':{'status':'LIVE','latest_bn':0,'sum_5obs_bn':12,'latest_day':'20260918',
              'quality':{'status':'fresh','acquired_at':stamp,'observation_date':'2026-09-18'},'latest':{'original':{'key':'fixture'}}}}}
-        fn=functions('etf-global-desk',{'_hot_money_board'},{'datetime':datetime})['_hot_money_board']
-        out=fn(p,now);self.assertEqual(out['latest_bn'],0);self.assertEqual(out['sum_5obs_bn'],12)
-        self.assertIsNone(out['sum_5d_bn']);self.assertFalse(out['sizing_eligible']);self.assertEqual(out['original'],{'key':'fixture'})
-        self.assertIsNone(fn(p,now+timedelta(days=2)));p['countries']['taiwan']['latest_bn']=True;self.assertIsNone(fn(p,now))
+        sys.path.insert(0,str(ROOT/'aws/shared'))
+        import etf_desk_model as model
+        import etf_desk_catalog as catalog
+        from test_etf_desk_model import fixture
+        inputs,objects,flows,holdings=fixture(('SPY',),('SPY',))
+        def build():
+            with mock.patch.object(catalog,'DESK',('SPY',)):
+                return model.build(inputs,objects.__getitem__,objects.__setitem__,flows,holdings)
+        before=build();raw=model.encoded(p);key=model.profile.PRIVATE+model.sha(raw)+'.bin';objects[key]=raw
+        ref={'source_key':'data/hot-money.json','key':key,'sha256':model.sha(raw),'bytes':len(raw)}
+        inputs['contexts']['data/hot-money.json']=ref
+        out=build();self.assertEqual(out['legacy_contexts']['data/hot-money.json'],ref)
+        self.assertEqual(objects[key],raw);self.assertEqual(out['funds'],before['funds'])
+        self.assertEqual(out['matched_desk_totals'],before['matched_desk_totals'])
+        self.assertFalse(out['sizing_eligible']);self.assertFalse(out['calls_eligible'])
 
 
 if __name__=='__main__':unittest.main()

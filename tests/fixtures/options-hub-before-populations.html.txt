@@ -53,8 +53,6 @@ svg text{font-family:var(--font-mono)}
 </style>
 <script defer src="/jh-option-research.js"></script>
 <script defer src="/jh-option-research-hub.js"></script>
-<script defer src="/jh-option-populations.js"></script>
-<script defer src="/jh-option-populations-hub.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -63,14 +61,31 @@ svg text{font-family:var(--font-mono)}
 <div class="sub" id="asof">loading options intelligence…</div></div>
 <div class="nav-links">
 <a href="/option-chain-research.html">Chain evidence &amp; payoff</a>
-<a href="/gex/">Captured populations</a><a href="/options-analytics.html">🔬 Per-Name</a>
+<a href="/gex/">📐 GEX Detail</a><a href="/options-analytics.html">🔬 Per-Name</a>
 <a href="/options-scanner.html">📡 Flow</a><a href="/index.html">🏠 Home</a></div>
 </header>
 
 <div class="readout"><b>Captured-chain research:</b> <a href="/option-chain-research.html">Inspect exact source records and calculate an assumed expiration payoff</a>. The other models below remain separately unqualified; their scores do not establish observed dealer ownership or a validated investment edge.</div>
-<h2 class="sec">Captured option populations</h2>
-<div class="card"><h3>CALLS AND PUTS · SOURCE MEMBERSHIP</h3><div data-option-populations-hub></div></div>
-<details class="card"><summary>Retained predecessor model history</summary><p>The prior dealer-GEX history remains preserved as unqualified model output. Its assumed positioning signs do not constitute observed dealer inventory or a live market regime.</p><a href="/data/dealer-gex-history.json">Inspect the complete predecessor history</a></details>
+<div id="hero"></div>
+
+<h2 class="sec">Gamma Profile — where dealers are forced to hedge</h2>
+<div class="grid2">
+<div class="card"><h3>NET GEX BY STRIKE <span class="fresh" id="f-strike"></span></h3><div id="c-strike" class="gwrap"></div></div>
+<div class="card"><h3>GEX BY EXPIRATION (term structure) <span class="fresh" id="f-expiry"></span></h3><div id="c-expiry" class="gwrap"></div></div>
+</div>
+
+<div class="grid2" style="margin-top:14px">
+<div class="card"><h3>NET GEX — INTRADAY TREND <span class="fresh" id="f-hist"></span></h3><div id="c-hist" class="gwrap"></div></div>
+<div class="card"><h3>DEALER GREEKS &amp; POSITIONING <span class="fresh" id="f-greeks"></span></h3><div id="greeks"></div></div>
+</div>
+
+<h2 class="sec">Key levels</h2>
+<div class="grid4">
+<div class="card"><h3>CALL WALLS (resistance)</h3><div id="cwalls"></div></div>
+<div class="card"><h3>PUT WALLS (support)</h3><div id="pwalls"></div></div>
+<div class="card"><h3>MAX PAIN BY EXPIRY</h3><div id="maxpain"></div></div>
+<div class="card"><h3>TOP GAMMA STRIKES (pins)</h3><div id="pins"></div></div>
+</div>
 
 <h2 class="sec">Confluence &amp; flow</h2>
 <div class="grid2">
@@ -112,18 +127,106 @@ const ago=iso=>{if(!iso)return'';const m=(Date.now()-new Date(iso).getTime())/60
 const sc=(iso,h=6)=>(iso&&(Date.now()-new Date(iso).getTime())/3600000>h)?'fresh stale':'fresh';
 function setFresh(id,iso,h){const e=document.getElementById(id);if(e){e.className=sc(iso,h||6);e.textContent=ago(iso);}}
 
+function hbarStrike(byStrike,spot){
+ let rows=Object.entries(byStrike||{}).map(([k,v])=>({k:+k,val:(typeof v==='object'?(v.net_gex||0):v)})).filter(r=>r.val!==0).sort((a,b)=>a.k-b.k);
+ if(!rows.length) return '<div class="err">no strike data</div>';
+ const max=Math.max.apply(null,rows.map(r=>Math.abs(r.val)))||1;
+ const W=440,rh=13,H=rows.length*rh+24,cx=W*0.52,bw=W*0.42;
+ let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="'+Math.min(H,420)+'" preserveAspectRatio="xMinYMin meet">';
+ s+='<line x1="'+cx+'" y1="4" x2="'+cx+'" y2="'+(H-16)+'" stroke="#2a3548"/>';
+ rows.forEach((r,i)=>{const y=6+i*rh;const w=Math.abs(r.val)/max*bw;const pos=r.val>=0;const x=pos?cx:cx-w;const near=spot&&Math.abs(r.k-spot)<=(spot*0.004);
+  s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+(rh-3)+'" fill="'+(pos?'#00e676':'#ff3d5a')+'" opacity="'+(near?1:.72)+'" rx="1"/>';
+  if(i%2===0||near) s+='<text x="2" y="'+(y+rh-4)+'" fill="'+(near?'#fbbf24':'#5b6479')+'" font-size="8">'+r.k+'</text>';});
+ if(spot){let iy=rows.findIndex(r=>r.k>=spot);if(iy<0)iy=rows.length;const yy=6+iy*rh;
+  s+='<line x1="0" y1="'+yy+'" x2="'+W+'" y2="'+yy+'" stroke="#fbbf24" stroke-dasharray="3,2"/><text x="'+(W-56)+'" y="'+(yy-2)+'" fill="#fbbf24" font-size="8">spot '+N(spot,0)+'</text>';}
+ s+='<text x="'+(cx+4)+'" y="'+(H-4)+'" fill="#00e676" font-size="8">call &#947; &#8594;</text><text x="'+(cx-58)+'" y="'+(H-4)+'" fill="#ff3d5a" font-size="8">&#8592; put &#947;</text></svg>';
+ return s;
+}
+function vbarExpiry(byExp){
+ let rows=Object.entries(byExp||{}).map(([k,v])=>({k:k,val:(typeof v==='object'?(v.gex_billions||0):v)})).slice(0,16);
+ if(!rows.length) return '<div class="err">no expiry data</div>';
+ const max=Math.max.apply(null,rows.map(r=>Math.abs(r.val)))||1;
+ const W=440,H=190,bw=W/rows.length,cy=H*0.5;
+ let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="200"><line x1="0" y1="'+cy+'" x2="'+W+'" y2="'+cy+'" stroke="#2a3548"/>';
+ rows.forEach((r,i)=>{const h=Math.abs(r.val)/max*(H*0.38);const x=i*bw+2;const pos=r.val>=0;const y=pos?cy-h:cy;
+  s+='<rect x="'+x+'" y="'+y+'" width="'+(bw-4)+'" height="'+h+'" fill="'+(pos?'#00e676':'#ff3d5a')+'" opacity=".8" rx="1"/>';
+  s+='<text x="'+(x+(bw-4)/2)+'" y="'+(H-3)+'" fill="#5b6479" font-size="7" text-anchor="middle">'+r.k.slice(5)+'</text>';
+  s+='<text x="'+(x+(bw-4)/2)+'" y="'+(pos?y-2:y+h+8)+'" fill="'+(pos?'#00e676':'#ff3d5a')+'" font-size="7" text-anchor="middle">'+r.val.toFixed(1)+'</text>';});
+ return s+'</svg>';
+}
+function lineHist(arr){
+ let pts=(arr||[]).map(p=>({t:p.ts||p.t,v:p.spy_gex_b})).filter(p=>p.v!==null&&p.v!==undefined&&!isNaN(p.v));
+ if(pts.length<3) return '<div class="err">building intraday history…</div>';
+ pts=pts.slice(-80);const W=440,H=190,pad=8;
+ const xs=pts.map(p=>p.t),vs=pts.map(p=>p.v);const xm=Math.min.apply(null,xs),xM=Math.max.apply(null,xs);
+ const vm=Math.min.apply(null,vs.concat([0])),vM=Math.max.apply(null,vs.concat([0]));
+ const X=t=>pad+(t-xm)/((xM-xm)||1)*(W-2*pad);const Y=v=>pad+(vM-v)/((vM-vm)||1)*(H-2*pad);
+ const zero=Y(0);const d=pts.map((p,i)=>(i?'L':'M')+X(p.t).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
+ const last=pts[pts.length-1].v;
+ let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="200"><line x1="0" y1="'+zero+'" x2="'+W+'" y2="'+zero+'" stroke="#2a3548" stroke-dasharray="3,2"/><text x="2" y="'+(zero-3)+'" fill="#5b6479" font-size="8">0</text>';
+ s+='<path d="'+d+'" fill="none" stroke="'+(last>=0?'#00e676':'#ff3d5a')+'" stroke-width="1.6"/>';
+ s+='<circle cx="'+X(pts[pts.length-1].t)+'" cy="'+Y(last)+'" r="3" fill="'+(last>=0?'#00e676':'#ff3d5a')+'"/>';
+ s+='<text x="'+(W-4)+'" y="14" fill="'+(last>=0?'#00e676':'#ff3d5a')+'" font-size="10" text-anchor="end">'+BN(last)+'</text></svg>';
+ return s;
+}
 function gauge(val,lo,hi,mid,label){
  const p=Math.max(0,Math.min(1,(val-lo)/((hi-lo)||1)));const W=200,H=30;const col=val>=mid?'#00e676':'#ff3d5a';
  const mp=(mid-lo)/((hi-lo)||1)*W;
  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="34"><rect x="0" y="10" width="'+W+'" height="8" rx="4" fill="#1c2330"/><rect x="0" y="10" width="'+(p*W)+'" height="8" rx="4" fill="'+col+'"/><line x1="'+mp+'" y1="7" x2="'+mp+'" y2="21" stroke="#5b6479"/><text x="0" y="28" fill="#5b6479" font-size="8">'+lo+'</text><text x="'+W+'" y="28" fill="#5b6479" font-size="8" text-anchor="end">'+hi+'</text><text x="'+(p*W)+'" y="8" fill="'+col+'" font-size="9" text-anchor="middle">'+label+'</text></svg>';
 }
 
-Promise.all([Promise.resolve(null),F('options-gamma.json'),F('options-confluence.json'),F('options-analytics.json'),
+Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.json'),F('options-analytics.json'),
  F('options-flow-scanner.json'),F('dix.json'),F('opex-calendar.json'),
- Promise.resolve(null),F('catalyst-skew-premove.json'),F('earnings-iv-crush.json'),F('volatility-squeeze.json')
+ F('dealer-gex-history.json'),F('catalyst-skew-premove.json'),F('earnings-iv-crush.json'),F('volatility-squeeze.json')
 ]).then(function(res){
  const dg=res[0],og=res[1],conf=res[2],oa=res[3],of=res[4],dix=res[5],opex=res[6],gh=res[7],cat=res[8],eiv=res[9],vsq=res[10];
- document.getElementById('asof').textContent='Source clocks appear on each dataset; legacy models remain unqualified.';
+ const spy=(dg&&dg.underlyings&&dg.underlyings.SPY)||{};
+ const mc=(dg&&dg.market_composite)||{};
+ const gexb=spy.total_dealer_gex_billions,flip=spy.zero_gamma_flip_level,spot=spy.spot||(og&&og.spot);
+ const posG=(gexb!==undefined&&gexb!==null)?gexb>0:/pos/i.test(mc.spy_regime||'');
+ const rc=posG?'var(--pos)':'var(--neg)';
+ const idxchip=(sym,reg)=>{const p=/pos/i.test(reg||'');return '<span class="idxchip" style="color:'+(p?'var(--pos)':'var(--neg)')+';border-color:'+(p?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)')+'">'+sym+' '+((reg||'—').replace('_GAMMA','&#947;').replace('STRONG_',''))+'</span>';};
+ document.getElementById('hero').innerHTML='<div class="hero">'+
+  '<div><div class="lab">SPY spot</div><div class="big">'+N(spot,2)+'</div></div>'+
+  '<div><div class="lab">Net dealer GEX</div><div class="big '+pc(gexb)+'">'+BN(gexb)+'</div></div>'+
+  '<div><div class="lab">Zero-&#947; flip</div><div class="big">'+(flip?N(flip,0):'—')+'</div></div>'+
+  '<div><div class="lab">Vanna $</div><div class="big" style="font-size:19px">'+M$(spy.total_vanna_dollars)+'</div></div>'+
+  '<div><div class="lab">Charm $/day</div><div class="big" style="font-size:19px">'+M$(spy.total_charm_dollars_per_day)+'</div></div>'+
+  '<div style="flex:1;min-width:230px"><span class="regime-pill" style="background:'+(posG?'rgba(0,230,118,.14)':'rgba(255,61,90,.14)')+';color:'+rc+'">'+((mc.spy_regime||(posG?'POSITIVE GAMMA':'NEGATIVE GAMMA')).replace(/_/g,' '))+'</span>'+
+   '<div class="dim" style="margin-top:6px;font-size:11.5px">'+(mc.spy_trading_bias||spy.trading_bias||(posG?'Dealers long gamma → sell rallies, buy dips; mean-reverting.':'Dealers short gamma → amplify moves; trend-prone.'))+'</div>'+
+   '<div class="idxrow">'+idxchip('SPY',mc.spy_regime)+idxchip('QQQ',mc.qqq_regime)+idxchip('IWM',mc.iwm_regime)+'</div></div></div>';
+ document.getElementById('asof').textContent='Live · '+(dg&&dg.generated_at?new Date(dg.generated_at).toLocaleString():'');
+
+ document.getElementById('c-strike').innerHTML=hbarStrike((og&&og.by_strike)||{},og&&og.spot);
+ setFresh('f-strike',og&&og.generated_at);
+ document.getElementById('c-expiry').innerHTML=vbarExpiry(spy.by_expiry||{});
+ setFresh('f-expiry',dg&&dg.generated_at);
+ let histArr=[];if(gh){if(Array.isArray(gh))histArr=gh;else histArr=gh.snapshots||gh.history||Object.values(gh).find(v=>Array.isArray(v))||[];}
+ document.getElementById('c-hist').innerHTML=lineHist(histArr);
+ setFresh('f-hist',dg&&dg.generated_at);
+
+ const skk=spy.iv_skew_30d||{},zd=spy.zero_dte||{};
+ document.getElementById('greeks').innerHTML=
+  '<div class="kv" style="margin-bottom:10px">'+
+   '<div class="i"><span class="lab mute">DEX (delta $)</span><span class="v '+pc(spy.total_delta_dollars)+'">'+M$(spy.total_delta_dollars)+'</span></div>'+
+   '<div class="i"><span class="lab mute">VEX (vega $)</span><span class="v '+pc(spy.total_vega_dollars)+'">'+M$(spy.total_vega_dollars)+'</span></div>'+
+   '<div class="i"><span class="lab mute">Vanna exposure</span><span class="v '+pc(spy.total_vanna_dollars)+'">'+M$(spy.total_vanna_dollars)+'</span></div>'+
+   '<div class="i"><span class="lab mute">Charm $/day</span><span class="v '+pc(spy.total_charm_dollars_per_day)+'">'+M$(spy.total_charm_dollars_per_day)+'</span></div>'+
+   '<div class="i"><span class="lab mute">0DTE GEX</span><span class="v">'+(zd.gex_billions!==undefined?BN(zd.gex_billions):'—')+'</span></div>'+
+   '<div class="i"><span class="lab mute">0DTE OI%</span><span class="v">'+(zd.oi_pct!==undefined?N(zd.oi_pct,1)+'%':'—')+'</span></div></div>'+
+  '<div style="font-size:10px;color:var(--text-mute);margin-bottom:6px">OPEN INTEREST — calls <b>'+((spy.total_call_oi||0)/1e6).toFixed(2)+'M</b> &middot; puts <b>'+((spy.total_put_oi||0)/1e6).toFixed(2)+'M</b> &middot; '+N(spy.n_contracts_modeled,0)+' contracts modeled</div>'+
+  '<div style="font-size:10px;color:var(--text-mute);margin-bottom:3px">PUT/CALL RATIO (OI '+N(spy.pcr_oi,2)+' &middot; Vol '+N(spy.pcr_volume,2)+')</div>'+
+  gauge(Math.min(spy.pcr_oi||1,3),0,3,1,'PCR '+N(spy.pcr_oi,2))+
+  '<div class="readout" style="margin:0 0 8px;border-left-color:var(--accent)">DEX '+M$(spy.total_delta_dollars)+' &middot; VEX '+M$(spy.total_vega_dollars)+' — '+((spy.total_delta_dollars||0)>=0?'dealers net long delta (hedge by selling strength)':'dealers net short delta (hedge by buying dips)')+'; '+((spy.total_vega_dollars||0)>=0?'long vega':'short vega (vol spikes hurt dealers)')+'.</div>'+
+  '<div style="font-size:10px;color:var(--text-mute);margin:8px 0 3px">25&#916; IV SKEW (put '+(skk.p25_iv?(skk.p25_iv*100).toFixed(1)+'%':'—')+' vs call '+(skk.c25_iv?(skk.c25_iv*100).toFixed(1)+'%':'—')+')</div>'+
+  '<div class="readout" style="margin:0;border-left-color:'+((skk.skew_pct||0)>15?'var(--neg)':'var(--info)')+'">Skew '+(skk.skew_pct?N(skk.skew_pct,0)+'%':'—')+' — '+((skk.skew_pct||0)>15?'downside puts bid (fear/hedging)':'balanced')+'. '+(skk.expiry||'')+'</div>';
+ setFresh('f-greeks',dg&&dg.generated_at);
+
+ const wallTbl=(arr,cls)=>{if(!arr||!arr.length)return '<div class="err">—</div>';return '<table>'+arr.slice(0,5).map(w=>{const strike=(typeof w==='object')?(w.strike||w.k||w[0]):w;const val=(typeof w==='object')?(w.gex_billions!==undefined?w.gex_billions:(w.oi||w.gamma||w[1])):null;return '<tr><td class="sym '+cls+'">'+N(strike,0)+'</td><td class="dim">'+(val!==null&&val!==undefined?(Math.abs(val)>1e5?M$(val):N(val,2)):'')+'</td></tr>';}).join('')+'</table>';};
+ document.getElementById('cwalls').innerHTML=wallTbl(spy.call_walls_top5,'pos');
+ document.getElementById('pwalls').innerHTML=wallTbl(spy.put_walls_top5,'neg');
+ const mp=spy.max_pain_by_expiry||{};
+ document.getElementById('maxpain').innerHTML=Object.keys(mp).length?'<table>'+Object.entries(mp).slice(0,6).map(([d,s])=>'<tr><td>'+d.slice(5)+'</td><td class="gold">'+N(s,0)+'</td></tr>').join('')+'</table>':'<div class="err">—</div>';
 
  try{ if(conf&&conf.multi_engine_confluence){const items=conf.multi_engine_confluence.slice(0,14);
   document.getElementById('conf').innerHTML='<div class="mute" style="font-size:10px;margin-bottom:6px">'+(conf.counts?('names '+conf.counts.names+' · multi-engine '+conf.counts.multi_engine+' · squeeze-fuel '+conf.counts.squeeze_fuel+' · bull '+(conf.counts.bullish_flow||0)+'/'+(conf.counts.bullish_lean||0)+' · bear '+(conf.counts.bearish_flow||0)+'/'+(conf.counts.bearish_lean||0)):'')+'</div><table><tr><th>Ticker</th><th>Posture</th><th>Eng</th><th>Score</th><th>Flags</th></tr>'+
@@ -172,6 +275,10 @@ Promise.all([Promise.resolve(null),F('options-gamma.json'),F('options-confluence
  }catch(_e){console.error('opt-section',_e);}
  setFresh('f-scan',of&&of.generated_at);
 
+ try{ var _tg=spy.top_gamma_strikes||[];
+  document.getElementById('pins').innerHTML=_tg.length?('<table>'+_tg.slice(0,5).map(g=>'<tr><td class="sym">'+N(g.strike,0)+'</td><td class="'+pc(g.gex_billions)+'">'+BN(g.gex_billions)+'</td></tr>').join('')+'</table>'):'<div class="err">—</div>';
+ }catch(_e){console.error('opt-section',_e);}
+
  try{ if(dix){const cur=dix.current||{},ma=dix.moving_averages||{},st=dix.statistics||{},dod=dix.day_over_day||{};
   document.getElementById('dix').innerHTML='<div class="kv" style="margin-bottom:9px">'+
     '<div class="i"><span class="lab mute">DIX</span><span class="v" style="color:'+(cur.dix_pct>=45?'var(--pos)':cur.dix_pct<40?'var(--warn)':'var(--text)')+'">'+N(cur.dix_pct,1)+'%</span></div>'+
@@ -208,13 +315,13 @@ Promise.all([Promise.resolve(null),F('options-gamma.json'),F('options-confluence
  else document.getElementById('vsq').innerHTML='<div class="err">unavailable</div>';
  setFresh('f-vs',vsq&&vsq.generated_at,30); }catch(_e){console.error('opt-section',_e);} 
 
- document.getElementById('foot').innerHTML='Sources: option-population-research (captured call/put OI, coefficients and source membership) · options-gamma · options-confluence · options-analytics (58-name board) · option-flow-research (verified captured records) · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. The captured-chain dataset has source replay. Other legacy models have not passed that qualification; open interest alone does not identify dealer positions. Click board headers to sort. Not investment advice.';
+ document.getElementById('foot').innerHTML='Sources: dealer-gex (DEX/VEX/vanna/charm/skew/by-strike/by-expiry/0DTE) · options-gamma · options-confluence · options-analytics (58-name board) · option-flow-research (verified captured records) · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. The captured-chain dataset has source replay. Other legacy models have not passed that qualification; open interest alone does not identify dealer positions. Click board headers to sort. Not investment advice.';
 }).catch(function(e){document.getElementById('asof').textContent='load error: '+e;});
 </script>
 
 <script defer src="/jh-nav-drawer.js"></script>
 <script defer src="/jh-page-ai.js"></script>
-<script src="/jh-wire.js" defer data-feeds="data/dix-history.json|justhodl-dix|DIX"></script>
+<script src="/jh-wire.js" defer data-feeds="data/dealer-gex-history.json|justhodl-dealer-gex|DEALER GEX;data/dix-history.json|justhodl-dix|DIX"></script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>

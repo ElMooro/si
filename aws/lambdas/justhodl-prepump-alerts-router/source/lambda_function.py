@@ -731,7 +731,7 @@ def check_squeeze_pretrigger(state: dict) -> List[str]:
 
 def check_dealer_gex(state: dict) -> List[str]:
     """Dealer gamma exposure regime changes — major market mover."""
-    doc = _read_json("data/dealer-gex.json")
+    doc = __import__("option_population_context").context(_read_json("data/dealer-gex.json"))
     if not doc:
         return []
     regime = (doc.get("regime") or doc.get("current_regime") or 

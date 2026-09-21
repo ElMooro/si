@@ -83,6 +83,7 @@ def lambda_handler(event, context):
     et = _read("data/engine-trust.json")
     trust_by = {e.get("signal_type"): e for e in (et.get("engines") or []) if isinstance(e, dict)}
     def gated(file_key):
+        if file_key == "dealer-gex": return False, 1.0  # captured populations have no directional qualification
         st = TRUST_KEY.get(file_key)
         info = trust_by.get(st) if st else None
         if not info: return True, 1.0
@@ -126,7 +127,7 @@ def lambda_handler(event, context):
 
     inc, _ = gated("dealer-gex")
     if inc:
-        dg = _read("data/dealer-gex.json")
+        dg = __import__("option_population_context").context(_read("data/dealer-gex.json"))
         und = dg.get("underlyings") or {}
         if isinstance(und, dict):
             for sym, v in und.items():

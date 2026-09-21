@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0DTE Concentration — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4;min-height:100vh;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.regime-banner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;border-left:4px solid var(--accent);}
+.regime-title{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--accent);}
+.regime-signal{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.regime-stats{display:flex;gap:20px;font-family:var(--font-mono);font-size:12px;}
+.regime-stats > div{display:flex;flex-direction:column;align-items:flex-end;}
+.regime-stats .label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;}
+.regime-stats .val{font-size:18px;font-weight:600;margin-top:2px;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.tile .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin-bottom:6px;}
+.tile .val{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.tile .sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;}
+.tile.pos .val{color:var(--pos);} .tile.neg .val{color:var(--neg);} .tile.info .val{color:var(--info);} .tile.gold .val{color:var(--gold);}
+
+.section-title{font-size:11px;letter-spacing:.6px;color:var(--text-mute);text-transform:uppercase;margin:16px 0 8px;font-family:var(--font-mono);}
+
+.full-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.full-table th{padding:10px 14px;text-align:right;font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;}
+.full-table th:first-child{text-align:left;}
+.full-table td{padding:10px 14px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+.full-table td:first-child{text-align:left;}
+.full-table tr:hover{background:rgba(167,139,250,.04);}
+.full-table tr:last-child td{border-bottom:0;}
+.t-sym{font-weight:600;color:var(--text);font-family:var(--font-mono);}
+.t-spot{color:var(--text-dim);font-size:11px;}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);} .t-gold{color:var(--gold);}
+.t-pill{font-family:var(--font-mono);font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(167,139,250,.15);color:var(--accent);}
+.bar-cell{position:relative;}
+.bar-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg, rgba(167,139,250,.2), rgba(167,139,250,.05));border-radius:0 3px 3px 0;}
+.bar-cell .bar-text{position:relative;z-index:1;padding:2px 6px;}
+
+.method{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:18px;}
+.method h3{margin:0 0 10px 0;color:var(--text);font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+.method code{font-family:var(--font-mono);font-size:11px;background:rgba(28,35,48,.6);padding:1px 5px;border-radius:2px;color:var(--accent);}
+.loading{padding:60px;text-align:center;color:var(--text-mute);font-family:var(--font-mono);font-size:13px;}
+</style>
+</head>
+<body>
+<header>
+<h1>⚡ 0DTE Concentration <span class="badge">SAME-DAY EXPIRY · CBOE</span></h1>
+<div class="header-meta">
+<a href="/" class="nav-back">← justhodl.ai</a>
+<span><span class="dot"></span><span id="status">loading</span></span>
+<span id="gen-time">—</span>
+</div>
+</header>
+<main>
+<div id="regime-banner-container"><div class="loading">Loading regime…</div></div>
+<div id="tiles" class="tiles"></div>
+
+<div class="section-title">Per-Underlying 0DTE Detail (10 names)</div>
+<table class="full-table">
+  <thead><tr>
+    <th>Ticker</th><th>Spot</th>
+    <th>0DTE Vol %</th><th>0DTE OI %</th>
+    <th>0DTE Vol</th><th>0DTE OI</th>
+    <th>0DTE PCR (Vol)</th><th>0DTE PCR (OI)</th>
+    <th>0DTE GEX ($B)</th>
+    <th>Pin Strike</th><th>Δ Pin</th>
+  </tr></thead>
+  <tbody id="tbody"><tr><td colspan="11" class="loading">Loading…</td></tr></tbody>
+</table>
+
+<div class="section-title" style="margin-top:18px">0DTE Strike Walls · Top Call Walls vs Top Put Walls (per Ticker)</div>
+<div id="walls-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;"></div>
+
+<div class="method">
+  <h3>Methodology · 0DTE Concentration</h3>
+  <p>The 0DTE phenomenon (options expiring same day) is a Bloomberg-flagged structural shift in equity markets. SPX 0DTE volume now ~50% of total SPX options volume — a regime change with massive implications for intraday vol, pin risk, and dealer hedging flow.</p>
+  <p><strong>Key signals:</strong></p>
+  <p><code>0DTE Vol %</code> — share of today's options activity in 0DTE contracts. &gt;40% = highly active 0DTE day · &gt;55% = extreme 0DTE concentration.</p>
+  <p><code>0DTE PCR (Vol)</code> — same-day put/call volume ratio. &gt;1.2 = bearish positioning · &lt;0.8 = bullish.</p>
+  <p><code>0DTE Call/Put Walls</code> — largest OI strikes in 0DTE chain. Calls above spot = potential pin/resistance · puts below spot = potential pin/support.</p>
+  <p><code>Pin Strike</code> — strike within ±2% of spot with largest combined 0DTE OI. Market often gravitates here into the close.</p>
+  <p><strong>Source:</strong> CBOE delayed quotes via <code>cdn.cboe.com/api/global/delayed_quotes/options/{ticker}.json</code>. Refresh hourly during market hours. Page reads <code>data/dealer-gex.json</code>.</p>
+</div>
+</main>
+<script>
+const SIDECAR_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/dealer-gex.json";
+let DATA = null;
+
+function fmtPct(v, d=1) { return v == null ? '-' : (v >= 0 ? '+' : '') + v.toFixed(d); }
+function fmtNum(v) { return v == null ? '-' : v.toLocaleString(); }
+function clsPcr(v) { return v == null ? '' : (v > 1.2 ? 't-neg' : (v < 0.8 ? 't-pos' : 't-gold')); }
+
+async function load() {
+  try {
+    DATA = await (await fetch(SIDECAR_URL)).json();
+    document.getElementById('status').textContent = 'live';
+    document.getElementById('status').style.color = 'var(--pos)';
+    document.getElementById('gen-time').textContent = (DATA.generated_at || '').substring(0,16).replace('T',' ') + ' UTC';
+    renderRegime(); renderTiles(); renderTable(); renderWalls();
+  } catch (e) {
+    document.getElementById('status').textContent = 'offline';
+    document.getElementById('status').style.color = 'var(--neg)';
+    document.getElementById('regime-banner-container').innerHTML =
+      '<div style="padding:40px;color:var(--neg)">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+function aggregate() {
+  const by = DATA.by_underlying || {};
+  const tickers = Object.keys(by);
+  let agg = {
+    n_underlying: 0,
+    total_0dte_oi: 0, total_0dte_vol: 0,
+    total_0dte_call_oi: 0, total_0dte_put_oi: 0,
+    total_0dte_call_vol: 0, total_0dte_put_vol: 0,
+    total_oi: 0, total_vol: 0,
+    total_0dte_gex_b: 0,
+    n_high_vol_pct: 0, n_extreme_vol_pct: 0,
+    avg_vol_pct: 0, avg_oi_pct: 0,
+    max_pcr_vol_ticker: null, max_pcr_vol: 0,
+    min_pcr_vol_ticker: null, min_pcr_vol: 99,
+  };
+  let vol_pcts = [], oi_pcts = [];
+  tickers.forEach(t => {
+    const u = by[t]; if (!u || u.error) return;
+    const z = u.zero_dte || {};
+    if (z.vol == null) return;
+    agg.n_underlying++;
+    agg.total_0dte_oi += z.oi || 0;
+    agg.total_0dte_vol += z.vol || 0;
+    agg.total_0dte_call_oi += z.call_oi || 0;
+    agg.total_0dte_put_oi += z.put_oi || 0;
+    agg.total_0dte_call_vol += z.call_vol || 0;
+    agg.total_0dte_put_vol += z.put_vol || 0;
+    agg.total_0dte_gex_b += z.gex_billions || 0;
+    if (z.vol_pct != null) { vol_pcts.push(z.vol_pct); if (z.vol_pct > 40) agg.n_high_vol_pct++; if (z.vol_pct > 55) agg.n_extreme_vol_pct++; }
+    if (z.oi_pct != null) oi_pcts.push(z.oi_pct);
+    if (z.pcr_vol != null) {
+      if (z.pcr_vol > agg.max_pcr_vol) { agg.max_pcr_vol = z.pcr_vol; agg.max_pcr_vol_ticker = t; }
+      if (z.pcr_vol < agg.min_pcr_vol) { agg.min_pcr_vol = z.pcr_vol; agg.min_pcr_vol_ticker = t; }
+    }
+  });
+  agg.avg_vol_pct = vol_pcts.length ? vol_pcts.reduce((a,b)=>a+b,0) / vol_pcts.length : 0;
+  agg.avg_oi_pct = oi_pcts.length ? oi_pcts.reduce((a,b)=>a+b,0) / oi_pcts.length : 0;
+  agg.aggregate_pcr_vol = agg.total_0dte_call_vol > 0 ? agg.total_0dte_put_vol / agg.total_0dte_call_vol : null;
+  agg.aggregate_pcr_oi = agg.total_0dte_call_oi > 0 ? agg.total_0dte_put_oi / agg.total_0dte_call_oi : null;
+  return agg;
+}
+
+function renderRegime() {
+  const a = aggregate();
+  let regime = 'NORMAL', signal = '';
+  if (a.avg_vol_pct > 50) { regime = '0DTE_DOMINANT'; signal = `${a.avg_vol_pct.toFixed(1)}% avg 0DTE vol share — same-day expiry dominates flow`; }
+  else if (a.avg_vol_pct > 35) { regime = '0DTE_ELEVATED'; signal = `${a.avg_vol_pct.toFixed(1)}% avg 0DTE vol share — elevated near-term hedging`; }
+  else if (a.avg_vol_pct < 15) { regime = '0DTE_SUBDUED'; signal = `${a.avg_vol_pct.toFixed(1)}% avg 0DTE vol share — quiet day, longer-dated bias`; }
+  else { regime = '0DTE_NORMAL'; signal = `${a.avg_vol_pct.toFixed(1)}% avg 0DTE vol share — typical regime`; }
+  if (a.aggregate_pcr_vol != null) {
+    if (a.aggregate_pcr_vol > 1.2) signal += ` · PCR ${a.aggregate_pcr_vol.toFixed(2)} bearish positioning`;
+    else if (a.aggregate_pcr_vol < 0.8) signal += ` · PCR ${a.aggregate_pcr_vol.toFixed(2)} bullish positioning`;
+  }
+  document.getElementById('regime-banner-container').innerHTML = `
+    <div class="regime-banner">
+      <div>
+        <div class="regime-title">${regime.replace(/_/g,' ')}</div>
+        <div class="regime-signal">${signal}</div>
+      </div>
+      <div class="regime-stats">
+        <div><span class="label">Avg Vol %</span><span class="val">${a.avg_vol_pct.toFixed(1)}%</span></div>
+        <div><span class="label">Avg OI %</span><span class="val">${a.avg_oi_pct.toFixed(1)}%</span></div>
+        <div><span class="label">Agg PCR</span><span class="val">${a.aggregate_pcr_vol == null ? '-' : a.aggregate_pcr_vol.toFixed(2)}</span></div>
+        <div><span class="label">Total GEX</span><span class="val">${a.total_0dte_gex_b.toFixed(2)}B</span></div>
+      </div>
+    </div>`;
+}
+
+function renderTiles() {
+  const a = aggregate();
+  const tiles = [
+    {lbl:"Aggregate 0DTE Vol", val: fmtNum(a.total_0dte_vol), sub:`${a.n_underlying} underlyings tracked`},
+    {lbl:"Aggregate 0DTE OI", val: fmtNum(a.total_0dte_oi), sub:`calls ${fmtNum(a.total_0dte_call_oi)} · puts ${fmtNum(a.total_0dte_put_oi)}`},
+    {lbl:"0DTE Call Volume", val: fmtNum(a.total_0dte_call_vol), sub:"sum across universe"},
+    {lbl:"0DTE Put Volume", val: fmtNum(a.total_0dte_put_vol), sub:"sum across universe"},
+    {lbl:"Aggregate PCR (Vol)", val: a.aggregate_pcr_vol == null ? '-' : a.aggregate_pcr_vol.toFixed(2), sub:`OI: ${a.aggregate_pcr_oi == null ? '-' : a.aggregate_pcr_oi.toFixed(2)}`, cls: a.aggregate_pcr_vol > 1.2 ? 'neg' : (a.aggregate_pcr_vol < 0.8 ? 'pos' : 'gold')},
+    {lbl:"Highly Active 0DTE (>40%)", val: a.n_high_vol_pct + " / " + a.n_underlying, sub: `Extreme (>55%): ${a.n_extreme_vol_pct}`, cls: a.n_extreme_vol_pct >= 2 ? 'neg' : (a.n_high_vol_pct >= 3 ? 'gold' : '')},
+    {lbl:"Most Bearish 0DTE", val: a.max_pcr_vol_ticker || '-', sub: `PCR vol: ${a.max_pcr_vol == 0 ? '-' : a.max_pcr_vol.toFixed(2)}`, cls: 'neg'},
+    {lbl:"Most Bullish 0DTE", val: a.min_pcr_vol_ticker || '-', sub: `PCR vol: ${a.min_pcr_vol == 99 ? '-' : a.min_pcr_vol.toFixed(2)}`, cls: 'pos'},
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(t => `
+    <div class="tile ${t.cls || ''}">
+      <div class="lbl">${t.lbl}</div>
+      <div class="val">${t.val}</div>
+      <div class="sub">${t.sub}</div>
+    </div>`).join('');
+}
+
+function renderTable() {
+  const by = DATA.by_underlying || {};
+  const rows = Object.entries(by)
+    .filter(([k, u]) => u && !u.error && (u.zero_dte || {}).vol != null)
+    .sort((a, b) => ((b[1].zero_dte || {}).vol_pct || 0) - ((a[1].zero_dte || {}).vol_pct || 0));
+  if (!rows.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="11" class="loading">No 0DTE data — likely no same-day expiry today (weekend?)</td></tr>';
+    return;
+  }
+  const maxVolPct = Math.max(...rows.map(([_, u]) => (u.zero_dte || {}).vol_pct || 0));
+  document.getElementById('tbody').innerHTML = rows.map(([t, u]) => {
+    const z = u.zero_dte || {};
+    const volPct = z.vol_pct;
+    const oiPct = z.oi_pct;
+    const pcrV = z.pcr_vol;
+    const pcrO = z.pcr_oi;
+    const barW = maxVolPct > 0 ? (volPct / maxVolPct * 100) : 0;
+    const cls5 = volPct > 55 ? 't-neg' : (volPct > 40 ? 't-gold' : '');
+    return `<tr>
+      <td><span class="t-sym">${t}</span></td>
+      <td><span class="t-spot">${u.spot ? u.spot.toFixed(2) : '-'}</span></td>
+      <td class="bar-cell"><div class="bar-fill" style="width:${barW}%"></div><span class="bar-text ${cls5}">${volPct ? volPct.toFixed(1) + '%' : '-'}</span></td>
+      <td>${oiPct ? oiPct.toFixed(1) + '%' : '-'}</td>
+      <td>${fmtNum(z.vol)}</td>
+      <td>${fmtNum(z.oi)}</td>
+      <td class="${clsPcr(pcrV)}">${pcrV == null ? '-' : pcrV.toFixed(2)}</td>
+      <td class="${clsPcr(pcrO)}">${pcrO == null ? '-' : pcrO.toFixed(2)}</td>
+      <td class="${z.gex_billions > 0 ? 't-pos' : (z.gex_billions < 0 ? 't-neg' : '')}">${z.gex_billions == null ? '-' : (z.gex_billions >= 0 ? '+' : '') + z.gex_billions.toFixed(3)}</td>
+      <td>${z.pin_strike || '-'}</td>
+      <td class="${z.pct_to_pin > 0 ? 't-pos' : (z.pct_to_pin < 0 ? 't-neg' : '')}">${z.pct_to_pin == null ? '-' : fmtPct(z.pct_to_pin)}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderWalls() {
+  const by = DATA.by_underlying || {};
+  const rows = Object.entries(by)
+    .filter(([k, u]) => {
+      const z = u && u.zero_dte;
+      return z && ((z.call_walls_oi || []).length > 0 || (z.put_walls_oi || []).length > 0);
+    });
+  if (!rows.length) {
+    document.getElementById('walls-grid').innerHTML = '';
+    return;
+  }
+  document.getElementById('walls-grid').innerHTML = rows.map(([t, u]) => {
+    const z = u.zero_dte;
+    const calls = (z.call_walls_oi || []).slice(0, 3);
+    const puts = (z.put_walls_oi || []).slice(0, 3);
+    return `<div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;">
+        <strong style="color:var(--text);font-size:13px;">${t}</strong> · spot ${u.spot ? u.spot.toFixed(2) : '-'} · pin ${z.pin_strike || '-'}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--font-mono);font-size:11px;">
+        <div>
+          <div style="color:var(--pos);text-transform:uppercase;font-size:9px;letter-spacing:.5px;margin-bottom:4px;">Top Call Walls</div>
+          ${calls.length ? calls.map(c => `<div>${c.strike} → ${fmtNum(c.oi)}</div>`).join('') : '<div style="color:var(--text-mute)">—</div>'}
+        </div>
+        <div>
+          <div style="color:var(--neg);text-transform:uppercase;font-size:9px;letter-spacing:.5px;margin-bottom:4px;">Top Put Walls</div>
+          ${puts.length ? puts.map(p => `<div>${p.strike} → ${fmtNum(p.oi)}</div>`).join('') : '<div style="color:var(--text-mute)">—</div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+</body>
+</html>

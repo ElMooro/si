@@ -149,7 +149,7 @@ class TestAdapters:
         sigs, reports = signals_from_artifacts
         assert set(reports) == set(registry.engines)
         for eid, r in reports.items():
-            if eid in ("crisis_composite", "tail_risk"):
+            if eid in ("crisis_composite", "tail_risk", "dealer_gex"):
                 assert not r.signals and r.source_status == "UNQUALIFIED"
                 continue
             assert r.source_status == "OK", (eid, r.diagnostics)
@@ -182,8 +182,7 @@ class TestAdapters:
         assert by[("institutional_13f_flows", "equity:META", "whale_net_flow")]["score"] == -0.7
         assert by[("institutional_13f_flows", "equity:NVDA", "whale_net_flow")]["score"] == 1.0
         assert not any(key[0] == "tail_risk" for key in by)
-        gex = by[("dealer_gex", "equity:TSLA", "gamma_regime")]
-        assert gex["score"] < 0 and gex["metadata"]["veto"]["type"] == "SOFT" and gex["horizon"] == "TACTICAL"
+        assert not any(key[0] == "dealer_gex" for key in by)  # OI cannot reveal signed dealer inventory
         rg = by[("risk_gate", "market:US_EQUITY", "risk_posture")]
         assert rg["metadata"]["veto"] is None and rg["entity_type"] == "market" and abs(rg["confidence"] - 0.75) < 1e-9
         assert ("crisis_composite", "market:US_EQUITY", "systemic_stress") not in by

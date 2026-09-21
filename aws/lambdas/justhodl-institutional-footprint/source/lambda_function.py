@@ -303,7 +303,8 @@ def lambda_handler(event=None, context=None):
     # ── RISK-FORWARD composite (what they are POSITIONING for) ──
     skew = F["data/skew-tail-hedging.json"]
     tail = _find(skew, ("tail", "score")) or _find(skew, ("skew", "z")) or _find(skew, ("put", "bid"))
-    gex = _find(F["data/dealer-gex.json"], ("net", "gex")) or _find(F["data/dealer-gex.json"], ("gex",))
+    gex_context = __import__("option_population_context").context(F["data/dealer-gex.json"])
+    gex = gex_context["score"]  # no inferred dealer sign can enter risk-forward
     pcr = _find(F["data/options-gamma.json"], ("put", "call")) or _find(F["data/options-gamma.json"], ("pcr",))
     rev_n = len(_tick_list(cftc, ("reversal",)))
     extreme_n = len(_tick_list(cftc, ("extreme",)))

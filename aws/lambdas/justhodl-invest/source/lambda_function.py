@@ -424,7 +424,7 @@ def run_tier3(tier2_gates):
     squeeze_doc = fleet_io.get_json(FINRA_SHORT_KEY)
     hiring_doc = fleet_io.get_json(HIRING_VELOCITY_KEY)
     estimate_doc = fleet_io.get_json(ESTIMATE_REVISIONS_KEY)
-    gex_doc = fleet_io.get_json(DEALER_GEX_KEY)
+    gex_doc = __import__("option_population_context").context(fleet_io.get_json(DEALER_GEX_KEY))
     smart13f_doc = fleet_io.get_json(SMART_MONEY_13F_KEY)
 
     picks = []

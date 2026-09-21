@@ -1,0 +1,31 @@
+class DealerGexAdapter(SignalAdapter):
+    """underlyings[sym] {regime, total_dealer_gex_billions, pcr_oi, spot_above_flip}: STRONG_POSITIVE +0.35,
+    POSITIVE +0.2, NEAR_FLIP 0, NEGATIVE -0.35, STRONG_NEGATIVE -0.6 (+0.1 contrarian when pcr_oi > 1.2).
+    Negative gamma = SOFT veto (short gamma amplifies moves). Confidence = 0.55 + 0.3*min(1, contracts/5000)."""
+    signal_type, category = "gamma_regime", "options_positioning"
+    REG = {"STRONG_POSITIVE_GAMMA": 0.35, "POSITIVE_GAMMA": 0.2, "NEAR_FLIP": 0.0, "NEGATIVE_GAMMA": -0.35, "STRONG_NEGATIVE_GAMMA": -0.6}
+
+    def validate_source(self, doc):
+        return isinstance(doc.get("underlyings"), dict)
+
+    def rows(self, doc):
+        for sym, r in doc["underlyings"].items():
+            if not isinstance(r, dict) or r.get("err"):
+                yield {"skip": "not isinstance(r, dict) or r.get('err')"}
+                continue
+            base = self.REG.get(str(r.get("regime") or ""))
+            gex = _f(r.get("total_dealer_gex_billions"))
+            if base is None or gex is None:
+                yield {"skip": "base is None or gex is None"}
+                continue
+            pcr = _f(r.get("pcr_oi"))
+            score = base + (0.1 if (pcr is not None and pcr > 1.2) else 0.0)
+            n = _f(r.get("n_contracts_modeled")) or 0.0
+            neg = base < 0
+            yield {
+                "symbol": sym, "score": _clip(score), "confidence": 0.55 + 0.3 * min(1.0, n / 5000.0), "confidence_basis": "0.55 + 0.3 x contracts modelled / 5000",
+                "horizon": "TACTICAL", "magnitude": gex,
+                "evidence": _ev(regime=r.get("regime"), total_dealer_gex_billions=gex, pcr_oi=pcr, zero_gamma_flip_level=r.get("zero_gamma_flip_level"), spot=r.get("spot"), spot_above_flip=r.get("spot_above_flip"), trading_bias=r.get("trading_bias")),
+                "metadata": {"veto": ({"type": VETO_SOFT, "severity": 0.35 if base > -0.5 else 0.5, "reason": "%s dealers short gamma (%s)" % (sym, r.get("regime"))} if neg else None)},
+                "invalidation": {"type": "level", "description": "spot crosses the zero-gamma flip level %s" % r.get("zero_gamma_flip_level")},
+            }

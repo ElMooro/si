@@ -6,7 +6,7 @@
     let packet=null,currentChain=null,rows=[],selected=null,controller=null,publication=0,selection=0,pageRequest=0;
     const params=new URL(root.location.href).searchParams,requested=params.get('underlying'),pinned=params.get('run');let symbol=A.ticker(requested)?requested:'SPY';
     if(pinned!==null)q('[data-or-refresh]').textContent='Recheck recorded publication';
-    let lastReview='';
+    let lastReview='',target=null;
     function invalidate(){selected=null;form.reset();q('[data-or-scenario-selection]').textContent='Select a verified standard contract above.';result.textContent='Source or selection changed; select a contract and recalculate your hypothetical scenario.';}
     function clear(){
       currentChain=null;rows=[];invalidate();
@@ -35,14 +35,16 @@
         symbol=button.dataset.orPick;q('[data-or-symbol]').value=symbol;void inspect();q('[data-or-chain]').scrollIntoView({block:'start',behavior:'smooth'});
       };});
     }
+    function selectRow(row,scroll=true){
+      if(!row)return;selected=row;form.reset();q('[data-or-row-detail]').innerHTML=A.rowView(selected);
+      q('[data-or-scenario-selection]').textContent=(selected.contract_id||'Malformed row')+' · '+(selected.identity_eligible?'valid contract identity':'identity is unqualified; scenario unavailable');
+      result.textContent='Contract selected. Enter your assumptions and calculate a hypothetical payoff.';
+      if(scroll)q('[data-or-row-detail]').scrollIntoView({block:'start',behavior:'smooth'});
+    }
     function renderRows(){
       q('[data-or-records]').innerHTML=A.rowTable(rows,q('[data-or-contract-query]').value);
       q('[data-or-records]').querySelectorAll('[data-or-row]').forEach(button=>{button.onclick=()=>{
-        selected=rows.find(row=>row.evidence.row_index===Number(button.dataset.orRow));
-        if(!selected)return;form.reset();q('[data-or-row-detail]').innerHTML=A.rowView(selected);
-        q('[data-or-scenario-selection]').textContent=(selected.contract_id||'Malformed row')+' · '+(selected.identity_eligible?'valid contract identity':'identity is unqualified; scenario unavailable');
-        result.textContent='Contract selected. Enter your assumptions and calculate a hypothetical payoff.';
-        q('[data-or-row-detail]').scrollIntoView({block:'start',behavior:'smooth'});
+        selectRow(rows.find(row=>row.evidence.row_index===Number(button.dataset.orRow)));
       };});
     }
     async function showPage(){
@@ -55,6 +57,9 @@
         const loaded=await A.records(c,index,fetcher,controller.signal);
         if(token!==pageRequest||chosen!==selection||version!==publication||c!==currentChain)return;
         rows=loaded;renderRows();
+        if(target&&target.symbol===c.underlying&&target.page===c.record_blocks[index].source_page){
+          const row=rows.find(r=>r.evidence.row_index===target.row);if(!row)throw Error('The requested original row is absent from this source page');selectRow(row,false);
+        }
       }catch(error){if(token===pageRequest&&chosen===selection&&version===publication&&error.name!=='AbortError')q('[data-or-records]').textContent=error.message;}
     }
     async function inspect(){
@@ -67,6 +72,7 @@
         if(token!==selection||version!==publication||expected!==packet)return;
         currentChain=c;q('[data-or-chain]').innerHTML=A.chainView(c);q('[data-or-dates]').innerHTML=A.dateGroups(c);
         q('[data-or-page]').innerHTML=c.record_blocks.length?c.record_blocks.map((b,i)=>'<option value="'+i+'">Page '+b.source_page+' · '+b.rows+' rows</option>').join(''):'<option>No validated records</option>';
+        if(target&&target.symbol===t){const n=c.record_blocks.findIndex(b=>b.source_page===target.page);if(n<0)throw Error('The requested original source page is absent from this capture');q('[data-or-page]').value=String(n);}
         q('[data-or-page]').disabled=!c.record_blocks.length;q('[data-or-contract-query]').value='';await showPage();
       }catch(error){if(token===selection&&version===publication&&error.name!=='AbortError')q('[data-or-chain]').textContent=error.message;}
     }
@@ -78,6 +84,7 @@
       q('[data-or-status]').textContent=pinned!==null?'Verifying the requested recorded capture…':'Verifying the latest publication and its retained output…';q('[data-or-symbol]').disabled=true;
       for(const name of ['overview','inventory','universe','replay'])q('[data-or-'+name+']').textContent='';
       try{
+        target=A.recordTarget(params);
         const verified=pinned!==null?await A.recordedRun(pinned,fetcher,controller.signal):await A.verifyPacket((await A.load(A.CURRENT,fetcher,controller.signal)).doc,fetcher,controller.signal);
         if(version!==publication)return;packet=verified;if(!packet.chains[symbol])symbol=packet.universe.selected[0];
         q('[data-or-symbol]').innerHTML=packet.universe.selected.map(t=>'<option value="'+t+'">'+t+'</option>').join('');q('[data-or-symbol]').value=symbol;q('[data-or-symbol]').disabled=false;

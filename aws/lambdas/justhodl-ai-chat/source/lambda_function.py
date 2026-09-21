@@ -332,7 +332,8 @@ def build_context(message):
             lines.append(f"[8-K RED FLAGS 24h] {evts}")
 
     # ─── Dealer GEX & Positioning (always-on; institutional gamma context) ──
-    gex = get_s3('data/dealer-gex.json')
+    gex = __import__("option_population_context").context(get_s3('data/dealer-gex.json'))
+    lines.append('[OPTION POPULATION RESEARCH] '+gex['evidence_note'])
     if gex:
         mc = gex.get('market_composite') or {}
         ulying = gex.get('underlyings') or {}

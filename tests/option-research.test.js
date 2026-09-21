@@ -28,6 +28,12 @@ test('invalid recorded references do not fetch or silently fall back to current'
   for(const id of ['',null,'../private','a'.repeat(63),'https://example.test/run'])await assert.rejects(()=>api.recordedRun(id,()=>{calls++;}),/Exact recorded/);
   assert.equal(calls,0);assert.throws(()=>api.recordedUrl(fixture.publication,'SPY'),/Verified/);
 });
+test('source-row deep links require a pinned capture and bounded exact coordinates',()=>{
+  const run='a'.repeat(64),good='underlying=SPY&run='+run+'&page=1&row=0';
+  assert.deepEqual(api.recordTarget(new URLSearchParams(good)),{symbol:'SPY',page:1,row:0});
+  assert.equal(api.recordTarget(new URLSearchParams('underlying=SPY')),null);
+  for(const bad of ['underlying=SPY&page=1&row=0','underlying=SPY&run='+run+'&page=129&row=0','underlying=SPY&run='+run+'&page=1&row=250','run='+run+'&page=1&row=0','underlying=SPY&run='+run+'&page=1'])assert.throws(()=>api.recordTarget(new URLSearchParams(bad)),/exact source page\/row/);
+});
 test('recorded run hash and output authority are verified',async()=>{
   const id=fixture.publication.replay.manifest_key.split('/').pop().slice(0,-5);
   await assert.rejects(()=>api.recordedRun(id,async url=>new Response(fixture.artifacts[url.slice(1)]+' ')),/run differs/);

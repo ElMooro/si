@@ -345,7 +345,7 @@ def s3_read(key):
 
 
 
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)['Body'].read().decode())
+        return __import__("option_population_context").guard(key,json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)['Body'].read().decode()))
 
 
 
