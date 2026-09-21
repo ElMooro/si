@@ -12,6 +12,7 @@ import os
 from typing import Any, Dict
 
 _INSTALLED = False
+NEW_SOURCE_KINDS = frozenset({"exam_fail", "preference_pair", "justhodl_native"})
 
 
 def _in_lambda_runtime() -> bool:
@@ -26,6 +27,10 @@ def install() -> bool:
         return False
     ok = False
     try:
+        ok = _widen_kinds() or ok
+    except Exception:
+        pass
+    try:
         ok = _wrap_gear_b() or ok
     except Exception:
         pass
@@ -35,6 +40,12 @@ def install() -> bool:
         pass
     _INSTALLED = True
     return ok
+
+
+def _widen_kinds() -> bool:
+    import gear_b
+    gear_b.ALLOWED_SOURCE_KINDS = frozenset(set(gear_b.ALLOWED_SOURCE_KINDS) | set(NEW_SOURCE_KINDS))
+    return True
 
 
 def _wrap_gear_b() -> bool:
