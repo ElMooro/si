@@ -52,6 +52,8 @@ test('payoff exact arithmetic includes multiplier, direction and costs',async()=
   const out=api.scenario(p,rows[0],{quantity:'2',premium:'1.125',spot:'102.25',cost:'3.50'});
   assert.equal(out.premium_cash_usd,'-225');assert.equal(out.intrinsic_value_usd,'450');assert.equal(out.net_usd,'221.5');assert.equal(out.maximum_loss_usd,'228.5');
   assert.deepEqual(out.evidence,rows[0].evidence);assert.deepEqual(out.run,p.replay);
+  assert.equal(out.calculator_contract,'option-expiration-payoff.v1');assert.equal(out.assumption_units.cost,'USD_total');
+  assert.equal(out.arithmetic,'exact_fixed_point_8_decimal_places');
 });
 test('short call has unbounded modeled loss; put downside is explicit',async()=>{
   const {p,rows}=await loaded();

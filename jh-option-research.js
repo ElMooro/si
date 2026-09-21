@@ -138,8 +138,8 @@
   function rowView(r){
     const e=r.evidence;
     return '<h3>'+esc(r.contract_id||'Malformed source row')+'</h3><p>Source page '+e.page+', original row '+e.row_index+' · '+esc(e.row_pointer)+'. Acquired '+esc(r.source_received_at)+'.</p><p class="or-digest">Original SHA-256 '+esc(e.original.sha256)+'</p>'+
-      table(['Field','Qualified value','Reported value','Unit','State','Source field'],Object.entries(r.metrics).map(([name,c])=>[name.replaceAll('_',' '),exact(c.value),exact(c.reported_value),c.unit,c.state,c.source_field]),'Every numeric field and its provenance')+
-      table(['Provider clock','Reported time','Exact nanoseconds','State'],Object.entries(r.clocks||{}).map(([name,c])=>[name.replaceAll('_',' '),c.value||'Unavailable',c.raw_nanoseconds||'Unavailable',c.state]),'Clocks supplied on this original row')+
+      '<details><summary>Inspect every numeric field, unit and source location</summary>'+table(['Field','Qualified value','Reported value','Unit','State','Source field'],Object.entries(r.metrics).map(([name,c])=>[name.replaceAll('_',' '),exact(c.value),exact(c.reported_value),c.unit,c.state,c.source_field]),'Every numeric field and its provenance')+'</details>'+
+      '<details><summary>Inspect the original source clocks</summary>'+table(['Provider clock','Reported time','Exact nanoseconds','State'],Object.entries(r.clocks||{}).map(([name,c])=>[name.replaceAll('_',' '),c.value||'Unavailable',c.raw_nanoseconds||'Unavailable',c.state]),'Clocks supplied on this original row')+'</details>'+
       '<p>OI / IV / Greek observation dates: not supplied. Raw provider responses are protected; the retained research records carry their exact digest and row location.</p>';
   }
   const SCALE=100000000n;
@@ -156,7 +156,9 @@
     const premiumCash=-quantity*100n*premium,intrinsicCash=quantity*100n*intrinsic,net=premiumCash+intrinsicCash-cost;
     let loss=null;if(quantity>0n)loss=quantity*100n*premium+cost;else if(r.contract_type==='put')loss=(-quantity)*100n*(strike-premium)+cost;
     if(loss!==null&&loss<0n)loss=0n;
-    return {contract_id:r.contract_id,expiration_date:r.expiration_date,assumptions:{...assumptions},quantity:raw,multiplier:'100',
+    return {calculator_contract:'option-expiration-payoff.v1',arithmetic:'exact_fixed_point_8_decimal_places',
+      assumption_units:{quantity:'signed_contracts',premium:'USD_per_share',spot:'USD_per_share_at_expiration',cost:'USD_total'},
+      contract_id:r.contract_id,expiration_date:r.expiration_date,assumptions:{...assumptions},quantity:raw,multiplier:'100',
       premium_cash_usd:money(premiumCash),intrinsic_value_usd:money(intrinsicCash),costs_usd:money(cost),net_usd:money(net),
       maximum_loss_usd:loss===null?null:money(loss),loss_scope:loss===null?'Unbounded loss for an uncovered short call in this expiration model':'Expiration payoff under these assumptions',
       formula:'signed contracts × 100 × (intrinsic value per share − assumed premium per share) − assumed total costs',

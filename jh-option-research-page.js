@@ -41,6 +41,7 @@
         if(!selected)return;form.reset();q('[data-or-row-detail]').innerHTML=A.rowView(selected);
         q('[data-or-scenario-selection]').textContent=(selected.contract_id||'Malformed row')+' · '+(selected.identity_eligible?'valid contract identity':'identity is unqualified; scenario unavailable');
         result.textContent='Contract selected. Enter your assumptions and calculate a hypothetical payoff.';
+        q('[data-or-row-detail]').scrollIntoView({block:'start',behavior:'smooth'});
       };});
     }
     async function showPage(){
