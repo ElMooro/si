@@ -29,6 +29,15 @@ class BoundaryTests(unittest.TestCase):
     def test_reference_does_not_claim_independent_hash_verification(self):
         out = gate.context(native()); self.assertTrue(out['native_reference_available'])
         self.assertFalse(out['reference_hashes_independently_checked_by_consumer'])
+    def test_v2_native_and_compatibility_reference_preserve_abstention(self):
+        packet={**native(), 'contract':'massive-composite-research.v2'}
+        alias={'contract':'massive-research-compatibility.v2','generated_at':packet['generated_at'],
+            'canonical':{'key':gate.CURRENT,'replay':packet['replay']},'tickers':{},'top_prepump':[],'market':{},
+            **{k:False for k in gate.FLAGS}}
+        for value in (packet,alias):
+            out=gate.context(value);self.assertTrue(out['native_reference_available'])
+            self.assertEqual(out['tickers'],{});self.assertEqual(out['independent_investment_votes'],0)
+            self.assertFalse(out['reference_hashes_independently_checked_by_consumer'])
     def test_bad_clock_and_wrong_namespace_cannot_be_native_reference(self):
         for stamp in (None, '2020-01-01', '9999-01-01T00:00:00Z'):
             self.assertFalse(gate.context({**native(), 'generated_at': stamp})['native_reference_available'])

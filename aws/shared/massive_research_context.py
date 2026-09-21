@@ -6,7 +6,7 @@ import re
 CURRENT = 'data/massive-research.json'
 LEGACY = 'data/massive-signals.json'
 FLAGS = ('forecast_qualified', 'calls_eligible', 'sizing_eligible', 'execution_eligible')
-NOTE = ('Recorded option and ETF publications supply source research. Shared parents and '
+NOTE = ('Recorded option, ETF, currency and dated futures publications supply source research. Shared parents and '
     'different vintages are not independent confirmations. No pre-pump rank, dealer position, '
     'squeeze boost, sector-flow z-score or investment vote is qualified by this composite.')
 
@@ -21,9 +21,9 @@ def reference(value):
 def context(packet):
     packet = packet if isinstance(packet, dict) else {}
     permitted = all(packet.get(k) is False for k in FLAGS)
-    native = permitted and packet.get('contract') == 'massive-composite-research.v1' and reference(packet.get('replay'))
+    native = permitted and packet.get('contract') in ('massive-composite-research.v1', 'massive-composite-research.v2') and reference(packet.get('replay'))
     canonical = packet.get('canonical') if isinstance(packet.get('canonical'), dict) else {}
-    alias = (permitted and packet.get('contract') == 'massive-research-compatibility.v1'
+    alias = (permitted and packet.get('contract') in ('massive-research-compatibility.v1', 'massive-research-compatibility.v2')
         and canonical.get('key') == CURRENT and reference(canonical.get('replay'))
         and packet.get('tickers') == {} and packet.get('top_prepump') == [] and packet.get('market') == {})
     stamp = packet.get('generated_at')

@@ -2,8 +2,8 @@
 import json
 import boto3
 from botocore.config import Config
-from massive_research_model_v2 import CONTRACT, CURRENT, permissions, strict
-from massive_research_store_v2 import run, bounded, missing
+from massive_research_model import CONTRACT, CURRENT, permissions, strict
+from massive_research_store import run, bounded, missing
 PUBLISHED_KEY = 'data/massive-research.json'
 
 
@@ -24,7 +24,7 @@ def lambda_handler(event=None, context=None):
         except Exception as exc:
             if not missing(exc): raise
             packet = {}
-        if packet.get('contract') not in (CONTRACT, 'massive-composite-research.v1'):
+        if packet.get('contract') != CONTRACT:
             return {'statusCode': 503, 'body': json.dumps({'reason': 'native_composite_research_unavailable'})}
         permissions(packet)
         return {'statusCode': 200, 'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}, 'body': json.dumps(packet)}
