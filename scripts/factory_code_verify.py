@@ -381,9 +381,16 @@ def main(argv=None):
             line = line.strip()
             if not line:
                 continue
-            report["seen"] += 1
             try:
                 row = json.loads(line)
+            except Exception:  # noqa: BLE001
+                report["seen"] += 1; report["malformed"] += 1
+                continue
+            if isinstance(row, dict) and "_fetch" in row:
+                fout.write(line + "\n")           # loader provenance from the fetch step: passed through to the run summary
+                continue
+            report["seen"] += 1
+            try:
                 assert isinstance(row.get("solution"), str) and isinstance(row.get("tests"), str) and row.get("task_id")
             except Exception:  # noqa: BLE001
                 report["malformed"] += 1

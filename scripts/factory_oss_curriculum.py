@@ -276,7 +276,8 @@ def cmd_fetch(args):
                 raise SystemExit("humaneval is exam-only; use the `exam` subcommand")
             else:
                 raise SystemExit("unknown source %s" % name)
-    print(json.dumps({"candidates": n, "out": str(out)}))
+        f.write(json.dumps({"_fetch": {**LOADER_LOG, "counts": n}}) + "\n")     # loader provenance rides with the candidates into the run summary
+    print(json.dumps({"candidates": n, "out": str(out), "loader": LOADER_LOG}))
 
 
 def cmd_exam(args):
