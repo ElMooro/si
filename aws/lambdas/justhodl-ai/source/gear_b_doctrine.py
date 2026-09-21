@@ -61,6 +61,13 @@ def _wrap_gear_b() -> bool:
     def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, Any], role_arn: str,
              projected: Dict[str, Any], pricing: Dict[str, Any], describe_card, region: str = "us-east-1",
              launch: bool = True):
+        try:
+            import doctrine_families
+            harvest_bucket = private_bucket or public_bucket
+            if harvest_bucket and s3 is not None:
+                doctrine_families.harvest(s3, harvest_bucket)
+        except Exception:
+            pass
         preview = orig_tick(
             sm, s3, private_bucket=private_bucket, public_bucket=public_bucket, policy=policy,
             role_arn=role_arn, projected=projected, pricing=pricing, describe_card=describe_card,
