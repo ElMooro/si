@@ -1,13 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "9f1551bf7be04e132af7a0f7f907b09212122f3f",
-  "observed_at": "2026-09-21T18:47:01.160121+00:00",
+  "observed_at": "2026-09-21T18:56:56.549539+00:00",
   "ok": false,
   "routes_checked": 551,
-  "verified_routes": 549,
+  "verified_routes": 550,
   "failed_routes": [
-    "chart.html",
-    "pjm-grid.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "9f1551bf7be04e132af7a0f7f907b09212122f3f": true
@@ -1706,7 +1705,7 @@
       "http_status": 200,
       "build_sha": "9f1551bf7be04e132af7a0f7f907b09212122f3f",
       "inspector_present": true,
-      "bytes_read": 876493,
+      "bytes_read": 876540,
       "product_source_matches_release": true
     },
     {
@@ -3493,12 +3492,12 @@
     },
     {
       "route": "pjm-grid.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "9f1551bf7be04e132af7a0f7f907b09212122f3f",
+      "inspector_present": true,
+      "bytes_read": 8564,
+      "product_source_matches_release": true
     },
     {
       "route": "plumbing.html",
@@ -4978,7 +4977,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35640249465,
+  "deployment_run_id": 35641369359,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-21T18:47:01.162101+00:00"
+  "check_finished_at": "2026-09-21T18:56:56.551785+00:00"
 }
