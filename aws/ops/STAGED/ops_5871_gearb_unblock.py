@@ -50,7 +50,12 @@ def main():
         else:
             r.log("launch already true")
         r.section("3. One real tick")
-        resp = lam.invoke(FunctionName="justhodl-ai", InvocationType="RequestResponse", Payload=json.dumps({"mode": "gearb"}).encode())
+        sch = boto3.client("scheduler", region_name="us-east-1")
+        try:
+            r.kv(scheduler_input=str((sch.get_schedule(Name="justhodl-ai-gearb", GroupName="default").get("Target") or {}).get("Input"))[:200])
+        except Exception as e:  # noqa: BLE001
+            r.log("schedule lookup: %s" % str(e)[:120])
+        resp = lam.invoke(FunctionName="justhodl-ai", InvocationType="RequestResponse", Payload=json.dumps({"mode": "gearb", "body": {"launch": True}}).encode())   # what the hourly schedule sends
         out = json.loads(resp["Payload"].read()); res = out.get("result") or out
         r.kv(built=json.dumps(res.get("built"))[:300], launched=json.dumps(res.get("launched"))[:300], refusal=res.get("refusal"), examined=json.dumps(res.get("examined"))[:200])
         (r.ok if res.get("launched") else r.warn)("launched" if res.get("launched") else "not launched: %s" % res.get("refusal"))
