@@ -22,6 +22,7 @@ import gzip
 import hashlib
 import io
 import json
+from typing import Dict
 import re
 import subprocess
 import sys
@@ -92,16 +93,73 @@ def mbpp_rows(raw: bytes):
 
 
 APPS_DIFFICULTIES = ("introductory", "interview")     # 2026-09-19: interview problems join the supply (harder tasks teach more)
-APPS_SOLUTIONS_PER_TASK = 4                            # try several reference solutions: APPS keeps many, and the first is often Python 2
+APPS_SOLUTIONS_PER_TASK = 2                            # try two reference solutions: APPS keeps many, the first is often Python 2; two keeps a 1,000-problem verify under an hour
+APPS_TARBALL = "https://people.eecs.berkeley.edu/~hendrycks/APPS.tar.gz"   # the original release: 5,000 train problems, no hub loader in the way
 
 
 def looks_python2(src: str) -> bool:
     return bool(re.search(r"^\s*print\s+[^(]", src, re.M) or "raw_input(" in src or re.search(r"\bxrange\(", src) or re.search(r"except\s+\w+\s*,\s*\w+:", src))
 
 
+def apps_tarball_rows(max_rows: int):
+    """APPS train split from the original tarball (2026-09-21): every Hugging Face loader path returned the same ~500-problem
+    subset, so three supply runs re-verified the same 838 candidates and wrote nothing new. The tarball is complete."""
+    import tarfile
+
+    src = SOURCES["apps"]
+    raw = fetch_bytes(APPS_TARBALL, limit=2 * 1024 * 1024 * 1024)
+    problems: Dict[str, Dict[str, str]] = {}
+    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as tar:
+        for member in tar:
+            parts = member.name.split("/")
+            if len(parts) < 4 or parts[1] != "train" or not member.isfile():
+                continue
+            pid, fname = parts[2], parts[3]
+            if fname not in ("question.txt", "solutions.json", "input_output.json", "metadata.json"):
+                continue
+            fh = tar.extractfile(member)
+            problems.setdefault(pid, {})[fname] = fh.read().decode("utf-8", "replace") if fh else ""
+    print(json.dumps({"apps_loader": "tarball", "problems": len(problems)}), file=sys.stderr)
+    n = 0
+    for pid in sorted(problems, key=lambda p: int(p) if p.isdigit() else p):
+        if n >= max_rows:
+            break
+        doc = problems[pid]
+        try:
+            meta = json.loads(doc.get("metadata.json") or "{}")
+            solutions = json.loads(doc.get("solutions.json") or "[]")
+            io_pairs = json.loads(doc.get("input_output.json") or "{}")
+        except Exception:  # noqa: BLE001
+            continue
+        difficulty = str(meta.get("difficulty"))
+        if difficulty not in APPS_DIFFICULTIES or not solutions or not io_pairs.get("inputs"):
+            continue
+        tests = _stdio_tests(io_pairs)
+        if not tests:
+            continue
+        candidates = [str(sol) for sol in solutions if not looks_python2(str(sol))][:APPS_SOLUTIONS_PER_TASK]
+        if not candidates:
+            continue
+        question = (doc.get("question.txt") or "").strip()
+        for i, sol in enumerate(candidates):
+            yield {"task_id": "apps-%s" % pid, "kind": src["kind"], "family": "apps-" + difficulty, "license": src["license"],
+                   "source_url": "https://huggingface.co/datasets/%s" % src["hf"], "citation": src["citation"],
+                   "source_sha": sha(("apps:" + pid + "\n" + question + "\n" + tests).encode("utf-8")), "prompt": question,
+                   "solution": _as_function(sol), "tests": tests, "timeout_s": 12, "candidate": i}
+        n += 1
+
+
 def apps_rows(max_rows: int):
-    """APPS train split through the Hugging Face datasets library (runner only). Yields up to APPS_SOLUTIONS_PER_TASK
-    candidate rows per problem (same task_id; the verifier judges each, the write step keeps the first that passes)."""
+    """APPS train split: the original tarball first (complete), the Hugging Face loaders as a fallback."""
+    try:
+        yielded = 0
+        for row in apps_tarball_rows(max_rows):
+            yielded += 1
+            yield row
+        if yielded:
+            return
+    except Exception as exc:  # noqa: BLE001
+        print(json.dumps({"apps_loader": "tarball-failed", "error": str(exc)[:200]}), file=sys.stderr)
     from datasets import load_dataset  # type: ignore
 
     src = SOURCES["apps"]
