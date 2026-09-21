@@ -1,8 +1,8 @@
 # ops 5871 -- Gear B: the real refusal, then a launch on the new supply
 
 **Status:** success  
-**Duration:** 9.7s  
-**Finished:** 2026-09-21T17:50:22+00:00  
+**Duration:** 6.4s  
+**Finished:** 2026-09-21T17:51:44+00:00  
 
 ## Data
 
@@ -16,7 +16,10 @@
 
 ## 2. Supersede the stale gen-21 manifest
 
-- `17:50:16` ✅ gen-21 marked superseded (zero-cost record; nothing on SageMaker)
+- `17:51:40` already superseded
+## 2b. launch flag
+
+- `17:51:40` ✅ launch re-enabled (promotion gate untouched)
 ## 3. One real tick
 
-- `17:50:22` ⚠ not launched: launch disabled
+- `17:51:44` ⚠ not launched: launch disabled
