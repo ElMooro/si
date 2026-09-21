@@ -6,10 +6,9 @@ from fomc_fixture import packet
 import fomc_research as adapter
 class Boundary(unittest.TestCase):
  def test_actual_cycle_read_excludes_legacy_regime_and_surprise(self):
-  raw=(ROOT/'aws/lambdas/justhodl-cycle-clock/source/lambda_function.py').read_text(encoding='utf-8')
-  line=next(l for l in raw.splitlines() if '"fomc_research"' in l)
-  ns={'load':lambda *a:{'regime_context':{'quadrant':'GOLDILOCKS'},'surprise':{'label':'DOVISH'}}};exec(textwrap.dedent(line),ns)
-  self.assertIsNone(ns['fomc']['regime_context']);self.assertIsNone(ns['fomc']['surprise']['label']);self.assertFalse(ns['fomc']['calls_eligible'])
+  from cycle_native_test_support import synthesis_with
+  out=synthesis_with('data/fomc-reaction.json',{'regime_context':{'quadrant':'GOLDILOCKS'},'surprise':{'label':'DOVISH'}})
+  self.assertIsNone(out['cycle']['phase']);self.assertIsNone(out['synthesis']['score']);self.assertFalse(out['calls_eligible'])
  def test_native_context_requires_unchanged_bytes_and_current_source_clocks(self):
   _,_,p=packet();at=datetime.fromisoformat(p['generated_at']);self.assertTrue(adapter.context(p,at)['available'])
   self.assertFalse(adapter.context(p,at+timedelta(hours=27))['available']);self.assertFalse(adapter.context(p,at-timedelta(seconds=1))['available'])

@@ -10,7 +10,7 @@ CANARY={'next_6mo_summary':{'scenario':'AGGRESSIVE_HIKING','cumulative_implied_m
  'meetings_ahead':[{'probabilities_pct':{'hike_50':100}}],'calls_eligible':True}
 class Boundaries(unittest.TestCase):
  def test_actual_consumer_assignments_drop_unqualified_probabilities(self):
-  for fn,name in [('justhodl-cycle-clock','fedwatch'),('justhodl-katlin','F')]:
+  for fn,name in [('justhodl-katlin','F')]:
    with self.subTest(fn=fn):
     source=(ROOT/'aws/lambdas'/fn/'source/lambda_function.py').read_text(encoding='utf-8')
     lines=[line for line in source.splitlines() if '"fedwatch_research"' in line]
@@ -19,6 +19,10 @@ class Boundaries(unittest.TestCase):
     exec(textwrap.dedent(lines[0]),ns);view=ns[name]['fedwatch'] if name=='F' else ns[name]
     self.assertIsNone(view['next_6mo_summary']['scenario']);self.assertEqual(view['meetings_ahead'],[])
     self.assertIsNone(view['current_fed_funds_range']['midpoint']);self.assertFalse(view['calls_eligible'])
+ def test_native_cycle_preserves_fedwatch_without_promoting_probabilities(self):
+  from cycle_native_test_support import synthesis_with
+  out=synthesis_with('data/fedwatch.json',CANARY)
+  self.assertIsNone(out['cycle']['recession_prob_pct']);self.assertEqual(out['dependency_graph']['independent_investment_votes'],0)
  def test_native_fomc_rejects_unretained_fedwatch_forecasts(self):
   sys.path.insert(0,str(ROOT/'aws/lambdas/justhodl-fomc-reaction/source'))
   from fomc_research_store import calendar_source

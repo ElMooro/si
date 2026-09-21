@@ -1354,6 +1354,27 @@
         }
       },
       "reason": "Native scheduled-event observations with source replay; legacy calibration and grading have no investment authority."
+    },
+    "cycle-clock.html": {
+      "primary_engines": [
+        "justhodl-cycle-clock"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-cycle-clock": [
+          "data/cycle-clock.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-cycle-clock": {
+          "source": "aws/lambdas/justhodl-cycle-clock/source/cycle_research_model.py",
+          "constants": [
+            "CURRENT"
+          ],
+          "purpose": "Native cycle measurements and dependency inventory with source replay; legacy phases, vote percentages and posture grades have no investment authority."
+        }
+      },
+      "reason": "Native cycle measurements and dependency inventory with source replay; legacy phases, vote percentages and posture grades have no investment authority."
     }
   }
 }

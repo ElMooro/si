@@ -1340,7 +1340,7 @@ def lambda_handler(event=None, context=None):
             join_hits["rev_hits"] += 1 if hits else 0
 
     # (6) Stovall cycle conditioning via cycle-clock
-    _cc = s3_json("data/cycle-clock.json") or {}
+    _cc = __import__("cycle_research").decision_view(s3_json("data/cycle-clock.json"))
     phase_txt = str(_g(_cc, "phase") or _g(_cc, "cycle",
                    "phase") or _g(_cc, "verdict")
                     or "").upper()

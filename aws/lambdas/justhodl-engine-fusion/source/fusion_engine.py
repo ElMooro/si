@@ -137,7 +137,8 @@ def adapt(spec: dict,payload: dict,policy: dict) -> tuple[float|None,str|None,di
     elif adapter=="liquidity":
         regime=str(payload.get("regime") or "").upper(); score={"EXPANDING":15.0,"NEUTRAL":40.0,"CONTRACTING":70.0}.get(regime); direction={"EXPANDING":"RISK_ON","NEUTRAL":"NEUTRAL","CONTRACTING":"RISK_OFF"}.get(regime); detail={"regime":regime,"global_impulse_13w_pct":number(payload.get("global_impulse_13w_pct"))}
     elif adapter=="cycle":
-        synthesis=get(payload,"synthesis") or {}; raw=number(synthesis.get("score")); score=max(0,min(100,50-raw)) if raw is not None else None; posture=str(synthesis.get("posture") or "").upper(); direction="RISK_OFF" if posture=="RISK-OFF" else "RISK_ON" if posture=="RISK-ON" else _direction(score,policy) if score is not None else None; detail={"posture":posture,"raw_score":raw}
+        score=__import__("cycle_research").qualified_score(payload); direction=None
+        detail={"research_context":__import__("cycle_research").context(payload),"qualification":"research_only"}
     elif adapter=="fifx_vol":
         state=str(get(payload,"migration.state") or "").upper(); score={"CALM":15.0,"UPSTREAM_BREWING":60.0,"MIGRATING":75.0,"BROAD_STRESS":90.0}.get(state); direction=_direction(score,policy) if score is not None else None; detail={"state":state}
     elif adapter=="bond_warroom":

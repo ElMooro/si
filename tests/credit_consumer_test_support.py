@@ -49,10 +49,10 @@ class ConsumerCases(unittest.TestCase):
         self.assertIsNone(ns['cred_z']);self.assertFalse(ns['credit_research_context']['available'])
 
     def test_cycle_clock_unqualified_credit_adds_no_neutral_weight(self):
-        text=source('cycle-clock');a=text.index('    from credit_research import qualified_signal');b=text.index('    if nowcast_regime',a)
-        ns={'credit':self.packet,'rp_max':0,'rp_votes':0}
-        exec(textwrap.dedent(text[a:b]),ns)
-        self.assertEqual((ns['rp_max'],ns['rp_votes']),(0,0));self.assertIsNone(ns['cr_regime'])
+        from cycle_native_test_support import synthesis_with
+        out=synthesis_with('data/credit-stress.json',self.packet)
+        self.assertIsNone(out['cycle']['recession_prob_pct']);self.assertEqual(out['dependency_graph']['independent_investment_votes'],0)
+        self.assertTrue(next(n for n in out['dependency_graph']['inputs'] if n['key']=='data/credit-stress.json')['readable'])
 
     def test_capitulation_does_not_promote_legacy_crisis_label(self):
         from extremes_native_test_support import synthesis_with

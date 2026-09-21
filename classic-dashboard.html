@@ -3016,24 +3016,7 @@ setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
 })();
 </script>
 <script>
-(function(){
- var PX="https://justhodl-data-proxy.raafouis.workers.dev";
- function gj(p){return fetch("https://justhodl.ai/"+p+"?t="+Date.now()).then(function(r){if(r.ok)return r.json();throw 0;}).catch(function(){return fetch(PX+"/"+p+"?t="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});});}
- var PC={'EARLY CYCLE':'#3fd68c','MID CYCLE':'#46c8ff','LATE-MID CYCLE':'#7fc4ff','LATE CYCLE':'#f5b343','DOWNTURN':'#ff5c6c','UNKNOWN':'#7c8ba0'};
- var SC={'LOW':'#3fd68c','LOW \u00b7 WATCH':'#7fe0a8','RISING':'#f5b343','ELEVATED':'#ffb066','HIGH':'#ff7a5c','ACUTE':'#ff5c6c','UNKNOWN':'#7c8ba0'};
- gj("data/cycle-clock.json").then(function(d){
-   var el=document.getElementById("cycle-clock-card"); if(!el||!d||!d.cycle)return;
-   var cy=d.cycle,lq=d.liquidity,pc=PC[cy.phase]||"#aebccd",sc=SC[lq.level]||"#aebccd";
-   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:10px;letter-spacing:.05em;color:#7c8ba0">\ud83d\udd50 CYCLE &amp; LIQUIDITY CLOCK</span><a href="/cycle-clock.html" style="font-size:11px;color:#46c8ff;text-decoration:none">full read &rarr;</a></div>';
-   h+='<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-bottom:6px">';
-   h+='<span style="font-size:15px;font-weight:800;color:'+pc+'">'+cy.phase+'</span>';
-   h+='<span style="font-family:monospace;font-size:12px;color:#7c8ba0">'+(cy.quadrant||'')+' \u00b7 growth '+cy.growth_direction+' \u00b7 inflation '+cy.inflation_direction+'</span>';
-   h+='</div>';
-   h+='<div style="display:flex;gap:10px;align-items:center;margin-bottom:7px"><span style="font-size:11px;color:#536074">squeeze risk</span><span style="font-family:monospace;font-size:13px;font-weight:700;color:'+sc+'">'+(lq.squeeze_risk_score==null?'\u2013':lq.squeeze_risk_score)+' \u00b7 '+lq.level+'</span><span style="font-size:11px;color:#536074">'+(lq.aggregate_liquidity_regime||'')+' liquidity</span></div>';
-   h+='<div style="font-size:11.5px;color:#aebccd;line-height:1.5">'+(d.verdict||'')+'</div>';
-   el.innerHTML=h;
- });
-})();
+(function(){var el=document.getElementById('cycle-clock-card');if(el){el.innerHTML='<h2>Cycle &amp; Liquidity Research</h2><p>Dated source observations, explicit calculation windows and shared-input evidence.</p><a href="/cycle-clock.html">Open verified cycle research and portfolio scenarios →</a>';}})();
 </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>

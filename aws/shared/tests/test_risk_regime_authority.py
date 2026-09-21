@@ -68,10 +68,12 @@ class Tests(unittest.TestCase):
             self.assertEqual(out['target_budget'],.03);overlay=out['roro_overlay']
             self.assertFalse(overlay['applied']);self.assertIsNone(overlay['budget_bias_mult']);self.assertIsNone(overlay['hedge_stance'])
     def test_cycle_missing_never_becomes_neutral(self):
-        scope={'rrisk':hostile(),'num':lambda x:x,'_get':lambda d,k:d.get(k),'fomc':{}}
-        out=block('cycle-clock','    # ──────────────────── CROSS-ASSET RISK (RORO) ────────────────────\n',
-            '    # ───────────────────────── DIVERGENCES',scope)
-        self.assertEqual(out['risk']['read'],'unavailable');self.assertIsNone(out['risk']['roro_score'])
+        sys.path.insert(0,str(ROOT/'tests'))
+        from cycle_native_test_support import synthesis_with
+        out=synthesis_with('data/risk-regime.json',{'calls_eligible':True,'score':99,'regime':'RISK-ON','global_impulse_13w_pct':-50})
+        self.assertIsNone(out['risk']['squeeze_risk']);self.assertIsNone(out['synthesis']['score'])
+        self.assertEqual(out['dependency_graph']['independent_investment_votes'],0)
+
     def test_master_initialization_suppresses_score_and_posture(self):
         scope={'feeds':{'risk_regime':hostile()}}
         out=block('master-ranker','    # ── Risk-On/Risk-Off regime overlay (cross-asset RORO synthesizer) ──\n',

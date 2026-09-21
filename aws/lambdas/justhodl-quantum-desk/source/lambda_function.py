@@ -344,7 +344,7 @@ def read_source(name, spec):
             age_h = round(
                 (_now() - obj["LastModified"]).total_seconds() / 3600.0, 1)
         stale = age_h is not None and age_h > spec["max_age_h"]
-        return __import__("tail_research").guard(key,doc), {"status": "stale" if stale else "ok",
+        return __import__("cycle_research").guard(key,__import__("tail_research").guard(key,doc)), {"status": "stale" if stale else "ok",
                      "age_h": age_h, "key": key}
     except Exception as e:
         return None, {"status": "missing", "age_h": None, "key": key,

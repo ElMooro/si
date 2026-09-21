@@ -38,14 +38,11 @@ class Tests(unittest.TestCase):
         self.assertIsNone(out['liquidity']);self.assertNotIn('global',out['lr']);self.assertEqual(out['posture']['size_mult'],1)
 
     def test_cycle_direction_modifier_cannot_use_legacy_scalar(self):
-        def get(d,*keys):
-            for key in keys:d=d.get(key,{}) if isinstance(d,dict) else {}
-            return d or None
-        scope={'gliq':{'calls_eligible':False,'global_impulse_13w_pct':-50},'_get':get,'num':lambda v:v,
-               'lce':{},'lflow':{},'play':{}}
-        out=block('cycle-clock','    # liquidity-DIRECTION modifier: draining adds, easing subtracts\n',
-                  '    if lce_liq_state and',scope)
-        self.assertIsNone(out['impulse']);self.assertEqual(out['direction_mod'],0);self.assertEqual(out['flickers'],[])
+        sys.path.insert(0,str(ROOT/'tests'))
+        from cycle_native_test_support import synthesis_with
+        out=synthesis_with('data/global-liquidity.json',{'calls_eligible':True,'score':99,'regime':'RISK-ON','global_impulse_13w_pct':-50})
+        self.assertIsNone(out['risk']['squeeze_risk']);self.assertIsNone(out['synthesis']['score'])
+        self.assertEqual(out['dependency_graph']['independent_investment_votes'],0)
 
     def test_cb_stock_context_is_abstention_not_a_neutral_or_directional_vote(self):
         for packet in ({'global_injection_impulse':99},{'calls_eligible':False,'global_injection_impulse':-99},

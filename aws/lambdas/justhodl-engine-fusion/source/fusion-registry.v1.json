@@ -168,15 +168,26 @@
       "role": "synthesized_view",
       "independence_eligible": false,
       "max_age_hours": 30,
-      "timestamp_paths": ["as_of", "generated_at"],
+      "timestamp_paths": [
+        "as_of",
+        "generated_at"
+      ],
       "adapter": "cycle",
       "confidence": 0.72,
       "depends_on": [],
       "contract": {
-        "required": ["synthesis.posture", "synthesis.score", "cycle"],
-        "types": {"synthesis.posture": "string", "synthesis.score": "number", "cycle": "dict"},
-        "ranges": {"synthesis.score": [-100, 100]}
-      }
+        "required": [
+          "contract",
+          "measurements",
+          "dependency_graph"
+        ],
+        "types": {
+          "contract": "string",
+          "measurements": "dict",
+          "dependency_graph": "dict"
+        }
+      },
+      "exclude_from_scoring": true
     },
     {
       "id": "fifx_vol",

@@ -13,7 +13,7 @@ def actual_function(fn,name,ns):
  exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-retail-consumer','exec'),ns);return ns[name]
 class Boundaries(unittest.TestCase):
  def test_six_actual_direct_reads_refuse_legacy_directional_canaries(self):
-  for fn,name,read in [('justhodl-ai-chat','rs','get_s3'),('justhodl-best-setups','retail','read_json'),('justhodl-cycle-clock','retail','load'),('justhodl-hot-stocks-digest','retail','_read'),('justhodl-prediction-snapshotter','retail','_read_json')]:
+  for fn,name,read in [('justhodl-ai-chat','rs','get_s3'),('justhodl-best-setups','retail','read_json'),('justhodl-hot-stocks-digest','retail','_read'),('justhodl-prediction-snapshotter','retail','_read_json')]:
    line=next(l for l in source(fn).splitlines() if 'retail_research' in l and 'decision_view' in l)
    ns={read:lambda *a:CANARY};exec(textwrap.dedent(line),ns);self.assertIsNone(ns[name]['market_regime']);self.assertEqual(ns[name]['top_30_by_mentions'],[])
   line=next(l for l in source('justhodl-digest-trends-ai').splitlines() if 'retail_research' in l)
@@ -41,6 +41,10 @@ class Boundaries(unittest.TestCase):
   self.assertEqual(got['eligibility']['retail']['measurement_count'],0);self.assertEqual(got['decision']['eligible_votes'],0)
   self.assertEqual(got['contexts']['retail']['communities']['all-stocks']['eligible_symbols'],8)
   for bad in (CANARY,{},None):self.assertFalse(synthesis_with('retail',bad,at,'market-extremes')['eligibility']['retail']['research_context_available'])
+ def test_native_cycle_preserves_retail_without_promoting_sentiment(self):
+  from cycle_native_test_support import synthesis_with
+  out=synthesis_with('data/retail-sentiment.json',CANARY)
+  self.assertIsNone(out['synthesis']['score']);self.assertEqual(out['dependency_graph']['independent_investment_votes'],0)
  def test_other_feeds_untouched_by_guard(self):self.assertEqual(adapter.guard('data/other.json',CANARY),CANARY)
 def run():
  result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Boundaries))

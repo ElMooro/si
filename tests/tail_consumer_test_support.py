@@ -15,8 +15,9 @@ class Client:
     def get_object(self,**kw):return {'Body':io.BytesIO(json.dumps(CANARY).encode()),'LastModified':datetime.now(timezone.utc)}
 class Boundaries(unittest.TestCase):
     def test_cycle_and_implied_probability_actual_reads_drop_legacy_density(self):
-        line=next(l for l in source('justhodl-cycle-clock').splitlines() if '"tail_research"' in l)
-        ns={'load':lambda *a:CANARY};exec(textwrap.dedent(line),ns);self.assertIsNone(ns['tailrisk']['system_tail_gauge'])
+        from cycle_native_test_support import synthesis_with
+        cycle=synthesis_with('data/tail-risk.json',CANARY)
+        self.assertIsNone(cycle['risk']['squeeze_risk']);self.assertEqual(cycle['dependency_graph']['independent_investment_votes'],0)
         sys.path[:0]=[str(ROOT/'aws/lambdas/justhodl-implied-prob/source'),str(ROOT/'aws/lambdas/justhodl-implied-prob/tests')]
         from implied_fixture import fixture as implied_fixture
         import implied_research_store as implied_store
