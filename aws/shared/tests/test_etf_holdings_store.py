@@ -218,5 +218,22 @@ class RetainedHoldings(unittest.TestCase):
                 with self.assertRaises(ValueError):store.recovery_inputs({'manifest_key':key,'output_sha256':'0'*64},store.reader(db,'fixture'))
         collect.assert_not_called()
 
+    def test_pinned_pre_bounds_compilers_recompute_the_same_original_output(self):
+        db,inputs=fixture();packet=self.native(db,inputs);ref=packet['replay']
+        run=json.loads(db.objects[ref['manifest_key']])
+        base=Path(__file__).resolve().parents[3]/'tests/fixtures'
+        for module in ('etf_holdings_native','etf_holdings_store'):
+            body=(base/(module.replace('_','-')+'-pre-bounds.py.txt')).read_bytes();digest=native.sha(body)
+            self.assertIn(digest,store.COMPATIBLE_COMPILERS[module])
+            key=model.PREFIX+'compilers/'+digest+'.py';db.objects[key]=body
+            run['compilers'][module]={'key':key,'sha256':digest}
+        raw=native.encoded(run);key=model.PREFIX+'runs/'+native.sha(raw)+'.json';db.objects[key]=raw
+        previous={'manifest_key':key,'output_sha256':ref['output_sha256']}
+        self.assertEqual(store.replay(previous,store.reader(db,'fixture')),{k:v for k,v in packet.items() if k!='replay'})
+        # A compatible digest cannot be assigned to a different numerical compiler.
+        run['compilers']['etf_holdings_model']=run['compilers']['etf_holdings_native']
+        raw=native.encoded(run);key=model.PREFIX+'runs/'+native.sha(raw)+'.json';db.objects[key]=raw
+        with self.assertRaises(ValueError):store.replay({**previous,'manifest_key':key},store.reader(db,'fixture'))
+
 
 if __name__=='__main__':unittest.main(verbosity=2)

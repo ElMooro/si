@@ -1,6 +1,7 @@
 """Adversarial source reconstruction and unadjusted position comparisons."""
 from pathlib import Path
 import copy, json, sys, unittest
+from decimal import Decimal
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import etf_holdings_native as n
 
@@ -35,6 +36,30 @@ def collection(rows=None, processed='2026-09-18', acquired='2026-09-21T06:00:00+
 
 
 class Holdings(unittest.TestCase):
+    def test_decimal_expansion_is_bounded_before_formatting_without_erasing_zero(self):
+        for value in ('1e-1000000000', '1e1000000000', '1.'+'2'*128,
+                '1000000000000000000000000000000.0001'):
+            with self.subTest(value=value), self.assertRaises(ValueError): n.decimal(Decimal(value))
+        for value in ('0e-1000000000', '-0e1000000000'):
+            self.assertEqual(n.ds(n.decimal(Decimal(value))), '0')
+        self.assertEqual(n.ds(n.decimal(Decimal('0.0000000000012300'))), '0.0000000000012300')
+        self.assertEqual(len(n.ds(n.decimal(Decimal('1e-128')))), 130)
+        self.assertEqual(n.ds(n.decimal(Decimal('9007199254740993.123400'))), '9007199254740993.123400')
+
+    def test_extreme_nonzero_field_is_named_and_other_original_values_survive(self):
+        source={'page':0,'row_index':0,'sha256':'f'*64}
+        normalized=n.normalize(row(weight=Decimal('1e-1000000000'),market_value=0), 'SPY','2026-09-18',source)
+        self.assertEqual(normalized['field_errors'], ['weight'])
+        self.assertIsNone(normalized['weight_raw_decimal'])
+        self.assertEqual(normalized['market_value_raw_decimal'], '0')
+        self.assertEqual(normalized['shares_held_raw_decimal'], '120')
+        self.assertEqual(normalized['source'], source)
+
+    def test_unrepresentable_json_exponent_is_quarantined_as_source_content(self):
+        raw=b'{"status":"OK","results":[{"weight":1e999999999999999999999999}]}'
+        digest=n.sha(raw);key=n.PRIVATE+digest+'.bin'
+        with self.assertRaises(n.SourceRejected): n.original({'key':key,'sha256':digest,'bytes':len(raw)},lambda _:raw)
+
     def test_all_asset_classes_missing_tickers_zero_and_negative_values_survive(self):
         c, raw = collection([row(), row(constituent_ticker=None, figi=None, asset_class='Cash',
             security_type='Cash', weight=0, shares_held=0, market_value=0, constituent_rank=2),

@@ -5,7 +5,7 @@ fund's present portfolio, historical availability, corporate actions or trades.
 """
 from collections import Counter, defaultdict
 from datetime import datetime, timezone, date, timedelta
-from decimal import Decimal, DecimalException, localcontext
+from decimal import Decimal, localcontext
 from urllib.parse import urlsplit, parse_qsl, urlencode
 import hashlib, json, re
 
@@ -54,11 +54,7 @@ def decimal(value):
     if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
         raise ValueError('Original numeric measurement required')
     value = Decimal(str(value))
-    if not value.is_finite(): raise ValueError('Bounded finite measurement required')
-    if value.is_zero(): return value
-    parts = value.as_tuple()
-    if len(parts.digits) > 128 or parts.exponent < -128 or value.adjusted() > 30 or value.copy_abs() > Decimal('1e30'):
-        raise ValueError('Bounded decimal precision and exponent required')
+    if not value.is_finite() or abs(value) > Decimal('1e30'): raise ValueError('Bounded finite measurement required')
     return value
 
 
@@ -114,7 +110,7 @@ def original(ref, read):
     raw = read(ref['key'])
     if len(raw) != ref['bytes'] or sha(raw) != digest: raise ValueError('Original bytes differ')
     try: doc = strict(raw)
-    except (ValueError, TypeError, DecimalException): raise SourceRejected('Original provider JSON rejected') from None
+    except (ValueError, TypeError): raise SourceRejected('Original provider JSON rejected') from None
     if not isinstance(doc, dict) or doc.get('status') != 'OK' or not isinstance(doc.get('results'), list):
         raise SourceRejected('Successful original holdings response required')
     if len(doc['results']) > 5000: raise SourceRejected('Provider row bound exceeded')

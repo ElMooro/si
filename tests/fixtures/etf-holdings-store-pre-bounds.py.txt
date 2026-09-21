@@ -23,12 +23,7 @@ CACHE_PREFIXES = ('etf-flows/constituents/', 'etf-constituents-v2/')
 ALIASES = CONTEXTS[:2] + CONTEXTS[-2:]
 MIGRATION = model.PREFIX + 'migration.json'
 # Reviewed predecessor differs only in storage/runtime orchestration. Never execute retained code.
-COMPATIBLE_IO_STORES = frozenset(('91f6e5d6ec12f30523b30221577cb42c245732ac9cb9a420131bfe26d9f9087e',
-    '7d05ac3f3547514a7c56320107a2db1ad3e11ba41a5c9838e8b485ac0fd40b10'))
-# The only numerical predecessor adds no different valid-data arithmetic; it lacked numeric expansion bounds.
-# Replay still recomputes originals and requires the complete retained output to match.
-COMPATIBLE_COMPILERS = {'etf_holdings_store': COMPATIBLE_IO_STORES,
-    'etf_holdings_native': frozenset(('55c8b5ba85517743476d4767f4904075b07b89db67333457a45cbbe18a841b77',))}
+COMPATIBLE_IO_STORES = frozenset(('91f6e5d6ec12f30523b30221577cb42c245732ac9cb9a420131bfe26d9f9087e',))
 
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -233,10 +228,10 @@ def verify_compilers(run, prefix, read):
         ref = run['compilers'][module.__name__]
         if ref == expected:
             if read(expected['key']) != body: raise ValueError('Matching reviewed compiler required')
-        elif ref.get('sha256') in COMPATIBLE_COMPILERS.get(module.__name__, ()):
+        elif module is sys.modules[__name__] and ref.get('sha256') in COMPATIBLE_IO_STORES:
             old = ref['sha256']
             if ref != {'key': prefix + 'compilers/' + old + '.py', 'sha256': old} or model.sha(read(ref['key'])) != old:
-                raise ValueError('Reviewed predecessor compiler bytes differ')
+                raise ValueError('Reviewed predecessor orchestration bytes differ')
         else: raise ValueError('Matching reviewed compiler required')
 
 
