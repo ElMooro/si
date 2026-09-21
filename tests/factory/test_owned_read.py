@@ -284,5 +284,11 @@ class StudentDeskTests(unittest.TestCase):
         d2 = lf.student_desk(pub)
         self.assertTrue(d2["market_exam_holdout"]["beats_prior"]); self.assertFalse(any("Beat the naive prior" in c for c in d2["cannot_do_yet"])); self.assertIn("first non-advisory step", d2["next_lesson"])
 
+class DoctrineWrapperTests(unittest.TestCase):
+    def test_preview_launch_disabled_is_not_a_refusal(self):
+        src = (ROOT / 'aws/lambdas/justhodl-ai/source/gear_b_doctrine.py').read_text()
+        self.assertIn('preview.get("refusal") != "launch disabled"', src)     # the preview runs launch=False and always says so once a dataset is eligible
+
+
 if __name__ == '__main__':
     unittest.main()

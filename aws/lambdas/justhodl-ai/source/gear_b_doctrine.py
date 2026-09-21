@@ -74,7 +74,9 @@ def _wrap_gear_b() -> bool:
             region=region, launch=False,
         )
         preview["doctrine"] = self_improve.VERSION
-        if preview.get("refusal"):
+        # 2026-09-21 (Claude): the preview runs the inner tick with launch=False, which ALWAYS answers "launch disabled"
+        # once a dataset is eligible -- treating that as a refusal meant no generation launched for 41 hours.
+        if preview.get("refusal") and preview.get("refusal") != "launch disabled":
             return preview
         if not launch:
             return preview
