@@ -1,0 +1,301 @@
+"""Bounded source capture, immutable option replay and conditional publication."""
+from collections import OrderedDict, deque
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from threading import Lock
+import json, re, sys, time
+import option_flow_research as model
+import option_snapshot_capture as capture
+import option_contract_research as contracts
+import option_research_rows as codec
+
+PRIVATE = model.PRIVATE
+MAX = model.MAX_ARTIFACT
+COMPILERS = (capture, contracts, codec, model, sys.modules[__name__])
+now = capture.now
+
+
+def code(exc): return str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
+def missing(exc): return code(exc) in ('404', 'NoSuchKey')
+def conflict(exc): return code(exc) in ('409', '412', 'PreconditionFailed', 'ConditionalRequestConflict')
+
+
+def bounded(stream):
+    try: raw = stream.read(MAX + 1)
+    finally: stream.close()
+    if len(raw) > MAX: raise ValueError('Option research artifact byte bound')
+    return raw
+
+
+def artifact(key):
+    return isinstance(key, str) and bool(re.fullmatch(re.escape(PRIVATE) + r'[a-f0-9]{64}\.bin|'
+        + re.escape(model.PREFIX) + r'(?:inputs|outputs|runs|rows|chains)/[a-f0-9]{64}\.json|'
+        + re.escape(model.PREFIX) + r'compilers/[a-f0-9]{64}\.py', key))
+
+
+def source_key(key): return key in (*model.DISCOVERY, model.LEGACY, model.CURRENT)
+
+
+def reader(client, bucket, capacity=256 * 1024 * 1024):
+    cache = OrderedDict(); size = 0; lock = Lock()
+    def remember(key, raw):
+        nonlocal size
+        if not artifact(key) or not isinstance(raw, bytes) or len(raw) > MAX or key.rsplit('/', 1)[-1].split('.')[0] != model.sha(raw):
+            raise ValueError('Verified content-addressed option bytes required')
+        if len(raw) > capacity: return
+        with lock:
+            if key in cache: size -= len(cache.pop(key))
+            while cache and size + len(raw) > capacity:
+                _, old = cache.popitem(last=False); size -= len(old)
+            cache[key] = raw; size += len(raw)
+    def read(key):
+        if not (artifact(key) or source_key(key)): raise ValueError('Unreviewed option evidence read')
+        if artifact(key):
+            with lock:
+                if key in cache: cache.move_to_end(key); return cache[key]
+        raw = bounded(client.get_object(Bucket=bucket, Key=key)['Body'])
+        if artifact(key): remember(key, raw)
+        return raw
+    read.remember = remember
+    return read
+
+
+def immutable(client, bucket, key, raw, read=None):
+    if not artifact(key) or not isinstance(raw, bytes) or not 0 < len(raw) <= MAX or key.rsplit('/', 1)[-1].split('.')[0] != model.sha(raw):
+        raise ValueError('Exact bounded immutable option artifact required')
+    kind = 'application/octet-stream' if key.startswith(PRIVATE) else 'text/x-python' if key.endswith('.py') else 'application/json'
+    try: client.put_object(Bucket=bucket, Key=key, Body=raw, ContentType=kind, IfNoneMatch='*',
+            CacheControl='no-store' if key.startswith(PRIVATE) else 'public, max-age=31536000, immutable')
+    except Exception as exc:
+        if not conflict(exc): raise
+    if bounded(client.get_object(Bucket=bucket, Key=key)['Body']) != raw: raise ValueError('Option immutable readback differs')
+    if read is not None: read.remember(key, raw)
+
+
+def protect(client, bucket, raw, read=None):
+    digest = model.sha(raw); key = PRIVATE + digest + '.bin'
+    immutable(client, bucket, key, raw, read)
+    return {'key': key, 'sha256': digest, 'bytes': len(raw)}
+
+
+def snapshot(client, bucket, key, read):
+    if not source_key(key): raise ValueError('Reviewed public option predecessor required')
+    try: raw = bounded(client.get_object(Bucket=bucket, Key=key)['Body'])
+    except Exception as exc:
+        if not missing(exc): raise
+        return None
+    if not isinstance(json.loads(raw), dict): raise ValueError('Whole structured predecessor required')
+    return {'source_key': key, **protect(client, bucket, raw, read)}
+
+
+def request_key(request_id):
+    if not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}', request_id):
+        raise ValueError('Bounded option request identity required')
+    return PRIVATE + 'requests/' + model.sha(request_id.encode()) + '.json'
+
+
+def status_write(client, bucket, key, value, **condition):
+    if not re.fullmatch(re.escape(PRIVATE) + r'requests/[a-f0-9]{64}(?:/chains/[A-Z][A-Z0-9.]{0,9})?\.json', key):
+        raise ValueError('Reviewed private option attempt path required')
+    client.put_object(Bucket=bucket, Key=key, Body=model.encoded(value), ContentType='application/json', CacheControl='no-store', **condition)
+
+
+def collect(client, bucket, secret, selection, read, deadline, attempt_key):
+    if not secret: raise ValueError('Existing managed options source credential required')
+    names = selection['selected']
+    if not names or len(names) > model.MAX_UNIVERSE or len(names) != len(set(names)): raise ValueError('Bounded unique option universe required')
+    if attempt_key != request_key_path(attempt_key): raise ValueError('Reviewed durable attempt required')
+    lock = Lock(); total_bytes = 0
+    def retain(raw):
+        nonlocal total_bytes
+        with lock:
+            if total_bytes + len(raw) > 1024 * 1024 * 1024: raise ValueError('Total option source byte budget exhausted')
+            total_bytes += len(raw)
+        try: return protect(client, bucket, raw, read)
+        except Exception: raise RuntimeError('Option source retention failed') from None
+    def one(symbol):
+        capture.ticker(symbol)
+        budget = {'requests': 0, 'bytes': 0, 'max_requests': capture.MAX_PAGES, 'max_bytes': 1024 * 1024 * 1024}
+        last = {'underlying': symbol, 'started_at': now(), 'pages': [], 'stop': 'not_started'}
+        key = attempt_key[:-5] + '/chains/' + symbol + '.json'
+        def checkpoint(chain):
+            nonlocal last
+            last = chain
+            try: status_write(client, bucket, key, {**chain, 'request_budget': dict(budget)})
+            except Exception: raise RuntimeError('Durable option checkpoint failed') from None
+        try: chain = capture.collect(symbol, secret, deadline, retain, budget, checkpoint)
+        except ValueError:
+            chain = {**last, 'completed_at': now(), 'stop': 'source_limit_or_validation_failure',
+                'pagination_complete': False, 'capture_is_atomic': False, 'exchange_chain_completeness_verified': False}
+            checkpoint(chain)
+        return symbol, chain, budget['requests'], budget['bytes']
+    with ThreadPoolExecutor(max_workers=6) as pool: results = list(pool.map(one, names))
+    return {'chains': {s: chain for s, chain, _, _ in results},
+        'provider_requests': sum(n for _, _, n, _ in results), 'source_bytes': total_bytes,
+        'received_source_bytes_including_rejected': sum(n for _, _, _, n in results)}
+
+
+def request_key_path(key):
+    if not isinstance(key, str) or not re.fullmatch(re.escape(PRIVATE) + r'requests/[a-f0-9]{64}\.json', key):
+        raise ValueError('Private attempt identity required')
+    return key
+
+
+class ArtifactWriter:
+    def __init__(self, client, bucket, read):
+        self.client, self.bucket, self.read = client, bucket, read
+        self.pool = ThreadPoolExecutor(max_workers=6); self.pending = deque()
+    def __enter__(self): return self
+    def __call__(self, key, raw):
+        if len(self.pending) >= 12: self.pending.popleft().result()
+        self.pending.append(self.pool.submit(immutable, self.client, self.bucket, key, raw, self.read))
+    def __exit__(self, exc_type, exc, tb):
+        try:
+            if exc_type is None:
+                while self.pending: self.pending.popleft().result()
+        finally: self.pool.shutdown(wait=True, cancel_futures=True)
+
+
+def compile_output(inputs, read, emit): return model.build(inputs, read, emit)
+
+
+def verified_run(identity, read):
+    if not isinstance(identity, dict) or set(identity) != {'manifest_key', 'output_sha256'} or not re.fullmatch('[a-f0-9]{64}', identity.get('output_sha256', '')):
+        raise ValueError('Exact option replay identity required')
+    key = identity.get('manifest_key', '')
+    if not re.fullmatch(re.escape(model.PREFIX) + r'runs/[a-f0-9]{64}\.json', key): raise ValueError('Option run identity required')
+    raw = read(key); run = json.loads(raw)
+    if key != model.ref(raw, 'runs')['key'] or run.get('contract') != 'option-flow-replay.v1' or run.get('output_sha256') != identity['output_sha256']:
+        raise ValueError('Option run bytes differ')
+    if set(run.get('compilers', {})) != {m.__name__ for m in COMPILERS}: raise ValueError('Option compiler inventory differs')
+    for module in COMPILERS:
+        body = Path(module.__file__).read_bytes(); expected = model.ref(body, 'compilers')
+        if run['compilers'][module.__name__] != expected or read(expected['key']) != body:
+            raise ValueError('Matching reviewed option compiler required')
+    return run
+
+
+def replay(identity, read):
+    run = verified_run(identity, read)
+    inputs = model.checked(run['input'], read, 'inputs')
+    def verify(key, raw):
+        if read(key) != raw: raise ValueError('Reconstructed option artifact differs')
+    output = compile_output(inputs, read, verify)
+    if (output != model.checked(run['output'], read, 'outputs') or model.sha(model.encoded(output)) != identity['output_sha256']
+            or output['generated_at'] != run['generated_at']): raise ValueError('Original option replay differs')
+    return output
+
+
+def retain(client, bucket, inputs, output, read, checkpoint=None):
+    refs = {}
+    for label, doc in (('input', inputs), ('output', output)):
+        raw = model.encoded(doc); refs[label] = model.ref(raw, label + 's')
+        immutable(client, bucket, refs[label]['key'], raw, read)
+    compilers = {}
+    for module in COMPILERS:
+        raw = Path(module.__file__).read_bytes(); compilers[module.__name__] = model.ref(raw, 'compilers')
+        immutable(client, bucket, compilers[module.__name__]['key'], raw, read)
+    run = {'contract': 'option-flow-replay.v1', 'generated_at': output['generated_at'], **refs,
+        'compilers': compilers, 'output_sha256': refs['output']['sha256']}
+    raw = model.encoded(run); key = model.ref(raw, 'runs')['key']; immutable(client, bucket, key, raw, read)
+    identity = {'manifest_key': key, 'output_sha256': refs['output']['sha256']}
+    if checkpoint is not None: checkpoint(identity)
+    if replay(identity, read) != output: raise ValueError('Retained option replay differs')
+    return identity
+
+
+def recovery_inputs(identity, read):
+    run = verified_run(identity, read)
+    inputs = model.checked(run['input'], read, 'inputs'); output = model.checked(run['output'], read, 'outputs')
+    if (inputs.get('contract') != 'option-flow-inputs.v1' or output.get('contract') != model.CONTRACT
+            or inputs['generated_at'] != output['generated_at'] or output['generated_at'] != run['generated_at']
+            or model.sha(model.encoded(output)) != identity['output_sha256'] or model.clock(output['generated_at']) > model.clock(now())
+            or any(output.get(k) is not False for k in model.PERMISSIONS)):
+        raise ValueError('Reviewed original option recovery required')
+    return inputs, output
+
+
+def compatibility(packet):
+    if packet.get('contract') != model.CONTRACT or 'replay' not in packet: raise ValueError('Retained native option packet required')
+    return {'contract': 'option-flow-compatibility.v1', 'generated_at': packet['generated_at'],
+        'canonical': {'key': model.CURRENT, 'replay': packet['replay']}, 'status': 'superseded_by_original_research',
+        'universe': packet['universe']['selected'], 'all_results': [], 'extreme_call_flow': [], 'bullish_call_flow': [], 'notable_flow': [],
+        'n_scanned': 0, 'n_requested': len(packet['universe']['selected']), 'n_extreme': 0, 'n_bullish': 0, 'n_notable': 0,
+        'retained_predecessor': packet['predecessors'][model.LEGACY],
+        'evidence_note': 'Legacy directional alerts retired; empty legacy lists are not a zero-volume observation. Complete dated records are in the canonical research packet.',
+        'call': None, 'score': None, 'portfolio_action': 'WAIT', 'independent_investment_votes': 0, **model.PERMISSIONS}
+
+
+def conditional(client, bucket, key, packet, publish=None):
+    if key not in (model.CURRENT, model.LEGACY): raise ValueError('Reviewed public option target required')
+    at = model.clock(packet['generated_at'])
+    if at > model.clock(now()): raise ValueError('Future option publication clock')
+    for _ in range(4):
+        try:
+            obj = client.get_object(Bucket=bucket, Key=key); raw = bounded(obj['Body']); old = json.loads(raw)
+            retiring = (key == model.LEGACY and packet.get('contract') == 'option-flow-compatibility.v1'
+                and old.get('engine') == 'justhodl-polygon-options-flow' and old.get('version') == '2.0.0'
+                and isinstance(old.get('all_results'), list) and isinstance(old.get('universe'), list))
+            # A retirement notice is not a newer observation. Preserve the whole
+            # legacy packet even if its last unqualified scan ran after capture.
+            if old.get('generated_at') and not retiring:
+                previous = model.clock(old['generated_at'])
+                if previous > at: return False
+                if previous == at and old != packet: raise ValueError('Conflicting same-clock option publication')
+            if old == packet: return True
+            protect(client, bucket, raw); condition = {'IfMatch': obj['ETag']}
+        except Exception as exc:
+            if not missing(exc): raise
+            condition = {'IfNoneMatch': '*'}
+        try:
+            if publish is not None and key == model.CURRENT: publish(client, bucket, key, model.encoded(packet), condition)
+            else: client.put_object(Bucket=bucket, Key=key, Body=model.encoded(packet), ContentType='application/json', CacheControl='no-store', **condition)
+            live = json.loads(bounded(client.get_object(Bucket=bucket, Key=key)['Body']))
+            if live != packet and model.clock(live['generated_at']) <= at: raise ValueError('Option public readback differs')
+            return True
+        except Exception as exc:
+            if not conflict(exc): raise
+    raise RuntimeError('Option publication contention; immutable evidence retained')
+
+
+def run(client, bucket, request_id, execution_id, credential='', remaining_seconds=900, recover_run=None, publish=None, publish_current=True):
+    key = request_key(request_id); end = time.monotonic() + max(1, min(900, remaining_seconds))
+    status = {'contract': 'option-flow-request.v1', 'request_id': request_id, 'execution_id': execution_id,
+        'started_at': now(), 'status': 'running', 'phase': 'preserve', 'publish_current': publish_current}
+    try: status_write(client, bucket, key, status, IfNoneMatch='*')
+    except Exception as exc:
+        if not conflict(exc): raise
+        return json.loads(bounded(client.get_object(Bucket=bucket, Key=key)['Body']))
+    def checkpoint(**fields):
+        status.update(fields); status_write(client, bucket, key, status)
+    try:
+        read = reader(client, bucket); expected = None
+        if recover_run is not None:
+            inputs, expected = recovery_inputs(recover_run, read); checkpoint(recovered_from=recover_run)
+        else:
+            discovery = {name: snapshot(client, bucket, name, read) for name in model.DISCOVERY}
+            predecessors = {name: snapshot(client, bucket, name, read) for name in (model.LEGACY, model.CURRENT)}
+            selection = model.universe(discovery, read)
+            checkpoint(phase='collect_originals', selected=selection['selected'], discovery=discovery, predecessors=predecessors)
+            collection = collect(client, bucket, credential, selection, read, end - 360, key)
+            inputs = {'contract': 'option-flow-inputs.v1', 'generated_at': now(), 'discovery': discovery,
+                'predecessors': predecessors, 'universe': selection, **collection}
+        raw = model.encoded(inputs); identity = model.ref(raw, 'inputs'); immutable(client, bucket, identity['key'], raw, read)
+        checkpoint(phase='compile', retained_input=identity, provider_requests=inputs['provider_requests'])
+        with ArtifactWriter(client, bucket, read) as emit: output = compile_output(inputs, read, emit)
+        if expected is not None and output != expected: raise ValueError('Recovered option output differs')
+        checkpoint(phase='retained_replay')
+        identity = retain(client, bucket, inputs, output, read, lambda value: checkpoint(candidate_replay=value))
+        checkpoint(phase='publish'); published = aliases = False
+        if publish_current and output['quality']['status'] != 'unavailable':
+            packet = {**output, 'replay': identity}
+            published = conditional(client, bucket, model.CURRENT, packet, publish)
+            if published: aliases = conditional(client, bucket, model.LEGACY, compatibility(packet))
+        checkpoint(status='complete', phase='complete', completed_at=now(), generated_at=output['generated_at'],
+            published=published, compatibility_published=aliases, replay=identity, quality=output['quality'],
+            provider_requests_this_execution=0 if recover_run is not None else inputs['provider_requests'],
+            private_account_reads=0, paid_ai_calls=0, signals_emitted=0, notifications_sent=0, portfolio_writes=0)
+        return status
+    except Exception as exc:
+        checkpoint(status='failed', completed_at=now(), error='option_original_replay_or_publication_failed', failure_class=type(exc).__name__)
+        raise RuntimeError('Native option research failed; inspect retained request evidence') from None
