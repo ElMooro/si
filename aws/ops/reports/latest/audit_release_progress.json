@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-21T02:07:11.784573+00:00",
+  "observed_at": "2026-09-21T02:07:44.883387+00:00",
   "runs": [
     {
       "id": 35552970384,
@@ -369,18 +369,18 @@
       "id": 35552970356,
       "path": ".github/workflows/pages.yml",
       "head_sha": "9ded714981d97caaf194c94e6d55b6efebe80ecd",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-09-21T02:05:07Z",
-      "updated_at": "2026-09-21T02:05:11Z",
+      "updated_at": "2026-09-21T02:07:23Z",
       "jobs": [
         {
           "id": 106191045307,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-09-21T02:05:10Z",
-          "completed_at": null,
+          "completed_at": "2026-09-21T02:07:10Z",
           "steps": [
             {
               "number": 1,
@@ -553,28 +553,103 @@
             {
               "number": 22,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-21T02:07:04Z",
-              "completed_at": null
+              "completed_at": "2026-09-21T02:07:06Z"
             },
             {
               "number": 43,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:06Z",
+              "completed_at": "2026-09-21T02:07:07Z"
             },
             {
               "number": 44,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:07Z",
+              "completed_at": "2026-09-21T02:07:07Z"
+            },
+            {
+              "number": 45,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:07Z",
+              "completed_at": "2026-09-21T02:07:07Z"
             }
           ]
+        },
+        {
+          "id": 106191365490,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-09-21T02:07:14Z",
+          "completed_at": "2026-09-21T02:07:22Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:14Z",
+              "completed_at": "2026-09-21T02:07:15Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/deploy-pages@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:15Z",
+              "completed_at": "2026-09-21T02:07:21Z"
+            },
+            {
+              "number": 3,
+              "name": "Report deploy outcome",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:21Z",
+              "completed_at": "2026-09-21T02:07:21Z"
+            },
+            {
+              "number": 4,
+              "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:21Z",
+              "completed_at": "2026-09-21T02:07:21Z"
+            },
+            {
+              "number": 5,
+              "name": "Fail this run when Pages was not deployed",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-09-21T02:07:21Z",
+              "completed_at": "2026-09-21T02:07:21Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-21T02:07:21Z",
+              "completed_at": "2026-09-21T02:07:21Z"
+            }
+          ]
+        },
+        {
+          "id": 106191401607,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-09-21T02:07:23Z",
+          "completed_at": "2026-09-21T02:07:22Z",
+          "steps": []
         }
       ]
     },
