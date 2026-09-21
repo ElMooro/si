@@ -158,7 +158,7 @@ def main():
         inputs={'contract':'sector-fusion-inputs.v1','kind':'flow','generated_at':audit['generated_at'],
             'sources':{key:{**ref,'source_key':key} for key,ref in audit['packets'].items()}}
         restored=store.compile_output(inputs,audit_read);assert restored['quality']['issuer_price_five_window_available']==11
-        r.kv(audited_native_candidate_replayed=True,retained_audit_manifest=digest)
+        r.kv(audited_native_candidate_replayed=True,retained_audit_manifest=AUDIT[0])
         for fn,name in [('justhodl-sector-flow-state','sector_flow_state'),('justhodl-sector-capital-fusion','sector_capital_fusion')]:
             original=subprocess.check_output(['git','show','5900e6837:aws/lambdas/'+fn+'/source/lambda_function.py'],cwd=ROOT)
             assert (ROOT/'aws/lambdas'/fn/'source'/('legacy_'+name+'.py')).read_bytes()==original
