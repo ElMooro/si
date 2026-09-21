@@ -376,7 +376,7 @@
       var mkt=FRED_MKT[ticker]||{};
       return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null};
     }
-    if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA"){
+    if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA" || venue==="CQSNAP"){
       return {raw:s, venue:venue, ticker:s, yahoo:ticker, engine:venue.toLowerCase()};
     }
     var ys=yahooSym(ticker);
@@ -1818,6 +1818,10 @@
     return {span:"day",mult:1,days:12000};
   }
   async function klines(sym, tfId, quiet){
+    if(/^CQSNAP:/i.test(String(sym||""))){
+      if(!quiet) lastSource="CryptoQuant EOD snapshot · no harvest series";
+      return [];
+    }
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
     var key=t+"|"+tfId, now=Date.now();
     if(barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=8){
@@ -4044,7 +4048,7 @@
         return String(compact||s).toUpperCase();
       }
     }
-    if(/^FRED:|^CQ:|^CISS:|^DESK:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
+    if(/^FRED:|^CQ:|^CQSNAP:|^CISS:|^DESK:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
     return bare(s);
   }
@@ -4068,7 +4072,7 @@
     var rs=resolveSym(s);
     if(rs.engine==="fred" || rs.engine==="series") return rs.raw;
     if(/^FRED:/i.test(s) || /^\^/.test(s) || s.indexOf("=")>=0) return rs.ticker||s.toUpperCase();
-    if(/^CQ:|^CISS:|^DESK:|^DATA:/i.test(s)) return s;
+    if(/^CQ:|^CQSNAP:|^CISS:|^DESK:|^DATA:/i.test(s)) return s;
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
     return bare(rs.ticker||s);
   }

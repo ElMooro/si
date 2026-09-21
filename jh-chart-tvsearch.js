@@ -280,10 +280,13 @@
     t = jhFundTicker(t);
     if (!CQ_PROXIES[t]) return { proxy: false };
     try {
+      if (window.JHCqFuse && typeof window.JHCqFuse.load === "function") {
+        await window.JHCqFuse.load().catch(function () { return null; });
+      }
       if (!CQ_ONCHAIN) { var r = await fetch("/data/cryptoquant-onchain.json", { cache: "no-store" }); CQ_ONCHAIN = r.ok ? await r.json() : {}; }
       if (!CQ_SERIES) { var r2 = await fetch("/data/cryptoquant-series.json", { cache: "no-store" }); CQ_SERIES = r2.ok ? await r2.json() : {}; }
     } catch (e) { CQ_ONCHAIN = CQ_ONCHAIN || {}; CQ_SERIES = CQ_SERIES || {}; }
-    return { proxy: true, onchain: CQ_ONCHAIN, series: CQ_SERIES };
+    return { proxy: true, onchain: CQ_ONCHAIN, series: CQ_SERIES, fuse: (window.JHCqFuse && window.JHCqFuse.pack && window.JHCqFuse.pack()) || null };
   }
   function cqMetric(m, keys) {
     for (var i = 0; i < keys.length; i++) { var v = m[keys[i]]; if (v && typeof v === "object") return v; }
@@ -338,9 +341,20 @@
         esc(String(n)) + "</td><td><button type=button data-cq=\"" + esc(k) + "\">Chart</button></td></tr>";
     });
     html += "</tbody></table>";
+    var fuse = (c && c.fuse) || (window.JHCqFuse && window.JHCqFuse.pack && window.JHCqFuse.pack());
+    var snapHtml = "";
+    if (fuse && fuse.snaps && fuse.snaps.length) {
+      snapHtml = "<table class=cqtab><thead><tr><th>Snapshot field</th><th>Path</th><th>Latest</th><th>As of</th><th></th></tr></thead><tbody>";
+      fuse.snaps.forEach(function (sn) {
+        snapHtml += "<tr><td>" + esc(sn.field) + "</td><td>" + esc(sn.path) + "</td><td>" + esc(cqFmt(sn.value)) + "</td><td>" +
+          esc(String(sn.asof || "").slice(0, 10)) + "</td><td><span class=note>no harvest series</span></td></tr>";
+      });
+      snapHtml += "</tbody></table>";
+    }
     return "<div class=kpi>" + kp + "</div>" +
       blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (cadence EOD; never LIVE; twins extend some series to 2010; not blended with ETF or FMP)",
-        html);
+        html) +
+      (snapHtml ? blk("cq-feed extra fields — EOD snapshots only (limit=2, not plotted). Search a_sopr / in-house / block_interval from the symbol box.", snapHtml) : "");
   }
   function renderValFmp(f) {
     var r = f.row;

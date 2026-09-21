@@ -164,7 +164,14 @@
     CURATED.push(H(q, "CQ:" + row[0], row[1], "chain", "CryptoQuant EOD · harvest (not live); twins extend some series to 2010", "onchain"));
   });
   function cqOscSpecs() {
-    return CQ_META.map(function (row, i) {
+    var rows = CQ_META;
+    if (global.JHCqFuse && typeof global.JHCqFuse.seriesMeta === "function") {
+      var live = global.JHCqFuse.seriesMeta();
+      if (live && live.length >= 8) {
+        rows = live.map(function (m) { return [m.id, m.name, m.q || []]; });
+      }
+    }
+    return rows.map(function (row, i) {
       return {
         id: "cq_" + row[0],
         n: row[1],
@@ -204,7 +211,7 @@
     if (tab === "macro" && /^FRED:/i.test(s)) return true;
     if (tab === "macro" && (isWarehouse(s) || type === "economy" || c === "macro")) return true;
     if (tab === "data") return type === "dataset" || /^provider:/i.test(s) || c === "dataset";
-    if (tab === "chain" && /^CQ:/i.test(s)) return true;
+    if (tab === "chain" && /^CQ:|^CQSNAP:/i.test(s)) return true;
     if (tab === "stress" && /^CISS:/i.test(s)) return true;
     if (tab === "inst" && /^DESK:inst/i.test(s)) return true;
     return false;
@@ -230,7 +237,7 @@
 
   function keepId(s) {
     s = String(s || "");
-    if (isWarehouse(s) || /^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)) return s;
+    if (isWarehouse(s) || /^(FRED|CQ|CISS|DESK|DATA|NYFED|CQSNAP):/i.test(s)) return s;
     if (/^\^/.test(s) || s.indexOf("=") >= 0) return s.toUpperCase();
     if (/^(NASDAQ|NYSE|AMEX|ARCA|CBOE|TVC|BINANCE):/i.test(s)) return s;
     return s;
@@ -267,7 +274,11 @@
       out.push(hit);
     }
     if (!n) return out.slice(0, limit);
-    if (/cq|on.?chain|cryptoquant|mvrv|sopr|nupl|hashrate|puell/i.test(n)) limit = Math.max(limit, 54);
+    if (/cq|on.?chain|cryptoquant|mvrv|sopr|nupl|hashrate|puell|a_sopr|in-house|block.interval/i.test(n)) limit = Math.max(limit, 80);
+    if (global.JHCqFuse && typeof global.JHCqFuse.searchHits === "function" && global.JHCqFuse.pack()) {
+      if (/cq|on.?chain|cryptoquant/i.test(n)) limit = Math.max(limit, 120);
+      global.JHCqFuse.searchHits(n, limit).forEach(function (h) { push(h, h.score || 85); });
+    }
     if (SYM) {
       var i, row, sc;
       for (i = 0; i < SYM.length; i++) {
@@ -339,13 +350,17 @@
 
   function ensureIndex() {
     if (IDX_P) return IDX_P;
-    IDX_P = Promise.all([
+    var jobs = [
       loadJson("/data/symbology/master.json").catch(function () { return null; }),
       loadJson("/data/indicator-bus.json").catch(function () { return null; }),
       loadJson("/data/provider-catalog.json").catch(function () { return null; }),
       loadJson(PROXY + "/data/symdir/instruments.json.gz").catch(function () { return loadJson("/data/symdir/instruments.json.gz").catch(function () { return null; }); }),
       loadCQ().catch(function () { return null; })
-    ]).then(function (pack) {
+    ];
+    if (global.JHCqFuse && typeof global.JHCqFuse.load === "function") {
+      jobs.push(global.JHCqFuse.load().catch(function () { return null; }));
+    }
+    IDX_P = Promise.all(jobs).then(function (pack) {
       var master = pack[0], bus = pack[1], catalog = pack[2], instr = pack[3];
       if (master && master.by_ticker) {
         SYM = [];
@@ -424,6 +439,7 @@
     if (/^DESK:/i.test(s)) return "desk";
     if (/^DATA:/i.test(s) || /^provider:/i.test(s)) return "dataset";
     if (/^CQ:/i.test(s)) return "onchain";
+    if (/^CQSNAP:/i.test(s)) return "onchain";
     if (/^CISS:/i.test(s)) return "stress";
     if (isWarehouse(s)) return "macro";
     return "";
@@ -437,6 +453,7 @@
     if (/^data:/i.test(s)) return "DATA:" + s.split(":")[1];
     if (/^provider:/i.test(s)) return "provider:" + s.split(":")[1];
     if (/^cq:/i.test(s)) return "CQ:" + s.split(":").slice(1).join(":");
+    if (/^cqsnap:/i.test(s)) return "CQSNAP:" + s.split(":").slice(1).join(":");
     if (/^ciss:/i.test(s)) return "CISS:" + s.split(":").slice(1).join(":");
     if (isWarehouse(s)) return s;
     if (/^indicator-bus:/i.test(s)) {
@@ -490,6 +507,11 @@
 
   function go(s, dest) {
     s = String(s || "");
+    if (/^CQSNAP:/i.test(s)) {
+      var snap = s.replace(/^CQSNAP:/i, "");
+      global.location.href = "/crypto/?tab=cq&snap=" + encodeURIComponent(snap);
+      return true;
+    }
     var slug = "";
     if (/^DATA:/i.test(s) || /^provider:/i.test(s)) slug = s.split(":")[1] || "";
     else if (dest === "dataset" && s.indexOf(":") >= 0) slug = /^provider:/i.test(s) ? s.split(":")[1] : s.split(":")[0];
@@ -602,7 +624,14 @@
         }
       } catch (eWh) {}
     }
+    if (/^CQSNAP:/i.test(s)) return null;
     if (/^CQ:/i.test(s)) {
+      if (global.JHCqFuse && typeof global.JHCqFuse.klines === "function") {
+        try {
+          var fuseBars = await global.JHCqFuse.klines(s);
+          if (fuseBars && fuseBars.d && fuseBars.d.length >= 8) return fuseBars;
+        } catch (eFuse) {}
+      }
       var doc = await loadCQ();
       var k = cqKey(s);
       var row = cqRow(doc, k);

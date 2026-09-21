@@ -54,6 +54,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 </div>
 <div class="container" style="padding-bottom:0"><div data-etf-derived="crypto"></div></div>
 <div class="container" id="main"><div class="loading"><div class="spinner"></div>Loading Crypto Intelligence v4.2...</div></div>
+<script src="/jh-cq-fuse.js?v=20260921ac-fuse"></script>
 <script>
 var DU="https://justhodl-dashboard-live.s3.amazonaws.com/crypto-intel.json";
 var D=null;
@@ -526,6 +527,9 @@ function cqv(v,kind){if(v==null||isNaN(v))return "-";v=Number(v);
 function ageTag(a){if(a==null)return "";var c=a>30?"var(--red)":a>8?"var(--yellow)":"var(--green)";
  return "<span class='mono' style='font-size:9px;color:"+c+"'> "+(typeof a==="number"?a+"h":a)+"</span>";}
 function paneCQ(){
+ if(window.JHCqFuse && window.JHCqFuse.pack && window.JHCqFuse.pack() && typeof window.JHCqFuse.paneHTML==="function"){
+  return window.JHCqFuse.paneHTML(D.cryptoquant||{});
+ }
  var q=D.cryptoquant||{};var m=q.metrics||{};var s=q.signals||{};
  var h="<div class='pane' id='pane-cq'>";
  if(q.status!=="ok"){return h+"<div class='card'><div class='card-title'>CRYPTOQUANT</div><div class='stat-sm'>feed unavailable: "+(q.error||"no data")+"</div></div></div>";}
@@ -686,7 +690,34 @@ ctx.fillStyle="#8b95ad";ctx.font="10px IBM Plex Sans";ctx.textAlign="left";
 ctx.fillText(fh.length+" data points | "+fh[0].date+" to "+fh[fh.length-1].date+(fh.some(function(e){return e.synthetic})?" | Pre-2018: synthetic from BTC momentum":""),pad,15);
 }
 
-function loadData(){fetch(DU+"?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(d){D=d;render()}).catch(function(e){console.error(e);document.getElementById("main").innerHTML="<div class='loading' style='color:var(--red)'>Failed: "+e.message+"</div>"})}
+function cqActivate(){
+ try{
+  var u=new URL(location.href);
+  var tab=u.searchParams.get("tab");
+  var snap=u.searchParams.get("snap");
+  if(tab==="cq"||snap){
+   var t=document.querySelector(".tab[data-tab=cq]");
+   if(t) t.click();
+   if(snap){
+    var want=String(snap).toLowerCase();
+    var nodes=document.querySelectorAll("#pane-cq [data-snap]");
+    var i;
+    for(i=0;i<nodes.length;i++){
+     if(String(nodes[i].getAttribute("data-snap")||"").toLowerCase()===want){
+      nodes[i].style.outline="1px solid var(--cyan)";
+      nodes[i].scrollIntoView({block:"center"});
+      break;
+     }
+    }
+   }
+  }
+ }catch(e){}
+}
+function loadData(){
+ var intel=fetch(DU+"?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()});
+ var fuse=(window.JHCqFuse&&window.JHCqFuse.load)?window.JHCqFuse.load().catch(function(){return null}):Promise.resolve(null);
+ Promise.all([intel,fuse]).then(function(arr){D=arr[0];render();cqActivate();}).catch(function(e){console.error(e);document.getElementById("main").innerHTML="<div class='loading' style='color:var(--red)'>Failed: "+e.message+"</div>"});
+}
 loadData();setInterval(loadData,300000);
 </script>
 <script>(function(){var tb=document.getElementById("tabs");if(!tb)return;tb.addEventListener("click",function(e){var t=e.target;if(t.getAttribute("data-tab")==="dex"){e.stopImmediatePropagation();var w=document.getElementById("diw");var f=document.getElementById("dif");if(!f.src||f.src===window.location.href){f.src="/dex.html";}w.style.display="block";document.body.style.overflow="hidden";}},true);})();function cDex(){document.getElementById("diw").style.display="none";document.body.style.overflow="";document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});var o=document.querySelector(".tab[data-tab=overview]");if(o){o.classList.add("active");}}</script>

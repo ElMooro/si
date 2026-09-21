@@ -141,7 +141,7 @@ function F(q){q=(q||"").toLowerCase();document.querySelectorAll(".c[data-k]").fo
   for(const k of ks){const m=M[k],z=m.z365,w=Math.min(48,Math.abs(z||0)*16),P=pick(k);
    html+=`<div class="c" data-k="${(k+" "+(m.label||"")).toLowerCase()}">
     <div class="hd"><b>${m.label||k} ${m.in_composite?'<span class="chip core">CORE</span>':""}${P.tw?'<span class="chip tw">2010→</span>':""}</b><span class="val">${fV(m.unit,m.value)}</span></div>
-    <div class="mrow"><span style="color:${col(z)}">z ${fin(z)?(z>0?"+":"")+z.toFixed(2):"—"} · ${fin(m.pctl_1y)?m.pctl_1y+"th pctl":""}</span><span>${fin(m.corr_1y)?"ρ(BTC) "+m.corr_1y:""}</span></div>
+    <div class="mrow"><span style="color:${col(z)}">z ${fin(z)?(z>0?"+":"")+z.toFixed(2):"—"} · ${fin(m.pctl_1y)?m.pctl_1y+"th pctl":""}</span><span><a href="/chart.html?s=CQ:${k}" style="color:var(--cy);font-family:var(--mono);font-size:10px;text-decoration:none;border:1px solid #1e4a6b;padding:1px 7px;border-radius:8px">Chart</a> ${fin(m.corr_1y)?"ρ(BTC) "+m.corr_1y:""}</span></div>
     <div class="zbar"><b style="${z>=0?"left:50%":"right:50%"};width:${w}%;background:${col(z)}"></b><i></i></div>
     <div class="chwrap" onclick="ME('${k}')">${draw(k,335,98,false,"pct")}</div>
     ${legend(k,P)}

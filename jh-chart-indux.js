@@ -232,7 +232,7 @@
         if (s.id === "hv") keys += " historical volatility realized vol";
         if (s.id === "beta" || s.id === "rsline" || s.id === "corrspy" || s.id === "vsspx") keys += " spy spx s&p 500 relative strength beta correlation vs";
         if (s.id === "vsspx") keys += " gspc cash index outperformance entire history rs line";
-        if (s.cat === "On-chain" || s.k === "cq" || /^cq_/.test(s.id)) keys += " cryptoquant onchain on-chain mvrv sopr nupl hashrate puell cq";
+        if (s.cat === "On-chain" || s.k === "cq" || /^cq_/.test(s.id)) keys += " cryptoquant onchain on-chain mvrv sopr nupl hashrate puell cq a_sopr asopr in-house snapshot";
         if (s.id === "fibauto" || s.id === "fibpiv") keys += " fibonacci retracement pivot";
         if (s.id === "gmma" || s.id === "ribbon") keys += " guppy ribbon multiple moving average ema";
         if (s.id === "kama") keys += " kaufman adaptive ama";
@@ -576,7 +576,7 @@
     };
     var pack = TAPE[id] || STUDY[id];
     if (!pack && (String(id).indexOf("cq_") === 0 || (window.OSC || []).some(function (o) { return o.id === id && o.k === "cq"; }))) {
-      pack = ["CryptoQuant", "On-chain", "CryptoQuant EOD harvest series plotted as its own pane. Daily harvest starts 2025-07; twins (MVRV, NUPL, hashrate, supply, …) extend to 2010 at coarser spacing. Not live.", "Add from Indicators → Oscillators → On-chain, or search CQ:btc_mvrv (and every other harvest id) in the symbol box.", "Never mixed with ETF flow, FMP, or Polygon prints. Empty pane = harvest miss, not a live outage."];
+      pack = ["CryptoQuant", "On-chain", "CryptoQuant EOD harvest series plotted as its own pane. Daily harvest starts 2025-07; twins (MVRV, NUPL, hashrate, supply, …) extend to 2010 at coarser spacing. Not live. Extra cq-feed fields (aSOPR, in-house flow, block interval, …) are EOD snapshots with no series bank — searchable, not plotted.", "Add from Indicators → Oscillators → On-chain, or search CQ:btc_mvrv (and every harvest id) in the symbol box. Snapshot fields open the crypto desk.", "Never mixed with ETF flow, FMP, or Polygon prints. Empty pane = harvest miss, not a live outage. Snapshots are not 2-bar charts."];
     }
     var title, tag, what, how, cave;
     if (pack) {
