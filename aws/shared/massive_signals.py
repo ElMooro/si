@@ -1,40 +1,40 @@
-"""Shared accessor for the unified Massive-data layer (data/massive-signals.json).
-
-One-line access for any engine:
-    from massive_signals import massive_ticker, massive_market, massive_prepump
-    tags = massive_ticker("BTBT")     # {gamma_squeeze_score, otm_call_sweep, bullish_flow, prepump_score, ...}
-    mkt  = massive_market()           # {gamma_regime, smallcap_bid, sector_flows, fx_signals, futures_signals, ...}
-"""
-import json
+"""Bounded descriptive access; legacy Massive ranks cannot regain authority."""
+from copy import deepcopy
+from threading import Lock
+import json, time
 import boto3
+from massive_research_context import CURRENT, context
 
-_BUCKET = "justhodl-dashboard-live"
-_KEY = "data/massive-signals.json"
+_BUCKET = 'justhodl-dashboard-live'
+_KEY = CURRENT
 _CACHE = {}
+_LOCK = Lock()
+_SUCCESS_TTL = 30.0
+_FAILURE_TTL = 5.0
+_MAX_BYTES = 16 * 1024 * 1024
 
 
 def _load():
-    if "d" in _CACHE:
-        return _CACHE["d"]
-    try:
-        _CACHE["d"] = json.loads(boto3.client("s3", "us-east-1").get_object(
-            Bucket=_BUCKET, Key=_KEY)["Body"].read())
-    except Exception:
-        _CACHE["d"] = {}
-    return _CACHE["d"]
+    with _LOCK:
+        tick = time.monotonic()
+        if _CACHE and 0 <= tick - _CACHE['read_at'] < _CACHE['ttl']:
+            return deepcopy(_CACHE['packet'])
+        try:
+            obj = boto3.client('s3', region_name='us-east-1').get_object(Bucket=_BUCKET, Key=_KEY)
+            stream = obj['Body']
+            try: raw = stream.read(_MAX_BYTES + 1)
+            finally: stream.close()
+            if not 0 < len(raw) <= _MAX_BYTES: raise ValueError('Bounded composite publication required')
+            packet = context(json.loads(raw))
+            ttl = _SUCCESS_TTL if packet['native_reference_available'] else _FAILURE_TTL
+        except Exception:
+            packet = context(None); ttl = _FAILURE_TTL
+        _CACHE.clear(); _CACHE.update(read_at=time.monotonic(), ttl=ttl, packet=packet)
+        return deepcopy(packet)
 
 
-def massive_market():
-    return _load().get("market", {}) or {}
-
-
-def massive_ticker(sym):
-    return (_load().get("tickers", {}) or {}).get(sym, {}) or {}
-
-
-def massive_prepump():
-    return _load().get("top_prepump", []) or []
-
-
-def sector_flow_z(sector_etf):
-    return (massive_market().get("sector_flows", {}) or {}).get(sector_etf)
+def massive_research(): return _load()
+def massive_market(): return _load()['market']
+def massive_ticker(sym): return _load()['tickers'].get(sym, {})
+def massive_prepump(): return _load()['top_prepump']
+def sector_flow_z(sector_etf): return None

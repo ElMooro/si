@@ -18,9 +18,12 @@ class Tests(unittest.TestCase):
         scope=functions('prepump-alerts-router',{'check_dealer_gex'},{'List':List,'_read_json':lambda key:LEGACY,'_is_new':forbidden,'_mark_alerted':forbidden})
         state={'last_gex_regime':'POSITIVE_GAMMA'};self.assertEqual(scope['check_dealer_gex'](state),[]);forbidden.assert_not_called()
     def test_actual_composite_does_not_count_legacy_source_presence_as_gamma_signal(self):
-        scope=block('massive-signals','    sources = {}\n\n','    pof, pof_lm =',{'sources':{},'tickers':{},'_read':lambda key:(LEGACY,None)})
-        self.assertIsNone(scope['gamma_regime']);self.assertEqual(scope['tickers'],{});self.assertFalse(scope['sources']['dealer_gex']['ok'])
-        self.assertIsNone(scope['sources']['dealer_gex']['as_of'])
+        from test_massive_research import fixture,model,store
+        memory,inputs,_=fixture();read=store.reader(memory,'synthetic')
+        inputs['sources'][model.SOURCES['populations'][0]]['original']=store.protect(memory,'synthetic',json.dumps(LEGACY).encode(),read)
+        output=model.build(inputs,read)
+        self.assertEqual(output['sources']['populations']['status'],'unqualified_source_contract')
+        self.assertIsNone(output['score']);self.assertEqual(output['independent_investment_votes'],0)
     def test_actual_best_setups_does_not_fall_back_to_root_or_invent_levels(self):
         text=(ROOT/'aws/lambdas/justhodl-best-setups/source/lambda_function.py').read_text(encoding='utf-8')
         start=text.index('        _og = __import__("option_population_context")');end=text.index('        _playbook_ctx =',start)

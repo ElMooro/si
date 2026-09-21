@@ -271,7 +271,7 @@ def lambda_handler(event, context):
             "gamma_regime": _mkt.get("gamma_regime"),
             "strongest_inflow_sector": _mkt.get("strongest_inflow_sector"),
             "strongest_outflow_sector": _mkt.get("strongest_outflow_sector"),
-            "note": "The recorded Massive composite supplies descriptive source references, without small-cap bid, gamma regime or sector ranking authority.",
+            "note": "smallcap_bid/sector $ flows from the unified Massive layer (ETF Global flows).",
         },
         "summary": {
             "rotating_in": rotating_in[:12],

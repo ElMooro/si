@@ -1647,6 +1647,27 @@
           "purpose": "Dedicated source-bound option-chain research and user-assumed expiration payoff"
         }
       }
+    },
+    "market-evidence.html": {
+      "primary_engines": [
+        "justhodl-massive-signals"
+      ],
+      "primary_exclusive": true,
+      "primary_output_keys": {
+        "justhodl-massive-signals": [
+          "data/massive-research.json"
+        ]
+      },
+      "primary_scope_evidence": {
+        "justhodl-massive-signals": {
+          "source": "aws/lambdas/justhodl-massive-signals/source/lambda_function.py",
+          "constants": [
+            "PUBLISHED_KEY"
+          ],
+          "purpose": "Recorded composition of exact option and ETF parent publications, shared measurement families and instrument evidence pointers; no independent investment vote or forecast authority."
+        }
+      },
+      "reason": "Recorded composition of exact option and ETF parent publications, shared measurement families and instrument evidence pointers; no independent investment vote or forecast authority."
     }
   }
 }

@@ -59,10 +59,16 @@ SENTIMENT_KEY = "sentiment/data.json"
 SMART_MONEY_KEY = "screener/smart-money-holdings.json"
 OPTIONS_FLOW_KEY = "data/options-flow-scanner.json"
 MASSIVE_KEY = "data/massive-signals.json"
+_MASSIVE_CACHE = {}
 def _massive_tickers():
-    """Composite references are descriptive; no qualified ranking uplift."""
-    from massive_signals import massive_research
-    return massive_research()["tickers"]
+    """Unified Massive layer (gamma squeeze + unusual options flow), cached per run."""
+    if "t" not in _MASSIVE_CACHE:
+        try:
+            import json as _j
+            _MASSIVE_CACHE["t"] = (_j.loads(s3.get_object(Bucket=S3_BUCKET, Key=MASSIVE_KEY)["Body"].read()).get("tickers") or {})
+        except Exception:
+            _MASSIVE_CACHE["t"] = {}
+    return _MASSIVE_CACHE["t"]
 ALPHA_WEIGHTS_KEY = "screener/alpha-weights.json"   # optional override from calibrator (#1)
 OUTPUT_KEY = "screener/alpha-score.json"
 

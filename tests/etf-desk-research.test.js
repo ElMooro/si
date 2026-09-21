@@ -4,6 +4,19 @@ const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/etf-desk-
 const p=fixture.publication,AT=Date.parse('2026-09-21T11:00:00Z');
 global.crypto=require('node:crypto').webcrypto;
 const fetcher=async url=>new Response(fixture.artifacts[url.slice(1)]||'',{status:fixture.artifacts[url.slice(1)]?200:404});
+test('recorded ETF run stays pinned and never asks for latest',async()=>{
+  const seen=[],id=p.replay.manifest_key.split('/').pop().slice(0,-5);
+  const recorded=await api.recordedRun(id,async url=>{seen.push(url);return fetcher(url);});
+  assert.deepEqual(recorded,p);assert.equal(seen.includes('/'+api.CURRENT),false);
+  assert.equal(api.recordedUrl(recorded,'BND'),'/etf.html?fund=BND&run='+id);
+  assert.equal(api.scenario(recorded,'BND',10000,-5,25,AT).run.manifest_key,p.replay.manifest_key);
+});
+test('unavailable or invalid recorded run cannot silently choose a latest publication',async()=>{
+  let calls=0;await assert.rejects(()=>api.recordedRun('../latest',async()=>{calls++;}),/Exact recorded/);assert.equal(calls,0);
+  const id=p.replay.manifest_key.split('/').pop().slice(0,-5),seen=[];
+  await assert.rejects(()=>api.recordedRun(id,async url=>{seen.push(url);return new Response('',{status:404});}),/request failed/);
+  assert.deepEqual(seen,['/'+p.replay.manifest_key]);
+});
 test('desk body and immutable output bind the exact source run',async()=>{
   assert.equal(await api.verifyPacket(p,fetcher),p);
   const changed=structuredClone(p);changed.funds.BND.profiles.current.effective_date='2026-09-21';

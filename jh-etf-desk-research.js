@@ -65,6 +65,18 @@
     if (JSON.stringify(stable(body)) !== JSON.stringify(stable(output))) throw Error('Current desk body differs');
     return p;
   }
+  async function recordedRun(id, fetcher, signal) {
+    if (typeof id !== 'string' || !/^[a-f0-9]{64}$/.test(id)) throw Error('Exact recorded ETF desk run required');
+    const key=PREFIX+'runs/'+id+'.json', item=await load(key,fetcher,signal),run=item.doc;
+    if (await sha(item.raw)!==id || run.contract!=='etf-desk-replay.v1' || run.output?.sha256!==run.output_sha256) throw Error('Recorded ETF desk run differs');
+    const body=await retained(run.output,'outputs',fetcher,signal);
+    return verifyPacket({...body,replay:{manifest_key:key,output_sha256:run.output_sha256}},fetcher,signal);
+  }
+  function recordedUrl(p,t) {
+    const key=p.replay?.manifest_key;
+    if(!typed(p)||!ticker(t)||!p.funds[t]||!safe(key)||!key.startsWith(PREFIX+'runs/'))throw Error('Choose a recorded fund');
+    return '/etf.html?fund='+encodeURIComponent(t)+'&run='+key.split('/').pop().slice(0,-5);
+  }
   async function profile(p, t, role, fetcher, signal) {
     if (!typed(p) || !ticker(t) || !['current','prior','retained_previous_current'].includes(role)) throw Error('Choose a dated desk profile');
     const ref = p.funds[t]?.profiles?.[role]?.snapshot;
@@ -158,7 +170,7 @@
     return {fund:t,position_usd:position,assumed_fund_return_pct:shock,costs_usd:cost,gross_change_usd:gross,net_change_usd:gross-cost,
       run:p.replay,source_profile_weight_or_fee_used:false,scope:'Your assumed fund-level return and costs. No forecast, automatic leverage multiplier, measured holdings allocation or suggested position.'};
   }
-  const api={CONTRACT,PREFIX,CURRENT,MAX,esc,exact,decimal,ticker,typed,safe,load,retained,verifyPacket,profile,history,
+  const api={CONTRACT,PREFIX,CURRENT,MAX,esc,exact,decimal,ticker,typed,safe,load,retained,verifyPacket,recordedRun,recordedUrl,profile,history,
     eligibility,windowValue,table,inventory,summary,provenance,profileView,fundView,scenario};
   if (typeof module !== 'undefined' && module.exports) module.exports=api;
   root.JHEtfDeskResearch=api;

@@ -609,7 +609,7 @@ def lambda_handler(event, context):
                    + ("" if elig else " · below trend gate")), etf, q
 
     bond_vol = read_json("data/bond-vol.json") or {}
-    massive = __import__("massive_research_context").context(read_json("data/massive-signals.json"))
+    massive = read_json("data/massive-signals.json") or {}
     bottleneck = read_json("data/bottleneck-boom.json") or {}
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
     # that align with what's on his mind so the board surfaces HIS theses. ──

@@ -5,7 +5,7 @@
     if (!A || !H || !panel) return;
     const fetcher=root.fetch.bind(root),q=selector=>panel.querySelector(selector);
     let packet=null,selectedFund='SPY',controller=null,publication=0,epoch=0,rowEpoch=0,profileEpoch=0,holdingEpoch=0;
-    const requestedFund=new URL(root.location.href).searchParams.get('fund');
+    const params=new URL(root.location.href).searchParams,requestedFund=params.get('fund'),pinned=params.has('run')?params.get('run'):null;
     if(A.ticker(requestedFund))selectedFund=requestedFund;
     let snap=null,selectedRow=null,rowCache=new Map(),holdPage=0,flowPage=0,flowDoc=null,lastMask='';
     const form=host.querySelector('[data-ed-scenario]'),result=host.querySelector('[data-ed-scenario-output]');
@@ -84,6 +84,7 @@
     }
     async function inspect() {
       epoch++;rowEpoch++;profileEpoch++;invalidate();flowDoc=null;flowPage=0;
+      for(const name of ['position','shock','cost'])form.elements[name].value='';
       selectedFund=q('[data-ed-fund]').value;const t=selectedFund,expected=packet;
       q('[data-ed-selection]').innerHTML=A.fundView(packet,t);
       host.querySelector('[data-ed-scenario-name]').textContent=t;q('[data-ed-profile-basis]').value='current';q('[data-ed-holding-basis]').value='current';
@@ -96,7 +97,7 @@
       await Promise.all([hold,prof,flows]);
     }
     function render(p) {
-      return '<div data-ed-summary>'+A.summary(p)+'</div><button type="button" data-ed-refresh>Refresh and verify</button><h2>All configured funds</h2>'+
+      return '<p>'+(pinned!==null?'Recorded ETF desk':'Latest ETF desk')+' · '+A.esc(p.generated_at)+' · <a href="/etf.html">Open latest desk</a> · <a href="/market-evidence.html">Connected market evidence</a></p><div data-ed-summary>'+A.summary(p)+'</div><button type="button" data-ed-refresh>'+(pinned!==null?'Recheck this recorded desk':'Refresh and verify')+'</button><h2>All configured funds</h2>'+
         '<label>Find a fund, name or issuer<input data-ed-query type="search" autocomplete="off"></label><div data-ed-inventory></div>'+
         '<div class="xr-controls"><label>Inspect fund<select data-ed-fund>'+Object.keys(p.funds).sort().map(t=>'<option'+(t===selectedFund?' selected':'')+'>'+A.esc(t)+'</option>').join('')+'</select></label></div><div data-ed-selection></div>'+
         '<h2>Profile fields and exposures</h2><label>Profile basis<select data-ed-profile-basis><option value="current">Current collection</option><option value="prior">Earlier query cutoff</option><option value="retained_previous_current">Previous retained profile, if available</option></select></label><div data-ed-profile role="status"></div>'+
@@ -110,7 +111,7 @@
     async function refresh() {
       const token=++publication;epoch++;rowEpoch++;profileEpoch++;controller?.abort();controller=new AbortController();
       packet=null;snap=null;flowDoc=null;invalidate();panel.textContent='Verifying retained ETF desk evidence…';
-      try {const loaded=await A.load(A.CURRENT,fetcher,controller.signal),candidate=await A.verifyPacket(loaded.doc,fetcher,controller.signal);
+      try {const candidate=pinned!==null?await A.recordedRun(pinned,fetcher,controller.signal):await A.verifyPacket((await A.load(A.CURRENT,fetcher,controller.signal)).doc,fetcher,controller.signal);
         if(token!==publication)return;packet=candidate;if(!packet.funds[selectedFund])selectedFund=Object.keys(packet.funds).sort()[0];
         panel.innerHTML=render(packet);q('[data-ed-query]').oninput=drawInventory;q('[data-ed-fund]').onchange=inspect;
         q('[data-ed-profile-basis]').onchange=inspectProfile;q('[data-ed-holding-basis]').onchange=inspectHoldings;

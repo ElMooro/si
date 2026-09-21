@@ -41,7 +41,8 @@
     ["data/etf-derived.json", "ETF compatibility context (zero investment votes)"],
     ["data/etf-desk-research.json", "Dated ETF profiles, full constituents and matched source flows"],
     ["data/option-flow-research.json", "Captured option chains with exact field and source-row evidence"],
-    ["data/option-population-research.json", "Separate call/put populations with exact source membership; no inferred dealer positions"]
+    ["data/option-population-research.json", "Separate call/put populations with exact source membership; no inferred dealer positions"],
+    ["data/massive-research.json", "Recorded option and ETF evidence with shared-source lineage and exact parent runs"]
   ];
   function el(tag, css, html) {
     var n = document.createElement(tag);

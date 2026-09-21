@@ -111,6 +111,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
+  if (['massive-research.json', 'massive-signals.json', 'massive-capability.json', 'polygon-options.json', 'polygon-ratios.json'].includes(key)) return true;
   return ['report.json', 'report-measurements.json', 'khalid-adaptive.json', 'risk-regime.json', 'jsi.json', 'jsi-history.json', 'jsi-calibration.json',
     'global-stress-history.json', 'gsi-calibration.json', 'gsi-horizons.json',
     'crisis-composite.json', 'defcon.json', 'crisis-composite-history.json', 'crisis-plumbing.json', 'market-internals.json', 'aaii-sentiment.json', 'credit-stress.json', 'vol-surface.json', 'eurodollar-stress.json', 'insider-aggregate.json', 'capitulation.json', 'market-extremes.json', 'vrp.json', 'retail-sentiment.json', 'valuations-data.json', 'tail-risk.json', 'implied-prob.json', 'fedwatch.json', 'fomc-reaction.json', 'cycle-clock.json', 'macro-nowcast.json', 'activity-nowcast.json', 'sector-rotation.json', 'sector-tilt.json', 'money-flow-state.json', 'sector-flow-state.json', 'sector-capital-fusion.json', 'provider-fund-flow-research.json', 'capital-flow-radar.json', 'etf-holdings-research.json', 'flow-lookthrough.json', 'option-flow-research.json', 'polygon-options-flow.json', 'option-population-research.json', 'dealer-gex.json', 'etf-desk-research.json', 'etf-desk.json', 'etf-derived.json', 'etf-global.json', 'etf-global-desk-meta.json', 'etf-holdings-complete.json', 'etf-holdings-index.json',

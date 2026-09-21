@@ -291,7 +291,7 @@ def fetch_engine_raw(spec_name: str, spec: dict) -> tuple:
     """Fetch + parse a single engine's data file. Returns (spec_name, items_list, age_h)."""
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=spec["key"])
-        d = __import__("massive_research_context").guard(spec["key"], __import__("retail_research").guard(spec["key"],json.loads(obj["Body"].read())))
+        d = __import__("retail_research").guard(spec["key"],json.loads(obj["Body"].read()))
         age_h = (datetime.now(timezone.utc) - obj["LastModified"]).total_seconds() / 3600
         if spec.get("is_dict"):
             # by_ticker dict — convert to list with synthetic ticker field
@@ -337,8 +337,6 @@ def normalize_score(raw, score_scale=None) -> Optional[float]:
 
 def extract_ticker_signals_from_engine(spec_name: str, spec: dict, items: list) -> dict:
     """Returns {ticker: signal_dict} for this engine's items."""
-    if spec_name == "massive-flow" or spec.get("key") in ("data/massive-signals.json", "data/massive-research.json"):
-        return {}  # Recorded composite research supplies zero qualified votes.
     out = {}
     # Handle string-list format (items are just ticker strings, no dict)
     if spec.get("is_string_list"):

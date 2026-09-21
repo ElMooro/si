@@ -242,7 +242,7 @@ def build_ticker_index():
         "supply_inflection": fetch_json("data/supply-inflection.json"),
         "pre_pump":         fetch_json("data/pre-pump-signals.json"),
         "revenue_accel":    fetch_json("data/revenue-acceleration.json"),
-        "massive":          __import__("massive_research_context").context(fetch_json("data/massive-signals.json", max_age_h=72)),
+        "massive":          fetch_json("data/massive-signals.json", max_age_h=72),
         "capital_flow":     fetch_json("data/capital-flow-radar.json", max_age_h=60),
         "risk_regime":      fetch_json("data/risk-regime.json", max_age_h=48),
         "finviz_tech":      fetch_json("data/finviz-signals.json", max_age_h=30),

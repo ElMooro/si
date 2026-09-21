@@ -1,0 +1,8 @@
+.mr-families{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mr-family,.mr-evidence{min-width:0;padding:16px;border:1px solid var(--line,#344052);border-radius:10px;background:var(--panel,#111827)}
+.mr-family h3{text-transform:capitalize;margin-top:0}.mr-family p:last-child{color:var(--muted,#a0aec0)}
+.mr-evidence{margin-top:18px}.mr-evidence h3{margin-top:0}.mr-evidence details{margin-top:12px}
+.mr-evidence code{overflow-wrap:anywhere;white-space:normal}.mr-evidence p{overflow-wrap:anywhere}
+[data-market-evidence] input{font-size:16px;max-width:100%;box-sizing:border-box}
+[data-market-evidence] .or-controls{align-items:end;flex-wrap:wrap}[data-market-evidence] button{min-height:42px}
+@media(max-width:680px){.mr-families{grid-template-columns:1fr}.mr-family,.mr-evidence{padding:12px}}
