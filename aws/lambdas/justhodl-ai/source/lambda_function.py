@@ -328,7 +328,9 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         },
     }
     put_private(OWNER_READ_MODEL_KEY, out)
-    put_public(OUT_KEY, _public_read_model(out))
+    pub_model = _public_read_model(out)
+    put_public(OUT_KEY, pub_model)
+    _safe(lambda: put_public("data/ai-student-desk.json", student_desk(pub_model)))     # one writer for the public desk, refreshed every tick
     ctl = get_json(PRIVATE_BUCKET, "ai/control.json") or {}
     ctl.update({"sagemaker_role_arn": role, "private_bucket": PRIVATE_BUCKET, "updated_at": out["generated_at"], "version": VERSION})
     put_private("ai/control.json", ctl)
@@ -1364,6 +1366,50 @@ def public_reasoning_exam() -> Optional[dict]:
     if not isinstance(doc, dict):
         return None
     return {k: doc.get(k) for k in ("run_id", "at", "model", "revision", "adapter_generation", "families")}
+
+
+def student_desk(pub: dict) -> dict:
+    """The 4 KB public desk ai.html's command card reads (data/ai-student-desk.json). First written by Grok's one-shot
+    ops 5822 (2026-09-21) from a snapshot; the engine owns it from here so it never goes stale: every line is computed
+    from the live public model, never asserted. can / cannot / next are facts, not slogans."""
+    sb, mr, ce = pub.get("scoreboard") or {}, pub.get("market_read") or {}, pub.get("coding_exam") or {}
+    me = (pub.get("market_exam") or {}).get("holdout") or {}
+    ms, prior = me.get("model_scores") or {}, ((me.get("baselines") or {}).get("prior") or {})
+    beats_prior = (float(ms["score"]) > float(prior["score"])) if isinstance(ms.get("score"), (int, float)) and isinstance(prior.get("score"), (int, float)) else None
+    graded = int(sb.get("calls_graded") or 0)
+    champion = ((pub.get("gear_b") or {}).get("champion") or {})
+    champion_gen = champion.get("generation")
+    rx = ((pub.get("reasoning_exam") or {}).get("families") or {})
+    wall = pub.get("student_wall") or {}
+    can = ["Read the market every morning on the owned model with the operator's notes, and ledger dated calls for grading",
+           "Sit the frozen coding exam (%s), the market exam (%s drills) and the reasoning exam (GSM8K %s, code reading %s) unattended" % (
+               ce.get("base_passed") or "-", me.get("n_drills") or "-", "%.0f%%" % (100 * rx["gsm8k"]["accuracy"]) if rx.get("gsm8k", {}).get("accuracy") is not None else "-",
+               "%.0f%%" % (100 * rx["code_reading"]["accuracy"]) if rx.get("code_reading", {}).get("accuracy") is not None else "-"),
+           "Post its own weekly forecasts on the Monday wall through the same door as guests" + (" (week of %s: %d entries)" % (wall.get("week"), len(wall.get("entries") or [])) if wall.get("week") else ""),
+           "Answer chat and bounded task cards on the owned model; run a training generation and grade it against the base by itself"]
+    cannot = []
+    if beats_prior is not True:
+        cannot.append("Beat the naive prior on the frozen market holdout (%.2f vs %.2f)" % (ms.get("score") or 0, prior.get("score") or 0) if ms.get("score") is not None else "Beat the naive prior on the frozen market holdout")
+    if graded < 20:
+        cannot.append("Show a graded hit rate: %d of %d calls graded (the 5/21/63-day windows mature on their own)" % (graded, int(sb.get("calls_made") or 0)))
+    if not champion_gen:
+        cannot.append("Promote a champion above the base weights (%s)" % (ce.get("verdict") or "no candidate beats the base"))
+    cannot.append("Size risk or write code to main -- it never will without a human apply-lane; ADVISORY_ONLY is the design, not a bug")
+    if beats_prior is True and graded >= 20:
+        nxt = "Market skill exists on the frozen exam and graded calls exist: review the release blockers for a first non-advisory step"
+    elif graded < 20:
+        nxt = "Let the ledger mature: first 5-day grades arrive automatically; until 20 graded calls exist nothing is promoted"
+    else:
+        nxt = "Train on settled misses (new supply is flowing); promote only when the holdout beats the prior and the coding exam does not drop"
+    return {"engine": "justhodl-ai", "schema_version": "ai-student-desk.v2", "generated_at": now_iso(), "source": "computed from the live public model on every inventory tick",
+            "voice": sb.get("voice"), "decision_status": mr.get("decision_status") or "ADVISORY_ONLY", "blockers": mr.get("n_blockers"), "understanding_score": sb.get("understanding_score"),
+            "coding_exam": {"score": ce.get("base_score"), "passed": ce.get("base_passed"), "learning_pts": ce.get("learning_pts"), "verdict": ce.get("verdict")},
+            "market_exam_holdout": {"score": ms.get("score"), "direction_acc": ms.get("direction_acc"), "regime_acc": ms.get("regime_acc"), "crisis_acc": ms.get("crisis_acc"),
+                                    "prior_score": prior.get("score"), "beats_prior": beats_prior, "n_drills": me.get("n_drills"), "at": me.get("at")},
+            "reasoning_exam": rx or None, "calls": {"made": sb.get("calls_made"), "graded": graded, "hit_rate_by_window": sb.get("hit_rate_by_window")},
+            "stances": mr.get("stances"), "champion": champion or {"generation": 0, "note": "base model; no weights promoted"},
+            "student_wall": {"week": wall.get("week"), "entries": len(wall.get("entries") or []), "rehearsal": wall.get("rehearsal")} if wall.get("week") else None,
+            "pipeline": (pub.get("pipeline") or {}).get("status"), "can_do": can, "cannot_do_yet": cannot, "next_lesson": nxt}
 
 
 def public_market_exam() -> Optional[dict]:

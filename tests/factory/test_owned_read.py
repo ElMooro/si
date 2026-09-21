@@ -266,5 +266,23 @@ class CodingExamVerdictTests(unittest.TestCase):
         self.assertIn("No trusted base", lf.coding_exam_verdict(None, cands, None)["verdict"])
         self.assertIn("no candidate", lf.coding_exam_verdict(base, [], 570)["verdict"])
 
+
+class StudentDeskTests(unittest.TestCase):
+    def test_desk_lines_are_computed_from_facts(self):
+        lf = engine_module()
+        pub = {"scoreboard": {"voice": "online (owned model x)", "calls_made": 11, "calls_graded": 0, "hit_rate_by_window": {}, "understanding_score": 0.92},
+               "market_read": {"decision_status": "ADVISORY_ONLY", "n_blockers": 4, "stances": {"stocks": "SELECTIVE"}},
+               "coding_exam": {"base_score": 0.823, "base_passed": "135/164", "learning_pts": 0.0, "verdict": "No learning yet: ..."},
+               "market_exam": {"holdout": {"n_drills": 55, "model_scores": {"score": 0.4836, "direction_acc": 0.55}, "baselines": {"prior": {"score": 0.5127}}}},
+               "reasoning_exam": {"families": {"gsm8k": {"accuracy": 0.825}, "code_reading": {"accuracy": 0.2}}},
+               "gear_b": {"champion": {"generation": 0, "note": "base model; no weights promoted"}}, "pipeline": {"status": "idle"}, "student_wall": None}
+        d = lf.student_desk(pub)
+        self.assertFalse(d["market_exam_holdout"]["beats_prior"]); self.assertEqual(d["calls"]["graded"], 0)
+        self.assertTrue(any("Beat the naive prior" in c for c in d["cannot_do_yet"])); self.assertTrue(any("0 of 11 calls graded" in c for c in d["cannot_do_yet"]))
+        self.assertIn("never will without a human apply-lane", " ".join(d["cannot_do_yet"])); self.assertIn("first 5-day grades", d["next_lesson"])
+        pub["market_exam"]["holdout"]["model_scores"]["score"] = 0.60; pub["scoreboard"]["calls_graded"] = 25
+        d2 = lf.student_desk(pub)
+        self.assertTrue(d2["market_exam_holdout"]["beats_prior"]); self.assertFalse(any("Beat the naive prior" in c for c in d2["cannot_do_yet"])); self.assertIn("first non-advisory step", d2["next_lesson"])
+
 if __name__ == '__main__':
     unittest.main()
