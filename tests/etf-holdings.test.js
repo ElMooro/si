@@ -62,6 +62,18 @@ test('Missing ticker, raw leverage and source clocks are explicit',async()=>{
   assert.match(api.rowDetail(rows[0]),/SHA-256/);assert.match(api.rowDetail(rows[0]),/does not establish a trade/);
 });
 
+test('Raw table values retain tiny nonzero weights and integers beyond Number precision',async()=>{
+  const doc=await api.snapshot(holdings,'SPY','current',fetcher),row=(await api.rowPart(doc,0,fetcher))[0];
+  const raw={...row,weight_raw_decimal:'0.00000000000123',shares_held_raw_decimal:'9007199254740993.123400',market_value_raw_decimal:'-0.00000000000001'};
+  const table=api.rowTable([raw]);
+  assert.match(table,/>0\.00000000000123<\/td>/);
+  assert.match(table,/>9,007,199,254,740,993\.123400<\/td>/);
+  assert.match(table,/>-0\.00000000000001<\/td>/);
+  assert.doesNotMatch(table,/>0<\/td>/);
+  assert.match(api.rowTable([{...row,weight_raw_decimal:'0',shares_held_raw_decimal:null,market_value_raw_decimal:'-1234567.89'}]),/>0<\/td>/);
+  assert.match(api.rowTable([{...row,weight_raw_decimal:'0',shares_held_raw_decimal:null,market_value_raw_decimal:'-1234567.89'}]),/>-1,234,567\.89<\/td>/);
+});
+
 test('Portfolio scenario uses user assumptions and never the unqualified weight',async()=>{
   const doc=await api.snapshot(holdings,'SPY','current',fetcher),row=(await api.rowPart(doc,0,fetcher))[0];
   const a=api.scenario(holdings,'SPY',doc,row,100000,10,-5,25,at);
@@ -89,7 +101,7 @@ test('Escaping, complete page content and preserved predecessor stay intact',asy
   const doc=await api.snapshot(holdings,'SPY','current',fetcher),row=(await api.rowPart(doc,0,fetcher))[0];
   const html=api.rowTable([{...row,constituent_ticker:'<img src=x onerror=evil()>'}]);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);
   for(const page of ['etf-holdings.html','flow-lookthrough.html']){
-    const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-etf-holdings.js\?v=20260921-native1/);assert.doesNotMatch(source,/jh-page-ai.js|force mechanical buying/);
+    const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-etf-holdings.js\?v=20260921-native2/);assert.doesNotMatch(source,/jh-page-ai.js|force mechanical buying/);
     for(const match of source.matchAll(/href="(\/[^"?#]*)"/g)){const route=match[1],target=route.endsWith('/')?route+'index.html':route;assert.ok(fs.existsSync(path.join(__dirname,'..',target.slice(1))),route);}
   }
   const old=fs.readFileSync(path.join(__dirname,'../docs/legacy/etf-holdings-flow-lookthrough-pre-native-20260921.html.txt'),'utf8');assert.ok(old.includes('force mechanical buying'));

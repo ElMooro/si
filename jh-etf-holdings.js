@@ -8,7 +8,11 @@
   const flags = ['calls_eligible', 'sizing_eligible', 'execution_eligible', 'forecast_qualified'];
   const esc = x => String(x ?? 'Unavailable').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
   const numeric = x => typeof x === 'string' && /^-?\d+(?:\.\d+)?$/.test(x) && Number.isFinite(Number(x)) ? Number(x) : null;
-  const fmt = x => numeric(x) === null ? 'Unavailable' : Number(x).toLocaleString('en-US', {maximumFractionDigits: 8});
+  function fmt(x) {
+    if (numeric(x) === null) return 'Unavailable';
+    const [whole, fraction] = x.split('.');
+    return whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction === undefined ? '' : '.' + fraction);
+  }
   const cash = x => Number.isFinite(x) ? x.toLocaleString('en-US', {style:'currency', currency:'USD'}) : 'Unavailable';
   const dates = x => Object.keys(x || {}).join(', ') || 'Unavailable';
   const kind = p => Object.keys(kinds).find(k => p?.contract === kinds[k].contract);
