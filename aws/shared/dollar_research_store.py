@@ -93,18 +93,21 @@ def capture_inputs(client,bucket,read,checkpoint):
     return {'contract':'dollar-original-inputs.v1','generated_at':now(),'captures':captures}
 def compile_output(inputs,read):
     if inputs.get('contract')!='dollar-original-inputs.v1' or set(inputs.get('captures',{}))!=set(SOURCES):raise ValueError('Complete Dollar input inventory required')
-    docs={};refs={};contexts={}
+    refs={};contexts={};packet=None
     for key,row in inputs['captures'].items():
         if row.get('source_key')!=key or model.clock(row['acquired_at'])>model.clock(inputs['generated_at']):raise ValueError('Capture identity or clock differs')
-        if row.get('status')=='retained':docs[key]=json.loads(original(row['original'],read));refs[key]=row['original']
-        elif row.get('status')=='missing' and row.get('original') is None:docs[key]=None;refs[key]=None
+        if row.get('status')=='retained':doc=json.loads(original(row['original'],read));refs[key]=row['original']
+        elif row.get('status')=='missing' and row.get('original') is None:doc=None;refs[key]=None
         else:raise ValueError('Reviewed source availability required')
+        if key==SOURCES[0]:packet=doc
         if key in catalog.CONTEXT_KEYS:
-            doc=docs[key] if isinstance(docs[key],dict) else {}
+            doc=doc if isinstance(doc,dict) else {}
             contexts[key]={'status':'retained_unqualified_context' if refs[key] else 'missing','original':refs[key],
                 'reported_contract':doc.get('contract') if isinstance(doc.get('contract'),str) else None,
                 'reported_generated_at':doc.get('generated_at') if isinstance(doc.get('generated_at'),str) else None,'independent_votes':0}
-    packet=docs[SOURCES[0]]
+        # Whole input bytes remain protected and hash-bound. Parsed legacy
+        # trees are not used for arithmetic and need not coexist in memory.
+        del doc
     if not isinstance(packet,dict) or any(refs[k] is None for k in SOURCES[:3]):raise ValueError('Whole required predecessor and canonical sources required')
     originals=canonical_fred_replay.restore(packet,catalog.SERIES,read)
     return model.build(packet,originals,inputs['generated_at'],contexts,{k:refs[k] for k in (model.CURRENT,model.HISTORY)})

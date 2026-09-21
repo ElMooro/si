@@ -90,7 +90,11 @@ def measure(packet,originals,generated_at):
                 raise ValueError('Reviewed source definition differs: '+sid)
         # A row excluded as future-dated by the captured canonical publication
         # cannot become an observation merely because this compiler runs later.
-        m=m or {};h=history(original,sid,str(source.date()));histories[sid]=h;latest=h[-1] if h else None
+        m=m or {};h=history(original,sid,str(source.date()));latest=h[-1] if h else None
+        # Only this dated comparison needs complete normalized histories after
+        # the individual chart/comparisons are built. Provider originals remain
+        # retained; do not hold a second full copy of all 32 histories in RAM.
+        if sid in ('DGS10','IRLTLT01DEM156N'):histories[sid]=h
         state=row_status(m,at,(at-source).total_seconds());available=state=='fresh';due=[source+timedelta(hours=26)]
         if m.get('acquired_at'):due.append(clock(m['acquired_at'])+timedelta(hours=26))
         if m.get('date'):due.append(datetime.combine(date.fromisoformat(m['date'])+timedelta(days=observations.AGE_LIMITS[freq]+1),time.min,timezone.utc))
@@ -164,8 +168,8 @@ def build(packet,originals,generated_at,contexts=None,predecessors=None):
                 {'members':list(FX),'basis':'All bilateral quotes share USD; the Fed indices also reuse currency exposures with their own weights.'}],
                 'complete_component_lineage_verified':False,'independent_votes':0},
             'retained_contexts':deepcopy(contexts),'retained_predecessors':deepcopy(predecessors),
-            'quality':{'status':'complete_descriptive' if all(row['quality']['status']=='within_age_ceiling' for row in rows.values()) else 'partial_descriptive' if any(histories.values()) else 'unavailable',
-                'declared_series':len(SERIES),'available_original_histories':sum(bool(h) for h in histories.values()),
+            'quality':{'status':'complete_descriptive' if all(row['quality']['status']=='within_age_ceiling' for row in rows.values()) else 'partial_descriptive' if any(row['history_scope']['eligible_original_rows'] for row in rows.values()) else 'unavailable',
+                'declared_series':len(SERIES),'available_original_histories':sum(bool(row['history_scope']['eligible_original_rows']) for row in rows.values()),
                 'within_age_ceilings':sum(row['quality']['status']=='within_age_ceiling' for row in rows.values()),
                 'release_calendar_verified':False,'historical_first_availability_verified':False,'independent_investment_votes':0},
             'benchmark_identity':{'fed_indices':'Official source-provided indices, January 2006 average = 100; nominal and real frequencies stay separate.',

@@ -95,5 +95,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(later['history'],early['history']);self.assertEqual(later['latest_observation'],early['latest_observation'])
         self.assertEqual(later['history_scope']['source_coverage']['future_observations_excluded'],1)
         self.assertTrue(all(p['date']<'2026-09-22' for p in later['history']))
+    def test_missing_rate_source_does_not_discard_other_original_series(self):
+        original=deepcopy(self.data[1]);del original['DGS10'];del original['IRLTLT01DEM156N']
+        p=self.build(originals=original)
+        self.assertEqual(p['quality']['available_original_histories'],30)
+        self.assertEqual(p['quality']['status'],'partial_descriptive')
+        self.assertEqual(p['derived']['us_germany_monthly']['trail'],[])
+        self.assertEqual(len(p['series']),32);self.assertTrue(p['series']['DEXUSEU']['history'])
 
 if __name__=='__main__':unittest.main(verbosity=2)
