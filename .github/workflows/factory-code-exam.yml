@@ -50,13 +50,21 @@ jobs:
         env:
           SOURCES: ${{ github.event.inputs.sources || 'mbpp,apps' }}
           MAX_APPS: ${{ github.event.inputs.max_apps || '600' }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
         run: |
           set -o pipefail
           mkdir -p work aws/ops/reports/code-exam
-          if ! python scripts/factory_oss_curriculum.py fetch --sources "$SOURCES" --max "$MAX_APPS" --out work/candidates.jsonl 2>&1 | tee "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch.log"; then
-            tail -c 6000 "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch.log" > "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch-tail.log" || true
+          rc=0
+          python scripts/factory_oss_curriculum.py fetch --sources "$SOURCES" --max "$MAX_APPS" --out work/candidates.jsonl 2>&1 | tee "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch.log" || rc=$?
+          # 2026-09-21: the fetch log always lands on S3 (private) -- no lane can read job logs, and the evidence branch push was silent
+          tail -c 12000 "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch.log" > "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch-tail.log" || true
+          pip install --quiet awscli >/dev/null 2>&1 || true
+          aws s3 cp "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch-tail.log" "s3://justhodl-ai-857687956942/factory/curriculum/code/runs/${GITHUB_RUN_ID}-fetch-tail.log" --content-type text/plain || echo "::warning::fetch log upload failed"
+          if [ "$rc" != 0 ]; then
             python scripts/push_evidence.py --run-id "${GITHUB_RUN_ID}" --message "code-exam fetch failure log" "aws/ops/reports/code-exam/${GITHUB_RUN_ID}-fetch-tail.log" || true
-            exit 1
+            exit "$rc"
           fi
           cp scripts/factory_code_verify.py work/verify.py
           wc -l work/candidates.jsonl
