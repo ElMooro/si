@@ -123,6 +123,8 @@ def apps_tarball_rows(max_rows: int):
     LOADER_LOG.update({"apps_loader": "tarball", "problems": len(problems), "bytes": len(raw)})
     print(json.dumps({"apps_loader": "tarball", "problems": len(problems)}), file=sys.stderr)
     n = 0
+    funnel = {"problems": len(problems), "unparseable": 0, "difficulty_out": 0, "no_solutions": 0, "no_io": 0, "no_tests_stdio": 0, "no_tests_call": 0, "no_candidates": 0, "yielded": 0}
+    LOADER_LOG["funnel"] = funnel
     for pid in sorted(problems, key=lambda p: int(p) if p.isdigit() else p):
         if n >= max_rows:
             break
@@ -132,17 +134,28 @@ def apps_tarball_rows(max_rows: int):
             solutions = json.loads(doc.get("solutions.json") or "[]")
             io_pairs = json.loads(doc.get("input_output.json") or "{}")
         except Exception:  # noqa: BLE001
+            funnel["unparseable"] += 1
             continue
         difficulty = str(meta.get("difficulty"))
-        if difficulty not in APPS_DIFFICULTIES or not solutions or not io_pairs.get("inputs"):
+        if difficulty not in APPS_DIFFICULTIES:
+            funnel["difficulty_out"] += 1
+            continue
+        if not solutions:
+            funnel["no_solutions"] += 1
+            continue
+        if not io_pairs.get("inputs"):
+            funnel["no_io"] += 1
             continue
         call_based = bool(io_pairs.get("fn_name"))
         tests = _call_tests(io_pairs) if call_based else _stdio_tests(io_pairs)
         if not tests:
+            funnel["no_tests_call" if call_based else "no_tests_stdio"] += 1
             continue
         candidates = [str(sol) for sol in solutions if not looks_python2(str(sol)) and (not call_based or "class Solution" in str(sol))][:APPS_SOLUTIONS_PER_TASK]
         if not candidates:
+            funnel["no_candidates"] += 1
             continue
+        funnel["yielded"] += 1
         question = (doc.get("question.txt") or "").strip()
         for i, sol in enumerate(candidates):
             yield {"task_id": "apps-%s" % pid, "kind": src["kind"], "family": "apps-" + difficulty, "license": src["license"],
