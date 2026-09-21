@@ -68,6 +68,9 @@
       var c = el.children[i];
       if (!(c instanceof HTMLElement) || c.matches(CHROME) || c.dataset.jhBadge != null) continue;
       if (c.hasAttribute("data-jh-sec") || c.hasAttribute("data-jh-key")) { out.push(c); continue; }
+      // Wrapping a heading or paragraph on a narrow screen does not create
+      // a new panel. Number its containing section; keep authored pins above.
+      if (c.matches("h1,h2,h3,h4,h5,h6,p,label,button,input,select,textarea,a,small")) continue;
       if (!visible(c)) continue;
       var r = rect(c);
       if (r.height >= BIG_H && r.width >= BIG_W * vw) out.push(c);

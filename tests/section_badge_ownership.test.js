@@ -44,3 +44,37 @@ test('existing duplicate owner badges are cleaned without removing other section
   assert.equal(document.querySelectorAll('.jh-secbadge[data-for="parent"]')[0].dataset.n,'6');
   assert.equal(document.querySelectorAll('.jh-secbadge[data-for="child"]').length,1);
 });
+
+const childrenCode=source.slice(source.indexOf('  function bigChildren('),source.indexOf('  // The content axis:'));
+function responsiveChildren(){
+  class Element {
+    constructor(tag,height,pinned=false){this.tag=tag;this.height=height;this.pinned=pinned;this.dataset={};this.children=[];}
+    matches(selector){return selector.split(',').includes(this.tag);}
+    hasAttribute(name){return this.pinned&&name==='data-jh-key';}
+  }
+  const context=vm.createContext({HTMLElement:Element,CHROME:'nav,header,footer',BIG_H:96,BIG_W:.4,
+    visible:()=>true,rect:el=>({height:el.height,width:318})});
+  vm.runInContext(childrenCode,context);
+  return {Element,collect:children=>Array.from(context.bigChildren({children},390))};
+}
+
+test('wrapped scenario heading and explanatory paragraphs do not become separate embedded panels',()=>{
+  const {Element,collect}=responsiveChildren();
+  const heading=new Element('h2',180),intro=new Element('p',210),form=new Element('form',440),note=new Element('p',160);
+  assert.deepEqual(collect([heading,intro,form,note]),[form]);
+  // Changing the ticker/title or viewport height must not invent another section.
+  heading.height=240;intro.height=300;
+  assert.deepEqual(collect([heading,intro,form,note]),[form]);
+});
+
+test('large controls stay inside their numbered form while authored text pins remain supported',()=>{
+  const {Element,collect}=responsiveChildren();
+  const control=new Element('label',150),button=new Element('button',110),pin=new Element('p',180,true);
+  assert.deepEqual(collect([control,button,pin]),[pin]);
+});
+
+test('real content panels remain discoverable at mobile widths',()=>{
+  const {Element,collect}=responsiveChildren();
+  const table=new Element('div',800),section=new Element('section',600);
+  assert.deepEqual(collect([table,section]),[table,section]);
+});
