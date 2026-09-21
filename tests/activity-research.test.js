@@ -39,7 +39,21 @@ test('Activity scenario edits invalidate the prior calculation',()=>{
  try{api.bindScenario();form.onsubmit({preventDefault(){}});assert.match(out.textContent,/-\$12,500.00/);form.oninput();assert.match(out.textContent,/Assumptions changed/);}finally{globalThis.document=old;}
 });
 test('Activity binds native page and mutable routes while preserving the whole predecessor',()=>{
- const html=fs.readFileSync(path.join(__dirname,'../activity-nowcast.html'),'utf8');assert.match(html,/jh-activity-research.js\?v=20260921-native1/);assert.doesNotMatch(html,/jh-wire.js|jh-page-ai.js|interp-kit.js/);
+ const html=fs.readFileSync(path.join(__dirname,'../activity-nowcast.html'),'utf8');assert.match(html,/jh-activity-research.js\?v=20260921-native2/);assert.doesNotMatch(html,/jh-wire.js|jh-page-ai.js|interp-kit.js/);
  const worker=fs.readFileSync(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/src/index.js'),'utf8');assert.match(worker,/'activity-nowcast.json'/);assert.match(worker,/nowcast-research\|activity-research/);
  assert.equal(fs.statSync(path.join(__dirname,'../aws/lambdas/justhodl-activity-nowcast/source/legacy_activity_nowcast.py')).size,12066);
+});
+
+
+test('Activity displays spread deltas in basis points and uses the actual chart range',()=>{
+ const out=api.render(p,{},at),c=p.weekly_context.current.components.BAA10Y;
+ const cells=[...out.matchAll(/<tr><th scope="row">BAA10Y<\/th>(.*?)<\/tr>/g)].map(m=>m[1]);
+ const changes=cells.find(x=>x.includes('percent / basis points'));assert.ok(changes);
+ for(const n of ['1','4','13'])assert.ok(changes.includes('<td>'+c.changes[n].basis_point_change.toLocaleString('en-US',{maximumFractionDigits:5})+'</td>'));
+ const q=structuredClone(p);q.weekly_context.trail.forEach((r,i)=>{r.components.NFCI.observation={value:i?0.15:0.05};});
+ let chart=api.render(q,{series:'NFCI'},at).match(/<svg[\s\S]*?<\/svg>/)[0];
+ assert.match(chart,/cy="50"/);assert.match(chart,/cy="220"/);
+ q.weekly_context.trail.forEach(r=>{r.components.NFCI.observation={value:0.05};});
+ chart=api.render(q,{series:'NFCI'},at).match(/<svg[\s\S]*?<\/svg>/)[0];
+ assert.doesNotMatch(chart,/y="45"|NaN|Infinity/);assert.match(chart,/cy="220"/);
 });
