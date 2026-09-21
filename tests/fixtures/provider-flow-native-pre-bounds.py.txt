@@ -4,7 +4,7 @@ Effective and processing dates, latest acquired vintages and original row positi
 stay separate. SPY reporting dates are a comparison grid, not an exchange calendar.
 """
 from datetime import datetime, timezone, timedelta, date
-from decimal import Decimal, DecimalException, localcontext
+from decimal import Decimal, localcontext
 from urllib.parse import urlsplit, parse_qsl, urlencode
 import hashlib, json, re
 
@@ -42,12 +42,8 @@ def dec(value, positive=False):
     if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
         raise ValueError('Provider numeric field required')
     result = Decimal(str(value))
-    if not result.is_finite() or (positive and result <= 0):
+    if not result.is_finite() or abs(result) > Decimal('1e30') or (positive and result <= 0):
         raise ValueError('Finite bounded provider measurement required')
-    if result.is_zero(): return result
-    parts = result.as_tuple()
-    if len(parts.digits) > 128 or parts.exponent < -128 or result.adjusted() > 30 or result.copy_abs() > Decimal('1e30'):
-        raise ValueError('Bounded decimal precision and exponent required')
     return result
 
 
@@ -94,10 +90,8 @@ def original(ref, read):
         raise ValueError('Exact bounded original reference required')
     raw = read(ref['key'])
     if len(raw) != ref['bytes'] or sha(raw) != digest: raise ValueError('Original provider bytes differ')
-    try:
-        doc = json.loads(raw, parse_float=Decimal, object_pairs_hook=pairs,
-                         parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Nonfinite JSON constant')))
-    except (ValueError, DecimalException): raise ValueError('Original provider JSON rejected') from None
+    doc = json.loads(raw, parse_float=Decimal, object_pairs_hook=pairs,
+                     parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Nonfinite JSON constant')))
     if not isinstance(doc, dict) or doc.get('status') != 'OK' or not isinstance(doc.get('results'), list):
         raise ValueError('Successful provider response required')
     if 'count' in doc and (type(doc['count']) is not int or doc['count'] != len(doc['results'])):

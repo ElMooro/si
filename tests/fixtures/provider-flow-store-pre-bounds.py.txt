@@ -10,12 +10,6 @@ import provider_flow_collect as collector
 MAX = 64 * 1024 * 1024
 PRIVATE = native.PRIVATE
 COMPILERS = (native, model, catalog, collector, sys.modules[__name__])
-# Exact reviewed pre-bounds compilers may replay only if complete recomputation agrees.
-# Retained code is verified as evidence and is never executed.
-COMPATIBLE_COMPILERS = {
-    'provider_flow_native': frozenset(('fa75e7684301db2a5dc7c34837c35d984b08d703c5b24365679622ab17aeee44',)),
-    'provider_flow_store': frozenset(('e8e757ad5057398b885b31939fe66a8ff995ffe7697026e9e77e58e13ba1deb3',)),
-}
 KINDS = {'flow': (model.PREFIX, model.CURRENT, model.CONTRACT),
          'radar': (model.RADAR_PREFIX, model.RADAR_CURRENT, model.RADAR_CONTRACT)}
 CONTEXTS = ('etf-flows/measurements.json', 'etf-flows/daily.json', 'etf-flows/composite.json',
@@ -187,14 +181,8 @@ def replay(ref, read):
     for module in COMPILERS:
         body = Path(module.__file__).read_bytes(); digest = model.sha(body)
         expected = {'key': prefix + 'compilers/' + digest + '.py', 'sha256': digest}
-        compiler_ref = run['compilers'][module.__name__]
-        if compiler_ref == expected:
-            if read(expected['key']) != body: raise ValueError('Matching reviewed compiler required')
-        elif compiler_ref.get('sha256') in COMPATIBLE_COMPILERS.get(module.__name__, ()):
-            old = compiler_ref['sha256']
-            if compiler_ref != {'key': prefix + 'compilers/' + old + '.py', 'sha256': old} or model.sha(read(compiler_ref['key'])) != old:
-                raise ValueError('Reviewed predecessor compiler bytes differ')
-        else: raise ValueError('Matching reviewed compiler required')
+        if run['compilers'][module.__name__] != expected or read(expected['key']) != body:
+            raise ValueError('Matching reviewed compiler required')
     inputs = checked(run['input'], prefix, 'inputs', read)
     if inputs.get('kind') != kind: raise ValueError('Run/input kind differs')
     output, histories = compile_output(inputs, read)

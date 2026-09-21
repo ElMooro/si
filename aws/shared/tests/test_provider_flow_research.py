@@ -38,6 +38,32 @@ def restore(rows=None, ticker='SPY', at=STAMP, extra=None):
 
 
 class OriginalFlow(unittest.TestCase):
+    def test_fixed_point_expansion_is_bounded_before_formatting(self):
+        for raw in ('1e-1000000','-1e-1000000','1e31','1.'+'2'*128,'1000000000000000000000000000000.1'):
+            with self.subTest(raw=raw),self.assertRaises(ValueError):native.dec(Decimal(raw))
+        for raw in ('0e-1000000','-0e-1000000'):
+            self.assertEqual(native.ds(native.dec(Decimal(raw))),'0')
+            with self.assertRaises(ValueError):native.dec(Decimal(raw),positive=True)
+        for raw in ('0.000000000000000000000001234500','9007199254740993','-0.004200'):
+            self.assertEqual(native.ds(native.dec(Decimal(raw))),raw)
+
+    def test_extreme_field_does_not_drop_other_fields_or_fabricate_zero(self):
+        rows=fixtures(n=1);rows[0]['fund_flow']='EXPONENT_MARKER'
+        c,objects=retain('SPY',rows)
+        raw=next(iter(objects.values())).replace(b'"EXPONENT_MARKER"',b'1e-1000000')
+        ref={'key':native.PRIVATE+native.sha(raw)+'.bin','sha256':native.sha(raw),'bytes':len(raw)}
+        c['pages'][0]['original']=ref
+        fund=native.reconstruct('SPY',c,{ref['key']:raw}.__getitem__,STAMP)
+        row=fund['history'][0]
+        self.assertIsNone(row['flow_decimal']);self.assertEqual(row['invalid_fields'],['fund_flow'])
+        self.assertEqual(row['nav_decimal'],'100');self.assertEqual(row['shares_decimal'],'1000')
+        self.assertEqual(fund['quality']['status'],'invalid')
+
+    def test_unrepresentable_original_numeric_token_is_rejected(self):
+        raw=b'{"status":"OK","results":[{"fund_flow":1e999999999999999999999999999999}]}'
+        ref={'key':native.PRIVATE+native.sha(raw)+'.bin','sha256':native.sha(raw),'bytes':len(raw)}
+        with self.assertRaisesRegex(ValueError,'Original provider JSON rejected'):native.original(ref,lambda _:raw)
+
     def test_exact_decimal_zero_and_source_positions(self):
         fund = restore(); self.assertEqual(fund['quality']['status'], 'complete_acquired_history')
         self.assertEqual(fund['history'][-1]['flow_decimal'], '0')

@@ -161,4 +161,24 @@ class RetainedFlow(unittest.TestCase):
         with self.assertRaises(ValueError): store.replay(ref, store.reader(storage, 'b'))
 
 
+    def test_exact_pre_bounds_compilers_replay_with_current_code_only(self):
+        storage=Storage();inputs=source_fixture(storage)
+        output,histories=store.compile_output(inputs,store.reader(storage,'b'))
+        ref=store.retain(storage,'b',inputs,output,histories);run=json.loads(storage.objects[ref['manifest_key']])
+        for module in ('provider_flow_native','provider_flow_store'):
+            body=(ROOT/'tests/fixtures'/(module.replace('_','-')+'-pre-bounds.py.txt')).read_bytes();digest=native.sha(body)
+            self.assertIn(digest,store.COMPATIBLE_COMPILERS[module])
+            key=model.PREFIX+'compilers/'+digest+'.py';storage.objects[key]=body
+            run['compilers'][module]={'key':key,'sha256':digest}
+        def retained_run(doc):
+            raw=native.encoded(doc);key=model.PREFIX+'runs/'+native.sha(raw)+'.json';storage.objects[key]=raw
+            return {**ref,'manifest_key':key}
+        old=retained_run(run)
+        self.assertEqual(store.replay(old,store.reader(storage,'b')),output)
+        wrong_module=copy.deepcopy(run);wrong_module['compilers']['provider_flow_model']=run['compilers']['provider_flow_native']
+        with self.assertRaises(ValueError):store.replay(retained_run(wrong_module),store.reader(storage,'b'))
+        compiler_key=run['compilers']['provider_flow_native']['key'];storage.objects[compiler_key]+=b' '
+        with self.assertRaises(ValueError):store.replay(old,store.reader(storage,'b'))
+
+
 if __name__ == '__main__': unittest.main(verbosity=2)
