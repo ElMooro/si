@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 from self_improve_ext import CONSTITUTION_V1, enforce_lessons, process_score_read, think_rank  # noqa: F401
 
-VERSION = "self-improve.3"
+VERSION = "self-improve.3.1"
 UTC = timezone.utc
 
 BASE_CODING_PASSED = 135
@@ -102,14 +102,23 @@ def refuse_repeat_sft(job_records: Iterable[Mapping[str, Any]], manifest: Mappin
     kept = _i(manifest.get("kept"))
     if not digest and not kinds and kept <= 0:
         return None
+    only_old = bool(kinds) and (
+        set(kinds) <= {"public_benchmark_train"}
+        or (
+            _i((kinds or {}).get("public_benchmark_train")) >= max(kept, 1) * 0.9
+            and _i(manifest.get("families") or 0) <= 2
+            and kept > 0
+        )
+    )
+    if only_old:
+        return (
+            "curiosity refuse-SFT: dataset is still the old public_benchmark_train "
+            "(%s rows, %s families, kinds=%s). Add exam_fail / preference_pair / justhodl_native families before another GPU hour."
+            % (manifest.get("kept"), manifest.get("families"), kinds)
+        )
     if not digest:
         return "manifest has no eligibility_digest — refuse launch"
     need_families = int(control.get("require_new_family_after_flat_gens") or 3)
-    only_old = set(kinds) <= {"public_benchmark_train"} or (
-        _i((kinds or {}).get("public_benchmark_train")) >= kept * 0.9
-        and _i(manifest.get("families") or 0) <= 2
-        and kept > 0
-    )
     same: List[str] = []
     for row in sorted(job_records, key=lambda r: str(r.get("launched_at") or ""), reverse=True):
         if str(row.get("kind") or "sft") not in ("sft", "pref"):
@@ -118,17 +127,11 @@ def refuse_repeat_sft(job_records: Iterable[Mapping[str, Any]], manifest: Mappin
             same.append(str(row.get("job_name") or row.get("generation")))
         if len(same) >= need_families:
             break
-    if only_old:
-        return (
-            "curiosity refuse-SFT: dataset is still the old public_benchmark_train "
-            "(%s rows, %s families, kinds=%s). Add exam_fail / preference_pair / justhodl_native families before another GPU hour."
-            % (manifest.get("kept"), manifest.get("families"), kinds)
-        )
     if len(same) >= need_families:
         return "curiosity refuse-SFT: last %d jobs reused eligibility_digest %s…" % (len(same), digest[:12])
     pref_pairs = _i(manifest.get("pref_pairs") or kinds.get("preference_pair"))
-    if _i(control.get("min_dpo_pairs") or 0) > 0 and pref_pairs < _i(control.get("min_dpo_pairs")) and only_old:
-        return "min_dpo_pairs=%s not met (have %s) and no new family" % (control.get("min_dpo_pairs"), pref_pairs)
+    if _i(control.get("min_dpo_pairs") or 0) > 0 and pref_pairs < _i(control.get("min_dpo_pairs")):
+        return "min_dpo_pairs=%s not met (have %s)" % (control.get("min_dpo_pairs"), pref_pairs)
     return None
 
 
