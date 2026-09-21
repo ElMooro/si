@@ -3,7 +3,7 @@ import json,sys,unittest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'tests'),str(ROOT/'aws/shared'),str(ROOT/'aws/ops/staged')]
 import futures_research_model as model
-import ops_6011_futures_calendar_candidate as audit
+import ops_6013_futures_holiday_calendar_candidate as audit
 from test_futures_research_model import fixture,compile_,change,add_calendar
 class Tests(unittest.TestCase):
     def data(self):

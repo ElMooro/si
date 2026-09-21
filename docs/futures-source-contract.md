@@ -48,6 +48,10 @@ scheduled end with its own acquisition clock. A second comparison view includes
 only rows whose matched scheduled end had passed; the original view is retained.
 Unknown or ambiguous calendars do not silently become completed sessions. Neither
 view asserts that the provider's bars are final or will never be revised.
+Holiday events can span several calendar days before their assigned trading
+date. The event window permits a bounded seven-day lookback; a single qualified
+close must land on the assigned date in America/Chicago. An earlier holiday
+fragment or multiple different closes do not establish the session's final end.
 
 ## Primary definitions reviewed on 2026-09-21
 

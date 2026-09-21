@@ -36,4 +36,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(result(values)['repeated_event_identity_rows'],1);self.assertEqual(result(values)['qualified_session_closes'],1)
     def test_reconciliation_does_not_mutate_original_rows(self):
         values=rows();old=copy.deepcopy(values);result(values);self.assertEqual(values,old)
+    def test_holiday_spans_are_retained_but_early_holiday_close_is_not_final_session_end(self):
+        values=[{'product_code':'ES','trading_venue':'XCME','session_end_date':'2026-07-06','event':event,'timestamp':stamp} for event,stamp in
+            [('pre_open','2026-07-02T21:45:00Z'),('open','2026-07-02T22:00:00Z'),('close','2026-07-03T17:00:00Z')]]
+        out=c.reconcile(values,'ES','XCME','2026-06-23','2026-09-21',True)
+        self.assertEqual(out['invalid_source_row_ordinals'],[]);self.assertEqual(out['qualified_session_closes'],0)
+        values[-1]['timestamp']='2026-07-06T21:00:00Z'
+        self.assertEqual(c.reconcile(values,'ES','XCME','2026-06-23','2026-09-21',True)['qualified_session_closes'],1)
+    def test_session_date_is_exchange_calendar_not_utc_date(self):
+        values=rows();values[-1]['timestamp']='2026-09-22T00:00:00Z'
+        out=result(values);self.assertEqual(out['qualified_session_closes'],1)
+        self.assertEqual(out['exchange_calendar_timezone'],'America/Chicago')
 if __name__=='__main__':unittest.main(verbosity=2)
