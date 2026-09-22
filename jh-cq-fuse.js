@@ -56,7 +56,12 @@
     average_dormancy: ["dormancy", "average dormancy"],
     mvrv_ratio_zscore: ["mvrv z", "mvrv z-score", "mvrv zscore", "z-score"],
     total_value_staked: ["eth2", "eth 2", "staked eth", "tvl staked"],
-    apparent_demand: ["apparent demand"]
+    apparent_demand: ["apparent demand"],
+    number_of_nodes: ["lightning", "ln nodes", "lightning nodes"],
+    number_of_channels: ["lightning channels"],
+    capacity: ["lightning capacity"],
+    etf_flow: ["etf demand", "etf flow"],
+    bull_bear: ["bull bear", "bull-bear"]
   };
 
   function loadJson(url, fetchFn) {
@@ -202,6 +207,9 @@
         var s = "CQSNAP:" + path + ":" + fk;
         var aliases = FIELD_Q[fk] || [];
         var name = nice((path.split("/")[0] || "btc").toUpperCase() + " " + fk);
+        var dlt = (typeof fields[fk] === "number" && typeof prev[fk] === "number") ? (fields[fk] - prev[fk]) : null;
+        var extra = fmt(fields[fk]) + " · " + String(row.asof || "").slice(0, 10);
+        extra += " · cq-feed live print · 1y series on harvest";
         snapCover[path + "|" + fk] = 1;
         snaps.push({
           s: s,
@@ -210,12 +218,13 @@
           name: name,
           value: fields[fk],
           prev: prev[fk],
+          dlt: dlt,
           asof: row.asof || "",
-          extra: "CryptoQuant EOD snapshot · no harvest series (cq-feed limit=2)",
+          extra: extra,
           chartable: false,
           type: "onchain",
           cat: "chain",
-          blob: blobOf(s, path, fk, fk.replace(/_/g, " "), name, aliases.join(" "), "snapshot cryptoquant cq-feed")
+          blob: blobOf(s, path, path.replace(/[\/\-]+/g, " "), fk, fk.replace(/_/g, " "), name, aliases.join(" "), "snapshot cryptoquant cq-feed live print")
         });
       });
     });
@@ -323,7 +332,7 @@
     limit = limit || 24;
     var n = String(q || "").toLowerCase().replace(/[^a-z0-9:+.\- /_]+/g, " ").replace(/\s+/g, " ").trim();
     if (!n || !PACK) return [];
-    if (/cq|on.?chain|cryptoquant/.test(n)) limit = Math.max(limit, 120);
+    if (/cq|on.?chain|cryptoquant|mvrv|sopr|nupl|hashrate|puell|a_sopr|in-house|block.interval|cdd|dormancy|eth2|lightning|mvrv.?z|xrp|trx|stablecoin|mempool|miner|realized|exchange.?flow|whale|ssr|nvt|coin.?day|apparent.?demand|etf.?demand|utxo|hodl|asopr|mpi|netflow|reserve/.test(n)) limit = Math.max(limit, 400);
     var out = [], i, row, sc;
     function score(blob, s, name) {
       if (s.toLowerCase() === n || s.toLowerCase() === "cq:" + n) return 100;
@@ -437,12 +446,12 @@
     h += "<div class='card'><div class='card-title'>HARVEST FUSE</div>";
     h += "<div class='metric'><span class='metric-name'>series (chartable)</span><span class='metric-val mono'>" + P.n_series + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>cq-feed paths</span><span class='metric-val mono'>" + P.n_feed + "</span></div>";
-    h += "<div class='metric'><span class='metric-name'>extra snapshots</span><span class='metric-val mono'>" + P.n_snaps + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>live prints (cq-feed)</span><span class='metric-val mono'>" + P.n_snaps + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>armed (next EOD)</span><span class='metric-val mono'>" + P.n_armed + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>catalog-only</span><span class='metric-val mono'>" + P.n_docs + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>public v1+v2</span><span class='metric-val mono'>" + ((P.n_v1 || 0) + (P.n_v2 || 0) || "—") + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>generated</span><span class='metric-val mono'>" + esc(String(P.generated_at).slice(0, 16).replace("T", " ")) + "</span></div></div>";
-    h += "<div class='card'><div class='card-title'>PLAN WINDOW</div><div class='stat-sm'>" + esc(P.plan_note) + "</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv, CDD, dormancy, MVRV Z, ETH2). Extra fields without a series bank are snapshots. Armed names chart after the next EOD pull — never a fake 2-bar. Token/symbol/pair and age matrices stay catalog-only.</div></div>";
+    h += "<div class='card'><div class='card-title'>PLAN WINDOW</div><div class='stat-sm'>" + esc(P.plan_note) + "</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv, CDD, dormancy, MVRV Z, ETH2, lightning, XRP). Live cq-feed prints show the latest number. Chart only when a harvest series exists — never a fake 2-bar. Token/symbol/pair and age matrices stay catalog-only.</div></div>";
     h += "</div>";
     var im = (intel.metrics) || {};
     var intelKeys = Object.keys(im);
@@ -484,15 +493,19 @@
       h += "</div>";
     });
     if (P.snaps.length) {
-      h += "<div class='card' style='margin-top:12px'><div class='card-title'>CQ-FEED EXTRA FIELDS · " + P.snaps.length + " SNAPSHOTS · NO HARVEST SERIES</div>";
-      h += "<div class='stat-sm' style='margin-bottom:8px'>Professional feed returns latest+prev only for these sibling fields (aSOPR, STH/LTH SOPR, in-house flow, block interval, liquidation sides, …). Not plotted. Search them from chart.html — click opens this desk.</div>";
-      h += "<table class='cq-snap'><tr><th>field</th><th>path</th><th>latest</th><th>prev</th><th>asof</th></tr>";
+      h += "<div class='card-title' style='margin:14px 0 8px'>LIVE CQ-FEED INDICATORS · " + P.snaps.length + " PRINTS</div>";
+      h += "<div class='stat-sm' style='margin-bottom:8px'>Every numeric field on the Professional cq-feed (latest+prev). Numbers are live EOD prints — not a 2-bar chart. Chart button appears only after the 1y series bank lands.</div>";
+      h += "<div class='grid' style='grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-bottom:12px'>";
       P.snaps.forEach(function (sn) {
-        var dlt = (typeof sn.value === "number" && typeof sn.prev === "number") ? (sn.value - sn.prev) : null;
-        var dc = dlt == null ? "" : (dlt > 0 ? "up" : dlt < 0 ? "dn" : "");
-        h += "<tr data-cqhit='" + esc((sn.blob || "").replace(/'/g, "")) + "' data-snap='" + esc(sn.path + ":" + sn.field) + "'><td class='mono'>" + esc(sn.field) + "</td><td class='mono'>" + esc(sn.path) + "</td><td class='mono'>" + fmt(sn.value) + "</td><td class='mono " + dc + "'>" + (dlt == null ? "—" : ((dlt > 0 ? "+" : "") + fmt(dlt))) + "</td><td class='mono'>" + esc(sn.asof || "—") + "</td></tr>";
+        var dc = sn.dlt == null ? "" : (sn.dlt > 0 ? "up" : sn.dlt < 0 ? "dn" : "");
+        h += "<div class='card' data-cqhit='" + esc((sn.blob || "").replace(/'/g, "")) + "' data-snap='" + esc(sn.path + ":" + sn.field) + "'>";
+        h += "<div class='card-title'>" + esc(sn.name) + "</div>";
+        h += "<div class='stat-big mono'>" + fmt(sn.value) + "</div>";
+        h += "<div class='stat-sm " + dc + "'>" + (sn.dlt == null ? "—" : ((sn.dlt > 0 ? "+" : "") + fmt(sn.dlt))) + " vs prev · " + esc(sn.asof || "—") + "</div>";
+        h += "<div class='stat-sm' style='margin-top:6px'>" + esc(sn.path + " · " + sn.field) + "</div>";
+        h += "<div class='stat-sm' style='margin-top:4px'>" + esc(sn.extra) + "</div></div>";
       });
-      h += "</table></div>";
+      h += "</div>";
     }
     if (P.armed && P.armed.length) {
       h += "<div class='card' style='margin-top:12px'><div class='card-title'>ARMED · " + P.armed.length + " · AWAITING FIRST EOD PULL</div>";

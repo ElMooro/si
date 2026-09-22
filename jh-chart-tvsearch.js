@@ -344,17 +344,17 @@
     var fuse = (c && c.fuse) || (window.JHCqFuse && window.JHCqFuse.pack && window.JHCqFuse.pack());
     var snapHtml = "";
     if (fuse && fuse.snaps && fuse.snaps.length) {
-      snapHtml = "<table class=cqtab><thead><tr><th>Snapshot field</th><th>Path</th><th>Latest</th><th>As of</th><th></th></tr></thead><tbody>";
+      snapHtml = "<table class=cqtab><thead><tr><th>Live print</th><th>Path</th><th>Latest</th><th>As of</th><th></th></tr></thead><tbody>";
       fuse.snaps.forEach(function (sn) {
-        snapHtml += "<tr><td>" + esc(sn.field) + "</td><td>" + esc(sn.path) + "</td><td>" + esc(cqFmt(sn.value)) + "</td><td>" +
-          esc(String(sn.asof || "").slice(0, 10)) + "</td><td><span class=note>no harvest series</span></td></tr>";
+        snapHtml += "<tr><td>" + esc(sn.name || sn.field) + "</td><td>" + esc(sn.path) + "</td><td>" + esc(cqFmt(sn.value)) + "</td><td>" +
+          esc(String(sn.asof || "").slice(0, 10)) + "</td><td><span class=note>cq-feed live print</span></td></tr>";
       });
       snapHtml += "</tbody></table>";
     }
     return "<div class=kpi>" + kp + "</div>" +
       blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (cadence EOD; never LIVE; twins extend some series to 2010; not blended with ETF or FMP)",
         html) +
-      (snapHtml ? blk("cq-feed extra fields — EOD snapshots only (limit=2, not plotted). Search a_sopr / in-house / block_interval from the symbol box.", snapHtml) : "");
+      (snapHtml ? blk("LIVE CQ-FEED INDICATORS — EOD prints (not plotted until 1y harvest). Search CDD / dormancy / MVRV Z / ETH2 / lightning / XRP from the symbol box.", snapHtml) : "");
   }
   function renderValFmp(f) {
     var r = f.row;

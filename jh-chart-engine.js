@@ -1820,7 +1820,7 @@
   async function klines(sym, tfId, quiet){
     if(/^CQSNAP:|^CQARM:|^CQDOC:/i.test(String(sym||""))){
       if(!quiet){
-        if(/^CQSNAP:/i.test(sym)) lastSource="CryptoQuant EOD snapshot · no harvest series";
+        if(/^CQSNAP:/i.test(sym)) lastSource="CryptoQuant EOD snapshot · live print · no 1y series yet";
         else if(/^CQARM:/i.test(sym)) lastSource="CryptoQuant armed · 1y window on next EOD pull · no invented history";
         else lastSource="CryptoQuant catalog-only · not harvested";
       }

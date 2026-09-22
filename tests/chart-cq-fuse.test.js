@@ -66,6 +66,30 @@ const FIX = {
         asof: "2026-09-20",
         fields: { block_interval: 9.8 },
         prev: { block_interval: 9.6 }
+      },
+      "btc_network-indicator_cdd": {
+        path: "btc/network-indicator/cdd",
+        asof: "2026-09-21",
+        fields: { cdd: 1234567, sa_cdd: 0.42 },
+        prev: { cdd: 1100000, sa_cdd: 0.40 }
+      },
+      "community_bitcoin-mvrv-z-score": {
+        path: "community/bitcoin-mvrv-z-score",
+        asof: "2026-09-21",
+        fields: { mvrv_ratio_zscore: 1.85 },
+        prev: { mvrv_ratio_zscore: 1.70 }
+      },
+      "eth_eth2_total-value-staked": {
+        path: "eth/eth2/total-value-staked",
+        asof: "2026-09-21",
+        fields: { total_value_staked: 34000000 },
+        prev: { total_value_staked: 33900000 }
+      },
+      "btc_lightning-network_stats": {
+        path: "btc/lightning-network/stats",
+        asof: "2026-09-21",
+        fields: { number_of_nodes: 12000 },
+        prev: { number_of_nodes: 11900 }
       }
     }
   },
@@ -119,10 +143,10 @@ function loadFuse() {
 }
 
 test("chart.html and crypto desk load the CQ fuse", () => {
-  assert.match(html, /jh-cq-fuse\.js\?v=20260922aa-cqfull/);
-  assert.match(html, /jh-chart-catalog\.js\?v=20260922aa-cqfull/);
-  assert.match(html, /jh-chart-engine\.js\?v=20260922aa-cqfull/);
-  assert.match(cryptoIdx, /jh-cq-fuse\.js\?v=20260922aa-cqfull/);
+  assert.match(html, /jh-cq-fuse\.js\?v=20260922ab-cqind/);
+  assert.match(html, /jh-chart-catalog\.js\?v=20260922ab-cqind/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260922ab-cqind/);
+  assert.match(cryptoIdx, /jh-cq-fuse\.js\?v=20260922ab-cqind/);
   assert.match(cryptoIdx, /JHCqFuse\.paneHTML/);
   assert.match(cryptoIdx, /JHCqFuse\.load/);
   assert.match(cryptoIdx, /data-arm/);
@@ -134,20 +158,20 @@ test("chart.html and crypto desk load the CQ fuse", () => {
   assert.match(engine, /CQARM/);
   assert.match(engine, /CQDOC/);
   assert.match(catalog, /JHCqFuse/);
-  assert.match(search, /no harvest series/);
+  assert.match(search, /cq-feed live print/);
 });
 
 test("fuse search finds harvest series and extra snapshots, never invents history", async () => {
   const ctx = loadFuse();
   const pack = await ctx.JHCqFuse.load();
   assert.equal(pack.n_series, 3);
-  assert.ok(pack.n_snaps >= 6, "sibling fields a_sopr/sth/lth + in-house + block_interval");
-  assert.ok(pack.n_armed >= 4, "universe armed cdd/dormancy/mvrv-z/eth2");
+  assert.ok(pack.n_snaps >= 10, "sibling fields + CDD + MVRV Z + ETH2 + lightning");
+  assert.ok(pack.n_armed >= 1, "universe armed dormancy (not in feed fixture)");
   assert.ok(pack.n_docs >= 2, "catalog-only discovery/entity-list");
   const hashrate = ctx.JHCqFuse.searchHits("hashrate");
   assert.ok(hashrate.some(function (h) { return h.s === "CQ:btc_hashrate" && h.chartable === true; }));
   const asopr = ctx.JHCqFuse.searchHits("a_sopr");
-  assert.ok(asopr.some(function (h) { return /a_sopr/.test(h.s) && h.chartable === false; }));
+  assert.ok(asopr.some(function (h) { return /a_sopr/.test(h.s) && h.chartable === false && /1\.01/.test(h.extra) && /live print/.test(h.extra); }));
   const house = ctx.JHCqFuse.searchHits("in-house");
   assert.ok(house.some(function (h) { return h.chartable === false && /in-house/.test(h.s + h.name + h.extra); }));
   const snapK = await ctx.JHCqFuse.klines("CQSNAP:btc/market-indicator/sopr:a_sopr");
@@ -156,23 +180,27 @@ test("fuse search finds harvest series and extra snapshots, never invents histor
   assert.match(pane, /Chart CQ:btc_mvrv/);
   assert.match(pane, /chart\.html\?s=CQ:btc_hashrate/);
   assert.match(pane, /a_sopr/);
-  assert.match(pane, /NO HARVEST SERIES/);
+  assert.match(pane, /LIVE CQ-FEED INDICATORS/);
+  assert.doesNotMatch(pane, /NO HARVEST SERIES/);
   assert.match(pane, /id='pane-cq'/);
   assert.match(pane, /AWAITING FIRST EOD PULL/);
   assert.match(pane, /CATALOG-ONLY/);
 });
 
-test("universe search finds CDD, dormancy, MVRV Z, ETH2 as armed — no fake bars", async () => {
+test("feed prints CDD / MVRV Z / ETH2 / lightning as live numbers — dormancy stays armed — no fake bars", async () => {
   const ctx = loadFuse();
   await ctx.JHCqFuse.load();
   const cdd = ctx.JHCqFuse.searchHits("cdd");
-  assert.ok(cdd.some(function (h) { return /^CQARM:/.test(h.s) && /cdd/i.test(h.s + h.name) && h.chartable === false; }));
+  assert.ok(cdd.some(function (h) { return /^CQSNAP:/.test(h.s) && /cdd/i.test(h.s + h.name) && h.chartable === false && /live print/.test(h.extra); }));
   const dorm = ctx.JHCqFuse.searchHits("dormancy");
   assert.ok(dorm.some(function (h) { return /^CQARM:/.test(h.s) && h.chartable === false; }));
   const z = ctx.JHCqFuse.searchHits("mvrv z");
-  assert.ok(z.some(function (h) { return /^CQARM:/.test(h.s) && /zscore|z-score/i.test(h.s + h.name + h.extra + (h.blob || "")); }));
+  assert.ok(z.some(function (h) { return /^CQSNAP:/.test(h.s) && /zscore|z-score/i.test(h.s + h.name + h.extra) && /1\.85/.test(h.extra); }));
   const eth2 = ctx.JHCqFuse.searchHits("eth2");
-  assert.ok(eth2.some(function (h) { return /^CQARM:/.test(h.s) && h.chartable === false; }));
+  assert.ok(eth2.some(function (h) { return /^CQSNAP:/.test(h.s) && h.chartable === false; }));
+  const ln = ctx.JHCqFuse.searchHits("lightning");
+  assert.ok(ln.some(function (h) { return /lightning/i.test(h.s + h.name + h.extra + (h.blob || "")) && /live print/.test(h.extra); }));
+  assert.equal(await ctx.JHCqFuse.klines("CQSNAP:btc/network-indicator/cdd:cdd"), null);
   assert.equal(await ctx.JHCqFuse.klines("CQARM:btc_network_indicator_cdd_cdd"), null);
   assert.equal(await ctx.JHCqFuse.klines("CQDOC:discovery_path"), null);
 });
@@ -223,9 +251,11 @@ test("catalog + fuse search is harvest-dynamic", async () => {
   vm.runInContext(catalog, ctx);
   await ctx.JHCqFuse.load();
   const hits = ctx.JHChartCatalog.suggest("a_sopr", 40);
-  assert.ok(hits.some(function (h) { return /a_sopr/.test(h.s) && /snapshot/i.test(h.extra); }));
+  assert.ok(hits.some(function (h) { return /a_sopr/.test(h.s) && /live print/i.test(h.extra); }));
   const h2 = ctx.JHChartCatalog.suggest("hashrate", 40);
   assert.ok(h2.some(function (h) { return h.s === "CQ:btc_hashrate"; }));
   const h3 = ctx.JHChartCatalog.suggest("cdd", 40);
-  assert.ok(h3.some(function (h) { return /^CQARM:/.test(h.s); }));
+  assert.ok(h3.some(function (h) { return /^CQSNAP:/.test(h.s) && /live print/i.test(h.extra); }));
+  const h4 = ctx.JHChartCatalog.suggest("cryptoquant", 400);
+  assert.ok(h4.length >= 12, "cq catalog query returns the harvest, not 16 stock hits");
 });

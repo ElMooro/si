@@ -274,9 +274,9 @@
       out.push(hit);
     }
     if (!n) return out.slice(0, limit);
-    if (/cq|on.?chain|cryptoquant|mvrv|sopr|nupl|hashrate|puell|a_sopr|in-house|block.interval|cdd|dormancy|eth2|lightning|mvrv.?z/i.test(n)) limit = Math.max(limit, 80);
+    if (/cq|on.?chain|cryptoquant|mvrv|sopr|nupl|hashrate|puell|a_sopr|in-house|block.interval|cdd|dormancy|eth2|lightning|mvrv.?z|xrp|trx|stablecoin|mempool|miner|realized|exchange.?flow|whale|ssr|nvt|coin.?day|apparent.?demand|etf.?demand|utxo|hodl|asopr|mpi|netflow|reserve/i.test(n)) limit = Math.max(limit, 80);
     if (global.JHCqFuse && typeof global.JHCqFuse.searchHits === "function" && global.JHCqFuse.pack()) {
-      if (/cq|on.?chain|cryptoquant/i.test(n)) limit = Math.max(limit, 120);
+      if (/cq|on.?chain|cryptoquant|cdd|dormancy|eth2|lightning|xrp|trx|mvrv.?z/i.test(n)) limit = Math.max(limit, 400);
       global.JHCqFuse.searchHits(n, limit).forEach(function (h) { push(h, h.score || 85); });
     }
     if (SYM) {
