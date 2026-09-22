@@ -1,12 +1,14 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "83be9ad6837560f46996c4742e7fabd4d605e463",
-  "observed_at": "2026-09-22T17:17:46.197069+00:00",
+  "observed_at": "2026-09-22T17:30:23.755477+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 552,
+  "verified_routes": 550,
   "failed_routes": [
-    "chart.html"
+    "auction-crisis.html",
+    "chart.html",
+    "dossier.html"
   ],
   "source_equivalent_builds": {
     "83be9ad6837560f46996c4742e7fabd4d605e463": true
@@ -378,12 +380,12 @@
     },
     {
       "route": "auction-crisis.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
-      "inspector_present": true,
-      "bytes_read": 55225,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "auctions.html",
@@ -1512,12 +1514,12 @@
     },
     {
       "route": "dossier.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
-      "inspector_present": true,
-      "bytes_read": 17958,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "download.html",
@@ -1705,7 +1707,7 @@
       "http_status": 200,
       "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
       "inspector_present": true,
-      "bytes_read": 876722,
+      "bytes_read": 876714,
       "product_source_matches_release": true
     },
     {
@@ -4995,7 +4997,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35759367825,
+  "deployment_run_id": 35760777283,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-22T17:17:46.199217+00:00"
+  "check_finished_at": "2026-09-22T17:30:23.757690+00:00"
 }
