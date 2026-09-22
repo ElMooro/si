@@ -102,6 +102,12 @@ def refuse_repeat_sft(job_records: Iterable[Mapping[str, Any]], manifest: Mappin
     kept = _i(manifest.get("kept"))
     if not digest and not kinds and kept <= 0:
         return None
+    # 2026-09-22 (Claude): novelty is measured on tasks, not on the kind label -- a dataset whose tasks the last launched
+    # generation mostly never saw is not "repeat SFT", whatever family it comes from (gen-24: 2,010 tasks, ~70% new).
+    min_new = float(control.get("min_new_task_fraction") or 0.25)
+    novelty = manifest.get("new_task_fraction")
+    if isinstance(novelty, (int, float)) and float(novelty) >= min_new and kept > 0:
+        return None
     only_old = bool(kinds) and (
         set(kinds) <= {"public_benchmark_train"}
         or (

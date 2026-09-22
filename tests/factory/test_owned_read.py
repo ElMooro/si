@@ -290,5 +290,30 @@ class DoctrineWrapperTests(unittest.TestCase):
         self.assertIn('preview.get("refusal") != "launch disabled"', src)     # the preview runs launch=False and always says so once a dataset is eligible
 
 
+
+class NoveltyDoctrineTests(unittest.TestCase):
+    def test_novel_tasks_are_not_repeat_sft_and_repeats_still_refuse(self):
+        sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-ai/source'))
+        import importlib
+        si = importlib.import_module('self_improve')
+        control = {"min_new_task_fraction": 0.25}
+        novel = {"eligibility_digest": "d", "kinds": {"public_benchmark_train": 2010}, "kept": 2010, "families": 3, "new_task_fraction": 0.72}
+        self.assertIsNone(si.refuse_repeat_sft([], novel, control))                      # 72% tasks never trained on -> train
+        stale = dict(novel, new_task_fraction=0.03)
+        self.assertIn("curiosity refuse-SFT", si.refuse_repeat_sft([], stale, control) or "")   # the same tasks again -> refuse
+        unknown = {k: v for k, v in novel.items() if k != "new_task_fraction"}
+        self.assertIn("curiosity refuse-SFT", si.refuse_repeat_sft([], unknown, control) or "")  # no novelty measure -> the old rule stands
+
+    def test_new_task_fraction_against_the_last_launched_generation(self):
+        sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-ai/source'))
+        import importlib, json as _json, types as _types
+        gb = importlib.import_module('gear_b')
+        last = {"generation": 20, "task_ids": ["a", "b", "c"], "prefix": "x/"}
+        gb.last_launched_manifest = lambda s3, b: last
+        f = gb.new_task_fraction(None, "p", ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"])
+        self.assertEqual((f["new_task_fraction"], f["new_tasks"], f["vs_generation"], f["seen_basis"]), (0.7, 7, 20, "task_ids"))
+        gb.last_launched_manifest = lambda s3, b: None
+        self.assertEqual(gb.new_task_fraction(None, "p", ["a"])["new_task_fraction"], 1.0)
+
 if __name__ == '__main__':
     unittest.main()

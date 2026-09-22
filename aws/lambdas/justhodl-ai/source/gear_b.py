@@ -392,6 +392,39 @@ def next_generation(s3, private_bucket: str) -> int:
     return (max(gens) + 1) if gens else 1
 
 
+def last_launched_manifest(s3, private_bucket: str) -> Optional[Dict[str, Any]]:
+    """The newest dataset a real SFT job consumed (job records of kind sft/pref), else None."""
+    launched = {r.get("generation") for r in _job_records(s3, private_bucket) if str(r.get("kind") or "sft") in ("sft", "pref") and r.get("job_name")}
+    if not launched:
+        return None
+    for key in sorted((k for k in list_keys(s3, private_bucket, DATASET_PREFIX, 5000) if k.endswith("/manifest.json")),
+                      key=lambda k: int(re.search(r"gen-(\d+)/", k).group(1)), reverse=True):
+        m = get_json(s3, private_bucket, key)
+        if isinstance(m, dict) and m.get("generation") in launched:
+            return m
+    return None
+
+
+def new_task_fraction(s3, private_bucket: str, task_ids: List[str]) -> Dict[str, Any]:
+    """2026-09-22: repeat-SFT is about the TASKS, not the label on the rows. The fraction of this dataset's tasks that the
+    last launched generation never trained on (its manifest's task_ids, or its train.jsonl prompts for older manifests)."""
+    last = last_launched_manifest(s3, private_bucket)
+    if not last:
+        return {"new_task_fraction": 1.0, "new_tasks": len(task_ids), "vs_generation": None}
+    seen = set(map(str, last.get("task_ids") or []))
+    if not seen and last.get("prefix"):
+        try:
+            body = s3.get_object(Bucket=private_bucket, Key=last["prefix"] + "train.jsonl")["Body"].read().decode("utf-8", "replace")
+            seen = {"p:" + sha256_bytes(str(json.loads(line).get("instruction") or "").encode("utf-8"))[:24] for line in body.splitlines() if line.strip()}
+        except Exception:  # noqa: BLE001
+            seen = set()
+    if not task_ids:
+        return {"new_task_fraction": 0.0, "new_tasks": 0, "vs_generation": last.get("generation")}
+    # older train files carry prompts only: compare on the prompt digest form when a task id is not in the seen set
+    new = [t for t in task_ids if t not in seen]
+    return {"new_task_fraction": round(len(new) / len(task_ids), 4), "new_tasks": len(new), "vs_generation": last.get("generation"), "seen_basis": "task_ids" if last.get("task_ids") else "train.jsonl"}
+
+
 def latest_unlaunched_manifest(s3, private_bucket: str) -> Optional[Dict[str, Any]]:
     """The newest eligible dataset that no job has consumed yet, else None."""
     manifests = [k for k in list_keys(s3, private_bucket, DATASET_PREFIX, 5000) if k.endswith("/manifest.json")]
@@ -425,9 +458,11 @@ def build_dataset(s3, private_bucket: str, public_bucket: str, control: Dict[str
     train_lines = "\n".join(_canonical({"instruction": r["prompt"], "context": "", "response": r["solution"]}) for r in cur["rows"]) + "\n"
     template = {"prompt": "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{instruction}\n\n### Response:\n", "completion": "{response}"}
     train_bytes = train_lines.encode("utf-8")
+    task_ids = sorted({str(r.get("task_id") or ("p:" + sha256_bytes(str(r.get("prompt") or "").encode("utf-8"))[:24])) for r in cur["rows"]})
+    novelty = new_task_fraction(s3, private_bucket, task_ids)
     manifest = dict(status, ok=True, generation=gen, prefix=prefix, train_sha256=sha256_bytes(train_bytes), train_bytes=len(train_bytes),
                     template_sha256=sha256_bytes(_canonical(template).encode("utf-8")),
-                    rows_sha256=[r["row_sha"] for r in cur["rows"]][:50000],
+                    rows_sha256=[r["row_sha"] for r in cur["rows"]][:50000], task_ids=task_ids[:50000], **novelty,
                     sources={"traces": TRACES_PREFIX, "skillbook": SKILLBOOK_PREFIX, "verified": CURRICULUM_VERIFIED_PREFIX},
                     excluded=[REJECT_PREFIX], version=VERSION)
     manifest["eligibility_digest"] = digest({k: manifest[k] for k in ("train_sha256", "template_sha256", "holdout_digest", "licenses", "kinds", "kept", "generation")})
