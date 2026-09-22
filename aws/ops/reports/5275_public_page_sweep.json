@@ -1,12 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "a4c08e74875130c61396cb179e6f983b0e8c0295",
-  "observed_at": "2026-09-22T08:46:55.880294+00:00",
+  "observed_at": "2026-09-22T08:59:13.489098+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 552,
+  "verified_routes": 551,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "today.html"
   ],
   "source_equivalent_builds": {
     "a4c08e74875130c61396cb179e6f983b0e8c0295": true
@@ -1705,7 +1706,7 @@
       "http_status": 200,
       "build_sha": "a4c08e74875130c61396cb179e6f983b0e8c0295",
       "inspector_present": true,
-      "bytes_read": 877078,
+      "bytes_read": 877082,
       "product_source_matches_release": true
     },
     {
@@ -4545,12 +4546,12 @@
     },
     {
       "route": "today.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "a4c08e74875130c61396cb179e6f983b0e8c0295",
-      "inspector_present": true,
-      "bytes_read": 19142,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "tools/ice-recover.html",
@@ -4995,7 +4996,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35706425744,
+  "deployment_run_id": 35707429629,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-22T08:46:55.882635+00:00"
+  "check_finished_at": "2026-09-22T08:59:13.491255+00:00"
 }
