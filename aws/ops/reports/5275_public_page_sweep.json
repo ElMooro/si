@@ -1,13 +1,15 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "83be9ad6837560f46996c4742e7fabd4d605e463",
-  "observed_at": "2026-09-22T17:52:21.721036+00:00",
+  "observed_at": "2026-09-22T18:24:51.543143+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 551,
+  "verified_routes": 549,
   "failed_routes": [
-    "archive/macroeconomic-platform.html",
-    "chart.html"
+    "chart-patterns.html",
+    "chart.html",
+    "market-internals.html",
+    "risk-desk.html"
   ],
   "source_equivalent_builds": {
     "83be9ad6837560f46996c4742e7fabd4d605e463": true
@@ -307,12 +309,12 @@
     },
     {
       "route": "archive/macroeconomic-platform.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
+      "inspector_present": true,
+      "bytes_read": 121501,
+      "product_source_matches_release": true
     },
     {
       "route": "archive/pro.html",
@@ -910,12 +912,12 @@
     },
     {
       "route": "chart-patterns.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
-      "inspector_present": true,
-      "bytes_read": 16272,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "chart-pro.html",
@@ -1706,7 +1708,7 @@
       "http_status": 200,
       "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
       "inspector_present": true,
-      "bytes_read": 876716,
+      "bytes_read": 876718,
       "product_source_matches_release": true
     },
     {
@@ -3070,12 +3072,12 @@
     },
     {
       "route": "market-internals.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
-      "inspector_present": true,
-      "bytes_read": 8055,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "market-leaders.html",
@@ -3853,12 +3855,12 @@
     },
     {
       "route": "risk-desk.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
-      "inspector_present": true,
-      "bytes_read": 38739,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "risk-gate.html",
@@ -4996,7 +4998,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35763111936,
+  "deployment_run_id": 35766665524,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-22T17:52:21.723706+00:00"
+  "check_finished_at": "2026-09-22T18:24:51.544952+00:00"
 }
