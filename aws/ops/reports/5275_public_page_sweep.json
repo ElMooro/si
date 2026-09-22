@@ -1,12 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "a4c08e74875130c61396cb179e6f983b0e8c0295",
-  "observed_at": "2026-09-22T07:44:16.549360+00:00",
+  "observed_at": "2026-09-22T07:54:52.976397+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 552,
+  "verified_routes": 551,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "equity-chokepoint.html"
   ],
   "source_equivalent_builds": {
     "a4c08e74875130c61396cb179e6f983b0e8c0295": true
@@ -1728,12 +1729,12 @@
     },
     {
       "route": "equity-chokepoint.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "a4c08e74875130c61396cb179e6f983b0e8c0295",
-      "inspector_present": true,
-      "bytes_read": 15138,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "equity-confluence.html",
@@ -4995,7 +4996,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35700884612,
+  "deployment_run_id": 35701726388,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-22T07:44:16.551526+00:00"
+  "check_finished_at": "2026-09-22T07:54:52.978607+00:00"
 }
