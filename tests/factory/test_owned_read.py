@@ -315,5 +315,30 @@ class NoveltyDoctrineTests(unittest.TestCase):
         gb.last_launched_manifest = lambda s3, b: None
         self.assertEqual(gb.new_task_fraction(None, "p", ["a"])["new_task_fraction"], 1.0)
 
+
+class PreferenceTrainingTests(unittest.TestCase):
+    def test_launch_mode_follows_the_pairs_and_the_control(self):
+        sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-ai/source'))
+        import gear_b as gb
+        self.assertEqual(gb.launch_mode({}, {"pref_pairs": 0}), "sft")
+        self.assertEqual(gb.launch_mode({}, {"pref_pairs": 49}), "sft")
+        self.assertEqual(gb.launch_mode({}, {"pref_pairs": 50}), "dpo")
+        self.assertEqual(gb.launch_mode({"train_mode": "sft"}, {"pref_pairs": 500}), "sft")
+        self.assertEqual(gb.launch_mode({"train_mode": "dpo"}, {"pref_pairs": 3}), "dpo")
+        self.assertEqual(gb.launch_mode({"min_pairs": 200}, {"pref_pairs": 120}), "sft")
+
+    def test_trainer_reads_rejected_and_refuses_dpo_without_pairs(self):
+        src = (ROOT / 'factory/training/train_qlora.py').read_text()
+        self.assertIn('"rejected": row.get("rejected")', src); self.assertIn("from trl import DPOConfig, DPOTrainer", src)
+        self.assertIn('if len(pairs) < int(hp.get("min_pairs") or 50)', src)          # a dpo launch without pairs refuses, never trains on nothing
+        import runpy
+        M = runpy.run_path(str(ROOT / 'factory/training/train_qlora.py'))
+        import tempfile, json, pathlib
+        d = pathlib.Path(tempfile.mkdtemp()); (d / "train.jsonl").write_text(
+            json.dumps({"instruction": "add", "context": "", "response": "def f(a,b): return a+b", "rejected": "def f(a,b): return a-b"}) + "\n" +
+            json.dumps({"prompt": "P", "completion": "C"}) + "\n")
+        rows = M["load_rows"](d)
+        self.assertEqual(rows[0]["rejected"], "def f(a,b): return a-b"); self.assertIsNone(rows[1]["rejected"])
+
 if __name__ == '__main__':
     unittest.main()

@@ -88,6 +88,8 @@ def own_spec(s3, private_bucket: str, control: Dict[str, Any]) -> Dict[str, Any]
              "epochs": {"default": str(pin.get("epochs", 3))},   # steps are planned from the data; max_steps is the ceiling
              "max_steps": {"default": str(pin.get("max_steps", 400))},
              "lora_r": {"default": str(pin.get("lora_r", 16))},
+             "mode": {"default": str(control.get("train_mode") or "sft")},          # sft | dpo (train_qlora.py); decided per launch by gear_b.launch_mode
+             "min_pairs": {"default": str(control.get("min_pairs") or 50)},
              "learning_rate": {"default": str(pin.get("learning_rate", "2e-4"))},
              "max_seq_len": {"default": str(pin.get("max_seq_len", 2048))},
              "load_in_4bit": {"default": "true"}}

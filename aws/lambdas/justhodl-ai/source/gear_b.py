@@ -299,7 +299,8 @@ def _row_from_verified(key: str, doc: Dict[str, Any], s3=None, bucket: Optional[
     return {"kind": kind, "family": str(doc.get("family") or doc.get("repo") or "public"),
             "license": str(doc.get("license") or ""), "source": str(doc.get("source_url")), "checker": str(doc.get("checker") or "factory-code-exam"),
             "task_id": str(doc.get("task_id") or ""), "source_sha": str(doc.get("source_sha") or ""),
-            "prompt": _lf(prompt), "solution": _lf(solution)}
+            "prompt": _lf(prompt), "solution": _lf(solution),
+            "rejected": _lf(doc["rejected"]) if isinstance(doc.get("rejected"), str) and doc["rejected"].strip() else None}   # preference_pair rows (2026-09-22)
 
 
 def _lf(text: str) -> str:
@@ -425,6 +426,19 @@ def new_task_fraction(s3, private_bucket: str, task_ids: List[str]) -> Dict[str,
     return {"new_task_fraction": round(len(new) / len(task_ids), 4), "new_tasks": len(new), "vs_generation": last.get("generation"), "seen_basis": "task_ids" if last.get("task_ids") else "train.jsonl"}
 
 
+def launch_mode(control: Dict[str, Any], manifest: Dict[str, Any]) -> str:
+    """sft | dpo for this launch. control.train_mode: 'sft', 'dpo', or 'auto' (dpo when the dataset carries at least
+    control.min_pairs preference pairs -- a passing and a failing attempt on the same task -- else sft). 2026-09-22."""
+    want = str(control.get("train_mode") or "auto").strip().lower()
+    pairs = int(manifest.get("pref_pairs") or 0)
+    floor = int(control.get("min_pairs") or 50)
+    if want == "dpo":
+        return "dpo"
+    if want == "sft":
+        return "sft"
+    return "dpo" if pairs >= floor else "sft"
+
+
 def latest_unlaunched_manifest(s3, private_bucket: str) -> Optional[Dict[str, Any]]:
     """The newest eligible dataset that no job has consumed yet, else None."""
     manifests = [k for k in list_keys(s3, private_bucket, DATASET_PREFIX, 5000) if k.endswith("/manifest.json")]
@@ -445,7 +459,7 @@ def build_dataset(s3, private_bucket: str, public_bucket: str, control: Dict[str
     rows, counts = collect_rows(s3, private_bucket, public_bucket)
     cur = curate(rows, holdout, control)
     floor = int(control.get("min_sft_rows") or 0)
-    status = {"schema_version": "gearb-dataset.v1", "at": now_iso(), "seen": counts, "kept": len(cur["rows"]),
+    status = {"schema_version": "gearb-dataset.v1", "at": now_iso(), "seen": counts, "kept": len(cur["rows"]), "pref_pairs": sum(1 for r in cur["rows"] if isinstance(r.get("rejected"), str) and r["rejected"]),
               "dropped": cur["dropped"], "licenses": cur["licenses"], "kinds": cur["kinds"], "families": len(cur["families"]),
               "floor": floor, "holdout_digest": cur["holdout_digest"]}
     if len(cur["rows"]) < floor:
@@ -455,7 +469,9 @@ def build_dataset(s3, private_bucket: str, public_bucket: str, control: Dict[str
         return status
     gen = next_generation(s3, private_bucket)
     prefix = "%sgen-%d/" % (DATASET_PREFIX, gen)
-    train_lines = "\n".join(_canonical({"instruction": r["prompt"], "context": "", "response": r["solution"]}) for r in cur["rows"]) + "\n"
+    # 2026-09-22: a preference_pair row carries its failing attempt as `rejected`; the trainer's dpo mode pairs it against the
+    # passing `response` on the same prompt, the sft mode ignores it
+    train_lines = "\n".join(_canonical({"instruction": r["prompt"], "context": "", "response": r["solution"], **({"rejected": r["rejected"]} if isinstance(r.get("rejected"), str) and r["rejected"] else {})}) for r in cur["rows"]) + "\n"
     template = {"prompt": "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{instruction}\n\n### Response:\n", "completion": "{response}"}
     train_bytes = train_lines.encode("utf-8")
     task_ids = sorted({str(r.get("task_id") or ("p:" + sha256_bytes(str(r.get("prompt") or "").encode("utf-8"))[:24])) for r in cur["rows"]})
@@ -505,6 +521,7 @@ def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: s
     stamp = now().strftime("%Y%m%d-%H%M%S")
     name = re.sub(r"[^a-zA-Z0-9-]", "-", "jh-gearb-gen%d-%s" % (manifest["generation"], stamp))[:63].rstrip("-")
     hp = {k: str(v["default"]) for k, v in (spec.get("hyperparameters") or {}).items() if v.get("default") is not None}
+    hp["mode"] = launch_mode(control, manifest)            # sft | dpo, decided from this dataset's preference pairs (2026-09-22)
     hp.update({str(k): str(v) for k, v in (control.get("lora") or {}).items()})
     if spec.get("training_script"):
         hp["sagemaker_program"] = hp.get("sagemaker_program", "transfer_learning.py")
@@ -520,7 +537,7 @@ def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: s
     channels = [{"ChannelName": "training", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": training_uri, "S3DataDistributionType": "FullyReplicated"}}}]
     if spec.get("training_artifact"):
         channels.append({"ChannelName": "model", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": spec["training_artifact"], "S3DataDistributionType": "FullyReplicated"}}})
-    record = {"schema_version": "gearb-job.v1", "job_name": name, "kind": "sft", "generation": manifest["generation"], "model_id": spec["model_id"],
+    record = {"schema_version": "gearb-job.v1", "job_name": name, "kind": hp.get("mode", "sft"), "generation": manifest["generation"], "model_id": spec["model_id"],
               "instance_type": it, "spot": True, "max_runtime_s": int(control["max_runtime_s"]), "usd_per_hour": float(hourly),
               "cap_usd": cap_usd, "price_source": price.get("source"), "training_uri": training_uri, "out_uri": out_uri,
               "eligibility_digest": manifest["eligibility_digest"], "train_sha256": manifest["train_sha256"], "holdout_digest": manifest.get("holdout_digest"),

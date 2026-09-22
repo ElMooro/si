@@ -80,13 +80,13 @@ def load_rows(train_dir: Path, max_rows: int = 200000):
             if not isinstance(row, dict):
                 continue
             if isinstance(row.get("prompt"), str) and isinstance(row.get("completion"), str):
-                rows.append({"prompt": row["prompt"], "completion": row["completion"]})
+                rows.append({"prompt": row["prompt"], "completion": row["completion"], "rejected": row.get("rejected") if isinstance(row.get("rejected"), str) else None})
             elif isinstance(row.get("instruction"), str) and isinstance(row.get("response"), str):
                 try:
                     prompt = frame.format(instruction=row["instruction"], context=row.get("context") or "")
                 except (KeyError, IndexError):
                     prompt = frame.replace("{instruction}", row["instruction"]).replace("{context}", row.get("context") or "")
-                rows.append({"prompt": prompt, "completion": row["response"]})
+                rows.append({"prompt": prompt, "completion": row["response"], "rejected": row.get("rejected") if isinstance(row.get("rejected"), str) else None})
             if len(rows) >= max_rows:
                 return rows
     return rows
@@ -121,7 +121,64 @@ def dir_sha256(root: Path) -> str:
     return h.hexdigest()
 
 
+def train_dpo(model, tok, rows, lora, hp, *, epochs, max_steps, lr, max_seq_len, time_budget_s, started, meta) -> int:
+    """Preference training (2026-09-22): rows that carry a `rejected` completion become (prompt, chosen, rejected) pairs --
+    a passing attempt against a failing attempt on the same task. TRL's DPOTrainer with the LoRA adapter as the policy and
+    the adapter-disabled base as the reference (ref_model=None). Same adapter output, same exam afterwards."""
+    import time
+    import torch  # noqa: F401
+    from datasets import Dataset  # noqa: E402
+    from trl import DPOConfig, DPOTrainer  # noqa: E402
+    pairs = [{"prompt": r["prompt"], "chosen": r["completion"] + tok.eos_token, "rejected": r["rejected"] + tok.eos_token} for r in rows if r.get("rejected") and r["rejected"] != r["completion"]]
+    meta["mode"] = "dpo"; meta["pairs"] = len(pairs)
+    if len(pairs) < int(hp.get("min_pairs") or 50):
+        meta["status"] = "refused"; meta["reason"] = "only %d preference pairs (min %s)" % (len(pairs), hp.get("min_pairs") or 50)
+        (OUT_DIR / "train_manifest.json").write_text(json.dumps(meta, indent=2))
+        print(json.dumps(meta)); return 3
+    total_tokens = sum(len(tok(p["prompt"] + p["chosen"] + p["rejected"]).input_ids) for p in pairs[:2000]) * (len(pairs) / max(1, min(len(pairs), 2000)))
+    plan = step_plan(int(total_tokens), max_seq_len, epochs, 1, 8, max_steps)
+    meta["step_plan"] = plan
+    beta = as_float(hp.get("beta"), 0.1)
+    cfg_kw = dict(output_dir=str(OUT_DIR / "trainer"), max_steps=plan["max_steps"], num_train_epochs=epochs, learning_rate=as_float(hp.get("dpo_learning_rate"), 2e-5),
+                  per_device_train_batch_size=1, gradient_accumulation_steps=8, logging_steps=5, save_strategy="no", bf16=True, gradient_checkpointing=True,
+                  beta=beta, max_length=max_seq_len, max_prompt_length=max_seq_len // 2, remove_unused_columns=False, report_to=[])
+    try:
+        cfg = DPOConfig(**cfg_kw)
+    except TypeError:
+        for k in ("max_length", "max_prompt_length"):
+            cfg_kw.pop(k, None)
+        cfg = DPOConfig(**cfg_kw)
+    ds = Dataset.from_list(pairs)
+    kw = dict(model=model, ref_model=None, args=cfg, train_dataset=ds, peft_config=None)
+    try:
+        trainer = DPOTrainer(processing_class=tok, **kw)
+    except TypeError:
+        trainer = DPOTrainer(tokenizer=tok, **kw)
+    from transformers import TrainerCallback  # noqa: E402
+
+    class Budget(TrainerCallback):
+        def __init__(self, started_s, budget_s):
+            self.started, self.budget = started_s, budget_s
+
+        def on_step_end(self, args, state, control, **kwargs):
+            if budget_exhausted(self.started, time.time(), int(state.global_step), self.budget) and state.global_step < state.max_steps:
+                control.should_training_stop = True
+                meta["stopped_early_at_step"] = int(state.global_step)
+            return control
+
+    trainer.add_callback(Budget(started, time_budget_s))
+    result = trainer.train()
+    meta["train_loss"] = getattr(result, "training_loss", None); meta["steps_done"] = int(trainer.state.global_step)
+    adapter_dir = OUT_DIR / "adapter"
+    trainer.model.save_pretrained(str(adapter_dir), safe_serialization=True)
+    tok.save_pretrained(str(adapter_dir))
+    meta["status"] = "done"; meta["adapter_sha256"] = dir_sha256(adapter_dir)
+    (OUT_DIR / "train_manifest.json").write_text(json.dumps(meta, indent=2))
+    print(json.dumps(meta)); return 0
+
+
 def main() -> int:
+    _started = time.time()
     hp = hyperparameters()
     max_steps = as_int(hp.get("max_steps"), 400)
     lora_r = as_int(hp.get("lora_r"), 16)
@@ -190,6 +247,11 @@ def main() -> int:
                       target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
     model = get_peft_model(model, lora)
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    mode = str(hp.get("mode") or "sft").strip().lower()
+    if mode == "dpo":
+        manifest["mode"] = "dpo"
+        return train_dpo(model, tok, rows, lora, hp, epochs=epochs, max_steps=max_steps, lr=lr, max_seq_len=max_seq_len, time_budget_s=time_budget_s,
+                         started=_started, meta=manifest)
     texts = [r["prompt"] + r["completion"] + tok.eos_token for r in rows]
     ds = Dataset.from_list([{"text": t} for t in texts])
     total_tokens = sum(min(max_seq_len, len(ids)) for ids in tok(texts, add_special_tokens=False)["input_ids"])
