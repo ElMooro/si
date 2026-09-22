@@ -301,7 +301,9 @@
       loadJson("/data/cq-feed.json", fetchFn).catch(function () { return {}; }),
       loadJson("/data/cq-catalog.json", fetchFn).catch(function () { return {}; }),
       loadJson("/data/config/cryptoquant-spec.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/cq-universe.json", fetchFn).catch(function () { return {}; })
+      loadJson("/cq-universe.json", fetchFn).catch(function () {
+        return loadJson("/assets/cq-universe.json", fetchFn).catch(function () { return {}; });
+      })
     ]).then(function (arr) {
       PACK = build({ series: arr[0], onchain: arr[1], feed: arr[2], catalog: arr[3], spec: arr[4], universe: arr[5] });
       PENDING = null;
