@@ -1,13 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "83be9ad6837560f46996c4742e7fabd4d605e463",
-  "observed_at": "2026-09-22T18:45:34.510829+00:00",
+  "observed_at": "2026-09-22T18:56:18.699688+00:00",
   "ok": false,
   "routes_checked": 553,
   "verified_routes": 551,
   "failed_routes": [
     "chart.html",
-    "signal-genealogy.html"
+    "flows.html"
   ],
   "source_equivalent_builds": {
     "83be9ad6837560f46996c4742e7fabd4d605e463": true
@@ -2071,12 +2071,12 @@
     },
     {
       "route": "flows.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
-      "inspector_present": true,
-      "bytes_read": 8325,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "fmp.html",
@@ -4096,12 +4096,12 @@
     },
     {
       "route": "signal-genealogy.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "83be9ad6837560f46996c4742e7fabd4d605e463",
+      "inspector_present": true,
+      "bytes_read": 16717,
+      "product_source_matches_release": true
     },
     {
       "route": "signal-halflife.html",
@@ -4996,7 +4996,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35768948813,
+  "deployment_run_id": 35770090105,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-22T18:45:34.512976+00:00"
+  "check_finished_at": "2026-09-22T18:56:18.701455+00:00"
 }
