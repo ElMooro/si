@@ -4291,7 +4291,7 @@
     function push(s, name, extra, type, force){
       s=String(s);
       var full=(window.JHChartCatalog && window.JHChartCatalog.keepId)?window.JHChartCatalog.keepId(s):s;
-      if(!(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\^/.test(full) && full.indexOf("=")<0 && !/^provider:/i.test(full))
+      if(!(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CQSNAP|CQARM|CQDOC|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\^/.test(full) && full.indexOf("=")<0 && !/^provider:/i.test(full))
         full=bare(s);
       var k=full.toUpperCase();
       if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;

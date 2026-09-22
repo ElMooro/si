@@ -157,6 +157,7 @@ test("chart.html and crypto desk load the CQ fuse", () => {
   assert.match(engine, /CQSNAP/);
   assert.match(engine, /CQARM/);
   assert.match(engine, /CQDOC/);
+  assert.match(engine, /\(FRED\|CQ\|CQSNAP\|CQARM\|CQDOC\|CISS\|DESK\|DATA\|NYFED\):/);
   assert.match(catalog, /JHCqFuse/);
   assert.match(search, /cq-feed live print/);
 });
