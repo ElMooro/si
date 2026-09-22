@@ -1332,10 +1332,10 @@ def coding_exam_verdict(base: Optional[dict], candidates: List[dict], unique_tas
         if pts is not None and pts > 1.0:
             out["verdict"] = "Learning: the best candidate beats the base by %.1f points (%s vs %.1f%%)." % (pts, scores, 100 * base_score)
         else:
-            out["verdict"] = ("No learning yet: %d candidate%s scored %s against the base %.1f%% -- each trained on the same %s tasks, and the same data "
-                              "cannot move a 7B coder. The levers are new task families and preference training on the pass/fail pairs already collected; "
-                              "more epochs on this supply will not change the number." % (len(graded), "s" if len(graded) != 1 else "", scores, 100 * base_score,
-                                                                                            unique_tasks if unique_tasks else "few hundred"))
+            out["verdict"] = ("No learning yet: %d candidate%s scored %s against the base %.1f%% (newest dataset: %s verified tasks). Supervised fine-tuning "
+                              "on solved problems has not moved the frozen exam; the next lever is preference training on the pass/fail pairs already collected, "
+                              "and function-style tasks that match the exam's shape." % (len(graded), "s" if len(graded) != 1 else "", scores, 100 * base_score,
+                                                                                          unique_tasks if unique_tasks else "a few hundred"))
     return out
 
 
@@ -1353,8 +1353,12 @@ def public_coding_exam() -> Optional[dict]:
     candidates.sort(key=lambda c: str(c.get("at") or ""))
     unique_tasks = None
     try:
-        gb = gear_b.public_status(client("s3"), PRIVATE_BUCKET, _policy())
-        unique_tasks = ((gb.get("dataset") or {}).get("kept"))
+        # the newest dataset manifest, not the stale gen-9 status line: supply grew 570 -> 2,010 tasks on 2026-09-21
+        s3 = client("s3")
+        manifests = [k for k in gear_b.list_keys(s3, PRIVATE_BUCKET, gear_b.DATASET_PREFIX, 5000) if k.endswith("/manifest.json")]
+        if manifests:
+            newest = sorted(manifests, key=lambda k: int(re.search(r"gen-(\d+)/", k).group(1)))[-1]
+            unique_tasks = (get_json(PRIVATE_BUCKET, newest) or {}).get("kept")
     except Exception:
         pass
     return coding_exam_verdict(base if isinstance(base, dict) else None, candidates, unique_tasks)

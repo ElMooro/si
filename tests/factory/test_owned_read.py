@@ -260,7 +260,7 @@ class CodingExamVerdictTests(unittest.TestCase):
                  {"generation": "gen-12", "score": 0.95, "passed": 156, "n": 164, "at": "2026-09-18T00:00:00Z", "critical_failures": 2}]   # untrusted: excluded
         v = lf.coding_exam_verdict(base, cands, 570)
         self.assertEqual(v["n_candidates"], 2); self.assertEqual(v["learning_pts"], -0.6); self.assertEqual(v["best_candidate"]["generation"], "gen-10")
-        self.assertIn("No learning yet", v["verdict"]); self.assertIn("570 tasks", v["verdict"]); self.assertIn("preference training", v["verdict"])
+        self.assertIn("No learning yet", v["verdict"]); self.assertIn("570 verified tasks", v["verdict"]); self.assertIn("preference training", v["verdict"])
         good = lf.coding_exam_verdict(base, cands[:2] + [{"generation": "gen-13", "score": 0.86, "passed": 141, "n": 164, "at": "2026-09-19T00:00:00Z", "critical_failures": 0}], 900)
         self.assertEqual(good["learning_pts"], 3.7); self.assertIn("beats the base by 3.7 points", good["verdict"])
         self.assertIn("No trusted base", lf.coding_exam_verdict(None, cands, None)["verdict"])
