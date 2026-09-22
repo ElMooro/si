@@ -1,7 +1,12 @@
-"""justhodl-cryptoquant v2.0 — FULL-CATALOG ON-CHAIN VENDOR ADAPTER.
+"""justhodl-cryptoquant v2.1 — FULL-CATALOG ON-CHAIN VENDOR ADAPTER.
 
-Every metric the Professional plan serves (spec discovered by probe ops, not
-guesswork), organized by category. Per metric, per day:
+Professional catalog (bundled spec, 410 metrics / ~189 unique paths) plus
+Coin Metrics twins for the 11 long-history names. Grouped by (base, path,
+params) so sibling fields (a_sopr, CDD variants, lightning stats, v2
+community) cost zero extra HTTP. Soft-fail the long tail; never fail the
+run if the original 54 core names still live.
+
+Per metric, per day:
   value, z365, pctl_1y, WoW; pearson corr + beta vs BTC (shared window);
   HIST_READ — percentile-conditional forward BTC returns (7/21/60d mean,
   median, hit-rate, n) computed at the CURRENT value's percentile bucket over
@@ -16,8 +21,10 @@ long tail is displayed + graded-eligible, never blindly composited.
 Feeds: data/cryptoquant-onchain.json (latest+stats), data/cryptoquant-series.json
 (chart series, 400pt, + BTC overlay + twins). Hist: data/history/cryptoquant.json.
 BTC 2010-> price cache: data/history/btc-price-cm.json (Coin Metrics, free).
+Does not invent pre-harvest CQ history. Token/symbol/pair endpoints and
+age-distribution matrices are not banked.
 """
-import json, time, urllib.request, urllib.error, statistics
+import json, os, time, urllib.request, urllib.error, statistics
 from datetime import datetime, timezone, timedelta
 import boto3
 
@@ -27,6 +34,8 @@ SPEC_KEY, HIST_KEY = "data/config/cryptoquant-spec.json", "data/history/cryptoqu
 BTC_KEY = "data/history/btc-price-cm.json"
 BASE = "https://api.cryptoquant.com/v1"
 CM = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
+VERSION = "2.1.0"
+PATH_SLEEP = 0.55
 s3 = boto3.client("s3", region_name="us-east-1")
 ssm = boto3.client("ssm", region_name="us-east-1")
 
@@ -49,7 +58,7 @@ def _token():
 
 def _get(url, tok, timeout=30):
     req = urllib.request.Request(url, headers={"Authorization": "Bearer " + tok,
-                                               "User-Agent": "JustHodl/2.0"})
+                                               "User-Agent": "JustHodl/2.1"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read())
@@ -57,23 +66,76 @@ def _get(url, tok, timeout=30):
         body = (he.read() or b"")[:160].decode("utf-8", "ignore")
         raise RuntimeError("HTTP %s %s :: %s" % (he.code, url.split("?")[0][-58:], body))
 
-def _series(m, tok, limit=1000):
-    q = dict(m.get("params") or {}); q["limit"] = str(m.get("limit") or limit)
-    url = BASE + m["path"] + "?" + "&".join("%s=%s" % kv for kv in q.items())
+def _bundled_spec():
+    p = os.path.join(os.path.dirname(__file__), "cryptoquant-spec.json")
+    try:
+        with open(p, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print("[spec] bundled miss", str(e)[:80])
+        return {}
+
+def _load_spec():
+    bundled = _bundled_spec() or {}
+    s3spec = _j(SPEC_KEY) or {}
+    bmets = bundled.get("metrics") or []
+    smets = s3spec.get("metrics") or []
+    if len(bmets) > len(smets):
+        out = dict(bundled)
+        twins = dict(s3spec.get("twins") or {})
+        twins.update(bundled.get("twins") or {})
+        extra = dict(s3spec.get("twins_extra") or {})
+        extra.update(bundled.get("twins_extra") or {})
+        if twins:
+            out["twins"] = twins
+        if extra:
+            out["twins_extra"] = extra
+        print("[spec] bundled %d metrics (s3 had %d)" % (len(bmets), len(smets)))
+        return out
+    if smets:
+        return s3spec
+    return bundled
+
+def _group_key(m):
+    base = str(m.get("base") or BASE).rstrip("/")
+    path = str(m.get("path") or "")
+    if not path.startswith("/"):
+        path = "/" + path
+    params = m.get("params") or {}
+    frozen = tuple(sorted((str(k), str(v)) for k, v in params.items()))
+    return (base, path, frozen)
+
+def _fetch_rows(base, path, params, tok, limit=1000):
+    q = dict(params or {})
+    q["limit"] = str(limit)
+    url = base + path + "?" + "&".join("%s=%s" % kv for kv in q.items())
     doc = _get(url, tok)
-    rows = ((doc or {}).get("result") or {}).get("data") or []
-    vk = m.get("resolved_key")
+    return ((doc or {}).get("result") or {}).get("data") or []
+
+def _extract_series(rows, vk, value_keys):
     out = {}
+    resolved = vk
     for r in rows:
         d = str(r.get("date") or r.get("datetime") or "")[:10]
-        if not d: continue
-        if vk is None:
-            for cand in (m.get("value_keys") or []) + [k for k in r if k not in ("date", "datetime")]:
+        if not d:
+            continue
+        if resolved is None:
+            for cand in list(value_keys or []) + [k for k in r if k not in ("date", "datetime")]:
                 if isinstance(r.get(cand), (int, float)):
-                    vk = cand; break
-        v = r.get(vk)
-        if isinstance(v, (int, float)): out[d] = float(v)
-    if vk: m["resolved_key"] = vk
+                    resolved = cand
+                    break
+        v = r.get(resolved) if resolved else None
+        if isinstance(v, (int, float)):
+            out[d] = float(v)
+    return out, resolved
+
+def _series(m, tok, limit=1000):
+    """Compat wrapper (one metric, one HTTP). Handler groups by path."""
+    base, path, frozen = _group_key(m)
+    rows = _fetch_rows(base, path, dict(frozen), tok, limit=limit)
+    out, vk = _extract_series(rows, m.get("resolved_key"), m.get("value_keys") or [])
+    if vk:
+        m["resolved_key"] = vk
     return out
 
 def _btc_price(tok_unused=None):
@@ -86,7 +148,7 @@ def _btc_price(tok_unused=None):
     start = max(px) if px else "2010-07-01"
     url = CM + "?assets=btc&metrics=PriceUSD&frequency=1d&page_size=10000&start_time=" + start
     for _ in range(4):
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/2.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/2.1"})
         with urllib.request.urlopen(req, timeout=40) as r:
             doc = json.loads(r.read())
         for row in doc.get("data") or []:
@@ -199,15 +261,50 @@ def _clean_brief(txt):
         t = t.rsplit(".", 1)[0] + "." if "." in t else ""
     return t if 90 <= len(t) <= 920 else None
 
+def _bank_metric(name, m, ser, twin_data, twins_cfg, px, epx, metrics, series_out):
+    dates = sorted(ser); vals = [ser[d] for d in dates]
+    w = vals[-365:]
+    z = round((vals[-1] - statistics.mean(w)) / statistics.stdev(w), 2) \
+        if len(w) >= 90 and statistics.stdev(w) > 0 else None
+    pctl = round(100 * sum(1 for x in w if x <= vals[-1]) / len(w)) if len(w) >= 90 else None
+    twin = twin_data.get(name)
+    stat_src = twin if twin and len(twin) > 900 else ser
+    window = "2010-present (Coin Metrics twin)" if stat_src is twin else \
+             "the %d-day plan window (accruing daily)" % len(ser)
+    cur_for_stats = (sorted(stat_src.values())[
+        min(len(stat_src) - 1, int((pctl or 50) / 100 * (len(stat_src) - 1)))]
+        if stat_src is twin and pctl is not None else vals[-1])
+    bpx = epx if name.startswith("eth_") else px
+    cstats = _cond_stats(stat_src, bpx, cur_for_stats)
+    r, beta = _corr(ser, bpx)
+    _mv = (twin_data.get(name) or ser)
+    _sv = [_mv[d] for d in sorted(_mv)]
+    _up = sum(1 for i in range(1, len(_sv)) if _sv[i] >= _sv[i - 1]) / max(1, len(_sv) - 1)
+    metrics[name] = {"monotonic": bool(_up >= 0.95 or _up <= 0.05),
+                     "value": round(vals[-1], 6), "z365": z, "pctl_1y": pctl,
+                     "wow": round(vals[-1] - vals[-8], 6) if len(vals) >= 8 else None,
+                     "as_of": dates[-1], "category": m.get("category", "other"),
+                     "label": m.get("label", name), "unit": m.get("unit"),
+                     "risk_sign": m.get("risk_sign", 0),
+                     "in_composite": bool(m.get("in_composite")),
+                     "corr_1y": r, "beta_1y": beta,
+                     "stats_window": window, "cond_stats": cstats,
+                     "hist_read": _hist_read(name, pctl, cstats, window),
+                     "twin": twins_cfg.get(name)}
+    series_out[name] = {"d": dates[-730:],
+                        "v": [round(ser[d], 6) for d in dates[-730:]]}
+
 def lambda_handler(event=None, context=None):
     event = event or {}
-    spec = _j(SPEC_KEY) or {}
+    spec = _load_spec()
     mets = spec.get("metrics") or []
-    assert mets, "spec missing — run catalog probe ops first"
+    assert mets, "spec missing — bundle cryptoquant-spec.json in lambda source"
     tok = _token()
     now = datetime.now(timezone.utc)
+    n_core = int(spec.get("n_core") or 54)
+    core_names = set(m["name"] for m in mets[:n_core] if m.get("name"))
     if not tok:
-        _put(OUT, {"engine": "justhodl-cryptoquant", "version": "2.0.0",
+        _put(OUT, {"engine": "justhodl-cryptoquant", "version": VERSION,
                    "generated_at": now.isoformat(timespec="seconds"),
                    "status": "GATED_PENDING_KEY",
                    "armed_metrics": [m["name"] for m in mets]})
@@ -259,58 +356,53 @@ def lambda_handler(event=None, context=None):
 
     hist = _j(HIST_KEY, {}) or {}
     metrics, errors, series_out = {}, [], {}
+    groups, gindex = [], {}
     for m in mets:
-        name = m["name"]
-        last_err = None
+        gk = _group_key(m)
+        if gk not in gindex:
+            gindex[gk] = len(groups)
+            groups.append({"key": gk, "mets": []})
+        groups[gindex[gk]]["mets"].append(m)
+
+    for g in groups:
+        base, path, frozen = g["key"]
+        params = dict(frozen)
+        last_err, rows = None, None
         for attempt in range(2):
             try:
-                got = _series(m, tok, limit=1000)
-                ser = dict(sorted({**(hist.get(name) or {}), **got}.items())[-2000:])
-                if len(ser) < 45: raise RuntimeError("thin: %d" % len(ser))
-                hist[name] = ser
-                dates = sorted(ser); vals = [ser[d] for d in dates]
-                w = vals[-365:]
-                z = round((vals[-1] - statistics.mean(w)) / statistics.stdev(w), 2) \
-                    if len(w) >= 90 and statistics.stdev(w) > 0 else None
-                pctl = round(100 * sum(1 for x in w if x <= vals[-1]) / len(w)) if len(w) >= 90 else None
-                twin = twin_data.get(name)
-                stat_src = twin if twin and len(twin) > 900 else ser
-                window = "2010-present (Coin Metrics twin)" if stat_src is twin else \
-                         "the %d-day plan window (accruing daily)" % len(ser)
-                cur_for_stats = (sorted(stat_src.values())[
-                    min(len(stat_src) - 1, int((pctl or 50) / 100 * (len(stat_src) - 1)))]
-                    if stat_src is twin and pctl is not None else vals[-1])
-                bpx = epx if name.startswith("eth_") else px
-                cstats = _cond_stats(stat_src, bpx, cur_for_stats)
-                r, beta = _corr(ser, bpx)
-                _mv = (twin_data.get(name) or ser)
-                _sv = [_mv[d] for d in sorted(_mv)]
-                _up = sum(1 for i in range(1, len(_sv)) if _sv[i] >= _sv[i - 1]) / max(1, len(_sv) - 1)
-                metrics[name] = {"monotonic": bool(_up >= 0.95 or _up <= 0.05),
-                                 "value": round(vals[-1], 6), "z365": z, "pctl_1y": pctl,
-                                 "wow": round(vals[-1] - vals[-8], 6) if len(vals) >= 8 else None,
-                                 "as_of": dates[-1], "category": m.get("category", "other"),
-                                 "label": m.get("label", name), "unit": m.get("unit"),
-                                 "risk_sign": m.get("risk_sign", 0),
-                                 "in_composite": bool(m.get("in_composite")),
-                                 "corr_1y": r, "beta_1y": beta,
-                                 "stats_window": window, "cond_stats": cstats,
-                                 "hist_read": _hist_read(name, pctl, cstats, window),
-                                 "twin": twins_cfg.get(name)}
-                series_out[name] = {"d": dates[-730:],
-                                    "v": [round(ser[d], 6) for d in dates[-730:]]}
+                rows = _fetch_rows(base, path, params, tok, limit=1000)
                 last_err = None
                 break
             except Exception as e:
                 last_err = e
                 if "429" in str(e) and attempt == 0:
-                    time.sleep(22); continue
+                    time.sleep(8)
+                    continue
                 break
-        if last_err is not None:
-            errors.append({"metric": name, "err": str(last_err)[:100]})
-        time.sleep(2.0)
-    assert len(metrics) >= max(8, int(0.6 * len(mets))), \
-        "too few live: %d/%d %s" % (len(metrics), len(mets), errors[:4])
+        if last_err is not None or not rows:
+            for m in g["mets"]:
+                errors.append({"metric": m["name"], "err": str(last_err or "empty")[:100]})
+            time.sleep(PATH_SLEEP)
+            continue
+        for m in g["mets"]:
+            name = m["name"]
+            try:
+                got, rk = _extract_series(rows, m.get("resolved_key"), m.get("value_keys") or [])
+                if rk:
+                    m["resolved_key"] = rk
+                ser = dict(sorted({**(hist.get(name) or {}), **got}.items())[-2000:])
+                min_pts = 45 if name in core_names else 8
+                if len(ser) < min_pts:
+                    raise RuntimeError("thin: %d" % len(ser))
+                hist[name] = ser
+                _bank_metric(name, m, ser, twin_data, twins_cfg, px, epx, metrics, series_out)
+            except Exception as e:
+                errors.append({"metric": name, "err": str(e)[:100]})
+        time.sleep(PATH_SLEEP)
+
+    n_core_live = sum(1 for k in core_names if k in metrics)
+    assert n_core_live >= 40, \
+        "core live %d/%d %s" % (n_core_live, len(core_names), errors[:4])
     _put(HIST_KEY, hist)
     core = {k: v for k, v in metrics.items() if v["in_composite"] and v["z365"] is not None}
     rz = [v["z365"] * v["risk_sign"] for v in core.values() if v["risk_sign"]]
@@ -496,11 +588,12 @@ def lambda_handler(event=None, context=None):
                 for v in metrics.values())
     cats = {}
     for v in metrics.values(): cats[v["category"]] = cats.get(v["category"], 0) + 1
-    _put(OUT, {"engine": "justhodl-cryptoquant", "version": "2.0.0",
+    _put(OUT, {"engine": "justhodl-cryptoquant", "version": VERSION,
                "generated_at": now.isoformat(timespec="seconds"), "status": "EOD", "cadence": "EOD", "label": "CryptoQuant EOD on-chain",
                "grading": "PROVISIONAL — scorecard excess-vs-BTC gates admission",
                "plan_note": spec.get("plan_note"),
-               "n_metrics": len(metrics), "categories": cats,
+               "n_metrics": len(metrics), "n_spec": len(mets), "n_paths": len(groups),
+               "n_core_live": n_core_live, "categories": cats,
                "ai_master_brief": master, "ai_master_src": master_src,
                "forecasts": forecasts,
                "metrics": metrics, "composite_onchain_risk_z": comp,
@@ -510,5 +603,6 @@ def lambda_handler(event=None, context=None):
                "source": "CryptoQuant Professional (full probed catalog) + Coin Metrics twins for 2010+ context"})
     _put(SPEC_KEY, spec, compact=False)
     return {"ok": True, "status": "EOD", "cadence": "EOD", "label": "CryptoQuant EOD on-chain", "n_metrics": len(metrics),
+            "n_spec": len(mets), "n_paths": len(groups), "n_core_live": n_core_live,
             "categories": cats, "composite": comp, "extremes_ai": len([k for k in extremes if metrics[k].get("ai_context")]),
             "errors": len(errors)}

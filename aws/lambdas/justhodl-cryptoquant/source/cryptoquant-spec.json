@@ -1,0 +1,6873 @@
+{
+  "base": "https://api.cryptoquant.com/v1",
+  "from_format": "none",
+  "plan_window_days": 365,
+  "plan_note": "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins. Full v1 catalog + v2 community indicators; sibling fields harvested from the same path call. Token/symbol/pair endpoints and age-distribution matrices are not banked.",
+  "twins": {
+    "btc_mvrv": "CapMVRVCur",
+    "btc_tx_count": "TxCnt",
+    "btc_addresses_active": "AdrActCnt",
+    "btc_fees_total": "FeeTotNtv",
+    "btc_hashrate": "HashRate",
+    "btc_supply_total": "SplyCur",
+    "btc_blockreward": "IssTotNtv",
+    "btc_realized_price": "PriceUSD/CapMVRVCur",
+    "eth_addresses_active": "eth:AdrActCnt",
+    "eth_tx_count": "eth:TxCnt"
+  },
+  "metrics": [
+    {
+      "name": "btc_exchange_netflow",
+      "category": "exchange_flows",
+      "label": "BTC Exchange Netflow",
+      "path": "/btc/exchange-flows/netflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "netflow_total"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "BTC/d",
+      "resolved_key": "netflow_total"
+    },
+    {
+      "name": "btc_exchange_inflow",
+      "category": "exchange_flows",
+      "label": "BTC Exchange Inflow",
+      "path": "/btc/exchange-flows/inflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_total",
+        "inflow_top10",
+        "inflow_mean"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "inflow_total"
+    },
+    {
+      "name": "btc_exchange_outflow",
+      "category": "exchange_flows",
+      "label": "BTC Exchange Outflow",
+      "path": "/btc/exchange-flows/outflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_total",
+        "outflow_top10",
+        "outflow_mean"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "outflow_total"
+    },
+    {
+      "name": "btc_exchange_reserve",
+      "category": "exchange_flows",
+      "label": "BTC Exchange Reserve",
+      "path": "/btc/exchange-flows/reserve",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve",
+        "reserve_usd"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "BTC",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "btc_exchange_addr_in",
+      "category": "exchange_flows",
+      "label": "BTC Depositing Addresses",
+      "path": "/btc/exchange-flows/addresses-count",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_inflow",
+        "addresses_count_outflow"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "addr/d",
+      "resolved_key": "addresses_count_inflow"
+    },
+    {
+      "name": "btc_mpi",
+      "category": "flow_indicator",
+      "label": "Miner Position Index",
+      "path": "/btc/flow-indicator/mpi",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "mpi"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "idx",
+      "resolved_key": "mpi"
+    },
+    {
+      "name": "btc_whale_ratio",
+      "category": "flow_indicator",
+      "label": "Exchange Whale Ratio",
+      "path": "/btc/flow-indicator/exchange-whale-ratio",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "exchange_whale_ratio"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "ratio",
+      "resolved_key": "exchange_whale_ratio"
+    },
+    {
+      "name": "btc_fund_flow_ratio",
+      "category": "flow_indicator",
+      "label": "Fund Flow Ratio",
+      "path": "/btc/flow-indicator/fund-flow-ratio",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "fund_flow_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "ratio",
+      "resolved_key": "fund_flow_ratio"
+    },
+    {
+      "name": "btc_stablecoins_ratio",
+      "category": "flow_indicator",
+      "label": "Stablecoins Ratio",
+      "path": "/btc/flow-indicator/stablecoins-ratio",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "stablecoins_ratio",
+        "stablecoins_ratio_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "ratio",
+      "resolved_key": "stablecoins_ratio"
+    },
+    {
+      "name": "btc_exchange_supply_ratio",
+      "category": "flow_indicator",
+      "label": "Exchange Supply Ratio",
+      "path": "/btc/flow-indicator/exchange-supply-ratio",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "exchange_supply_ratio"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "ratio",
+      "resolved_key": "exchange_supply_ratio"
+    },
+    {
+      "name": "btc_mvrv",
+      "category": "market_indicator",
+      "label": "MVRV Ratio",
+      "path": "/btc/market-indicator/mvrv",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "mvrv"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "ratio",
+      "resolved_key": "mvrv"
+    },
+    {
+      "name": "btc_sopr",
+      "category": "market_indicator",
+      "label": "SOPR",
+      "path": "/btc/market-indicator/sopr",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sopr",
+        "a_sopr",
+        "sth_sopr",
+        "lth_sopr"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "ratio",
+      "resolved_key": "sopr"
+    },
+    {
+      "name": "btc_sopr_ratio",
+      "category": "market_indicator",
+      "label": "SOPR Ratio (LTH/STH)",
+      "path": "/btc/market-indicator/sopr-ratio",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sopr_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "ratio",
+      "resolved_key": "sopr_ratio"
+    },
+    {
+      "name": "btc_nupl",
+      "category": "network_indicator",
+      "label": "Net Unrealized P/L (NUPL)",
+      "path": "/btc/network-indicator/nupl",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nupl",
+        "nup",
+        "nul"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "frac",
+      "resolved_key": "nupl"
+    },
+    {
+      "name": "btc_realized_price",
+      "category": "market_indicator",
+      "label": "Realized Price",
+      "path": "/btc/market-indicator/realized-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_price"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "USD",
+      "resolved_key": "realized_price"
+    },
+    {
+      "name": "btc_ssr",
+      "category": "market_indicator",
+      "label": "Stablecoin Supply Ratio",
+      "path": "/btc/market-indicator/stablecoin-supply-ratio",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "stablecoin_supply_ratio"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "ratio",
+      "limit": 300,
+      "resolved_key": "stablecoin_supply_ratio"
+    },
+    {
+      "name": "btc_nvt",
+      "category": "network_indicator",
+      "label": "NVT",
+      "path": "/btc/network-indicator/nvt",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nvt"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "ratio",
+      "resolved_key": "nvt"
+    },
+    {
+      "name": "btc_nvt_golden",
+      "category": "network_indicator",
+      "label": "NVT Golden Cross",
+      "path": "/btc/network-indicator/nvt-golden-cross",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nvt_golden_cross"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "nvt_golden_cross"
+    },
+    {
+      "name": "btc_nvm",
+      "category": "network_indicator",
+      "label": "NVM",
+      "path": "/btc/network-indicator/nvm",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nvm"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "nvm"
+    },
+    {
+      "name": "btc_puell",
+      "category": "network_indicator",
+      "label": "Puell Multiple",
+      "path": "/btc/network-indicator/puell-multiple",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "puell_multiple"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "puell_multiple"
+    },
+    {
+      "name": "btc_stock_to_flow",
+      "category": "network_indicator",
+      "label": "Stock-to-Flow Deviation",
+      "path": "/btc/network-indicator/stock-to-flow",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "stock_to_flow",
+        "stock_to_flow_reversion"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "stock_to_flow"
+    },
+    {
+      "name": "btc_miner_netflow",
+      "category": "miner_flows",
+      "label": "Miner Netflow",
+      "path": "/btc/miner-flows/netflow",
+      "params": {
+        "miner": "all_miner",
+        "window": "day"
+      },
+      "value_keys": [
+        "netflow_total"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "netflow_total"
+    },
+    {
+      "name": "btc_miner_outflow",
+      "category": "miner_flows",
+      "label": "Miner Outflow",
+      "path": "/btc/miner-flows/outflow",
+      "params": {
+        "miner": "all_miner",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_total",
+        "outflow_top10",
+        "outflow_mean",
+        "outflow_mean_ma7"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "outflow_total"
+    },
+    {
+      "name": "btc_miner_reserve",
+      "category": "miner_flows",
+      "label": "Miner Reserve",
+      "path": "/btc/miner-flows/reserve",
+      "params": {
+        "miner": "all_miner",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve",
+        "reserve_usd"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "BTC",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "btc_tx_count",
+      "category": "network_data",
+      "label": "Transactions Count",
+      "path": "/btc/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count_total",
+        "transactions_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "tx/d",
+      "resolved_key": "transactions_count_total"
+    },
+    {
+      "name": "btc_addresses_active",
+      "category": "network_data",
+      "label": "Addresses Count",
+      "path": "/btc/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_active",
+        "addresses_count_receiver",
+        "addresses_count_sender"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "addr/d",
+      "resolved_key": "addresses_count_active"
+    },
+    {
+      "name": "btc_fees_total",
+      "category": "network_data",
+      "label": "Total Fees",
+      "path": "/btc/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_block_mean",
+        "fees_block_mean_usd",
+        "fees_reward_percent",
+        "fees_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "fees_block_mean"
+    },
+    {
+      "name": "btc_fees_tx_mean",
+      "category": "network_data",
+      "label": "Mean Fee per Tx",
+      "path": "/btc/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_mean",
+        "fees_transaction_mean_usd",
+        "fees_transaction_median",
+        "fees_transaction_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "BTC",
+      "resolved_key": "fees_transaction_mean"
+    },
+    {
+      "name": "btc_blockreward",
+      "category": "network_data",
+      "label": "Block Reward",
+      "path": "/btc/network-data/blockreward",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "blockreward",
+        "blockreward_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "blockreward"
+    },
+    {
+      "name": "btc_difficulty",
+      "category": "network_data",
+      "label": "Mining Difficulty",
+      "path": "/btc/network-data/difficulty",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "difficulty"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "difficulty"
+    },
+    {
+      "name": "btc_hashrate",
+      "category": "network_data",
+      "label": "Hashrate",
+      "path": "/btc/network-data/hashrate",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "hashrate"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "H/s",
+      "resolved_key": "hashrate"
+    },
+    {
+      "name": "btc_utxo_count",
+      "category": "network_data",
+      "label": "UTXO Count",
+      "path": "/btc/network-data/utxo-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "utxo_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "utxo",
+      "resolved_key": "utxo_count"
+    },
+    {
+      "name": "btc_velocity",
+      "category": "network_data",
+      "label": "Velocity",
+      "path": "/btc/network-data/velocity",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "velocity_supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "velocity_supply_total"
+    },
+    {
+      "name": "btc_tokens_transferred",
+      "category": "network_data",
+      "label": "Tokens Transferred",
+      "path": "/btc/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_total",
+        "tokens_transferred_mean",
+        "tokens_transferred_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "BTC/d",
+      "resolved_key": "tokens_transferred_total"
+    },
+    {
+      "name": "btc_supply_total",
+      "category": "network_data",
+      "label": "Supply",
+      "path": "/btc/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_new",
+        "supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "BTC",
+      "resolved_key": "supply_new"
+    },
+    {
+      "name": "btc_open_interest",
+      "category": "market_data",
+      "label": "Futures Open Interest",
+      "path": "/btc/market-data/open-interest",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "open_interest"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "USD",
+      "resolved_key": "open_interest"
+    },
+    {
+      "name": "btc_funding_rates",
+      "category": "market_data",
+      "label": "Funding Rates",
+      "path": "/btc/market-data/funding-rates",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "funding_rates"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "%",
+      "resolved_key": "funding_rates"
+    },
+    {
+      "name": "btc_liquidations",
+      "category": "market_data",
+      "label": "Liquidations",
+      "path": "/btc/market-data/liquidations",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "long_liquidations",
+        "short_liquidations",
+        "long_liquidations_usd",
+        "short_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "USD/d",
+      "resolved_key": "long_liquidations"
+    },
+    {
+      "name": "btc_taker_ratio",
+      "category": "market_data",
+      "label": "Taker Buy/Sell Ratio",
+      "path": "/btc/market-data/taker-buy-sell-stats",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "taker_buy_volume",
+        "taker_sell_volume",
+        "taker_buy_ratio",
+        "taker_sell_ratio"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "ratio",
+      "resolved_key": "taker_buy_volume"
+    },
+    {
+      "name": "btc_coinbase_premium",
+      "category": "market_data",
+      "label": "Coinbase Premium Index",
+      "path": "/btc/market-data/coinbase-premium-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "coinbase_premium_gap",
+        "coinbase_premium_index",
+        "coinbase_premium_gap_usdt_adjusted",
+        "coinbase_premium_index_usdt_adjusted"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "idx",
+      "resolved_key": "coinbase_premium_gap"
+    },
+    {
+      "name": "eth_exchange_netflow",
+      "category": "eth",
+      "label": "ETH Exchange Netflow",
+      "path": "/eth/exchange-flows/netflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "netflow_total"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "ETH/d",
+      "resolved_key": "netflow_total"
+    },
+    {
+      "name": "eth_exchange_inflow",
+      "category": "eth",
+      "label": "ETH Exchange Inflow",
+      "path": "/eth/exchange-flows/inflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_total",
+        "inflow_top10",
+        "inflow_mean",
+        "inflow_mean_ma7"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "ETH/d",
+      "resolved_key": "inflow_total"
+    },
+    {
+      "name": "eth_exchange_outflow",
+      "category": "eth",
+      "label": "ETH Exchange Outflow",
+      "path": "/eth/exchange-flows/outflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_total",
+        "outflow_top10",
+        "outflow_mean",
+        "outflow_mean_ma7"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "ETH/d",
+      "resolved_key": "outflow_total"
+    },
+    {
+      "name": "eth_exchange_reserve",
+      "category": "eth",
+      "label": "ETH Exchange Reserve",
+      "path": "/eth/exchange-flows/reserve",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve",
+        "reserve_usd"
+      ],
+      "risk_sign": 1,
+      "in_composite": true,
+      "unit": "ETH",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "eth_addresses_active",
+      "category": "eth",
+      "label": "ETH Addresses Count",
+      "path": "/eth/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_active",
+        "addresses_count_sender",
+        "addresses_count_receiver"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "addr/d",
+      "resolved_key": "addresses_count_active"
+    },
+    {
+      "name": "eth_tx_count",
+      "category": "eth",
+      "label": "ETH Transactions Count",
+      "path": "/eth/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count_total",
+        "transactions_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "tx/d",
+      "resolved_key": "transactions_count_total"
+    },
+    {
+      "name": "eth_open_interest",
+      "category": "eth",
+      "label": "ETH Futures Open Interest",
+      "path": "/eth/market-data/open-interest",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "open_interest"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "USD",
+      "resolved_key": "open_interest"
+    },
+    {
+      "name": "eth_funding_rates",
+      "category": "eth",
+      "label": "ETH Funding Rates",
+      "path": "/eth/market-data/funding-rates",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "funding_rates"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "%",
+      "resolved_key": "funding_rates"
+    },
+    {
+      "name": "stablecoin_exchange_reserve",
+      "category": "stablecoins",
+      "label": "Stablecoin Exchange Reserve",
+      "path": "/stablecoin/exchange-flows/reserve",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve"
+      ],
+      "risk_sign": -1,
+      "in_composite": true,
+      "unit": "USD",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "stablecoin_exchange_netflow",
+      "category": "stablecoins",
+      "label": "Stablecoin Exchange Netflow",
+      "path": "/stablecoin/exchange-flows/netflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "netflow_total"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "USD/d",
+      "resolved_key": "netflow_total"
+    },
+    {
+      "name": "stablecoin_exchange_inflow",
+      "category": "stablecoins",
+      "label": "Stablecoin Exchange Inflow",
+      "path": "/stablecoin/exchange-flows/inflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_total",
+        "inflow_top10",
+        "inflow_mean",
+        "inflow_mean_ma7"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "USD/d",
+      "resolved_key": "inflow_total"
+    },
+    {
+      "name": "stablecoin_exchange_outflow",
+      "category": "stablecoins",
+      "label": "Stablecoin Exchange Outflow",
+      "path": "/stablecoin/exchange-flows/outflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_total",
+        "outflow_top10",
+        "outflow_mean",
+        "outflow_mean_ma7"
+      ],
+      "risk_sign": 1,
+      "in_composite": false,
+      "unit": "USD/d",
+      "resolved_key": "outflow_total"
+    },
+    {
+      "name": "stablecoin_supply_total",
+      "category": "stablecoins",
+      "label": "Stablecoin Supply",
+      "path": "/stablecoin/network-data/supply",
+      "params": {
+        "token": "all_token",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_total",
+        "supply_minted",
+        "supply_burned",
+        "supply_circulating"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "USD",
+      "resolved_key": "supply_total"
+    },
+    {
+      "name": "usdc_exchange_reserve",
+      "category": "stablecoins",
+      "label": "USDC Exchange Reserve",
+      "path": "/stablecoin/exchange-flows/reserve",
+      "params": {
+        "token": "usdc",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve"
+      ],
+      "risk_sign": -1,
+      "in_composite": false,
+      "unit": "USD",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "btc_inflow_top10",
+      "category": "exchange_flows",
+      "label": "BTC inflow top10",
+      "path": "/btc/exchange-flows/inflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_top10"
+    },
+    {
+      "name": "btc_inflow_mean",
+      "category": "exchange_flows",
+      "label": "BTC inflow mean",
+      "path": "/btc/exchange-flows/inflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_mean"
+    },
+    {
+      "name": "btc_outflow_top10",
+      "category": "exchange_flows",
+      "label": "BTC outflow top10",
+      "path": "/btc/exchange-flows/outflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_top10"
+    },
+    {
+      "name": "btc_outflow_mean",
+      "category": "exchange_flows",
+      "label": "BTC outflow mean",
+      "path": "/btc/exchange-flows/outflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_mean"
+    },
+    {
+      "name": "btc_reserve_usd",
+      "category": "exchange_flows",
+      "label": "BTC reserve usd",
+      "path": "/btc/exchange-flows/reserve",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve_usd"
+    },
+    {
+      "name": "btc_addresses_count_outflow",
+      "category": "exchange_flows",
+      "label": "BTC addresses count outflow",
+      "path": "/btc/exchange-flows/addresses-count",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_outflow"
+    },
+    {
+      "name": "btc_stablecoins_ratio_usd",
+      "category": "flow_indicator",
+      "label": "BTC stablecoins ratio usd",
+      "path": "/btc/flow-indicator/stablecoins-ratio",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "stablecoins_ratio_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "stablecoins_ratio_usd"
+    },
+    {
+      "name": "btc_supply_ratio",
+      "category": "flow_indicator",
+      "label": "BTC supply ratio",
+      "path": "/btc/flow-indicator/exchange-supply-ratio",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_ratio"
+    },
+    {
+      "name": "btc_a_sopr",
+      "category": "market_indicator",
+      "label": "BTC a sopr",
+      "path": "/btc/market-indicator/sopr",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "a_sopr"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "a_sopr"
+    },
+    {
+      "name": "btc_sth_sopr",
+      "category": "market_indicator",
+      "label": "BTC sth sopr",
+      "path": "/btc/market-indicator/sopr",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sth_sopr"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "sth_sopr"
+    },
+    {
+      "name": "btc_lth_sopr",
+      "category": "market_indicator",
+      "label": "BTC lth sopr",
+      "path": "/btc/market-indicator/sopr",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "lth_sopr"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "lth_sopr"
+    },
+    {
+      "name": "btc_nup",
+      "category": "network_indicator",
+      "label": "BTC nup",
+      "path": "/btc/network-indicator/nupl",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nup"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "nup"
+    },
+    {
+      "name": "btc_nul",
+      "category": "network_indicator",
+      "label": "BTC nul",
+      "path": "/btc/network-indicator/nupl",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nul"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "nul"
+    },
+    {
+      "name": "btc_stock_to_flow_reversion",
+      "category": "network_indicator",
+      "label": "BTC stock to flow reversion",
+      "path": "/btc/network-indicator/stock-to-flow",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "stock_to_flow_reversion"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "stock_to_flow_reversion"
+    },
+    {
+      "name": "btc_miner_flows_outflow_outflow_top10",
+      "category": "miner_flows",
+      "label": "BTC outflow top10",
+      "path": "/btc/miner-flows/outflow",
+      "params": {
+        "miner": "all_miner",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_top10"
+    },
+    {
+      "name": "btc_miner_flows_outflow_outflow_mean",
+      "category": "miner_flows",
+      "label": "BTC outflow mean",
+      "path": "/btc/miner-flows/outflow",
+      "params": {
+        "miner": "all_miner",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_mean"
+    },
+    {
+      "name": "btc_miner_flows_reserve_reserve_usd",
+      "category": "miner_flows",
+      "label": "BTC reserve usd",
+      "path": "/btc/miner-flows/reserve",
+      "params": {
+        "miner": "all_miner",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve_usd"
+    },
+    {
+      "name": "btc_transactions_count_mean",
+      "category": "network_data",
+      "label": "BTC transactions count mean",
+      "path": "/btc/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_mean"
+    },
+    {
+      "name": "btc_addresses_count_sender",
+      "category": "network_data",
+      "label": "BTC addresses count sender",
+      "path": "/btc/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_sender"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_sender"
+    },
+    {
+      "name": "btc_addresses_count_receiver",
+      "category": "network_data",
+      "label": "BTC addresses count receiver",
+      "path": "/btc/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_receiver"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_receiver"
+    },
+    {
+      "name": "btc_fees_block_mean_usd",
+      "category": "network_data",
+      "label": "BTC fees block mean usd",
+      "path": "/btc/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_block_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_block_mean_usd"
+    },
+    {
+      "name": "btc_network_data_fees_fees_total",
+      "category": "network_data",
+      "label": "BTC fees total",
+      "path": "/btc/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_total"
+    },
+    {
+      "name": "btc_fees_total_usd",
+      "category": "network_data",
+      "label": "BTC fees total usd",
+      "path": "/btc/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_total_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_total_usd"
+    },
+    {
+      "name": "btc_fees_reward_percent",
+      "category": "network_data",
+      "label": "BTC fees reward percent",
+      "path": "/btc/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_reward_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_reward_percent"
+    },
+    {
+      "name": "btc_fees_transaction_mean_usd",
+      "category": "network_data",
+      "label": "BTC fees transaction mean usd",
+      "path": "/btc/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_mean_usd"
+    },
+    {
+      "name": "btc_fees_transaction_median",
+      "category": "network_data",
+      "label": "BTC fees transaction median",
+      "path": "/btc/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_median"
+    },
+    {
+      "name": "btc_fees_transaction_median_usd",
+      "category": "network_data",
+      "label": "BTC fees transaction median usd",
+      "path": "/btc/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_median_usd"
+    },
+    {
+      "name": "btc_blockreward_usd",
+      "category": "network_data",
+      "label": "BTC blockreward usd",
+      "path": "/btc/network-data/blockreward",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "blockreward_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "blockreward_usd"
+    },
+    {
+      "name": "btc_tokens_transferred_mean",
+      "category": "network_data",
+      "label": "BTC tokens transferred mean",
+      "path": "/btc/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_mean"
+    },
+    {
+      "name": "btc_tokens_transferred_median",
+      "category": "network_data",
+      "label": "BTC tokens transferred median",
+      "path": "/btc/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_median"
+    },
+    {
+      "name": "btc_network_data_supply_supply_total",
+      "category": "network_data",
+      "label": "BTC supply total",
+      "path": "/btc/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_total"
+    },
+    {
+      "name": "btc_short_liquidations",
+      "category": "market_data",
+      "label": "BTC short liquidations",
+      "path": "/btc/market-data/liquidations",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "short_liquidations"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "short_liquidations"
+    },
+    {
+      "name": "btc_long_liquidations_usd",
+      "category": "market_data",
+      "label": "BTC long liquidations usd",
+      "path": "/btc/market-data/liquidations",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "long_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "long_liquidations_usd"
+    },
+    {
+      "name": "btc_short_liquidations_usd",
+      "category": "market_data",
+      "label": "BTC short liquidations usd",
+      "path": "/btc/market-data/liquidations",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "short_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "short_liquidations_usd"
+    },
+    {
+      "name": "btc_taker_sell_volume",
+      "category": "market_data",
+      "label": "BTC taker sell volume",
+      "path": "/btc/market-data/taker-buy-sell-stats",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "taker_sell_volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_sell_volume"
+    },
+    {
+      "name": "btc_taker_buy_ratio",
+      "category": "market_data",
+      "label": "BTC taker buy ratio",
+      "path": "/btc/market-data/taker-buy-sell-stats",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "taker_buy_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_ratio"
+    },
+    {
+      "name": "btc_taker_sell_ratio",
+      "category": "market_data",
+      "label": "BTC taker sell ratio",
+      "path": "/btc/market-data/taker-buy-sell-stats",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "taker_sell_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_sell_ratio"
+    },
+    {
+      "name": "btc_taker_buy_sell_ratio",
+      "category": "market_data",
+      "label": "BTC taker buy sell ratio",
+      "path": "/btc/market-data/taker-buy-sell-stats",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "taker_buy_sell_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_sell_ratio"
+    },
+    {
+      "name": "btc_coinbase_premium_index",
+      "category": "market_data",
+      "label": "BTC coinbase premium index",
+      "path": "/btc/market-data/coinbase-premium-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "coinbase_premium_index"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "coinbase_premium_index"
+    },
+    {
+      "name": "eth_inflow_top10",
+      "category": "eth",
+      "label": "ETH inflow top10",
+      "path": "/eth/exchange-flows/inflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_top10"
+    },
+    {
+      "name": "eth_inflow_mean",
+      "category": "eth",
+      "label": "ETH inflow mean",
+      "path": "/eth/exchange-flows/inflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_mean"
+    },
+    {
+      "name": "eth_outflow_top10",
+      "category": "eth",
+      "label": "ETH outflow top10",
+      "path": "/eth/exchange-flows/outflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_top10"
+    },
+    {
+      "name": "eth_outflow_mean",
+      "category": "eth",
+      "label": "ETH outflow mean",
+      "path": "/eth/exchange-flows/outflow",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_mean"
+    },
+    {
+      "name": "eth_reserve_usd",
+      "category": "eth",
+      "label": "ETH reserve usd",
+      "path": "/eth/exchange-flows/reserve",
+      "params": {
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "reserve_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve_usd"
+    },
+    {
+      "name": "eth_addresses_count_sender",
+      "category": "eth",
+      "label": "ETH addresses count sender",
+      "path": "/eth/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_sender"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_sender"
+    },
+    {
+      "name": "eth_addresses_count_receiver",
+      "category": "eth",
+      "label": "ETH addresses count receiver",
+      "path": "/eth/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_receiver"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_receiver"
+    },
+    {
+      "name": "eth_transactions_count_mean",
+      "category": "eth",
+      "label": "ETH transactions count mean",
+      "path": "/eth/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_mean"
+    },
+    {
+      "name": "stablecoin_inflow_top10",
+      "category": "stablecoins",
+      "label": "STABLECOIN inflow top10",
+      "path": "/stablecoin/exchange-flows/inflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_top10"
+    },
+    {
+      "name": "stablecoin_inflow_mean",
+      "category": "stablecoins",
+      "label": "STABLECOIN inflow mean",
+      "path": "/stablecoin/exchange-flows/inflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "inflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_mean"
+    },
+    {
+      "name": "stablecoin_outflow_top10",
+      "category": "stablecoins",
+      "label": "STABLECOIN outflow top10",
+      "path": "/stablecoin/exchange-flows/outflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_top10"
+    },
+    {
+      "name": "stablecoin_outflow_mean",
+      "category": "stablecoins",
+      "label": "STABLECOIN outflow mean",
+      "path": "/stablecoin/exchange-flows/outflow",
+      "params": {
+        "token": "all_token",
+        "exchange": "all_exchange",
+        "window": "day"
+      },
+      "value_keys": [
+        "outflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_mean"
+    },
+    {
+      "name": "stablecoin_supply_minted",
+      "category": "stablecoins",
+      "label": "STABLECOIN supply minted",
+      "path": "/stablecoin/network-data/supply",
+      "params": {
+        "token": "all_token",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_minted"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_minted"
+    },
+    {
+      "name": "stablecoin_supply_burned",
+      "category": "stablecoins",
+      "label": "STABLECOIN supply burned",
+      "path": "/stablecoin/network-data/supply",
+      "params": {
+        "token": "all_token",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_burned"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_burned"
+    },
+    {
+      "name": "stablecoin_supply_circulating",
+      "category": "stablecoins",
+      "label": "STABLECOIN supply circulating",
+      "path": "/stablecoin/network-data/supply",
+      "params": {
+        "token": "all_token",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_circulating"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_circulating"
+    },
+    {
+      "name": "stablecoin_supply_issued",
+      "category": "stablecoins",
+      "label": "STABLECOIN supply issued",
+      "path": "/stablecoin/network-data/supply",
+      "params": {
+        "token": "all_token",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_issued"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_issued"
+    },
+    {
+      "name": "stablecoin_supply_redeemed",
+      "category": "stablecoins",
+      "label": "STABLECOIN supply redeemed",
+      "path": "/stablecoin/network-data/supply",
+      "params": {
+        "token": "all_token",
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_redeemed"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_redeemed"
+    },
+    {
+      "name": "btc_transactions_count_inflow",
+      "category": "exchange_flows",
+      "label": "BTC Transactions Count",
+      "path": "/btc/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_inflow"
+    },
+    {
+      "name": "btc_transactions_count_outflow",
+      "category": "exchange_flows",
+      "label": "BTC Transactions Count \u00b7 transactions count outflow",
+      "path": "/btc/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_outflow"
+    },
+    {
+      "name": "btc_flow_total",
+      "category": "exchange_flows",
+      "label": "BTC In-House Flow",
+      "path": "/btc/exchange-flows/in-house-flow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "flow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "flow_total"
+    },
+    {
+      "name": "btc_flow_mean",
+      "category": "exchange_flows",
+      "label": "BTC In-House Flow \u00b7 flow mean",
+      "path": "/btc/exchange-flows/in-house-flow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "flow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "flow_mean"
+    },
+    {
+      "name": "btc_transactions_count_flow",
+      "category": "exchange_flows",
+      "label": "BTC In-House Flow \u00b7 transactions count flow",
+      "path": "/btc/exchange-flows/in-house-flow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_flow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_flow"
+    },
+    {
+      "name": "btc_inflow_total",
+      "category": "miner_flows",
+      "label": "BTC Inflow",
+      "path": "/btc/miner-flows/inflow",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "inflow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_total"
+    },
+    {
+      "name": "btc_miner_flows_inflow_inflow_top10",
+      "category": "miner_flows",
+      "label": "BTC Inflow \u00b7 inflow top10",
+      "path": "/btc/miner-flows/inflow",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "inflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_top10"
+    },
+    {
+      "name": "btc_miner_flows_inflow_inflow_mean",
+      "category": "miner_flows",
+      "label": "BTC Inflow \u00b7 inflow mean",
+      "path": "/btc/miner-flows/inflow",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "inflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_mean"
+    },
+    {
+      "name": "btc_miner_flows_transactions_count_transactions_count_inflow",
+      "category": "miner_flows",
+      "label": "BTC Transactions Count",
+      "path": "/btc/miner-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "transactions_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_inflow"
+    },
+    {
+      "name": "btc_miner_flows_transactions_count_transactions_count_outflow",
+      "category": "miner_flows",
+      "label": "BTC Transactions Count \u00b7 transactions count outflow",
+      "path": "/btc/miner-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "transactions_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_outflow"
+    },
+    {
+      "name": "btc_addresses_count_inflow",
+      "category": "miner_flows",
+      "label": "BTC Addresses Count",
+      "path": "/btc/miner-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "addresses_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_inflow"
+    },
+    {
+      "name": "btc_miner_flows_addresses_count_addresses_count_outflow",
+      "category": "miner_flows",
+      "label": "BTC Addresses Count \u00b7 addresses count outflow",
+      "path": "/btc/miner-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "addresses_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_outflow"
+    },
+    {
+      "name": "btc_miner_flows_in_house_flow_flow_total",
+      "category": "miner_flows",
+      "label": "BTC In-House Flow",
+      "path": "/btc/miner-flows/in-house-flow",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "flow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "flow_total"
+    },
+    {
+      "name": "btc_miner_flows_in_house_flow_flow_mean",
+      "category": "miner_flows",
+      "label": "BTC In-House Flow \u00b7 flow mean",
+      "path": "/btc/miner-flows/in-house-flow",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "flow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "flow_mean"
+    },
+    {
+      "name": "btc_miner_flows_in_house_flow_transactions_count_flow",
+      "category": "miner_flows",
+      "label": "BTC In-House Flow \u00b7 transactions count flow",
+      "path": "/btc/miner-flows/in-house-flow",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "transactions_count_flow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_flow"
+    },
+    {
+      "name": "btc_block_bytes",
+      "category": "network_data",
+      "label": "BTC Block Bytes",
+      "path": "/btc/network-data/block-bytes",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_bytes"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_bytes"
+    },
+    {
+      "name": "btc_block_count",
+      "category": "network_data",
+      "label": "BTC Block Count",
+      "path": "/btc/network-data/block-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_count"
+    },
+    {
+      "name": "btc_block_interval",
+      "category": "network_data",
+      "label": "BTC Block Interval",
+      "path": "/btc/network-data/block-interval",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_interval"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_interval"
+    },
+    {
+      "name": "btc_market_cap",
+      "category": "market_data",
+      "label": "BTC Capitalization",
+      "path": "/btc/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "market_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "market_cap"
+    },
+    {
+      "name": "btc_realized_cap",
+      "category": "market_data",
+      "label": "BTC Capitalization \u00b7 realized cap",
+      "path": "/btc/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "realized_cap"
+    },
+    {
+      "name": "btc_average_cap",
+      "category": "market_data",
+      "label": "BTC Capitalization \u00b7 average cap",
+      "path": "/btc/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "average_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "average_cap"
+    },
+    {
+      "name": "btc_delta_cap",
+      "category": "market_data",
+      "label": "BTC Capitalization \u00b7 delta cap",
+      "path": "/btc/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "delta_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "delta_cap"
+    },
+    {
+      "name": "btc_thermo_cap",
+      "category": "market_data",
+      "label": "BTC Capitalization \u00b7 thermo cap",
+      "path": "/btc/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "thermo_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "thermo_cap"
+    },
+    {
+      "name": "btc_cdd",
+      "category": "network_indicator",
+      "label": "BTC Coin Days Destroyed",
+      "path": "/btc/network-indicator/cdd",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "cdd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "cdd"
+    },
+    {
+      "name": "btc_sa_cdd",
+      "category": "network_indicator",
+      "label": "BTC Coin Days Destroyed \u00b7 sa cdd",
+      "path": "/btc/network-indicator/cdd",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sa_cdd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "sa_cdd"
+    },
+    {
+      "name": "btc_average_sa_cdd",
+      "category": "network_indicator",
+      "label": "BTC Coin Days Destroyed \u00b7 average sa cdd",
+      "path": "/btc/network-indicator/cdd",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "average_sa_cdd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "average_sa_cdd"
+    },
+    {
+      "name": "btc_binary_cdd",
+      "category": "network_indicator",
+      "label": "BTC Coin Days Destroyed \u00b7 binary cdd",
+      "path": "/btc/network-indicator/cdd",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "binary_cdd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "binary_cdd"
+    },
+    {
+      "name": "btc_mca",
+      "category": "network_indicator",
+      "label": "BTC Mean Coin Age",
+      "path": "/btc/network-indicator/mca",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "mca"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "mca"
+    },
+    {
+      "name": "btc_mcda",
+      "category": "network_indicator",
+      "label": "BTC Mean Coin Age \u00b7 mcda",
+      "path": "/btc/network-indicator/mca",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "mcda"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "mcda"
+    },
+    {
+      "name": "btc_sca",
+      "category": "network_indicator",
+      "label": "BTC Sum Coin Age",
+      "path": "/btc/network-indicator/sca",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sca"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "sca"
+    },
+    {
+      "name": "btc_scda",
+      "category": "network_indicator",
+      "label": "BTC Sum Coin Age \u00b7 scda",
+      "path": "/btc/network-indicator/sca",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "scda"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "scda"
+    },
+    {
+      "name": "btc_nrpl",
+      "category": "network_indicator",
+      "label": "BTC Net Realized Profit and Loss",
+      "path": "/btc/network-indicator/nrpl",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nrpl"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "nrpl"
+    },
+    {
+      "name": "btc_profit_percent",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (UTxO)",
+      "path": "/btc/network-indicator/pnl-utxo",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "profit_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "profit_percent"
+    },
+    {
+      "name": "btc_loss_percent",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (UTxO) \u00b7 loss percent",
+      "path": "/btc/network-indicator/pnl-utxo",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "loss_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "loss_percent"
+    },
+    {
+      "name": "btc_profit_amount",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (UTxO) \u00b7 profit amount",
+      "path": "/btc/network-indicator/pnl-utxo",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "profit_amount"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "profit_amount"
+    },
+    {
+      "name": "btc_loss_amount",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (UTxO) \u00b7 loss amount",
+      "path": "/btc/network-indicator/pnl-utxo",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "loss_amount"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "loss_amount"
+    },
+    {
+      "name": "btc_network_indicator_pnl_supply_profit_percent",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (Supply)",
+      "path": "/btc/network-indicator/pnl-supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "profit_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "profit_percent"
+    },
+    {
+      "name": "btc_network_indicator_pnl_supply_loss_percent",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (Supply) \u00b7 loss percent",
+      "path": "/btc/network-indicator/pnl-supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "loss_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "loss_percent"
+    },
+    {
+      "name": "btc_network_indicator_pnl_supply_profit_amount",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (Supply) \u00b7 profit amount",
+      "path": "/btc/network-indicator/pnl-supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "profit_amount"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "profit_amount"
+    },
+    {
+      "name": "btc_network_indicator_pnl_supply_loss_amount",
+      "category": "network_indicator",
+      "label": "BTC Profit and Loss (Supply) \u00b7 loss amount",
+      "path": "/btc/network-indicator/pnl-supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "loss_amount"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "loss_amount"
+    },
+    {
+      "name": "btc_average_dormancy",
+      "category": "network_indicator",
+      "label": "BTC Dormancy",
+      "path": "/btc/network-indicator/dormancy",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "average_dormancy"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "average_dormancy"
+    },
+    {
+      "name": "btc_sa_average_dormancy",
+      "category": "network_indicator",
+      "label": "BTC Dormancy \u00b7 sa average dormancy",
+      "path": "/btc/network-indicator/dormancy",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sa_average_dormancy"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "sa_average_dormancy"
+    },
+    {
+      "name": "btc_estimated_leverage_ratio",
+      "category": "market_indicator",
+      "label": "BTC Estimated Leverage Ratio",
+      "path": "/btc/market-indicator/estimated-leverage-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "estimated_leverage_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "estimated_leverage_ratio"
+    },
+    {
+      "name": "btc_is_shutdown",
+      "category": "flow_indicator",
+      "label": "BTC Exchange Shutdown Index",
+      "path": "/btc/flow-indicator/exchange-shutdown-index",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "is_shutdown"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "is_shutdown"
+    },
+    {
+      "name": "btc_inflow_cdd",
+      "category": "flow_indicator",
+      "label": "BTC Exchange Inflow CDD (Coin Days Destroyed)",
+      "path": "/btc/flow-indicator/exchange-inflow-cdd",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "inflow_cdd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_cdd"
+    },
+    {
+      "name": "btc_flow_indicator_miner_supply_ratio_supply_ratio",
+      "category": "flow_indicator",
+      "label": "BTC Miner Supply Ratio",
+      "path": "/btc/flow-indicator/miner-supply-ratio",
+      "params": {
+        "window": "day",
+        "miner": "all_miner"
+      },
+      "value_keys": [
+        "supply_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_ratio"
+    },
+    {
+      "name": "btc_result",
+      "category": "mempool",
+      "label": "BTC BTC Memory pool Statistics (Sum)",
+      "path": "/btc/mempool/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "result"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "result"
+    },
+    {
+      "name": "btc_network_capacity",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "network_capacity"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "network_capacity"
+    },
+    {
+      "name": "btc_network_capacity_usd",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 network capacity usd",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "network_capacity_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "network_capacity_usd"
+    },
+    {
+      "name": "btc_capacity_per_channel_mean",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 capacity per channel mean",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "capacity_per_channel_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "capacity_per_channel_mean"
+    },
+    {
+      "name": "btc_capacity_per_channel_mean_usd",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 capacity per channel mean usd",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "capacity_per_channel_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "capacity_per_channel_mean_usd"
+    },
+    {
+      "name": "btc_capacity_per_node_mean",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 capacity per node mean",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "capacity_per_node_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "capacity_per_node_mean"
+    },
+    {
+      "name": "btc_capacity_per_node_mean_usd",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 capacity per node mean usd",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "capacity_per_node_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "capacity_per_node_mean_usd"
+    },
+    {
+      "name": "btc_number_of_node",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 number of node",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "number_of_node"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "number_of_node"
+    },
+    {
+      "name": "btc_number_of_channel",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 number of channel",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "number_of_channel"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "number_of_channel"
+    },
+    {
+      "name": "btc_channel_per_node_mean",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 channel per node mean",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "channel_per_node_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "channel_per_node_mean"
+    },
+    {
+      "name": "btc_node_age_days",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 node age days",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "node_age_days"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "node_age_days"
+    },
+    {
+      "name": "btc_channel_age_days",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 channel age days",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "channel_age_days"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "channel_age_days"
+    },
+    {
+      "name": "btc_base_fee_median",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 base fee median",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "base_fee_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "base_fee_median"
+    },
+    {
+      "name": "btc_base_fee_median_usd",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 base fee median usd",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "base_fee_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "base_fee_median_usd"
+    },
+    {
+      "name": "btc_fee_rate_median",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 fee rate median",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fee_rate_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fee_rate_median"
+    },
+    {
+      "name": "btc_fee_rate_median_usd",
+      "category": "lightning",
+      "label": "BTC BTC Lightning Statistics \u00b7 fee rate median usd",
+      "path": "/btc/lightning/stats-in-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fee_rate_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fee_rate_median_usd"
+    },
+    {
+      "name": "stablecoin_transactions_count_inflow",
+      "category": "stablecoins",
+      "label": "STABLECOIN Transactions Count",
+      "path": "/stablecoin/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "transactions_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_inflow"
+    },
+    {
+      "name": "stablecoin_transactions_count_outflow",
+      "category": "stablecoins",
+      "label": "STABLECOIN Transactions Count \u00b7 transactions count outflow",
+      "path": "/stablecoin/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "transactions_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_outflow"
+    },
+    {
+      "name": "stablecoin_addresses_count_inflow",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count",
+      "path": "/stablecoin/exchange-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_inflow"
+    },
+    {
+      "name": "stablecoin_addresses_count_outflow",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count \u00b7 addresses count outflow",
+      "path": "/stablecoin/exchange-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_outflow"
+    },
+    {
+      "name": "stablecoin_events_transfer_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Events Count",
+      "path": "/stablecoin/network-data/events-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "events_transfer_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "events_transfer_count"
+    },
+    {
+      "name": "stablecoin_events_mint_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Events Count \u00b7 events mint count",
+      "path": "/stablecoin/network-data/events-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "events_mint_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "events_mint_count"
+    },
+    {
+      "name": "stablecoin_events_issue_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Events Count \u00b7 events issue count",
+      "path": "/stablecoin/network-data/events-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "events_issue_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "events_issue_count"
+    },
+    {
+      "name": "stablecoin_events_burn_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Events Count \u00b7 events burn count",
+      "path": "/stablecoin/network-data/events-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "events_burn_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "events_burn_count"
+    },
+    {
+      "name": "stablecoin_events_redeem_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Events Count \u00b7 events redeem count",
+      "path": "/stablecoin/network-data/events-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "events_redeem_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "events_redeem_count"
+    },
+    {
+      "name": "stablecoin_tokens_transferred_total",
+      "category": "stablecoins",
+      "label": "STABLECOIN Tokens Transferred",
+      "path": "/stablecoin/network-data/tokens-transferred",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_total"
+    },
+    {
+      "name": "stablecoin_tokens_transferred_mean",
+      "category": "stablecoins",
+      "label": "STABLECOIN Tokens Transferred \u00b7 tokens transferred mean",
+      "path": "/stablecoin/network-data/tokens-transferred",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_mean"
+    },
+    {
+      "name": "stablecoin_addresses_active_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count",
+      "path": "/stablecoin/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_active_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_active_count"
+    },
+    {
+      "name": "stablecoin_addresses_active_sender_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count \u00b7 addresses active sender count",
+      "path": "/stablecoin/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_active_sender_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_active_sender_count"
+    },
+    {
+      "name": "stablecoin_addresses_active_receiver_count",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count \u00b7 addresses active receiver count",
+      "path": "/stablecoin/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_active_receiver_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_active_receiver_count"
+    },
+    {
+      "name": "stablecoin_addresses_active_sender_percent",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count \u00b7 addresses active sender percent",
+      "path": "/stablecoin/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_active_sender_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_active_sender_percent"
+    },
+    {
+      "name": "stablecoin_addresses_active_receiver_percent",
+      "category": "stablecoins",
+      "label": "STABLECOIN Addresses Count \u00b7 addresses active receiver percent",
+      "path": "/stablecoin/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_active_receiver_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_active_receiver_percent"
+    },
+    {
+      "name": "stablecoin_market_cap",
+      "category": "stablecoins",
+      "label": "STABLECOIN Capitalization",
+      "path": "/stablecoin/market-data/capitalization",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "market_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "market_cap"
+    },
+    {
+      "name": "stablecoin_supply_ratio",
+      "category": "stablecoins",
+      "label": "STABLECOIN Exchange Supply Ratio",
+      "path": "/stablecoin/flow-indicator/exchange-supply-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "supply_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_ratio"
+    },
+    {
+      "name": "eth_supply_total",
+      "category": "eth",
+      "label": "ETH Supply",
+      "path": "/eth/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_total"
+    },
+    {
+      "name": "eth_supply_new",
+      "category": "eth",
+      "label": "ETH Supply \u00b7 supply new",
+      "path": "/eth/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_new"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_new"
+    },
+    {
+      "name": "eth_velocity_supply_total",
+      "category": "eth",
+      "label": "ETH Velocity",
+      "path": "/eth/network-data/velocity",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "velocity_supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "velocity_supply_total"
+    },
+    {
+      "name": "eth_contracts_created_new",
+      "category": "eth",
+      "label": "ETH Contracts Count",
+      "path": "/eth/network-data/contracts-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "contracts_created_new"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "contracts_created_new"
+    },
+    {
+      "name": "eth_contracts_destroyed_new",
+      "category": "eth",
+      "label": "ETH Contracts Count \u00b7 contracts destroyed new",
+      "path": "/eth/network-data/contracts-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "contracts_destroyed_new"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "contracts_destroyed_new"
+    },
+    {
+      "name": "eth_contracts_count_total",
+      "category": "eth",
+      "label": "ETH Contracts Count \u00b7 contracts count total",
+      "path": "/eth/network-data/contracts-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "contracts_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "contracts_count_total"
+    },
+    {
+      "name": "eth_contract_calls_count_total",
+      "category": "eth",
+      "label": "ETH Contract Calls Count",
+      "path": "/eth/network-data/contract-calls-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "contract_calls_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "contract_calls_count_total"
+    },
+    {
+      "name": "eth_contract_calls_count_mean",
+      "category": "eth",
+      "label": "ETH Contract Calls Count \u00b7 contract calls count mean",
+      "path": "/eth/network-data/contract-calls-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "contract_calls_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "contract_calls_count_mean"
+    },
+    {
+      "name": "eth_tokens_transferred_count_total",
+      "category": "eth",
+      "label": "ETH Tokens Transferred Count",
+      "path": "/eth/network-data/tokens-transferred-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_count_total"
+    },
+    {
+      "name": "eth_tokens_transferred_count_mean",
+      "category": "eth",
+      "label": "ETH Tokens Transferred Count \u00b7 tokens transferred count mean",
+      "path": "/eth/network-data/tokens-transferred-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_count_mean"
+    },
+    {
+      "name": "eth_network_data_tokens_transferred_count_between_eoa_tokens_transferred_count_total",
+      "category": "eth",
+      "label": "ETH Tokens Transferred Count Between EOA",
+      "path": "/eth/network-data/tokens-transferred-count-between-eoa",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_count_total"
+    },
+    {
+      "name": "eth_network_data_tokens_transferred_count_between_eoa_tokens_transferred_count_mean",
+      "category": "eth",
+      "label": "ETH Tokens Transferred Count Between EOA \u00b7 tokens transferred count mean",
+      "path": "/eth/network-data/tokens-transferred-count-between-eoa",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_count_mean"
+    },
+    {
+      "name": "eth_tokens_transferred_total",
+      "category": "eth",
+      "label": "ETH Tokens Transferred",
+      "path": "/eth/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_total"
+    },
+    {
+      "name": "eth_tokens_transferred_mean",
+      "category": "eth",
+      "label": "ETH Tokens Transferred \u00b7 tokens transferred mean",
+      "path": "/eth/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_mean"
+    },
+    {
+      "name": "eth_tokens_transferred_median",
+      "category": "eth",
+      "label": "ETH Tokens Transferred \u00b7 tokens transferred median",
+      "path": "/eth/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_median"
+    },
+    {
+      "name": "eth_tokens_transferred_total_usd",
+      "category": "eth",
+      "label": "ETH Tokens Transferred \u00b7 tokens transferred total usd",
+      "path": "/eth/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_total_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_total_usd"
+    },
+    {
+      "name": "eth_tokens_transferred_mean_usd",
+      "category": "eth",
+      "label": "ETH Tokens Transferred \u00b7 tokens transferred mean usd",
+      "path": "/eth/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_mean_usd"
+    },
+    {
+      "name": "eth_tokens_transferred_median_usd",
+      "category": "eth",
+      "label": "ETH Tokens Transferred \u00b7 tokens transferred median usd",
+      "path": "/eth/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_median_usd"
+    },
+    {
+      "name": "eth_block_bytes",
+      "category": "eth",
+      "label": "ETH Block Bytes",
+      "path": "/eth/network-data/block-bytes",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_bytes"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_bytes"
+    },
+    {
+      "name": "eth_block_count",
+      "category": "eth",
+      "label": "ETH Block Count",
+      "path": "/eth/network-data/block-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_count"
+    },
+    {
+      "name": "eth_block_interval",
+      "category": "eth",
+      "label": "ETH Block Interval",
+      "path": "/eth/network-data/block-interval",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_interval"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_interval"
+    },
+    {
+      "name": "eth_fees_block_mean",
+      "category": "eth",
+      "label": "ETH Fees",
+      "path": "/eth/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_block_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_block_mean"
+    },
+    {
+      "name": "eth_fees_block_mean_usd",
+      "category": "eth",
+      "label": "ETH Fees \u00b7 fees block mean usd",
+      "path": "/eth/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_block_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_block_mean_usd"
+    },
+    {
+      "name": "eth_fees_total",
+      "category": "eth",
+      "label": "ETH Fees \u00b7 fees total",
+      "path": "/eth/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_total"
+    },
+    {
+      "name": "eth_fees_total_usd",
+      "category": "eth",
+      "label": "ETH Fees \u00b7 fees total usd",
+      "path": "/eth/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_total_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_total_usd"
+    },
+    {
+      "name": "eth_fees_reward_percent",
+      "category": "eth",
+      "label": "ETH Fees \u00b7 fees reward percent",
+      "path": "/eth/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_reward_percent"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_reward_percent"
+    },
+    {
+      "name": "eth_fees_burnt_total",
+      "category": "eth",
+      "label": "ETH Fees Burnt",
+      "path": "/eth/network-data/fees-burnt",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_burnt_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_burnt_total"
+    },
+    {
+      "name": "eth_fees_burnt_total_usd",
+      "category": "eth",
+      "label": "ETH Fees Burnt \u00b7 fees burnt total usd",
+      "path": "/eth/network-data/fees-burnt",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_burnt_total_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_burnt_total_usd"
+    },
+    {
+      "name": "eth_fees_tips_total",
+      "category": "eth",
+      "label": "ETH Fees Tips",
+      "path": "/eth/network-data/fees-tips",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_tips_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_tips_total"
+    },
+    {
+      "name": "eth_fees_tips_total_usd",
+      "category": "eth",
+      "label": "ETH Fees Tips \u00b7 fees tips total usd",
+      "path": "/eth/network-data/fees-tips",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_tips_total_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_tips_total_usd"
+    },
+    {
+      "name": "eth_fees_transaction_mean",
+      "category": "eth",
+      "label": "ETH Fees Transaction",
+      "path": "/eth/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_mean"
+    },
+    {
+      "name": "eth_fees_transaction_mean_usd",
+      "category": "eth",
+      "label": "ETH Fees Transaction \u00b7 fees transaction mean usd",
+      "path": "/eth/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_mean_usd"
+    },
+    {
+      "name": "eth_fees_transaction_median",
+      "category": "eth",
+      "label": "ETH Fees Transaction \u00b7 fees transaction median",
+      "path": "/eth/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_median"
+    },
+    {
+      "name": "eth_fees_transaction_median_usd",
+      "category": "eth",
+      "label": "ETH Fees Transaction \u00b7 fees transaction median usd",
+      "path": "/eth/network-data/fees-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_transaction_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_transaction_median_usd"
+    },
+    {
+      "name": "eth_fees_burnt_transaction_mean",
+      "category": "eth",
+      "label": "ETH Fees Burnt Transaction",
+      "path": "/eth/network-data/fees-burnt-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_burnt_transaction_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_burnt_transaction_mean"
+    },
+    {
+      "name": "eth_fees_burnt_transaction_mean_usd",
+      "category": "eth",
+      "label": "ETH Fees Burnt Transaction \u00b7 fees burnt transaction mean usd",
+      "path": "/eth/network-data/fees-burnt-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_burnt_transaction_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_burnt_transaction_mean_usd"
+    },
+    {
+      "name": "eth_fees_burnt_transaction_median",
+      "category": "eth",
+      "label": "ETH Fees Burnt Transaction \u00b7 fees burnt transaction median",
+      "path": "/eth/network-data/fees-burnt-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_burnt_transaction_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_burnt_transaction_median"
+    },
+    {
+      "name": "eth_fees_burnt_transaction_median_usd",
+      "category": "eth",
+      "label": "ETH Fees Burnt Transaction \u00b7 fees burnt transaction median usd",
+      "path": "/eth/network-data/fees-burnt-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_burnt_transaction_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_burnt_transaction_median_usd"
+    },
+    {
+      "name": "eth_fees_tips_transaction_mean",
+      "category": "eth",
+      "label": "ETH Fees Tips Transaction",
+      "path": "/eth/network-data/fees-tips-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_tips_transaction_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_tips_transaction_mean"
+    },
+    {
+      "name": "eth_fees_tips_transaction_mean_usd",
+      "category": "eth",
+      "label": "ETH Fees Tips Transaction \u00b7 fees tips transaction mean usd",
+      "path": "/eth/network-data/fees-tips-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_tips_transaction_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_tips_transaction_mean_usd"
+    },
+    {
+      "name": "eth_fees_tips_transaction_median",
+      "category": "eth",
+      "label": "ETH Fees Tips Transaction \u00b7 fees tips transaction median",
+      "path": "/eth/network-data/fees-tips-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_tips_transaction_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_tips_transaction_median"
+    },
+    {
+      "name": "eth_fees_tips_transaction_median_usd",
+      "category": "eth",
+      "label": "ETH Fees Tips Transaction \u00b7 fees tips transaction median usd",
+      "path": "/eth/network-data/fees-tips-transaction",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_tips_transaction_median_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_tips_transaction_median_usd"
+    },
+    {
+      "name": "eth_blockreward",
+      "category": "eth",
+      "label": "ETH Blockreward",
+      "path": "/eth/network-data/blockreward",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "blockreward"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "blockreward"
+    },
+    {
+      "name": "eth_blockreward_usd",
+      "category": "eth",
+      "label": "ETH Blockreward \u00b7 blockreward usd",
+      "path": "/eth/network-data/blockreward",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "blockreward_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "blockreward_usd"
+    },
+    {
+      "name": "eth_blockreward_except_uncle",
+      "category": "eth",
+      "label": "ETH Blockreward Except Uncle",
+      "path": "/eth/network-data/blockreward-except-uncle",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "blockreward_except_uncle"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "blockreward_except_uncle"
+    },
+    {
+      "name": "eth_blockreward_except_uncle_usd",
+      "category": "eth",
+      "label": "ETH Blockreward Except Uncle \u00b7 blockreward except uncle usd",
+      "path": "/eth/network-data/blockreward-except-uncle",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "blockreward_except_uncle_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "blockreward_except_uncle_usd"
+    },
+    {
+      "name": "eth_gas_used_total",
+      "category": "eth",
+      "label": "ETH Gas",
+      "path": "/eth/network-data/gas",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "gas_used_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "gas_used_total"
+    },
+    {
+      "name": "eth_gas_used_mean",
+      "category": "eth",
+      "label": "ETH Gas \u00b7 gas used mean",
+      "path": "/eth/network-data/gas",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "gas_used_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "gas_used_mean"
+    },
+    {
+      "name": "eth_gas_price_mean",
+      "category": "eth",
+      "label": "ETH Gas \u00b7 gas price mean",
+      "path": "/eth/network-data/gas",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "gas_price_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "gas_price_mean"
+    },
+    {
+      "name": "eth_gas_limit_mean",
+      "category": "eth",
+      "label": "ETH Gas \u00b7 gas limit mean",
+      "path": "/eth/network-data/gas",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "gas_limit_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "gas_limit_mean"
+    },
+    {
+      "name": "eth_base_fee_mean",
+      "category": "eth",
+      "label": "ETH Base Fee",
+      "path": "/eth/network-data/base-fee",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "base_fee_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "base_fee_mean"
+    },
+    {
+      "name": "eth_max_fee_mean",
+      "category": "eth",
+      "label": "ETH Max Fee",
+      "path": "/eth/network-data/max-fee",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "max_fee_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "max_fee_mean"
+    },
+    {
+      "name": "eth_max_priority_fee_mean",
+      "category": "eth",
+      "label": "ETH Max Priority Fee",
+      "path": "/eth/network-data/max-priority-fee",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "max_priority_fee_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "max_priority_fee_mean"
+    },
+    {
+      "name": "eth_difficulty",
+      "category": "eth",
+      "label": "ETH Difficulty",
+      "path": "/eth/network-data/difficulty",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "difficulty"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "difficulty"
+    },
+    {
+      "name": "eth_hashrate",
+      "category": "eth",
+      "label": "ETH Hashrate",
+      "path": "/eth/network-data/hashrate",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "hashrate"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "hashrate"
+    },
+    {
+      "name": "eth_uncle_block_count",
+      "category": "eth",
+      "label": "ETH Uncle Block Count",
+      "path": "/eth/network-data/uncle-block-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "uncle_block_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "uncle_block_count"
+    },
+    {
+      "name": "eth_uncle_blockreward",
+      "category": "eth",
+      "label": "ETH Uncle Blockreward",
+      "path": "/eth/network-data/uncle-blockreward",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "uncle_blockreward"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "uncle_blockreward"
+    },
+    {
+      "name": "eth_uncle_blockreward_usd",
+      "category": "eth",
+      "label": "ETH Uncle Blockreward \u00b7 uncle blockreward usd",
+      "path": "/eth/network-data/uncle-blockreward",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "uncle_blockreward_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "uncle_blockreward_usd"
+    },
+    {
+      "name": "eth_total_value_staked",
+      "category": "eth2",
+      "label": "ETH Total Value Staked",
+      "path": "/eth/eth2/total-value-staked",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_value_staked"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_value_staked"
+    },
+    {
+      "name": "eth_staking_inflow_total",
+      "category": "eth2",
+      "label": "ETH Staking Inflow Total",
+      "path": "/eth/eth2/staking-inflow-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "staking_inflow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "staking_inflow_total"
+    },
+    {
+      "name": "eth_staking_transaction_count",
+      "category": "eth2",
+      "label": "ETH Staking Transaction Count",
+      "path": "/eth/eth2/staking-transaction-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "staking_transaction_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "staking_transaction_count"
+    },
+    {
+      "name": "eth_staking_validator_total",
+      "category": "eth2",
+      "label": "ETH Staking Validator Total",
+      "path": "/eth/eth2/staking-validator-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "staking_validator_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "staking_validator_total"
+    },
+    {
+      "name": "eth_depositor_count_total",
+      "category": "eth2",
+      "label": "ETH Depositor Count Total",
+      "path": "/eth/eth2/depositor-count-total",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "depositor_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "depositor_count_total"
+    },
+    {
+      "name": "eth_depositor_count_new",
+      "category": "eth2",
+      "label": "ETH Depositor Count New",
+      "path": "/eth/eth2/depositor-count-new",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "depositor_count_new"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "depositor_count_new"
+    },
+    {
+      "name": "eth_staking_rate",
+      "category": "eth2",
+      "label": "ETH Staking Rate",
+      "path": "/eth/eth2/staking-rate",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "staking_rate"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "staking_rate"
+    },
+    {
+      "name": "eth_phase0_success_rate",
+      "category": "eth2",
+      "label": "ETH Phase 0 Success Rate",
+      "path": "/eth/eth2/phase0-success-rate",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "phase0_success_rate"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "phase0_success_rate"
+    },
+    {
+      "name": "eth_transactions_count_inflow",
+      "category": "eth",
+      "label": "ETH Transactions Count",
+      "path": "/eth/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_inflow"
+    },
+    {
+      "name": "eth_transactions_count_outflow",
+      "category": "eth",
+      "label": "ETH Transactions Count \u00b7 transactions count outflow",
+      "path": "/eth/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_outflow"
+    },
+    {
+      "name": "eth_addresses_count_inflow",
+      "category": "eth",
+      "label": "ETH Addresses Count",
+      "path": "/eth/exchange-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "addresses_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_inflow"
+    },
+    {
+      "name": "eth_addresses_count_outflow",
+      "category": "eth",
+      "label": "ETH Addresses Count \u00b7 addresses count outflow",
+      "path": "/eth/exchange-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "addresses_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_outflow"
+    },
+    {
+      "name": "eth_taker_buy_volume",
+      "category": "eth",
+      "label": "ETH Taker Buy Sell Stats",
+      "path": "/eth/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_buy_volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_volume"
+    },
+    {
+      "name": "eth_taker_sell_volume",
+      "category": "eth",
+      "label": "ETH Taker Buy Sell Stats \u00b7 taker sell volume",
+      "path": "/eth/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_sell_volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_sell_volume"
+    },
+    {
+      "name": "eth_taker_buy_ratio",
+      "category": "eth",
+      "label": "ETH Taker Buy Sell Stats \u00b7 taker buy ratio",
+      "path": "/eth/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_buy_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_ratio"
+    },
+    {
+      "name": "eth_taker_sell_ratio",
+      "category": "eth",
+      "label": "ETH Taker Buy Sell Stats \u00b7 taker sell ratio",
+      "path": "/eth/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_sell_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_sell_ratio"
+    },
+    {
+      "name": "eth_taker_buy_sell_ratio",
+      "category": "eth",
+      "label": "ETH Taker Buy Sell Stats \u00b7 taker buy sell ratio",
+      "path": "/eth/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_buy_sell_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_sell_ratio"
+    },
+    {
+      "name": "eth_long_liquidations",
+      "category": "eth",
+      "label": "ETH Liquidations",
+      "path": "/eth/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "long_liquidations"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "long_liquidations"
+    },
+    {
+      "name": "eth_short_liquidations",
+      "category": "eth",
+      "label": "ETH Liquidations \u00b7 short liquidations",
+      "path": "/eth/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "short_liquidations"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "short_liquidations"
+    },
+    {
+      "name": "eth_long_liquidations_usd",
+      "category": "eth",
+      "label": "ETH Liquidations \u00b7 long liquidations usd",
+      "path": "/eth/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "long_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "long_liquidations_usd"
+    },
+    {
+      "name": "eth_short_liquidations_usd",
+      "category": "eth",
+      "label": "ETH Liquidations \u00b7 short liquidations usd",
+      "path": "/eth/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "short_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "short_liquidations_usd"
+    },
+    {
+      "name": "eth_coinbase_premium_gap",
+      "category": "eth",
+      "label": "ETH Coinbase Premium Index",
+      "path": "/eth/market-data/coinbase-premium-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "coinbase_premium_gap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "coinbase_premium_gap"
+    },
+    {
+      "name": "eth_coinbase_premium_index",
+      "category": "eth",
+      "label": "ETH Coinbase Premium Index \u00b7 coinbase premium index",
+      "path": "/eth/market-data/coinbase-premium-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "coinbase_premium_index"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "coinbase_premium_index"
+    },
+    {
+      "name": "eth_market_cap",
+      "category": "eth",
+      "label": "ETH Capitalization",
+      "path": "/eth/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "market_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "market_cap"
+    },
+    {
+      "name": "eth_supply_ratio",
+      "category": "eth",
+      "label": "ETH Exchange Supply Ratio",
+      "path": "/eth/flow-indicator/exchange-supply-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "supply_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_ratio"
+    },
+    {
+      "name": "eth_estimated_leverage_ratio",
+      "category": "eth",
+      "label": "ETH Estimated Leverage Ratio",
+      "path": "/eth/market-indicator/estimated-leverage-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "estimated_leverage_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "estimated_leverage_ratio"
+    },
+    {
+      "name": "erc20_reserve",
+      "category": "erc20",
+      "label": "ERC20 Reserve",
+      "path": "/erc20/exchange-flows/reserve",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "reserve"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "erc20_reserve_usd",
+      "category": "erc20",
+      "label": "ERC20 Reserve \u00b7 reserve usd",
+      "path": "/erc20/exchange-flows/reserve",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "reserve_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve_usd"
+    },
+    {
+      "name": "erc20_netflow_total",
+      "category": "erc20",
+      "label": "ERC20 Netflow",
+      "path": "/erc20/exchange-flows/netflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "netflow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "netflow_total"
+    },
+    {
+      "name": "erc20_inflow_total",
+      "category": "erc20",
+      "label": "ERC20 Inflow",
+      "path": "/erc20/exchange-flows/inflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "inflow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_total"
+    },
+    {
+      "name": "erc20_inflow_top10",
+      "category": "erc20",
+      "label": "ERC20 Inflow \u00b7 inflow top10",
+      "path": "/erc20/exchange-flows/inflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "inflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_top10"
+    },
+    {
+      "name": "erc20_inflow_mean",
+      "category": "erc20",
+      "label": "ERC20 Inflow \u00b7 inflow mean",
+      "path": "/erc20/exchange-flows/inflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "inflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_mean"
+    },
+    {
+      "name": "erc20_outflow_total",
+      "category": "erc20",
+      "label": "ERC20 Outflow",
+      "path": "/erc20/exchange-flows/outflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "outflow_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_total"
+    },
+    {
+      "name": "erc20_outflow_top10",
+      "category": "erc20",
+      "label": "ERC20 Outflow \u00b7 outflow top10",
+      "path": "/erc20/exchange-flows/outflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "outflow_top10"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_top10"
+    },
+    {
+      "name": "erc20_outflow_mean",
+      "category": "erc20",
+      "label": "ERC20 Outflow \u00b7 outflow mean",
+      "path": "/erc20/exchange-flows/outflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "outflow_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_mean"
+    },
+    {
+      "name": "erc20_transactions_count_inflow",
+      "category": "erc20",
+      "label": "ERC20 Transactions Count",
+      "path": "/erc20/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "transactions_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_inflow"
+    },
+    {
+      "name": "erc20_transactions_count_outflow",
+      "category": "erc20",
+      "label": "ERC20 Transactions Count \u00b7 transactions count outflow",
+      "path": "/erc20/exchange-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "transactions_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_outflow"
+    },
+    {
+      "name": "erc20_addresses_count_inflow",
+      "category": "erc20",
+      "label": "ERC20 Addresses Count",
+      "path": "/erc20/exchange-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_inflow"
+    },
+    {
+      "name": "erc20_addresses_count_outflow",
+      "category": "erc20",
+      "label": "ERC20 Addresses Count \u00b7 addresses count outflow",
+      "path": "/erc20/exchange-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_outflow"
+    },
+    {
+      "name": "erc20_supply_total",
+      "category": "erc20",
+      "label": "ERC20 Supply",
+      "path": "/erc20/network-data/supply",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_total"
+    },
+    {
+      "name": "erc20_supply_minted",
+      "category": "erc20",
+      "label": "ERC20 Supply \u00b7 supply minted",
+      "path": "/erc20/network-data/supply",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "supply_minted"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_minted"
+    },
+    {
+      "name": "erc20_supply_burned",
+      "category": "erc20",
+      "label": "ERC20 Supply \u00b7 supply burned",
+      "path": "/erc20/network-data/supply",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "supply_burned"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_burned"
+    },
+    {
+      "name": "erc20_velocity_supply_total",
+      "category": "erc20",
+      "label": "ERC20 Velocity",
+      "path": "/erc20/network-data/velocity",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "velocity_supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "velocity_supply_total"
+    },
+    {
+      "name": "erc20_transactions_count_total",
+      "category": "erc20",
+      "label": "ERC20 Transactions Count",
+      "path": "/erc20/network-data/transactions-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "transactions_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_total"
+    },
+    {
+      "name": "erc20_transactions_count_mean",
+      "category": "erc20",
+      "label": "ERC20 Transactions Count \u00b7 transactions count mean",
+      "path": "/erc20/network-data/transactions-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "transactions_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_mean"
+    },
+    {
+      "name": "erc20_tokens_transferred_count_total",
+      "category": "erc20",
+      "label": "ERC20 Tokens Transferred Count",
+      "path": "/erc20/network-data/tokens-transferred-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_count_total"
+    },
+    {
+      "name": "erc20_tokens_transferred_count_mean",
+      "category": "erc20",
+      "label": "ERC20 Tokens Transferred Count \u00b7 tokens transferred count mean",
+      "path": "/erc20/network-data/tokens-transferred-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_count_mean"
+    },
+    {
+      "name": "erc20_tokens_transferred_total",
+      "category": "erc20",
+      "label": "ERC20 Tokens Transferred",
+      "path": "/erc20/network-data/tokens-transferred",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_total"
+    },
+    {
+      "name": "erc20_tokens_transferred_mean",
+      "category": "erc20",
+      "label": "ERC20 Tokens Transferred \u00b7 tokens transferred mean",
+      "path": "/erc20/network-data/tokens-transferred",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_mean"
+    },
+    {
+      "name": "erc20_tokens_transferred_median",
+      "category": "erc20",
+      "label": "ERC20 Tokens Transferred \u00b7 tokens transferred median",
+      "path": "/erc20/network-data/tokens-transferred",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "tokens_transferred_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_median"
+    },
+    {
+      "name": "erc20_addresses_count_active",
+      "category": "erc20",
+      "label": "ERC20 Addresses Count",
+      "path": "/erc20/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_active"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_active"
+    },
+    {
+      "name": "erc20_addresses_count_sender",
+      "category": "erc20",
+      "label": "ERC20 Addresses Count \u00b7 addresses count sender",
+      "path": "/erc20/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_sender"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_sender"
+    },
+    {
+      "name": "erc20_addresses_count_receiver",
+      "category": "erc20",
+      "label": "ERC20 Addresses Count \u00b7 addresses count receiver",
+      "path": "/erc20/network-data/addresses-count",
+      "params": {
+        "window": "day",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "addresses_count_receiver"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_receiver"
+    },
+    {
+      "name": "erc20_supply_ratio",
+      "category": "erc20",
+      "label": "ERC20 Exchange Supply Ratio",
+      "path": "/erc20/flow-indicator/exchange-supply-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange",
+        "token": "all_token"
+      },
+      "value_keys": [
+        "supply_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_ratio"
+    },
+    {
+      "name": "xrp_open_interest",
+      "category": "xrp",
+      "label": "XRP Open Interest",
+      "path": "/xrp/market-data/open-interest",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "open_interest"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "open_interest"
+    },
+    {
+      "name": "xrp_funding_rates",
+      "category": "xrp",
+      "label": "XRP Funding Rates",
+      "path": "/xrp/market-data/funding-rates",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "funding_rates"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "funding_rates"
+    },
+    {
+      "name": "xrp_taker_buy_volume",
+      "category": "xrp",
+      "label": "XRP Taker Buy Sell Stats",
+      "path": "/xrp/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_buy_volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_volume"
+    },
+    {
+      "name": "xrp_taker_sell_volume",
+      "category": "xrp",
+      "label": "XRP Taker Buy Sell Stats \u00b7 taker sell volume",
+      "path": "/xrp/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_sell_volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_sell_volume"
+    },
+    {
+      "name": "xrp_taker_buy_ratio",
+      "category": "xrp",
+      "label": "XRP Taker Buy Sell Stats \u00b7 taker buy ratio",
+      "path": "/xrp/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_buy_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_ratio"
+    },
+    {
+      "name": "xrp_taker_sell_ratio",
+      "category": "xrp",
+      "label": "XRP Taker Buy Sell Stats \u00b7 taker sell ratio",
+      "path": "/xrp/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_sell_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_sell_ratio"
+    },
+    {
+      "name": "xrp_taker_buy_sell_ratio",
+      "category": "xrp",
+      "label": "XRP Taker Buy Sell Stats \u00b7 taker buy sell ratio",
+      "path": "/xrp/market-data/taker-buy-sell-stats",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "taker_buy_sell_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "taker_buy_sell_ratio"
+    },
+    {
+      "name": "xrp_long_liquidations",
+      "category": "xrp",
+      "label": "XRP Liquidations",
+      "path": "/xrp/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "long_liquidations"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "long_liquidations"
+    },
+    {
+      "name": "xrp_short_liquidations",
+      "category": "xrp",
+      "label": "XRP Liquidations \u00b7 short liquidations",
+      "path": "/xrp/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "short_liquidations"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "short_liquidations"
+    },
+    {
+      "name": "xrp_long_liquidations_usd",
+      "category": "xrp",
+      "label": "XRP Liquidations \u00b7 long liquidations usd",
+      "path": "/xrp/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "long_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "long_liquidations_usd"
+    },
+    {
+      "name": "xrp_short_liquidations_usd",
+      "category": "xrp",
+      "label": "XRP Liquidations \u00b7 short liquidations usd",
+      "path": "/xrp/market-data/liquidations",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "short_liquidations_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "short_liquidations_usd"
+    },
+    {
+      "name": "xrp_market_cap",
+      "category": "xrp",
+      "label": "XRP Capitalization",
+      "path": "/xrp/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "market_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "market_cap"
+    },
+    {
+      "name": "xrp_estimated_leverage_ratio",
+      "category": "xrp",
+      "label": "XRP Estimated Leverage Ratio",
+      "path": "/xrp/market-data/estimated-leverage-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "estimated_leverage_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "estimated_leverage_ratio"
+    },
+    {
+      "name": "xrp_reserve",
+      "category": "xrp",
+      "label": "XRP Reserve",
+      "path": "/xrp/entity-flows/reserve",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "reserve"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve"
+    },
+    {
+      "name": "xrp_reserve_usd",
+      "category": "xrp",
+      "label": "XRP Reserve \u00b7 reserve usd",
+      "path": "/xrp/entity-flows/reserve",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "reserve_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "reserve_usd"
+    },
+    {
+      "name": "xrp_share",
+      "category": "xrp",
+      "label": "XRP Share",
+      "path": "/xrp/entity-flows/share",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "share"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "share"
+    },
+    {
+      "name": "xrp_transactions_count_deposit",
+      "category": "xrp",
+      "label": "XRP Transactions Count",
+      "path": "/xrp/entity-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_deposit"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_deposit"
+    },
+    {
+      "name": "xrp_transactions_count_withdraw",
+      "category": "xrp",
+      "label": "XRP Transactions Count \u00b7 transactions count withdraw",
+      "path": "/xrp/entity-flows/transactions-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "transactions_count_withdraw"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_withdraw"
+    },
+    {
+      "name": "xrp_inflow",
+      "category": "xrp",
+      "label": "XRP Inflow",
+      "path": "/xrp/entity-flows/inflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "inflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow"
+    },
+    {
+      "name": "xrp_inflow_usd",
+      "category": "xrp",
+      "label": "XRP Inflow \u00b7 inflow usd",
+      "path": "/xrp/entity-flows/inflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "inflow_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "inflow_usd"
+    },
+    {
+      "name": "xrp_outflow",
+      "category": "xrp",
+      "label": "XRP Outflow",
+      "path": "/xrp/entity-flows/outflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "outflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow"
+    },
+    {
+      "name": "xrp_outflow_usd",
+      "category": "xrp",
+      "label": "XRP Outflow \u00b7 outflow usd",
+      "path": "/xrp/entity-flows/outflow",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "outflow_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "outflow_usd"
+    },
+    {
+      "name": "xrp_addresses_count_deposit",
+      "category": "xrp",
+      "label": "XRP Addresses Count",
+      "path": "/xrp/entity-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "addresses_count_deposit"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_deposit"
+    },
+    {
+      "name": "xrp_addresses_count_withdraw",
+      "category": "xrp",
+      "label": "XRP Addresses Count \u00b7 addresses count withdraw",
+      "path": "/xrp/entity-flows/addresses-count",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "addresses_count_withdraw"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_withdraw"
+    },
+    {
+      "name": "xrp_transaction_counts",
+      "category": "xrp",
+      "label": "XRP Whale Movements",
+      "path": "/xrp/entity-flows/whale-movements",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transaction_counts"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transaction_counts"
+    },
+    {
+      "name": "xrp_volume",
+      "category": "xrp",
+      "label": "XRP Whale Movements \u00b7 volume",
+      "path": "/xrp/entity-flows/whale-movements",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "volume"
+    },
+    {
+      "name": "xrp_exchange_supply_ratio",
+      "category": "xrp",
+      "label": "XRP Exchange Supply Ratio",
+      "path": "/xrp/flow-indicator/exchange-supply-ratio",
+      "params": {
+        "window": "day",
+        "exchange": "all_exchange"
+      },
+      "value_keys": [
+        "exchange_supply_ratio"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "exchange_supply_ratio"
+    },
+    {
+      "name": "xrp_active_account",
+      "category": "xrp",
+      "label": "XRP Addresses Count",
+      "path": "/xrp/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_account"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_account"
+    },
+    {
+      "name": "xrp_total_account",
+      "category": "xrp",
+      "label": "XRP Addresses Count \u00b7 total account",
+      "path": "/xrp/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_account"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_account"
+    },
+    {
+      "name": "xrp_sending_account",
+      "category": "xrp",
+      "label": "XRP Addresses Count \u00b7 sending account",
+      "path": "/xrp/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "sending_account"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "sending_account"
+    },
+    {
+      "name": "xrp_recieving_account",
+      "category": "xrp",
+      "label": "XRP Addresses Count \u00b7 recieving account",
+      "path": "/xrp/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "recieving_account"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "recieving_account"
+    },
+    {
+      "name": "xrp_velocity",
+      "category": "xrp",
+      "label": "XRP Velocity",
+      "path": "/xrp/network-data/velocity",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "velocity"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "velocity"
+    },
+    {
+      "name": "xrp_average_block_interval",
+      "category": "xrp",
+      "label": "XRP Block Interval",
+      "path": "/xrp/network-data/block-interval",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "average_block_interval"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "average_block_interval"
+    },
+    {
+      "name": "xrp_xrp_burnt",
+      "category": "xrp",
+      "label": "XRP XRP Burnt",
+      "path": "/xrp/network-data/xrp-burnt",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "xrp_burnt"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "xrp_burnt"
+    },
+    {
+      "name": "xrp_total_ledgers",
+      "category": "xrp",
+      "label": "XRP Ledger Count",
+      "path": "/xrp/network-data/ledger-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_ledgers"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_ledgers"
+    },
+    {
+      "name": "xrp_total_fees",
+      "category": "xrp",
+      "label": "XRP Fees",
+      "path": "/xrp/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_fees"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_fees"
+    },
+    {
+      "name": "xrp_total_transactions_count",
+      "category": "xrp",
+      "label": "XRP Transactions Count",
+      "path": "/xrp/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_transactions_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_transactions_count"
+    },
+    {
+      "name": "xrp_tokens_transferred_total",
+      "category": "xrp",
+      "label": "XRP Tokens Transferred",
+      "path": "/xrp/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_total"
+    },
+    {
+      "name": "xrp_supply_total",
+      "category": "xrp",
+      "label": "XRP Supply",
+      "path": "/xrp/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_total"
+    },
+    {
+      "name": "xrp_nvt",
+      "category": "xrp",
+      "label": "XRP NVT",
+      "path": "/xrp/network-indicator/nvt",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nvt"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "nvt"
+    },
+    {
+      "name": "xrp_dex_volume",
+      "category": "xrp",
+      "label": "XRP Volume",
+      "path": "/xrp/dex-data/volume",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "dex_volume"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "dex_volume"
+    },
+    {
+      "name": "xrp_transactions_count",
+      "category": "xrp",
+      "label": "XRP Transaction count",
+      "path": "/xrp/dex-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count"
+    },
+    {
+      "name": "xrp_liquidity",
+      "category": "xrp",
+      "label": "XRP Liquidity",
+      "path": "/xrp/dex-data/liquidity",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "liquidity"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "liquidity"
+    },
+    {
+      "name": "xrp_dex_price_usd",
+      "category": "xrp",
+      "label": "XRP XRP DEX Price",
+      "path": "/xrp/dex-data/dex-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "dex_price_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "dex_price_usd"
+    },
+    {
+      "name": "trx_market_cap",
+      "category": "trx",
+      "label": "TRX Capitalization",
+      "path": "/trx/market-data/capitalization",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "market_cap"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "market_cap"
+    },
+    {
+      "name": "trx_supply_total",
+      "category": "trx",
+      "label": "TRX Supply",
+      "path": "/trx/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_total"
+    },
+    {
+      "name": "trx_supply_circulating",
+      "category": "trx",
+      "label": "TRX Supply \u00b7 supply circulating",
+      "path": "/trx/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_circulating"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_circulating"
+    },
+    {
+      "name": "trx_supply_minted",
+      "category": "trx",
+      "label": "TRX Supply \u00b7 supply minted",
+      "path": "/trx/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_minted"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_minted"
+    },
+    {
+      "name": "trx_supply_burned",
+      "category": "trx",
+      "label": "TRX Supply \u00b7 supply burned",
+      "path": "/trx/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_burned"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_burned"
+    },
+    {
+      "name": "trx_supply_staked",
+      "category": "trx",
+      "label": "TRX Supply \u00b7 supply staked",
+      "path": "/trx/network-data/supply",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "supply_staked"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "supply_staked"
+    },
+    {
+      "name": "trx_transactions_count_total",
+      "category": "trx",
+      "label": "TRX Transactions Count",
+      "path": "/trx/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_total"
+    },
+    {
+      "name": "trx_transactions_count_mean",
+      "category": "trx",
+      "label": "TRX Transactions Count \u00b7 transactions count mean",
+      "path": "/trx/network-data/transactions-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "transactions_count_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "transactions_count_mean"
+    },
+    {
+      "name": "trx_addresses_count_active",
+      "category": "trx",
+      "label": "TRX Addresses Count",
+      "path": "/trx/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_active"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_active"
+    },
+    {
+      "name": "trx_addresses_count_sender",
+      "category": "trx",
+      "label": "TRX Addresses Count \u00b7 addresses count sender",
+      "path": "/trx/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_sender"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_sender"
+    },
+    {
+      "name": "trx_addresses_count_receiver",
+      "category": "trx",
+      "label": "TRX Addresses Count \u00b7 addresses count receiver",
+      "path": "/trx/network-data/addresses-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "addresses_count_receiver"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "addresses_count_receiver"
+    },
+    {
+      "name": "trx_tokens_transferred_total",
+      "category": "trx",
+      "label": "TRX Tokens Transferred",
+      "path": "/trx/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_total"
+    },
+    {
+      "name": "trx_tokens_transferred_mean",
+      "category": "trx",
+      "label": "TRX Tokens Transferred \u00b7 tokens transferred mean",
+      "path": "/trx/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_mean"
+    },
+    {
+      "name": "trx_tokens_transferred_median",
+      "category": "trx",
+      "label": "TRX Tokens Transferred \u00b7 tokens transferred median",
+      "path": "/trx/network-data/tokens-transferred",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tokens_transferred_median"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tokens_transferred_median"
+    },
+    {
+      "name": "trx_block_count",
+      "category": "trx",
+      "label": "TRX Block Count",
+      "path": "/trx/network-data/block-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "block_count"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "block_count"
+    },
+    {
+      "name": "trx_fees_total",
+      "category": "trx",
+      "label": "TRX Fees",
+      "path": "/trx/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_total"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_total"
+    },
+    {
+      "name": "trx_fees_total_usd",
+      "category": "trx",
+      "label": "TRX Fees \u00b7 fees total usd",
+      "path": "/trx/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_total_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_total_usd"
+    },
+    {
+      "name": "trx_fees_block_mean",
+      "category": "trx",
+      "label": "TRX Fees \u00b7 fees block mean",
+      "path": "/trx/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_block_mean"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_block_mean"
+    },
+    {
+      "name": "trx_fees_block_mean_usd",
+      "category": "trx",
+      "label": "TRX Fees \u00b7 fees block mean usd",
+      "path": "/trx/network-data/fees",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "fees_block_mean_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "fees_block_mean_usd"
+    },
+    {
+      "name": "trx_tps",
+      "category": "trx",
+      "label": "TRX TPS",
+      "path": "/trx/network-data/tps",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "tps"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "tps"
+    },
+    {
+      "name": "trx_v1_staking_amount",
+      "category": "trx",
+      "label": "TRX Total Value Staked",
+      "path": "/trx/network-data/total-value-staked",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "v1_staking_amount"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "v1_staking_amount"
+    },
+    {
+      "name": "trx_v2_staking_amount",
+      "category": "trx",
+      "label": "TRX Total Value Staked \u00b7 v2 staking amount",
+      "path": "/trx/network-data/total-value-staked",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "v2_staking_amount"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "v2_staking_amount"
+    },
+    {
+      "name": "trx_staking_rate",
+      "category": "trx",
+      "label": "TRX Staking Rate",
+      "path": "/trx/network-data/staking-rate",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "staking_rate"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "staking_rate"
+    },
+    {
+      "name": "trx_total_energy_weight",
+      "category": "trx",
+      "label": "TRX Energy Stake",
+      "path": "/trx/network-data/energy-stake",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_energy_weight"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_energy_weight"
+    },
+    {
+      "name": "trx_energy_rate",
+      "category": "trx",
+      "label": "TRX Energy Stake \u00b7 energy rate",
+      "path": "/trx/network-data/energy-stake",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "energy_rate"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "energy_rate"
+    },
+    {
+      "name": "btc_v2_apparent_demand",
+      "category": "v2_community",
+      "label": "CQ v2 Apparent Demand Growth 30-days",
+      "path": "/community/bitcoin-apparent-demand",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "apparent_demand"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "apparent_demand",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_apparent_demand_1y",
+      "category": "v2_community",
+      "label": "CQ v2 Apparent Demand Growth 30-days \u00b7 apparent demand 1y",
+      "path": "/community/bitcoin-apparent-demand",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "apparent_demand_1y"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "apparent_demand_1y",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_etf_demand_30d",
+      "category": "v2_community",
+      "label": "CQ v2 ETF Bitcoin Demand 30-days",
+      "path": "/community/bitcoin-etf-demand",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "etf_demand_30d"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "etf_demand_30d",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_etf_demand_1y",
+      "category": "v2_community",
+      "label": "CQ v2 ETF Bitcoin Demand 30-days \u00b7 etf demand 1y",
+      "path": "/community/bitcoin-etf-demand",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "etf_demand_1y"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "etf_demand_1y",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_mvrv_ratio_zscore",
+      "category": "v2_community",
+      "label": "CQ v2 MVRV Z-score",
+      "path": "/community/bitcoin-mvrv-z-score",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "mvrv_ratio_zscore"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "mvrv_ratio_zscore",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_realized_price_1m_3m",
+      "category": "v2_community",
+      "label": "CQ v2 On-chain Trader Realized Price bands",
+      "path": "/community/bitcoin-trader-realized-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_price_1m_3m"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "realized_price_1m_3m",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_realized_price_max_band",
+      "category": "v2_community",
+      "label": "CQ v2 On-chain Trader Realized Price bands \u00b7 realized price max band",
+      "path": "/community/bitcoin-trader-realized-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_price_max_band"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "realized_price_max_band",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_realized_price_upper_band",
+      "category": "v2_community",
+      "label": "CQ v2 On-chain Trader Realized Price bands \u00b7 realized price upper band",
+      "path": "/community/bitcoin-trader-realized-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_price_upper_band"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "realized_price_upper_band",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_realized_price_lower_band",
+      "category": "v2_community",
+      "label": "CQ v2 On-chain Trader Realized Price bands \u00b7 realized price lower band",
+      "path": "/community/bitcoin-trader-realized-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_price_lower_band"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "realized_price_lower_band",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_realized_price_min_band",
+      "category": "v2_community",
+      "label": "CQ v2 On-chain Trader Realized Price bands \u00b7 realized price min band",
+      "path": "/community/bitcoin-trader-realized-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "realized_price_min_band"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "realized_price_min_band",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_50_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price \u00b7 active addresses squared 50 price 365ma",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_50_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_50_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_25_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price \u00b7 active addresses squared 25 price 365ma",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_25_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_25_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_10_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price \u00b7 active addresses squared 10 price 365ma",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_10_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_10_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_3x_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price \u00b7 active addresses squared 3x price 365ma",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_3x_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_3x_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_2x_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price \u00b7 active addresses squared 2x price 365ma",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_2x_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_2x_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses_squared_04_price_365ma",
+      "category": "v2_community",
+      "label": "CQ v2 Bitcoin Metcalfe's Price \u00b7 active addresses squared 04 price 365ma",
+      "path": "/community/bitcoin-metcalfe-price",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses_squared_04_price_365ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses_squared_04_price_365ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_nupl_1m_3m",
+      "category": "v2_community",
+      "label": "CQ v2 On-chain Trader Unrealized Profit/Loss Margin",
+      "path": "/community/bitcoin-trader-unrealized-profit-margin",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "nupl_1m_3m"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "nupl_1m_3m",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_positive_net_realized_profit",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "positive_net_realized_profit"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "positive_net_realized_profit",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_negative_net_realized_profit",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 negative net realized profit",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "negative_net_realized_profit"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "negative_net_realized_profit",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_yearly_realized_net_profit_btc",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 yearly realized net profit btc",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "yearly_realized_net_profit_btc"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "yearly_realized_net_profit_btc",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_yearly_realized_net_profit_usd",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 yearly realized net profit usd",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "yearly_realized_net_profit_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "yearly_realized_net_profit_usd",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_monthly_realized_net_profit_btc",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 monthly realized net profit btc",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "monthly_realized_net_profit_btc"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "monthly_realized_net_profit_btc",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_monthly_realized_net_profit_usd",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 monthly realized net profit usd",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "monthly_realized_net_profit_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "monthly_realized_net_profit_usd",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_positive_monthly_realized_net_profit_btc",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 positive monthly realized net profit btc",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "positive_monthly_realized_net_profit_btc"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "positive_monthly_realized_net_profit_btc",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_negative_monthly_realized_net_profit_btc",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 negative monthly realized net profit btc",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "negative_monthly_realized_net_profit_btc"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "negative_monthly_realized_net_profit_btc",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_positive_net_realized_profit_btc",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 positive net realized profit btc",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "positive_net_realized_profit_btc"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "positive_net_realized_profit_btc",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_negative_net_realized_profit_btc",
+      "category": "v2_community",
+      "label": "CQ v2 Realized Net Profit and Loss \u00b7 negative net realized profit btc",
+      "path": "/community/bitcoin-realized-profit-loss",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "negative_net_realized_profit_btc"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "negative_net_realized_profit_btc",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_amount_null_data",
+      "category": "v2_community",
+      "label": "CQ v2 OP Return Count",
+      "path": "/community/bitcoin-op-return-count",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "amount_null_data"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "amount_null_data",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_netflow",
+      "category": "v2_community",
+      "label": "CQ v2 Satoshi-era miner",
+      "path": "/community/bitcoin-satoshi-era-miner",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "netflow"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "netflow",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_netflow_usd",
+      "category": "v2_community",
+      "label": "CQ v2 Satoshi-era miner \u00b7 netflow usd",
+      "path": "/community/bitcoin-satoshi-era-miner",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "netflow_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "netflow_usd",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_total_balance",
+      "category": "v2_community",
+      "label": "CQ v2 Satoshi-era miner \u00b7 total balance",
+      "path": "/community/bitcoin-satoshi-era-miner",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_balance"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_balance",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_total_balance_usd",
+      "category": "v2_community",
+      "label": "CQ v2 Satoshi-era miner \u00b7 total balance usd",
+      "path": "/community/bitcoin-satoshi-era-miner",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "total_balance_usd"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "total_balance_usd",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_active_addresses",
+      "category": "v2_community",
+      "label": "CQ v2 Satoshi-era miner \u00b7 active addresses",
+      "path": "/community/bitcoin-satoshi-era-miner",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "active_addresses"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "active_addresses",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_pnl_index",
+      "category": "v2_community",
+      "label": "CQ v2 PnL Index",
+      "path": "/community/bitcoin-pnl-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "pnl_index"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "pnl_index",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_pnl_index_365day_ma",
+      "category": "v2_community",
+      "label": "CQ v2 PnL Index \u00b7 pnl index 365day ma",
+      "path": "/community/bitcoin-pnl-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "pnl_index_365day_ma"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "pnl_index_365day_ma",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_buy",
+      "category": "v2_community",
+      "label": "CQ v2 PnL Index \u00b7 buy",
+      "path": "/community/bitcoin-pnl-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "buy"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "buy",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_neutral",
+      "category": "v2_community",
+      "label": "CQ v2 PnL Index \u00b7 neutral",
+      "path": "/community/bitcoin-pnl-index",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "neutral"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "neutral",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "name": "btc_v2_bull_bear_indicator",
+      "category": "v2_community",
+      "label": "CQ v2 Bull-Bear Market Indicator",
+      "path": "/community/bitcoin-bull-bear-indicator",
+      "params": {
+        "window": "day"
+      },
+      "value_keys": [
+        "bull_bear_indicator"
+      ],
+      "risk_sign": 0,
+      "in_composite": false,
+      "unit": "",
+      "resolved_key": "bull_bear_indicator",
+      "base": "https://api.cryptoquant.com/v2"
+    }
+  ],
+  "n_core": 54,
+  "universe_n_v1": 242,
+  "universe_n_v2": 11
+}

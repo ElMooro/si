@@ -77,7 +77,23 @@ const FIX = {
       { name: "btc_sopr", label: "SOPR", path: "/btc/market-indicator/sopr", resolved_key: "sopr", category: "market_indicator", value_keys: ["sopr", "a_sopr", "sth_sopr", "lth_sopr"] }
     ]
   },
-  catalog: { n: 3, catalog: {} }
+  catalog: { n: 3, catalog: {} },
+  universe: {
+    generated_from: "docs.cryptoquant.com/catalog/catalog.json",
+    n_v1: 242,
+    n_v2: 11,
+    n_rows: 6,
+    n_armed: 4,
+    plan_note: "Professional tier: 1y API window",
+    rows: [
+      { id: "btc_network_indicator_cdd_cdd", name: "Coin Days Destroyed", path: "/btc/network-indicator/cdd", field: "cdd", group: "Bitcoin", category: "BTC Network Indicator", status: "armed", v2: false },
+      { id: "btc_network_indicator_dormancy_average_dormancy", name: "Dormancy", path: "/btc/network-indicator/dormancy", field: "average_dormancy", group: "Bitcoin", category: "BTC Network Indicator", status: "armed", v2: false },
+      { id: "community_mvrv_ratio_zscore", name: "MVRV Z-score", path: "/community/bitcoin-mvrv-z-score", field: "mvrv_ratio_zscore", group: "v2", category: "v2_community", status: "armed", v2: true },
+      { id: "eth_eth2_total_value_staked_total_value_staked", name: "Total Value Staked", path: "/eth/eth2/total-value-staked", field: "total_value_staked", group: "Ethereum", category: "ETH 2.0", status: "armed", v2: false },
+      { id: "discovery_path", name: "Endpoints", path: "/discovery/endpoints", field: "path", group: "Discovery", category: "Available Endpoints", status: "catalog", v2: false },
+      { id: "btc_name", name: "Entity List", path: "/btc/status/entity-list", field: "name", group: "Bitcoin", category: "BTC Entity Status", status: "catalog", v2: false }
+    ]
+  }
 };
 
 function fixtureFetch(url) {
@@ -88,6 +104,7 @@ function fixtureFetch(url) {
   else if (u.indexOf("cq-feed") >= 0) body = FIX.feed;
   else if (u.indexOf("cq-catalog") >= 0) body = FIX.catalog;
   else if (u.indexOf("cryptoquant-spec") >= 0) body = FIX.spec;
+  else if (u.indexOf("cq-universe") >= 0) body = FIX.universe;
   else throw new Error("unexpected " + u);
   return Promise.resolve({ ok: true, json: async () => JSON.parse(JSON.stringify(body)) });
 }
@@ -102,17 +119,20 @@ function loadFuse() {
 }
 
 test("chart.html and crypto desk load the CQ fuse", () => {
-  assert.match(html, /jh-cq-fuse\.js\?v=20260921ac-fuse/);
-  assert.match(html, /jh-chart-catalog\.js\?v=20260921ac-fuse/);
-  assert.match(html, /jh-chart-engine\.js\?v=20260921ac-fuse/);
-  assert.match(cryptoIdx, /jh-cq-fuse\.js\?v=20260921ac-fuse/);
+  assert.match(html, /jh-cq-fuse\.js\?v=20260922aa-cqfull/);
+  assert.match(html, /jh-chart-catalog\.js\?v=20260922aa-cqfull/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260922aa-cqfull/);
+  assert.match(cryptoIdx, /jh-cq-fuse\.js\?v=20260922aa-cqfull/);
   assert.match(cryptoIdx, /JHCqFuse\.paneHTML/);
   assert.match(cryptoIdx, /JHCqFuse\.load/);
+  assert.match(cryptoIdx, /data-arm/);
   assert.match(cryptoHtml, /location\.replace\("\/crypto\/"\)/);
   assert.match(onchain, /chart\.html\?s=CQ:\$\{k\}/);
   assert.match(engine, /v12\.34/);
   assert.match(engine, /__jhChartEngineV1239/);
   assert.match(engine, /CQSNAP/);
+  assert.match(engine, /CQARM/);
+  assert.match(engine, /CQDOC/);
   assert.match(catalog, /JHCqFuse/);
   assert.match(search, /no harvest series/);
 });
@@ -122,6 +142,8 @@ test("fuse search finds harvest series and extra snapshots, never invents histor
   const pack = await ctx.JHCqFuse.load();
   assert.equal(pack.n_series, 3);
   assert.ok(pack.n_snaps >= 6, "sibling fields a_sopr/sth/lth + in-house + block_interval");
+  assert.ok(pack.n_armed >= 4, "universe armed cdd/dormancy/mvrv-z/eth2");
+  assert.ok(pack.n_docs >= 2, "catalog-only discovery/entity-list");
   const hashrate = ctx.JHCqFuse.searchHits("hashrate");
   assert.ok(hashrate.some(function (h) { return h.s === "CQ:btc_hashrate" && h.chartable === true; }));
   const asopr = ctx.JHCqFuse.searchHits("a_sopr");
@@ -136,6 +158,23 @@ test("fuse search finds harvest series and extra snapshots, never invents histor
   assert.match(pane, /a_sopr/);
   assert.match(pane, /NO HARVEST SERIES/);
   assert.match(pane, /id='pane-cq'/);
+  assert.match(pane, /AWAITING FIRST EOD PULL/);
+  assert.match(pane, /CATALOG-ONLY/);
+});
+
+test("universe search finds CDD, dormancy, MVRV Z, ETH2 as armed — no fake bars", async () => {
+  const ctx = loadFuse();
+  await ctx.JHCqFuse.load();
+  const cdd = ctx.JHCqFuse.searchHits("cdd");
+  assert.ok(cdd.some(function (h) { return /^CQARM:/.test(h.s) && /cdd/i.test(h.s + h.name) && h.chartable === false; }));
+  const dorm = ctx.JHCqFuse.searchHits("dormancy");
+  assert.ok(dorm.some(function (h) { return /^CQARM:/.test(h.s) && h.chartable === false; }));
+  const z = ctx.JHCqFuse.searchHits("mvrv z");
+  assert.ok(z.some(function (h) { return /^CQARM:/.test(h.s) && /zscore|z-score/i.test(h.s + h.name + h.extra + (h.blob || "")); }));
+  const eth2 = ctx.JHCqFuse.searchHits("eth2");
+  assert.ok(eth2.some(function (h) { return /^CQARM:/.test(h.s) && h.chartable === false; }));
+  assert.equal(await ctx.JHCqFuse.klines("CQARM:btc_network_indicator_cdd_cdd"), null);
+  assert.equal(await ctx.JHCqFuse.klines("CQDOC:discovery_path"), null);
 });
 
 test("fuse klines merges twins on overlap like catalog", async () => {
@@ -167,6 +206,13 @@ test("catalog still plots CQ without fuse and routes snapshots to the crypto des
   assert.equal(await ctx.JHChartCatalog.klines("CQSNAP:btc/market-indicator/sopr:a_sopr"), null);
   assert.equal(ctx.JHChartCatalog.go("CQSNAP:btc/market-indicator/sopr:a_sopr"), true);
   assert.match(ctx.location.href, /\/crypto\/\?tab=cq&snap=/);
+  ctx.location.href = "";
+  assert.equal(await ctx.JHChartCatalog.klines("CQARM:btc_network_indicator_cdd_cdd"), null);
+  assert.equal(ctx.JHChartCatalog.go("CQARM:btc_network_indicator_cdd_cdd"), true);
+  assert.match(ctx.location.href, /\/crypto\/\?tab=cq&arm=/);
+  ctx.location.href = "";
+  assert.equal(ctx.JHChartCatalog.go("CQDOC:discovery_path"), true);
+  assert.match(ctx.location.href, /\/crypto\/\?tab=cq&doc=/);
   const specs = ctx.JHChartCatalog.cqOscSpecs();
   assert.ok(specs.length >= 54);
   assert.equal(specs[0].on, 0);
@@ -180,4 +226,6 @@ test("catalog + fuse search is harvest-dynamic", async () => {
   assert.ok(hits.some(function (h) { return /a_sopr/.test(h.s) && /snapshot/i.test(h.extra); }));
   const h2 = ctx.JHChartCatalog.suggest("hashrate", 40);
   assert.ok(h2.some(function (h) { return h.s === "CQ:btc_hashrate"; }));
+  const h3 = ctx.JHChartCatalog.suggest("cdd", 40);
+  assert.ok(h3.some(function (h) { return /^CQARM:/.test(h.s); }));
 });

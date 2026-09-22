@@ -1,0 +1,950 @@
+{
+  "n": 189,
+  "paths": [
+    {
+      "path": "btc/exchange-flows/netflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/exchange-flows/inflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/exchange-flows/outflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/exchange-flows/reserve",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/exchange-flows/addresses-count",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/mpi",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/exchange-whale-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/fund-flow-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/stablecoins-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/exchange-supply-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/market-indicator/mvrv",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-indicator/sopr",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-indicator/sopr-ratio",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/nupl",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-indicator/realized-price",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-indicator/stablecoin-supply-ratio",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/nvt",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/nvt-golden-cross",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/nvm",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/puell-multiple",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/stock-to-flow",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/netflow",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/outflow",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/reserve",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/transactions-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/addresses-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/fees",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/fees-transaction",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/blockreward",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/difficulty",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/hashrate",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/utxo-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/velocity",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/tokens-transferred",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/supply",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-data/open-interest",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/market-data/funding-rates",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/market-data/liquidations",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/market-data/taker-buy-sell-stats",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/market-data/coinbase-premium-index",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/exchange-flows/netflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/exchange-flows/inflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/exchange-flows/outflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/exchange-flows/reserve",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/addresses-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/transactions-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/market-data/open-interest",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/market-data/funding-rates",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/reserve",
+      "extra": "&token=all_token&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/netflow",
+      "extra": "&token=all_token&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/inflow",
+      "extra": "&token=all_token&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/outflow",
+      "extra": "&token=all_token&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/network-data/supply",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/reserve",
+      "extra": "&token=usdc&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/exchange-flows/transactions-count",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/exchange-flows/in-house-flow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/inflow",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/transactions-count",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/addresses-count",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/miner-flows/in-house-flow",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/block-bytes",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/block-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-data/block-interval",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-data/capitalization",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/cdd",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/mca",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/sca",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/nrpl",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/pnl-utxo",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/pnl-supply",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/network-indicator/dormancy",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/market-indicator/estimated-leverage-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/exchange-shutdown-index",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/exchange-inflow-cdd",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "btc/flow-indicator/miner-supply-ratio",
+      "extra": "&miner=all_miner",
+      "base": ""
+    },
+    {
+      "path": "btc/mempool/stats-in-total",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "btc/lightning/stats-in-total",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/transactions-count",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/exchange-flows/addresses-count",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/network-data/events-count",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/network-data/tokens-transferred",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/network-data/addresses-count",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/market-data/capitalization",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "stablecoin/flow-indicator/exchange-supply-ratio",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/supply",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/velocity",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/contracts-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/contract-calls-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/tokens-transferred-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/tokens-transferred-count-between-eoa",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/tokens-transferred",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/block-bytes",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/block-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/block-interval",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/fees",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/fees-burnt",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/fees-tips",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/fees-transaction",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/fees-burnt-transaction",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/fees-tips-transaction",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/blockreward",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/blockreward-except-uncle",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/gas",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/base-fee",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/max-fee",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/max-priority-fee",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/difficulty",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/hashrate",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/uncle-block-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/network-data/uncle-blockreward",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/total-value-staked",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/staking-inflow-total",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/staking-transaction-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/staking-validator-total",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/depositor-count-total",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/depositor-count-new",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/staking-rate",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/eth2/phase0-success-rate",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/exchange-flows/transactions-count",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/exchange-flows/addresses-count",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/market-data/taker-buy-sell-stats",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/market-data/liquidations",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/market-data/coinbase-premium-index",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/market-data/capitalization",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "eth/flow-indicator/exchange-supply-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "eth/market-indicator/estimated-leverage-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "erc20/exchange-flows/reserve",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/exchange-flows/netflow",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/exchange-flows/inflow",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/exchange-flows/outflow",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/exchange-flows/transactions-count",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/exchange-flows/addresses-count",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/network-data/supply",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/network-data/velocity",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/network-data/transactions-count",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/network-data/tokens-transferred-count",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/network-data/tokens-transferred",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/network-data/addresses-count",
+      "extra": "&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "erc20/flow-indicator/exchange-supply-ratio",
+      "extra": "&exchange=all_exchange&token=all_token",
+      "base": ""
+    },
+    {
+      "path": "xrp/market-data/open-interest",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/market-data/funding-rates",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/market-data/taker-buy-sell-stats",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/market-data/liquidations",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/market-data/capitalization",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/market-data/estimated-leverage-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/reserve",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/share",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/transactions-count",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/inflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/outflow",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/addresses-count",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/entity-flows/whale-movements",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/flow-indicator/exchange-supply-ratio",
+      "extra": "&exchange=all_exchange",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/addresses-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/velocity",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/block-interval",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/xrp-burnt",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/ledger-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/fees",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/transactions-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/tokens-transferred",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-data/supply",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/network-indicator/nvt",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/dex-data/volume",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/dex-data/transactions-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/dex-data/liquidity",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "xrp/dex-data/dex-price",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/market-data/capitalization",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/supply",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/transactions-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/addresses-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/tokens-transferred",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/block-count",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/fees",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/tps",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/total-value-staked",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/staking-rate",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "trx/network-data/energy-stake",
+      "extra": "",
+      "base": ""
+    },
+    {
+      "path": "community/bitcoin-apparent-demand",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-etf-demand",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-mvrv-z-score",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-trader-realized-price",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-metcalfe-price",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-trader-unrealized-profit-margin",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-realized-profit-loss",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-op-return-count",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-satoshi-era-miner",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-pnl-index",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    },
+    {
+      "path": "community/bitcoin-bull-bear-indicator",
+      "extra": "",
+      "base": "https://api.cryptoquant.com/v2"
+    }
+  ]
+}

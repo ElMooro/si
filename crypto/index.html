@@ -54,7 +54,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 </div>
 <div class="container" style="padding-bottom:0"><div data-etf-derived="crypto"></div></div>
 <div class="container" id="main"><div class="loading"><div class="spinner"></div>Loading Crypto Intelligence v4.2...</div></div>
-<script src="/jh-cq-fuse.js?v=20260921ac-fuse"></script>
+<script src="/jh-cq-fuse.js?v=20260922aa-cqfull"></script>
 <script>
 var DU="https://justhodl-dashboard-live.s3.amazonaws.com/crypto-intel.json";
 var D=null;
@@ -695,15 +695,20 @@ function cqActivate(){
   var u=new URL(location.href);
   var tab=u.searchParams.get("tab");
   var snap=u.searchParams.get("snap");
-  if(tab==="cq"||snap){
+  var arm=u.searchParams.get("arm");
+  var doc=u.searchParams.get("doc");
+  if(tab==="cq"||snap||arm||doc){
    var t=document.querySelector(".tab[data-tab=cq]");
    if(t) t.click();
-   if(snap){
-    var want=String(snap).toLowerCase();
-    var nodes=document.querySelectorAll("#pane-cq [data-snap]");
+   var want="", attr="";
+   if(snap){ want=String(snap).toLowerCase(); attr="data-snap"; }
+   else if(arm){ want=String(arm).toLowerCase(); attr="data-arm"; }
+   else if(doc){ want=String(doc).toLowerCase(); attr="data-doc"; }
+   if(want){
+    var nodes=document.querySelectorAll("#pane-cq ["+attr+"]");
     var i;
     for(i=0;i<nodes.length;i++){
-     if(String(nodes[i].getAttribute("data-snap")||"").toLowerCase()===want){
+     if(String(nodes[i].getAttribute(attr)||"").toLowerCase()===want){
       nodes[i].style.outline="1px solid var(--cyan)";
       nodes[i].scrollIntoView({block:"center"});
       break;

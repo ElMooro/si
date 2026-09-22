@@ -576,7 +576,7 @@
     };
     var pack = TAPE[id] || STUDY[id];
     if (!pack && (String(id).indexOf("cq_") === 0 || (window.OSC || []).some(function (o) { return o.id === id && o.k === "cq"; }))) {
-      pack = ["CryptoQuant", "On-chain", "CryptoQuant EOD harvest series plotted as its own pane. Daily harvest starts 2025-07; twins (MVRV, NUPL, hashrate, supply, …) extend to 2010 at coarser spacing. Not live. Extra cq-feed fields (aSOPR, in-house flow, block interval, …) are EOD snapshots with no series bank — searchable, not plotted.", "Add from Indicators → Oscillators → On-chain, or search CQ:btc_mvrv (and every harvest id) in the symbol box. Snapshot fields open the crypto desk.", "Never mixed with ETF flow, FMP, or Polygon prints. Empty pane = harvest miss, not a live outage. Snapshots are not 2-bar charts."];
+      pack = ["CryptoQuant", "On-chain", "CryptoQuant EOD harvest series plotted as its own pane. Daily harvest starts 2025-07; twins (MVRV, NUPL, hashrate, supply, …) extend to 2010 at coarser spacing. Not live. Extra cq-feed fields (aSOPR, in-house flow, block interval, …) are EOD snapshots with no series bank — searchable, not plotted. Armed catalog names (CDD, dormancy, ETH2, v2 MVRV Z, lightning, …) wait for the next EOD pull (1y Professional window). Catalog-only token/pair/matrix endpoints are not banked.", "Add from Indicators → Oscillators → On-chain, or search CQ:btc_mvrv (and every harvest id) in the symbol box. Snapshot / armed / catalog-only fields open the crypto desk.", "Never mixed with ETF flow, FMP, or Polygon prints. Empty pane = harvest miss, not a live outage. Snapshots and armed names are not 2-bar charts."];
     }
     var title, tag, what, how, cave;
     if (pack) {

@@ -1,6 +1,8 @@
-/* Shared CryptoQuant harvest fuse — series + twins + onchain + cq-feed snapshots.
- * Chartable = harvest series (twins extend some to 2010). Extra cq-feed fields
- * without a series bank are EOD snapshots, never a 2-bar fake chart.
+/* Shared CryptoQuant harvest fuse — series + twins + onchain + cq-feed snapshots
+ * + public catalog (armed / catalog-only). Chartable = harvest series (twins
+ * extend some to 2010). Extra cq-feed fields without a series bank are EOD
+ * snapshots, never a 2-bar fake chart. Armed spec rows await the next EOD
+ * pull (1y Professional window). Catalog-only rows are not banked.
  * Does not call api.cryptoquant.com. Does not invent pre-harvest history.
  */
 (function (global) {
@@ -16,6 +18,13 @@
     network_data: "Network activity",
     stablecoins: "Stablecoins",
     eth: "Ethereum",
+    eth2: "ETH 2.0 staking",
+    mempool: "Mempool",
+    lightning: "Lightning",
+    erc20: "ERC-20",
+    xrp: "XRP",
+    trx: "TRON",
+    v2_community: "v2 community",
     other: "Other"
   };
   var FIELD_Q = {
@@ -41,7 +50,13 @@
     addresses_count_receiver: ["receiver addresses"],
     addresses_count_sender: ["sender addresses"],
     transactions_count_inflow: ["exchange tx inflow"],
-    transactions_count_outflow: ["exchange tx outflow"]
+    transactions_count_outflow: ["exchange tx outflow"],
+    cdd: ["cdd", "coin days destroyed", "coindays"],
+    sa_cdd: ["sa cdd", "supply adjusted cdd"],
+    average_dormancy: ["dormancy", "average dormancy"],
+    mvrv_ratio_zscore: ["mvrv z", "mvrv z-score", "mvrv zscore", "z-score"],
+    total_value_staked: ["eth2", "eth 2", "staked eth", "tvl staked"],
+    apparent_demand: ["apparent demand"]
   };
 
   function loadJson(url, fetchFn) {
@@ -147,6 +162,7 @@
     var feed = docs.feed || {};
     var spec = docs.spec || {};
     var cat = docs.catalog || {};
+    var universe = docs.universe || {};
     var series = seriesDoc.series || {};
     var twins = seriesDoc.twins || {};
     var metrics = onchain.metrics || {};
@@ -166,19 +182,27 @@
       chartable.push(seriesRow(id, series[id], twins[id], metrics[id], specByName[id]));
     });
     chartable.sort(function (a, b) { return a.id < b.id ? -1 : a.id > b.id ? 1 : 0; });
+    var liveCover = {};
+    chartable.forEach(function (row) {
+      var sm = specByName[row.id] || {};
+      var p = stripPath(sm.path);
+      if (p && sm.resolved_key) liveCover[p + "|" + sm.resolved_key] = row.id;
+    });
     var feedMetrics = feed.metrics || {};
     var snaps = [];
+    var snapCover = {};
     Object.keys(feedMetrics).forEach(function (pk) {
       var row = feedMetrics[pk] || {};
       var path = stripPath(row.path || pk.replace(/_/g, "/"));
       var fields = row.fields || {};
       var prev = row.prev || {};
       Object.keys(fields).forEach(function (fk) {
-        var coverId = covered[path + "|" + fk];
+        var coverId = liveCover[path + "|" + fk] || covered[path + "|" + fk];
         if (coverId && series[coverId]) return;
         var s = "CQSNAP:" + path + ":" + fk;
         var aliases = FIELD_Q[fk] || [];
         var name = nice((path.split("/")[0] || "btc").toUpperCase() + " " + fk);
+        snapCover[path + "|" + fk] = 1;
         snaps.push({
           s: s,
           path: path,
@@ -196,9 +220,54 @@
       });
     });
     snaps.sort(function (a, b) { return a.s < b.s ? -1 : 1; });
+    var armed = [];
+    var docsOnly = [];
+    var urows = Array.isArray(universe.rows) ? universe.rows : [];
+    urows.forEach(function (r) {
+      if (!r || !r.id) return;
+      var p = stripPath(r.path);
+      var fk = r.field || "";
+      var key = p + "|" + fk;
+      if (liveCover[key] && series[liveCover[key]]) return;
+      if (snapCover[key]) return;
+      var aliases = FIELD_Q[fk] || [];
+      var label = (r.name || nice(fk || r.id)) + (fk && r.name && String(r.name).toLowerCase().indexOf(String(fk).replace(/_/g, " ")) < 0 ? " · " + fk : "");
+      var blob = blobOf(r.id, r.name, r.path, fk, fk.replace(/_/g, " "), r.group, r.category, aliases.join(" "), "cryptoquant cq");
+      if (r.status === "armed") {
+        armed.push({
+          s: "CQARM:" + r.id,
+          id: r.id,
+          path: p,
+          field: fk,
+          name: label,
+          group: r.group || "",
+          category: r.category || "",
+          extra: "CryptoQuant armed · 1y Professional window on next EOD pull · not live, no invented history",
+          chartable: false,
+          type: "onchain",
+          cat: "chain",
+          blob: blob + " armed cqarm"
+        });
+      } else {
+        docsOnly.push({
+          s: "CQDOC:" + r.id,
+          id: r.id,
+          path: p,
+          field: fk,
+          name: label,
+          group: r.group || "",
+          category: r.category || "",
+          extra: "CryptoQuant catalog-only · not harvested (token/symbol/pair or matrix/entity-list)",
+          chartable: false,
+          type: "onchain",
+          cat: "chain",
+          blob: blob + " catalog cqdoc"
+        });
+      }
+    });
     return {
       generated_at: onchain.generated_at || seriesDoc.generated_at || feed.generated_at || "",
-      plan_note: onchain.plan_note || spec.plan_note || "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins",
+      plan_note: onchain.plan_note || spec.plan_note || universe.plan_note || "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins",
       series: series,
       twins: twins,
       btc: seriesDoc.btc || null,
@@ -206,12 +275,19 @@
       feed: feed,
       spec: spec,
       catalog: cat.catalog || cat,
+      universe: universe,
       chartable: chartable,
       snaps: snaps,
+      armed: armed,
+      docs: docsOnly,
       n_series: chartable.length,
       n_snaps: snaps.length,
+      n_armed: armed.length,
+      n_docs: docsOnly.length,
       n_feed: Object.keys(feedMetrics).length,
-      n_twins: Object.keys(twins).length
+      n_twins: Object.keys(twins).length,
+      n_v1: universe.n_v1 || 0,
+      n_v2: universe.n_v2 || 0
     };
   }
 
@@ -224,9 +300,10 @@
       loadJson("/data/cryptoquant-onchain.json", fetchFn).catch(function () { return {}; }),
       loadJson("/data/cq-feed.json", fetchFn).catch(function () { return {}; }),
       loadJson("/data/cq-catalog.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/data/config/cryptoquant-spec.json", fetchFn).catch(function () { return {}; })
+      loadJson("/data/config/cryptoquant-spec.json", fetchFn).catch(function () { return {}; }),
+      loadJson("/cq-universe.json", fetchFn).catch(function () { return {}; })
     ]).then(function (arr) {
-      PACK = build({ series: arr[0], onchain: arr[1], feed: arr[2], catalog: arr[3], spec: arr[4] });
+      PACK = build({ series: arr[0], onchain: arr[1], feed: arr[2], catalog: arr[3], spec: arr[4], universe: arr[5] });
       PENDING = null;
       return PACK;
     }, function (err) {
@@ -245,7 +322,7 @@
     var n = String(q || "").toLowerCase().replace(/[^a-z0-9:+.\- /_]+/g, " ").replace(/\s+/g, " ").trim();
     if (!n || !PACK) return [];
     if (/cq|on.?chain|cryptoquant/.test(n)) limit = Math.max(limit, 120);
-    var out = [], i, row, blob, sc;
+    var out = [], i, row, sc;
     function score(blob, s, name) {
       if (s.toLowerCase() === n || s.toLowerCase() === "cq:" + n) return 100;
       if (String(name || "").toLowerCase() === n) return 96;
@@ -265,6 +342,16 @@
       row = PACK.snaps[i];
       sc = score(row.blob, row.s, row.name);
       if (sc) out.push({ s: row.s, name: row.name, extra: row.extra, type: "onchain", cat: "chain", chartable: false, score: Math.min(sc, 86), suggest: true });
+    }
+    for (i = 0; i < (PACK.armed || []).length; i++) {
+      row = PACK.armed[i];
+      sc = score(row.blob, row.s, row.name);
+      if (sc) out.push({ s: row.s, name: row.name, extra: row.extra, type: "onchain", cat: "chain", chartable: false, score: Math.min(sc, 78), suggest: true });
+    }
+    for (i = 0; i < (PACK.docs || []).length; i++) {
+      row = PACK.docs[i];
+      sc = score(row.blob, row.s, row.name);
+      if (sc) out.push({ s: row.s, name: row.name, extra: row.extra, type: "onchain", cat: "chain", chartable: false, score: Math.min(sc, 62), suggest: true });
     }
     out.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
     return out.slice(0, limit);
@@ -305,7 +392,7 @@
 
   function klines(sym) {
     var s = String(sym || "");
-    if (/^CQSNAP:/i.test(s)) return Promise.resolve(null);
+    if (/^CQSNAP:|^CQARM:|^CQDOC:/i.test(s)) return Promise.resolve(null);
     if (!/^CQ:/i.test(s)) return Promise.resolve(null);
     return load().then(function () {
       var row = cqRow(s.replace(/^CQ:/i, ""));
@@ -333,7 +420,7 @@
     intel = intel || {};
     var P = PACK;
     var h = "<div class='pane' id='pane-cq'>";
-    if (!P || !P.n_series) {
+    if (!P || !(P.n_series || P.n_armed || P.n_docs)) {
       if (intel.status && intel.status !== "ok") {
         return h + "<div class='card'><div class='card-title'>CRYPTOQUANT</div><div class='stat-sm'>feed unavailable: " + esc(intel.error || "no harvest") + "</div></div></div>";
       }
@@ -349,8 +436,11 @@
     h += "<div class='metric'><span class='metric-name'>series (chartable)</span><span class='metric-val mono'>" + P.n_series + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>cq-feed paths</span><span class='metric-val mono'>" + P.n_feed + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>extra snapshots</span><span class='metric-val mono'>" + P.n_snaps + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>armed (next EOD)</span><span class='metric-val mono'>" + P.n_armed + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>catalog-only</span><span class='metric-val mono'>" + P.n_docs + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>public v1+v2</span><span class='metric-val mono'>" + ((P.n_v1 || 0) + (P.n_v2 || 0) || "—") + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>generated</span><span class='metric-val mono'>" + esc(String(P.generated_at).slice(0, 16).replace("T", " ")) + "</span></div></div>";
-    h += "<div class='card'><div class='card-title'>PLAN WINDOW</div><div class='stat-sm'>" + esc(P.plan_note) + "</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv). Extra fields without a series bank are snapshots — not 2-bar charts.</div></div>";
+    h += "<div class='card'><div class='card-title'>PLAN WINDOW</div><div class='stat-sm'>" + esc(P.plan_note) + "</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv, CDD, dormancy, MVRV Z, ETH2). Extra fields without a series bank are snapshots. Armed names chart after the next EOD pull — never a fake 2-bar. Token/symbol/pair and age matrices stay catalog-only.</div></div>";
     h += "</div>";
     var im = (intel.metrics) || {};
     var intelKeys = Object.keys(im);
@@ -362,17 +452,21 @@
       });
       h += "</div></div>";
     }
-    h += "<div class='card' style='margin-bottom:12px'><input id='cqf' placeholder='filter MVRV, hashrate, a_sopr, in-house…' style='width:100%;background:var(--bg1);border:1px solid var(--brd);color:var(--t1);padding:8px 10px;border-radius:6px;font:12px IBM Plex Mono,monospace' oninput='window.JHCqFuse&&JHCqFuse.filterPane(this.value)'></div>";
+    h += "<div class='card' style='margin-bottom:12px'><input id='cqf' placeholder='filter MVRV, CDD, dormancy, a_sopr, ETH2, lightning…' style='width:100%;background:var(--bg1);border:1px solid var(--brd);color:var(--t1);padding:8px 10px;border-radius:6px;font:12px IBM Plex Mono,monospace' oninput='window.JHCqFuse&&JHCqFuse.filterPane(this.value)'></div>";
     var byCat = {};
     P.chartable.forEach(function (row) {
       var c = row.category || "other";
       if (!byCat[c]) byCat[c] = [];
       byCat[c].push(row);
     });
-    Object.keys(CATN).forEach(function (ck) {
+    var catOrder = Object.keys(CATN);
+    Object.keys(byCat).forEach(function (ck) {
+      if (catOrder.indexOf(ck) < 0) catOrder.push(ck);
+    });
+    catOrder.forEach(function (ck) {
       var rows = byCat[ck];
       if (!rows || !rows.length) return;
-      h += "<div class='card-title' style='margin:14px 0 8px'>" + esc(CATN[ck]) + " · " + rows.length + "</div>";
+      h += "<div class='card-title' style='margin:14px 0 8px'>" + esc(CATN[ck] || nice(ck)) + " · " + rows.length + "</div>";
       h += "<div class='grid' style='grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:12px'>";
       rows.forEach(function (row) {
         var mm = m[row.id] || {};
@@ -395,6 +489,24 @@
         var dlt = (typeof sn.value === "number" && typeof sn.prev === "number") ? (sn.value - sn.prev) : null;
         var dc = dlt == null ? "" : (dlt > 0 ? "up" : dlt < 0 ? "dn" : "");
         h += "<tr data-cqhit='" + esc((sn.blob || "").replace(/'/g, "")) + "' data-snap='" + esc(sn.path + ":" + sn.field) + "'><td class='mono'>" + esc(sn.field) + "</td><td class='mono'>" + esc(sn.path) + "</td><td class='mono'>" + fmt(sn.value) + "</td><td class='mono " + dc + "'>" + (dlt == null ? "—" : ((dlt > 0 ? "+" : "") + fmt(dlt))) + "</td><td class='mono'>" + esc(sn.asof || "—") + "</td></tr>";
+      });
+      h += "</table></div>";
+    }
+    if (P.armed && P.armed.length) {
+      h += "<div class='card' style='margin-top:12px'><div class='card-title'>ARMED · " + P.armed.length + " · AWAITING FIRST EOD PULL</div>";
+      h += "<div class='stat-sm' style='margin-bottom:8px'>In the Professional spec (CDD, dormancy, ETH2, lightning, XRP/TRX, v2 MVRV Z / apparent demand, …). History starts at the 1y API window on the next harvest — not invented, not a 2-bar chart. Click a search hit to land here.</div>";
+      h += "<table class='cq-snap'><tr><th>id</th><th>field</th><th>path</th><th>group</th></tr>";
+      P.armed.forEach(function (row) {
+        h += "<tr data-cqhit='" + esc((row.blob || "").replace(/'/g, "")) + "' data-arm='" + esc(row.id) + "'><td class='mono'>" + esc(row.id) + "</td><td class='mono'>" + esc(row.field || "") + "</td><td class='mono'>" + esc(row.path || "") + "</td><td>" + esc(row.group || row.category || "") + "</td></tr>";
+      });
+      h += "</table></div>";
+    }
+    if (P.docs && P.docs.length) {
+      h += "<div class='card' style='margin-top:12px'><div class='card-title'>CATALOG-ONLY · " + P.docs.length + " · NOT HARVESTED</div>";
+      h += "<div class='stat-sm' style='margin-bottom:8px'>Token/symbol/pair endpoints, age-distribution matrices, entity lists, discovery, miner-company directories. Searchable names, no series bank.</div>";
+      h += "<table class='cq-snap'><tr><th>id</th><th>path</th><th>group</th></tr>";
+      P.docs.forEach(function (row) {
+        h += "<tr data-cqhit='" + esc((row.blob || "").replace(/'/g, "")) + "' data-doc='" + esc(row.id) + "'><td class='mono'>" + esc(row.id) + "</td><td class='mono'>" + esc(row.path || "") + "</td><td>" + esc(row.group || row.category || "") + "</td></tr>";
       });
       h += "</table></div>";
     }

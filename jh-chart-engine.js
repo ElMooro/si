@@ -376,7 +376,7 @@
       var mkt=FRED_MKT[ticker]||{};
       return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null};
     }
-    if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA" || venue==="CQSNAP"){
+    if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA" || venue==="CQSNAP" || venue==="CQARM" || venue==="CQDOC"){
       return {raw:s, venue:venue, ticker:s, yahoo:ticker, engine:venue.toLowerCase()};
     }
     var ys=yahooSym(ticker);
@@ -1818,8 +1818,12 @@
     return {span:"day",mult:1,days:12000};
   }
   async function klines(sym, tfId, quiet){
-    if(/^CQSNAP:/i.test(String(sym||""))){
-      if(!quiet) lastSource="CryptoQuant EOD snapshot · no harvest series";
+    if(/^CQSNAP:|^CQARM:|^CQDOC:/i.test(String(sym||""))){
+      if(!quiet){
+        if(/^CQSNAP:/i.test(sym)) lastSource="CryptoQuant EOD snapshot · no harvest series";
+        else if(/^CQARM:/i.test(sym)) lastSource="CryptoQuant armed · 1y window on next EOD pull · no invented history";
+        else lastSource="CryptoQuant catalog-only · not harvested";
+      }
       return [];
     }
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
@@ -4048,7 +4052,7 @@
         return String(compact||s).toUpperCase();
       }
     }
-    if(/^FRED:|^CQ:|^CQSNAP:|^CISS:|^DESK:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
+    if(/^FRED:|^CQ:|^CQSNAP:|^CQARM:|^CQDOC:|^CISS:|^DESK:/i.test(s) || /^\^/.test(s)) return s.toUpperCase();
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
     return bare(s);
   }
@@ -4072,7 +4076,7 @@
     var rs=resolveSym(s);
     if(rs.engine==="fred" || rs.engine==="series") return rs.raw;
     if(/^FRED:/i.test(s) || /^\^/.test(s) || s.indexOf("=")>=0) return rs.ticker||s.toUpperCase();
-    if(/^CQ:|^CQSNAP:|^CISS:|^DESK:|^DATA:/i.test(s)) return s;
+    if(/^CQ:|^CQSNAP:|^CQARM:|^CQDOC:|^CISS:|^DESK:|^DATA:/i.test(s)) return s;
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
     return bare(rs.ticker||s);
   }
