@@ -1,13 +1,16 @@
 # ops 5872 -- Gear B tick (launch=true) and its recorded result
 
 **Status:** failure  
-**Duration:** 900.3s  
-**Finished:** 2026-09-22T01:06:03+00:00  
+**Duration:** 308.7s  
+**Finished:** 2026-09-22T02:22:18+00:00  
 
 ## Error
 
 ```
 Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 793, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 540, in _make_request
     response = conn.getresponse()
                ^^^^^^^^^^^^^^^^^^
@@ -19,21 +22,11 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 343, in begin
     version, status, reason = self._read_status()
                               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 304, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/socket.py", line 720, in readinto
-    return self._sock.recv_into(b)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/ssl.py", line 1251, in recv_into
-    return self.read(nbytes, buffer)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/ssl.py", line 1103, in read
-    return self._sslobj.read(len, buffer)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TimeoutError: The read operation timed out
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 312, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+http.client.RemoteDisconnected: Remote end closed connection without response
 
-The above exception was the direct cause of the following exception:
+During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 509, in send
@@ -45,16 +38,25 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 485, in increment
     raise reraise(type(error), error, _stacktrace)
           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 39, in reraise
-    raise value
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 38, in reraise
+    raise value.with_traceback(tb)
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 793, in urlopen
     response = self._make_request(
                ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 542, in _make_request
-    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 373, in _raise_timeout
-    raise ReadTimeoutError(
-urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east-1.amazonaws.com', port=443): Read timed out. (read timeout=900)
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 540, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/urllib3/connection.py", line 638, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 1478, in getresponse
+    response.begin()
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 343, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/http/client.py", line 312, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
 
 During handling of the above exception, another exception occurred:
 
@@ -117,11 +119,11 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 385, in _send
     return self.http_session.send(request)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 547, in send
-    raise ReadTimeoutError(endpoint_url=request.url, error=e)
-botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-ai/invocations"
+  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 549, in send
+    raise ConnectionClosedError(
+botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-ai/invocations".
 
 ```
 
 ## Log
-- `00:51:02` gen-24 superseded
+
