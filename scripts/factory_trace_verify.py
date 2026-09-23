@@ -122,7 +122,8 @@ def cmd_write(args) -> int:
                     fid = sha(json.dumps({"task_id": row.get("task_id"), "sample": row.get("sample"), "burst": args.burst}, sort_keys=True).encode())[:32]
                     if put_absent("factory/bursts/%s/attempts/%s.json" % (args.burst, fid),
                                   {"schema_version": "factory-burst-attempt.v1", "burst": args.burst, "task_id": row.get("task_id"), "sample": row.get("sample"), "passed": False,
-                                   "reason": row.get("reason"), "cases": row.get("cases"), "judge": row.get("judge"), "checker": checker, "run_id": args.run_id, "at": at}) == "written":
+                                   "reason": row.get("reason"), "cases": row.get("cases"), "judge": row.get("judge"), "checker": checker, "run_id": args.run_id, "at": at,
+                                   "solution": str(row.get("solution") or "")[:20000], "solution_sha256": sha(str(row.get("solution") or "").encode())}) == "written":
                         counts["failures_recorded"] += 1
                     continue
                 vid = sha(json.dumps({"task_id": row["task_id"], "completion_sha256": row.get("completion_sha256")}, sort_keys=True).encode())[:32]

@@ -359,11 +359,20 @@ def curate(rows: List[Dict[str, Any]], holdout: Dict[str, Any], control: Dict[st
         exact = sha256_bytes((row["prompt"] + "\u0000" + row["solution"]).encode("utf-8"))
         prompt_sha = sha256_bytes(re.sub(r"\s+", " ", row["prompt"]).strip().lower().encode("utf-8"))
         if exact in seen_exact or prompt_sha in seen_prompt:
+            # 2026-09-22: a preference pair (same prompt + a failing attempt) replaces a plain duplicate of that prompt
+            if isinstance(row.get("rejected"), str) and row["rejected"]:
+                for i, k in enumerate(kept):
+                    if k.get("_prompt_sha") == prompt_sha and not k.get("rejected"):
+                        kept[i] = dict(row, row_sha=exact, _prompt_sha=prompt_sha)
+                        break
+                else:
+                    dropped["duplicate"] += 1
+                continue
             dropped["duplicate"] += 1
             continue
         seen_exact.add(exact)
         seen_prompt.add(prompt_sha)
-        kept.append(dict(row, row_sha=exact))
+        kept.append(dict(row, row_sha=exact, _prompt_sha=prompt_sha))
     share = float(control.get("max_family_share") or 0.25)
     cap = max(1, math.ceil(len(kept) * share)) if kept else 0
     per_family: Dict[str, int] = {}
@@ -426,6 +435,44 @@ def new_task_fraction(s3, private_bucket: str, task_ids: List[str]) -> Dict[str,
     return {"new_task_fraction": round(len(new) / len(task_ids), 4), "new_tasks": len(new), "vs_generation": last.get("generation"), "seen_basis": "task_ids" if last.get("task_ids") else "train.jsonl"}
 
 
+PAIRS_PREFIX = "factory/curriculum/code/pairs/"
+
+
+def load_pairs(s3, private_bucket: str, limit: int = 20000) -> Dict[str, List[Dict[str, Any]]]:
+    """task_id -> recorded failing attempts of the owned model (factory-pref-pair.v1, written by scripts/factory_pairs.py
+    from each burst's own traces: a sample that FAILED the task's tests). Empty when none exist."""
+    out: Dict[str, List[Dict[str, Any]]] = {}
+    for key in list_keys(s3, private_bucket, PAIRS_PREFIX, limit):
+        if not key.endswith(".json"):
+            continue
+        doc = get_json(s3, private_bucket, key)
+        if not isinstance(doc, dict) or doc.get("schema_version") != "factory-pref-pair.v1":
+            continue
+        rej = doc.get("rejected")
+        if isinstance(rej, str) and rej.strip() and doc.get("task_id"):
+            out.setdefault(str(doc["task_id"]), []).append(doc)
+    return out
+
+
+def attach_pairs(rows: List[Dict[str, Any]], pairs: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    """Give each row whose task has a recorded failing attempt a `rejected` completion (never the row's own solution).
+    A task's first row gets the first attempt; rows are otherwise unchanged. Pure."""
+    used: Dict[str, int] = {}
+    out = []
+    for row in rows:
+        tid = str(row.get("task_id") or "")
+        cands = pairs.get(tid) or []
+        if cands and not row.get("rejected"):
+            i = used.get(tid, 0)
+            if i < len(cands):
+                rej = _lf(str(cands[i]["rejected"]))
+                if rej.strip() and rej.strip() != str(row.get("solution") or "").strip():
+                    row = dict(row, rejected=rej, rejected_reason=cands[i].get("rejected_reason"))
+                    used[tid] = i + 1
+        out.append(row)
+    return out
+
+
 def launch_mode(control: Dict[str, Any], manifest: Dict[str, Any]) -> str:
     """sft | dpo for this launch. control.train_mode: 'sft', 'dpo', or 'auto' (dpo when the dataset carries at least
     control.min_pairs preference pairs -- a passing and a failing attempt on the same task -- else sft). 2026-09-22."""
@@ -457,6 +504,10 @@ def build_dataset(s3, private_bucket: str, public_bucket: str, control: Dict[str
     if not isinstance(holdout, dict) or holdout.get("frozen_at") is None:
         raise GearBRefused("holdout manifest %s is not frozen -- run scripts/factory_holdout.py on the runner first" % HOLDOUT_KEY)
     rows, counts = collect_rows(s3, private_bucket, public_bucket)
+    pairs = load_pairs(s3, private_bucket)                    # 2026-09-22: the owned model's failing attempts (scripts/factory_pairs.py)
+    rows = attach_pairs(rows, pairs)
+    counts["pairs_attached"] = sum(1 for r in rows if r.get("rejected"))
+    counts["pair_records"] = sum(len(v) for v in pairs.values())
     cur = curate(rows, holdout, control)
     floor = int(control.get("min_sft_rows") or 0)
     status = {"schema_version": "gearb-dataset.v1", "at": now_iso(), "seen": counts, "kept": len(cur["rows"]), "pref_pairs": sum(1 for r in cur["rows"] if isinstance(r.get("rejected"), str) and r["rejected"]),
