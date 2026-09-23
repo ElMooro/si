@@ -658,6 +658,71 @@ def _extract_adapter(s3, private_bucket: str, candidate: Dict[str, Any]) -> Dict
     return {"adapter_prefix": prefix, "manifest": manifest, "extracted": True}
 
 
+MERGE_JOBS_PREFIX = "factory/gearb/merges/"
+SERVED_PREFIX = "factory/models/served/"
+
+
+def merge_pending(sm, s3, *, private_bucket: str, control: Dict[str, Any], role_arn: str, pricing, region: str = "us-east-1") -> Optional[Dict[str, Any]]:
+    """2026-09-23: a promoted champion is an adapter the endpoint never serves. When champion.json names a generation
+    whose merged weights do not exist yet, launch ONE merge job (factory/training/merge_adapter.py: base + adapter ->
+    merge_and_unload -> uncompressed shards + merge_manifest.json under factory/models/served/gen-N/).
+    scripts/factory_serve_champion.py (runner, factory-exam.yml) swaps the endpoint to it. Never trains, never serves."""
+    import cost_guard as cg
+    import gear_b_own as own
+    champ = get_json(s3, private_bucket, CHAMPION_KEY)
+    if not isinstance(champ, dict) or not champ.get("adapter") or not champ.get("generation"):
+        return None
+    gen = int(str(champ["generation"]).replace("gen-", ""))
+    merged_prefix = "%sgen-%d/" % (SERVED_PREFIX, gen)
+    if get_json(s3, private_bucket, merged_prefix + "merge_manifest.json"):
+        if champ.get("merged_prefix") != "s3://%s/%s" % (private_bucket, merged_prefix):
+            champ["merged_prefix"] = "s3://%s/%s" % (private_bucket, merged_prefix)
+            champ["merged_at"] = now_iso()
+            put_json(s3, private_bucket, CHAMPION_KEY, champ)
+        return {"generation": gen, "merged": True}
+    rec_key = "%sgen-%d.json" % (MERGE_JOBS_PREFIX, gen)
+    rec = get_json(s3, private_bucket, rec_key)
+    if isinstance(rec, dict):
+        try:
+            st = sm.describe_training_job(TrainingJobName=rec["job_name"])["TrainingJobStatus"]
+        except Exception:  # noqa: BLE001
+            st = "Unknown"
+        if st in ("InProgress", "Stopping", "Unknown"):
+            return {"generation": gen, "merge": st, "job_name": rec["job_name"]}
+        if st in ("Failed", "Stopped") and int(rec.get("attempts") or 1) >= 2:
+            return {"generation": gen, "merge": st, "job_name": rec["job_name"], "gave_up": True}
+    it = str(control.get("instance_type") or "ml.g5.2xlarge")
+    max_s = int(control.get("merge_max_runtime_s") or 3600)
+    hourly = cg.hourly_price(pricing, s3, private_bucket, it, family="training").get("usd_per_hour")
+    if not hourly:
+        raise GearBRefused("no live price for %s (merge) -- refusing unpriced spend" % it)
+    adapter_uri = "s3://%s/%s" % (private_bucket, str(champ["adapter"]).lstrip("/"))
+    prompts = sorted({EXAM_PROMPTS_ONLY_PREFIX + k[len(EXAM_PROMPTS_ONLY_PREFIX):].split("/", 1)[0] + "/"
+                      for k in list_keys(s3, private_bucket, EXAM_PROMPTS_ONLY_PREFIX, 2000) if "/" in k[len(EXAM_PROMPTS_ONLY_PREFIX):]})
+    spec = own.burst_spec(s3, private_bucket, control, mode="exam", tasks_uri="s3://%s/%s" % (private_bucket, prompts[-1]) if prompts else None, adapter_uri=adapter_uri)
+    name = re.sub(r"[^a-zA-Z0-9-]", "-", "jh-merge-gen%d-%s" % (gen, now().strftime("%Y%m%d-%H%M%S")))[:63].rstrip("-")
+    hp = {"sagemaker_program": "merge_adapter.py", "sagemaker_submit_directory": spec["training_script"], "sagemaker_container_log_level": "20",
+          "sagemaker_region": region, "sagemaker_job_name": name, "merged_prefix": "s3://%s/%s" % (private_bucket, merged_prefix), "generation": "gen-%d" % gen,
+          "base_revision": str(spec.get("version") or "")}
+    channels = [{"ChannelName": "model", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": spec["training_artifact"], "S3DataDistributionType": "FullyReplicated"}}},
+                {"ChannelName": "adapter", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": adapter_uri, "S3DataDistributionType": "FullyReplicated"}}}]
+    record = {"schema_version": "gearb-merge-job.v1", "job_name": name, "kind": "merge", "generation": gen, "adapter_uri": adapter_uri, "merged_prefix": hp["merged_prefix"],
+              "instance_type": it, "spot": True, "max_runtime_s": max_s, "usd_per_hour": float(hourly), "cap_usd": round(float(hourly) * max_s / 3600.0, 4),
+              "launched_at": now_iso(), "attempts": int((rec or {}).get("attempts") or 0) + 1, "status": "launching"}
+    put_json(s3, private_bucket, rec_key, record)
+    kw = dict(TrainingJobName=name, RoleArn=role_arn, AlgorithmSpecification={"TrainingImage": spec["training_image"], "TrainingInputMode": "File"},
+              HyperParameters=hp, InputDataConfig=channels, OutputDataConfig={"S3OutputPath": "s3://%s/%s" % (private_bucket, MERGE_JOBS_PREFIX)},
+              ResourceConfig={"InstanceType": it, "InstanceCount": 1, "VolumeSizeInGB": 150},
+              StoppingCondition=_stop(max_s), EnableManagedSpotTraining=True, Environment={"JH_MERGE": name})
+    try:
+        sm.create_training_job(**kw, Tags=cg.tags("factory-merge-gen%d" % gen, 3) + [{"Key": "jh-factory", "Value": "merge-gen-%d" % gen}])
+    except Exception as exc:  # noqa: BLE001
+        if "AddTags" not in str(exc):
+            raise
+        sm.create_training_job(**kw)
+    return {"generation": gen, "merge": "launched", "job_name": name, "cap_usd": record["cap_usd"]}
+
+
 def examine_pending(sm, s3, *, private_bucket: str, control: Dict[str, Any], role_arn: str, pricing, region: str = "us-east-1") -> Optional[Dict[str, Any]]:
     """The exam launches itself: newest candidate with exam.status pending_exam -> adapter extracted -> one frozen-holdout
     exam job (greedy, prompts only, spot, capped by exam_max_runtime_s). One exam in flight at a time; the grade is
@@ -849,6 +914,10 @@ def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, A
     try:
         out["decided"] = decide_pending(s3, private_bucket)
         out["examined"] = examine_pending(sm, s3, private_bucket=private_bucket, control=control, role_arn=role_arn, pricing=pricing, region=region)
+        try:
+            out["merged"] = merge_pending(sm, s3, private_bucket=private_bucket, control=control, role_arn=role_arn, pricing=pricing, region=region)
+        except Exception as mexc:  # noqa: BLE001 -- serving must never break training
+            out["merged"] = {"error": str(mexc)[:300]}
     except GearBRefused as exc:
         out["examined"] = {"refusal": str(exc)}
     except Exception as exc:  # noqa: BLE001
