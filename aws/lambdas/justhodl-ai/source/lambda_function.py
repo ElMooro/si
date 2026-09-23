@@ -309,6 +309,7 @@ def run_inventory(context=None, *, refresh_catalog: bool = False, continue_embed
         "market_exam": _safe(public_market_exam),
         "coding_exam": _safe(public_coding_exam),
         "reasoning_exam": _safe(public_reasoning_exam),
+        "market_model": _safe(public_market_model),
         "student_wall": _safe(lambda: get_json(PUBLIC_BUCKET, "data/ai/wall/student-latest.json")),
         "pipeline": _safe(lambda: pl.public_view(get_json(PRIVATE_BUCKET, pl.STATE_KEY) or {})),
         "fleet_inputs": public_fleet,
@@ -377,6 +378,7 @@ def _public_read_model(out: Dict[str, Any]) -> Dict[str, Any]:
         "market_exam": out.get("market_exam"),                     # aggregate scores vs baselines per split -- no drill content
         "coding_exam": out.get("coding_exam"),                     # base vs candidates on the frozen coding exam + the plain-English verdict
         "reasoning_exam": out.get("reasoning_exam"),               # GSM8K + program-output accuracy of the current owned model
+        "market_model": out.get("market_model"),                   # the quantitative market model's holdout scores vs the same baselines
         "student_wall": out.get("student_wall"),                   # the student's latest Monday wall receipt (entries + skips)
         "scoreboard": out.get("scoreboard"),                       # counts, scores, hit rates, voice status -- no text
         "pipeline": ({k: pipe.get(k) for k in ("status", "stage", "stage_index", "stages", "stage_since", "finished_at", "classifier_metrics", "retrieval_endpoint", "error")} if pipe else None),
@@ -1414,6 +1416,15 @@ def student_desk(pub: dict) -> dict:
             "stances": mr.get("stances"), "champion": champion or {"generation": 0, "note": "base model; no weights promoted"},
             "student_wall": {"week": wall.get("week"), "entries": len(wall.get("entries") or []), "rehearsal": wall.get("rehearsal")} if wall.get("week") else None,
             "pipeline": (pub.get("pipeline") or {}).get("status"), "can_do": can, "cannot_do_yet": cannot, "next_lesson": nxt}
+
+
+def public_market_model() -> Optional[dict]:
+    """The engine's own quantitative market model (scripts/factory_market_model.py): training counts + holdout scores vs
+    the exam's prior/momentum baselines. No weights, no drills."""
+    doc = get_json(PRIVATE_BUCKET, "factory/exams/market/quant-latest.json")
+    if not isinstance(doc, dict):
+        return None
+    return {k: doc.get(k) for k in ("model_id", "at", "training", "holdout", "beats_prior", "embargo_days")}
 
 
 def public_market_exam() -> Optional[dict]:

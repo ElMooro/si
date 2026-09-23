@@ -812,7 +812,9 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
       + '<div><b>' + (ceB && ceB.base_score != null ? pct(ceB.base_score) : "—") + '</b><span>coding — HumanEval, 164 problems, tests run for real (base model' + (ceB && ceB.best_candidate ? '; best candidate ' + pct(ceB.best_candidate.score) : '') + ')</span></div>'
       + '<div><b>' + (fams.gsm8k ? pct(fams.gsm8k.accuracy) : "—") + '</b><span>math word problems — GSM8K test set, ' + (fams.gsm8k ? fams.gsm8k.answered + ' answered' : 'not sat yet') + '</span></div>'
       + '<div><b>' + (fams.code_reading ? pct(fams.code_reading.accuracy) : "—") + '</b><span>reading code — predict what a program prints, truth by running it, ' + (fams.code_reading ? fams.code_reading.answered + ' programs' : 'not sat yet') + '</span></div>'
-      + '<div><b>' + (mxH && mxH.n ? fmt(100 * mxH.score, 0) : "—") + '</b><span>markets — held-out crisis weeks, score / 100 (naive baselines sit at the same level: no market skill yet)</span></div>'
+      + '<div><b>' + (mxH && mxH.n ? fmt(100 * mxH.score, 0) : "—") + '</b><span>markets, the language model — held-out crisis weeks, score / 100 (naive baselines sit at the same level: no market skill yet)</span></div>'
+      + (function () { var mm = d.market_model; if (!mm || !mm.holdout || !mm.holdout.model) return ""; var h = mm.holdout;
+          return '<div><b>' + fmt(100 * h.model.score, 0) + '</b><span>markets, its quantitative model — same drills; trained on ' + ((mm.training || {}).windows || 0) + ' historical windows, crises held out; naive prior ' + fmt(100 * (h.prior || {}).score, 0) + (mm.beats_prior ? ' (beats it)' : ' (does not beat it yet)') + '</span></div>'; })()
       + '</div>' + (rx && rx.at ? '<div class="dim" style="font-size:11.5px;margin-top:4px">reasoning exam sat ' + ago(rx.at) + (rx.adapter_generation ? ' by adapter ' + esc(String(rx.adapter_generation)) : ' by the base model') + '</div>' : '');
     var sw = d.student_wall || null;
     if (sw && sw.week) {
