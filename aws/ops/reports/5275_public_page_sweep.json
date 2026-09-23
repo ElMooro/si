@@ -1,15 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "72616a6d406894f152f9f4cd120ad7446715c08b",
-  "observed_at": "2026-09-23T08:57:34.901500+00:00",
+  "observed_at": "2026-09-23T09:21:28.498563+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 549,
+  "verified_routes": 552,
   "failed_routes": [
-    "boom-board.html",
-    "chart.html",
-    "squeeze-fuel.html",
-    "trend-engine.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "72616a6d406894f152f9f4cd120ad7446715c08b": true
@@ -552,12 +549,12 @@
     },
     {
       "route": "boom-board.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
+      "inspector_present": true,
+      "bytes_read": 15765,
+      "product_source_matches_release": true
     },
     {
       "route": "boom-radar.html",
@@ -1708,7 +1705,7 @@
       "http_status": 200,
       "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
       "inspector_present": true,
-      "bytes_read": 877103,
+      "bytes_read": 877122,
       "product_source_matches_release": true
     },
     {
@@ -4278,12 +4275,12 @@
     },
     {
       "route": "squeeze-fuel.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
+      "inspector_present": true,
+      "bytes_read": 10402,
+      "product_source_matches_release": true
     },
     {
       "route": "squeeze.html",
@@ -4665,12 +4662,12 @@
     },
     {
       "route": "trend-engine.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
+      "inspector_present": true,
+      "bytes_read": 18839,
+      "product_source_matches_release": true
     },
     {
       "route": "trend-reversal.html",
@@ -4998,7 +4995,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35839849009,
+  "deployment_run_id": 35842163175,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-23T08:57:34.903759+00:00"
+  "check_finished_at": "2026-09-23T09:21:28.500921+00:00"
 }
