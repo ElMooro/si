@@ -544,8 +544,51 @@ def build_dataset(s3, private_bucket: str, public_bucket: str, control: Dict[str
 
 
 # ───────────────────────────────────────────────────────────────── training job
-def _stop(max_runtime_s: int) -> Dict[str, int]:
-    return {"MaxRuntimeInSeconds": int(max_runtime_s), "MaxWaitTimeInSeconds": int(max_runtime_s) + 3600}
+def _stop(max_runtime_s: int, spot: bool = True) -> Dict[str, int]:
+    out = {"MaxRuntimeInSeconds": int(max_runtime_s)}
+    if spot:
+        out["MaxWaitTimeInSeconds"] = int(max_runtime_s) + 3600
+    return out
+
+
+CAPACITY_PREFIX = "factory/gearb/capacity_stops/"
+
+
+def use_spot(s3, private_bucket: str, control: Dict[str, Any]) -> bool:
+    """Managed spot unless the control says no, or a spot job was stopped for missing capacity within the cooldown
+    (2026-09-23: the first DPO generation sat in 'Insufficient capacity' -- progress beats a 60% discount)."""
+    if control.get("spot") is False:
+        return False
+    cooldown = int(control.get("spot_cooldown_s") or 21600)
+    cutoff = now() - timedelta(seconds=cooldown)
+    for key in list_keys(s3, private_bucket, CAPACITY_PREFIX, 200):
+        doc = get_json(s3, private_bucket, key) or {}
+        try:
+            if datetime.fromisoformat(str(doc.get("at")).replace("Z", "+00:00")) >= cutoff:
+                return False
+        except Exception:  # noqa: BLE001
+            continue
+    return True
+
+
+def rescue_capacity(sm, s3, private_bucket: str, control: Dict[str, Any]) -> List[str]:
+    """Stop a Gear B / exam / merge spot job that has waited for capacity longer than control.spot_patience_s (30 min),
+    and record it: the next launch runs on-demand (use_spot), so a starved spot pool never stalls the loop for hours."""
+    patience = int(control.get("spot_patience_s") or 1800)
+    stopped = []
+    for prefix in ("jh-gearb-", "jh-exam-", "jh-merge-"):
+        for j in sm.list_training_jobs(StatusEquals="InProgress", NameContains=prefix, MaxResults=10).get("TrainingJobSummaries", []):
+            d = sm.describe_training_job(TrainingJobName=j["TrainingJobName"])
+            if d.get("SecondaryStatus") != "Starting" or not d.get("EnableManagedSpotTraining"):
+                continue
+            msgs = " ".join(str(t.get("StatusMessage") or "") for t in (d.get("SecondaryStatusTransitions") or [])[-3:])
+            age = (now() - d["CreationTime"]).total_seconds()
+            if "capacity" in msgs.lower() and age >= patience:
+                sm.stop_training_job(TrainingJobName=j["TrainingJobName"])
+                put_json(s3, private_bucket, CAPACITY_PREFIX + j["TrainingJobName"] + ".json",
+                         {"job_name": j["TrainingJobName"], "at": now_iso(), "waited_s": int(age), "message": msgs[:300]})
+                stopped.append(j["TrainingJobName"])
+    return stopped
 
 
 def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: str, control: Dict[str, Any], policy: Dict[str, Any],
@@ -589,7 +632,7 @@ def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: s
     if spec.get("training_artifact"):
         channels.append({"ChannelName": "model", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": spec["training_artifact"], "S3DataDistributionType": "FullyReplicated"}}})
     record = {"schema_version": "gearb-job.v1", "job_name": name, "kind": hp.get("mode", "sft"), "generation": manifest["generation"], "model_id": spec["model_id"],
-              "instance_type": it, "spot": True, "max_runtime_s": int(control["max_runtime_s"]), "usd_per_hour": float(hourly),
+              "instance_type": it, "spot": use_spot(s3, private_bucket, control), "max_runtime_s": int(control["max_runtime_s"]), "usd_per_hour": float(hourly),
               "cap_usd": cap_usd, "price_source": price.get("source"), "training_uri": training_uri, "out_uri": out_uri,
               "eligibility_digest": manifest["eligibility_digest"], "train_sha256": manifest["train_sha256"], "holdout_digest": manifest.get("holdout_digest"),
               "launched_at": now_iso(), "status": "launching", "version": VERSION}
@@ -600,7 +643,7 @@ def launch_sft(sm, s3, *, spec: Dict[str, Any], role_arn: str, private_bucket: s
         AlgorithmSpecification={"TrainingImage": spec["training_image"], "TrainingInputMode": "File"},
         HyperParameters=hp, InputDataConfig=channels, OutputDataConfig={"S3OutputPath": out_uri},
         ResourceConfig={"InstanceType": it, "InstanceCount": 1, "VolumeSizeInGB": 100},
-        StoppingCondition=_stop(int(control["max_runtime_s"])), EnableManagedSpotTraining=True,
+        StoppingCondition=_stop(int(control["max_runtime_s"]), record["spot"]), EnableManagedSpotTraining=bool(record["spot"]),
         Tags=cg.tags(TAG_PURPOSE, None) + [{"Key": "jh-factory", "Value": "gearb-gen-%d" % manifest["generation"]}],
         Environment={"JH_GEARB_ELIGIBILITY_DIGEST": manifest["eligibility_digest"], "JH_GEARB_TRAIN_SHA256": manifest["train_sha256"],
                      "JH_GEARB_HOLDOUT_DIGEST": str(manifest.get("holdout_digest") or "")},
@@ -707,13 +750,13 @@ def merge_pending(sm, s3, *, private_bucket: str, control: Dict[str, Any], role_
     channels = [{"ChannelName": "model", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": spec["training_artifact"], "S3DataDistributionType": "FullyReplicated"}}},
                 {"ChannelName": "adapter", "DataSource": {"S3DataSource": {"S3DataType": "S3Prefix", "S3Uri": adapter_uri, "S3DataDistributionType": "FullyReplicated"}}}]
     record = {"schema_version": "gearb-merge-job.v1", "job_name": name, "kind": "merge", "generation": gen, "adapter_uri": adapter_uri, "merged_prefix": hp["merged_prefix"],
-              "instance_type": it, "spot": True, "max_runtime_s": max_s, "usd_per_hour": float(hourly), "cap_usd": round(float(hourly) * max_s / 3600.0, 4),
+              "instance_type": it, "spot": use_spot(s3, private_bucket, control), "max_runtime_s": max_s, "usd_per_hour": float(hourly), "cap_usd": round(float(hourly) * max_s / 3600.0, 4),
               "launched_at": now_iso(), "attempts": int((rec or {}).get("attempts") or 0) + 1, "status": "launching"}
     put_json(s3, private_bucket, rec_key, record)
     kw = dict(TrainingJobName=name, RoleArn=role_arn, AlgorithmSpecification={"TrainingImage": spec["training_image"], "TrainingInputMode": "File"},
               HyperParameters=hp, InputDataConfig=channels, OutputDataConfig={"S3OutputPath": "s3://%s/%s" % (private_bucket, MERGE_JOBS_PREFIX)},
               ResourceConfig={"InstanceType": it, "InstanceCount": 1, "VolumeSizeInGB": 150},
-              StoppingCondition=_stop(max_s), EnableManagedSpotTraining=True, Environment={"JH_MERGE": name})
+              StoppingCondition=_stop(max_s, record["spot"]), EnableManagedSpotTraining=bool(record["spot"]), Environment={"JH_MERGE": name})
     try:
         sm.create_training_job(**kw, Tags=cg.tags("factory-merge-gen%d" % gen, 3) + [{"Key": "jh-factory", "Value": "merge-gen-%d" % gen}])
     except Exception as exc:  # noqa: BLE001
@@ -766,14 +809,14 @@ def examine_pending(sm, s3, *, private_bucket: str, control: Dict[str, Any], rol
     out_uri = "s3://%s/factory/bursts/" % private_bucket
     record = {"schema_version": "factory-burst-job.v1", "job_name": name, "kind": "exam", "generation": gen, "exam_generation": "gen-%d" % gen, "model_id": spec["model_id"],
               "adapter_uri": adapter_uri, "training_image": spec["training_image"], "bundle_uri": spec["training_script"], "tasks_uri": tasks_uri,
-              "instance_type": it, "spot": True, "max_runtime_s": max_s, "usd_per_hour": float(hourly), "cap_usd": cap, "out_uri": out_uri,
+              "instance_type": it, "spot": use_spot(s3, private_bucket, control), "max_runtime_s": max_s, "usd_per_hour": float(hourly), "cap_usd": cap, "out_uri": out_uri,
               "launched_at": now_iso(), "launched_by": "gear_b.examine_pending", "status": "launching"}
     if not put_json_absent(s3, private_bucket, EXAM_JOBS_PREFIX + name + ".json", record):
         raise GearBRefused("exam job record %s already exists" % name)
     kw = dict(TrainingJobName=name, RoleArn=role_arn, AlgorithmSpecification={"TrainingImage": spec["training_image"], "TrainingInputMode": "File"},
               HyperParameters=hp, InputDataConfig=channels, OutputDataConfig={"S3OutputPath": out_uri},
               ResourceConfig={"InstanceType": it, "InstanceCount": 1, "VolumeSizeInGB": 120},
-              StoppingCondition=_stop(max_s), EnableManagedSpotTraining=True, Environment={"JH_BURST": name})
+              StoppingCondition=_stop(max_s, record["spot"]), EnableManagedSpotTraining=bool(record["spot"]), Environment={"JH_BURST": name})
     try:
         sm.create_training_job(**kw, Tags=cg.tags("factory-exam-gen%d" % gen, 3) + [{"Key": "jh-factory", "Value": "exam-gen-%d" % gen}])
     except Exception as exc:  # noqa: BLE001
@@ -906,6 +949,10 @@ def tick(sm, s3, *, private_bucket: str, public_bucket: str, policy: Dict[str, A
     if why:
         out["refusal"] = why
         return out
+    try:
+        out["capacity_stops"] = rescue_capacity(sm, s3, private_bucket, control)     # a spot job starved of capacity never stalls the loop
+    except Exception as cexc:  # noqa: BLE001
+        out["capacity_stops"] = {"error": str(cexc)[:200]}
     out["polled"] = poll_jobs(sm, s3, private_bucket)
     if any(u.get("status") in ("launching", "InProgress", "Stopping", "unknown") for u in out["polled"]):
         out["refusal"] = "a job is still running" if not any(u.get("status") == "unknown" for u in out["polled"]) else "a job's state is unknown (reconcile before reserving more compute)"

@@ -36,5 +36,21 @@ class ServingTests(unittest.TestCase):
             sys.modules.pop("boto3", None)
 
 
+    def test_spot_falls_back_to_on_demand_after_a_capacity_stop(self):
+        import gear_b as gb
+        from datetime import datetime, timezone, timedelta
+        rows = {}
+        gb.list_keys = lambda s3, b, p, n=0: [k for k in rows if k.startswith(p)]
+        gb.get_json = lambda s3, b, k: rows.get(k)
+        self.assertTrue(gb.use_spot(None, "p", {}))
+        self.assertFalse(gb.use_spot(None, "p", {"spot": False}))
+        rows[gb.CAPACITY_PREFIX + "jh-gearb-gen27.json"] = {"at": datetime.now(timezone.utc).isoformat()}
+        self.assertFalse(gb.use_spot(None, "p", {}))                                   # a recent capacity stop -> on-demand
+        rows[gb.CAPACITY_PREFIX + "jh-gearb-gen27.json"] = {"at": (datetime.now(timezone.utc) - timedelta(hours=8)).isoformat()}
+        self.assertTrue(gb.use_spot(None, "p", {}))                                    # cooled down -> spot again
+        self.assertEqual(gb._stop(3600, False), {"MaxRuntimeInSeconds": 3600})         # on-demand never carries MaxWait
+        self.assertEqual(gb._stop(3600, True)["MaxWaitTimeInSeconds"], 7200)
+
+
 if __name__ == '__main__':
     unittest.main()
