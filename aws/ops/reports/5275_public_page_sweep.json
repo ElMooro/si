@@ -1,12 +1,15 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "72616a6d406894f152f9f4cd120ad7446715c08b",
-  "observed_at": "2026-09-23T08:47:01.428998+00:00",
+  "observed_at": "2026-09-23T08:57:34.901500+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 552,
+  "verified_routes": 549,
   "failed_routes": [
-    "chart.html"
+    "boom-board.html",
+    "chart.html",
+    "squeeze-fuel.html",
+    "trend-engine.html"
   ],
   "source_equivalent_builds": {
     "72616a6d406894f152f9f4cd120ad7446715c08b": true
@@ -549,12 +552,12 @@
     },
     {
       "route": "boom-board.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
-      "inspector_present": true,
-      "bytes_read": 15765,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "boom-radar.html",
@@ -1705,7 +1708,7 @@
       "http_status": 200,
       "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
       "inspector_present": true,
-      "bytes_read": 877099,
+      "bytes_read": 877103,
       "product_source_matches_release": true
     },
     {
@@ -4275,12 +4278,12 @@
     },
     {
       "route": "squeeze-fuel.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
-      "inspector_present": true,
-      "bytes_read": 10402,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "squeeze.html",
@@ -4662,12 +4665,12 @@
     },
     {
       "route": "trend-engine.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "72616a6d406894f152f9f4cd120ad7446715c08b",
-      "inspector_present": true,
-      "bytes_read": 18839,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "trend-reversal.html",
@@ -4995,7 +4998,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35838822639,
+  "deployment_run_id": 35839849009,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-23T08:47:01.431147+00:00"
+  "check_finished_at": "2026-09-23T08:57:34.903759+00:00"
 }
