@@ -1,3 +1,4 @@
+import unittest
 """Prove the doctrine: next answer can be shown less wrong than the last."""
 from __future__ import annotations
 
@@ -71,3 +72,11 @@ if __name__ == "__main__":
             fn()
             print("ok", name)
     print("DOCTRINE_PROOF_OK")
+
+class PairCarryingDatasetTests(unittest.TestCase):
+    def test_pair_carrying_dataset_is_not_repeat_sft(self):
+        import self_improve as si
+        m = {"eligibility_digest": "d", "kinds": {"public_benchmark_train": 2010}, "kept": 2010, "families": 3, "new_task_fraction": 0.0, "pref_pairs": 339}
+        self.assertIsNone(si.refuse_repeat_sft([], m, {}))                                   # DPO on the model's own pass/fail pairs
+        self.assertIn("refuse-SFT", si.refuse_repeat_sft([], dict(m, pref_pairs=0), {}))       # the same tasks without pairs still refuse
+        self.assertIn("refuse-SFT", si.refuse_repeat_sft([], m, {"train_mode": "sft"}))        # forced SFT on the same tasks still refuses

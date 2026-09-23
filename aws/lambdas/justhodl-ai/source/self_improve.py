@@ -108,6 +108,13 @@ def refuse_repeat_sft(job_records: Iterable[Mapping[str, Any]], manifest: Mappin
     novelty = manifest.get("new_task_fraction")
     if isinstance(novelty, (int, float)) and float(novelty) >= min_new and kept > 0:
         return None
+    # 2026-09-23 (Claude): a dataset that carries preference pairs (the owned model's passing vs failing attempt on the same
+    # task) trains DPO, the objective this doctrine asks for ("add preference_pair ... before another GPU hour"); the row
+    # kinds stay public_benchmark_train/self_trace because a pair rides on its task's verified row, so kinds alone cannot see it
+    pairs_have = _i(manifest.get("pref_pairs") or kinds.get("preference_pair"))
+    pairs_floor = _i(control.get("min_dpo_pairs") or control.get("min_pairs") or 50)
+    if pairs_have >= max(1, pairs_floor) and kept > 0 and str(control.get("train_mode") or "auto").lower() != "sft":
+        return None
     only_old = bool(kinds) and (
         set(kinds) <= {"public_benchmark_train"}
         or (
