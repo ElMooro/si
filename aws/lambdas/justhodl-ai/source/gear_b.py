@@ -934,8 +934,10 @@ def public_status(s3, private_bucket: str, policy: Dict[str, Any]) -> Dict[str, 
                    "committed_today_usd": spend(records, since_day)["usd"],
                    "committed_season_usd": spend(records, season_since)["usd"] if season_since else None},
         "holdout": {"frozen": bool(holdout.get("frozen_at")), "frozen_at": holdout.get("frozen_at"), "digest": digest(holdout) if holdout else None},
-        "dataset": {k: latest_manifest.get(k) for k in ("generation", "kept", "floor", "missing_rows", "licenses", "kinds", "families", "ok", "reason", "at")} if latest_manifest else {"generation": 0, "kept": 0, "floor": control.get("min_sft_rows"), "ok": False, "reason": "no dataset built yet"},
+        "dataset": {k: latest_manifest.get(k) for k in ("generation", "kept", "floor", "missing_rows", "licenses", "kinds", "families", "ok", "reason", "at", "pref_pairs")} if latest_manifest else {"generation": 0, "kept": 0, "floor": control.get("min_sft_rows"), "ok": False, "reason": "no dataset built yet"},
         "jobs": {"total": len(records), "by_status": {s: sum(1 for r in records if r.get("status") == s) for s in sorted({r.get("status") or "unknown" for r in records})}},
+        "latest_job": (lambda r: {"generation": r.get("generation"), "kind": r.get("kind"), "spot": r.get("spot"), "status": r.get("status"), "launched_at": r.get("launched_at")} if r else None)(
+            max(records, key=lambda r: str(r.get("launched_at") or ""), default=None)),
         "champion": {"generation": champion.get("generation"), "score": champion.get("score"), "promoted_at": champion.get("promoted_at")} if champion else {"generation": 0, "note": "base model; no weights promoted"},
     }
 

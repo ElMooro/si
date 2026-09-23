@@ -791,9 +791,11 @@ dl.defs{display:grid;grid-template-columns:180px 1fr;gap:6px 14px;font-size:12px
     if (sb.categories_excluded && sb.categories_excluded.length) tr += "It could not learn " + sb.categories_excluded.join(", ") + " yet — fewer than 20 notes each; label more and rerun.";
     $("pl-trend").textContent = tr;
     var ce = d.coding_exam || null;
+    var gbx = d.gear_b || {}, lj = gbx.latest_job || null, dsx = gbx.dataset || {};
+    var training = lj ? ' Training now: generation ' + esc(String(lj.generation)) + ' — ' + (String(lj.kind) === "dpo" ? 'preference training on ' + (dsx.pref_pairs || 0) + ' pairs of its own passing vs failing code' : 'supervised fine-tuning on ' + (dsx.kept || 0) + ' verified tasks') + ' (' + esc(String(lj.status || "")) + (lj.spot === false ? ', on-demand' : '') + ').' : '';
     if (ce && ce.verdict) {
       var lp = ce.learning_pts;
-      $("pl-trend").innerHTML = esc(tr) + '<div style="margin-top:6px"><b class="' + (lp == null ? "" : lp > 1 ? "ok" : lp < -1 ? "bad" : "warn") + '">' + (lp == null ? "—" : (lp > 0 ? "+" : "") + fmt(lp, 1) + " pts") + '</b> coding, best candidate vs base' + (ce.base_passed ? ' (base ' + esc(ce.base_passed) + ')' : '') + ' — ' + esc(ce.verdict) + '</div>';
+      $("pl-trend").innerHTML = esc(tr) + '<div style="margin-top:6px"><b class="' + (lp == null ? "" : lp > 1 ? "ok" : lp < -1 ? "bad" : "warn") + '">' + (lp == null ? "—" : (lp > 0 ? "+" : "") + fmt(lp, 1) + " pts") + '</b> coding, best candidate vs base' + (ce.base_passed ? ' (base ' + esc(ce.base_passed) + ')' : '') + ' — ' + esc(ce.verdict) + training + '</div>';
     }
     var ex = (d.market_exam || {}).holdout, ext = (d.market_exam || {}).train;
     function examLine(label, e) {
