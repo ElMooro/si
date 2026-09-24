@@ -1,13 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "1e597815292baa8dc4c6ad3ea050a427fa23480a",
-  "observed_at": "2026-09-24T19:41:35.574973+00:00",
+  "observed_at": "2026-09-24T19:53:24.299175+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 551,
+  "verified_routes": 552,
   "failed_routes": [
-    "chart.html",
-    "macro-rooms.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "1e597815292baa8dc4c6ad3ea050a427fa23480a": true
@@ -1706,7 +1705,7 @@
       "http_status": 200,
       "build_sha": "1e597815292baa8dc4c6ad3ea050a427fa23480a",
       "inspector_present": true,
-      "bytes_read": 877290,
+      "bytes_read": 877288,
       "product_source_matches_release": true
     },
     {
@@ -3034,12 +3033,12 @@
     },
     {
       "route": "macro-rooms.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "1e597815292baa8dc4c6ad3ea050a427fa23480a",
+      "inspector_present": true,
+      "bytes_read": 18164,
+      "product_source_matches_release": true
     },
     {
       "route": "magic-formula.html",
@@ -4996,7 +4995,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36049452884,
+  "deployment_run_id": 36050811007,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-24T19:41:35.576861+00:00"
+  "check_finished_at": "2026-09-24T19:53:24.301342+00:00"
 }
