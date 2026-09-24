@@ -8,6 +8,15 @@ from test_option_flow_store import S3
 
 
 class Tests(unittest.TestCase):
+    def test_shallow_history_is_completed_before_source_attribution(self):
+        with patch.object(op.subprocess,'check_output',side_effect=['true\n','false\n']),patch.object(op.subprocess,'run') as fetch:
+            op.release_history()
+            fetch.assert_called_once_with(['git','fetch','--unshallow','--filter=blob:none','origin','main'],cwd=op.ROOT,check=True)
+        with patch.object(op.subprocess,'check_output',return_value='false\n'),patch.object(op.subprocess,'run') as fetch:
+            op.release_history();fetch.assert_not_called()
+        with patch.object(op.subprocess,'check_output',return_value='true\n'),patch.object(op.subprocess,'run'):
+            with self.assertRaises(AssertionError):op.release_history()
+
     def test_receipts_match_each_consumers_exact_commit_and_package(self):
         rows = [{'function': name, 'code_sha256': str(i)} for i, name in enumerate(op.CONSUMERS[:2])]
         commits = ['a'*40, 'b'*40]
@@ -20,6 +29,16 @@ class Tests(unittest.TestCase):
         for body in ({'commit': 'b'*40, 'code_sha256': 'exact'}, {'commit': 'a'*40, 'code_sha256': 'wrong'}):
             with patch.object(op, 'source_commit', return_value='a'*40), patch.object(op, 'public', return_value=json.dumps(body)):
                 with self.assertRaises(AssertionError): op.receipts([row])
+
+    def test_recorded_recovery_release_is_not_confused_with_last_source_edit(self):
+        for name,expected in op.RECORDED_RELEASES.items():
+            row={'function':name,'code_sha256':'reviewed-package'}
+            body={'commit':expected,'code_sha256':'reviewed-package'}
+            with patch.object(op,'source_commit',side_effect=AssertionError('Recovery has an explicit release')),patch.object(op,'public',return_value=json.dumps(body)):
+                self.assertEqual(op.receipts([row]),{name:expected})
+            body['code_sha256']='different-package'
+            with patch.object(op,'public',return_value=json.dumps(body)):
+                with self.assertRaises(AssertionError):op.receipts([row])
 
     def test_source_commit_includes_configuration_and_transitive_helpers(self):
         fn = op.CONSUMERS[0]; source = 'aws/lambdas/'+fn+'/source'

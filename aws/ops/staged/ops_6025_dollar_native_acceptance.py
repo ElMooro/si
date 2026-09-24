@@ -23,11 +23,25 @@ RECOVERY={'manifest_key':'data/dollar-research/runs/a828a9bed62d713bbeee5e121833
     'output_sha256':'aa871597f3adfa7f417a568806b582ffae34524d52172d67de6d894b63c816d5'}
 ASSETS=('dollar.html','jh-dollar-research.js','jh-dollar-research-page.js','jh-dollar-research.css','jh-option-research.js','jh-option-research.css')
 PROOF='data/dollar-research-verification.json'
+# Explicit intended deployments: Crisis was recovered after its source commit;
+# the unchanged snapshotter is repackaged to establish its missing receipt.
+RECORDED_RELEASES={
+    'justhodl-crisis-composite':'0fdc2c779a1ea95a04c035e37ce8294699567cac',
+    'justhodl-history-snapshotter':'1e597815292baa8dc4c6ad3ea050a427fa23480a',
+}
 
 
 def public(key):
     with urllib.request.urlopen(urllib.request.Request('https://justhodl.ai/'+key,
             headers={'User-Agent': 'justhodl-verify-release/1.0'}), timeout=40) as response: return store.bounded(response)
+
+
+def release_history():
+    """Path history must not mistake a shallow boundary for a source change."""
+    command=['git','rev-parse','--is-shallow-repository']
+    if subprocess.check_output(command,cwd=ROOT,text=True).strip()=='true':
+        subprocess.run(['git','fetch','--unshallow','--filter=blob:none','origin','main'],cwd=ROOT,check=True)
+    assert subprocess.check_output(command,cwd=ROOT,text=True).strip()=='false', 'Complete commit history required for exact release attribution'
 
 
 def source_commit(function):
@@ -43,7 +57,8 @@ def source_commit(function):
 def receipts(packages):
     commits = {}
     for row in packages:
-        expected = source_commit(row['function']); receipt = json.loads(public('data/ops/releases/'+row['function']+'.json'))
+        expected = RECORDED_RELEASES.get(row['function']) or source_commit(row['function'])
+        receipt = json.loads(public('data/ops/releases/'+row['function']+'.json'))
         assert receipt['commit'] == expected and receipt['code_sha256'] == row['code_sha256'], row['function']
         commits[row['function']] = expected
     return commits
@@ -125,6 +140,7 @@ def main():
     events = boto3.client('events', region_name='us-east-1'); scheduler = boto3.client('scheduler', region_name='us-east-1')
     with report('ops_6025_dollar_native_acceptance') as r:
         subprocess.run([sys.executable, str(ROOT/'aws/lambdas'/FUNCTION/'tests/run_tests.py')], cwd=ROOT, check=True)
+        release_history()
         commit = source_commit(FUNCTION); actual = runtime(lam, s3, events, scheduler, FUNCTION)
         assert actual['receipt'] == {'status': 'matched', 'commit': commit} and actual['memory_mb'] == 256 and actual['timeout'] == 180
         raw = store.bounded(s3.get_object(Bucket=BUCKET, Key=QUALIFIED['key'])['Body'])
