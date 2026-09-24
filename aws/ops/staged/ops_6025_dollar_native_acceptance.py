@@ -134,11 +134,18 @@ def profile(logs, status):
     return {'execution_id': execution, 'managed_reports': values, 'completed_request': True}
 
 
-def main():
+def publication_request(lam,s3,commit,require_existing):
+    if not require_existing:return invoke(lam,s3,commit)
+    packet=current(s3)
+    assert packet is not None, 'Existing native publication required; verification cannot invoke'
+    return completed_request(s3,packet)
+
+
+def main(report_name='ops_6025_dollar_native_acceptance',require_existing=False):
     s3 = boto3.client('s3', region_name='us-east-1')
     lam = boto3.client('lambda', region_name='us-east-1', config=Config(read_timeout=60, connect_timeout=10, retries={'max_attempts': 0}))
     events = boto3.client('events', region_name='us-east-1'); scheduler = boto3.client('scheduler', region_name='us-east-1')
-    with report('ops_6025_dollar_native_acceptance') as r:
+    with report(report_name) as r:
         subprocess.run([sys.executable, str(ROOT/'aws/lambdas'/FUNCTION/'tests/run_tests.py')], cwd=ROOT, check=True)
         release_history()
         commit = source_commit(FUNCTION); actual = runtime(lam, s3, events, scheduler, FUNCTION)
@@ -163,7 +170,7 @@ def main():
             if name == 'dollar.html': assert b'/jh-dollar-research-page.js' in body and b'/jh-dollar-research.js' in body
         r.kv(commit=commit, runtime=actual, consumer_packages=packages, consumer_release_commits=commits,
             pages_commit=pages_commit, qualified_replay=RECOVERY)
-        request = invoke(lam, s3, commit); r.kv(completed_request=request)
+        request = publication_request(lam,s3,commit,require_existing); r.kv(completed_request=request)
         execution = profile(boto3.client('logs', region_name='us-east-1'), request['status'])
         raw = public(model.CURRENT); packet = json.loads(raw)
         assert packet == current(s3) and packet['replay'] == request['status']['replay']

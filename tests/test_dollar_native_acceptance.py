@@ -8,6 +8,15 @@ from test_option_flow_store import S3
 
 
 class Tests(unittest.TestCase):
+    def test_read_only_acceptance_adopts_completed_publication_and_never_invokes(self):
+        packet={'contract':op.model.CONTRACT,'replay':op.RECOVERY};s3=S3()
+        with patch.object(op,'current',return_value=packet),patch.object(op,'completed_request',return_value={'invoke_sent':False}) as read,patch.object(op,'invoke') as invoke:
+            self.assertFalse(op.publication_request(Mock(),s3,'a'*40,True)['invoke_sent'])
+            read.assert_called_once_with(s3,packet);invoke.assert_not_called()
+        with patch.object(op,'current',return_value=None),patch.object(op,'invoke') as invoke:
+            with self.assertRaises(AssertionError):op.publication_request(Mock(),s3,'a'*40,True)
+            invoke.assert_not_called()
+
     def test_shallow_history_is_completed_before_source_attribution(self):
         with patch.object(op.subprocess,'check_output',side_effect=['true\n','false\n']),patch.object(op.subprocess,'run') as fetch:
             op.release_history()

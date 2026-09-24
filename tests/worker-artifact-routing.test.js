@@ -72,3 +72,18 @@ test('Crisis current and history publications cannot be hidden behind edge cache
   assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);
  }
 });
+
+test('Dollar current publication bypasses edge and upstream caches for GET, HEAD and Range',async()=>{
+ const worker=(await import(source)).default;
+ for(const request of [new Request('https://justhodl.ai/data/dollar-radar.json'),
+  new Request('https://justhodl.ai/data/dollar-radar.json',{method:'HEAD'}),
+  new Request('https://justhodl.ai/data/dollar-radar.json',{headers:{Range:'bytes=0-9'}})]){
+  const state=setup();
+  globalThis.fetch=async(input,options)=>{state.calls.push({url:String(input),options});return Response.json({contract:'dollar-original-research.v1'});};
+  const response=await worker.fetch(request,{},state.context);await Promise.all(state.waits);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
+  assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);assert.equal(state.calls.length,1);
+  assert.equal(new URL(state.calls[0].url).pathname,'/data/dollar-radar.json');
+  assert.equal(state.calls[0].options.cache,'no-store');assert.equal(state.calls[0].options.cf,undefined);
+ }
+});
