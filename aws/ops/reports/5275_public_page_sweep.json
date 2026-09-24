@@ -1,12 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
-  "observed_at": "2026-09-24T05:19:01.534352+00:00",
+  "observed_at": "2026-09-24T05:42:58.895870+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 552,
+  "verified_routes": 551,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "compare.html"
   ],
   "source_equivalent_builds": {
     "78c8da5efe17a59116b1cd06d939f2df7110a4d6": true
@@ -990,12 +991,12 @@
     },
     {
       "route": "compare.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
-      "inspector_present": true,
-      "bytes_read": 34863,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "compass.html",
@@ -1705,7 +1706,7 @@
       "http_status": 200,
       "build_sha": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
       "inspector_present": true,
-      "bytes_read": 877336,
+      "bytes_read": 877327,
       "product_source_matches_release": true
     },
     {
@@ -4995,7 +4996,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35959239379,
+  "deployment_run_id": 35960975808,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-24T05:19:01.536545+00:00"
+  "check_finished_at": "2026-09-24T05:42:58.898164+00:00"
 }
