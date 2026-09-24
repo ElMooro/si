@@ -1,13 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "1e597815292baa8dc4c6ad3ea050a427fa23480a",
-  "observed_at": "2026-09-24T10:42:42.417352+00:00",
+  "observed_at": "2026-09-24T10:52:33.510259+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 551,
+  "verified_routes": 552,
   "failed_routes": [
-    "chart.html",
-    "fundamental-graphs.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "1e597815292baa8dc4c6ad3ea050a427fa23480a": true
@@ -1706,7 +1705,7 @@
       "http_status": 200,
       "build_sha": "1e597815292baa8dc4c6ad3ea050a427fa23480a",
       "inspector_present": true,
-      "bytes_read": 877637,
+      "bytes_read": 877650,
       "product_source_matches_release": true
     },
     {
@@ -2170,12 +2169,12 @@
     },
     {
       "route": "fundamental-graphs.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "1e597815292baa8dc4c6ad3ea050a427fa23480a",
+      "inspector_present": true,
+      "bytes_read": 69148,
+      "product_source_matches_release": true
     },
     {
       "route": "fundamentals.html",
@@ -4996,7 +4995,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35988536218,
+  "deployment_run_id": 35989483916,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-24T10:42:42.419436+00:00"
+  "check_finished_at": "2026-09-24T10:52:33.512514+00:00"
 }
