@@ -126,9 +126,15 @@
     var p = el.previousElementSibling, hops = 0;
     while (p && hops < 3) {
       if (p.hasAttribute("data-jh-sec") || p.hasAttribute("data-jh-sub")) return null;
-      if (p.matches(HEAD) && text(p)) return p;
       var inner = p.children.length === 1 && p.firstElementChild.matches(HEAD) ? p.firstElementChild : null;
-      if (inner && text(inner)) return inner;
+      var h = p.matches(HEAD) ? p : inner;
+      if (h && text(h)) {
+        // A preceding heading can already label the enclosing section. Do not
+        // place its child's badge there as well; retain this block's own claim
+        // across refreshes and number a heading-less child inside its block.
+        var claimed = Array.from(h.querySelectorAll('.jh-secbadge[data-for]'));
+        return claimed.some(function (b) { return b.dataset.for !== el.id; }) ? null : h;
+      }
       if (rect(p).height >= BIG_H || (text(p) && !p.matches(".kicker,.eyebrow,.label,small"))) return null;
       p = p.previousElementSibling; hops++;
     }

@@ -46,6 +46,36 @@ test('existing duplicate owner badges are cleaned without removing other section
 });
 
 const childrenCode=source.slice(source.indexOf('  function bigChildren('),source.indexOf('  // The content axis:'));
+const previousCode=source.slice(source.indexOf('  function prevHeading('),source.indexOf('  function titleOf('));
+function previousHeading(owner,wrapped=false){
+  const heading={textContent:'Inspect the reported observations',children:[],claims:[],
+    hasAttribute:()=>false,matches:s=>s==='h2',querySelectorAll(){return this.claims;}};
+  if(owner!==null)heading.claims.push({dataset:{for:owner}});
+  const wrapper={children:[heading],firstElementChild:heading,hasAttribute:()=>false,matches:()=>false};
+  const child={id:'observations-table',previousElementSibling:wrapped?wrapper:heading};
+  const c=vm.createContext({HEAD:'h2',BIG_H:96,text:el=>el.textContent||'',rect:()=>({height:20})});
+  vm.runInContext(previousCode,c);
+  return {heading,child,find:()=>c.prevHeading(child)};
+}
+
+test('a child cannot claim the direct or wrapped heading already numbered for its parent',()=>{
+  for(const wrapped of [false,true]){
+    const {find}=previousHeading('observations-section',wrapped);
+    assert.equal(find(),null);
+  }
+});
+
+test('an unclaimed preceding heading and this block\'s own heading remain usable on refresh',()=>{
+  for(const wrapped of [false,true]){
+    const {heading,find}=previousHeading(null,wrapped);
+    assert.equal(find(),heading);
+    heading.claims.push({dataset:{for:'observations-table'}});
+    for(let i=0;i<100;i++)assert.equal(find(),heading);
+    heading.claims.push({dataset:{for:'another-block'}});
+    assert.equal(find(),null);
+  }
+});
+
 function responsiveChildren(){
   class Element {
     constructor(tag,height,pinned=false){this.tag=tag;this.height=height;this.pinned=pinned;this.dataset={};this.children=[];}
