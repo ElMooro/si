@@ -1,13 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
-  "observed_at": "2026-09-24T01:41:13.382502+00:00",
+  "observed_at": "2026-09-24T02:02:06.464628+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 551,
+  "verified_routes": 552,
   "failed_routes": [
-    "chart.html",
-    "master-rank.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "78c8da5efe17a59116b1cd06d939f2df7110a4d6": true
@@ -1706,7 +1705,7 @@
       "http_status": 200,
       "build_sha": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
       "inspector_present": true,
-      "bytes_read": 877347,
+      "bytes_read": 877370,
       "product_source_matches_release": true
     },
     {
@@ -3133,12 +3132,12 @@
     },
     {
       "route": "master-rank.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
+      "inspector_present": true,
+      "bytes_read": 45625,
+      "product_source_matches_release": true
     },
     {
       "route": "merger-arb-risk.html",
@@ -4996,7 +4995,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35943821980,
+  "deployment_run_id": 35945302215,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-24T01:41:13.384435+00:00"
+  "check_finished_at": "2026-09-24T02:02:06.466569+00:00"
 }
