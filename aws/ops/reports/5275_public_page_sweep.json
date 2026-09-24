@@ -1,12 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
-  "observed_at": "2026-09-24T03:56:35.598528+00:00",
+  "observed_at": "2026-09-24T04:21:52.827248+00:00",
   "ok": false,
   "routes_checked": 553,
-  "verified_routes": 552,
+  "verified_routes": 551,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "port-cargo.html"
   ],
   "source_equivalent_builds": {
     "78c8da5efe17a59116b1cd06d939f2df7110a4d6": true
@@ -1705,7 +1706,7 @@
       "http_status": 200,
       "build_sha": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
       "inspector_present": true,
-      "bytes_read": 877343,
+      "bytes_read": 877342,
       "product_source_matches_release": true
     },
     {
@@ -3564,12 +3565,12 @@
     },
     {
       "route": "port-cargo.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "78c8da5efe17a59116b1cd06d939f2df7110a4d6",
-      "inspector_present": true,
-      "bytes_read": 10341,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "portfolio-manager.html",
@@ -4995,7 +4996,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 35953319809,
+  "deployment_run_id": 35955174585,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-24T03:56:35.601009+00:00"
+  "check_finished_at": "2026-09-24T04:21:52.829583+00:00"
 }
