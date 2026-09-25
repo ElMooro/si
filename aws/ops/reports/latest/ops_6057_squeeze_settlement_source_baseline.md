@@ -1,0 +1,31 @@
+
+**Status:** failure  
+**Duration:** 7.7s  
+**Finished:** 2026-09-25T07:15:23+00:00  
+
+## Error
+
+```
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/staged/ops_6057_squeeze_settlement_source_baseline.py", line 145, in main
+    captured['inventory'] = sec.inventory(body, url, captured['received_at'][:10])
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/checks/sec_ftd_inventory.py", line 115, in inventory
+    records = rows(body, url, cutoff)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/checks/sec_ftd_inventory.py", line 85, in rows
+    raise ValueError(f'Incomplete SEC row at line {line_number}')
+ValueError: Incomplete SEC row at line 61552
+
+```
+
+## Data
+
+| engine_invocations | error_type | notifications_sent | private_account_reads | provider_requests | public_head_writes | retained_progress |
+|---|---|---|---|---|---|---|
+| 0 | ValueError | 0 | 0 | 2 | 0 | {'captures': {'0': {'url': 'https://www.sec.gov/data-research/sec-markets-data/fails-deliver-data', 'requested_at': '2026-09-25T07:15:20.715610+00:00', 'received_at': '2026-09-25T07:15:21.228337+00:00', 'http_status': 200, 'headers': {'content-type': 'text/html; charset=utf-8', 'last-modified': 'Fri, 25 Sep 2026 07:00:55 GMT', 'etag': '"1790319655-gzip"', 'date': 'Fri, 25 Sep 2026 07:15:20 GMT'}, 'original': {'key': 'audit-private/20260909-originals/sec-ftd-research/5642ce14c42bde9a85094b47b7adce32a4e4430e35be540b49f9437e409fcdba.bin', 'sha256': '5642ce14c42bde9a85094b47b7adce32a4e4430e35be540b49f9437e409fcdba', 'bytes': 418830}, 'status': 'response_retained'}, '1': {'url': 'https://www.sec.gov/files/data/fails-deliver-data/cnsfails202608b.zip', 'requested_at': '2026-09-25T07:15:21.922920+00:00', 'received_at': '2026-09-25T07:15:22.562531+00:00', 'http_status': 200, 'headers': {'content-type': 'application/octet-stream', 'content-length': '1393881', 'last-modified': 'Tue, 15 Sep 2026 13:09:21 GMT', 'date': 'Fri, 25 Sep 2026 07:15:22 GMT'}, 'original': {'key': 'audit-private/20260909-originals/sec-ftd-research/0c90519d0d0e959b86331c5fe546cefa027c8a17998111270001b0ee61bbf203.bin', 'sha256': '0c90519d0d0e959b86331c5fe546cefa027c8a17998111270001b0ee61bbf203', 'bytes': 1393881}, 'status': 'response_retained'}}, 'commit': '8b1fe7d90fe645cdbe77f83569d1702ae9f2b13d', 'runtime': {'code_sha256': 'cE1syRDtRj120EWLwfJf6ks74tKzgF/Bwzgd8h7Ju8E=', 'source_files_checked': 8, 'handler_bytes': 25637, 'timeout': 300, 'memory_mb': 1024, 'receipt': {'status': 'matched', 'commit': '8b1fe7d90fe645cdbe77f83569d1702ae9f2b13d'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-squeeze-fuel-daily', 'state': 'ENABLED', 'expression': 'cron(30 13 ? * TUE-SAT *)', 'native_targets': 1}, {'kind': 'EventBridge Scheduler', 'name': 'justhodl-squeeze-fuel-daily', 'state': 'ENABLED', 'expression': 'cron(40 21 ? * MON-FRI *)', 'timezone': 'UTC', 'native_targets': 1, 'group': 'default'}], 'function_name': 'justhodl-squeeze-fuel', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512}, 'related_runtime': {'code_sha256': 'F2r/eIMlrVTtdOYYGMWzr9spe10CNvx8juWTAr/IE0Y=', 'source_files_checked': 7, 'handler_bytes': 35825, 'timeout': 180, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': '8b1fe7d90fe645cdbe77f83569d1702ae9f2b13d'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-trade-tickets-hourly', 'state': 'ENABLED', 'expression': 'cron(25 14,15,16,17,18,19 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-trade-tickets', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512}, 'bindings': {'schedules': [{'name': 'justhodl-squeeze-fuel-daily', 'group': 'default', 'expression': 'cron(40 21 ? * MON-FRI *)', 'timezone': 'UTC', 'state': 'ENABLED', 'flexible_time_window': {'Mode': 'OFF'}, 'target_arn': 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-squeeze-fuel', 'target_role_arn': 'arn:aws:iam::857687956942:role/justhodl-scheduler-role', 'input_sha256': 'bf8b904fe7374ad89fc80740d29b67b18dc20d91ede24df6fc815b38f502ac15', 'retry_policy': {'MaximumEventAgeInSeconds': 86400, 'MaximumRetryAttempts': 185}, 'dead_letter_arn': None, 'start_date': None, 'end_date': None}], 'classic_default_bus_rules': [{'name': 'justhodl-squeeze-fuel-daily', 'state': 'ENABLED', 'expression': 'cron(30 13 ? * TUE-SAT *)', 'target_arn': 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-squeeze-fuel', 'input_sha256': ['e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855']}], 'groups_scanned': ['default'], 'schedulers_scanned': 407, 'other_invocation_paths_excluded_from_claim': True}, 'predecessor': {'original': {'key': 'audit-private/20260909-originals/sec-ftd-research/7138327c21e20db30879fcddf5abaf5688087276c752b1645648344462b20d51.bin', 'sha256': '7138327c21e20db30879fcddf5abaf5688087276c752b1645648344462b20d51', 'bytes': 813491}, 'inventory': {'generated_at': '2026-09-24T21:41:05.918550+00:00', 'version': '1.0.0', 'ok': True, 'n_scored': 330, 'board_rows': 60, 'top_picks': 20, 'si_settlement_date': '2026-09-15', 'ftd_file': 'cnsfails202608b.zip', 'row_fields': ['borrow_availability', 'components', 'daily_short_volume', 'days_to_cover', 'execution_eligible', 'float_evidence', 'locate_verified', 'name', 'pct_of_float', 'price_confirm', 'reasons', 'score', 'settlement_date', 'short_interest', 'short_positioning', 'si_change_pct', 'state', 'ticker'], 'settlements': {'2026-08-31': 42, '2026-09-15': 18}, 'legacy_states': {'BUILDING': 59, 'LOADED': 1}, 'rows_with_retained_sec_balance': 0, 'source_originals_verified': False, 'legacy_forecast_qualified': False, 'sizing_qualified': False}}, 'selection_cutoff': '2026-09-25', 'advertised_selected_archives': ['https://www.sec.gov/files/data/fails-deliver-data/cnsfails202608b.zip', 'https://www.sec.gov/files/data/fails-deliver-data/cnsfails202608a.zip']} |
+
+## Log
+
