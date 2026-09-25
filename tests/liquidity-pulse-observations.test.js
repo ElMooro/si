@@ -56,3 +56,18 @@ test('complete predecessors are byte-preserved and liquidity no longer fetches u
  const page=fs.readFileSync('liquidity.html','utf8');assert(!page.includes('ai-commentary/'));assert(!page.includes('jh-page-ai.js'));assert(!page.includes('JHAIBrief.mount'));
  assert.match(page,/How to read this research/);assert.match(page,/id="liquidity-pulse-panel"/);
 });
+
+test('Macro Rooms shares the complete unit-aware viewer and cannot synthesize a missing Pulse score',()=>{
+ const page=fs.readFileSync('macro-rooms.html','utf8');
+ assert.equal((page.match(/id="liquidity-pulse-panel"/g)||[]).length,1);
+ assert.equal((page.match(/src="\/liquidity-pulse.js\?v=20260925research"/g)||[]).length,1);
+ assert.match(page,/window.JUSTHODL_LIQ_NO_PILL=true/);
+ assert(!page.includes('get("/data/liquidity-pulse.json")'));
+ assert(!page.includes('sum.score||sum.composite||50'));assert(!page.includes('panels.slice(0,3)'));
+ const all=ui.view(packet(),now).rows;assert.equal(all.length,11);
+ assert.equal(all.find(row=>row.sid==='WALCL').nativeUnit,'USD millions');
+ assert.equal(all.find(row=>row.sid==='HQMCB10YR').nativeUnit,'Percent');
+ const ref=JSON.parse(fs.readFileSync('tests/fixtures/macro-rooms-pulse-migration.json','utf8')).complete_predecessor;
+ const raw=fs.readFileSync(ref.path);assert.equal(raw.length,ref.bytes);
+ assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),ref.sha256);
+});

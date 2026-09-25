@@ -2615,3 +2615,6 @@ Live Liquidity/Credit verification for that consumer change: scripts/replay_lce_
 
 
 2026-09-25 — Next native engine: Liquidity Pulse. Its predecessor still classifies facilities and makes unvalidated crisis/policy/return claims; only its page consumer has been corrected. Ops 6118 is a bounded read-only baseline: preserve the actual whole deployed ZIP and schedules, full current packets, literal consumers and all eleven existing canonical FRED originals. It does not acquire new provider data, invoke an engine, publish current output, change schedules or use paid AI. No native replacement is claimed until the actual baseline and original-source qualification succeed.
+
+
+2026-09-25 — Macro Rooms Pulse consumer correction. The old liquidity panel labeled all monetary levels as percentages, used nonexistent comparison keys, converted a missing composite to 50, and displayed only the first three groups. It now mounts the same explicit-unit observation viewer as Liquidity, showing all eleven identities with dates and source definitions. Its whole predecessor page is preserved byte-for-byte. Pulse native original-source qualification is still pending; this UI change does not grant it a risk score or portfolio authority. Other Macro Rooms panels remain separate migration work.

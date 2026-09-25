@@ -38,7 +38,7 @@ body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.4 ui-sans-serif,syste
 <body>
 <main class="page">
 <section class="wr" data-jh-axis data-jh-key="dollar-war-room" data-jh-title="Dollar war room" id="dollar-room"></section>
-<section class="wr" data-jh-axis data-jh-key="liquidity-war-room" data-jh-title="Liquidity observations" id="liq-room"><div id="liquidity-pulse-panel" aria-live="polite"><p role="status">Loading dated liquidity observations…</p></div></section>
+<section class="wr" data-jh-axis data-jh-key="liquidity-war-room" data-jh-title="Liquidity war room" id="liq-room"></section>
 <section class="wr" data-jh-axis data-jh-key="risk-war-room" data-jh-title="Risk war room" id="risk-room"></section>
 </main>
 <div class="modal" id="modal"><div class="sheet"><button class="close" id="x">×</button><h2 id="mt"></h2><p class="wr-sub" id="ms"></p><svg id="full" viewBox="0 0 900 280"></svg></div></div>
@@ -142,7 +142,21 @@ body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.4 ui-sans-serif,syste
       [panelHtml("FRED dollar indices", idx), panelHtml("FRED bilaterals", bil), panelHtml("BBDXY", bbd)]);
   }).catch(function(e){ $("dollar-room").textContent="Dollar feed unavailable: "+e; });
 
-  // Pulse is rendered by the shared unit-aware observation viewer.
+  get("/data/liquidity-pulse.json").then(function(d){
+    var series=d.series||{}, groups={};
+    Object.keys(series).forEach(function(k){
+      var s=series[k]||{}, g=s.group||"other";
+      var hk="l-"+k; HIST[hk]=s.history||s.series||[];
+      var deltas=s.deltas||{};
+      var row={hk:hk,label:s.label||k,meta:s.series_id||k,level:fmt(s.latest_value,2),unit:"pct",d1:deltas["4w"]||deltas.w4||deltas.m1,d2:deltas["13w"]||deltas.w13||deltas.m3,d3:s.z_score,spark:lastN(HIST[hk],60),flag:flagOf(s.z_score,null)};
+      (groups[g]=groups[g]||[]).push(row);
+    });
+    var panels=Object.keys(groups).map(function(g){ return panelHtml(g, groups[g]); });
+    var sum=d.summary||{}, score=sum.score||sum.composite||50;
+    room($("liq-room"),"Liquidity war room", d.generated_at||"", Number(score)||50,
+      sum.headline||sum.text||("Liquidity pulse · "+(d.n_series_ok||0)+" live series"),
+      panels.slice(0,3));
+  }).catch(function(e){ $("liq-room").textContent="Liquidity feed unavailable: "+e; });
 
   Promise.all([get("/data/risk-gate.json"), get("/data/settlement-fails.json"), get("/data/eurodollar-stress.json")]).then(function(xs){
     var rg=xs[0], fl=xs[1], ed=xs[2];
@@ -166,8 +180,6 @@ body{margin:0;background:#0c0b09;color:#e8edf3;font:13px/1.4 ui-sans-serif,syste
   }).catch(function(e){ $("risk-room").textContent="Risk feeds unavailable: "+e; });
 })();
 </script>
-<script>window.JUSTHODL_LIQ_NO_PILL=true;</script>
-<script src="/liquidity-pulse.js?v=20260925research" defer></script>
 <script src="/jh-pd-fails-strip.js?v=5633"></script>
 <section id="eurodollar-context" class="wr-room" aria-live="polite">Loading canonical USD context…</section>
 <script src="/jh-eurodollar-research.js?v=20260920-native1" defer></script>
