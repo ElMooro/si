@@ -18,6 +18,16 @@ def fixture():
 
 
 class Tests(unittest.TestCase):
+    def test_real_valuation_arrays_keep_all_compact_ticker_rows_old_engine_skipped(self):
+        values=fixture();values['data/stock-valuations.json']={'heatmap':{
+            'sp':[{'t':'UAL','g':'Industrials','m':35284,'a':94.0},{'t':'BRK.B'}],
+            'hp':[{'t':'GCT','g':'Software - Infrastructure','m':1898,'a':76.5}]}}
+        result=model.inventory(values,'2026-09-25',SOURCE)
+        for label in ('UAL','GCT'):self.assertIn(label,result['candidate_labels_absent_from_legacy_request'])
+        self.assertEqual(result['complete_reported_label_occurrences']['UAL'],[
+            {'source_key':'data/stock-valuations.json','path':['heatmap','sp',0,'t']}])
+        self.assertEqual(result['current']['rows'],4)
+
     def test_full_sources_keep_names_outside_old_caps_and_dotted_symbols(self):
         result=model.inventory(fixture(),'2026-09-25',SOURCE)
         self.assertEqual(result['current']['rows'],4)

@@ -32,14 +32,14 @@ def inventory(packets, captured_date, legacy_source):
             return
         refs[label].append({'source_key':key, 'path':path})
 
-    def rows(key, path, values):
+    def rows(key, path, values, label_fields=('ticker','symbol')):
         if values is None: return
         if not isinstance(values, list):
             issues.append({'source_key':key,'path':path,'reason':'expected_array'});return
         for index, row in enumerate(values):
             if isinstance(row, str): add(row,key,[*path,index])
             elif isinstance(row, dict):
-                field='ticker' if row.get('ticker') else 'symbol'
+                field=next((field for field in label_fields if row.get(field)),label_fields[-1])
                 add(row.get(field),key,[*path,index,field])
             else: issues.append({'source_key':key,'path':[*path,index],'reason':'unsupported_label_row'})
 
@@ -64,8 +64,10 @@ def inventory(packets, captured_date, legacy_source):
             heatmap=packet.get('heatmap') or {}
             for group in ('sp','hp'):
                 values=heatmap.get(group) or {}
-                if not isinstance(values,dict):raise ValueError('Explicit valuation universe mapping required')
-                for label in values:add(label,key,['heatmap',group,label])
+                if isinstance(values,dict):
+                    for label in values:add(label,key,['heatmap',group,label])
+                elif isinstance(values,list):rows(key,['heatmap',group],values,('t',))
+                else:raise ValueError('Explicit valuation mapping or reported ticker array required')
         elif key=='data/insider-radar.json':
             for field in ('clusters','latest_buys'):rows(key,[field],packet.get(field))
     # Reproduce the exact shipped selection as a diagnostic only; imports,
