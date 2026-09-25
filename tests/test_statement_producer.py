@@ -76,9 +76,11 @@ class Tests(unittest.TestCase):
             f,s3,ref=fixture();old=s3.files[producer.CURRENT];r=json.loads(s3.files[producer.READY]);change(r);s3.files[producer.READY]=source.encoded(r)
             with self.assertRaises(ValueError):run(s3)
             self.assertEqual(s3.files[producer.CURRENT],old)
-        f,s3,ref=fixture();old=s3.files[producer.CURRENT]
-        with self.assertRaisesRegex(ValueError,'budget'):run(s3,remaining=100)
-        self.assertEqual(s3.files[producer.CURRENT],old)
+        for budget in (100,299.9):
+            f,s3,ref=fixture();old=s3.files[producer.CURRENT]
+            with self.assertRaisesRegex(ValueError,'budget'):run(s3,remaining=budget)
+            self.assertEqual(s3.files[producer.CURRENT],old)
+            self.assertFalse(any(v['Key']==producer.CURRENT for v in s3.writes))
 
     def test_future_and_stale_acquisition_times_do_not_refresh_old_data(self):
         for clock in ('2026-02-28T13:00:00Z','2026-03-05T13:00:00Z'):

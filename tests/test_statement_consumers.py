@@ -22,6 +22,22 @@ def tree(name):return ast.parse((ROOT/'aws/lambdas'/name/'source/lambda_function
 
 
 class Tests(unittest.TestCase):
+    def test_native_runtime_uses_deployer_keys_and_has_measured_replay_capacity(self):
+        retained=json.loads((ROOT/'tests/fixtures/statement-runtime-repair.json').read_bytes())
+        raw=(ROOT/retained['predecessor']).read_bytes()
+        self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(retained['bytes'],retained['sha256']))
+        self.assertEqual(json.loads(raw)['timeout_s'],840)
+        config=json.loads((ROOT/'aws/lambdas/justhodl-forensic-screen/config.json').read_bytes())
+        self.assertEqual(config['memory'],1024)
+        self.assertEqual(config['timeout'],840)
+        self.assertNotIn('memory_mb',config)
+        self.assertNotIn('timeout_s',config)
+        # The actual release script reads these keys; metadata-only aliases
+        # previously left AWS at 512 MB / 300 seconds and prevented publication.
+        deploy=(ROOT/'scripts/deploy_lambdas.sh').read_text(encoding='utf-8')
+        self.assertIn("jq -r '.timeout // 300'",deploy)
+        self.assertIn("jq -r '.memory // 512'",deploy)
+
     def test_whole_predecessors_and_accepted_compilers_remain_exact(self):
         for entry in MIGRATION['files']:
             body=(ROOT/entry['predecessor']).read_bytes()
