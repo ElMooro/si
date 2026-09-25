@@ -361,7 +361,7 @@ def lambda_handler(event=None, context=None):
             w["net_flow_usd"] = None
 
     dpm = {r.get("ticker", "").upper(): r.get("state")
-           for r in ((_feed("data/dark-pool.json") or {}).get("board")
+           for r in ((__import__("offexchange_context").decision_view(_feed("data/dark-pool.json")) or {}).get("board")
                      or []) if r.get("ticker")}
     phm = {s.upper(): {"phase": v.get("phase"), "begin": v.get("begin")}
            for s, v in ((_feed("data/phase-detector.json") or {}

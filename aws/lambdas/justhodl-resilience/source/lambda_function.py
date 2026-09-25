@@ -218,7 +218,7 @@ def lambda_handler(event, context):
         len(aa.get("guidance_cuts") or []), len(catalysts)))
 
     # ── Lever 3 corroboration: dark-pool institutional flow (where covered) ──
-    dpj = _read("data/dark-pool.json") or {}
+    dpj = __import__("offexchange_context").decision_view(_read("data/dark-pool.json")) or {}
     dark_pool = {}
     for arr in ("board", "top_accumulation", "top_distribution", "top_picks"):
         for it in (dpj.get(arr) or []):

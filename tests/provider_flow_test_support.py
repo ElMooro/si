@@ -160,7 +160,8 @@ class FlowBoundaries(unittest.TestCase):
         for component in ('etf-lookthrough', 'stealth'):
             row = {'engines': ['dark-pool', component], 'n_engines': 2}
             self.assertFalse(h._flow_components(row))
-        self.assertTrue(h._flow_components({'engines': ['dark-pool'], 'n_engines': 1}))
+        self.assertTrue(h._flow_components({'engines': ['insider'], 'n_engines': 1}))
+        self.assertFalse(h._flow_components({'engines': ['dark-pool'], 'n_engines': 1}))
 
     def test_actual_native_holdings_handlers_keep_validation_http_and_collection_separate(self):
         from etf_holdings_test_support import check_handlers

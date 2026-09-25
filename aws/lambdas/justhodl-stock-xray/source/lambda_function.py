@@ -83,7 +83,7 @@ def lambda_handler(event=None, context=None):
                 if t: ec.setdefault(t,r)
     if not ec: ec=_tmap(ecdoc)
     rs=_tmap(_j("data/resilience.json",{}) or {})
-    dp=(_j("data/dark-pool.json",{}) or {}).get("xray_map") or {}
+    dp=(__import__("offexchange_context").decision_view(_j("data/dark-pool.json",{})) or {}).get("xray_map") or {}
     erdoc=_j("data/estimate-revisions.json",{}) or {}
     er={t.upper():{"direction":d} for t,d in (erdoc.get("direction_map") or {}).items()}
     if len(er)<50:

@@ -52,7 +52,7 @@ class Tests(unittest.TestCase):
         for engines in (['13f', 'dark-pool'], ['smart-money', 'dark-pool'], ['dark-pool', 'dark-pool']):
             self.assertEqual(flow_rows({**base, 'multi_engine_confluence': [{'engines': engines, 'n_engines': 2}]}), [])
         self.assertEqual(len(flow_rows({**base, 'capital_flow_exclusion': capital_context({}), 'multi_engine_confluence': [
-            {'engines': ['dark-pool', 'options-flow'], 'n_engines': 2}]})), 1)
+            {'engines': ['insider', 'options-flow'], 'n_engines': 2}]})), 1)
 
     def test_compound_exclusion_precedes_universe_multiplier_and_history(self):
         baseline = None
@@ -117,7 +117,7 @@ class Tests(unittest.TestCase):
         for packet in ({}, legacy(10**12), legacy(-10**12)):
             m = load('justhodl-flow-confluence')
             db = Storage({DIRECT: packet, CLUSTER: packet,
-                          'data/dark-pool.json': {'top_accumulation': [{'ticker': 'KO'}]}})
+                          'data/insider-clusters.json': {'clusters': [{'ticker': 'KO', 'n_insiders':3}]}})
             with patch.object(m, 's3', db): m.lambda_handler({}, None)
             out = db.writes[m.OUT_KEY]
             self.assertEqual(set(out['ticker_map']), {'KO'})

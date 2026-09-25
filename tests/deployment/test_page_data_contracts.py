@@ -249,6 +249,26 @@ def test_separate_archive_index_publisher_keeps_source_engine_and_exact_family_p
         except ValueError:pass
         else:raise AssertionError('shared ownership was silently accepted')
 
+def test_retired_archive_keeps_exact_predecessor_proof_without_claiming_active_ownership():
+    import hashlib,json
+    from build_page_data_contracts import add_archive_index_relationships
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);publisher='justhodl-public-archive-index';source=root/'aws/lambdas'/publisher/'source';source.mkdir(parents=True)
+        pattern='data/archive/reviewed/*.json';(source/'lambda_function.py').write_text('REGISTRY=(("source-engine","'+pattern+'"),)')
+        fixture=root/'tests/fixtures/retired.py.txt';fixture.parent.mkdir(parents=True)
+        raw=b'def lambda_handler(event,context):\n day=event["day"]\n s3.put_object(Key=f"data/archive/reviewed/{day}.json")\n';fixture.write_bytes(raw)
+        (root/'config').mkdir();registry=root/'config/retired-archive-producers.json'
+        registry.write_text(json.dumps({'source-engine':{'pattern':pattern,'source':'tests/fixtures/retired.py.txt','sha256':hashlib.sha256(raw).hexdigest()}}))
+        engines={'source-engine':{'key_patterns':[],'write_evidence':{}},publisher:{'key_patterns':[]}}
+        emap={'source-engine':{'outputs':[]},publisher:{'outputs':[{'engine':publisher,'key':'data/archive-indexes/source-engine.json'}]}}
+        add_archive_index_relationships(emap,engines,root);out=emap['source-engine']['outputs'][0]
+        assert out['archive_producer_active'] is False and out['archive_family_evidence'][0]['sha256']==hashlib.sha256(raw).hexdigest()
+        fixture.write_bytes(raw+b'# changed')
+        try:add_archive_index_relationships(emap,engines,root)
+        except ValueError:pass
+        else:raise AssertionError('Altered retired writer was silently trusted')
+
+
 def test_nested_executor_callbacks_capture_only_lexical_values_and_declare_non_json_families():
     from gen_engine_manifest import scan_code
     code='''

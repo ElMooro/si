@@ -1510,7 +1510,7 @@ def load_feeds():
     f13 = s3_json("data/13f-flows-by-ticker.json", {}) or {}
     F["f13"] = f13.get("t") or {}
     F["asof"]["f13"] = f13.get("as_of")
-    dp = s3_json("data/dark-pool.json", {}) or {}
+    dp = __import__("offexchange_context").decision_view(s3_json("data/dark-pool.json", {})) or {}
     F["dark"] = dp.get("xray_map") if isinstance(dp.get("xray_map"), dict) else {}
     F["asof"]["dark_pool"] = dp.get("generated_at") or dp.get("as_of")
     F["dark_week"] = dp.get("latest_week") or dp.get("week")

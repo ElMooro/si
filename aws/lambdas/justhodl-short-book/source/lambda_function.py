@@ -111,7 +111,7 @@ def lambda_handler(event, context):
     t0 = time.time()
     L = {}
 
-    dp = rj("data/dark-pool.json")
+    dp = __import__("offexchange_context").decision_view(rj("data/dark-pool.json"))
 
     def _dpwalk(o, in_dist=False):
         if isinstance(o, dict):

@@ -1173,7 +1173,7 @@ def load_feeds():
     # ---- v2 feeds
     se = s3_json("etf-flows/stock-exposure-lookup.json", {}) or {}
     F["stock_exposure"] = se if isinstance(se, dict) else {}
-    dp = s3_json("data/dark-pool.json", {}) or {}
+    dp = __import__("offexchange_context").decision_view(s3_json("data/dark-pool.json", {})) or {}
     F["dark"] = dp.get("xray_map") if isinstance(dp.get("xray_map"), dict) else {}
     F["dark_asof"] = dp.get("generated_at") or dp.get("as_of")
     F["dark_week"] = dp.get("latest_week") or dp.get("week")

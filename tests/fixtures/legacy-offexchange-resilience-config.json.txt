@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-resilience",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 2048,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Resilience Radar: stocks posting positive abnormal returns on ADVERSE days (market-down tape, gap-downs, negative catalysts) — supply absorption / pre-breakout. Market-model residuals + downside/upside beta asymmetry + volume absorption + coil. Stages ABSORBING/COILED/IGNITING. data/resilience.json; picks → harvester for forward grading.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-resilience-daily",
+    "cron": "cron(45 22 * * 1-5)",
+    "description": "22:45 UTC weekdays (after US close)"
+  }
+}

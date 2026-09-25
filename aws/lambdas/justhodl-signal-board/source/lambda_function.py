@@ -1106,12 +1106,9 @@ def n_rebalance(d):
 
 
 def n_darkpool(d):
-    """Own-DIX buying pressure + accumulation breadth from FINRA ATS/regsho fusion."""
-    dx=(d.get("dix") or {}); v=dx.get("own_dix_pct")
-    dist=(d.get("distribution") or {})
-    if not isinstance(v,(int,float)): return 0,"Dark pool n/a"
-    sig=1 if v>=57 else -1 if v<52 else 0
-    return sig,"DARK POOL own-DIX %.1f%% %s (accum %d / dist %d)"%(v,dx.get("read",""),dist.get("accumulation",0),dist.get("distribution",0))
+    """Dated trade reporting abstains from directional investment votes."""
+    evidence = __import__("offexchange_context").context(d)
+    return None, "OFF-EXCHANGE %s — no qualified investment vote" % evidence["status"]
 
 
 def n_factors(d):

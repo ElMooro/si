@@ -506,29 +506,21 @@ class EtfFlowsAdapter(SignalAdapter):
 
 
 class DarkPoolAdapter(SignalAdapter):
-    """board[] rows: state ACCUMULATION (+) / DISTRIBUTION (-), score 0-100 -> +/- score/100; NEUTRAL skipped.
-    Confidence = 0.5 + 0.3*(dark_accel measured) + 0.1 (weekly FINRA data, one print)."""
+    """Descriptive FINRA activity does not supply a qualified direction or confidence."""
     signal_type, category = "dark_pool_accumulation", "institutional_flow"
 
+    def parse_existing_output(self, doc, meta):
+        result = AdapterResult(self.engine_id)
+        result.source_status = "UNQUALIFIED"
+        result.diagnostics.append(__import__("offexchange_context").context(doc)["note"])
+        return result
+
     def validate_source(self, doc):
-        return isinstance(doc.get("board"), list)
+        return isinstance(doc, dict)
 
     def rows(self, doc):
-        for r in doc["board"]:
-            if not isinstance(r, dict):
-                yield {"skip": "not isinstance(r, dict)"}
-                continue
-            st = r.get("state"); sc = _f(r.get("score")); sym = r.get("ticker")
-            if not sym or sc is None or st not in ("ACCUMULATION", "DISTRIBUTION"):
-                yield {"skip": "not sym or sc is None or st not in ('ACCUMULATION', 'DISTRIBUTION')"}
-                continue
-            sgn = 1.0 if st == "ACCUMULATION" else -1.0
-            yield {
-                "symbol": sym, "score": _clip(sgn * sc / 100.0), "confidence": 0.5 + (0.3 if r.get("dark_accel") is not None else 0.0) + 0.1,
-                "confidence_basis": "0.6 + 0.3 when acceleration is measured", "magnitude": _f(r.get("dark_pool_pct")),
-                "evidence": _ev(state=st, score=sc, dark_pool_pct=r.get("dark_pool_pct"), offex_pct=r.get("offex_pct"), dark_accel=r.get("dark_accel"), week_return_pct=r.get("week_return_pct"), venue=r.get("venue_fingerprint")),
-                "invalidation": {"type": "state", "description": "ATS state flips to %s" % ("DISTRIBUTION" if sgn > 0 else "ACCUMULATION")},
-            }
+        evidence = __import__("offexchange_context").context(doc)
+        yield {"skip": "offexchange_no_qualified_investment_vote: " + evidence["status"]}
 
 
 class ShortInterestAdapter(SignalAdapter):

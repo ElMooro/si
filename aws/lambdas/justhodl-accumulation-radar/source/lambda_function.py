@@ -403,7 +403,7 @@ def lambda_handler(event=None, context=None):
     # clusters -- and count agreements with the radar's own read. ──
     dp_map, wh_map, ph_map, ins_buy, ins_sell = {}, {}, {}, set(), set()
     try:
-        for r in (feed("data/dark-pool.json") or {}).get("board") or []:
+        for r in (__import__("offexchange_context").decision_view(feed("data/dark-pool.json")) or {}).get("board") or []:
             if r.get("ticker"):
                 dp_map[r["ticker"].upper()] = {
                     "state": r.get("state"),

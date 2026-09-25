@@ -607,9 +607,9 @@ def joins(S3c, tickers):
     except Exception as e:  # noqa: BLE001
         print("[joins] finviz:", str(e)[:80])
     try:
-        dp = _j.loads(S3c.get_object(
+        dp = __import__("offexchange_context").decision_view(_j.loads(S3c.get_object(
             Bucket=BUCKET,
-            Key="data/dark-pool.json")["Body"].read())
+            Key="data/dark-pool.json")["Body"].read()))
         for r in dp.get("board") or []:
             i = pos.get(str(r.get("ticker") or "").upper())
             if i is None:

@@ -853,7 +853,7 @@ def lambda_handler(event=None, context=None):
                  ((_accj.get("distributing") or {}).get("stocks")
                   or [])}
     _dpmap = {r0.get("ticker"): r0.get("state") for r0 in
-              ((s3_json("data/dark-pool.json") or {}).get("board")
+              ((__import__("offexchange_context").decision_view(s3_json("data/dark-pool.json")) or {}).get("board")
                or []) if r0.get("state") not in (None, "NEUTRAL")}
     _soldier_q = {}
     _prev_fin = {}
@@ -1198,7 +1198,7 @@ def lambda_handler(event=None, context=None):
     #     options-confluence posture
     _wh = (s3_json("data/whales.json") or {}).get("stocks") or {}
     _dp = {r0.get("ticker"): r0.get("state") for r0 in
-           ((s3_json("data/dark-pool.json") or {}).get("board") or [])
+           ((__import__("offexchange_context").decision_view(s3_json("data/dark-pool.json")) or {}).get("board") or [])
            if r0.get("ticker")}
     _cf = s3_json("data/capital-flow.json") or {}
     _oc = {r0.get("ticker"): r0.get("posture") or r0.get("state")

@@ -33,12 +33,12 @@ class Tests(unittest.TestCase):
     def test_flow_handler_excludes_universe_score_agreement_and_old_downstream_revision(self):
         for packet in ({}, legacy(10**12), legacy(-10**12)):
             m = load('justhodl-flow-confluence'); db = Storage({SOURCE: packet,
-                'data/dark-pool.json': {'top_accumulation': [{'ticker': 'KO'}]}})
+                'data/insider-clusters.json': {'clusters': [{'ticker': 'KO', 'n_insiders':3}]}})
             with patch.object(m, 's3', db): m.lambda_handler({}, None)
             out = db.writes[m.OUT_KEY]; self.assertTrue(current_basis(out)); self.assertEqual(set(out['ticker_map']), {'KO'})
             self.assertEqual(out['ticker_map']['KO']['score'], .7); self.assertEqual(out['ticker_map']['KO']['n_engines'], 1)
             self.assertEqual(out['multi_engine_confluence'], [])
-        old = {'holdings_exclusions': {'basis': HOLDINGS_BASIS}, 'multi_engine_confluence': [{'ticker': 'KO', 'engines': ['dark-pool', 'options-flow'], 'n_engines': 2}]}
+        old = {'holdings_exclusions': {'basis': HOLDINGS_BASIS}, 'multi_engine_confluence': [{'ticker': 'KO', 'engines': ['insider', 'options-flow'], 'n_engines': 2}]}
         self.assertEqual(flow_rows(old), [])
         revised = {**old, 'capital_flow_exclusion': context({})}; self.assertEqual(len(flow_rows(revised)), 1)
         revised['multi_engine_confluence'][0]['engines'][1] = 'capital-flow'
@@ -61,7 +61,7 @@ class Tests(unittest.TestCase):
         for packet in ({}, legacy(10**12), legacy(-10**12)):
             m = load('justhodl-equity-confluence'); db = Storage({SOURCE: packet,
                 'data/engine-alpha.json': {'alpha_proven_signals': ['eng:capital-flow']},
-                'data/dark-pool.json': {'top_accumulation': [{'ticker': 'KO', 'score': 70}]},
+                'data/insider-clusters.json': {'clusters': [{'ticker': 'KO', 'n_insiders':3}]},
                 'data/deep-value-overlap.json': {'prime_setups': [{'ticker': 'FAKE', 'overlap_score': 10**12}]}})
             with patch.object(m, 's3', db): m.lambda_handler({}, None)
             out = db.writes[m.OUT_KEY]; self.assertTrue(current_basis(out))
@@ -117,11 +117,11 @@ class Tests(unittest.TestCase):
             self.assertTrue(out['ladder']); self.assertTrue(all('capital_flow' not in r.get('smart_money', {}) for r in out['ladder']))
 
     def test_flow_annotations_require_actual_components_and_both_revisions(self):
-        m = load('justhodl-flow-confluence'); db = Storage({'data/dark-pool.json': {'top_accumulation': [{'ticker':'KO'}]}})
+        m = load('justhodl-flow-confluence'); db = Storage({'data/insider-clusters.json': {'clusters': [{'ticker':'KO','n_insiders':3}]}})
         with patch.object(m, 's3', db): m.lambda_handler({}, None)
         output = db.writes[m.OUT_KEY]
         self.assertEqual(flow_annotations(output), output['ticker_map'])
-        self.assertEqual(output['ticker_map']['KO']['engines'], ['dark-pool'])
+        self.assertEqual(output['ticker_map']['KO']['engines'], ['insider'])
         changes = ({'engines':['capital-flow']}, {'engines':['13f']}, {'engines':['smart-money']},
             {'engines':['CapitalFlow']}, {'engines':[]}, {'engines':['dark-pool','dark-pool'], 'n_engines':2},
             {'engines':['dark-pool'], 'n_engines':True}, {'n_engines':99}, {'score':float('nan')},
@@ -134,7 +134,7 @@ class Tests(unittest.TestCase):
 
     def test_best_setups_rejects_legacy_flow_hidden_behind_new_envelope(self):
         good = {'holdings_exclusions': {'basis': HOLDINGS_BASIS}, 'capital_flow_exclusion': context({}),
-            'ticker_map': {'KO': {'posture':'ACCUMULATION', 'score':1.05, 'engines':['dark-pool','options-flow'],
+            'ticker_map': {'KO': {'posture':'ACCUMULATION', 'score':1.05, 'engines':['insider','options-flow'],
                 'n_engines':2, 'tags':['research'], 'heavy_short':False, 'stealth':False}}}
         for mode in ('current','missing_components','capital_flow','missing_holdings_revision'):
             packet = deepcopy(good)

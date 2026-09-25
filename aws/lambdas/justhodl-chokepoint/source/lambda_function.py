@@ -1228,7 +1228,7 @@ def lambda_handler(event, context):
             try:
                 _rev = _read("data/estimate-revisions.json") or {}
                 _dirmap = _rev.get("direction_map") or {}
-                _dp = _read("data/dark-pool.json") or {}
+                _dp = __import__("offexchange_context").decision_view(_read("data/dark-pool.json")) or {}
                 # ops 3811: dark_map is ticker -> RAW SHARE COUNT (int), e.g.
                 # MLM -> 1532511 — calling .get() on it threw and killed the whole
                 # verdict block for all 2,393 rows. The rich per-name records live

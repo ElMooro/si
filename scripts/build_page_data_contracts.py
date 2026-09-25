@@ -89,15 +89,31 @@ def add_archive_index_relationships(emap,engines,root):
     for declaration in ast.parse(path.read_text()).body:
         if isinstance(declaration,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='REGISTRY' for t in declaration.targets):registry=ast.literal_eval(declaration.value)
     if not isinstance(registry,(tuple,list)) or publisher not in engines:raise ValueError('Reviewed archive registry missing its source publisher')
+    retired_path=root/'config/retired-archive-producers.json'
+    retired=json.loads(retired_path.read_text()) if retired_path.exists() else {}
     for name,pattern in registry:
         key='data/archive-indexes/'+name+'.json'
         owners={engine for engine,value in engines.items() if pattern in value['key_patterns']}
-        if owners!={name} or not public_key(pattern.replace('*','reviewed-member')):raise ValueError('Archive family ownership or public boundary drift: '+name)
+        evidence=engines[name]['write_evidence'].get(pattern,[]) if name in engines else []
+        active=True
+        if not owners and name in retired:
+            # A complete preserved predecessor can explain an old archive, but
+            # must never be advertised as a current producer of that family.
+            row=retired[name];source_name=row.get('source','')
+            if row.get('pattern')!=pattern or not re.fullmatch(r'tests/fixtures/[A-Za-z0-9_-]+\.py\.txt',source_name):raise ValueError('Retired archive declaration differs: '+name)
+            original=(root/source_name).read_bytes()
+            if hashlib.sha256(original).hexdigest()!=row.get('sha256'):raise ValueError('Retired archive source bytes differ: '+name)
+            from gen_engine_manifest import scan_code
+            scan=scan_code(original.decode('utf-8'),entrypoint='lambda_handler')
+            if pattern not in scan.writes or not scan.proofs.get(pattern):raise ValueError('Retired archive write is not source-proven: '+name)
+            evidence=[{'file':source_name,'line':line,'sha256':row['sha256'],'producer_active':False} for line in sorted(scan.proofs[pattern])];active=False
+        elif owners!={name}:raise ValueError('Archive family ownership or public boundary drift: '+name)
+        if not public_key(pattern.replace('*','reviewed-member')):raise ValueError('Archive family public boundary drift: '+name)
         index=next((output for output in emap[publisher]['outputs'] if output['key']==key),None)
         if index is None:raise ValueError('Archive index has no source-bound concrete writer: '+key)
         emap[name]['outputs'].append({**index,'source_engine':name,
-            'association_basis':'source-owned family enumerated by a separate reviewed metadata publisher',
-            'archive_family_evidence':engines[name]['write_evidence'].get(pattern,[]),
+            'association_basis':'source-owned family enumerated by a separate reviewed metadata publisher' if active else 'retired source-owned family; complete predecessor preserved, current engine no longer writes this family',
+            'archive_producer_active':active,'archive_family_evidence':evidence,
             'archive_index':{'engine':name,'publisher_engine':publisher,'required_schema':'public-engine-archive-index.v1','require_complete':True,
                 'rows':'snapshots','key_field':'key','patterns':[pattern],'key_regex':'^'+re.escape(pattern).replace(r'\*',r'[^/]+')+'$'}})
 

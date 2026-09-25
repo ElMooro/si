@@ -74,7 +74,7 @@ def lambda_handler(event, context):
     holding_inputs = {DIRECT: _read(DIRECT), CLUSTER: _read(CLUSTER)}
     # Retained as source context; no ticker universe, score or agreement votes.
 
-    dp = _read("data/dark-pool.json")
+    dp = __import__("offexchange_context").decision_view(_read("data/dark-pool.json"))
     for it in (dp.get("top_accumulation") or []):
         if isinstance(it, dict): add(_tk(it), "dark-pool", 0.7, tag="dark-pool accumulation")
     for it in (dp.get("top_distribution") or []):

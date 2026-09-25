@@ -65,7 +65,7 @@ def _run_private(event, context):
     risk = get_s3("portfolio/risk.json")
     crisis = __import__("crisis_authority").decision_view(get_s3("data/crisis-composite.json"))
     capit = __import__("extremes_research").decision_view(get_s3("data/capitulation.json"))
-    darkpool = get_s3("data/dark-pool.json")
+    darkpool = __import__("offexchange_context").decision_view(get_s3("data/dark-pool.json"))
 
     rc = ranker.get("regime_context") or {}
 

@@ -322,7 +322,7 @@ def lambda_handler(event=None, context=None):
         bars = [x for x in exe.map(fetch_bars, uni) if x]
 
     dp = {r.get("ticker"): r.get("state")
-          for r in ((gj("data/dark-pool.json") or {}).get("board") or [])}
+          for r in ((__import__("offexchange_context").decision_view(gj("data/dark-pool.json")) or {}).get("board") or [])}
     wh = {sym: v.get("conviction_flow_usd")
           for sym, v in ((gj("data/whales.json") or {}).get("stocks")
                          or {}).items()}

@@ -191,7 +191,7 @@ def lambda_handler(event=None, context=None):
     holding_inputs = {DIRECT: _read(DIRECT), CLUSTER: _read(CLUSTER)}
     F13 = x_13f(holding_inputs[DIRECT])
     SM = x_smart_money(holding_inputs[CLUSTER])
-    DP = x_dark_pool(_read("data/dark-pool.json"))
+    DP = x_dark_pool(__import__("offexchange_context").decision_view(_read("data/dark-pool.json")))
     CG = x_congress(_read("data/political-stocks.json"))
     AC = x_analyst_clusters(_read("data/rating-change-cluster.json"))
     SH = x_short(_read("data/short-interest.json"))

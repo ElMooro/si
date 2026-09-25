@@ -290,7 +290,7 @@ def todays_factors(gaps):
     mw = nat.get("mw_with_executed_ia")
     if isinstance(mw, (int, float)):
         f["grid_executed_mw"] = round(float(mw))
-    dp = _get_json("data/dark-pool.json") or {}
+    dp = __import__("offexchange_context").decision_view(_get_json("data/dark-pool.json")) or {}
     dsm = dp.get("dark_share_map") or {}
     vals = sorted(v for v in dsm.values() if isinstance(v, (int, float)))
     if vals:
@@ -531,7 +531,7 @@ def convergence(graph, gaps):
             vote((r.get("ticker") or "").upper(), "flow_lookthrough", 1.0)
         for r in (fl.get("actual_distribution") or [])[:20]:
             vote((r.get("ticker") or "").upper(), "flow_lookthrough", -1.0)
-        dp = _get_json("data/dark-pool.json") or {}
+        dp = __import__("offexchange_context").decision_view(_get_json("data/dark-pool.json")) or {}
         for r in (dp.get("high_conviction") or [])[:20]:
             tk = (r.get("ticker") or r.get("symbol") or "").upper() \
                 if isinstance(r, dict) else str(r).upper()

@@ -149,7 +149,7 @@ class TestAdapters:
         sigs, reports = signals_from_artifacts
         assert set(reports) == set(registry.engines)
         for eid, r in reports.items():
-            if eid in ("crisis_composite", "tail_risk", "dealer_gex"):
+            if eid in ("crisis_composite", "tail_risk", "dealer_gex", "dark_pool"):
                 assert not r.signals and r.source_status == "UNQUALIFIED"
                 continue
             assert r.source_status == "OK", (eid, r.diagnostics)
@@ -253,13 +253,14 @@ class TestState:
         d0 = diff_snapshots(None, snapshot)
         assert len(d0["new"]) == snapshot["n_signals"] and not d0["revised"] and not d0["expired"]
         # second run: one signal flips, one disappears
-        sigs2 = [copy.deepcopy(s) for s in sigs if not (s["engine_id"] == "dark_pool")]
+        removed = next(s for s in sigs if s["engine_id"] != "momentum_leaders")
+        sigs2 = [copy.deepcopy(s) for s in sigs if s is not removed]
         for s in sigs2:
             if s["engine_id"] == "momentum_leaders" and s["entity_id"] == "equity:NVDA":
                 s["score"] = -0.6; s["direction"] = "bearish"; s["direction_numeric"] = -0.6
         snap2 = build_snapshot(sigs2, registry_doc=registry.doc, run_id="r2", now=now, adapter_reports=[], flags=flags)
         d = diff_snapshots(snapshot, snap2)
-        assert len(d["expired"]) == 1 and d["expired"][0]["engine_id"] == "dark_pool"
+        assert len(d["expired"]) == 1 and d["expired"][0]["engine_id"] == removed["engine_id"]
         assert any(r["cur"]["engine_id"] == "momentum_leaders" for r in d["revised"]) and not d["new"]
 
     def test_expired_signals_leave_the_snapshot(self, registry, now, flags):

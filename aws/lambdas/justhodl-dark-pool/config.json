@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Per-name dark-pool / off-exchange accumulation from FINRA ATS transparency (ATS+OTC weekly by symbol) vs Polygon total volume. dark_pool_pct + accel + price-classified ACCUMULATION/DISTRIBUTION. top_picks -> signal-harvester (eng:dark-pool) measure-b",
+  "description": "Dated FINRA original-source research: complete advertised weekly/monthly partitions, daily short-sale reporting, immutable replay and explicit abstention. No qualified ownership, directional or sizing inference.",
   "environment": {},
   "schedule": {
     "name": "justhodl-dark-pool-daily",
