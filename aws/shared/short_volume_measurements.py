@@ -12,13 +12,14 @@ POINT_FIELDS = ('date_index', 'source_line', 'short_volume_shares',
 WINDOWS = (5, 20, 60)
 ZERO = Decimal(0)
 QUANTUM = Decimal('0.000000000001')
+PRECISION = 128
 
 
 def rounded(value):
     if value is None:
         return None
     with localcontext() as ctx:
-        ctx.prec = 64
+        ctx.prec = PRECISION
         result = value.quantize(QUANTUM, rounding=ROUND_HALF_EVEN)
         return format(abs(result) if result == 0 else result, 'f')
 
@@ -62,7 +63,7 @@ def comparisons(symbol, points, dates):
     source.symbol(symbol)
     indexed = inspect(points, dates)
     with localcontext() as ctx:
-        ctx.prec = 64
+        ctx.prec = PRECISION
         latest = indexed.get(60)
         latest_ratio = latest[0] * 100 / latest[2] if latest and latest[2] else None
         result = {
@@ -90,8 +91,13 @@ def comparisons(symbol, points, dates):
             valid_ratios = complete and not zero_dates
             short_sum, exempt_sum, total_sum = (sum((p[j] for p in present), ZERO) for j in range(3))
             ratios = [p[0] * 100 / p[2] for p in present] if valid_ratios else []
-            mean = sum(ratios, ZERO) / size if valid_ratios else None
-            variance = sum(((v - mean) ** 2 for v in ratios), ZERO) / (size - 1) if valid_ratios else None
+            # Center before summation. Summing the same repeating decimal N
+            # times can round away from N * its stored value and manufacture a
+            # nonzero variance for a perfectly constant series.
+            centered = [v - ratios[0] for v in ratios] if valid_ratios else []
+            centered_mean = sum(centered, ZERO) / size if valid_ratios else None
+            mean = ratios[0] + centered_mean if valid_ratios else None
+            variance = sum(((v - centered_mean) ** 2 for v in centered), ZERO) / (size - 1) if valid_ratios else None
             deviation = variance.sqrt() if variance is not None else None
             difference = latest_ratio - mean if latest_ratio is not None and mean is not None else None
             scope_sets = {tuple(sorted(p[3].split(','))) for p in present}
@@ -111,6 +117,8 @@ def comparisons(symbol, points, dates):
                 'pooled_short_volume_pct': rounded(short_sum * 100 / total_sum) if complete and total_sum else None,
                 'mean_daily_short_volume_pct': rounded(mean),
                 'sample_sd_percentage_points': rounded(deviation),
+                'sample_sd_below_display_precision': bool(deviation and Decimal(rounded(deviation)) == 0),
+                'sample_sd_scientific': format(deviation, 'E') if deviation and Decimal(rounded(deviation)) == 0 else None,
                 'latest_minus_mean_percentage_points': rounded(difference),
                 'descriptive_z_score': rounded(difference / deviation) if difference is not None and deviation else None,
                 'z_score_missing_reason': 'latest_ratio_unavailable' if latest_ratio is None else

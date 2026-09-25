@@ -78,7 +78,7 @@ a full-population arithmetic audit.
             assert window['daily_ratios_complete'] == (not absent and not zeros)
     sampled_windows = 0
     with localcontext() as ctx:
-        ctx.prec = 80
+        ctx.prec = 192
         def decimal(value):
             return Decimal(value.numerator) / Decimal(value.denominator)
         for name in sorted(sample):

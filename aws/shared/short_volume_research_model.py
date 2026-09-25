@@ -178,7 +178,7 @@ def compile_output(inputs, read):
             'pooled_ratio': 'sum_short_divided_by_sum_reported_total_percent',
             'standard_deviation': 'sample_daily_percentage_points_n_minus_1',
             'z_score': 'descriptive_latest_minus_prior_mean_divided_by_sample_sd',
-            'numeric_rounding': 'decimal_64_precision_half_even_12_decimal_places',
+            'numeric_rounding': 'decimal_128_precision_centered_variance_half_even_12_decimal_places',
             'histories': 'literal_symbol_not_verified_security_identity',
             'probability_interpretation': None,
         },

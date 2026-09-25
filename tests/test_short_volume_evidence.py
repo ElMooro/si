@@ -9,12 +9,13 @@ from test_short_volume_research_model import fixture, model
 
 class Tests(unittest.TestCase):
     def test_candidate_source_identity_is_complete_and_not_a_current_key(self):
-        tree = ast.parse((ROOT / 'aws/ops/staged/ops_6049_short_volume_replay_candidate.py').read_text())
-        node = next(n.value for n in tree.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'SOURCE' for t in n.targets))
-        ref = eval(compile(ast.Expression(node), '<candidate-reference>', 'eval'), {'model': model, '__builtins__': {}})
-        self.assertEqual(len(ref['sha256']), 64)
-        self.assertEqual(ref['key'], model.PRIVATE + ref['sha256'] + '.bin')
-        self.assertEqual(ref['bytes'], 80917)
+        for name in ('ops_6049_short_volume_replay_candidate.py', 'ops_6051_short_volume_stable_variance_candidate.py'):
+            tree = ast.parse((ROOT / 'aws/ops/staged' / name).read_text())
+            node = next(n.value for n in tree.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'SOURCE' for t in n.targets))
+            ref = eval(compile(ast.Expression(node), '<candidate-reference>', 'eval'), {'model': model, '__builtins__': {}})
+            self.assertEqual(len(ref['sha256']), 64)
+            self.assertEqual(ref['key'], model.PRIVATE + ref['sha256'] + '.bin')
+            self.assertEqual(ref['bytes'], 80917)
 
     def test_independent_original_and_window_qualification(self):
         inputs, objects = fixture()

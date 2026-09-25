@@ -44,6 +44,27 @@ class Tests(unittest.TestCase):
         self.assertIsNone(out['descriptive_z_score'])
         self.assertEqual(out['z_score_missing_reason'], 'zero_prior_variance')
 
+    def test_constant_repeating_ratios_have_exactly_zero_variance(self):
+        for numerator, denominator in (('1', '3'), ('2', '7'), ('13.000001', '71.333333')):
+            data = [[i, 2, numerator, '0', denominator, 'B'] for i in range(61)]
+            data[-1][2] = denominator
+            out = m.comparisons('A', data, DATES)
+            for window in out['windows'].values():
+                self.assertEqual(window['sample_sd_percentage_points'], '0.000000000000')
+                self.assertIsNone(window['descriptive_z_score'])
+                self.assertEqual(window['z_score_missing_reason'], 'zero_prior_variance')
+
+    def test_tiny_real_variance_is_not_floored_or_mistaken_for_a_probability(self):
+        data = [[i, 2, '0.000000000001', '0', '999999999999999999999999999999.000000000001', 'B'] for i in range(61)]
+        data[58][4] = '999999999999999999999999999999.000000000002'
+        data[-1][2] = data[-1][4]
+        out = m.comparisons('A', data, DATES)['windows']['60']
+        self.assertGreater(Decimal(out['descriptive_z_score']), Decimal('1e70'))
+        self.assertTrue(out['sample_sd_below_display_precision'])
+        self.assertGreater(Decimal(out['sample_sd_scientific']), 0)
+        self.assertIsNone(out['z_score_missing_reason'])
+        self.assertIsNone(out['probability_interpretation'])
+
     def test_missing_rows_do_not_shorten_sixty_file_window(self):
         data = points()[1:]
         out = m.comparisons('A', data, DATES)
