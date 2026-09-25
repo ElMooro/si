@@ -32,6 +32,16 @@ def capture(client,body,request=None,status=200):
 
 
 class Tests(unittest.TestCase):
+    def test_even_valid_json_cannot_hide_transport_length_or_encoding_mismatch(self):
+        for headers in ({'content-length':'100'},{'content-encoding':'gzip'}):
+            client=S3();req=source.spec('AAPL','quote');reply=response(b'[]');reply.headers.update(headers)
+            transport=Mock(return_value=reply)
+            with self.assertRaises(RuntimeError):
+                source.capture(client,'length-test',req,{'AAPL'},'test-secret',Mock(),lambda:'2026-09-25T12:00:00Z',transport)
+            state=json.loads(client.files[source.request_key('length-test',req['url'])])
+            self.assertEqual(state['status'],'failed');self.assertEqual(source.read(client,state['original']),b'[]')
+            self.assertEqual(transport.call_count,1)
+
     def test_adoption_preserves_original_acquisition_clock_and_has_no_transport(self):
         client=S3();request=source.spec('AAPL','income-statement','annual');body=b'[]'
         prior={'spec':request,'http_status':200,'request_id':'old','headers':{},

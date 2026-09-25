@@ -122,6 +122,14 @@ def journal(client,key,value,claim=False):
     if bounded(client.get_object(Bucket=BUCKET,Key=key)['Body'],MAX)!=body:raise ValueError('Journal readback differs')
 
 
+def response_integrity(body,headers):
+    length=headers.get('content-length')
+    if length is not None and (not isinstance(length,str) or not re.fullmatch('[0-9]+',length) or int(length)!=len(body)):
+        raise ValueError('Original response length differs from its HTTP declaration')
+    if headers.get('content-encoding','identity').lower() not in ('','identity'):
+        raise ValueError('Unreviewed encoded response retained without parsing')
+
+
 def adopt(client,request_id,request,allowed,prior,body,origin,now):
     if (request!=spec(request.get('symbol'),request.get('endpoint'),request.get('period'))
             or request['symbol'] not in population(allowed) or prior.get('spec')!=request
@@ -133,6 +141,7 @@ def adopt(client,request_id,request,allowed,prior,body,origin,now):
         'adopted_from_manifest':origin,'source_request_id':prior.get('request_id'),'transport_attempted':False}
     journal(client,key,value,True)
     try:
+        response_integrity(body,prior['headers'])
         capsule={**value,'original':retain(client,body),'http_status':200,'headers':prior['headers'],
             'requested_at':prior['requested_at'],'received_at':prior['received_at'],
             'inventory':inspect(body,request),'request_status_key':key,'reused_original':True}
@@ -158,11 +167,12 @@ def capture(client,request_id,request,allowed,credential,rate,now,transport=None
         try:response=(transport or urllib.request.build_opener(NoRedirect()).open)(http,timeout=25)
         except urllib.error.HTTPError as exc:response=exc
         code=response.status
-        headers={k.lower():v for k,v in response.headers.items() if k.lower() in ('content-type','content-length','date','etag','last-modified')}
+        headers={k.lower():v for k,v in response.headers.items() if k.lower() in ('content-type','content-length','content-encoding','date','etag','last-modified')}
         body=bounded(response,16*1024*1024)
         value.update(status='response_retained',received_at=now(),http_status=code,headers=headers,original=retain(client,body))
         journal(client,key,value)
         if code!=200 or not body:raise ValueError('Provider unavailable; complete response retained; no retry')
+        response_integrity(body,headers)
         capsule={**value,'inventory':inspect(body,request),'request_status_key':key}
         ref=retain(client,encode(capsule));journal(client,key,{**value,'status':'complete','capture':ref})
         return {**capsule,'retained_capture':ref}
