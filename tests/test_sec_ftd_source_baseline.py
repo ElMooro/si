@@ -26,6 +26,20 @@ def zipped(body=TEXT, name='cnsfails202608b.txt', extra=None):
 
 
 class Tests(unittest.TestCase):
+    def test_extensionless_reported_member_and_long_nonexchange_label_are_retained(self):
+        body = TEXT.replace(b'001234567|ABC|', b'001234567|U116SPINOFF|')
+        result = sec.inventory(zipped(body, name='cnsfails202608b'), URL, '2026-09-01')
+        self.assertEqual(result['member']['name'], 'cnsfails202608b')
+        self.assertEqual(result['reported_symbols_longer_than_ten'], 1)
+        parsed = sec.rows(body, URL, '2026-09-01')
+        self.assertEqual(parsed[0]['symbol'], 'U116SPINOFF')
+        for name in ('../cnsfails202608b', 'cnsfails202608b.exe', 'unknown'):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                sec.text_member(zipped(body, name=name))
+        for label in (b'A'*65, b'A\x00B'):
+            with self.assertRaises(ValueError):
+                sec.rows(TEXT.replace(b'|ABC|', b'|' + label + b'|'), URL, '2026-09-01')
+
     def test_advertised_selection_orders_dates_and_excludes_unreviewed_or_future_urls(self):
         links = [URL.replace('202608b', x) for x in ('202608a', '202607b', '202608b', '202609b')]
         body = ''.join('<a href="' + u + '">Archive</a>' for u in links + ['https://evil.example/cnsfails202609a.zip']).encode()

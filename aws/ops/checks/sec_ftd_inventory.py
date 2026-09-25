@@ -60,7 +60,7 @@ def text_member(raw):
         if len(members) != 1:
             raise ValueError('One complete text member required')
         member = members[0]
-        if (member.is_dir() or not re.fullmatch(r'[A-Za-z0-9_.-]+\.txt', member.filename)
+        if (member.is_dir() or not re.fullmatch(r'(?:[A-Za-z0-9_.-]+\.txt|cnsfails20[0-9]{2}(?:0[1-9]|1[0-2])[ab])', member.filename)
                 or member.flag_bits & 1 or not 0 < member.file_size <= MAX_TEXT):
             raise ValueError('Invalid bounded plaintext archive member')
         with archive.open(member) as stream:
@@ -108,7 +108,8 @@ def rows(body, url, cutoff):
             raise ValueError(f'Future settlement at line {line_number}')
         if day.year != year or day.month != month:
             raise ValueError(f'Settlement outside advertised month at line {line_number}')
-        if not re.fullmatch(r'[A-Z0-9*@#]{9}', cusip) or len(symbol) > 10 or not description:
+        if (not re.fullmatch(r'[A-Z0-9*@#]{9}', cusip)
+                or not re.fullmatch(r'[^\x00-\x1f\x7f]{0,64}', symbol) or not description):
             raise ValueError(f'Invalid exact reported identity at line {line_number}')
         if not re.fullmatch(r'\d+', quantity):
             raise ValueError(f'Invalid fail-balance quantity at line {line_number}')
@@ -151,6 +152,7 @@ def inventory(raw, url, cutoff):
             'cusips_with_multiple_reported_labels': sum(len(v) > 1 for v in cusips.values()),
             'missing_previous_day_prices': sum(r['previous_day_reported_price'] is None for r in records),
             'missing_reported_symbols': sum(not r['symbol'] for r in records),
+            'reported_symbols_longer_than_ten': sum(len(r['symbol']) > 10 for r in records),
             'reported_zero_balances': sum(int(r['fail_balance_shares']) == 0 for r in records),
             'quantity_definition': 'aggregate_net_outstanding_fail_balance_on_settlement_date',
             'price_currency_explicit_in_file': False, 'price_observation_date_explicit_in_file': False,
