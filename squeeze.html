@@ -82,6 +82,7 @@ tr:hover td{background:var(--panel2)}
 .sectorBar .sf{height:100%;background:var(--red)}
 .sectorBar .sv{width:46px;text-align:right;color:var(--dim);font-size:10.5px}
 </style>
+<script src="/jh-short-volume-research.js"></script>
 </head>
 <body>
 <div class="container">
@@ -161,7 +162,7 @@ tr:hover td{background:var(--panel2)}
 
 <script>
 const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
-const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).then(p=>["finra-short.json","short-pressure.json"].includes(k)?(window.JHShortVolumeResearch?.decisionView(p)||{}):p).catch(()=>null);
 const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const fmtPct=(x,p=1)=>x==null||isNaN(x)?"—":(+x).toFixed(p)+"%";
 const fmtNum=(x,p=1)=>x==null||isNaN(x)?"—":(+x).toFixed(p);
@@ -323,7 +324,7 @@ const stClean=s=>(s||"").replace(/\s+/g,'_');
     }
     tapeEl.innerHTML=h+`</tbody></table>`;
   } else {
-    tapeEl.innerHTML=`<div class="empty">Short-pressure tape unavailable.</div>`;
+    tapeEl.innerHTML=`<div class="empty">Daily short-sale volume cannot establish covering or squeeze pressure. <a href="/short-volume-research.html">Inspect dated FINRA observations and complete comparison windows.</a></div>`;
   }
 
   // ---------- MICROCAP ----------

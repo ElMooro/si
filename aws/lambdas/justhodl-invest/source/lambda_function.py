@@ -421,7 +421,7 @@ def run_tier3(tier2_gates):
     # per ticker, same pattern as the fundamentals docs above
     stealth_doc = fleet_io.get_json(STEALTH_ACCUMULATION_KEY)
     credit_doc = fleet_io.get_json(CREDIT_BEFORE_EQUITY_KEY)
-    squeeze_doc = fleet_io.get_json(FINRA_SHORT_KEY)
+    squeeze_doc = __import__("short_volume_context").decision_view(fleet_io.get_json(FINRA_SHORT_KEY))
     hiring_doc = fleet_io.get_json(HIRING_VELOCITY_KEY)
     estimate_doc = fleet_io.get_json(ESTIMATE_REVISIONS_KEY)
     gex_doc = __import__("option_population_context").context(fleet_io.get_json(DEALER_GEX_KEY))

@@ -96,7 +96,7 @@ def lambda_handler(event, context):
             if isinstance(it, dict): add(_tk(it), "short-interest", 0.0, heavy_short=True, tag="heavy short interest")
     for it in (si.get("top_covering") or []):
         if isinstance(it, dict): add(_tk(it), "short-interest", 0.4, covering=True, tag="shorts covering")
-    for it in (_read("data/finra-short.json").get("squeeze_candidates") or []):
+    for it in (__import__("short_volume_context").decision_view(_read("data/finra-short.json")).get("squeeze_candidates") or []):
         if isinstance(it, dict): add(_tk(it), "finra-short", 0.0, heavy_short=True, tag="FINRA squeeze candidate")
 
     sa = _read("data/stealth-accumulation.json")

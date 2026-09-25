@@ -70,7 +70,7 @@ SOURCES = {
 def read_s3(s3, key):
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
+        return __import__("short_volume_context").guard(key, json.loads(obj["Body"].read()))
     except Exception as e:
         print(f"  read {key} failed: {e}")
         return None

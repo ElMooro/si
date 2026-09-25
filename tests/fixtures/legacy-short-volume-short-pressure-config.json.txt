@@ -1,0 +1,20 @@
+{
+  "function_name": "justhodl-short-pressure",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily Short-Volume Pressure — Polygon short-volume ratio vs each name's 20-day baseline (z-score). Output data/short-pressure.json.",
+  "environment": {},
+  "inherit_env": [
+    {"from_function": "justhodl-options-flow-scanner", "keys": ["POLY_KEY"]}
+  ],
+  "schedule": {
+    "rule_name": "short-pressure-daily",
+    "cron": "cron(30 12 ? * MON-FRI *)",
+    "description": "Daily Short-Volume Pressure — weekdays 12:30 UTC"
+  }
+}

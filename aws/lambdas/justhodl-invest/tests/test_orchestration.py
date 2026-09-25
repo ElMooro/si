@@ -276,7 +276,8 @@ def test_institutional_edge_sources_wire_into_tier3_and_tier2(monkeypatch):
 
     assert "smart_money_convergence" in vrt["components_used"]
     assert "credit_signal" in vrt["components_used"]
-    assert "short_squeeze_setup" in vrt["components_used"]
+    # Stored FINRA daily-volume scores cannot supply a position/squeeze vote.
+    assert "short_squeeze_setup" not in vrt["components_used"]
     assert "hiring_velocity" in vrt["components_used"]
     assert "estimate_revision_direction" in vrt["components_used"]
     # PWR has no stealth/squeeze/hiring fixture rows -- those components
@@ -285,7 +286,7 @@ def test_institutional_edge_sources_wire_into_tier3_and_tier2(monkeypatch):
     assert pwr["reweighted"] is True
 
     # VRT's institutional read is uniformly strong (full convergence,
-    # improving credit, hot squeeze, hot hiring, upward estimates) on top
+    # improving credit, hot hiring, upward estimates) on top
     # of already-better fundamentals -- the composite gap over PWR should
     # be wide, not marginal
     assert vrt["composite_score"] - pwr["composite_score"] > 15

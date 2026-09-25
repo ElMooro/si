@@ -47,7 +47,7 @@
     return slot.p;
   }
   function darkPool() { DP = DP || {}; return load(DP, "/data/dark-pool.json"); }
-  function finraShort() { FS = FS || {}; return load(FS, "/data/finra-short.json"); }
+  function finraShort() { FS = FS || {}; return load(FS, "/data/finra-short.json").then(function(p){ return window.JHShortVolumeResearch ? window.JHShortVolumeResearch.decisionView(p) : {}; }); }
   function f13() { F13 = F13 || {}; return load(F13, "/data/13f-by-ticker.json"); }
   function dix() { DIX = DIX || {}; return load(DIX, "/data/dix.json"); }
   function liq() { LIQ = LIQ || {}; return load(LIQ, "/data/liquidity-profile.json"); }

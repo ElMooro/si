@@ -65,7 +65,7 @@ SELL_WORDS = ("sell", "s", "sale", "d", "disposition", "s-sale")
 
 def read_json(key):
     try:
-        return __import__("offexchange_context").guard(key, json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
+        return __import__("short_volume_context").guard(key, __import__("offexchange_context").guard(key, json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())))
     except Exception:
         return None
 

@@ -280,7 +280,7 @@ def lambda_handler(event, context):
     cascade = read_json("data/theme-cascade.json") or {}
     options = read_json("data/polygon-options-flow.json") or {}
     insider = read_json("data/insider-clusters.json") or {}
-    finra_short = read_json("data/finra-short.json") or {}
+    finra_short = __import__("short_volume_context").decision_view(read_json("data/finra-short.json")) or {}
     # ops 4346: FEATURE BUS — the fleet's per-ticker context vector
     feature_bus = (read_json("data/feature-bus.json")
                    or {}).get("tickers") or {}

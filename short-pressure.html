@@ -1,109 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Short Pressure · JustHodl.AI</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📉</text></svg>">
-<style>
-:root{
-  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
-  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
-  --green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff;--purple:#a78bfa;
-}
-*{box-sizing:border-box}
-body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
-.container{max-width:1180px;margin:0 auto;padding:24px}
-header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
-h1{font-family:var(--mono);font-size:21px;letter-spacing:1px;text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
-h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
-.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1000px}
-nav.crumbs{margin-top:10px}
-nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);margin-right:14px}
-nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:16px}
-.card h3{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
-.big{font-family:var(--mono);font-size:28px;font-weight:700;margin:2px 0}
-.sub{font-size:11px;color:var(--dim);margin-top:4px}
-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
-th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
-td{padding:10px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
-tr:hover td{background:var(--panel2)}
-.num{text-align:right}
-.st{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:3px}
-.sBUILD{background:#ff557722;color:var(--red)}.sCOVER{background:#26ffaf22;color:var(--green)}
-.sNORM{background:#1c2433;color:var(--dim)}
-.cardw{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
-.loading{text-align:center;padding:44px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
-.timestamp{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right;margin-top:8px}
-.note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:1000px}
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>📉 Short Pressure</h1>
-    <p class="subtitle">Daily short-volume ratios from Polygon, measured against each name's <b>own 20-day baseline</b>. Absolute short volume is noisy — much of it is market-maker hedging — so the signal is the z-score deviation: a ratio pushing above a ticker's norm is genuine building short pressure; a ratio collapsing is covering.</p>
-    <nav class="crumbs">
-      <a href="/index.html">desk</a>
-      <a href="/intelligence/">intelligence</a>
-      <a href="/master-ranker.html">master ranker</a>
-    </nav>
-  </header>
-  <div class="grid3" id="kpis"><div class="loading">LOADING…</div></div>
-  <h2>Names — ranked by short-pressure z-score</h2>
-  <div class="cardw"><div id="board"><div class="loading">…</div></div></div>
-  <p class="note" id="note"></p>
-  <p class="timestamp" id="ts"></p>
-</div>
-<script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
-const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
-const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-function stCls(s){return s==="PRESSURE BUILDING"?"sBUILD":s==="SHORTS COVERING"?"sCOVER":"sNORM";}
-(async()=>{
-  const d=await J("short-pressure.json");
-  if(!d){document.getElementById("kpis").innerHTML=`<div class="card" style="grid-column:1/-1"><div class="loading">AWAITING FIRST RUN — weekdays 12:30 UTC.</div></div>`;document.getElementById("board").innerHTML="";return;}
-  const cards=[
-    ["Covered",d.n_covered,(d.universe_source||"")],
-    ["Pressure Building",d.n_pressure_building,"short ratio ≥ +1σ vs baseline"],
-    ["Shorts Covering",d.n_shorts_covering,"short ratio ≤ −1σ vs baseline"],
-  ];
-  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="card"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div class="sub">${esc(c[2])}</div></div>`).join("");
-  const ns=d.names||[];
-  if(!ns.length){document.getElementById("board").innerHTML=`<div class="loading">no names</div>`;}
-  else{
-    let h=`<table><thead><tr><th>Ticker</th><th class="num">Short Ratio</th><th class="num">5D Avg</th><th class="num">20D Baseline</th><th class="num">Δ vs Base</th><th class="num">Z-Score</th><th>State</th><th>As Of</th></tr></thead><tbody>`;
-    for(const r of ns){
-      const zc=r.z_score==null?"var(--dim)":r.z_score>=1?"var(--red)":r.z_score<=-1?"var(--green)":"var(--mute)";
-      h+=`<tr>
-        <td style="font-weight:700;color:var(--txt)">${esc(r.ticker)}</td>
-        <td class="num" style="color:var(--txt);font-weight:700">${r.short_ratio_latest}%</td>
-        <td class="num">${r.short_ratio_5d}%</td>
-        <td class="num" style="color:var(--dim)">${r.baseline_20d}%</td>
-        <td class="num">${r.delta_vs_baseline>0?"+":""}${r.delta_vs_baseline}</td>
-        <td class="num" style="color:${zc};font-weight:700">${r.z_score==null?"—":(r.z_score>0?"+":"")+r.z_score}</td>
-        <td><span class="st ${stCls(r.state)}">${esc(r.state)}</span></td>
-        <td style="color:var(--dim)">${esc(r.as_of||"")}</td>
-      </tr>`;
-    }
-    document.getElementById("board").innerHTML=h+`</tbody></table>`;
-  }
-  document.getElementById("note").textContent=d.note||"";
-  document.getElementById("ts").textContent="engine: "+(d.method||"")+" · generated "+(d.generated_at||"?");
-})();
-</script>
-
-<div class="container" style="padding-top:0">
-  <h2>Historical Context — vs Crises, Tops &amp; Bottoms</h2>
-  <div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div>
-</div>
-<script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS']);});</script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Short-volume Research · JustHodl</title><meta name="jh-primary-engine" content="justhodl-short-pressure"><meta name="description" content="Inspect FINRA daily short-sale volume with exact source records, complete comparison windows and reproducible exposure assumptions.">
+<link rel="stylesheet" href="/jh-option-research.css"><script defer src="/jh-short-volume-research.js"></script><script defer src="/jh-short-volume-page.js"></script></head>
+<body><main class="or-desk" data-short-volume data-jh-axis>
+<header class="or-header"><div><p class="or-eyebrow">JUSTHODL / RECORDED RESEARCH</p><h1>Compare short-sale reporting over time</h1><p>Inspect the reported trades, the comparison window and the source behind each number. Missing history stays visible.</p></div><nav aria-label="Related research"><a href="/market-evidence.html">Market evidence</a><a href="/offexchange-research.html">Off-exchange activity</a><a href="/short-volume-research.html">Latest record</a></nav></header>
+<div class="or-status" data-sv-status role="status" aria-live="polite">Checking the recorded publication…</div>
+<section class="or-panel" data-jh-key="short-volume-record"><div class="or-section-heading"><h2>A record you can reproduce</h2><button type="button" data-sv-refresh>Recheck this record</button></div><p data-sv-record></p><button type="button" data-sv-export disabled>Download selected evidence</button><p>Daily short-sale volume describes reported executions. It does not establish outstanding short interest, days-to-cover, squeeze potential or whether traders covered positions.</p><details><summary>Dataset coverage and acquisition dates</summary><div data-sv-coverage></div></details></section>
+<section class="or-panel" data-jh-key="short-volume-symbol"><h2>Choose a reported symbol</h2><form data-sv-search data-jh-chrome><div class="or-controls" data-jh-chrome><label>Symbol <input data-sv-symbol list="sv-symbols" autocomplete="off" maxlength="32" value="AAPL" required><datalist id="sv-symbols"></datalist></label><button type="submit" data-sv-load disabled>Inspect symbol</button></div></form><p data-sv-identity></p><p>History groups the same literal source symbol. Security identity through ticker changes or corporate actions is not verified; a continuous symbol is not proof of a continuous investment.</p></section>
+<section class="or-panel" data-jh-key="short-volume-observation"><h2>Inspect a daily observation</h2><div class="or-controls" data-jh-chrome><label>Published file date <select data-sv-date disabled></select></label></div><p data-sv-observation-status></p><div data-sv-observation></div><div data-sv-source></div><p>Short volume includes the short-exempt subset. The denominator covers FINRA-disseminated regular-session TRF/ADF volume in exchange-listed securities, not consolidated all-market volume. Shares retain their reported decimal precision.</p></section>
+<section class="or-panel" data-jh-key="short-volume-windows"><h2>Compare with complete prior windows</h2><p>Each window uses the preceding 5, 20 or 60 published files and excludes the latest observation. These are file counts, not an assumed trading calendar. Selecting an older daily observation does not change the latest-based comparison.</p><div data-sv-windows></div><details><summary>Definitions and missing observations</summary><p>The daily mean gives each valid daily percentage equal weight. The pooled ratio divides summed short volume by summed reported total volume. Sample standard deviation uses N−1. A z-score is a descriptive standardized difference, not a probability or return forecast. A missing row invalidates the declared window; a zero denominator invalidates daily-ratio statistics.</p><div data-sv-window-details></div></details></section>
+<section class="or-panel" data-jh-key="short-volume-history"><h2>Read the reported history</h2><div data-sv-chart></div><div class="or-controls" data-jh-chrome><button type="button" data-sv-prev disabled>Newer files</button><span data-sv-page role="status"></span><button type="button" data-sv-next disabled>Older files</button></div><div data-sv-history></div><p>Gaps mean the symbol is absent from a published file or its denominator is zero. No observations are interpolated.</p></section>
+<section class="or-panel" data-jh-key="short-volume-assumptions"><h2>Test your exposure assumptions</h2><p>Enter signed shares, your own USD reference price, a hypothetical price change and total costs. Negative shares represent a short position. This arithmetic excludes financing, dividends, taxes and currency changes; it provides no forecast, locate, borrowing assurance or fill estimate.</p><form data-sv-form data-jh-chrome><div class="or-controls" data-jh-chrome><label>Signed shares <input name="shares" inputmode="decimal" value="100" required></label><label>Your reference price, USD <input name="price" inputmode="decimal" placeholder="Enter a price" required></label><label>Assumed price change, % <input name="shock" inputmode="decimal" value="-10" required></label><label>Assumed total costs, USD <input name="cost" inputmode="decimal" value="0" required></label><button type="submit" data-sv-calculate disabled>Calculate assumed effect</button></div></form><div data-sv-scenario role="status" aria-live="polite"></div></section>
+<section class="or-panel" data-jh-key="short-volume-evidence"><h2>Evidence and limits</h2><div data-sv-audit></div><p>The browser verifies the recorded output and selected data bucket. Original-source replay runs on the AWS runner. Complete originals remain protected, with their digests, acquisition clocks, source URLs and line locators attached to this record. Acquiring old files today does not prove that their present values were available historically.</p><p>Short Pressure mirrors this canonical dataset. Off-exchange daily reporting shares the same FINRA source family. Neither is an additional independent investment vote.</p><p><a href="https://www.finra.org/rules-guidance/notices/information-notice-051019">FINRA: short-sale volume is distinct from short interest</a> · <a href="https://www.finra.org/finra-data/browse-catalog/short-sale-volume-data/daily-short-sale-volume-files">Official daily file listings</a></p></section>
+<footer class="or-footer">Traceable observations · reproducible comparisons · explicit assumptions</footer>
+</main><script defer src="/jh-nav-drawer.js"></script><script defer src="/sidebar.js"></script></body></html>

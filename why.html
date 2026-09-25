@@ -290,6 +290,7 @@
 .gauge{font-size:12px;padding:3px 10px;border-radius:11px;font-weight:700}
 .gauge.g{background:#12261a;color:var(--green-bright,#5eead4)}.gauge.a{background:#241d0e;color:var(--amber,#fbbf24)}.gauge.r{background:#2a1214;color:var(--red,#ff7b7b)}
 </style>
+<script src="/jh-short-volume-research.js"></script>
 </head>
 
 <body>
@@ -3274,7 +3275,7 @@ window.renderIndustryCompass=function(d){
   var S3B='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
   var DOCS={}, TK=null, TRIES=0;
   function gj(k){return fetch(S3B+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
-  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=a[8];DOCS.rr=a[9];DOCS.er=a[10];tick();});
+  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=window.JHShortVolumeResearch?.decisionView(a[8])||{};DOCS.rr=a[9];DOCS.er=a[10];tick();});
   function box(l,v,c){return '<span style="background:var(--panel2,#11161f);border:1px solid var(--line,#1c2433);border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">'+l+' <b style="color:'+(c||'#e6eaf2')+'">'+v+'</b></span>';}
   function render(t){
     var old=document.getElementById('jh-fleet-forensic'); if(old) old.remove();

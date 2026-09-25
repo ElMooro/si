@@ -237,7 +237,7 @@ MODULES_CFG = [
         "derive": "thirteenf",
     },
     {
-        "label": "FINRA Short Interest", "emoji": "🩸", "key": "data/finra-short.json",
+        "label": "FINRA Short-Sale Volume", "emoji": "🩸", "key": "data/finra-short.json",
         "regime_path": "market_composite.regime",
         "signal_path": None,
         "polarity_map": POLARITY_FINRA, "dimension": "smart_money",
@@ -434,6 +434,12 @@ def fetch_module(cfg, ciss_packet=None, now=None):
         out["error"] = str(e)[:120]
         return out
 
+    if cfg['key']=='data/finra-short.json':
+        q=__import__('short_volume_context').context(payload)
+        out.update(regime=None,signal=q['note'],polarity=None,vote_eligible=False,
+                   descriptive_eligible=False,source_context=q,evidence_family='finra_reported_equity_activity',
+                   missing=not q['native_reference_available'],age_basis='See dated source files; publication age is not observation age')
+        return out
     if cfg['key']=='data/dealer-gex.json':
         out.update(regime=None,signal=payload['evidence_note'],polarity=None,vote_eligible=False,
                    descriptive_eligible=False,source_context=payload,evidence_family='captured_option_populations',

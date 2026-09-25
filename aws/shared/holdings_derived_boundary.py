@@ -89,7 +89,7 @@ def flow_rows(packet):
 # FINRA execution reporting has no qualified ownership/direction model either.
 # This also rejects older stored composites after the direct producer changes.
 FLOW_COMPONENTS = frozenset(('short-interest',
-    'finra-short', 'options-flow', 'squeeze', 'insider', 'buyback', 'insider-buyback'))
+    'options-flow', 'squeeze', 'insider', 'buyback', 'insider-buyback'))
 FLOW_POSTURES = frozenset(('SHORT_SQUEEZE_SETUP', 'ACCUMULATION', 'DISTRIBUTION',
     'STEALTH_ACCUMULATION', 'ACCUMULATION_LEAN', 'DISTRIBUTION_LEAN', 'MIXED'))
 

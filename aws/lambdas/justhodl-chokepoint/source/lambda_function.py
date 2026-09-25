@@ -1239,7 +1239,7 @@ def lambda_handler(event, context):
                         if isinstance(_row, dict) and _row.get("ticker"):
                             _dmap.setdefault(_row["ticker"], _row)
                 _dvol = _dp.get("dark_map") or {}   # raw off-exchange share counts
-                _fs = _read("data/finra-short.json") or {}
+                _fs = __import__("short_volume_context").decision_view(_read("data/finra-short.json")) or {}
                 _smap = _fs.get("tickers") or {}
                 _pe = _read("data/earnings-pead.json") or {}
                 _pmap = {r.get("symbol"): r for r in (_pe.get("all_qualifying") or [])

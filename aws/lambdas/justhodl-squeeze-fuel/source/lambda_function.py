@@ -202,7 +202,7 @@ def fetch_sec_ftd():
 # ── 3. existing daily short-volume engine output (the live fuse) ────────────
 def fetch_daily_shortvol():
     try:
-        d = json.loads(S3.get_object(Bucket=BUCKET, Key="data/finra-short.json")["Body"].read())
+        d = __import__("short_volume_context").decision_view(json.loads(S3.get_object(Bucket=BUCKET, Key="data/finra-short.json")["Body"].read()))
     except Exception as e:
         print(f"[squeeze-fuel] finra-short.json unavailable: {e}")
         return {}

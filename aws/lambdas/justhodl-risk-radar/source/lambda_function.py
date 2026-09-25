@@ -103,8 +103,8 @@ def load_short_pressure():
     the engine works whether or not this feed parses."""
     out = {}
     try:
-        d = json.loads(s3.get_object(
-            Bucket=S3_BUCKET, Key="data/short-pressure.json")["Body"].read())
+        d = __import__("short_volume_context").decision_view(json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/short-pressure.json")["Body"].read()))
         pools = []
         for v in (d.values() if isinstance(d, dict) else []):
             if isinstance(v, list):

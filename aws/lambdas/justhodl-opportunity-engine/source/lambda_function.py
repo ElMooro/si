@@ -855,7 +855,7 @@ def lambda_handler(event, context):
     fund = {x.get("ticker"): x for x in
             (load("data/fundamentals.json") or {}).get("companies", [])}
     shorts = {x.get("ticker"): x.get("state") for x in
-              (load("data/short-pressure.json") or {}).get("names", [])}
+              (__import__("short_volume_context").decision_view(load("data/short-pressure.json")) or {}).get("names", [])}
     sfl = (load("data/share-flows.json") or {}).get("tickers") or {}
     fmap = {r.get("symbol"): r for r in
             (load("data/forensic-screen.json") or {}).get("all_results")

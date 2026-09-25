@@ -164,13 +164,13 @@ def build_flow_index():
             add(r.get("ticker"), {"type": "SMART_MONEY_13F", "n_funds": r.get("n_funds_buying")})
     for r in (st or {}).get("top_short_covering_only", []) or []:
         add(r.get("ticker"), {"type": "SHORT_COVERING", "z_score": r.get("z_score")})
-    sp = _read("data/short-pressure.json")
+    sp = __import__("short_volume_context").decision_view(_read("data/short-pressure.json"))
     for n in (sp or {}).get("names", []) or []:
         if "cover" in (n.get("state") or "").lower():
             add(n.get("ticker"), {"type": "SHORT_COVERING", "z_score": n.get("z_score")})
     # ---- small-cap sources ----
     from_qualifying(_read("data/microcap-float-squeeze.json"), "FLOAT_SQUEEZE")
-    fs = _read("data/finra-short.json")
+    fs = __import__("short_volume_context").decision_view(_read("data/finra-short.json"))
     for r in (fs or {}).get("squeeze_candidates", []) or []:
         add(r.get("symbol"), {"type": "SHORT_SQUEEZE", "score": r.get("squeeze_score"),
             "flags": (r.get("squeeze_flags") or [])[:4]})

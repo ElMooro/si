@@ -196,6 +196,9 @@ def compute_repo_score(eurodollar_stress, rrp_billions, sofr_iorb_spread):
 
 def compute_utilization_score(short_interest_data):
     """Securities lending utilization stress from short interest data."""
+    if isinstance(short_interest_data, dict) and short_interest_data.get('research_context'):
+        return None, {'reason': 'Daily short-sale volume is not lending utilization',
+                      'research_context': short_interest_data['research_context']}
     if not short_interest_data:
         return None, None
     items = short_interest_data.get("items") or short_interest_data.get("data") or []
@@ -266,7 +269,7 @@ def lambda_handler(event, context):
     repo_score, repo_components = compute_repo_score(es_score, rrp_b, sofr_iorb_spread)
 
     # Securities lending utilization
-    short_data = get_s3_json("data/short-interest.json", {}) or get_s3_json("data/finra-short.json", {})
+    short_data = get_s3_json("data/short-interest.json", {}) or __import__("short_volume_context").decision_view(get_s3_json("data/finra-short.json", {}))
     util_score, util_components = compute_utilization_score(short_data)
 
     # Composite leverage stress

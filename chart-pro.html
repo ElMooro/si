@@ -1880,6 +1880,7 @@ html, body { max-width: 100vw; overflow-x: hidden; }
 .wl-badge{display:inline-flex;align-items:center;font-size:10px;line-height:1;padding:1px 3px;border:1px solid;border-radius:4px;background:rgba(255,255,255,0.02);margin-right:2px}
 .wl-sig-dots{display:inline-flex;flex-wrap:wrap;gap:2px;align-items:center}
 </style>
+<script src="/jh-short-volume-research.js"></script>
 </head>
 <body>
 
@@ -3667,7 +3668,7 @@ class DataService {
     State.backlog = backlogD;
     State.opportunities = opportunitiesD;
     State.overlap = overlapD;
-    State.finraShort = finraD;
+    State.finraShort = window.JHShortVolumeResearch?.decisionView(finraD) || {};
   }
 }
 

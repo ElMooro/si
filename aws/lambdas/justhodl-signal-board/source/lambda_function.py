@@ -89,10 +89,9 @@ def n_crypto_narratives(d):
 
 
 def n_short_pressure(d):
-    b = d.get("n_pressure_building") or 0
-    c = d.get("n_shorts_covering") or 0
-    sig = 1 if c > b * 1.5 else -1 if b > c * 1.5 else 0
-    return sig, f"{b} building short pressure, {c} covering"
+    """Daily short-sale reporting cannot establish covering or a directional vote."""
+    evidence = __import__("short_volume_context").context(d)
+    return None, "SHORT VOLUME %s; no qualified investment vote" % evidence["status"]
 
 
 def n_mean_reversion(d):

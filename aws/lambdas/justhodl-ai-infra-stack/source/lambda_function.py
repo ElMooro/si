@@ -172,11 +172,11 @@ def build_flow_index():
             add(r.get("ticker"), "SMART_MONEY_13F")
     for r in (st or {}).get("top_short_covering_only", []) or []:
         add(r.get("ticker"), "SHORT_COVERING")
-    for n in (_read("data/short-pressure.json") or {}).get("names", []) or []:
+    for n in (__import__("short_volume_context").decision_view(_read("data/short-pressure.json")) or {}).get("names", []) or []:
         if "cover" in (n.get("state") or "").lower():
             add(n.get("ticker"), "SHORT_COVERING")
     qual(_read("data/microcap-float-squeeze.json"), "FLOAT_SQUEEZE")
-    for r in (_read("data/finra-short.json") or {}).get("squeeze_candidates", []) or []:
+    for r in (__import__("short_volume_context").decision_view(_read("data/finra-short.json")) or {}).get("squeeze_candidates", []) or []:
         add(r.get("symbol"), "SHORT_SQUEEZE")
     qual(_read("data/volatility-squeeze.json"), "VOL_COILED_SPRING")
     qual(_read("data/pre-pump-signals.json"), "OBV_ACCUMULATION")

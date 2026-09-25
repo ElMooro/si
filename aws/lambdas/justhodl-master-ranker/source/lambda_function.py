@@ -261,7 +261,7 @@ def build_ticker_index():
         "flow_lookthrough":    fetch_json("data/flow-lookthrough.json", max_age_h=48),
         "fmp_ratios":          fetch_json("data/fmp-ratios.json", max_age_h=72),
         "forward_orders":      fetch_json("data/forward-orders.json", max_age_h=96),
-        "squeeze_setup":       fetch_json("data/finra-short.json", max_age_h=48),
+        "squeeze_setup":       __import__("short_volume_context").decision_view(fetch_json("data/finra-short.json", max_age_h=48)),
         "earnings_quality_hi": fetch_json("data/earnings-quality.json", max_age_h=200),
     }
 

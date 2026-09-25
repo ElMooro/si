@@ -314,7 +314,7 @@ def lambda_handler(event, context):
     _src = "none"
     for _key, _rows, _sym, _val in (
         ("data/finra-short.json",
-         (_read("data/finra-short.json") or {}).get(
+         (__import__("short_volume_context").decision_view(_read("data/finra-short.json")) or {}).get(
              "squeeze_candidates"), "symbol", "squeeze_score"),
         ("data/squeeze-fuel.json",
          (_read("data/squeeze-fuel.json") or {}).get("rows"),

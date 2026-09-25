@@ -43,7 +43,7 @@ def lambda_handler(event=None, context=None):
     opp = read_json("data/opportunities.json") or {}
     disl = read_json("data/dislocations.json") or {}
     cf = read_json("data/capital-flow.json") or {}
-    finra = read_json("data/finra-short.json") or {}
+    finra = __import__("short_volume_context").decision_view(read_json("data/finra-short.json")) or {}
     insider = read_json("data/insider-clusters.json") or {}
     best = read_json("data/best-setups.json") or {}
     backlog = read_json("data/backlog.json") or {}
