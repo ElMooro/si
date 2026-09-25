@@ -31,16 +31,10 @@ def accepted_batch_report(part,state):
     if part==2 and state.get('accepted_by_ops')=='ops_6093_share_structure_sources_recovery':
         assert state.get('recovered_from')==FAILED_BATCH
         return 'ops_6093_share_structure_sources_recovery.md'
-    if part==3 and state.get('accepted_by_ops') in ('ops_6099_share_structure_batch3_recovery','ops_6103_share_structure_recovery_acceptance'):
+    if part==3 and state.get('accepted_by_ops')=='ops_6099_share_structure_batch3_recovery':
         expected={'key':source.PRIVATE+'88803ebc27d63e2f1f31fa75892815f3e9d76036fe0abf7dad47b13055d0bf5d.bin',
             'sha256':'88803ebc27d63e2f1f31fa75892815f3e9d76036fe0abf7dad47b13055d0bf5d','bytes':184445}
         assert state.get('recovered_from')==expected
-        if state['accepted_by_ops']=='ops_6103_share_structure_recovery_acceptance':
-            assert state.get('completed_recovery_journal')=={'key':source.PRIVATE+'0bb0bbea859ca6bc6669e76711cc5cf3a7a8a84e2ca3594b521e909ff84b2f2c.bin',
-                'sha256':'0bb0bbea859ca6bc6669e76711cc5cf3a7a8a84e2ca3594b521e909ff84b2f2c','bytes':616991}
-            assert state.get('manifest')=={'key':source.PRIVATE+'b27a7dae4ccd1a43abd50c1611b893833169da1da6390a16c2078670b51c22fe.bin',
-                'sha256':'b27a7dae4ccd1a43abd50c1611b893833169da1da6390a16c2078670b51c22fe','bytes':616752}
-            return 'ops_6103_share_structure_recovery_acceptance.md'
         return 'ops_6099_share_structure_batch3_recovery.md'
     return 'ops_'+str(6082+part)+'_share_structure_sources_part_'+str(part)+'.md'
 
