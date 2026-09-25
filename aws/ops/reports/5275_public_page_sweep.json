@@ -1,12 +1,13 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "16b164d2ab27cdf31dfdbd586e9c79114e3ff456",
-  "observed_at": "2026-09-25T23:26:19.936545+00:00",
+  "observed_at": "2026-09-25T23:29:08.910697+00:00",
   "ok": false,
   "routes_checked": 558,
-  "verified_routes": 557,
+  "verified_routes": 556,
   "failed_routes": [
-    "chart.html"
+    "chart.html",
+    "fails.html"
   ],
   "source_equivalent_builds": {
     "16b164d2ab27cdf31dfdbd586e9c79114e3ff456": true
@@ -1714,7 +1715,7 @@
       "http_status": 200,
       "build_sha": "16b164d2ab27cdf31dfdbd586e9c79114e3ff456",
       "inspector_present": true,
-      "bytes_read": 880967,
+      "bytes_read": 880981,
       "product_source_matches_release": true
     },
     {
@@ -1908,12 +1909,12 @@
     },
     {
       "route": "fails.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "16b164d2ab27cdf31dfdbd586e9c79114e3ff456",
-      "inspector_present": true,
-      "bytes_read": 7288,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "fed-speak.html",
@@ -5040,7 +5041,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36200832399,
+  "deployment_run_id": 36201014031,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-25T23:26:19.938648+00:00"
+  "check_finished_at": "2026-09-25T23:29:08.913182+00:00"
 }
