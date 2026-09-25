@@ -27,12 +27,16 @@ class Tests(unittest.TestCase):
         p=native();p['replay']['manifest_key']='data/trade-tickets.json'
         self.assertFalse(gate.context(p)['native_reference_available'])
     def test_real_read_expressions_cannot_copy_legacy_fx_features(self):
-        for function in ('cross-asset-flow-state','prediction-snapshotter'):
+        for function in ('prediction-snapshotter',):
             tree=ast.parse((ROOT/f'aws/lambdas/justhodl-{function}/source/lambda_function.py').read_text(encoding='utf-8'))
             node=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='fx' for t in n.targets))
             scope={'rd':lambda key:LEGACY,'_read_json':lambda key:LEGACY}
             exec(compile(ast.Module(body=[node],type_ignores=[]),function,'exec'),scope)
             self.assertEqual(scope['fx']['regime_signals'],[]);self.assertEqual(scope['fx']['fx_roro'],{})
+        import flow_state_model
+        read=Mock()
+        with self.assertRaises(ValueError):flow_state_model.bind_parent('data/fx-quote-research.json',LEGACY,read,'2026-09-24T23:00:00Z')
+        read.assert_not_called()
     def test_actual_fx_alert_checker_does_not_emit_or_mark_old_scores(self):
         path=ROOT/'aws/lambdas/justhodl-prepump-alerts-router/source/lambda_function.py';tree=ast.parse(path.read_text(encoding='utf-8'))
         node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='check_fx_regime')

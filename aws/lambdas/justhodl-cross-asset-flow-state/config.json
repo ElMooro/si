@@ -5,8 +5,14 @@
   "handler": "lambda_function.lambda_handler",
   "timeout": 60,
   "memory": 256,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Unified cross-asset flow synthesizer -> data/cross-asset-flow-state.json (one feed for allocator/hedge-planner/MI)",
-  "schedule": {"expression": "rate(2 hours)", "name": "justhodl-cross-asset-flow-state-2h", "description": "Synthesize cross-asset flow every 2h"}
+  "description": "Recorded cross-asset evidence composition with exact parent runs and dated measurement families; no allocation authority.",
+  "schedule": {
+    "expression": "rate(2 hours)",
+    "name": "justhodl-cross-asset-flow-state-2h",
+    "description": "Synthesize cross-asset flow every 2h"
+  }
 }

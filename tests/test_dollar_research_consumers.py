@@ -78,10 +78,14 @@ class Tests(unittest.TestCase):
         scope=funcs('streaming-fanout',{'_is_meaningful_delta'})
         for previous in (None,{'regime':'PUMP'}):self.assertFalse(scope['_is_meaningful_delta']({'name':'dollar_radar'},previous,LEGACY)[0])
     def test_actual_typed_read_expressions_cannot_copy_legacy_scores(self):
-        for name,target in (('cross-asset-flow-state','dr'),('rotation-dashboard','dr'),('katlin','dr')):
+        for name,target in (('rotation-dashboard','dr'),('katlin','dr')):
             nodes=ast.walk(ast.parse(source(name)));assignment=next(n for n in nodes if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id==target for t in n.targets))
             scope={'rd':lambda key:LEGACY,'read_feed':lambda key:LEGACY,'F':{'dollar':LEGACY}}
             exec(compile(ast.Module(body=[assignment],type_ignores=[]),name,'exec'),scope);self.assertIsNone(scope[target]['regime']);self.assertEqual(scope[target]['bbdxy'],{})
+        import flow_state_model
+        read=Mock()
+        with self.assertRaises(ValueError):flow_state_model.bind_parent('data/dollar-radar.json',LEGACY,read,'2026-09-24T23:00:00Z')
+        read.assert_not_called()
     def test_narratives_receive_references_without_unsupported_causal_claims(self):
         for name in ('crypto-confluence','equity-confluence'):
             node=next(n for n in ast.walk(ast.parse(source(name))) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Subscript) and isinstance(t.slice,ast.Constant) and t.slice.value=='dollar_context' for t in n.targets))
@@ -91,7 +95,8 @@ class Tests(unittest.TestCase):
     def test_every_changed_consumer_bundles_the_typed_boundary(self):
         for name in CHANGED:
             paths=list((ROOT/f'aws/lambdas/justhodl-{name}/source').glob('*.py'))
-            self.assertIn('dollar_research_context.py',[p.name for p in shared_imports(ROOT,paths)],name)
+            required='flow_state_model.py' if name=='cross-asset-flow-state' else 'dollar_research_context.py'
+            self.assertIn(required,[p.name for p in shared_imports(ROOT,paths)],name)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)
