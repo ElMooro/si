@@ -19,13 +19,14 @@ test('the actual SPX renderer withholds cached AI forecasts and handles hostile 
 test('the actual SPX page load escapes packet text and labels sizing and cohort limitations',async()=>{
  const s=scope(),nodes={};s.document={getElementById:id=>nodes[id]||(nodes[id]={})};
  s.fetch=async()=>({json:async()=>({ok:true,engine_v:'<svg/onload=x>',min_score:'<img src=x>',weights:{},
-  regime:{rotation_regime:'<script>bad()</script>'},ledger:{weeks:'<img src=x>'},buckets:{},
+  regime:{rotation_regime:'<script>bad()</script>',note:'LEGACY_ODDS_CLAIM'},ledger:{weeks:'<img src=x>'},buckets:{},
   base_rates:{window:'<img src=x>',momentum_quintiles:[{q:'<svg/onload=x>',n:'<img src=x>'}],comeback_cohort:{n:'<img src=x>'}},
   method:'<iframe src=x>',mom_status:{note:'<img src=x>'}})});
  await vm.runInContext('load()',s);
  for(const value of Object.values(nodes))assert.doesNotMatch(value.innerHTML||'',/<img|<svg|<script|<iframe/);
  assert.match(nodes.regime.innerHTML,/Position sizing/);assert.match(nodes.regime.innerHTML,/Unqualified/);
  assert.match(nodes.brates.innerHTML,/point-in-time membership/);assert.match(nodes.foot.innerHTML,/independent confirmation/);
+ assert.doesNotMatch(nodes.asof.textContent,/LEGACY_ODDS_CLAIM/);assert.match(nodes.asof.textContent,/forecasts and sizing unqualified/);
 });
 
 test('every inline SPX script parses',()=>{for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);});

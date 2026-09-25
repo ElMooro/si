@@ -93,9 +93,9 @@ function rowHtml(r){
   r.inst&&r.inst.rs_consist_26w_pct!=null?`beat SPY ${fmt(r.inst.rs_consist_26w_pct,0)}% of wks`:null,
   "Forward return odds unqualified",
   `${fmt(r.n_legs,0)} reported input legs`].filter(Boolean).map(c=>`<span class="chip">${c}</span>`).join("");
- return `<div class="row"><div class="top"><span class="tk">${esc(r.t)}</span><span class="nm">${esc(r.name||"")}</span><span class="badge ${b}">Screen ${fmt(r.score,1)}</span></div>
+ return `<div class="row"><div class="top"><span class="tk">${esc(r.t)}</span><span class="nm">${esc(r.name||"")}</span><span class="badge ${b}">${fmt(r.score,1)}</span></div>
  <div class="chips">${chips}</div>
- <details><summary>Reported engine notes — unqualified</summary><ul class="why">${(Array.isArray(r.why)?r.why:[]).map(w=>`<li>${esc(w)}</li>`).join("")}</ul></details>${aiLine(r)}</div>`}
+ <ul class="why">${(Array.isArray(r.why)?r.why:[]).map(w=>`<li>${esc(w)}</li>`).join("")}</ul>${aiLine(r)}</div>`}
 function fill(id,rows,cnt,min){
  const el=document.getElementById(id);if(!el)return;
  if(!Array.isArray(rows)||!rows.length){el.innerHTML=`<div class="banner">No candidates cleared the ${fmt(min,0)} screen threshold this week; this does not imply a benchmark allocation.</div>`;return}
@@ -114,7 +114,7 @@ async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-bea
   card("Scanned",fmt((D.scanned||{}).stocks,0),`stocks + ${fmt((D.scanned||{}).etfs,0)} ETFs`)].join("");
  const ms=D.mom_status||{};
  document.getElementById("banner").innerHTML=ms.note?`<div class="banner">${esc(ms.note)}. A longer observation window does not establish predictive accuracy.</div>`:"";
- document.getElementById("asof").textContent=`as of ${String(D.as_of||"").slice(0,16).replace("T"," ")} UTC · weekly closes ${led.first||"—"} → ${led.last||"—"} · descriptive scores; forecasts and sizing unqualified`;
+ document.getElementById("asof").textContent=`as of ${(D.as_of||"").slice(0,16).replace("T"," ")} UTC · weekly closes ${led.first||"—"} → ${led.last||"—"} · ${rg.note||""}`;
  for(const b of ["large","mid","small","micro","comeback","etf_equity","etf_bond","etf_commodity","etf_crypto_alt"])
   fill("b_"+b,(D.buckets||{})[b],(D.counts||{})[b]||0,D.min_score);
  const br=D.base_rates;
