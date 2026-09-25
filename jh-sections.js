@@ -70,7 +70,7 @@
       if (c.hasAttribute("data-jh-sec") || c.hasAttribute("data-jh-key")) { out.push(c); continue; }
       // Wrapping a heading or paragraph on a narrow screen does not create
       // a new panel. Number its containing section; keep authored pins above.
-      if (c.matches("h1,h2,h3,h4,h5,h6,p,label,button,input,select,textarea,a,small")) continue;
+      if (c.matches("h1,h2,h3,h4,h5,h6,p,label,button,input,select,textarea,a,small,.or-section-heading,[role=status],[role=alert]")) continue;
       if (!visible(c)) continue;
       var r = rect(c);
       if (r.height >= BIG_H && r.width >= BIG_W * vw) out.push(c);
@@ -81,7 +81,7 @@
   // Max fan-out of big children; ties → larger covered height; explicit
   // [data-jh-axis] wins outright.
   function findAxis(root, vw) {
-    var pin = root.querySelector("[data-jh-axis]");
+    var pin = root.matches("[data-jh-axis]") ? root : root.querySelector("[data-jh-axis]");
     if (pin) return pin;
     var best = null, bestScore = 0, bestCover = 0;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
@@ -113,6 +113,7 @@
     for (var i = 0; i < list.length; i++) {
       var h = list[i];
       if (isChrome(h) || !text(h) || h.classList.contains("jh-secbadge")) continue;
+      if (Array.from(h.querySelectorAll('.jh-secbadge[data-for]')).some(function (b) { return b.dataset.for !== el.id; })) continue;
       var inPanel = false;
       for (var j = 0; j < panels.length; j++) { if (panels[j] !== h && panels[j].contains(h)) { inPanel = true; break; } }
       if (inPanel) continue;

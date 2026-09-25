@@ -108,3 +108,23 @@ test('real content panels remain discoverable at mobile widths',()=>{
   const table=new Element('div',800),section=new Element('section',600);
   assert.deepEqual(collect([table,section]),[table,section]);
 });
+
+test('wrapped research heading controls and live status do not become mobile panels',()=>{
+  const {Element,collect}=responsiveChildren();
+  const bar=new Element('.or-section-heading',180),status=new Element('[role=status]',120),alert=new Element('[role=alert]',110),table=new Element('div',600);
+  assert.deepEqual(collect([bar,status,alert,table]),[table]);
+});
+
+test('a content root explicitly marked as the axis wins without a descendant search',()=>{
+  const code=source.slice(source.indexOf('  function findAxis('),source.indexOf('  var HEAD ='));
+  const root={matches:s=>s==='[data-jh-axis]',querySelector(){throw Error('Root axis must not be skipped');}};
+  const c=vm.createContext({});vm.runInContext(code,c);assert.equal(c.findAxis(root,390),root);
+});
+
+test('a descendant heading cannot be claimed again after its parent was numbered',()=>{
+  const code=source.slice(source.indexOf('  function ownHeading('),source.indexOf('  // a small heading'));
+  const heading={textContent:'Research record',classList:{contains:()=>false},querySelectorAll:()=>[{dataset:{for:'parent'}}],closest:()=>null};
+  const child={id:'child',querySelectorAll:()=>[heading],contains:()=>false};
+  const c=vm.createContext({document:{documentElement:{clientWidth:390}},window:{},SUB_MIN:2,HEAD:'h2',bigChildren:()=>[],isChrome:()=>false,text:h=>h.textContent});
+  vm.runInContext(code,c);assert.equal(c.ownHeading(child),null);child.id='parent';assert.equal(c.ownHeading(child),heading);
+});
