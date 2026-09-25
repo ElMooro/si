@@ -2088,7 +2088,7 @@
   }
   function dedupeTape(mk){
     if(!mk||!mk.length) return [];
-    var pri={CLIMAX:14,ACCUM:15,BOTTOM:16,TOP:13,SC:13,CAPIT:12,EOA:11,EOD:11,DB:11,SPRING:11,UTAD:11,BC:10,"REV-UP":10,"REV-DN":10,"R-BRK":10,BEAT:10,MISS:10,FOMC:10,SOS:9,SOW:9,IHS:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,"mDIV↓":8,"mDIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,"DB?":6,EPS:6,WITCH:6,REBAL:5,PS:5,PSY:5,TEST:8,ND:4,NS:4,LPS:4,LPSY:4,PH:4,PL:4,HH:3,HL:3,LH:3,LL:3,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2,AUC:2,"S-B":8};
+    var pri={"D-TOP":17,CLIMAX:14,ACCUM:15,BOTTOM:16,TOP:13,SC:13,CAPIT:12,EOA:11,EOD:11,DB:11,SPRING:11,UTAD:11,BC:10,"REV-UP":10,"REV-DN":10,"R-BRK":10,BEAT:10,MISS:10,FOMC:10,SOS:9,SOW:9,IHS:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,"mDIV↓":8,"mDIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,"DB?":6,EPS:6,WITCH:6,REBAL:5,PS:5,PSY:5,TEST:8,ND:4,NS:4,LPS:4,LPSY:4,PH:4,PL:4,HH:3,HL:3,LH:3,LL:3,ACC:3,DIST:15,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2,AUC:2,"S-B":8};
     var best={};
     mk.forEach(function(m){
       if(!m||m.time==null) return;
@@ -2260,6 +2260,12 @@
               var campMk=window.jhCampaignMarks(display, active, tf, kind);
               if(campMk&&campMk.length) mk=mk.concat(campMk);
             }catch(eCamp){}
+          }
+          if(window.jhDistributionMarks){
+            try{
+              var distMk=window.jhDistributionMarks(display, tf, kind);
+              if(distMk&&distMk.length) mk=mk.concat(distMk);
+            }catch(eDist){}
           }
           if(window.jhRsReady){
             window.jhRsReady(display).then(function(rs){
@@ -3695,6 +3701,7 @@
       "<button class='wsico wsdesk' id=btn-spr title='Spring · forming / fired / failed'><span class=g>Spr</span><span class=l>Spring</span></button>"+
       "<button class='wsico wsdesk' id=btn-acc title='Accumulation · click to mark it on this chart'><span class=g>Acc</span><span class=l>Accum</span></button>"+
       "<button class='wsico wsdesk' id=btn-bot title='Bottom · click to mark the climax and the low on this chart'><span class=g>Bot</span><span class=l>Bottom</span></button>"+
+      "<button class='wsico wsdesk' id=btn-dist title='Distribution · click to mark a rally that fails to hold'><span class=g>Dst</span><span class=l>Dist</span></button>"+
       "<button class='wsico wsdesk' id=btn-pump title='Pump · SOS / markup — start of the bull run'><span class=g>Pmp</span><span class=l>Pump</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
@@ -3746,6 +3753,7 @@
     var bspr=document.getElementById("btn-spr"); if(bspr) bspr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spring"); };
     var bacc=document.getElementById("btn-acc"); if(bacc) bacc.onclick=function(){ if(window.jhCampToggle) window.jhCampToggle("accum"); };
     var bbot=document.getElementById("btn-bot"); if(bbot) bbot.onclick=function(){ if(window.jhCampToggle) window.jhCampToggle("bottom"); };
+    var bdist=document.getElementById("btn-dist"); if(bdist) bdist.onclick=function(){ if(window.jhDistToggle) window.jhDistToggle(); };
     var bpmp=document.getElementById("btn-pump"); if(bpmp) bpmp.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("pump"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var bgo=document.getElementById("btn-go");
