@@ -1,9 +1,9 @@
 """
 justhodl-equity-research (v1.0.1)
 ════════════════════════
-Company research data with deterministic investment abstention.
-Legacy derived analyses remain unqualified; reported company data is
-retained for inspection. No paid AI request is permitted.
+Institutional-grade equity research desk. Given a ticker, produces a
+full research paper with the same coverage a hedge fund analyst would
+generate as homework before committing capital.
 
 INVOKED via Lambda URL: ?ticker=ORCL  (or POST with {"ticker":"ORCL"})
 Cache: results stored in S3 at equity-research/<TICKER>.json for 24h.
@@ -39,12 +39,18 @@ DERIVED ANALYSIS
   - Drawdown history (max DD, avg DD recovery time)
   - Buyback + dividend history (capital return)
 
-MODEL OUTPUT POLICY
+CLAUDE SYNTHESIS
 ════════════════
-The synthesis compatibility boundary returns WAIT without a model call.
-Newly served and published documents withhold model investment claims;
-previous model fields remain inspectable as explicitly unqualified context.
-Existing direct S3 cache objects are not rewritten by this source deployment.
+After all data is gathered + summarized, Claude produces:
+  - Executive summary (3-4 sentences institutional voice)
+  - Bull case (investment thesis with 4-5 specific drivers)
+  - Bear case (risks with 4-5 specific concerns)
+  - Valuation assessment (DCF gap, multiples vs peers vs history)
+  - Financial health (5-pillar score: profitability/growth/leverage/
+                                 liquidity/quality)
+  - Final verdict (BUY/HOLD/SELL with conviction grade + 12-month PT)
+  - Key catalysts (next 12 months)
+  - Invalidation triggers (what would change the thesis)
 
 OUTPUT (JSON)
 ═════════════
@@ -99,8 +105,8 @@ FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE     = "https://financialmodelingprep.com/stable"
 POLYGON_KEY = managed_secret(('POLYGON_API_KEY', 'POLYGON_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 POLYGON_BASE = "https://api.polygon.io"
-AI_PROVIDER_POLICY = "no_paid_ai"
-MODEL = None  # No model is invoked by this producer.
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_KEY", "")
+MODEL        = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 S3_BUCKET    = "justhodl-dashboard-live"
 
 
@@ -283,16 +289,104 @@ def build_options_expectations(ticker: str, spot, next_earnings) -> Optional[dic
 
 
 def claude_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
-    """Compatibility boundary: deterministic abstention, zero model requests."""
-    return json.dumps({"executive_summary": "AI synthesis is unavailable under the no-paid-AI policy. Reported company data remains available; investment forecasts are unqualified.",
-        "verdict": {"rating": "WAIT", "conviction_grade": None, "price_target_12m": None,
-            "upside_pct": None, "confidence_pct": None, "forecast_qualified": False},
-        "ai_policy": "no_paid_ai", "calls_eligible": False, "sizing_eligible": False})
+    """Anthropic Haiku primary; GLM-5.1 (Z.ai, via the shared llm_router) fallback when the
+    direct Anthropic call fails — e.g. credits exhausted returns HTTP 400. The fallback is
+    time-bounded: if neither model returns within the budget, we raise so the handler still
+    writes the full quantitative report (valuation, business mix, price history, peers…) with
+    the AI prose marked unavailable, rather than letting a slow LLM chain run the Lambda into
+    its timeout and write nothing at all."""
+    try:
+        return _anthropic_call(system, user, max_tokens, use_cache)
+    except Exception as e:
+        print(f"[claude_call] Anthropic failed ({str(e)[:120]}); routing via llm_router (GLM-5.1)")
+        try:
+            from llm_router import complete
+        except Exception as ie:
+            print(f"[claude_call] llm_router import failed: {ie}")
+            raise e
+        sys_text = system if isinstance(system, str) else \
+            "\n".join(b.get("text", "") for b in (system or []) if isinstance(b, dict))
+        import concurrent.futures as _cf
+        _ex = _cf.ThreadPoolExecutor(max_workers=1)
+        try:
+            fut = _ex.submit(complete, user, tier="reason",
+                             max_tokens=max(max_tokens, 2000), system=(sys_text or None))
+            try:
+                return fut.result(timeout=FALLBACK_BUDGET_S)
+            except _cf.TimeoutError:
+                print(f"[claude_call] llm_router fallback exceeded {FALLBACK_BUDGET_S}s; "
+                      f"giving up so the doc still writes with quant data")
+                raise RuntimeError("LLM fallback timed out — quant report still produced")
+        finally:
+            # wait=False is critical: do NOT block on the still-hung LLM thread, or
+            # the handler can't reach the S3 write before the Lambda times out.
+            _ex.shutdown(wait=False)
 
 
 def _anthropic_call(system, user: str, max_tokens: int = 6000, use_cache: bool = True) -> str:
-    """Retained callable name cannot bypass the standing no-paid-AI policy."""
-    raise RuntimeError("paid_ai_disabled")
+    """Single-message call to Anthropic API with prompt caching.
+
+    system: either a plain str (legacy) or a list of typed content blocks
+            (when use_cache=True we convert str → list and mark for caching).
+    use_cache: when True, marks the system block with cache_control ttl=1h.
+               Falls back gracefully if total system tokens < cache threshold
+               (4096 for Haiku 4.5) — Anthropic just returns no-cache metadata.
+    """
+    if not ANTHROPIC_KEY:
+        raise RuntimeError("ANTHROPIC_API_KEY not set")
+
+    # Build system block — either pass-through string, or structured for caching
+    if use_cache:
+        # Wrap system text in a content block with cache_control breakpoint.
+        # ttl=1h fits the nightly prewarmer pattern (52 tickers in ~13 min wall time,
+        # all within one hour). The 2.0x write surcharge is paid once per hour,
+        # then all subsequent calls within the TTL pay only 0.10x = 90% off.
+        if isinstance(system, str):
+            system_blocks = [{
+                "type": "text",
+                "text": system,
+                "cache_control": {"type": "ephemeral", "ttl": "1h"},
+            }]
+        else:
+            system_blocks = system  # caller already provided structured blocks
+    else:
+        system_blocks = system  # legacy str passthrough
+
+    payload = json.dumps({
+        "model": MODEL,
+        "max_tokens": max_tokens,
+        "system": system_blocks,
+        "messages": [{"role": "user", "content": user}],
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages", data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-beta": "extended-cache-ttl-2025-04-11",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=CLAUDE_TIMEOUT) as r:
+        data = json.loads(r.read())
+    if not data.get("content"):
+        raise RuntimeError(f"Empty Claude response: {data}")
+
+    # Log cache telemetry — useful for verifying savings
+    usage = data.get("usage", {}) or {}
+    cache_create = usage.get("cache_creation_input_tokens", 0)
+    cache_read   = usage.get("cache_read_input_tokens", 0)
+    input_tokens = usage.get("input_tokens", 0)
+    output_tokens = usage.get("output_tokens", 0)
+    print(f"[claude] usage: input={input_tokens} cache_create={cache_create} "
+          f"cache_read={cache_read} output={output_tokens}")
+
+    text = "".join(b.get("text", "") for b in data["content"] if b.get("type") == "text").strip()
+    # Stash usage in a sidecar attribute for the caller to read (Python doesn't
+    # allow attaching to str literals; we'll return text and let caller call again
+    # for the usage if needed. For now, we just log it.)
+    return text
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -998,7 +1092,6 @@ def build_dilution(ticker, raw, income_annual, income_quarterly,
         sfd = json.loads(s3.get_object(
             Bucket=S3_BUCKET,
             Key="data/share-flows.json")["Body"].read())
-        sfd = __import__("capital_structure_context").decision_view(sfd)
         row = (sfd.get("tickers") or {}).get(ticker) or {}
         flags = row.get("flags") or row.get("forensic_flags")
     except Exception:
@@ -5626,7 +5719,7 @@ def lambda_handler(event, context):
     if not force_refresh:
         try:
             obj = s3.get_object(Bucket=S3_BUCKET, Key=cache_key)
-            cached = model_research_view(json.loads(obj["Body"].read()))
+            cached = json.loads(obj["Body"].read())
             cached["from_cache"] = True
             cached["cache_age_seconds"] = int(time.time() - _iso_to_epoch(cached.get("generated_at")))
             if (cached["cache_age_seconds"] < CACHE_TTL
@@ -6080,9 +6173,6 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "capital_structure_context": __import__("capital_structure_context").context(None),
-        "ai_policy": AI_PROVIDER_POLICY, "calls_eligible": False, "sizing_eligible": False,
-        "execution_eligible": False, "forecast_qualified": False,
         "schema_version": SCHEMA_CURRENT,  # v2.4: + classification/price_analytics/industry_growth (ops 5010)  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
@@ -6212,7 +6302,6 @@ def lambda_handler(event, context):
         except Exception:
             pass
 
-        document = model_research_view(document)
         body_bytes = json.dumps(document, default=str).encode("utf-8")
 
         s3.put_object(
@@ -6336,35 +6425,7 @@ def _iso_to_epoch(iso_str: Optional[str]) -> float:
         return 0
 
 
-def model_research_view(body):
-    """Retain unqualified model text while withholding current AI investment claims."""
-    if not isinstance(body, dict):
-        return body
-    result = dict(body)
-    replacement = dict.fromkeys(('business_mix_assessment', 'capital_allocation_assessment', 'catalysts_12m', 'competitive_position', 'devils_advocate', 'earnings_call_sentiment', 'earnings_track_record_assessment', 'executive_summary', 'financial_health_summary', 'forward_model', 'industry_comparison_assessment', 'institutional_activity_assessment', 'invalidation_triggers', 'investment_thesis', 'peer_comparison_assessment', 'relationships', 'risk_factors', 'scenarios', 'valuation_assessment', 'verdict'))
-    replacement["verdict"] = {"rating": "WAIT", "conviction_grade": None,
-        "price_target_12m": None, "upside_pct": None, "confidence_pct": None,
-        "forecast_qualified": False, "verdict_rationale": "Investment forecasts require qualified evidence and out-of-sample validation."}
-    replacement["executive_summary"] = "AI synthesis is unavailable under the no-paid-AI policy. Reported company data remains available; investment forecasts are unqualified."
-    previous = result.get("unqualified_model_output")
-    fields = previous.get("original_fields") if isinstance(previous, dict) else None
-    original = dict(fields) if isinstance(fields, dict) else {}
-    replacement["catalysts_12m"] = []
-    replacement["invalidation_triggers"] = []
-    for key, value in replacement.items():
-        if result.get(key) is not None and result.get(key) != value and key not in original:
-            original[key] = result[key]
-        result[key] = value
-    result["unqualified_model_output"] = {"status": "unqualified", "original_fields": original,
-        "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False}
-    result.update(ai_policy="no_paid_ai", model_output_guard="equity-model-output.v1",
-        calls_eligible=False, sizing_eligible=False, execution_eligible=False, forecast_qualified=False)
-    result["capital_structure_context"] = __import__("capital_structure_context").context(None)
-    return result
-
-
 def _http_ok(body: dict) -> dict:
-    body = model_research_view(body)
     return {
         "statusCode": 200,
         "headers": {

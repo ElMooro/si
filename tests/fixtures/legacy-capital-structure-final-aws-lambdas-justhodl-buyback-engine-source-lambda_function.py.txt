@@ -301,8 +301,7 @@ def lambda_handler(event=None, context=None):
     bo_agg = (_read("data/earnings-blackout.json") or {}).get("now") or {}
 
     # ── share-flows join: P/E + insider $ from the sibling desk, composed
-    capital = __import__("capital_structure_context").decision_view(_read("data/share-flows.json"))
-    sfl = capital["tickers"]
+    sfl = (_read("data/share-flows.json") or {}).get("tickers") or {}
 
     def blackout_fields(t):
         d0 = next_earn.get(t)
@@ -395,9 +394,6 @@ def lambda_handler(event=None, context=None):
         return r[:n]
 
     out = {
-        "capital_structure_context": capital["research_context"],
-        "input_eligibility": {"share_flows_pe_and_insider_join": False},
-        "calls_eligible": False, "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False,
         "engine": "buyback-engine", "version": "1.1.0",
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "thesis": ("Unified buyback intelligence: fresh authorizations (catalyst) + actual execution "

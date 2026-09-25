@@ -1,0 +1,36 @@
+{
+  "contract": "capital-structure-final-consumer-migration.v1",
+  "native_predecessor_report": "aws/ops/reports/latest/ops_6100_capital_structure_final_predecessors.md",
+  "files": [
+    {
+      "target": "aws/lambdas/justhodl-buyback-engine/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-final-aws-lambdas-justhodl-buyback-engine-source-lambda_function.py.txt",
+      "bytes": 21166,
+      "sha256": "8b61eabe0afdc6d4fec94fbe007c8f27c26f42418c506d2fc12d9f0bf74b020b"
+    },
+    {
+      "target": "aws/lambdas/justhodl-equity-research/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-final-aws-lambdas-justhodl-equity-research-source-lambda_function.py.txt",
+      "bytes": 306438,
+      "sha256": "6e73c317c1d9dd23577cf6288b3626c3b77a2a7ec941db88f3f62ad103b7a80d"
+    },
+    {
+      "target": "aws/lambdas/justhodl-buyback-engine/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-final-aws-lambdas-justhodl-buyback-engine-config.json.txt",
+      "bytes": 579,
+      "sha256": "75329942f5114ab8028d52b883dcd2def7502c523c5c80d4e5907417db6738cd"
+    },
+    {
+      "target": "aws/lambdas/justhodl-equity-research/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-final-aws-lambdas-justhodl-equity-research-config.json.txt",
+      "bytes": 765,
+      "sha256": "24611f714845fa77f1d976b587399b956dc395db43493f7b4e0411096fa837cc"
+    },
+    {
+      "target": "aws/lambdas/justhodl-equity-research/tests/run_tests.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-final-aws-lambdas-justhodl-equity-research-tests-run_tests.py.txt",
+      "bytes": 430,
+      "sha256": "96c2bc2a6a2f72a6581c22090a0dd9d503e60f9657e95d65ec128e37458c6c51"
+    }
+  ]
+}

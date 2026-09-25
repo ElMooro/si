@@ -9,11 +9,17 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Company research data with deterministic abstention. No paid AI calls or unqualified Share Flows flags. Existing runtime and URL configuration preserved.",
+  "description": "Institutional equity research desk. On-demand: GET ?ticker=XYZ returns full research paper. Fetches 20yr FMP fundamentals in parallel + Claude synthesis. 24h S3 cache.",
   "environment_keys": [
+    "ANTHROPIC_API_KEY",
     "FMP_KEY"
   ],
-  "inherit_env": false,
+  "inherit_env": {
+    "from_function": "justhodl-ai-chat",
+    "keys": [
+      "ANTHROPIC_API_KEY"
+    ]
+  },
   "function_url": {
     "enabled": true,
     "auth_type": "NONE",
