@@ -45,6 +45,10 @@ def day(value):
     if not isinstance(value,str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',value):raise ValueError('ISO observation date required')
     date.fromisoformat(value);return value
 
+def issue_name(value):
+    if not isinstance(value,str) or not value.strip() or len(value)>500:raise ValueError('Reported issue name required')
+    return value
+
 def cnms(raw,observation_date):
     stamp=day(observation_date).replace('-','');lines=raw.decode('utf-8-sig').splitlines()
     if len(lines)<2 or tuple(lines[0].split('|'))!=CNMS_FIELDS:raise ValueError('Complete CNMS header required')
@@ -75,14 +79,14 @@ def weekly(raw,code,week,tier):
         if not isinstance(row,dict):raise ValueError('Weekly object row required')
         if (row.get('summaryTypeCode'),row.get('weekStartDate'),row.get('summaryStartDate'),row.get('tierIdentifier'))!=(code,week,week,tier):raise ValueError('Weekly partition or grain differs')
         if row.get('MPID') is not None or row.get('firmCRDNumber') is not None:raise ValueError('Symbol summary cannot include a firm dimension')
-        name=symbol(row.get('issueSymbolIdentifier'))
-        if name in seen:raise ValueError('Duplicate weekly symbol/partition')
-        seen.add(name);shares=scalar(row.get('totalWeeklyShareQuantity'));trades=scalar(row.get('totalWeeklyTradeCount'),integer=True)
+        name=symbol(row.get('issueSymbolIdentifier'));issue=issue_name(row.get('issueName'));key=(name,issue)
+        if key in seen:raise ValueError('Duplicate weekly reported issue/partition')
+        seen.add(key);shares=scalar(row.get('totalWeeklyShareQuantity'));trades=scalar(row.get('totalWeeklyTradeCount'),integer=True)
         if trades==0 and shares!=0:raise ValueError('Shares without reported trades')
         clocks={key:day(row.get(key)) for key in ('initialPublishedDate','lastUpdateDate','lastReportedDate')}
         if clocks['initialPublishedDate']<week or clocks['lastUpdateDate']<clocks['initialPublishedDate']:raise ValueError('Weekly publication chronology differs')
         source_fields={key:number(value) if isinstance(value,Decimal) else value for key,value in row.items()}
-        rows.append({'symbol':name,'week_start':week,'tier':tier,'leg':WEEKLY_CODES[code],'source_row':index,
+        rows.append({'symbol':name,'reported_issue_name':issue,'week_start':week,'tier':tier,'leg':WEEKLY_CODES[code],'source_row':index,
             'shares':number(shares),'trades':number(trades),'average_shares_per_reported_trade':ratio(shares,trades),
             **clocks,'source_fields':source_fields})
     return rows
@@ -111,15 +115,15 @@ def join_weekly(legs):
     """Null missing legs; preserve both exact source references and clocks."""
     groups={}
     for row in legs:
-        key=(row['symbol'],row['week_start'],row['tier']);group=groups.setdefault(key,{})
+        key=(row['symbol'],row['reported_issue_name'],row['week_start'],row['tier']);group=groups.setdefault(key,{})
         if row['leg'] not in ('ats','non_ats') or row['leg'] in group:raise ValueError('Duplicate or invalid weekly leg')
         group[row['leg']]=row
     result=[]
     with localcontext() as ctx:
         ctx.prec=64
-        for (name,week,tier),group in sorted(groups.items()):
+        for (name,issue,week,tier),group in sorted(groups.items()):
             a=group.get('ats');b=group.get('non_ats');total=scalar(a['shares'])+scalar(b['shares']) if a and b else None
-            result.append({'symbol':name,'week_start':week,'tier':tier,'ats':a,'non_ats':b,
+            result.append({'symbol':name,'reported_issue_name':issue,'security_master_identity_verified':False,'week_start':week,'tier':tier,'ats':a,'non_ats':b,
                 'reported_offexchange_shares':number(total) if total is not None else None,
                 'ats_pct_of_reported_offexchange':ratio(scalar(a['shares']),total,100) if total is not None else None,
                 'missing_reason':'missing_ats_leg' if not a else 'missing_non_ats_leg' if not b else 'zero_reported_volume' if total==0 else None,
@@ -135,7 +139,7 @@ def monthly(raw,month,tier='NMS'):
     rows=[];seen=set()
     for index,row in enumerate(doc):
         if not isinstance(row,dict) or (row.get('summaryTypeCode'),row.get('monthStartDate'),row.get('summaryStartDate'),row.get('tierIdentifier'))!=('OTC_M_SMBL_FIRM',month,month,tier):raise ValueError('Monthly period or grain differs')
-        name=symbol(row.get('issueSymbolIdentifier'));crd=number(scalar(row.get('firmCRDNumber'),integer=True));key=(name,crd)
+        name=symbol(row.get('issueSymbolIdentifier'));issue=issue_name(row.get('issueName'));crd=number(scalar(row.get('firmCRDNumber'),integer=True));key=(name,issue,crd)
         if key in seen:raise ValueError('Duplicate monthly symbol/firm')
         seen.add(key);shares=scalar(row.get('totalMonthlyShareQuantity'));trades=scalar(row.get('totalMonthlyTradeCount'),integer=True)
         if trades==0 and shares!=0:raise ValueError('Monthly shares without trades')
@@ -144,7 +148,7 @@ def monthly(raw,month,tier='NMS'):
         if (crd=='0')!=('de minimis' in firm.lower()):raise ValueError('Undisclosed reporting-firm bucket identity differs')
         clocks={key:day(row.get(key)) for key in ('initialPublishedDate','lastUpdateDate','lastReportedDate')}
         if clocks['initialPublishedDate']<month or clocks['lastUpdateDate']<clocks['initialPublishedDate']:raise ValueError('Monthly publication chronology differs')
-        rows.append({'symbol':name,'month_start':month,'tier':tier,'firm_crd':crd,'reporting_firm':firm,
+        rows.append({'symbol':name,'reported_issue_name':issue,'month_start':month,'tier':tier,'firm_crd':crd,'reporting_firm':firm,
             'firm_identity_kind':'aggregated_de_minimis_firms' if crd=='0' else 'named_reporting_firm',
             'shares':number(shares),'trades':number(trades),'average_shares_per_reported_trade':ratio(shares,trades),
             'source_row':index,**clocks,'source_fields':{key:number(value) if isinstance(value,Decimal) else value for key,value in row.items()}})
@@ -159,18 +163,18 @@ it as one firm produces only an upper bound; it is never silently ranked as one.
     if records_reconciled is not True:raise ValueError('Complete declared monthly partition required')
     groups={}
     for row in rows:
-        key=(row['symbol'],row['month_start'],row['tier']);group=groups.setdefault(key,{})
+        key=(row['symbol'],row['reported_issue_name'],row['month_start'],row['tier']);group=groups.setdefault(key,{})
         if row['firm_crd'] in group:raise ValueError('Duplicate monthly firm across pages')
         group[row['firm_crd']]=row
     result=[]
     with localcontext() as ctx:
         ctx.prec=64
-        for (name,month,tier),firms in sorted(groups.items()):
+        for (name,issue,month,tier),firms in sorted(groups.items()):
             total=sum((scalar(row['shares']) for row in firms.values()),Decimal(0))
             named=[row for crd,row in firms.items() if crd!='0'];named.sort(key=lambda row:(-scalar(row['shares']),row['firm_crd']))
             unknown=scalar(firms['0']['shares']) if '0' in firms else Decimal(0)
             numerator=sum((scalar(row['shares'])**2 for row in named),Decimal(0));denominator=total**2
-            result.append({'symbol':name,'month_start':month,'tier':tier,'reported_non_ats_shares':number(total),
+            result.append({'symbol':name,'reported_issue_name':issue,'security_master_identity_verified':False,'month_start':month,'tier':tier,'reported_non_ats_shares':number(total),
                 'named_reporting_firms':len(named),'de_minimis_bucket_present':'0' in firms,
                 'de_minimis_shares':number(unknown),'de_minimis_pct':ratio(unknown,total,100),
                 'reported_activity_hhi_lower_bound':ratio(numerator,denominator,10000),

@@ -9,7 +9,7 @@ class Tests(unittest.TestCase):
         return ('|'.join(model.CNMS_FIELDS)+'\r\n'+line+'\r\n'+trailer+'\r\n').encode()
     def row(self,code='ATS_W_SMBL'):
         return {'summaryTypeCode':code,'weekStartDate':'2026-08-31','summaryStartDate':'2026-08-31','tierIdentifier':'T1',
-            'issueSymbolIdentifier':'AAPL','MPID':None,'firmCRDNumber':None,'totalWeeklyShareQuantity':'10.123456',
+            'issueSymbolIdentifier':'AAPL','issueName':'Apple Inc.','MPID':None,'firmCRDNumber':None,'totalWeeklyShareQuantity':'10.123456',
             'totalWeeklyTradeCount':2,'initialPublishedDate':'2026-09-14','lastUpdateDate':'2026-09-21','lastReportedDate':'2026-09-04'}
     def parsed(self,row):return model.weekly(json.dumps([row]).encode(),row['summaryTypeCode'],row['weekStartDate'],row['tierIdentifier'])[0]
     def test_fractional_shares_are_exact_and_exempt_is_not_added_twice(self):
@@ -60,7 +60,7 @@ class Tests(unittest.TestCase):
         self.assertTrue(row['reported_end_reached']);self.assertFalse(row['page_count_header_present']);self.assertEqual(row['rows'],2)
     def monthrow(self,crd=42,name='Named Firm',shares='60'):
         return {'summaryTypeCode':'OTC_M_SMBL_FIRM','monthStartDate':'2026-06-01','summaryStartDate':'2026-06-01','tierIdentifier':'NMS',
-            'issueSymbolIdentifier':'AAPL','firmCRDNumber':crd,'marketParticipantName':name,'totalMonthlyShareQuantity':shares,
+            'issueSymbolIdentifier':'AAPL','issueName':'Apple Inc.','firmCRDNumber':crd,'marketParticipantName':name,'totalMonthlyShareQuantity':shares,
             'totalMonthlyTradeCount':10,'initialPublishedDate':'2026-08-03','lastUpdateDate':'2026-08-28','lastReportedDate':'2026-06-30'}
     def test_monthly_firm_grain_keeps_zero_crd_as_an_undisclosed_aggregate(self):
         raw=json.dumps([self.monthrow(),self.monthrow(0,'De Minimis Firms','40')]).encode();rows=model.monthly(raw,'2026-06-01')
@@ -81,4 +81,12 @@ class Tests(unittest.TestCase):
         rows=model.monthly(json.dumps([self.monthrow(42,'Firm A','50'),self.monthrow(45,'Firm B','50')]).encode(),'2026-06-01')
         out=model.concentration(rows,records_reconciled=True)[0]
         self.assertEqual(out['reported_activity_hhi_lower_bound'],'5000.000000000000');self.assertEqual(out['reported_activity_hhi_lower_bound'],out['reported_activity_hhi_upper_bound'])
+    def test_same_ticker_with_different_reported_issue_names_never_combines(self):
+        first=self.monthrow(0,'De Minimis Firms','10');first.update(issueSymbolIdentifier='NVA',issueName='Nova Minerals Limited American Depositary Shares')
+        second={**first,'issueName':'Nova Minerals Corp','totalMonthlyShareQuantity':'20'}
+        rows=model.monthly(json.dumps([first,second]).encode(),'2026-06-01');result=model.concentration(rows,records_reconciled=True)
+        self.assertEqual(len(result),2);self.assertEqual(sorted(row['reported_non_ats_shares'] for row in result),['10','20'])
+        self.assertTrue(all(row['security_master_identity_verified'] is False for row in result))
+        a=self.parsed(self.row());b=self.parsed({**self.row('OTC_W_SMBL'),'issueName':'Other reported issue'})
+        joined=model.join_weekly([a,b]);self.assertEqual(len(joined),2);self.assertTrue(all(row['reported_offexchange_shares'] is None for row in joined))
 if __name__=='__main__':unittest.main(verbosity=2)
