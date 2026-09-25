@@ -106,8 +106,8 @@ def rows(body, url, cutoff):
         day = date.fromisoformat(stamp[:4] + '-' + stamp[4:6] + '-' + stamp[6:])
         if day > cutoff:
             raise ValueError(f'Future settlement at line {line_number}')
-        if day.year != year or day.month != month or ('a' if day.day <= 15 else 'b') != half:
-            raise ValueError(f'Settlement outside advertised archive at line {line_number}')
+        if day.year != year or day.month != month:
+            raise ValueError(f'Settlement outside advertised month at line {line_number}')
         if not re.fullmatch(r'[A-Z0-9*@#]{9}', cusip) or not symbol or len(symbol) > 10 or not description:
             raise ValueError(f'Invalid exact reported identity at line {line_number}')
         if not re.fullmatch(r'\d+', quantity):
@@ -141,6 +141,10 @@ def inventory(raw, url, cutoff):
         symbols[row['symbol']].add(row['cusip'])
         cusips[row['cusip']].add((row['symbol'], row['description']))
     return {'member': member, 'rows': len(records), 'settlements': dict(sorted(dates.items())),
+            'archive_scope': {'year': archive_period(url)[0], 'month': archive_period(url)[1],
+                              'reported_file_label': archive_period(url)[2],
+                              'first_reported_settlement': min(dates), 'last_reported_settlement': max(dates),
+                              'fixed_half_month_day_boundary_assumed': False},
             'control_totals': {**controls, 'record_count_matches': True, 'quantity_checksum_matches': True},
             'cusips': len(cusips), 'symbols': len(symbols),
             'symbols_with_multiple_cusips': sum(len(v) > 1 for v in symbols.values()),

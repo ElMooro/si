@@ -3,7 +3,7 @@ from unittest.mock import Mock, MagicMock, patch
 import copy, sys, time, unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / p) for p in ('aws/ops/checks', 'aws/ops/staged', 'tests')]
-import ops_6062_sec_advertised_archive_history as audit
+import ops_6064_sec_reported_settlement_history as audit
 from test_sec_ftd_source_baseline import zipped, TEXT
 from test_option_flow_store import S3
 STAMP = '2026-09-25T07:00:00+00:00'
@@ -30,6 +30,19 @@ def fixture():
                 'runtime': {'receipt': {'status': 'matched', 'commit': 'fixture'}},
                 'bindings': {'schedules': [], 'classic_default_bus_rules': []}}
     return s3, baseline, urls
+
+
+def seed_prior(client, baseline, baseline_ref, urls):
+    body = TEXT.replace(b'20260817', b'20260715').replace(b'20260818', b'20260716')
+    capture = {'url': urls[2], 'requested_at': STAMP, 'received_at': STAMP, 'http_status': 200,
+               'status': 'response_retained', 'headers': {},
+               'original': audit.base.retain(client, zipped(body, name='cnsfails202607b.txt'))}
+    campaign = {'request_id': audit.predecessor.REQUEST, 'status': 'failed', 'baseline': baseline_ref,
+                'captures': {url: baseline['captures'][str(i+1)] for i, url in enumerate(urls[:2])}}
+    request = {'request_id': audit.predecessor.REQUEST, 'status': 'failed', 'capture': capture}
+    client.data[audit.predecessor.key('campaign')] = audit.raw.encoded(campaign)
+    client.data[audit.predecessor.key('source:' + urls[2])] = audit.raw.encoded(request)
+    return capture['original']
 
 
 class Tests(unittest.TestCase):
@@ -90,13 +103,32 @@ class Tests(unittest.TestCase):
             audit.fetch(client, urls[2], time.monotonic() + 20, capture)
         self.assertEqual(len(calls), 1)
 
+    def test_valid_http_with_bad_schema_is_retained_for_aggregate_validation_not_recollected(self):
+        client, baseline, urls = fixture()
+        calls = []
+        def capture(s3, url):
+            calls.append(url)
+            return {'url': url, 'received_at': STAMP, 'http_status': 200, 'status': 'response_retained',
+                    'original': audit.base.retain(s3, zipped(TEXT.replace(b'count 3', b'count 2')))}
+        result = audit.fetch(client, urls[0], time.monotonic() + 20, capture)
+        self.assertEqual(result['source_validation']['status'], 'failed')
+        self.assertNotIn('inventory', result)
+        state = audit.raw.strict(client.data[audit.key('source:' + urls[0])])
+        self.assertEqual(state['status'], 'validation_failed')
+        self.assertEqual(audit.base.checked(client, result['original']), zipped(TEXT.replace(b'count 3', b'count 2')))
+        with self.assertRaises(Exception):
+            audit.fetch(client, urls[0], time.monotonic() + 20, capture)
+        self.assertEqual(len(calls), 1)
+
     def test_campaign_failure_never_invokes_a_producer_and_cannot_recollect(self):
         client, baseline, urls = fixture()
         baseline_ref = audit.base.retain(client, audit.raw.encoded(baseline))
         client.data[audit.base.STATUS] = audit.raw.encoded({'status': 'complete', 'manifest': baseline_ref})
+        adopted = seed_prior(client, baseline, baseline_ref, urls)
         lam = Mock()
         lam.get_function_configuration.return_value = {'FunctionArn': 'arn:native'}
-        with patch.object(audit.boto3, 'client', side_effect=lambda name, **kw: client if name == 's3' else lam), \
+        with patch.object(audit, 'JULY_ORIGINAL', adopted), \
+             patch.object(audit.boto3, 'client', side_effect=lambda name, **kw: client if name == 's3' else lam), \
              patch.object(audit, 'runtime', return_value=baseline['runtime']), \
              patch.object(audit.base, 'bindings', return_value=baseline['bindings']), \
              patch.object(audit, 'fetch', side_effect=RuntimeError('transport unavailable')) as fetch, \
@@ -111,10 +143,11 @@ class Tests(unittest.TestCase):
         self.assertNotIn(audit.base.CURRENT, client.data)
         lam.invoke.assert_not_called()
 
-    def test_complete_history_reuses_two_and_fetches_only_ten_exact_advertised_urls(self):
+    def test_complete_history_reuses_three_and_fetches_only_nine_exact_advertised_urls(self):
         client, baseline, urls = fixture()
         ref = audit.base.retain(client, audit.raw.encoded(baseline))
         client.data[audit.base.STATUS] = audit.raw.encoded({'status': 'complete', 'manifest': ref})
+        adopted = seed_prior(client, baseline, ref, urls)
         lam, requested = Mock(), []
         lam.get_function_configuration.return_value = {'FunctionArn': 'arn:native'}
         def capture(s3, url):
@@ -125,7 +158,8 @@ class Tests(unittest.TestCase):
             return {'url': url, 'requested_at': STAMP, 'received_at': STAMP, 'http_status': 200,
                     'status': 'response_retained', 'headers': {}, 'original': audit.base.retain(s3, zipped(body))}
         fetch = audit.fetch
-        with patch.object(audit.boto3, 'client', side_effect=lambda name, **kw: client if name == 's3' else lam), \
+        with patch.object(audit, 'JULY_ORIGINAL', adopted), \
+             patch.object(audit.boto3, 'client', side_effect=lambda name, **kw: client if name == 's3' else lam), \
              patch.object(audit, 'runtime', return_value=baseline['runtime']), \
              patch.object(audit.base, 'bindings', return_value=baseline['bindings']), \
              patch.object(audit, 'fetch', side_effect=lambda s3, url, deadline: fetch(s3, url, deadline, capture)), \
@@ -133,14 +167,37 @@ class Tests(unittest.TestCase):
              patch.object(audit, 'report', return_value=MagicMock()):
             audit.main()
             audit.main()
-        self.assertEqual(requested, urls[2:])
-        self.assertIn('/data/other/', requested[4])
+        self.assertEqual(requested, urls[3:])
+        self.assertIn('/data/other/', requested[3])
         state = audit.raw.strict(client.data[audit.key('campaign')])
         manifest = audit.raw.strict(audit.base.checked(client, state['manifest']))
         self.assertEqual(manifest['selected_archives'], urls)
         self.assertEqual(len(manifest['captures']), 12)
+        self.assertEqual(manifest['cross_archive_inventory']['unique_reported_date_cusips'], 36)
+        self.assertEqual(manifest['cross_archive_inventory']['conflicting_cross_archive_records'], 0)
         self.assertTrue(all(v['inventory']['control_totals']['quantity_checksum_matches'] for v in manifest['captures'].values()))
         lam.invoke.assert_not_called()
+
+    def test_overlapping_archives_keep_conflicting_and_identical_rows_visible(self):
+        client, _, urls = fixture()
+        first, second = urls[:2]
+        a = TEXT.replace(b'20260817', b'20260815').replace(b'20260818', b'20260815')
+        # Keep each date/CUSIP unique within one archive.
+        a = a.replace(b'20260815|001234567|ABC.A', b'20260816|001234567|ABC.A')
+        b = a.replace(b'|123|', b'|124|').replace(b'shares 275', b'shares 276')
+        captures = {}
+        for url, body in ((first, a), (second, b)):
+            packed = zipped(body)
+            captures[url] = {'url': url, 'http_status': 200, 'status': 'response_retained', 'received_at': STAMP,
+                             'original': audit.base.retain(client, packed),
+                             'inventory': audit.sec.inventory(packed, url, STAMP[:10])}
+        result = audit.cross_archive_inventory(client, captures, [first, second])
+        self.assertEqual(result['unique_reported_date_cusips'], 3)
+        self.assertEqual(result['conflicting_cross_archive_records'], 1)
+        self.assertEqual(result['identical_cross_archive_repetitions'], 2)
+        self.assertEqual(result['conflict_examples'][0]['cusip'], '001234567')
+        self.assertFalse(result['conflicting_records_silently_overwritten'])
+        self.assertFalse(result['source_rows_discarded'])
 
 
 if __name__ == '__main__':

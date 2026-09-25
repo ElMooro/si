@@ -95,11 +95,19 @@ class Tests(unittest.TestCase):
             sec.inventory(zipped(), URL, '2026-08-17')
 
     def test_invalid_rows_and_unadvertised_settlements_fail_without_partial_inventory(self):
-        for body in (TEXT.replace(b'QUANTITY (FAILS)', b'VOLUME'), TEXT.replace(b'20260817', b'20260801'),
+        for body in (TEXT.replace(b'QUANTITY (FAILS)', b'VOLUME'), TEXT.replace(b'20260817', b'20260731'),
                      TEXT.replace(b'|123|', b'|NaN|'), TEXT.replace(b'|123|', b'|-1|'), TEXT.replace(b'|12.3456', b'|inf'),
                      TEXT + b'truncated|record\n', TEXT.splitlines()[0] + b'\n'):
             with self.assertRaises(ValueError):
                 sec.inventory(zipped(body), URL, '2026-09-25')
+
+    def test_reported_day_fifteen_is_preserved_without_an_invented_half_month_cutoff(self):
+        body = TEXT.replace(b'20260817', b'20260715').replace(b'20260818', b'20260716')
+        value = sec.inventory(zipped(body), URL.replace('202608', '202607'), '2026-09-25')
+        self.assertEqual(value['settlements'], {'2026-07-15': 1, '2026-07-16': 2})
+        self.assertEqual(value['rows'], 3)
+        self.assertFalse(value['archive_scope']['fixed_half_month_day_boundary_assumed'])
+        self.assertTrue(value['control_totals']['quantity_checksum_matches'])
 
     def test_zip_integrity_member_count_and_path_are_checked_without_extraction(self):
         for data in (zipped(name='../escape.txt'), zipped(extra=('extra.txt', b'x')), zipped()[:-30]):
