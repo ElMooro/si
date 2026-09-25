@@ -12,6 +12,9 @@ test("chart keeps the engine cache token and paints campaign marks", () => {
   assert.match(html, /jh-chart-engine\.js\?v=20260922ab-cqind/);
   assert.match(html, /jh-chart-campaign-marks\.js/);
   assert.match(eng, /jhCampaignMarks\(display, active, tf, kind\)/);
+  assert.match(eng, /jhCampToggle\("accum"\)/);
+  assert.match(eng, /jhCampToggle\("bottom"\)/);
+  assert.doesNotMatch(eng, /bbot\.onclick=function\(\)\{ if\(window\.jhOpenWorkspace\) window\.jhOpenWorkspace\("bottom"\)/);
   assert.match(eng, /CLIMAX:14,ACCUM:15,BOTTOM:16/);
   const iAcc = eng.indexOf("id=btn-acc");
   const iBot = eng.indexOf("id=btn-bot");
@@ -40,6 +43,10 @@ test("climax, bottom, and accumulation land on the daily chart, not on intraday 
       { kind: "eoa", time: d[70].time, i: 70, score: 1 }
     ];
   };
+  const off = ctx.jhCampaignMarks(d, "SPY", "1d", "candles");
+  assert.equal(off.length, 0);
+  ctx.__jhCampLayer.bottom = 1;
+  ctx.__jhCampLayer.accum = 1;
   const mk = ctx.jhCampaignMarks(d, "SPY", "1d", "candles");
   assert.ok(mk.some(function (m) { return m.text === "CLIMAX" && m.time === d[40].time; }));
   assert.ok(!mk.some(function (m) { return m.text === "CLIMAX" && m.time === d[50].time; }));
