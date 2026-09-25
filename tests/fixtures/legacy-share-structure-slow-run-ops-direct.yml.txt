@@ -16,9 +16,7 @@ concurrency:
 jobs:
   direct:
     runs-on: ubuntu-latest
-    # Only the three unstarted full source batches need the slower 0.5/sec budget.
-    # Fixed exact paths; all other ops retain their existing one-hour bound.
-    timeout-minutes: ${{ contains(fromJSON('["staged/ops_6086_share_structure_sources_part_4.py","staged/ops_6087_share_structure_sources_part_5.py","staged/ops_6088_share_structure_sources_part_6.py"]'), inputs.script) && 90 || 60 }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:

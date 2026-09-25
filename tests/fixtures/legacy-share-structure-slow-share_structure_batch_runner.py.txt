@@ -39,17 +39,10 @@ def accepted_batch_report(part,state):
     return 'ops_'+str(6082+part)+'_share_structure_sources_part_'+str(part)+'.md'
 
 
-def collection_limits(part):
-    if type(part) is not int or not 1<=part<=6:
-        raise ValueError('Reviewed source-batch index required')
-    return (2.0,5100) if part>=4 else (1.0,3300)
-
-
-def limited_transport(interval=1.0):
+def limited_transport():
     # Keep the frozen source plan/collector intact, while lowering its maximum
     # request frequency. This uses the same credential, host and source URLs.
-    if interval not in (1.0,2.0):raise ValueError('Reviewed request-start interval required')
-    rate=source.Rate(interval=interval)
+    rate=source.Rate(interval=1.0)
     opener=urllib.request.build_opener(source.NoRedirect())
     def open_one(request,timeout):
         rate.acquire()
@@ -139,9 +132,8 @@ def main(part,recovery=False):
         credential=env.get('FMP_API_KEY') or env.get('FMP_KEY')
         if not credential:credential=boto3.client('ssm',region_name='us-east-1').get_parameter(Name='/justhodl/fmp/api-key',WithDecryption=True)['Parameter']['Value']
         request_id=RECOVERY if recovery else PARENT
-        interval,budget=collection_limits(part)
         ref,executed=campaign.run_batch(s3,request_id,plan_ref,part,credential,baseline.now,adoption,
-            remaining_seconds=budget,transport=limited_transport(interval))
+            remaining_seconds=3300,transport=limited_transport())
         batch=json.loads(source.read(s3,ref))
         protected={PLAN_STATUS,source.request_key(request_id,'batch:'+str(part)),plan_ref['key'],ref['key'],
             probe.BASELINE['key'],PROBE['key'],probe.ACCOUNTING['key']}
@@ -176,8 +168,7 @@ def main(part,recovery=False):
         commit=subprocess.check_output(['git','log','-1','--format=%H','--','aws/ops/checks/share_structure_batch_runner.py'],cwd=ROOT,text=True).strip()
         r.kv(source_commit=commit,plan=plan_ref,part=part,batch_manifest=ref,counts=batch['counts'],
             recovery_request_id=RECOVERY if recovery else None,recovered_failed_batch=FAILED_BATCH if recovery else None,
-            effective_max_provider_requests_per_second=1.0/interval,collection_budget_seconds=budget,
-            original_failed_report_preserved=True,
+            effective_max_provider_requests_per_second=1.0,original_failed_report_preserved=True,
             source_examples=examples,
             protected_artifacts_checked=len(protected),original_sources_reparsed=True,
             provider_requests_this_run=batch['counts']['provider_requests'] if executed else 0,

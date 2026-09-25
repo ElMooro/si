@@ -1,0 +1,17 @@
+{
+  "contract": "share-structure-slow-collection.v1",
+  "files": [
+    {
+      "target": ".github/workflows/run-ops-direct.yml",
+      "predecessor": "tests/fixtures/legacy-share-structure-slow-run-ops-direct.yml.txt",
+      "bytes": 2664,
+      "sha256": "84fbadd2626ab275d84a3fa5ca11725f722bba6ec6e5924df985350a8a4e0865"
+    },
+    {
+      "target": "aws/ops/checks/share_structure_batch_runner.py",
+      "predecessor": "tests/fixtures/legacy-share-structure-slow-share_structure_batch_runner.py.txt",
+      "bytes": 12220,
+      "sha256": "95b07e03831861e7e22adca6ee9e80e4eaea2123b1accb7a9e034668e0b121ba"
+    }
+  ]
+}
