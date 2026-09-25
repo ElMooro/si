@@ -3,7 +3,6 @@
 Whole predecessor ZIPs, exact release commits, actual package bytes, unchanged
 runtime/schedules and public-packet status. A stale public consumer packet is
 reported honestly; this operation never refreshes signals or notifications.
-The source commit includes the repaired real-cache privacy regression harness.
 """
 from pathlib import Path
 import ast,base64,hashlib,io,json,subprocess,sys,urllib.request,zipfile

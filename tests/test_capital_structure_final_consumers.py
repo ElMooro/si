@@ -8,10 +8,11 @@ from test_capital_structure_consumers import functions,tree,LEGACY
 
 class Tests(unittest.TestCase):
     def test_whole_predecessor_sources_configs_and_tests_remain_exact(self):
-        record=json.loads((ROOT/'tests/fixtures/capital-structure-final-consumer-migration.json').read_bytes())
-        for entry in record['files']:
-            raw=(ROOT/entry['predecessor']).read_bytes()
-            self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(entry['bytes'],entry['sha256']))
+        for name in ('capital-structure-final-consumer-migration','final-consumer-preflight-repair'):
+            record=json.loads((ROOT/('tests/fixtures/'+name+'.json')).read_bytes())
+            for entry in record['files']:
+                raw=(ROOT/entry['predecessor']).read_bytes()
+                self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(entry['bytes'],entry['sha256']))
 
     def test_equity_paid_provider_boundaries_work_without_credentials_sdk_or_network(self):
         scope=functions('justhodl-equity-research',{'claude_call','_anthropic_call'},{'json':json})

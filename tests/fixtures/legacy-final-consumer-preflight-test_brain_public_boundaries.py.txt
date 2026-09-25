@@ -232,23 +232,17 @@ class PublicBoundaryTests(unittest.TestCase):
         wrapper.body = [cache_branch]
         for internal in (False, True):
             doc = {"schema_version": "fixture", "generated_at": NOW,
-                   "verdict": {"rating": "BUY", "price_target_12m": 999},
                    "khalid_notes": {"n_notes": 3, "latest_note": MARKER, "note_ids": ["n1"]}}
             s3 = S3({"equity-research/NVDA.json": doc})
             env = {"s3": s3, "force_refresh": False, "cache_key": "equity-research/NVDA.json", "S3_BUCKET": "bucket",
                    "ticker": "NVDA", "is_internal_async": internal, "json": json, "time": time,
                    "_iso_to_epoch": lambda _: time.time() - 100, "CACHE_TTL": 3600, "SCHEMA_CURRENT": "fixture", "_http_ok": lambda d: d}
             function("equity-research", "public_notes_block", env)
-            function("equity-research", "model_research_view", env)
             exec(compile(ast.fix_missing_locations(ast.Module(body=[wrapper], type_ignores=[])), "cache-boundary", "exec"), env)
             result = env["cache_only"]()
             self.assert_public(result)
             self.assert_public(s3.writes["equity-research/NVDA.json"])
             self.assertEqual(s3.writes["equity-research/NVDA.json"]["khalid_notes"]["note_ids"], ["n1"])
-            saved = s3.writes["equity-research/NVDA.json"]
-            self.assertEqual(saved["verdict"]["rating"], "WAIT")
-            self.assertIsNone(saved["verdict"]["price_target_12m"])
-            self.assertEqual(saved["unqualified_model_output"]["original_fields"]["verdict"]["price_target_12m"], 999)
 
     def test_provider_search_never_indexes_cached_private_note_snippets(self):
         fn = function("provider-catalog", "_tradingview_live_search_rows", {})
