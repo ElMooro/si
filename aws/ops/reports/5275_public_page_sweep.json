@@ -1,11 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "b23b82b3153feee3c986fdcbf2850adad821c5c0",
-  "observed_at": "2026-09-25T13:42:49.450884+00:00",
+  "observed_at": "2026-09-25T13:52:42.322093+00:00",
   "ok": false,
   "routes_checked": 558,
-  "verified_routes": 557,
+  "verified_routes": 556,
   "failed_routes": [
+    "bonds.html",
     "chart.html"
   ],
   "source_equivalent_builds": {
@@ -540,12 +541,12 @@
     },
     {
       "route": "bonds.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "b23b82b3153feee3c986fdcbf2850adad821c5c0",
-      "inspector_present": true,
-      "bytes_read": 122286,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "boom-board.html",
@@ -1714,7 +1715,7 @@
       "http_status": 200,
       "build_sha": "b23b82b3153feee3c986fdcbf2850adad821c5c0",
       "inspector_present": true,
-      "bytes_read": 878759,
+      "bytes_read": 878734,
       "product_source_matches_release": true
     },
     {
@@ -2929,7 +2930,7 @@
       "http_status": 200,
       "build_sha": "b23b82b3153feee3c986fdcbf2850adad821c5c0",
       "inspector_present": true,
-      "bytes_read": 24165,
+      "bytes_read": 24142,
       "product_source_matches_release": true
     },
     {
@@ -5040,7 +5041,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36142340192,
+  "deployment_run_id": 36143476928,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-25T13:42:49.453093+00:00"
+  "check_finished_at": "2026-09-25T13:52:42.324931+00:00"
 }
