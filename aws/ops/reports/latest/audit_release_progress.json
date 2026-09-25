@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-09-25T18:46:46.369934+00:00",
+  "observed_at": "2026-09-25T18:46:50.924680+00:00",
   "runs": [
     {
       "id": 36175365227,
@@ -162,10 +162,10 @@
         {
           "id": 108204596014,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-09-25T18:44:58Z",
-          "completed_at": null,
+          "completed_at": "2026-09-25T18:46:40Z",
           "steps": [
             {
               "number": 1,
@@ -330,36 +330,53 @@
             {
               "number": 21,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-25T18:46:37Z",
-              "completed_at": null
+              "completed_at": "2026-09-25T18:46:37Z"
             },
             {
               "number": 22,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-25T18:46:37Z",
+              "completed_at": "2026-09-25T18:46:38Z"
             },
             {
               "number": 43,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-25T18:46:38Z",
+              "completed_at": "2026-09-25T18:46:39Z"
             },
             {
               "number": 44,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-25T18:46:39Z",
+              "completed_at": "2026-09-25T18:46:39Z"
+            },
+            {
+              "number": 45,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-25T18:46:39Z",
+              "completed_at": "2026-09-25T18:46:39Z"
             }
           ]
+        },
+        {
+          "id": 108205210162,
+          "name": "deploy",
+          "status": "waiting",
+          "conclusion": null,
+          "started_at": "2026-09-25T18:46:40Z",
+          "completed_at": null,
+          "steps": []
         }
       ]
     },
