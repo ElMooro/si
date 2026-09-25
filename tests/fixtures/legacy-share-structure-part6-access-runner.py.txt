@@ -28,12 +28,6 @@ LIMIT_STATUS=source.request_key('chatgpt-share-structure-quota-check-6092','diag
 
 
 def accepted_batch_report(part,state):
-    if part==5 and source.sha(source.encode(state))=='21fc7bb69f6a2e26b9c37be1be0dafad4babb485e305a7056777616842a86997':
-        # 6117 independently reparsed every retained original and checked both
-        # anonymous origins. Only this exact unchanged journal was accepted.
-        assert state.get('manifest')=={'key':source.PRIVATE+'cf316cf9205c3d147b0f043556a49f1a73feef5924e74bcc91315e97ea40ff2f.bin',
-            'sha256':'cf316cf9205c3d147b0f043556a49f1a73feef5924e74bcc91315e97ea40ff2f','bytes':616939}
-        return 'ops_6117_share_structure_part5_retained_verification.md'
     if part==4 and source.sha(source.encode(state))=='5a85840604a7a2a0902c396adaef037bbec39ae9f600dab663a9be490bd3a895':
         # 6086 finished collection but its anonymous HEAD check failed. 6114
         # reparsed those exact originals and retained all access outcomes.
@@ -180,14 +174,10 @@ def main(part,recovery=False):
                 examples[spec['url']]={'original':capsule['original'],'source_row':0 if rows else None,
                     'first_reported_row_fields':{field:{'present':field in rows[0],'reported':source.typed(rows[0].get(field))} for field in fields} if rows else {},
                     'example_only_not_population_qualification':True}
-        if part==6:
-            from share_structure_access_audit import verify
-            verify(s3,protected,part,r)
-        else:
-            def deny(key):
-                assert denied_with_retry('https://justhodl.ai/'+key) and denied_with_retry('https://'+source.BUCKET+'.s3.amazonaws.com/'+key)
-            with ThreadPoolExecutor(max_workers=6) as pool:
-                for _ in pool.map(deny,sorted(protected)):pass
+        def deny(key):
+            assert denied_with_retry('https://justhodl.ai/'+key) and denied_with_retry('https://'+source.BUCKET+'.s3.amazonaws.com/'+key)
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            for _ in pool.map(deny,sorted(protected)):pass
         assert runtime(lam,s3,events,scheduler,baseline.FUNCTION)==before
         if recovery:
             recovered=campaign.read_journal(s3,source.request_key(RECOVERY,'batch:2'))
