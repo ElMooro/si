@@ -28,13 +28,6 @@ LIMIT_STATUS=source.request_key('chatgpt-share-structure-quota-check-6092','diag
 
 
 def accepted_batch_report(part,state):
-    if part==4 and source.sha(source.encode(state))=='5a85840604a7a2a0902c396adaef037bbec39ae9f600dab663a9be490bd3a895':
-        # 6086 finished collection but its anonymous HEAD check failed. 6114
-        # reparsed those exact originals and retained all access outcomes.
-        # Pin the whole unchanged journal, not just an asserted status field.
-        assert state.get('manifest')=={'key':source.PRIVATE+'c003e6e2ea41ddd7fad66b08e08a3ba2c7eafb463ff788eb9a20a65a5eacd0ed.bin',
-            'sha256':'c003e6e2ea41ddd7fad66b08e08a3ba2c7eafb463ff788eb9a20a65a5eacd0ed','bytes':616857}
-        return 'ops_6114_share_structure_part4_retained_verification.md'
     if part==2 and state.get('accepted_by_ops')=='ops_6093_share_structure_sources_recovery':
         assert state.get('recovered_from')==FAILED_BATCH
         return 'ops_6093_share_structure_sources_recovery.md'
