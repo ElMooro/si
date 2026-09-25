@@ -3688,6 +3688,8 @@
       "<button class='wsico wsdesk' id=btn-nr title='Candle spread · tight range + Bollinger'><span class=g>NR</span><span class=l>Spread</span></button>"+
       "<button class='wsico wsdesk' id=btn-spr title='Spring · forming / fired / failed'><span class=g>Spr</span><span class=l>Spring</span></button>"+
       "<button class='wsico wsdesk' id=btn-acc title='Accumulation · tight band, long range'><span class=g>Acc</span><span class=l>Accum</span></button>"+
+      "<button class='wsico wsdesk' id=btn-bot title='Bottom · selling climax / secondary test — predict the low'><span class=g>Bot</span><span class=l>Bottom</span></button>"+
+      "<button class='wsico wsdesk' id=btn-pump title='Pump · SOS / markup — start of the bull run'><span class=g>Pmp</span><span class=l>Pump</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
       "<input id=goyell class=goyell placeholder='AAPL' autocomplete=off spellcheck=false title='Type a ticker or AAPL DES, then GO'>"+
@@ -3737,6 +3739,8 @@
     var bnr=document.getElementById("btn-nr"); if(bnr) bnr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spread"); };
     var bspr=document.getElementById("btn-spr"); if(bspr) bspr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("spring"); };
     var bacc=document.getElementById("btn-acc"); if(bacc) bacc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("accum"); };
+    var bbot=document.getElementById("btn-bot"); if(bbot) bbot.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bottom"); };
+    var bpmp=document.getElementById("btn-pump"); if(bpmp) bpmp.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("pump"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var bgo=document.getElementById("btn-go");
     if(bgo) bgo.onclick=function(){
