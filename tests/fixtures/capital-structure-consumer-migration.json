@@ -1,0 +1,41 @@
+{
+  "contract": "capital-structure-consumer-migration.v1",
+  "files": [
+    {
+      "target": "aws/lambdas/justhodl-short-book/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-short-book.py.txt",
+      "bytes": 10630,
+      "sha256": "eb10b08b9c2704e4028d86b14578b48f1cc10ff161e310cf577d68d2e4bde48f"
+    },
+    {
+      "target": "aws/lambdas/justhodl-opportunity-engine/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-opportunity-engine.py.txt",
+      "bytes": 60530,
+      "sha256": "1e96e40348e17f5ef18f745fbdbbccad802897348b0e2a4890d149d308ebab3e"
+    },
+    {
+      "target": "aws/lambdas/justhodl-cannibals/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-cannibals.py.txt",
+      "bytes": 5883,
+      "sha256": "b76da89c88937937d2e9baf7922fd46351d1704c859c4a65d32f04b82861d58f"
+    },
+    {
+      "target": "aws/lambdas/justhodl-comeback-screener/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-comeback-screener.py.txt",
+      "bytes": 14435,
+      "sha256": "0a2e2d5e2cf0963f4b59f8bad7ffc797f080c546c3839df51bb380dc4f45e84c"
+    },
+    {
+      "target": "aws/lambdas/justhodl-short-book/tests/run_tests.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-short-book-tests.py.txt",
+      "bytes": 362,
+      "sha256": "a0b52fc3a6e373333c261f5445c2aa8c5933538a0e76ea98a8d919afa827f9d0"
+    },
+    {
+      "target": "aws/lambdas/justhodl-opportunity-engine/tests/run_tests.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-opportunity-engine-tests.py.txt",
+      "bytes": 465,
+      "sha256": "04dd1788d09d86098473cc782d6677334e490221e3a08c8f4e19544f940f9cfd"
+    }
+  ]
+}

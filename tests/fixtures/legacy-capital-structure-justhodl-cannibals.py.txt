@@ -77,7 +77,7 @@ def lambda_handler(event, context):
         sec_of = event["_probe"].get("sec_of") or {}
         return {"statusCode": 200,
                 "body": json.dumps({"plans": plan(rows, sec_of)})}
-    doc = __import__("capital_structure_context").decision_view(rj(SRC_KEY))
+    doc = rj(SRC_KEY)
     rows = []
 
     import re as _re
@@ -124,11 +124,11 @@ def lambda_handler(event, context):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
            "n_rows_scanned": len(rows), "plans": plans, "logged": logged,
-           "capital_structure_context": doc["research_context"],
-           "input_eligibility": {"buyback_signal": False},
-           "methodology": ("Capital-structure observations have no qualified buyback-alpha signal. "
-                           "Plans and signal emission are withheld; cash repurchases do not prove "
-                           "shares retired or insider conviction.")}
+           "methodology": ("buyback_net_yield_pct >= 4% ∩ clean flags ∩ "
+                           "!data_suspect ∩ mcap>=2B; INSIDER_CONVICTION "
+                           "boosts confidence 0.62→0.70 and sort priority; "
+                           "top-10; UP [21,63] vs sector ETF. PROVEN gate "
+                           "controls promotion.")}
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="max-age=600")

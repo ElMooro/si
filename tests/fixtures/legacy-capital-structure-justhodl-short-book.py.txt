@@ -125,7 +125,7 @@ def lambda_handler(event, context):
                 _dpwalk(v, in_dist)
     _dpwalk(dp)
 
-    sf = __import__("capital_structure_context").decision_view(rj("data/share-flows.json"))
+    sf = rj("data/share-flows.json")
 
     def _sfwalk(o):
         if isinstance(o, dict):
@@ -250,10 +250,9 @@ def lambda_handler(event, context):
            "n_candidates": len(L), "n_book": len(rows), "logged": logged,
            "squeeze_excluded": squeeze_excluded,
            "accounting_context": fs["research_context"],
-           "capital_structure_context": sf["research_context"],
-           "input_eligibility": {"beneish_fail": False, "forensic_flag": False},
+           "input_eligibility": {"beneish_fail": False},
            "book": rows,
-           "lens_weights": {"dark_distribution": 25, "forensic_flag": 0,
+           "lens_weights": {"dark_distribution": 25, "forensic_flag": 20,
                             "beneish_fail": 0, "ladder_break_200": 20,
                             "wyckoff_distribution": 15, "double_top": 10},
            "methodology": ("Independent bear lenses composed per ticker; "

@@ -5,7 +5,7 @@ private-account access, signal, notification, AI or schedule mutation.
 """
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-import json,subprocess,sys,urllib.request
+import json,subprocess,sys
 import boto3
 from botocore.config import Config
 ROOT=Path(__file__).resolve().parents[3]
@@ -21,29 +21,6 @@ import financial_statement_campaign as prior_sources
 
 PARENT='chatgpt-share-structure-population-6083'
 PLAN_STATUS=source.request_key(PARENT,'plan')
-RECOVERY='chatgpt-share-structure-population-recovery-6093'
-FAILED_BATCH={'key':source.PRIVATE+'43a3b3ea12ac52acf54b4e13642263919477531d9b0579c3201f8b769e5004f4.bin',
-    'sha256':'43a3b3ea12ac52acf54b4e13642263919477531d9b0579c3201f8b769e5004f4','bytes':761}
-LIMIT_STATUS=source.request_key('chatgpt-share-structure-quota-check-6092','diagnostic')
-
-
-def accepted_batch_report(part,state):
-    if part==2 and state.get('accepted_by_ops')=='ops_6093_share_structure_sources_recovery':
-        assert state.get('recovered_from')==FAILED_BATCH
-        return 'ops_6093_share_structure_sources_recovery.md'
-    return 'ops_'+str(6082+part)+'_share_structure_sources_part_'+str(part)+'.md'
-
-
-def limited_transport():
-    # Keep the frozen source plan/collector intact, while lowering its maximum
-    # request frequency. This uses the same credential, host and source URLs.
-    rate=source.Rate(interval=1.0)
-    opener=urllib.request.build_opener(source.NoRedirect())
-    def open_one(request,timeout):
-        rate.acquire()
-        return opener.open(request,timeout=timeout)
-    return open_one
-
 PROBE={'key':source.PRIVATE+'69d0590616f29a7d94e50b6c282e9c51e69304d3c607bf34fda0ac42ecf8c8fb.bin',
     'sha256':'69d0590616f29a7d94e50b6c282e9c51e69304d3c607bf34fda0ac42ecf8c8fb','bytes':10286}
 
@@ -73,9 +50,9 @@ def get_plan(client,part,captured):
     return ref,document
 
 
-def main(part,recovery=False):
+def main(part):
     if type(part) is not int or not 1<=part<=6:raise ValueError('Reviewed population part required')
-    name='ops_6093_share_structure_sources_recovery' if recovery else 'ops_'+str(6082+part)+'_share_structure_sources_part_'+str(part)
+    name='ops_'+str(6082+part)+'_share_structure_sources_part_'+str(part)
     s3=boto3.client('s3',region_name='us-east-1',config=Config(max_pool_connections=12,retries={'max_attempts':2}))
     lam,events,scheduler=(boto3.client(service,region_name='us-east-1') for service in ('lambda','events','scheduler'))
     with report(name) as r:
@@ -84,37 +61,15 @@ def main(part,recovery=False):
         assert captured['status']=='complete' and diagnostic['status']=='complete' and diagnostic['counts']['complete_sources']==28
         before=runtime(lam,s3,events,scheduler,baseline.FUNCTION);assert before==captured['runtime']
         plan_ref,document=get_plan(s3,part,captured)
-        recovery_state=None;recovery_etag=None;canary=None;canary_origin=None
-        if recovery:
-            assert part==2
-            response=s3.get_object(Bucket=source.BUCKET,Key=source.request_key(PARENT,'batch:2'))
-            old_raw=campaign.bounded(response['Body'],source.MAX);recovery_etag=response['ETag']
-            assert len(old_raw)==FAILED_BATCH['bytes'] and source.sha(old_raw)==FAILED_BATCH['sha256']
-            recovery_state=json.loads(old_raw)
-            assert recovery_state['status']=='failed' and not recovery_state['captures']
-            assert source.read(s3,FAILED_BATCH)==old_raw
-            limit_result=campaign.read_journal(s3,LIMIT_STATUS)
-            assert limit_result['status']=='complete' and limit_result['outcome']=='single_source_request_recovered' and limit_result['http_status']==200
-            assert '**Status:** success' in (ROOT/'aws/ops/reports/latest/ops_6092_share_structure_limit_check.md').read_text(encoding='utf-8')
-            canary_origin=source.retain(s3,source.encode(limit_result))
-            canary=json.loads(source.read(s3,limit_result['capture']))
-            assert canary['http_status']==200 and canary['spec']['url'] in recovery_state['source_errors']
-            assert canary['request_id']=='chatgpt-share-structure-quota-check-6092'
-            for url in recovery_state['source_errors']:
-                failed=campaign.read_journal(s3,source.request_key(PARENT,url))
-                assert failed['status']=='failed' and failed['http_status']==429
-
         # A failed earlier batch is a stop, never permission to skip its names.
         for earlier in range(1,part):
             state=campaign.read_journal(s3,source.request_key(PARENT,'batch:'+str(earlier)))
             assert state['status']=='complete' and state['plan']==plan_ref
-            accepted=ROOT/'aws/ops/reports/latest'/accepted_batch_report(earlier,state)
+            accepted=ROOT/'aws/ops/reports/latest'/('ops_'+str(6082+earlier)+'_share_structure_sources_part_'+str(earlier)+'.md')
             assert '**Status:** success' in accepted.read_text(encoding='utf-8'), 'Earlier source and privacy acceptance must pass'
         previous=json.loads(prior_sources.read(s3,probe.ACCOUNTING))
         assert previous['status']=='complete'
         def adoption(request):
-            if canary and canary['spec']==request:
-                return canary,source.read(s3,canary['original']),canary_origin
             existing=diagnostic['captures'].get(request['url'])
             if existing:
                 capsule=json.loads(source.read(s3,existing));return capsule,source.read(s3,capsule['original']),PROBE
@@ -126,14 +81,10 @@ def main(part,recovery=False):
         env=lam.get_function_configuration(FunctionName=baseline.FUNCTION).get('Environment',{}).get('Variables',{})
         credential=env.get('FMP_API_KEY') or env.get('FMP_KEY')
         if not credential:credential=boto3.client('ssm',region_name='us-east-1').get_parameter(Name='/justhodl/fmp/api-key',WithDecryption=True)['Parameter']['Value']
-        request_id=RECOVERY if recovery else PARENT
-        ref,executed=campaign.run_batch(s3,request_id,plan_ref,part,credential,baseline.now,adoption,
-            remaining_seconds=3300,transport=limited_transport())
+        ref,executed=campaign.run_batch(s3,PARENT,plan_ref,part,credential,baseline.now,adoption)
         batch=json.loads(source.read(s3,ref))
-        protected={PLAN_STATUS,source.request_key(request_id,'batch:'+str(part)),plan_ref['key'],ref['key'],
+        protected={PLAN_STATUS,source.request_key(PARENT,'batch:'+str(part)),plan_ref['key'],ref['key'],
             probe.BASELINE['key'],PROBE['key'],probe.ACCOUNTING['key']}
-        if recovery:
-            protected.update((FAILED_BATCH['key'],LIMIT_STATUS,canary_origin['key'],source.request_key(PARENT,'batch:2')))
         examples={}
         for value in batch['captures'].values():
             capsule=json.loads(source.read(s3,value))
@@ -153,17 +104,8 @@ def main(part,recovery=False):
         with ThreadPoolExecutor(max_workers=6) as pool:
             for _ in pool.map(deny,sorted(protected)):pass
         assert runtime(lam,s3,events,scheduler,baseline.FUNCTION)==before
-        if recovery:
-            recovered=campaign.read_journal(s3,source.request_key(RECOVERY,'batch:2'))
-            assert recovered['status']=='complete' and recovered['manifest']==ref and recovered['plan']==plan_ref
-            linked={**recovered,'recovered_from':FAILED_BATCH,'accepted_by_ops':'ops_6093_share_structure_sources_recovery'}
-            control=source.request_key(PARENT,'batch:2');body=source.encode(linked)
-            s3.put_object(Bucket=source.BUCKET,Key=control,Body=body,ContentType='application/json',CacheControl='no-store',IfMatch=recovery_etag)
-            assert campaign.read_journal(s3,control)==linked
         commit=subprocess.check_output(['git','log','-1','--format=%H','--','aws/ops/checks/share_structure_batch_runner.py'],cwd=ROOT,text=True).strip()
         r.kv(source_commit=commit,plan=plan_ref,part=part,batch_manifest=ref,counts=batch['counts'],
-            recovery_request_id=RECOVERY if recovery else None,recovered_failed_batch=FAILED_BATCH if recovery else None,
-            effective_max_provider_requests_per_second=1.0,original_failed_report_preserved=True,
             source_examples=examples,
             protected_artifacts_checked=len(protected),original_sources_reparsed=True,
             provider_requests_this_run=batch['counts']['provider_requests'] if executed else 0,

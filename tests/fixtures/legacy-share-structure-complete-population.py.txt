@@ -34,9 +34,9 @@ def main():
         plan=campaign.read_journal(s3,batches.PLAN_STATUS);assert plan['status']=='complete'
         refs=[]
         for part in range(1,7):
-            state=campaign.read_journal(s3,source.request_key(batches.PARENT,'batch:'+str(part)))
-            report_path=ROOT/'aws/ops/reports/latest'/batches.accepted_batch_report(part,state)
+            report_path=ROOT/'aws/ops/reports/latest'/('ops_'+str(6082+part)+'_share_structure_sources_part_'+str(part)+'.md')
             assert '**Status:** success' in report_path.read_text(encoding='utf-8')
+            state=campaign.read_journal(s3,source.request_key(batches.PARENT,'batch:'+str(part)))
             assert state['status']=='complete' and state['plan']==plan['plan'];refs.append(state['manifest'])
         commit=subprocess.check_output(['git','log','-1','--format=%H','--','aws/ops/staged/ops_6089_share_structure_complete_population.py'],cwd=ROOT,text=True).strip()
         progress={'request_id':REQUEST,'source_commit':commit,'status':'claimed','plan':plan['plan'],'generated_at':baseline.now()}
