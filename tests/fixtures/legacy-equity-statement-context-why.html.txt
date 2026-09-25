@@ -5,8 +5,6 @@
 <script src="/jh-data-inspector.js"></script>
 <script src="/jh-research-inspection.js"></script>
 <script src="/jh-provider-flows.js?v=20260925-research-context"></script>
-<script src="/jh-statement-research.js?v=statement-original-v2"></script>
-<script src="/jh-equity-statements.js?v=20260925-original-context"></script>
 <script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script>
 <script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
@@ -672,7 +670,6 @@ function renderReport(d){
   if(d.ticker){
     fetchInsiderData(d.ticker);
     fetchSectorFlow(d);
-    if(window.JHEquityStatements) window.JHEquityStatements.load(d.ticker);
     try{ window.fillJHVitals && window.fillJHVitals(d); window.fillJHDollarFlows && window.fillJHDollarFlows(d); window.fillJHDealRadar && window.fillJHDealRadar(d); }catch(e){} // ops 3299 + 3572
     fetchCritique(d.ticker, d);
     fetchInvestorLenses(d.ticker);
@@ -905,8 +902,39 @@ function renderValuation(d){
 }
 
 function renderFinancialHealth(d){
-  return window.JHEquityStatements ? window.JHEquityStatements.section(d.ticker)
-    : '<section class="block"><h3>Recorded financial statements</h3><p>Accounting evidence verification is unavailable. No health grade is substituted.</p></section>';
+  const h = d.financial_health || {};
+  const p = h.pillars || {};
+  if(!p.profitability) return "";
+  const pillarCard = (name, label, key, sub) => {
+    const o = p[key] || {};
+    const score = o.score || 0;
+    return `<div class="pillar">
+      <div class="name">${label}</div>
+      <div class="score">${score}</div>
+      <div class="bar-bg"><div class="bar" style="width:${score}%"></div></div>
+      <div class="detail">${sub(o)}</div>
+    </div>`;
+  };
+  const subDetail = {
+    profitability: (o) => `ROE ${fmtPct(o.roe_pct,1)} · Op marg ${fmtPct(o.op_margin_pct,1)}`,
+    growth:        (o) => `rev ${fmtPct(o.rev_5y_cagr_pct,1)}/5y · eps ${fmtPct(o.eps_5y_cagr_pct,1)}/5y`,
+    leverage:      (o) => `D/E ${fmtNum(o.debt_to_equity,2)}${o.altman_z_score ? ' · Altman ' + fmtNum(o.altman_z_score,1) : ''}`,
+    liquidity:     (o) => `current ratio ${fmtNum(o.current_ratio,2)} · WC ${fmt$(o.working_capital,1)}`,
+    quality:       (o) => `Piotroski ${o.piotroski_score ?? '—'} · CFO/NI ${fmtNum(o.cfo_to_ni,2)}`,
+  };
+  return `
+    <section class="block">
+      <h3><span class="ico">🏥</span> Financial Health <span class="pill">overall ${h.overall_score || '—'}/100</span></h3>
+      ${d.financial_health_summary ? `<p>${esc(d.financial_health_summary)}</p>` : ""}
+      <div class="pillars">
+        ${pillarCard('profitability', 'Profitability', 'profitability', subDetail.profitability)}
+        ${pillarCard('growth',        'Growth',        'growth',        subDetail.growth)}
+        ${pillarCard('leverage',      'Leverage',      'leverage',      subDetail.leverage)}
+        ${pillarCard('liquidity',     'Liquidity',     'liquidity',     subDetail.liquidity)}
+        ${pillarCard('quality',       'Quality',       'quality',       subDetail.quality)}
+      </div>
+      ${renderDilutionPillar(d)}
+    </section>`;
 }
 
 function renderDilutionPillar(d){
