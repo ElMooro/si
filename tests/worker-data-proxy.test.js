@@ -681,3 +681,13 @@ test('SEC current settlement research bypasses mutable caches for GET HEAD and R
   assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');
  }
 });
+
+test('accounting current packet bypasses caches for GET HEAD and Range',async()=>{
+ const {env}=fresh(),w=await worker(),calls=[];
+ globalThis.caches={default:{async match(){throw Error('accounting head must bypass cache')},async put(){throw Error('accounting head cannot be cached')}}};
+ globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return Response.json({contract:'financial-statement-original-research.v2'});};
+ for(const options of [{method:'GET'},{method:'HEAD'},{headers:{Range:'bytes=0-127'}}]){
+  const response=await w.fetch(req('/data/forensic-screen.json',options),env,{waitUntil(){}});
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');
+ }
+});
