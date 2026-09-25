@@ -2043,7 +2043,7 @@ function renderSectorFlow(d){
         <span class="pill" id="flow-pill">loading ETF flows…</span>
       </h3>
       <div id="flow-body" style="padding:14px 0; color:var(--text-muted); font-size:12px">
-        <span style="opacity:0.6">Fetching the reported sector-flow context…</span>
+        <span style="opacity:0.6">Fetching sector ETF flow context from Polygon ETF Global ($99/mo institutional feed)…</span>
       </div>
     </section>`;
 }
@@ -2060,7 +2060,7 @@ async function fetchSectorFlow(d){
       fetchWithTimeout(`${FLOWS_CDN_BASE}/composite.json?v=${Date.now()}`, 6000),
     ]);
     if(!ctxR || !ctxR.ok) {
-      body.innerHTML = `<span style="color:var(--text-muted)">ETF flow data is unavailable. Refresh completion is unconfirmed.</span>`;
+      body.innerHTML = `<span style="color:var(--text-muted)">ETF flow data not yet available. Run will populate on next 17:00 ET schedule.</span>`;
       pill.textContent = 'pending';
       return;
     }
@@ -2118,7 +2118,7 @@ function paintSectorFlow(d, ctx, comp){
     pillStyle = 'background:rgba(170,180,192,.06); border:1px solid rgba(255,255,255,.1); color:var(--text-muted)';
     pillIcon = '◯';
   }
-  pill.innerHTML = `<span style="padding:2px 8px; border-radius:4px; font-weight:700; ${pillStyle}">${pillIcon} ${esc(String(label).replace(/_/g, ' '))}</span>`;
+  pill.innerHTML = `<span style="padding:2px 8px; border-radius:4px; font-weight:700; ${pillStyle}">${pillIcon} ${label.replace(/_/g, ' ')}</span>`;
 
   // Divergence detector — the alpha signal
   const isBullish = verdict === 'STRONG_BUY' || verdict === 'BUY';
@@ -2780,57 +2780,71 @@ window.renderInvestorLenses=function(d){
   return `
     <section class="block" id="lenses-section" data-ticker="${esc(d.ticker||'')}">
       <h3><span class="ico">🧭</span> Investor Lenses
-        <span class="pill" id="lenses-pill">checking reported estimates…</span>
+        <span class="pill" id="lenses-pill">what would the greats pay…</span>
       </h3>
       <div id="lenses-body" style="padding:12px 0; font-size:12.5px">
-        <span style="opacity:0.6">Loading the original valuation-lens packet…</span>
+        <span style="opacity:0.6">Valuing through Buffett, Graham, Lynch &amp; Greenblatt…</span>
       </div>
     </section>`;
 }
 
-function secondaryPacket(ticker,doc){
-  if(!doc || typeof doc!=='object' || Array.isArray(doc) || doc.ticker!==ticker) throw new Error('Ticker identity mismatch.');
-  const stamp=doc.generated_at||doc.generated;
-  if(typeof stamp!=='string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(stamp) || !Number.isFinite(Date.parse(stamp)) || Date.parse(stamp)>Date.now()) throw new Error('Valid nonfuture packet timestamp required.');
-  return doc;
-}
-
-function secondaryDate(doc){
-  const stamp=doc.generated_at||doc.generated,age=Date.now()-Date.parse(stamp);
-  return '<p style="color:var(--text-muted);font-size:11px">Packet: '+esc(stamp)+(age>=48*3600*1000?' · older than 48 hours':'')+' · underlying observation freshness and price adjustment basis unverified.</p>';
-}
-
-function inspectSecondary(body,doc,label,url){
-  const inspector=document.createElement('div');body.append(inspector);
-  if(window.JHResearchInspection) window.JHResearchInspection.show(inspector,[{label,source:url,document:doc}]);
-  else inspector.textContent='Complete source-data inspection is unavailable.';
-}
-
 function paintLenses(doc){
-  const section=document.getElementById('lenses-section'),body=document.getElementById('lenses-body'),pill=document.getElementById('lenses-pill');
-  if(!section||!body||!doc||section.dataset.ticker!==doc.ticker)return;
-  secondaryPacket(section.dataset.ticker,doc);
-  body.innerHTML='<p>These legacy valuation estimates have not passed source, assumption and out-of-sample validation. They do not establish a price target, a cheap/rich verdict or a position size.</p>'+secondaryDate(doc);
-  inspectSecondary(body,doc,'Valuation lenses · complete unqualified output',LENSES_CDN_BASE+'/'+encodeURIComponent(doc.ticker)+'.json');
-  if(pill)pill.textContent='unqualified';
+  const body = document.getElementById('lenses-body');
+  const pill = document.getElementById('lenses-pill');
+  if(!body || !doc || !doc.lenses){ if(pill) pill.textContent='no data'; return; }
+  const L = doc.lenses, S = doc.summary || {};
+  const price = doc.price;
+  const order = [['buffett','Buffett','owner earnings'],['graham','Graham','Graham Number'],
+                 ['lynch','Lynch','PEG fair value'],['greenblatt','Greenblatt','Magic Formula']];
+  function verdictChip(l){
+    if(!l || !l.ok) return '<span class="ta-chip">n/a</span>';
+    if(l.fair_value==null){ // Greenblatt ranks, no target
+      const pass = l.passes_screen;
+      return '<span class="ta-chip '+(pass?'up':'')+'">'+(pass?'candidate':'not cheap')+'</span>';
+    }
+    const up = l.upside_pct;
+    const tag = up>15?'CHEAP':(up<-15?'RICH':'FAIR');
+    const c = up>15?'up':(up<-15?'dn':'');
+    return '<span class="ta-chip '+c+'">'+tag+' '+pct(up)+'</span>';
+  }
+  let rows = order.map(function(o){
+    const l = L[o[0]]; if(!l) return '';
+    const fv = (l.fair_value!=null) ? ('$'+fnum(l.fair_value,0)) : '—';
+    const why = esc(l.why||o[2]);
+    return '<div style="display:grid;grid-template-columns:92px 74px 1fr;gap:10px;align-items:start;padding:7px 0;border-bottom:1px solid var(--border,#1a2330)">'
+      + '<div style="font-weight:700;color:var(--text)">'+o[1]+'</div>'
+      + '<div style="color:var(--accent,#39d0d8);font-weight:700">'+fv+'</div>'
+      + '<div><div style="margin-bottom:3px">'+verdictChip(l)+'</div>'
+      + '<div style="color:var(--text-muted);font-size:11px;line-height:1.45">'+why+'</div></div>'
+      + '</div>';
+  }).join('');
+  const med = S.lens_median_fair_value!=null ? ('$'+fnum(S.lens_median_fair_value,0)) : '—';
+  const medUp = S.median_upside_pct;
+  const readColor = S.lenses_disagree ? '#f59e0b' : (medUp>0?'#22c55e':'#ef4444');
+  const head = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+    + '<span class="ta-chip">Price <b>$'+fnum(price,0)+'</b></span>'
+    + '<span class="ta-chip">Lens median <b>'+med+'</b>'+(medUp!=null?(' '+pct(medUp)):'')+'</span>'
+    + '<span class="ta-chip">Pass <b>'+(S.n_pass||0)+'/4</b></span></div>';
+  const read = S.read ? ('<div style="margin-top:10px;padding:9px 12px;border-left:3px solid '+readColor
+    +';background:rgba(148,163,184,.06);border-radius:4px;font-size:12px;color:var(--text-dim,#cbd5e1)"><b style="color:'
+    +readColor+'">Read:</b> '+esc(S.read)+'</div>') : '';
+  body.innerHTML = head + rows + read;
+  if(pill) pill.textContent = S.lenses_disagree ? 'lenses disagree' : 'lenses aligned';
 }
 
 window.fetchInvestorLenses=async function(ticker){
-  const section=document.getElementById('lenses-section');
-  if(!section||section.dataset.ticker!==ticker)return;
-  const pill=document.getElementById('lenses-pill'),body=document.getElementById('lenses-body');
-  const current=()=>document.getElementById('lenses-section')===section&&section.dataset.ticker===ticker;
-  try{
-    const r=await fetchWithTimeout(`${LENSES_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`,8000);
-    if(!current())return;
-    if(!r||!r.ok)throw new Error('Source response unavailable.');
-    const doc=await r.json();if(!current())return;
-    secondaryPacket(ticker,doc);
-    if(!doc.lenses||typeof doc.lenses!=='object'||Array.isArray(doc.lenses))throw new Error('Valuation data unavailable.');
-    paintLenses(doc);return;
-  }catch(e){if(!current())return;}
-  if(body)body.textContent='Valuation-lens data is unavailable or failed identity/date validation. Refresh completion is unconfirmed.';
-  if(pill)pill.textContent='unavailable';
+  const section = document.getElementById('lenses-section');
+  if(!section) return;
+  const pill = document.getElementById('lenses-pill');
+  const body = document.getElementById('lenses-body');
+  try {
+    const url = `${LENSES_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`;
+    const r = await fetchWithTimeout(url, 8000);
+    if(r && r.ok){ const data = await r.json(); if(data && data.lenses){ paintLenses(data); return; } }
+  } catch(e){ /* fall through */ }
+  // silent-ish: leave a soft note, this is a bonus panel
+  if(body) body.innerHTML = `<span style="color:var(--text-muted);font-size:11.5px">Investor-lens valuation for ${esc(ticker)} refreshes daily — check back shortly.</span>`;
+  if(pill) pill.textContent = 'pending';
 }
 
 window.renderTechSignals=function(d){
@@ -2840,49 +2854,52 @@ window.renderTechSignals=function(d){
         <span class="pill" id="tasig-pill">reading the tape…</span>
       </h3>
       <div id="tasig-body" style="padding:12px 0; font-size:12.5px">
-        <span style="opacity:0.6">Loading reported price-indicator data…</span>
+        <span style="opacity:0.6">Computing MA regime, Bollinger %b &amp; squeeze…</span>
       </div>
     </section>`;
 }
 
 function paintTechSignals(doc){
-  const section=document.getElementById('tasig-section'),body=document.getElementById('tasig-body'),pill=document.getElementById('tasig-pill');
-  if(!section||!body||!doc||section.dataset.ticker!==doc.ticker)return;
-  secondaryPacket(section.dataset.ticker,doc);
-  const ind=doc.indicators||{},sigs=Array.isArray(ind.signals)?ind.signals:[];
-  const finite=v=>typeof v==='number'&&Number.isFinite(v);
-  const comparable=finite(ind.price)&&finite(ind.ma200)&&ind.price>0&&ind.ma200>0;
-  const relation=comparable?(ind.price>ind.ma200?'Above':ind.price<ind.ma200?'Below':'At')+' 200':'200-day comparison unavailable';
-  const chips='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
-    +'<span class="ta-chip">Reported price <b>'+(finite(ind.price)?fnum(ind.price,2):'—')+'</b></span>'
-    +'<span class="ta-chip">SMA200 <b>'+(finite(ind.ma200)?fnum(ind.ma200,2):'—')+'</b></span>'
-    +'<span class="ta-chip">'+relation+'</span>'
-    +(finite(ind.pct_b)?'<span class="ta-chip">%b <b>'+fnum(ind.pct_b,2)+'</b></span>':'')+'</div>';
-  const rows=sigs.filter(s=>s&&typeof s==='object').map(s=>'<div style="padding:6px 0;border-bottom:1px solid var(--border,#1a2330)">'
-    +'<b>'+esc(String(s.name||'Unnamed reported signal').replace(/_/g,' '))+'</b> · '+esc(String(s.dir||'direction unavailable'))
-    +'<div style="color:var(--text-muted);font-size:11px">'+esc(String(s.detail||''))+'</div></div>').join('');
-  body.innerHTML=chips+(rows||'<p>No reported signals returned. This does not establish a neutral market.</p>')
-    +'<p>Descriptive price indicators only. Currency, adjusted-price basis and trading value require validation; no qualified position or independent vote.</p>'+secondaryDate(doc);
-  inspectSecondary(body,doc,'Technical overlays · complete reported data',TAOVL_CDN_BASE+'/'+encodeURIComponent(doc.ticker)+'.json');
-  if(pill)pill.textContent='descriptive';
+  const body = document.getElementById('tasig-body');
+  const pill = document.getElementById('tasig-pill');
+  if(!body || !doc || !doc.indicators){ if(pill) pill.textContent='no data'; return; }
+  const ind = doc.indicators, conf = doc.confluence || {};
+  const sigs = ind.signals || [];
+  function dirColor(dir){ return dir==='bull'?'#22c55e':(dir==='bear'?'#ef4444':'#94a3b8'); }
+  const chips = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+    + '<span class="ta-chip">Price <b>$'+fnum(ind.price,0)+'</b></span>'
+    + '<span class="ta-chip">SMA200 <b>$'+fnum(ind.ma200,0)+'</b></span>'
+    + '<span class="ta-chip '+(ind.price>ind.ma200?'up':'dn')+'">'+(ind.price>ind.ma200?'Above':'Below')+' 200</span>'
+    + (ind.pct_b!=null?('<span class="ta-chip">%b <b>'+fnum(ind.pct_b,2)+'</b></span>'):'')
+    + '</div>';
+  let sigRows = sigs.length ? sigs.map(function(s){
+    const c = dirColor(s.dir);
+    return '<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border,#1a2330)">'
+      + '<span style="width:10px;height:10px;border-radius:50%;background:'+c+';display:inline-block;flex:none"></span>'
+      + '<div><b style="color:var(--text);text-transform:capitalize">'+esc(s.name.replace(/_/g,' '))+'</b>'
+      + ' <span style="color:'+c+';font-size:11px;text-transform:uppercase">'+esc(s.dir)+'</span>'
+      + '<div style="color:var(--text-muted);font-size:11px;line-height:1.4">'+esc(s.detail||'')+'</div></div></div>';
+  }).join('') : '<div style="color:var(--text-muted);font-size:11.5px">No active crossover/breakout signals — neutral tape.</div>';
+  const leanColor = conf.dir==='bull'?'#22c55e':(conf.dir==='bear'?'#ef4444':'#94a3b8');
+  const trustNote = '<div style="margin-top:10px;padding:8px 12px;border-left:3px solid #64748b;background:rgba(148,163,184,.06);border-radius:4px;font-size:11px;color:var(--text-muted)">'
+    + 'Net lean <b style="color:'+leanColor+'">'+(conf.dir||'neutral').toUpperCase()+'</b> ('+fnum(conf.lean,1)+'). '
+    + 'Status <b>'+(conf.trust_status||'PROBATIONARY')+'</b> — not yet weighted in the cross-signal confluence until it matures through the accuracy gate.</div>';
+  body.innerHTML = chips + sigRows + trustNote;
+  if(pill) pill.textContent = (conf.dir||'neutral');
 }
 
 window.fetchTechSignals=async function(ticker){
-  const section=document.getElementById('tasig-section');
-  if(!section||section.dataset.ticker!==ticker)return;
-  const pill=document.getElementById('tasig-pill'),body=document.getElementById('tasig-body');
-  const current=()=>document.getElementById('tasig-section')===section&&section.dataset.ticker===ticker;
-  try{
-    const r=await fetchWithTimeout(`${TAOVL_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`,8000);
-    if(!current())return;
-    if(!r||!r.ok)throw new Error('Source response unavailable.');
-    const doc=await r.json();if(!current())return;
-    secondaryPacket(ticker,doc);
-    if(!doc.indicators||typeof doc.indicators!=='object'||Array.isArray(doc.indicators))throw new Error('Technical data unavailable.');
-    paintTechSignals(doc);return;
-  }catch(e){if(!current())return;}
-  if(body)body.textContent='Technical data is unavailable or failed identity/date validation. Refresh completion is unconfirmed.';
-  if(pill)pill.textContent='unavailable';
+  const section = document.getElementById('tasig-section');
+  if(!section) return;
+  const pill = document.getElementById('tasig-pill');
+  const body = document.getElementById('tasig-body');
+  try {
+    const url = `${TAOVL_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`;
+    const r = await fetchWithTimeout(url, 8000);
+    if(r && r.ok){ const data = await r.json(); if(data && data.indicators){ paintTechSignals(data); return; } }
+  } catch(e){ /* fall through */ }
+  if(body) body.innerHTML = `<span style="color:var(--text-muted);font-size:11.5px">Technical signals for ${esc(ticker)} refresh after each US close.</span>`;
+  if(pill) pill.textContent = 'pending';
 }
 
 function fnum(v,d){return (v===null||v===undefined||isNaN(v))?"—":Number(v).toFixed(d===undefined?2:d);}
