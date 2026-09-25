@@ -41,20 +41,56 @@
     }
     return String(value);
   }
+  function industryLabel(row) { return row.industry || row.category || row.sector || "Unclassified"; }
+  function gateMap(row) {
+    var gates = row && row.gates;
+    if (gates && typeof gates === "object" && !Array.isArray(gates) && Object.keys(gates).length) return gates;
+    return null;
+  }
   function criteriaCount(row) {
+    var gates = gateMap(row);
+    if (gates) return Object.keys(gates).filter(function (key) { return gates[key] === true; }).length;
     var value = row.criteria;
-    if (Array.isArray(value)) return value.length;
+    if (Array.isArray(value)) return value.length ? value.length : null;
     if (value && typeof value === "object") return Object.keys(value).filter(function (key) { return value[key] === true || (value[key] && value[key].passed === true); }).length;
     return value == null ? null : Number(value);
   }
-  function industryLabel(row) { return row.industry || row.category || row.sector || null; }
+  function trendPct(row) {
+    var technical = row.technical || {};
+    return technical.vs_250d_pct != null ? technical.vs_250d_pct : technical.vs_200d_pct;
+  }
   function sortValue(row, key) {
     if (key === "criteria") return criteriaCount(row);
     if (key === "industry") return industryLabel(row);
-    if (key === "vs_200d") return row.technical && row.technical.vs_200d_pct;
+    if (key === "vs_200d") return trendPct(row);
     if (key === "rr") return row.risk_reward && row.risk_reward.ratio;
     if (key === "stage") return row.discovery_stage || row.action;
     return row[key];
+  }
+  function gateRow(row) {
+    var gates = gateMap(row);
+    if (!gates) return null;
+    var wrap = node("div", "k-gates");
+    Object.keys(gates).forEach(function (key) {
+      var on = gates[key] === true;
+      wrap.append(node("span", on ? "on" : "", (on ? "✓ " : "· ") + key.replace(/_/g, " ")));
+    });
+    return wrap;
+  }
+  function showView(id) {
+    var known = false;
+    document.querySelectorAll(".k-section").forEach(function (section) {
+      if (section.id === id) known = true;
+    });
+    if (!known) id = "command";
+    document.querySelectorAll(".k-section").forEach(function (section) {
+      section.hidden = section.id !== id;
+    });
+    document.querySelectorAll("[data-view]").forEach(function (button) {
+      button.classList.toggle("active", button.dataset.view === id);
+    });
+    var main = $("main");
+    if (main) main.scrollTop = 0;
   }
   function compareRows(a, b) {
     var av = sortValue(a, state.sortKey), bv = sortValue(b, state.sortKey);
@@ -132,7 +168,10 @@
   function filteredOpportunities() {
     var q = state.query.toUpperCase();
     return opportunities(state.data).filter(function (r) {
-      return (state.filter === "ALL" || r.action === state.filter || r.discovery_stage === state.filter) &&
+      var statusOk = state.filter === "ALL"
+        ? r.action !== "REJECTED"
+        : (r.action === state.filter || r.discovery_stage === state.filter);
+      return statusOk &&
         (state.assetClass === "ALL" || r.asset_class === state.assetClass) &&
         (state.industry === "ALL" || industryLabel(r) === state.industry) &&
         (state.capBucket === "ALL" || r.cap_bucket === state.capBucket) &&
@@ -175,6 +214,8 @@
         ["ENTRY", actionLabel((row.entry_trigger && row.entry_trigger.state) || row.action || "WAIT")]
       ].forEach(function (x) { var f = node("div", "k-fact"); f.append(node("span", "", x[0]), node("b", "", x[1])); facts.append(f); });
       card.append(top, score, copy, facts);
+      var gates = gateRow(row);
+      if (gates) card.append(gates);
       card.addEventListener("click", function () { showDetail(row, card); });
       card.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); showDetail(row, card); } });
       list.append(card);
@@ -192,7 +233,7 @@
         tickerCell, row.asset_class, num(row.score, 1),
         criteriaCount(row) == null ? "--" : criteriaCount(row),
         industryLabel(row) || "--", row.cap_bucket || "--",
-        row.technical && row.technical.vs_200d_pct != null ? pct(row.technical.vs_200d_pct) : "--",
+        row.technical && trendPct(row) != null ? pct(trendPct(row)) : "--",
         row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--",
         actionLabel(row.discovery_stage || row.action)
       ];
@@ -304,7 +345,8 @@
     var stats = node("div", "k-detail-grid");
     [
       ["Discovery", num(row.score, 1)], ["Coverage", pct(row.component_coverage == null ? null : row.component_coverage * 100)], ["Entry", actionLabel((row.entry_trigger && row.entry_trigger.state) || row.action)],
-      ["RSI", num(row.technical && row.technical.rsi, 1)], ["R / R", row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--"], ["Dilution", pct(row.dilution && row.dilution.yoy_pct)]
+      ["RSI", num(row.technical && row.technical.rsi, 1)], ["R / R", row.risk_reward && row.risk_reward.ratio != null ? num(row.risk_reward.ratio, 2) + "x" : "--"], ["VS 250D", trendPct(row) == null ? "--" : pct(trendPct(row))],
+      ["Dilution", pct(row.dilution && row.dilution.yoy_pct)]
     ].forEach(function (x) { var s = node("div", "k-detail-stat"); s.append(node("span", "", x[0]), node("b", "", x[1])); stats.append(s); });
     box.append(stats);
     box.append(node("h3", "", "CLASSIFICATION + MOMENTUM"));
@@ -315,7 +357,17 @@
       line("MOMENTUM", textValue(row.momentum))
     );
     box.append(node("h3", "", "CRITERIA + GATES"));
-    box.append(line("CRITERIA", textValue(row.criteria)), line("GATES", textValue(row.gates)));
+    var gates = gateMap(row);
+    if (gates) {
+      var passed = Object.keys(gates).filter(function (key) { return gates[key] === true; }).length;
+      box.append(line("PASSED", passed + " of " + Object.keys(gates).length));
+      Object.keys(gates).forEach(function (key) {
+        box.append(line(gates[key] === true ? "PASS" : "OPEN", key.replace(/_/g, " ")));
+      });
+    } else {
+      box.append(line("CRITERIA", Array.isArray(row.criteria) && !row.criteria.length ? "No criteria record on this name." : textValue(row.criteria)));
+      box.append(line("GATES", Array.isArray(row.gates) && !row.gates.length ? "No gate record on this name." : textValue(row.gates)));
+    }
     if (row.lifecycle) {
       box.append(node("h3", "", "LIFECYCLE"));
       box.append(
@@ -388,6 +440,8 @@
   function render(data) {
     state.data = data;
     $("loading").hidden = true; $("error").hidden = true; $("dashboard").hidden = false;
+    var hash = (location.hash || "").replace("#", "");
+    showView(hash || "command");
     var live = document.querySelector(".k-live");
     live.className = "k-live " + (data.status === "OK" ? "" : data.status === "DEGRADED" ? "stale" : "bad");
     set("feed-status", data.status || "UNKNOWN");
@@ -407,8 +461,8 @@
   document.addEventListener("click", function (ev) {
     var view = ev.target.closest("[data-view]");
     if (view) {
-      document.querySelectorAll("[data-view]").forEach(function (x) { x.classList.toggle("active", x === view); });
-      var target = $(view.dataset.view); if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      showView(view.dataset.view);
+      if (history.replaceState) history.replaceState(null, "", "#" + view.dataset.view);
     }
     var filter = ev.target.closest("[data-filter]");
     if (filter) {

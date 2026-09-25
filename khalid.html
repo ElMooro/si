@@ -1,12 +1,16 @@
 <!doctype html>
 <html lang="en" data-theme="dark">
-<head>
-  <meta charset="utf-8">
+<head><meta charset="utf-8"><script id="jh-page-data-contract" type="application/json">{"page_role":"ENGINE_PAGE","role_reason":null,"coverage_class":"PRIMARY_VALID_CONTRACT","repository_assets":[{"key":"nav-manifest.json","role":"repository_configuration_or_asset","purpose":"Repository navigation manifest","sha256":"297b6959918c39ee6a182b8768231692b81c2f59d2aa21e5f5b14d045f06c9da"}],"api_responses":[],"runtime_outputs":[],"primary_output_scopes":{},"primary_scope_evidence":{},"unresolved_primary_references":[],"dedicated_coverage_note":null,"script_parse_errors":[],"outputs":[{"engine":"justhodl-khalid","key":"data/history/khalid.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":1122}]},{"engine":"justhodl-khalid","key":"data/khalid-candidates.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":1122}]},{"engine":"justhodl-khalid","key":"data/khalid.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":1122}]},{"engine":"justhodl-bottom","key":"data/bottom.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":209}]},{"engine":"justhodl-market-tape","key":"data/market-tape.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":170}]},{"engine":"justhodl-sp500","key":"data/sp500-history.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":590}]},{"engine":"justhodl-sp500","key":"data/sp500.json","access":"public","private_kind":null,"required_projection":null,"inspection_schema":"json-value.v1","ownership_evidence":[{"file":"lambda_function.py","line":644}]}],"producers":["justhodl-bottom","justhodl-khalid","justhodl-market-tape","justhodl-sp500"],"primary_producers":["justhodl-khalid"],"supplemental_producers":["justhodl-bottom","justhodl-market-tape","justhodl-sp500"],"primary_output_status":"ACCESSIBLE_BY_CONTRACT","primary_withheld_output_count":0,"primary_unresolved_write_count":0,"primary_dynamic_family_count":0,"primary_unindexed_family_count":0,"excluded_internal_outputs":[],"owner_authenticated_count":0,"restricted_count":0,"unresolved_count":0,"unresolved_references":[],"historical_or_dynamic_family_count":1,"association_basis":"exact source references or explicit validated page declarations; shared-script conditional use not inferred as primary ownership","runtime_coverage":"unverified_until_opened","missing_script_count":0}</script><script id="jh-api-data-contract" type="application/json">[]</script><script src="/jh-data-inspector.js?v=55afd114262f58dd" data-contract="page-data-contract.v1"></script><script src="/jh-chart-theme.js?v=7e983f03"></script><meta name="theme-color" content="#F0B429">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="description" content="Khalid is JustHodl's strict cross-asset risk and asymmetric-opportunity engine.">
   <title>Khalid | JustHodl.AI</title>
-  <link rel="stylesheet" href="/jh-theme.css">
-  <link rel="stylesheet" href="/khalid.css">
+<link rel="canonical" href="https://justhodl.ai/khalid.html">
+<meta property="og:title" content="Khalid | JustHodl.AI">
+<meta property="og:url" content="https://justhodl.ai/khalid.html">
+<meta property="og:type" content="website">
+  <link rel="stylesheet" href="/jh-theme.css?v=1057f9c8">
+  <link rel="stylesheet" href="/khalid.css?v=a9b7316b">
+<meta name="jh-build-commit" content="16b164d2ab27cdf31dfdbd586e9c79114e3ff456">
 </head>
 <body>
   <div class="k-app" id="khalid">
@@ -109,7 +113,10 @@
                 <button data-filter="HIGH_CONVICTION" type="button">HIGH CONVICTION</button>
                 <button data-filter="UNDERAPPRECIATED" type="button">UNDERAPPRECIATED</button>
                 <button data-filter="EARLY_SIGNAL" type="button">EARLY</button>
+                <button data-filter="BUILDING_BASE" type="button">BUILDING</button>
+                <button data-filter="WATCH_RECLAIM" type="button">RECLAIM</button>
                 <button data-filter="EVIDENCE_HOLD" type="button">DATA HOLD</button>
+                <button data-filter="REJECTED" type="button">REJECTED</button>
               </div>
               <label class="k-search"><span>FIND</span><input id="asset-search" type="search" autocomplete="off" placeholder="Ticker or asset"></label>
             </div>
@@ -121,7 +128,7 @@
             <label>INDUSTRY / CATEGORY<select id="industry-filter"><option value="ALL">All industries / categories</option></select></label>
             <label>CAP BUCKET<select id="cap-filter"><option value="ALL">All cap buckets</option></select></label>
           </div>
-          <p class="k-table-label">TOP OPPORTUNITIES · LIMITED TO 9 FOR PERFORMANCE</p>
+          <p class="k-table-label">NINE CARDS ABOVE. THE FULL BOOK IS IN THE TABLE. REJECTED NAMES STAY OFF UNTIL YOU ASK FOR THEM.</p>
           <div id="opportunity-list" class="k-opportunities"></div>
           <div id="opportunity-empty" class="k-empty" hidden>No setup matches this view.</div>
           <div class="k-table-wrap k-opportunity-table">
@@ -133,7 +140,7 @@
                 <th aria-sort="none"><button type="button" data-sort="criteria">Criteria</button></th>
                 <th aria-sort="none"><button type="button" data-sort="industry">Industry / category</button></th>
                 <th aria-sort="none"><button type="button" data-sort="cap_bucket">Cap</button></th>
-                <th aria-sort="none"><button type="button" data-sort="vs_200d">vs 200D</button></th>
+                <th aria-sort="none"><button type="button" data-sort="vs_200d">vs 250D</button></th>
                 <th aria-sort="none"><button type="button" data-sort="rr">R / R</button></th>
                 <th aria-sort="none"><button type="button" data-sort="stage">Stage</button></th>
               </tr></thead>
@@ -211,8 +218,11 @@
       <div id="detail-content"></div>
     </aside>
   </div>
-  <script src="/jh-nav-drawer.js" defer></script>
-  <script src="/khalid.js" defer></script>
-  <script src="/jh-khalid-sniper.js?v=20260925-sniper" defer></script>
+  <script src="/jh-nav-drawer.js?v=3ff1b38b" defer></script>
+  <script src="/khalid.js?v=e8f0711a" defer></script>
+  <script src="/jh-khalid-sniper.js?v=35b58a43" defer></script>
+<script>window.JH_SECTION_MAP={"capital-banner":"1","no-entry-trigger-yet-tracking-opportunit":"2","gate":"3","opportunities":"4","opportunities/biggest-underappreciated-opportunities":"4.1","opportunities/opportunity-list":"4.2","opportunities/ticker-asset-score-criteria-industry-cat":"4.3","assets":"5","assets/asset-grid":"5.1","assets/ton":"5.4","assets/imx":"5.5","assets/eigen":"5.6","risk":"6","risk/risk-board-domains":"6.1","risk/selective":"6.3","risk/breadth-clusters":"6.4","risk/none":"6.5","risk/data-hold":"6.6","method":"7","method/hard-gatesdiscovery-and-execution-are-se":"7.1","method/long-term-trend":"7.2","method/inputdomainstatusageslaproducer-data-kha":"7.3"};</script>
+<script src="/jh-sections.js?v=a3e44e3a" defer></script>
+<script src="/jh-footer.js?v=677b9e51" defer></script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"840cb39dc9b9483d9319f41cf1395400","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
