@@ -1,0 +1,86 @@
+{
+  "contract": "liquidity-pulse-native-migration.v1",
+  "complete_predecessors": [
+    {
+      "path": "aws/lambdas/justhodl-liquidity-pulse/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-liquidity-pulse-before-native.py.txt",
+      "bytes": 24123,
+      "sha256": "7c2f873ef48d274c37a8fc46e98186ad101c8937b58e422792ccd3aa1708342a"
+    },
+    {
+      "path": "liquidity-pulse.js",
+      "predecessor": "tests/fixtures/legacy-liquidity-pulse-before-native.js.txt",
+      "bytes": 8228,
+      "sha256": "1c638337f7f2488f858a948026a74eba660964ad237fb012ef5edac6094d4f0d"
+    }
+  ],
+  "prior_tracked_config_present": false,
+  "baseline_report": "aws/ops/reports/latest/ops_6118_liquidity_pulse_original_baseline.md",
+  "qualification_report": "aws/ops/reports/latest/ops_6119_liquidity_pulse_retained_arithmetic.md",
+  "baseline": {
+    "key": "audit-private/20260909-originals/liquidity-pulse-research/c086ed9e2e48bb86171364c84ec33e7d7403fe0f5858f862cdf0b2a96d9fde35.bin",
+    "sha256": "c086ed9e2e48bb86171364c84ec33e7d7403fe0f5858f862cdf0b2a96d9fde35",
+    "bytes": 32123
+  },
+  "native_predecessor": {
+    "runtime": {
+      "code_sha256": "Z7glHgfKgJClJUpMCpCaEg8l7AjbZuDmgz7TNnrLZwo=",
+      "source_files_checked": 3,
+      "handler_bytes": 24123,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "missing_predecessor_receipt"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "liquidity-pulse-6h",
+          "state": "ENABLED",
+          "expression": "cron(3 16 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-liquidity-pulse",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "whole_zip": {
+      "key": "audit-private/20260909-originals/liquidity-pulse-research/67b8251e07ca8090a5254a4c0a909a120f25ec08db66e0e6833ed3367acb670a.bin",
+      "sha256": "67b8251e07ca8090a5254a4c0a909a120f25ec08db66e0e6833ed3367acb670a",
+      "bytes": 159893
+    }
+  },
+  "qualified_arithmetic": {
+    "key": "audit-private/20260909-originals/liquidity-pulse-research/28cdb675e7c1e914e1f9eb7cea40659891b859391630c84436ad991fe5ff167b.bin",
+    "sha256": "28cdb675e7c1e914e1f9eb7cea40659891b859391630c84436ad991fe5ff167b",
+    "bytes": 6763
+  },
+  "independent_verifier": {
+    "key": "audit-private/20260909-originals/liquidity-pulse-research/fa8342e91b893373c38c32ab92ff60959441707107dd60cb7e2550c27b6c72de.bin",
+    "sha256": "fa8342e91b893373c38c32ab92ff60959441707107dd60cb7e2550c27b6c72de",
+    "bytes": 8338
+  },
+  "proof": {
+    "original_rows": 13457,
+    "requested_series": 11,
+    "missing_series": 0,
+    "fresh_series": 11,
+    "calendar_comparisons": 44,
+    "rational_checks": 253,
+    "forecast_qualified": false,
+    "sizing_qualified": false
+  },
+  "profile": {
+    "compile_and_verify_seconds": 0.197,
+    "candidate_bytes": 1902451,
+    "max_rss_kib": 106096
+  },
+  "schedule_policy": "Preserve actual daily 16:03 UTC EventBridge rule. No acceptance-only invocation or schedule change.",
+  "native_capacity_note": "Actual predecessor 512 MB / 300 s preserved. Retained compile plus independent verify used 0.197 seconds, peak process RSS 106096 KiB; complete scheduled-path recovery tested offline. Native scheduled publication remains to be observed."
+}

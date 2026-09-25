@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-liquidity-pulse",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Original-bound liquidity and credit observations: eleven official FRED definitions, exact dated comparisons, immutable replay and explicit abstention. No investment score."
+}
