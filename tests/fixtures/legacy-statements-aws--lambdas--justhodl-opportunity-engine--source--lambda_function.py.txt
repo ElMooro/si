@@ -857,9 +857,8 @@ def lambda_handler(event, context):
     shorts = {x.get("ticker"): x.get("state") for x in
               (__import__("short_volume_context").decision_view(load("data/short-pressure.json")) or {}).get("names", [])}
     sfl = (load("data/share-flows.json") or {}).get("tickers") or {}
-    accounting = __import__("statement_context").decision_view(load("data/forensic-screen.json"))
     fmap = {r.get("symbol"): r for r in
-            accounting.get("all_results")
+            (load("data/forensic-screen.json") or {}).get("all_results")
             or [] if r.get("symbol")}
     print(f"[opp] forensic join: {len(fmap)} names")
     print(f"[opp] share-flows join: {len(sfl)} names")
@@ -1147,7 +1146,6 @@ def lambda_handler(event, context):
     out = {
         "schema_version": "2.0",
         "method": "retail_edge_multi_method_synthesis",
-        "accounting_context": accounting["research_context"],
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "risk_gate": {"posture": risk_gate_snapshot.get("posture"),
                        "sizing_multiplier": risk_gate_snapshot.get("sizing_multiplier"),

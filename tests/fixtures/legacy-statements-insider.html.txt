@@ -21,8 +21,7 @@ td.l{text-align:left}.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(-
 .note{color:var(--fg3);font-size:11px;margin-top:14px;line-height:1.6}
 button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:6px 12px;font-family:var(--mono);font-size:11px;cursor:pointer;margin:6px 0}
 .loading{color:var(--fg3);font-family:var(--mono)}
-</style><script src="/jh-statement-context.js"></script>
-</head><body>
+</style></head><body>
 <header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/insider.html" class="on">🕵 Insider</a><a href="/upside-radar.html">Upside</a><a href="/market-map.html">Map</a><a href="/sizing.html">Sizing</a></nav></header>
 <div class="wrap">
@@ -64,7 +63,7 @@ function qLine(t){
 }
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 let D=null;
-(async()=>{const [d0,sfw,fow]=await Promise.all([gj('data/insider-radar.json'),gj('data/share-flows.json'),gj('data/forensic-screen.json').then(d=>window.JHStatementContext.decisionView(d))]);D=d0;
+(async()=>{const [d0,sfw,fow]=await Promise.all([gj('data/insider-radar.json'),gj('data/share-flows.json'),gj('data/forensic-screen.json')]);D=d0;
   window.SFMAP=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
   if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
   document.getElementById('hero').innerHTML=

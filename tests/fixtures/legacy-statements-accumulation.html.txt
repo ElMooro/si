@@ -27,8 +27,7 @@ h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font
 .tabs{display:flex;gap:6px;margin:6px 0 0}.tab{font-size:12px;color:var(--fg3);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;cursor:pointer}.tab.on{color:var(--fg);border-color:var(--fg3);background:var(--card)}
 .chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
 .chp{font-size:9.5px;font-weight:700;border:1px solid #2a3444;border-radius:3px;padding:0 4px;background:#0d131d}
-</style><script src="/jh-statement-context.js"></script>
-</head><body><div class="wrap" id="w"><div class="loading">Loading accumulation / distribution radar…</div></div>
+</style></head><body><div class="wrap" id="w"><div class="loading">Loading accumulation / distribution radar…</div></div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
@@ -160,7 +159,7 @@ function block(book,kind){
   return h||'<div class="grp" style="color:var(--fg3)">none flagged today</div>';
 }
 (async function(){
-  const [sfw,fow]=await Promise.all([gj('data/share-flows.json'),gj('data/forensic-screen.json').then(d=>window.JHStatementContext.decisionView(d))]);window.__sf=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
+  const [sfw,fow]=await Promise.all([gj('data/share-flows.json'),gj('data/forensic-screen.json')]);window.__sf=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
   const d=await gj('data/accumulation-radar.json');const w=document.getElementById('w');
   window.__d=d;if(!d||!d.tops){w.innerHTML='<div class="hd"><h1>Accumulation / Distribution Radar</h1></div><div class="loading">No data yet — runs daily after close.</div>';return;}
   let h=`<div class="hd"><h1>🔄 Accumulation / Distribution Radar</h1><div class="sub">Wyckoff cycle across stocks, ETFs &amp; countries — who's being accumulated vs distributed, and what's most likely at a top or a bottom.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_scored} names scored · ${d.buffer_days}d history · v${esc(d.version||'')}</div></div>`;

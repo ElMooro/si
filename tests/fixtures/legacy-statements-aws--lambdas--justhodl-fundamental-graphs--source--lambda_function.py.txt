@@ -1690,7 +1690,6 @@ def build_sector_medians():
             Bucket=S3_BUCKET, Key="data/forensic-screen.json")["Body"].read())
     except Exception:  # noqa: BLE001
         return None
-    fs = __import__("statement_context").decision_view(fs)
     rows = fs.get("all_results") or []
     val_med = fs.get("sector_valuation_medians") or {}
     sectors = {}
@@ -1728,9 +1727,7 @@ def build_sector_medians():
                 "p10": rnd(vv[n // 10], 4),
                 "p90": rnd(vv[(9 * n) // 10], 4), "n": n}
     doc = {"as_of": datetime.now(timezone.utc).isoformat(),
-           "source": "forensic-screen descriptive research; sector grades unqualified",
-           "accounting_context": fs["research_context"],
-           "quality": {"status": "unavailable", "reason": "Unqualified legacy accounting medians are withheld"},
+           "source": "forensic-screen (S&P 500 cross-section)",
            "n_sectors": len(sectors),
            "keys": sorted({k for m2 in sectors.values() for k in m2}),
            "sectors": sectors, "bands": bands}
@@ -1901,8 +1898,6 @@ def foren_rows():
         d = json.loads(_s3.get_object(
             Bucket=S3_BUCKET,
             Key="data/forensic-screen.json")["Body"].read())
-        d = __import__("statement_context").decision_view(d)
-        _FOREN["research_context"] = d["research_context"]
         _FOREN["rows"] = d.get("all_results") or []
         _FOREN["ts"] = time.time()
     except Exception:  # noqa: BLE001
@@ -1920,8 +1915,7 @@ def factor_dna(sym):
     rows = foren_rows()
     if len(rows) < 30:
         return {"state": "insufficient",
-                "why": "Accounting research has no qualified financial-strength percentiles",
-                "accounting_context": _FOREN.get("research_context") or __import__("statement_context").context({})}
+                "why": "forensic universe rows <30"}
     me = next((r for r in rows
                if (r.get("ticker") or r.get("symbol")) == sym), None)
     conv = None

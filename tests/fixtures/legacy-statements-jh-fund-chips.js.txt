@@ -7,7 +7,6 @@
   var D={};
   var ready=Promise.all([gj('data/share-flows.json'),gj('data/forensic-screen.json')]).then(function(a){
     D.sf=(a[0]||{}).tickers||{};
-    a[1]=window.JHStatementContext ? window.JHStatementContext.decisionView(a[1]) : {};
     D.fo={};((a[1]||{}).all_results||[]).forEach(function(r){if(r.symbol)D.fo[r.symbol]=r;});
     D.med=(a[1]||{}).sector_valuation_medians||{};
     annotate();return D;});

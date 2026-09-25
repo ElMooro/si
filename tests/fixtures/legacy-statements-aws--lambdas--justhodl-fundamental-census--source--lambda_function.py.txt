@@ -102,17 +102,14 @@ def rnd(v, n=2):
 def universe():
     d = json.loads(S3.get_object(
         Bucket=BUCKET, Key="data/forensic-screen.json")["Body"].read())
-    rows = __import__("statement_context").reported_universe(d)
+    rows = d.get("all_results") or []
     out = []
     seen = set()
     for r in rows:
         t = r.get("ticker") or r.get("symbol")
         if t and t not in seen:
             seen.add(t)
-            out.append({"t": t, "sector": r.get("sector") or "Unknown",
-                "sector_status": r.get("sector_status"), "classification_source": r.get("classification_source"),
-                "accounting_source_generated_at": r.get("source_generated_at"),
-                "index_membership_verified": False})
+            out.append({"t": t, "sector": r.get("sector") or "Unknown"})
     return out
 
 

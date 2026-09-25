@@ -292,7 +292,6 @@
 </style>
 <script src="/jh-short-volume-research.js"></script>
 <script src="/jh-short-interest-research.js"></script>
-<script src="/jh-statement-context.js"></script>
 </head>
 
 <body>
@@ -3277,16 +3276,16 @@ window.renderIndustryCompass=function(d){
   var S3B='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
   var DOCS={}, TK=null, TRIES=0;
   function gj(k){return fetch(S3B+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
-  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=window.JHStatementContext.decisionView(a[0]);DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=window.JHShortVolumeResearch?.decisionView(a[8])||{};DOCS.rr=a[9];DOCS.er=a[10];tick();});
+  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=window.JHShortVolumeResearch?.decisionView(a[8])||{};DOCS.rr=a[9];DOCS.er=a[10];tick();});
   function box(l,v,c){return '<span style="background:var(--panel2,#11161f);border:1px solid var(--line,#1c2433);border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">'+l+' <b style="color:'+(c||'#e6eaf2')+'">'+v+'</b></span>';}
   function render(t){
     var old=document.getElementById('jh-fleet-forensic'); if(old) old.remove();
     var fo=((DOCS.fo||{}).all_results||[]).filter(function(r){return r.symbol===t;})[0];
     var sf=(((DOCS.sf||{}).tickers)||{})[t];
     var bb=(((DOCS.bb||{}).tickers)||{})[t];
-    if(!fo&&!sf&&!bb&&!DOCS.fo) return;
+    if(!fo&&!sf&&!bb) return;
     var vm=((DOCS.fo||{}).sector_valuation_medians||{})[fo?fo.sector:null]||{};
-    var rows=[box('Accounting research','No qualified grade or fraud probability','#a8b3c7')];
+    var rows=[];
     if(fo){
       var gc=fo.strength_grade&&fo.strength_grade[0]==='A'?'#26ffaf':fo.strength_grade&&fo.strength_grade[0]==='B'?'#00d4ff':(fo.strength_grade==='D'||fo.strength_grade==='F')?'#ff5577':'#ffd266';
       var L=fo.strength_legs||{};
@@ -3370,7 +3369,7 @@ window.renderIndustryCompass=function(d){
             add('SHARE-FLOWS',sfRead?((sfRead==='BUYBACK_HEAVY'||sfRead==='SHRINKING')?'BULL':(sfRead.indexOf('DILUT')>=0)?'BEAR':(sfFl.indexOf('MGMT_SELLING_INTO_BUYBACK')>=0)?'FLAG':'NEUT'):null,sfRead?sfRead.replace(/_/g,' ').toLowerCase()+(sfFl.length?' \u00b7 '+sfFl.join('/').toLowerCase().replace(/_/g,' '):''):'not covered','/share-flows.html');
             /* 5 forensic */
             var fo2=null;((DOCS.fo||{}).all_results||[]).forEach(function(r){if(r.symbol===T)fo2=r;});
-            add('FORENSIC',null,'Dated statements; no qualified grade','/forensic.html?ticker='+T);
+            add('FORENSIC',fo2?((fo2.concern_score||0)>=40||fo2.m_deteriorating?'FLAG':(fo2.strength_grade&&fo2.strength_grade[0]<='B')?'BULL':'NEUT'):null,fo2?((fo2.strength_grade||'?')+' financials \u00b7 concern '+(fo2.concern_score!=null?fo2.concern_score:'-')):'not screened','/forensic.html?ticker='+T);
             /* 6 industry (reuse hit verdict) */
             add('INDUSTRY',hit?(growing.indexOf('GROW')===0?'BULL':growing.indexOf('SHRINK')===0?'BEAR':'NEUT'):null,hit?growing.toLowerCase():'no industry match','/industry-rotation.html');
             /* 7 squeeze / finra */
@@ -3449,7 +3448,7 @@ window.renderIndustryCompass=function(d){
     sec.id='jh-fleet-forensic'; sec.className='block';
     sec.innerHTML='<div class="sub"><span class="ico">🔬</span> Forensic &amp; Capital Flows — fleet cross-read</div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px">'+rows.join('')+'</div>'+
-      '<div style="font-size:11px;color:#6f7b91;font-family:monospace">accounting research is descriptive; other inputs from · share-flows v1.4 · buyback-engine v1.1 · <a href="/forensic.html?ticker='+t+'" style="color:#00d4ff">full forensic read ↗</a> · <a href="/share-flows.html?ticker='+t+'" style="color:#00d4ff">capital-return forensics ↗</a></div>';
+      '<div style="font-size:11px;color:#6f7b91;font-family:monospace">composed live from forensic-screen v2.2 · share-flows v1.4 · buyback-engine v1.1 · <a href="/forensic.html?ticker='+t+'" style="color:#00d4ff">full forensic read ↗</a> · <a href="/share-flows.html?ticker='+t+'" style="color:#00d4ff">capital-return forensics ↗</a></div>';
     var anchor=null;
     var subs=document.querySelectorAll('section.block .sub');
     for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}

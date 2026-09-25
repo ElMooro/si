@@ -36,8 +36,7 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 .legend{font-size:11.5px}.legend td,.legend th{text-align:left;white-space:normal}
 .note{color:var(--fg3);font-size:11px;margin-top:16px;line-height:1.65}
 .loading{color:var(--fg3);font-family:var(--mono)}
-</style><script src="/jh-statement-context.js"></script>
-</head><body>
+</style></head><body>
 <header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/valuations.html" class="on">💰 Valuations</a><a href="/research.html">📜 Research</a><a href="/valuations-macro.html">Macro</a><a href="/deep-value.html">Net-Nets</a><a href="/deep-value-overlap.html">Overlap</a><a href="/gf-value.html">Fair Value</a><a href="/fundamentals.html">X-Ray</a><a href="/market-map.html">Map</a></nav></header>
 <div class="wrap">
@@ -132,7 +131,7 @@ document.getElementById('flagf').onclick=e=>{const f2=e.target.dataset.f;if(!f2)
 document.getElementById('q').addEventListener('input',()=>renderA());
 function dl(rows,cols,name){const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>{const v=c.includes('.')?c.split('.').reduce((o,k)=>o?.[k],r):r[c];return v==null?'':String(v).replace(/,/g,';');}).join(','))).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click();}
-window.FOMAP={};gj('data/forensic-screen.json').then(d=>{d=window.JHStatementContext.decisionView(d);if(d&&d.all_results){const m={};d.all_results.forEach(r=>{if(r.symbol)m[r.symbol]=r});window.FOMAP=m;try{render()}catch(e){}}});
+window.FOMAP={};gj('data/forensic-screen.json').then(d=>{if(d&&d.all_results){const m={};d.all_results.forEach(r=>{if(r.symbol)m[r.symbol]=r});window.FOMAP=m;try{render()}catch(e){}}});
 (async()=>{D=await gj('data/stock-valuations.json');
   if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
   const top=(D.hp||[])[0];const nA=(D.sp_table||[]).length;

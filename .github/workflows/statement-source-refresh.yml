@@ -1,0 +1,32 @@
+name: Qualify complete accounting source refresh
+on:
+  schedule:
+    - cron: '53 15 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: statement-source-refresh
+  cancel-in-progress: false
+jobs:
+  qualify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Accounting source and publication boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 aws/lambdas/justhodl-forensic-screen/tests/run_tests.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Retain every source and qualify private readiness
+        run: python3 aws/ops/checks/run_statement_source_refresh.py

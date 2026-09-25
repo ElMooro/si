@@ -144,7 +144,7 @@ def lambda_handler(event, context):
                 _sfwalk(v)
     _sfwalk(sf)
 
-    fs = __import__("statement_context").decision_view(rj("data/forensic-screen.json"))
+    fs = rj("data/forensic-screen.json")
 
     def _fswalk(o):
         if isinstance(o, dict):
@@ -249,11 +249,9 @@ def lambda_handler(event, context):
            "elapsed_s": round(time.time() - t0, 2),
            "n_candidates": len(L), "n_book": len(rows), "logged": logged,
            "squeeze_excluded": squeeze_excluded,
-           "accounting_context": fs["research_context"],
-           "input_eligibility": {"beneish_fail": False},
            "book": rows,
            "lens_weights": {"dark_distribution": 25, "forensic_flag": 20,
-                            "beneish_fail": 0, "ladder_break_200": 20,
+                            "beneish_fail": 20, "ladder_break_200": 20,
                             "wyckoff_distribution": 15, "double_top": 10},
            "methodology": ("Independent bear lenses composed per ticker; "
                            ">=2 lenses required; top 20. Each graded DOWN "
