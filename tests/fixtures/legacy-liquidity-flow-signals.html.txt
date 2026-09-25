@@ -468,7 +468,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,212,255,.04),tr
   <section class="section">
     <div class="section-eyebrow">Liquidity & Volatility Regime</div>
     <h2 class="section-title">Where the money is flowing, where vol is pricing</h2>
-    <p class="section-blurb">Three descriptive market monitors: net Fed liquidity (WALCL minus TGA minus RRP), BTC/ETH exchange flow regime (accumulation vs distribution), and the shape of the VIX futures curve (contango vs backwardation).</p>
+    <p class="section-blurb">Three regime indicators that tend to lead risk-asset performance: net Fed liquidity (WALCL minus TGA minus RRP), BTC/ETH exchange flow regime (accumulation vs distribution), and the shape of the VIX futures curve (contango vs backwardation).</p>
     <div class="cards">
       <article class="card t-macro fade-in" id="card-liq">
         <div class="card-head"><div><div class="card-eyebrow">FRED · daily</div><div class="card-name">Net Fed liquidity (WALCL − TGA − RRP)</div></div><span class="card-stat skel">—</span></div>
@@ -837,9 +837,9 @@ async function loadLiquidity(){
   setStat('card-liq', stat, label);
   const cur = d.current || {};
   set('liq-headline', cur.net_liquidity_b != null ? '$' + (cur.net_liquidity_b/1000).toFixed(1) + 'T' : '—');
-  set('liq-blurb', d.interpretation || 'Liquidity data fetched.');
+  setHTML('liq-blurb', d.interpretation || 'Liquidity data fetched.');
   const m1 = (d.deltas || {})['1m'];
-  set('liq-meta', m1 && typeof m1.net === 'number' && Number.isFinite(m1.net) ? `${d.contract === 'liquidity-flow-research.v1' ? 'Calendar month' : 'Legacy 30d'} Δ: ${m1.net > 0 ? '+' : ''}${m1.net.toFixed(3)}B · descriptive only` : '—');
+  set('liq-meta', m1 ? `30d Δ: ${m1.net > 0 ? '+' : ''}${m1.net.toFixed(0)}B` : '—');
   return d;
 }
 async function loadExchangeFlows(){

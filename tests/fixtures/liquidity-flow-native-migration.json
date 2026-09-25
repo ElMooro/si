@@ -1,0 +1,53 @@
+{
+  "contract": "liquidity-flow-native-migration.v1",
+  "baseline": {
+    "key": "audit-private/20260909-originals/liquidity-flow-research/1696ff2ee5a02c3c645e86bddd910d20fd8692c8d23f07e96d0111cd56522cca.bin",
+    "sha256": "1696ff2ee5a02c3c645e86bddd910d20fd8692c8d23f07e96d0111cd56522cca",
+    "bytes": 17835
+  },
+  "qualification_report": "aws/ops/reports/latest/ops_6116_liquidity_flow_retained_arithmetic.md",
+  "qualification_run": 36186015541,
+  "qualified_arithmetic": {
+    "key": "audit-private/20260909-originals/liquidity-flow-research/5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856.bin",
+    "sha256": "5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856",
+    "bytes": 9044
+  },
+  "proof": {
+    "original_rows_checked": 7366,
+    "calendar_dates_checked": 180,
+    "comparison_windows_checked": 4,
+    "exact_rational_comparisons": 776,
+    "unavailable_legs_preserved": 11,
+    "production_compiler_imported": false,
+    "forecast_qualified": false,
+    "sizing_qualified": false
+  },
+  "native_formula_changed": false,
+  "predecessors": [
+    {
+      "path": "tests/fixtures/legacy-liquidity-flow-calls.py.txt",
+      "sha256": "ca8c95d08e4115dc6c284fdf65818cca564cbe02127aa760d0f7f76893729cac",
+      "bytes": 7748
+    },
+    {
+      "path": "tests/fixtures/legacy-liquidity-flow-config.txt",
+      "sha256": "e5b707052bd33608e35165f5ec6b101a7c5c8f699f44ec24a394826ae6fe5e80",
+      "bytes": 750
+    },
+    {
+      "path": "tests/fixtures/legacy-liquidity-flow-handler.txt",
+      "sha256": "8b12e2fedc13fa1f37c94afd1d22c4c7cec8792572fc2e8207c30e981da65399",
+      "bytes": 13322
+    },
+    {
+      "path": "tests/fixtures/legacy-liquidity-flow-page.html.txt",
+      "sha256": "593c9f90d8188091072bce50130298bb0067b2933b588b81935b56e1ba0641bb",
+      "bytes": 52426
+    },
+    {
+      "path": "tests/fixtures/legacy-liquidity-flow-signals.html.txt",
+      "sha256": "dd23a34a0511d835633c2cc509ac50fb8c5b70d20f0858fe4ea8222c01496429",
+      "bytes": 60704
+    }
+  ]
+}

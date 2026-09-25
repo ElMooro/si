@@ -52,17 +52,8 @@ def build(load, generated_at):
         rows.append(row)
         if status!='fresh': missing.append(row['series_id'])
     liq_key='data/liquidity-flow.json';liq=read(liq_key)
-    liquidity_note='WALCL - WTREGEN - RRPONTSYD. Individual source periods are not qualified by a packet date. Not investable cash or an easing signal.'
-    if liq.get('contract')=='liquidity-flow-research.v1':
-        dates=get(liq,'current.observation_dates') or {}
-        if not isinstance(dates,dict): dates={}
-        liquidity_note=('WALCL Wednesday level '+str(day(dates.get('WALCL')) or 'unavailable')+
-            '; WTREGEN weekly average ending '+str(day(dates.get('WTREGEN')) or 'unavailable')+
-            '; RRP daily operation '+str(day(dates.get('RRPONTSYD')) or 'unavailable')+
-            '. Displayed as-of is the oldest selected input date, not a shared measurement period. '
-            'Current-vintage descriptive proxy; not investable cash or an easing signal.')
     add(liq,liq_key,'current.net_liquidity_b','usd_bn',['WALCL','WTREGEN','RRPONTSYD'],
-        get(liq,'quality.observation_date') or liq.get('as_of'),note=liquidity_note)
+        get(liq,'quality.observation_date') or liq.get('as_of'),note='WALCL - WTREGEN - RRPONTSYD. Date is the aligned packet date; individual leg observation dates are not supplied here. Not investable cash or an easing signal.')
     settlement_key='data/settlement-fails.json';settlement=project(read(settlement_key),now)
     for scope in (settlement,settlement['ust_ex_tips']):
         for field in ('ftd_bn','ftr_bn','combined_bn'):
@@ -96,7 +87,7 @@ def build(load, generated_at):
     lines += ['', '## OBSERVATIONS',
         '- '+str(len(fresh))+' of '+str(len(rows))+' displayed fields have a fresh observation contract. This is field coverage, not independent evidence or predictive accuracy.',
         '- Treasury gross and UST ex-TIPS are overlapping scopes. FTD and FTR are two-sided settlement reports; neither scope measures unique defaults, new inflows or central-bank injection.',
-        '- Liquidity: '+liquidity_note,
+        '- Liquidity is WALCL - WTREGEN - RRPONTSYD. Its aligned packet date does not establish that all three legs were observed on that date.',
         '- TIC is lagged securities transactions. Private/official holder composition must be inspected before interpreting its total.',
         '', '## DISAGREEMENTS',
         '- Low systemic-stress readings and a high market-extremes score can describe different risks. They must remain separate; this compiler does not choose a trade from unvalidated weights.',
