@@ -28,6 +28,9 @@ td:first-child,th:first-child{font-family:var(--sans);font-weight:600}
 tr:hover td{background:rgba(0,212,255,.05);cursor:pointer}
 .pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:1px 7px;border-radius:99px;background:rgba(120,140,170,.16);color:var(--dim)}
 .pill.up{color:var(--up);background:rgba(34,197,94,.14)}
+.memo{margin-top:18px;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--card)}
+.memo h2{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--amb);margin:0 0 8px}
+.memo li{margin:0 0 5px;color:var(--dim);font-size:12px;line-height:1.45}
 .pill.dn{color:var(--dn);background:rgba(239,68,68,.14)}
 .pill.amb{color:var(--amb);background:rgba(245,158,11,.16)}
 .up{color:var(--up)}.dn{color:var(--dn)}.amb{color:var(--amb)}
@@ -40,25 +43,40 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
 <body>
 <div class="wrap">
   <h1>WYCKOFF DESK</h1>
-  <p class="sub">Six scanners on daily warehouse bars. Cadences are labeled. Capitulation is not a buy — it is panic supply at the lows. A spring on a distribution range is a failed test. Click a ticker to open the chart.</p>
+  <p class="sub">Climax, capitulation, spring, accumulation, bottom, pump, distribution, and top. Each tab ends with the criteria that engine starts from. Capitulation is not a buy. A spring on a distribution range is a failed test. Click a ticker to open the chart.</p>
   <div class="tabs" id="tabs"></div>
   <div class="kpi" id="kpi"></div>
   <div class="note" id="why"></div>
   <div class="panel"><table id="board"></table></div>
+  <section class="memo" id="memo"></section>
   <div class="meta" id="meta"></div>
   <footer>Feeds: data/bottom.json (SC + bottom + pump/markup) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
 </div>
 <script>
 (function () {
   var TABS = [
-    { id: "sc", lab: "Selling climax", why: "Wyckoff SC: climactic volume at a new low of a real decline, wide range, close in the lower half. Source of truth is the Bottom desk (daily). Phase-detector SC events are a second clock — 400-name book, not the full warehouse." },
-    { id: "capit", lab: "Capitulation", why: "Panic print, not the whole SC sequence. Tape rule: wide down bar, close in the lower fifth, volume ≥1.75×. This board is stricter on the Bottom harvest: daily CLIMAX / fresh TESTING / NO_RALLY, vol ≥3.5× the 50d average, range ≥1.5× ATR, decline ≥15%, still within 15% of the climax low, SC bar ≤21 calendar days. Not a buy. Wait for the automatic rally and a light-volume test." },
-    { id: "bc", lab: "Buying climax", why: "Wyckoff BC on daily bars: climactic volume at/near a high, wide range, close off the extreme. Phase-detector live BC events (daily). Not a short by itself — wait for SOW / UT. Distribution beginning is listed as context." },
-    { id: "spread", lab: "Candle spread", why: "Tight price range + tight Bollinger. Katlin: bbw percentile ≤ 20 and squeeze, ranked by BB tightness then range-contraction leg. This is coiling, not a trigger. Open Daily on the chart to see the squeeze." },
-    { id: "spring", lab: "Spring", why: "Textbook spring: a range under accumulation, then an undercut of support that closes back in, preferably on lighter volume than the climax. Forming = accumulation ≥10 days, price within 3% of range low (no spring print yet). Fired = SPRING event while still in ACCUMULATION. Failed = SPRING print on a DISTRIBUTION range — that is an upthrust cousin, not a buy. Phase-detector does not attach volume to the event; Bottom ST rows carry st_vol_ratio vs the climax." },
-    { id: "accum", lab: "Accumulation", why: "Long range, tight candles, tight band. Phase-detector ACCUMULATION ∪ radar accumulating ∪ Katlin with accum pillar ≥ 65 and bbw ≤ 25. Pressure / CMF / 13F whales are confirmation, not the structure." },
-    { id: "bottom", lab: "Bottom", why: "Five-proof bottom: stopping action (PS/SC that closes off the low + AR + ST on shrunk volume). Hinge/springboard is Proof 2 finishing — decaying volume and narrower down-spreads, higher lows vs the climax. Not a buy yet. Wait for LPS after SOS." },
-    { id: "pump", lab: "Pump", why: "Start of bull run = Proof 4 SOS / jump across the creek after a valid hinge: wide-spread advance through old resistance, close near the high, volume up vs Phase B rallies. Professional entry is still Proof 5 LPS (labored pullback, volume << SOS). Do not chase the SOS bar. Abort if the jump is sold back into the range on expanding volume." }
+    { id: "sc", lab: "Selling climax", why: "Wyckoff SC: climactic volume at a new low of a real decline, wide range, close in the lower half. Source of truth is the Bottom desk (daily). Phase-detector SC events are a second clock — 400-name book, not the full warehouse.",
+      memo: ["Daily bars only.", "Board: bottom harvest rows in CLIMAX or TESTING.", "The climax is climactic volume at a new low of a real decline, a wide range, and a close off the low.", "This tab is the location of the climax. It is not a buy."] },
+    { id: "capit", lab: "Capitulation", why: "Panic print, not the whole SC sequence. Tape rule: wide down bar, close in the lower fifth, volume ≥1.75×. This board is stricter on the Bottom harvest: daily CLIMAX / fresh TESTING / NO_RALLY, vol ≥3.5× the 50d average, range ≥1.5× ATR, decline ≥15%, still within 15% of the climax low, SC bar ≤21 calendar days. Not a buy. Wait for the automatic rally and a light-volume test.",
+      memo: ["Daily bars only.", "State is CLIMAX, TESTING, or NO_RALLY.", "Climax volume at least 3.5 times the 50-day average.", "Climax range at least 1.5 times ATR.", "Decline of at least 15%.", "Climax bar is no older than 21 calendar days.", "Unless the state is still CLIMAX, price is still within 15% of the climax low.", "Not a buy. The next proof is the automatic rally and a light-volume test."] },
+    { id: "bc", lab: "Buying climax", why: "Wyckoff BC on daily bars: climactic volume at/near a high, wide range, close off the extreme. Phase-detector live BC events (daily). Not a short by itself — wait for SOW / UT. Distribution beginning is listed as context.",
+      memo: ["Daily bars.", "Phase-detector buying-climax events: climactic volume at or near a high, a wide range, and a close off the extreme.", "Not a short by itself. The next proof is weakness on the reaction or an upthrust.", "Distribution beginning is context, not the signal."] },
+    { id: "spread", lab: "Candle spread", why: "Tight price range + tight Bollinger. Katlin: bbw percentile ≤ 20 and squeeze, ranked by BB tightness then range-contraction leg. This is coiling, not a trigger. Open Daily on the chart to see the squeeze.",
+      memo: ["Daily bars.", "Bollinger width percentile at or under 20.", "A squeeze, or the accumulation tight-band leg at or above 70.", "Ranked by how tight the band is, then by how much the range has contracted.", "This is coiling. It is not a trigger."] },
+    { id: "spring", lab: "Spring", why: "Textbook spring: a range under accumulation, then an undercut of support that closes back in, preferably on lighter volume than the climax. Forming = accumulation ≥10 days, price within 3% of range low (no spring print yet). Fired = SPRING event while still in ACCUMULATION. Failed = SPRING print on a DISTRIBUTION range — that is an upthrust cousin, not a buy. Phase-detector does not attach volume to the event; Bottom ST rows carry st_vol_ratio vs the climax.",
+      memo: ["Forming: the phase is accumulation, the range is at least 10 days old, and price is within 3% of the range low. No spring has printed.", "Fired: a SPRING event while the phase is still accumulation.", "Failed: a SPRING event while the phase is distribution. That is not a buy.", "Volume versus the climax is read from the bottom secondary-test row when that row exists. The phase detector does not attach volume to the spring event."] },
+    { id: "accum", lab: "Accumulation", why: "Long range, tight candles, tight band. Phase-detector ACCUMULATION ∪ radar accumulating ∪ Katlin with accum pillar ≥ 65 and bbw ≤ 25. Pressure / CMF / 13F whales are confirmation, not the structure.",
+      memo: ["A name is on this board if any one of these is true.", "Phase detector says ACCUMULATION.", "The accumulation radar has it in the accumulating set.", "Katlin accumulation pillar is at least 65 and Bollinger width percentile is at or under 25.", "Pressure, CMF, and 13F whales confirm. They do not define the range."] },
+    { id: "bottom", lab: "Bottom", why: "Five-proof bottom: stopping action (PS/SC that closes off the low + AR + ST on shrunk volume). Hinge/springboard is Proof 2 finishing — decaying volume and narrower down-spreads, higher lows vs the climax. Not a buy yet. Wait for LPS after SOS.",
+      memo: ["Daily bars.", "Stopping action: a selling climax that closes off the low, an automatic rally, and a secondary test on shrunken volume.", "The hinge is decaying volume, narrower down-spreads, and higher lows versus the climax.", "The chart marks CLIMAX, BOTTOM, and ACCUM on the daily chart, snapped to the harvest dates when the name is on the board.", "The bottom mark is not the buy. The later proof is a sign of strength, then a last point of support."] },
+    { id: "pump", lab: "Pump", why: "Start of bull run = Proof 4 SOS / jump across the creek after a valid hinge: wide-spread advance through old resistance, close near the high, volume up vs Phase B rallies. Professional entry is still Proof 5 LPS (labored pullback, volume << SOS). Do not chase the SOS bar. Abort if the jump is sold back into the range on expanding volume.",
+      memo: ["Starts only after a valid hinge.", "Sign of strength: a wide-spread advance through the old resistance, close near the high, volume above the earlier rallies.", "Do not chase that bar.", "The entry this engine waits for is the last point of support: a labored pullback on much lighter volume.", "Abort if the jump is sold back into the range on expanding volume."] },
+    { id: "dist", lab: "Distribution", why: "A rally is not the verdict. Distribution prints on the daily chart only when the Dist button is on, and only after the rally fails the holding tests.",
+      empty: "Distribution does not keep a separate board. Turn Dist on from the chart. Marks are daily only, and nothing is drawn until that button is on.",
+      memo: ["Off until the Dist button is clicked. Nothing is preloaded.", "Daily bars only. The series needs at least 280 bars.", "The rally high is within 3% of the 189-session high, and the advance is at least 15% off the 252-session low or 30% off the 504-session low.", "The next push buys less than the previous push: more volume for less result, or a net gain under 2.5% with a smaller result.", "Within 18 bars the market gives back at least half the rally wave and at least 3.5% off the high, and does not reclaim that high.", "The reaction is worse than the prior reaction, or the drop is at least 4.5%.", "A structure top within 40 bars of that high is marked D-TOP. A structure top without this sequence stays a plain top."] },
+    { id: "top", lab: "Top", why: "A structure top is a daily swing high that fails. It is not a distribution by itself.",
+      empty: "Tops are marked on the daily chart by the structure scan. This tab is the criteria memo, not a second board.",
+      memo: ["Daily swing high: 15 bars to the left, 10 to the right.", "The high is at the 252-session high, within half a percent.", "The rally into it is at least 12% off the 252-session low.", "Price fades at least 6% within 20 bars.", "No new high in the next 40 bars.", "Nearby bars are clustered so one campaign does not print a pile of tops.", "D-TOP is not this rule. D-TOP is a structure top that also sits within 40 bars of a confirmed distribution high, and only when Dist is on."] }
   ];
   var FEEDS = {
     bottom: ["/data/bottom.json", "https://justhodl.ai/data/bottom.json"],
@@ -281,7 +299,9 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     document.querySelectorAll("#tabs button").forEach(function (b) { b.className = b.dataset.t === tab ? "on" : ""; });
     var spec = TABS.filter(function (t) { return t.id === tab; })[0];
     document.getElementById("why").textContent = spec.why;
-    var rows = tab === "sc" ? rowsSc() : tab === "capit" ? rowsCapit() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : tab === "bottom" ? rowsBottom() : tab === "pump" ? rowsPump() : rowsAccum();
+    var memo = document.getElementById("memo");
+    if (memo) memo.innerHTML = "<h2>CRITERIA THIS ENGINE STARTS FROM</h2><ol>" + (spec.memo || []).map(function (line) { return "<li>" + esc(line) + "</li>"; }).join("") + "</ol>";
+    var rows = tab === "sc" ? rowsSc() : tab === "capit" ? rowsCapit() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : tab === "bottom" ? rowsBottom() : tab === "pump" ? rowsPump() : tab === "dist" ? [] : tab === "top" ? [] : rowsAccum();
     var heads = COLS[tab];
     var fired = rows.filter(function (r) { return r.a === "FIRED"; }).length;
     var forming = rows.filter(function (r) { return r.a === "FORMING"; }).length;
@@ -295,7 +315,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     if (tab === "capit") kpis.push(["Vol ≥3.5×", rows.length]);
     document.getElementById("kpi").innerHTML = kpis.map(function (k) { return "<div><span>" + esc(k[0]) + "</span><b>" + esc(k[1]) + "</b></div>"; }).join("");
     if (!rows.length) {
-      document.getElementById("board").innerHTML = "<tr><td class=empty colspan=9>No names match this scan on the current harvests.</td></tr>";
+      document.getElementById("board").innerHTML = "<tr><td class=empty colspan=9>" + esc(spec.empty || "No names match this scan on the current harvests.") + "</td></tr>";
       return;
     }
     var html = "<thead><tr>" + heads.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>";

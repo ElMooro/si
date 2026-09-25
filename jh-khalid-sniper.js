@@ -290,7 +290,21 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var mem = { promise: null };
   var showMisses = true;
-  var industry = "ALL";
+  var category = "ALL";
+  var subcat = "ALL";
+  var CATS = ["Stocks", "ETFs", "Crypto", "Metals", "Bonds"];
+  function groupOf(r) {
+    var link = CRYPTO_LINKED[r.ticker];
+    if (link) {
+      if (link.asset === "ETF") return { cat: "ETFs", sub: link.kind };
+      return { cat: "Crypto", sub: link.kind };
+    }
+    if (r.assetClass === "CRYPTO") return { cat: "Crypto", sub: "Spot" };
+    if (r.assetClass === "COMMODITY") return { cat: "Metals", sub: r.industry || "Metal" };
+    if (r.assetClass === "BOND") return { cat: "Bonds", sub: r.industry || "Bond" };
+    if (r.assetClass === "ETF") return { cat: "ETFs", sub: r.industry || "ETF" };
+    return { cat: "Stocks", sub: r.industry || "Unclassified" };
+  }
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
@@ -460,19 +474,26 @@
       if (ap !== bp) return bp - ap;
       return (a.scored.drawdown || 0) - (b.scored.drawdown || 0);
     });
-    var industries = [];
-    rows.forEach(function (r) { if (industries.indexOf(r.industry) < 0) industries.push(r.industry); });
-    industries.sort();
     var snipers = rows.filter(function (r) { return r.scored.sniper; });
-    var view = rows.filter(function (r) {
-      if (industry !== "ALL" && r.industry !== industry) return false;
+    var inCat = rows.filter(function (r) { return category === "ALL" || groupOf(r).cat === category; });
+    var subs = [];
+    inCat.forEach(function (r) {
+      var s = groupOf(r).sub;
+      if (s && subs.indexOf(s) < 0) subs.push(s);
+    });
+    subs.sort();
+    if (subcat !== "ALL" && subs.indexOf(subcat) < 0) subcat = "ALL";
+    var view = inCat.filter(function (r) {
+      if (subcat !== "ALL" && groupOf(r).sub !== subcat) return false;
       if (!showMisses && !r.scored.sniper) return false;
       return true;
     });
     var html = "" +
       "<div class='sn-head'><div><p class='sn-eye'>KHALID SNIPER</p><h2>Every criterion, on every name</h2></div>" +
-      "<div class='sn-tools'><label>Industry <select id='sn-ind'><option value='ALL'>All industries</option>" +
-      industries.map(function (x) { return "<option" + (x === industry ? " selected" : "") + ">" + esc(x) + "</option>"; }).join("") +
+      "<div class='sn-tools'><label>Category <select id='sn-cat'><option value='ALL'>All</option>" +
+      CATS.map(function (x) { return "<option value='" + esc(x) + "'" + (x === category ? " selected" : "") + ">" + esc(x) + "</option>"; }).join("") +
+      "</select></label><label>Inside it <select id='sn-sub'><option value='ALL'>All</option>" +
+      subs.map(function (x) { return "<option value='" + esc(x) + "'" + (x === subcat ? " selected" : "") + ">" + esc(x) + "</option>"; }).join("") +
       "</select></label><button type='button' id='sn-miss'>" + (showMisses ? "Snipers only" : "Show every name") + "</button></div></div>" +
       "<ol class='sn-legend'>" +
       ["S&P 500, Nasdaq-100, ETF, metal, bond, or crypto",
@@ -491,22 +512,39 @@
       "<p class='sn-note'>" + esc(pack.note) + "</p>" +
       "<p class='sn-count'>" + snipers.length + " sniper" + (snipers.length === 1 ? "" : "s") + " · " + view.length + " shown · " + rows.length + " scored · " + (pack.failed || 0) + " had no usable bars</p>";
     if (pack.rows && pack.rows.length && !view.length) {
-      html += "<p class='sn-empty'>Nothing in this industry cleared the tape.</p>";
+      html += "<p class='sn-empty'>Nothing in this category.</p>";
     }
     view.forEach(function (r) {
       var s = r.scored;
+      var g = groupOf(r);
       html += "<article class='sn-card" + (s.sniper ? " is-sniper" : "") + "'>" +
         "<header><a class='sn-tick' href='/chart.html?s=" + encodeURIComponent(r.ticker) + "' data-sym='" + esc(r.ticker) + "'>" + esc(r.ticker) + "</a>" +
         "<span class='sn-name'>" + esc(r.name) + "</span>" +
-        "<span class='sn-ind'>" + esc(r.industry) + "</span>" +
+        "<span class='sn-ind'>" + esc(g.cat + " · " + g.sub) + "</span>" +
         "<b class='sn-badge'>" + (s.sniper ? "SNIPER" : (s.passed || 0) + "/" + (s.required || 0)) + "</b></header>" +
         "<div class='sn-boxes'>" + s.checks.map(function (c) {
           return "<div class='sn-box" + (c.pass ? " ok" : "") + (c.required ? "" : " bonus") + "'><i>" + (c.pass ? "✓" : "·") + "</i><div><b>" + esc(c.label) + (c.required ? "" : " · better") + "</b><span>" + esc(c.detail) + "</span></div></div>";
         }).join("") + "</div></article>";
     });
+    html += "<section class='sn-memo'><h3>Criteria this engine starts from</h3><ol>" +
+      ["Book: S&P 500, Nasdaq-100, an ETF, a metal, a bond, or crypto.",
+        "Required: below the 250-day. Below the 300-day is better, not required.",
+        "Required: at least 50% off the high.",
+        "Required: RSI washed out, at or under 45.",
+        "Required: very tight price spread, tight Bollinger bands, very low volatility, shrinking volume, and a flat 20-day average.",
+        "Required: on or within about 3.5% of 3-month support, a higher low, a selling-climax or capitulation bar, and demand showing.",
+        "Required on stocks: PEG under 1, or both P/E and P/S at least 20% under the industry. Missing valuation stays open.",
+        "Required: the industry ETF is between 15% under and 8% over its 200-day, unless the name is itself the vehicle.",
+        "Required: a verified ETF inflow or institutional buy. Missing flow data stays open.",
+        "Required only on bitcoin treasuries, ether treasuries, and altcoin ETFs: ether or bitcoin has turned off a 6-month low and this name is still within 10% of its own low. Not scored on miners or any other stock.",
+        "Better, not required: double bottom, a marked bottom or the end of accumulation, a booming industry, momentum turning up."
+      ].map(function (line) { return "<li>" + esc(line) + "</li>"; }).join("") +
+      "</ol><p>Left out on purpose: fib 2.618 and 3.618 extensions, a second-peak volume rule, and extra RSI or MACD filters on the other engines. Those were tested and did not beat the rules already here. Small caps turning up versus large caps is a market tilt on this page, not a stock gate.</p></section>";
     host.innerHTML = "<style>" + STYLES + "</style>" + html;
-    var sel = host.querySelector("#sn-ind");
-    if (sel) sel.onchange = function () { industry = sel.value; render(host, pack); };
+    var catSel = host.querySelector("#sn-cat");
+    if (catSel) catSel.onchange = function () { category = catSel.value; subcat = "ALL"; render(host, pack); };
+    var subSel = host.querySelector("#sn-sub");
+    if (subSel) subSel.onchange = function () { subcat = subSel.value; render(host, pack); };
     var btn = host.querySelector("#sn-miss");
     if (btn) btn.onclick = function () { showMisses = !showMisses; render(host, pack); };
     host.querySelectorAll("[data-sym]").forEach(function (a) {
@@ -539,6 +577,10 @@
     + ".sn-mkt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}"
     + ".sn-mkt div{background:#1e222d;border-radius:8px;padding:10px;color:#9aa1ad;font-size:12px;line-height:1.4}"
     + ".sn-mkt b{display:block;color:#d1d4dc;margin-bottom:4px}.sn-mkt div.ok b{color:#089981}"
+    + ".sn-memo{margin-top:22px;border:1px solid #2a2e39;border-radius:10px;padding:14px 16px;background:#0d1118}"
+    + ".sn-memo h3{margin:0 0 8px;font-size:12px;letter-spacing:.12em;color:#f0b429}"
+    + ".sn-memo ol{margin:0;padding-left:18px;color:#d1d4dc;font-size:13px;line-height:1.45}"
+    + ".sn-memo p{color:#9aa1ad;font-size:12px;line-height:1.45}"
     + "@media(max-width:760px){.sn-boxes,.sn-legend,.sn-mkt{grid-template-columns:1fr}}";
 
   function freshTurn(bars) {

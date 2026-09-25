@@ -24,6 +24,8 @@ test("Khalid sniper sits next to Alert and opens on the chart", () => {
     "ETH or BTC turned while this is still on its low", "Small caps versus large caps"
   ].forEach((label) => assert.match(sniper, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))));
   assert.match(sniper, /only on bitcoin treasuries, ether treasuries, and altcoin ETFs/);
+  assert.match(sniper, /id='sn-cat'/);
+  assert.match(sniper, /Criteria this engine starts from/);
   assert.doesNotMatch(sniper, /MARA:/);
   assert.doesNotMatch(sniper, /COIN:/);
   const iPump = eng.indexOf("id=btn-pump");
