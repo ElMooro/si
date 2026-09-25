@@ -1,0 +1,457 @@
+{
+  "engine": "buyback-scanner",
+  "version": "1.0",
+  "as_of": "2026-09-21T12:00:16.408875Z",
+  "state": "NORMAL",
+  "state_description": "Steady-state authorization tape. Typical drift edges available.",
+  "signal_strength": 80.0,
+  "n_total_candidates_8k": 37,
+  "n_unique_tickers": 28,
+  "n_enriched_opportunities": 9,
+  "n_fresh_last_7d": 3,
+  "annual_buyback_auth_usd_bn": 1200,
+  "lookback_days": 21,
+  "tranche_priors_drift_90d_pct": {
+    "SMALL_lt_2pct": 2.0,
+    "MEDIUM_2_to_5pct": 5.0,
+    "LARGE_5_to_10pct": 8.0,
+    "MEGA_gt_10pct": 12.0
+  },
+  "cross_confirmation_multipliers": {
+    "insider_net_buys_gt_1m": 1.4,
+    "v_recovery_down_15pct_90d": 1.3,
+    "first_buyback_in_2y": 1.25,
+    "asr_accelerated": 1.2
+  },
+  "trigger_conditions": [
+    {
+      "name": "Fresh authorizations >= 3 in 7d",
+      "current": 3,
+      "threshold": 3,
+      "satisfied": true,
+      "weight": 0.3
+    },
+    {
+      "name": "High-conviction names available (edge>=60)",
+      "current": 4,
+      "threshold": 3,
+      "satisfied": true,
+      "weight": 0.3
+    },
+    {
+      "name": "At least one mega-tranche (>= 10% mcap)",
+      "current": 4,
+      "threshold": 1,
+      "satisfied": true,
+      "weight": 0.2
+    },
+    {
+      "name": "Insider corroboration in any top-5",
+      "current": 0,
+      "threshold": 1,
+      "satisfied": false,
+      "weight": 0.2
+    }
+  ],
+  "forward_expectations": {
+    "1m": {
+      "return_pct": 2.5,
+      "win_rate_pct": 58,
+      "basis": "Front-loaded drift in week 2-4 post-announcement"
+    },
+    "3m": {
+      "return_pct": 6.5,
+      "win_rate_pct": 64,
+      "basis": "Full academic edge realized; Peyer-Vermaelen 2009"
+    },
+    "12m": {
+      "return_pct": 12.0,
+      "win_rate_pct": 67,
+      "basis": "Ikenberry-Lakonishok-Vermaelen 1995, 4yr 12.1% avg"
+    }
+  },
+  "top_opportunities": [
+    {
+      "ticker": "DHI",
+      "company": "D.R. Horton, Inc.",
+      "exchange": "NYSE",
+      "announcement_date": "2026-09-15",
+      "days_since_announcement": 6,
+      "filing_adsh": "0000882184-26-000108",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000882184&type=8-K&dateb=&owner=include&count=40",
+      "price": 138.02,
+      "market_cap": 38604368871,
+      "authorization_usd": 5000000000.0,
+      "pct_of_mcap": 12.95,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": 0,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": -5.21,
+      "edge_score": 71.2,
+      "trade_ticket": {
+        "tranche": "MEGA",
+        "base_expected_drift_90d_pct": 12.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 12.0,
+        "primary": {
+          "instrument": "DHI",
+          "thesis": "Fresh buyback authorization (mega tranche, ~12.9% of mcap). Academic drift prior 12.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "DAKT",
+      "company": "Daktronics, Inc.",
+      "exchange": "NASDAQ",
+      "announcement_date": "2026-09-02",
+      "days_since_announcement": 19,
+      "filing_adsh": "0001628280-26-059967",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000915779&type=8-K&dateb=&owner=include&count=40",
+      "price": 17.41,
+      "market_cap": 840639134,
+      "authorization_usd": 238500000.0,
+      "pct_of_mcap": 28.37,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": 0,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": -16.02,
+      "edge_score": 70.9,
+      "trade_ticket": {
+        "tranche": "MEGA",
+        "base_expected_drift_90d_pct": 12.0,
+        "cross_confirmation_multipliers": [
+          {
+            "factor": "V-recovery setup (down >15%/90d)",
+            "multiplier": 1.3
+          }
+        ],
+        "final_expected_drift_90d_pct": 15.6,
+        "primary": {
+          "instrument": "DAKT",
+          "thesis": "Fresh buyback authorization (mega tranche, ~28.4% of mcap). Academic drift prior 12.0% over 90d. Insider corroboration adds 40%. Down-tape setup adds 30%. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "M",
+      "company": "Macy's, Inc.",
+      "exchange": "NYSE",
+      "announcement_date": "2026-09-10",
+      "days_since_announcement": 11,
+      "filing_adsh": "0001628280-26-061217",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000794367&type=8-K&dateb=&owner=include&count=40",
+      "price": 21.94,
+      "market_cap": 5771052711,
+      "authorization_usd": 2000000000.0,
+      "pct_of_mcap": 34.66,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": 0,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": 1.25,
+      "edge_score": 64.9,
+      "trade_ticket": {
+        "tranche": "MEGA",
+        "base_expected_drift_90d_pct": 12.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 12.0,
+        "primary": {
+          "instrument": "M",
+          "thesis": "Fresh buyback authorization (mega tranche, ~34.7% of mcap). Academic drift prior 12.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "CMRC",
+      "company": "Commerce.com, Inc.",
+      "exchange": "NASDAQ",
+      "announcement_date": "2026-09-10",
+      "days_since_announcement": 11,
+      "filing_adsh": "0001193125-26-387279",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001626450&type=8-K&dateb=&owner=include&count=40",
+      "price": 3.33,
+      "market_cap": 274765773,
+      "authorization_usd": 50000000.0,
+      "pct_of_mcap": 18.2,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": -1769,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": 14.43,
+      "edge_score": 64.9,
+      "trade_ticket": {
+        "tranche": "MEGA",
+        "base_expected_drift_90d_pct": 12.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 12.0,
+        "primary": {
+          "instrument": "CMRC",
+          "thesis": "Fresh buyback authorization (mega tranche, ~18.2% of mcap). Academic drift prior 12.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "DRVN",
+      "company": "Driven Brands Holdings Inc.",
+      "exchange": "NASDAQ",
+      "announcement_date": "2026-09-15",
+      "days_since_announcement": 6,
+      "filing_adsh": "0001628280-26-061963",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001804745&type=8-K&dateb=&owner=include&count=40",
+      "price": 12.28,
+      "market_cap": 2025659238,
+      "authorization_usd": 100000000.0,
+      "pct_of_mcap": 4.94,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": 0,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": -10.36,
+      "edge_score": 50.1,
+      "trade_ticket": {
+        "tranche": "MEDIUM",
+        "base_expected_drift_90d_pct": 5.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 5.0,
+        "primary": {
+          "instrument": "DRVN",
+          "thesis": "Fresh buyback authorization (medium tranche, ~4.9% of mcap). Academic drift prior 5.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "CW",
+      "company": "Curtiss-Wright Corporation",
+      "exchange": "NYSE",
+      "announcement_date": "2026-09-14",
+      "days_since_announcement": 7,
+      "filing_adsh": "0001628280-26-061788",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000026324&type=8-K&dateb=&owner=include&count=40",
+      "price": 568.27,
+      "market_cap": 20992575724,
+      "authorization_usd": 700000000.0,
+      "pct_of_mcap": 3.33,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": -700815,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": -24.3,
+      "edge_score": 49.7,
+      "trade_ticket": {
+        "tranche": "MEDIUM",
+        "base_expected_drift_90d_pct": 5.0,
+        "cross_confirmation_multipliers": [
+          {
+            "factor": "V-recovery setup (down >15%/90d)",
+            "multiplier": 1.3
+          }
+        ],
+        "final_expected_drift_90d_pct": 6.5,
+        "primary": {
+          "instrument": "CW",
+          "thesis": "Fresh buyback authorization (medium tranche, ~3.3% of mcap). Academic drift prior 5.0% over 90d. Insider corroboration adds 40%. Down-tape setup adds 30%. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "TTEK",
+      "company": "Tetra Tech, Inc.",
+      "exchange": "NASDAQ",
+      "announcement_date": "2026-09-10",
+      "days_since_announcement": 11,
+      "filing_adsh": "0001104659-26-106564",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000831641&type=8-K&dateb=&owner=include&count=40",
+      "price": 35.685,
+      "market_cap": 9261149589,
+      "authorization_usd": 500000000.0,
+      "pct_of_mcap": 5.4,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": 0,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": 28.71,
+      "edge_score": 41.2,
+      "trade_ticket": {
+        "tranche": "LARGE",
+        "base_expected_drift_90d_pct": 8.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 8.0,
+        "primary": {
+          "instrument": "TTEK",
+          "thesis": "Fresh buyback authorization (large tranche, ~5.4% of mcap). Academic drift prior 8.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "UTHR",
+      "company": "United Therapeutics Corporation",
+      "exchange": "NASDAQ",
+      "announcement_date": "2026-09-08",
+      "days_since_announcement": 13,
+      "filing_adsh": "0001104659-26-105953",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001082554&type=8-K&dateb=&owner=include&count=40",
+      "price": 494.63,
+      "market_cap": 20995411221,
+      "authorization_usd": 477600000.0,
+      "pct_of_mcap": 2.27,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": -10753568,
+      "insider_n_buyers": 3,
+      "price_perf_90d_pct": -14.49,
+      "edge_score": 40.0,
+      "trade_ticket": {
+        "tranche": "MEDIUM",
+        "base_expected_drift_90d_pct": 5.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 5.0,
+        "primary": {
+          "instrument": "UTHR",
+          "thesis": "Fresh buyback authorization (medium tranche, ~2.3% of mcap). Academic drift prior 5.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    },
+    {
+      "ticker": "FIVE",
+      "company": "Five Below, Inc.",
+      "exchange": "NASDAQ",
+      "announcement_date": "2026-09-02",
+      "days_since_announcement": 19,
+      "filing_adsh": "0001177609-26-000023",
+      "filing_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001177609&type=8-K&dateb=&owner=include&count=40",
+      "price": 234.14,
+      "market_cap": 12946853483,
+      "authorization_usd": 600000000.0,
+      "pct_of_mcap": 4.63,
+      "size_confidence": 0.6,
+      "insider_net_buys_usd": -5646020,
+      "insider_n_buyers": 0,
+      "price_perf_90d_pct": 5.91,
+      "edge_score": 39.8,
+      "trade_ticket": {
+        "tranche": "MEDIUM",
+        "base_expected_drift_90d_pct": 5.0,
+        "cross_confirmation_multipliers": [],
+        "final_expected_drift_90d_pct": 5.0,
+        "primary": {
+          "instrument": "FIVE",
+          "thesis": "Fresh buyback authorization (medium tranche, ~4.6% of mcap). Academic drift prior 5.0% over 90d. Hold to T+90 unless stop hit.",
+          "size_guidance": "1-2% per name, max 8% basket exposure across all tranches",
+          "max_loss": "20% trailing stop (program could be paused on tape rout)",
+          "expected_horizon": "90 calendar days",
+          "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen (1995), Peyer-Vermaelen (2009), Manconi-Peyer-Vermaelen (2019), Bonaime-Hankins-Jordan (2016)"
+        },
+        "exit_rules": [
+          "Hard exit at T+90 (drift edge decays after 3 months)",
+          "Stop if down 20% from authorization date (tape regime change)",
+          "Re-evaluate if company files 8-K announcing program pause/suspension",
+          "Take partial profit if up 12% before T+45 (front-loaded drift)"
+        ]
+      }
+    }
+  ],
+  "recommended_trade": {
+    "primary": {
+      "instrument": "DHI",
+      "thesis": "Top buyback authorization: DHI ~12.9% of mcap; academic drift prior over 90d.",
+      "size_guidance": "1-2% per name, max 8% basket exposure",
+      "max_loss": "20% trailing stop",
+      "expected_horizon": "90 calendar days",
+      "expected_return_basis": "Ikenberry-Lakonishok-Vermaelen 1995, Peyer-Vermaelen 2009"
+    },
+    "defined_risk_alt": {
+      "instrument": "DHI 90d ATM call diagonal",
+      "thesis": "Defined-risk vehicle for buyback-drift thesis; capped downside, leveraged to drift"
+    },
+    "exit_rules": [
+      "Hard exit at T+90 (drift edge decays after 3 months)",
+      "Stop if down 20% from authorization date",
+      "Re-evaluate if 8-K announces program pause/suspension",
+      "Take partial profit if up 12% before T+45"
+    ]
+  },
+  "why_now_explainer": "### Buyback Tape: **Normal**\n\nSteady stream of fresh buyback authorizations. The well-documented academic drift edge is available -- companies announcing repurchases historically beat the market by 4-12% over the next 3 months.\n\n**3** fresh authorizations detected in the last 21 days.\n\n**The setup:** When a company's board approves a share repurchase program, they're signalling the stock is undervalued. Academic studies covering 50+ years of data show these announcements are followed by an average **+4 to +12% drift over the next 90 days** -- regardless of overall market direction.\n\n**Time horizon:**\n- **Next 30 days:** Strongest drift week 1-4 (boards often execute aggressively).\n- **Next quarter (90d):** Full academic edge realized -- target +5 to +12% per name depending on tranche size.\n- **Next year:** Edge decays after 90d; rotate into newer authorizations.\n\n**Top opportunity right now:** **DHI** -- ~12.9% of mcap authorized, announced 6 days ago, edge score **71/100**.\n\n**Why this works:** Repurchases mechanically reduce share count (boosting EPS), telegraph board conviction, and create direct demand for the stock. The market under-prices this in the days/weeks after announcement -- the well-documented \"buyback drift anomaly\".\n",
+  "methodology": "Pull last 21 days of 8-K filings from SEC EDGAR matching 4 search phrases (share repurchase program, stock repurchase program, repurchase authorization, accelerated share repurchase). Dedupe to unique tickers, fetch filing text from EDGAR archives, regex-extract $ amount and % of outstanding shares. Cross-enrich with FMP quote, 30d insider activity, 90d price performance. Score 0-100 by (35% size + 25% recency + 20% insider corroboration + 15% V-recovery setup + 5% size-extraction confidence). Forward expectations by tranche calibrated to Ikenberry 1995, Peyer-Vermaelen 2009, Manconi-Peyer-Vermaelen 2019.",
+  "sources": [
+    "SEC EDGAR EFTS full-text search (8-K filings)",
+    "SEC EDGAR Archives (filing primary documents)",
+    "FMP /stable/quote, /stable/insider-trading, /stable/historical-price-eod",
+    "Academic: Ikenberry-Lakonishok-Vermaelen 1995, Peyer-Vermaelen 2009, Manconi-Peyer-Vermaelen 2019, Bonaime-Hankins-Jordan 2016"
+  ],
+  "schedule": "Daily 12:00 UTC (post-NYSE open peak filing window)",
+  "run_duration_seconds": 5.55
+}
