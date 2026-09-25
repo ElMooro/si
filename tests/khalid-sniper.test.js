@@ -17,6 +17,12 @@ test("Khalid sniper sits next to Alert and opens on the chart", () => {
   assert.match(page, /jh-khalid-sniper\.js/);
   assert.match(rail, /kind === "sniper"/);
   assert.match(eng, /jhOpenSymbol/);
+  const sniper = fs.readFileSync(path.join(root, "jh-khalid-sniper.js"), "utf8");
+  ["Below the 250-day", "At least 50% off the high", "RSI washed out", "Very tight price spread",
+    "Tight Bollinger bands", "Shrinking volume", "Flat moving average", "On 3-month support",
+    "Higher low", "Selling climax or capitulation", "Double bottom", "PEG under 1",
+    "ETH or BTC turned while this is still on its low", "Small caps versus large caps"
+  ].forEach((label) => assert.match(sniper, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))));
   const iPump = eng.indexOf("id=btn-pump");
   const iSnip = eng.indexOf("id=btn-snip");
   const iAlrt = eng.indexOf("id=btn-alrt");

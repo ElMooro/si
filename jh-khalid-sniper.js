@@ -20,6 +20,7 @@
     ["EMB", "BOND", "Bonds"], ["BTC-USD", "CRYPTO", "Crypto"], ["ETH-USD", "CRYPTO", "Crypto"]
   ];
   var SECTORS = ["XLK", "XLV", "XLF", "XLI", "XLY", "XLP", "XLE", "XLU", "XLRE", "XLB", "XLC"];
+  var CRYPTO_LINKED = { MSTR: "Strategy", BMNR: "Bitmine", COIN: "Coinbase", MARA: "Marathon", RIOT: "Riot", CLSK: "Cleanspark", CIFR: "Cipher", WULF: "TeraWulf", IREN: "IREN" };
 
   function num(x) { return typeof x === "number" && isFinite(x) ? x : null; }
   function volOf(b) { return num(b.volume) || num(b.value) || 0; }
@@ -84,8 +85,34 @@
     var checks = [];
     var i = d.length - 1;
     if (i < 320) {
-      checks.push(box("history", "Enough daily history", false, "Need 320 daily bars to judge the 250-day and the drawdown. Have " + d.length + ".", true));
-      return { checks: checks, sniper: false, drawdown: null, close: i >= 0 ? d[i].close : null };
+      var short = "Need 320 daily bars to score this. Have " + d.length + ".";
+      return {
+        checks: [
+          box("book", "S&P 500, Nasdaq-100, ETF, metal, bond, or crypto", !!meta.book, meta.book || "Not tagged", true),
+          box("ma250", "Below the 250-day", false, short, true),
+          box("offhigh", "At least 50% off the high", false, short, true),
+          box("rsi", "RSI washed out", false, short, true),
+          box("spread", "Very tight price spread", false, short, true),
+          box("bb", "Tight Bollinger bands", false, short, true),
+          box("volty", "Very low volatility", false, short, true),
+          box("volume", "Shrinking volume", false, short, true),
+          box("flat", "Flat moving average", false, short, true),
+          box("support", "On 3-month support", false, short, true),
+          box("higher", "Higher low", false, short, true),
+          box("exhaust", "Selling climax or capitulation", false, short, true),
+          box("demand", "Demand showing", false, short, true),
+          box("value", "Cheap: PEG under 1, or P/E and P/S under the industry", false, short, true),
+          box("sector", "Industry ETF under, at, or just through its 200-day", false, short, true),
+          box("flows", "ETF inflows, institutions, smart money", false, short, true),
+          box("crypto", "ETH or BTC turned while this is still on its low", false, meta.cryptoLinked ? short : "Not a bitcoin or ether treasury.", !!meta.cryptoLinked),
+          box("ma300", "Below the 300-day", false, short, false),
+          box("double", "Double bottom", false, short, false),
+          box("campaign", "Marked bottom or end of accumulation", false, short, false),
+          box("catalyst", "Booming industry or other catalyst", false, short, false),
+          box("momentum", "Momentum turning up", false, short, false)
+        ],
+        sniper: false, drawdown: null, close: i >= 0 ? d[i].close : null, passed: 0, required: 16
+      };
     }
     var c = d.map(function (b) { return b.close; });
     var px = c[i];
@@ -103,6 +130,8 @@
     for (k = i - 140; k < i - 62; k++) if (d[k].low < loPrior) loPrior = d[k].low;
     var dd = hi ? px / hi - 1 : null;
     var under250 = sma250 != null && px < sma250;
+    var allowedBook = { STOCK: 1, ETF: 1, COMMODITY: 1, BOND: 1, CRYPTO: 1 };
+    checks.push(box("book", "S&P 500, Nasdaq-100, ETF, metal, bond, or crypto", !!allowedBook[meta.assetClass], meta.book || meta.assetClass || "Not in the book", true));
     checks.push(box("ma250", "Below the 250-day", under250,
       sma250 == null ? "250-day average unavailable" : "Close " + px.toFixed(2) + " vs 250-day " + sma250.toFixed(2) + " (" + pct((px / sma250 - 1) * 100) + ")", true));
     checks.push(box("offhigh", "At least 50% off the high", dd != null && dd <= -0.50,
@@ -127,13 +156,13 @@
     for (k = i - 59; k <= i; k++) vols.push(volOf(d[k]));
     var recentVol = median(vols.slice(-12));
     var priorVol = median(vols.slice(0, 40));
-    checks.push(box("volume", "Shrinking, low volume", recentVol != null && priorVol && priorVol > 0 && recentVol <= priorVol * 0.75,
+    checks.push(box("volume", "Shrinking volume", recentVol != null && priorVol && priorVol > 0 && recentVol <= priorVol * 0.75,
       priorVol ? "Recent volume is " + (recentVol / priorVol).toFixed(2) + "× the prior 40 days. Gate is 0.75× or lower." : "No volume on the bars", true));
     var rel = atr14 && atr100 ? atr14 / atr100 : null;
     checks.push(box("volty", "Very low volatility", rel != null && rel <= 0.85,
       rel == null ? "Range unavailable" : "14-day range is " + rel.toFixed(2) + "× the 100-day range. Gate is 0.85×.", true));
     var flat = sma20 && sma20p ? Math.abs(sma20 / sma20p - 1) : null;
-    checks.push(box("flat", "Moving average is flat", flat != null && flat <= 0.012,
+    checks.push(box("flat", "Flat moving average", flat != null && flat <= 0.012,
       flat == null ? "20-day average unavailable" : "20-day average moved " + pct(flat * 100) + " over 10 sessions. Gate is 1.2%.", true));
     var distSup = lo63 ? px / lo63 - 1 : null;
     checks.push(box("support", "On 3-month support", distSup != null && distSup >= -0.005 && distSup <= 0.035,
@@ -158,29 +187,34 @@
     var klass = meta.assetClass || "STOCK";
     var nonStock = klass === "ETF" || klass === "COMMODITY" || klass === "BOND" || klass === "CRYPTO";
     if (nonStock) {
-      checks.push(box("value", "Valuation", true, "Not a stock. P/E and PEG are not applied.", true));
+      checks.push(box("value", "Cheap: PEG under 1, or P/E and P/S under the industry", true, "Not a stock. P/E and PEG are not applied.", true));
     } else if (!meta.valuation) {
-      checks.push(box("value", "Cheap versus its industry", false, "No P/E, PEG or P/S on the S&P book for this name.", true));
+      checks.push(box("value", "Cheap: PEG under 1, or P/E and P/S under the industry", false, "No P/E, PEG or P/S on the S&P book for this name.", true));
     } else {
       var v = meta.valuation;
       var pegOk = v.peg != null && v.peg > 0 && v.peg < 1;
       var peOk = v.pe != null && v.pe > 0 && v.sectorPe != null && v.pe <= v.sectorPe * 0.80;
       var psOk = v.ps != null && v.ps > 0 && v.sectorPs != null && v.ps <= v.sectorPs * 0.80;
-      checks.push(box("value", "Cheap versus its industry", pegOk || peOk || psOk,
+      checks.push(box("value", "Cheap: PEG under 1, or P/E and P/S under the industry", pegOk || peOk || psOk,
         "PEG " + (v.peg == null ? "—" : v.peg.toFixed(2)) + " (want under 1). P/E " + (v.pe == null ? "—" : v.pe.toFixed(1)) + " vs industry " + (v.sectorPe == null ? "—" : v.sectorPe.toFixed(1)) + ". P/S " + (v.ps == null ? "—" : v.ps.toFixed(2)) + " vs industry " + (v.sectorPs == null ? "—" : v.sectorPs.toFixed(2)) + ".", true));
     }
     if (meta.sectorEtf == null) {
-      checks.push(box("sector", "Industry ETF near its 200-day", nonStock, nonStock ? "This is the vehicle, not a single stock." : "No sector ETF mapped.", true));
+      checks.push(box("sector", "Industry ETF under, at, or just through its 200-day", nonStock, nonStock ? "This is the vehicle, not a single stock." : "No sector ETF mapped.", true));
     } else {
       var sv = meta.sectorEtf.vs200;
       var sectorOk = sv != null && sv >= -15 && sv <= 8;
-      checks.push(box("sector", "Industry ETF near its 200-day", sectorOk,
+      checks.push(box("sector", "Industry ETF under, at, or just through its 200-day", sectorOk,
         (meta.sectorEtf.symbol || "ETF") + " is " + pct(sv) + " versus its 200-day. Allowed band is 15% under to 8% over. Not an extended market.", true));
     }
     if (!meta.flows) {
-      checks.push(box("flows", "ETF inflows or institutional accumulation", false, "No verified fund-flow or 13F net buy on this name. Missing is not a yes.", true));
+      checks.push(box("flows", "ETF inflows, institutions, smart money", false, "No verified fund-flow or 13F net buy on this name. Missing is not a yes.", true));
     } else {
-      checks.push(box("flows", "ETF inflows or institutional accumulation", true, meta.flows, true));
+      checks.push(box("flows", "ETF inflows, institutions, smart money", true, meta.flows, true));
+    }
+    if (meta.cryptoLinked) {
+      checks.push(box("crypto", "ETH or BTC turned while this is still on its low", !!meta.cryptoLead, meta.cryptoNote || "No fresh ether or bitcoin turn while this stock is still sitting on its own low.", true));
+    } else {
+      checks.push(box("crypto", "ETH or BTC turned while this is still on its low", false, "Not a bitcoin or ether treasury. This box is only for Strategy, BMNR and the miners.", false));
     }
     checks.push(box("ma300", "Below the 300-day", sma300 != null && px < sma300,
       sma300 == null ? "300-day unavailable" : "Close vs 300-day " + sma300.toFixed(2) + " (" + pct((px / sma300 - 1) * 100) + "). Better, not required.", false));
@@ -204,7 +238,7 @@
     }
     checks.push(box("double", "Double bottom", dbl, dblDetail, false));
     checks.push(box("campaign", "Marked bottom or end of accumulation", !!meta.campaign, meta.campaign || "Not on the live bottom board.", false));
-    checks.push(box("catalyst", "Industry catalyst", !!meta.catalyst, meta.catalyst || "No industry-boom or contract catalyst on the tape.", false));
+    checks.push(box("catalyst", "Booming industry or other catalyst", !!meta.catalyst, meta.catalyst || "No industry-boom or contract catalyst on the tape.", false));
     var macdUp = false;
     if (i >= 40) {
       var e12 = null, e26 = null, seed12 = 0, seed26 = 0;
@@ -242,7 +276,7 @@
 
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var mem = { promise: null };
-  var showMisses = false;
+  var showMisses = true;
   var industry = "ALL";
 
   function esc(s) {
@@ -348,7 +382,7 @@
       }
       rows.push({
         ticker: ticker,
-        name: (row && row.name) || ticker,
+        name: (row && row.name) || CRYPTO_LINKED[ticker] || ticker,
         assetClass: assetClass || (row && row.asset_class) || "STOCK",
         industry: sector || "Unclassified",
         vs250: row && row.technical ? row.technical.vs_250d_pct : null,
@@ -356,7 +390,9 @@
         catalyst: catalystText(row),
         campaign: campaignText(board, ticker),
         valuation: val,
-        sectorSymbol: SECTOR_ETF[sector] || null
+        sectorSymbol: SECTOR_ETF[sector] || null,
+        book: member ? ("S&P 500" + (sector ? " · " + sector : "")) : (ndx[ticker] ? "Nasdaq-100" : assetClass),
+        cryptoLinked: !!CRYPTO_LINKED[ticker]
       });
     }
     Object.keys(byTicker).forEach(function (t) {
@@ -369,6 +405,7 @@
       add(t, inBook && klass === "STOCK" ? "STOCK" : klass, r.industry || r.sector, r);
     });
     CURATED.forEach(function (c) { add(c[0], c[1], c[2], byTicker[c[0]] || byTicker[c[0].replace("-USD", "")]); });
+    Object.keys(CRYPTO_LINKED).forEach(function (t) { add(t, "STOCK", "Crypto treasury", byTicker[t]); });
     rows.sort(function (a, b) { return (a.vs250 == null ? 0 : a.vs250) - (b.vs250 == null ? 0 : b.vs250); });
     var deep = rows.filter(function (r) { return r.assetClass === "STOCK"; }).slice(0, 60);
     var vehicles = rows.filter(function (r) { return r.assetClass !== "STOCK"; }).slice(0, 30);
@@ -376,6 +413,27 @@
     deep.concat(vehicles).forEach(function (r) { keep[r.ticker] = r; });
     SECTORS.forEach(function (t) { if (!keep[t]) keep[t] = { ticker: t, name: t, assetClass: "ETF", industry: "Sector ETF", vs250: null, flows: null, catalyst: null, campaign: null, valuation: null, sectorSymbol: t }; });
     return Object.keys(keep).map(function (k) { return keep[k]; });
+  }
+
+  function marketHtml(m) {
+    if (!m) return "<p class='sn-note'>Early flags load with the bars: ether, bitcoin, small caps versus large caps, microcaps versus large caps.</p>";
+    function cell(title, on, text) {
+      return "<div class='" + (on ? "ok" : "") + "'><b>" + (on ? "✓ " : "· ") + esc(title) + "</b><span>" + esc(text) + "</span></div>";
+    }
+    function turnText(name, t) {
+      if (!t) return "No " + name + " bars.";
+      return name + " is " + (t.off * 100).toFixed(0) + "% off its 6-month low, " + t.age + " sessions later. A fresh turn is a 12% bounce within 30 sessions. In 2026 ether bottomed June 6, Strategy June 26, Bitmine June 30, bitcoin July 1. Over 12 bitcoin turns since 2015, Strategy did not reliably bottom there, and the next 63 sessions were worse than an ordinary Strategy day.";
+    }
+    function ratioText(label, t, research) {
+      if (!t) return "No " + label + " bars.";
+      return label + " is " + (t.off * 100).toFixed(1) + "% off its 63-day low. " + research;
+    }
+    return "<div class='sn-mkt'>" +
+      cell("Ether lead", m.eth && m.eth.on, turnText("Ether", m.eth)) +
+      cell("Bitcoin lead", m.btc && m.btc.on, turnText("Bitcoin", m.btc)) +
+      cell("Small caps versus large caps", m.small && m.small.on, ratioText("IWM versus SPY", m.small, "When small caps turn up off a 63-day low against the S&P, the next 63 sessions of QQQ were about +7% versus +4% on an ordinary day. Both halves of the history agreed. That is a market tilt, not a reason to buy one stock.")) +
+      cell("Microcaps versus large caps", m.micro && m.micro.on, ratioText("IWC versus SPY", m.micro, "The microcap version of the same test was weaker than small versus large, and it did not pick crypto treasuries. Credit and copper versus gold did not beat an ordinary quarter, so they are not on this board.")) +
+      "</div>";
   }
 
   function render(host, pack) {
@@ -392,18 +450,31 @@
     var snipers = rows.filter(function (r) { return r.scored.sniper; });
     var view = rows.filter(function (r) {
       if (industry !== "ALL" && r.industry !== industry) return false;
-      if (!showMisses && snipers.length && !r.scored.sniper) return false;
+      if (!showMisses && !r.scored.sniper) return false;
       return true;
     });
-    if (!showMisses && !snipers.length) view = view.slice(0, 12);
     var html = "" +
-      "<div class='sn-head'><div><p class='sn-eye'>KHALID SNIPER</p><h2>Every required box, or it is not a sniper</h2></div>" +
+      "<div class='sn-head'><div><p class='sn-eye'>KHALID SNIPER</p><h2>Every criterion, on every name</h2></div>" +
       "<div class='sn-tools'><label>Industry <select id='sn-ind'><option value='ALL'>All industries</option>" +
       industries.map(function (x) { return "<option" + (x === industry ? " selected" : "") + ">" + esc(x) + "</option>"; }).join("") +
-      "</select></label><button type='button' id='sn-miss'>" + (showMisses ? "Snipers only" : "Show the misses") + "</button></div></div>" +
+      "</select></label><button type='button' id='sn-miss'>" + (showMisses ? "Snipers only" : "Show every name") + "</button></div></div>" +
+      "<ol class='sn-legend'>" +
+      ["S&P 500, Nasdaq-100, ETF, metal, bond, or crypto",
+        "Below the 250-day", "At least 50% off the high", "RSI washed out",
+        "Very tight price spread", "Tight Bollinger bands", "Very low volatility", "Shrinking volume",
+        "Flat moving average", "On 3-month support", "Higher low", "Selling climax or capitulation", "Demand showing",
+        "Cheap: PEG under 1, or P/E and P/S under the industry",
+        "Industry ETF under, at, or just through its 200-day",
+        "ETF inflows, institutions, smart money",
+        "ETH or BTC turned while this is still on its low",
+        "Below the 300-day", "Double bottom", "Marked bottom or end of accumulation",
+        "Booming industry or other catalyst", "Momentum turning up"
+      ].map(function (label, n) { return "<li><b>" + (n + 1) + "</b> " + esc(label) + "</li>"; }).join("") +
+      "</ol>" +
+      marketHtml(pack.market) +
       "<p class='sn-note'>" + esc(pack.note) + "</p>" +
-      "<p class='sn-count'>" + snipers.length + " sniper" + (snipers.length === 1 ? "" : "s") + " · " + rows.length + " names scored · " + (pack.failed || 0) + " had no usable bars</p>";
-    if (!view.length) {
+      "<p class='sn-count'>" + snipers.length + " sniper" + (snipers.length === 1 ? "" : "s") + " · " + view.length + " shown · " + rows.length + " scored · " + (pack.failed || 0) + " had no usable bars</p>";
+    if (pack.rows && pack.rows.length && !view.length) {
       html += "<p class='sn-empty'>Nothing in this industry cleared the tape.</p>";
     }
     view.forEach(function (r) {
@@ -446,7 +517,56 @@
     + ".sn-boxes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px}"
     + ".sn-box{display:flex;gap:8px;padding:8px;border-radius:8px;background:#0d1118;color:#8b919c;font-size:12px;line-height:1.35}"
     + ".sn-box.ok{color:#d1d4dc}.sn-box.ok i{color:#089981}.sn-box i{font-style:normal;width:14px;color:#5c6370}"
-    + ".sn-box b{display:block;font-size:12px}.sn-box.bonus{opacity:.85}@media(max-width:760px){.sn-boxes{grid-template-columns:1fr}}";
+    + ".sn-box b{display:block;font-size:12px}.sn-box.bonus{opacity:1}"
+    + ".sn-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;margin:12px 0;padding:14px 18px 14px 34px;background:#0d1118;border:1px solid #2a2e39;border-radius:10px}"
+    + ".sn-legend li{color:#d1d4dc;font-size:13px;line-height:1.35}"
+    + ".sn-mkt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}"
+    + ".sn-mkt div{background:#1e222d;border-radius:8px;padding:10px;color:#9aa1ad;font-size:12px;line-height:1.4}"
+    + ".sn-mkt b{display:block;color:#d1d4dc;margin-bottom:4px}.sn-mkt div.ok b{color:#089981}"
+    + "@media(max-width:760px){.sn-boxes,.sn-legend,.sn-mkt{grid-template-columns:1fr}}";
+
+  function freshTurn(bars) {
+    var d = bars || [];
+    if (d.length > 400) d = d.slice(-400);
+    if (d.length < 150) return null;
+    var i = d.length - 1, lowI = i - 126, k, sma = 0;
+    for (k = i - 126; k <= i; k++) if (d[k].low < d[lowI].low) lowI = k;
+    for (k = i - 19; k <= i; k++) sma += d[k].close;
+    sma /= 20;
+    var age = i - lowI;
+    var off = d[i].close / d[lowI].low - 1;
+    return { on: age >= 3 && age <= 30 && off >= 0.12 && d[i].close > sma, age: age, off: off };
+  }
+  function cryptoNoteFor(eth, btc, nearLow, linked) {
+    if (!linked) return "Not a bitcoin or ether treasury. This box is only for Strategy, BMNR and the miners.";
+    function one(name, t) {
+      if (!t) return name + " unavailable";
+      return name + " is " + (t.off * 100).toFixed(0) + "% off its 6-month low, " + t.age + " sessions ago" + (t.on ? ", and the turn is fresh" : "");
+    }
+    return one("Ether", eth) + ". " + one("Bitcoin", btc) + ". " + (nearLow ? "This stock is still within 10% of its own 63-day low." : "This stock has already left its low, so the early window is shut.") + " Across 12 bitcoin turns since 2015, Strategy's next 63 sessions were worse than an ordinary Strategy day, and the stock's low lined up only 5 of 11 times. The 2026 case did lead: ether's low was June 6, Strategy's June 26, Bitmine's June 30, bitcoin's July 1.";
+  }
+  function ratioTurn(a, b) {
+    if (!a || !b || a.length < 80 || b.length < 80) return null;
+    var map = {};
+    b.forEach(function (bar) { map[Math.floor(bar.time / 86400)] = bar; });
+    var rows = [];
+    a.slice(-180).forEach(function (bar) {
+      var o = map[Math.floor(bar.time / 86400)];
+      if (o && o.close) rows.push(bar.close / o.close);
+    });
+    if (rows.length < 70) return null;
+    var i = rows.length - 1, lo = rows[i - 63], k;
+    for (k = i - 63; k <= i; k++) if (rows[k] < lo) lo = rows[k];
+    var off = rows[i] / lo - 1;
+    return { on: off >= 0.04 && off <= 0.12, off: off };
+  }
+  function marketState(cache) {
+    var eth = freshTurn(cache["ETH-USD"]);
+    var btc = freshTurn(cache["BTC-USD"]);
+    var small = ratioTurn(cache.IWM, cache.SPY);
+    var micro = ratioTurn(cache.IWC, cache.SPY);
+    return { eth: eth, btc: btc, small: small, micro: micro };
+  }
 
   function scanAll() {
     if (mem.promise) return mem.promise;
@@ -458,7 +578,7 @@
       var list = buildList(all[0], all[1], (all[2] && all[2].board) || []);
       var barCache = {};
       var queue = list.map(function (r) { return r.ticker; });
-      SECTORS.forEach(function (t) { if (queue.indexOf(t) < 0) queue.push(t); });
+      ["ETH-USD", "BTC-USD", "IWM", "IWC", "SPY"].concat(SECTORS).forEach(function (t) { if (queue.indexOf(t) < 0) queue.push(t); });
       var n = 0;
       function pump(worker) {
         if (!queue.length) return Promise.resolve();
@@ -472,13 +592,29 @@
         var scored = list.map(function (r) {
           var etfSym = r.sectorSymbol;
           var sector = etfSym ? sectorState(barCache, etfSym) : null;
-          var scoredRow = score(barCache[r.ticker] || [], {
+          var nearLow = false;
+          var stockBars = barCache[r.ticker] || [];
+          if (stockBars.length > 70) {
+            var tail = stockBars.slice(-70);
+            var lo = tail[0].low, last = tail[tail.length - 1].close;
+            tail.forEach(function (b) { if (b.low < lo) lo = b.low; });
+            nearLow = last <= lo * 1.10;
+          }
+          var eth = freshTurn(barCache["ETH-USD"]);
+          var btc = freshTurn(barCache["BTC-USD"]);
+          var lead = r.cryptoLinked && nearLow && ((eth && eth.on) || (btc && btc.on));
+          var cryptoNote = cryptoNoteFor(eth, btc, nearLow, r.cryptoLinked);
+          var scoredRow = score(stockBars, {
             assetClass: r.assetClass,
+            book: r.book,
             valuation: r.valuation,
             sectorEtf: r.assetClass === "STOCK" ? sector : null,
             flows: r.flows,
             catalyst: r.catalyst,
-            campaign: r.campaign
+            campaign: r.campaign,
+            cryptoLinked: r.cryptoLinked,
+            cryptoLead: lead,
+            cryptoNote: cryptoNote
           });
           if (!(barCache[r.ticker] || []).length) failed++;
           return { ticker: r.ticker, name: r.name, industry: r.industry, assetClass: r.assetClass, scored: scoredRow };
@@ -486,7 +622,8 @@
         return {
           rows: scored.filter(function (r) { return SECTORS.indexOf(r.ticker) < 0 || r.scored.sniper || (r.scored.passed || 0) >= 8; }),
           failed: failed,
-          note: "S&P 500 and Nasdaq-100 names already under the 250-day, plus metals, bonds, crypto and sector ETFs. The 60 deepest stocks and 30 vehicles are scored from daily bars. A box is checked only when that test passes. Fund-flow and 13F stay open when the tape has no verified buy. This is a location screen, not a promise of a home run."
+          market: marketState(barCache),
+          note: "Every criterion is listed above and again on each name. A box is checked only when that test passes. Missing flow data stays open. The ether and bitcoin line is an early flag for Strategy, BMNR and the miners, not a pass for every stock."
         };
       });
     });
@@ -495,7 +632,7 @@
 
   function mount(host) {
     if (!host) return;
-    host.innerHTML = "<p class='sn-note'>Scoring the book. Daily bars, not a cached guess.</p>";
+    render(host, { rows: [], failed: 0, market: null, note: "Scoring daily bars. The list above is every criterion. Nothing is pre-checked." });
     scanAll().then(function (pack) { render(host, pack); }).catch(function (err) {
       host.innerHTML = "<p class='sn-note'>Sniper could not score the book. " + esc(err && err.message) + "</p>";
     });
