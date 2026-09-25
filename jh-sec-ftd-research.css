@@ -1,6 +1,7 @@
 [data-sec-ftd] {--ftd-accent:#81bafa}
 [data-sec-ftd] .or-controls label{min-width:0}
 [data-sec-ftd] input,[data-sec-ftd] select{width:100%;min-width:0}
+[data-sec-ftd] :is(a,button,input,select,summary):focus-visible{outline:3px solid var(--ftd-accent);outline-offset:3px}
 .ftd-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}
 .ftd-metric{border:1px solid #33435b;background:#101b2b;border-radius:12px;padding:16px}
 .ftd-metric span{display:block;font-size:12px;color:#b5c2d8;line-height:1.4}

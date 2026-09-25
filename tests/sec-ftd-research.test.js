@@ -1,6 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const api=require('../jh-sec-ftd-research.js'),fixture=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/sec-ftd-native.json'),'utf8'));
-const run=fixture.run.split('/').pop().slice(0,64),flush=()=>new Promise(resolve=>setImmediate(resolve));
+const run=fixture.run.split('/').pop().slice(0,64);
+async function ready(app){
+ const deadline=Date.now()+5000;
+ while(!/CUSIP verified|no date was substituted/.test(app.get('status').textContent)){
+  assert(Date.now()<deadline,'Page verification did not settle: '+app.get('status').textContent);
+  await new Promise(resolve=>setTimeout(resolve,2));
+ }
+}
 function network(change){const calls=[];return {calls,fetch:async(key,options)=>{calls.push(key);assert.equal(options.cache,'no-store');const raw=fixture.objects[key.slice(1)];assert.equal(typeof raw,'string','Unreviewed read '+key);return new Response(change?change(key,raw):raw);}};}
 
 test('all observations retain source lines, precise balances and missing labels',async()=>{
@@ -45,7 +52,7 @@ function ui(search,customApi=api){
  return {get,location,blob:()=>blob};
 }
 test('actual page shows a missing date as a gap, withholds scenario and exports exact selection',async()=>{
- const app=ui('?run='+run+'&cusip=901234567&date=2026-08-17');for(let i=0;i<12;i++)await flush();
+ const app=ui('?run='+run+'&cusip=901234567&date=2026-08-17');await ready(app);
  assert.match(app.get('observation-status').textContent,/no zero/);assert.equal(app.get('calculate').disabled,true);
  app.get('export').events.click();const exported=JSON.parse(await app.blob().text());assert.equal(exported.selected_observation.point,null);assert.equal(exported.record.reported_cusip,'901234567');assert.equal(exported.run,fixture.run);
  app.get('date').value='2026-08-18';app.get('date').events.change();assert.equal(app.get('calculate').disabled,false);
@@ -53,9 +60,14 @@ test('actual page shows a missing date as a gap, withholds scenario and exports 
  app.get('query').value='ABC';app.get('query').events.input();assert.equal(app.get('export').disabled,true);assert.equal(app.get('scenario').textContent,'');assert.equal(app.get('observation').children.length,0);
 });
 test('invalid requested date stays unselected until an explicit valid date',async()=>{
- const app=ui('?run='+run+'&cusip=001234567&date=2020-01-01');for(let i=0;i<12;i++)await flush();
+ const app=ui('?run='+run+'&cusip=001234567&date=2020-01-01');await ready(app);
  assert.match(app.get('status').textContent,/no date was substituted/);assert.equal(app.get('date').selectedIndex,-1);assert.equal(app.get('export').disabled,true);
  app.get('date').value='2026-08-18';app.get('date').events.change();assert.equal(app.get('export').disabled,false);assert.match(app.get('status').textContent,/CUSIP verified/);
+});
+test('page readiness follows completed verification even when crypto or transport is delayed',async()=>{
+ const delayed={...api,record:async(...args)=>{await new Promise(resolve=>setTimeout(resolve,30));return api.record(...args);}};
+ const app=ui('?run='+run+'&cusip=901234567&date=2026-08-17',delayed);
+ await ready(app);assert.match(app.get('observation-status').textContent,/no zero/);assert.equal(app.get('calculate').disabled,true);
 });
 test('page references complete reviewed assets and retains its full predecessor',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../squeeze-fuel.html'),'utf8');
