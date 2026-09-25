@@ -1,0 +1,165 @@
+{
+  "fixture_scope": "Synthetic test issuer and documents; not live financial evidence.",
+  "catalog": {
+    "contract": "buyback-submission-document-evidence.v1",
+    "manifest_sha256": "c9a26b33d1b4f8d3844f7d41d33a19ce19051abf8001ccbaaf792c19c720eed4",
+    "inspector_sha256": "1dd2bdde40761cbcca40ab65b20865ae2185a297ebd0ca4c8d9d0c36e10b4c25",
+    "generated_at": "2026-09-25T17:00:02Z",
+    "capture_started_at": "2026-09-25T17:00:00Z",
+    "capture_completed_at": "2026-09-25T17:00:02Z",
+    "source_packet": {
+      "key": "data/buyback-scanner.json",
+      "sha256": "84772fa6044caf4b1ab357ef20bbe64d558a771280b25c6eb5ba35ad5304c879",
+      "bytes": 406,
+      "reported_as_of": "2026-09-21T12:00:00Z"
+    },
+    "reported_rows": 1,
+    "distinct_filings": 1,
+    "documents": 2,
+    "original_bytes": 450539,
+    "literal_keyword_occurrences": 2,
+    "rows": [
+      {
+        "source_row": 0,
+        "filing_id": "09ed9fab03a1a8463c2960aae4111d9f4cdbba935a67f94bfe90183c8e178820",
+        "reported_label": "ABC",
+        "reported_company": "Fixture issuer",
+        "reported_announcement_date": "2026-09-20",
+        "reported_authorization_usd": 1000000,
+        "reported_announcement_date_is_verified_event_date": false,
+        "reported_authorization_amount_verified": false
+      }
+    ],
+    "filings": [
+      {
+        "filing_id": "09ed9fab03a1a8463c2960aae4111d9f4cdbba935a67f94bfe90183c8e178820",
+        "issuer_cik": "0000000123",
+        "accession": "0001193125-26-000123",
+        "submission_url": "https://www.sec.gov/Archives/edgar/data/123/000119312526000123/0001193125-26-000123.txt",
+        "filing_date": "2026-09-20",
+        "form": "8-K",
+        "header_issuer_ciks": [
+          "0000000123"
+        ],
+        "requested_at": "2026-09-25T17:00:01Z",
+        "received_at": "2026-09-25T17:00:01Z",
+        "original_sha256": "3b62d9e92e4b741f6e363184015f114da9a9d00ca67b10cb72ff1de17b16ba34",
+        "original_bytes": 450539,
+        "capture_sha256": "59756bc37b76b16b69e38bcbeb52d33789f88cadea23ada38b861a37bc596727",
+        "source_rows": [
+          0
+        ],
+        "documents": [
+          {
+            "source_document": 0,
+            "type": "8-K",
+            "sequence": "1",
+            "filename": "main.htm",
+            "document_url": "https://www.sec.gov/Archives/edgar/data/123/000119312526000123/main.htm",
+            "byte_start": 280,
+            "byte_end": 391,
+            "bytes": 111,
+            "sha256": "49836f48ef2b48b0d133f842a2ef050664863dbb57bcf6a2bfa26e62028ee071",
+            "text_byte_start": 339,
+            "text_byte_end": 371,
+            "text_bytes": 32,
+            "text_sha256": "a4aafc330713b9626683711076411e166d128c075a41558b963fdad4dc07ed08",
+            "literal_keyword_occurrences": [],
+            "keyword_matches_establish_authorization": false,
+            "byte_ranges_reference": "complete_submission_original_bytes",
+            "document_url_current_bytes_verified": false
+          },
+          {
+            "source_document": 1,
+            "type": "EX-99.1",
+            "sequence": "2",
+            "filename": "ex991.htm",
+            "document_url": "https://www.sec.gov/Archives/edgar/data/123/000119312526000123/ex991.htm",
+            "byte_start": 391,
+            "byte_end": 450523,
+            "bytes": 450132,
+            "sha256": "4d02eb44fc0d4610b97eddca7b4c3a4a52f60b9ce589e8dfd5085e1c898cdb14",
+            "text_byte_start": 455,
+            "text_byte_end": 450503,
+            "text_bytes": 450048,
+            "text_sha256": "81027ba14132cd9d1ff1827fa4668586b3f4d4a855baf06be5f77a82ddb08f99",
+            "literal_keyword_occurrences": [
+              {
+                "byte_start": 467,
+                "byte_end": 477,
+                "reported_text": "repurchase"
+              },
+              {
+                "byte_start": 450495,
+                "byte_end": 450502,
+                "reported_text": "BUYBACK"
+              }
+            ],
+            "keyword_matches_establish_authorization": false,
+            "byte_ranges_reference": "complete_submission_original_bytes",
+            "document_url_current_bytes_verified": false
+          }
+        ],
+        "all_declared_documents_retained": true,
+        "authorization_amount_qualified": false,
+        "buyback_execution_qualified": false,
+        "ownership_dilution_qualified": false,
+        "forecast_qualified": false,
+        "sizing_qualified": false,
+        "filing_population_complete": false,
+        "ticker_identity_verified": false,
+        "calls_eligible": false,
+        "execution_eligible": false,
+        "keyword_search_is_semantic_or_exhaustive": false
+      }
+    ],
+    "all_reported_rows_conserved": true,
+    "all_declared_documents_retained": true,
+    "evidence_scope": "All rows in the retained scanner packet; not a market-wide discovery census.",
+    "document_link_scope": "Link identifies the SEC document; byte evidence refers to its embedded copy in the retained complete submission.",
+    "literal_keyword_scope": "Literal matches only; absence or presence is not an authorization, execution or amount classification.",
+    "authorization_amount_qualified": false,
+    "buyback_execution_qualified": false,
+    "ownership_dilution_qualified": false,
+    "forecast_qualified": false,
+    "sizing_qualified": false,
+    "filing_population_complete": false,
+    "ticker_identity_verified": false,
+    "calls_eligible": false,
+    "execution_eligible": false,
+    "keyword_search_is_semantic_or_exhaustive": false
+  },
+  "base": {
+    "manifest_sha256": "c9a26b33d1b4f8d3844f7d41d33a19ce19051abf8001ccbaaf792c19c720eed4",
+    "inspector_sha256": "1dd2bdde40761cbcca40ab65b20865ae2185a297ebd0ca4c8d9d0c36e10b4c25",
+    "source_packet": {
+      "key": "data/buyback-scanner.json",
+      "sha256": "84772fa6044caf4b1ab357ef20bbe64d558a771280b25c6eb5ba35ad5304c879",
+      "bytes": 406,
+      "reported_as_of": "2026-09-21T12:00:00Z"
+    },
+    "reported_rows": 1,
+    "distinct_filings": 1,
+    "documents": 2,
+    "original_bytes": 450539,
+    "rows": [
+      {
+        "source_row": 0,
+        "filing_id": "09ed9fab03a1a8463c2960aae4111d9f4cdbba935a67f94bfe90183c8e178820",
+        "reported_label": "ABC",
+        "reported_company": "Fixture issuer",
+        "reported_announcement_date": "2026-09-20",
+        "reported_authorization_usd": 1000000,
+        "reported_announcement_date_is_verified_event_date": false,
+        "reported_authorization_amount_verified": false,
+        "issuer_cik": "0000000123",
+        "accession": "0001193125-26-000123",
+        "original_sha256": "3b62d9e92e4b741f6e363184015f114da9a9d00ca67b10cb72ff1de17b16ba34",
+        "original_bytes": 450539,
+        "filing_date": "2026-09-20",
+        "received_at": "2026-09-25T17:00:01Z",
+        "documents": 2
+      }
+    ]
+  }
+}
