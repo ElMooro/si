@@ -1,8 +1,12 @@
 {
-  "description": "Composed short & avoid book: bear lenses -> graded pair-vs-sector shorts (ops 3408)",
+  "description": "Composed short/avoid lenses with explicit input eligibility; unqualified Share Flows votes excluded.",
   "timeout": 240,
   "memory": 512,
-  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
-  "schedule": {"scheduler_name": "justhodl-short-book-daily",
-               "cron": "cron(50 21 ? * * *)"}
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "scheduler_name": "justhodl-short-book-daily",
+    "cron": "cron(50 21 ? * * *)"
+  }
 }

@@ -33,11 +33,8 @@ def main():
             assert base64.b64encode(hashlib.sha256(old).digest()).decode()==prior['runtime']['code_sha256']
             current=runtime(lam,s3,events,scheduler,function)
             assert current['receipt']['commit']==expected
-            for field in ('timeout','memory_mb','function_name','runtime','handler','architectures','role','ephemeral_storage_mb'):
+            for field in ('timeout','memory_mb','schedules','function_name','runtime','handler','architectures','role','ephemeral_storage_mb'):
                 assert current[field]==prior['runtime'][field], (function,field,'changed unexpectedly')
-            def canonical_schedules(rows):
-                return sorted([{**row,**({'group':row.get('group','default')} if row['kind']=='EventBridge Scheduler' else {})} for row in rows],key=lambda v:json.dumps(v,sort_keys=True))
-            assert canonical_schedules(current['schedules'])==canonical_schedules(prior['runtime']['schedules'])
             location=lam.get_function(FunctionName=function)['Code']['Location']
             raw=bounded(urllib.request.urlopen(location,timeout=40))
             assert base64.b64encode(hashlib.sha256(raw).digest()).decode()==current['code_sha256']

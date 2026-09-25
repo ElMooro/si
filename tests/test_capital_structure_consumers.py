@@ -25,6 +25,33 @@ def functions(name,names,scope):
 
 
 class Tests(unittest.TestCase):
+    def test_selected_deploy_configs_preserve_live_cadence_and_do_not_copy_other_function_secrets(self):
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from validate_lambda_configs import validate_configs
+        from normalize_lambda_config import normalize_config
+        from lambda_config_environment import config_environment
+        proof=json.loads((ROOT/'tests/fixtures/capital-structure-config-repair.json').read_bytes())
+        targets=[]
+        for entry in proof['files']:
+            raw=(ROOT/entry['predecessor']).read_bytes()
+            self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(entry['bytes'],entry['sha256']))
+            old=json.loads(raw);current=json.loads((ROOT/entry['target']).read_bytes())
+            for key in ('runtime','handler','timeout','memory','role','architectures'):
+                self.assertEqual(current.get(key),old.get(key))
+            targets.append(Path(entry['target']).parent.name)
+        self.assertEqual(validate_configs(ROOT,targets),[])
+        config=json.loads((ROOT/'aws/lambdas/justhodl-comeback-screener/config.json').read_bytes())
+        normalized=normalize_config(config)
+        self.assertNotIn('eventbridge_scheduler',normalized)
+        self.assertNotIn('schedule',normalized)
+        self.assertEqual(normalized['release_schedule_note'],{
+            'status':'EXISTING_SCHEDULER_REFERENCE','schedule_name':'justhodl-comeback-screener-daily',
+            'configured_expression':'cron(45 20 * * ? *)','binding_action':'PRESERVE_EXISTING'})
+        inherited=Mock(side_effect=AssertionError('No inheritance reads or overrides permitted'))
+        self.assertEqual(config_environment(config,inherited),{});inherited.assert_not_called()
+        entry=proof['acceptance_predecessor'];raw=(ROOT/entry['predecessor']).read_bytes()
+        self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(entry['bytes'],entry['sha256']))
+
     def test_all_whole_predecessors_survive_byte_for_byte(self):
         migration=json.loads((ROOT/'tests/fixtures/capital-structure-consumer-migration.json').read_bytes())
         self.assertEqual(len(migration['files']),6)

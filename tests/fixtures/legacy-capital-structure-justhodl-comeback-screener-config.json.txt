@@ -1,0 +1,14 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 840,
+  "memory": 1024,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Comeback screener: full FinViz universe crash->recover scan with dilution guard -> data/comeback-screener.json boards (ops 3288).",
+  "inherit_env": ["justhodl-confluence-meta"],
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-comeback-screener-daily",
+    "cron": "cron(45 20 * * ? *)",
+    "timezone": "UTC"
+  }
+}

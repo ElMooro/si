@@ -1,0 +1,34 @@
+{
+  "contract": "capital-structure-config-repair.v1",
+  "files": [
+    {
+      "target": "aws/lambdas/justhodl-short-book/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-short-book-config.json.txt",
+      "bytes": 302,
+      "sha256": "1657701fd317fb8af812e0bf50146cc74f66b9d7860b31d9b08a115c19a709be"
+    },
+    {
+      "target": "aws/lambdas/justhodl-opportunity-engine/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-opportunity-engine-config.json.txt",
+      "bytes": 729,
+      "sha256": "3fb72e073eb8bf17b45de985a4fea4adab400e69bad8a5f4ac93ffe93aa53bd2"
+    },
+    {
+      "target": "aws/lambdas/justhodl-cannibals/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-cannibals-config.json.txt",
+      "bytes": 288,
+      "sha256": "e60720a37b490057d5c47c6d23c1b07979b746b09a5f0b5209549dc564c83efd"
+    },
+    {
+      "target": "aws/lambdas/justhodl-comeback-screener/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-justhodl-comeback-screener-config.json.txt",
+      "bytes": 524,
+      "sha256": "df97fcefa7ebcdb980ac667054771f29bfacfc1aeaa9c141ed490d134389b5a7"
+    }
+  ],
+  "acceptance_predecessor": {
+    "predecessor": "tests/fixtures/legacy-capital-structure-consumer-acceptance.py.txt",
+    "bytes": 4635,
+    "sha256": "e0fbfe80621fd7ecc4d716e6b94ef6acb31058c095558d0857ed164e3717a24b"
+  }
+}
