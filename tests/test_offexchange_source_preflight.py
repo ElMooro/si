@@ -4,7 +4,7 @@ from io import BytesIO
 from unittest.mock import Mock
 import sys,time,unittest,urllib.error
 ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT/'aws/ops/staged'),str(ROOT/'tests')]
-import ops_6034_offexchange_source_preflight as op
+import ops_6036_offexchange_whole_source_preflight as op
 from test_option_flow_store import S3
 class Tests(unittest.TestCase):
     def test_reviewed_request_inventory_has_explicit_dates_and_no_coverage_claim(self):
