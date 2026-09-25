@@ -1,0 +1,87 @@
+name: Verify retained research evidence
+on:
+  workflow_dispatch:
+    inputs:
+      audit:
+        description: Reviewed retained-original verification (no provider acquisition)
+        required: true
+        type: choice
+        options:
+          - buyback-document-catalog
+          - buyback-document-independent
+permissions:
+  contents: write
+concurrency:
+  group: retained-evidence-audit
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Select reviewed audit
+        env:
+          AUDIT_CHOICE: ${{ inputs.audit }}
+        run: |
+          set -euo pipefail
+          case "$AUDIT_CHOICE" in
+            buyback-document-catalog)
+              echo 'AUDIT_SCRIPT=staged/ops_6112_buyback_document_evidence.py' >> "$GITHUB_ENV"
+              echo 'AUDIT_REPORT=aws/ops/reports/latest/ops_6112_buyback_document_evidence.md' >> "$GITHUB_ENV"
+              ;;
+            buyback-document-independent)
+              echo 'AUDIT_SCRIPT=staged/ops_6113_buyback_document_independent_acceptance.py' >> "$GITHUB_ENV"
+              echo 'AUDIT_REPORT=aws/ops/reports/latest/ops_6113_buyback_document_independent_acceptance.md' >> "$GITHUB_ENV"
+              ;;
+            *) echo 'Unreviewed audit selection' >&2; exit 2 ;;
+          esac
+      - run: python3 -m pip install -q boto3 requests
+      - name: Verify lane selection and source boundaries
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_retained_evidence_lane.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Verify retained originals
+        run: |
+          set -euo pipefail
+          python3 aws/ops/_preflight.py "aws/ops/$AUDIT_SCRIPT"
+          rc=0
+          python3 "aws/ops/$AUDIT_SCRIPT" || rc=$?
+          echo "AUDIT_RC=$rc" >> "$GITHUB_ENV"
+      - name: Preserve complete report
+        if: always() && env.AUDIT_REPORT != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-evidence-${{ github.run_id }}
+          path: ${{ env.AUDIT_REPORT }}
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Commit only the selected report
+        if: always() && env.AUDIT_REPORT != ''
+        run: |
+          set -euo pipefail
+          test -f "$AUDIT_REPORT"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -- "$AUDIT_REPORT"
+          git diff --cached --quiet && exit 0
+          git commit -m "evidence: report from run ${{ github.run_id }} [skip-deploy] [skip-ops]"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 5))
+          done
+          exit 1
+      - name: Reject failed acceptance after retaining its report
+        if: always() && env.AUDIT_RC != '' && env.AUDIT_RC != '0'
+        run: exit 1

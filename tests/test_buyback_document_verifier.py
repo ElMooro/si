@@ -31,6 +31,19 @@ class Tests(unittest.TestCase):
         unused.assert_not_called()
         with self.assertRaises(ValueError):checker.verify(raw,source.sha(raw),lambda digest:read(digest)[:-10])
 
+    def test_crlf_originals_keep_byte_coordinates_without_text_normalization(self):
+        client,manifest,keep=fixture();record=manifest['records'][0]
+        capture=json.loads(source.read(client,record['capture']))
+        body=source.read(client,record['original']).replace(b'\n',b'\r\n')
+        capture['original']=source.retain(client,body)
+        capture['inventory']=source.inspect(body,record['request'])
+        ref=keep(capture);manifest['captures'][record['request']['url']]=ref
+        record.update(capture=ref,original=capture['original'])
+        catalog=compiler.compile_output(keep(manifest),lambda ref:source.read(client,ref));raw=source.encoded(catalog)
+        proof=checker.verify(raw,source.sha(raw),lambda digest:client.files[source.PRIVATE+digest+'.bin'])
+        self.assertEqual(proof['verified_documents'],2)
+        self.assertEqual(proof['verified_original_bytes'],len(body))
+
     def test_independent_checks_detect_rehashed_wrong_metadata_missing_words_and_ranges(self):
         for failure in ('accession','issuer','filing_date','filename','range','words','removed','permission','row','url'):
             catalog,read=example();filing=catalog['filings'][0];doc=filing['documents'][1]
