@@ -6,7 +6,7 @@
   function gj(k){return fetch(S3+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null}).catch(function(){return null});}
   var D={};
   var ready=Promise.all([gj('data/share-flows.json'),gj('data/forensic-screen.json')]).then(function(a){
-    D.sf=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(a[0]).tickers : {};
+    D.sf=(a[0]||{}).tickers||{};
     a[1]=window.JHStatementContext ? window.JHStatementContext.decisionView(a[1]) : {};
     D.fo={};((a[1]||{}).all_results||[]).forEach(function(r){if(r.symbol)D.fo[r.symbol]=r;});
     D.med=(a[1]||{}).sector_valuation_medians||{};

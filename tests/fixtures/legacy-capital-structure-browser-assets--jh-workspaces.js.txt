@@ -83,7 +83,7 @@ class JHF {
     else if (bsr && typeof bsr === "object") Object.entries(bsr).forEach(([v, arr]) => (Array.isArray(arr) ? arr : []).forEach(r => { const t = (r && r.ticker) || (typeof r === "string" ? r : null); if (t) F.setup[t] = v; }));
     F.res = {}; (((rs || {}).resilient) || []).forEach(r => { if (r.ticker) F.res[r.ticker] = true; });
     F.maEvents = {}; (((ir || {}).ma_events) || []).forEach(e => { (F.maEvents[e.etf] = F.maEvents[e.etf] || []).push(e); });
-    F.sf = (window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(sf).tickers : {});
+    F.sf = (sf && sf.tickers) || {};
     F.insDates = {}; const buys = ((ins || {}).latest_buys) || [];
     const clusterT = new Set([...(((ins || {}).clusters) || []), ...(((ins || {}).decline_clusters) || [])].map(c => c.ticker).filter(Boolean));
     buys.forEach(b => { if (b.ticker && b.date && clusterT.has(b.ticker)) (F.insDates[b.ticker] = F.insDates[b.ticker] || []).push(b.date); });
@@ -733,9 +733,7 @@ class MacroData {
       if (!response.ok) throw new Error(`Series ${response.status}`);
       const payload = await response.json();
       const observations = (payload.obs || payload.bars || []).map(row => {
-        // OHLC rows expose volume as `value`; prefer the closing price.
-        // Observation-series rows have no `close`, so they continue to use `value`.
-        const rawValue = Array.isArray(row) ? row[1] : (row.close ?? row.value);
+        const rawValue = Array.isArray(row) ? row[1] : (row.value ?? row.close);
         if (rawValue == null || rawValue === '') return null;
         const date = String(Array.isArray(row) ? row[0] : (row.time || row.date || ''));
         const value = Number(rawValue);

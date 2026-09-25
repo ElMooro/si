@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script>
 <script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -573,7 +572,7 @@ function renderHealthStrip() {
 
 async function load() {
   try {
-    window.SFMAP=window.SFMAP||{};fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?_='+Date.now()).then(x=>x.ok?x.json():null).then(d=>{d=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(d) : {};if(d&&d.tickers){window.SFMAP=d.tickers;try{applyFilters()}catch(e){}}}).catch(()=>{});
+    window.SFMAP=window.SFMAP||{};fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?_='+Date.now()).then(x=>x.ok?x.json():null).then(d=>{if(d&&d.tickers){window.SFMAP=d.tickers;try{applyFilters()}catch(e){}}}).catch(()=>{});
     window.FOMAP=window.FOMAP||{};fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/forensic-screen.json?_='+Date.now()).then(x=>x.ok?x.json():null).then(d=>{d=window.JHStatementContext.decisionView(d);if(d&&d.all_results){const m={};d.all_results.forEach(r=>{if(r.symbol)m[r.symbol]=r});window.FOMAP=m;try{applyFilters()}catch(e){}}}).catch(()=>{});
   const [r] = await Promise.all([fetch(FEED_URL + '?_=' + Date.now()), loadWatchlist()]);
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -608,7 +607,7 @@ setInterval(load, 5*60*1000);
   <script src="/jh-enhance.js" data-feed="data/master-ranker.json" data-bars="top_tickers:ticker:score" data-title="Master ranker — top tickers" data-sub="unified cross-engine rank" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-fund-chips.js?v=capital-structure-v1" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Stock Opportunities · JustHodl.AI</title>
@@ -178,7 +177,7 @@ const BC={green:"b-green",cyan:"b-cyan",yellow:"b-yellow",orange:"b-orange",red:
 const BORDER={green:"#26ffaf",cyan:"#00d4ff",yellow:"#ffd266",orange:"#ff7a18",red:"#ff5577",dim:"#1c2433"};
 let DATA=null, BYSYM={}, RESEARCH={}, FILTER={sector:"",verdict:""};
 let SF={};
-fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{d=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(d) : {};if(d&&d.tickers){SF=d.tickers;try{render()}catch(e){}}}).catch(()=>{});
+fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.tickers){SF=d.tickers;try{render()}catch(e){}}}).catch(()=>{});
 function sfChips(t){
   const s=SF[t];if(!s)return "";
   const c=[];

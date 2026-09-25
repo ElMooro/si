@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Chart Pro · JustHodl.AI · Trading Terminal</title>
@@ -11089,7 +11088,7 @@ class JHF {
     else if (bsr && typeof bsr === "object") Object.entries(bsr).forEach(([v, arr]) => (Array.isArray(arr) ? arr : []).forEach(r => { const t = (r && r.ticker) || (typeof r === "string" ? r : null); if (t) F.setup[t] = v; }));
     F.res = {}; (((rs || {}).resilient) || []).forEach(r => { if (r.ticker) F.res[r.ticker] = true; });
     F.maEvents = {}; (((ir || {}).ma_events) || []).forEach(e => { (F.maEvents[e.etf] = F.maEvents[e.etf] || []).push(e); });
-    F.sf = (window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(sf).tickers : {});
+    F.sf = (sf && sf.tickers) || {};
     F.insDates = {}; const buys = ((ins || {}).latest_buys) || [];
     const clusterT = new Set([...(((ins || {}).clusters) || []), ...(((ins || {}).decline_clusters) || [])].map(c => c.ticker).filter(Boolean));
     buys.forEach(b => { if (b.ticker && b.date && clusterT.has(b.ticker)) (F.insDates[b.ticker] = F.insDates[b.ticker] || []).push(b.date); });
@@ -11453,7 +11452,7 @@ class JHF {
 })();
 </script>
 <script src="/sidebar.js" defer></script>
-<script src="/jh-chart-risk.js?v=capital-structure-v1"></script>
+<script src="/jh-chart-risk.js?v=20260917c"></script>
 <aside style="padding:12px 20px;font:14px system-ui"><a href="/retail/">Public attention research: dated samples and source evidence</a>. Mentions are descriptive; no qualified retail timing or flow signal.</aside>
 </body>
 </html>

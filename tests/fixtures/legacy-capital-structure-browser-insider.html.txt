@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Insider Radar — Cluster Buys & Decline Accumulation — JustHodl AI</title>
 <style>
 :root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--red:#ff5577;--violet:#a78bfa;--amber:#fbbf24}
@@ -65,7 +64,7 @@ function qLine(t){
 }
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 let D=null;
-(async()=>{const [d0,sfw,fow]=await Promise.all([gj('data/insider-radar.json'),gj('data/share-flows.json').then(d=>window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(d) : {}),gj('data/forensic-screen.json').then(d=>window.JHStatementContext.decisionView(d))]);D=d0;
+(async()=>{const [d0,sfw,fow]=await Promise.all([gj('data/insider-radar.json'),gj('data/share-flows.json'),gj('data/forensic-screen.json').then(d=>window.JHStatementContext.decisionView(d))]);D=d0;
   window.SFMAP=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
   if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
   document.getElementById('hero').innerHTML=
@@ -122,6 +121,6 @@ aiPanel('insider-radar-decisive-call','aibrief');
 </script>  <script src="/jh-enhance.js" data-feed="data/insider-radar.json" data-bars="latest_buys:ticker:value" data-title="Insider radar — recent buys ($ value)" data-sub="latest Form 4 purchases" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-fund-chips.js?v=capital-structure-v1" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body></html>

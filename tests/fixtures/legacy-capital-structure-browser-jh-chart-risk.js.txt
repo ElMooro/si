@@ -47,7 +47,7 @@
       fetch("/data/share-flows.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
       fetch("/data/forensic-screen.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
     ]).then(function (a) {
-      sf = window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(a[0]).tickers : {};
+      sf = (a[0] && (a[0].tickers || a[0].by_ticker)) || {};
       var raw = window.JHStatementContext ? window.JHStatementContext.decisionView(a[1]) : {};
       fo = {};
       if (raw && raw.rows) raw.rows.forEach(function (row) { if (row && row.symbol) fo[row.symbol] = row; });

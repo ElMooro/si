@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Accumulation / Distribution Radar · JustHodl</title>
 <style>
 :root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;
@@ -161,7 +160,7 @@ function block(book,kind){
   return h||'<div class="grp" style="color:var(--fg3)">none flagged today</div>';
 }
 (async function(){
-  const [sfw,fow]=await Promise.all([gj('data/share-flows.json').then(d=>window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(d) : {}),gj('data/forensic-screen.json').then(d=>window.JHStatementContext.decisionView(d))]);window.__sf=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
+  const [sfw,fow]=await Promise.all([gj('data/share-flows.json'),gj('data/forensic-screen.json').then(d=>window.JHStatementContext.decisionView(d))]);window.__sf=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
   const d=await gj('data/accumulation-radar.json');const w=document.getElementById('w');
   window.__d=d;if(!d||!d.tops){w.innerHTML='<div class="hd"><h1>Accumulation / Distribution Radar</h1></div><div class="loading">No data yet — runs daily after close.</div>';return;}
   let h=`<div class="hd"><h1>🔄 Accumulation / Distribution Radar</h1><div class="sub">Wyckoff cycle across stocks, ETFs &amp; countries — who's being accumulated vs distributed, and what's most likely at a top or a bottom.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_scored} names scored · ${d.buffer_days}d history · v${esc(d.version||'')}</div></div>`;
@@ -179,7 +178,7 @@ function block(book,kind){
 </script><script src="/jh-nav-drawer.js" defer></script>
 
 <script defer src="/jh-page-ai.js"></script>
-<script src="/jh-fund-chips.js?v=capital-structure-v1" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 <!-- P0-7 wave 2 · dark engines wired (perplexity, 2026-08-05) -->
 <script src="/jh-wire.js" defer
   data-feeds="data/consensus-bottom.json|justhodl-consensus-bottom|MULTI-MANAGER CONSENSUS BOTTOM;data/sequence-alpha.json|justhodl-sequence-alpha-detector|3-STEP ACCUMULATION SEQUENCE"></script>

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script>
 <script src="/private-artifacts.js?v=20260909"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -912,7 +911,113 @@ function renderFinancialHealth(d){
 }
 
 function renderDilutionPillar(d){
-  return '<div style="grid-column:1/-1;margin-top:10px;padding:12px 14px;border:1px solid var(--border);border-radius:8px"><strong>Ownership dilution: unqualified</strong><p>Weighted-average EPS share counts do not establish changes in ownership. Reported float, cash repurchases and share issuance require separate dated evidence. No stable-share or dilution verdict is assigned.</p></div>';
+  /* ops 3292 v2 — Khalid: dilution is a HUGE risk that must be FLAGGED,
+     and every examined company shows 10 years of share counts with
+     real numbers + a linear chart for easy analysis. */
+  const m = d.dilution;
+  if(!m) return `<div style="grid-column:1/-1;margin-top:8px;font-size:11.5px;color:var(--text-dim);font-family:var(--font-mono)">Pillar 6 · Share Count &amp; Dilution — engine upgraded; hit Research again on this name to compute it.</div>`;
+  const V={SHRINKING:'#3ddc84',STABLE:'#9acd32',DILUTING:'#ffd166',HEAVY_DILUTION:'#ff9f43',DEATH_SPIRAL:'#ff2d2d',UNKNOWN:'#8899aa'};
+  const f=(x,s2)=>x==null?'—':((x>0&&s2?'+':'')+x.toFixed(1)+'%');
+  const shFmt=x=>x==null?'—':(x>=1e9?(x/1e9).toFixed(2)+'B':x>=1e6?(x/1e6).toFixed(1)+'M':Math.round(x).toLocaleString());
+  const ser=(m.annual_series&&m.annual_series.length>2?m.annual_series:(m.quarterly_series||[])).slice(-11);
+  /* ops 3300 — verdict guard: grade from the SAME series we chart so the
+     badge can never contradict the chart (BMNR said STABLE while the
+     chart went vertical — stale caches / fiscal-year wavg lag). */
+  let verdict=m.verdict||'UNKNOWN', gRate=(m.sh_1y_cagr_pct!=null?m.sh_1y_cagr_pct:null);
+  try{
+    if(ser.length>=3){
+      const a=ser[0].sh,b=ser[ser.length-1].sh,n=ser.length-1;
+      const isQ=!(m.annual_series&&m.annual_series.length>2);
+      const perYr=(Math.pow(b/a,(isQ?4:1)/n)-1)*100;
+      const j=Math.max(0,ser.length-(isQ?5:2));
+      const lastYr=(b/ser[j].sh-1)*100;
+      const g=Math.max(perYr,lastYr);
+      const T={UNKNOWN:0,SHRINKING:0,STABLE:1,DILUTING:2,HEAVY_DILUTION:3,DEATH_SPIRAL:4};
+      const comp=g>40?'DEATH_SPIRAL':g>10?'HEAVY_DILUTION':g>2?'DILUTING':(g<=-2?'SHRINKING':'STABLE');
+      if((T[comp]||0)>(T[verdict]||0)){verdict=comp;gRate=Math.round(g*10)/10;}
+    }
+  }catch(e){}
+  const risky=!!m.risk_flag||verdict==='HEAVY_DILUTION'||verdict==='DEATH_SPIRAL';
+  const col=V[verdict]||'#8899aa'; /* ops3475: col AFTER verdict-guard — TDZ fix + badge matches recomputed verdict */
+  const mult=m.ten_year_multiple;
+
+  /* ── HUGE RISK banner ── */
+  let banner='';
+  if(risky){
+    banner=`<div style="margin:2px 0 12px;padding:14px 16px;border-radius:10px;background:linear-gradient(90deg,#3a0d0d,#2a0808);border:2px solid #ff2d2d;box-shadow:0 0 18px #ff2d2d44;display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+      <span style="font-size:22px">⚠</span>
+      <div style="flex:1;min-width:220px">
+        <div style="font-family:var(--font-mono);font-size:14px;font-weight:800;letter-spacing:1.5px;color:#ff5c5c">DILUTION RISK — SHAREHOLDERS ARE BEING DILUTED</div>
+        <div style="font-size:12.5px;color:#ffb3b3;margin-top:3px">Share count ${gRate!=null?('growing <b>'+f(gRate,1)+'/yr</b>'):'expanding fast'}${mult&&mult>1.15?(' — <b>'+mult+'×</b> more shares than 10 years ago'):''}. Every rally is being sold into new paper; per-share value is shrinking under you.</div>
+      </div>
+      <span class="jh-flashred" style="font-family:var(--font-mono);font-size:12px;padding:4px 12px;border-radius:14px;background:#ff2d2d22;color:#ff5c5c;border:1px solid #ff2d2d">${verdict.replace(/_/g,' ')}</span>
+    </div>`;
+  }
+
+  /* ── 10-year linear chart with axes ── */
+  let chart='';
+  if(ser.length>2){
+    const W=720,H=250,L=68,R=14,T=16,B=34;
+    const vs=ser.map(x=>x.sh);let mn=Math.min(...vs),mx=Math.max(...vs);
+    if(mx===mn){mx*=1.02;mn*=0.98;}
+    const pad=(mx-mn)*0.07;mn-=pad;mx+=pad;
+    const X=i=>L+(i/(ser.length-1))*(W-L-R);
+    const Y=v=>T+(1-(v-mn)/(mx-mn))*(H-T-B);
+    let grid='',ylab='';
+    for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,y=Y(v);
+      grid+=`<line x1="${L}" y1="${y.toFixed(1)}" x2="${W-R}" y2="${y.toFixed(1)}" stroke="#1c2433" stroke-width="1"/>`;
+      ylab+=`<text x="${L-8}" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--text-dim)" font-family="var(--font-mono)">${shFmt(v)}</text>`;}
+    let xlab='';
+    ser.forEach((x,i)=>{const yr=String(x.d).slice(0,4);
+      xlab+=`<text x="${X(i).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="var(--text-dim)" font-family="var(--font-mono)">${yr.slice(2)}'</text>`;});
+    const pts=vs.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+    const dots=vs.map((v,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.2" fill="${col}"/>`).join('');
+    const area=`M ${X(0).toFixed(1)},${(H-B)} L ${pts.replace(/ /g,' L ')} L ${X(vs.length-1).toFixed(1)},${H-B} Z`;
+    chart=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block" role="img" aria-label="Shares outstanding, last ${ser.length} fiscal years">
+      ${grid}${ylab}${xlab}
+      <path d="${area}" fill="${col}18"/>
+      <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.4"/>
+      ${dots}
+      <text x="${L}" y="${T-4}" font-size="10.5" fill="var(--text-dim)" font-family="var(--font-mono)">SHARES OUTSTANDING (diluted, fiscal-year)</text>
+    </svg>`;
+  }
+
+  /* ── year-by-year numbers ── */
+  let nums='';
+  if(ser.length>1){
+    let cells='';
+    ser.forEach((x,i)=>{
+      const yoy=i>0?((x.sh/ser[i-1].sh-1)*100):null;
+      const yc=yoy==null?'var(--text-dim)':(yoy>2?'#ff5c5c':(yoy<-1?'#3ddc84':'var(--text-dim)'));
+      cells+=`<div style="flex:none;min-width:74px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev)">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim)">FY${String(x.d).slice(0,4)}</div>
+        <div style="font-family:var(--font-mono);font-size:12.5px;color:var(--text);font-weight:700">${shFmt(x.sh)}</div>
+        <div style="font-family:var(--font-mono);font-size:10.5px;color:${yc}">${yoy==null?'&nbsp;':((yoy>0?'+':'')+yoy.toFixed(1)+'%')}</div>
+      </div>`;
+    });
+    nums=`<div style="display:flex;gap:8px;overflow-x:auto;padding:2px 0;margin-top:10px">${cells}</div>`;
+  }
+
+  const flags=(m.share_flows_flags&&m.share_flows_flags.length)?`<div style="margin-top:8px">${m.share_flows_flags.map(x=>`<span style="font-family:var(--font-mono);font-size:10px;color:#ff9f43;border:1px solid #ff9f4355;border-radius:10px;padding:2px 8px;margin-right:6px">${esc(String(x))}</span>`).join('')}</div>`:'';
+
+  return `
+    <div style="grid-column:1/-1;margin-top:10px;background:var(--bg-elev);border:1px solid ${risky?'#ff2d2d':col}55;border-left:4px solid ${risky?'#ff2d2d':col};border-radius:8px;padding:12px 14px">
+      ${banner}
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <span style="font-size:11px;letter-spacing:1.5px;color:var(--text-dim);font-family:var(--font-mono)">PILLAR 6 · SHARE COUNT &amp; DILUTION — 10-YEAR RECORD</span>
+        <span class="${risky?'jh-flashred':''}" style="font-family:var(--font-mono);font-size:12px;padding:2px 10px;border-radius:14px;background:${col}22;color:${col};border:1px solid ${col}66">${verdict.replace(/_/g,' ')}</span>
+        ${mult!=null?`<span style="font-family:var(--font-mono);font-size:11px;color:${mult>1.15?'#ff9f43':'var(--text-dim)'}">${mult}× shares vs 10y ago</span>`:''}
+      </div>
+      ${chart}
+      ${nums}
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);line-height:2;margin-top:8px">
+        1y ${f(m.sh_1y_cagr_pct,1)} · 3y ${f(m.sh_3y_cagr_pct,1)}/yr · 5y ${f(m.sh_5y_cagr_pct,1)}/yr ·
+        SBC ${m.sbc_pct_rev==null?'—':m.sbc_pct_rev+'% of revenue'} ·
+        net buyback yield ${m.net_buyback_yield_pct==null?'—':m.net_buyback_yield_pct+'%'}
+      </div>
+      <div style="font-size:12px;color:var(--text);margin-top:6px">${esc(m.read||'')}</div>
+      ${flags}
+    </div>`;
 }
 
 function renderPeerComparison(d){
@@ -3112,18 +3217,18 @@ window.renderQuantRisk=function(d){
   var q=d&&d.quant_risk; if(!q||!q.available) return "";
   function zc(z){return z==null?"a":(z<1.8?"r":(z<3?"a":"g"));}
   function pc(p){return p==null?"a":(p<=3?"r":(p<=6?"a":"g"));}
-  var flags=(q.flags||[]).filter(function(f){return !/DILUT|SHARE|BUYBACK|SBC/i.test(String(f));}).map(function(f){return '<span class="v2flag">'+esc(f)+'</span>';}).join("");
+  var flags=(q.flags||[]).map(function(f){return '<span class="v2flag">'+esc(f)+'</span>';}).join("");
   return '<section class="block"><div class="sub"><span class="ico">🧮</span> Quantitative Risk — distress, quality, dilution</div>'+
     '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 4px">'+
     '<span class="gauge '+zc(q.altman_z)+'">Altman Z '+fnum(q.altman_z,1)+'</span>'+
     '<span class="gauge '+pc(q.piotroski)+'">Piotroski '+(q.piotroski!=null?Math.round(q.piotroski)+"/9":"—")+'</span></div>'+
     '<div class="v2grid">'+
-    metric("Ownership dilution 1y", "Unqualified")+
-    metric("Ownership dilution 3y CAGR", "Unqualified")+
+    metric("Share dilution 1y", pct(q.dilution_1y_pct))+
+    metric("Dilution 3y CAGR", pct(q.dilution_3y_cagr_pct))+
     metric("SBC % of revenue", pct(q.sbc_pct_of_rev))+
     metric("Gross margin Δ3y", (q.gross_margin_3y_delta_pp!=null?(q.gross_margin_3y_delta_pp>0?"+":"")+fnum(q.gross_margin_3y_delta_pp,1)+"pp":"—"))+
     '</div>'+(flags?('<div style="margin-top:6px">'+flags+'</div>'):"")+
-    '<div class="v2read">Legacy aggregate risk interpretation withheld pending input qualification.</div></section>';
+    '<div class="v2read '+readCls(q.read)+'">'+esc(q.read||"")+'</div></section>';
 };
 window.renderIndustryCompass=function(d){
   var ic=d&&d.industry_compass; if(!ic) return "";
@@ -3172,7 +3277,7 @@ window.renderIndustryCompass=function(d){
   var S3B='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
   var DOCS={}, TK=null, TRIES=0;
   function gj(k){return fetch(S3B+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
-  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=window.JHStatementContext.decisionView(a[0]);DOCS.sf=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(a[1]) : {};DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=window.JHShortVolumeResearch?.decisionView(a[8])||{};DOCS.rr=a[9];DOCS.er=a[10];tick();});
+  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=window.JHStatementContext.decisionView(a[0]);DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=window.JHShortVolumeResearch?.decisionView(a[8])||{};DOCS.rr=a[9];DOCS.er=a[10];tick();});
   function box(l,v,c){return '<span style="background:var(--panel2,#11161f);border:1px solid var(--line,#1c2433);border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">'+l+' <b style="color:'+(c||'#e6eaf2')+'">'+v+'</b></span>';}
   function render(t){
     var old=document.getElementById('jh-fleet-forensic'); if(old) old.remove();
@@ -3262,7 +3367,7 @@ window.renderIndustryCompass=function(d){
             /* 4 share-flows */
             var sfr=((DOCS.sf||{}).tickers||{})[T];
             var sfRead=sfr?(sfr.read||''):null;var sfFl=(sfr&&sfr.flags)||[];
-            add('SHARE-FLOWS',sfRead?((sfRead==='BUYBACK_HEAVY'||sfRead==='SHRINKING')?'BULL':(sfRead.indexOf('DILUT')>=0)?'BEAR':(sfFl.indexOf('MGMT_SELLING_INTO_BUYBACK')>=0)?'FLAG':'NEUT'):null,sfRead?sfRead.replace(/_/g,' ').toLowerCase()+(sfFl.length?' \u00b7 '+sfFl.join('/').toLowerCase().replace(/_/g,' '):''):'unqualified — no investment vote','/share-flows.html');
+            add('SHARE-FLOWS',sfRead?((sfRead==='BUYBACK_HEAVY'||sfRead==='SHRINKING')?'BULL':(sfRead.indexOf('DILUT')>=0)?'BEAR':(sfFl.indexOf('MGMT_SELLING_INTO_BUYBACK')>=0)?'FLAG':'NEUT'):null,sfRead?sfRead.replace(/_/g,' ').toLowerCase()+(sfFl.length?' \u00b7 '+sfFl.join('/').toLowerCase().replace(/_/g,' '):''):'not covered','/share-flows.html');
             /* 5 forensic */
             var fo2=null;((DOCS.fo||{}).all_results||[]).forEach(function(r){if(r.symbol===T)fo2=r;});
             add('FORENSIC',null,'Dated statements; no qualified grade','/forensic.html?ticker='+T);
@@ -3344,7 +3449,7 @@ window.renderIndustryCompass=function(d){
     sec.id='jh-fleet-forensic'; sec.className='block';
     sec.innerHTML='<div class="sub"><span class="ico">🔬</span> Forensic &amp; Capital Flows — fleet cross-read</div>'+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px">'+rows.join('')+'</div>'+
-      '<div style="font-size:11px;color:#6f7b91;font-family:monospace">accounting and capital-structure inputs have no qualified investment vote; other input · buyback-engine v1.1 · <a href="/forensic.html?ticker='+t+'" style="color:#00d4ff">full forensic read ↗</a> · <a href="/share-flows.html?ticker='+t+'" style="color:#00d4ff">capital-return forensics ↗</a></div>';
+      '<div style="font-size:11px;color:#6f7b91;font-family:monospace">accounting research is descriptive; other inputs from · share-flows v1.4 · buyback-engine v1.1 · <a href="/forensic.html?ticker='+t+'" style="color:#00d4ff">full forensic read ↗</a> · <a href="/share-flows.html?ticker='+t+'" style="color:#00d4ff">capital-return forensics ↗</a></div>';
     var anchor=null;
     var subs=document.querySelectorAll('section.block .sub');
     for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
@@ -3402,13 +3507,16 @@ window.fillJHVitals=async function(d){ try{
   var el=document.getElementById('jhvBody'); if(!el)return;
   var t=String((d&&d.ticker)||'').toUpperCase();
   var sfd=await gj9('data/share-flows.json');
-  sfd=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(sfd) : {};
   var sf=(((sfd||{}).tickers)||{})[t]||{};
-  var v=(d&&d.valuation)||{};
+  var v=(d&&d.valuation)||{}, q=(d&&(d.quant_risk||d.quant))||{}, dl=(d&&d.dilution)||{};
   var price=(sf.price!=null?sf.price:(d&&(d.price!=null?d.price:((d.quote||{}).price))));
-  var so=null; // No independently qualified point-in-time ownership denominator.
+  var so=sf.shares_outstanding, cag=sf.sh_3y_cagr_pct;
+  var d1=(q.dilution_1y_pct!=null?q.dilution_1y_pct:q.dilution_1y);
+  var rising=((cag!=null&&cag>1.5)||(d1!=null&&d1>1.5)||!!dl.risk_flag||/HEAVY_DILUTION|DEATH_SPIRAL/.test(String(dl.verdict||'')));
+  var shrink=!rising&&((cag!=null&&cag<-0.5)||/SHRINK/.test(String(dl.verdict||'')));
   function tile(l,val,sub,cls){ return '<div class="jhv-tile'+(cls?' '+cls:'')+'"><div class="jhv-l">'+l+'</div><div class="jhv-v">'+val+'</div>'+(sub?'<div class="jhv-s">'+sub+'</div>':'')+'</div>'; }
   var pe=(sf.pe_ttm!=null?sf.pe_ttm:v.pe_ttm), peg=(sf.peg!=null?sf.peg:v.peg_ratio), ps=(sf.ps_ttm!=null?sf.ps_ttm:v.ps_ttm);
+  var soSub=(cag!=null?('Δ3y '+(cag>0?'+':'')+n9(cag)+'%/yr'):'')+((d1!=null)?((cag!=null?' · ':'')+'1y '+(d1>0?'+':'')+n9(d1)+'%'):'');
   el.innerHTML='<div class="jhv-grid">'
     +tile('PRICE',price!=null?'$'+n9(price,2):'—','')
     +tile('MKT CAP',fm$(sf.market_cap!=null?sf.market_cap:v.market_cap),'')
@@ -3419,9 +3527,10 @@ window.fillJHVitals=async function(d){ try{
     +tile('EV/EBITDA',n9(v.ev_ebitda),'')
     +tile('FCF YIELD',sf.fcf_yield_pct!=null?n9(sf.fcf_yield_pct)+'%':'—','')
     +tile('SHRHLDR YLD',sf.total_shareholder_yield_pct!=null?n9(sf.total_shareholder_yield_pct)+'%':'—','net buyback + div')
-    +tile('SHARES OUT','—','Qualified dated snapshot unavailable')
-    +tile('OWNERSHIP DILUTION','UNQUALIFIED','No inferred stable-share or risk verdict')
-  +'</div>';
+    +tile('SHARES OUT',fmSh(so),soSub,(rising?'jh-flashred':''))
+    +tile('DILUTION',rising?'⚠ DILUTING':(shrink?'SHRINKING ✓':'STABLE'),rising?'share count rising':(shrink?'buybacks retiring shares':''),rising?'jh-flashred':'')
+  +'</div>'
+  +(rising?'<div class="jhv-s" style="color:#ff9c9c;margin-top:7px">⚠ Shares outstanding keep rising — every existing share is being diluted. Full 10-year record in Pillar 6 below.</div>':'');
   try{ window.jhCaptureTiles && window.jhCaptureTiles(t, el); }catch(e){}
 }catch(e){} };
 
@@ -3482,7 +3591,7 @@ window.fillJHDollarFlows=async function(d){ try{
   var sec=document.getElementById('jhDollarFlows'); if(!sec)return;
   var t=String((d&&d.ticker)||'').toUpperCase();
   var r=await Promise.all([gj9('data/13f-flows-by-ticker.json'),gj9('data/dark-pool.json'),gj9('data/share-flows.json')]);
-  var tf=r[0]||{}, dp=r[1]||{}, sfd=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(r[2]) : {};
+  var tf=r[0]||{}, dp=r[1]||{}, sfd=r[2]||{};
   var f=(((tf.t)||{})[t])||null;
   var brd=dp.board||dp.rows||[], dpr=null;
   for(var i=0;i<brd.length;i++){ if(String(brd[i].ticker||'').toUpperCase()===t){ dpr=brd[i]; break; } }

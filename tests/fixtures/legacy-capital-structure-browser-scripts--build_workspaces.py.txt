@@ -175,7 +175,7 @@ const JH_WS = {{
     }};
     const keys = Object.keys(this.FEEDS);
     const values = await Promise.all(keys.map(k => get(this.FEEDS[k])));
-    keys.forEach((k, i) => {{ if (values[i]) State[k] = k === 'retail' ? {{research_context: values[i], biggest_velocity_surges: [], calls_eligible: false}} : values[i]; }});
+    keys.forEach((k, i) => {{ if (values[i]) State[k] = values[i]; }});
     try {{ await JHF.load(); }} catch (e) {{ console.warn('[jh-ws] fusion load', e); }}
     return State;
   }},
@@ -239,7 +239,6 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
         return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{title} · JustHodl AI</title>
 <meta name="description" content="{crumb} — the same engine that lives inside Chart Pro, as its own page.">
@@ -275,10 +274,10 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
 '''
 
     (SITE / "assets").mkdir(parents=True, exist_ok=True)
-    (SITE / "assets" / "jh-workspaces.js").write_text(bundle, encoding="utf-8", newline="\n")
-    (SITE / "assets" / "jh-workspaces.css").write_text(css, encoding="utf-8", newline="\n")
-    (SITE / "universe-heatmap.html").write_text(page("heatmap", "Universe Heatmap", "Universe Heatmap · configurable performance / cascade / signal heatmap", heat_markup, "open"), encoding="utf-8", newline="\n")
-    (SITE / "macro-economic-data.html").write_text(page("macro", "Macro & Economic Data", "Macro &amp; Economic Data · every indexed series, your categories, danger rules", macro_markup, "open"), encoding="utf-8", newline="\n")
+    (SITE / "assets" / "jh-workspaces.js").write_text(bundle, encoding="utf-8")
+    (SITE / "assets" / "jh-workspaces.css").write_text(css, encoding="utf-8")
+    (SITE / "universe-heatmap.html").write_text(page("heatmap", "Universe Heatmap", "Universe Heatmap · configurable performance / cascade / signal heatmap", heat_markup, "open"), encoding="utf-8")
+    (SITE / "macro-economic-data.html").write_text(page("macro", "Macro & Economic Data", "Macro &amp; Economic Data · every indexed series, your categories, danger rules", macro_markup, "open"), encoding="utf-8")
     print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), universe-heatmap.html, macro-economic-data.html"
           % (len(bundle), len(css)))
 

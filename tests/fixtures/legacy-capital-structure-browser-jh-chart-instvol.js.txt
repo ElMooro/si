@@ -51,7 +51,7 @@
   function f13() { F13 = F13 || {}; return load(F13, "/data/13f-by-ticker.json"); }
   function dix() { DIX = DIX || {}; return load(DIX, "/data/dix.json"); }
   function liq() { LIQ = LIQ || {}; return load(LIQ, "/data/liquidity-profile.json"); }
-  function shareFlows() { SF = SF || {}; return load(SF, "/data/share-flows.json").then(function(p){return window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(p) : {};}); }
+  function shareFlows() { SF = SF || {}; return load(SF, "/data/share-flows.json"); }
   function optConf() { OC = OC || {}; return load(OC, "/data/options-confluence.json"); }
   function lookthrough() { LT = LT || {}; return load(LT, "/data/flow-lookthrough.json"); }
   function cq() { CQ = CQ || {}; return load(CQ, "/data/cryptoquant-onchain.json"); }
