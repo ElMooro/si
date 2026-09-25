@@ -1,11 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="/jh-equity-research-context.js?v=equity-model-v1"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
 <title>Compare Tickers · JustHodl.AI</title>
-<meta name="description" content="Side-by-side company research with full input inspection. Model forecasts and investment rankings remain unqualified.">
+<meta name="description" content="Side-by-side institutional research comparison for 2-3 tickers. Compare valuation, growth, financial health, scenarios, and capital allocation at a glance.">
 <link rel="preconnect" href="https://justhodl-data-proxy.raafouis.workers.dev">
 <link rel="preconnect" href="https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws">
 
@@ -204,7 +203,6 @@ body {
 .summary-row h3 {
   margin: 0 0 12px; font-size: 14px; color: var(--accent);
 }
-.summary-row[role="note"] { margin-bottom:16px; }
 .summary-row .winner-grid {
   display:grid; gap: 10px;
 }
@@ -241,7 +239,7 @@ body {
       <input id="t2" type="text" class="ticker-input" placeholder="MSFT" maxlength="8" autocapitalize="characters" spellcheck="false">
       <input id="t3" type="text" class="ticker-input" placeholder="(optional)" maxlength="8" autocapitalize="characters" spellcheck="false">
       <button onclick="runCompare()">COMPARE ↗</button>
-      <div class="hint">Inspect 2 or 3 company reports. Investment forecasts and rankings are unqualified.</div>
+      <div class="hint">Compare any 2 or 3 stocks across valuation, scenarios, financial health</div>
     </div>
   </div>
 
@@ -360,14 +358,9 @@ async function fetchAndRender(tickers){
 
 // ─── render
 function renderComparison(docs){
-  if(!window.JHEquityResearchContext){
-    $('content').textContent = 'Research qualification controls are unavailable. Reload before viewing the comparison.';
-    return;
-  }
-  docs = docs.map(row=>({...row,doc:window.JHEquityResearchContext.view(row.doc)}));
   const n = docs.length;
   const gridClass = n === 2 ? 'col-2' : 'col-3';
-  let html = `<section class="summary-row" role="note"><h3>Research qualification</h3><p>${esc(window.JHEquityResearchContext.note)}</p></section><div class="grid ${gridClass}">`;
+  let html = `<div class="grid ${gridClass}">`;
   for(const {ticker, doc} of docs){
     html += renderTickerCard(ticker, doc);
   }
@@ -402,7 +395,7 @@ function renderTickerCard(ticker, d){
           <div class="num">${fmtPrice(q.price)}</div>
           <div class="chg ${changeCls}">${fmtPct(q.change_pct, 2)}</div>
         </div>
-        <div class="verdict ${ratingClean}">${esc(rating)}${v.conviction_grade ? ' · '+esc(v.conviction_grade) : ''}</div>
+        <div class="verdict ${ratingClean}">${esc(rating)} · ${esc(v.conviction_grade || '')}</div>
       </div>
       <div class="body">
         <div class="row">
@@ -466,9 +459,9 @@ function renderTickerCard(ticker, d){
         <div class="section-h">Quality</div>
         <div class="row"><span class="lbl">ROE TTM</span><span class="val">${fmtPct(val.roe_ttm_pct, 1)}</span></div>
         <div class="row"><span class="lbl">ROIC TTM</span><span class="val">${fmtPct(val.roic_ttm_pct, 1)}</span></div>
-        <div class="row"><span class="lbl">Health Score</span><span class="val">${heath.overall_score ?? '—'}/100</span></div>
+        <div class="row"><span class="lbl">Health Score</span><span class="val">${heath.overall_score || '—'}/100</span></div>
         <div class="row"><span class="lbl">Op Margin</span><span class="val">${fmtPct(heath.profitability && heath.profitability.op_margin_pct, 1)}</span></div>
-        <div class="row"><span class="lbl">Debt / Equity</span><span class="val ${(heath.leverage && heath.leverage.debt_to_equity || 0) > 1 ? 'warn' : ''}">${fmtNum(heath.leverage && heath.leverage.debt_to_equity, 2)}x</span></div>
+        <div class="row"><span class="lbl">Net Debt / EBITDA</span><span class="val ${(heath.leverage && heath.leverage.debt_to_equity || 0) > 1 ? 'warn' : ''}">${fmtNum(heath.leverage && heath.leverage.debt_to_equity, 2)}x</span></div>
 
         ${etr.eps_beat_rate_pct != null ? `
           <div class="section-h">Earnings Track Record</div>
@@ -504,11 +497,65 @@ function renderTickerCard(ticker, d){
 }
 
 function renderWinnersTable(docs){
-  return `<section class="summary-row" role="note"><h3>Investment ranking unavailable</h3>
-    <p>Comparable definitions, reporting periods and independent validation are required before ranking these companies.
-    The complete-data inspector retains the original values and model output for review.</p></section>`;
-}
+  // For each comparable metric, find the winner ticker
+  const metrics = [
+    {key: 'cheapest_pe', label: 'Cheapest valuation (lowest P/E)',
+      pick: d => (d.valuation || {}).pe_ttm,
+      better: 'lower'},
+    {key: 'highest_growth', label: 'Fastest revenue growth (5y CAGR)',
+      pick: d => (d.growth || {}).rev_5y_cagr_pct,
+      better: 'higher'},
+    {key: 'highest_roic', label: 'Highest return on invested capital',
+      pick: d => (d.valuation || {}).roic_ttm_pct,
+      better: 'higher'},
+    {key: 'best_scenario', label: 'Best expected-value upside',
+      pick: d => (d.scenarios || {}).expected_value_upside_pct,
+      better: 'higher'},
+    {key: 'best_rr', label: 'Best risk / reward asymmetry',
+      pick: d => (d.scenarios || {}).risk_reward_ratio,
+      better: 'higher'},
+    {key: 'best_yield', label: 'Highest shareholder yield',
+      pick: d => (d.capital_allocation || {}).shareholder_yield_pct,
+      better: 'higher'},
+    {key: 'highest_health', label: 'Strongest financial health',
+      pick: d => (d.financial_health || {}).overall_score,
+      better: 'higher'},
+    {key: 'best_streak', label: 'Strongest earnings track record',
+      pick: d => (d.earnings_track_record || {}).eps_current_streak,
+      better: 'higher'},
+  ];
 
+  let rows = '';
+  for(const m of metrics){
+    const vals = docs.map(({ticker, doc}) => ({ticker, val: m.pick(doc)}))
+                       .filter(o => o.val != null && !isNaN(o.val));
+    if(vals.length < 2) continue;
+    const winner = m.better === 'lower'
+      ? vals.reduce((a,b) => (b.val < a.val ? b : a))
+      : vals.reduce((a,b) => (b.val > a.val ? b : a));
+    const others = vals.filter(o => o.ticker !== winner.ticker);
+    rows += `<div class="winner-row">
+      <span class="metric">${esc(m.label)}</span>
+      <span style="text-align:right">
+        <span class="winner">${esc(winner.ticker)} ${fmtNum(winner.val, 2)}</span>
+        <span style="color:var(--text-muted); font-size:10.5px; margin-left:8px; font-family:var(--font-mono)">
+          vs ${others.map(o => `${esc(o.ticker)} ${fmtNum(o.val, 2)}`).join(' · ')}
+        </span>
+      </span>
+    </div>`;
+  }
+  if(!rows) return '';
+  return `
+    <div class="summary-row">
+      <h3>🏆 Best in show — by metric</h3>
+      <div class="winner-grid">${rows}</div>
+      <div style="font-size:10.5px; color:var(--text-muted); margin-top:10px; line-height:1.6">
+        These are simple per-metric comparisons. A real PM would weigh based on style: growth-focused (favor high-CAGR
+        + best-scenario winners), income-focused (favor highest shareholder yield), or quality-focused (favor strongest
+        health score + ROIC).
+      </div>
+    </div>`;
+}
 </script>
 
   <script src="/jh-page-ai.js" defer></script>
