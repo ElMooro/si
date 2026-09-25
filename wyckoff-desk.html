@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wyckoff desk · SC · capitulation · BC · spread · spring · accumulation · JustHodl</title>
+<title>Wyckoff desk · SC · bottom · pump · spring · accumulation · JustHodl</title>
 <meta name="description" content="Daily Wyckoff scanners: selling climax, capitulation, buying climax, tight candle spread / Bollinger, forming springs, and long accumulation. Harvests only.">
 <style>
 :root{--bg:#07090f;--card:#101418;--sunken:#04050a;--line:rgba(120,145,180,.14);--fg:#e6ecf5;--mut:#6b7a92;--dim:#a8b3c7;--up:#22c55e;--dn:#ef4444;--amb:#f59e0b;--cy:#00d4ff;--vi:#a78bfa;--mono:"IBM Plex Mono",ui-monospace,monospace;--sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif}
@@ -46,7 +46,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
   <div class="note" id="why"></div>
   <div class="panel"><table id="board"></table></div>
   <div class="meta" id="meta"></div>
-  <footer>Feeds: data/bottom.json (SC + capitulation) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
+  <footer>Feeds: data/bottom.json (SC + bottom + pump/markup) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
 </div>
 <script>
 (function () {
@@ -56,7 +56,9 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     { id: "bc", lab: "Buying climax", why: "Wyckoff BC on daily bars: climactic volume at/near a high, wide range, close off the extreme. Phase-detector live BC events (daily). Not a short by itself — wait for SOW / UT. Distribution beginning is listed as context." },
     { id: "spread", lab: "Candle spread", why: "Tight price range + tight Bollinger. Katlin: bbw percentile ≤ 20 and squeeze, ranked by BB tightness then range-contraction leg. This is coiling, not a trigger. Open Daily on the chart to see the squeeze." },
     { id: "spring", lab: "Spring", why: "Textbook spring: a range under accumulation, then an undercut of support that closes back in, preferably on lighter volume than the climax. Forming = accumulation ≥10 days, price within 3% of range low (no spring print yet). Fired = SPRING event while still in ACCUMULATION. Failed = SPRING print on a DISTRIBUTION range — that is an upthrust cousin, not a buy. Phase-detector does not attach volume to the event; Bottom ST rows carry st_vol_ratio vs the climax." },
-    { id: "accum", lab: "Accumulation", why: "Long range, tight candles, tight band. Phase-detector ACCUMULATION ∪ radar accumulating ∪ Katlin with accum pillar ≥ 65 and bbw ≤ 25. Pressure / CMF / 13F whales are confirmation, not the structure." }
+    { id: "accum", lab: "Accumulation", why: "Long range, tight candles, tight band. Phase-detector ACCUMULATION ∪ radar accumulating ∪ Katlin with accum pillar ≥ 65 and bbw ≤ 25. Pressure / CMF / 13F whales are confirmation, not the structure." },
+    { id: "bottom", lab: "Bottom", why: "Five-proof bottom: stopping action (PS/SC that closes off the low + AR + ST on shrunk volume). Hinge/springboard is Proof 2 finishing — decaying volume and narrower down-spreads, higher lows vs the climax. Not a buy yet. Wait for LPS after SOS." },
+    { id: "pump", lab: "Pump", why: "Start of bull run = Proof 4 SOS / jump across the creek after a valid hinge: wide-spread advance through old resistance, close near the high, volume up vs Phase B rallies. Professional entry is still Proof 5 LPS (labored pullback, volume << SOS). Do not chase the SOS bar. Abort if the jump is sold back into the range on expanding volume." }
   ];
   var FEEDS = {
     bottom: ["/data/bottom.json", "https://justhodl.ai/data/bottom.json"],
@@ -228,14 +230,58 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     bc: ["Ticker", "Phase", "Last", "Phase", "BC date", "Age", "Pressure", "13F $", "Range"],
     spread: ["Ticker", "Name", "Last", "Coil", "BB width", "Range contr.", "Vol 20/120", "Accum", "Tier"],
     spring: ["Ticker", "Kind", "Last", "Status", "Event", "Age / dist", "Detail", "Pressure", "Note"],
-    accum: ["Ticker", "Name", "Last", "Phase", "BB width", "Squeeze", "Time in range", "Score", "Source"]
+    accum: ["Ticker", "Name", "Last", "Phase", "BB width", "Squeeze", "Time in range", "Score", "Source"],
+    bottom: ["Ticker", "Name", "Last", "State", "Campaign", "SC vol", "ST vol/SC", "Grade", "Proofs"],
+    pump: ["Ticker", "Name", "Last", "State", "Campaign", "Trigger", "Rally %", "Score", "Note"]
   };
 
+
+  function campaignOf(r) {
+    var st = String(r.state || "");
+    if (st === "MARKUP" || st === "COMPLETED") return "PUMP";
+    if (st === "ST_CONFIRMED" || st === "TRIGGERED") return "ACCUM";
+    if (st === "CLIMAX" || st === "TESTING" || st === "NO_RALLY" || st === "NO_TEST_BREAKOUT") return "BOTTOM";
+    if (st === "FAILED" || st === "STOPPED") return "ABORT";
+    return st || "WATCH";
+  }
+  function rowsBottom() {
+    var out = [];
+    ((DATA.bottom && DATA.bottom.board) || []).forEach(function (r) {
+      if (r.frame && r.frame !== "D") return;
+      var camp = campaignOf(r);
+      if (camp !== "BOTTOM" && camp !== "ACCUM") return;
+      out.push({
+        ticker: r.ticker, name: r.company || r.desk, px: r.last, a: r.state,
+        b: camp, c: r.sc_vol_x != null ? Number(r.sc_vol_x).toFixed(1) + "×" : "—",
+        d: r.st_vol_ratio_sc != null ? Number(r.st_vol_ratio_sc).toFixed(2) : "—",
+        e: r.grade || "—",
+        f: (r.sc_date ? "SC " + r.sc_date : "") + (r.st_date ? " · ST " + r.st_date : "")
+      });
+    });
+    return out;
+  }
+  function rowsPump() {
+    var out = [];
+    ((DATA.bottom && DATA.bottom.board) || []).forEach(function (r) {
+      if (r.frame && r.frame !== "D" && r.frame !== "W") return;
+      var camp = campaignOf(r);
+      if (camp !== "PUMP" && r.state !== "TRIGGERED") return;
+      if (r.state === "TRIGGERED" && !(r.approach_vol_slope < 0 || r.trigger_date)) return;
+      out.push({
+        ticker: r.ticker, name: r.company || r.desk, px: r.last, a: r.state,
+        b: camp, c: r.trigger_date || r.session_date || "—",
+        d: r.ar_rally_pct != null ? Number(r.ar_rally_pct).toFixed(1) + "%" : "—",
+        e: r.score != null ? Number(r.score).toFixed(0) : "—",
+        f: r.state === "TRIGGERED" ? "hinge ready / wait SOS" : "SOS/markup — do not chase; wait LPS"
+      });
+    });
+    return out;
+  }
   function paint() {
     document.querySelectorAll("#tabs button").forEach(function (b) { b.className = b.dataset.t === tab ? "on" : ""; });
     var spec = TABS.filter(function (t) { return t.id === tab; })[0];
     document.getElementById("why").textContent = spec.why;
-    var rows = tab === "sc" ? rowsSc() : tab === "capit" ? rowsCapit() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : rowsAccum();
+    var rows = tab === "sc" ? rowsSc() : tab === "capit" ? rowsCapit() : tab === "bc" ? rowsBc() : tab === "spread" ? rowsSpread() : tab === "spring" ? rowsSpring() : tab === "bottom" ? rowsBottom() : tab === "pump" ? rowsPump() : rowsAccum();
     var heads = COLS[tab];
     var fired = rows.filter(function (r) { return r.a === "FIRED"; }).length;
     var forming = rows.filter(function (r) { return r.a === "FORMING"; }).length;
