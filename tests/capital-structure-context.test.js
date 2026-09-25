@@ -27,6 +27,10 @@ test('availability note is accessible, idempotent and states missing evidence is
  assert.equal(document.body.children.length,1);const detail=document.body.children[0];assert.equal(detail.tagName,'details');
  assert.equal(detail.children[0].tagName,'summary');assert.match(detail.children[0].textContent,/unqualified/);
  assert.match(detail.children[1].textContent,/does not mean stable shares/);
+ // The existing fixed cached-brief launcher occupies the bottom-right 56px.
+ const bottom=Number(/bottom:(\d+)px/.exec(detail.style.cssText)[1]);assert(bottom>=72);
+ const predecessor=JSON.parse(read('tests/fixtures/capital-structure-notice-placement.json'));
+ const bytes=fs.readFileSync(path.join(ROOT,predecessor.predecessor));assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),predecessor.sha256);
 });
 
 test('actual chart scripts cannot raise legacy warnings with a missing or loaded guard',async()=>{
