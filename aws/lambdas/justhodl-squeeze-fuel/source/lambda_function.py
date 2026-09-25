@@ -407,7 +407,7 @@ def merge_short_interest(si_map, doc, now=None):
 def lambda_handler(event, context):
     t0 = time.time()
     si_map, settlement = _safe(fetch_finra_si, "FINRA SI") or ({}, None)
-    donor_docs, donor_receipts = load_inputs(S3, BUCKET, [("data/short-interest.json", 72, ("by_ticker",))])
+    donor_docs, donor_receipts = load_inputs(S3, BUCKET, [("data/short-interest.json", 72, ("contract", "replay"))])
     short_research = __import__("short_interest_context").decision_view(donor_docs.get("data/short-interest.json", {}))
     si_map, positioning = merge_short_interest(si_map, short_research)
     settlement = max((row.get("settlementDate") for row in si_map.values() if row.get("settlementDate")), default=settlement)

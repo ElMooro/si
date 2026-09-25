@@ -13,6 +13,9 @@ from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[2] / 'shared'))
+sys.path.insert(0, str(HERE.parents[3] / 'tests'))
+from test_short_interest_research import fixture
+import short_interest_research_model as research_model
 NOW = datetime.now(timezone.utc)
 
 
@@ -52,6 +55,30 @@ def options():
 
 
 class DonorHandlerTests(unittest.TestCase):
+    def test_native_research_retains_lineage_without_changing_ticket_size(self):
+        blobs, inputs = fixture()
+        packet = research_model.compile_output(inputs, blobs.__getitem__)['packet']
+        packet['generated_at'] = NOW.isoformat()
+        packet['replay'] = {'manifest_key': research_model.PREFIX + 'runs/' + 'a' * 64 + '.json',
+                            'output_sha256': research_model.digest(packet)}
+        _, baseline = self.run_handler(None, options())
+        out, row = self.run_handler(packet, options())
+        context = row['short_interest_research_context']
+        self.assertTrue(context['native_reference_available'])
+        self.assertEqual(context['canonical']['replay'], packet['replay'])
+        self.assertTrue(context['output_digest_checked'])
+        self.assertFalse(context['original_provider_replay_performed_by_consumer'])
+        self.assertEqual(context['independent_investment_votes'], 0)
+        self.assertFalse(context['calls_eligible'])
+        self.assertFalse(row['execution_eligible'])
+        self.assertEqual(row['donor_analysis_status'], 'REVIEW_REQUIRED')
+        self.assertEqual(row['short_positioning']['covering_risk'], 'UNKNOWN')
+        self.assertEqual(row['shares'], baseline['shares'])
+        self.assertEqual(out['donor_health']['data/short-interest.json']['status'], 'FRESH')
+        packet['settlement_date'] = '2026-01-01'
+        _, damaged = self.run_handler(packet, options())
+        self.assertFalse(damaged['short_interest_research_context']['native_reference_available'])
+
     def run_handler(self, sdoc=None, odoc=None, earnings=None):
         mod=load(); docs={}
         if sdoc is not None: docs['data/short-interest.json']=sdoc

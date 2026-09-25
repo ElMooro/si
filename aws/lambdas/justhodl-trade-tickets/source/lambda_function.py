@@ -724,7 +724,7 @@ def lambda_handler(event, context):
     tier_confidence = get_tier_confidence()
     earnings_calendar = get_earnings_calendar()
     donor_docs, donor_receipts = load_inputs(s3, S3_BUCKET, [
-        ("data/short-interest.json", 72, ("by_ticker",)),
+        ("data/short-interest.json", 72, ("contract", "replay")),
         ("data/options-analytics.json", 30, ("board",))])
     if best_horizons:
         print(f"[trade-tickets] horizon-aware mode: {len(best_horizons)} features have learned horizons")
