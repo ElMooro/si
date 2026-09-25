@@ -1120,7 +1120,7 @@ def load_feeds():
     f13 = s3_json("data/13f-flows-by-ticker.json", {}) or {}
     F["f13"] = f13.get("t") or {}
     F["f13_asof"] = f13.get("as_of")
-    si = s3_json("data/short-interest.json", {}) or {}
+    si = __import__("short_interest_context").decision_view(s3_json("data/short-interest.json", {})) or {}
     F["short"] = si.get("by_ticker") or {}
     F["short_asof"] = si.get("generated_at")
     ins = s3_json("data/insider-radar.json", {}) or {}

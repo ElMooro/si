@@ -90,7 +90,7 @@ def lambda_handler(event, context):
 
     capital_evidence = capital_context(_read("data/capital-flow.json"))
 
-    si = _read("data/short-interest.json")
+    si = __import__("short_interest_context").decision_view(_read("data/short-interest.json"))
     for bk in ("top_squeeze_risk", "top_crowded_shorts", "top_high_dtc"):
         for it in (si.get(bk) or []):
             if isinstance(it, dict): add(_tk(it), "short-interest", 0.0, heavy_short=True, tag="heavy short interest")

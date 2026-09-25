@@ -77,9 +77,9 @@ def _house_short(symbol):
     global _HOUSE_SI
     if _HOUSE_SI is None:
         try:
-            _HOUSE_SI = json.loads(s3.get_object(
+            _HOUSE_SI = __import__("short_interest_context").decision_view(json.loads(s3.get_object(
                 Bucket=BUCKET,
-                Key="data/short-interest.json")["Body"].read())
+                Key="data/short-interest.json")["Body"].read()))
         except Exception as e:
             logger.warning(f"house short-interest read: {str(e)[:80]}")
             _HOUSE_SI = {}

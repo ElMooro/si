@@ -639,6 +639,7 @@ def enrich_ticket_donors(ticket, short_doc, options_doc, now=None):
     """
     now = now or datetime.now(timezone.utc)
     ticket_context(ticket, short_doc, options_doc)
+    ticket['short_interest_research_context'] = short_doc.get('research_context')
     short = ticket["short_positioning"]; row = short.get("record") or {}
     srec = inspect_donor({**row, "generated_at": short_doc.get("generated_at")},
         "data/short-interest.json", 72, observed_paths=("settlement_date",),
@@ -736,11 +737,13 @@ def lambda_handler(event, context):
     if earnings_calendar:
         print(f"[trade-tickets] earnings catalyst awareness: {len(earnings_calendar)} tickers in 14d window")
 
+    # Check the complete research digest once, before parallel ticket builds.
+    short_research = __import__("short_interest_context").decision_view(donor_docs.get("data/short-interest.json", {}))
     # Parallel fetch + ticket build
     def _build(c):
         bars = fetch_polygon_ohlc(c["ticker"], days=25)
         ticket = build_ticket(c, bars, portfolio_usd, best_horizons, tier_confidence, earnings_calendar)
-        return enrich_ticket_donors(ticket, donor_docs.get("data/short-interest.json", {}),
+        return enrich_ticket_donors(ticket, short_research,
                                    donor_docs.get("data/options-analytics.json", {}))
 
     tickets = []

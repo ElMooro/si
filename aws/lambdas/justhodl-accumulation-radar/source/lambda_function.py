@@ -233,7 +233,7 @@ def lambda_handler(event=None, context=None):
     INFLOW_CONV = {"TWIN_ENGINE", "CONFIRMED_INFLOW", "EARLY_ACCUMULATION"}
     OUTFLOW_CONV = {"CONFIRMED_OUTFLOW", "OUTFLOW"}
     # short-interest map — a bottom with crowded shorts has squeeze fuel (bigger bounce)
-    _si = _read("data/short-interest.json") or {}
+    _si = __import__("short_interest_context").decision_view(_read("data/short-interest.json")) or {}
     si_map = {}
     for _bk in ("top_squeeze_risk", "top_crowded_shorts", "top_high_dtc"):
         for _it in (_si.get(_bk) or []):

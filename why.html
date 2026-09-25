@@ -291,6 +291,7 @@
 .gauge.g{background:#12261a;color:var(--green-bright,#5eead4)}.gauge.a{background:#241d0e;color:var(--amber,#fbbf24)}.gauge.r{background:#2a1214;color:var(--red,#ff7b7b)}
 </style>
 <script src="/jh-short-volume-research.js"></script>
+<script src="/jh-short-interest-research.js"></script>
 </head>
 
 <body>
@@ -4243,7 +4244,7 @@ async function composeFleetBoard(ticker){
   fillWhenReady('jh-fleetboard-body',40,async function(bd){
     var sec=document.getElementById('jh-fleetboard');
     try{
-      var r=await Promise.all([gj9('data/best-setups.json'),gj9('data/industry-boom.json'),gj9('data/short-interest.json'),gj9('data/congress-direct.json'),gj9('data/signal-backtest.json')]);
+      var r=await Promise.all([gj9('data/best-setups.json'),gj9('data/industry-boom.json'),gj9('data/short-interest.json').then(p => window.JHShortInterestResearch.decisionView(p)),gj9('data/congress-direct.json'),gj9('data/signal-backtest.json')]);
       var bs=r[0]||{},ib=r[1]||{},si=r[2]||{},cg=r[3]||{},bt=r[4]||{};
       var lines=[];
       var srow=(bs.top_setups||[]).find(function(x){return String(x.ticker||'').toUpperCase()===T});

@@ -73,24 +73,26 @@ class DonorHandlerTests(unittest.TestCase):
         out=s3.writes['data/trade-tickets.json']; self.assertEqual(out['n_tickets'],1)
         return out, out['tickets'][0]
 
-    def test_valid_context_removes_missing_evidence_review_with_units(self):
+    def test_option_context_remains_available_while_unqualified_short_donor_requires_review(self):
         _, missing=self.run_handler(); out,row=self.run_handler(short(),options())
         self.assertEqual(missing['donor_analysis_status'],'REVIEW_REQUIRED')
-        self.assertEqual(row['donor_analysis_status'],'CONTEXT_COMPLETE')
+        self.assertEqual(row['donor_analysis_status'],'REVIEW_REQUIRED')
         self.assertEqual(row['options_context']['atm_iv_annualized_pct'],30)
         self.assertEqual(row['options_context']['premium_vs_realized_vol_pp'],2)
         expected=.3*math.sqrt(row['expected_horizon_days']/252)*100
         self.assertAlmostEqual(row['options_context']['model_one_sigma_horizon_move_pct'],expected,places=4)
         self.assertEqual(row['short_positioning']['health']['units']['short_interest'],'shares')
+        self.assertEqual(row['short_interest_research_context']['independent_investment_votes'],0)
+        self.assertFalse(row['short_interest_research_context']['calls_eligible'])
         self.assertEqual(out['donor_health']['data/options-analytics.json']['status'],'FRESH')
         self.assertEqual(row['shares'],missing['shares']); self.assertFalse(row['execution_eligible'])
         self.assertFalse(row['options_context']['executable_option_quote'])
         self.assertIsNone(row['short_positioning']['borrow_fee'])
 
-    def test_crowded_inventory_changes_covering_review_without_inventing_borrow(self):
+    def test_unqualified_dtc_threshold_cannot_establish_covering_risk(self):
         sdoc=short(); sdoc['by_ticker']['GME'].update(days_to_cover=8)
         _,row=self.run_handler(sdoc,options())
-        self.assertEqual(row['short_positioning']['covering_risk'],'ELEVATED')
+        self.assertEqual(row['short_positioning']['covering_risk'],'UNKNOWN')
         self.assertTrue(row['donor_review_required'])
         self.assertFalse(row['short_positioning']['locate_verified'])
         self.assertIsNone(row['short_positioning']['borrow_available'])

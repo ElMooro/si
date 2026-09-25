@@ -96,6 +96,16 @@ function baseEnv(kv) {
 
 async function worker() { return (await import(pathToFileURL(WORKER).href)).default; }
 
+test('short-interest mutable head bypasses stale caches for GET, HEAD and ranges',async()=>{
+ const {env}=fresh(),w=await worker(),calls=[];
+ globalThis.caches={default:{async match(){throw Error('mutable positions must bypass cache')},async put(){throw Error('mutable positions cannot be cached')}}};
+ globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return new Response(opts.method==='HEAD'?null:'{}');};
+ for(const method of ['GET','HEAD'])for(const range of [null,'bytes=0-99']){
+  const result=await w.fetch(req('/data/short-interest.json',{method,headers:range?{Range:range}:{}}),env,{waitUntil(){}});
+  assert.equal(result.status,200);assert.equal(result.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');assert.equal(calls.at(-1).opts.cf,undefined);
+  if(range)assert.equal(calls.at(-1).opts.headers.Range,range);
+ }
+});
 test('publication proofs and exact reads bypass cached versions; missing public objects are never negative-cached',async()=>{
   const {env}=fresh(); const w=await worker(); let calls=[];
   globalThis.caches={default:{async match(){throw Error('stale publication cache read')},async put(){throw Error('publication cache write')}}};

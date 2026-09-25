@@ -205,7 +205,7 @@ def harvest_signals():
             })
 
     # 5. Short interest — squeeze risk only (the highest-conviction class)
-    si = fetch_s3_json("data/short-interest.json")
+    si = __import__("short_interest_context").decision_view(fetch_s3_json("data/short-interest.json"))
     for r in (si.get("top_squeeze_risk") or [])[:6]:
         ticker = r.get("ticker")
         if not ticker:

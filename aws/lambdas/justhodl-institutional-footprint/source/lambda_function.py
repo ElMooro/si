@@ -38,7 +38,7 @@ def _finite(x):
 
 
 def _j(k, d=None):
-    try: return __import__("offexchange_context").guard(k, json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read()))
+    try: return __import__("short_interest_context").guard(k, __import__("offexchange_context").guard(k, json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())))
     except Exception: return d
 
 def _num(v):

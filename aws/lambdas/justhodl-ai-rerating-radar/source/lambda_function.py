@@ -320,7 +320,7 @@ def lambda_handler(event, context):
          (_read("data/squeeze-fuel.json") or {}).get("rows"),
          "ticker", "squeeze_score"),
         ("data/short-interest.json",
-         (_read("data/short-interest.json") or {}).get("rows"),
+         (__import__("short_interest_context").decision_view(_read("data/short-interest.json")) or {}).get("rows"),
          "ticker", "days_to_cover"),
     ):
         for r in _rows or []:

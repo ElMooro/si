@@ -1612,7 +1612,7 @@ def load_feeds():
     fa = s3_json("data/floor-audit.json", {}) or {}
     F["floor_deep"] = fa.get("tickers") or {}
     F["floor_screen"] = {str(r.get("ticker")).upper(): r for r in (fa.get("screen") or []) if isinstance(r, dict)}
-    si = s3_json("data/short-interest.json", {}) or {}
+    si = __import__("short_interest_context").decision_view(s3_json("data/short-interest.json", {})) or {}
     F["short"] = si.get("by_ticker") or {}
     pw = s3_json("data/portwatch.json", {}) or {}
     # PortWatch shape (ops 3846+): ports[] rows carry z / vs_baseline_pct / yoy_pct and an industry_exposure block whose

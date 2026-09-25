@@ -101,6 +101,7 @@ table tr:hover td{background:var(--bg2);color:var(--t1)}
   table th,table td{padding:9px 8px;font-size:12px}
 }
 </style>
+<script src="/jh-short-interest-research.js"></script>
 </head>
 <body>
 <nav class="tabs">
@@ -372,7 +373,7 @@ async function loadTicker(sym){
 
   const [earnings, si, positions13f, asy, rs, paper, redflag] = await Promise.all([
     fetchJson("data/earnings-tracker.json"),
-    fetchJson("data/short-interest.json"),
+    fetchJson("data/short-interest.json").then(p => window.JHShortInterestResearch.decisionView(p)),
     fetchJson("data/13f-positions.json"),
     fetchJson("data/asymmetric-scorer.json"),
     fetchJson("data/risk-sizer.json"),

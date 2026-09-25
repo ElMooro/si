@@ -194,7 +194,7 @@ def lambda_handler(event=None, context=None):
     DP = x_dark_pool(__import__("offexchange_context").decision_view(_read("data/dark-pool.json")))
     CG = x_congress(_read("data/political-stocks.json"))
     AC = x_analyst_clusters(_read("data/rating-change-cluster.json"))
-    SH = x_short(_read("data/short-interest.json"))
+    SH = x_short(__import__("short_interest_context").decision_view(_read("data/short-interest.json")))
     SA = (_read("data/search-attention.json") or {}).get("by_ticker", {}) or {}
     BB = (_read("data/buyback-engine.json") or {}).get("tickers", {}) or {}
     gdelt = _read("data/gdelt-news.json")

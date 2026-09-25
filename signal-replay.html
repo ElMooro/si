@@ -30,7 +30,8 @@ input[type=range]{width:100%;accent-color:var(--cyan);height:6px}
 .empty{color:var(--fg-3);font-size:12.5px;font-style:italic}
 .note{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:16px;line-height:1.5}
 .badge{font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:8px;background:rgba(34,211,238,.12);color:var(--cyan);margin-left:8px}
-</style></head><body>
+</style><script src="/jh-short-interest-research.js"></script>
+</head><body>
 <header class="header">
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
   <nav class="nav"><a href="/">Desk</a><a href="/master-board.html">🎯 Board</a><a href="/signal-replay.html" class="active">⏪ Replay</a><a href="/scorecard.html">📊 Scorecard</a></nav>
@@ -61,7 +62,7 @@ async function loadDate(date){
   records.forEach(row=>{if(row.document===null)row.error='Indexed copy unavailable; no replacement or current-data fallback used.';});
   JHResearchInspection.show(document.getElementById('complete-replay-data'),records);
   const bySource=Object.fromEntries(records.map(row=>[row.source.source_key,row.document]));
-  const yc=bySource['data/yield-curve.json'],ms=bySource['data/macro-surprise.json'],si=bySource['data/short-interest.json'],bs=bySource['data/best-setups.json'],opp=bySource['data/opportunities.json'];
+  const yc=bySource['data/yield-curve.json'],ms=bySource['data/macro-surprise.json'],si=window.JHShortInterestResearch.decisionView(bySource['data/short-interest.json']),bs=bySource['data/best-setups.json'],opp=bySource['data/opportunities.json'];
   let h='';
   // best-setups (only exists for recent dates going forward)
   if(bs&&bs.top_setups){

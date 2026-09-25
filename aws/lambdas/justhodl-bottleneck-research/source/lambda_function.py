@@ -338,7 +338,7 @@ def load_confirmation_feeds():
             return json.loads(S3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
         except Exception:
             return {}
-    si = (L("data/short-interest.json") or {}).get("by_ticker", {}) or {}
+    si = (__import__("short_interest_context").decision_view(L("data/short-interest.json")) or {}).get("by_ticker", {}) or {}
     f13 = (L("data/13f-positions.json") or {}).get("aggregate_by_ticker", {}) or {}
     fwd = (L("data/estimate-revisions-latest.json") or {}).get("fwd_rev_growth", {}) or {}
     chains = (L("data/rotation-chains.json") or {}).get("chains", {}) or {}

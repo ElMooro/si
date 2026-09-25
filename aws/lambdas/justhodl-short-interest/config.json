@@ -1,13 +1,28 @@
 {
-  "FunctionName": "justhodl-short-interest",
-  "Runtime": "python3.12",
-  "Handler": "lambda_function.lambda_handler",
-  "MemorySize": 512,
-  "Timeout": 600,
-  "Description": "Tracks FINRA short volume + Polygon short interest. Detects squeeze risk, crowded shorts, distribution, covering.",
-  "schedule": {
+  "function_name": "justhodl-short-interest",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Reported FINRA settlement positions with complete source replay, revision and denominator diagnostics, explicit dates and descriptive-only eligibility.",
+  "environment": {},
+  "retained_legacy_schedule": {
     "name": "justhodl-short-interest-sched",
     "expression": "cron(15 21 ? * MON,WED *)",
     "description": "FINRA short interest (biweekly pub)"
+  },
+  "existing_schedule_evidence": {
+    "ops": 6053,
+    "mutation_requested": false,
+    "kind": "classic EventBridge rules",
+    "names": [
+      "justhodl-short-interest-6h",
+      "justhodl-short-interest-sched"
+    ]
   }
 }

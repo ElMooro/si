@@ -361,23 +361,14 @@ def diff_paper_portfolio(today, prev):
 
 
 def diff_short_interest(today, prev):
-    out = []
-    if not today or not prev:
-        return out
-    def squeeze_set(d):
-        all_ = d.get("tracker") or d.get("tickers") or []
-        return {x.get("symbol") or x.get("ticker") for x in all_
-                if str(x.get("signal") or x.get("label") or "").startswith("SQUEEZE")}
-    t = squeeze_set(today)
-    p = squeeze_set(prev)
-    new_sq = sorted(t - p)
-    if new_sq:
-        out.append({
-            "category": "short_interest",
-            "severity": "MED",
-            "summary": f"New squeeze risk names: {', '.join(list(new_sq)[:6])}",
-        })
-    return out
+    """Compare recorded research identities without resurrecting squeeze labels."""
+    gate = __import__('short_interest_context')
+    current, previous = gate.context(today), gate.context(prev)
+    if not current['native_reference_available'] or current.get('canonical') == previous.get('canonical'):
+        return []
+    return [{'category': 'short_interest', 'severity': 'INFO',
+             'summary': 'Reported short-position research updated; latest settlement ' + current['settlement_date'] + '. Descriptive measurements only.',
+             'research_context': current}]
 
 
 def diff_earnings(today, prev):

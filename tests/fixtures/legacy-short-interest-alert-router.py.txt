@@ -1,0 +1,1010 @@
+"""
+justhodl-alert-router — Real-time threshold alerter, runs every 30 min.
+
+Scans 12 high-leverage data sources for extreme readings:
+  1. correlation-surface     | regime breaks (|Δ corr 30d vs 90d| ≥ 0.30)
+  2. macro-surprise          | composite z-score |z| ≥ 2.0
+  3. yield-curve             | rapid bear-flatten/bull-steepen detection
+  4. eurodollar-stress       | composite stress > 70/100
+  5. auction-crisis          | crisis score > 60/100
+  6. vix-curve               | VIX1M/VIX3M inversion (term structure)
+  7. divergence              | new divergences with |z| ≥ 2.5
+  8. cot-extremes            | new percentile-rank extremes ≤ 5 or ≥ 95
+  9. earnings-tracker        | new STRONG_POSITIVE_DRIFT or STRONG_NEGATIVE_DRIFT
+ 10. short-interest          | new SQUEEZE_RISK signals
+ 11. etf-flows               | new HEAVY_INFLOW or HEAVY_OUTFLOW
+ 12. sector-rotation         | regime change to/from BROAD_LEADERSHIP
+
+Deduplication: keeps a state file in S3 (alerts-state.json) that records when
+each alert type was last fired. Same alert is suppressed for 6 hours by default.
+
+Sends to Telegram via existing bot. Schedule: rate(30 minutes).
+
+Output:
+  - data/alert-history.json  (last 100 alerts fired, for audit)
+  - alerts-state.json        (dedup state)
+"""
+
+import json
+import os
+import time
+import urllib.request
+from datetime import datetime, timezone, timedelta
+import boto3
+from _sentry_lite import track_errors
+from bottom_context import context_rows
+from cot_context import extreme_rows
+from donor_contract import numeric
+
+
+S3 = boto3.client("s3", region_name="us-east-1")
+SSM = boto3.client("ssm", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
+
+TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+DEDUP_HOURS = 6
+HISTORY_KEY = "data/alert-history.json"
+STATE_KEY = "alerts-state.json"
+
+# WebSocket broadcast endpoint — fans alerts out to all subscribed clients
+# in real time (parallel to the existing Telegram path).
+WSS_BROADCAST_URL = os.environ.get(
+    "WSS_BROADCAST_URL",
+    "https://p6kvtojb2y6r4orgbtxh7ld3nu0pfktz.lambda-url.us-east-1.on.aws/",
+)
+_WSS_TOKEN_CACHE = {"token": None}
+
+
+def _get_wss_admin_token():
+    if _WSS_TOKEN_CACHE["token"]:
+        return _WSS_TOKEN_CACHE["token"]
+    try:
+        t = SSM.get_parameter(Name="/justhodl/push/admin-token", WithDecryption=True)["Parameter"]["Value"]
+        _WSS_TOKEN_CACHE["token"] = t
+        return t
+    except Exception as e:
+        print(f"[wss] could not load admin token: {e}")
+        return None
+
+
+def broadcast_alert_to_wss(alert: dict):
+    """Push alert to /alerts WSS channel. Best-effort, never raises."""
+    token = _get_wss_admin_token()
+    if not token:
+        return False, "no_token"
+    try:
+        # Compact payload — full detail is in the alert; clients can fetch
+        # data/alert-history.json if they need older alerts.
+        payload = {
+            "channel": "alerts",
+            "id": alert.get("id"),
+            "severity": alert.get("severity"),
+            "category": alert.get("category"),
+            "title": alert.get("title"),
+            "detail": alert.get("detail"),
+            "ts": datetime.now(timezone.utc).isoformat(),
+        }
+        body = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            WSS_BROADCAST_URL, data=body, method="POST",
+            headers={"Content-Type": "application/json",
+                     "X-Justhodl-Admin-Token": token},
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            resp_body = r.read().decode("utf-8")
+            try:
+                j = json.loads(resp_body)
+                return True, f"sent={j.get('sent', 0)} scanned={j.get('scanned', 0)}"
+            except Exception:
+                return r.status == 200, resp_body[:120]
+    except Exception as e:
+        return False, f"{type(e).__name__}: {str(e)[:120]}"
+
+
+def get_chat_id():
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/chat_id")["Parameter"]["Value"]
+    except Exception as e:
+        print(f"[ssm] chat_id: {e}")
+        return None
+
+
+def get_token():
+    if TG_BOT_TOKEN:
+        return TG_BOT_TOKEN
+    try:
+        return SSM.get_parameter(Name="/justhodl/telegram/bot_token", WithDecryption=True)["Parameter"]["Value"]
+    except Exception:
+        return None
+
+
+def send_telegram(text, chat_id):
+    token = get_token()
+    if not token or not chat_id:
+        print("[tg] missing token/chat_id")
+        return False, "missing creds"
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        body = json.dumps({
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }).encode()
+        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return True, resp.read().decode()[:200]
+    except Exception as e:
+        return False, str(e)
+
+
+# ─── WEBHOOK DELIVERY ─────────────────────────────────────────────────
+# In addition to Telegram, alerts can be POSTed to any number of webhook
+# URLs (Slack, Discord, custom HTTP receivers, PagerDuty Events API).
+# Webhook URLs are stored as a JSON list in SSM SecureString at
+# /justhodl/alerts/webhook_urls — each item is either a plain URL string
+# or {url, type, min_severity}. Slack/Discord get format-specific
+# payloads; everything else gets the generic JSON envelope.
+#
+# Schema example (SSM value):
+#   ["https://hooks.slack.com/services/T0/B0/abc",
+#    {"url": "https://discord.com/api/webhooks/123/abc", "type": "discord"},
+#    {"url": "https://example.com/alert", "type": "generic", "min_severity": "HIGH"}]
+
+SEVERITY_RANK = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}
+
+
+def get_webhook_urls():
+    """Read /justhodl/alerts/webhook_urls — a JSON list. Returns [] if missing."""
+    try:
+        v = SSM.get_parameter(Name="/justhodl/alerts/webhook_urls", WithDecryption=True)["Parameter"]["Value"]
+        parsed = json.loads(v) if v else []
+        if not isinstance(parsed, list):
+            return []
+        out = []
+        for item in parsed:
+            if isinstance(item, str):
+                out.append({"url": item, "type": _detect_type(item), "min_severity": "LOW"})
+            elif isinstance(item, dict) and item.get("url"):
+                out.append({
+                    "url": item["url"],
+                    "type": item.get("type") or _detect_type(item["url"]),
+                    "min_severity": item.get("min_severity", "LOW"),
+                })
+        return out
+    except Exception as e:
+        # Param not set yet is the normal case — silent
+        if "ParameterNotFound" not in str(e):
+            print(f"[webhooks] read err: {e}")
+        return []
+
+
+def _detect_type(url: str) -> str:
+    u = (url or "").lower()
+    if "slack.com" in u:
+        return "slack"
+    if "discord.com" in u or "discordapp.com" in u:
+        return "discord"
+    return "generic"
+
+
+def _passes_severity(alert_sev: str, min_sev: str) -> bool:
+    return SEVERITY_RANK.get(alert_sev, 0) >= SEVERITY_RANK.get(min_sev or "LOW", 1)
+
+
+def format_slack_payload(alert):
+    """Slack incoming-webhook block format."""
+    sev_color = {"HIGH": "#ff174a", "MEDIUM": "#ffc400", "LOW": "#00d4ff"}.get(alert.get("severity"), "#6f7b91")
+    sev_icon = {"HIGH": ":red_circle:", "MEDIUM": ":large_yellow_circle:",
+                "LOW": ":large_blue_circle:"}.get(alert.get("severity"), ":white_circle:")
+    title = f"{sev_icon} {alert.get('title') or alert.get('check') or alert.get('id', 'Alert')}"
+    body = alert.get("message") or alert.get("body") or ""
+    fields = []
+    for k in ("source", "metric", "value", "threshold", "check", "ts"):
+        if k in alert and alert[k] is not None:
+            fields.append({"title": k, "value": str(alert[k])[:200], "short": True})
+    return {
+        "attachments": [{
+            "color": sev_color,
+            "title": title,
+            "text": body[:1500],
+            "fields": fields,
+            "footer": "JustHodl alert-router",
+            "ts": int(time.time()),
+        }],
+    }
+
+
+def format_discord_payload(alert):
+    """Discord webhook embed format."""
+    color_int = {"HIGH": 16718410, "MEDIUM": 16762880, "LOW": 54271}.get(alert.get("severity"), 7301513)
+    sev_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🔵"}.get(alert.get("severity"), "⚪")
+    title = f"{sev_icon} {alert.get('title') or alert.get('check') or alert.get('id', 'Alert')}"
+    body = alert.get("message") or alert.get("body") or ""
+    fields = []
+    for k in ("source", "metric", "value", "threshold", "check"):
+        if k in alert and alert[k] is not None:
+            fields.append({"name": k, "value": str(alert[k])[:200], "inline": True})
+    return {
+        "username": "JustHodl",
+        "embeds": [{
+            "title": title[:240],
+            "description": body[:2000],
+            "color": color_int,
+            "fields": fields[:10],
+            "footer": {"text": "alert-router · justhodl.ai"},
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }],
+    }
+
+
+def format_generic_payload(alert):
+    """Plain JSON envelope — for custom HTTP receivers, Zapier, n8n, etc."""
+    return {
+        "service": "justhodl-alert-router",
+        "version": "1.1",
+        "alert": alert,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def send_webhook(target: dict, alert: dict):
+    """POST a single alert to one webhook target. Returns (ok, info)."""
+    url = target["url"]
+    typ = target.get("type", "generic")
+    if typ == "slack":
+        payload = format_slack_payload(alert)
+    elif typ == "discord":
+        payload = format_discord_payload(alert)
+    else:
+        payload = format_generic_payload(alert)
+    try:
+        body = json.dumps(payload).encode()
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json", "User-Agent": "justhodl-alert-router/1.1"},
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            return True, f"{resp.status} {resp.read()[:160].decode(errors='replace')}"
+    except Exception as e:
+        return False, str(e)[:200]
+
+
+def dispatch_to_webhooks(alert: dict, targets: list):
+    """Send alert to all webhook targets that pass severity filter.
+    Returns list of {url_host, type, ok, info} for the alert record.
+    """
+    results = []
+    for t in targets:
+        if not _passes_severity(alert.get("severity"), t.get("min_severity")):
+            continue
+        ok, info = send_webhook(t, alert)
+        # Mask the URL — keep only the host so secrets don't leak in S3 history
+        try:
+            from urllib.parse import urlparse
+            host = urlparse(t["url"]).netloc
+        except Exception:
+            host = "unknown"
+        results.append({"host": host, "type": t.get("type"), "ok": ok, "info": info})
+    return results
+
+
+def load_json(key, default=None):
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key=key)
+        return json.loads(obj["Body"].read())
+    except Exception:
+        return default if default is not None else {}
+
+
+def write_json(key, data):
+    body = json.dumps(data, default=str).encode("utf-8")
+    S3.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType="application/json", CacheControl="public, max-age=60")
+
+
+def is_recent_dup(state, alert_id, hours=DEDUP_HOURS):
+    last = state.get(alert_id)
+    if not last:
+        return False
+    try:
+        last_ts = datetime.fromisoformat(last.replace("Z", "+00:00"))
+    except Exception:
+        return False
+    return (datetime.now(timezone.utc) - last_ts).total_seconds() < hours * 3600
+
+
+def check_correlation_surface(alerts):
+    d = load_json("data/correlation-surface.json")
+    breaks = d.get("regime_breaks", [])
+    for b in breaks[:5]:
+        ta, tb = b.get("ticker_a"), b.get("ticker_b")
+        delta = b.get("delta_30d_vs_90d")
+        if delta is None or abs(delta) < 0.30:
+            continue
+        alerts.append({
+            "id": f"corr_break_{ta}_{tb}",
+            "category": "CORRELATION",
+            "severity": "HIGH",
+            "title": f"🔁 Correlation regime break: {ta}↔{tb}",
+            "detail": f"30d vs 90d Δ = {delta:+.2f} ({b.get('name_a')} vs {b.get('name_b')}). 30d corr = {b.get('corr_30d')}, 90d = {b.get('corr_90d')}.",
+        })
+
+
+def check_macro_surprise(alerts):
+    d = load_json("data/macro-surprise.json")
+    composite = d.get("composite") or d.get("composite_z")
+    regime = d.get("regime")
+    if composite is None:
+        return
+    if abs(composite) >= 2.0:
+        sign = "+" if composite > 0 else ""
+        alerts.append({
+            "id": f"macro_extreme_{regime}",
+            "category": "MACRO",
+            "severity": "HIGH" if abs(composite) >= 3 else "MEDIUM",
+            "title": f"📊 Macro composite extreme: {sign}{composite:.2f}σ",
+            "detail": f"Regime: {regime}. {d.get('regime_description', '')}",
+        })
+
+
+def check_yield_curve(alerts):
+    d = load_json("data/yield-curve.json")
+    slope = d.get("slope_2s10s")
+    butterfly = d.get("butterfly_2s5s10s")
+    regime = d.get("regime")
+    if slope is None:
+        return
+    # Inversion threshold
+    if slope < 0 and slope > -50:
+        alerts.append({
+            "id": f"yc_inverted_{round(slope)}",
+            "category": "RATES",
+            "severity": "MEDIUM",
+            "title": "📉 2s10s curve inverted",
+            "detail": f"2s10s = {slope:+.1f} bps. Regime: {regime}. Historical recession pre-signal.",
+        })
+    elif slope > 100:
+        alerts.append({
+            "id": "yc_steep",
+            "category": "RATES",
+            "severity": "LOW",
+            "title": "📈 2s10s curve steepening",
+            "detail": f"2s10s = {slope:+.1f} bps. Regime: {regime}.",
+        })
+
+
+def check_eurodollar_stress(alerts):
+    d = __import__("eurodollar_research").decision_view(load_json("data/eurodollar-stress.json"))
+    composite = d.get("composite_stress_score") or d.get("composite_score")
+    regime = d.get("regime")
+    if composite is None:
+        return
+    if composite >= 70:
+        alerts.append({
+            "id": f"ed_stress_high",
+            "category": "DOLLAR",
+            "severity": "HIGH",
+            "title": f"💵 Eurodollar stress elevated: {composite}/100",
+            "detail": f"Regime: {regime}. {d.get('regime_description', '')}",
+        })
+
+
+def check_auction_crisis(alerts):
+    d = load_json("data/auction-crisis.json")
+    score = d.get("composite_score")
+    regime = d.get("regime")
+    if score is not None and score >= 60:
+        alerts.append({
+            "id": "auction_crisis",
+            "category": "TREASURY",
+            "severity": "HIGH",
+            "title": f"🏛️ Treasury auction stress: {score}/100",
+            "detail": f"Regime: {regime}. {d.get('interpretation', '')}",
+        })
+
+
+def check_liquidity_pulse(alerts):
+    """Liquidity & credit-stress pulse — fires on:
+       - Composite credit stress crossing thresholds
+       - Composite liquidity drain crossing thresholds
+       - Any individual emergency-facility transition (OTHL1690, SWP1690)
+       - Any individual credit-stress transition (CCC, EuroHY, EMHY)
+       - Any series state transition (latched)"""
+    d = load_json("data/liquidity-pulse.json")
+    if not d:
+        return
+
+    # Sticky alert for composite scores
+    comp = d.get("composites", {}) or {}
+    credit_regime = comp.get("credit_regime")
+    liq_regime = comp.get("liquidity_regime")
+
+    if credit_regime == "CRISIS":
+        alerts.append({
+            "id": "liq_credit_crisis",
+            "category": "LIQUIDITY",
+            "severity": "HIGH",
+            "title": f"🔴 Credit stress CRISIS — composite {comp.get('credit_stress_score')}",
+            "detail": d.get("summary", "")[:280],
+        })
+    elif credit_regime == "ELEVATED":
+        alerts.append({
+            "id": "liq_credit_elevated",
+            "category": "LIQUIDITY",
+            "severity": "MEDIUM",
+            "title": f"🟠 Credit stress ELEVATED — composite {comp.get('credit_stress_score')}",
+            "detail": d.get("summary", "")[:280],
+        })
+
+    if liq_regime == "ACUTE_DRAIN":
+        alerts.append({
+            "id": "liq_liquidity_acute",
+            "category": "LIQUIDITY",
+            "severity": "HIGH",
+            "title": f"🔴 Acute liquidity drain — composite {comp.get('liquidity_score')}",
+            "detail": d.get("summary", "")[:280],
+        })
+
+    # Per-series transitions
+    icon_map = {
+        "balance":  "📊",
+        "facility": "🚨",
+        "credit":   "💸",
+    }
+    sev_map = {
+        "WATCH": "MEDIUM",
+        "ELEVATED": "MEDIUM",
+        "CRISIS": "HIGH",
+        "TIGHTENING": "LOW",
+        "EXPANDING": "LOW",
+    }
+    for t in (d.get("transitions") or []):
+        new_state = t.get("new_state")
+        old_state = t.get("prior_state")
+        # Skip transitions to NORMAL (informational only)
+        if new_state in ("NORMAL", "UNKNOWN"):
+            continue
+        group = t.get("group", "balance")
+        alerts.append({
+            "id": f"liq_{t['series_id']}_{new_state.lower()}",
+            "category": "LIQUIDITY",
+            "severity": sev_map.get(new_state, "MEDIUM"),
+            "title": f"{icon_map.get(group, '📡')} {t.get('label')} → {new_state}",
+            "detail": (f"State: {old_state} → {new_state}. " + (t.get('interpretation') or ''))[:300],
+        })
+
+    # ALWAYS-ON alert for any non-zero emergency facility (OTHL1690, SWP1690)
+    series = (d.get("series") or {})
+    for sid in ("OTHL1690", "SWP1690"):
+        s = series.get(sid)
+        if not s:
+            continue
+        v = s.get("latest_value", 0) or 0
+        if abs(v) >= 100:  # $100M+ on any emergency facility = significant
+            alerts.append({
+                "id": f"liq_facility_{sid}_active",
+                "category": "LIQUIDITY",
+                "severity": "HIGH" if abs(v) >= 5000 else "MEDIUM",
+                "title": f"🚨 {s.get('label')} ACTIVE — ${v/1000:.1f}B",
+                "detail": s.get("interpretation", "")[:280],
+            })
+
+
+def check_liquidity_credit(alerts):
+    """Liquidity & credit engine signals — fires on any series state transition.
+       Sticky CRISIS-level alerts for high-magnitude conditions.
+       Series watched: bank reserves, primary credit, central-bank swaps,
+       memo collateral pledges, ICE BofA HY OAS (US/Euro/EM), HQM corporate spreads."""
+    d = load_json("data/liquidity-credit-engine.json")
+    if not d:
+        return
+    sev_map = {"WATCH": "MEDIUM", "ELEVATED": "HIGH", "CRISIS": "HIGH", "NORMAL": "LOW"}
+    cat_icons = {
+        "balance_sheet":        "🏦",
+        "liquidity_facilities": "💧",
+        "credit_spreads":       "📉",
+        "corporate_yields":     "🏢",
+    }
+
+    # State transitions
+    for t in d.get("transitions", []) or []:
+        new = t.get("new")
+        if new == "NORMAL":
+            alerts.append({
+                "id": f"lce_{t['series_id']}_clear",
+                "category": "LIQUIDITY",
+                "severity": "LOW",
+                "title": f"{cat_icons.get(t.get('category'), '📡')} {t.get('label')} → CLEARED ({t.get('prior')} → NORMAL)",
+                "detail": f"Latest {t.get('latest_value')} · WoW {t.get('wow_pct'):+.2f}% · z={t.get('z_1y')}",
+            })
+            continue
+        alerts.append({
+            "id": f"lce_{t['series_id']}_{new.lower()}",
+            "category": "LIQUIDITY",
+            "severity": sev_map.get(new, "MEDIUM"),
+            "title": f"{cat_icons.get(t.get('category'), '📡')} {t.get('label')} → {new}",
+            "detail": f"{t.get('reason', '')} · z={t.get('z_1y')} · WoW {t.get('wow_pct'):+.2f}%" if t.get('wow_pct') is not None else (t.get('reason', '') or ""),
+        })
+
+    # Sticky CRISIS-level alerts (always fired while condition holds)
+    series = d.get("series", {})
+    for sid, info in series.items():
+        if info.get("signal") == "CRISIS":
+            alerts.append({
+                "id": f"lce_{sid}_crisis_state",
+                "category": "LIQUIDITY",
+                "severity": "HIGH",
+                "title": f"🚨 {info.get('_label')} — CRISIS",
+                "detail": (info.get("signal_reason") or "")[:280],
+            })
+
+    # Composite regime alert (when entire engine moves to ELEVATED+)
+    regime = d.get("regime")
+    if regime in ("ELEVATED", "ACUTE_STRESS", "CRISIS"):
+        comp = d.get("composite", {})
+        alerts.append({
+            "id": f"lce_regime_{regime.lower()}",
+            "category": "LIQUIDITY",
+            "severity": "HIGH" if regime != "ELEVATED" else "MEDIUM",
+            "title": f"💧 Liquidity & Credit regime: {regime} (composite {comp.get('score')}/100)",
+            "detail": f"{comp.get('n_firing')} series firing across {len(comp.get('by_category', {}))} categories",
+        })
+
+
+def check_tenor_signals(alerts):
+    """Retain the research input; unvalidated auction heuristics cannot alert."""
+    load_json("data/auction-tenor-signals.json")
+    return None
+
+
+
+def check_vix_curve(alerts):
+    d = load_json("data/vix-curve.json")
+    structure = d.get("term_structure") or d.get("vix_curve_state")
+    if structure == "INVERTED" or structure == "BACKWARDATION":
+        ratio = d.get("vix1m_vix3m_ratio") or d.get("vix_3m_1m_ratio")
+        alerts.append({
+            "id": "vix_inverted",
+            "category": "VOLATILITY",
+            "severity": "HIGH",
+            "title": "📊 VIX term structure inverted",
+            "detail": f"VIX1M/VIX3M = {ratio}. Historic stress signal.",
+        })
+
+
+def check_earnings(alerts):
+    d = load_json("data/earnings-tracker.json")
+    pead_signals = d.get("pead_signals", [])
+    for s in pead_signals[:3]:
+        signal_label = s.get("signal")
+        if signal_label not in ("STRONG_POSITIVE_DRIFT", "STRONG_NEGATIVE_DRIFT"):
+            continue
+        ticker = s.get("ticker")
+        ret_1d = s.get("price_return_1d_pct")
+        eps_surp = s.get("eps_surprise_pct")
+        emoji = "🚀" if signal_label == "STRONG_POSITIVE_DRIFT" else "💥"
+        alerts.append({
+            "id": f"pead_{ticker}_{signal_label}",
+            "category": "EARNINGS",
+            "severity": "MEDIUM",
+            "title": f"{emoji} PEAD: {ticker} {signal_label}",
+            "detail": f"EPS surprise {eps_surp:+.1f}%, 1d return {ret_1d:+.2f}%. Score {s.get('drift_score')}.",
+        })
+
+
+def check_short_interest(alerts):
+    d = load_json("data/short-interest.json")
+    squeeze = d.get("top_squeeze_risk", [])
+    for s in squeeze[:3]:
+        ticker = s.get("ticker")
+        dtc = s.get("days_to_cover") or s.get("polygon_days_to_cover")
+        if dtc is None or dtc < 8:
+            continue
+        alerts.append({
+            "id": f"squeeze_{ticker}",
+            "category": "SHORT_INTEREST",
+            "severity": "MEDIUM",
+            "title": f"🚨 Squeeze risk: {ticker}",
+            "detail": f"Days-to-cover {dtc:.1f}, signal {s.get('signal_label') or s.get('label') or 'SQUEEZE_RISK'}.",
+        })
+
+
+def check_fortress(alerts):
+    """FORTRESS COIL engine (data/fortress.json): a name that just passed all six
+    gates, a coiled 5/6 name that is pre-breakout with conviction, and a change
+    of the evidence-adaptive location gate. Ids carry the session so each event
+    fires once."""
+    d = load_json("data/fortress.json")
+    session = d.get("session") or "?"
+    ch = d.get("changes") or {}
+    board = {r.get("ticker"): r for r in (d.get("board") or []) if isinstance(r, dict)}
+
+    def fmt(x, nd=2, suf=""):
+        return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
+
+    def md(x):  # Telegram Markdown v1: strip the characters that would unbalance the message
+        return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
+
+    def line(r):
+        tp = r.get("trade_plan") or {}
+        return (f"{md(r.get('company'))} · {md(r.get('industry'))}\n"
+                f"dump capture {fmt(r.get('dump_capture'))} (worst {fmt(r.get('capture_worst_gate'))}, n {r.get('n_episodes')}) · "
+                f"worst-day excess {fmt(r.get('worst_days_excess_bps'), 0)} bps · vs EMA250 {fmt(r.get('vs_ema250_pct'), 1, '%')} · "
+                f"BBW pctile {fmt(r.get('bb_width_pctile'), 0)} · {r.get('coil_state')}\n"
+                f"composite {fmt(r.get('composite'), 1)} · conviction {fmt(r.get('conviction'), 0)} · confidence {fmt(r.get('confidence'))} · "
+                f"asymmetry {fmt(r.get('asymmetry'), 1, 'x')} (downside {fmt(r.get('dump_downside_pct'), 1, '%')})\n"
+                f"plan: pivot {fmt(tp.get('pivot'))} · stop {fmt(tp.get('stop'))} · target {fmt(tp.get('target'))} · {fmt(tp.get('reward_to_risk'), 1, 'R')}\n"
+                f"{md(' · '.join((r.get('reasons') or [])[:3]))}\n"
+                f"https://justhodl.ai/fortress.html")
+
+    for t in (ch.get("new_fortress") or [])[:5]:
+        r = board.get(t) or {}
+        alerts.append({
+            "id": f"fortress_new_{t}_{session}",
+            "category": "FORTRESS",
+            "severity": "HIGH",
+            "title": f"🏰 FORTRESS COIL: {t} passes all six gates",
+            "detail": line(r) if r else f"{t} entered FORTRESS_COIL on session {session}. https://justhodl.ai/fortress.html",
+        })
+    n_pre = 0
+    for r in (d.get("board") or []):
+        if n_pre >= 3 or not isinstance(r, dict):
+            break
+        if r.get("tier") == "COILED" and r.get("coil_state") == "PRE_BREAKOUT" and (r.get("conviction") or 0) >= 65:
+            n_pre += 1
+            alerts.append({
+                "id": f"fortress_prebreakout_{r.get('ticker')}_{session}",
+                "category": "FORTRESS",
+                "severity": "MEDIUM",
+                "title": f"🏰 Coiled & pre-breakout: {r.get('ticker')} (5/6, conviction {fmt(r.get('conviction'), 0)})",
+                "detail": line(r) + (f"\nmissing gate: {md(r.get('watch_trigger'))}" if r.get("watch_trigger") else ""),
+            })
+    mc = ch.get("location_mode_changed")
+    if isinstance(mc, dict) and mc.get("to"):
+        alerts.append({
+            "id": f"fortress_gate_{mc.get('to')}_{session}",
+            "category": "FORTRESS",
+            "severity": "LOW",
+            "title": f"🏰 Fortress location gate switched: {mc.get('from')} → {mc.get('to')}",
+            "detail": f"{md(mc.get('why'))}\nhttps://justhodl.ai/fortress.html (Validation tab)",
+        })
+
+
+def check_etf_flows(alerts):
+    d = load_json("data/etf-flows.json")
+    for cat, etfs in (d.get("by_category") or {}).items():
+        for e in etfs:
+            sig = e.get("signal")
+            z = e.get("dollar_volume_z_60d")
+            if sig in ("HEAVY_INFLOW", "HEAVY_OUTFLOW") and z is not None and abs(z) >= 2.5:
+                ticker = e.get("ticker")
+                emoji = "💚" if sig == "HEAVY_INFLOW" else "🔻"
+                alerts.append({
+                    "id": f"flow_{ticker}_{sig}",
+                    "category": "ETF_FLOW",
+                    "severity": "MEDIUM",
+                    "title": f"{emoji} {ticker} {sig}: z={z:+.2f}",
+                    "detail": f"{cat} category. ${e.get('dollar_volume_today',0):,.0f} today vs 60d distribution.",
+                })
+
+
+def check_sector_rotation(alerts):
+    d = __import__('sector_research').decision_view(load_json("data/sector-rotation.json"))
+    breadth = d.get("market_breadth")
+    if breadth in ("BROAD_LEADERSHIP", "NARROW_LEADERSHIP"):
+        n_lead = len(d.get("leaders", []))
+        n_lag = len(d.get("laggards", []))
+        alerts.append({
+            "id": f"sector_breadth_{breadth}",
+            "category": "SECTOR",
+            "severity": "LOW",
+            "title": f"📊 Market breadth: {breadth}",
+            "detail": f"Leaders: {n_lead}, Laggards: {n_lag}. {d.get('market_breadth_description', '')}",
+        })
+
+
+def check_divergences(alerts):
+    d = load_json("data/divergence-current.json") or load_json("divergence/current.json")
+    if not d:
+        return
+    divergences = d.get("divergences", []) or d.get("active_divergences", [])
+    for div in divergences[:3]:
+        z = div.get("residual_z") or div.get("z_score")
+        if z is None or abs(z) < 2.5:
+            continue
+        pair = div.get("pair") or f"{div.get('asset_y')} vs {div.get('asset_x')}"
+        alerts.append({
+            "id": f"divergence_{pair}_{round(z,1)}",
+            "category": "DIVERGENCE",
+            "severity": "MEDIUM",
+            "title": f"📈 Divergence: {pair}",
+            "detail": f"Residual z = {z:+.2f}. Mean-reversion candidate.",
+        })
+
+
+def check_cot_extremes(alerts):
+    d = load_json("cot/extremes/current.json")
+    for row in extreme_rows(d)[:3]:
+        contract, side = row['contract'], row['side']
+        alerts.append({
+            "id": f"cot_{side}_{contract}_{row['report_type']}_{row['report_date']}",
+            "category": "COT", "severity": "MEDIUM",
+            "title": f"📍 COT positioning extreme {side.upper()}: {contract}",
+            "detail": (f"Percentile {row['percentile']} against {row['n_prior_observations']} prior observations. "
+                       f"Report {row['report_date']} ({row['report_type']}); current provider vintage. "
+                       "Descriptive positioning only; no calibrated reversal probability."),
+            "source_engine": "justhodl-cot-extremes-scanner",
+            "source_artifact": "cot/extremes/current.json", "execution_eligible": False,
+        })
+
+
+def format_telegram_msg(alert):
+    sev_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🔵"}.get(alert["severity"], "⚪")
+    return (
+        f"{sev_icon} *JustHodl Alert — {alert['category']}*\n\n"
+        f"*{alert['title']}*\n\n"
+        f"{alert['detail']}\n\n"
+        f"_{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}_"
+    )
+
+
+def check_bottom(alerts):
+    """BOTTOM Wyckoff desk (data/bottom.json): a fresh trigger (close above the test candle's high) on an A/B sequence, a
+    weekly (major) trigger, a confirmed secondary test on silence awaiting its trigger, and a benchmark (SPY/QQQ/IWM/
+    TLT/GLD/BTC) entering the bottom process. Ids carry the session so each event fires once."""
+    d = load_json("data/bottom.json")
+    reviewed,health=context_rows(d)
+    if not health.get("usable") or health.get("invalid_rows") or health.get("provider_degraded"):return
+    session = d.get("session") or "?"
+    ch = d.get("changes") if isinstance(d.get("changes"), dict) else {}
+    # Use the complete validated rows, not a separate unvalidated display subset.
+    board = {r['ticker'].upper(): r for r in d['board_all'] if r['ticker'].upper() in reviewed}
+
+    def changed(name):
+        values = ch.get(name)
+        return list(dict.fromkeys(value.upper() for value in values if isinstance(value, str))) if isinstance(values, list) else []
+
+    def fmt(x, nd=2, suf=""):
+        return ("%.*f%s" % (nd, numeric(x), suf)) if numeric(x) is not None else "n/a"
+
+    def md(x):
+        return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
+
+    def line(r):
+        p = r.get("plan") if isinstance(r.get("plan"), dict) else {}
+        ratio = numeric(r.get("st_vol_ratio_sc"))
+        tv = ratio * 100 if ratio is not None else None
+        return (f"{md(r.get('company'))} · {md(r.get('desk'))} · {md(r.get('frame'))} frame · score {fmt(r.get('score'), 0)} {md(r.get('grade'))}\n"
+                f"climax {md(r.get('sc_date'))} on {fmt(r.get('sc_vol_x'), 1, 'x')} volume after {fmt(r.get('sc_decline_pct'), 0, '%')} · rally {fmt(r.get('ar_rally_pct'), 1, '%')} · "
+                f"test {md(r.get('st_date'))} on {fmt(tv, 0, '%')} of climax volume ({md(r.get('st_depth_class'))})\n"
+                f"plan: entry {fmt(p.get('entry'))} · stop {fmt(p.get('stop'))} ({fmt(p.get('risk_pct'), 1, '%')} risk) · target {fmt(p.get('target_1'))} ({fmt(p.get('rr_1'), 1, 'R')}) · fleet confirmations {r.get('n_confirm') or 0}\n"
+                f"https://justhodl.ai/bottom.html?ticker={r.get('ticker')}")
+
+    n = 0
+    for t in changed("new_triggered"):
+        r = board.get(t) or {}
+        if not r or r.get("state") not in ("TRIGGERED", "MARKUP") or r.get("grade") not in ("A", "B") or n >= 6:
+            continue
+        n += 1
+        major = r.get("frame") == "W" or r.get("weekly_state") in ("TRIGGERED", "MARKUP")
+        alerts.append({
+            "id": f"bottom_trigger_{t}_{session}",
+            "category": "BOTTOM",
+            "severity": "HIGH" if (r.get("grade") == "A" or major) else "MEDIUM",
+            "title": f"{'🏔' if major else '⛏'} BOTTOM TRIGGERED: {t} closed above its test candle ({'weekly' if major else 'daily'} {r.get('grade')})",
+            "detail": line(r),
+        })
+    n = 0
+    for t in changed("new_test_confirmed"):
+        r = board.get(t) or {}
+        ratio = reviewed.get(t, {}).get("st_vol_ratio_sc")
+        if not r or r.get("state") != "ST_CONFIRMED" or r.get("grade") not in ("A", "B") or ratio is None or not 0 <= ratio <= 0.5 or n >= 4:
+            continue
+        n += 1
+        plan = r.get("plan") if isinstance(r.get("plan"), dict) else {}
+        alerts.append({
+            "id": f"bottom_test_{t}_{session}",
+            "category": "BOTTOM",
+            "severity": "MEDIUM",
+            "title": f"🔍 BOTTOM: {t} tested its climax low on silence -- trigger above {fmt(plan.get('entry'))}",
+            "detail": line(r),
+        })
+    market = d.get("market") if isinstance(d.get("market"), dict) else {}
+    bench = market.get("benchmarks") if isinstance(market.get("benchmarks"), dict) else {}
+    for b, x in bench.items():
+        if not isinstance(x, dict):
+            continue
+        for fr in ("daily", "weekly"):
+            st = x.get(fr)
+            if st in ("CLIMAX", "ST_CONFIRMED", "TRIGGERED"):
+                alerts.append({
+                    "id": f"bottom_bench_{b}_{fr}_{st}_{x.get('daily_sc_date') or session}",
+                    "category": "BOTTOM",
+                    "severity": "HIGH" if st != "CLIMAX" else "MEDIUM",
+                    "title": f"📉 BOTTOM: {b} {fr} sequence is {md(st)}",
+                    "detail": f"{b} last {fmt(x.get('last'))} · {fr} Wyckoff state {md(st)} (climax {md(x.get('daily_sc_date'))}). https://justhodl.ai/bottom.html",
+                })
+
+
+@track_errors
+def check_katlin(alerts):
+    """KATLIN buy desk (data/katlin.json): a name that just entered KATLIN_PRIME (every gate incl. a confirmed
+    long-term bottom and a named catalyst), a READY name whose 4h sniper says SNIPE_NOW, and a war-room posture
+    change to CASH_OR_TBILLS / back to FULL_RISK. Ids carry the session so each event fires once."""
+    d = load_json("data/katlin.json")
+    session = d.get("session") or "?"
+    ch = d.get("changes") or {}
+    wr = d.get("war_room") or {}
+    picks = {r.get("ticker"): r for r in (d.get("picks") or []) if isinstance(r, dict)}
+
+    def fmt(x, nd=2, suf=""):
+        return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
+
+    def md(x):
+        return str(x or "").replace("_", " ").replace("*", "").replace("`", "").replace("[", "(").replace("]", ")")
+
+    def line(r):
+        pl = r.get("plan") or {}
+        sn = r.get("sniper") or {}
+        return (f"{md(r.get('name'))} · {md(r.get('industry') or r.get('sub_class'))} · {md(r.get('asset_class'))}\n"
+                f"vs 200d {fmt(r.get('dist_sma200_pct'), 1, '%')} · RSI W {fmt(r.get('rsi_w'), 0)} · bottom {md(r.get('structure_state'))} · "
+                f"accum {fmt((r.get('pillars') or {}).get('accumulation'), 0)} · inflows {fmt((r.get('pillars') or {}).get('inflows'), 0)}\n"
+                f"score {fmt(r.get('composite'), 1)} · conviction {fmt(r.get('conviction'), 0)} · R/R {fmt(r.get('rr'), 1, 'x')}\n"
+                f"plan: stop {fmt(pl.get('stop'))} · target {fmt(pl.get('target_1') or pl.get('target_2'))} · 4h {md(sn.get('state') or 'n/a')}\n"
+                f"{md((r.get('why') or '')[:400])}\n"
+                f"https://justhodl.ai/katlin.html")
+
+    for t in (ch.get("new_prime") or [])[:5]:
+        r = picks.get(t) or {}
+        alerts.append({
+            "id": f"katlin_prime_{t}_{session}",
+            "category": "KATLIN",
+            "severity": "HIGH",
+            "title": f"🎯 KATLIN PRIME: {t} -- confirmed bottom, accumulating, catalyst named",
+            "detail": line(r) if r else f"{t} entered KATLIN_PRIME on session {session}. https://justhodl.ai/katlin.html",
+        })
+    n_snipe = 0
+    for r in (d.get("picks") or []):
+        if n_snipe >= 3 or not isinstance(r, dict):
+            break
+        if r.get("tier") in ("KATLIN_PRIME", "READY") and (r.get("sniper") or {}).get("state") == "SNIPE_NOW":
+            n_snipe += 1
+            alerts.append({
+                "id": f"katlin_snipe_{r.get('ticker')}_{session}",
+                "category": "KATLIN",
+                "severity": "MEDIUM",
+                "title": f"🔫 KATLIN 4h snipe: {r.get('ticker')} ({md(r.get('tier'))})",
+                "detail": line(r),
+            })
+    post = wr.get("posture")
+    if post in ("CASH_OR_TBILLS", "FULL_RISK"):
+        alerts.append({
+            "id": f"katlin_posture_{post}_{session}",
+            "category": "KATLIN",
+            "severity": "HIGH" if post == "CASH_OR_TBILLS" else "LOW",
+            "title": f"🏛 KATLIN war room: {md(post)} (thermometer {fmt(wr.get('thermometer'), 0)})",
+            "detail": md(wr.get("brief") or "")[:700] + "\nhttps://justhodl.ai/katlin.html",
+        })
+
+
+def lambda_handler(event=None, context=None):
+    started = time.time()
+    print(f"[alert-router] start")
+
+    state = load_json(STATE_KEY)
+    history = load_json(HISTORY_KEY, default={"version": "1.0", "alerts": []})
+    if not isinstance(history, dict):
+        history = {"version": "1.0", "alerts": []}
+
+    chat_id = get_chat_id()
+
+    # Run every check (each appends to alerts list)
+    alerts = []
+    checks = [
+        ("correlation_surface", check_correlation_surface),
+        ("macro_surprise", check_macro_surprise),
+        ("yield_curve", check_yield_curve),
+        ("eurodollar_stress", check_eurodollar_stress),
+        ("auction_crisis", check_auction_crisis),
+        ("liquidity_pulse", check_liquidity_pulse),
+        ("liquidity_credit", check_liquidity_credit),
+        ("tenor_signals", check_tenor_signals),
+        ("vix_curve", check_vix_curve),
+        ("earnings", check_earnings),
+        ("short_interest", check_short_interest),
+        ("etf_flows", check_etf_flows),
+        ("fortress", check_fortress),
+        ("katlin", check_katlin),
+        ("bottom", check_bottom),
+        ("sector_rotation", check_sector_rotation),
+        ("divergences", check_divergences),
+        ("cot_extremes", check_cot_extremes),
+    ]
+    for name, fn in checks:
+        try:
+            fn(alerts)
+        except Exception as e:
+            print(f"[check.{name}] error: {e}")
+
+    print(f"[alert-router] {len(alerts)} candidate alerts before dedup")
+
+    # Load webhook targets once (may be empty list = no webhooks configured)
+    webhook_targets = get_webhook_urls()
+    if webhook_targets:
+        print(f"[alert-router] {len(webhook_targets)} webhook target(s) configured")
+
+    # Dedup + send
+    sent = []
+    suppressed = []
+    n_webhook_attempts = 0
+    n_webhook_ok = 0
+    n_wss_attempts = 0
+    n_wss_ok = 0
+    for a in alerts:
+        aid = a["id"]
+        if is_recent_dup(state, aid):
+            suppressed.append(a)
+            continue
+        # Telegram (preserved)
+        msg = format_telegram_msg(a)
+        ok, info = send_telegram(msg, chat_id) if chat_id else (False, "no_chat_id")
+        a["sent_at"] = datetime.now(timezone.utc).isoformat()
+        a["telegram_sent"] = ok
+        a["telegram_info"] = info[:200] if info else None
+
+        # Webhooks (in addition to Telegram, severity-filtered)
+        if webhook_targets:
+            wh_results = dispatch_to_webhooks(a, webhook_targets)
+            a["webhook_results"] = wh_results
+            n_webhook_attempts += len(wh_results)
+            n_webhook_ok += sum(1 for r in wh_results if r["ok"])
+
+        # WebSocket broadcast — fan out to all subscribers of 'alerts' channel
+        wss_ok, wss_info = broadcast_alert_to_wss(a)
+        a["wss_broadcast_sent"] = wss_ok
+        a["wss_broadcast_info"] = wss_info
+        n_wss_attempts += 1
+        if wss_ok:
+            n_wss_ok += 1
+
+        sent.append(a)
+        state[aid] = a["sent_at"]
+        time.sleep(0.5)  # rate limit
+
+    # Update history
+    history["alerts"] = (history.get("alerts", []) + sent)[-100:]
+    history["last_run"] = datetime.now(timezone.utc).isoformat()
+    history["last_run_summary"] = {
+        "candidates": len(alerts),
+        "sent": len(sent),
+        "suppressed": len(suppressed),
+        "webhooks_configured": len(webhook_targets),
+        "webhook_attempts": n_webhook_attempts,
+        "webhook_ok": n_webhook_ok,
+        "wss_attempts": n_wss_attempts,
+        "wss_ok": n_wss_ok,
+    }
+
+    write_json(HISTORY_KEY, history)
+    write_json(STATE_KEY, state)
+
+    print(f"[alert-router] sent={len(sent)} suppressed={len(suppressed)} "
+          f"webhooks={n_webhook_ok}/{n_webhook_attempts} "
+          f"duration={time.time()-started:.1f}s")
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "candidates": len(alerts),
+            "sent": len(sent),
+            "suppressed": len(suppressed),
+            "webhooks_configured": len(webhook_targets),
+            "webhook_attempts": n_webhook_attempts,
+            "webhook_ok": n_webhook_ok,
+            "duration_s": round(time.time() - started, 2),
+        }),
+    }
+
+
+if __name__ == "__main__":
+    print(json.dumps(lambda_handler({}, None), indent=2))

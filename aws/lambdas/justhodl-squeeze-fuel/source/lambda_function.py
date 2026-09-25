@@ -408,7 +408,8 @@ def lambda_handler(event, context):
     t0 = time.time()
     si_map, settlement = _safe(fetch_finra_si, "FINRA SI") or ({}, None)
     donor_docs, donor_receipts = load_inputs(S3, BUCKET, [("data/short-interest.json", 72, ("by_ticker",))])
-    si_map, positioning = merge_short_interest(si_map, donor_docs.get("data/short-interest.json", {}))
+    short_research = __import__("short_interest_context").decision_view(donor_docs.get("data/short-interest.json", {}))
+    si_map, positioning = merge_short_interest(si_map, short_research)
     settlement = max((row.get("settlementDate") for row in si_map.values() if row.get("settlementDate")), default=settlement)
     ftd_map, ftd_file = _safe(fetch_sec_ftd, "SEC FTD") or ({}, None)
     daily_map = _safe(fetch_daily_shortvol, "daily short-vol") or {}
@@ -416,7 +417,8 @@ def lambda_handler(event, context):
     if not si_map:
         payload = {"engine": "justhodl-squeeze-fuel", "ok": False,
                    "error": "No usable dated short interest", "generated_at": datetime.now(timezone.utc).isoformat(),
-                   "donor_health": donor_receipts, "short_positioning": positioning}
+                   "donor_health": donor_receipts, "short_positioning": positioning,
+                   "short_interest_research_context": short_research['research_context']}
         S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(safe_evidence(payload), allow_nan=False).encode(),
                       ContentType="application/json")
         return {"statusCode": 200, "body": json.dumps({"ok": False})}
@@ -479,6 +481,7 @@ def lambda_handler(event, context):
         "si_settlement_date": settlement,
         "donor_health": donor_receipts,
         "short_positioning": positioning,
+        "short_interest_research_context": short_research['research_context'],
         "ftd_file": ftd_file,
         "n_finra_universe": len(si_map),
         "n_scored": len(scored),
@@ -486,7 +489,7 @@ def lambda_handler(event, context):
         "board": board,
         "top_picks": top_picks,
         "data_sources": {
-            "short_interest": "FINRA direct plus newer dated data/short-interest.json positions; daily short volume never substitutes for SI",
+            "short_interest": "Legacy direct FINRA model; canonical short-interest research supplies descriptive context only and cannot increase this score",
             "fails_to_deliver": "SEC CNS fails-to-deliver (semi-monthly)",
             "daily_short_volume": "justhodl-finra-short (FINRA Reg SHO daily, T+1)",
             "float_and_price": "FMP /stable/ shares-float + quote",

@@ -28,7 +28,7 @@ test('actual compare fetch rejects future cache and preserves complete fresh Lam
 test('actual replay fetches every indexed source, retains unsupported summary fields and ignores stale date requests',async()=>{
  const fields={panels:{},'complete-replay-data':{replaceChildren(){}}},captures=[],pending={};
  const c=vm.createContext({ARCHIVE_ROWS:[row('data/event-study.json','2026-09-01'),row('data/ab-test-results.json','2026-09-01'),row('data/event-study.json','2026-09-09')],replayRevision:0,
-  document:{getElementById:id=>fields[id]},esc:String,num:String,JHResearchInspection:{show:(root,records)=>captures.push(records)},gj:key=>new Promise(resolve=>{pending[key]=resolve;})});
+  window:{JHShortInterestResearch:require('../jh-short-interest-research.js')},document:{getElementById:id=>fields[id]},esc:String,num:String,JHResearchInspection:{show:(root,records)=>captures.push(records)},gj:key=>new Promise(resolve=>{pending[key]=resolve;})});
  vm.runInContext(code('signal-replay.html','async function loadDate','async function init'),c);
  const older=c.loadDate('2026-09-01'),newer=c.loadDate('2026-09-09');
  pending[row('data/event-study.json','2026-09-09').key]({nested:{zero:0,missing:null}});await newer;

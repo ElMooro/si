@@ -63,24 +63,24 @@ class DonorHandlerTests(unittest.TestCase):
         self.assertEqual(response['statusCode'], 200)
         return s3.writes[mod.OUT_KEY]
 
-    def test_newer_dated_donor_changes_actual_score_and_preserves_units(self):
+    def test_dated_but_unqualified_donor_cannot_increase_actual_score(self):
         baseline = self.run_handler(); rich = self.run_handler(donor())
         before, row = baseline['board'][0], rich['board'][0]
-        self.assertGreater(row['score'], before['score'])
-        self.assertEqual(row['short_interest'], 20_000_000)
-        self.assertEqual(row['pct_of_float'], 20)
-        self.assertEqual(row['settlement_date'], TODAY)
-        self.assertTrue(row['short_positioning']['applied'])
-        self.assertEqual(row['short_positioning']['health']['units']['short_interest'], 'shares')
+        self.assertEqual(row['score'], before['score'])
+        self.assertEqual(row['short_interest'], 10_000_000)
+        self.assertEqual(row['pct_of_float'], 10)
+        self.assertEqual(row['settlement_date'], OLD)
+        self.assertIsNone(row['short_positioning'])
+        self.assertEqual(rich['short_interest_research_context']['independent_investment_votes'], 0)
+        self.assertFalse(rich['short_interest_research_context']['native_reference_available'])
         self.assertEqual(row['daily_short_volume']['record']['svr'], 0.42)
-        self.assertFalse(row['short_positioning']['daily_short_volume_used'])
         self.assertFalse(row['execution_eligible']); self.assertIsNone(row['borrow_availability'])
         self.assertFalse(row['locate_verified'])
 
-    def test_canonical_donor_can_restore_missing_direct_finra(self):
+    def test_unqualified_donor_cannot_restore_missing_direct_finra(self):
         self.assertFalse(self.run_handler(direct=False)['ok'])
         out = self.run_handler(donor(), direct=False)
-        self.assertTrue(out['ok']); self.assertEqual(out['n_scored'], 1)
+        self.assertFalse(out['ok']); self.assertFalse(out['short_interest_research_context']['calls_eligible'])
 
     def test_mixed_daily_volume_and_undated_float_fields_have_no_score_effect(self):
         doc = donor(); initial = self.run_handler(doc)['board'][0]
@@ -118,18 +118,18 @@ class DonorHandlerTests(unittest.TestCase):
         doc['by_ticker']['GME'].update(settlement_date=old,short_interest_as_of=old,days_to_cover_as_of=old)
         row = self.run_handler(doc)['board'][0]
         self.assertEqual(row['short_interest'], 10_000_000)
-        self.assertFalse(row['short_positioning']['applied'])
+        self.assertIsNone(row['short_positioning'])
 
-    def test_undated_float_uses_explicit_dtc_fallback(self):
+    def test_undated_float_does_not_restore_the_rejected_donor_ratio(self):
         row = self.run_handler(donor(), enrichment={'sym':'GME','float_shares':1})['board'][0]
         self.assertIsNone(row['pct_of_float'])
         self.assertEqual(row['float_evidence']['status'], 'UNAVAILABLE_OR_STALE')
-        self.assertEqual(row['days_to_cover'], 8)
+        self.assertEqual(row['days_to_cover'], 2)
 
     def test_finviz_only_undated_position_is_not_inventory(self):
         doc = donor(); doc['by_ticker']['GME'] = {'ticker':'GME','latest_short_pct':99,'days_to_cover':30}
         out = self.run_handler(doc, direct=False)
-        self.assertFalse(out['ok']); self.assertFalse(out['short_positioning']['GME']['positioning_usable'])
+        self.assertFalse(out['ok']); self.assertEqual(out['short_interest_research_context']['independent_investment_votes'], 0)
 
 
 if __name__ == '__main__': unittest.main()

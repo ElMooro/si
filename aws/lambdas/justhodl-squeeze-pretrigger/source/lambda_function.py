@@ -339,7 +339,7 @@ def lambda_handler(event, context):
     try:
         # 1. Load feeds
         finra = __import__("short_volume_context").decision_view(read_s3(s3, FEED_FINRA))
-        si_data = read_s3(s3, FEED_SHORT_INTEREST)
+        si_data = __import__("short_interest_context").decision_view(read_s3(s3, FEED_SHORT_INTEREST))
         catalyst = read_s3(s3, FEED_CATALYST)
 
         finra_map = extract_finra_metrics(finra or {})

@@ -184,7 +184,7 @@ def log_earnings_pead():
 
 
 def log_squeeze_risk():
-    d = fs3("data/short-interest.json")
+    d = __import__("short_interest_context").decision_view(fs3("data/short-interest.json"))
     out = []
     for s in d.get("top_squeeze_risk", []) or []:
         ticker = s.get("ticker")

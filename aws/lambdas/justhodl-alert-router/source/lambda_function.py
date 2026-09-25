@@ -593,7 +593,7 @@ def check_earnings(alerts):
 
 
 def check_short_interest(alerts):
-    d = load_json("data/short-interest.json")
+    d = __import__("short_interest_context").decision_view(load_json("data/short-interest.json"))
     squeeze = d.get("top_squeeze_risk", [])
     for s in squeeze[:3]:
         ticker = s.get("ticker")

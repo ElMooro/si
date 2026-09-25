@@ -57,7 +57,7 @@
   function cq() { CQ = CQ || {}; return load(CQ, "/data/cryptoquant-onchain.json"); }
   function etfx() { ETFX = ETFX || {}; return load(ETFX, "/data/crypto-etf-flows.json"); }
   function cftc() { CFTC = CFTC || {}; return load(CFTC, "/data/cftc-deep-view.json"); }
-  function shortInterest() { SI = SI || {}; return load(SI, "/data/short-interest.json"); }
+  function shortInterest() { SI = SI || {}; return load(SI, "/data/short-interest.json").then(function(p){ return window.JHShortInterestResearch ? window.JHShortInterestResearch.decisionView(p) : {}; }); }
 
   function volOf(b) { return num(b && (b.volume != null ? b.volume : b.value != null ? b.value : b.v)); }
   function closeOf(b) { return num(b && (b.close != null ? b.close : b.c)); }

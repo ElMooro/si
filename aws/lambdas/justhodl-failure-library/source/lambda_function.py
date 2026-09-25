@@ -246,8 +246,8 @@ def fetch_universe():
     try:
         # ops 4286: FMP /short-interest is dead; the house FINRA rail is
         # the universe source (top short_pct names).
-        doc = json.loads(s3.get_object(
-            Bucket=BUCKET, Key="data/short-interest.json")["Body"].read())
+        doc = __import__("short_interest_context").decision_view(json.loads(s3.get_object(
+            Bucket=BUCKET, Key="data/short-interest.json")["Body"].read()))
         def _rows(d, depth=0):
             if depth > 2:
                 return []

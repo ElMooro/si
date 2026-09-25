@@ -323,7 +323,7 @@ def lambda_handler(event=None, context=None):
                 ncg += 1
     src_stats["congress-direct"] = ncg
     # short-interest: by_ticker map beats squeeze-fuel when empty
-    si = (rd("data/short-interest.json") or {}).get("by_ticker") \
+    si = (__import__("short_interest_context").decision_view(rd("data/short-interest.json")) or {}).get("by_ticker") \
         or {}
     nsi = 0
     for sym, r0 in list(si.items())[:800]:
