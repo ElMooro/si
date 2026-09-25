@@ -8,8 +8,12 @@ ENDPOINTS = ('income-statement', 'balance-sheet-statement', 'cash-flow-statement
 FIELDS = ('date', 'symbol', 'reportedCurrency', 'cik', 'filingDate', 'acceptedDate', 'fiscalYear', 'period')
 
 
-def request_spec(symbol, endpoint, period):
-    if symbol not in ('AAPL', 'JPM') or endpoint not in ENDPOINTS or period not in ('annual', 'quarter'):
+def request_spec(symbol, endpoint, period, allowed_symbols=None):
+    allowed = ('AAPL', 'JPM') if allowed_symbols is None else allowed_symbols
+    if (not isinstance(allowed, (tuple, set, frozenset)) or not 1 <= len(allowed) <= 600
+            or any(not isinstance(v, str) or not re.fullmatch('[A-Z0-9][A-Z0-9.-]{0,15}', v) for v in allowed)):
+        raise ValueError('Bounded explicit provider-symbol population required')
+    if symbol not in allowed or endpoint not in ENDPOINTS or period not in ('annual', 'quarter'):
         raise ValueError('Reviewed diagnostic statement request required')
     limit = 5 if period == 'annual' else 9
     return {'symbol': symbol, 'endpoint': endpoint, 'period': period, 'limit': limit,
@@ -29,8 +33,8 @@ def strict(raw):
     return json.loads(raw, parse_float=Decimal, parse_constant=bad, object_pairs_hook=pairs)
 
 
-def inspect(raw, spec):
-    if spec != request_spec(spec.get('symbol'), spec.get('endpoint'), spec.get('period')):
+def inspect(raw, spec, allowed_symbols=None):
+    if spec != request_spec(spec.get('symbol'), spec.get('endpoint'), spec.get('period'), allowed_symbols):
         raise ValueError('Exact reviewed request required')
     rows = strict(raw)
     if not isinstance(rows, list) or not rows or len(rows) > spec['limit'] or not all(isinstance(row, dict) for row in rows):
