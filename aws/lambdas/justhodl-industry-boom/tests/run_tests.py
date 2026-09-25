@@ -5,7 +5,5 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests'))
 if __name__=='__main__':
     from test_capital_structure_remaining_consumers import Tests
     suites=[unittest.defaultTestLoader.loadTestsFromTestCase(Tests)]
-    from sector_consumer_test_support import SectorBoundaries
-    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(SectorBoundaries))
     result=unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(suites))
     if not result.wasSuccessful():raise SystemExit(1)

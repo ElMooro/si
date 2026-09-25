@@ -2412,3 +2412,14 @@ The first four-consumer deployment (source `f809d68fdba811c27eb6bc048a1573c3a508
 
 
 **93 browser ship verified:** Pages run 36141800026 published commit `cf76d6be339e8ac9c1736ae993180e0e6658c28c`. Six scripts match the exact build-manifest hashes and either literal source or the known palette-only transform. Twelve HTML pages contain the correct commit and new helper and match the build hashes after removing Cloudflare's single injected analytics tag. Live browser testing found the fixed disclosure overlapped the existing AI launcher; clicking its location opened the cached-brief panel. The handler was checked: cached public JSON only, no generation action. The positioning repair raises the disclosure above that control; the whole predecessor is retained. This was caught during live UI verification, after unit tests passed.
+
+
+### Stage 93: remaining capital-structure consumers (2026-09-25)
+
+Ops 6093 recovered the previously failed second source batch: 2,000 retained/reparsed responses, 1,775 new requests, 225 retained originals, 10,704 rows. Full population is still incomplete; part 3 is now dispatched once. Ops 6094 accepted actual AWS package bytes, exact receipts and unchanged runtimes/schedules for short-book, opportunity-engine, cannibals and comeback-screener at 825bdddb5658d7080c86fbb0143f00d7c303a46e. Their public outputs were still older at acceptance, explicitly not refreshed.
+
+The disclosure position fix f0c4f10817f8033f9ac0ddc4e493637d91210dd8 is live: bottom 76px, notice bottom 644 versus existing launcher top 669 in the tested desktop viewport; clicking opens the notice while the cached-AI panel stays closed, with no console errors.
+
+Ops 6095 preserved all four remaining whole deployed ZIPs and verified source correspondence plus private denial before edits: industry-boom, impact-graph, deal-scanner and spx-beaters. Their Share Flows inputs now cannot supply ownership dilution, false clean classifications, inferred shares outstanding or buyback votes. Industry Boom gained a config preserving the measured 180s/1024MB runtime. SPX has no paid-AI call or inherited Anthropic credential path; cached/generated forecasts and all per-row forward-odds fields abstain. Recorded historical cohort rates remain explicitly unqualified context. The SPX page also withholds cached forecasts, labels screen ranks and cohort limitations, and escapes packet strings. Native acceptance op 6096 is prepared and must follow exact release receipts; no consumer is invoked for acceptance.
+
+Validation: 7 focused Python tests; all four engine test entrypoints including existing dependency tests; 1,078 Node tests; 428 deployment checks and 12 shell scenarios; selected config validation. Whole predecessor sources, test entrypoints, SPX page and config are retained byte-for-byte. Deployment and public-page verification remain required; this is not full platform or forecasting qualification.

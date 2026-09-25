@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SPX Beaters · Weekly League · JustHodl AI</title>
-<meta name="description" content="Descriptive weekly relative-performance research. Inspect historical returns, screen ranks and reported coverage. Forward forecasts and position sizing remain unqualified.">
+<meta name="description" content="Weekly scan of every listed stock (large, mid, small, micro cap), every ETF and the asset-class board for candidates with evidence-backed higher odds of beating the S&P 500 — cross-sectional momentum, fleet screeners, 13F and congress flows, industry boom, and the sp500 pillar composite, with the WHY spelled out per name.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -44,7 +44,7 @@ a{color:var(--cyan);text-decoration:none}
 <div data-auth-slot style="margin-left:auto"></div></header>
 <div class="wrap">
 <div class="hero"><h1>SPX Beaters <span class="grad">— The Weekly League</span></h1>
-<p>Weekly relative-performance research across the engine's reported stock, ETF and asset-class universe. Historical returns and descriptive screen ranks remain available. Scores are <b>not calibrated probabilities</b>; return forecasts, AI verdicts and position sizing are <b>unqualified</b>. Inspect input coverage and observation dates before using any reported figure.</p></div>
+<p>Every Saturday the engine scans <b>every listed stock</b> — large, mid, small and micro cap — <b>every ETF</b> and the asset-class board, and lists the candidates with evidence-backed higher odds of beating the S&amp;P 500, with the <b>why</b> spelled out per name. Momentum is computed in-house across the full market (the most replicated systematic SPX-beating factor); the rest of the evidence comes from the fleet's screeners, 13F and congress flows, the industry boom league, and the sp500 pillar composite. Scores are weighted odds from real evidence — <i>not guarantees</i>. Macro gates <b>sizing</b>, never selection.</p></div>
 
 <div class="sec"><h2>Regime &amp; benchmark context</h2><div class="cards" id="regime"></div><div id="banner"></div><div class="s" id="asof" style="color:var(--fg-3);font-size:12px;margin-top:6px"></div></div>
 
@@ -55,8 +55,8 @@ a{color:var(--cyan);text-decoration:none}
 <div><h2 style="font-size:13px">Micro cap (&lt;$300M)</h2><div id="b_micro"></div></div>
 </div></div>
 
-<div class="sec"><h2>Comeback screen — reported drawdown and recovery inputs</h2>
-<div class="banner">This legacy screen combines drawdown, recovery and fundamental filters. The displayed rank is descriptive. Accounting grades, ownership-dilution claims and buyback signals have not qualified an investment decision; absence of a warning does not establish a safe company.</div>
+<div class="sec"><h2>Comeback candidates — quality, beaten up, cheap vs the index</h2>
+<div class="banner">Good businesses trading ≥30% below their 52-week high that have <b>stopped falling</b>, screen <b>cheap against the S&amp;P itself</b>, and carry evidence of a turn (smart-money accumulation into weakness, positive revisions, an independent CONFIRMED turn signal). Value-trap guards exclude anything with Beneish flags, low earnings quality, insider-sell clusters, SBC-wash/buyback-bluff patterns or dilution-funded recoveries. Quality is <b>required</b> — cheap alone never lists.</div>
 <div id="b_comeback"></div></div>
 <div class="sec"><h2>ETFs &amp; asset classes</h2><div class="grid2">
 <div><h2 style="font-size:13px">Equity ETFs</h2><div id="b_etf_equity"></div></div>
@@ -65,46 +65,49 @@ a{color:var(--cyan);text-decoration:none}
 <div><h2 style="font-size:13px">Crypto / alternative</h2><div id="b_etf_crypto_alt"></div></div>
 </div></div>
 
-<div class="sec"><h2>Recorded cohort results — qualification pending</h2><div id="brates"></div></div>
+<div class="sec"><h2>Empirical base rates — our own ledger, not folklore</h2><div id="brates"></div></div>
 <div class="foot" id="foot"></div>
 </div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-const fmt=(v,dp=1)=>typeof v!=='number'||!Number.isFinite(v)?"—":v.toLocaleString(undefined,{maximumFractionDigits:dp,minimumFractionDigits:0});
-const card=(k,v,s,cls)=>`<div class="card"><div class="k">${esc(k)}</div><div class="v ${['pos','neg','amb'].includes(cls)?cls:''}">${esc(v)}</div><div class="s">${esc(s)}</div></div>`;
+const fmt=(v,dp=1)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:dp,minimumFractionDigits:0});
+const card=(k,v,s,cls)=>`<div class="card"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="s">${s||""}</div></div>`;
 function mcapS(m){if(m==null)return"";return m>=1e12?fmt(m/1e12,1)+"T":m>=1e9?fmt(m/1e9,1)+"B":fmt(m/1e6,0)+"M"}
 function aiLine(r){
- return '<div class="banner"><strong>WAIT · forecast unqualified</strong><div>Return odds, forecast horizon and future downside are unavailable. Cached AI text and screen scores do not establish a calibrated forecast or position size.</div></div>';
-}
-function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+ const a=r.ai;if(!a)return"";
+ const col=a.stance==="BUY"?"var(--green)":a.stance==="PASS"?"var(--red)":"var(--amber)";
+ return `<div style="margin-top:7px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-1)">
+ <span class="chip" style="color:${col};border-color:${col};font-weight:800">${a.stance}</span>
+ <span style="font-family:var(--mono);font-size:12.5px;color:var(--fg-1)"> ${fmt(a.odds_beat_spx_26w_pct,0)}% odds to beat SPX · ~${a.horizon_weeks}w horizon · downside risk ~${fmt(a.downside_risk_pct,0)}%</span>
+ <div style="font-size:12px;color:var(--fg-2);margin-top:3px">${a.one_liner||""} <span style="color:var(--fg-3)">· ${a.mode==="llm"?"🤖 AI verdict (anchored)":"rules verdict (AI offline)"}</span></div></div>`}
 function rowHtml(r){
  const b=r.score>=70?"b-hi":"b-md";
  const chips=[r.dd_52w_pct!=null?`<b style="color:var(--red)">${fmt(r.dd_52w_pct,0)}% off 52w high</b>`:null,
   r.ret_8w_pct!=null?`8w base ${r.ret_8w_pct>0?"+":""}${fmt(r.ret_8w_pct,0)}%`:null,
-  r.fundamentals_intact?"Legacy fundamental classification: unqualified":null,
-  r.scope?`scope: ${esc(r.scope)}`:null,
-  r.bucket?esc(r.bucket)+" cap":null,
-  esc(r.sector||r.class),r.mcap?("$"+mcapS(r.mcap)):null,
+  r.fundamentals_intact?`<b style="color:var(--green)">DERATING — fundamentals intact</b>`:null,
+  r.scope?`scope: ${r.scope}`:null,
+  r.bucket?r.bucket+" cap":null,
+  r.sector||r.class,r.mcap?("$"+mcapS(r.mcap)):null,
   r.ret_6m_pct!=null?`6m ${r.ret_6m_pct>0?"+":""}${fmt(r.ret_6m_pct,0)}%`:null,
   r.rs_6m_pp!=null?`${r.rs_6m_pp>0?"+":""}${fmt(r.rs_6m_pp,0)}pp vs SPY`:null,
   r.ret_12_1_pct!=null?`12-1 ${r.ret_12_1_pct>0?"+":""}${fmt(r.ret_12_1_pct,0)}%`:null,
   r.inst&&r.inst.vol_52w_pct!=null?`vol ${fmt(r.inst.vol_52w_pct,0)}%`:null,
   r.inst&&r.inst.sharpe_mom!=null?`Sharpe-mom ${fmt(r.inst.sharpe_mom,1)}`:null,
   r.inst&&r.inst.rs_consist_26w_pct!=null?`beat SPY ${fmt(r.inst.rs_consist_26w_pct,0)}% of wks`:null,
-  "Forward return odds unqualified",
-  `${fmt(r.n_legs,0)} reported input legs`].filter(Boolean).map(c=>`<span class="chip">${c}</span>`).join("");
- return `<div class="row"><div class="top"><span class="tk">${esc(r.t)}</span><span class="nm">${esc(r.name||"")}</span><span class="badge ${b}">${fmt(r.score,1)}</span></div>
+  r.odds_base_26w_pct!=null?`base odds ${fmt(r.odds_base_26w_pct,0)}%${r.mom_quintile?" (Q"+r.mom_quintile+")":""}`:null,
+  `${r.n_legs} evidence legs`].filter(Boolean).map(c=>`<span class="chip">${c}</span>`).join("");
+ return `<div class="row"><div class="top"><span class="tk">${r.t}</span><span class="nm">${r.name||""}</span><span class="badge ${b}">${fmt(r.score,1)}</span></div>
  <div class="chips">${chips}</div>
- <ul class="why">${(Array.isArray(r.why)?r.why:[]).map(w=>`<li>${esc(w)}</li>`).join("")}</ul>${aiLine(r)}</div>`}
+ <ul class="why">${(r.why||[]).map(w=>`<li>${w}</li>`).join("")}</ul>${aiLine(r)}</div>`}
 function fill(id,rows,cnt,min){
  const el=document.getElementById(id);if(!el)return;
- if(!Array.isArray(rows)||!rows.length){el.innerHTML=`<div class="banner">No candidates cleared the ${fmt(min,0)} screen threshold this week; this does not imply a benchmark allocation.</div>`;return}
- el.innerHTML=rows.map(rowHtml).join("")+(cnt>rows.length?`<div class="s" style="color:var(--fg-3);font-size:12px">${cnt-rows.length} more screened names below the top ${rows.length}.</div>`:"")}
+ if(!rows||!rows.length){el.innerHTML=`<div class="banner">No candidates cleared the ${min} evidence bar this week — SPX is the default, and that's an honest answer.</div>`;return}
+ el.innerHTML=rows.map(rowHtml).join("")+(cnt>rows.length?`<div class="s" style="color:var(--fg-3);font-size:12px">${cnt-rows.length} more qualified below the top ${rows.length}.</div>`:"")}
 async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-beaters.json?t=${Date.now()}`)).json()}catch(e){}
  if(!D||!D.ok){document.getElementById("regime").innerHTML=`<div class="err">data/spx-beaters.json unavailable — first weekly run may still be pending.</div>`;return}
  const rg=D.regime||{},led=D.ledger||{};
  document.getElementById("regime").innerHTML=[
-  card("Position sizing","Unqualified","No allocation from this screen","amb"),
+  card("Risk-gate sizing",rg.risk_gate_sizing==null?"—":fmt(rg.risk_gate_sizing,2),rg.risk_gate_state||"","amb"),
   card("Rotation regime",rg.rotation_regime||"—",""),
   card("SPX ERP (ttm)",rg.spx_erp_ttm_pct==null?"—":fmt(rg.spx_erp_ttm_pct,2)+"%","earnings yield − 10Y",rg.spx_erp_ttm_pct>=0?"pos":"neg"),
   card("Rule of 20",rg.spx_rule_of_20==null?"—":fmt(rg.spx_rule_of_20,1),"",rg.spx_rule_of_20<=20?"pos":"neg"),
@@ -113,19 +116,19 @@ async function load(){let D=null;try{D=await (await fetch(`${PROXY}/data/spx-bea
   card("Ledger",`${led.weeks||0}/${led.target||53}w`,led.complete?"complete":"accreting weekly"),
   card("Scanned",fmt((D.scanned||{}).stocks,0),`stocks + ${fmt((D.scanned||{}).etfs,0)} ETFs`)].join("");
  const ms=D.mom_status||{};
- document.getElementById("banner").innerHTML=ms.note?`<div class="banner">${esc(ms.note)}. A longer observation window does not establish predictive accuracy.</div>`:"";
+ document.getElementById("banner").innerHTML=ms.note?`<div class="banner">⏳ ${ms.note}. 6-month momentum is live; scores will sharpen as the 12-1 window completes.</div>`:"";
  document.getElementById("asof").textContent=`as of ${(D.as_of||"").slice(0,16).replace("T"," ")} UTC · weekly closes ${led.first||"—"} → ${led.last||"—"} · ${rg.note||""}`;
  for(const b of ["large","mid","small","micro","comeback","etf_equity","etf_bond","etf_commodity","etf_crypto_alt"])
   fill("b_"+b,(D.buckets||{})[b],(D.counts||{})[b]||0,D.min_score);
  const br=D.base_rates;
  if(br){const q=br.momentum_quintiles||[];
-  document.getElementById("brates").innerHTML=`<div class="banner">Formation: 6-month return 26 weeks ago, quintiled across the full ledger. Outcome: excess return vs SPY over the following 26 weeks (${esc(br.window)}). ${esc(br.caveat)}</div>
+  document.getElementById("brates").innerHTML=`<div class="banner">Formation: 6-month return 26 weeks ago, quintiled across the full ledger. Outcome: excess return vs SPY over the following 26 weeks (${br.window}). ${br.caveat}</div>
   <table><tr><th>Momentum quintile</th><th>Formation 6m range</th><th>n</th><th>Beat SPY next 26w</th><th>Median excess</th></tr>
-  ${q.map(x=>`<tr><td class="metric">Q${fmt(x.q,0)}${x.q===5?" (strongest)":x.q===1?" (weakest)":""}</td><td>${fmt(x.form_6m_min_pct,0)}% → ${fmt(x.form_6m_max_pct,0)}%</td><td class="band">${fmt(x.n,0)}</td><td><b>${fmt(x.beat_spy_26w_pct,1)}%</b></td><td>${x.median_excess_pp>0?"+":""}${fmt(x.median_excess_pp,1)}pp</td></tr>`).join("")}
-  ${br.comeback_cohort?`<tr><td class="metric">Comeback cohort (dd≤−30%, based)</td><td>—</td><td class="band">${fmt(br.comeback_cohort.n,0)}</td><td><b>${fmt(br.comeback_cohort.beat_spy_26w_pct,1)}%</b></td><td>${br.comeback_cohort.median_excess_pp>0?"+":""}${fmt(br.comeback_cohort.median_excess_pp,1)}pp</td></tr>`:""}</table>
-  <div class="s" style="color:var(--fg-3);font-size:12px;margin-top:6px">These reported cohort summaries have not passed point-in-time membership, survivorship, overlapping-window and after-cost validation. They are not company-specific forward probabilities or downside forecasts.</div>`}
+  ${q.map(x=>`<tr><td class="metric">Q${x.q}${x.q===5?" (strongest)":x.q===1?" (weakest)":""}</td><td>${fmt(x.form_6m_min_pct,0)}% → ${fmt(x.form_6m_max_pct,0)}%</td><td class="band">${x.n}</td><td><b>${fmt(x.beat_spy_26w_pct,1)}%</b></td><td>${x.median_excess_pp>0?"+":""}${fmt(x.median_excess_pp,1)}pp</td></tr>`).join("")}
+  ${br.comeback_cohort?`<tr><td class="metric">Comeback cohort (dd≤−30%, based)</td><td>—</td><td class="band">${br.comeback_cohort.n}</td><td><b>${fmt(br.comeback_cohort.beat_spy_26w_pct,1)}%</b></td><td>${br.comeback_cohort.median_excess_pp>0?"+":""}${fmt(br.comeback_cohort.median_excess_pp,1)}pp</td></tr>`:""}</table>
+  <div class="s" style="color:var(--fg-3);font-size:12px;margin-top:6px">AI verdicts are hard-clamped to these anchors: odds = quintile base ±12pp max, downside between ½·realized-vol and max(|max-drawdown|, vol), horizon 13–52w. The AI cannot invent a number.</div>`}
  const w=D.weights||{};
- document.getElementById("foot").innerHTML=`<b>Reported method.</b> ${esc(D.method||"")} Stock weights ${esc(JSON.stringify(w.stock))} · ETF weights ${esc(JSON.stringify(w.etf))}. Minimum screen score ${fmt(D.min_score,0)}; comeback threshold ${fmt(D.comeback_min,0)}. Correlated input legs do not count as independent confirmation. Reported descriptions and ranks require separate source, timing and out-of-sample validation. Engine ${esc(D.engine_v)}. An empty bucket provides no buy, sell or allocation instruction.`;
+ document.getElementById("foot").innerHTML=`<b>Method.</b> ${D.method||""} Stock weights ${JSON.stringify(w.stock)} · ETF weights ${JSON.stringify(w.etf)}. Minimum score ${D.min_score}; a name-specific second evidence leg is required (momentum + industry alone never lists). Stock evidence now includes contract announcements, SEC-mined backlogs and the deal tape (catalyst leg); ETFs add true net flows and industry fundamentals (earnings-revision breadth + deal wins + backlog accel). Comeback wing: quality leg REQUIRED, huge drawdowns with NTM estimates + revenue still growing are tagged DERATING (fundamentals intact), drawdown ≤ −30%, still-falling names skipped unless an independent turn is CONFIRMED, minimum score ${D.comeback_min||60}. Engine ${D.engine_v}, refreshed Saturdays 13:00 UTC. Real data only — empty buckets mean nothing cleared the bar, not a rendering gap.`;
 }
 load();
 </script><script src="/sidebar.js" defer></script>

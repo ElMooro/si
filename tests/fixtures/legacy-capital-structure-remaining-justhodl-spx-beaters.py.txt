@@ -37,13 +37,14 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.2"
-MARKER = "spx-beaters v1.3.2 descriptive research, forecasts unqualified"
+VERSION = "1.3.1"
+MARKER = "spx-beaters v1.3.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/spx-beaters.json"
 LEDGER_KEY = "spx-beaters/weekly-closes.json"
 POLY = os.environ.get("POLYGON_API_KEY") or ""
-AI_PROVIDER_POLICY = "no_paid_ai"
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_KEY") or ""
+AI_MODEL = "claude-haiku-4-5-20251001"
 AI_CACHE_KEY = "spx-beaters/ai-cache.json"
 AI_TOP_PER_BUCKET = 6
 CTX = ssl.create_default_context()
@@ -431,17 +432,90 @@ def ai_prompt(row, anchors, wing):
 
 
 def ai_call(row, anchors, wing):
-    """Standing no-paid-AI policy; this boundary never reads a key or sends a request."""
-    return None
+    if not ANTHROPIC_KEY:
+        return None
+    body = json.dumps({
+        "model": AI_MODEL, "max_tokens": 300,
+        "system": "You are the risk desk of a systematic fund. You "
+                  "never invent numbers: every figure must derive "
+                  "from the provided evidence and stay inside the "
+                  "stated anchors. Strict JSON only.",
+        "messages": [{"role": "user",
+                      "content": ai_prompt(row, anchors, wing)}],
+    }).encode()
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages", data=body,
+        headers={"Content-Type": "application/json",
+                 "x-api-key": ANTHROPIC_KEY,
+                 "anthropic-version": "2023-06-01"})
+    try:
+        with urllib.request.urlopen(req, timeout=25,
+                                    context=CTX) as r:
+            txt = json.loads(r.read())["content"][0]["text"].strip()
+        if txt.startswith("```"):
+            txt = txt.strip("`")
+            txt = txt[txt.find("{"):txt.rfind("}") + 1]
+        return json.loads(txt)
+    except Exception as e:  # noqa: BLE001
+        print("[ai] %s %s" % (row.get("t"), e))
+        return None
 
 
 def ai_verdict(row, wing, cache):
-    """Neither cached LLM prose nor rule-score adjustments qualify forecasts."""
-    return {"stance": "WAIT", "odds_beat_spx_26w_pct": None,
-            "horizon_weeks": None, "downside_risk_pct": None,
-            "one_liner": "Descriptive screen only; out-of-sample return and downside forecasts are unqualified.",
-            "mode": "unqualified", "anchors": {}, "calls_eligible": False,
-            "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False}
+    inst = row.get("inst") or {}
+    vol = inst.get("vol_52w_pct") or 40.0
+    mdd = abs(inst.get("max_dd_52w_pct") or vol)
+    base = row.get("odds_base_26w_pct")
+    if base is None:
+        return None
+    d_lo = round(min(60.0, max(8.0, 0.5 * vol)), 0)
+    d_hi = round(min(95.0, max(mdd, vol, d_lo + 5)), 0)
+    if d_hi <= d_lo:
+        d_hi = min(95.0, d_lo + 5)
+    anchors = {"odds_base_26w_pct": base, "downside_lo": d_lo,
+               "downside_hi": d_hi,
+               "horizon_hint_weeks": 39 if wing == "comeback" else 26}
+    cached = cache.get(row["t"])
+    raw = cached or ai_call(
+        {k: row[k] for k in ("t", "name", "score", "legs", "why",
+                             "dd_52w_pct", "ret_6m_pct",
+                             "ret_12_1_pct", "inst", "sector")
+         if k in row}, anchors, wing)
+    mode = "llm" if raw else "rules"
+    if not raw:
+        sc = row.get("score", 0)
+        odds = max(2.0, min(98.0, base + min(12.0, max(-12.0,
+                                                       (sc - 62)
+                                                       / 3.0))))
+        raw = {"stance": "BUY" if sc >= 75 and odds >= 55
+               else "WATCH" if sc >= 62 else "PASS",
+               "odds_beat_spx_26w_pct": odds,
+               "horizon_weeks": anchors["horizon_hint_weeks"],
+               "downside_risk_pct": max(d_lo, min(d_hi,
+                                                  round(0.8 * mdd
+                                                        or vol))),
+               "one_liner": (row.get("why") or ["evidence-weighted "
+                                                "rule verdict"])[0]
+               [:140]}
+    # deterministic clamps regardless of source
+    odds = fnum(raw.get("odds_beat_spx_26w_pct"))
+    odds = base if odds is None else max(base - 12, min(base + 12,
+                                                        odds))
+    odds = max(2.0, min(98.0, odds))
+    dwn = fnum(raw.get("downside_risk_pct"))
+    dwn = d_hi if dwn is None else max(d_lo, min(d_hi, dwn))
+    hz = fnum(raw.get("horizon_weeks")) or anchors[
+        "horizon_hint_weeks"]
+    hz = int(max(13, min(52, hz)))
+    st = str(raw.get("stance") or "WATCH").upper()
+    if st not in ("BUY", "WATCH", "PASS"):
+        st = "WATCH"
+    if st == "BUY" and odds < 55:
+        st = "WATCH"
+    return {"stance": st, "odds_beat_spx_26w_pct": round(odds, 0),
+            "horizon_weeks": hz, "downside_risk_pct": round(dwn, 0),
+            "one_liner": str(raw.get("one_liner") or "")[:150],
+            "mode": mode, "anchors": anchors}
 
 
 # ------------------------------------------------------------- main --
@@ -513,8 +587,7 @@ def scan():
         t_ = tick_of(r)
         if t_:
             trap.setdefault(t_, []).append("insider selling cluster")
-    capital = __import__("capital_structure_context").decision_view(_g("data/share-flows.json"))
-    for r in rows_of(capital, "rows", "top"):
+    for r in rows_of(_g("data/share-flows.json") or {}, "rows", "top"):
         t_ = tick_of(r)
         fl = r.get("flags") or []
         if t_ and any(f in ("SBC_WASH", "BUYBACK_BLUFF") for f in fl):
@@ -1135,16 +1208,9 @@ def scan():
     out_buckets = {b: v[:PER_BUCKET] for b, v in
                    {**buckets, **etf_buckets}.items()}
     out_buckets["comeback"] = comeback[:COMEBACK_TOP]
-    # Preserve historical cohort summaries without presenting forward odds.
-    for rows in out_buckets.values():
-        for row in rows:
-            row["historical_cohort_rate_unqualified_pct"] = row.get("odds_base_26w_pct")
-            row["odds_base_26w_pct"] = None
-            row["forecast_qualified"] = False
-            row["sizing_eligible"] = False
-    # Explicit abstention; no provider or legacy model-cache access.
+    # ---- AI verdicts (top rows only, weekly cache, anchored) --------
     wk_key = led["dates"][-1] if led["dates"] else "na"
-    cache_doc = {}  # Legacy model output cannot qualify a new verdict.
+    cache_doc = _g(AI_CACHE_KEY) or {}
     cache = cache_doc.get(wk_key) or {}
     ai_calls = 0
     for bname, rows in out_buckets.items():
@@ -1167,7 +1233,7 @@ def scan():
             if k != wk_key:
                 cache_doc.pop(k)
         _put(AI_CACHE_KEY, cache_doc)
-    diag["ai"] = {"mode": "unqualified", "provider_policy": AI_PROVIDER_POLICY,
+    diag["ai"] = {"mode": "llm" if ANTHROPIC_KEY else "rules",
                   "new_calls": ai_calls, "cached": len(cache)}
     counts = {b: len(v) for b, v in {**buckets, **etf_buckets}.items()}
     counts["comeback"] = len(comeback)
@@ -1190,14 +1256,10 @@ def scan():
         if spy6 is not None else None,
         "spy_ret_12_1_pct": round(spy121 * 100, 1)
         if spy121 is not None else None,
-        "note": "Descriptive screen scores are not probabilities. "
-                "Forward forecasts and portfolio sizing remain unqualified.",
+        "note": "macro gates SIZING, not selection (brain); scores are "
+                "evidence-weighted odds, not guarantees",
     }
     doc = {"ok": True, "engine": "justhodl-spx-beaters",
-           "capital_structure_context": capital["research_context"],
-           "input_eligibility": {"ownership_dilution": False, "buyback_signal": False},
-           "calls_eligible": False, "sizing_eligible": False,
-           "execution_eligible": False, "forecast_qualified": False,
            "engine_v": VERSION, "marker": MARKER,
            "as_of": datetime.now(timezone.utc).isoformat(),
            "regime": regime, "ledger": diag["ledger"],
@@ -1212,8 +1274,6 @@ def scan():
                        "comeback": W_CB},
            "min_score": MIN_SCORE, "comeback_min": COMEBACK_MIN,
            "base_rates": br,
-           "base_rates_qualification": {"status": "unqualified", "forward_probability": False,
-               "reason": "Point-in-time membership, survivorship, overlapping-window and after-cost validation are incomplete."},
            "diag": diag,
            "method": "score = 100 x SIGMA(w_leg x leg)/SIGMA(w_leg) "
                      "over AVAILABLE legs (>=2 required); momentum = "

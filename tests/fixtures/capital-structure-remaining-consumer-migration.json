@@ -1,0 +1,62 @@
+{
+  "contract": "capital-structure-remaining-consumer-migration.v1",
+  "status": "whole_native_predecessors_accepted_guard_deployment_pending",
+  "files": [
+    {
+      "target": "aws/lambdas/justhodl-industry-boom/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-justhodl-industry-boom.py.txt",
+      "bytes": 11840,
+      "sha256": "2d41ac9496c0ce9f49d7572f0f0a23f8ee82c24be4099a4b63caf19da590e2db"
+    },
+    {
+      "target": "aws/lambdas/justhodl-impact-graph/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-justhodl-impact-graph.py.txt",
+      "bytes": 26037,
+      "sha256": "f38f8bc8041fc96d41216bdb2e9a34c06c5ef2d4f49a57ffb920a17bf8128d0d"
+    },
+    {
+      "target": "aws/lambdas/justhodl-deal-scanner/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-justhodl-deal-scanner.py.txt",
+      "bytes": 66285,
+      "sha256": "b42dc74ce25c5288b1756461a0208009d84e1061d70e240960482d7093e41f66"
+    },
+    {
+      "target": "aws/lambdas/justhodl-spx-beaters/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-justhodl-spx-beaters.py.txt",
+      "bytes": 53363,
+      "sha256": "3a9bf09c3d1bb1379f9e142e3dd210e508f3027d2340297d667d247bac610880"
+    },
+    {
+      "target": "aws/lambdas/justhodl-impact-graph/tests/run_tests.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-justhodl-impact-graph-tests.py.txt",
+      "bytes": 430,
+      "sha256": "96c2bc2a6a2f72a6581c22090a0dd9d503e60f9657e95d65ec128e37458c6c51"
+    },
+    {
+      "target": "aws/lambdas/justhodl-deal-scanner/tests/run_tests.py",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-justhodl-deal-scanner-tests.py.txt",
+      "bytes": 450,
+      "sha256": "321532885cef56ff194461c3c8290dcfe82a853a993ff4e54459e732176013de"
+    },
+    {
+      "target": "aws/lambdas/justhodl-spx-beaters/config.json",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-spx-beaters-config.json.txt",
+      "bytes": 633,
+      "sha256": "aeaee84fcb696af188b6883fe5b18f5839c0df879df8ac6404bee1ed09a75cb8"
+    },
+    {
+      "target": "spx-beaters.html",
+      "predecessor": "tests/fixtures/legacy-capital-structure-remaining-spx-beaters.html.txt",
+      "bytes": 14485,
+      "sha256": "49d4bf6f0c1d5a4ae0880fb3e112257a1a59db1417e3315cbbfd261ec2adfc56"
+    }
+  ],
+  "native_predecessor_report": "aws/ops/reports/latest/ops_6095_capital_structure_remaining_predecessors.md",
+  "native_predecessor_report_commit": "e79a7fa8dac8a8bf61009ae02c87df454896e950",
+  "added_config_evidence": {
+    "target": "aws/lambdas/justhodl-industry-boom/config.json",
+    "timeout": 180,
+    "memory_mb": 1024,
+    "reason": "Preserve actual AWS runtime; no predecessor repo config existed."
+  }
+}

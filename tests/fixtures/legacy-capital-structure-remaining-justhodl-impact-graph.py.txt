@@ -149,8 +149,8 @@ def build_graph(gaps):
             if v and not d.get(dst):
                 d[dst] = v
 
-    # Unqualified Share Flows denominators cannot populate shares outstanding.
-    sf = __import__("capital_structure_context").decision_view(_get_json("data/share-flows.json"))
+    # share-flows: shares outstanding for its universe (fleet data reuse)
+    sf = _get_json("data/share-flows.json") or {}
     for tk, r in (sf.get("tickers") or {}).items():
         if isinstance(r, dict) and r.get("shares_outstanding"):
             tickers.setdefault(tk.upper(), {})["shares_out"] = r["shares_outstanding"]
@@ -256,8 +256,6 @@ def build_graph(gaps):
             pass
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "version": "1.0", "n_tickers": len(tickers),
-            "capital_structure_context": sf["research_context"],
-            "input_eligibility": {"share_flows_shares_outstanding": False},
             "field_coverage": cov, "adv_sessions_used": adv_days,
             "industry_backfill": backfill,
             "tickers": tickers,

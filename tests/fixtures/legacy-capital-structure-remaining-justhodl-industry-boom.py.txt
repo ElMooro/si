@@ -14,7 +14,7 @@ PER INDUSTRY (n>=5 listed names):
            backlog/RPO accelerating share
   FLOWS    13F institutional net $ (bps of industry mcap) · insider buys 30d
   QUALITY  census conviction mean (S&P subset, honest coverage)
-  TROUBLE  census high-risk share; ownership-dilution input is unqualified
+  TROUBLE  dilution share (sh_yoy>=3%) · census high-risk share
 BOOM SCORE = cross-sectional percentile composite (weights below), 0-100.
 History ledger self-builds -> 20d rank deltas activate automatically.
 Every source degrades independently; coverage is reported, never faked."""
@@ -165,8 +165,7 @@ def lambda_handler(event=None, context=None):
             risk_hi[ind] = risk_hi.get(ind, 0) + 1
     src["census"] = bool(tk)
     dil = {}
-    capital = __import__("capital_structure_context").decision_view(_g("data/share-flows.json"))
-    sf = capital["tickers"]
+    sf = (_g("data/share-flows.json") or {}).get("tickers") or {}
     dil_cov = {}
     for t, v in sf.items():
         ind = ind_of.get(t)
@@ -238,14 +237,12 @@ def lambda_handler(event=None, context=None):
     out = {"engine": "industry-boom", "version": "1.1.0", "generated_at": now.isoformat(),
            "n_industries": len(league), "n_universe": len(ind_of),
            "league": league, "trouble": trouble,
-           "capital_structure_context": capital["research_context"],
-           "input_eligibility": {"ownership_dilution": False},
            "coverage": {"sources_ok": src,
                         "note": "each source degrades independently; percentile composite renormalizes on available weight (coverage_w)"},
            "siblings": {"industry_etf_momentum": "data/industry-rotation.json (22-ETF ladder)",
                         "supply_pressure": "data/bottleneck-boom.json (M3 + G.17 groups)",
                         "external_group_stats": "data/finviz-groups.json"},
-           "methodology": {"score": "percentile composite — DEMAND(rev velocity 20 + breadth 10 + deal-wins 15 + backlog-accel 15) FLOWS(13F bps 15 + insider 10) QUALITY(census 15) − TROUBLE(high-risk 5; ownership dilution unavailable and excluded); industries n>=5; v1.1 guards: covered weight >=60, >=3 component families, small-n shrinkage min(1, n/15) toward 50",
+           "methodology": {"score": "percentile composite — DEMAND(rev velocity 20 + breadth 10 + deal-wins 15 + backlog-accel 15) FLOWS(13F bps 15 + insider 10) QUALITY(census 15) − TROUBLE(dilution 10 + high-risk 5); industries n>=5; v1.1 guards: covered weight >=60, >=3 component families, small-n shrinkage min(1, n/15) toward 50",
                            "reads": "top decile + positive 20d delta = boom forming; high trouble composite = avoid/short-book candidates"},
            "disclaimer": "Real internal + primary data only. Research, not advice.",
            "elapsed_s": round(time.time() - t0, 2)}
