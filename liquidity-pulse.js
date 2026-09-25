@@ -1,287 +1,95 @@
-/* liquidity-pulse.js — JustHodl liquidity & credit pulse overlay.
-   Reads data/liquidity-pulse.json and injects a status pill on every page,
-   plus a full panel when an element with id="liquidity-pulse-panel" exists.
-
-   Usage:
-     <script src="/liquidity-pulse.js" defer></script>
-     // optional panel target:
-     <div id="liquidity-pulse-panel"></div>
-     // optional opt-out:
-     <script>window.JUSTHODL_LIQ_NO_PILL = true;</script>
-*/
-(function() {
-  const ENDPOINT = "https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-pulse.json";
-  const REFRESH_MS = 5 * 60 * 1000;
-
-  const SIGNAL_COLORS = {
-    NORMAL:           { bg: "rgba(34,197,94,0.10)",  fg: "#22c55e", icon: "🟢" },
-    EXPANDING:        { bg: "rgba(34,197,94,0.16)",  fg: "#22c55e", icon: "🟢" },
-    TIGHT_EUPHORIA:   { bg: "rgba(167,139,250,0.10)",fg: "#a78bfa", icon: "🟣" },
-    TIGHTENING:       { bg: "rgba(245,158,11,0.10)", fg: "#f59e0b", icon: "🟡" },
-    WATCH:            { bg: "rgba(245,158,11,0.14)", fg: "#f59e0b", icon: "🟡" },
-    DRAINING:         { bg: "rgba(249,115,22,0.14)", fg: "#f97316", icon: "🟠" },
-    ELEVATED:         { bg: "rgba(249,115,22,0.18)", fg: "#f97316", icon: "🟠" },
-    ACUTE_DRAIN:      { bg: "rgba(239,68,68,0.16)",  fg: "#ef4444", icon: "🔴" },
-    CRISIS:           { bg: "rgba(239,68,68,0.20)",  fg: "#ef4444", icon: "🔴" },
-    UNKNOWN:          { bg: "rgba(120,145,180,0.10)",fg: "#6b7a92", icon: "⚪" },
+/* reskin-skip: Explicit FRED units and periods for legacy reported observations.
+   This viewer does not qualify the legacy producer's scores or narratives.
+   Reviewed metadata: FRED series pages, 2026-09-25. Whole predecessor and
+   references: tests/fixtures/liquidity-observation-display-migration.json. */
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root&&root.document)api.install(root);
+})(typeof window==='object'?window:null,function(){
+  'use strict';
+  const ENDPOINT='https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-pulse.json';
+  const DAY=86400000;
+  // Ceilings are display-age checks, not a verified release calendar.
+  const SPECS={
+    WALCL:['Fed total assets','usd_mn','Wednesday level',21],
+    WRESBAL:['Reserve balances','usd_mn','Weekly average, ending Wednesday',21],
+    WTREGEN:['Treasury General Account','usd_mn','Weekly average, ending Wednesday',21],
+    RESPPALGUONNWW:['Treasury notes and bonds held outright','usd_mn','Wednesday level',21],
+    RESPPNTEPNWW:['Securities eligible as currency collateral','usd_mn','Wednesday memo level',21],
+    OTHL1690:['Loans maturing in 16–90 days','usd_mn','Wednesday level; all reported loans in this maturity bucket',21],
+    SWP1690:['Central-bank swaps maturing in 16–90 days','usd_mn','Wednesday level',21],
+    BAMLH0A3HYC:['US CCC and lower high-yield OAS','percent','Daily option-adjusted spread',10],
+    BAMLHE00EHYIOAS:['Euro high-yield OAS','percent','Daily option-adjusted spread',10],
+    BAMLEMHBHYCRPIOAS:['Emerging-market high-yield corporate OAS','percent','Daily option-adjusted spread',10],
+    HQMCB10YR:['10-year HQM corporate spot rate','percent','Monthly estimated yield; not an option-adjusted spread',75]
   };
-  const sigColor = (s) => SIGNAL_COLORS[s] || SIGNAL_COLORS.UNKNOWN;
-
-  const GROUP_META = {
-    balance:  { icon: "📊", label: "balance sheet" },
-    facility: { icon: "🚨", label: "emergency facility" },
-    credit:   { icon: "💸", label: "credit spread" },
-  };
-
-  function injectStyles() {
-    if (document.getElementById("jhLiqStyles")) return;
-    const s = document.createElement("style");
-    s.id = "jhLiqStyles";
-    s.textContent = `
-      .jh-liq-pill {
-        position: fixed; right: 12px; bottom: 100px; z-index: 9997;
-        display: flex; align-items: center; gap: 6px;
-        padding: 6px 10px 6px 8px;
-        background: rgba(8,9,15,0.92); border: 1px solid #2e2e2e;
-        border-radius: 16px; font-size: 11px; line-height: 1;
-        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-        cursor: pointer; transition: all 0.15s;
-        backdrop-filter: blur(6px);
-      }
-      .jh-liq-pill:hover { transform: translateY(-1px); border-color: #facc15; }
-      .jh-liq-pill .label { color: #a8b3c7; font-weight: 500; }
-      .jh-liq-pill .num { color: #e6ecf5; font-weight: 700;
-                          padding: 0 4px; border-radius: 3px; }
-      .jh-liq-pill .num.credit { background: rgba(239,68,68,0.10); color: #ef4444; }
-      .jh-liq-pill .num.liq    { background: rgba(59,130,246,0.10); color: #3b82f6; }
-      .jh-liq-panel { background: #0e1120; border: 1px solid rgba(120,145,180,0.12);
-                      border-radius: 8px; padding: 0; overflow: hidden;
-                      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-      .jh-liq-panel .head { padding: 12px 16px; border-bottom: 1px solid rgba(120,145,180,0.12);
-                            background: #141828; display: flex; justify-content: space-between;
-                            align-items: center; gap: 12px; flex-wrap: wrap; }
-      .jh-liq-panel .head h3 { margin: 0; font-size: 14px; color: #e6ecf5; font-weight: 600; }
-      .jh-liq-panel .head .meta { font-size: 11px; color: #6b7a92; }
-      .jh-liq-panel .summary {
-        padding: 12px 18px; background: rgba(59,130,246,0.04);
-        border-bottom: 1px solid rgba(120,145,180,0.10);
-        font-size: 13px; color: #a8b3c7; line-height: 1.55;
-      }
-      .jh-liq-panel .composites { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px;
-                                    padding: 14px 16px; border-bottom: 1px solid rgba(120,145,180,0.10); }
-      @media(max-width: 700px) { .jh-liq-panel .composites { grid-template-columns: 1fr; } }
-      .jh-liq-panel .composite-card {
-        background: #141828; border: 1px solid rgba(120,145,180,0.12);
-        border-radius: 6px; padding: 14px 16px;
-      }
-      .jh-liq-panel .composite-card .label { font-size: 10px; color: #6b7a92;
-                                               text-transform: uppercase; letter-spacing: 0.06em;
-                                               font-weight: 600; }
-      .jh-liq-panel .composite-card .v { font-size: 28px; font-weight: 700; line-height: 1;
-                                           margin: 6px 0; font-variant-numeric: tabular-nums; }
-      .jh-liq-panel .composite-card .regime { font-size: 11px; font-weight: 700;
-                                                 text-transform: uppercase; letter-spacing: 0.04em;
-                                                 padding: 3px 10px; border-radius: 3px;
-                                                 display: inline-block; }
-
-      .jh-liq-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-      .jh-liq-table th { padding: 8px 10px; text-align: left; font-size: 10px; color: #6b7a92;
-                          text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
-                          border-bottom: 1px solid rgba(120,145,180,0.12); background: #141828; }
-      .jh-liq-table th.r, .jh-liq-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
-      .jh-liq-table td { padding: 8px 10px; border-bottom: 1px solid rgba(120,145,180,0.06);
-                          color: #a8b3c7; }
-      .jh-liq-table tr.balance { background: rgba(59,130,246,0.02); }
-      .jh-liq-table tr.facility { background: rgba(239,68,68,0.04); }
-      .jh-liq-table tr.credit { background: rgba(245,158,11,0.02); }
-      .jh-liq-table .sid { color: #6b7a92; font-family: monospace; font-size: 10px; }
-      .jh-liq-table .label-cell { color: #e6ecf5; font-weight: 500; }
-      .jh-liq-table .pill { padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 700;
-                              text-transform: uppercase; letter-spacing: 0.04em; display: inline-block; }
-      .jh-liq-table .interp { font-size: 11px; color: #6b7a92; padding: 4px 10px 10px 14px;
-                                line-height: 1.5; max-width: 480px; }
-      .jh-liq-table .delta-pos { color: #22c55e; font-weight: 600; }
-      .jh-liq-table .delta-neg { color: #ef4444; font-weight: 600; }
-      .jh-liq-table .delta-flat { color: #6b7a92; }
-    `;
-    document.head.appendChild(s);
+  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const finite=x=>typeof x==='number'&&Number.isFinite(x);
+  function date(value){
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return NaN;
+    const t=Date.parse(value+'T00:00:00Z');
+    return Number.isFinite(t)&&new Date(t).toISOString().slice(0,10)===value?t:NaN;
   }
-
-  function fmtAge(iso) {
-    if (!iso) return "—";
-    const t = new Date(iso);
-    const mins = Math.round((Date.now() - t.getTime()) / 60000);
-    if (mins < 60) return mins + "m ago";
-    if (mins < 60*24) return Math.round(mins / 60) + "h ago";
-    return Math.round(mins / 1440) + "d ago";
+  function format(value,unit){
+    if(!finite(value))return 'Unavailable';
+    if(unit==='usd_mn')return '$'+(value/1000).toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3})+' bn';
+    if(unit==='percent')return value.toFixed(2)+'%';
+    return 'Unit unverified';
   }
-
-  function fmtPct(v, dp=2) {
-    if (v == null || isNaN(v)) return "—";
-    const n = Number(v);
-    return (n >= 0 ? "+" : "") + n.toFixed(dp) + "%";
+  function view(data,now=Date.now()){
+    const generated=typeof data?.generated_at==='string'?Date.parse(data.generated_at):NaN;
+    const wrapperOK=Number.isFinite(generated)&&generated<=now&&now-generated<=26*3600000;
+    const series=data?.series&&typeof data.series==='object'&&!Array.isArray(data.series)?data.series:{};
+    const keys=[...Object.keys(SPECS),...Object.keys(series).filter(k=>!Object.hasOwn(SPECS,k))];
+    const rows=keys.map(sid=>{
+      const s=series[sid]||{},spec=Object.hasOwn(SPECS,sid)?SPECS[sid]:null;
+      const t=date(s.latest_date),age=Number.isFinite(t)?Math.floor((now-t)/DAY):null;
+      const monthly=sid==='HQMCB10YR';
+      const validDate=Number.isFinite(t)&&t<=now&&(!monthly||s.latest_date.endsWith('-01'));
+      const aliases={'usd_mn':'usd_mn','Millions of U.S. Dollars':'usd_mn','percent':'percent','Percent':'percent'};
+      const units=[s.unit,s.units].filter(u=>u!=null);
+      const conflict=units.some(u=>typeof u!=='string'||!Object.hasOwn(aliases,u)||!spec||aliases[u]!==spec[1]);
+      const status=!spec?'Unit unverified':!validDate||!finite(s.latest_value)||conflict?'Unavailable':
+        !wrapperOK||age>spec[3]?'Stale reported observation':'Reported observation';
+      const show=spec&&validDate&&finite(s.latest_value)&&!conflict;
+      return {sid,label:spec?spec[0]:sid,status,value:show?format(s.latest_value,spec[1]):'Unavailable',
+        reported:finite(s.latest_value)?String(s.latest_value):'Unavailable',
+        nativeUnit:conflict?'Conflicting units':spec?spec[1]==='usd_mn'?'USD millions':'Percent':'Unverified',
+        observation:validDate?(monthly?s.latest_date.slice(0,7)+' (monthly period)':s.latest_date):'Unavailable',
+        basis:spec?spec[2]:'Definition unverified',age:validDate?age:null,
+        source:spec?'https://fred.stlouisfed.org/series/'+sid:null};
+    });
+    return {generated:Number.isFinite(generated)?data.generated_at:null,status:wrapperOK?'Reported context':'Unavailable or stale packet',rows};
   }
-  function fmtNum(v, dp=2) {
-    if (v == null || isNaN(v)) return "—";
-    return Number(v).toFixed(dp);
+  function panelHTML(data,now){
+    const v=view(data,now);
+    const rows=v.rows.map(r=>'<tr><td>'+(r.source?'<a href="'+r.source+'">'+esc(r.sid)+'</a>':esc(r.sid))+'<br>'+esc(r.label)+'</td><td>'+esc(r.value)+'<small>'+esc(r.reported)+' '+esc(r.nativeUnit)+' as reported</small></td><td>'+esc(r.observation)+'<small>'+esc(r.basis)+'</small></td><td>'+esc(r.status)+(r.age!==null?'<small>'+r.age+' calendar days from period date</small>':'')+'</td></tr>').join('');
+    return '<section class="jh-liq-panel"><h3>Liquidity and credit: reported observations</h3><p>'+esc(v.status)+(v.generated?' · packet generated '+esc(v.generated):'')+'</p><p>Source units and observation periods are explicit. These legacy packet values have not been replayed against retained originals. Display age limits are 21 days for weekly series, 10 for daily and 75 for monthly; they do not establish release-calendar freshness.</p><div class="jh-liq-scroll" tabindex="0" role="region" aria-label="Reported liquidity observations"><table><thead><tr><th>Series / definition</th><th>Value / native unit</th><th>Observation / measurement period</th><th>Availability</th></tr></thead><tbody>'+rows+'</tbody></table></div><p>Composite scores, crisis predictions and return forecasts remain unqualified. Legacy changes lack independently verified comparison endpoints. Nonzero loans or swaps alone do not establish a crisis. These observations grant no Calls vote or position size.</p><p><a href="'+ENDPOINT+'">Complete legacy packet, including unqualified fields</a> · <a href="/liquidity.html#jh-liquidity-research">Original-bound net-liquidity calculation</a></p></section>';
   }
-  function deltaClass(v) {
-    if (v == null) return "delta-flat";
-    return v > 0 ? "delta-pos" : v < 0 ? "delta-neg" : "delta-flat";
-  }
-
-  function buildPill(d) {
-    const c = (d.composites || {});
-    let pill = document.querySelector(".jh-liq-pill");
-    if (!pill) {
-      pill = document.createElement("div");
-      pill.className = "jh-liq-pill";
-      pill.title = "Liquidity & credit pulse — click for full breakdown";
-      pill.onclick = () => { window.location.href = "/liquidity.html#pulse"; };
-      document.body.appendChild(pill);
-    }
-    const credScore = c.credit_stress_score != null ? Math.round(c.credit_stress_score) : "—";
-    const liqScore = c.liquidity_score != null ? Math.round(c.liquidity_score) : "—";
-    pill.innerHTML = `
-      <span style="font-size:13px">💧</span>
-      <span class="label">liq</span>
-      <span class="num liq" title="Liquidity drain score (higher = tighter)">${liqScore}</span>
-      <span class="label" style="margin-left:4px">cr</span>
-      <span class="num credit" title="Credit stress score (higher = stress)">${credScore}</span>
-    `;
-  }
-
-  function fmtValue(latest, sid) {
-    if (latest == null) return "—";
-    // Heuristic format by magnitude
-    if (Math.abs(latest) >= 1e9) return "$" + (latest/1e9).toFixed(2) + "T";
-    if (Math.abs(latest) >= 1e6) return "$" + (latest/1e6).toFixed(2) + "B";
-    if (Math.abs(latest) >= 1e3) return "$" + (latest/1e3).toFixed(1) + "M";
-    if (sid && (sid.startsWith("BAML") || sid.startsWith("HQM"))) return latest.toFixed(2) + "%";
-    return latest.toFixed(2);
-  }
-
-  function buildPanel(target, d) {
-    const c = (d.composites || {});
-    const series = d.series || {};
-
-    // Composite cards
-    const credColor = sigColor(c.credit_regime || "UNKNOWN");
-    const liqColor = sigColor(c.liquidity_regime || "UNKNOWN");
-
-    // Group rows by category
-    const groups = { balance: [], facility: [], credit: [] };
-    for (const [sid, s] of Object.entries(series)) {
-      const g = s.group || "balance";
-      if (groups[g]) groups[g].push([sid, s]);
-    }
-
-    const rowsHtml = [];
-    for (const [groupKey, label] of [["balance", "FED BALANCE SHEET"],
-                                       ["facility", "EMERGENCY FACILITIES"],
-                                       ["credit", "CREDIT STRESS SPREADS"]]) {
-      const arr = groups[groupKey] || [];
-      if (arr.length === 0) continue;
-      rowsHtml.push(`<tr><th colspan="7" style="padding-top:14px; color:#888; font-size:10px;
-                          background:transparent; border-bottom:1px solid rgba(120,145,180,0.18)">
-        ${label}</th></tr>`);
-      for (const [sid, s] of arr) {
-        const sig = s.signal || "UNKNOWN";
-        const col = sigColor(sig);
-        const d_wow = (s.deltas || {}).wow_pct;
-        const d_mom = (s.deltas || {}).mom_pct;
-        const d_qoq = (s.deltas || {}).qoq_pct;
-        const d_yoy = (s.deltas || {}).yoy_pct;
-        rowsHtml.push(`<tr class="${groupKey}">
-          <td><span class="sid">${sid}</span><br/>
-              <span class="label-cell">${s.label || sid}</span></td>
-          <td class="r"><strong style="color:#e6ecf5">${fmtValue(s.latest_value, sid)}</strong>
-              <br/><span style="font-size:10px;color:#6b7a92">${s.latest_date || ""}</span></td>
-          <td class="r ${deltaClass(d_wow)}">${fmtPct(d_wow, 1)}</td>
-          <td class="r ${deltaClass(d_mom)}">${fmtPct(d_mom, 1)}</td>
-          <td class="r ${deltaClass(d_qoq)}">${fmtPct(d_qoq, 1)}</td>
-          <td class="r ${deltaClass(d_yoy)}">${fmtPct(d_yoy, 1)}</td>
-          <td class="r">${s.z_score != null ? "z=" + (s.z_score >= 0 ? "+" : "") + s.z_score.toFixed(1) : "—"}</td>
-          </tr>
-          <tr class="${groupKey}">
-            <td colspan="7" class="interp" style="border-bottom:1px solid rgba(120,145,180,0.10)">
-              <span class="pill" style="background:${col.bg};color:${col.fg};margin-right:8px">${col.icon} ${sig}</span>
-              ${s.interpretation || s.description || ""}
-            </td>
-          </tr>`);
+  function install(win){
+    const doc=win.document;let packet=null;
+    function render(){
+      const v=view(packet);const panel=doc.getElementById('liquidity-pulse-panel');if(panel)panel.innerHTML=panelHTML(packet);
+      if(!win.JUSTHODL_LIQ_NO_PILL){
+        let pill=doc.querySelector('.jh-liq-pill');
+        if(!pill){pill=doc.createElement('a');pill.className='jh-liq-pill';pill.href='/liquidity.html#pulse';doc.body.appendChild(pill);}
+        pill.textContent='Liquidity observations · '+(v.status==='Reported context'?'research only':'unavailable / stale');
+        pill.title='Dated reported values; no calibrated score or allocation authority';
       }
     }
-
-    target.innerHTML = `
-      <div class="jh-liq-panel">
-        <div class="head">
-          <h3>💧 Liquidity & Credit Pulse</h3>
-          <div class="meta">
-            ${d.n_series_ok || 0}/${d.n_series || 0} series · updated ${fmtAge(d.generated_at)}
-          </div>
-        </div>
-        <div class="summary">${d.summary || "—"}</div>
-        <div class="composites">
-          <div class="composite-card" style="border-left:3px solid ${liqColor.fg}">
-            <div class="label">Liquidity drain score</div>
-            <div class="v" style="color:${liqColor.fg}">${c.liquidity_score != null ? c.liquidity_score : "—"}</div>
-            <div class="regime" style="background:${liqColor.bg};color:${liqColor.fg}">
-              ${liqColor.icon} ${c.liquidity_regime || "UNKNOWN"}
-            </div>
-            <div style="font-size:11px;color:#6b7a92;margin-top:8px;line-height:1.5">
-              Polarity-adjusted balance-sheet drain rate. Higher = tighter (worse for risk assets).
-            </div>
-          </div>
-          <div class="composite-card" style="border-left:3px solid ${credColor.fg}">
-            <div class="label">Credit stress score</div>
-            <div class="v" style="color:${credColor.fg}">${c.credit_stress_score != null ? c.credit_stress_score : "—"}</div>
-            <div class="regime" style="background:${credColor.bg};color:${credColor.fg}">
-              ${credColor.icon} ${c.credit_regime || "UNKNOWN"}
-            </div>
-            <div style="font-size:11px;color:#6b7a92;margin-top:8px;line-height:1.5">
-              Mean of credit-spread z-scores (CCC, EuroHY, EMHY, HQM). z=2 → ELEVATED, z=3 → CRISIS.
-            </div>
-          </div>
-        </div>
-        <table class="jh-liq-table">
-          <thead><tr>
-            <th>Series</th>
-            <th class="r">Latest</th>
-            <th class="r" title="Week over week">WoW</th>
-            <th class="r" title="Month over month">MoM</th>
-            <th class="r" title="Quarter over quarter">QoQ</th>
-            <th class="r" title="Year over year">YoY</th>
-            <th class="r" title="1-year rolling z-score">Z (1y)</th>
-          </tr></thead>
-          <tbody>${rowsHtml.join("")}</tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  async function load() {
-    try {
-      const r = await fetch(ENDPOINT + "?t=" + Date.now());
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const d = await r.json();
-      if (!window.JUSTHODL_LIQ_NO_PILL) buildPill(d);
-      const panel = document.getElementById("liquidity-pulse-panel");
-      if (panel) buildPanel(panel, d);
-    } catch (e) {
-      console.warn("[liquidity-pulse]", e.message);
+    async function load(){
+      try{const response=await win.fetch(ENDPOINT+'?t='+Date.now(),{cache:'no-store',credentials:'omit'});if(!response.ok)throw Error('Unavailable');packet=await response.json();}
+      catch(e){packet=null;}render();
     }
+    function init(){
+      if(!doc.getElementById('jhLiqStyles')){
+        const s=doc.createElement('style');s.id='jhLiqStyles';
+        s.textContent='.jh-liq-pill{position:fixed;right:12px;bottom:100px;z-index:9997;padding:8px 12px;background:#101722;border:1px solid #506078;border-radius:12px;color:#cbd5e1;font:11px system-ui;text-decoration:none}.jh-liq-panel{padding:18px;border:1px solid #334155;border-radius:8px;background:#101722;color:#cbd5e1;font:13px/1.6 system-ui}.jh-liq-panel h3{margin:0 0 8px}.jh-liq-panel a{color:#93c5fd}.jh-liq-scroll{overflow-x:auto}.jh-liq-panel table{border-collapse:collapse;width:100%;min-width:680px}.jh-liq-panel th,.jh-liq-panel td{text-align:left;padding:10px;border-bottom:1px solid #334155;vertical-align:top}.jh-liq-panel small{display:block;color:#a6b6c9;font-size:11px;overflow-wrap:anywhere}.jh-liq-panel p{max-width:1100px}';doc.head.appendChild(s);
+      }
+      load();win.setInterval(load,300000);win.setInterval(render,60000);
+    }
+    if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',init);else init();
   }
-
-  function init() {
-    injectStyles();
-    load();
-    setInterval(load, REFRESH_MS);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
-})();
+  return {view,format,panelHTML,install};
+});
