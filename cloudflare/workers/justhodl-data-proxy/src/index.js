@@ -166,7 +166,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
-  if (['dollar-radar.json', 'cross-asset-flow-state.json'].includes(key)) return true;
+  if (['dollar-radar.json', 'cross-asset-flow-state.json', 'gold-equity-rotation.json'].includes(key)) return true;
   if (['fx-quote-research.json', 'polygon-fx-regime.json'].includes(key)) return true;
   if (['futures-research.json', 'polygon-futures-curves.json'].includes(key)) return true;
   if (['massive-research.json', 'massive-signals.json', 'massive-capability.json', 'polygon-options.json', 'polygon-ratios.json'].includes(key)) return true;

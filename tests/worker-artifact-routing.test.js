@@ -73,9 +73,9 @@ test('Crisis current and history publications cannot be hidden behind edge cache
  }
 });
 
-test('Dollar and Cross-Asset Flow publications bypass edge and upstream caches for GET, HEAD and Range',async()=>{
+test('Dollar, Cross-Asset Flow and Gold publications bypass edge and upstream caches for GET, HEAD and Range',async()=>{
  const worker=(await import(source)).default;
- for(const key of ['dollar-radar.json','cross-asset-flow-state.json'])for(const request of [new Request('https://justhodl.ai/data/'+key),
+ for(const key of ['dollar-radar.json','cross-asset-flow-state.json','gold-equity-rotation.json'])for(const request of [new Request('https://justhodl.ai/data/'+key),
   new Request('https://justhodl.ai/data/'+key,{method:'HEAD'}),
   new Request('https://justhodl.ai/data/'+key,{headers:{Range:'bytes=0-9'}})]){
   const state=setup();

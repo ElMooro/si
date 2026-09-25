@@ -587,14 +587,9 @@ def n_dxy_equity_divergence(d):
 # === Tier-5 Retail Edges Cluster (6 engines, 2026-05-20) ===
 
 def n_gold_equity_rotation(d):
-    """GOLD_BREAKOUT = -1 (equity bearish, gold dominant);
-    EQUITY_DOMINANT = +2 (risk-on, equity wins)."""
-    state = (d.get("state") or "").upper()
-    m = {"GOLD_BREAKOUT_RICH": -1, "GOLD_BREAKOUT_ACTIVE": 0,
-         "EQUITY_DOMINANT_RICH": 2, "EQUITY_DOMINANT_ACTIVE": 1, "NEUTRAL": 0}
-    metrics = d.get("current_metrics") or {}
-    z = metrics.get("ratio_zscore_252d")
-    return m.get(state, 0), f"Gold-eq {state or 'n/a'} (SPY/GLD z={z})"
+    """Dated ETF measurements supply no qualified directional vote."""
+    context = __import__("gold_rotation_context").context(d)
+    return None, "Gold / equity: " + context["status"] + "; no qualified forecast"
 
 
 def n_buyback_yield_ranking(d):

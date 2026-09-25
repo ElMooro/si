@@ -307,7 +307,7 @@ def gather_signals():
     # the risk-off composites check whether gold is actually working;
     # this tilts gold by its own 20d momentum so the allocator does not
     # chase a falling metal. Intensity here is gold-direction (+ = gold up).
-    ger = read_json("data/gold-equity-rotation.json")
+    ger = __import__("gold_rotation_context").decision_view(read_json("data/gold-equity-rotation.json"))
     gm = ger.get("current_metrics") or {}
     moms = [x for x in (gm.get("gld_20d_pct"), gm.get("gdx_20d_pct"))
             if isinstance(x, (int, float))]

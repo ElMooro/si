@@ -285,9 +285,9 @@ const ENGINES = [
     render: renderGeneric, category:'macro' },
   // === Tier-5 Retail Edges (6 engines, 2026-05-20) ===
   { key:'gold-equity-rotation', s3:'data/gold-equity-rotation.json',
-    title:'Gold-Equity Rotation Regime', icon:'🥇',
-    desc:'SPY/GLD ratio z-score 252d + 20d momentum + MA50/MA200 + 5d persistence + GDX/SLV + DXY overlay. GOLD_BREAKOUT_RICH (long GLD/GDX/SLV, hedge SH) or EQUITY_DOMINANT_RICH (long SPY/QQQ, trim gold). Erb-Harvey 2013, Baur-Lucey 2010. ~60% / +5-8% / 8-16 wks.',
-    render: renderGeneric, category:'macro' },
+    title:'Gold–Equity Recorded Research', icon:'🥇',
+    desc:'Eight USD funds with original dated price records, separate provider dividend-adjusted histories, and SPY/GLD comparisons on matching dates. Descriptive evidence; no qualified forecast or position size.',
+    render: renderGoldResearch, category:'macro' },
   { key:'buyback-yield-ranking', s3:'data/buyback-yield-ranking.json',
     title:'Buyback Yield Ranking (Pontiff-Woodgate)', icon:'💸',
     desc:'TTM buyback yield decile screener. 5-factor: gross+net yield, FCF coverage>=1x, P/E<30, 4-qtr consistency, $2B+ mcap. Top 20 equal-weighted = LONG portfolio quarterly rebalance. Pontiff-Woodgate 2008 (top decile +4-6%/yr), Boudoukh-Michaely-Roberts 2007.',
@@ -340,6 +340,10 @@ async function fetchEngine(s3key) {
     if (!r.ok) return null;
     return await r.json();
   } catch (e) { return null; }
+}
+
+function renderGoldResearch() {
+  return '<p>Inspect exact source records, observation dates, coverage and calculation definitions in the Gold / Equity desk.</p><p><a href="/gold-rotation.html">Open recorded Gold / Equity research</a></p><p>Legacy regime labels and fixed trade sizes are unqualified. No directional score is displayed here.</p>';
 }
 
 function renderGeneric(d) {

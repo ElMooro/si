@@ -77,8 +77,10 @@ def test_site_tier_is_metered_per_client_ip():
     ev = _event(origin="https://justhodl.ai", ip="198.51.100.9")
     per_sec = mod.TIERS["SITE"]["per_sec"]
     last = None
-    for _ in range(per_sec + 1):
-        last = mod.authorize(ev, allowed_origins=["https://justhodl.ai"])
+    # Keep a burst in one second even if the test crosses a wall-clock boundary.
+    with patch.object(mod.time, "time", return_value=1720000000):
+        for _ in range(per_sec + 1):
+            last = mod.authorize(ev, allowed_origins=["https://justhodl.ai"])
     meta, err = last
     assert meta is None and err is not None and err["statusCode"] == 429, err
     # another IP is unaffected

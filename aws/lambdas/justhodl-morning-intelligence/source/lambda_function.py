@@ -798,7 +798,7 @@ def extract_metrics(data,weights):
         # asset class + metals direction + sector conviction). Complements
         # the RORO *score* above with the actual *direction* of flows.
         **(lambda ci=data.get("capital_inflows", {}),
-                  ger=data.get("gold_equity_rotation", {}),
+                  ger=__import__("gold_rotation_context").decision_view(data.get("gold_equity_rotation", {})),
                   sfs=data.get("sector_flow_state", {}): (lambda ac=(ci.get("by_asset_class") or {}),
                   gm=(ger.get("current_metrics") or {}): {
             "flow_foreign_regime": ci.get("regime"),
@@ -809,6 +809,7 @@ def extract_metrics(data,weights):
             "flow_dollar_20d": gm.get("uup_20d_pct"),
             "flow_bonds_tlt_20d": gm.get("tlt_20d_pct"),
             "flow_metals_state": ger.get("state"),
+            "gold_research_context": ger["research_context"],
             "flow_top_sectors": [
                 f"{s.get('sector') or s.get('etf')}:{s.get('posture') or s.get('conviction')}"
                 for s in ((sfs.get("sectors") or sfs.get("ranked") or [])[:4])
