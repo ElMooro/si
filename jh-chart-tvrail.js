@@ -220,6 +220,8 @@
       spread: ["Candle spread · tight range + BB", "/wyckoff-desk.html?tab=spread"],
       spring: ["Spring · forming / fired / failed", "/wyckoff-desk.html?tab=spring"],
       accum: ["Accumulation · tight band, long range", "/wyckoff-desk.html?tab=accum"],
+      bottom: ["Bottom · SC / ST / hinge — predict the low", "/wyckoff-desk.html?tab=bottom"],
+      pump: ["Pump · SOS / markup — start of bull run", "/wyckoff-desk.html?tab=pump"],
       go: ["Bloomberg <GO> · function keyboard", "/bb-go.html"],
       splc: ["Supply chain", "/supply-chain.html"],
       cf: ["SEC filings", "/sec-filings.html"],
