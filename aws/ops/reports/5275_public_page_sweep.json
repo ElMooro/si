@@ -1,13 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "45ce36b2ec25482c3fe93f0c65d3ccbfffc5a7d5",
-  "observed_at": "2026-09-25T16:37:41.622473+00:00",
+  "observed_at": "2026-09-25T16:45:07.429425+00:00",
   "ok": false,
   "routes_checked": 558,
-  "verified_routes": 556,
+  "verified_routes": 557,
   "failed_routes": [
-    "chart.html",
-    "positioning.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "45ce36b2ec25482c3fe93f0c65d3ccbfffc5a7d5": true
@@ -1715,7 +1714,7 @@
       "http_status": 200,
       "build_sha": "45ce36b2ec25482c3fe93f0c65d3ccbfffc5a7d5",
       "inspector_present": true,
-      "bytes_read": 878746,
+      "bytes_read": 878748,
       "product_source_matches_release": true
     },
     {
@@ -3646,12 +3645,12 @@
     },
     {
       "route": "positioning.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "45ce36b2ec25482c3fe93f0c65d3ccbfffc5a7d5",
+      "inspector_present": true,
+      "bytes_read": 3161,
+      "product_source_matches_release": true
     },
     {
       "route": "positioning/index.html",
@@ -5041,7 +5040,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36161653909,
+  "deployment_run_id": 36162436576,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-25T16:37:41.624451+00:00"
+  "check_finished_at": "2026-09-25T16:45:07.431693+00:00"
 }
