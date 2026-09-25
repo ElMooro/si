@@ -10,13 +10,16 @@ from test_option_flow_store import S3
 URL = 'https://www.sec.gov/files/data/fails-deliver-data/cnsfails202608b.zip'
 TEXT = ('|'.join(sec.FIELDS) + '\n20260817|001234567|ABC|123|Reported class|.\n'
         '20260818|001234567|ABC.A|150|Reported class|12.3456\n'
-        '20260818|901234567|ABC.A|2|Another class|25.00\n').encode()
+        '20260818|901234567|ABC.A|2|Another class|25.00\n'
+        'Trailer record count 3\nTrailer total quantity of shares 275\n').encode()
 
 
 def zipped(body=TEXT, name='cnsfails202608b.txt', extra=None):
     out = BytesIO()
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(name, body)
+        info = zipfile.ZipInfo(name)
+        info.compress_type = zipfile.ZIP_DEFLATED
+        archive.writestr(info, body)
         if extra:
             archive.writestr(*extra)
     return out.getvalue()
@@ -60,7 +63,22 @@ class Tests(unittest.TestCase):
 
     def test_duplicate_date_cusip_never_silently_overwrites(self):
         with self.assertRaisesRegex(ValueError, 'Duplicate'):
-            sec.rows(TEXT + TEXT.splitlines()[1] + b'\n', URL, '2026-09-25')
+            sec.rows(TEXT.replace(b'Trailer record count 3', TEXT.splitlines()[1] + b'\nTrailer record count 4'), URL, '2026-09-25')
+
+    def test_both_exact_control_trailers_reconcile_without_becoming_economic_flow(self):
+        value = sec.inventory(zipped(), URL, '2026-09-25')['control_totals']
+        self.assertEqual(value['reported_record_count'], 3)
+        self.assertEqual(value['reported_quantity_sum'], '275')
+        self.assertEqual(value['record_count_source_line'], 5)
+        self.assertEqual(value['quantity_sum_source_line'], 6)
+        self.assertTrue(value['record_count_matches'])
+        self.assertTrue(value['quantity_checksum_matches'])
+        self.assertTrue(value['quantity_sum_is_file_integrity_control_not_economic_flow'])
+        for body in (TEXT.replace(b'count 3', b'count 2'), TEXT.replace(b'shares 275', b'shares 276'),
+                     TEXT.split(b'Trailer record count')[0], TEXT + b'Unknown trailer\n',
+                     TEXT.replace(b'QUANTITY (FAILS)', b'UNKNOWN')):
+            with self.assertRaises(ValueError):
+                sec.rows(body, URL, '2026-09-25')
 
     def test_future_settlement_cannot_become_observed_at_an_earlier_capture(self):
         with self.assertRaisesRegex(ValueError, 'Future settlement'):

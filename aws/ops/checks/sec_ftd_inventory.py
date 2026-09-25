@@ -70,14 +70,31 @@ def text_member(raw):
     return {'name': member.filename, 'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest()}, body
 
 
-def rows(body, url, cutoff):
-    cutoff = date.fromisoformat(cutoff)
-    year, month, half = archive_period(url)
+def source_lines(body):
     lines = body.decode('utf-8-sig', errors='strict').splitlines()
     if not lines or tuple(lines[0].strip().split('|')) != FIELDS:
         raise ValueError('SEC source columns differ from reviewed schema')
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if len(lines) < 4:
+        raise ValueError('Complete SEC control trailers required')
+    count = re.fullmatch(r'Trailer record count ([0-9]+)', lines[-2].strip())
+    quantity = re.fullmatch(r'Trailer total quantity of shares ([0-9]+)', lines[-1].strip())
+    if count is None or quantity is None:
+        raise ValueError('Complete SEC control trailers required')
+    return lines, {'reported_record_count': int(count.group(1)),
+                   'reported_quantity_sum': quantity.group(1),
+                   'record_count_source_line': len(lines) - 1,
+                   'quantity_sum_source_line': len(lines),
+                   'quantity_sum_is_file_integrity_control_not_economic_flow': True}
+
+
+def rows(body, url, cutoff):
+    cutoff = date.fromisoformat(cutoff)
+    year, month, half = archive_period(url)
+    lines, controls = source_lines(body)
     result, keys = [], set()
-    for line_number, line in enumerate(lines[1:], 2):
+    for line_number, line in enumerate(lines[1:-2], 2):
         if not line.strip():
             continue
         fields = line.split('|')
@@ -107,18 +124,24 @@ def rows(body, url, cutoff):
                        'reported_price': price, 'previous_day_reported_price': None if price == '.' else price})
     if not result:
         raise ValueError('Nonempty whole SEC source required')
+    if len(result) != controls['reported_record_count']:
+        raise ValueError('SEC trailer record count differs')
+    if sum(int(row['fail_balance_shares']) for row in result) != int(controls['reported_quantity_sum']):
+        raise ValueError('SEC trailer quantity checksum differs')
     return result
 
 
 def inventory(raw, url, cutoff):
     member, body = text_member(raw)
     records = rows(body, url, cutoff)
+    _, controls = source_lines(body)
     dates = Counter(r['settlement_date'] for r in records)
     symbols, cusips = defaultdict(set), defaultdict(set)
     for row in records:
         symbols[row['symbol']].add(row['cusip'])
         cusips[row['cusip']].add((row['symbol'], row['description']))
     return {'member': member, 'rows': len(records), 'settlements': dict(sorted(dates.items())),
+            'control_totals': {**controls, 'record_count_matches': True, 'quantity_checksum_matches': True},
             'cusips': len(cusips), 'symbols': len(symbols),
             'symbols_with_multiple_cusips': sum(len(v) > 1 for v in symbols.values()),
             'cusips_with_multiple_reported_labels': sum(len(v) > 1 for v in cusips.values()),
