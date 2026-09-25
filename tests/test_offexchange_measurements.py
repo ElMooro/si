@@ -58,4 +58,27 @@ class Tests(unittest.TestCase):
     def test_documented_optional_count_header_is_not_required_when_live_api_omits_it(self):
         row=model.page(b'[{},{}]',{'record-total':'2','record-offset':'0','record-limit':'2000'},0,2000)
         self.assertTrue(row['reported_end_reached']);self.assertFalse(row['page_count_header_present']);self.assertEqual(row['rows'],2)
+    def monthrow(self,crd=42,name='Named Firm',shares='60'):
+        return {'summaryTypeCode':'OTC_M_SMBL_FIRM','monthStartDate':'2026-06-01','summaryStartDate':'2026-06-01','tierIdentifier':'NMS',
+            'issueSymbolIdentifier':'AAPL','firmCRDNumber':crd,'marketParticipantName':name,'totalMonthlyShareQuantity':shares,
+            'totalMonthlyTradeCount':10,'initialPublishedDate':'2026-08-03','lastUpdateDate':'2026-08-28','lastReportedDate':'2026-06-30'}
+    def test_monthly_firm_grain_keeps_zero_crd_as_an_undisclosed_aggregate(self):
+        raw=json.dumps([self.monthrow(),self.monthrow(0,'De Minimis Firms','40')]).encode();rows=model.monthly(raw,'2026-06-01')
+        out=model.concentration(rows,records_reconciled=True)[0]
+        self.assertEqual(out['reported_non_ats_shares'],'100');self.assertEqual(out['de_minimis_pct'],'40.000000000000')
+        self.assertEqual(out['reported_activity_hhi_lower_bound'],'3600.000000000000');self.assertEqual(out['reported_activity_hhi_upper_bound'],'5200.000000000000')
+        self.assertEqual(out['named_reporting_firms'],1);self.assertEqual(len(out['top_named_firms']),1);self.assertIsNone(out['beneficial_owner_concentration'])
+        with self.assertRaises(ValueError):model.concentration(rows,records_reconciled=False)
+    def test_monthly_windows_never_blend_and_duplicate_firms_fail(self):
+        rows=model.monthly(json.dumps([self.monthrow()]).encode(),'2026-06-01');later=deepcopy(rows[0]);later['month_start']='2026-07-01'
+        self.assertEqual(len(model.concentration(rows+[later],records_reconciled=True)),2)
+        with self.assertRaises(ValueError):model.concentration(rows+rows,records_reconciled=True)
+        with self.assertRaises(ValueError):model.monthly(json.dumps([self.monthrow()]).encode(),'2026-07-01')
+    def test_unknown_bucket_identity_cannot_be_promoted_to_a_named_firm(self):
+        for row in (self.monthrow(0,'Named Firm'),self.monthrow(42,'De Minimis Firms')):
+            with self.assertRaises(ValueError):model.monthly(json.dumps([row]).encode(),'2026-06-01')
+    def test_no_undisclosed_bucket_yields_equal_reporting_activity_bounds(self):
+        rows=model.monthly(json.dumps([self.monthrow(42,'Firm A','50'),self.monthrow(45,'Firm B','50')]).encode(),'2026-06-01')
+        out=model.concentration(rows,records_reconciled=True)[0]
+        self.assertEqual(out['reported_activity_hhi_lower_bound'],'5000.000000000000');self.assertEqual(out['reported_activity_hhi_lower_bound'],out['reported_activity_hhi_upper_bound'])
 if __name__=='__main__':unittest.main(verbosity=2)

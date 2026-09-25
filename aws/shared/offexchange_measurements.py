@@ -126,3 +126,57 @@ def join_weekly(legs):
                 'scope':'FINRA weekly ATS plus non-ATS; excludes exchange executions',
                 'market_share_pct':None,'owner_accumulation':None,'signal':None})
     return result
+
+def monthly(raw,month,tier='NMS'):
+    """Non-ATS reporting-firm activity, with CRD 0 preserved as an aggregate."""
+    if date.fromisoformat(day(month)).day!=1 or tier not in ('NMS','OTCE'):raise ValueError('Reviewed monthly partition required')
+    doc=strict(raw)
+    if not isinstance(doc,list):raise ValueError('Monthly rows required')
+    rows=[];seen=set()
+    for index,row in enumerate(doc):
+        if not isinstance(row,dict) or (row.get('summaryTypeCode'),row.get('monthStartDate'),row.get('summaryStartDate'),row.get('tierIdentifier'))!=('OTC_M_SMBL_FIRM',month,month,tier):raise ValueError('Monthly period or grain differs')
+        name=symbol(row.get('issueSymbolIdentifier'));crd=number(scalar(row.get('firmCRDNumber'),integer=True));key=(name,crd)
+        if key in seen:raise ValueError('Duplicate monthly symbol/firm')
+        seen.add(key);shares=scalar(row.get('totalMonthlyShareQuantity'));trades=scalar(row.get('totalMonthlyTradeCount'),integer=True)
+        if trades==0 and shares!=0:raise ValueError('Monthly shares without trades')
+        firm=row.get('marketParticipantName')
+        if not isinstance(firm,str) or not firm.strip():raise ValueError('Reporting-firm name required')
+        if (crd=='0')!=('de minimis' in firm.lower()):raise ValueError('Undisclosed reporting-firm bucket identity differs')
+        clocks={key:day(row.get(key)) for key in ('initialPublishedDate','lastUpdateDate','lastReportedDate')}
+        if clocks['initialPublishedDate']<month or clocks['lastUpdateDate']<clocks['initialPublishedDate']:raise ValueError('Monthly publication chronology differs')
+        rows.append({'symbol':name,'month_start':month,'tier':tier,'firm_crd':crd,'reporting_firm':firm,
+            'firm_identity_kind':'aggregated_de_minimis_firms' if crd=='0' else 'named_reporting_firm',
+            'shares':number(shares),'trades':number(trades),'average_shares_per_reported_trade':ratio(shares,trades),
+            'source_row':index,**clocks,'source_fields':{key:number(value) if isinstance(value,Decimal) else value for key,value in row.items()}})
+    return rows
+
+def concentration(rows,*,records_reconciled):
+    """HHI bounds over reporting activity, not investors or beneficial owners.
+
+The undisclosed bucket contributes between zero and its squared share. Treating
+it as one firm produces only an upper bound; it is never silently ranked as one.
+"""
+    if records_reconciled is not True:raise ValueError('Complete declared monthly partition required')
+    groups={}
+    for row in rows:
+        key=(row['symbol'],row['month_start'],row['tier']);group=groups.setdefault(key,{})
+        if row['firm_crd'] in group:raise ValueError('Duplicate monthly firm across pages')
+        group[row['firm_crd']]=row
+    result=[]
+    with localcontext() as ctx:
+        ctx.prec=64
+        for (name,month,tier),firms in sorted(groups.items()):
+            total=sum((scalar(row['shares']) for row in firms.values()),Decimal(0))
+            named=[row for crd,row in firms.items() if crd!='0'];named.sort(key=lambda row:(-scalar(row['shares']),row['firm_crd']))
+            unknown=scalar(firms['0']['shares']) if '0' in firms else Decimal(0)
+            numerator=sum((scalar(row['shares'])**2 for row in named),Decimal(0));denominator=total**2
+            result.append({'symbol':name,'month_start':month,'tier':tier,'reported_non_ats_shares':number(total),
+                'named_reporting_firms':len(named),'de_minimis_bucket_present':'0' in firms,
+                'de_minimis_shares':number(unknown),'de_minimis_pct':ratio(unknown,total,100),
+                'reported_activity_hhi_lower_bound':ratio(numerator,denominator,10000),
+                'reported_activity_hhi_upper_bound':ratio(numerator+unknown**2,denominator,10000),
+                'top_named_firms':[{'firm_crd':row['firm_crd'],'name':row['reporting_firm'],'reported_share_pct':ratio(scalar(row['shares']),total,100),'source':row} for row in named[:5]],
+                'source_rows':list(firms.values()),'scope':'Non-ATS reporting-firm activity within one complete published symbol/month/tier',
+                'beneficial_owner_concentration':None,'ownership_flow':None,'signal':None,
+                'missing_reason':'zero_reported_volume' if total==0 else None})
+    return result
