@@ -3703,6 +3703,7 @@
       "<button class='wsico wsdesk' id=btn-bot title='Bottom · click to mark the climax and the low on this chart'><span class=g>Bot</span><span class=l>Bottom</span></button>"+
       "<button class='wsico wsdesk' id=btn-dist title='Distribution · click to mark a rally that fails to hold'><span class=g>Dst</span><span class=l>Dist</span></button>"+
       "<button class='wsico wsdesk' id=btn-pump title='Pump · SOS / markup — start of the bull run'><span class=g>Pmp</span><span class=l>Pump</span></button>"+
+      "<button class='wsico wsdesk' id=btn-snip title='Khalid sniper · every box must pass'><span class=g>K</span><span class=l>Khalid</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
       "<input id=goyell class=goyell placeholder='AAPL' autocomplete=off spellcheck=false title='Type a ticker or AAPL DES, then GO'>"+
@@ -3755,6 +3756,18 @@
     var bbot=document.getElementById("btn-bot"); if(bbot) bbot.onclick=function(){ if(window.jhCampToggle) window.jhCampToggle("bottom"); };
     var bdist=document.getElementById("btn-dist"); if(bdist) bdist.onclick=function(){ if(window.jhDistToggle) window.jhDistToggle(); };
     var bpmp=document.getElementById("btn-pump"); if(bpmp) bpmp.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("pump"); };
+    var bsnip=document.getElementById("btn-snip"); if(bsnip) bsnip.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("sniper"); };
+    window.jhOpenSymbol=function(sym){
+      var s=String(sym||"").toUpperCase().replace(/[^A-Z0-9.\-]/g,"");
+      if(!s) return;
+      if(TABS.indexOf(s)<0) TABS.push(s);
+      active=s;
+      try{ loadDraw(); }catch(e){}
+      try{ renderTabs(); }catch(e){}
+      try{ load(); }catch(e){}
+      var ov=document.getElementById("ws-overlay");
+      if(ov) ov.className="";
+    };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var bgo=document.getElementById("btn-go");
     if(bgo) bgo.onclick=function(){

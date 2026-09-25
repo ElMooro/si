@@ -239,13 +239,14 @@
       opt: ["Options", "/options.html"],
       wei: ["World equity indices", "/global-cycle.html"],
       eco: ["Economic calendar", "/econ-calendar.html"],
-      alert: ["Alert Center", "/alerts.html"]
+      alert: ["Alert Center", "/alerts.html"],
+      sniper: ["Khalid sniper", "/khalid.html#k-sniper"]
     };
     var pair = meta[kind] || meta.alert;
     var title = pair[0], href = pair[1];
     ov.className = "on";
     ov.innerHTML = "<div class=wsbox><div class=wshd><span>" + title + "</span><a href='" + href + "' target=_blank rel=noopener>Open page ↗</a><button type=button class=x id=wsx>×</button></div>" +
-      (kind === "corr" ? "<div id=ws-corr></div>" : "<iframe src='" + href + "' title='" + title + "'></iframe>") +
+      (kind === "corr" ? "<div id=ws-corr></div>" : kind === "sniper" ? "<div id=ws-sniper></div>" : "<iframe src='" + href + "' title='" + title + "'></iframe>") +
       "</div>";
     document.getElementById("wsx").onclick = function () { ov.className = ""; };
     ov.onclick = function (e) { if (e.target === ov) ov.className = ""; };
@@ -262,6 +263,14 @@
       } else {
         host.innerHTML = "<iframe src='/correlation.html' style='width:100%;height:100%;border:0'></iframe>";
       }
+    }
+    if (kind === "sniper") {
+      var sn = document.getElementById("ws-sniper");
+      sn.style.height = "100%";
+      sn.style.overflow = "auto";
+      sn.style.padding = "12px 16px";
+      if (window.jhSniperMount) window.jhSniperMount(sn);
+      else sn.innerHTML = "<p style='color:#9aa1ad'>Sniper script is not on this page.</p>";
     }
   };
 
