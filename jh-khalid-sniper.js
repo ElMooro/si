@@ -20,7 +20,22 @@
     ["EMB", "BOND", "Bonds"], ["BTC-USD", "CRYPTO", "Crypto"], ["ETH-USD", "CRYPTO", "Crypto"]
   ];
   var SECTORS = ["XLK", "XLV", "XLF", "XLI", "XLY", "XLP", "XLE", "XLU", "XLRE", "XLB", "XLC"];
-  var CRYPTO_LINKED = { MSTR: "Strategy", BMNR: "Bitmine", COIN: "Coinbase", MARA: "Marathon", RIOT: "Riot", CLSK: "Cleanspark", CIFR: "Cipher", WULF: "TeraWulf", IREN: "IREN" };
+  var CRYPTO_LINKED = {
+    MSTR: { name: "Strategy", kind: "Bitcoin treasury" },
+    XXI: { name: "Twenty One", kind: "Bitcoin treasury" },
+    ASST: { name: "Strive", kind: "Bitcoin treasury" },
+    NAKA: { name: "Nakamoto", kind: "Bitcoin treasury" },
+    BMNR: { name: "Bitmine", kind: "Ether treasury" },
+    SBET: { name: "SharpLink", kind: "Ether treasury" },
+    BTCS: { name: "BTCS", kind: "Ether treasury" },
+    FGNX: { name: "FG Nexus", kind: "Ether treasury" },
+    ETHA: { name: "iShares Ether", kind: "Ether ETF", asset: "ETF" },
+    BSOL: { name: "Bitwise Solana", kind: "Altcoin ETF", asset: "ETF" },
+    XRPC: { name: "Canary XRP", kind: "Altcoin ETF", asset: "ETF" },
+    LTCC: { name: "Canary Litecoin", kind: "Altcoin ETF", asset: "ETF" },
+    DOJE: { name: "REX-Osprey Doge", kind: "Altcoin ETF", asset: "ETF" },
+    THYP: { name: "21Shares Hyperliquid", kind: "Altcoin ETF", asset: "ETF" }
+  };
 
   function num(x) { return typeof x === "number" && isFinite(x) ? x : null; }
   function volOf(b) { return num(b.volume) || num(b.value) || 0; }
@@ -103,14 +118,14 @@
           box("demand", "Demand showing", false, short, true),
           box("value", "Cheap: PEG under 1, or P/E and P/S under the industry", false, short, true),
           box("sector", "Industry ETF under, at, or just through its 200-day", false, short, true),
-          box("flows", "ETF inflows, institutions, smart money", false, short, true),
-          box("crypto", "ETH or BTC turned while this is still on its low", false, meta.cryptoLinked ? short : "Not a bitcoin or ether treasury.", !!meta.cryptoLinked),
+          box("flows", "ETF inflows, institutions, smart money", false, short, true)
+        ].concat(meta.cryptoLinked ? [box("crypto", "ETH or BTC turned while this is still on its low", false, short, true)] : []).concat([
           box("ma300", "Below the 300-day", false, short, false),
           box("double", "Double bottom", false, short, false),
           box("campaign", "Marked bottom or end of accumulation", false, short, false),
           box("catalyst", "Booming industry or other catalyst", false, short, false),
           box("momentum", "Momentum turning up", false, short, false)
-        ],
+        ]),
         sniper: false, drawdown: null, close: i >= 0 ? d[i].close : null, passed: 0, required: 16
       };
     }
@@ -212,9 +227,7 @@
       checks.push(box("flows", "ETF inflows, institutions, smart money", true, meta.flows, true));
     }
     if (meta.cryptoLinked) {
-      checks.push(box("crypto", "ETH or BTC turned while this is still on its low", !!meta.cryptoLead, meta.cryptoNote || "No fresh ether or bitcoin turn while this stock is still sitting on its own low.", true));
-    } else {
-      checks.push(box("crypto", "ETH or BTC turned while this is still on its low", false, "Not a bitcoin or ether treasury. This box is only for Strategy, BMNR and the miners.", false));
+      checks.push(box("crypto", "ETH or BTC turned while this is still on its low", !!meta.cryptoLead, meta.cryptoNote || "No fresh ether or bitcoin turn while this name is still sitting on its own low.", true));
     }
     checks.push(box("ma300", "Below the 300-day", sma300 != null && px < sma300,
       sma300 == null ? "300-day unavailable" : "Close vs 300-day " + sma300.toFixed(2) + " (" + pct((px / sma300 - 1) * 100) + "). Better, not required.", false));
@@ -382,7 +395,7 @@
       }
       rows.push({
         ticker: ticker,
-        name: (row && row.name) || CRYPTO_LINKED[ticker] || ticker,
+        name: (row && row.name) || (CRYPTO_LINKED[ticker] && CRYPTO_LINKED[ticker].name) || ticker,
         assetClass: assetClass || (row && row.asset_class) || "STOCK",
         industry: sector || "Unclassified",
         vs250: row && row.technical ? row.technical.vs_250d_pct : null,
@@ -405,7 +418,10 @@
       add(t, inBook && klass === "STOCK" ? "STOCK" : klass, r.industry || r.sector, r);
     });
     CURATED.forEach(function (c) { add(c[0], c[1], c[2], byTicker[c[0]] || byTicker[c[0].replace("-USD", "")]); });
-    Object.keys(CRYPTO_LINKED).forEach(function (t) { add(t, "STOCK", "Crypto treasury", byTicker[t]); });
+    Object.keys(CRYPTO_LINKED).forEach(function (t) {
+      var c = CRYPTO_LINKED[t];
+      add(t, c.asset || "STOCK", c.kind, byTicker[t]);
+    });
     rows.sort(function (a, b) { return (a.vs250 == null ? 0 : a.vs250) - (b.vs250 == null ? 0 : b.vs250); });
     var deep = rows.filter(function (r) { return r.assetClass === "STOCK"; }).slice(0, 60);
     var vehicles = rows.filter(function (r) { return r.assetClass !== "STOCK"; }).slice(0, 30);
@@ -422,7 +438,7 @@
     }
     function turnText(name, t) {
       if (!t) return "No " + name + " bars.";
-      return name + " is " + (t.off * 100).toFixed(0) + "% off its 6-month low, " + t.age + " sessions later. A fresh turn is a 12% bounce within 30 sessions. In 2026 ether bottomed June 6, Strategy June 26, Bitmine June 30, bitcoin July 1. Over 12 bitcoin turns since 2015, Strategy did not reliably bottom there, and the next 63 sessions were worse than an ordinary Strategy day.";
+      return name + " is " + (t.off * 100).toFixed(0) + "% off its 6-month low, " + t.age + " sessions later. A fresh turn is a 12% bounce within 30 sessions. Scored only on bitcoin treasuries, ether treasuries, and altcoin ETFs. Not on miners, and not on any other stock. In 2026 ether bottomed June 6, Strategy June 26, Bitmine June 30, bitcoin July 1.";
     }
     function ratioText(label, t, research) {
       if (!t) return "No " + label + " bars.";
@@ -466,7 +482,7 @@
         "Cheap: PEG under 1, or P/E and P/S under the industry",
         "Industry ETF under, at, or just through its 200-day",
         "ETF inflows, institutions, smart money",
-        "ETH or BTC turned while this is still on its low",
+        "ETH or BTC turned, only on bitcoin treasuries, ether treasuries, and altcoin ETFs",
         "Below the 300-day", "Double bottom", "Marked bottom or end of accumulation",
         "Booming industry or other catalyst", "Momentum turning up"
       ].map(function (label, n) { return "<li><b>" + (n + 1) + "</b> " + esc(label) + "</li>"; }).join("") +
@@ -538,12 +554,12 @@
     return { on: age >= 3 && age <= 30 && off >= 0.12 && d[i].close > sma, age: age, off: off };
   }
   function cryptoNoteFor(eth, btc, nearLow, linked) {
-    if (!linked) return "Not a bitcoin or ether treasury. This box is only for Strategy, BMNR and the miners.";
+    if (!linked) return "";
     function one(name, t) {
       if (!t) return name + " unavailable";
       return name + " is " + (t.off * 100).toFixed(0) + "% off its 6-month low, " + t.age + " sessions ago" + (t.on ? ", and the turn is fresh" : "");
     }
-    return one("Ether", eth) + ". " + one("Bitcoin", btc) + ". " + (nearLow ? "This stock is still within 10% of its own 63-day low." : "This stock has already left its low, so the early window is shut.") + " Across 12 bitcoin turns since 2015, Strategy's next 63 sessions were worse than an ordinary Strategy day, and the stock's low lined up only 5 of 11 times. The 2026 case did lead: ether's low was June 6, Strategy's June 26, Bitmine's June 30, bitcoin's July 1.";
+    return one("Ether", eth) + ". " + one("Bitcoin", btc) + ". " + (nearLow ? "This name is still within 10% of its own 63-day low." : "This name has already left its low, so the early window is shut.") + " This box is only for bitcoin treasuries, ether treasuries, and altcoin ETFs. In 2026 ether's low was June 6, Strategy's June 26, Bitmine's June 30, bitcoin's July 1. It is not applied to any other stock.";
   }
   function ratioTurn(a, b) {
     if (!a || !b || a.length < 80 || b.length < 80) return null;
@@ -623,7 +639,7 @@
           rows: scored.filter(function (r) { return SECTORS.indexOf(r.ticker) < 0 || r.scored.sniper || (r.scored.passed || 0) >= 8; }),
           failed: failed,
           market: marketState(barCache),
-          note: "Every criterion is listed above and again on each name. A box is checked only when that test passes. Missing flow data stays open. The ether and bitcoin line is an early flag for Strategy, BMNR and the miners, not a pass for every stock."
+          note: "Every criterion is listed above. The ether and bitcoin box is scored only on bitcoin treasuries, ether treasuries, and altcoin ETFs. It is not a box on any other stock. A box is checked only when that test passes. Missing flow data stays open."
         };
       });
     });
