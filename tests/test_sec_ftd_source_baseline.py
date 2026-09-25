@@ -41,6 +41,16 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             sec.advertised_archives(body, '2026-09-25', 3)
 
+    def test_published_other_directory_is_preserved_and_ambiguous_period_is_rejected(self):
+        alternate = URL.replace('/data/', '/data/other/')
+        first = alternate.replace('b.zip', 'a.zip')
+        html = ''.join('<a href="' + url + '">archive</a>' for url in (first, alternate)).encode()
+        self.assertEqual(sec.advertised_archives(html, '2026-09-25'), [alternate, first])
+        with self.assertRaisesRegex(ValueError, 'gaps'):
+            sec.advertised_archives(html + ('<a href="' + URL + '">ambiguous</a>').encode(), '2026-09-25')
+        with self.assertRaises(ValueError):
+            sec.archive_period(URL.replace('/data/', '/data/arbitrary/'))
+
     def test_whole_records_keep_leading_zero_cusip_missing_price_and_source_line(self):
         records = sec.rows(TEXT, URL, '2026-09-25')
         self.assertEqual(records[0]['cusip'], '001234567')

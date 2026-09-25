@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 
 INDEX = 'https://www.sec.gov/data-research/sec-markets-data/fails-deliver-data'
 FIELDS = ('SETTLEMENT DATE', 'CUSIP', 'SYMBOL', 'QUANTITY (FAILS)', 'DESCRIPTION', 'PRICE')
-ZIP_PATTERN = r'https://www\.sec\.gov/files/data/fails-deliver-data/cnsfails(20[0-9]{2})(0[1-9]|1[0-2])([ab])\.zip'
+ZIP_PATTERN = r'https://www\.sec\.gov/files/data/(?:other/)?fails-deliver-data/cnsfails(20[0-9]{2})(0[1-9]|1[0-2])([ab])\.zip'
 MAX_ZIP, MAX_TEXT = 8 * 1024 * 1024, 32 * 1024 * 1024
 
 
