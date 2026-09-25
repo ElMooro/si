@@ -180,7 +180,10 @@
     return out;
   }
 
+  window.__jhCampLayer = { bottom: 0, accum: 0 };
   window.jhCampaignMarks = function (d, sym, tf, kind) {
+    var layer = window.__jhCampLayer || {};
+    if (!layer.bottom && !layer.accum) return [];
     ensureBoard();
     if (!d || d.length < 8) return [];
     var key = bare(sym) || String(sym || "");
@@ -192,7 +195,28 @@
       marks = project(dailySaved[key], d);
     }
     var hv = fromHarvest(d, sym);
-    return hv.concat(marks);
+    var all = hv.concat(marks);
+    var out = [], i, m;
+    for (i = 0; i < all.length; i++) {
+      m = all[i];
+      if (!m) continue;
+      if (m.text === "ACCUM") { if (layer.accum) out.push(m); }
+      else if (layer.bottom) out.push(m);
+    }
+    return out;
+  };
+  window.jhCampToggle = function (which) {
+    var layer = window.__jhCampLayer;
+    if (!layer || (which !== "bottom" && which !== "accum")) return;
+    layer[which] = layer[which] ? 0 : 1;
+    var el = document.getElementById(which === "bottom" ? "btn-bot" : "btn-acc");
+    if (el) {
+      if (layer[which]) el.classList.add("on");
+      else el.classList.remove("on");
+    }
+    if (window.paint && window.lastBars && window.lastBars.length) {
+      try { window.paint(window.lastBars); } catch (e) {}
+    }
   };
   window.__jhCampaignBoardIndex = indexBoard;
 })();
