@@ -3,7 +3,7 @@ from unittest.mock import Mock, MagicMock, patch
 import copy, sys, time, unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / p) for p in ('aws/ops/checks', 'aws/ops/staged', 'tests')]
-import ops_6064_sec_reported_settlement_history as audit
+import ops_6066_sec_complete_observed_history as audit
 from test_sec_ftd_source_baseline import zipped, TEXT
 from test_option_flow_store import S3
 STAMP = '2026-09-25T07:00:00+00:00'

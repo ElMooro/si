@@ -108,7 +108,7 @@ def rows(body, url, cutoff):
             raise ValueError(f'Future settlement at line {line_number}')
         if day.year != year or day.month != month:
             raise ValueError(f'Settlement outside advertised month at line {line_number}')
-        if not re.fullmatch(r'[A-Z0-9*@#]{9}', cusip) or not symbol or len(symbol) > 10 or not description:
+        if not re.fullmatch(r'[A-Z0-9*@#]{9}', cusip) or len(symbol) > 10 or not description:
             raise ValueError(f'Invalid exact reported identity at line {line_number}')
         if not re.fullmatch(r'\d+', quantity):
             raise ValueError(f'Invalid fail-balance quantity at line {line_number}')
@@ -150,6 +150,7 @@ def inventory(raw, url, cutoff):
             'symbols_with_multiple_cusips': sum(len(v) > 1 for v in symbols.values()),
             'cusips_with_multiple_reported_labels': sum(len(v) > 1 for v in cusips.values()),
             'missing_previous_day_prices': sum(r['previous_day_reported_price'] is None for r in records),
+            'missing_reported_symbols': sum(not r['symbol'] for r in records),
             'reported_zero_balances': sum(int(r['fail_balance_shares']) == 0 for r in records),
             'quantity_definition': 'aggregate_net_outstanding_fail_balance_on_settlement_date',
             'price_currency_explicit_in_file': False, 'price_observation_date_explicit_in_file': False,

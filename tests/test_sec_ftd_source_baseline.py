@@ -109,6 +109,16 @@ class Tests(unittest.TestCase):
         self.assertFalse(value['archive_scope']['fixed_half_month_day_boundary_assumed'])
         self.assertTrue(value['control_totals']['quantity_checksum_matches'])
 
+    def test_blank_reported_symbol_keeps_the_cusip_and_balance_without_fabrication(self):
+        body = TEXT.replace(b'001234567|ABC|123|Reported class', b'001234567||123|CNS INELIGIBLE SECURITY')
+        rows = sec.rows(body, URL, '2026-09-25')
+        self.assertEqual(rows[0]['symbol'], '')
+        self.assertEqual(rows[0]['cusip'], '001234567')
+        self.assertEqual(rows[0]['fail_balance_shares'], '123')
+        value = sec.inventory(zipped(body), URL, '2026-09-25')
+        self.assertEqual(value['missing_reported_symbols'], 1)
+        self.assertTrue(value['control_totals']['quantity_checksum_matches'])
+
     def test_zip_integrity_member_count_and_path_are_checked_without_extraction(self):
         for data in (zipped(name='../escape.txt'), zipped(extra=('extra.txt', b'x')), zipped()[:-30]):
             with self.assertRaises((ValueError, zipfile.BadZipFile)):
