@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import Mock,patch
 import json,sys,unittest
 ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT/'aws/ops/staged'),str(ROOT/'tests'),str(ROOT/'aws/shared')]
-import ops_6045_offexchange_native_acceptance as op
+import ops_6047_offexchange_alias_aware_acceptance as op
 from test_offexchange_producer import Transport,FixedDateTime
 from test_option_flow_store import S3
 from test_offexchange_native_handler import packet
