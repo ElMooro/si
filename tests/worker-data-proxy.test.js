@@ -115,6 +115,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
     calls.push({url:String(url),opts});return Response.json({commit:'newly-published'});
   };
   for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
+      'data/liquidity-flow.json','liquidity-flow.json',
       'data/eurodollar-plumbing.json','eurodollar-plumbing.json','data/funding-research-verification.json',
       'data/yen-carry.json','yen-carry.json','data/yen-research-verification.json',
       'data/carry-surface.json','carry-surface.json','data/carry-research-verification.json',

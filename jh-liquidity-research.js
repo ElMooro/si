@@ -59,9 +59,16 @@
     if (typeof key === 'string' && /^data\/liquidity-flow-research\/runs\/[a-f0-9]{64}\.json$/.test(key)) link(links, 'Reproduction record', '/'+key+'?exact=1&nogen=1');
     link(links, 'Settlement-fails definitions', '/fails.html'); host.appendChild(links);
   }
+  function unavailable() {
+      host.replaceChildren(node('h2','US net-liquidity source calculation'),node('p','The source calculation is not available. No current liquidity amount or directional conclusion is inferred.','lr-status'));
+  }
+  function display(packet) {
+    try { render(packet); } catch (_) { unavailable(); return; }
+    // A page left open must not keep a fresh label after its source expires.
+    // Re-evaluate the same retained snapshot without triggering acquisition.
+    setTimeout(() => display(packet), 60000);
+  }
   fetch('/data/liquidity-flow.json?exact=1&nogen=1', {cache:'no-store',credentials:'omit'})
     .then(response => { if (!response.ok) throw Error('Source unavailable'); return response.json(); })
-    .then(render).catch(() => {
-      host.replaceChildren(node('h2','US net-liquidity source calculation'),node('p','The source calculation is not available. No current liquidity amount or directional conclusion is inferred.','lr-status'));
-    });
+    .then(display).catch(unavailable);
 })();

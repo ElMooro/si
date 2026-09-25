@@ -139,7 +139,9 @@ class Tests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('liquidity_native_handler_test', path)
         module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         with patch.object(module, 'run', return_value={'published': True}) as runner, patch.object(module.boto3, 'client', return_value=self.client):
-            self.assertEqual(module.lambda_handler({'send_telegram': True, 'portfolio': True, 'invoke': True}, None)['statusCode'], 200)
+            response = module.lambda_handler({'send_telegram': True, 'portfolio': True, 'invoke': True}, None)
+            self.assertEqual(response['statusCode'], 200)
+            self.assertEqual(json.loads(response['body']), {'engine_contract': model.CONTRACT, 'packet_key': model.CURRENT, 'published': True})
         runner.assert_called_once_with(self.client, module.S3_BUCKET)
 
 

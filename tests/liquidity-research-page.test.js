@@ -21,11 +21,11 @@ function fixture(){
   last_reconstructed_snapshot:{valuation_date:'2026-09-25',legs},comparisons,replay:{manifest_key:'data/liquidity-flow-research/runs/'+'a'.repeat(64)+'.json'}};
 }
 async function render(packet, fail=false){
- const host=new Element('section'), requests=[];
- class Clock extends Date{static now(){return Date.parse('2026-09-25T20:00:00Z');}}
- const context={Date:Clock,document:{getElementById:()=>host,createElement:tag=>new Element(tag)},fetch:async(url,options)=>{
+ const host=new Element('section'), requests=[], timers=[];let now=Date.parse('2026-09-25T20:00:00Z');
+ class Clock extends Date{static now(){return now;}}
+ const context={Date:Clock,setTimeout:(callback,delay)=>timers.push({callback,delay}),document:{getElementById:()=>host,createElement:tag=>new Element(tag)},fetch:async(url,options)=>{
   requests.push({url,options});return {ok:!fail,json:async()=>packet};}};
- vm.createContext(context);vm.runInContext(code,context);await new Promise(resolve=>setImmediate(resolve));return {host,requests};
+ vm.createContext(context);vm.runInContext(code,context);await new Promise(resolve=>setImmediate(resolve));return {host,requests,timers,advance:hours=>{now+=hours*3600000;}};
 }
 function all(node){return [node,...node.children.flatMap(all)];}
 test('native desk separates observations, measurement bases and signed contributions',async()=>{
@@ -45,6 +45,11 @@ test('legacy and unavailable data never masquerade as the native calculation',as
  for(const [packet,fail] of [[{},false],[fixture(),true],[{...fixture(),sizing_eligible:true},false]]){
   const {host}=await render(packet,fail);assert.match(host.textContent,/not available/);assert(!host.textContent.includes('$'));
  }
+});
+test('an open page expires its freshness label without another acquisition request',async()=>{
+ const view=await render(fixture());assert.equal(view.timers[0].delay,60000);
+ view.advance(24);view.timers[0].callback();assert.match(view.host.textContent,/Current value unavailable/);
+ assert.equal(view.requests.length,1);assert.match(view.host.textContent,/2026-09-23/);
 });
 test('source text remains text and arbitrary manifest paths never become links',async()=>{
  const p=fixture();p.series.WALCL.measurement_basis='<img onerror=alert(1)>';p.replay.manifest_key='https://example.com/private';
