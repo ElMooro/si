@@ -13,6 +13,7 @@ from ops_5975_etf_constituent_source_preflight import runtime
 from ops_5998_option_population_retained_acceptance import denied_with_retry
 from ops_5966_sector_tilt_runtime_diagnosis import parse_runtime
 from shared_dependents import dependents
+from release_package_evidence import check_packages
 import ops_6042_offexchange_reported_issue_capture as audit
 import offexchange_research_model as model
 import offexchange_research_store as store
@@ -118,6 +119,9 @@ def main():
         for name in dependents(ROOT,SHARED):
             if name==FUNCTION:continue
             consumers[name]=runtime(lam,s3,events,scheduler,name);assert consumers[name]['receipt']=={'status':'matched','commit':commit},name
+        alias_packages=check_packages(lam,ROOT,['justhodl-katlin'])
+        assert len(alias_packages)==1 and alias_packages[0]['pass'] and alias_packages[0]['qualifier']=='live'
+        assert alias_packages[0]['code_sha256']==consumers['justhodl-katlin']['code_sha256'],'Active alias must carry the same qualified package'
         build=json.loads(public('build-manifest.json')[0]);pages_commit=build['commit_sha']
         subprocess.run(['git','merge-base','--is-ancestor',commit,pages_commit],cwd=ROOT,check=True)
         subprocess.run(['git','diff','--quiet','HEAD',pages_commit,'--',*ASSETS],cwd=ROOT,check=True)
@@ -147,7 +151,7 @@ def main():
         with ThreadPoolExecutor(max_workers=4) as pool:
             for _ in pool.map(deny,sorted(protected)):pass
         assert runtime(lam,s3,events,scheduler,FUNCTION)==actual
-        proof={'contract':'offexchange-native-acceptance.v1','generated_at':producer.now(),'commit':commit,'runtime_package':actual,'consumer_runtime_packages':consumers,
+        proof={'contract':'offexchange-native-acceptance.v1','generated_at':producer.now(),'commit':commit,'runtime_package':actual,'consumer_runtime_packages':consumers,'active_alias_packages':alias_packages,
             'request':request,'execution_profile':execution,'qualified_candidate':CANDIDATE,
             'publication':{'key':model.CURRENT,'sha256':model.sha(raw),'bytes':len(raw),'replay':packet['replay'],'generated_at':packet['generated_at']},
             'source_original_replay_matches':True,'complete_predecessor_retained':True,'arithmetic_independently_checked':True,
