@@ -7,21 +7,21 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/lambdas/justhodl-risk-gate/source')]
 from risk_gate_research_store import COMPILERS
+from risk_gate_research_inputs import restore
+import risk_gate_research_inputs
 from risk_gate_research_model import build,digest,SERIES
 from replay_report_research import replay as macro_replay,read_public
 from replay_ciss_research import replay as ciss_replay
 
 
 def replay(manifest,read=read_public):
-    if manifest.get('contract')!='risk-gate-replay.v1':raise ValueError('unsupported Risk Gate replay')
-    for module in COMPILERS:
+    if manifest.get('contract') not in ('risk-gate-replay.v1','risk-gate-replay.v2'):raise ValueError('unsupported Risk Gate replay')
+    modules=(*COMPILERS,risk_gate_research_inputs) if manifest['contract']=='risk-gate-replay.v2' else COMPILERS
+    for module in modules:
         body=Path(module.__file__).read_bytes();ref=manifest['compilers'][module.__name__]
         if hashlib.sha256(body).hexdigest()!=ref['sha256'] or read(ref['key'])!=body:
             raise ValueError('reviewed/retained compiler differs; use matching release checkout')
-    raw=read(manifest['input']['key'])
-    if len(raw)!=manifest['input']['bytes'] or hashlib.sha256(raw).hexdigest()!=manifest['input']['sha256']:
-        raise ValueError('retained Risk Gate input differs')
-    inputs=json.loads(raw);source=inputs['macro'];ref=source['replay']
+    inputs=restore(manifest,read);source=inputs['macro'];ref=source['replay']
     if ref!=manifest['upstream_replay']:raise ValueError('upstream reference differs')
     upstream=json.loads(read(ref['manifest_key']))
     if ref['manifest_key']!='data/report-research/runs/'+digest(upstream)+'.json':raise ValueError('macro run identity differs')

@@ -17,6 +17,7 @@ import donor_contract
 from evidence_store import read_verified
 import risk_gate_research_model
 import risk_gate_research_catalog
+import risk_gate_research_inputs as research_inputs
 from risk_gate_research_model import build,digest,encoded,clock
 
 CURRENT='data/risk-gate.json'
@@ -83,21 +84,25 @@ def run(client,bucket,validation_only=False):
     fleet={key:optional(client,bucket,key) for key in FLEET_KEYS}
     stamp=datetime.now(timezone.utc).isoformat()
     output=build(source,ciss,fleet,observed,stamp)
+    input_ref,input_objects=research_inputs.prepare(source,ciss,fleet)
     if validation_only:return {'validation_only':True,'status':'REPLAYABLE_RESEARCH','schema_version':output['schema_version'],'quality':output['quality'],'artifact_size_bytes':len(encoded(output))}
-    inputs={'macro':source,'ciss':ciss,'fleet':fleet}
-    raw=encoded(inputs);key=PREFIX+'inputs/'+digest(inputs)+'.json'
-    immutable(client,bucket,key,raw)
+    for key,raw in input_objects.items():immutable(client,bucket,key,raw)
+    del input_objects,raw
     compilers={}
-    for module in COMPILERS:
+    for module in (*COMPILERS,research_inputs):
         body=Path(module.__file__).read_bytes();sha=hashlib.sha256(body).hexdigest();path=PREFIX+'compilers/'+sha+'.py'
         immutable(client,bucket,path,body,'text/plain');compilers[module.__name__]={'key':path,'sha256':sha}
-    manifest={'contract':'risk-gate-replay.v1','generated_at':stamp,
-        'input':{'key':key,'sha256':digest(inputs),'bytes':len(raw)},'compilers':compilers,
+    manifest={'contract':'risk-gate-replay.v2','generated_at':stamp,
+        'input':input_ref,'compilers':compilers,
         'upstream_replay':source['replay'],'output_sha256':digest(output),
         'scope':output['scope']}
     run_key=PREFIX+'runs/'+digest(manifest)+'.json'
     immutable(client,bucket,run_key,encoded(manifest))
-    retained=read(client,bucket,key)[0]
+    def read_input(key):
+        raw=client.get_object(Bucket=bucket,Key=key)['Body'].read(MAX_BYTES+1)
+        if len(raw)>MAX_BYTES:raise ValueError('research object exceeds bound')
+        return raw
+    retained=research_inputs.restore(manifest,read_input)
     if digest(build(retained['macro'],retained['ciss'],retained['fleet'],observed,stamp))!=manifest['output_sha256']:
         raise ValueError('retained Risk Gate replay differs')
     output['replay']={'manifest_key':run_key,'output_sha256':manifest['output_sha256'],'compilers':compilers}

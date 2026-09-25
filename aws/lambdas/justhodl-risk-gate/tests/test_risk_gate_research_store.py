@@ -11,6 +11,7 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[4]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/shared/tests'),str(Path(__file__).resolve().parents[1]/'source')]
 import risk_gate_research_store as store
+import risk_gate_research_inputs as inputs
 from test_risk_gate_research_model import fixture
 from report_observations import build as macro_build,encoded,digest
 from evidence_store import capture
@@ -64,6 +65,84 @@ def prepared():
 
 
 class Tests(unittest.TestCase):
+    def test_complete_population_over_32_mib_publishes_and_publicly_replays(self):
+        # Production failed after writing its combined input, then reading it
+        # back through a 32 MiB per-object bound. Keep the real boundary here.
+        client,source,original=prepared()
+        fleet={key:{'generated_at':NOW.isoformat(),'complete_history':'x'*(17*1024*1024)}
+               for key in store.FLEET_KEYS[:2]}
+        for key,value in fleet.items():client.put_object(Bucket='fixture',Key=key,Body=encoded(value))
+        self.assertGreater(len(encoded({'macro':source,'ciss':None,'fleet':fleet})),store.MAX_BYTES)
+        with patch.object(store,'datetime',Frozen):result=store.run(client,'fixture')
+        self.assertTrue(result['published'])
+        packet=json.loads(client.objects[store.CURRENT][0])
+        manifest=json.loads(client.objects[packet['replay']['manifest_key']][0])
+        self.assertEqual(manifest['contract'],'risk-gate-replay.v2')
+        def read(key):
+            raw=client.objects[key][0]
+            self.assertLessEqual(len(raw),store.MAX_BYTES)
+            return gzip.decompress(raw) if key.endswith('.gz') else raw
+        restored=inputs.restore(manifest,read)
+        self.assertEqual(restored['macro'],source)
+        self.assertEqual(len(restored['fleet']),len(store.FLEET_KEYS))
+        for key,value in fleet.items():self.assertEqual(restored['fleet'][key],value)
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from replay_risk_gate_research import replay
+        self.assertEqual(replay(manifest,read),{k:v for k,v in packet.items() if k!='replay'})
+
+    def test_legacy_combined_replay_remains_supported(self):
+        client,source,original=prepared()
+        with patch.object(store,'datetime',Frozen):store.run(client,'fixture')
+        packet=json.loads(client.objects[store.CURRENT][0])
+        manifest=json.loads(client.objects[packet['replay']['manifest_key']][0])
+        def read(key):
+            raw=client.objects[key][0]
+            return gzip.decompress(raw) if key.endswith('.gz') else raw
+        combined=encoded(inputs.restore(manifest,read));ref=inputs.reference(combined)
+        client.objects[ref['key']]=(combined,{})
+        legacy={**manifest,'contract':'risk-gate-replay.v1','input':ref}
+        legacy['compilers'].pop('risk_gate_research_inputs')
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from replay_risk_gate_research import replay
+        self.assertEqual(replay(legacy,read),{k:v for k,v in packet.items() if k!='replay'})
+
+    def test_bad_component_cannot_replace_current(self):
+        client,source,original=prepared();old=encoded({'generated_at':'2020-01-01T00:00:00Z'})
+        client.put_object(Bucket='fixture',Key=store.CURRENT,Body=old)
+        original_immutable=store.immutable
+        def corrupt_after_write(client,bucket,key,raw,kind='application/json'):
+            original_immutable(client,bucket,key,raw,kind)
+            if key.startswith(inputs.PREFIX) and raw==b'null':client.objects[key]=(b'nope',{})
+        with patch.object(store,'datetime',Frozen),patch.object(store,'immutable',corrupt_after_write),self.assertRaises(ValueError):
+            store.run(client,'fixture')
+        self.assertEqual(client.objects[store.CURRENT][0],old)
+
+    def test_index_rejects_unsafe_and_oversized_refs_before_fetch(self):
+        from copy import deepcopy
+        ref,objects=inputs.prepare({'whole':[1,2]},None,{'data/air-cargo.json':{'rows':[3]}})
+        index=json.loads(objects[ref['key']])
+        for kind in ('unsafe','oversized','bool_count','bad_hash','excess_total'):
+            bad=deepcopy(index)
+            if kind=='unsafe':bad['macro']['key']='audit-private/secret.json'
+            elif kind=='oversized':bad['macro']['bytes']=inputs.OBJECT_LIMIT+1
+            elif kind=='bool_count':bad['macro']['bytes']=True
+            elif kind=='bad_hash':bad['macro']['sha256']='0'*64
+            else:
+                for item in (bad['macro'],bad['ciss'],*bad['fleet'].values()):item['bytes']=inputs.OBJECT_LIMIT
+                bad['fleet']['data/test-a.json']=dict(bad['macro'])
+                bad['fleet']['data/test-b.json']=dict(bad['macro'])
+            body=encoded(bad);badref=inputs.reference(body);reads=[]
+            def read(key):reads.append(key);return body
+            with self.subTest(kind=kind),self.assertRaises(ValueError):
+                inputs.restore({'contract':'risk-gate-replay.v2','input':badref},read)
+            self.assertEqual(reads,[badref['key']])
+
+    def test_validation_checks_input_bounds_without_writes(self):
+        client,source,original=prepared();before=dict(client.objects)
+        with patch.object(store,'datetime',Frozen),patch.object(inputs,'TOTAL_LIMIT',1),self.assertRaises(ValueError):
+            store.run(client,'fixture',validation_only=True)
+        self.assertEqual(client.objects,before)
+
     def test_run_preserves_legacy_and_reproduces_exactly_from_original_bytes(self):
         client,source,original=prepared();old=encoded({'generated_at':'2020-01-01T00:00:00Z','target_allocation':['legacy']})
         client.put_object(Bucket='fixture',Key=store.CURRENT,Body=old)
