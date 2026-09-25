@@ -1,0 +1,124 @@
+{
+  "base_commit": "30d82203414c8a7a9929ef32eab28d679b602fbf",
+  "archives": {
+    "ai-rerating-radar": {
+      "source": "aws/lambdas/justhodl-ai-rerating-radar/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-ai-rerating-radar.txt",
+      "bytes": 35227,
+      "sha256": "f077018e3a89f8818abb1cc65e4105643557cf99b92541a9497db174af8e759c"
+    },
+    "best-setups": {
+      "source": "aws/lambdas/justhodl-best-setups/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-best-setups.txt",
+      "bytes": 95242,
+      "sha256": "167d81da9455152f88cc97184023cae5b910e95e7c29c901e105b4adadc1a3ab"
+    },
+    "equity-confluence": {
+      "source": "aws/lambdas/justhodl-equity-confluence/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-equity-confluence.txt",
+      "bytes": 15966,
+      "sha256": "9ea0e6b02216b47e24d4c47966e08c37c8ba46a348acf5038a6fd0d92ac3ed12"
+    },
+    "master-ranker": {
+      "source": "aws/lambdas/justhodl-master-ranker/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-master-ranker.txt",
+      "bytes": 81343,
+      "sha256": "63c3f59732ffaa40fa0582440c87304e8549e25b8a6ffe983056f1247b086002"
+    },
+    "signal-fabric": {
+      "source": "aws/lambdas/justhodl-signal-fabric/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-signal-fabric.txt",
+      "bytes": 20331,
+      "sha256": "bb2b5e3cb64b6820d63ee063463a8a5680f76541fb3d511926644fd8d75cc22c"
+    },
+    "short-book": {
+      "source": "aws/lambdas/justhodl-short-book/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-short-book.txt",
+      "bytes": 10425,
+      "sha256": "a5dc63aea411a05112f4c4a9cbdeecb1b35f2c2dec61df9c16699a9781f5c045"
+    },
+    "native": {
+      "source": "aws/lambdas/justhodl-squeeze-fuel/source/lambda_function.py",
+      "file": "tests/fixtures/legacy-sec-ftd-native.txt",
+      "bytes": 25637,
+      "sha256": "aa451a786960f765c53c8abd0b8721154f38d87c24512bf068c4eaa11d856f3c"
+    },
+    "native-config": {
+      "source": "aws/lambdas/justhodl-squeeze-fuel/config.json",
+      "file": "tests/fixtures/legacy-sec-ftd-native-config.txt",
+      "bytes": 889,
+      "sha256": "09e296bcff29d793acdc9f5bf323558734c5b6c4bc22d7e8420b2033b800b996"
+    },
+    "native-tests": {
+      "source": "aws/lambdas/justhodl-squeeze-fuel/tests/run_tests.py",
+      "file": "tests/fixtures/legacy-sec-ftd-native-tests.txt",
+      "bytes": 9375,
+      "sha256": "fe9efc7ad3281bb4920246fda29f3db498ed6bcd1400e815c094fab82d43fcc3"
+    },
+    "page": {
+      "source": "squeeze-fuel.html",
+      "file": "tests/fixtures/legacy-sec-ftd-page.txt",
+      "bytes": 6411,
+      "sha256": "4e3d8d54e47cb08260eb8bcf989868ef740f4136081e382518cecf2e5c78e93e"
+    },
+    "evidence-page": {
+      "source": "market-evidence.html",
+      "file": "tests/fixtures/legacy-sec-ftd-evidence-page.txt",
+      "bytes": 5004,
+      "sha256": "10bea872913f50f29fb2f13254bfc9a4f75546eebde8fc18abab2e2fa9bfda67"
+    },
+    "worker": {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/index.js",
+      "file": "tests/fixtures/legacy-sec-ftd-worker.txt",
+      "bytes": 142166,
+      "sha256": "7d9178541d6999cde43d81b1f282f35745beae02b1c6beb29768cc884661db79"
+    },
+    "previous-migration": {
+      "source": "tests/fixtures/short-interest-consumer-migration.json",
+      "file": "tests/fixtures/legacy-sec-ftd-previous-migration.txt",
+      "bytes": 9640,
+      "sha256": "4710f86ff3e8f3d5c8ca57f9dd522db63fccca2f2668c36aabaf0dbf14a9b6d4"
+    }
+  },
+  "consumers": {
+    "ai-rerating-radar": {
+      "path": "aws/lambdas/justhodl-ai-rerating-radar/source/lambda_function.py",
+      "method": "wrapped_read",
+      "reader": "_read",
+      "count": 1
+    },
+    "best-setups": {
+      "path": "aws/lambdas/justhodl-best-setups/source/lambda_function.py",
+      "method": "wrapped_read",
+      "reader": "read_json",
+      "count": 1
+    },
+    "master-ranker": {
+      "path": "aws/lambdas/justhodl-master-ranker/source/lambda_function.py",
+      "method": "wrapped_read",
+      "reader": "fetch_json",
+      "count": 1
+    },
+    "short-book": {
+      "path": "aws/lambdas/justhodl-short-book/source/lambda_function.py",
+      "method": "wrapped_read",
+      "reader": "rj",
+      "count": 1
+    },
+    "equity-confluence": {
+      "path": "aws/lambdas/justhodl-equity-confluence/source/lambda_function.py",
+      "method": "guarded_reader",
+      "function": "_read",
+      "count": 1
+    },
+    "signal-fabric": {
+      "path": "aws/lambdas/justhodl-signal-fabric/source/lambda_function.py",
+      "method": "guarded_reader",
+      "function": "rd",
+      "count": 1
+    }
+  },
+  "native": [
+    "squeeze-fuel"
+  ]
+}

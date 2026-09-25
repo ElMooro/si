@@ -1,0 +1,27 @@
+{
+  "function_name": "justhodl-squeeze-fuel",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Short-squeeze research gauge using FINRA short interest/volume, SEC settlement fails and FMP float/price. Publishes component evidence and candidates for subsequent outcome grading.",
+  "environment": {},
+  "inherit_env": [
+    {
+      "from_function": "justhodl-finra-short",
+      "keys": [
+        "FMP_KEY"
+      ]
+    }
+  ],
+  "schedule": {
+    "rule_name": "justhodl-squeeze-fuel-daily",
+    "cron": "cron(30 13 ? * TUE-SAT *)",
+    "description": "Daily 13:30 UTC Tue-Sat — after finra-short daily refresh; picks up new bi-monthly SI + semi-monthly FTD as they publish"
+  }
+}

@@ -316,7 +316,7 @@ def lambda_handler(event, context):
     except Exception as _e:
         _wlf, _wl_ctx, _wl_mult, _wl_audit = {}, None, 1.0, []
         print(f"[best-setups] fusion skipped: {str(_e)[:80]}")
-    _sqf = __import__("sec_ftd_context").decision_view(read_json("data/squeeze-fuel.json")) or {}
+    _sqf = read_json("data/squeeze-fuel.json") or {}
     _sq_idx = {}
     _sq_rows = (_sqf.get("board") or _sqf.get("rows")
                 or _sqf.get("items") or [])

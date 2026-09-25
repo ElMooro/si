@@ -191,8 +191,8 @@ PAGE = {"short-interest": "/short-interest.html",
 
 def rd(key):
     try:
-        return __import__("sec_ftd_context").guard(key, json.loads(s3.get_object(Bucket=B, Key=key)
-                          ["Body"].read()))
+        return json.loads(s3.get_object(Bucket=B, Key=key)
+                          ["Body"].read())
     except Exception:
         return None
 

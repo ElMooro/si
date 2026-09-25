@@ -1408,7 +1408,7 @@ def lambda_handler(event, context):
                   ) if _c and isinstance(_c[0], dict) else (
                   str(_c[0]) if _c else "")
         _kill_idx[_tk] = (_first or _t.get("risk") or "")[:160]
-    _sqf = __import__("sec_ftd_context").decision_view(fetch_json("data/squeeze-fuel.json")) or {}
+    _sqf = fetch_json("data/squeeze-fuel.json") or {}
     _sqf_idx = {(r.get("ticker") or "").upper():
                 {"score": r.get("score"), "state": r.get("state")}
                 for r in (_sqf.get("board") or []) if r.get("ticker")}

@@ -181,7 +181,7 @@ def lambda_handler(event, context):
     _arwalk(ar)
 
     # ops 3415 (#2): squeeze guard — never short your own squeeze cockpit
-    sq = __import__("sec_ftd_context").decision_view(rj("data/squeeze-fuel.json"))
+    sq = rj("data/squeeze-fuel.json")
     sq_map = {}
 
     def _sqwalk(o):

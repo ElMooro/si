@@ -212,6 +212,11 @@
       "reader": "fs3",
       "count": 1
     },
+    "squeeze-fuel": {
+      "method": "wrapped_read",
+      "reader": "donor_docs.get",
+      "count": 1
+    },
     "trade-tickets": {
       "method": "wrapped_read",
       "reader": "donor_docs.get",
@@ -250,13 +255,5 @@
   },
   "native": [
     "short-interest"
-  ],
-  "retired_consumers": {
-    "squeeze-fuel": {
-      "method": "wrapped_read",
-      "reader": "donor_docs.get",
-      "count": 1,
-      "reason": "Replaced with independent original SEC research; no FINRA donor is read."
-    }
-  }
+  ]
 }

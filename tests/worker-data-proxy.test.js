@@ -671,3 +671,13 @@ test('FX original publication and retired regime alias bypass edge caches',async
   assert.equal(r.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');
  }
 });
+
+test('SEC current settlement research bypasses mutable caches for GET HEAD and Range',async()=>{
+ const {env}=fresh(),w=await worker(),calls=[];
+ globalThis.caches={default:{async match(){throw Error('SEC head must bypass cache')},async put(){throw Error('SEC head cannot be cached')}}};
+ globalThis.fetch=async(url,opts)=>{calls.push({url:String(url),opts});return Response.json({contract:'sec-ftd-original-research.v1'});};
+ for(const options of [{method:'GET'},{method:'HEAD'},{headers:{Range:'bytes=0-127'}}]){
+  const response=await w.fetch(req('/data/squeeze-fuel.json',options),env,{waitUntil(){}});
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.equal(calls.at(-1).opts.cache,'no-store');
+ }
+});

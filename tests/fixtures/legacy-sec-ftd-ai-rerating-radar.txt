@@ -317,7 +317,7 @@ def lambda_handler(event, context):
          (__import__("short_volume_context").decision_view(_read("data/finra-short.json")) or {}).get(
              "squeeze_candidates"), "symbol", "squeeze_score"),
         ("data/squeeze-fuel.json",
-         (__import__("sec_ftd_context").decision_view(_read("data/squeeze-fuel.json")) or {}).get("rows"),
+         (_read("data/squeeze-fuel.json") or {}).get("rows"),
          "ticker", "squeeze_score"),
         ("data/short-interest.json",
          (__import__("short_interest_context").decision_view(_read("data/short-interest.json")) or {}).get("rows"),
