@@ -45,7 +45,7 @@ def reader(client, bucket):
 
 
 def immutable(client, bucket, key, raw, private=False):
-    if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX: raise ValueError('Complete bounded bytes required')
+    if not isinstance(raw, bytes) or len(raw) > MAX or (not private and not raw): raise ValueError('Complete bounded bytes required')
     if private:
         if key != PRIVATE+sha(raw)+'.bin': raise ValueError('Exact private archive identity required')
     elif not re.fullmatch(re.escape(model.PREFIX)+r'(?:runs|inputs|outputs|compilers|snapshots)/'+sha(raw)+r'\.(?:json|py)', key):
@@ -78,7 +78,24 @@ def compile_output(inputs, read):
     macro = checked(inputs['macro'], 'snapshots', read)
     originals = canonical.restore(macro, tuple(arithmetic.SPECS), read)
     settlement = checked(inputs['settlement'], 'snapshots', read) if inputs['settlement'] else None
-    return model.build(macro, originals, settlement, inputs['generated_at'], inputs['legacy_context'], inputs['settlement'])
+    output = model.build(macro, originals, settlement, inputs['generated_at'], inputs['legacy_context'], inputs['settlement'])
+    output['pd_settlement_fails']['source_read_status'] = inputs.get('settlement_read_status', {'status': 'retained' if inputs['settlement'] else 'unavailable'})
+    return output
+
+
+def settlement_input(client, bucket, read):
+    try: raw = read(SETTLEMENT)
+    except Exception:
+        # Optional FR2004 context cannot invalidate independently verified FRED
+        # roots. Do not copy exception text, URLs or transport diagnostics.
+        return None, {'status': 'unavailable', 'reason': 'SOURCE_READ_FAILED'}
+    try: json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        key = PRIVATE+sha(raw)+'.bin'
+        immutable(client, bucket, key, raw, True)
+        return None, {'status': 'unavailable', 'reason': 'SOURCE_INVALID_JSON',
+                      'whole_original': {'key': key, 'sha256': sha(raw), 'bytes': len(raw)}}
+    return retain_bytes(client, bucket, raw, 'snapshots'), {'status': 'retained'}
 
 
 def replay(ref, read):
@@ -165,14 +182,10 @@ def run(client, bucket):
     # Authenticate originals before any publication artifact is written.
     canonical.restore(macro, tuple(arithmetic.SPECS), read)
     macro_ref = retain_bytes(client, bucket, raw, 'snapshots')
-    try:
-        raw = read(SETTLEMENT); json.loads(raw)
-        settlement_ref = retain_bytes(client, bucket, raw, 'snapshots')
-    except Exception as exc:
-        if not missing(exc): raise
-        settlement_ref = None
+    settlement_ref, settlement_status = settlement_input(client, bucket, read)
     inputs = {'contract': 'liquidity-flow-inputs.v1', 'generated_at': datetime.now(timezone.utc).isoformat(),
-        'macro': macro_ref, 'settlement': settlement_ref, 'legacy_context': previous_context(client, bucket)}
+        'macro': macro_ref, 'settlement': settlement_ref, 'settlement_read_status': settlement_status,
+        'legacy_context': previous_context(client, bucket)}
     output = compile_output(inputs, read)
     ref = retain(client, bucket, inputs, output)
     published = publish(client, bucket, {**output, 'replay': ref})

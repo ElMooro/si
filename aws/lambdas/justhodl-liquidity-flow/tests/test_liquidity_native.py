@@ -144,5 +144,24 @@ class Tests(unittest.TestCase):
             self.assertEqual(json.loads(response['body']), {'engine_contract': model.CONTRACT, 'packet_key': model.CURRENT, 'published': True})
         runner.assert_called_once_with(self.client, module.S3_BUCKET)
 
+    def test_optional_settlement_failure_cannot_erase_verified_macro_measurement(self):
+        class Clock:
+            @staticmethod
+            def now(tz): return datetime.fromisoformat(STAMP)
+        for raw in (b'', b'not JSON; complete response retained privately'):
+            client = Storage(self.objects); client.objects[store.SETTLEMENT] = raw
+            with patch.object(store, 'datetime', Clock): result = store.run(client, 'b')
+            self.assertTrue(result['published'])
+            packet = json.loads(client.objects[model.CURRENT])
+            self.assertEqual(packet['current'], self.output['current'])
+            self.assertIsNone(packet['pd_settlement_fails']['combined_bn'])
+            status = packet['pd_settlement_fails']['source_read_status']
+            self.assertEqual(status['reason'], 'SOURCE_INVALID_JSON')
+            self.assertEqual(client.objects[status['whole_original']['key']], raw)
+            self.assertTrue(cli.verify(packet, store.reader(client, 'b'))['replayed'])
+        def denied(key): raise RuntimeError('PRIVATE-CANARY transport details')
+        reference, status = store.settlement_input(self.client, 'b', denied)
+        self.assertIsNone(reference); self.assertEqual(status, {'status': 'unavailable', 'reason': 'SOURCE_READ_FAILED'})
+
 
 if __name__ == '__main__': unittest.main(verbosity=2)
