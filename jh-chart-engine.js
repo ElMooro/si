@@ -2088,7 +2088,7 @@
   }
   function dedupeTape(mk){
     if(!mk||!mk.length) return [];
-    var pri={BOTTOM:13,TOP:13,SC:13,CAPIT:12,EOA:11,EOD:11,DB:11,SPRING:11,UTAD:11,BC:10,"REV-UP":10,"REV-DN":10,"R-BRK":10,BEAT:10,MISS:10,FOMC:10,SOS:9,SOW:9,IHS:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,"mDIV↓":8,"mDIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,"DB?":6,EPS:6,WITCH:6,REBAL:5,PS:5,PSY:5,TEST:8,ND:4,NS:4,LPS:4,LPSY:4,PH:4,PL:4,HH:3,HL:3,LH:3,LL:3,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2,AUC:2,"S-B":8};
+    var pri={CLIMAX:14,ACCUM:15,BOTTOM:16,TOP:13,SC:13,CAPIT:12,EOA:11,EOD:11,DB:11,SPRING:11,UTAD:11,BC:10,"REV-UP":10,"REV-DN":10,"R-BRK":10,BEAT:10,MISS:10,FOMC:10,SOS:9,SOW:9,IHS:9,ABS:8,SV:8,UT:8,"DIV↓":8,"DIV↑":8,"mDIV↓":8,"mDIV↑":8,HB:7,HS:7,ST:6,AR:6,TRAP:6,SHK:6,hDIV:6,"DB?":6,EPS:6,WITCH:6,REBAL:5,PS:5,PSY:5,TEST:8,ND:4,NS:4,LPS:4,LPSY:4,PH:4,PL:4,HH:3,HL:3,LH:3,LL:3,ACC:3,DIST:3,"HH+HL":3,"LH+LL":3,EvR:2,"E↑noR":2,"E↓noR":2,AUC:2,"S-B":8};
     var best={};
     mk.forEach(function(m){
       if(!m||m.time==null) return;
@@ -2254,6 +2254,12 @@
               if(INDS.some(function(i){ return i.id==="ins"&&i.on&&!i.hide; }) && hv.ins) mk=mk.concat(window.jhInst.insiderMarks(display, hv.ins, active));
               if(INDS.some(function(i){ return i.id==="buyb"&&i.on&&!i.hide; }) && hv.buyb) mk=mk.concat(window.jhInst.buybackMarks(display, hv.buyb, active));
             }catch(eH){}
+          }
+          if(window.jhCampaignMarks){
+            try{
+              var campMk=window.jhCampaignMarks(display, active, tf, kind);
+              if(campMk&&campMk.length) mk=mk.concat(campMk);
+            }catch(eCamp){}
           }
           if(window.jhRsReady){
             window.jhRsReady(display).then(function(rs){
