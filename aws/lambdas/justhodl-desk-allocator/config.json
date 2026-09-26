@@ -5,15 +5,21 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 90,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Multi-strategy capital allocator - sizes the seven strategy desks by tail-aware inverse-vol risk parity (archetype skew prior shrunk toward firm-stress worst-case losses) plus a macro regime tilt, rolls up firm net beta + diversification ratio.",
   "environment": {},
-  "eventbridge_scheduler": {
+  "preserved_eventbridge_scheduler_reference": {
     "schedule_name": "justhodl-desk-allocator-daily",
     "cron": "cron(30 0 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Desk Allocator - daily 00:30 UTC via Amazon EventBridge Scheduler, after all seven strategy desks have refreshed their books. Scheduler is the go-forward path; the classic 300-rule EventBridge pool is saturated."
+  },
+  "schedule": {
+    "scheduler_name": "justhodl-desk-allocator-daily",
+    "cron": "cron(30 0 * * ? *)"
   }
 }

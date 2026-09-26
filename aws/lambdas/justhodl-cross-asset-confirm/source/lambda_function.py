@@ -399,7 +399,12 @@ def load_signal_board():
 
 
 def extract_signals_from_board(board):
-    """Extract per-engine signals from signal-board.json (schema varies)."""
+    """Only an independently qualified policy may supply confirmation inputs."""
+    return __import__("signal_board_authority").qualified_signals(board)
+
+
+def _legacy_extract_signals_from_board(board):
+    """Preserved predecessor decoder; not used by the production handler."""
     if not board or not isinstance(board, dict):
         return []
     signals = []
@@ -501,6 +506,7 @@ def lambda_handler(event=None, context=None):
             'vol': vol,
         },
         'signal_overlays': overlays,
+        'signal_board_context': __import__("signal_board_authority").context(board),
         'overlay_summary': {
             'n_signals': len(overlays),
             'n_confirmed': n_confirmed,

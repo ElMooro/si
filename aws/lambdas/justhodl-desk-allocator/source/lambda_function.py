@@ -350,7 +350,7 @@ def read_regime():
     Returns a dict with the blended risk axis in [-1, +1]: positive is
     risk-on, negative is risk-off.
     """
-    sb = get_json("data/signal-board.json")
+    sb = __import__("signal_board_authority").decision_view(get_json("data/signal-board.json"))
     cc = __import__("crisis_authority").decision_view(get_json("data/crisis-composite.json"))
 
     sb_comp = None
@@ -400,6 +400,7 @@ def read_regime():
         "label": label,
         "signal_board_posture": sb_posture,
         "signal_board_composite": sb_comp,
+        "signal_board_permission": sb['research_context'],
         "crisis_score": crisis_score,
         "defcon_level": defcon,
         "inputs_available": len(parts),

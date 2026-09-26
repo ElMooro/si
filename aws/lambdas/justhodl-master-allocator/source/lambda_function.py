@@ -252,8 +252,8 @@ def gather_signals():
                                "label": "Dollar Radar",
                                "regime": dr.get("regime")}
 
-    # Signal Board composite
-    sb = read_json("data/signal-board.json")
+    # No qualified Signal Board model; legacy aliases and self-declared flags cannot size.
+    sb = __import__("signal_board_authority").decision_view(read_json("data/signal-board.json"))
     sbv = sb.get("composite") or sb.get("composite_score")
     if isinstance(sbv, (int, float)):
         intensity = clamp((sbv - 35) / 40.0, -1.0, 1.0)

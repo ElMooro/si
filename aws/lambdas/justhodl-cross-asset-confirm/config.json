@@ -16,7 +16,8 @@
     "SIGNAL_BOARD_KEY": "data/signal-board.json",
     "TELEGRAM_CHAT_ID": "8678089260"
   },
-  "schedule": {
+  "schedule": "rate(3 hours)",
+  "preserved_schedule_reference": {
     "rule_name": "cross-asset-confirm-3h",
     "cron": "rate(3 hours)",
     "description": "CACF refresh every 3 hours (matches signal-board cadence)"

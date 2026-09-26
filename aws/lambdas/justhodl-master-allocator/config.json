@@ -13,11 +13,15 @@
   "environment": {
     "TELEGRAM_CHAT_ID": "8678089260"
   },
-  "eventbridge_scheduler": {
+  "preserved_eventbridge_scheduler_reference": {
     "schedule_name": "justhodl-master-allocator-3h",
     "cron": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Master Allocator -- every 3h. Quick re-aggregation as upstream signal engines update."
+  },
+  "schedule": {
+    "scheduler_name": "justhodl-master-allocator-3h",
+    "cron": "cron(20 0,3,6,9,12,15,18,21 * * ? *)"
   }
 }
