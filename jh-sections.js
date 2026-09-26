@@ -204,13 +204,20 @@
     els.sort(function (x, y) { return (x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1; });
     return els;
   }
+  function trappedInGrid(node) {
+    var p = node && node.parentElement;
+    if (!p) return false;
+    var display = "";
+    try { display = window.getComputedStyle(p).display || ""; } catch (e) {}
+    return /^(inline-)?(grid|flex)$/.test(display);
+  }
   function badge(el, n, key, sub) {
     // A heading can sit outside its block, and a block can contain badges
     // belonging to children. Match the owner, never the first descendant.
     var owned = el.id ? Array.from(document.querySelectorAll('.jh-secbadge[data-for="' + CSS.escape(el.id) + '"]')) : [];
     var old = owned.shift();
     owned.forEach(function (duplicate) { duplicate.remove(); });
-    if (old && old.dataset.n === String(n)) return;
+    if (old && old.dataset.n === String(n) && !trappedInGrid(old)) return;
     if (old) old.remove();
     var b = document.createElement("a");
     b.className = "jh-secbadge" + (sub ? " sub" : "");
@@ -229,7 +236,13 @@
       h.insertBefore(b, h.firstChild);
     } else {
       b.classList.add("float");
-      el.insertBefore(b, el.firstChild);
+      var display = "";
+      try { display = window.getComputedStyle(el).display || ""; } catch (e) {}
+      if (/^(inline-)?(grid|flex)$/.test(display) && el.parentNode) {
+        el.parentNode.insertBefore(b, el);
+      } else {
+        el.insertBefore(b, el.firstChild);
+      }
     }
   }
   function toast(msg) {
@@ -245,7 +258,7 @@
       ".jh-secbadge{display:inline-block;font:700 10px/1 var(--jh-mono,ui-monospace,Menlo,monospace);letter-spacing:.06em;color:var(--jh-amber,#F0B429);background:rgba(240,180,41,.10);border:1px solid rgba(240,180,41,.35);border-radius:4px;padding:3px 6px;margin:0 8px 0 0;vertical-align:middle;text-decoration:none;cursor:copy;opacity:.85;white-space:nowrap}",
       ".jh-secbadge:hover{opacity:1;background:rgba(240,180,41,.2)}",
       ".jh-secbadge.sub{font-size:9px;padding:2px 5px;opacity:.7}",
-      ".jh-secbadge.float{position:relative;z-index:5;margin:6px 0 0 6px}",
+      ".jh-secbadge.float{position:relative;z-index:5;margin:0 0 8px 0;width:max-content;height:auto}",
       "#jh-sec-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#12110C;color:#e8e2d4;border:1px solid #2B2820;border-radius:6px;padding:8px 14px;font:600 12px var(--jh-mono,monospace);opacity:0;pointer-events:none;transition:.2s;z-index:99999}",
       "#jh-sec-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}",
       "html.jh-embed,html.jh-embed body{background:transparent!important;margin:0!important;padding:0!important;min-height:0!important;overflow:hidden!important}",
