@@ -68,11 +68,8 @@ class ConsumerTests(unittest.TestCase):
         self.assertEqual(json.dumps(mappings,sort_keys=True),before)
 
     def test_signal_board_abstains_even_when_a_producer_claims_authority(self):
-        tree = ast.parse((ROOT/'aws/lambdas/justhodl-signal-board/source/lambda_function.py').read_text(encoding='utf-8'))
-        node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'n_market_internals')
-        scope = {}; exec(compile(ast.Module(body=[node], type_ignores=[]), '<reviewed normalizer>', 'exec'), scope)
-        for p in ({}, {'calls_eligible': True, 'mcclellan': {'oscillator': -200}, 'zweig_thrust': {'fired': True}}):
-            self.assertIsNone(scope['n_market_internals'](p)[0])
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/market-internals.json', ({}, {'calls_eligible': True, 'mcclellan': {'oscillator': -200}, 'zweig_thrust': {'fired': True}}))
 
     def test_dictionary_marks_old_cached_alias_as_unverified_without_a_provider_lookup(self):
         tree=ast.parse((ROOT/'aws/lambdas/justhodl-symbol-dictionary/source/lambda_function.py').read_text(encoding='utf-8'))

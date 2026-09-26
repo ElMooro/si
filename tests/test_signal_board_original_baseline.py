@@ -12,7 +12,7 @@ class Storage:
 
 class Tests(unittest.TestCase):
     def test_all_literal_registry_rows_and_duplicate_roots_remain_visible(self):
-        text=(ROOT/'aws/lambdas/justhodl-signal-board/source/lambda_function.py').read_text(encoding='utf-8')
+        text=(ROOT/'aws/lambdas/justhodl-signal-board/tests/legacy-lambda_function.py.txt').read_text(encoding='utf-8')
         rows=baseline.feeds(text)
         self.assertGreater(len(rows),90)
         self.assertEqual(len({r['engine'] for r in rows}),len(rows))
@@ -29,7 +29,7 @@ class Tests(unittest.TestCase):
             with self.assertRaises(ValueError):baseline.feeds(bad)
 
     def test_page_registry_keeps_every_native_row_and_original_page_byte(self):
-        source=(ROOT/'aws/lambdas/justhodl-signal-board/source/lambda_function.py').read_text(encoding='utf-8')
+        source=(ROOT/'aws/lambdas/justhodl-signal-board/tests/legacy-lambda_function.py.txt').read_text(encoding='utf-8')
         registry=json.loads((ROOT/'assets/signal-board-registry.json').read_bytes())
         self.assertEqual(registry['feeds'],baseline.feeds(source))
         self.assertEqual(registry['baseline_manifest'],'746cfc5ea9abc8dc933c7c1bbefc36c1adebe5db00d78c2f38cfe97031ef35d6')

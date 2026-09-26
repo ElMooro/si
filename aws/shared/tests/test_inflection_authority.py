@@ -17,22 +17,12 @@ def functions(engine,names,scope):
 
 class Tests(unittest.TestCase):
     def test_signal_board_excludes_abstention_from_denominator(self):
-        class Storage:
-            objects={}
-            def put_object(self,**kw):self.objects[kw['Key']]=json.loads(kw['Body'])
-            def get_object(self,**kw):raise KeyError('No previous posture; no event emission')
-        s3=Storage();stamp=datetime.now(timezone.utc)
-        packet={'generated_at':stamp.isoformat(),'calls_eligible':False,'usd':{'impulse_z':10},'us_money':{'z':10}}
-        scope=functions('signal-board',{'lambda_handler','n_liquidity_inflection','n_us_money','clamp'},
-            {'time':time,'datetime':datetime,'timezone':timezone,'timedelta':timedelta,'json':json,
-             's3':s3,'S3_BUCKET':'fixture','OUT_KEY':'data/signal-board.json','STALE_HOURS':48,
-             'SIG_LABEL':{1:'POSITIVE'},'guard_output':None,'read_json':lambda key:(packet,stamp)})
-        scope['FEEDS']=[('Liquidity','macro','data/liquidity-inflection.json',scope['n_liquidity_inflection']),
-                        ('M2','macro','data/liquidity-inflection.json',scope['n_us_money']),
-                        ('Qualified test vote','macro','fixture',lambda d:(1,'fixture'))]
-        result=scope['lambda_handler']({},None);self.assertEqual(result['statusCode'],200)
-        out=s3.objects['data/signal-board.json'];self.assertEqual(out['n_live'],1);self.assertEqual(out['composite_signal'],1)
-        self.assertTrue(all(row['signal'] is None for row in out['engines'][:2]))
+        import sys
+        sys.path.insert(0,str(ROOT/'tests'))
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/liquidity-inflection.json', (
+            {'calls_eligible':False,'usd':{'impulse_z':10},'us_money':{'z':10}},
+            {'calls_eligible':True,'usd':{'impulse_z':10},'us_money':{'z':10}}))
 
     def test_risk_and_ranker_drop_unqualified_legacy_score(self):
         packet={'composite':{'liquidity_score':100,'regime':'EXPANDING'},'trajectory':{'heading':'EASING AHEAD'}}

@@ -7,12 +7,8 @@ ROOT=Path(__file__).resolve().parents[1]
 def run(name):
     source=(ROOT/'aws/lambdas'/name/'source/lambda_function.py').read_text(encoding='utf-8');tree=ast.parse(source)
     if name=='justhodl-signal-board':
-        node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='n_eurodollar_plumbing')
-        scope={};exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-signal-boundary','exec'),scope)
-        fn=scope[node.name]
-        assert fn({'contract':'funding-original-research.v1','calls_eligible':False,'plumbing_health':100})[0] is None
-        assert fn({'plumbing_health':None})[0] is None
-        assert fn({'plumbing_health':0})[0]==-2
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/eurodollar-plumbing.json', ({'contract':'funding-original-research.v1','calls_eligible':False,'plumbing_health':100}, {'plumbing_health':None}, {'plumbing_health':0}, {'calls_eligible':True,'plumbing_health':100}))
     elif name=='justhodl-bond-warroom':
         nodes=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ('eurodollar_shortage','heartbeat')]
         scope={};exec(compile(ast.Module(body=nodes,type_ignores=[]),'actual-warroom-boundary','exec'),scope)

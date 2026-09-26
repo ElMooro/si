@@ -52,11 +52,8 @@ class ConsumerTests(unittest.TestCase):
             self.assertIsNone(adapter.qualified_signal(packet))
 
     def test_signal_board_abstains_even_for_claimed_extreme(self):
-        normalizer = function('justhodl-signal-board', 'n_aaii', {})
-        for packet in (self.packet, {'latest': {'bull_bear_spread': -.8, 'bearish': .9}, 'calls_eligible': True}):
-            with patch.object(adapter, 'context', return_value=adapter.context(self.packet, self.at)):
-                vote, text = normalizer(packet)
-            self.assertIsNone(vote); self.assertIn('no qualified return forecast or trade vote', text)
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/aaii-sentiment.json', (self.packet, {'latest': {'bull_bear_spread': -.8, 'bearish': .9}, 'calls_eligible': True}))
 
     def test_extreme_survey_cannot_add_points_to_every_equity(self):
         packets = [{'latest': {'bull_bear_spread': -.8}, 'extremes': {'is_bearish_extreme': True}}, self.packet]
@@ -78,7 +75,7 @@ class ConsumerTests(unittest.TestCase):
     def test_shared_helper_is_in_every_changed_consumer_package(self):
         sys.path.insert(0, str(ROOT/'aws/ops/checks'))
         from release_package_evidence import shared_imports
-        for fn in ('ai-chat','asymmetric-scorer','crisis-knowledge-base','cycle-clock','market-extremes','morning-intelligence','put-call-extreme','signal-board'):
+        for fn in ('ai-chat','asymmetric-scorer','crisis-knowledge-base','cycle-clock','market-extremes','morning-intelligence','put-call-extreme'):
             sources = list((ROOT/'aws/lambdas'/('justhodl-'+fn)/'source').glob('*.py'))
             self.assertIn('aaii_research.py', [p.name for p in shared_imports(ROOT, sources)], fn)
 
