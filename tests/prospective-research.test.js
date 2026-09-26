@@ -1,6 +1,9 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const {view,outcomeView}=require('../jh-prospective-research.js');
+const {captureMatches,outcomeMatches,readJson,loadResearch,mount}=require('../jh-prospective-research.js');
+const crypto=require('node:crypto').webcrypto;
+const hash=bytes=>require('node:crypto').createHash('sha256').update(bytes).digest('hex');
 const now=Date.parse('2026-09-18T20:00:00Z');
 function packet(){return {schema_version:'prospective-research-summary.v1',generated_at:'2026-09-18T19:00:00Z',
   capture:{key:'data/research-forecasts/captures/'+'a'.repeat(64)+'.json',sha256:'a'.repeat(64)},
@@ -36,4 +39,70 @@ test('unsupported identities are excluded records, never outcomes or price windo
  const v=outcomeView(p,now);assert.equal(v.ok,true);assert.equal(v.excluded,1);
  assert.equal(v.measured,0);assert.equal(v.pending,4);assert.equal(v.gaps,0);
  p.status_counts.UNSUPPORTED_SOURCE_IDENTITY=-1;assert.equal(outcomeView(p,now).ok,false);
+});
+
+function retainedFixture(){
+ const head=packet();head.coverage={candidate_scan_complete:false};
+ const doc={contract:'prospective-research-capture.v1',generated_at:head.generated_at,
+  sizing_eligible:false,promotion_eligible:false,protocol_ref:head.protocol,coverage:head.coverage,
+  records:[],sources:[0,1,2].map((_,i)=>({observations:Array.from({length:4},()=>({origin:'rank_observation'})),
+   eligibility_reasons:['source_publication_clock_missing'],unsupported_identity_count:i===0?2:0}))};
+ const raw=JSON.stringify(doc),sha=hash(raw);head.capture={key:'data/research-forecasts/captures/'+sha+'.json',sha256:sha};
+ return {head,doc,raw};
+}
+test('capture counts reconcile every retained source without treating gaps as records',()=>{
+ const {head,doc}=retainedFixture();assert.equal(captureMatches(head,doc),true);
+ for(const edit of [d=>d.sources.pop(),d=>d.records.push({created:true}),d=>d.sources[0].observations.pop(),
+  d=>d.generated_at='2026-09-18T18:00:00Z',d=>d.coverage={candidate_scan_complete:true},
+  d=>d.protocol_ref={},d=>d.identity_policy={files:{wrong:'digest'}}]){
+  const changed=structuredClone(doc);edit(changed);assert.equal(captureMatches(head,changed),false);
+ }
+});
+test('outcome counts reconcile rows and the entire retained batch, including source identity exclusions',()=>{
+ const doc={results:[{status:'UNSUPPORTED_SOURCE_IDENTITY'},{status:'PENDING_FORWARD_WINDOW'}],
+  status_counts:{PENDING_FORWARD_WINDOW:1,UNSUPPORTED_SOURCE_IDENTITY:1},compiler:{original:'same'}};
+ const head={...structuredClone(doc),batch:{key:'reference'}};
+ assert.equal(outcomeMatches(head,doc),true);
+ doc.results.pop();assert.equal(outcomeMatches(head,doc),false);
+ head.results.pop();assert.equal(outcomeMatches(head,doc),false);
+});
+test('load verifies exact retained bytes and never follows an arbitrary or private reference',async()=>{
+ const {head,raw}=retainedFixture();const urls=[];
+ const fetcher=async(url,options)=>{urls.push(url);assert.equal(options.redirect,'error');
+  return new Response(url.startsWith('/data/prospective-research.json')?JSON.stringify(head):raw);};
+ const state=await loadResearch('capture',{fetcher,crypto,now});assert.equal(state.retainedVerified,true);
+ assert.equal(urls.length,2);assert.ok(urls.every(u=>u.endsWith('?exact=1&nogen=1')));
+ await assert.rejects(loadResearch('capture',{fetcher:async u=>new Response(u.startsWith('/data/prospective-research.json')?JSON.stringify(head):raw+' '),crypto,now}),/bytes differ/);
+ head.capture.key='data/private/account.json';urls.length=0;
+ await assert.rejects(loadResearch('capture',{fetcher,crypto,now}),/contract/);assert.equal(urls.length,1);
+});
+test('stream limits, invalid UTF-8 and body-inclusive deadlines fail without partial data',async()=>{
+ await assert.rejects(readJson('/data/example.json',{fetcher:async()=>new Response('123456'),limit:5}),/bound/);
+ await assert.rejects(readJson('/data/example.json',{fetcher:async()=>new Response(new Uint8Array([0xff]))}));
+ let aborted=false,cancelled=false;
+ const fetcher=async(_,options)=>{options.signal.addEventListener('abort',()=>aborted=true);
+  return new Response(new ReadableStream({start(c){c.enqueue(new TextEncoder().encode('{'));},cancel(){cancelled=true;}}));};
+ await assert.rejects(readJson('/data/example.json',{fetcher,timeout:10}),/timed out/);
+ assert.equal(aborted,true);assert.equal(cancelled,true);
+});
+test('the outcome panel renders even while capture is stalled, and failed capture shows no counts',async()=>{
+ class Element{
+  constructor(tag){this.tag=tag;this.children=[];this.textContent='';}
+  appendChild(node){node.parent=this;this.children.push(node);return node;}
+  replaceChildren(){this.children=[];}
+  remove(){this.parent.children=this.parent.children.filter(n=>n!==this);}
+  text(){return this.textContent+this.children.map(n=>n.text()).join(' ');}
+ }
+ const original=global.document;global.document={createElement:tag=>new Element(tag)};
+ const host=new Element('div');let rejectCapture;
+ try{
+  const pending=mount(host,kind=>kind==='capture'?new Promise((_,reject)=>rejectCapture=reject):Promise.resolve({
+   checked:1,measured:0,pending:0,gaps:0,excluded:1,deferred:0,batch:'/data/research-forecasts/evaluation-runs/a.json',at:'fixture'}));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(host.children[1].text(),/1 records excluded/);
+  assert.match(host.children[0].text(),/Checking complete retained/);
+  rejectCapture(new Error('fixture'));await pending;
+  assert.match(host.children[0].text(),/failed verification/);
+  assert.doesNotMatch(host.children[0].text(),/registered directions|SHA-256/);
+ }finally{global.document=original;}
 });
