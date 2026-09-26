@@ -54,10 +54,11 @@
   if(!eligible(d,now))return unavailable;
   const tiers=['BENIGN','WATCH','ELEVATED','HIGH','RED','CRITICAL'],tier=tiers.includes(d.tier)?d.tier:'unavailable';
   const velocity=d.velocity?.d60_bps,rank=d.pct_rank_since_1990;
+  const realAge=now-Date.parse(d.real_10y_date),realCurrent=finite(d.real_10y)&&date(d.real_10y_date)&&Number.isFinite(realAge)&&realAge>=0&&realAge<=8*864e5;
   return '<section style="border:1px solid #6b7280;border-radius:10px;padding:14px 16px" aria-label="Separate 10-year yield producer snapshot">'+
    '<p><strong style="font:700 28px monospace">'+number(d.level,2)+'%</strong> · Observed '+esc(d.fred_date)+' · '+distance(d)+'</p>'+
    '<p>60-observation yield change: '+(finite(velocity)?(velocity>0?'+':'')+number(velocity,1)+' basis points':'unavailable')+
-   ' · Reported real 10Y: '+(finite(d.real_10y)?number(d.real_10y,2)+'%':'unavailable')+
+   ' · Reported real 10Y: '+(realCurrent?number(d.real_10y,2)+'% (observed '+esc(d.real_10y_date)+')':'unavailable')+
    ' · Reported percentile since 1990: '+(finite(rank)&&rank>=0&&rank<=100?number(rank):'unavailable')+'</p>'+
    '<p>Producer band: '+esc(tier)+' (uncalibrated). Yield-level bands do not establish a crisis probability, asset-return forecast or position size. A 60-observation change is not a 60-calendar-day return.</p>'+
    '<p>Reported SP500 price-only episodes (dividends excluded): 4.75% — '+episode(d.episode_study?.['cross_4.75'])+' · 5.00% — '+episode(d.episode_study?.['cross_5.00'])+'. Earlier outcomes outside daily price coverage are excluded. Original-source replay of this separate producer is not verified by this panel.</p>'+

@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const view=require('../jh-us10y-snapshot.js');
 const NOW=Date.parse('2026-09-26T14:00:00Z');
 const packet=()=>({generated_at:'2026-09-26T12:00:00Z',fred_date:'2026-09-24',methodology_version:'daily-price-episodes.v2',quality:{status:'fresh'},
- level:5.18,tier:'CRITICAL',distance_to_5pct_bps:-18,velocity:{d60_bps:74},real_10y:2.85,pct_rank_since_1990:70,tier_reason:'Source note',
+ level:5.18,tier:'CRITICAL',distance_to_5pct_bps:-18,velocity:{d60_bps:74},real_10y:2.85,real_10y_date:'2026-09-23',pct_rank_since_1990:70,tier_reason:'Source note',
  episode_study:{'cross_4.75':{n_valid_3m:3,median_spx_3m:1.25},'cross_5.00':{n_valid_3m:0,median_spx_3m:null}},
  history_260d:[{d:'2026-09-21',v:4.96},{d:'2026-09-22',v:null},{d:'2026-09-23',v:5.11},{d:'2026-09-24',v:5.18}]});
 test('numeric measurements retain units, dates, observation windows and uncalibrated scope',()=>{
@@ -23,6 +23,12 @@ test('invalid levels, dates, methodology and expired or future clocks withhold t
  for(const changes of [{level:'5.18'},{level:false},{level:Infinity},{fred_date:'2026-02-30'},{fred_date:'2026-09-28'},
   {generated_at:'2026-09-27T00:00:00Z'},{generated_at:'2026-09-23T00:00:00Z'},{quality:{status:'stale'}},{methodology_version:'legacy'}]){
   assert.match(view.render({...packet(),...changes},NOW),/snapshot unavailable/);
+ }
+});
+test('real yield retains its own date and cannot inherit nominal-yield freshness',()=>{
+ assert.match(view.render(packet(),NOW),/real 10Y: 2.85% \(observed 2026-09-23\)/);
+ for(const value of [null,'2026-09-01','2026-09-28','2026-02-30']){
+  const html=view.render({...packet(),real_10y_date:value},NOW);assert.match(html,/real 10Y: unavailable/);assert.match(html,/5.18%/);
  }
 });
 test('reported narrative and labels cannot inject HTML',()=>{
