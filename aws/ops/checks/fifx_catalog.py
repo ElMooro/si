@@ -50,7 +50,7 @@ METHOD = {
     'annualization': 'Square root of 252 times sample variance. This assumes comparable observation intervals, not a verified trading calendar or portfolio covariance.',
     'baseline': '504 preceding valid estimates, excluding current. Missing or invalid estimates inside the window prevent ranking; overlapping rolling windows are dependent.',
     'percentile': 'Midrank: 100 * (lower + half equal) / 504. Flat baselines have null z-scores. No clipping or normal-distribution probability claim.',
-    'dates': 'All source rows retained, including missing and future rows. Source acquisition fixes the eligible cutoff. Quoted current-day sessions remain provisional. No date backfill across markets.',
+    'dates': 'All source rows retained, including missing and future rows. Source acquisition fixes the eligible cutoff. Same-day quotes require matching provider-reported regular-session boundaries and acquisition at least 30 minutes after its end; otherwise they remain provisional. This is not independent exchange-calendar verification. No date backfill across markets.',
     'vintage': 'Full returned current-vintage histories, not historical information sets. Revisions and look-ahead prevent point-in-time forecast claims.',
     'scope': 'Separate measurement units and instruments. No MOVE fallback, averaged FX volatility, migration state, canary call or cheap-hedge inference.',
     'quality': 'Observation lag and acquisition age are separate. Age ceilings are review policies, not proof that the latest scheduled release arrived.',

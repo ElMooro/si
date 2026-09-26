@@ -108,15 +108,19 @@ def main(request_id=REQUEST, report_name='ops_6138_fifx_retained_arithmetic'):
             if any(restored[sid] is None for sid in catalog.FRED):raise ValueError('Every original FRED definition required')
             definitions={sid:restored[sid]['definition'] for sid in catalog.FRED}
             definitions_ref=baseline.retain(s3,candidate.encoded(definitions))
-            stamp=baseline.now();started=time.monotonic();outputs={};proofs={};overlap={}
+            stamp=baseline.now();started=time.monotonic();outputs={};proofs={};overlap={};phase_times={}
             for sid in catalog.SOURCES:
                 entry=captured['sources'][sid]
                 raw=read(s3,entry['original']) if entry.get('original') else None
                 receipt=entry.get('receipt')
                 if receipt is not None and read(s3,entry['whole_receipt'])!=candidate.encoded(receipt):
                     raise ValueError('Complete acquisition receipt differs')
+                phase=time.monotonic()
                 output=candidate.build_source(sid,raw,receipt,stamp,definitions.get(sid))
+                built=time.monotonic()
                 proof=independent.verify(output,raw,receipt,definitions.get(sid))
+                verified=time.monotonic()
+                phase_times[sid]={'compile_seconds':round(built-phase,3),'independent_verify_seconds':round(verified-built,3)}
                 if sid not in ('^MOVE','^VHSI') and not proof['current_available']:
                     raise ValueError('Reviewed measurement failed qualification: '+sid+' '+proof['status'])
                 if sid=='^MOVE' and proof['status']!='identity_mismatch':raise ValueError('Conflicting retained MOVE must stay quarantined')
@@ -132,7 +136,8 @@ def main(request_id=REQUEST, report_name='ops_6138_fifx_retained_arithmetic'):
                 del output,raw
             profile={'compile_and_verify_seconds':round(time.monotonic()-started,3),
                 'total_candidate_bytes':sum(ref['bytes'] for ref in outputs.values()),'largest_source_bytes':max(ref['bytes'] for ref in outputs.values()),
-                'max_rss_kib':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss}
+                'max_rss_kib':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,'per_source_times':phase_times,
+                'native_capacity_qualified':False}
             compilers={name:baseline.retain(s3,path.read_bytes()) for name,path in compiler_paths().items()}
             proof_ref=baseline.retain(s3,candidate.encoded(proofs));overlap_ref=baseline.retain(s3,candidate.encoded(overlap))
             started=time.monotonic()

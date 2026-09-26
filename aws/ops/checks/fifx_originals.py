@@ -128,3 +128,31 @@ def parse_quote(raw, sid):
         'metadata': meta, 'identity_reviewed': identity, 'original_arrays': sorted(arrays),
         'official_feed_parity_verified': False,
         'timezone': {'name': zone_name, 'iana_version': timezones.VERSION, 'tzif_sha256': timezones.ZONES[zone_name]['sha256']}}
+
+
+def session_evidence(identity, latest, acquired):
+    """Provider-reported close, not independently verified exchange-calendar truth."""
+    result={'status':'not_applicable','provider_session_complete':False,'official_calendar_verified':False,
+            'minimum_post_close_seconds':1800,'regular_start':None,'regular_end':None}
+    if not identity.get('timezone'):
+        return result
+    zone=timezones.zone(identity['timezone']['name'])
+    source_day=str(acquired.astimezone(zone).date())
+    if latest['date']<source_day:
+        result['status']='prior_local_session'
+        return result
+    result['status']='provisional_or_future_session'
+    regular=(identity.get('metadata') or {}).get('currentTradingPeriod',{})
+    regular=regular.get('regular',{}) if isinstance(regular,dict) else {}
+    if not isinstance(regular,dict):return result
+    start,end=regular.get('start'),regular.get('end')
+    if any(not isinstance(v,Number) or not re.fullmatch(r'\d+',v) or not 0<=int(v)<=253402214400 for v in (start,end)):
+        return result
+    start,end=int(start),int(end)
+    result.update(regular_start=start,regular_end=end)
+    if (latest['date']==source_day and 0<end-start<=18*3600 and start<=latest['timestamp']<=end and
+        str(datetime.fromtimestamp(start,timezone.utc).astimezone(zone).date())==latest['date'] and
+        str(datetime.fromtimestamp(end,timezone.utc).astimezone(zone).date())==latest['date'] and
+        acquired.timestamp()>=end+1800):
+        result.update(status='provider_reported_completed_session',provider_session_complete=True)
+    return result

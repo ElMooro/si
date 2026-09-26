@@ -126,6 +126,7 @@ def build_source(sid, raw, receipt, generated_at, definition=None):
     zone = timezones.zone(identity['timezone']['name']) if identity['timezone'] else None
     cutoff = str(acquired.astimezone(zone).date() if zone else acquired.date())
     latest = rows[-1]
+    session = originals.session_evidence(identity,latest,acquired)
     age = ((now.astimezone(zone).date() if zone else now.date()) - date.fromisoformat(latest['date'])).days
     eligible = [r for r in rows if r['date'] <= cutoff]
     with localcontext() as arithmetic:
@@ -135,13 +136,13 @@ def build_source(sid, raw, receipt, generated_at, definition=None):
     last = history[-1] if history else None
     state = ('identity_mismatch' if not identity['identity_reviewed'] else
         'future_original_rows' if len(eligible) != len(rows) else
-        'provisional_session' if zone and latest['date'] >= cutoff else
+        'provisional_session' if zone and latest['date'] >= cutoff and not session['provider_session_complete'] else
         'missing_latest_value' if originals.decimal(latest['value']) is None else
         'stale_acquisition' if (now-acquired).total_seconds() > catalog.MAX_ACQUISITION_SECONDS else
         'stale_observation' if not 0 <= age <= spec['max_observation_age_days'] else
         'insufficient_history' if last is None else
         'invalid_current_window' if not last['valid_intervals'] or last['date'] != latest['date'] else 'within_age_ceiling')
-    out.update(original_rows=rows, history=history, source_identity=identity, latest_reported=deepcopy(latest),
+    out.update(original_rows=rows, history=history, source_identity=identity, session_evidence=session, latest_reported=deepcopy(latest),
         last_calculated=deepcopy(last), current=deepcopy(last) if state == 'within_age_ceiling' else None,
         quality={'status': state, 'observation_age_days': age, 'acquisition_age_seconds': (now-acquired).total_seconds(),
                  'acquisition_cutoff_date': cutoff, 'excluded_future_rows': len(rows)-len(eligible),

@@ -102,6 +102,24 @@ def verify(output, raw, receipt, definition=None):
     cutoff = str(acquired.astimezone(local_zone).date() if local_zone else acquired.date())
     eligible = [r for r in expected_rows if r['date'] <= cutoff]
     latest = expected_rows[-1]
+    session={'status':'not_applicable','provider_session_complete':False,'official_calendar_verified':False,
+             'minimum_post_close_seconds':1800,'regular_start':None,'regular_end':None}
+    if local_zone:
+        session['status']='prior_local_session' if latest['date']<cutoff else 'provisional_or_future_session'
+        periods=meta.get('currentTradingPeriod',{})
+        regular=periods.get('regular',{}) if isinstance(periods,dict) else {}
+        regular=regular if isinstance(regular,dict) else {}
+        start,end=regular.get('start'),regular.get('end')
+        numbers=all(isinstance(v,Token) and v.isascii() and v.isdigit() and 0<=int(v)<=253402214400 for v in (start,end))
+        if latest['date']>=cutoff and numbers:
+            start,end=int(start),int(end)
+            session.update(regular_start=start,regular_end=end)
+            if (latest['date']==cutoff and end>start and end-start<=64800 and start<=latest['timestamp']<=end and
+                datetime.fromtimestamp(start,timezone.utc).astimezone(local_zone).date()==date.fromisoformat(latest['date']) and
+                datetime.fromtimestamp(end,timezone.utc).astimezone(local_zone).date()==date.fromisoformat(latest['date']) and
+                acquired.timestamp()-end>=1800):
+                session.update(status='provider_reported_completed_session',provider_session_complete=True)
+    assert output['session_evidence']==session
     age = ((now.astimezone(local_zone).date() if local_zone else now.date())-date.fromisoformat(latest['date'])).days
     numeric = [r for r in eligible if r['value'] not in (None, '', '.')]
     n = spec['window_changes']
@@ -161,7 +179,7 @@ def verify(output, raw, receipt, definition=None):
             proof['independent_scalar_checks'] += 5
     last = history[-1] if history else None
     status = ('identity_mismatch' if not reviewed else 'future_original_rows' if len(eligible) != len(expected_rows) else
-        'provisional_session' if local_zone and latest['date'] >= cutoff else 'missing_latest_value' if latest['value'] in (None, '', '.') else
+        'provisional_session' if local_zone and latest['date'] >= cutoff and not session['provider_session_complete'] else 'missing_latest_value' if latest['value'] in (None, '', '.') else
         'stale_acquisition' if (now-acquired).total_seconds() > 26*3600 else 'stale_observation' if not 0 <= age <= spec['max_observation_age_days'] else
         'insufficient_history' if last is None else 'invalid_current_window' if not last['valid_intervals'] or last['date'] != latest['date'] else 'within_age_ceiling')
     assert output['latest_reported'] == latest and output['last_calculated'] == last

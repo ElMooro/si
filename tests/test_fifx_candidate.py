@@ -137,6 +137,37 @@ class Tests(unittest.TestCase):
         self.assertEqual(out['quality']['status'],'provisional_session')
         self.assertEqual(out['source_identity']['timezone']['iana_version'],'2026c')
 
+    def test_same_day_requires_complete_matching_session_and_post_close_delay(self):
+        sid='^FTSE';doc=quote(sid,n=550);row=doc['chart']['result'][0]
+        start=int(datetime(2026,9,25,7,tzinfo=timezone.utc).timestamp())
+        end=int(datetime(2026,9,25,15,30,tzinfo=timezone.utc).timestamp())
+        row['timestamp'][-1]=start
+        row['meta']['currentTradingPeriod']={'regular':{'start':start,'end':end}}
+        stamp='2026-09-25T16:00:00+00:00'
+        raw=json.dumps(doc).encode();rec=receipt(sid,raw,stamp)
+        out=candidate.build_source(sid,raw,rec,stamp);independent.verify(out,raw,rec)
+        self.assertIsNotNone(out['current']);self.assertEqual(out['session_evidence']['status'],'provider_reported_completed_session')
+        for mutation in ('early','wrong_date','string_end','inverted','too_long','wrong_bar'):
+            altered=deepcopy(doc);reg=altered['chart']['result'][0]['meta']['currentTradingPeriod']['regular'];when=stamp
+            if mutation=='early':when='2026-09-25T15:59:59+00:00'
+            elif mutation=='wrong_date':reg['start']-=86400
+            elif mutation=='string_end':reg['end']=str(reg['end'])
+            elif mutation=='inverted':reg['end']=reg['start']-1
+            elif mutation=='too_long':reg['end']+=86400
+            else:altered['chart']['result'][0]['timestamp'][-1]=start-1
+            body=json.dumps(altered).encode();proof=receipt(sid,body,when)
+            actual=candidate.build_source(sid,body,proof,when);independent.verify(actual,body,proof)
+            self.assertIsNone(actual['current'],mutation)
+            self.assertEqual(actual['quality']['status'],'provisional_session',mutation)
+
+    def test_later_publication_cannot_complete_a_provisional_acquisition(self):
+        sid='^FTSE';doc=quote(sid,n=40);row=doc['chart']['result'][0]
+        start=int(datetime(2026,9,25,7,tzinfo=timezone.utc).timestamp());end=start+8*3600
+        row['timestamp'][-1]=start;row['meta']['currentTradingPeriod']={'regular':{'start':start,'end':end}}
+        raw=json.dumps(doc).encode();rec=receipt(sid,raw,'2026-09-25T14:00:00+00:00')
+        out=candidate.build_source(sid,raw,rec,NOW);independent.verify(out,raw,rec)
+        self.assertIsNone(out['current']);self.assertEqual(out['quality']['status'],'provisional_session')
+
     def test_quote_decimal_lexemes_are_not_binary_floats(self):
         raw=json.dumps(quote(n=40)).replace('100.0,','100.000000000000000000001,',1).encode()
         out,_=build('^KS11',raw)
