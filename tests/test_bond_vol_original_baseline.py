@@ -1,8 +1,8 @@
 """The conservation probe must cover the actual full predecessor, without executing it."""
 from pathlib import Path
-import ast,hashlib,io,json,sys,unittest
+import ast,hashlib,io,json,sys,unittest,zipfile
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'aws/ops/staged'))
-import ops_6132_bond_vol_original_baseline as baseline
+import ops_6133_bond_vol_original_baseline as baseline
 
 class Store:
     def __init__(self):self.objects={};self.puts=[]
@@ -52,5 +52,25 @@ class Tests(unittest.TestCase):
         self.assertIn('journal(s3, progress, True)',text);self.assertIn('sys.exit(1)',text)
         self.assertIn("assert privacy['all_denied']",text);self.assertIn('whole_zip',text)
         self.assertIn("'git','ls-files'",text);self.assertIn('canonical.restore(packet, SERIES, read)',text)
+
+    def test_actual_drift_is_preserved_without_a_false_release_claim(self):
+        stream=io.BytesIO()
+        with zipfile.ZipFile(stream,'w') as archive:
+            archive.writestr('lambda_function.py',b'real handler')
+            archive.writestr('_fred_shim.py',b'old deployed shim')
+            archive.writestr('extra.txt',b'')
+        inventory=baseline.package_inventory(stream.getvalue(),{'lambda_function.py':b'real handler','_fred_shim.py':b'repo shim','missing.py':b'missing'})
+        self.assertFalse(inventory['code_matches_repository']);self.assertFalse(inventory['release_verification'])
+        self.assertEqual(inventory['source_differences']['_fred_shim.py']['status'],'different_bytes')
+        self.assertEqual(inventory['source_differences']['missing.py']['status'],'missing_from_package')
+        self.assertEqual(inventory['complete_zip_inventory']['extra.txt']['bytes'],0)
+        self.assertEqual(inventory['additional_packaged_files'],['extra.txt'])
+
+    def test_matching_bytes_still_only_certify_baseline_conservation(self):
+        stream=io.BytesIO()
+        with zipfile.ZipFile(stream,'w') as archive:archive.writestr('lambda_function.py',b'handler')
+        out=baseline.package_inventory(stream.getvalue(),{'lambda_function.py':b'handler'})
+        self.assertTrue(out['code_matches_repository']);self.assertFalse(out['release_verification'])
+        self.assertEqual(out['source_differences'],{})
 
 if __name__=='__main__':unittest.main(verbosity=2)
