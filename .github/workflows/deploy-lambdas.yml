@@ -22,6 +22,8 @@ on:
       - 'scripts/release_order.py'
       - 'scripts/pin_release_checkout.py'
       - 'scripts/validate_lambda_configs.py'
+      - 'scripts/validate_lambda_sources.py'
+      - 'scripts/guard_stub_lambdas.py'
       - 'scripts/lambda_config_environment.py'
       - 'scripts/secret_lambda_config.py'
       - 'scripts/normalize_lambda_config.py'
@@ -198,11 +200,13 @@ jobs:
           # tests/deployment/test_bundled_config_identity.py scopes its check to the functions
           # being deployed (unset = check every mirrored engine, the local default).
           DEPLOY_TARGETS: ${{ steps.detect.outputs.targets }}
+          GUARD_BASE_SHA: ${{ inputs.base_sha || github.event.before || 'HEAD~1' }}
         run: |
           set -euo pipefail
           # Mirror this step's output to a file: on failure it becomes a committed, redacted report
           # (aws/ops/reports/deploy-failures/) for lanes that cannot read job logs.
           exec > >(tee -a "$RUNNER_TEMP/preflight.log") 2>&1
+          python3 scripts/validate_lambda_sources.py ${{ steps.detect.outputs.targets }}
           python3 scripts/validate_lambda_configs.py ${{ steps.detect.outputs.targets }}
 
           # These static deployment tests and every selected Lambda's local
@@ -264,6 +268,7 @@ jobs:
         env:
           DEPLOY_TARGETS: ${{ steps.detect.outputs.targets }}
           DEPLOY_AWS_REGION: ${{ secrets.AWS_REGION }}
+          GUARD_BASE_SHA: ${{ inputs.base_sha || github.event.before || 'HEAD~1' }}
           # Deploy lane v2: release receipts (data/ops/releases/<fn>.json) carry the proven commit.
           DEPLOY_RUN_ID: ${{ github.run_id }}
           DEPLOY_WORKFLOW: deploy-lambdas.yml

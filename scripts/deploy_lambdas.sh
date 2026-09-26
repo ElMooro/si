@@ -6,6 +6,7 @@ set -e
 # Do not put the subshell in an OR/if condition: Bash would disable
 # errexit throughout its body and continue after failed validation.
 declare -a failed_lambdas
+python3 scripts/validate_lambda_sources.py $DEPLOY_TARGETS
 python3 scripts/validate_lambda_configs.py $DEPLOY_TARGETS
 DEPLOY_TARGETS=$(python3 scripts/release_order.py order $DEPLOY_TARGETS)
 for fn in $DEPLOY_TARGETS; do
