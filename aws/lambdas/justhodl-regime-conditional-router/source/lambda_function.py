@@ -299,8 +299,14 @@ def detect_dollar_smile_right(ds, gs, crisis, signal_board):
 
 
 def detect_plant_and_harvest(signal_board, crisis, vol_radar):
-    """Risk-on posture + low crisis + low vol."""
-    posture = safe_get(signal_board, "posture")
+    """A qualified board posture is required for this framework."""
+    return None, {"status": "ABSTAIN", "signal_board_context": __import__("signal_board_authority").context(signal_board),
+                  "reason": "No qualified Signal Board posture supports this framework."}
+
+
+def _legacy_detect_plant_and_harvest(signal_board, crisis, vol_radar):
+    """Predecessor calculation preserved for review, unused by the handler."""
+    posture = safe_get(__import__("signal_board_authority").decision_view(signal_board), "posture")
     crisis_score = __import__("crisis_authority").qualified_score(crisis)
     vol = safe_get(vol_radar, "spike_risk_score") or 100
     combined = 0
@@ -321,7 +327,7 @@ def detect_us10y_5pct(canary, signal_board, vol_radar):
     # canary-grid has signals about rates; canary_yield_signal could indicate
     yield_signal = safe_get(canary, "rates_signal") or safe_get(
         canary, "us10y_signal") or safe_get(canary, "yield_curve_signal")
-    posture = safe_get(signal_board, "posture")
+    posture = safe_get(__import__("signal_board_authority").decision_view(signal_board), "posture")
     vol = safe_get(vol_radar, "spike_risk_score") or 0
     combined = 0
     if isinstance(yield_signal, str) and yield_signal.upper() in (
@@ -361,7 +367,7 @@ def lambda_handler(event=None, context=None):
     gs = __import__("gsi_authority").decision_view(fetch_s3_json("data/global-stress.json"))
     crisis = __import__("crisis_authority").decision_view(fetch_s3_json("data/crisis-composite.json"))
     canary = fetch_s3_json("data/canary-grid.json")
-    signal_board = fetch_s3_json("data/signal-board.json")
+    signal_board = __import__("signal_board_authority").decision_view(fetch_s3_json("data/signal-board.json"))
     vol_radar = fetch_s3_json("data/vol-radar.json")
     master_alloc = fetch_s3_json("data/master-allocation.json")
 
@@ -460,6 +466,7 @@ def lambda_handler(event=None, context=None):
         "all_framework_scores": scores,
         "evidence_map": evidence_map,
         "feeds_available": feeds_available,
+        "signal_board_permission": signal_board["research_context"],
         "framework_universe": list(FRAMEWORK_SLEEVES.keys()),
         "methodology": {
             "framework": "Crisis KB framework -> sleeve mapping",

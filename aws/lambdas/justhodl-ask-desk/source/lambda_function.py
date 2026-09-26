@@ -23,7 +23,7 @@ DESK_KEY = os.environ.get("DESK_KEY", "")
 MODELS_FAST = ["claude-haiku-4-5-20251001", "claude-sonnet-4-6"]
 MODELS_SMART = ["claude-sonnet-4-6", "claude-haiku-4-5-20251001"]
 EXTRA_SOURCES = [
-    ("data/signal-board.json", "the 80-engine signal board (one-line read per engine)"),
+    ("data/signal-board.json", "Signal Board research availability and qualification limits; no investment vote"),
     ("data/research-papers.json", "AI research-paper library index (debated theses)"),
     ("data/stock-valuations.json", "S&P valuations + HP scores + underlooked boards"),
     ("data/backtest-harness.json", "walk-forward backtests + live signal grades"),
@@ -109,6 +109,8 @@ def fetch_slim(key):
         return json.dumps({"error": "private source unavailable to public desk"})
     try:
         d = json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        if key == "data/signal-board.json":
+            return json.dumps(__import__("signal_board_authority").context(d))
         return json.dumps(slim(d), default=str)[:5200]
     except Exception as e:
         return json.dumps({"error": f"feed unavailable: {str(e)[:60]}"})

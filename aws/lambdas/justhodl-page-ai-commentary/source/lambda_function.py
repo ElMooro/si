@@ -289,7 +289,7 @@ def gather_page_context(page: str) -> dict:
         if is_private_source(path):
             continue
         key = path.split("/")[-1].replace(".json", "").replace("-", "_")
-        ctx[key] = __import__("option_population_context").guard(path,__import__("eurodollar_research").guard(path,__import__("crisis_authority").guard(path,_read_json(path) or {})))
+        ctx[key] = __import__("signal_board_authority").guard(path,__import__("option_population_context").guard(path,__import__("eurodollar_research").guard(path,__import__("crisis_authority").guard(path,_read_json(path) or {}))))
     return ctx
 
 
@@ -318,6 +318,12 @@ def generate_commentary(page: str, context: dict) -> dict:
     cfg = PAGE_CONFIGS.get(page)
     if not cfg:
         return {"error": "unknown_page"}
+    if page == "signal-board":
+        evidence = (context.get("signal_board") or {}).get("research_context") or __import__("signal_board_authority").context(None)
+        return {"mode": "research_inventory", "regime": None, "posture": "WAIT", "confidence_score": None,
+                "narrative": "Signal Board records derived engine reports. No independently qualified forecast or portfolio action is available. WAIT means abstain.",
+                "source_context": evidence, "calls_eligible": False, "sizing_eligible": False,
+                "execution_eligible": False, "forecast_qualified": False, "model_api_calls": 0}
 
     system = cfg["system"]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -354,6 +360,8 @@ def usable_previous(page, document):
     if page == "portfolio" and document.get("privacy_version") != PUBLIC_CONTEXT_PRIVACY_VERSION:
         return {}
     commentary = document.get("commentary") or {}
+    if page == "signal-board" and (not isinstance(commentary, dict) or commentary.get("mode") != "research_inventory" or any(commentary.get(k) is not False for k in ("calls_eligible", "sizing_eligible", "execution_eligible", "forecast_qualified"))):
+        return {}
     return commentary if isinstance(commentary, dict) and "error" not in commentary else {}
 
 
@@ -419,7 +427,7 @@ def lambda_handler(event, context):
             "privacy_version": PUBLIC_CONTEXT_PRIVACY_VERSION,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "page": page,
-            "model": ANTHROPIC_MODEL,
+            "model": "deterministic-research-inventory" if page == "signal-board" else ANTHROPIC_MODEL,
             "commentary": commentary,
             "preserved_from": preserved_from,
             "llm_attempt_failed": attempt_failed,

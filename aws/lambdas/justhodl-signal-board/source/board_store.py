@@ -83,7 +83,7 @@ def binding(packet, read):
     raw = read(key); run = json.loads(raw)
     if key != PREFIX+'runs/'+sha(raw)+'.json' or run.get('contract') != 'signal-board-replay.v1': raise ValueError('Run binding differs')
     if (run['qualification'] != QUALIFICATION or packet['replay'].get('view_sha256') != run['view']['sha256'] or
-            checked(run['view'], 'views', read) != {k: v for k, v in packet.items() if k != 'replay'} or run['generated_at'] != packet['generated_at']):
+            encoded(checked(run['view'], 'views', read)) != encoded({k: v for k, v in packet.items() if k != 'replay'}) or run['generated_at'] != packet['generated_at']):
         raise ValueError('Whole inventory binding differs')
     return run
 
@@ -99,7 +99,7 @@ def replay(packet, read):
     source = lambda ref: checked(ref, 'originals', read, 'bin')
     view = candidate.build(rows, inputs['captures'], source, inputs['generated_at'])
     proof = independent.verify(view, rows, inputs['captures'], source)
-    if view != {k: v for k, v in packet.items() if k != 'replay'} or proof != checked(run['proof'], 'proofs', read):
+    if encoded(view) != encoded({k: v for k, v in packet.items() if k != 'replay'}) or encoded(proof) != encoded(checked(run['proof'], 'proofs', read)):
         raise ValueError('Complete independent reconstruction differs')
     return proof
 
@@ -130,7 +130,7 @@ def publish(client, bucket, packet):
         prior = candidate.stamp(old.get('generated_at'))
         if prior and prior > stamp: return False
         if prior == stamp:
-            if old != packet: raise ValueError('Conflicting same-clock publication')
+            if encoded(old) != encoded(packet): raise ValueError('Conflicting same-clock publication')
             return True
         retain(client, bucket, raw, 'originals', private=True)
         try:
@@ -139,7 +139,7 @@ def publish(client, bucket, packet):
             if not conflict(exc): raise
             continue
         actual = json.loads(reader(client, bucket)(CURRENT))
-        if actual != packet:
+        if encoded(actual) != encoded(packet):
             next_stamp = candidate.stamp(actual.get('generated_at'))
             if next_stamp is None or next_stamp <= stamp: raise ValueError('Publication readback differs')
         return True

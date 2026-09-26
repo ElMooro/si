@@ -82,7 +82,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(self.client.objects[store.CURRENT], before)
     def test_forged_authority_or_missing_rows_reject_even_with_new_view_hash(self):
         _, packet = self.run_native()
-        for mutate in (lambda p: p.update(calls_eligible=True), lambda p: p['engines'].pop()):
+        for mutate in (lambda p: p.update(calls_eligible=True), lambda p: p.update(calls_eligible=0),
+                       lambda p: p.update(n_engines=99.0), lambda p: p['engines'].pop()):
             p = deepcopy(packet); mutate(p)
             with self.assertRaises(ValueError): store.publish(self.client, 'test', p)
     def test_older_or_conflicting_head_cannot_replace_newer_bytes(self):
