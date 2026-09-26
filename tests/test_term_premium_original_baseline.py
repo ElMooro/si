@@ -2,7 +2,7 @@
 from pathlib import Path
 import ast,hashlib,io,json,sys,unittest
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'aws/ops/staged'))
-import ops_6129_term_premium_original_baseline as baseline
+import ops_6130_term_premium_original_baseline as baseline
 
 class Store:
     def __init__(self):self.objects={};self.puts=[]
@@ -23,6 +23,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(client.objects[ref['key']],raw);self.assertEqual(ref['bytes'],len(raw))
         self.assertEqual(ref['sha256'],hashlib.sha256(raw).hexdigest());self.assertTrue(ref['key'].startswith(baseline.PRIVATE))
         self.assertEqual(client.puts[0]['IfNoneMatch'],'*');self.assertEqual(client.puts[0]['CacheControl'],'no-store')
+
+    def test_real_empty_vendored_packaging_marker_is_preserved_but_missing_payload_is_rejected(self):
+        raw=(ROOT/'aws/lambdas/justhodl-term-premium/source/xlrd-2.0.1.dist-info/REQUESTED').read_bytes()
+        self.assertEqual(raw,b'');client=Store()
+        with self.assertRaises(ValueError):baseline.retain(client,raw)
+        ref=baseline.retain(client,raw,allow_empty=True)
+        self.assertEqual(ref['bytes'],0);self.assertEqual(client.objects[ref['key']],raw)
+        self.assertEqual(ref['sha256'],hashlib.sha256(raw).hexdigest())
+        self.assertEqual(client.puts[-1]['IfNoneMatch'],'*')
 
     def test_rows_duplicates_nulls_and_unparsed_bytes_cannot_be_called_original_source(self):
         rows=[{'date':'2020-01-01','tp10':None},{'date':'2020-01-01','tp10':0},None]
