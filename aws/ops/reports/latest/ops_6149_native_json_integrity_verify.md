@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 3.1s  
+**Finished:** 2026-09-26T13:18:44+00:00  
+
+## Data
+
+| code_and_receipt_verified | consumer_invocations | expected_commit | normal_publication_verified | notifications_sent | original_provider_replay_performed | packages | private_account_reads | producer_invocations | provider_requests | public_writes | schedules_changed | scope |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| True | 0 | bdfd0c10bcafd6d41e47f59512057c7f928d9b45 | False | 0 | False | [{'runtime': {'code_sha256': 'tB2v9661hv6YbTU2HKNBDAgsX/A5ZmerqL5miRODwgA=', 'source_files_checked': 14, 'handler_bytes': 1496, 'timeout': 900, 'memory_mb': 2048, 'receipt': {'status': 'matched', 'commit': 'bdfd0c10bcafd6d41e47f59512057c7f928d9b45'}, 'schedules': [], 'function_name': 'justhodl-fifx-vol-migration', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512}, 'trigger_inventory': {'schedule_groups_scanned': 1, 'schedules_scanned': 408, 'matching_schedules': [{'Name': 'justhodl-fifx-vol-daily', 'GroupName': 'default', 'State': 'ENABLED', 'ScheduleExpression': 'cron(20 21 ? * MON-FRI *)', 'ScheduleExpressionTimezone': 'UTC', 'target_arn': 'arn:aws:lambda:us-east-1:857687956942:function:justhodl-fifx-vol-migration'}], 'event_source_mappings': [], 'direct_bucket_notifications': [], 'indirect_lambda_stepfunction_and_eventbus_callers_verified': False}, 'reviewed_publication_timing_matches': True}, {'runtime': {'code_sha256': 'WCNv0NgyuziaTIk6TZpe0P4NHubUR3Jl0U2qEe5vNT8=', 'source_files_checked': 23, 'handler_bytes': 1359, 'timeout': 120, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': 'bdfd0c10bcafd6d41e47f59512057c7f928d9b45'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-acm-daily', 'state': 'ENABLED', 'expression': 'cron(45 13 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-term-premium', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512}, 'trigger_inventory': {'schedule_groups_scanned': 1, 'schedules_scanned': 408, 'matching_schedules': [], 'event_source_mappings': [], 'direct_bucket_notifications': [], 'indirect_lambda_stepfunction_and_eventbus_callers_verified': False}, 'reviewed_publication_timing_matches': True}] | 0 | 0 | 0 | 0 | 0 | Actual code, receipt and normal publication timing only. The next scheduled output still requires complete source replay. |
+
+## Log
+
