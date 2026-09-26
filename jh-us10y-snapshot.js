@@ -19,8 +19,23 @@
  }
  function eligible(d,now){
   const age=now-Date.parse(d?.generated_at),obsAge=observationAge(d?.fred_date,now);
-  return !!d&&typeof d.generated_at==='string'&&finite(d.level)&&d.methodology_version==='daily-price-episodes.v2'&&d.quality?.status==='fresh'&&date(d.fred_date)&&
+  return !!d&&typeof d.generated_at==='string'&&/(?:Z|[+-]\d{2}:\d{2})$/.test(d.generated_at)&&finite(d.level)&&d.methodology_version==='daily-price-episodes.v2'&&d.quality?.status==='fresh'&&date(d.fred_date)&&
    Number.isFinite(age)&&age>=0&&age<=48*36e5&&Number.isFinite(obsAge)&&obsAge>=0&&obsAge<=7;
+ }
+ function evidence(d){
+  if(d.contract!=='us10y-sentinel-research.v1')return '';
+  const key=d.replay?.manifest_key,sha=d.replay?.output_sha256;
+  if(typeof key!=='string'||!/^data\/us10y-sentinel-research\/runs\/[a-f0-9]{64}\.json$/.test(key)||typeof sha!=='string'||!/^[a-f0-9]{64}$/.test(sha))return '<p>Original-source manifest unavailable.</p>';
+  const rows=['DGS10','DFII10','SP500'].map(sid=>{
+   const row=d.original_sources?.[sid];if(!row)return '<li>'+sid+': source inventory unavailable</li>';
+   return '<li><a href="https://fred.stlouisfed.org/series/'+sid+'">'+sid+'</a> · '+esc(row.unit)+' · '+esc(row.frequency)+
+    ' · '+(integer(row.original_rows)?row.original_rows:'unavailable')+' original rows, '+(integer(row.missing_rows)?row.missing_rows:'unavailable')+' source gaps · '+
+    (date(row.first_observation)?esc(row.first_observation):'unavailable')+' → '+(date(row.last_observation)?esc(row.last_observation):'unavailable')+'</li>';
+  }).join('');
+  return '<details><summary>Source inventory and reproducible calculation</summary><ul>'+rows+'</ul><p>The producer reports a full source replay. '+
+   'This browser has not independently repeated it. Complete source histories are retained privately for runner verification; the manifest identifies the source and calculation bytes.</p>'+
+   '<p><a href="/'+key+'?exact=1&amp;nogen=1">Inspect the calculation manifest</a> · Output digest <code style="overflow-wrap:anywhere">'+sha+'</code></p>'+
+   '<p>These are current-vintage descriptive calculations. Historical first-publication data, forecast skill and portfolio sizing remain unqualified.</p></details>';
  }
  function distance(d){
   if(!finite(d.distance_to_5pct_bps)||Math.abs(d.distance_to_5pct_bps-(5-d.level)*100)>.11)return 'Distance to 5% unavailable';
@@ -64,7 +79,7 @@
    '<p>Producer band: '+esc(tier)+' (uncalibrated). Yield-level bands do not establish a crisis probability, asset-return forecast or position size. A 60-observation change is not a 60-calendar-day return.</p>'+
    '<p>Reported SP500 price-only episodes (dividends excluded): 4.75% — '+episode(d.episode_study?.['cross_4.75'])+' · 5.00% — '+episode(d.episode_study?.['cross_5.00'])+'. Earlier outcomes outside daily price coverage are excluded. Original-source replay of this separate producer is not verified by this panel.</p>'+
    (typeof d.tier_reason==='string'?'<details><summary>Original producer note · unvalidated interpretation</summary><p>'+esc(d.tier_reason)+'</p></details>':'')+
-   spark(d.history_260d,d.fred_date)+'<p><a href="/data/us10y-sentinel.json?exact=1&amp;nogen=1">Inspect complete producer JSON</a> · Snapshot '+esc(d.generated_at)+'</p></section>';
+   evidence(d)+spark(d.history_260d,d.fred_date)+'<p><a href="/data/us10y-sentinel.json?exact=1&amp;nogen=1">Inspect complete producer JSON</a> · Snapshot '+esc(d.generated_at)+'</p></section>';
  }
  async function mount(doc,fetcher,clock=Date.now,timers=root){
   const el=doc.getElementById('us10y-sentinel');if(!el)return;
@@ -79,7 +94,7 @@
   }catch(e){if(states.get(el)===state)el.innerHTML=unavailable;}
   return state;
  }
- const api={get,eligible,distance,episode,spark,render,mount};
+ const api={get,eligible,distance,episode,spark,evidence,render,mount};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.JHUS10YSnapshot=api;
  if(root.document)root.document.addEventListener('DOMContentLoaded',()=>{mount(root.document,root.fetch.bind(root)).then(state=>{

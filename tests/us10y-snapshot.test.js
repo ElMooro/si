@@ -28,9 +28,19 @@ test('missing numbers, coerced strings and false values never become zero or thr
 });
 test('invalid levels, dates, methodology and expired or future clocks withhold the panel',()=>{
  for(const changes of [{level:'5.18'},{level:false},{level:Infinity},{fred_date:'2026-02-30'},{fred_date:'2026-09-28'},
-  {generated_at:'2026-09-27T00:00:00Z'},{generated_at:'2026-09-23T00:00:00Z'},{quality:{status:'stale'}},{methodology_version:'legacy'}]){
+  {generated_at:'2026-09-27T00:00:00Z'},{generated_at:'2026-09-23T00:00:00Z'},{generated_at:'2026-09-26T12:00:00'},
+  {quality:{status:'stale'}},{methodology_version:'legacy'}]){
   assert.match(view.render({...packet(),...changes},NOW),/snapshot unavailable/);
  }
+});
+test('native source disclosure exposes full counts and a bounded public manifest, never private reads or claims',()=>{
+ const p={...packet(),contract:'us10y-sentinel-research.v1',replay:{manifest_key:'data/us10y-sentinel-research/runs/'+'a'.repeat(64)+'.json',output_sha256:'b'.repeat(64)},
+  original_sources:{DGS10:{unit:'Percent',frequency:'Daily',original_rows:16000,missing_rows:300,first_observation:'1962-01-02',last_observation:'2026-09-24'},
+   SP500:{unit:'<img src=x>',frequency:'Daily, Close',original_rows:2600,missing_rows:0,first_observation:'2016-09-26',last_observation:'2026-09-25'}}};
+ const html=view.render(p,NOW);assert.match(html,/16000 original rows, 300 source gaps/);assert.match(html,/2600 original rows, 0 source gaps/);
+ assert.match(html,/DFII10: source inventory unavailable/);assert.match(html,/has not independently repeated/);assert.doesNotMatch(html,/<img|href="private|fetch\(/);
+ assert.match(html,/historical|Historical/);p.replay.manifest_key='https://evil.example/';assert.match(view.evidence(p),/manifest unavailable/);
+ assert.equal(view.evidence(packet()),'');
 });
 test('real yield retains its own date and cannot inherit nominal-yield freshness',()=>{
  assert.match(view.render(packet(),NOW),/real 10Y: 2.85% \(observed 2026-09-23\)/);
