@@ -2,12 +2,23 @@
 from __future__ import annotations
 
 import runpy
+import os
 import subprocess
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE = runpy.run_path(str(ROOT / "scripts/guard_stub_lambdas.py"))
+
+
+def fixture_check(root, base=None):
+    # The real deployment passes its own repository's push base and override.
+    # Neither is valid evidence in these independent temporary repositories.
+    with patch.dict(os.environ):
+        os.environ.pop("GUARD_BASE_SHA", None)
+        os.environ.pop("GUARD_ALLOW_SHRINK", None)
+        return MODULE["check"](root, base)
 
 
 def git(folder, *args):
@@ -34,7 +45,7 @@ def test_absolute_floor_rejects_placeholder_bodies():
     with tempfile.TemporaryDirectory() as tmp:
         root = repo(Path(tmp), "def lambda_handler(e, c):\n    return {}\n" * 60)
         rewrite(root, "# PLACEHOLDER\n")
-        problems = MODULE["check"](root)
+        problems = fixture_check(root)
         assert len(problems) == 1 and "stub body" in problems[0]
 
 
@@ -43,7 +54,7 @@ def test_shrink_guard_rejects_a_large_engine_that_came_back_half_size():
         big = "x = 1  # engine line\n" * 2000          # ~40 KB
         root = repo(Path(tmp), big)
         rewrite(root, big[: len(big) // 2 - 100])        # ~18 KB, well above the 500-byte floor
-        problems = MODULE["check"](root)
+        problems = fixture_check(root)
         assert len(problems) == 1 and "looks truncated" in problems[0]
 
 
@@ -52,7 +63,7 @@ def test_shrink_ok_marker_permits_a_deliberate_rewrite():
         big = "x = 1  # engine line\n" * 2000
         root = repo(Path(tmp), big)
         rewrite(root, "def lambda_handler(e, c):\n    return {'ok': True}\n" * 20, "lean rewrite [shrink-ok]")
-        assert MODULE["check"](root) == []
+        assert fixture_check(root) == []
 
 
 def test_small_real_engines_and_growth_pass():
@@ -60,7 +71,7 @@ def test_small_real_engines_and_growth_pass():
         small = "import json\n\ndef lambda_handler(event, context):\n    return json.dumps({'ok': True})\n" * 12
         root = repo(Path(tmp), small)
         rewrite(root, small + "\n# new feature\n" * 50, "grow")
-        assert MODULE["check"](root) == []
+        assert fixture_check(root) == []
 
 
 def test_base_sha_env_compares_against_the_push_base_not_the_last_commit():
@@ -70,5 +81,18 @@ def test_base_sha_env_compares_against_the_push_base_not_the_last_commit():
         base = git(root, "rev-parse", "HEAD")
         rewrite(root, big[: len(big) // 3], "step 1 (truncate)")
         rewrite(root, big[: len(big) // 3] + "\n# noise\n", "step 2 (tiny growth)")
-        assert MODULE["check"](root) == []                # HEAD~1 -> HEAD grew: invisible
-        assert MODULE["check"](root, base)                # base -> HEAD lost 66%: caught
+        assert fixture_check(root) == []                # HEAD~1 -> HEAD grew: invisible
+        assert fixture_check(root, base)                # base -> HEAD lost 66%: caught
+        with patch.dict(os.environ, {"GUARD_BASE_SHA":base,"GUARD_ALLOW_SHRINK":"0"}):
+            assert MODULE["check"](root)                # actual environment contract
+
+
+def test_temporary_guard_fixtures_ignore_the_runner_repository_context():
+    with tempfile.TemporaryDirectory() as tmp:
+        big = "x = 1  # engine line\n" * 2000
+        root = repo(Path(tmp), big)
+        rewrite(root, big[:len(big)//3])
+        with patch.dict(os.environ, {"GUARD_BASE_SHA":"not-in-this-fixture","GUARD_ALLOW_SHRINK":"1"}):
+            assert fixture_check(root)
+            assert os.environ["GUARD_BASE_SHA"] == "not-in-this-fixture"
+            assert os.environ["GUARD_ALLOW_SHRINK"] == "1"

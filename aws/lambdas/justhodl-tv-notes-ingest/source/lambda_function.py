@@ -15,6 +15,7 @@ Modes (POST JSON): {token, notes:[...]}            -> ingest
                    {token, selftest:true, notes}    -> dry-run validation only
                    {token, delete_ids:[...]}        -> remove from brain+mirror
 GET -> health {ok, mirror_count}. OPTIONS -> CORS preflight.
+Dry-run validates note normalization only and exits before all storage paths.
 """
 import base64
 import hashlib
