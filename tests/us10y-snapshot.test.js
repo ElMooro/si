@@ -52,7 +52,9 @@ test('chart uses dates and preserves missing rows as gaps, with invalid historie
 test('mounted panel expires without acquiring data and failed refresh clears previous data',async()=>{
  const el={},doc={getElementById:()=>el},callbacks=[],timers={setInterval:f=>(callbacks.push(f),callbacks.length),clearInterval(){}};let now=NOW,requests=0;
  const fetcher=async(url,options)=>{requests++;assert.equal(url,'/data/us10y-sentinel.json?exact=1&nogen=1');assert.equal(options.cache,'no-store');return {ok:true,json:async()=>packet()};};
- const state=await view.mount(doc,fetcher,()=>now,timers);assert.match(el.innerHTML,/5.18%/);now+=3*864e5;callbacks[0]();assert.match(el.innerHTML,/snapshot unavailable/);assert.equal(requests,1);
+ const state=await view.mount(doc,fetcher,()=>now,timers);assert.match(el.innerHTML,/5.18%/);
+ el.innerHTML+='USER_DISCLOSURE_STATE';callbacks[0]();assert.match(el.innerHTML,/USER_DISCLOSURE_STATE/);
+ now+=3*864e5;callbacks[0]();assert.match(el.innerHTML,/snapshot unavailable/);assert.doesNotMatch(el.innerHTML,/USER_DISCLOSURE_STATE/);assert.equal(requests,1);
  await view.mount(doc,async()=>({ok:false}),()=>NOW,timers);assert.match(el.innerHTML,/snapshot unavailable/);state.dispose();
 });
 test('slower loads cannot restore data after a newer failed refresh',async()=>{

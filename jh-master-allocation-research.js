@@ -41,7 +41,7 @@
   states.get(el)?.dispose();let timer;
   const state={dispose(){if(timer!==undefined)timers.clearInterval(timer);if(states.get(el)===state)states.delete(el);}};states.set(el,state);
   el.innerHTML=boundary+'<p role="status">Checking the research publication…</p>';
-  try{const packet=await get(fetcher);if(states.get(el)!==state)return state;const show=()=>{if(states.get(el)===state)el.innerHTML=render(packet,clock());};show();timer=timers.setInterval(show,60000);}
+  try{const packet=await get(fetcher);if(states.get(el)!==state)return state;let lastHTML;const show=()=>{if(states.get(el)!==state)return;const html=render(packet,clock());if(html!==lastHTML){el.innerHTML=html;lastHTML=html;}};show();timer=timers.setInterval(show,60000);}
   catch(error){if(states.get(el)===state)el.innerHTML=render(null,clock());}
   return state;
  }

@@ -31,7 +31,8 @@ test('mounted view expires without acquisition and refresh failures remove previ
  const el={innerHTML:''},doc={getElementById:()=>el};let now=NOW,tick,requests=0;
  const timers={setInterval(fn){tick=fn;return 1;},clearInterval(){}};
  await ui.mount(doc,async()=>{requests++;return {ok:true,text:async()=>JSON.stringify(packet())};},()=>now,timers);
- assert.match(el.innerHTML,/<table/);now+=31*36e5;tick();assert.doesNotMatch(el.innerHTML,/<table/);assert.equal(requests,1);
+ assert.match(el.innerHTML,/<table/);el.innerHTML+='USER_DISCLOSURE_STATE';tick();assert.match(el.innerHTML,/USER_DISCLOSURE_STATE/);
+ now+=31*36e5;tick();assert.doesNotMatch(el.innerHTML,/<table|USER_DISCLOSURE_STATE/);assert.equal(requests,1);
  await ui.mount(doc,async()=>{throw Error('Unavailable');},()=>NOW,timers);assert.match(el.innerHTML,/snapshot unavailable/);
 });
 test('an older response cannot reintroduce values after a later failed refresh',async()=>{

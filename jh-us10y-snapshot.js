@@ -73,7 +73,8 @@
   states.set(el,state);el.textContent='Checking dated 10-year producer snapshot…';
   try{
    const packet=await get(fetcher);if(states.get(el)!==state)return state;
-   const refresh=()=>{if(states.get(el)===state)el.innerHTML=render(packet,clock());};refresh();
+   let lastHTML;
+   const refresh=()=>{if(states.get(el)!==state)return;const html=render(packet,clock());if(html!==lastHTML){el.innerHTML=html;lastHTML=html;}};refresh();
    timer=timers.setInterval(refresh,60000);
   }catch(e){if(states.get(el)===state)el.innerHTML=unavailable;}
   return state;
