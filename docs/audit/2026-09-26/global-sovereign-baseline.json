@@ -1,0 +1,58 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "FunctionName": "justhodl-global-sovereign",
+    "CodeSha256": "fECCywD+Cyskv5WykbCrXn6Sm0ONYgF2WgdvaBPVCvM=",
+    "LastModified": "2026-07-16T16:32:48.000+0000",
+    "Runtime": "python3.12",
+    "Handler": "lambda_function.lambda_handler",
+    "Timeout": 300,
+    "MemorySize": 512,
+    "Architectures": [
+      "x86_64"
+    ]
+  },
+  "all_denied": true,
+  "anonymous_origins_checked": 16,
+  "attempt_outcome_counts": {
+    "404": 8,
+    "403": 8
+  },
+  "baseline": {
+    "key": "audit-private/20260909-originals/global-sovereign-research/4f339f1182e486901716ebed4b223dbba2b7450af470a4f6f782eb89c32ebef0.bin",
+    "sha256": "4f339f1182e486901716ebed4b223dbba2b7450af470a4f6f782eb89c32ebef0",
+    "bytes": 7295
+  },
+  "capture_status": {
+    "data/global-sovereign.json": "whole_object_retained",
+    "data/global-sovereign-history.json": "whole_object_retained",
+    "data/ops/releases/justhodl-global-sovereign.json": "missing"
+  },
+  "code_matches_repository": true,
+  "failures": [],
+  "history_writes": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "protected_paths_checked": 8,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedules": [
+    {
+      "kind": "EventBridge rule",
+      "name": "global-sovereign-12h",
+      "state": "ENABLED",
+      "expression": "cron(15 6,18 * * ? *)",
+      "native_targets": 1
+    }
+  ],
+  "schedules_changed": 0,
+  "scope": "Complete predecessor and derived S3 input baseline. Source arithmetic, historical vintages, investment and portfolio qualification remain unverified.",
+  "source_difference_names": [],
+  "source_files_checked": 1,
+  "source_inventory": [
+    "data/global-sovereign-history.json"
+  ],
+  "commit": "7be02c3811d8eb4e509f52b8454fb0a47f863bd9",
+  "operation_run": 36274696709,
+  "report_commit": "2ca31db5db385c44bdabcd0f17edf62b365e4efa"
+}

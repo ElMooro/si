@@ -21,7 +21,7 @@ class Memory:
 
 class Tests(unittest.TestCase):
     def test_every_preserved_predecessor_read_is_reviewed_without_importing_engine(self):
-        source=(ROOT/'aws/lambdas/justhodl-global-sovereign/source/lambda_function.py').read_text(encoding='utf-8')
+        source=(ROOT/'aws/lambdas/justhodl-global-sovereign/tests/fixtures/pre-preservation-lambda_function.py.txt').read_text(encoding='utf-8')
         keys=op.source_reads(source);self.assertEqual(keys,['data/global-sovereign-history.json'])
         for invalid in ('s3.get_object(Key="data/portfolio.json")','s3.get_object(Key=dynamic)','s3.get_object(Key="data/new-input.json")'):
             with self.assertRaises(ValueError):op.source_reads(invalid)

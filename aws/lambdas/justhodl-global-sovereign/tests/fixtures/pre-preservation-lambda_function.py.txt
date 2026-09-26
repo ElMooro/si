@@ -13,16 +13,14 @@ emits regional aggregates. Publishes data/global-sovereign.json.
 OUTPUT: data/global-sovereign.json
 """
 import json
-import math
-import sovereign_history
 import re
 import time
 import urllib.request
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.4.1"
+VERSION = "1.4.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-sovereign.json"
 HIST_KEY = "data/global-sovereign-history.json"
@@ -130,8 +128,7 @@ def wgb_country(slug):
     def num(k):
         v = d.get(k)
         try:
-            value = float(v) if v not in (None, "", "----") and not isinstance(v, bool) else None
-            return value if value is not None and math.isfinite(value) else None
+            return float(v) if v not in (None, "", "----") else None
         except (ValueError, TypeError):
             return None
     return {
@@ -178,8 +175,6 @@ def regime_from(score):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    prior = sovereign_history.begin(s3, S3_BUCKET, datetime.now(timezone.utc).isoformat())
-    next_history = None
     rows = []
     errors = []
     for name, (slug, region) in COUNTRIES.items():
@@ -270,9 +265,6 @@ def lambda_handler(event=None, context=None):
 
     payload = {
         "version": VERSION, "ok": bool(rows),
-        "calls_eligible": False, "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False,
-        "decision": {"verb": "WAIT", "meaning": "abstain", "reason": "Provider quote definitions and observation clocks, sovereign rankings and funding interpretations remain unqualified."},
-        "quality": {"status": "unverified", "scope": "Legacy provider-reported quotes and heuristic review scores; not original-source replay or validated forecasts."},
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
         "n_countries": len(rows),
@@ -299,7 +291,12 @@ def lambda_handler(event=None, context=None):
     # compute where today sits vs its own history.
     if eurodollar_hub_stress is not None:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        hist = list(prior['history']['doc']) if prior['history'] else []
+        try:
+            hist = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=HIST_KEY)["Body"].read())
+            if not isinstance(hist, list):
+                hist = []
+        except Exception:
+            hist = []
         snap = {
             "date": today,
             "stress": eurodollar_hub_stress,
@@ -310,7 +307,10 @@ def lambda_handler(event=None, context=None):
         hist = [h for h in hist if h.get("date") != today]  # dedupe → latest per day
         hist.append(snap)
         hist.sort(key=lambda h: h["date"])
-        next_history = hist
+        hist = hist[-1100:]  # ~3 years of daily points
+        s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,
+                      Body=json.dumps(hist, default=str).encode(),
+                      ContentType="application/json", CacheControl="max-age=1800, public")
 
         # percentile of today's reading within its own history + short-window trend
         series = [h["stress"] for h in hist if h.get("stress") is not None]
@@ -318,25 +318,22 @@ def lambda_handler(event=None, context=None):
             below = sum(1 for v in series if v <= eurodollar_hub_stress)
             payload["eurodollar_hub_percentile"] = round(below / len(series) * 100.0, 1)
         payload["eurodollar_hub_history_n"] = len(hist)
-        payload["eurodollar_hub_history"] = hist  # retain every stored daily point
-        # Exact calendar-date comparisons; a daily snapshot is not two observations/day.
-        def ago(days):
-            target = (datetime.fromisoformat(today).date() - timedelta(days=days)).isoformat()
-            row = next((h for h in hist if h["date"] == target), {})
-            value = row.get("stress")
-            return value if type(value) in (int, float) and math.isfinite(value) else None
-        prev7, prev30 = ago(7), ago(30)
-        payload["history_comparison_basis"] = "Exact UTC snapshot calendar dates; missing prior dates remain unavailable. These are unqualified heuristic index points."
-        payload["eurodollar_hub_chg_7d"] = None
-        payload["eurodollar_hub_chg_30d"] = None
+        payload["eurodollar_hub_history"] = hist[-90:]  # last 90 pts for the sparkline
+        # trend vs ~7 days and ~30 days ago (by position, since cadence is ~2/day)
+        def ago(n):
+            idx = len(series) - 1 - n
+            return series[idx] if 0 <= idx < len(series) else None
+        prev7, prev30 = ago(14), ago(60)  # ~7d and ~30d at 2 runs/day
         if prev7 is not None:
             payload["eurodollar_hub_chg_7d"] = round(eurodollar_hub_stress - prev7, 1)
         if prev30 is not None:
             payload["eurodollar_hub_chg_30d"] = round(eurodollar_hub_stress - prev30, 1)
 
-    publication = sovereign_history.publish(s3, S3_BUCKET, prior, payload, next_history)
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
+                  Body=json.dumps(payload, default=str).encode(),
+                  ContentType="application/json", CacheControl="max-age=1800, public")
     return {"statusCode": 200, "body": json.dumps({
-        "ok": payload["ok"], "n": len(rows), "errors": len(errors), "publication_attempt": publication,
+        "ok": payload["ok"], "n": len(rows), "errors": len(errors),
         "global_avg_cds": payload["global_avg_cds_bp"],
         "highest_stress": (payload["highest_stress"] or {}).get("country"),
         "elapsed_s": payload["elapsed_s"],
