@@ -1,0 +1,351 @@
+{
+  "commit": "cdd9ca38af9f1a58a6d1e993a3530b5a37fe329a",
+  "run": 36266939347,
+  "report_commit": "73b73a0e1f8722ab1db591f21a4446f69d22db73",
+  "evidence": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "FunctionName": "justhodl-bond-desk",
+      "CodeSha256": "HheuwryDbUFrqYyGlJgVYUHYGs50pQ5ne66XsSxaMVg=",
+      "LastModified": "2026-09-26T06:11:00.000+0000",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 180,
+      "MemorySize": 256,
+      "Architectures": [
+        "x86_64"
+      ]
+    },
+    "all_denied": true,
+    "anonymous_origins_checked": 50,
+    "attempt_outcome_counts": {
+      "404": 25,
+      "403": 25
+    },
+    "baseline": {
+      "key": "audit-private/20260909-originals/bond-desk-research/36534c93f149632f65e0fcd49566e3396d9ff76f500b52478223f0ca66f82d2e.bin",
+      "sha256": "36534c93f149632f65e0fcd49566e3396d9ff76f500b52478223f0ca66f82d2e",
+      "bytes": 62355
+    },
+    "capture_status": {
+      "data/bond-desk.json": "whole_object_retained",
+      "data/history/bond-desk.json": "whole_object_retained",
+      "data/history/bond-crisis-analogs.json": "whole_object_retained",
+      "etf-flows/daily.json": "whole_object_retained",
+      "data/etf-true-flows.json": "whole_object_retained",
+      "data/ici-flows.json": "missing",
+      "data/credit-stress.json": "whole_object_retained",
+      "data/credit-stress-history.json": "whole_object_retained",
+      "data/bond-vol.json": "whole_object_retained",
+      "data/auction-crisis.json": "whole_object_retained",
+      "data/settlement-fails.json": "whole_object_retained",
+      "data/term-premium.json": "whole_object_retained",
+      "data/dealer-survey.json": "whole_object_retained",
+      "data/eurodollar-plumbing.json": "whole_object_retained",
+      "data/euro-fragmentation.json": "whole_object_retained",
+      "data/systemic-stress.json": "whole_object_retained",
+      "data/yen-carry.json": "whole_object_retained",
+      "data/hkma.json": "whole_object_retained",
+      "data/ops/releases/justhodl-bond-desk.json": "whole_object_retained"
+    },
+    "code_matches_repository": true,
+    "failures": [],
+    "history_writes": 0,
+    "native_invocations": 0,
+    "notifications_sent": 0,
+    "protected_paths_checked": 25,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-bond-desk-daily",
+        "state": "ENABLED",
+        "expression": "cron(15 15 ? * MON-FRI *)",
+        "native_targets": 1
+      }
+    ],
+    "schedules_changed": 0,
+    "scope": "Complete predecessor and derived S3 input baseline. Source arithmetic, historical vintages, investment and portfolio qualification remain unverified.",
+    "source_difference_names": [],
+    "source_files_checked": 8,
+    "source_inventory": [
+      "data/auction-crisis.json",
+      "data/bond-vol.json",
+      "data/credit-stress-history.json",
+      "data/credit-stress.json",
+      "data/dealer-survey.json",
+      "data/etf-true-flows.json",
+      "data/euro-fragmentation.json",
+      "data/eurodollar-plumbing.json",
+      "data/history/bond-crisis-analogs.json",
+      "data/history/bond-desk.json",
+      "data/hkma.json",
+      "data/ici-flows.json",
+      "data/settlement-fails.json",
+      "data/systemic-stress.json",
+      "data/term-premium.json",
+      "data/yen-carry.json",
+      "etf-flows/daily.json"
+    ]
+  },
+  "separate_public_read": {
+    "read_at": "2026-09-26T19:40:45.576801+00:00",
+    "bytes": 17052,
+    "sha256": "064af28ec77c42784e0898577e199b48e6a9d726620e00cf85e469e9f9c9eac4",
+    "schema": {
+      "engine": "justhodl-bond-desk",
+      "version": "3.0.0",
+      "generated_at": "2026-09-25T15:16:08+00:00",
+      "world_anxiety": 64.5,
+      "regime": "ANXIOUS",
+      "hottest_region": {
+        "region": "us",
+        "score": 73.4
+      },
+      "regions": {
+        "us": {
+          "score": 73.4,
+          "flows": {
+            "buckets": {
+              "type": "dict",
+              "count": 11
+            },
+            "matched_tickers": {
+              "type": "int",
+              "count": null
+            },
+            "duration_tilt": {
+              "type": "float",
+              "count": null
+            },
+            "credit_appetite_5d_usd": {
+              "type": "int",
+              "count": null
+            },
+            "equity_to_bond_5d_usd": {
+              "type": "int",
+              "count": null
+            },
+            "ici_bond_weekly_usd_m": {
+              "type": "NoneType",
+              "count": null
+            },
+            "ici_week": {
+              "type": "NoneType",
+              "count": null
+            },
+            "note": {
+              "type": "str",
+              "count": null
+            }
+          },
+          "credit": {
+            "source": {
+              "type": "str",
+              "count": null
+            },
+            "ccc_minus_bb_bps": {
+              "type": "float",
+              "count": null
+            },
+            "hy_minus_ig_bps": {
+              "type": "float",
+              "count": null
+            },
+            "bbb_minus_aaa_bps": {
+              "type": "float",
+              "count": null
+            },
+            "composite_regime": {
+              "type": "str",
+              "count": null
+            },
+            "fred_micro": {
+              "type": "dict",
+              "count": 4
+            }
+          },
+          "stress": {
+            "bond_vol_regime": {
+              "type": "str",
+              "count": null
+            },
+            "bond_vol_pctile": {
+              "type": "float",
+              "count": null
+            },
+            "auction_regime": {
+              "type": "str",
+              "count": null
+            },
+            "fails_pctile": {
+              "type": "float",
+              "count": null
+            },
+            "acm_tp10_d21_bps": {
+              "type": "float",
+              "count": null
+            },
+            "dealer_survey": {
+              "type": "NoneType",
+              "count": null
+            }
+          },
+          "fresh": true
+        },
+        "global_funding": {
+          "severity": "UNQUALIFIED",
+          "health": null,
+          "fed_swaps_chg_bn": -17.0,
+          "cnh_gap_pips": null,
+          "fresh": false,
+          "score": null,
+          "status": "unqualified_funding_vote",
+          "source_replay": {
+            "manifest_key": {
+              "type": "str",
+              "count": null
+            },
+            "output_sha256": {
+              "type": "str",
+              "count": null
+            }
+          }
+        },
+        "europe": {
+          "fragmentation_score": null,
+          "regime": "FRAGMENTATION RISK",
+          "btp_bund_bp": 80.6,
+          "btp_chg_1m_bp": -0.4,
+          "systemic_stress": null,
+          "fresh": true,
+          "score": 50.0
+        },
+        "japan": {
+          "jgb10_chg_6m_pp": null,
+          "jgb10_chg_12m_pp": null,
+          "carry_stress": null,
+          "duration_carry_pp": null,
+          "fresh": false,
+          "score": null,
+          "status": "unqualified_yen_vote",
+          "source_replay": {
+            "manifest_key": {
+              "type": "str",
+              "count": null
+            },
+            "output_sha256": {
+              "type": "str",
+              "count": null
+            }
+          }
+        },
+        "em": {
+          "em_hy_minus_us_hy_bps": 5.0,
+          "em_debt_flow_5d_usd": 0,
+          "fresh": true,
+          "score": 50.8
+        }
+      },
+      "weights": {
+        "us": 0.4,
+        "global_funding": 0.2,
+        "europe": 0.15,
+        "japan": 0.15,
+        "em": 0.1
+      },
+      "n_regions_live": 3,
+      "equity_read": "GLOBAL FI FLASHES ANXIETY FOR EQUITIES \u2014 Hottest: US 73 \u00b7 US credit micro CCC-BB 948.0bps p100.0 \u039421d +73 \u00b7 Eq\u2192bond $0.0B/5d \u00b7 ICI bond $NoneM/wk \u00b7 USD funding UNQUALIFIED \u00b7 EU frag FRAGMENTATION RISK (BTP-Bund 80.6 \u03941m +0bp) \u00b7 JGB anchor: None (\u03946m +0.00pp)",
+      "world_map": {
+        "type": "array",
+        "count": 14,
+        "first_shape": {
+          "code": "us",
+          "label": "\ud83c\uddfa\ud83c\uddf8 United States",
+          "score": 73.4,
+          "metric": "engine composite",
+          "src": "owned"
+        }
+      },
+      "other_dm_score": 71.3,
+      "crisis_analogs": {
+        "status": "OK",
+        "current_vector": {
+          "type": "array",
+          "count": 6,
+          "first_shape": 1.39
+        },
+        "vector_dims": {
+          "type": "array",
+          "count": 6,
+          "first_shape": "BAA10Y"
+        },
+        "top": {
+          "type": "array",
+          "count": 3,
+          "first_shape": {
+            "name": {
+              "type": "str",
+              "count": null
+            },
+            "date": {
+              "type": "str",
+              "count": null
+            },
+            "fwd": {
+              "type": "dict",
+              "count": 5
+            },
+            "similarity_pct": {
+              "type": "float",
+              "count": null
+            }
+          }
+        },
+        "all": {
+          "type": "array",
+          "count": 10,
+          "first_shape": {
+            "name": {
+              "type": "str",
+              "count": null
+            },
+            "date": {
+              "type": "str",
+              "count": null
+            },
+            "fwd": {
+              "type": "dict",
+              "count": 5
+            },
+            "similarity_pct": {
+              "type": "float",
+              "count": null
+            }
+          }
+        },
+        "note": "Fingerprint on full-history series (BAML OAS only serves ~3y, cannot reach 2008)."
+      },
+      "ai_brief": null,
+      "ai_status": "PROVIDER_DOWN",
+      "chart_ccc_bb": {
+        "type": "array",
+        "count": 157,
+        "first_shape": {
+          "date": "2023-09-29",
+          "value": 645.0
+        }
+      },
+      "anxiety_history": {
+        "type": "array",
+        "count": 62,
+        "first_shape": {
+          "date": "2026-07-02",
+          "value": 66.9
+        }
+      },
+      "method": "World anxiety = freshness-gated regional blend (US .40 flows/credit/stress \u00b7 USD-funding .20 via eurodollar-plumbing \u00b7 Europe .15 via fragmentation+CISS \u00b7 Japan .15 via yen-carry/JGB \u00b7 EM .10 via EM-HY differential + flows). US layer fuses ETF ladder (0 matched, ramping), ICI industry flows, owned ICE-BofA credit ladder, bond-vol/auctions/fails/ACM/dealer-survey. Chart = CCC-BB weekly 5y."
+    }
+  }
+}

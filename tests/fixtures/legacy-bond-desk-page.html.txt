@@ -47,37 +47,30 @@ h2{font-size:13px;letter-spacing:1.6px;color:var(--fg-2);margin:26px 0 10px}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
 td,th{padding:4px 7px;border-bottom:1px solid var(--line);text-align:right}
 td:first-child,th:first-child{text-align:left}
-.card{min-width:0;overflow:auto}.rc,.tile{min-width:0}.read,.method,.phase,.sub{overflow-wrap:anywhere}
 @media(max-width:900px){.map{grid-template-columns:repeat(4,1fr)}.sim .nm{width:130px}}
 </style></head><body><div class="wrap">
-<h1>GLOBAL BOND DESK — RESEARCH REVIEW</h1>
-<div class="sub" id="sub">Loading the existing research packet…</div>
+<h1>🌍 GLOBAL BOND DESK — WORLDWIDE FI ANXIETY</h1>
+<div class="sub" id="sub">Loading world map · crisis analogs · AI interpretation…</div>
 <div id="app" class="loading">Loading…</div>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-fifx-research.js"></script>
 <script>
-let originalText='';
-async function getJSON(k){try{const raw=await JHFIFXResearch.bytes('/'+k+'?exact=1&nogen=1',fetch,8*1024*1024,20000);originalText=new TextDecoder('utf-8',{fatal:true}).decode(raw);return JSON.parse(originalText)}catch(e){return null}}
-const escapeHTML=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const inert=v=>typeof v==='string'?escapeHTML(v):Array.isArray(v)?v.map(inert):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[escapeHTML(k),inert(x)])):v;
+const PX=['','https://s3.amazonaws.com/justhodl-dashboard-live/'];
+async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:'no-store'});if(r.ok)return await r.json()}catch(e){}}return null}
 const rc=r=>({STRESS:'r',ANXIOUS:'a',UNEASY:'c',CALM:'g'}[r]||'c');
 const sc=v=>typeof v!=='number'||!Number.isFinite(v)?'var(--fg-3)':v>=75?'var(--red)':v>=60?'var(--amber)':v>=45?'var(--cyan)':'var(--green)';
 const bn=v=>v==null?'—':(v/1e9).toFixed(2)+'B';
 const F=v=>(v==null||v==='')?'—':v;
 (async()=>{
- const original=await getJSON('data/bond-desk.json');
- const d=inert(original);
+ const d=await getJSON('data/bond-desk.json');
  const app=document.getElementById('app');
  if(!d||!d.regions){app.textContent='Feed unavailable.';return}
  const R=d.regions,US=R.us||{},GF=R.global_funding||{},EU=R.europe||{},JP=R.japan||{},EM=R.em||{};
  const Fw=(US.flows||{}),Cr=(US.credit||{}),Mi=Cr.fred_micro||{},Sx=(US.stress||{}),Bk=Fw.buckets||{};
  const MAPORD=['ca','us','mx','gb','ez','ch','se','us_fund','em','za','cn','jp','kr','au'];
  const T=Object.fromEntries((d.world_map||[]).map(t=>[t.code,t]));
- // This predecessor has no accepted decision contract or original-source replay.
- // A missing flag, legacy score or asserted boolean cannot confer authority.
- const qualified=false;
+ const qualified=d.calls_eligible!==false&&typeof d.world_anxiety==='number'&&Number.isFinite(d.world_anxiety);
  const AN=d.crisis_analogs||{},AI=qualified?d.ai_brief:null,AIS=qualified?d.ai_status:'UNQUALIFIED_REQUIRED_INPUT';
- document.getElementById('sub').innerHTML=`${d.n_regions_live}/5 rich regions · ${(d.world_map||[]).filter(t=>t.score!=null).length} reported map tiles · reported analog status ${AN.status||'—'} · AI ${AIS||'—'} · v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ document.getElementById('sub').innerHTML=`${d.n_regions_live}/5 rich regions · ${(d.world_map||[]).filter(t=>t.score!=null).length} map tiles · analogs ${AN.status||'—'} · AI ${AIS||'—'} · v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
  const tile=c=>{const t=T[c];if(!t)return '<div class="tile" style="opacity:.25"></div>';
    return `<div class="tile" style="border-color:${t.score!=null?sc(t.score):'var(--line)'}">
      <div class="l">${t.label}</div><div class="s" style="color:${t.score!=null?sc(t.score):'var(--fg-3)'}">${F(t.score)}</div>
@@ -93,14 +86,11 @@ const F=v=>(v==null||v==='')?'—':v;
    <div><div class="score ${rc(d.regime)}">${qualified?d.world_anxiety:'Unavailable'}</div>
    <div style="color:var(--fg-3);font-family:var(--mono);font-size:11px">world FI anxiety / 100</div></div>
    <div class="phase ${rc(d.regime)}">${qualified?d.regime:'WAIT · ABSTAIN'}</div>
-   <div class="phase">${qualified&&d.hottest_region?'HOTTEST: '+d.hottest_region.region.replace(/_/g,' ').toUpperCase()+' '+d.hottest_region.score:'Research qualification incomplete'}</div>
+   <div class="phase">${qualified&&d.hottest_region?'HOTTEST: '+d.hottest_region.region.replace(/_/g,' ').toUpperCase()+' '+d.hottest_region.score:'Required regional votes incomplete'}</div>
  </div>
- <div class="read"><b>EQUITY READ</b> — ${qualified?(d.equity_read||''):'WAIT means abstain. This predecessor has no accepted original-source replay, out-of-sample forecast qualification or portfolio target. Reported fields remain available for review below.'}</div>
+ <div class="read"><b>EQUITY READ</b> — ${qualified?(d.equity_read||''):'No world-anxiety score or equity implication is qualified while a required regional vote is unavailable.'}</div>
 
- <div class="read"><b>Evidence boundary</b> — Publication ${d.generated_at||'date unavailable'} is not an observation date. No field-level source dates, units or historical vintage are certified by this page. Missing inputs are not zero flows.</div>
- <details id="bond-legacy"><summary style="cursor:pointer;color:var(--cyan);padding:14px 0">Review unqualified legacy measurements, scores and analogs</summary>
- <p class="note">All values below are reported predecessor fields. Scores, color bands, regional rankings and historical returns have not been independently qualified and must not determine a trade.</p>
- <h2>REPORTED WORLD MAP — UNQUALIFIED LEGACY SCORES</h2>
+ <h2>🗺️ WORLD MAP — BOND ANXIETY BY REGION</h2>
  <div class="map">${MAPORD.map(tile).join('')}</div>
  <div class="legend">rich tiles = owned engine composites · others = FRED OECD 10y 6-month repricing (the JGB duration-shock logic applied worldwide) · <span class="g">■</span>&lt;45 calm <span class="c">■</span>45-60 uneasy <span class="a">■</span>60-75 anxious <span class="r">■</span>≥75 stress</div>
 
@@ -111,12 +101,12 @@ const F=v=>(v==null||v==='')?'—':v;
    <div class="note" style="margin-top:9px">confidence ${AI.confidence||'—'} · watch: ${(AI.watch||[]).join(' · ')}</div>`
    :`<div class="b" style="color:var(--fg-3)">Narrative unavailable. Historical analogs below are descriptive comparisons, not qualified forecasts or portfolio instructions.</div>`}</div>
 
- <h2>🧬 REPORTED HISTORICAL ANALOGS — UNQUALIFIED COMPARISONS</h2>
+ <h2>🧬 CRISIS ANALOGS — TODAY'S FINGERPRINT vs HISTORY</h2>
  <div class="grid"><div class="card" style="grid-column:1/-1">
    ${(AN.top||[]).map(a=>`<div class="sim"><div class="nm">${a.name} <span style="color:var(--fg-3)">${a.date}</span></div><div class="tr"><i style="width:${a.similarity_pct}%"></i></div><div class="pc">${a.similarity_pct}%</div></div>`).join('')}
    <table style="margin-top:12px"><tr><th>crisis</th><th>match</th><th>SPY +63d</th><th>TLT</th><th>GLD</th><th>HYG</th><th>BTC</th></tr>
    ${(AN.all||[]).map(fwdRow).join('')}</table>
-   <div class="note">${AN.note||''} Similarity on [${(AN.vector_dims||[]).join(', ')}]. These legacy returns lack a verified entry/exit price lineage, corporate-action treatment and as-known-at source vintage. They are not validated investment performance. Similarity percentages are not probabilities.</div></div></div>
+   <div class="note">${AN.note||''} Similarity on [${(AN.vector_dims||[]).join(', ')}]. Forward returns are what ACTUALLY happened after each date — measured, not narrated.</div></div></div>
 
  <h2>🌐 RICH REGION COMPOSITES</h2>
  <div class="rgrid">
@@ -144,14 +134,14 @@ const F=v=>(v==null||v==='')?'—':v;
     <div class="note">${Fw.matched_tickers} matched — ramping via etf-true-flows universe expansion.</div></div>
  </div>
  <div id="chart-anchor"><h1 style="font-size:14px;letter-spacing:1.5px;color:var(--fg-2)">CCC − BB SPREAD — WEEKLY (bps) · junk-within-junk anxiety</h1></div>
- <div class="method" style="margin-top:18px"><b>REPORTED PREDECESSOR METHOD — UNQUALIFIED</b> — ${d.method||''}</div></details>
- <details style="margin-top:18px"><summary style="cursor:pointer;color:var(--cyan)">Complete original packet — every field and row</summary><p class="note">Exact response text, including unqualified legacy scores and any source gaps. Retaining a field does not grant decision permission.</p><pre id="bond-original" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:600px;overflow:auto"></pre></details>`;
- document.getElementById('bond-original').textContent=originalText;
- const history=Array.isArray(d.chart_ccc_bb)?d.chart_ccc_bb:[];
- const anchor=document.getElementById('chart-anchor');
- anchor.innerHTML='<h2>REPORTED CCC − BB HISTORY · unit reported as basis points, not independently verified</h2><p class="note">All '+history.length+' observations in this same packet. No separate chart fetch or added crisis overlay.</p><details><summary>Review every reported historical observation</summary><div style="overflow:auto;max-height:450px"><table><thead><tr><th>Date</th><th>Reported value</th></tr></thead><tbody>'+history.map(row=>'<tr><td>'+F(row?.date)+'</td><td>'+F(row?.value)+'</td></tr>').join('')+'</tbody></table></div></details>';
-
+ <div class="method" style="margin-top:18px"><b>METHOD</b> — ${d.method||''}</div>`;
+ const s=document.createElement('script');s.src='/jh-enhance.js';
+ s.setAttribute('data-feed','data/bond-desk.json');
+ s.setAttribute('data-line','chart_ccc_bb');
+ s.setAttribute('data-crisis','1');
+ document.getElementById('chart-anchor').appendChild(s);
 })();
 </script></div>
+<script defer src="/jh-page-ai.js"></script>
 <script src="/sidebar.js" defer></script>
 </body></html>
