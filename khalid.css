@@ -5,10 +5,10 @@
   --k-line: #2b2921;
   --k-ink: #ebe5d7;
   --k-muted: #918a76;
-  --k-amber: #f0b429;
-  --k-green: #73d38d;
-  --k-red: #e47d6d;
-  --k-blue: #78aee8;
+  --k-amber: #F0B429;
+  --k-green: #6fce8a;
+  --k-red: #E07A6A;
+  --k-blue: #F0B429;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -66,9 +66,9 @@ button { color: inherit; }
 .k-capital-banner {
   display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: center;
   margin-bottom: 28px; padding: 20px 22px; border: 1px solid var(--k-red);
-  border-left: 5px solid var(--k-red); background: linear-gradient(90deg, rgba(228,125,109,.12), transparent);
+  border-left: 5px solid var(--k-red); background: linear-gradient(90deg, rgba(224,122,106,.12), transparent);
 }
-.k-capital-banner.invest { border-color: var(--k-green); background: linear-gradient(90deg, rgba(115,211,141,.12), transparent); }
+.k-capital-banner.invest { border-color: var(--k-green); background: linear-gradient(90deg, rgba(111,206,138,.12), transparent); }
 .k-capital-banner .k-eyebrow { margin-bottom: 5px; }
 .k-capital-banner strong { font: 650 clamp(20px, 2.6vw, 32px)/1.1 var(--jh-mono); letter-spacing: -.035em; }
 .k-cap-meter { min-width: 150px; text-align: right; }
@@ -142,7 +142,7 @@ h1 { max-width: 900px; margin: 15px 0 10px; font: 600 clamp(25px, 3vw, 36px)/1.0
 .k-fact b { display: block; margin-top: 4px; font: 600  12px var(--jh-mono); font-variant-numeric: tabular-nums; }
 .k-gates { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 16px 12px; }
 .k-gates span { color: var(--k-muted); border: 1px solid var(--k-line); padding: 2px 5px; font: 11px var(--jh-mono); }
-.k-gates span.on { color: var(--k-green); border-color: #2a5a3c; }
+.k-gates span.on { color: var(--k-green); border-color: #3f7d55; }
 .k-empty { padding: 40px; border: 1px dashed var(--k-line); color: var(--k-muted); text-align: center; font: 12px var(--jh-mono); }
 .k-opportunity-table { margin-top: 14px; }
 .k-opportunity-table th { padding: 0; }
@@ -298,3 +298,39 @@ th { position: sticky; top: 0; background: var(--k-panel-2); color: var(--k-mute
   .k-card, .k-detail { transition: none; }
   .k-loading span { animation: none; }
 }
+/* A section pin inserted into a grid was stretching into an empty column. */
+.k-capital-banner,
+.k-regime-grid,
+.k-kpis,
+.k-decision,
+.k-risk-grid,
+.k-risk-board,
+.k-asset-grid,
+.k-subgrid,
+.k-method-grid,
+.k-opportunities,
+.k-breadth-grid,
+.k-risk-summary,
+.k-filter-grid,
+.k-source-grid,
+.k-detail-grid { position: relative; }
+.k-app .jh-secbadge.float {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  width: max-content;
+  height: auto;
+  margin: 0;
+  z-index: 2;
+}
+.k-capital-banner:has(> .jh-secbadge) { padding-top: 36px; }
+.k-regime-grid:has(> .jh-secbadge),
+.k-risk-grid:has(> .jh-secbadge),
+.k-kpis:has(> .jh-secbadge),
+.k-asset-grid:has(> .jh-secbadge),
+.k-opportunities:has(> .jh-secbadge) { margin-top: 22px; }
+.k-regime-grid > .jh-secbadge.float,
+.k-risk-grid > .jh-secbadge.float,
+.k-kpis > .jh-secbadge.float,
+.k-asset-grid > .jh-secbadge.float,
+.k-opportunities > .jh-secbadge.float { top: -18px; left: 0; }
