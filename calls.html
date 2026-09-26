@@ -198,6 +198,14 @@ table td.num{text-align:right}
   <div class="section">
     <h2>All briefs (newest first)</h2>
     <p class="sub">Full history, including errors and abstentions. Legacy signal accuracy is preserved for inspection and is not the accuracy of Calls.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:12px 0">
+      <div><label for="history-filter">Status</label> <select id="history-filter" style="color:inherit;background:var(--panel,#111827);padding:8px">
+        <option value="ALL">All entries</option><option value="ABSTAIN">Abstentions</option><option value="ERROR">Generation errors</option>
+        <option value="INVALID">Invalid entries</option><option value="LEGACY">Unverified legacy</option><option value="QUALIFIED">Qualified at recording</option>
+      </select></div>
+      <div><label for="history-size">Rows</label> <select id="history-size" style="color:inherit;background:var(--panel,#111827);padding:8px"><option>25</option><option selected>50</option><option>100</option></select></div>
+      <a href="/data/decisive-call-history.json?exact=1&amp;nogen=1">Inspect the complete original ledger</a>
+    </div>
     <div class="card" style="padding:0">
       <div style="overflow-x:auto;max-height:600px">
         <table id="history-table">
@@ -215,6 +223,11 @@ table td.num{text-align:right}
         </table>
       </div>
     </div>
+    <nav aria-label="Brief history pages" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:12px 0">
+      <button id="history-prev" type="button" disabled style="padding:8px 14px">Previous</button>
+      <span id="history-range" role="status" aria-live="polite">Loading history…</span>
+      <button id="history-next" type="button" disabled style="padding:8px 14px">Next</button>
+    </nav>
   </div>
 </main>
 
