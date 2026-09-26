@@ -28,6 +28,15 @@ class Tests(unittest.TestCase):
         for bad in ("FEEDS=make_feeds()", "FEEDS=[('A','m','../secret',n_a)]", "FEEDS=[('A','m','data/a.json',n_a()),]", "FEEDS=[('A','m','data/a.json',n_a),('A','m','data/b.json',n_b)]"):
             with self.assertRaises(ValueError):baseline.feeds(bad)
 
+    def test_page_registry_keeps_every_native_row_and_original_page_byte(self):
+        source=(ROOT/'aws/lambdas/justhodl-signal-board/source/lambda_function.py').read_text(encoding='utf-8')
+        registry=json.loads((ROOT/'assets/signal-board-registry.json').read_bytes())
+        self.assertEqual(registry['feeds'],baseline.feeds(source))
+        self.assertEqual(registry['baseline_manifest'],'746cfc5ea9abc8dc933c7c1bbefc36c1adebe5db00d78c2f38cfe97031ef35d6')
+        original=(ROOT/'tests/fixtures/legacy-signal-board-stage140.html.txt').read_bytes()
+        self.assertEqual(len(original),20970)
+        self.assertEqual(hashlib.sha256(original).hexdigest(),'2953393839b59c6a31e39e87f4bff56572f8ede48a9198dac8fbebd311a29e77')
+
     def test_private_or_unreviewed_keys_are_blocked_before_transport(self):
         called=[]
         for key in ('data/pm-decision.json','data/sizing.json','data/portfolio/snapshot.json','https://example.invalid','data/../a.json'):

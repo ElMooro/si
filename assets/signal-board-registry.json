@@ -1,0 +1,769 @@
+{
+  "contract": "signal-board-page-registry.v1",
+  "baseline_manifest": "746cfc5ea9abc8dc933c7c1bbefc36c1adebe5db00d78c2f38cfe97031ef35d6",
+  "feeds": [
+    {
+      "engine": "Early-Warning War Room",
+      "category": "macro",
+      "source_key": "data/canary-warroom.json",
+      "normalizer": "n_canary_warroom",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "PM Decision",
+      "category": "positioning",
+      "source_key": "data/pm-decision.json",
+      "normalizer": "n_pm_decision",
+      "capture_scope": "excluded_private_account_input"
+    },
+    {
+      "engine": "Cross-Asset RV",
+      "category": "relative value",
+      "source_key": "data/cross-asset-rv.json",
+      "normalizer": "n_cross_asset_rv",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Fundamentals X-Ray",
+      "category": "equity valuation",
+      "source_key": "data/fundamentals.json",
+      "normalizer": "n_fundamentals",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Housing Cycle",
+      "category": "macro",
+      "source_key": "data/construction-housing.json",
+      "normalizer": "n_construction_housing",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Crypto Narratives",
+      "category": "crypto",
+      "source_key": "data/crypto-narratives.json",
+      "normalizer": "n_crypto_narratives",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Short Pressure",
+      "category": "positioning",
+      "source_key": "data/short-pressure.json",
+      "normalizer": "n_short_pressure",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Mean Reversion",
+      "category": "equity valuation",
+      "source_key": "screener/mean-reversion.json",
+      "normalizer": "n_mean_reversion",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Canary Grid",
+      "category": "macro",
+      "source_key": "data/canary-grid.json",
+      "normalizer": "n_canary_grid",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Dollar Radar",
+      "category": "macro",
+      "source_key": "data/dollar-radar.json",
+      "normalizer": "n_dollar_radar",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Global Stress",
+      "category": "macro",
+      "source_key": "data/global-stress.json",
+      "normalizer": "n_global_stress",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Eurodollar Plumbing",
+      "category": "macro",
+      "source_key": "data/eurodollar-plumbing.json",
+      "normalizer": "n_eurodollar_plumbing",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Auction Crisis",
+      "category": "macro",
+      "source_key": "data/auction-crisis.json",
+      "normalizer": "n_auction_crisis",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#1 VIX Backwardation",
+      "category": "volatility",
+      "source_key": "data/vix-backwardation-trigger.json",
+      "normalizer": "n_vix_backwardation",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#2 Insider Buys",
+      "category": "smart money",
+      "source_key": "data/insider-buys-enriched.json",
+      "normalizer": "n_insider_buys",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#3 Breadth Thrust",
+      "category": "volatility",
+      "source_key": "data/breadth-thrust.json",
+      "normalizer": "n_breadth_thrust",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#4 Vol-Target Unwind",
+      "category": "volatility",
+      "source_key": "data/vol-target-unwind.json",
+      "normalizer": "n_vol_target_unwind",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#5 Russell Recon",
+      "category": "events",
+      "source_key": "data/russell-recon-frontrun.json",
+      "normalizer": "n_russell_recon",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#6 Buyback Scanner",
+      "category": "events",
+      "source_key": "data/buyback-scanner.json",
+      "normalizer": "n_buyback_scanner",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#7 Stablecoin Flow",
+      "category": "crypto",
+      "source_key": "data/stablecoin-flow.json",
+      "normalizer": "n_stablecoin_flow",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#8 OPEX Calendar",
+      "category": "volatility",
+      "source_key": "data/opex-calendar.json",
+      "normalizer": "n_opex_calendar",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#9 Activist 13D",
+      "category": "smart money",
+      "source_key": "data/activist-13d.json",
+      "normalizer": "n_activist_13d",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Edge#10 RV-IV / Dispersion",
+      "category": "volatility",
+      "source_key": "data/rv-iv-scanner.json",
+      "normalizer": "n_rv_iv_scanner",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Crypto Opportunities",
+      "category": "crypto",
+      "source_key": "data/crypto-opportunities.json",
+      "normalizer": "n_crypto_opportunities",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Earnings IV Crush",
+      "category": "volatility",
+      "source_key": "data/earnings-iv-crush.json",
+      "normalizer": "n_earnings_iv_crush",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Stealth Accumulation",
+      "category": "smart money",
+      "source_key": "data/stealth-accumulation.json",
+      "normalizer": "n_stealth_accumulation",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Failed Pattern Reversal",
+      "category": "equity tactical",
+      "source_key": "data/failed-pattern-reversal.json",
+      "normalizer": "n_failed_pattern_reversal",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Squeeze Pre-Trigger",
+      "category": "positioning",
+      "source_key": "data/squeeze-pretrigger.json",
+      "normalizer": "n_squeeze_pretrigger",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Catalyst+Skew Premove",
+      "category": "positioning",
+      "source_key": "data/catalyst-skew-premove.json",
+      "normalizer": "n_catalyst_skew_premove",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Crypto ETF Arb",
+      "category": "crypto",
+      "source_key": "data/crypto-etf-arb.json",
+      "normalizer": "n_crypto_etf_arb",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Lockup Expiration",
+      "category": "events",
+      "source_key": "data/lockup-expiration.json",
+      "normalizer": "n_lockup_expiration",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Pre-Catalyst Vol Expansion",
+      "category": "volatility",
+      "source_key": "data/precatalyst-vol-expansion.json",
+      "normalizer": "n_precatalyst_vol_expansion",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "CEF Discount",
+      "category": "equity tactical",
+      "source_key": "data/cef-discount.json",
+      "normalizer": "n_cef_discount",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "REIT NAV Discount",
+      "category": "equity tactical",
+      "source_key": "data/reit-nav-discount.json",
+      "normalizer": "n_reit_nav_discount",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Dividend Cut Warning",
+      "category": "risk avoidance",
+      "source_key": "data/divcut-warning.json",
+      "normalizer": "n_divcut_warning",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Rating Change Cluster",
+      "category": "smart money",
+      "source_key": "data/rating-change-cluster.json",
+      "normalizer": "n_rating_change_cluster",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Multi-TF Convergence",
+      "category": "equity tactical",
+      "source_key": "data/multi-tf-convergence.json",
+      "normalizer": "n_multi_tf_convergence",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "52W Quality Breakout",
+      "category": "equity tactical",
+      "source_key": "data/52wk-quality-breakout.json",
+      "normalizer": "n_52wk_quality_breakout",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "SPAC Floor + Warrant",
+      "category": "asymmetric",
+      "source_key": "data/spac-floor-warrant.json",
+      "normalizer": "n_spac_floor_warrant",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "VVIX VoV Regime",
+      "category": "volatility",
+      "source_key": "data/vvix-vov-regime.json",
+      "normalizer": "n_vvix_vov_regime",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Sympathetic Momentum",
+      "category": "equity tactical",
+      "source_key": "data/sympathetic-momentum.json",
+      "normalizer": "n_sympathetic_momentum",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Insider+Buyback Confluence",
+      "category": "smart money",
+      "source_key": "data/insider-buyback-confluence.json",
+      "normalizer": "n_insider_buyback_confluence",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Gap-Fill Continuation",
+      "category": "equity tactical",
+      "source_key": "data/gap-fill-confirm.json",
+      "normalizer": "n_gap_fill_confirm",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "13F Price Divergence",
+      "category": "smart money",
+      "source_key": "data/13f-price-divergence.json",
+      "normalizer": "n_13f_price_divergence",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Credit-Equity Divergence",
+      "category": "macro",
+      "source_key": "data/credit-equity-divergence.json",
+      "normalizer": "n_credit_equity_divergence",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Post-Earnings Mean-Rev",
+      "category": "equity tactical",
+      "source_key": "data/post-earnings-mean-rev.json",
+      "normalizer": "n_post_earnings_mean_rev",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Insider Sell Cluster",
+      "category": "risk avoidance",
+      "source_key": "data/insider-sell-cluster.json",
+      "normalizer": "n_insider_sell_cluster",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "VIX9D-VIX Inversion",
+      "category": "volatility",
+      "source_key": "data/vix9d-vix-inversion.json",
+      "normalizer": "n_vix9d_vix_inversion",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Breadth Divergence",
+      "category": "macro",
+      "source_key": "data/breadth-divergence.json",
+      "normalizer": "n_breadth_divergence",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "SKEW Tail-Hedging",
+      "category": "volatility",
+      "source_key": "data/skew-tail-hedging.json",
+      "normalizer": "n_skew_tail_hedging",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "DXY-Equity Divergence",
+      "category": "macro",
+      "source_key": "data/dxy-equity-divergence.json",
+      "normalizer": "n_dxy_equity_divergence",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Gold-Equity Rotation",
+      "category": "macro",
+      "source_key": "data/gold-equity-rotation.json",
+      "normalizer": "n_gold_equity_rotation",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Buyback Yield Ranking",
+      "category": "smart money",
+      "source_key": "data/buyback-yield-ranking.json",
+      "normalizer": "n_buyback_yield_ranking",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Sentiment Extreme",
+      "category": "sentiment",
+      "source_key": "data/put-call-extreme.json",
+      "normalizer": "n_put_call_extreme",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "CTA Trend Exhaust",
+      "category": "positioning",
+      "source_key": "data/cta-trend-exhaust.json",
+      "normalizer": "n_cta_trend_exhaust",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "NDX-SPX Spread",
+      "category": "equity tactical",
+      "source_key": "data/ndx-spx-spread.json",
+      "normalizer": "n_ndx_spx_spread",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Earnings Quality",
+      "category": "equity valuation",
+      "source_key": "data/earnings-quality.json",
+      "normalizer": "n_earnings_quality",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Ignition Pre-Pump",
+      "category": "smart money",
+      "source_key": "data/ignition.json",
+      "normalizer": "n_ignition",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Bottleneck Boom",
+      "category": "equity tactical",
+      "source_key": "data/bottleneck-boom.json",
+      "normalizer": "n_bottleneck_boom",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Crisis Canaries",
+      "category": "macro",
+      "source_key": "data/crisis-canaries.json",
+      "normalizer": "n_crisis_canaries",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Liquidity Inflection",
+      "category": "macro",
+      "source_key": "data/liquidity-inflection.json",
+      "normalizer": "n_liquidity_inflection",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Confluence Net-Breadth",
+      "category": "sentiment",
+      "source_key": "data/confluence-meta.json",
+      "normalizer": "n_confluence_meta",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Crisis-KB Match",
+      "category": "macro",
+      "source_key": "data/kb-match.json",
+      "normalizer": "n_kb_match",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "EU Dump Radar",
+      "category": "macro",
+      "source_key": "data/ecb-derived.json",
+      "normalizer": "n_eu_dump",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "S&P Inclusion Watch",
+      "category": "events",
+      "source_key": "data/index-inclusion.json",
+      "normalizer": "n_index_inclusion",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "US Macro Cycle",
+      "category": "macro",
+      "source_key": "data/us-cycle.json",
+      "normalizer": "n_us_cycle",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Market Internals",
+      "category": "sentiment",
+      "source_key": "data/market-internals.json",
+      "normalizer": "n_market_internals",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "US Real M2",
+      "category": "macro",
+      "source_key": "data/liquidity-inflection.json",
+      "normalizer": "n_us_money",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "MA Reversion Shelves",
+      "category": "equity tactical",
+      "source_key": "data/ma-reversion.json",
+      "normalizer": "n_ma_reversion",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Macro Regime (Conductor)",
+      "category": "macro",
+      "source_key": "data/regime.json",
+      "normalizer": "n_regime",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Episode Compass",
+      "category": "macro",
+      "source_key": "data/episode-compass.json",
+      "normalizer": "n_episode_compass",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Upside Radar",
+      "category": "equity tactical",
+      "source_key": "data/upside-radar.json",
+      "normalizer": "n_upside_radar",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Rotation Radar",
+      "category": "sentiment",
+      "source_key": "data/rotation-radar.json",
+      "normalizer": "n_rotation_radar",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Altseason Tribunal",
+      "category": "sentiment",
+      "source_key": "data/altseason.json",
+      "normalizer": "n_altseason",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Sizing Engine",
+      "category": "meta",
+      "source_key": "data/sizing.json",
+      "normalizer": "n_sizing",
+      "capture_scope": "excluded_private_account_input"
+    },
+    {
+      "engine": "Market Map (S&P)",
+      "category": "equity tactical",
+      "source_key": "data/market-map.json",
+      "normalizer": "n_market_map",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Sector Groups",
+      "category": "equity tactical",
+      "source_key": "data/sector-groups.json",
+      "normalizer": "n_sector_groups",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Insider Radar",
+      "category": "equity tactical",
+      "source_key": "data/insider-radar.json",
+      "normalizer": "n_insider_radar",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Stock Valuations",
+      "category": "equity tactical",
+      "source_key": "data/stock-valuations.json",
+      "normalizer": "n_stock_valuations",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Research Papers",
+      "category": "equity tactical",
+      "source_key": "data/research-papers.json",
+      "normalizer": "n_research_papers",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Backtest Harness",
+      "category": "meta",
+      "source_key": "data/backtest-harness.json",
+      "normalizer": "n_backtest_harness",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Meta-Labeler",
+      "category": "meta",
+      "source_key": "data/meta-labeler.json",
+      "normalizer": "n_meta_labeler",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Intraday Pulse",
+      "category": "tape",
+      "source_key": "data/intraday-pulse.json",
+      "normalizer": "n_intraday_pulse",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Estimate Revisions",
+      "category": "equity tactical",
+      "source_key": "data/estimate-revisions.json",
+      "normalizer": "n_estimate_revisions",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Risk Regime (RORO)",
+      "category": "cross-asset",
+      "source_key": "data/risk-regime.json",
+      "normalizer": "n_risk_regime",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "NAAIM Positioning",
+      "category": "sentiment",
+      "source_key": "data/naaim.json",
+      "normalizer": "n_naaim",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Leverage Cycle",
+      "category": "leverage",
+      "source_key": "data/margin-lending.json",
+      "normalizer": "n_leverage",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "AAII Retail Sentiment",
+      "category": "sentiment",
+      "source_key": "data/aaii-sentiment.json",
+      "normalizer": "n_aaii",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Buyback Blackout",
+      "category": "flow",
+      "source_key": "data/earnings-blackout.json",
+      "normalizer": "n_blackout",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Term Premium (ACM)",
+      "category": "rates",
+      "source_key": "data/term-premium.json",
+      "normalizer": "n_termprem",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Bond Desk",
+      "category": "rates",
+      "source_key": "data/bond-desk.json",
+      "normalizer": "n_bonddesk",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Rebalance Window",
+      "category": "flow",
+      "source_key": "data/rebalance-radar.json",
+      "normalizer": "n_rebalance",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Dark Pool",
+      "category": "flow",
+      "source_key": "data/dark-pool.json",
+      "normalizer": "n_darkpool",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Factor Returns",
+      "category": "equity",
+      "source_key": "data/factor-returns.json",
+      "normalizer": "n_factors",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Stock X-Ray",
+      "category": "equity",
+      "source_key": "data/stock-xray.json",
+      "normalizer": "n_xray",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Global Flows",
+      "category": "flow",
+      "source_key": "data/global-flow-desk.json",
+      "normalizer": "n_globalflows",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Institutional Footprint",
+      "category": "flow",
+      "source_key": "data/institutional-footprint.json",
+      "normalizer": "n_footprint",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "CapEx Pulse",
+      "category": "equity",
+      "source_key": "data/capex-pulse.json",
+      "normalizer": "n_capex",
+      "capture_scope": "anonymous_public_sidecar_only"
+    },
+    {
+      "engine": "Fund Flows (ICI)",
+      "category": "flows",
+      "source_key": "data/ici-flows.json",
+      "normalizer": "n_ici",
+      "capture_scope": "anonymous_public_sidecar_only"
+    }
+  ],
+  "supplemental": [
+    {
+      "source_key": "data/activist-filings-state.json",
+      "label": "Activist Filings Scanner"
+    },
+    {
+      "source_key": "data/analyst-consensus.json",
+      "label": "Analyst Consensus"
+    },
+    {
+      "source_key": "data/ark-holdings-prev.json",
+      "label": "Ark Holdings"
+    },
+    {
+      "source_key": "data/bagger-engine.json",
+      "label": "Bagger Engine"
+    },
+    {
+      "source_key": "data/benzinga-earnings-calendar.json",
+      "label": "Benzinga Earnings"
+    },
+    {
+      "source_key": "data/beta-laggards.json",
+      "label": "Beta Laggard"
+    },
+    {
+      "source_key": "data/capital-return.json",
+      "label": "Capital Return"
+    },
+    {
+      "source_key": "data/causality-discoveries.json",
+      "label": "Causality Scanner"
+    },
+    {
+      "source_key": "data/chart-patterns.json",
+      "label": "Chart Patterns"
+    },
+    {
+      "source_key": "data/dividend-growth.json",
+      "label": "Dividend Growth"
+    },
+    {
+      "source_key": "data/earnings-confluence.json",
+      "label": "Earnings Confluence"
+    },
+    {
+      "source_key": "data/earnings-nlp.json",
+      "label": "Earnings Nlp"
+    },
+    {
+      "source_key": "data/industry-rotation.json",
+      "label": "Industry Rotation"
+    },
+    {
+      "source_key": "data/factor-regime.json",
+      "label": "Factor Regime"
+    },
+    {
+      "source_key": "data/spx-ma.json",
+      "label": "S&P moving-average packet"
+    },
+    {
+      "source_key": "data/ai-commentary/signal-board.json",
+      "label": "Previous automated commentary"
+    },
+    {
+      "source_key": "data/best-setups.json",
+      "label": "Previous freshness-badge input"
+    }
+  ]
+}
