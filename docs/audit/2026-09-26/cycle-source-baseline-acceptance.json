@@ -1,0 +1,100 @@
+{
+  "commit": "5c160e1e13afcd99b1d6ac8a2a99c00af3fe829d",
+  "operation_run": 36279530423,
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "FunctionName": "justhodl-cycle-features",
+      "CodeSha256": "OE1i5ka3R5LPVmPnT7PdzTPP+724MTeYqhJYfvCQqZ8=",
+      "LastModified": "2026-09-02T00:58:11.000+0000",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 600,
+      "MemorySize": 3008,
+      "Architectures": [
+        "x86_64"
+      ]
+    },
+    "all_denied": true,
+    "anonymous_origins_checked": 56,
+    "attempt_outcome_counts": {
+      "404": 28,
+      "403": 28
+    },
+    "baseline": {
+      "key": "audit-private/20260909-originals/cycle-feature-research/14a62c2163f78b9fd32fa2b8bbb9acc3ff92da141f88009b6b9a1621df0a5ef9.bin",
+      "sha256": "14a62c2163f78b9fd32fa2b8bbb9acc3ff92da141f88009b6b9a1621df0a5ef9",
+      "bytes": 20921
+    },
+    "capture_status": {
+      "data/warm/oecd/cycle/DF_CLI.csv.gz": "whole_object_retained",
+      "data/warm/oecd/cycle/DF_KEI.csv.gz": "whole_object_retained",
+      "data/warm/oecd/cycle/DF_BTS.csv.gz": "whole_object_retained",
+      "data/warm/oecd/cycle/DF_CS.csv.gz": "whole_object_retained",
+      "data/warm/oecd/cycle/DF_FINMARK.csv.gz": "whole_object_retained",
+      "data/warm/bis/cycle/WS_EER_M.csv.gz": "whole_object_retained",
+      "data/warm/bis/cycle/WS_CBPOL_M.csv.gz": "whole_object_retained",
+      "data/warm/oecd/data/DSD_KEI@DF_KEI.dat.gz": "whole_object_retained",
+      "data/warm/oecd/data/DSD_LFS@DF_IALFS_UNE_M.dat.gz": "whole_object_retained",
+      "data/warm/bis/data/WS_TC.dat.gz": "whole_object_retained",
+      "data/warm/bis/data/WS_SPP.dat.gz": "whole_object_retained",
+      "data/warm/bis/data/WS_EER.dat.gz": "whole_object_retained",
+      "data/warm/bis/data/WS_CREDIT_GAP.dat.gz": "whole_object_retained",
+      "data/warm/bis/data/WS_DSR.dat.gz": "whole_object_retained",
+      "data/warm/eurostat/data/EI_BSCO_M.dat.gz": "whole_object_retained",
+      "data/warm/eurostat/data/EI_BSSI_M_R2.dat.gz": "whole_object_retained",
+      "data/warm/eurostat/data/EI_BSIN_M_R2.dat.gz": "whole_object_retained",
+      "data/warm/eurostat/data/EI_LMHR_M.dat.gz": "whole_object_retained",
+      "data/asia-leads.json": "whole_object_retained",
+      "data/global-sovereign.json": "whole_object_retained",
+      "data/cycle/features.json.gz": "whole_object_retained",
+      "data/cycle/features-manifest.json": "whole_object_retained",
+      "data/ops/releases/justhodl-cycle-features.json": "missing"
+    },
+    "code_matches_repository": true,
+    "failures": [],
+    "history_writes": 0,
+    "native_invocations": 0,
+    "notifications_sent": 0,
+    "protected_paths_checked": 28,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-cycle-features-daily",
+        "state": "ENABLED",
+        "expression": "cron(30 10 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "schedules_changed": 0,
+    "scope": "Complete predecessor and derived S3 input baseline. Source arithmetic, historical vintages, investment and portfolio qualification remain unverified.",
+    "source_difference_names": [],
+    "source_files_checked": 1,
+    "source_inventory": [
+      "data/asia-leads.json",
+      "data/global-sovereign.json",
+      "data/warm/bis/cycle/WS_CBPOL_M.csv.gz",
+      "data/warm/bis/cycle/WS_EER_M.csv.gz",
+      "data/warm/bis/data/WS_CREDIT_GAP.dat.gz",
+      "data/warm/bis/data/WS_DSR.dat.gz",
+      "data/warm/bis/data/WS_EER.dat.gz",
+      "data/warm/bis/data/WS_SPP.dat.gz",
+      "data/warm/bis/data/WS_TC.dat.gz",
+      "data/warm/eurostat/data/EI_BSCO_M.dat.gz",
+      "data/warm/eurostat/data/EI_BSIN_M_R2.dat.gz",
+      "data/warm/eurostat/data/EI_BSSI_M_R2.dat.gz",
+      "data/warm/eurostat/data/EI_LMHR_M.dat.gz",
+      "data/warm/oecd/cycle/DF_BTS.csv.gz",
+      "data/warm/oecd/cycle/DF_CLI.csv.gz",
+      "data/warm/oecd/cycle/DF_CS.csv.gz",
+      "data/warm/oecd/cycle/DF_FINMARK.csv.gz",
+      "data/warm/oecd/cycle/DF_KEI.csv.gz",
+      "data/warm/oecd/data/DSD_KEI@DF_KEI.dat.gz",
+      "data/warm/oecd/data/DSD_LFS@DF_IALFS_UNE_M.dat.gz"
+    ]
+  }
+}

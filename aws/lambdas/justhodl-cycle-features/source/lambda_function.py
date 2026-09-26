@@ -25,7 +25,7 @@ Sources (ops 5098/5099 audit, 2026-09-02):
   Eurostat  EI_BSCO_M (consumer conf), EI_BSSI_M_R2 (ESI), EI_BSIN_M_R2
         (industry conf), EI_LMHR_M (unemployment)   EU members
   Fleet  data/asia-leads.json (Korea exports), data/global-sovereign.json
-        (10y yield - policy rate: curve slope, latest point)
+        (retained separately as unverified context; never a monthly OECD curve point)
 
 Output
   data/cycle/features.json.gz        {grid, countries:{ISO3:{features:{name:{values[],...}}}}}
@@ -40,16 +40,18 @@ import csv
 import gzip
 import io
 import json
+import math
+import cycle_publication
 import os
 import time
 import urllib.error
 import urllib.request
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import boto3
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/cycle/features.json.gz"
 MANIFEST_KEY = "data/cycle/features-manifest.json"
@@ -124,16 +126,21 @@ def month_grid(start, end):
 
 
 def to_month(period):
-    """'2026-06' -> '2026-06'; '2026-Q1' -> '2026-03'; '2026-08-04' -> '2026-08'; '2026' -> None."""
-    p = (period or "").strip()
-    if len(p) >= 7 and p[4] == "-" and p[5:7].isdigit():
-        return p[:7]
-    if len(p) == 7 and p[5] == "Q":
-        q = int(p[6])
-        return f"{p[:4]}-{q * 3:02d}"
-    if len(p) == 6 and p[4] == "Q":
-        q = int(p[5])
-        return f"{p[:4]}-{q * 3:02d}"
+    """Valid monthly/daily periods, or a valid quarter's final calendar month."""
+    if not isinstance(period, str):
+        return None
+    p = period.strip()
+    try:
+        if len(p) == 10:
+            return date.fromisoformat(p).isoformat()[:7]
+        if len(p) == 7 and p[4] == "-" and p[5:7].isdigit():
+            return date.fromisoformat(p + "-01").isoformat()[:7]
+        if len(p) in (6, 7) and p[:4].isdigit():
+            tail = p[4:].lstrip("-")
+            if len(tail) == 2 and tail[0] == "Q" and tail[1] in "1234":
+                return date(int(p[:4]), int(tail[1]) * 3, 1).isoformat()[:7]
+    except (ValueError, TypeError):
+        pass
     return None
 
 
@@ -161,7 +168,7 @@ class Series:
     def put(self, period, value):
         """Daily inputs: the last observation of the month wins."""
         mo = to_month(period)
-        if mo is None or value is None:
+        if mo is None or type(value) not in (int, float) or not math.isfinite(value):
             return
         p = (period or "").strip()
         if len(p) == 10:
@@ -184,7 +191,7 @@ class Series:
         for mo, v in self.d.items():
             prev = self.d.get(shift_month(mo, -12))
             if prev not in (None, 0) and v is not None:
-                out.d[mo] = (v / prev - 1.0) * 100.0
+                out.put(mo, (v / prev - 1.0) * 100.0)
         return out
 
     def diff(self, k):
@@ -192,7 +199,7 @@ class Series:
         for mo, v in self.d.items():
             prev = self.d.get(shift_month(mo, -k))
             if prev is not None and v is not None:
-                out.d[mo] = v - prev
+                out.put(mo, v - prev)
         return out
 
     def pct(self, k):
@@ -200,7 +207,7 @@ class Series:
         for mo, v in self.d.items():
             prev = self.d.get(shift_month(mo, -k))
             if prev not in (None, 0) and v is not None:
-                out.d[mo] = (v / prev - 1.0) * 100.0
+                out.put(mo, (v / prev - 1.0) * 100.0)
         return out
 
     def minus(self, other):
@@ -208,7 +215,7 @@ class Series:
         for mo, v in self.d.items():
             w = other.d.get(mo)
             if w is not None:
-                out.d[mo] = v - w
+                out.put(mo, v - w)
         return out
 
 
@@ -264,9 +271,12 @@ def sdmx_rows(body):
 
 
 def fnum(v):
+    if isinstance(v, bool):
+        return None
     try:
-        return float(v)
-    except (TypeError, ValueError):
+        value = float(v)
+        return value if math.isfinite(value) else None
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
@@ -819,7 +829,7 @@ def load_eurostat(feat, status):
 
 
 # ── fleet feeds ───────────────────────────────────────────────────────────────
-def load_fleet_feeds(feat, status):
+def load_fleet_feeds(feat, status, context=None):
     al = get_json("data/asia-leads.json")
     if al and isinstance(al.get("korea_exports"), dict):
         ke = al["korea_exports"]
@@ -833,21 +843,22 @@ def load_fleet_feeds(feat, status):
                 feat["KOR"]["exports_yoy"] = y
                 status["asia_leads_korea"] = {"ok": True, "latest": y.latest()}
     gs = get_json("data/global-sovereign.json")
-    if gs:
-        n = 0
-        for c in gs.get("countries") or []:
-            i3 = NAME_TO_ISO3.get(c.get("country"))
-            y10, cb = fnum(c.get("yield_10y_pct")), fnum(c.get("cb_rate_pct"))
-            if i3 in feat and y10 is not None and cb is not None:
-                cur = feat[i3].get("curve")
-                mo = datetime.now(timezone.utc).strftime("%Y-%m")
-                if cur is not None and len(cur):
-                    if (cur.latest() or "") < mo:
-                        cur.d[mo] = y10 - cb          # nowcast point from the fleet's live sovereign desk
-                        cur.nowcast_from = "data/global-sovereign.json"
-                        n += 1
-        status["global_sovereign_curve_nowcast"] = {"ok": True, "countries_extended": n}
-        log(f"global-sovereign: extended {n} curve series to the current month")
+    # Preserve the complete derived source as context. Policy rates are not the
+    # OECD short-rate instrument, and a file clock is not a monthly observation.
+    if context is not None:
+        context["global_sovereign"] = {
+            "source_key": "data/global-sovereign.json", "packet": gs,
+            "usage": "unverified_context_only", "monthly_observation": False,
+            "curve_series_modified": False, "original_source_replay_verified": False,
+        }
+    status["global_sovereign_curve_nowcast"] = {
+        "ok": False, "countries_extended": 0,
+        "source_available": isinstance(gs, dict),
+        "source_generated_at": gs.get("generated_at") if isinstance(gs, dict) else None,
+        "reason": "incompatible_short_rate_definition_and_unverified_observation_clock",
+        "context_preserved": context is not None,
+    }
+    log("global-sovereign: retained as separate context; no monthly curve observations added")
 
 
 # ── assemble ──────────────────────────────────────────────────────────────────
@@ -855,11 +866,13 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     LOG.clear()
     now = datetime.now(timezone.utc)
+    prior = cycle_publication.begin(S3, BUCKET, now.isoformat(timespec="seconds"))
     end_month = now.strftime("%Y-%m")
     grid = month_grid(GRID_START, end_month)
     idx = {m: i for i, m in enumerate(grid)}
     feat = {iso: defaultdict(lambda: Series("M")) for iso in ISO3}
     status = {}
+    fleet_context = {}
     load_oecd_cli(feat, status)
     load_oecd_kei(feat, status)
     load_oecd_unemployment(feat, status)
@@ -869,7 +882,7 @@ def lambda_handler(event=None, context=None):
     load_bis_live(feat, status)
     load_bis(feat, status)
     load_eurostat(feat, status)
-    load_fleet_feeds(feat, status)
+    load_fleet_feeds(feat, status, fleet_context)
 
     countries = {}
     coverage = {}
@@ -915,13 +928,15 @@ def lambda_handler(event=None, context=None):
     doc = {"version": VERSION, "generated_at": now.isoformat(timespec="seconds"), "elapsed_s": round(time.time() - t0, 1),
            "grid": {"start": GRID_START, "end": end_month, "months": grid}, "feature_meta": {k: {"pillar": v[0], "sign": v[1], "label": v[2]} for k, v in FEATURE_META.items()},
            "max_lag_months": MAX_LAG_MONTHS, "countries": countries, "sources": status, "log": LOG[-60:]}
-    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=gzip.compress(json.dumps(doc, default=str).encode()), ContentType="application/json",
-                  ContentEncoding="gzip", CacheControl="public, max-age=900")
     manifest = {"version": VERSION, "generated_at": doc["generated_at"], "elapsed_s": doc["elapsed_s"], "features_key": OUT_KEY,
                 "n_countries": sum(1 for c in coverage.values() if c["n_features"]), "coverage": coverage, "sources": status,
                 "feature_count_by_name": {n: sum(1 for c in countries.values() if n in c["features"]) for n in FEATURE_META}}
-    S3.put_object(Bucket=BUCKET, Key=MANIFEST_KEY, Body=json.dumps(manifest, default=str).encode(), ContentType="application/json",
-                  CacheControl="public, max-age=300")
+    doc["fleet_context"] = fleet_context
+    for packet in (doc, manifest):
+        packet.update({name: False for name in cycle_publication.PERMISSIONS})
+        packet["quality"] = {"status": "unverified", "scope": "Legacy derived feature definitions, input vintages and model interpretations require original-source qualification."}
+        packet["decision"] = {"verb": "WAIT", "meaning": "abstain", "reason": "Feature publication is not validated forecast or portfolio authority."}
+    publication = cycle_publication.publish(S3, BUCKET, prior, doc, manifest)
     log(f"done: {manifest['n_countries']} countries, features by name {manifest['feature_count_by_name']}")
     return {"statusCode": 200, "body": json.dumps({"version": VERSION, "n_countries": manifest["n_countries"],
-                                                   "feature_count_by_name": manifest["feature_count_by_name"], "elapsed_s": doc["elapsed_s"]})}
+                                                   "feature_count_by_name": manifest["feature_count_by_name"], "elapsed_s": doc["elapsed_s"], "publication_attempt": publication})}
