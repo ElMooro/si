@@ -22,10 +22,11 @@ class Memory:
     def get_object(self,Bucket,Key):
         self.reads.append(Key)
         if Key not in self.data:raise Error('NoSuchKey')
-        return {'Body':BytesIO(self.data[Key])}
+        return {'Body':BytesIO(self.data[Key]),'ETag':hashlib.sha256(self.data[Key]).hexdigest()}
     def put_object(self,Bucket,Key,Body,**kw):
         self.writes.append(Key)
         if kw.get('IfNoneMatch')=='*' and Key in self.data:raise Error('PreconditionFailed')
+        if 'IfMatch' in kw and (Key not in self.data or hashlib.sha256(self.data[Key]).hexdigest()!=kw['IfMatch']):raise Error('PreconditionFailed')
         self.data[Key]=Body
 
 
@@ -87,6 +88,7 @@ class Tests(unittest.TestCase):
             'datetime':datetime,'timezone':timezone,'timedelta':timedelta,'FRED_KEY':None,'FMP':None}
         exec(compile(ast.Module(body=nodes,type_ignores=[]),'actual-bond-handler','exec'),scope)
         history={(datetime(2020,1,1)+timedelta(days=i)).date().isoformat():{'anxiety':i,'appetite':0,'eqbond':0} for i in range(600)}
+        m.data[scope['HIST']]=store.encode(history)
         scope.update(_s3json=lambda key,d=None:copy.deepcopy(history) if key==scope['HIST'] else {},_fred=lambda *a:[],
             _fred_hist=lambda *a,**k:[],_crisis_analogs=lambda:{'crises':[]},_llm=lambda *a,**k:(_ for _ in ()).throw(AssertionError('AI must not be called')))
         with patch('urllib.request.urlopen',side_effect=RuntimeError('offline')):

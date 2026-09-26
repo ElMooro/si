@@ -1,0 +1,79 @@
+{
+  "account_reads": 0,
+  "complete_captures": 648,
+  "completed_phases": [
+    "plan"
+  ],
+  "control_sha256": "2eae4bff98a6d3af9d45607774bb35ccb315d8c1021be94aab8e66bbae67b24b",
+  "control_writes": 0,
+  "failed_requests": [
+    {
+      "symbol": "AMP",
+      "endpoint": "quote",
+      "period": null,
+      "http_status": 429,
+      "error_type": "ValueError",
+      "transport_attempted": true,
+      "requested_at": "2026-09-26T20:44:35.309329+00:00",
+      "received_at": "2026-09-26T20:44:40.900856+00:00",
+      "original": {
+        "bytes": 150,
+        "key": "audit-private/20260909-originals/share-structure-research/5c770d736faced7db81dffb71bd5a5de56b26ddce6fefc4b6a209819a91de739.bin",
+        "sha256": "5c770d736faced7db81dffb71bd5a5de56b26ddce6fefc4b6a209819a91de739"
+      },
+      "classified_body_symptoms": [
+        "rate_limit"
+      ]
+    },
+    {
+      "symbol": "AMP",
+      "endpoint": "shares-float",
+      "period": null,
+      "http_status": 429,
+      "error_type": "ValueError",
+      "transport_attempted": true,
+      "requested_at": "2026-09-26T20:44:37.298118+00:00",
+      "received_at": "2026-09-26T20:44:42.907866+00:00",
+      "original": {
+        "bytes": 150,
+        "key": "audit-private/20260909-originals/share-structure-research/5c770d736faced7db81dffb71bd5a5de56b26ddce6fefc4b6a209819a91de739.bin",
+        "sha256": "5c770d736faced7db81dffb71bd5a5de56b26ddce6fefc4b6a209819a91de739"
+      },
+      "classified_body_symptoms": [
+        "rate_limit"
+      ]
+    },
+    {
+      "symbol": "AMP",
+      "endpoint": "splits",
+      "period": null,
+      "http_status": 429,
+      "error_type": "ValueError",
+      "transport_attempted": true,
+      "requested_at": "2026-09-26T20:44:39.253091+00:00",
+      "received_at": "2026-09-26T20:44:44.923433+00:00",
+      "original": {
+        "bytes": 150,
+        "key": "audit-private/20260909-originals/share-structure-research/5c770d736faced7db81dffb71bd5a5de56b26ddce6fefc4b6a209819a91de739.bin",
+        "sha256": "5c770d736faced7db81dffb71bd5a5de56b26ddce6fefc4b6a209819a91de739"
+      },
+      "classified_body_symptoms": [
+        "rate_limit"
+      ]
+    }
+  ],
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "planned_batch_sources": 2000,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "readiness_writes": 0,
+  "request_id": "scheduled-capital-structure:36269293338",
+  "run_id": 36269293338,
+  "schedules_changed": 0,
+  "scope": "Read-only diagnosis of retained scheduled-run failures; no recovery or new acquisition.",
+  "status": "failed",
+  "unattempted_batch_sources": 1349,
+  "operation_run": 36271360786,
+  "report_commit": "8e2ed540c172f5fd63786d50f4f03307dfcdc1e0"
+}

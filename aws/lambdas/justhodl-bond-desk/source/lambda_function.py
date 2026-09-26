@@ -1,4 +1,4 @@
-"""justhodl-bond-desk v3.1 — dated issuer cohorts with explicit source binding.
+"""justhodl-bond-desk v3.2.1 — dated research and preserved publications.
 
 Cohort arithmetic is accepted against original issuer evidence. All forecasts
 remain unqualified, and the old regional/analog code below is retained context.
@@ -234,6 +234,8 @@ def _crisis_analogs():
     return lib
 
 def lambda_handler(event=None, context=None):
+    from bond_publication import begin as publication_begin, publish as publication_publish
+    publication_snapshot=publication_begin(s3,BUCKET,datetime.now(timezone.utc).isoformat())
     # ─── US FLOWS ───
     # Preserve the provider-context read; its guard never grants issuer-flow authority.
     provider_context=_s3json("etf-flows/daily.json",{}) or {}
@@ -454,12 +456,11 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print("[analogs]",str(e)[:90]); analogs={"status":"ERROR","err":str(e)[:90]}
 
-    hist=_s3json(HIST,{}) or {}
-    today=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    publication_at=datetime.now(timezone.utc).isoformat()
+    hist=dict(publication_snapshot["history"]["doc"]) if publication_snapshot["history"] else {}
+    today=publication_at.split("T")[0]
     hist[today]={"anxiety":world,"appetite":appetite,"eqbond":eq_to_bond}
     hist=dict(sorted(hist.items()))  # Preserve every existing history entry.
-    s3.put_object(Bucket=BUCKET,Key=HIST,Body=json.dumps(hist,separators=(",",":")).encode(),
-                  ContentType="application/json")
 
     er=[("Hottest: %s %.0f"%(hot[0].upper().replace("_"," "),hot[1]["score"])) if hot else "Required regional votes are unqualified",
         "US credit micro CCC-BB %sbps p%s Δ21d %+.0f"%(micro.get("ccc_bb_bps"),micro.get("pctile"),micro.get("d21_bps") or 0),
@@ -491,8 +492,8 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print("[ai]",str(e)[:90]); ai_status="PROVIDER_DOWN"
 
-    doc={"engine":"justhodl-bond-desk","version":"3.2.0",
-         "generated_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    doc={"engine":"justhodl-bond-desk","version":"3.2.1",
+         "generated_at":publication_at,
          "world_anxiety":world,"regime":regime,
          "hottest_region":{"region":hot[0],"score":hot[1]["score"]} if hot else None,
          "regions":regions,"weights":weights,"n_regions_live":len(live),
@@ -510,8 +511,7 @@ def lambda_handler(event=None, context=None):
         doc.update(calls_eligible=False, sizing_eligible=False, execution_eligible=False,
             decision={"verb":"WAIT","meaning":"abstain"}, quality={"status":"unqualified_required_input",
             "missing_regions":[k for k in weights if k not in live]})
-    s3.put_object(Bucket=BUCKET,Key=OUT,Body=json.dumps(doc,separators=(",",":")).encode(),
-                  ContentType="application/json",CacheControl="public, max-age=1800")
+    doc=publication_publish(s3,BUCKET,publication_snapshot,doc,hist)
     print("[desk] world=%s %s | tiles=%d analogs=%s ai=%s"%(
         world,regime,sum(1 for t in tiles if t["score"] is not None),analogs.get("status"),ai_status))
     return {"ok":True,"world":world,"regime":regime,"regions_live":len(live),
