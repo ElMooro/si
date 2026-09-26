@@ -1074,6 +1074,8 @@ def n_blackout(d):
 def n_termprem(d):
     """ACM 10y term premium — TP shocks (not expectations) drive bond-vigilante
     risk-off; TP collapse = duration bid, discount-rate relief."""
+    if d.get('calls_eligible') is False:
+        return None, 'ACM model measurements only; no qualified directional vote'
     L = d.get("latest") or {}
     d21 = (d.get("deltas_bps") or {}).get("d21")
     if not isinstance(L.get("tp10"), (int, float)):

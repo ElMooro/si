@@ -48,6 +48,17 @@ test('Liquidity-agent root publication bypasses stale edge and origin caches',as
  }
 });
 
+test('Term Premium exact current and binary original retain their real bytes without invoking a producer',async()=>{
+ const worker=(await import(source)).default;
+ const state=setup(),original=new Uint8Array([208,207,17,224,161,177,26,225,0,255]);
+ globalThis.fetch=async(input,options)=>{state.calls.push({url:String(input),options});return new Response(original,{headers:{'Content-Type':'application/vnd.ms-excel'}});};
+ const key='data/term-premium-research/originals/'+'a'.repeat(64)+'.xls';
+ const response=await worker.fetch(new Request('https://justhodl.ai/'+key+'?exact=1&nogen=1'),{},state.context);
+ assert.equal(response.status,200);assert.equal(response.headers.get('Content-Type'),'application/vnd.ms-excel');
+ assert.deepEqual(new Uint8Array(await response.arrayBuffer()),original);assert.equal(state.calls.length,1);
+ assert.equal(new URL(state.calls[0].url).pathname,'/'+key);assert.equal(state.calls[0].options.cache,'no-store');
+});
+
 test('off-exchange current is never served from stale edge cache for GET, HEAD or Range',async()=>{
  const worker=(await import(source)).default;
  for(const [method,headers] of [['GET',{}],['HEAD',{}],['GET',{'Range':'bytes=0-20'}]]){

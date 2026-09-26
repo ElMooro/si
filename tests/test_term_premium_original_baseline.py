@@ -11,7 +11,7 @@ class Store:
 
 class Tests(unittest.TestCase):
     def test_actual_output_and_archive_are_the_complete_explicit_baseline(self):
-        path=ROOT/'aws/lambdas/justhodl-term-premium/source/lambda_function.py';tree=ast.parse(path.read_text(encoding='utf8'))
+        path=ROOT/'aws/lambdas/justhodl-term-premium/tests/legacy_lambda_function.py.txt';tree=ast.parse(path.read_text(encoding='utf8'))
         pair=next(n for n in tree.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Tuple) and [x.id for x in n.targets[0].elts]==['OUT','HIST'])
         self.assertEqual(tuple(ast.literal_eval(pair.value)),baseline.INPUTS)
         parser=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_parse_acm')

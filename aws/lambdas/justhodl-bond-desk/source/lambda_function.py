@@ -333,6 +333,10 @@ def lambda_handler(event=None, context=None):
     US={"score":_sub(0.45*fz+0.35*cz+0.20*sz),"flows":us_flows,"credit":us_credit,"stress":us_stress,
         "fresh":True}
 
+    # Missing model authority is not a neutral term-premium stress contribution.
+    if tp.get('calls_eligible') is False:
+        US.update(score=None, fresh=False, status='unqualified_term_premium_vote', source_replay=tp.get('replay'))
+
     # ─── GLOBAL FUNDING (eurodollar plumbing) ───
     pl=_s3json("data/eurodollar-plumbing.json",{}) or {}
     sev=_first(pl,("severity",),(str,)) or "?"
