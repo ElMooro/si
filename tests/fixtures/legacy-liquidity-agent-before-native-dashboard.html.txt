@@ -624,9 +624,6 @@ table.tbl tr:last-child td{border-bottom: none}
 .badge.c{background:rgba(240,180,41,0.07)}
 #prePumpHero{background:linear-gradient(135deg,rgba(224,122,106,.05),rgba(201,169,106,.04) 50%,rgba(240,180,41,.03)) !important}
 </style>
-<script src="/jh-liquidity-legacy-quality.js?v=20260926"></script>
-<script src="/jh-liquidity-agent-definitions.js?v=20260926"></script>
-<script src="/jh-liquidity-agent-research.js?v=20260926"></script>
 </head>
 <body>
 <!-- INTEL TERMINAL BANNER -->
@@ -2276,17 +2273,16 @@ function renderStrip(){
     setStripCell('ka', ki!=null ? ki+'' : '—', phase, cls);
   }
 
-  // Liquidity measurements never inherit legacy directional score authority.
-  let liquidityValue = null;
-  if(liq.contract === 'liquidity-agent-research.v1'){
-    const sourceView = JHLiquidityAgentResearch.view(liq);
-    const eligible = ['WALCL','WTREGEN','RRPONTSYD'].every(sid => sourceView.rows.find(r => r.sid === sid)?.eligible);
-    if(eligible) liquidityValue = liq.derived?.net_liquidity?.current?.net_liquidity_b;
-  } else {
-    const sourceView = JHLiquidityLegacyQuality.project(liq);
-    if(sourceView.quality.usable) liquidityValue = sourceView.view.core?.net_liquidity?.value_bn;
+  // LIQUIDITY (liquidity-data)
+  if(liq.core && liq.core.net_liquidity){
+    const nl = liq.core.net_liquidity;
+    const v = nl.value_bn;
+    // value_bn is billions; guard against an upstream millions-scaled value
+    const nlT = v == null ? null : (Math.abs(v) >= 100000 ? v/1e6 : v/1000);
+    const display = nlT != null ? '$'+nlT.toFixed(1)+'T' : '—';
+    const cls = nl.label === 'BULLISH' ? 'green' : nl.label === 'BEARISH' ? 'red' : 'amber';
+    setStripCell('liquidity', display, nl.label || '—', cls);
   }
-  setStripCell('liquidity', typeof liquidityValue === 'number' && Number.isFinite(liquidityValue) ? '$'+(liquidityValue/1000).toFixed(3)+'T' : '—', 'Dated proxy · research only', 'cyan');
 
   // CRYPTO (crypto-intel)
   if(crypto.global_market){

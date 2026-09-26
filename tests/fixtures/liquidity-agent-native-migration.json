@@ -1,0 +1,775 @@
+{
+  "contract": "liquidity-agent-native-migration.v1",
+  "complete_predecessors": [
+    {
+      "path": "aws/lambdas/justhodl-liquidity-agent/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-liquidity-agent-before-native.py.txt",
+      "bytes": 47714,
+      "sha256": "7f81725765c6bfc351d3bae6c5219ac3ce40904b5de3df522de3e5d09fa4084b"
+    },
+    {
+      "path": "aws/lambdas/justhodl-liquidity-agent/config.json",
+      "predecessor": "tests/fixtures/legacy-liquidity-agent-before-native-config.json.txt",
+      "bytes": 520,
+      "sha256": "b69a365be9b8cb3f627346856f3c2c544d34d45bbe14941d149945e7dd7721e1"
+    },
+    {
+      "path": "liquidity.html",
+      "predecessor": "tests/fixtures/legacy-liquidity-agent-before-native-page.html.txt",
+      "bytes": 47902,
+      "sha256": "fb87c4f1fd08e5a1e78143e3cb7ad079e21b69117564137774dee1ce06a75d4a"
+    },
+    {
+      "path": "classic-dashboard.html",
+      "predecessor": "tests/fixtures/legacy-liquidity-agent-before-native-dashboard.html.txt",
+      "bytes": 160951,
+      "sha256": "6b281da120771e14a847b9a982b00b76183b25b0eb60789a4086da1ff140d62e"
+    }
+  ],
+  "qualification": {
+    "all_original_rows_retained": true,
+    "artifacts": {
+      "candidate": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/a0bcbca46a1222f78c3179785fed78278787ae94e59046ebe62d6393664b1e29.bin",
+        "sha256": "a0bcbca46a1222f78c3179785fed78278787ae94e59046ebe62d6393664b1e29",
+        "bytes": 21115242
+      },
+      "proof": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/17e5e38e60a17384a3d783fab1c16aca54299e8c1b41f48bdfc94867793341fc.bin",
+        "sha256": "17e5e38e60a17384a3d783fab1c16aca54299e8c1b41f48bdfc94867793341fc",
+        "bytes": 479
+      },
+      "access_evidence": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/2454c1de312b920d78e2c38b8aa61928641bf19f22c09788692c5026f4956fab.bin",
+        "sha256": "2454c1de312b920d78e2c38b8aa61928641bf19f22c09788692c5026f4956fab",
+        "bytes": 10244
+      }
+    },
+    "baseline": {
+      "key": "audit-private/20260909-originals/liquidity-agent-research/f828450ee02c450e848b172755f3dc1735121fb3a684f4a52dfcae32f13b2c3b.bin",
+      "sha256": "f828450ee02c450e848b172755f3dc1735121fb3a684f4a52dfcae32f13b2c3b",
+      "bytes": 143374
+    },
+    "compilers": {
+      "liquidity_agent_candidate": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/b1904e9004ea65c37be72480b8e4a41afda2a3f88f8be232bafbf6790ea25891.bin",
+        "sha256": "b1904e9004ea65c37be72480b8e4a41afda2a3f88f8be232bafbf6790ea25891",
+        "bytes": 13340
+      },
+      "liquidity_agent_catalog": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/e11bbf8435c544e2275c2e8ca1f604b0f4dadbd2f9bbdf367c9ffcc625c75fb6.bin",
+        "sha256": "e11bbf8435c544e2275c2e8ca1f604b0f4dadbd2f9bbdf367c9ffcc625c75fb6",
+        "bytes": 21239
+      },
+      "verify_liquidity_agent_arithmetic": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/5ea5bddfce59cb19c1fa99a5fe87fc0bbc8f582c90200fb773f6c70010cb050d.bin",
+        "sha256": "5ea5bddfce59cb19c1fa99a5fe87fc0bbc8f582c90200fb773f6c70010cb050d",
+        "bytes": 11007
+      },
+      "verify_liquidity_arithmetic": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/3b926aecbca8120b40b49eba38cfeb4c3d0b2a8d5a7ec2dc00c5b48a92e9d76d.bin",
+        "sha256": "3b926aecbca8120b40b49eba38cfeb4c3d0b2a8d5a7ec2dc00c5b48a92e9d76d",
+        "bytes": 8795
+      },
+      "liquidity_flow_arithmetic": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856.bin",
+        "sha256": "5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856",
+        "bytes": 9044
+      },
+      "canonical_fred_replay": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa.bin",
+        "sha256": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+        "bytes": 4686
+      },
+      "report_observations": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979.bin",
+        "sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+        "bytes": 14909
+      },
+      "research_brief_model": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c.bin",
+        "sha256": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+        "bytes": 11898
+      },
+      "evidence_store": {
+        "key": "audit-private/20260909-originals/liquidity-agent-research/3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976.bin",
+        "sha256": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+        "bytes": 3788
+      }
+    },
+    "consumer_invocations": 0,
+    "forecast_qualified": false,
+    "fresh_reader_replay_verified": true,
+    "generated_at": "2026-09-26T01:41:32.067975+00:00",
+    "native_formula_changed": false,
+    "native_package_unchanged": true,
+    "notifications_sent": 0,
+    "paid_ai_calls": 0,
+    "privacy": {
+      "protected_paths_checked": 13,
+      "anonymous_origins_checked": 26,
+      "attempt_outcome_counts": {
+        "404": 13,
+        "403": 13
+      },
+      "all_denied": true,
+      "failures": []
+    },
+    "private_account_reads": 0,
+    "producer_invocations": 0,
+    "profile": {
+      "restore_seconds": 4.019,
+      "compile_and_verify_seconds": 1.746,
+      "candidate_bytes": 21115242,
+      "max_rss_kib": 296504,
+      "fresh_reader_replay_seconds": 4.763
+    },
+    "proof": {
+      "requested_series": 73,
+      "reconstructed_series": 61,
+      "missing_series": 12,
+      "current_series": 61,
+      "original_rows": 145589,
+      "calendar_comparisons": 244,
+      "rational_checks": 1405,
+      "flow_verification": {
+        "original_rows_checked": 7366,
+        "calendar_dates_checked": 180,
+        "comparison_windows_checked": 4,
+        "exact_rational_comparisons": 776,
+        "unavailable_legs_preserved": 11,
+        "production_compiler_imported": false,
+        "forecast_qualified": false,
+        "sizing_qualified": false
+      },
+      "forecast_qualified": false,
+      "sizing_qualified": false
+    },
+    "provider_requests": 0,
+    "public_writes": 0,
+    "quality": {
+      "current_series": 61,
+      "missing_series": [
+        "EXCSRESNW",
+        "WSHONBIILB",
+        "WSHOBL",
+        "WSHOMBLS",
+        "H41RESPPALDKNWA",
+        "WCBSL",
+        "TRESEGUSM052N",
+        "BAMLC0A0CMFOAS",
+        "BAMLC0A0CMIOAS",
+        "BAMLC0A0CMUOAS",
+        "DRTSCLM",
+        "OFRFSI"
+      ],
+      "reconstructed_series": 61,
+      "release_calendar_verified": false,
+      "requested_series": 73,
+      "status": "degraded"
+    },
+    "schedules_changed": 0,
+    "scope": {
+      "key": "audit-private/20260909-originals/liquidity-agent-research/3ccd3cd4810a9f533a47868a3b3cae2c0ff515da95ab9257be82d035ee155f87.bin",
+      "sha256": "3ccd3cd4810a9f533a47868a3b3cae2c0ff515da95ab9257be82d035ee155f87",
+      "bytes": 15916
+    },
+    "series_evidence": {
+      "ANFCI": {
+        "status": "within_age_ceiling",
+        "original_rows": 2907,
+        "unit": "Index",
+        "frequency": "W",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:24:48.302358+00:00"
+      },
+      "BAMLC0A0CM": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:28.769069+00:00"
+      },
+      "BAMLC0A0CMFOAS": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "BAMLC0A0CMIOAS": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "BAMLC0A0CMUOAS": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "BAMLC0A1CAAA": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:31.066464+00:00"
+      },
+      "BAMLC0A2CAA": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:06.686838+00:00"
+      },
+      "BAMLC0A3CA": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:07.485786+00:00"
+      },
+      "BAMLC0A4CBBB": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:32.873447+00:00"
+      },
+      "BAMLEMCBPIOAS": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:37.474637+00:00"
+      },
+      "BAMLEMHBHYCRPIOAS": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:38.301277+00:00"
+      },
+      "BAMLH0A0HYM2": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:41.458212+00:00"
+      },
+      "BAMLH0A1HYBB": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:05.089344+00:00"
+      },
+      "BAMLH0A2HYB": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:05.883883+00:00"
+      },
+      "BAMLH0A3HYC": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:43.883139+00:00"
+      },
+      "BAMLHE00EHYIOAS": {
+        "status": "within_age_ceiling",
+        "original_rows": 795,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:21:46.319657+00:00"
+      },
+      "BOGMBASE": {
+        "status": "within_age_ceiling",
+        "original_rows": 812,
+        "unit": "Billions of Dollars",
+        "frequency": "M",
+        "observation_date": "2026-08-01",
+        "acquired_at": "2026-09-25T21:21:49.596215+00:00"
+      },
+      "DEXBZUS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Brazilian Reals to One U.S. Dollar",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:24:36.325372+00:00"
+      },
+      "DEXCHUS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Chinese Yuan Renminbi to One U.S. Dollar",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:24:34.734006+00:00"
+      },
+      "DEXJPUS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Japanese Yen to One U.S. Dollar",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:23:46.510343+00:00"
+      },
+      "DEXKOUS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "South Korean Won to One U.S. Dollar",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:24:35.639847+00:00"
+      },
+      "DEXUSEU": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "U.S. Dollars to One Euro",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:23:48.177071+00:00"
+      },
+      "DFF": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:22:02.150278+00:00"
+      },
+      "DFII10": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:30.437573+00:00"
+      },
+      "DFII30": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:31.550610+00:00"
+      },
+      "DFII5": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:31.153142+00:00"
+      },
+      "DGS10": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:22:02.536735+00:00"
+      },
+      "DGS2": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:23:55.666496+00:00"
+      },
+      "DGS30": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:23:49.139449+00:00"
+      },
+      "DGS3MO": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:24:20.443841+00:00"
+      },
+      "DPCREDIT": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:22:03.339392+00:00"
+      },
+      "DRTSCILM": {
+        "status": "within_age_ceiling",
+        "original_rows": 146,
+        "unit": "Percent",
+        "frequency": "Q",
+        "observation_date": "2026-07-01",
+        "acquired_at": "2026-09-25T21:22:08.058354+00:00"
+      },
+      "DRTSCLCC": {
+        "status": "within_age_ceiling",
+        "original_rows": 123,
+        "unit": "Percent",
+        "frequency": "Q",
+        "observation_date": "2026-07-01",
+        "acquired_at": "2026-09-25T21:22:09.651108+00:00"
+      },
+      "DRTSCLM": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "DTWEXAFEGS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Index Jan 2006=100",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:22:12.891912+00:00"
+      },
+      "DTWEXBGS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Index Jan 2006=100",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:22:13.614761+00:00"
+      },
+      "DTWEXEMEGS": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Index Jan 2006=100",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:22:14.619131+00:00"
+      },
+      "EFFR": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:22:16.194039+00:00"
+      },
+      "EXCSRESNW": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "H41RESPPALDKNWA": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "IORB": {
+        "status": "within_age_ceiling",
+        "original_rows": 1888,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:22:32.147756+00:00"
+      },
+      "M1SL": {
+        "status": "within_age_ceiling",
+        "original_rows": 812,
+        "unit": "Billions of Dollars",
+        "frequency": "M",
+        "observation_date": "2026-08-01",
+        "acquired_at": "2026-09-25T21:24:50.784356+00:00"
+      },
+      "M2SL": {
+        "status": "within_age_ceiling",
+        "original_rows": 812,
+        "unit": "Billions of Dollars",
+        "frequency": "M",
+        "observation_date": "2026-08-01",
+        "acquired_at": "2026-09-25T21:22:39.244125+00:00"
+      },
+      "M2V": {
+        "status": "within_age_ceiling",
+        "original_rows": 270,
+        "unit": "Ratio",
+        "frequency": "Q",
+        "observation_date": "2026-04-01",
+        "acquired_at": "2026-09-25T21:24:52.361261+00:00"
+      },
+      "NFCI": {
+        "status": "within_age_ceiling",
+        "original_rows": 2907,
+        "unit": "Index",
+        "frequency": "W",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:22:45.821934+00:00"
+      },
+      "OBFR": {
+        "status": "within_age_ceiling",
+        "original_rows": 2758,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:26:30.798310+00:00"
+      },
+      "OFRFSI": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "RRPONTSYD": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Billions of US Dollars",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:23:01.959055+00:00"
+      },
+      "SOFR": {
+        "status": "within_age_ceiling",
+        "original_rows": 2213,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:23:04.050123+00:00"
+      },
+      "SP500": {
+        "status": "within_age_ceiling",
+        "original_rows": 2609,
+        "unit": "Index",
+        "frequency": "D",
+        "observation_date": "2026-09-24",
+        "acquired_at": "2026-09-25T21:23:57.661318+00:00"
+      },
+      "STLFSI4": {
+        "status": "within_age_ceiling",
+        "original_rows": 1708,
+        "unit": "Index",
+        "frequency": "W",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:23:07.247491+00:00"
+      },
+      "T10Y2Y": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:24:24.413354+00:00"
+      },
+      "T10Y3M": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:24:25.437273+00:00"
+      },
+      "T10YIE": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:24:27.654520+00:00"
+      },
+      "T5YIE": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:24:28.393923+00:00"
+      },
+      "T5YIFR": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-25",
+        "acquired_at": "2026-09-25T21:24:29.211061+00:00"
+      },
+      "THREEFYTP10": {
+        "status": "within_age_ceiling",
+        "original_rows": 4000,
+        "unit": "Percent",
+        "frequency": "D",
+        "observation_date": "2026-09-18",
+        "acquired_at": "2026-09-25T21:23:16.099290+00:00"
+      },
+      "TOTRESNS": {
+        "status": "within_age_ceiling",
+        "original_rows": 812,
+        "unit": "Billions of Dollars",
+        "frequency": "M",
+        "observation_date": "2026-08-01",
+        "acquired_at": "2026-09-25T21:23:19.277185+00:00"
+      },
+      "TREAST": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:20.845996+00:00"
+      },
+      "TRESEGUSM052N": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "WALCL": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:27.252243+00:00"
+      },
+      "WCBSL": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "WCURCIR": {
+        "status": "within_age_ceiling",
+        "original_rows": 2230,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:24:02.788816+00:00"
+      },
+      "WORAL": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:36.900039+00:00"
+      },
+      "WRESBAL": {
+        "status": "within_age_ceiling",
+        "original_rows": 2230,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:40.468464+00:00"
+      },
+      "WSHOBL": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "WSHOFADSL": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:41.016382+00:00"
+      },
+      "WSHOMBLS": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "WSHOMCB": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:59.397817+00:00"
+      },
+      "WSHONBIILB": {
+        "status": "unavailable",
+        "original_rows": 0,
+        "unit": null,
+        "frequency": null,
+        "observation_date": null,
+        "acquired_at": null
+      },
+      "WSHOSHO": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:43.405114+00:00"
+      },
+      "WSHOTSL": {
+        "status": "within_age_ceiling",
+        "original_rows": 1241,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:58.467331+00:00"
+      },
+      "WTREGEN": {
+        "status": "within_age_ceiling",
+        "original_rows": 2125,
+        "unit": "Millions of U.S. Dollars",
+        "frequency": "W",
+        "observation_date": "2026-09-23",
+        "acquired_at": "2026-09-25T21:23:42.469406+00:00"
+      }
+    },
+    "signal_writes": 0,
+    "sizing_qualified": false,
+    "source_generated_at": "2026-09-25T22:22:14.016404+00:00",
+    "source_replay": {
+      "compiler_sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+      "manifest_key": "data/report-research/runs/99a476c823bac3a16f6ab474cfea1f16211e0b18f39c74e9cfacfe506ef5f8b1.json",
+      "output_sha256": "64a9c8f2ce4c42b0caa0e19c7d97e16819b643a06c029cf6ed50c783db5ab975"
+    }
+  },
+  "trigger_diagnostic_report": "aws/ops/reports/latest/ops_6126_liquidity_agent_trigger_diagnostic.md",
+  "schedule_policy": "No direct schedule exists in the accepted inventory. Restore normal daily refresh at 12:30 UTC; no acceptance-only invocation.",
+  "publication_verified": false
+}

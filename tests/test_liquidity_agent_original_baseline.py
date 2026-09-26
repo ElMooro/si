@@ -12,7 +12,7 @@ class Store:
 
 class Tests(unittest.TestCase):
  def test_every_predecessor_series_and_actual_output_path_are_preserved(self):
-  path=ROOT/'aws/lambdas/justhodl-liquidity-agent/source/lambda_function.py'
+  path=ROOT/'tests/fixtures/legacy-liquidity-agent-before-native.py.txt'
   tree=ast.parse(path.read_text(encoding='utf-8'))
   values={n.targets[0].id:n.value for n in tree.body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name)}
   series=tuple(row[0] for row in ast.literal_eval(values['FRED_SERIES']))

@@ -26,6 +26,17 @@ function setup(){
  return {calls,keys,stored,waits,context:{waitUntil(promise){waits.push(promise);}}};
 }
 
+test('Liquidity-agent root publication bypasses stale edge and origin caches',async()=>{
+ const worker=(await import(source)).default;
+ for(const method of ['GET','HEAD']){
+  const state=setup();globalThis.fetch=async(input,options)=>{state.calls.push({url:String(input),options});return Response.json({contract:'liquidity-agent-research.v1'});};
+  const response=await worker.fetch(new Request('https://justhodl-data-proxy.raafouis.workers.dev/liquidity-data.json',{method}),{},state.context);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
+  assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);assert.equal(state.calls.length,1);
+  assert.equal(new URL(state.calls[0].url).pathname,'/liquidity-data.json');assert.equal(state.calls[0].options.cache,'no-store');
+ }
+});
+
 test('off-exchange current is never served from stale edge cache for GET, HEAD or Range',async()=>{
  const worker=(await import(source)).default;
  for(const [method,headers] of [['GET',{}],['HEAD',{}],['GET',{'Range':'bytes=0-20'}]]){

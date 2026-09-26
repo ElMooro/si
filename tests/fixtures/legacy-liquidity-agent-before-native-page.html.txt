@@ -369,9 +369,6 @@
 <link rel="stylesheet" href="/assets/liquidity-research.css?v=20260925">
 <script src="/jh-liquidity-research.js?v=20260925" defer></script>
 <script src="/jh-liquidity-legacy-quality.js?v=20260926"></script>
-<script src="/jh-liquidity-agent-definitions.js?v=20260926"></script>
-<script src="/jh-liquidity-agent-research.js?v=20260926"></script>
-<link rel="stylesheet" href="/assets/liquidity-agent-research.css?v=20260926">
 </head>
 <body>
 
@@ -410,8 +407,6 @@
   </div>
 </div>
 
-<section id="jh-liquidity-agent-research" aria-label="Liquidity source desk"></section>
-<div id="liquidity-legacy-panels">
 <div class="container">
   <div id="error-banner" class="error-banner">⚠ Error loading liquidity data. Retrying...</div>
   <aside id="liquidity-agent-status" class="liquidity-reading-note" role="status">Checking the observation snapshot…</aside>
@@ -628,11 +623,9 @@
 <div style="max-width:1500px;margin:18px auto;padding:0 18px">
   <div id="catalog-section"></div>
 </div>
-</div><!-- Complete predecessor panels remain available until native publication. -->
 
 <script>
 const S3_URL = 'https://justhodl-data-proxy.raafouis.workers.dev/liquidity-data.json';
-let agentFetchEpoch = 0;
 
 const COLOR_GREEN  = '#00ff88';
 const COLOR_RED    = '#ff3d5a';
@@ -997,26 +990,14 @@ function render(data) {
 }
 
 async function loadData() {
-  const mine = ++agentFetchEpoch;
   try {
     const res = await fetch(S3_URL + '?t=' + Date.now(), {cache:'no-store'});
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (mine !== agentFetchEpoch) return;
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error-banner').style.display = 'none';
-    const native = data.contract === 'liquidity-agent-research.v1';
-    document.getElementById('liquidity-legacy-panels').hidden = native;
-    JHLiquidityAgentResearch.accept(data);
-    if (native) {
-      lastAgentPacket = null;
-      document.getElementById('last-updated').textContent = data.generated_at || 'Unavailable';
-    } else render(data);
+    render(data);
   } catch (err) {
-    if (mine !== agentFetchEpoch) return;
-    JHLiquidityAgentResearch.accept(null);
-    lastAgentPacket = null;
-    render({});
     console.error('Liquidity load error:', err);
     document.getElementById('loading').style.display = 'none';
     const banner = document.getElementById('error-banner');
@@ -1129,7 +1110,6 @@ function renderPart4(p4){
   host.innerHTML=h;
 }
 
-JHLiquidityAgentResearch.install(window);
 loadData();
 setInterval(() => {
   if (lastAgentPacket && JHLiquidityLegacyQuality.assess(lastAgentPacket).usable !== lastAgentUsable) render(lastAgentPacket);

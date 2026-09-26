@@ -4,7 +4,7 @@ from unittest.mock import Mock
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'aws/ops/checks'))
 from liquidity_agent_input_inventory import inventory
-SOURCE=ROOT/'aws/lambdas/justhodl-liquidity-agent/source/lambda_function.py'
+SOURCE=ROOT/'tests/fixtures/legacy-liquidity-agent-before-native.py.txt'
 
 
 class Tests(unittest.TestCase):

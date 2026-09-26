@@ -57,7 +57,7 @@ def build(source, originals, stamp=NOW):
 
 class Tests(unittest.TestCase):
     def test_entire_catalog_matches_real_inventory_including_hidden_input(self):
-        original=(ROOT/'aws/lambdas/justhodl-liquidity-agent/source/lambda_function.py').read_bytes()
+        original=(ROOT/'tests/fixtures/legacy-liquidity-agent-before-native.py.txt').read_bytes()
         self.assertEqual(list(model.SERIES),inventory(original)['all_series'])
         self.assertEqual(sum(s['reviewed_definition'] is not None for s in model.SPECS.values()),61)
         self.assertEqual(model.SPECS['WORAL']['group'],'fed_repo_assets')

@@ -1,0 +1,21 @@
+{
+  "name": "justhodl-liquidity-agent",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory_mb": 512,
+  "timeout_s": 120,
+  "code_size_bytes": 7041,
+  "package_type": "Zip",
+  "last_modified": "2026-03-12T02:54:52.355+0000",
+  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "",
+  "env_keys": [
+    "FRED_API_KEY",
+    "S3_BUCKET"
+  ],
+  "layers": [],
+  "architectures": [
+    "x86_64"
+  ],
+  "backfilled_at": "2026-04-25T01:22:50.501979+00:00"
+}
