@@ -16,6 +16,24 @@ COMPILERS = (model, arithmetic, canonical, report_observations, research_brief_m
 sha = lambda raw: hashlib.sha256(raw).hexdigest()
 
 
+def strict(raw):
+    def pairs(items):
+        result={}
+        for key,value in items:
+            if key in result:raise ValueError('Duplicate research JSON key')
+            result[key]=value
+        return result
+    def invalid(value):raise ValueError('Nonfinite research JSON number')
+    value=json.loads(raw,object_pairs_hook=pairs,parse_constant=invalid)
+    model.encoded(value)
+    return value
+
+
+def same_json(left,right):
+    # Keep boolean/integer/float types distinct throughout evidence checks.
+    return model.encoded(left)==model.encoded(right)
+
+
 def bounded(stream):
     try: raw = stream.read(MAX+1)
     finally: stream.close()
@@ -64,10 +82,11 @@ def retain_bytes(client, bucket, raw, category):
 
 def checked(ref, category, read):
     if not isinstance(ref, dict) or not re.fullmatch('[a-f0-9]{64}', ref.get('sha256', '')): raise ValueError('Exact artifact reference required')
+    if type(ref.get('bytes')) is not int or not 0 < ref['bytes'] <= MAX: raise ValueError('Exact artifact byte count required')
     if ref.get('key') != model.PREFIX+category+'/'+ref['sha256']+'.json': raise ValueError('Artifact namespace differs')
     raw = read(ref['key'])
     if sha(raw) != ref['sha256'] or len(raw) != ref.get('bytes'): raise ValueError('Artifact content differs')
-    return json.loads(raw)
+    return strict(raw)
 
 
 def compile_output(inputs, read):
@@ -80,7 +99,7 @@ def compile_output(inputs, read):
 def replay(ref, read):
     key = ref.get('manifest_key', '')
     if not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json', key): raise ValueError('Pulse run identity required')
-    raw = read(key); manifest = json.loads(raw)
+    raw = read(key); manifest = strict(raw)
     if (key != model.PREFIX+'runs/'+sha(raw)+'.json' or manifest.get('contract') != 'liquidity-pulse-replay.v1'
         or manifest.get('output_sha256') != ref.get('output_sha256')): raise ValueError('Pulse run binding differs')
     if set(manifest['compilers']) != {module.__name__ for module in COMPILERS}: raise ValueError('Compiler set differs')
@@ -88,7 +107,7 @@ def replay(ref, read):
         body = Path(module.__file__).read_bytes(); expected = {'key': model.PREFIX+'compilers/'+sha(body)+'.py', 'sha256': sha(body)}
         if manifest['compilers'][module.__name__] != expected or read(expected['key']) != body: raise ValueError('Matching reviewed compiler required')
     inputs = checked(manifest['input'], 'inputs', read); output = compile_output(inputs, read)
-    if (output != checked(manifest['output'], 'outputs', read) or model.digest(output) != manifest['output_sha256']
+    if (not same_json(output, checked(manifest['output'], 'outputs', read)) or model.digest(output) != manifest['output_sha256']
         or output['generated_at'] != manifest['generated_at']): raise ValueError('Original-source Pulse replay differs')
     return output
 
@@ -103,7 +122,7 @@ def retain(client, bucket, inputs, output):
         'compilers': compilers, 'output_sha256': model.digest(output), 'scope': 'Eleven canonical FRED originals; research measurements only.'}
     raw = model.encoded(manifest); key = model.PREFIX+'runs/'+sha(raw)+'.json'; immutable(client, bucket, key, raw)
     ref = {'manifest_key': key, 'output_sha256': manifest['output_sha256']}
-    if replay(ref, reader(client, bucket)) != output: raise ValueError('Retained replay differs')
+    if not same_json(replay(ref, reader(client, bucket)), output): raise ValueError('Retained replay differs')
     return ref
 
 
@@ -113,7 +132,7 @@ def previous_state(client, bucket):
     except Exception as exc:
         if missing(exc): return {}, empty
         raise
-    try: previous = json.loads(raw)
+    try: previous = strict(raw)
     except (ValueError, UnicodeDecodeError): previous = None
     immutable(client, bucket, PRIVATE+sha(raw)+'.bin', raw, True)
     if isinstance(previous, dict) and previous.get('contract') == model.CONTRACT:
@@ -121,19 +140,40 @@ def previous_state(client, bucket):
     return {'whole_predecessor': {'key': PRIVATE+sha(raw)+'.bin', 'sha256': sha(raw), 'bytes': len(raw), 'status': 'UNQUALIFIED_LEGACY'}}, empty
 
 
+def binding(packet, read):
+    flags = ('calls_eligible', 'sizing_eligible', 'execution_eligible', 'forecast_qualified', 'point_in_time_backtest_qualified')
+    if (packet.get('contract') != model.CONTRACT or any(packet.get(k) is not False for k in flags)
+        or packet.get('decision') != {'verb': 'WAIT', 'meaning': 'abstain'} or packet.get('call') is not None
+        or packet.get('transitions') != [] or set(packet.get('series', {})) != set(arithmetic.SPECS)
+        or any(row.get(k) is not False for row in packet['series'].values() for k in ('calls_eligible', 'sizing_eligible'))):
+        raise ValueError('Complete research-only Pulse publication required')
+    ref = packet.get('replay') or {}; key = ref.get('manifest_key', '')
+    if not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json', key): raise ValueError('Pulse replay reference required')
+    raw = read(key); manifest = strict(raw)
+    if (key != model.PREFIX+'runs/'+sha(raw)+'.json' or manifest.get('contract') != 'liquidity-pulse-replay.v1'
+        or manifest.get('output_sha256') != ref.get('output_sha256') or manifest.get('generated_at') != packet['generated_at']):
+        raise ValueError('Pulse run binding differs')
+    output = {k: v for k, v in packet.items() if k != 'replay'}
+    if model.digest(output) != manifest['output_sha256'] or not same_json(output, checked(manifest['output'], 'outputs', read)):
+        raise ValueError('Pulse publication differs from retained original replay')
+    return manifest
+
+
 def publish(client, bucket, packet):
+    # Final callers cannot borrow an earlier run's evidence or grant authority.
+    binding(packet, reader(client, bucket))
     stamp = model.clock(packet['generated_at']); watermarks = model.watermarks(packet)
     for _ in range(4):
         try:
             obj = client.get_object(Bucket=bucket, Key=model.CURRENT); raw = bounded(obj['Body'])
-            try: old = json.loads(raw)
+            try: old = strict(raw)
             except (ValueError, UnicodeDecodeError): old = {}
             if not isinstance(old, dict): old = {}
             if old.get('generated_at'):
                 previous_stamp = model.clock(old['generated_at'])
                 if previous_stamp > stamp: return False
                 if previous_stamp == stamp:
-                    if old != packet: raise ValueError('Conflicting same-clock publication')
+                    if not same_json(old, packet): raise ValueError('Conflicting same-clock publication')
                     return True
             if old.get('contract') == model.CONTRACT:
                 if model.clock(old['source_generated_at']) > model.clock(packet['source_generated_at']): return False
@@ -149,8 +189,8 @@ def publish(client, bucket, packet):
             condition = {'IfNoneMatch': '*'}
         try:
             client.put_object(Bucket=bucket, Key=model.CURRENT, Body=model.encoded(packet), ContentType='application/json', CacheControl='no-store', **condition)
-            live = json.loads(reader(client, bucket)(model.CURRENT))
-            if live != packet and model.clock(live['generated_at']) <= stamp: raise ValueError('Publication readback differs')
+            live = strict(reader(client, bucket)(model.CURRENT))
+            if not same_json(live, packet) and model.clock(live['generated_at']) <= stamp: raise ValueError('Publication readback differs')
             return True
         except Exception as exc:
             if not conflict(exc): raise
@@ -158,7 +198,7 @@ def publish(client, bucket, packet):
 
 
 def run(client, bucket):
-    read = reader(client, bucket); raw = read(SOURCE); macro = json.loads(raw)
+    read = reader(client, bucket); raw = read(SOURCE); macro = strict(raw)
     canonical.restore(macro, tuple(arithmetic.SPECS), read)
     source_ref = retain_bytes(client, bucket, raw, 'snapshots')
     legacy, previous = previous_state(client, bucket)

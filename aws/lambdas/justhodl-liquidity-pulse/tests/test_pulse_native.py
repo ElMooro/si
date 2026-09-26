@@ -28,6 +28,21 @@ class Tests(unittest.TestCase):
         cls.output = store.compile_output(cls.inputs, store.reader(Storage(cls.objects), 'b'))
     def setUp(self): self.client = Storage(self.objects); self.read = store.reader(self.client, 'b')
 
+    def bound_packet(self, stamp=STAMP, previous=None, missing=()):
+        inputs = deepcopy(self.inputs); inputs['generated_at'] = stamp
+        if previous is not None: inputs['previous_watermarks'] = deepcopy(previous)
+        if missing:
+            macro = json.loads(self.client.objects[inputs['macro']['key']])
+            manifest = json.loads(self.client.objects[macro['replay']['manifest_key']])
+            for sid in missing: macro['measurements'].pop(sid)
+            manifest['output_sha256'] = model.digest({k:v for k,v in macro.items() if k!='replay'})
+            raw = model.encoded(manifest); key = 'data/report-research/runs/'+store.sha(raw)+'.json'
+            self.client.objects[key] = raw
+            macro['replay'] = {'manifest_key': key, 'output_sha256': manifest['output_sha256']}
+            inputs['macro'] = store.retain_bytes(self.client, 'b', model.encoded(macro), 'snapshots')
+        output = store.compile_output(inputs, self.read)
+        return {**output, 'replay': store.retain(self.client, 'b', inputs, output)}
+
     def test_native_projection_preserves_candidate_measurements_without_authority(self):
         source, originals = fixtures(); candidate = store.arithmetic.build(source, originals, STAMP)
         self.assertEqual(self.output['series'], candidate['series'])
@@ -57,10 +72,10 @@ class Tests(unittest.TestCase):
         context, watermarks = store.previous_state(self.client, 'b')
         self.assertEqual(self.client.objects[context['whole_predecessor']['key']], prior)
         self.assertTrue(all(v is None for v in watermarks.values()))
-        packet = deepcopy(self.output); self.assertTrue(store.publish(self.client, 'b', packet))
+        packet = self.bound_packet(); self.assertTrue(store.publish(self.client, 'b', packet))
         newer = deepcopy(packet); newer['generated_at'] = newer['source_generated_at'] = '2026-09-21T00:00:00Z'
         self.client.objects[model.CURRENT] = model.encoded(newer)
-        candidate = deepcopy(packet); candidate['generated_at'] = '2026-09-22T00:00:00Z'
+        candidate = self.bound_packet('2026-09-22T00:00:00Z')
         self.assertFalse(store.publish(self.client, 'b', candidate))
 
     def test_missing_series_cannot_erase_watermark_and_old_recovery_has_no_current_value(self):
@@ -71,24 +86,25 @@ class Tests(unittest.TestCase):
         missing['measurements'].pop('WALCL')
         missing['replay']['output_sha256'] = model.digest({k:v for k,v in missing.items() if k!='replay'})
         subset = {k:v for k,v in originals.items() if k!='WALCL'}
-        packet = model.build(missing, subset, '2026-09-20T11:00:00Z', {}, previous)
+        packet = self.bound_packet('2026-09-20T11:00:00Z', previous, ('WALCL',))
         self.assertIsNone(packet['series']['WALCL']['latest_value'])
         self.assertEqual(packet['source_acquisition_watermarks']['WALCL'], high)
         self.assertTrue(store.publish(self.client, 'b', packet))
         context, kept = store.previous_state(self.client, 'b')
-        recovery = model.build(source, originals, '2026-09-20T12:00:00Z', context, kept)
+        recovery = self.bound_packet('2026-09-20T12:00:00Z', kept)
         self.assertEqual(recovery['series']['WALCL']['quality']['status'], 'source_regression')
         self.assertIsNone(recovery['series']['WALCL']['latest_value'])
         self.assertTrue(recovery['series']['WALCL']['history'])
         self.assertTrue(store.publish(self.client, 'b', recovery))
         # A competing compiler which did not see the accepted watermark loses.
-        late = model.build(source, originals, '2026-09-20T13:00:00Z', {}, self.inputs['previous_watermarks'])
+        late = self.bound_packet('2026-09-20T13:00:00Z')
         self.assertFalse(store.publish(self.client, 'b', late))
 
     def test_same_clock_conflict_and_cas_race_never_overwrite_newer_run(self):
-        packet = deepcopy(self.output); self.client.objects[model.CURRENT] = model.encoded(packet)
+        packet = self.bound_packet(); self.client.objects[model.CURRENT] = model.encoded(packet)
         self.assertTrue(store.publish(self.client, 'b', packet))
-        packet['summary'] = 'conflicting bytes'
+        changed = deepcopy(packet); changed['summary'] = 'conflicting bytes'
+        self.client.objects[model.CURRENT] = model.encoded(changed)
         with self.assertRaisesRegex(ValueError, 'same-clock'): store.publish(self.client, 'b', packet)
         self.client.objects[model.CURRENT] = b'{"generated_at":"2026-09-18T00:00:00Z"}'
         newer = deepcopy(packet); newer['generated_at'] = '2026-09-23T00:00:00Z'; original = self.client.put_object
@@ -98,6 +114,44 @@ class Tests(unittest.TestCase):
         with patch.object(self.client, 'put_object', side_effect=racing):
             self.assertFalse(store.publish(self.client, 'b', packet))
         self.assertEqual(json.loads(self.client.objects[model.CURRENT]), newer)
+
+    def test_unbound_promoted_or_changed_packet_cannot_reach_current_storage(self):
+        packet = self.bound_packet(); before = self.client.objects.get(model.CURRENT)
+        for change in (lambda p:p.pop('replay'), lambda p:p.update(calls_eligible=True),
+                       lambda p:p['series']['WALCL'].update(calls_eligible=True)):
+            bad = deepcopy(packet); change(bad)
+            with patch.object(self.client, 'get_object', side_effect=AssertionError('No storage read allowed')):
+                with self.assertRaises(ValueError):store.publish(self.client, 'b', bad)
+        for change in (lambda p:p.update(n_series=11.0), lambda p:p['series']['WALCL'].update(latest_value=999),
+                       lambda p:p['quality'].update(release_calendar_verified=0)):
+            bad = deepcopy(packet); change(bad)
+            with self.assertRaises(ValueError):store.publish(self.client, 'b', bad)
+        self.assertEqual(self.client.objects.get(model.CURRENT), before)
+        self.assertFalse(any(w['Key']==model.CURRENT for w in self.client.writes))
+
+    def test_type_changed_same_clock_and_readback_do_not_pass(self):
+        packet = self.bound_packet(); changed = deepcopy(packet); changed['n_series'] = 11.0
+        self.client.objects[model.CURRENT] = model.encoded(changed)
+        with self.assertRaisesRegex(ValueError, 'same-clock'):store.publish(self.client, 'b', packet)
+        self.client.objects[model.CURRENT] = b'{"generated_at":"2026-09-18T00:00:00Z"}'
+        original = self.client.put_object
+        def alter(**request):
+            original(**request)
+            if request['Key']==model.CURRENT:self.client.objects[model.CURRENT]=model.encoded(changed)
+        with patch.object(self.client, 'put_object', side_effect=alter),self.assertRaisesRegex(ValueError, 'readback'):
+            store.publish(self.client, 'b', packet)
+
+    def test_ambiguous_json_and_float_artifact_size_are_rejected(self):
+        for raw in (b'{"x":1,"x":1}', b'{"x":NaN}', b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        ref = deepcopy(self.inputs['macro']); ref['bytes'] = float(ref['bytes'])
+        with self.assertRaisesRegex(ValueError, 'byte count'):store.checked(ref, 'snapshots', self.read)
+
+    def test_public_replay_command_rejects_type_altered_current_view(self):
+        from replay_liquidity_pulse_research import verify
+        packet = self.bound_packet(); self.assertTrue(verify(packet, self.read)['replayed'])
+        packet['calls_eligible'] = 0
+        with self.assertRaisesRegex(ValueError, 'Published liquidity differs'):verify(packet, self.read)
 
     def test_scheduled_path_replays_before_publication_without_source_acquisition(self):
         class Clock:

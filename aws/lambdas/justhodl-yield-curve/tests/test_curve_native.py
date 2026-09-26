@@ -166,6 +166,37 @@ class Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Publication differs'):store.publish(self.client,'b',packet)
         self.assertFalse(any(w['Key']==model.CURRENT for w in self.client.writes))
 
+    def test_type_changed_view_cannot_borrow_replay_or_pass_same_clock_and_readback(self):
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);packet={**view,'replay':ref}
+        changed=deepcopy(packet);changed['series']['DGS2']['retained_original_rows']=float(changed['series']['DGS2']['retained_original_rows'])
+        with self.assertRaisesRegex(ValueError,'Publication differs'):store.publish(self.client,'b',changed)
+        self.client.objects[model.CURRENT]=model.encoded(changed)
+        with self.assertRaisesRegex(ValueError,'same-clock'):store.publish(self.client,'b',packet)
+        self.client.objects[model.CURRENT]=b'{"generated_at":"2026-09-17T00:00:00Z"}';original=self.client.put_object
+        def alter(**request):
+            original(**request)
+            if request['Key']==model.CURRENT:self.client.objects[model.CURRENT]=model.encoded(changed)
+        with patch.object(self.client,'put_object',side_effect=alter),self.assertRaisesRegex(ValueError,'readback'):
+            store.publish(self.client,'b',packet)
+
+    def test_boolean_view_substitution_and_duplicate_manifest_are_rejected(self):
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);packet={**view,'replay':ref}
+        changed=deepcopy(packet);changed['quality']['release_calendar_verified']=0
+        with self.assertRaisesRegex(ValueError,'Publication differs'):store.publish(self.client,'b',changed)
+        for raw in (b'{"x":1,"x":1}', b'{"x":NaN}', b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        raw=self.client.objects[ref['manifest_key']];raw=b'{"contract":"yield-curve-replay.v1",'+raw[1:]
+        key=model.PREFIX+'runs/'+store.sha(raw)+'.json';self.client.objects[key]=raw
+        with self.assertRaisesRegex(ValueError,'Duplicate'):store.replay({**ref,'manifest_key':key},self.read)
+
+    def test_public_replay_command_rejects_type_altered_current_view(self):
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from replay_yield_curve_research import verify
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);packet={**view,'replay':ref}
+        self.assertTrue(verify(packet,self.read)['replayed'])
+        packet['calls_eligible']=0
+        with self.assertRaisesRegex(ValueError,'Published view differs'):verify(packet,self.read)
+
     def test_fixed_arithmetic_and_current_leg_regression_preserve_history(self):
         from decimal import localcontext,ROUND_UP
         source,originals=fixtures();originals={s:originals.get(s) for s in store.catalog.SERIES}
