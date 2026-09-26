@@ -24,6 +24,8 @@ nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font
 nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:16px}
+.table-region{overflow-x:auto;max-width:100%}
+.table-region:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .card h3{font-family:var(--mono);font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin:0 0 10px}
 .big{font-family:var(--mono);font-size:32px;font-weight:700;margin:2px 0}
 .read{font-size:12px;color:var(--mute);line-height:1.6;margin-top:10px}
@@ -68,7 +70,7 @@ tr:hover td{background:var(--panel2)}
   <div id="dqwrap"></div>
 
   <h2>All signals — verified observations and evidence gaps</h2>
-  <div class="card" style="padding:6px 10px"><div id="board"><div class="loading">…</div></div></div>
+  <div class="card" style="padding:6px 10px"><div id="board" class="table-region" tabindex="0" role="region" aria-label="Signal research table"><div class="loading">…</div></div></div>
   <p class="read" id="legend"></p>
   <p class="timestamp" id="ts"></p>
 </div>
@@ -111,7 +113,7 @@ function kpi(label,val,sub,color){
     </tr>`).join("");
     document.getElementById("dqwrap").innerHTML=
       `<h2 style="color:var(--orange)">⚠ Data Quality — signals not gradeable on current outcomes</h2>
-       <div class="card" style="padding:6px 10px"><table><thead><tr>
+       <div class="card table-region" tabindex="0" role="region" aria-label="Outcome evidence gaps" style="padding:6px 10px"><table><thead><tr>
          <th>Signal type</th><th class="num">Total outcomes</th><th class="num">Scored</th>
          <th class="num">Legacy</th><th class="num">Unresolved</th><th class="num">Quarantined</th><th>Evidence gap</th>
        </tr></thead><tbody>${drows}</tbody></table></div>

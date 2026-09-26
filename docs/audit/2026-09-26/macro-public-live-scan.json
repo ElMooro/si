@@ -1,0 +1,536 @@
+{
+  "checked_at": "2026-09-26T21:49:00.195481+00:00",
+  "scope": "24 original macro pages and their named primary public packet; HTTP/body inspection is not complete original replay or model qualification",
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "rows": [
+    {
+      "page": "auctions.html",
+      "packet": "data/auction-desk.json",
+      "html": {
+        "status": 200,
+        "bytes": 88357,
+        "sha256": "0adecc860c892c27cfdf3a8100a90da30458d16f30ea4b4289fdfe5e64986a85",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 1374133,
+        "sha256": "b2ecd1a56244d688be649dc7665ca14a4e142f9fde18f126dcfaa74523e1fb05",
+        "version": "1.4.1",
+        "generated_at": "2026-09-25T20:35:53+00:00",
+        "quality_status": null,
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "bls.html",
+      "packet": "data/bls-labor.json",
+      "html": {
+        "status": 200,
+        "bytes": 26492,
+        "sha256": "3cf7049b95208178e169e7600274d53f968298a144784bf3d99117e76de3fb8d",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 3609,
+        "sha256": "cc89649acaa1bc39639defa6e40afad5d19077823fa0289194e78861caeb0f09",
+        "generated_at": "2026-09-26T20:56:22.834735+00:00",
+        "quality_status": null,
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "hot-money.html",
+      "packet": "data/hot-money.json",
+      "html": {
+        "status": 200,
+        "bytes": 10668,
+        "sha256": "665bb6dc600e4644154241eb932381dd9ee4ea4553f1391b53832c448ffb56c4",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 446048,
+        "sha256": "8ffcd9d775621f3bd5cc07a7216a0bdf72f2076d2d5a888a2e8881a81e7634ad",
+        "contract": "hot-money-research.v1",
+        "generated_at": "2026-09-26T09:51:10.801253+00:00",
+        "as_of": "2026-09-26",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "auction-crisis.html",
+      "packet": "data/auction-crisis.json",
+      "html": {
+        "status": 200,
+        "bytes": 55474,
+        "sha256": "79ed5058538dd616a41dc0a02c60015e12ab143c5f906100068d3c92ef16c896",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 51569,
+        "sha256": "0613b01be5d1bf617c43351286d42073b5ed73c63e9576c5e4f0da08fc2ce7c0",
+        "schema_version": "2.1",
+        "generated_at": "2026-09-26T19:50:38.056070+00:00",
+        "quality_status": "fresh",
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "capital-inflows.html",
+      "packet": "data/capital-inflows.json",
+      "html": {
+        "status": 200,
+        "bytes": 11873,
+        "sha256": "524a1fa1c8311da215d5afc0b19f74568b28a5c52d341fc4e35ace2728df0fd1",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 112963,
+        "sha256": "1f9699188cf64f869051da4dcef7a2d8f0cfe8119ed1c82ed52580f5ee909ef0",
+        "contract": "tic-original-research.v1",
+        "version": "2.0.0",
+        "generated_at": "2026-09-26T14:06:28.126234+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "alpha-compass.html",
+      "packet": "data/alpha-compass.json",
+      "html": {
+        "status": 200,
+        "bytes": 25638,
+        "sha256": "f5a6d6ca353e019c0027cea5ed84383775015912c9c8f29cb176bf54bc8269c4",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 96056,
+        "sha256": "a380c76e59047edfbb48c3d816e247231636aed4137382e1156fde2e57835f4e",
+        "contract": "alpha-research.v1",
+        "schema_version": "3.0",
+        "generated_at": "2026-09-26T21:07:48.873066+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "partial",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "sovereign-stress.html",
+      "packet": "data/sovereign-stress.json",
+      "html": {
+        "status": 200,
+        "bytes": 51400,
+        "sha256": "b98cc1482312977585a50bd57f644ac42ea27d56a2514e5cd7923cb8c0d17c73",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 85673,
+        "sha256": "d8a01f97be0bc3537d9ab8959fefc77ff856868b729d20a8fee47cc5944bc97a",
+        "schema_version": "2.0",
+        "version": "2.6.0",
+        "generated_at": "2026-09-26T12:00:35.035480+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "risk-regime.html",
+      "packet": "data/risk-regime.json",
+      "html": {
+        "status": 200,
+        "bytes": 10427,
+        "sha256": "75d56106c0fce05e6193442eeb99f22c913d2580da6ab9ed965ca50cd0b067fb",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 463159,
+        "sha256": "3774ac66528335838b9b61e6e65352c4f526049c86b320d236537c46cea120c5",
+        "contract": "risk-regime-research.v1",
+        "version": "2.0.0",
+        "generated_at": "2026-09-26T21:15:52.076886+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "research_only",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "capital-flow.html",
+      "packet": "data/capital-flow.json",
+      "html": {
+        "status": 200,
+        "bytes": 15331,
+        "sha256": "ee2599348e0bbd4c302a15ffcf1a807ccd5204cf66c3f26d65feeb282ad85d1d",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 340316,
+        "sha256": "4cbb091fc270013e3ca9ebf7582b46cde5a123e0808575ef21de855fd687625d",
+        "contract": "capital-evidence-research.v1",
+        "version": "3.0.0",
+        "generated_at": "2026-09-26T16:30:50.781382+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "partial",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "euro-fragmentation.html",
+      "packet": "data/euro-fragmentation.json",
+      "html": {
+        "status": 200,
+        "bytes": 19432,
+        "sha256": "25f01a643e318c37d7aa4688e454cc0a515206bc87132545018f1b86f24ba51c",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 11611191,
+        "sha256": "8868c9f9eb0872f2103bc5723eb3bff0261383a537d9de8a13baddf1d4554df1",
+        "schema_version": "1.0",
+        "generated_at": "2026-09-26T12:20:11.985876+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "primary-dealers.html",
+      "packet": "data/nyfed-primary-dealer.json",
+      "html": {
+        "status": 200,
+        "bytes": 9134,
+        "sha256": "d12c9b034a319219f7254819792f319ad933c8f23cecc2cc71ee1dbd8ff281ff",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 2952273,
+        "sha256": "fda2f2a5ce7729332b9d2a08fafcc423b733c678e465f1c45598a297e8fc37ae",
+        "contract": "dealer-original-research.v1",
+        "version": "4.0.0",
+        "generated_at": "2026-09-25T21:30:28.949247+00:00",
+        "as_of": "2026-09-16",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "degraded",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "cb-injection.html",
+      "packet": "data/cb-injection.json",
+      "html": {
+        "status": 200,
+        "bytes": 10924,
+        "sha256": "8de225ff5b3bbbbf62772fa26ce50c3df88ec4e9d4b69d429f76abc47cfe4e8e",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 237650,
+        "sha256": "34b2f576ef44dda51d01b1b7226a1f7f534856ee0324e514083bae02d98085e5",
+        "contract": "cb-research.v1",
+        "schema_version": "3.0",
+        "version": "3.0.0",
+        "generated_at": "2026-09-26T13:00:43.000943+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "partial",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "carry.html",
+      "packet": "data/carry-surface.json",
+      "html": {
+        "status": 200,
+        "bytes": 11766,
+        "sha256": "98b2180ee515b62b71f70d1a949f0163c66911cb0eb39909ef58d904afdbeb4a",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 1561281,
+        "sha256": "a6029839854030a288bd6df1bdf6c2ccfda9d7e7a64b3eeafeb6a90da7d84262",
+        "contract": "carry-original-research.v1",
+        "version": "2.0.1",
+        "generated_at": "2026-09-26T18:52:47.021640+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "partial",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "capital-flow-radar.html",
+      "packet": "data/capital-flow-radar.json",
+      "html": {
+        "status": 200,
+        "bytes": 9916,
+        "sha256": "df8b2671729ae3a10a3cbe903b74972e3a6be24a1d8b6d0acb74b3cd6b415956",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 3736778,
+        "sha256": "67befa5e718dc517c86d372fa21b94fd1157215522adc61675af4f1651cc4f7f",
+        "contract": "capital-flow-native-research.v1",
+        "version": "5.0.0",
+        "generated_at": "2026-09-25T22:30:06.011588+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "quality_status": "partial",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "yield-curve.html",
+      "packet": "data/yield-curve.json",
+      "html": {
+        "status": 200,
+        "bytes": 40710,
+        "sha256": "f7d581649b09abb5978f5fc27103e5d92b3d1f1f9085229874c491e0942e94d7",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 224934,
+        "sha256": "ad127ea6d11a07152a45e8c261dcd364c16395ce6c14b6ef7dfc4a50056b5b5f",
+        "contract": "yield-curve-research.v1",
+        "generated_at": "2026-09-26T13:52:54.786638+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "quality_status": "within_age_ceiling",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "yen-carry.html",
+      "packet": "data/yen-carry.json",
+      "html": {
+        "status": 200,
+        "bytes": 12060,
+        "sha256": "73d5c53d48bfd41d8b9e41dec41e090067c9fa675aee418b9cb8229147cf6649",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 55384,
+        "sha256": "de356c8fbf1ab82d3f7eeb635308c143eb817016fa8d153b6f58cb046e773de2",
+        "contract": "yen-original-research.v1",
+        "schema_version": "3.0",
+        "generated_at": "2026-09-26T12:00:48.421174+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "ecb-history.html",
+      "packet": "data/ecb-hist/_manifest.json",
+      "html": {
+        "status": 200,
+        "bytes": 16049,
+        "sha256": "37e50884a29a764ed0c842fcd661a7fabb43f3035c98ba4c043bf4d82925faed",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 88252,
+        "sha256": "0311d3d97c14ddde034f8c593a52fb239885e6420d1a40d9496b57549ffde320",
+        "generated_at": "2026-09-25T06:00:35.548043+00:00",
+        "execution_eligible": false,
+        "quality_status": "partial",
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "global-sovereign.html",
+      "packet": "data/global-sovereign.json",
+      "html": {
+        "status": 200,
+        "bytes": 35901,
+        "sha256": "41a0f99744334b584d5d950f5e8463aeaa1fe6f54e84270d7a1a27992ba12230",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 22506,
+        "sha256": "4f275087d42c194e83d8ee1b15685cb7f75a4973a66a059b532dfc07225642d2",
+        "version": "1.4.0",
+        "generated_at": "2026-09-26T18:16:52.868630+00:00",
+        "quality_status": null,
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "treasury-rehypo.html",
+      "packet": "data/treasury-rehypo.json",
+      "html": {
+        "status": 200,
+        "bytes": 22690,
+        "sha256": "e0881d6c75da52d0e2aa67a899b830367226fd3e8d6e8cef904dc58f43da6470",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 374521,
+        "sha256": "704b3e49600016d90a629c2a41e14432755589537ecec4fc03261d874ccc1cd3",
+        "version": "2.0",
+        "generated_at": "2026-09-25T21:40:10+00:00",
+        "execution_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "macro-data.html",
+      "packet": "data/bls-macro.json",
+      "html": {
+        "status": 200,
+        "bytes": 26429,
+        "sha256": "c86d1c4ee5fa2c2d06ed731f56108c74b6e28a5f66e724ba074f5b5333c43ace",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 13358,
+        "sha256": "72e879c28a4fdcc2f7ce9289940f2767884e510c0f8b57aa7f74fcf7b65b5cb6",
+        "schema_version": "2.0",
+        "generated_at": "2026-09-26T21:30:01.180575+00:00",
+        "as_of": "2026-09-26T21:29:55+00:00",
+        "sizing_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": false
+      }
+    },
+    {
+      "page": "liquidity.html",
+      "packet": "data/liquidity-flow.json",
+      "html": {
+        "status": 200,
+        "bytes": 58506,
+        "sha256": "033f044c609fd24e66c9f0b653630a39f1f8266e8f5d0adc946f5287cd6f5fce",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 986137,
+        "sha256": "1bb606a30a71ef557f67384846023e01750d253b566a411bbb7886b5fc46b7a6",
+        "contract": "liquidity-flow-research.v1",
+        "generated_at": "2026-09-26T16:44:11.237996+00:00",
+        "as_of": "2026-09-23",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "quality_status": "fresh",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "liquidity-reversal.html",
+      "packet": "data/liquidity-reversal.json",
+      "html": {
+        "status": 200,
+        "bytes": 13912,
+        "sha256": "1656a2bf13734290d945d8a45af9e9ae43ea98344a5b362fa19aa4fae441c7c5",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 3717029,
+        "sha256": "7f0b5704498f4c2a6eb15fe301b623f050d12e0e33dd6d84b06a0e0986aee44d",
+        "contract": "liquidity-reversal-research.v1",
+        "version": "2.0.0",
+        "generated_at": "2026-09-26T02:29:13.076308+00:00",
+        "as_of": "2026-09-26T02:29:13.076308+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "partial_verified_coverage",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "fails.html",
+      "packet": "data/settlement-fails.json",
+      "html": {
+        "status": 200,
+        "bytes": 7439,
+        "sha256": "b886134c0ad02085059edca9aa1467438cfd43b31b4f56c90e83c1d4b2f97563",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 3084107,
+        "sha256": "ea146d8c6d3ab467847798ee6fcfdaf693b08d4d81b63be2a1f8ed8390db53c0",
+        "contract": "fr2004-fails-research.v1",
+        "version": "2.0.0",
+        "generated_at": "2026-09-26T21:30:39.782533+00:00",
+        "as_of": "2026-09-16",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": true
+      }
+    },
+    {
+      "page": "ciss.html",
+      "packet": "data/ciss-stress.json",
+      "html": {
+        "status": 200,
+        "bytes": 14904,
+        "sha256": "9ece9d2f5875ad3e85a7858231deacd58f265beb0eded04fff5aa8eed8e9b14a",
+        "inspector_loaded": true
+      },
+      "data": {
+        "status": 200,
+        "bytes": 4613121,
+        "sha256": "7362364eeec0428b52f89efb5cd3c9535aeea533a15ee6876df8545640b306d5",
+        "contract": "ciss-research.v1",
+        "version": "2.0.0",
+        "generated_at": "2026-09-26T07:11:44.104768+00:00",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "quality_status": "fresh",
+        "replay_contract_present": true
+      }
+    }
+  ]
+}
