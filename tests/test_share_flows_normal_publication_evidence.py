@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import importlib.util, sys, unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-path = ROOT/'aws/ops/staged/ops_6151_share_flows_normal_publication_replay.py'
+path = ROOT/'aws/ops/staged/ops_6154_share_flows_complete_normal_acceptance.py'
 spec = importlib.util.spec_from_file_location('normal_share_evidence', path)
 ops = importlib.util.module_from_spec(spec); spec.loader.exec_module(ops)
 REF = {'manifest_key': 'retained-reference', 'output_sha256': 'same-output'}
@@ -52,5 +52,26 @@ class Tests(unittest.TestCase):
             value = record(); value.update(started_at=start, finished_at=finish)
             with self.assertRaisesRegex(ValueError, 'clock or runtime'):check([value])
 
+
+    def test_full_source_claim_population_does_not_hide_native_execution(self):
+        old=datetime(2026,9,25,21,53,tzinfo=timezone.utc)
+        entries=[{'Key':ops.source.PRIVATE+'requests/source-'+str(i)+'.json','LastModified':old} for i in range(11305)]
+        target=ops.source.PRIVATE+'requests/native.json';entries.append({'Key':target,'LastModified':WHEN})
+        client=Mock();client.get_paginator.return_value.paginate.return_value=[{'Contents':entries[i:i+1000]} for i in range(0,len(entries),1000)]
+        with patch.object(ops.producer,'raw',return_value=ops.source.encoded(record())) as read:
+            result=ops.native_execution(client,REF)
+        read.assert_called_once_with(client,ops.BUCKET,target)
+        self.assertEqual(result['elapsed_seconds'],180);client.put_object.assert_not_called()
+
+    def test_inventory_and_recent_read_bounds_remain_explicit(self):
+        client=Mock();old=datetime(2026,9,25,tzinfo=timezone.utc)
+        client.get_paginator.return_value.paginate.return_value=[{'Contents':[{'Key':'old','LastModified':old}]*(ops.MAX_REQUESTS+1)}]
+        with patch.object(ops.producer,'raw') as read,self.assertRaisesRegex(ValueError,'inventory bound'):
+            ops.native_execution(client,REF)
+        read.assert_not_called()
+        client.get_paginator.return_value.paginate.return_value=[{'Contents':[{'Key':'new','LastModified':WHEN}]*(ops.MAX_RECENT_REQUESTS+1)}]
+        with patch.object(ops.producer,'raw',return_value=b'{}') as read,self.assertRaisesRegex(ValueError,'Recent request'):
+            ops.native_execution(client,REF)
+        self.assertEqual(read.call_count,ops.MAX_RECENT_REQUESTS)
 
 if __name__ == '__main__': unittest.main(verbosity=2)
