@@ -128,14 +128,20 @@
     set("risk-mode", data.risk_control && data.risk_control.mode);
     set("shelter", data.risk_control && data.risk_control.default_shelter && data.risk_control.default_shelter.primary);
     set("shelter-why", data.risk_control && data.risk_control.default_shelter && data.risk_control.default_shelter.why);
-    set("bond-regime", data.risk_control && data.risk_control.bond_market && data.risk_control.bond_market.regime);
-    set("bond-summary", data.risk_control && data.risk_control.bond_market && (data.risk_control.bond_market.summary || data.risk_control.bond_market.note));
+    var bond = data.risk_control && data.risk_control.bond_market;
+    var bondGaps = (data.gaps || []).filter(function (gap) { return /bond/i.test(String(gap)); });
+    set("bond-regime", (bond && bond.regime) || (bondGaps.length ? "NO READ" : null));
+    set("bond-summary", (bond && bond.summary) || (bondGaps.length ? bondGaps[0] : (bond && bond.note)));
     set("capital-decision", (data.risk_board && data.risk_board.capital_decision) || (data.decision && data.decision.capital_decision));
     set("exposure-cap", ((data.risk_board && data.risk_board.exposure_cap_pct) == null ? "--" : data.risk_board.exposure_cap_pct + "%"));
     $("capital-banner").className = "k-capital-banner " + ((data.risk_board && data.risk_board.allows_new_entries) ? "invest" : "cash");
     var reasons = $("risk-reasons"); clear(reasons);
     ((data.risk_control && data.risk_control.reasons) || []).forEach(function (x) { reasons.append(line("GATE", x)); });
+    bondGaps.forEach(function (gap) { reasons.append(line("GAP", gap)); });
 
+    var broken = (data.missing_inputs || []).filter(function (input) {
+      return input && input.status && input.status !== "OK" && input.status !== "FRESH";
+    }).length;
     var kpis = $("kpis"); clear(kpis);
     [
       ["READY", data.decision && data.decision.selected_count],
@@ -143,7 +149,7 @@
       ["TRACKED", data.decision && data.decision.opportunities_tracked],
       ["EXECUTION UNIVERSE", data.decision && data.decision.universe_scored],
       ["FRESH INPUTS", data.coverage && data.coverage.fresh],
-      ["STALE / MISSING", data.coverage ? (data.coverage.stale + data.coverage.missing) : null]
+      ["HELD OR BROKEN", (data.coverage ? data.coverage.stale + data.coverage.missing : 0) + broken]
     ].forEach(function (item) {
       var box = node("div", "k-kpi");
       box.append(node("span", "", item[0]), node("strong", "", item[1] == null ? "--" : item[1]));

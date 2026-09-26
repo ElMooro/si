@@ -55,7 +55,7 @@
     var _themed = location.pathname.indexOf("/screener") !== 0;
     if (_themed && !document.getElementById("jh-theme")) {
       var _jt = document.createElement("link");
-      _jt.id = "jh-theme"; _jt.rel = "stylesheet"; _jt.href = "/jh-theme.css";
+      _jt.id = "jh-theme"; _jt.rel = "stylesheet"; _jt.href = "/jh-theme.css?v=1057f9c8";
       (document.head || document.documentElement).prepend(_jt);
     }
     if (_themed && !document.querySelector("[data-jh-no-chrome]") && !document.getElementById("jh-chrome")) {
@@ -72,7 +72,7 @@
           ck.textContent = dd.toLocaleTimeString("en-US", {hour12:false, timeZone:"America/New_York"}) + " ET"; };
         jt(); setInterval(jt, 1000);
         var tapeReady = window.JHMarketTape ? Promise.resolve() : new Promise(function (resolve, reject) {
-          var script = document.createElement("script"); script.src = "/jh-market-tape.js";
+          var script = document.createElement("script"); script.src = "/jh-market-tape.js?v=88fee275";
           script.onload = resolve; script.onerror = reject; document.head.appendChild(script);
         });
         var refreshTape = function () {
@@ -89,36 +89,40 @@
   } catch (e) {}
 
 
-  var CSS = ".jhnav-handle{position:fixed;top:50%;left:0;transform:translateY(-50%);width:22px;height:64px;background:#10151f;border:1px solid #1d2636;border-left:none;border-radius:0 10px 10px 0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:999997;color:#5d6b82;font-size:15px;transition:left .22s cubic-bezier(.4,0,.2,1),color .15s,border-color .15s;padding:0;font-family:inherit;box-shadow:2px 0 10px rgba(0,0,0,.25)}"
-    + ".jhnav-handle:hover{color:#22d3ee;border-color:#22d3ee}"
+  var CSS = ".jhnav-handle{position:fixed;top:50%;left:0;transform:translateY(-50%);width:22px;height:64px;background:#0C0B09;border:1px solid #17150E;border-left:none;border-radius:0 10px 10px 0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:999997;color:#3A3628;font-size:15px;transition:left .22s cubic-bezier(.4,0,.2,1),color .15s,border-color .15s;padding:0;font-family:inherit;box-shadow:2px 0 10px rgba(0,0,0,.25)}"
+    + ".jhnav-handle:hover{color:#C9942E;border-color:#C9942E}"
     + ".jhnav-handle.jhnav-open{left:280px}"
-    + ".jhnav-backdrop{position:fixed;inset:0;background:rgba(4,6,10,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:999996}"
+    + ".jhnav-backdrop{position:fixed;inset:0;background:rgba(12,11,9,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:999996}"
     + ".jhnav-backdrop.jhnav-open{opacity:1;pointer-events:auto}"
-    + ".jhnav-drawer{position:fixed;left:0;top:0;bottom:0;width:280px;background:#10151f;border-right:1px solid #1d2636;padding:16px 12px;overflow-y:auto;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:999998;box-shadow:12px 0 34px rgba(0,0,0,.45);font-family:Inter,system-ui,sans-serif;box-sizing:border-box}"
+    + ".jhnav-drawer{position:fixed;left:0;top:0;bottom:0;width:280px;background:#0C0B09;border-right:1px solid #17150E;padding:16px 12px;overflow-y:auto;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:999998;box-shadow:12px 0 34px rgba(0,0,0,.45);font-family:Inter,system-ui,sans-serif;box-sizing:border-box}"
     + ".jhnav-drawer *{box-sizing:border-box}"
     + ".jhnav-drawer.jhnav-open{transform:translateX(0)}"
     + ".jhnav-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:0 2px}"
-    + ".jhnav-dot{width:8px;height:8px;background:#26ffaf;border-radius:50%;box-shadow:0 0 8px #26ffaf;flex-shrink:0}"
-    + ".jhnav-brand{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:13px;color:#e8edf5}"
-    + ".jhnav-brand b{color:#5d6b82;font-weight:600}"
-    + ".jhnav-count{margin-left:auto;font-size:10.5px;color:#5d6b82;font-family:'IBM Plex Mono',monospace}"
-    + ".jhnav-search{width:100%;background:#161d2a;border:1px solid #1d2636;border-radius:8px;padding:9px 11px;color:#e8edf5;font-size:12.5px;margin-bottom:12px;font-family:Inter,system-ui,sans-serif}"
-    + ".jhnav-search:focus{outline:none;border-color:#22d3ee}"
+    + ".jhnav-dot{width:8px;height:8px;background:#6fce8a;border-radius:50%;box-shadow:0 0 8px #6fce8a;flex-shrink:0}"
+    + ".jhnav-brand{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:13px;color:#e8e2d4}"
+    + ".jhnav-brand b{color:#3A3628;font-weight:600}"
+    + ".jhnav-count{margin-left:auto;font-size:10.5px;color:#3A3628;font-family:'IBM Plex Mono',monospace}"
+    + ".jhnav-search{width:100%;background:#12110C;border:1px solid #17150E;border-radius:8px;padding:9px 11px;color:#e8e2d4;font-size:12.5px;margin-bottom:12px;font-family:Inter,system-ui,sans-serif}"
+    + ".jhnav-search:focus{outline:none;border-color:#C9942E}"
     + ".jhnav-group{margin-bottom:2px}"
-    + ".jhnav-ghead{display:flex;justify-content:space-between;align-items:center;padding:9px 8px;cursor:pointer;border-radius:7px;font-size:12.5px;color:#a8b3c7;user-select:none}"
-    + ".jhnav-ghead:hover{background:#161d2a}"
-    + ".jhnav-ghead .jhnav-n{color:#5d6b82;font-size:11px}"
-    + ".jhnav-chev{transition:transform .15s;color:#5d6b82;font-size:10px;display:inline-block}"
+    + ".jhnav-ghead{display:flex;justify-content:space-between;align-items:center;padding:9px 8px;cursor:pointer;border-radius:7px;font-size:12.5px;color:#8a836f;user-select:none}"
+    + ".jhnav-ghead:hover{background:#12110C}"
+    + ".jhnav-ghead .jhnav-n{color:#3A3628;font-size:11px}"
+    + ".jhnav-chev{transition:transform .15s;color:#3A3628;font-size:10px;display:inline-block}"
     + ".jhnav-group.jhnav-gopen .jhnav-chev{transform:rotate(90deg)}"
     + ".jhnav-items{display:none;padding:2px 0 8px 14px}"
     + ".jhnav-group.jhnav-gopen .jhnav-items{display:block}"
-    + ".jhnav-item{display:block;padding:6px 8px;font-size:12px;color:#5d6b82;border-radius:6px;text-decoration:none}"
-    + ".jhnav-item:hover{color:#22d3ee;background:#161d2a}"
-    + ".jhnav-item.jhnav-here{color:#26ffaf;font-weight:600}";
+    + ".jhnav-item{display:block;padding:6px 8px;font-size:12px;color:#c8c1b1;border-radius:6px;text-decoration:none}"
+    + ".jhnav-item:hover{color:#C9942E;background:#12110C}"
+    + ".jhnav-item.jhnav-here{color:#6fce8a;font-weight:600}";
 
   var backdrop, handle, drawer, hereCatIndex = -1;
 
-  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&amp;/g, "&").replace(/&middot;/g, "\u00b7").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  }
 
   function open() {
     drawer.classList.add("jhnav-open"); backdrop.classList.add("jhnav-open");
@@ -138,7 +142,7 @@
   function setFavs(a){ try { localStorage.setItem("jh_favs", JSON.stringify(a.slice(0, 80))); } catch(e){} }
   /* ops 3368: color tags — per-page, per-user, unlimited per color. */
   var TAG_COLORS = ["red","orange","yellow","green","blue"];
-  var TAG_HEX = { red:"#ef4444", orange:"#f97316", yellow:"#eab308", green:"#22c55e", blue:"#3b82f6" };
+  var TAG_HEX = { red:"#E07A6A", orange:"#F0B429", yellow:"#F0B429", green:"#6fce8a", blue:"#F0B429" };
   var activeTagFilter = null;
   function getTags(){ try { var o = JSON.parse(localStorage.getItem("jh_tags") || "{}"); return (o && typeof o === "object") ? o : {}; } catch(e){ return {}; } }
   function setTags(o){ try {
@@ -252,9 +256,9 @@
     authLoading = true;
     function load(src, next){ var sc=document.createElement("script"); sc.src=src; sc.onload=next;
       sc.onerror=function(){ authLoading=false; }; document.head.appendChild(sc); }
-    load("/auth-config.js", function(){
+    load("/auth-config.js?v=d35cea03", function(){
       load("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", function(){
-        load("/auth.js", function(){
+        load("/auth.js?v=c4675b92", function(){
           try { window.JustHodlAuth.init(); } catch(e){}
           try { window.JustHodlAuth.onChange(function(){ renderAccount(); pullSync(); }); } catch(e){}
           cb && cb();
@@ -267,16 +271,16 @@
     var t = sbToken();
     if (t) {
       var em = jwtEmail(t) || "signed in";
-      el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#8fa0b8;padding:2px 2px">'
-        + '<span style="width:7px;height:7px;border-radius:50%;background:#3ddc84;flex:none"></span>'
+      el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#8a836f;padding:2px 2px">'
+        + '<span style="width:7px;height:7px;border-radius:50%;background:#6fce8a;flex:none"></span>'
         + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1" title="favorites + theme sync to your account">' + em + '</span>'
-        + '<a href="/settings.html" title="Account & settings" style="color:#4fc3f7;text-decoration:none;flex:none;margin-right:2px">\u2699</a>'
-        + '<a href="#" id="jhnav-signout" style="color:#5d6b82;text-decoration:none;flex:none">sign out</a></div>';
+        + '<a href="/settings.html" title="Account & settings" style="color:#F0B429;text-decoration:none;flex:none;margin-right:2px">\u2699</a>'
+        + '<a href="#" id="jhnav-signout" style="color:#3A3628;text-decoration:none;flex:none">sign out</a></div>';
       var so = document.getElementById("jhnav-signout");
       if (so) so.addEventListener("click", function(e){ e.preventDefault();
         ensureAuth(function(){ window.JustHodlAuth.signOut().then(function(){ renderAccount(); }); }); });
     } else {
-      el.innerHTML = '<button id="jhnav-signin" style="width:100%;background:#0d2233;border:1px solid #17435f;border-radius:8px;padding:9px 11px;color:#4fc3f7;font-size:12px;cursor:pointer;font-family:inherit">\u2605 Sign in \u2014 sync favorites across devices</button>';
+      el.innerHTML = '<button id="jhnav-signin" style="width:100%;background:#12110C;border:1px solid #17150E;border-radius:8px;padding:9px 11px;color:#F0B429;font-size:12px;cursor:pointer;font-family:inherit">\u2605 Sign in \u2014 sync favorites across devices</button>';
       var si = document.getElementById("jhnav-signin");
       if (si) si.addEventListener("click", function(){ ensureAuth(function(){ window.JustHodlAuth.openSignIn(); }); });
     }
@@ -440,19 +444,19 @@
     styleEl.textContent = CSS
       + ".jhnav-item{display:flex;justify-content:space-between;align-items:center;gap:8px}"
       + ".jhnav-item .jhnav-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
-      + ".jhnav-star{flex:none;color:#5a6675;font-size:13px;padding:0 3px;cursor:pointer}"
-      + ".jhnav-star.on{color:#ffd75e}.jhnav-star:hover{color:#ffd75e}"
-      + ".jhnav-favgroup .jhnav-ghead{color:#ffd75e}"
+      + ".jhnav-star{flex:none;color:#3A3628;font-size:13px;padding:0 3px;cursor:pointer}"
+      + ".jhnav-star.on{color:#F0B429}.jhnav-star:hover{color:#F0B429}"
+      + ".jhnav-favgroup .jhnav-ghead{color:#F0B429}"
       /* ops 3368: color tags */
       + ".jhtag-dots{flex:none;display:inline-flex;gap:3px;align-items:center}"
       + ".jhtag-d{display:inline-block;width:7px;height:7px;border-radius:50%}"
       + ".jhnav-tagbtn{flex:none;font-size:11px;padding:0 2px;cursor:pointer;opacity:.35;filter:grayscale(1)}"
       + ".jhnav-item:hover .jhnav-tagbtn,.jhnav-tagbtn:hover{opacity:1;filter:none}"
       + ".jhtag-filter{display:flex;gap:6px;align-items:center;margin:8px 0 2px;flex-wrap:wrap}"
-      + ".jhtag-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#8fa0b8;background:#161d2a;border:1px solid #1d2636;border-radius:20px;padding:3px 8px;cursor:pointer;font-family:ui-monospace,monospace}"
-      + ".jhtag-chip.on{border-color:#4fc3f7;color:#e6edf7}"
+      + ".jhtag-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#8a836f;background:#12110C;border:1px solid #17150E;border-radius:20px;padding:3px 8px;cursor:pointer;font-family:ui-monospace,monospace}"
+      + ".jhtag-chip.on{border-color:#F0B429;color:#e8e2d4}"
       + ".jhtag-clear{padding:3px 7px}"
-      + ".jhtag-pop{position:fixed;z-index:2147483647;display:none;gap:8px;background:#0f1520;border:1px solid #263044;border-radius:10px;padding:8px;box-shadow:0 8px 28px rgba(0,0,0,.5)}"
+      + ".jhtag-pop{position:fixed;z-index:2147483647;display:none;gap:8px;background:#0C0B09;border:1px solid #17150E;border-radius:10px;padding:8px;box-shadow:0 8px 28px rgba(0,0,0,.5)}"
       + ".jhtag-sw{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;box-sizing:border-box}"
       + ".jhtag-sw.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}";
     document.head.appendChild(styleEl);
@@ -474,8 +478,8 @@
       + '<input class="jhnav-search" id="jhnav-search" placeholder="Search pages\u2026" autocomplete="off">'
       + '<div id="jhnav-tagfilter" class="jhtag-filter"></div>'
       + '<div id="jhnav-groups"></div>'
-      + '<div style="margin-top:12px;border-top:1px solid #1d2636;padding-top:10px">'
-      +   '<button id="jhnav-themebtn" style="width:100%;background:#161d2a;border:1px solid #1d2636;border-radius:8px;padding:9px 11px;color:#a8b3c7;font-size:12px;cursor:pointer;font-family:inherit">theme</button>'
+      + '<div style="margin-top:12px;border-top:1px solid #17150E;padding-top:10px">'
+      +   '<button id="jhnav-themebtn" style="width:100%;background:#12110C;border:1px solid #17150E;border-radius:8px;padding:9px 11px;color:#8a836f;font-size:12px;cursor:pointer;font-family:inherit">theme</button>'
       +   '<div id="jhnav-account" style="margin-top:8px"></div>'
       + '</div>';
 
