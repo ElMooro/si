@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 3.9s  
+**Finished:** 2026-09-26T20:29:48+00:00  
+
+## Data
+
+| acceptance | accepted_candidate_byte_equal | account_reads | actual_runtime | all_denied | anonymous_origins_checked | attempt_outcome_counts | candidate_acceptance | checks | expected_commit | failures | history_writes | native_invocations | normal_new_code_publication_verified | notifications_sent | protected_paths_checked | provider_requests | public_packet | public_writes | schedules_changed | scope | source |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| {'key': 'audit-private/20260909-originals/bond-desk-research/2ef4b0d422fc5051286e2431cc35342354036385706511cb5e4ba6616ed51e03.bin', 'sha256': '2ef4b0d422fc5051286e2431cc35342354036385706511cb5e4ba6616ed51e03', 'bytes': 1567} | True | 0 | {'code_sha256': 'J+sO/IS3Xu+GthaVsjWfDCKUfjg0ayw5GjNiI2iJLN8=', 'source_files_checked': 12, 'handler_bytes': 29080, 'timeout': 180, 'memory_mb': 256, 'receipt': {'status': 'matched', 'commit': '862f1bda0248afeb6fcbf743c8075952827cfc19'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-bond-desk-daily', 'state': 'ENABLED', 'expression': 'cron(15 15 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-bond-desk', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} | True | 2 | {'404': 1, '403': 1} | 1711477684c59a88757aa20e0f4cf7f0478c80c0f88fa8aa7fe72eff27c64c79 | {'contract': 'bond-flow-independent-check.v1', 'cohorts': 11, 'windows_checked': 33, 'members_checked': 138, 'rational_sums': 66, 'complete_windows': 0, 'partial_windows': 33, 'unavailable_windows': 0, 'all_checks_passed': True, 'source_packet_sha256': '11341c8c2cd0cef9b3342089d6cb2c7aa68e5f38bd03457cc6f48310da166a1a', 'source_original_replay_required_separately': True, 'historical_point_in_time_verified': False, 'forecast_qualified': False, 'sizing_eligible': False} | 862f1bda0248afeb6fcbf743c8075952827cfc19 | [] | 0 | 0 | False | 0 | 1 | 0 | {'generated_at': '2026-09-25T15:16:08+00:00', 'version': '3.0.0', 'flow_status': None, 'cohort_contract': None} | 0 | 0 | Exact deployed code and accepted original-bound cohort arithmetic. Normal public publication remains a separate check; no producer invoked. | {'bytes': 1037757, 'key': 'audit-private/20260909-originals/bond-desk-research/11341c8c2cd0cef9b3342089d6cb2c7aa68e5f38bd03457cc6f48310da166a1a.bin', 'sha256': '11341c8c2cd0cef9b3342089d6cb2c7aa68e5f38bd03457cc6f48310da166a1a'} |
+
+## Log
+
