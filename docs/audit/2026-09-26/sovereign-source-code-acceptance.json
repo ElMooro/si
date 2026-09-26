@@ -1,0 +1,261 @@
+{
+  "commit": "657cc27c4c95daf5372c1ba3c2fe7c9e408b7ddd",
+  "lambda_run": 36278973841,
+  "pages_run": 36278973847,
+  "sovereign_operation_run": 36279062032,
+  "research_operation_run": 36279000212,
+  "sovereign_code_acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "Nfy9HT46r3ig/ASff0YvE3/nISXMnMhH/Y1H4jVwPWk=",
+      "source_files_checked": 3,
+      "handler_bytes": 13394,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "657cc27c4c95daf5372c1ba3c2fe7c9e408b7ddd"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "global-sovereign-12h",
+          "state": "ENABLED",
+          "expression": "cron(15 6,18 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-global-sovereign",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "archive_writes": 0,
+    "compiler_sha256": {
+      "lambda_function.py": "de138946c80ad8c3f996e08f25dab6335f1a1b8dd0e40cf77772f48924646226",
+      "sovereign_history.py": "617a3a6cd394ebde7f6e56f13a721d23c3f309bc7fc00abbbe71f6646c37a78f",
+      "sovereign_sources.py": "71743be36292345f130dc5468b69fa44719fa3cbd7416336f0899f1dc77b8c97"
+    },
+    "expected_commit": "657cc27c4c95daf5372c1ba3c2fe7c9e408b7ddd",
+    "history_writes": 0,
+    "native_invocations": 0,
+    "notifications_sent": 0,
+    "preserved_history_rows": 73,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "publication": {
+      "generated_at": "2026-09-26T18:16:52.868630+00:00",
+      "version": "1.4.0",
+      "whole_bytes": 22506,
+      "whole_sha256": "4f275087d42c194e83d8ee1b15685cb7f75a4973a66a059b532dfc07225642d2"
+    },
+    "schedules_changed": 0,
+    "scope": "Exact actual source package and retained direct provider fields when naturally published. No model, source-definition, quote-clock or portfolio qualification.",
+    "source_verification": {
+      "status": "pending_original_scheduled_acquisition"
+    }
+  },
+  "scheduled_capture_acceptance": {
+    "account_reads": 0,
+    "actual_runtimes": {
+      "justhodl-signal-harvester": {
+        "code_sha256": "meeszcoxSQg9tEjG6ha5n/6mIPCvdbolFRVLpjVA2vk=",
+        "source_files_checked": 13,
+        "handler_bytes": 18280,
+        "timeout": 900,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "a0d967371985b7ea9764c8b681134385f9b6a321"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-prospective-capture-hourly",
+            "state": "ENABLED",
+            "expression": "rate(1 hour)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "signal-harvester-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 23 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-signal-harvester",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-prospective-evaluator": {
+        "code_sha256": "/SPJ5rGVMAV+ZzkXi+T7RbSI4Kt+k2GYvpY5kkIPk30=",
+        "source_files_checked": 13,
+        "handler_bytes": 11327,
+        "timeout": 300,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "3bae3ce0b4194f510e16263f3eca285bdfdb53ed"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-prospective-evaluator-hourly",
+            "state": "ENABLED",
+            "expression": "rate(1 hour)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-prospective-evaluator",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "capture": {
+      "generated_at": "2026-09-26T23:16:10.412237+00:00",
+      "reference": {
+        "key": "data/research-forecasts/captures/38bba8fee683c2150b42c88230516b3f2b07fe374d1894b186b0fe3995995ae2.json",
+        "sha256": "38bba8fee683c2150b42c88230516b3f2b07fe374d1894b186b0fe3995995ae2"
+      },
+      "counts": {
+        "records_in_capture": 91,
+        "new_records": 8,
+        "rank_observations": 1426,
+        "ineligible_sources": 74,
+        "unsupported_identity_count": 34
+      },
+      "records_and_storage_clocks_checked": 91,
+      "asset_classes": {
+        "equity": 91
+      },
+      "coverage": {
+        "candidate_scan_complete": true,
+        "candidate_sources": 887,
+        "source_read_failures": [],
+        "sources_scanned": 887
+      }
+    },
+    "expected_commit": {
+      "justhodl-signal-harvester": "a0d967371985b7ea9764c8b681134385f9b6a321",
+      "justhodl-prospective-evaluator": "3bae3ce0b4194f510e16263f3eca285bdfdb53ed"
+    },
+    "history_writes": 0,
+    "identity_policy": {
+      "contract": "research-source-identity.v1",
+      "files": {
+        "research_identity.py": "e5f56284e3e3ddde69e86b68e7bf4beb186f49874ddb5d09b48510d4e4da5ec3",
+        "instrument_identity.py": "a36f25f9e97d31c30e50c86f5c8b5ca902ae90fe50d4078a4b26fd247d9c54a9"
+      }
+    },
+    "native_invocations": 0,
+    "outcomes": {
+      "generated_at": "2026-09-26T22:33:45.386549+00:00",
+      "reference": {
+        "key": "data/research-forecasts/evaluation-runs/e06c2195f2ded681cefb9ba35bbdfae2d08c8700cf48a2d363f7ff4c818dac16.json",
+        "sha256": "e06c2195f2ded681cefb9ba35bbdfae2d08c8700cf48a2d363f7ff4c818dac16"
+      },
+      "forecasts_checked": 100,
+      "status_counts": {
+        "PENDING_FORWARD_WINDOW": 200
+      },
+      "coverage": {
+        "continued_from": "data/research-forecasts/records/0bd6a5e4e2afd15a1b2b186c4c6466da95472148fee26c153241103394844d23.json",
+        "max_forecasts_per_run": 100,
+        "provider_requests": 14,
+        "reached_end": false,
+        "request_budget": 30,
+        "scan_complete_in_this_run": false
+      },
+      "evidence_errors": 0
+    },
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules_changed": 0,
+    "scope": "Complete normal scheduled captures and batch integrity, retained forecast identity/storage clocks, exact code and source-size metadata. Not upstream original replay or validated investment performance.",
+    "skipped_source_metadata": [],
+    "source_read_policy": {
+      "contract": "research-source-read.v1",
+      "stored_byte_limit": 33554432,
+      "decoded_byte_limit": 33554432,
+      "source_hash_basis": "complete_stored_representation",
+      "compression": "identity or one complete gzip member; declared encoding and magic must agree when declared",
+      "reader_sha256": "5da171689574f41573207e12e82dd6abffed92d0a300ce2a3078db6e5ae210f2"
+    }
+  },
+  "live_assets": {
+    "commit": "657cc27c4c95daf5372c1ba3c2fe7c9e408b7ddd",
+    "served_descendant": "657cc27c4c95daf5372c1ba3c2fe7c9e408b7ddd",
+    "checked_at": "2026-09-26T23:22:10.812234+00:00",
+    "registry_hash": "c2cc5228e27a0e2a66f20d26bcf66142c7a31baa9cc8de9b6e73e2fe543204b8",
+    "assets": {
+      "signal-scorecard.html": {
+        "bytes": 17367,
+        "sha256": "24e4d9efecae3da19cae18aaffc5524bcbdd76f8a479362cb85079bdd397d02b",
+        "matches_commit_manifest": true
+      },
+      "jh-prospective-research.js": {
+        "bytes": 10345,
+        "sha256": "fd67d64173af528d1cbe1c4d3c62bed25b23073acb39b141a46d072cf4238ed4",
+        "matches_commit_manifest": true
+      },
+      "global-sovereign.html": {
+        "bytes": 16393,
+        "sha256": "796c3f73c6069912c2ccd6260331fc133912e295ca8cd15f88c579239deb639c",
+        "matches_commit_manifest": true
+      },
+      "jh-sovereign-review.js": {
+        "bytes": 14867,
+        "sha256": "892daa13c1f4ad4f7e65cdd5220db8b16693bd6d605ef905113f5a2379004c54",
+        "matches_commit_manifest": true
+      },
+      "config/global-sovereign-universe.json": {
+        "bytes": 4509,
+        "sha256": "1bbf832bbb92b7fc16552dd8a4fa37e1d71b544df31acfe2d88e2f7f30d8d85c",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1335222,
+        "sha256": "29d2f2abc036f445ceb9c2e4e22af89bdb846609d5ec675a975328d9c80c07f9",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328666,
+        "sha256": "c2cc5228e27a0e2a66f20d26bcf66142c7a31baa9cc8de9b6e73e2fe543204b8",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "normal_first_sovereign_source_acquisition": "pending existing 2026-09-27 06:15 UTC schedule",
+  "scope": "Deployed original-source retention and complete scheduled research capture. Sovereign provider-original replay pending; neither engine has investment authority.",
+  "browser": {
+    "build": "657cc27c4c95daf5372c1ba3c2fe7c9e408b7ddd",
+    "country_rows": 45,
+    "daily_rows": 73,
+    "monthly_rows": 437,
+    "dated_chart_points": 510,
+    "capture_status": "predecessor lacks capture record; normal acquisition pending",
+    "javascript_errors": 0,
+    "document_width": 1270,
+    "scroll_width": 1270
+  }
+}
