@@ -11,7 +11,7 @@ class Store:
 
 class Tests(unittest.TestCase):
     def test_actual_ten_channels_history_and_funding_donor_are_preserved(self):
-        path=ROOT/'aws/lambdas/justhodl-bond-vol/source/lambda_function.py'
+        path=ROOT/'aws/lambdas/justhodl-bond-vol/tests/legacy_lambda_function.py.txt'
         tree=ast.parse(path.read_text(encoding='utf8'))
         names={n.targets[0].id:n.value for n in tree.body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name)}
         channels=ast.literal_eval(names['CHANNELS'])

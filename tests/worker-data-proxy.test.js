@@ -117,6 +117,7 @@ test('publication proofs and exact reads bypass cached versions; missing public 
   for(const key of ['data/daily-research-verification.json','data/ops/releases/justhodl-daily-report-v3.json',
       'data/liquidity-flow.json','liquidity-flow.json',
       'data/term-premium.json','term-premium.json',
+      'data/bond-vol.json','bond-vol.json',
       'data/liquidity-pulse.json','liquidity-pulse.json',
       'data/share-flows.json','share-flows.json',
       'data/eurodollar-plumbing.json','eurodollar-plumbing.json','data/funding-research-verification.json',

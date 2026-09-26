@@ -337,6 +337,10 @@ def lambda_handler(event=None, context=None):
     if tp.get('calls_eligible') is False:
         US.update(score=None, fresh=False, status='unqualified_term_premium_vote', source_replay=tp.get('replay'))
 
+    # Source research without a qualified vote cannot become a neutral score.
+    if bv.get('calls_eligible') is False:
+        US.update(score=None, fresh=False, status='unqualified_bond_vol_vote', bond_vol_replay=bv.get('replay'))
+
     # ─── GLOBAL FUNDING (eurodollar plumbing) ───
     pl=_s3json("data/eurodollar-plumbing.json",{}) or {}
     sev=_first(pl,("severity",),(str,)) or "?"
@@ -400,10 +404,8 @@ def lambda_handler(event=None, context=None):
     regions={"us":US,"global_funding":GF,"europe":EU,"japan":JP,"em":EM}
     weights={"us":0.40,"global_funding":0.20,"europe":0.15,"japan":0.15,"em":0.10}
     live={k:v for k,v in regions.items() if v.get("fresh") and isinstance(v.get("score"),(int,float))}
-    tw=sum(weights[k] for k in live) or 1
-    world=round(sum(weights[k]*live[k]["score"] for k in live)/tw,1)
-    regime=("STRESS" if world>=75 else "ANXIOUS" if world>=60 else "UNEASY" if world>=45 else "CALM")
-    hot=max(live.items(),key=lambda kv:kv[1]["score"])
+    from required_region_composite import required_region_composite
+    world, regime, hot = required_region_composite(regions, weights)
 
     # ─── WORLD MAP TILES ───
     tiles=[]; other_scores=[]
@@ -455,16 +457,18 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET,Key=HIST,Body=json.dumps(hist,separators=(",",":")).encode(),
                   ContentType="application/json")
 
-    er=["Hottest: %s %.0f"%(hot[0].upper().replace("_"," "),hot[1]["score"]),
+    er=[("Hottest: %s %.0f"%(hot[0].upper().replace("_"," "),hot[1]["score"])) if hot else "Required regional votes are unqualified",
         "US credit micro CCC-BB %sbps p%s Δ21d %+.0f"%(micro.get("ccc_bb_bps"),micro.get("pctile"),micro.get("d21_bps") or 0),
         "Eq→bond $%.1fB/5d · ICI bond $%sM/wk"%(eq_to_bond/1e9,ici_bond),
         "USD funding %s · EU frag %s (BTP-Bund %s Δ1m %+dbp)"%(sev,EU.get("regime"),EU.get("btp_bund_bp"),int(EU.get("btp_chg_1m_bp") or 0)),
         "JGB anchor: %s (Δ6m %+.2fpp)"%(JP.get("carry_stress"),JP.get("jgb10_chg_6m_pp") or 0)]
-    equity_read="GLOBAL FI %s FOR EQUITIES — "%("FLASHES ANXIETY" if world>=60 else "IS CALM" if world<45 else "IS MIXED")+" · ".join(str(x) for x in er)
+    equity_read=("WAIT — required regional votes are unavailable; no world-anxiety or equity implication is qualified." if world is None else
+        "GLOBAL FI %s FOR EQUITIES — "%("FLASHES ANXIETY" if world>=60 else "IS CALM" if world<45 else "IS MIXED")+" · ".join(str(x) for x in er))
 
     # ─── AI INTERPRETATION (tier=reason; provider-outage honest) ───
     ai_brief=None; ai_status="ROUTER_MISSING" if _llm is None else "PROVIDER_DOWN"
-    if _llm is not None:
+    if world is None:ai_status="UNQUALIFIED_REQUIRED_INPUT"
+    if _llm is not None and world is not None:
         try:
             payload={"world_anxiety":world,"regime":regime,"regions":{k:{kk:vv for kk,vv in v.items() if kk!="flows" and not isinstance(vv,dict)} for k,v in regions.items()},
                      "us_credit_micro":micro,"eq_to_bond_5d_usd":eq_to_bond,
@@ -486,7 +490,7 @@ def lambda_handler(event=None, context=None):
     doc={"engine":"justhodl-bond-desk","version":"3.0.0",
          "generated_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),
          "world_anxiety":world,"regime":regime,
-         "hottest_region":{"region":hot[0],"score":hot[1]["score"]},
+         "hottest_region":{"region":hot[0],"score":hot[1]["score"]} if hot else None,
          "regions":regions,"weights":weights,"n_regions_live":len(live),
          "equity_read":equity_read,
          "world_map":tiles,"other_dm_score":other_dm,
@@ -498,9 +502,13 @@ def lambda_handler(event=None, context=None):
                    "Japan .15 via yen-carry/JGB · EM .10 via EM-HY differential + flows). US layer "
                    "fuses ETF ladder (%d matched, ramping), ICI industry flows, owned ICE-BofA "
                    "credit ladder, bond-vol/auctions/fails/ACM/dealer-survey. Chart = CCC-BB weekly 5y."%matched)}
+    if world is None:
+        doc.update(calls_eligible=False, sizing_eligible=False, execution_eligible=False,
+            decision={"verb":"WAIT","meaning":"abstain"}, quality={"status":"unqualified_required_input",
+            "missing_regions":[k for k in weights if k not in live]})
     s3.put_object(Bucket=BUCKET,Key=OUT,Body=json.dumps(doc,separators=(",",":")).encode(),
                   ContentType="application/json",CacheControl="public, max-age=1800")
-    print("[desk] world=%.0f %s | tiles=%d analogs=%s ai=%s"%(
+    print("[desk] world=%s %s | tiles=%d analogs=%s ai=%s"%(
         world,regime,sum(1 for t in tiles if t["score"] is not None),analogs.get("status"),ai_status))
     return {"ok":True,"world":world,"regime":regime,"regions_live":len(live),
             "tiles":sum(1 for t in tiles if t["score"] is not None),

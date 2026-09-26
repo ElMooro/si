@@ -79,6 +79,12 @@
         (ts ? '<span class="rr-sep rr-opt"></span><span class="rr-seg rr-opt"><span class="rr-k">Lead</span><span class="rr-v">' + esc(ts) + '</span></span>' : '') +
         (d && d.trend && trendArrow(d.trend) ? '<span class="rr-sep rr-opt"></span><span class="rr-seg rr-opt"><span class="rr-k">Trend</span><span class="rr-v">' + trendArrow(d.trend) + '</span></span>' : '') +
         '<span class="rr-more">bond-vol gauge →</span>'));
+    if (d && d.calls_eligible === false) {
+      bar.title = 'Bond volatility research — source evidence and availability';
+      bar.innerHTML = '<span class="rr-seg"><span class="rr-k">Bond Vol</span><span class="rr-v">Research only · no qualified regime</span></span>' +
+        '<span class="rr-seg"><span class="rr-k">Published</span><span class="rr-v">' + esc(d.generated_at || 'Unavailable') + '</span></span>' +
+        '<a class="rr-more" href="/bond-vol.html">Inspect dated measurements →</a>';
+    }
     if (opts.compact) { bar.style.border = "none"; bar.style.padding = "0 8px"; bar.style.borderRadius = "6px"; bar.title = "Bond-vol regime — click for the full gauge"; }
     bar.onclick = function () { window.location.href = "/bond-vol.html"; };
     host.appendChild(bar);

@@ -1,0 +1,2 @@
+"""Exact accepted arithmetic/identity/timezone resources from private operation 6135."""
+QUALIFIED={'bond_vol_candidate.py': 'd936f19dd88a00bcc48cc7eeae2a481e64637952b67ded5c3e7c2ec235c208ee', 'bond_vol_catalog.py': '39a4cf287486ff2ae47e5731b97b7b074d7b17588682f073de37040a43f96c16', 'bond_vol_timezone.py': 'c0d68a80ca2dce576d2ee6783569fb113efbf0814f35c5dcc3ae0c92ff97df5a', 'verify_bond_vol_arithmetic.py': '36d73b51101d84653bbc2f37655164b69283d34aceabce21f90512b652e94874'}

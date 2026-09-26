@@ -333,6 +333,9 @@ def lambda_handler(event=None, context=None):
                          "model 'predicts dumps 90% of the time' — beware anything that "
                          "claims to."),
     }
+    from bond_vol_boundary import apply_bond_vol_boundary
+    out = apply_bond_vol_boundary(out, bond)
+    composite, level, action, drivers = out['dump_risk_score'], out['risk_level'], out['action'], out['top_drivers']
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
 

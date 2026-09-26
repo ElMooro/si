@@ -23,6 +23,11 @@ def run(name):
             assert scope['heartbeat']({}, {'score':0,'state':'CALM'}, result)['score']==0
     elif name=='justhodl-bond-desk':
         handler=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
+        node=next(n for n in handler.body if isinstance(n,ast.If) and 'unqualified_bond_vol_vote' in ast.unparse(n))
+        scope={'bv':{'calls_eligible':False,'composite_percentile':99,'replay':{'manifest_key':'proof'}},'US':{'score':50,'fresh':True}}
+        exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-bond-vol-desk-boundary','exec'),scope)
+        assert scope['US']['score'] is None and scope['US']['fresh'] is False
+        assert scope['US']['bond_vol_replay']==scope['bv']['replay']
         node=next(n for n in handler.body if isinstance(n,ast.If) and 'unqualified_funding_vote' in ast.unparse(n))
         for health,packet in ((None,{}),(0,{'calls_eligible':False}),(100,{'calls_eligible':False})):
             scope={'health':health,'pl':packet,'GF':{'score':50,'fresh':True}}

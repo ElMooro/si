@@ -42,7 +42,7 @@ def build(originals,stamp=NOW,doc=None):
 
 class Tests(unittest.TestCase):
     def test_full_predecessor_scope(self):
-        tree=ast.parse((ROOT/'aws/lambdas/justhodl-bond-vol/source/lambda_function.py').read_text(encoding='utf8'))
+        tree=ast.parse((ROOT/'aws/lambdas/justhodl-bond-vol/tests/legacy_lambda_function.py.txt').read_text(encoding='utf8'))
         channels=next(n.value for n in tree.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='CHANNELS')
         self.assertEqual(tuple(r['fred'] for r in ast.literal_eval(channels)),model.SERIES)
 
