@@ -26,6 +26,17 @@ function setup(){
  return {calls,keys,stored,waits,context:{waitUntil(promise){waits.push(promise);}}};
 }
 
+test('Yield Curve current publication bypasses caches without invoking a producer',async()=>{
+ const worker=(await import(source)).default;
+ for(const method of ['GET','HEAD']){
+  const state=setup();globalThis.fetch=async(input,options)=>{state.calls.push({url:String(input),options});return Response.json({contract:'yield-curve-research.v1'});};
+  const response=await worker.fetch(new Request('https://justhodl.ai/data/yield-curve.json?exact=1&nogen=1',{method}),{},state.context);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'no-store');
+  assert.equal(state.keys.length,0);assert.equal(state.stored.size,0);assert.equal(state.calls.length,1);
+  assert.equal(new URL(state.calls[0].url).pathname,'/data/yield-curve.json');assert.equal(state.calls[0].options.cache,'no-store');
+ }
+});
+
 test('Liquidity-agent root publication bypasses stale edge and origin caches',async()=>{
  const worker=(await import(source)).default;
  for(const method of ['GET','HEAD']){

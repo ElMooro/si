@@ -12,7 +12,7 @@ class Store:
 
 class Tests(unittest.TestCase):
     def test_every_literal_requested_identity_and_donor_are_retained(self):
-        path=ROOT/'aws/lambdas/justhodl-yield-curve/source/lambda_function.py'
+        path=ROOT/'tests/fixtures/legacy-yield-curve-before-native.py.txt'
         tree=ast.parse(path.read_text(encoding='utf8'))
         names={n.targets[0].id:n.value for n in tree.body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name)}
         series=tuple(ast.literal_eval(row.elts[0]) for name in ('NOMINAL_TENORS','REAL_TENORS','BREAKEVENS','EXTRAS') for row in names[name].elts)

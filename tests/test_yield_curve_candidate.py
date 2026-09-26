@@ -44,7 +44,7 @@ def build(originals,stamp=NOW):return model.build(source(originals),originals,st
 
 class Tests(unittest.TestCase):
     def test_complete_predecessor_inventory_and_exact_tenors(self):
-        tree=ast.parse((ROOT/'aws/lambdas/justhodl-yield-curve/source/lambda_function.py').read_text(encoding='utf8'))
+        tree=ast.parse((ROOT/'tests/fixtures/legacy-yield-curve-before-native.py.txt').read_text(encoding='utf8'))
         names={n.targets[0].id:n.value for n in tree.body if isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name)}
         series=tuple(ast.literal_eval(row.elts[0]) for name in ('NOMINAL_TENORS','REAL_TENORS','BREAKEVENS','EXTRAS') for row in names[name].elts)
         self.assertEqual(model.SERIES,series);self.assertEqual(len(series),23)

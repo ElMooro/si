@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="/assets/yield-curve-research.css?v=20260926">
 <title>Yield Curve · JustHodl.AI</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>📈</text></svg>">
 <style>
@@ -89,7 +88,6 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <h2>Curve Decomposition &amp; Spreads</h2>
   <div class="grid" id="metrics"><div class="loading">…</div></div>
-  <section id="jh-yield-curve-research" aria-label="Yield Curve source desk"></section>
 
   <h2>Historical Context — Crises, Tops &amp; Bottoms</h2>
   <div id="histctx"><div class="loading">BENCHMARKING vs HISTORY…</div></div>
@@ -105,10 +103,8 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 </div>
 
 <script src="/jh-yield-curve-view.js?v=20260926"></script>
-<script src="/jh-yield-curve-definitions.js?v=20260926"></script>
-<script src="/jh-yield-curve-research.js?v=20260926"></script>
 <script>
-const URL_="/data/yield-curve.json";
+const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/yield-curve.json";
 const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const fmt=v=>typeof v==="number"?(Math.abs(v)>=100?v.toFixed(0):v.toFixed(2)):esc(v);
 const TENOR_ORDER=["1M","3M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"];
@@ -364,30 +360,9 @@ function synthesize(d,ref){
   return parts.join(" ");
 }
 
-let nativeCurveRequested=false;
-function renderNativeCurve(packet,view,horizon){
-  if(!nativeCurveRequested)return;
-  const api=JHYieldCurveResearch,nom=api.curve(packet,'nominal'),real=api.curve(packet,'real'),slope=api.derived(packet,'2s10s');
-  const shape=slope&&packet.shape.status==='descriptive'?packet.shape:null;
-  document.getElementById('hero').innerHTML=`<div class="hero"><div class="lab">Dated curve research · WAIT means abstain</div><div class="rg" style="font-size:20px">${esc(shape?shape.label.replaceAll('_',' '):'Current curve shape unavailable')}</div><p>${view.available} / 23 source series within declared age ceilings. ${slope?`2s10s ${esc(slope.current.measurement.exact_decimal)} basis points, observed ${esc(slope.current.observation_date)}.`:''}</p>${shape?`<p>Shape uses 5 matched observations: ${esc(shape.baseline_date)} → ${esc(shape.current_date)}. 2s10s inversion: ${shape.inverted_2s10s?'yes':'no'}.</p>`:''}</div>`;
-  document.getElementById('chart').innerHTML=drawCurve(nom,real)+`<p>Nominal curve: ${esc(packet?.curves?.nominal?.observation_date||'unavailable')} · Real curve: ${esc(packet?.curves?.real?.observation_date||'unavailable')}. Each curve requires all its declared tenors on one date; no interpolation.</p><details><summary>Exact yields and observation dates · ${nom.length+real.length} points</summary><div class="yc-scroll"><table><thead><tr><th>Series</th><th>Tenor</th><th>Yield (%)</th><th>Observed</th></tr></thead><tbody>${[...nom,...real].map(p=>`<tr><td>${esc(p.sid)}</td><td>${esc(p.tenor)}</td><td>${esc(p.exact)}</td><td>${esc(p.date)}</td></tr>`).join('')}</tbody></table></div></details>`;
-  document.getElementById('metrics').innerHTML=api.metricsHTML(packet,Date.now(),horizon);
-  document.getElementById('impact').textContent='These source measurements have no qualified mapping to asset returns or position sizes. Portfolio consequences remain unavailable; WAIT means abstain.';
-  document.getElementById('signals').textContent='No qualified investment signals.';
-  document.getElementById('bottomline').innerHTML='';
-  document.getElementById('eduNote').textContent='Constant-maturity Treasury par yields are not zero-coupon discount factors. Inflation compensation includes risk and liquidity premia. The eleven-tenor mean is descriptive; the nominal–real–breakeven residual is not term premium. The separate ACM packet remains unqualified context. Source histories retain every returned row; this current vintage is not a point-in-time backtest.';
-  document.getElementById('ts').textContent='engine: justhodl-yield-curve · generated '+(view.generated||'not verified')+' · canonical sources '+(packet?.source_generated_at||'not verified');
-}
-if(typeof JHYieldCurveResearch!=='undefined')JHYieldCurveResearch.install(window,{onrender:renderNativeCurve});
 (async()=>{
-  let d=null;try{d=await JHYieldCurve.json(URL_+"?exact=1&nogen=1&t="+Date.now());}catch{}
+  let d=null;try{d=await JHYieldCurve.json(URL_+"?t="+Date.now());}catch{}
   function unavailable(){document.getElementById("hero").innerHTML=`<div class="hero"><div class="lab">Status</div><div class="rg" style="font-size:17px">Current curve unavailable</div><p>Publication or observation age exceeds the reviewed limit, or the packet is not usable.</p></div>`;["chart","metrics","impact","signals","bottomline"].forEach(i=>document.getElementById(i).innerHTML="");}
-  if(d?.contract==='yield-curve-research.v1'){
-    nativeCurveRequested=true;await JHYieldCurveResearch.accept(d);
-    try{const ref=await JHYieldCurve.json(EP_URL+'?t='+Date.now());renderHistCtx(ref,['T10Y2Y','T10Y3M','DGS10','DFII10','T10YIE']);}
-    catch{document.getElementById('histctx').textContent='Separate historical reference unavailable.';}
-    return;
-  }
   if(!JHYieldCurve.validLegacy(d,Date.now())){unavailable();document.getElementById("histctx").textContent="Current curve unavailable; historical reference has not been requested.";return;}
   const inv=d.inversion_flags?.any_inversion??null;
   document.getElementById("hero").innerHTML=`

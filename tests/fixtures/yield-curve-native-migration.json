@@ -1,0 +1,665 @@
+{
+  "contract": "yield-curve-native-migration.v1",
+  "complete_predecessors": [
+    {
+      "path": "aws/lambdas/justhodl-yield-curve/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-yield-curve-before-native.py.txt",
+      "bytes": 21614,
+      "sha256": "41ef6f5abe1e1e4dc991b3f63ef71a0a574a93a5047f8219cf6afcb7531f215b"
+    },
+    {
+      "path": "yield-curve.html",
+      "predecessor": "tests/fixtures/legacy-yield-curve-before-native-page.html.txt",
+      "bytes": 35563,
+      "sha256": "f4c3de807b090535a08aa7bd9ac9ab1ba20b973728914cc94fae9e923208a68b"
+    }
+  ],
+  "qualification": {
+    "access_evidence": {
+      "key": "audit-private/20260909-originals/yield-curve-research/f3033e5dea460b62cd91b9047be1a07299f7cbd428dd8e1339baa8dfefb7c682.bin",
+      "sha256": "f3033e5dea460b62cd91b9047be1a07299f7cbd428dd8e1339baa8dfefb7c682",
+      "bytes": 88872
+    },
+    "all_original_rows_retained": true,
+    "baseline": {
+      "key": "audit-private/20260909-originals/yield-curve-research/c6538de44a68d0b17a21f2cd7385ad00f706ab3a063bc8401d9668b41e2675c5.bin",
+      "sha256": "c6538de44a68d0b17a21f2cd7385ad00f706ab3a063bc8401d9668b41e2675c5",
+      "bytes": 58311
+    },
+    "candidate": {
+      "key": "audit-private/20260909-originals/yield-curve-research/7e94f988a2dc39ee630f153dc8c08634b03192fc8e569655388c7f4815737c60.bin",
+      "sha256": "7e94f988a2dc39ee630f153dc8c08634b03192fc8e569655388c7f4815737c60",
+      "bytes": 12279544
+    },
+    "compilers": {
+      "yield_curve_candidate": {
+        "key": "audit-private/20260909-originals/yield-curve-research/58b6de8b604213dc428c593826f6e224e13571cd6fe5f8095a2265cd71bf0e9e.bin",
+        "sha256": "58b6de8b604213dc428c593826f6e224e13571cd6fe5f8095a2265cd71bf0e9e",
+        "bytes": 14390
+      },
+      "yield_curve_catalog": {
+        "key": "audit-private/20260909-originals/yield-curve-research/bcdbc576f803c81973bafe3126624c05f60ab960c79a005e91fcda028a8360ed.bin",
+        "sha256": "bcdbc576f803c81973bafe3126624c05f60ab960c79a005e91fcda028a8360ed",
+        "bytes": 3718
+      },
+      "verify_yield_curve_arithmetic": {
+        "key": "audit-private/20260909-originals/yield-curve-research/8bafbc289e93bd60c38fe410fa4d4a4f1393bc23cd662b0c873000aa3430cbc0.bin",
+        "sha256": "8bafbc289e93bd60c38fe410fa4d4a4f1393bc23cd662b0c873000aa3430cbc0",
+        "bytes": 11494
+      },
+      "canonical_fred_replay": {
+        "key": "audit-private/20260909-originals/yield-curve-research/20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa.bin",
+        "sha256": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+        "bytes": 4686
+      },
+      "report_observations": {
+        "key": "audit-private/20260909-originals/yield-curve-research/ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979.bin",
+        "sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+        "bytes": 14909
+      },
+      "research_brief_model": {
+        "key": "audit-private/20260909-originals/yield-curve-research/6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c.bin",
+        "sha256": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+        "bytes": 11898
+      },
+      "evidence_store": {
+        "key": "audit-private/20260909-originals/yield-curve-research/3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976.bin",
+        "sha256": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+        "bytes": 3788
+      }
+    },
+    "consumer_invocations": 0,
+    "forecast_qualified": false,
+    "fresh_reader_replay_verified": true,
+    "generated_at": "2026-09-26T03:31:14.023749+00:00",
+    "manifest": {
+      "key": "audit-private/20260909-originals/yield-curve-research/6070f541834edefba845e5ee499d7563ab6ba0f2b63089705013683db166f5a4.bin",
+      "sha256": "6070f541834edefba845e5ee499d7563ab6ba0f2b63089705013683db166f5a4",
+      "bytes": 41883
+    },
+    "native_formula_changed": false,
+    "native_package_unchanged": true,
+    "notifications_sent": 0,
+    "paid_ai_calls": 0,
+    "privacy": {
+      "protected_paths_checked": 107,
+      "anonymous_origins_checked": 214,
+      "attempt_outcome_counts": {
+        "404": 107,
+        "403": 107
+      },
+      "all_denied": true,
+      "failures": []
+    },
+    "private_account_reads": 0,
+    "producer_invocations": 0,
+    "profile": {
+      "restore_seconds": 19.554,
+      "compile_and_verify_seconds": 1.623,
+      "candidate_bytes": 12279544,
+      "max_rss_kib": 223300,
+      "fresh_reader_replay_seconds": 4.699
+    },
+    "proof": {
+      "requested_series": 23,
+      "reconstructed_series": 23,
+      "original_rows": 90193,
+      "rational_checks": 370,
+      "matched_observation_comparisons": 140,
+      "current_series": 23,
+      "missing_series": [],
+      "all_original_rows_retained": true,
+      "forecast_qualified": false,
+      "sizing_qualified": false
+    },
+    "proof_reference": {
+      "key": "audit-private/20260909-originals/yield-curve-research/b2e27900277332b462d2442e90a919bc21335b12989480501b7b1e688d6a01a0.bin",
+      "sha256": "b2e27900277332b462d2442e90a919bc21335b12989480501b7b1e688d6a01a0",
+      "bytes": 257
+    },
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules_changed": 0,
+    "series_evidence": {
+      "DGS1MO": {
+        "definition": {
+          "id": "DGS1MO",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 1-Month Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "2001-07-31",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:39-05",
+          "popularity": 75,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:17.440302+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS3MO": {
+        "definition": {
+          "id": "DGS3MO",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 3-Month Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1981-09-01",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:41-05",
+          "popularity": 79,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:18.273402+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS6MO": {
+        "definition": {
+          "id": "DGS6MO",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 6-Month Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1981-09-01",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:38-05",
+          "popularity": 68,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:19.032372+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS1": {
+        "definition": {
+          "id": "DGS1",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 1-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1962-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:40-05",
+          "popularity": 83,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:08.658285+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS2": {
+        "definition": {
+          "id": "DGS2",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 2-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1976-06-01",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:31-05",
+          "popularity": 86,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:23:53.461084+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS3": {
+        "definition": {
+          "id": "DGS3",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 3-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1962-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:41-05",
+          "popularity": 72,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:19.835028+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS5": {
+        "definition": {
+          "id": "DGS5",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1962-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:37-05",
+          "popularity": 86,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:09.406898+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS7": {
+        "definition": {
+          "id": "DGS7",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 7-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1969-07-01",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:42-05",
+          "popularity": 66,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:20.620927+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS10": {
+        "definition": {
+          "id": "DGS10",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1962-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:35-05",
+          "popularity": 99,
+          "notes": "H.15 Statistical Release (https://www.federalreserve.gov/releases/h15/current/h15.pdf) notes and Treasury Yield Curve Methodology (https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/yieldmethod.aspx).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:22:01.966191+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS20": {
+        "definition": {
+          "id": "DGS20",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1962-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:37-05",
+          "popularity": 78,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:21.456454+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DGS30": {
+        "definition": {
+          "id": "DGS30",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis",
+          "observation_start": "1977-02-15",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:38-05",
+          "popularity": 89,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:23:47.085687+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFII5": {
+        "definition": {
+          "id": "DFII5",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 5-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed",
+          "observation_start": "2003-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:38-05",
+          "popularity": 75,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:28.687289+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFII7": {
+        "definition": {
+          "id": "DFII7",
+          "realtime_start": "2026-09-25",
+          "realtime_end": "2026-09-25",
+          "title": "Market Yield on U.S. Treasury Securities at 7-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed",
+          "observation_start": "2003-01-02",
+          "observation_end": "2026-09-24",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-25 15:16:55-05",
+          "popularity": 46,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:31.897202+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFII10": {
+        "definition": {
+          "id": "DFII10",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed",
+          "observation_start": "2003-01-02",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:38-05",
+          "popularity": 92,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:27.860882+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFII20": {
+        "definition": {
+          "id": "DFII20",
+          "realtime_start": "2026-09-25",
+          "realtime_end": "2026-09-25",
+          "title": "Market Yield on U.S. Treasury Securities at 20-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed",
+          "observation_start": "2004-07-27",
+          "observation_end": "2026-09-24",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-25 15:16:48-05",
+          "popularity": 62,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:32.709841+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFII30": {
+        "definition": {
+          "id": "DFII30",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Market Yield on U.S. Treasury Securities at 30-Year Constant Maturity, Quoted on an Investment Basis, Inflation-Indexed",
+          "observation_start": "2010-02-22",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:35-05",
+          "popularity": 74,
+          "notes": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:24:29.464810+00:00",
+        "status": "within_age_ceiling"
+      },
+      "T5YIE": {
+        "definition": {
+          "id": "T5YIE",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "5-Year Breakeven Inflation Rate",
+          "observation_start": "2003-01-02",
+          "observation_end": "2026-09-24",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 16:03:36-05",
+          "popularity": 85,
+          "notes": "The breakeven inflation rate represents a measure of expected inflation derived from 5-Year Treasury Constant Maturity Securities (DGS5 (https://fred.stlouisfed.org/series/DGS5)) and 5-Year Treasury Inflation-Indexed Constant Maturity Securities (DFII5 (https://fred.stlouisfed.org/series/DFII5)). The latest value implies what market participants expect inflation to be in the next 5 years, on average.\r\nStarting with the update on June 21, 2019, the Treasury bond data used in calculating interest rate spreads is obtained directly from the U.S. Treasury Department (https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yield)."
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-25",
+        "acquired_at": "2026-09-26T03:24:26.279943+00:00",
+        "status": "within_age_ceiling"
+      },
+      "T10YIE": {
+        "definition": {
+          "id": "T10YIE",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "10-Year Breakeven Inflation Rate",
+          "observation_start": "2003-01-02",
+          "observation_end": "2026-09-24",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 16:03:41-05",
+          "popularity": 91,
+          "notes": "The breakeven inflation rate represents a measure of expected inflation derived from 10-Year Treasury Constant Maturity Securities (DGS10 (https://fred.stlouisfed.org/series/DGS10)) and 10-Year Treasury Inflation-Indexed Constant Maturity Securities (DFII10 (https://fred.stlouisfed.org/series/DFII10)). The latest value implies what market participants expect inflation to be in the next 10 years, on average.\r\nStarting with the update on June 21, 2019, the Treasury bond data used in calculating interest rate spreads is obtained directly from the U.S. Treasury Department (https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yield)."
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-25",
+        "acquired_at": "2026-09-26T03:24:25.493002+00:00",
+        "status": "within_age_ceiling"
+      },
+      "T5YIFR": {
+        "definition": {
+          "id": "T5YIFR",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "5-Year, 5-Year Forward Inflation Expectation Rate",
+          "observation_start": "2003-01-02",
+          "observation_end": "2026-09-24",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 16:03:37-05",
+          "popularity": 83,
+          "notes": "This series is a measure of expected inflation (on average) over the five-year period that begins five years from today.\r\n\r\nThis series is constructed as:\r\n(((((1+((BC_10YEAR-TC_10YEAR)/100))^10)/((1+((BC_5YEAR-TC_5YEAR)/100))^5))^0.2)-1)*100\r\n\r\nwhere BC10_YEAR, TC_10YEAR, BC_5YEAR, and TC_5YEAR are the 10 year and 5 year nominal and inflation adjusted Treasury securities. \r\nStarting with the update on June 21, 2019, the Treasury bond data used in calculating interest rate spreads is obtained directly from the U.S. Treasury Department (https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yield)."
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-25",
+        "acquired_at": "2026-09-26T03:24:27.045652+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFF": {
+        "definition": {
+          "id": "DFF",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Federal Funds Effective Rate",
+          "observation_start": "1954-07-01",
+          "observation_end": "2026-09-23",
+          "frequency": "Daily, 7-Day",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 15:16:34-05",
+          "popularity": 86,
+          "notes": " Daily Federal Funds Rate from 1928-1954 (https://fred.stlouisfed.org/categories/33951).\n\nThe federal funds rate is the interest rate at which depository institutions trade federal funds (balances held at Federal Reserve Banks) with each other overnight. When a depository institution has surplus balances in its reserve account, it lends to other banks in need of larger balances. In simpler terms, a bank with excess cash, which is often referred to as liquidity, will lend to another bank that needs to quickly raise liquidity. (1) The rate that the borrowing institution pays to the lending institution is determined between the two banks; the weighted average rate for all of these types of negotiations is called the effective federal funds rate.(2) The effective federal funds rate is essentially determined by the market but is influenced by the Federal Reserve as it uses the Interest on Reserve Balances rate to steer the federal funds rate toward the target range.(2)\n\nThe Federal Open Market Committee (FOMC) meets eight times a year to determine the federal funds target range. The Fed's primary tool for influencing the federal funds rate is the interest the Fed pays on the funds that banks hold as reserve balances at their Federal Reserve Bank, which is the Interest on Reserves Balances (IORB) rate. Because banks are unlikely to lend funds in the federal funds market for less than they get paid in their reserve balance account at the Federal Reserve, the Interest on Reserve Balances (IORB) is an effective tool for guiding the federal funds rate. (3) Whether the Federal Reserve raises or lowers the target range for the federal funds rate depends on the state of the economy. If the FOMC believes the economy is growing too fast and inflation pressures are inconsistent with the dual mandate of the Federal Reserve, the Committee may temper economic activity by raising the target range for federal funds rate, and increasing the IORB rate to steer the federal funds rate into the target range. In the opposing scenario, the FOMC may spur greater economic activity by lowering the target range for federal funds rate, and decreasing the IORB rate to steer the federal funds rate into the target range. (3) Therefore, the FOMC must observe the current state of the economy to determine the best course of monetary policy that will maximize economic growth while adhering to the dual mandate set forth by Congress. In making its monetary policy decisions, the FOMC considers a wealth of economic data, such as: trends in prices and wages, employment, consumer spending and income, business investments, and foreign exchange markets.\n\nThe federal funds rate is the central interest rate in the U.S. financial market. It influences other interest rates such as the prime rate, which is the rate banks charge their customers with higher credit ratings. Additionally, the federal funds rate indirectly influences longer- term interest rates such as mortgages, loans, and savings, all of which are very important to consumer wealth and confidence.(2)\n\nReferences\n(1) Federal Reserve Bank of New York. \"Federal funds.\" Fedpoints, August 2007.\n(2) Monetary Policy (https://www.federalreserve.gov/monetarypolicy.htm), Board of Governors of the Federal Reserve System.\n(3) The Fed Explained (https://www.federalreserve.gov/aboutthefed/files/the-fed-explained.pdf), Board of Governors of the Federal Reserve System\n\nFor further information, see The Fed's New Monetary Policy Tools (https://www.stlouisfed.org/publications/page-one-economics/2020/08/03/the-feds-new-monetary-policy-tools), Page One Economics, Federal Reserve Bank of St. Louis. \n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>"
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-24",
+        "acquired_at": "2026-09-26T03:22:01.525288+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFEDTARU": {
+        "definition": {
+          "id": "DFEDTARU",
+          "realtime_start": "2026-09-25",
+          "realtime_end": "2026-09-25",
+          "title": "Federal Funds Target Range - Upper Limit",
+          "observation_start": "2008-12-16",
+          "observation_end": "2026-09-25",
+          "frequency": "Daily, 7-Day",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-25 07:01:29-05",
+          "popularity": 82,
+          "notes": "This series represents upper limit of the federal funds target range established by the Federal Open Market Committee. The data updated each day is the data effective as of that day."
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-25",
+        "acquired_at": "2026-09-26T03:22:01.359820+00:00",
+        "status": "within_age_ceiling"
+      },
+      "DFEDTARL": {
+        "definition": {
+          "id": "DFEDTARL",
+          "realtime_start": "2026-09-24",
+          "realtime_end": "2026-09-24",
+          "title": "Federal Funds Target Range - Lower Limit",
+          "observation_start": "2008-12-16",
+          "observation_end": "2026-09-24",
+          "frequency": "Daily, 7-Day",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-24 07:01:42-05",
+          "popularity": 66,
+          "notes": "This series represents lower limit of the federal funds target range established by the Federal Open Market Committee. The data updated each day is the data effective as of that day."
+        },
+        "original_rows": 4000,
+        "latest_date": "2026-09-25",
+        "acquired_at": "2026-09-26T03:26:48.579086+00:00",
+        "status": "within_age_ceiling"
+      },
+      "SOFR30DAYAVG": {
+        "definition": {
+          "id": "SOFR30DAYAVG",
+          "realtime_start": "2026-09-25",
+          "realtime_end": "2026-09-25",
+          "title": "30-Day Average SOFR",
+          "observation_start": "2018-05-02",
+          "observation_end": "2026-09-25",
+          "frequency": "Daily",
+          "frequency_short": "D",
+          "units": "Percent",
+          "units_short": "%",
+          "seasonal_adjustment": "Not Seasonally Adjusted",
+          "seasonal_adjustment_short": "NSA",
+          "last_updated": "2026-09-25 07:02:29-05",
+          "popularity": 80,
+          "notes": "As an extension of the additional documentation about the Treasury Repo Reference Rates. (https://www.newyorkfed.org/markets/treasury-repo-reference-rates-information)"
+        },
+        "original_rows": 2193,
+        "latest_date": "2026-09-25",
+        "acquired_at": "2026-09-26T03:23:03.034916+00:00",
+        "status": "within_age_ceiling"
+      }
+    },
+    "signal_writes": 0,
+    "sizing_qualified": false,
+    "source_generated_at": "2026-09-26T03:27:03.234736+00:00",
+    "source_replay": {
+      "compiler_sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+      "manifest_key": "data/report-research/runs/8d25e35569e78a62f6c719883280c72ec02d77f261f12c6aeb0bbe5cd207780d.json",
+      "output_sha256": "77bbc55a9d2b21a3dc375861c6bb034c09b4e2164134a5d0c5cd880dd8da9e3a"
+    }
+  },
+  "publication_verified": false,
+  "schedule_policy": "Preserve the existing justhodl-yield-curve-6h EventBridge rule: daily cron(52 13 * * ? *), despite its name. No acceptance-only invocation."
+}
