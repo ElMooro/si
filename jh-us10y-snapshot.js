@@ -6,6 +6,7 @@
  const integer=x=>Number.isInteger(x)&&x>=0;
  const number=(x,d=0)=>finite(x)?x.toFixed(d):'unavailable';
  const date=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&Number.isFinite(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x;
+ const observationAge=(d,now)=>date(d)?Math.floor(now/864e5)-Date.parse(d)/864e5:NaN;
  const states=new WeakMap();
  const unavailable='<div class="loading">Current 10-year producer snapshot unavailable; stale, missing or invalid values excluded.</div>';
  async function get(fetcher,timeoutMs=12000){
@@ -17,9 +18,9 @@
   }finally{clearTimeout(timer);}
  }
  function eligible(d,now){
-  const age=now-Date.parse(d?.generated_at),obsAge=now-Date.parse(d?.fred_date);
+  const age=now-Date.parse(d?.generated_at),obsAge=observationAge(d?.fred_date,now);
   return !!d&&typeof d.generated_at==='string'&&finite(d.level)&&d.methodology_version==='daily-price-episodes.v2'&&d.quality?.status==='fresh'&&date(d.fred_date)&&
-   Number.isFinite(age)&&age>=0&&age<=48*36e5&&Number.isFinite(obsAge)&&obsAge>=0&&obsAge<=8*864e5;
+   Number.isFinite(age)&&age>=0&&age<=48*36e5&&Number.isFinite(obsAge)&&obsAge>=0&&obsAge<=7;
  }
  function distance(d){
   if(!finite(d.distance_to_5pct_bps)||Math.abs(d.distance_to_5pct_bps-(5-d.level)*100)>.11)return 'Distance to 5% unavailable';
@@ -54,7 +55,7 @@
   if(!eligible(d,now))return unavailable;
   const tiers=['BENIGN','WATCH','ELEVATED','HIGH','RED','CRITICAL'],tier=tiers.includes(d.tier)?d.tier:'unavailable';
   const velocity=d.velocity?.d60_bps,rank=d.pct_rank_since_1990;
-  const realAge=now-Date.parse(d.real_10y_date),realCurrent=finite(d.real_10y)&&date(d.real_10y_date)&&Number.isFinite(realAge)&&realAge>=0&&realAge<=8*864e5;
+  const realAge=observationAge(d.real_10y_date,now),realCurrent=finite(d.real_10y)&&date(d.real_10y_date)&&Number.isFinite(realAge)&&realAge>=0&&realAge<=7;
   return '<section style="border:1px solid #6b7280;border-radius:10px;padding:14px 16px" aria-label="Separate 10-year yield producer snapshot">'+
    '<p><strong style="font:700 28px monospace">'+number(d.level,2)+'%</strong> · Observed '+esc(d.fred_date)+' · '+distance(d)+'</p>'+
    '<p>60-observation yield change: '+(finite(velocity)?(velocity>0?'+':'')+number(velocity,1)+' basis points':'unavailable')+

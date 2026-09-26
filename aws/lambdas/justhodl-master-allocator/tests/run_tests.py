@@ -6,4 +6,6 @@ if __name__ == "__main__":
     from eurodollar_consumer_test_support import run as run_eurodollar_consumers
     run_eurodollar_consumers()
     import runpy
+    import subprocess
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/"tests/test_us10y_sentinel_authority.py")],check=True)
     runpy.run_path(str(Path(__file__).resolve().parents[4]/"tests/test_signal_board_consumers.py"), run_name="__main__")

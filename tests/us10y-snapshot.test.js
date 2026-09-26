@@ -5,6 +5,13 @@ const packet=()=>({generated_at:'2026-09-26T12:00:00Z',fred_date:'2026-09-24',me
  level:5.18,tier:'CRITICAL',distance_to_5pct_bps:-18,velocity:{d60_bps:74},real_10y:2.85,real_10y_date:'2026-09-23',pct_rank_since_1990:70,tier_reason:'Source note',
  episode_study:{'cross_4.75':{n_valid_3m:3,median_spx_3m:1.25},'cross_5.00':{n_valid_3m:0,median_spx_3m:null}},
  history_260d:[{d:'2026-09-21',v:4.96},{d:'2026-09-22',v:null},{d:'2026-09-23',v:5.11},{d:'2026-09-24',v:5.18}]});
+test('observation expiry follows the producer seven-day UTC calendar rule',()=>{
+ const p={...packet(),fred_date:'2026-09-19',real_10y_date:'2026-09-19'};
+ assert.equal(view.eligible(p,Date.parse('2026-09-26T23:59:59Z')),true);
+ assert.match(view.render(p,Date.parse('2026-09-26T23:59:59Z')),/real 10Y: 2.85%/);
+ assert.equal(view.eligible(p,Date.parse('2026-09-27T00:00:00Z')),false);
+ p.fred_date='2026-09-24';assert.match(view.render(p,Date.parse('2026-09-27T00:00:00Z')),/real 10Y: unavailable/);
+});
 test('numeric measurements retain units, dates, observation windows and uncalibrated scope',()=>{
  const html=view.render(packet(),NOW);assert.match(html,/18.0 basis points above 5%/);assert.match(html,/60-observation yield change: \+74.0 basis points/);
  assert.match(html,/Producer band: CRITICAL \(uncalibrated\)/);assert.match(html,/median 1.25%/);assert.match(html,/0 completed 63-observation episodes/);

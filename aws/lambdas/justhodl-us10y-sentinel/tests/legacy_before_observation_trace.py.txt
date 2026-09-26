@@ -16,7 +16,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/us10y-sentinel.json"
-SCHEMA = "2.1"
+SCHEMA = "2.0"
 S3 = boto3.client("s3", region_name=REGION)
 SSM = boto3.client("ssm", region_name=REGION)
 
@@ -107,20 +107,17 @@ def episode_study(dgs10, spx):
         trigger=datetime.strptime(d0,'%Y-%m-%d').date()
         i=bisect_left(dates,trigger)
         if i>=len(dates) or (dates[i]-trigger).days>4:
-            return None,'OUTSIDE_PRICE_COVERAGE',None
-        if i+n>=len(dates):return None,'HORIZON_NOT_COMPLETE',None
+            return None,'OUTSIDE_PRICE_COVERAGE'
+        if i+n>=len(dates):return None,'HORIZON_NOT_COMPLETE'
         window=dates[i:i+n+1]
         if any((b-a).days>7 for a,b in zip(window,window[1:])):
-            return None,'NON_DAILY_OR_GAPPED_PRICE_HISTORY',None
+            return None,'NON_DAILY_OR_GAPPED_PRICE_HISTORY'
         if (window[-1]-window[0]).days>n*2+7:
-            return None,'HORIZON_DATE_MISMATCH',None
+            return None,'HORIZON_DATE_MISMATCH'
         value=(prices[i+n][1]/prices[i][1]-1)*100
         if not math.isfinite(value) or abs(value)>100:
-            return None,'QUARANTINED_IMPLAUSIBLE_SPX_RETURN',None
-        return round(value,2),'VALID',{'series_id':'SP500','start_date':prices[i][0],'start_value':prices[i][1],
-            'end_date':prices[i+n][0],'end_value':prices[i+n][1],'subsequent_observations':n,
-            'elapsed_calendar_days':(dates[i+n]-dates[i]).days,'formula':'(end_value / start_value - 1) * 100',
-            'unit':'percent','return_basis':'price-only; dividends excluded'}
+            return None,'QUARANTINED_IMPLAUSIBLE_SPX_RETURN'
+        return round(value,2),'VALID'
 
     out={}
     ys=[v for _,v in yields]
@@ -131,15 +128,15 @@ def episode_study(dgs10, spx):
             window=[datetime.strptime(d,'%Y-%m-%d').date() for d,_ in yields[i-250:i+1]]
             if any((b-a).days>7 for a,b in zip(window,window[1:])):continue
             d0=yields[i][0]
-            row={'date':d0,'y':round(ys[i],2),'return_basis':'SP500 price-only; dividends excluded','quality':{},'return_inputs':{}}
+            row={'date':d0,'y':round(ys[i],2),'return_basis':'SP500 price-only; dividends excluded','quality':{}}
             for label,n in (('1w',5),('1m',21),('3m',63)):
-                value,status,inputs=fwd(d0,n)
-                row['spx_'+label]=value;row['quality'][label]=status;row['return_inputs'][label]=inputs
+                value,status=fwd(d0,n)
+                row['spx_'+label]=value;row['quality'][label]=status
             eps.append(row)
         r3=[e['spx_3m'] for e in eps if e['spx_3m'] is not None]
         r1=[e['spx_1m'] for e in eps if e['spx_1m'] is not None]
         out['cross_%.2f'%thr]={
-            'n':len(eps),'episodes':eps,'episodes_complete':True,'n_valid_1m':len(r1),'n_valid_3m':len(r3),'minimum_summary_n':3,
+            'n':len(eps),'episodes':eps[-12:],'n_valid_1m':len(r1),'n_valid_3m':len(r3),'minimum_summary_n':3,
             'median_spx_1m':round(median(r1),2) if len(r1)>=3 else None,
             'median_spx_3m':round(median(r3),2) if len(r3)>=3 else None,
             'neg_3m_hit_rate_pct':round(100*sum(x<0 for x in r3)/len(r3),1) if len(r3)>=3 else None,
@@ -149,20 +146,6 @@ def episode_study(dgs10, spx):
             'methodology_version':'daily-price-episodes.v2',
             'note':'250 prior daily yield observations below threshold; 5/21/63 subsequent daily equity closes. '
                    'Date gaps checked; no returns outside price coverage. Current-vintage descriptive study, not a forecast.'}
-    return out
-
-
-def observed_change(rows, intervals):
-    """Dated endpoints for an observation-count change, never calendar days."""
-    out={'series_id':'DGS10','intervals':intervals,'basis':'valid yield observations',
-         'value':None,'unit':'basis_points','start_date':None,'end_date':None,
-         'start_value':None,'end_value':None,'elapsed_calendar_days':None,
-         'formula':'(end_value - start_value) * 100','status':'insufficient_observations'}
-    if len(rows)<intervals+1:return out
-    start,end=rows[-intervals-1],rows[-1]
-    out.update(value=round((end[1]-start[1])*100,1),start_date=start[0],end_date=end[0],
-        start_value=start[1],end_value=end[1],elapsed_calendar_days=(datetime.strptime(end[0],'%Y-%m-%d')-
-        datetime.strptime(start[0],'%Y-%m-%d')).days,status='descriptive')
     return out
 
 
@@ -221,8 +204,7 @@ def lambda_handler(event=None, context=None):
              'fred_close':None,'fred_date':None,'distance_to_5pct_bps':None,'pct_rank_since_1990':None,
              'velocity':{'d20_bps':None,'d60_bps':None,'velocity_bump':False},'real_10y':None,
              'corr60_spx_vs_dy':None,'yields_driving_stocks':None,'episode_study':{},'history_260d':[],
-             'execution_eligible':False,'calls_eligible':False,'sizing_eligible':False,'forecast_qualified':False,
-             'alert_sent':False,'alert_eligible':False,'call':None}
+             'execution_eligible':False,'call':None}
         S3.put_object(Bucket=BUCKET,Key=OUT_KEY,Body=json.dumps(out).encode(),ContentType='application/json')
         return {'statusCode':200,'body':json.dumps({'ok':True,'quality':out['quality']})}
     dfii = fred_series("DFII10", start="2003-01-01")
@@ -237,9 +219,8 @@ def lambda_handler(event=None, context=None):
     since90 = [v for d, v in dgs10 if d >= "1990-01-01"]
     pct_rank = round(100 * sum(1 for v in since90 if v <= level)
                      / max(1, len(since90)), 1)
-    change20,change60=observed_change(dgs10,20),observed_change(dgs10,60)
-    for change in (change20,change60):change['current_usable']=source_quality['status']=='fresh' and change['value'] is not None
-    d20,d60=change20['value'],change60['value']
+    d20 = round((level - ys[-21]) * 100, 1) if len(ys) > 21 else None
+    d60 = round((level - ys[-61]) * 100, 1) if len(ys) > 61 else None
 
     tier = tier_of(level)
     bumped = False
@@ -267,13 +248,13 @@ def lambda_handler(event=None, context=None):
     equity_quality=observation_quality(spx[-1][0] if spx else None)
     if equity_quality['status']!='fresh' or source_quality['status']!='fresh':
         c60=None
-    negative_association = (c60 <= -0.30) if c60 is not None else None
+    negative_association = bool(c60 is not None and c60 <= -0.30)
 
-    change_text='unavailable' if d60 is None else '%+.1f basis points' % d60
-    reason = ('10Y %.2f%% observed %s; 60-observation yield change: %s%s; reported real 10Y: %s. '
-              'Yield bands are uncalibrated review context, not a crisis probability or allocation instruction.'
-              % (level,dgs10[-1][0],change_text,' (heuristic velocity bump)' if bumped else '',
-                 ('%.2f%% observed %s' % (real10,dfii[-1][0])) if real10 is not None else 'unavailable'))
+    reason = ("10Y %.2f%% — %.0fbps from the 5%% line · pct-rank "
+              "since 1990: %.0f · Δ60d %+0.0fbps%s · real 10y %s%%"
+              % (level, dist_bps, pct_rank, (d60 or 0),
+                 " (VELOCITY BUMP)" if bumped else "",
+                 real10 if real10 is not None else "—"))
     if real10 is not None and real10 >= 2.25:
         reason += " (elevated real-yield review threshold, uncalibrated)"
     if negative_association:
@@ -286,14 +267,13 @@ def lambda_handler(event=None, context=None):
         "as_of": datetime.now(timezone.utc).isoformat(),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "quality": source_quality, "methodology_version": "daily-price-episodes.v2",
-        "calibration_status": "HEURISTIC_REVIEW_ONLY", "execution_eligible": False, "calls_eligible":False,
-        "sizing_eligible":False, "forecast_qualified":False, "call": None,
+        "calibration_status": "HEURISTIC_REVIEW_ONLY", "execution_eligible": False, "call": None,
         "level": level, "level_source": live_src,
         "fred_close": fred_lvl, "fred_date": dgs10[-1][0],
         "distance_to_5pct_bps": dist_bps,
         "pct_rank_since_1990": pct_rank,
         "velocity": {"d20_bps": d20, "d60_bps": d60,
-                     "velocity_bump": bumped, "comparisons": {"20_observations":change20,"60_observations":change60}},
+                     "velocity_bump": bumped},
         "real_10y": real10,
         "tier": tier, "tier_reason": reason,
         "prev_tier": prev.get("tier"),
@@ -314,10 +294,18 @@ def lambda_handler(event=None, context=None):
         out.update(level=None, tier='UNKNOWN', distance_to_5pct_bps=None,
                    pct_rank_since_1990=None, tier_reason='Daily Treasury yield unavailable or stale.',
                    corr60_spx_vs_dy=None, negative_equity_yield_association=None,
-                   velocity={'d20_bps':None,'d60_bps':None,'velocity_bump':False,
-                             'comparisons':{'20_observations':change20,'60_observations':change60}})
-    out.update(alert_sent=False,alert_eligible=False,
-        alert_reason='No independently qualified Sentinel threshold-alert or allocation policy is registered.')
+                   velocity={'d20_bps':None,'d60_bps':None,'velocity_bump':False})
+    hot = {"RED", "CRITICAL"}
+    pt = prev.get("tier")
+    if not (event or {}).get("suppress_alerts") and source_quality["status"]=="fresh" and pt in TIER_ORDER and pt != tier and (tier in hot or pt in hot):
+        arrow = "🔴⬆️" if TIER_ORDER.index(tier) > \
+            TIER_ORDER.index(pt) else "🟢⬇️"
+        med = ((eps.get("cross_4.75") or {}).get("median_spx_3m"))
+        telegram("%s <b>US10Y SENTINEL: %s → %s</b>\n%s\n"
+                 "History: median SPX 3m after first 4.75%% cross: %s%%"
+                 % (arrow, pt, tier, reason,
+                    med if med is not None else "n/a"))
+        out["alert_sent"] = True
 
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out,allow_nan=False).encode(),
@@ -341,14 +329,12 @@ def lambda_handler(event=None, context=None):
         _r = _bus.get("US10Y") or {}
         _blk = {"marker": "ops4217", "us10y_bus": _r.get("v"),
                 "asof": _r.get("asof"), "src": _r.get("src"),
-                "independent_votes": 0, "source_independence_verified": False,
-                "note": "Reported bus context; source ancestry is not independently verified and cannot add another vote"}
-        _current = S3.get_object(Bucket=BUCKET, Key=OUT_KEY)
-        _doc = json.loads(_current["Body"].read())
+                "note": "independent cross-check leg (source diversity)"}
+        _doc = json.loads(S3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read())
         _doc["bus_cross"] = _blk
         S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
-                      Body=json.dumps(_doc,allow_nan=False).encode(),
-                      ContentType="application/json", IfMatch=_current["ETag"])
+                      Body=json.dumps(_doc).encode(),
+                      ContentType="application/json")
         print("[bus_cross] wired: " + json.dumps(_blk)[:120])
     except Exception as _e:
         print("[bus_cross] EXC " + type(_e).__name__)

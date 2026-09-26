@@ -626,11 +626,8 @@ def _best_asset_now():
                                or r["score"] > hscore)
 
     reasons = []
-    sent = _ba_s3json("data/us10y-sentinel.json")
-    if sent.get("tier") in ("RED", "CRITICAL"):
-        reasons.append("us10y-sentinel %s (%s)" % (
-            sent.get("tier"),
-            str(sent.get("tier_reason", ""))[:90]))
+    # A yield-level review band has no qualified portfolio-veto authority.
+    sent = __import__("us10y_sentinel_authority").context(_ba_s3json("data/us10y-sentinel.json"))
     cc = __import__("crisis_authority").decision_view(_ba_s3json("data/crisis-composite.json"))
     for k in ("composite", "score", "level"):
         v = cc.get(k)
@@ -670,12 +667,13 @@ def _best_asset_now():
             "ranked": ranked,
             "cash_hurdle_score": hscore,
             "risk_override": {"active": override, "reasons": reasons},
+            "sentinel_context": sent,
             "methodology": (
                 "Dual momentum with explicit cash hurdle: blended "
                 "12-1m/6m/3m total-return momentum per asset class; a "
                 "risk asset is only eligible if it beats the same "
                 "blend on T-bills (BIL). Crisis-composite / GSI ≥70 "
-                "or us10y-sentinel RED+ overrides the podium to "
+                "may restrict the podium to "
                 "defensive assets. Cash and the dollar are first-"
                 "class answers, not fallbacks.")}
 
