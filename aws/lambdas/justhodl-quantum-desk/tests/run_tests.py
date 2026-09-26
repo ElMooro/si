@@ -3,6 +3,11 @@ from pathlib import Path
 import sys,unittest
 ROOT=Path(__file__).resolve().parents[4]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/shared/tests')]
+if __name__ == '__main__':
+    from pathlib import Path
+    import subprocess, sys
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/test_master_allocation_authority.py')],check=True)
+
 if __name__=='__main__':
     suite=unittest.TestLoader().discover(str(ROOT/'aws/shared/tests'),pattern='test_risk_gate_authority.py')
     result=unittest.TextTestRunner(verbosity=2).run(suite)

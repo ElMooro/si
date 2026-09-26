@@ -369,7 +369,7 @@ def lambda_handler(event=None, context=None):
     canary = fetch_s3_json("data/canary-grid.json")
     signal_board = __import__("signal_board_authority").decision_view(fetch_s3_json("data/signal-board.json"))
     vol_radar = fetch_s3_json("data/vol-radar.json")
-    master_alloc = fetch_s3_json("data/master-allocation.json")
+    master_alloc = __import__('master_allocation_authority').decision_view(fetch_s3_json("data/master-allocation.json"))
 
     feeds_available = {
         "eurodollar_stress": eds is not None,

@@ -678,17 +678,6 @@ def _best_asset_now():
                 "class answers, not fallbacks.")}
 
 
-def publish_research(report):
-    policy=__import__('master_allocation_authority')
-    public=sanitize_public(OUT_KEY,policy.project(report))
-    # Fail before public publication if the machine-readable boundary cannot update.
-    ssm.put_parameter(Name=TARGET_PARAM,Type='String',Overwrite=True,
-        Value=json.dumps(policy.execution_packet(public),allow_nan=False))
-    s3.put_object(Bucket=S3_BUCKET,Key=OUT_KEY,Body=json.dumps(public,allow_nan=False).encode('utf-8'),
-        ContentType='application/json',CacheControl='public, max-age=600')
-    return public
-
-
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -813,10 +802,27 @@ def lambda_handler(event, context):
     except Exception as _e:
         report["best_asset"] = {"error": str(_e)[:140]}
 
-    public=publish_research(report)
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
+                  Body=json.dumps(sanitize_public(OUT_KEY, report),
+                                  default=str).encode("utf-8"),
+                  ContentType="application/json",
+                  CacheControl="public, max-age=600")
+
+    # SSM target for downstream consumers
+    try:
+        ssm.put_parameter(Name=TARGET_PARAM, Type="String",
+                          Overwrite=True,
+                          Value=json.dumps({
+                              "target": report["target_allocation"],
+                              "posture": posture,
+                              "confidence": confidence,
+                              "as_of": report["as_of"],
+                          }))
+    except Exception as e:
+        print("ssm put fail: %s" % e)
 
     return {"statusCode": 200, "body": json.dumps({
-        "ok": True, "contract":public['contract'],"posture":public['posture'],"confidence":None,
-        "active_bps": None,"sizing_eligible":False,"execution_eligible":False,
+        "ok": True, "posture": posture, "confidence": confidence,
+        "active_bps": round(active_bps * 100),
         "signals_used": contributing,
         "elapsed_s": round(time.time() - t0, 1)})}

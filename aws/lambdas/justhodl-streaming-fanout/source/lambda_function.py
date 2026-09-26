@@ -174,6 +174,8 @@ def _admin_token():
 
 def _extract_summary(engine, body):
     """Pick the small set of fields we want to broadcast."""
+    if engine['name'] == 'master_alloc':
+        return {'engine':'master_alloc','research_context':__import__('master_allocation_authority').context(body)}
     if engine["name"] == "signal_board":
         return {"engine": "signal_board", "research_context": __import__("signal_board_authority").context(body)}
     if engine["name"] == "global_stress":
@@ -190,6 +192,8 @@ def _extract_summary(engine, body):
 
 def _is_meaningful_delta(engine, prev_summary, curr_summary):
     """Apply the per-engine delta rule. Returns (bool, reason)."""
+    if engine['name'] == 'master_alloc':
+        return False,'unqualified_master_allocation'
     if engine["name"] == "signal_board":
         return False, "unqualified_signal_board"
     if engine["name"] == "global_stress":

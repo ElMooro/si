@@ -1,4 +1,9 @@
 
+if __name__ == '__main__':
+    from pathlib import Path
+    import subprocess, sys
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/test_master_allocation_authority.py')],check=True)
+
 if __name__ == "__main__":
     from pathlib import Path
     import sys
