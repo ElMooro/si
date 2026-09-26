@@ -54,7 +54,7 @@ test('capture counts reconcile every retained source without treating gaps as re
  const {head,doc}=retainedFixture();assert.equal(captureMatches(head,doc),true);
  for(const edit of [d=>d.sources.pop(),d=>d.records.push({created:true}),d=>d.sources[0].observations.pop(),
   d=>d.generated_at='2026-09-18T18:00:00Z',d=>d.coverage={candidate_scan_complete:true},
-  d=>d.protocol_ref={},d=>d.identity_policy={files:{wrong:'digest'}}]){
+  d=>d.protocol_ref={},d=>d.identity_policy={files:{wrong:'digest'}},d=>d.source_read_policy={reader_sha256:'changed'}]){
   const changed=structuredClone(doc);edit(changed);assert.equal(captureMatches(head,changed),false);
  }
 });

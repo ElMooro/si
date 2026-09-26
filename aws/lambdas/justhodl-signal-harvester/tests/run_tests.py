@@ -22,6 +22,7 @@ from instrument_identity import resolve_instrument
 from research_identity import resolve_pick_identity, identity_policy
 from private_artifact import public_source_allowed
 from prospective_journal import projection
+import research_source_reader
 TREE=ast.parse((HERE.parent/'source/lambda_function.py').read_text(encoding='utf-8'))
 
 
@@ -30,7 +31,7 @@ def load():
              Decimal=Decimal,ThreadPoolExecutor=ThreadPoolExecutor,as_completed=as_completed,resolve_instrument=resolve_instrument,
              urllib=types.SimpleNamespace(parse=urllib.parse,request=types.SimpleNamespace(Request=urllib.request.Request)),
              FMP='fixture',POLYGON='fixture',_trust=lambda *a:1,Path=Path,hashlib=hashlib,
-             __file__=str(HERE.parent/'source/lambda_function.py'),public_source_allowed=public_source_allowed,projection=projection,
+             __file__=str(HERE.parent/'source/lambda_function.py'),public_source_allowed=public_source_allowed,projection=projection,research_source_reader=research_source_reader,
              resolve_pick_identity=resolve_pick_identity,identity_policy=identity_policy)
     names={'VERSION','S3_BUCKET','SIGNALS_TABLE','SEEN_KEY','SUMMARY_KEY','TOP_PER_ENGINE','DEDUP_DAYS','WINDOWS','MAX_SIGNALS','TICKER_RE','LIST_KEYS','SYM_KEYS','SCORE_KEYS','SKIP_SUBSTR'}
     nodes=[n for n in TREE.body if isinstance(n,ast.FunctionDef) or isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id in names for t in n.targets)]
@@ -162,3 +163,4 @@ if __name__=='__main__':
     print('Harvester integrity tests passed:',len(tests))
     import subprocess
     subprocess.run([sys.executable,str(HERE.parents[2]/'shared/tests/test_prospective_journal.py')],check=True)
+    subprocess.run([sys.executable,str(HERE.parents[3]/'tests/test_research_source_reader.py')],check=True)

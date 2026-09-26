@@ -41,7 +41,7 @@
   function captureMatches(head,doc){
     if(!doc || doc.contract!=='prospective-research-capture.v1' || doc.generated_at!==head.generated_at ||
        doc.sizing_eligible!==false || doc.promotion_eligible!==false || !equal(doc.protocol_ref,head.protocol) ||
-       !equal(doc.coverage,head.coverage) || !equal(doc.identity_policy,head.identity_policy) ||
+       !equal(doc.coverage,head.coverage) || !equal(doc.identity_policy,head.identity_policy) || !equal(doc.source_read_policy,head.source_read_policy) ||
        !Array.isArray(doc.records) || !Array.isArray(doc.sources))return false;
     if(doc.records.some(r=>!r || typeof r.created!=='boolean') || doc.sources.some(s=>!s ||
        !Array.isArray(s.observations) || !Array.isArray(s.eligibility_reasons) || !count(s.unsupported_identity_count)))return false;
