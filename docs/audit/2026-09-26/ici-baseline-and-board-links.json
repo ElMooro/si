@@ -1,0 +1,129 @@
+{
+  "source_commit": "ff201bd38bd79e875b81bbeede8b8b4f57738542",
+  "pages_run": 36264000477,
+  "live_site": {
+    "commit": "ff201bd38bd79e875b81bbeede8b8b4f57738542",
+    "served_descendant": "c520850d429e242dd28df6088133420c37f8e6c5",
+    "checked_at": "2026-09-26T19:04:58.590800+00:00",
+    "registry_hash": "fe4557fc8ce10bad83ecc6f61f286c5958d1e40ae9c982c5fee7c5e893baa984",
+    "assets": {
+      "jh-signal-board-research.js": {
+        "bytes": 13980,
+        "sha256": "345666fc2bce45c0ae22e689d22bb6032891b5cd76580313b8ca58ccfe8f72af",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1333902,
+        "sha256": "8bd9332e2490d6eeb2e29ed3bdb51448a54ffc03cc156357494c95cb9d9e4c9e",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328513,
+        "sha256": "fe4557fc8ce10bad83ecc6f61f286c5958d1e40ae9c982c5fee7c5e893baa984",
+        "matches_commit_manifest": true
+      },
+      "signal-board.html": {
+        "bytes": 10607,
+        "sha256": "557052a056ae73f7b48a5c0640b4271090dd378364386fb189301ee126a76014",
+        "matches_commit_manifest": true
+      },
+      "calls.html": {
+        "bytes": 20166,
+        "sha256": "ab603eb79bca9d9c00f7721b0e2890f6ff6cfdc138c0f29931c8955a40bbb269",
+        "matches_commit_manifest": true
+      },
+      "ciss.html": {
+        "bytes": 14537,
+        "sha256": "46d5b4731f3629712d2668df40e17fec192e9bff65f5cd5a8da3695e491e64bd",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "browser": {
+    "url": "https://justhodl.ai/signal-board.html",
+    "mean_reversion_latest_url": "https://justhodl-data-proxy.raafouis.workers.dev/screener/mean-reversion.json?exact=1&nogen=1",
+    "status": "WAIT; bound derived inventory; original-provider ancestry unverified",
+    "console_errors": []
+  },
+  "baseline_run": 36264022955,
+  "baseline_report_commit": "c520850d429e242dd28df6088133420c37f8e6c5",
+  "ici_baseline": {
+    "access_evidence": {
+      "key": "audit-private/20260909-originals/ici-research/bea0a5314c1e2a69d3ca985a55b62798cf984883f147f8b0163d111ba001e1c7.bin",
+      "sha256": "bea0a5314c1e2a69d3ca985a55b62798cf984883f147f8b0163d111ba001e1c7",
+      "bytes": 8220
+    },
+    "account_reads": 0,
+    "all_denied": true,
+    "anonymous_origins_checked": 22,
+    "attempt_outcome_counts": {
+      "404": 11,
+      "403": 11
+    },
+    "capture_status": {
+      "data/ici-flows.json": "missing",
+      "data/history/ici-mmf.json": "whole_object_retained",
+      "data/history/ici-flows.json": "whole_object_retained",
+      "data/ops/releases/justhodl-ici-flows.json": "missing"
+    },
+    "code_matches_repository": true,
+    "failures": [],
+    "history_writes": 0,
+    "manifest": {
+      "key": "audit-private/20260909-originals/ici-research/16f1ae5e41fc156ed4c09c61e2acb5e170c3ebaa2d615103c0bbbe031c0755c2.bin",
+      "sha256": "16f1ae5e41fc156ed4c09c61e2acb5e170c3ebaa2d615103c0bbbe031c0755c2",
+      "bytes": 7691
+    },
+    "native_invocations": 0,
+    "notifications_sent": 0,
+    "predecessor_runtime": {
+      "FunctionName": "justhodl-ici-flows",
+      "CodeSha256": "aCLhccgfw7t1eC4shHbObCJdvjIjzi24qZ5ebObiPxs=",
+      "LastModified": "2026-07-02T07:14:35.000+0000",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 120,
+      "MemorySize": 256,
+      "Architectures": [
+        "x86_64"
+      ]
+    },
+    "protected_paths_checked": 11,
+    "provider_attempts": 2,
+    "provider_results": {
+      "mmf": {
+        "status": "whole_http_response_retained",
+        "http_status": 200,
+        "error_type": null,
+        "original": {
+          "key": "audit-private/20260909-originals/ici-research/cc4c32f2ae006470cecfe83f2ebfb24a5f3ef57ae3d362a19b4a59e5ebe03af4.bin",
+          "sha256": "cc4c32f2ae006470cecfe83f2ebfb24a5f3ef57ae3d362a19b4a59e5ebe03af4",
+          "bytes": 357873
+        }
+      },
+      "combined_flows": {
+        "status": "whole_http_response_retained",
+        "http_status": 200,
+        "error_type": null,
+        "original": {
+          "key": "audit-private/20260909-originals/ici-research/4dd9f533bf4a1d85e165f37e9fd9933b51029e44f1af2c250d1adb96462ba5d6.bin",
+          "sha256": "4dd9f533bf4a1d85e165f37e9fd9933b51029e44f1af2c250d1adb96462ba5d6",
+          "bytes": 354823
+        }
+      }
+    },
+    "public_writes": 0,
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-ici-flows-weekly",
+        "state": "DISABLED",
+        "expression": "cron(30 16 ? * WED,THU *)",
+        "native_targets": 1
+      }
+    ],
+    "schedules_changed": 0,
+    "scope": "Whole protected predecessor baseline and two one-attempt official requests; no output is seeded or produced.",
+    "source_qualification": false
+  }
+}
