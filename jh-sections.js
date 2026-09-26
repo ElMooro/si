@@ -204,20 +204,20 @@
     els.sort(function (x, y) { return (x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1; });
     return els;
   }
-  function trappedInGrid(node) {
-    var p = node && node.parentElement;
-    if (!p) return false;
-    var display = "";
-    try { display = window.getComputedStyle(p).display || ""; } catch (e) {}
-    return /^(inline-)?(grid|flex)$/.test(display);
-  }
   function badge(el, n, key, sub) {
     // A heading can sit outside its block, and a block can contain badges
     // belonging to children. Match the owner, never the first descendant.
     var owned = el.id ? Array.from(document.querySelectorAll('.jh-secbadge[data-for="' + CSS.escape(el.id) + '"]')) : [];
     var old = owned.shift();
     owned.forEach(function (duplicate) { duplicate.remove(); });
-    if (old && old.dataset.n === String(n) && !trappedInGrid(old)) return;
+    if (old && old.dataset.n === String(n)) {
+      var trapped = false;
+      try {
+        var pd = window.getComputedStyle(old.parentElement).display || "";
+        trapped = /^(inline-)?(grid|flex)$/.test(pd);
+      } catch (e) {}
+      if (!trapped) return;
+    }
     if (old) old.remove();
     var b = document.createElement("a");
     b.className = "jh-secbadge" + (sub ? " sub" : "");
