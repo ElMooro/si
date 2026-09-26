@@ -1,8 +1,14 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const {countryView,historyView,calendarChanges,load,mount,fmt,date,clock}=require('../jh-sovereign-review.js');
+const {countryView,historyView,calendarChanges,captureStatus,load,mount,fmt,date,clock}=require('../jh-sovereign-review.js');
 const now=Date.parse('2026-09-26T22:00:00Z');
 const universe={contract:'sovereign-review-universe.v1',countries:[{country:'Alpha',slug:'alpha',region:'Region'},{country:'Beta',slug:'beta',region:'Region'}]};
 const packet=()=>({generated_at:'2026-09-26T18:16:52Z',n_countries:1,countries:[{country:'Alpha',cds_bp:0,yield_10y_pct:null,as_of:'Unverified date'}],eurodollar_hub_stress_0_100:50,eurodollar_hub_history_n:1,eurodollar_hub_history:[{date:'2026-09-26',stress:50}]});
+test('provider capture claims are distinguished from browser replay and retain the pending predecessor state',()=>{
+ assert.match(captureStatus(packet(),universe),/pending its normal schedule/);
+ const p=packet(),sha='a'.repeat(64);p.source_evidence={contract:'sovereign-source-capture.v1',configured_countries:2,coverage:[{slug:'alpha'},{slug:'beta'}],manifest:{sha256:sha,key:'audit-private/20260909-originals/global-sovereign-research/'+sha+'.bin',bytes:200},requests_attempted:3,complete_responses_retained:2,definitions_verified:false,observation_clocks_verified:false,original_source_replay_verified:false};
+ assert.match(captureStatus(p,universe),/Producer reports 2 complete/);assert.match(captureStatus(p,universe),/has not replayed/);
+ for(const mutate of [e=>e.coverage.push(e.coverage[0]),e=>e.coverage[0]=null,e=>e.manifest.key='data/public-original.json',e=>e.complete_responses_retained=4,e=>e.definitions_verified=true,e=>e.configured_countries=3]){const copy=structuredClone(p);mutate(copy.source_evidence);assert.match(captureStatus(copy,universe),/inconsistent/);}
+});
 test('country coverage preserves missing countries, genuine zero and unknown members without granting authority',()=>{
  const p=packet(),v=countryView(p,universe,now);assert.equal(v.expected,2);assert.equal(v.present,1);assert.equal(v.cds,1);assert.equal(v.yields,0);assert.equal(v.rows[1].source,null);assert.match(v.rows[1].status,/Missing/);assert.equal(v.authority,false);assert.equal(v.sourceClockQualified,0);
  p.countries.push({country:'Unregistered',cds_bp:3});p.n_countries=2;const extra=countryView(p,universe,now);assert.equal(extra.rows.length,3);assert.equal(extra.extras,1);assert.equal(extra.rows[2].provider,null);

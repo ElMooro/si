@@ -66,6 +66,14 @@
     }
     return result;
   }
+  function captureStatus(packet,universe){
+    const e=packet&&packet.source_evidence;
+    if(!e)return 'This publication has no provider-response capture record. Original acquisition is pending its normal schedule.';
+    const slugs=new Set(universe.countries.map(r=>r.slug)),coverage=e.coverage,ref=e.manifest;
+    const valid=e.contract==='sovereign-source-capture.v1'&&e.configured_countries===slugs.size&&Array.isArray(coverage)&&coverage.length===slugs.size&&new Set(coverage.map(r=>r?.slug)).size===slugs.size&&coverage.every(r=>r&&slugs.has(r.slug))&&ref&&/^[a-f0-9]{64}$/.test(ref.sha256)&&ref.key==='audit-private/20260909-originals/global-sovereign-research/'+ref.sha256+'.bin'&&Number.isInteger(ref.bytes)&&ref.bytes>0&&Number.isInteger(e.requests_attempted)&&e.requests_attempted>=slugs.size&&e.requests_attempted<=slugs.size*2&&Number.isInteger(e.complete_responses_retained)&&e.complete_responses_retained>=0&&e.complete_responses_retained<=e.requests_attempted&&['definitions_verified','observation_clocks_verified','original_source_replay_verified'].every(k=>e[k]===false);
+    if(!valid)return 'Provider capture metadata is inconsistent. Source verification remains unavailable.';
+    return 'Producer reports '+e.complete_responses_retained+' complete retained responses from '+e.requests_attempted+' requests across '+slugs.size+' countries. Originals remain in protected storage. This browser has not replayed them; definitions, quote clocks and risk interpretations remain unverified.';
+  }
   async function load(kind,options={}){
     if(!Object.hasOwn(PATHS,kind))throw new Error('Unknown sovereign source');
     const fetcher=options.fetcher||root.fetch.bind(root),limit=kind==='universe'?65536:32*1024*1024;
@@ -127,6 +135,7 @@
     const primary=(async()=>{try{
       const [packet,universe]=await Promise.all([currentLoad,loader('universe')]);const view=countryView(packet,universe,now);current=packet;rows=view.rows;
       say('publication',packet.generated_at+' · '+(view.overdue?'publication overdue (>26h)':'publication within 26h display window')+' · quote freshness unverified');
+      say('source-capture-status',captureStatus(packet,universe));
       say('country-count',view.present+' / '+view.expected);say('cds-count',view.cds+' reported');say('yield-count',view.yields+' reported');say('missing-count',(view.expected-view.present)+' missing · '+view.extras+' unregistered');
       const select=doc.getElementById('region');select.replaceChildren();for(const name of ['All',...new Set(rows.map(r=>r.region))]){const option=element(doc,'option',name,select);option.value=name;}
       select.addEventListener('change',()=>{region=select.value;renderCountries();});
@@ -134,7 +143,7 @@
       doc.getElementById('sort').addEventListener('change',e=>{sort=e.target.value;renderCountries();});renderCountries();changes();
       const diagnostic=packet; // complete packet: no inherited field disappears from inspection
       doc.getElementById('legacy-fields').textContent=JSON.stringify(diagnostic,null,2);
-    }catch(_){current=null;rows=[];doc.getElementById('country-table').replaceChildren();doc.getElementById('legacy-fields').textContent='Unavailable';
+    }catch(_){current=null;rows=[];doc.getElementById('country-table').replaceChildren();doc.getElementById('legacy-fields').textContent='Unavailable';say('source-capture-status','Provider capture status unavailable.');
       for(const id of ['country-count','cds-count','yield-count','missing-count'])say(id,'Unavailable');say('publication','Country packet or reviewed universe is unavailable or invalid. No current values are shown.');changes();}})();
     const histories=['daily','archive'].map(async kind=>{try{
       let source;if(kind==='daily'){const packet=await currentLoad;source=packet.eurodollar_hub_history;
@@ -144,6 +153,6 @@
       catch(_){if(kind==='daily'){daily=null;changes();}doc.getElementById(kind+'-table').replaceChildren();doc.getElementById(kind+'-chart').replaceChildren();say(kind+'-status','Complete history unavailable or invalid. No interpolated or substituted data is shown.');}});
     return Promise.allSettled([primary,...histories]);
   }
-  if(typeof module==='object'&&module.exports)module.exports={countryView,historyView,calendarChanges,load,mount,fmt,date,clock};
+  if(typeof module==='object'&&module.exports)module.exports={countryView,historyView,calendarChanges,captureStatus,load,mount,fmt,date,clock};
   if(root.document?.getElementById('sovereign-review'))mount(root.document);
 })(typeof window==='undefined'?globalThis:window);

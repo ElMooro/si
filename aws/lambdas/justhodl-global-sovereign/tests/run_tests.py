@@ -6,6 +6,7 @@ from copy import deepcopy
 import ast,json,math,re,sys,types,unittest,urllib.request
 HERE=Path(__file__).resolve().parent;sys.path.insert(0,str(HERE.parent/'source'))
 import sovereign_history as pub
+import sovereign_sources as sources
 NOW=datetime(2026,9,26,22,0,tzinfo=timezone.utc)
 
 class Error(Exception):
@@ -39,7 +40,7 @@ class Frozen(datetime):
 
 def handler(m):
     source=(HERE.parent/'source/lambda_function.py').read_text(encoding='utf-8');tree=ast.parse(source)
-    env={'sovereign_history':pub,'s3':m,'json':json,'re':re,'math':math,'datetime':Frozen,'timezone':timezone,
+    env={'sovereign_history':pub,'sovereign_sources':types.SimpleNamespace(Capture=lambda *a:types.SimpleNamespace(finish=lambda:{'synthetic_storage_test_only':True})),'s3':m,'json':json,'re':re,'math':math,'datetime':Frozen,'timezone':timezone,
          'timedelta':timedelta,'urllib':urllib,'time':types.SimpleNamespace(time=lambda:1,sleep=lambda n:None)}
     nodes=[n for n in tree.body if isinstance(n,(ast.FunctionDef,ast.Assign)) and not (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='s3' for t in n.targets))]
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'actual_sovereign_handler','exec'),env)
@@ -48,7 +49,7 @@ def handler(m):
 class Tests(unittest.TestCase):
     def test_actual_handler_preserves_all_rows_and_compares_exact_calendar_dates(self):
         m,history=fixture(1105);env=handler(m)
-        env['wgb_country']=lambda slug:{'bond10y_pct':3,'cds_bp':40,'spread_vs_bund_bp':20,'as_of':'provider date unverified'}
+        env['wgb_country']=lambda slug,capture:{'bond10y_pct':3,'cds_bp':40,'spread_vs_bund_bp':20,'as_of':'provider date unverified'}
         env['lambda_handler']();out=json.loads(m.rows[pub.HEAD]);saved=json.loads(m.rows[pub.HISTORY])
         self.assertEqual(saved[:-1],history);self.assertEqual(len(saved),1106);self.assertEqual(out['eurodollar_hub_history'],saved)
         old={r['date']:r for r in history}
@@ -63,24 +64,21 @@ class Tests(unittest.TestCase):
     def test_missing_calendar_target_is_not_replaced_by_positional_history(self):
         m,history=fixture(100);history=[r for r in history if r['date']!=(NOW.date()-timedelta(days=7)).isoformat()]
         m.seed(pub.HISTORY,pub.encode(history));env=handler(m)
-        env['wgb_country']=lambda slug:{'bond10y_pct':3,'cds_bp':40,'spread_vs_bund_bp':20}
+        env['wgb_country']=lambda slug,capture:{'bond10y_pct':3,'cds_bp':40,'spread_vs_bund_bp':20}
         env['lambda_handler']();out=json.loads(m.rows[pub.HEAD])
         self.assertIsNone(out['eurodollar_hub_chg_7d']);self.assertIsNotNone(out['eurodollar_hub_chg_30d'])
 
     def test_denial_and_corrupt_history_fail_before_provider_work(self):
         for corrupt in (None,b'{}',b'[',b'[{"date":"2026-09-25","stress":NaN}]',b'[{"date":"2026-09-25","date":"2026-09-24"}]'):
-            m,_=fixture();env=handler(m);calls=[];env['wgb_country']=lambda slug:calls.append(slug)
+            m,_=fixture();env=handler(m);calls=[];env['wgb_country']=lambda slug,capture:calls.append(slug)
             if corrupt is None:m.fail=pub.HISTORY
             else:m.seed(pub.HISTORY,corrupt)
             with self.assertRaises(Exception):env['lambda_handler']()
             self.assertEqual(calls,[]);self.assertEqual(m.writes,[])
 
     def test_source_nonfinite_and_boolean_values_cannot_poison_json(self):
-        m,_=fixture();env=handler(m);env['_http']=lambda *a:'var jsGlobalVars = {"country":1};'
         raw=json.dumps({'success':True,'bond10y':'NaN','lastCds':'0','lastCdsDefaultProb':True,'mainSpreadValue':'Infinity','cbRateNumber':0}).encode()
-        old=urllib.request.urlopen;urllib.request.urlopen=lambda *a,**kw:BytesIO(raw)
-        try:row=env['wgb_country']('fixture')
-        finally:urllib.request.urlopen=old
+        row=sources.project(raw)
         self.assertIsNone(row['bond10y_pct']);self.assertIsNone(row['cds_default_prob_pct']);self.assertIsNone(row['spread_vs_bund_bp'])
         self.assertEqual(row['cds_bp'],0);self.assertEqual(row['cb_rate_pct'],0)
 
@@ -140,4 +138,7 @@ class Tests(unittest.TestCase):
         self.assertNotIn('schedule',normalized);self.assertEqual(normalized['release_schedule_note']['binding_action'],'PRESERVE_EXISTING')
         self.assertEqual(conf['schedule'],conf['preserved_schedule_reference']['cron'])
 
-if __name__=='__main__':unittest.main()
+if __name__=='__main__':
+    import test_sources
+    suite=unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(Tests),unittest.defaultTestLoader.loadTestsFromModule(test_sources)])
+    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

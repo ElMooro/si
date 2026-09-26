@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Global Sovereign Desk \u2014 live 10Y yield, sovereign CDS, spread-vs-Bund, rating & CB rate for 45 economies from World Government Bonds. Per-country CDS-weighted stress score + regional aggregates. Publishes data/global-sovereign.json.",
+  "description": "Provider-reported sovereign observations for 45 economies, complete private source capture and retained daily history. Legacy heuristic ranks remain unqualified; no portfolio authority.",
   "env": {},
   "schedule": "cron(15 6,18 * * ? *)",
   "preserved_schedule_reference": {

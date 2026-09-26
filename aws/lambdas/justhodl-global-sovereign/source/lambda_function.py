@@ -1,20 +1,13 @@
-"""
-JUSTHODL GLOBAL SOVEREIGN DESK — worldwide sovereign bond & CDS intelligence.
+"""Provider-reported sovereign observations with complete original retention.
 
-Harvests live sovereign data for ~45 major economies from World Government Bonds' own REST
-endpoint (/wp-json/country/v1/main), reverse-engineered from the site JS: 10-year yield,
-sovereign CDS (5Y), CDS-implied default probability, spread-vs-Bund, credit rating, and
-central-bank policy rate.
-
-Builds a per-country sovereign-stress score (CDS-weighted — direct default pricing is the
-best single gauge), ranks the world by credit risk, flags the most/least stressed, and
-emits regional aggregates. Publishes data/global-sovereign.json.
-
-OUTPUT: data/global-sovereign.json
+Legacy nominal-yield/CDS heuristics remain for compatibility, explicitly without
+validated source definitions, quote clocks, ranking or portfolio authority.
+Publishes data/global-sovereign.json and preserves the complete daily history.
 """
 import json
 import math
 import sovereign_history
+import sovereign_sources
 import re
 import time
 import urllib.request
@@ -22,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-sovereign.json"
 HIST_KEY = "data/global-sovereign-history.json"
@@ -83,66 +76,9 @@ COUNTRIES = {
 }
 
 
-def _http(url, timeout=25):
-    req = urllib.request.Request(url, headers={"User-Agent": WGB_UA})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read().decode("utf-8", "ignore")
-
-
-def wgb_country(slug):
-    """Fetch live sovereign data from WGB's REST endpoint. Returns dict or None."""
-    try:
-        page = _http(f"https://www.worldgovernmentbonds.com/country/{slug}/")
-    except Exception:
-        return None
-    m = re.search(r"var\s+jsGlobalVars\s*=\s*(\{.*?\});", page, re.S)
-    if not m:
-        return None
-    raw, gv, depth = m.group(1), None, 0
-    for i, ch in enumerate(raw):
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                try:
-                    gv = json.loads(raw[:i + 1])
-                except Exception:
-                    return None
-                break
-    if not gv:
-        return None
-    body = json.dumps({"GLOBALVAR": gv}).encode()
-    req = urllib.request.Request(WGB_ENDPOINT, data=body, headers={
-        "User-Agent": WGB_UA, "Content-Type": "application/json",
-        "Accept": "application/json, text/plain, */*",
-        "Referer": f"https://www.worldgovernmentbonds.com/country/{slug}/",
-        "Origin": "https://www.worldgovernmentbonds.com",
-        "X-Requested-With": "XMLHttpRequest"})
-    try:
-        with urllib.request.urlopen(req, timeout=25) as r:
-            d = json.loads(r.read().decode("utf-8", "ignore"))
-    except Exception:
-        return None
-    if not d.get("success"):
-        return None
-
-    def num(k):
-        v = d.get(k)
-        try:
-            value = float(v) if v not in (None, "", "----") and not isinstance(v, bool) else None
-            return value if value is not None and math.isfinite(value) else None
-        except (ValueError, TypeError):
-            return None
-    return {
-        "bond10y_pct": num("bond10y"),
-        "cds_bp": num("lastCds"),
-        "cds_default_prob_pct": num("lastCdsDefaultProb"),
-        "spread_vs_bund_bp": num("mainSpreadValue"),
-        "rating": d.get("lastRatingValue"),
-        "cb_rate_pct": num("cbRateNumber"),
-        "as_of": d.get("lastDataValDesc"),
-    }
+def wgb_country(slug, capture):
+    """Return reported fields only after retaining complete provider responses."""
+    return capture.country(slug)
 
 
 def clamp(v, lo, hi):
@@ -179,11 +115,12 @@ def regime_from(score):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     prior = sovereign_history.begin(s3, S3_BUCKET, datetime.now(timezone.utc).isoformat())
+    acquisition = sovereign_sources.Capture(s3, S3_BUCKET, COUNTRIES, WGB_UA)
     next_history = None
     rows = []
     errors = []
     for name, (slug, region) in COUNTRIES.items():
-        d = wgb_country(slug)
+        d = wgb_country(slug, acquisition)
         if not d or d.get("bond10y_pct") is None:
             errors.append(name)
             continue
@@ -268,7 +205,9 @@ def lambda_handler(event=None, context=None):
             [{"country": c, "cds_bp": round(b, 1), "stress": cds_to_stress(b)} for c, b in hub_cds],
             key=lambda x: -x["stress"])
 
+    source_evidence = acquisition.finish()
     payload = {
+        "source_evidence": source_evidence,
         "version": VERSION, "ok": bool(rows),
         "calls_eligible": False, "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False,
         "decision": {"verb": "WAIT", "meaning": "abstain", "reason": "Provider quote definitions and observation clocks, sovereign rankings and funding interpretations remain unqualified."},
@@ -290,12 +229,12 @@ def lambda_handler(event=None, context=None):
         "highest_cds": max(with_cds, key=lambda r: r["cds_bp"]) if with_cds else None,
         "countries": rows,
         "regions": region_agg,
-        "source": "World Government Bonds (worldgovernmentbonds.com) — live 10Y yield, sovereign CDS, spread-vs-Bund, rating, central-bank rate.",
+        "source": "World Government Bonds (worldgovernmentbonds.com) — provider-reported 10Y yield, CDS, spread field (benchmark unverified), rating and central-bank rate.",
     }
 
     # ── HISTORICAL SNAPSHOTTING — accumulate a daily time-series of the barometer so it
     # gains trend + percentile context (WGB only gives current values; we build our own
-    # history). Append today's reading (deduped to latest-per-day), keep ~3 years, then
+    # history). Append today's reading (deduped to latest-per-day), preserve every stored date, then
     # compute where today sits vs its own history.
     if eurodollar_hub_stress is not None:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")

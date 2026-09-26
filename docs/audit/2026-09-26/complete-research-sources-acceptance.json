@@ -1,0 +1,256 @@
+{
+  "commit": "a0d967371985b7ea9764c8b681134385f9b6a321",
+  "lambda_run": 36277807692,
+  "pages_run": 36277807685,
+  "read_only_acceptance_run": 36278132442,
+  "checked_at": "2026-09-26T23:13:48.469254+00:00",
+  "read_acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "meeszcoxSQg9tEjG6ha5n/6mIPCvdbolFRVLpjVA2vk=",
+      "source_files_checked": 13,
+      "handler_bytes": 18280,
+      "timeout": 900,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "a0d967371985b7ea9764c8b681134385f9b6a321"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-prospective-capture-hourly",
+          "state": "ENABLED",
+          "expression": "rate(1 hour)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "signal-harvester-daily",
+          "state": "ENABLED",
+          "expression": "cron(15 23 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-signal-harvester",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "a0d967371985b7ea9764c8b681134385f9b6a321",
+    "failures": [],
+    "forecast_registrations": 0,
+    "history_writes": 0,
+    "native_invocations": 0,
+    "new_normal_scheduled_capture_verified": false,
+    "peak_process_rss_kib": 175716,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules_changed": 0,
+    "scope": "Whole stored source transport and pure observation projection only; stale/ineligible sources retain their reasons. No original-model or investment qualification.",
+    "source_read_policy": {
+      "contract": "research-source-read.v1",
+      "stored_byte_limit": 33554432,
+      "decoded_byte_limit": 33554432,
+      "source_hash_basis": "complete_stored_representation",
+      "compression": "identity or one complete gzip member; declared encoding and magic must agree when declared",
+      "reader_sha256": "5da171689574f41573207e12e82dd6abffed92d0a300ce2a3078db6e5ae210f2"
+    },
+    "sources_read": [
+      {
+        "source_key": "data/data-census.json",
+        "stored_sha256": "71b7d51806a92c255453df80c642b16e4c396fb837a4ce9ada7ae6c669fe8ea2",
+        "received_at": "2026-09-26T23:01:47.527686+00:00",
+        "generated_at": "2026-09-26T12:45:47.212226+00:00",
+        "extracted_observations": 3,
+        "eligibility_reasons": [],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/euro-fragmentation.json",
+        "stored_sha256": "8868c9f9eb0872f2103bc5723eb3bff0261383a537d9de8a13baddf1d4554df1",
+        "received_at": "2026-09-26T23:01:47.873593+00:00",
+        "generated_at": "2026-09-26T12:20:11.985876+00:00",
+        "extracted_observations": 0,
+        "eligibility_reasons": [
+          "no_direction_or_rank_observations"
+        ],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/feed-catalog.json",
+        "stored_sha256": "2f701164e8bfea5c712f49c2be30fb0edb0924276599760d7a12520827b0cbd5",
+        "received_at": "2026-09-26T23:01:48.433720+00:00",
+        "generated_at": "2026-09-26T21:58:10.938015+00:00",
+        "extracted_observations": 0,
+        "eligibility_reasons": [
+          "no_direction_or_rank_observations"
+        ],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/fortress.json",
+        "stored_sha256": "db6825136d43c23dc3628678c84c62c990a3478810bdaa2bb996df98d3b9baee",
+        "received_at": "2026-09-26T23:01:48.794504+00:00",
+        "generated_at": null,
+        "extracted_observations": 8,
+        "eligibility_reasons": [
+          "source_publication_clock_missing"
+        ],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/industry-case.json",
+        "stored_sha256": "13fc5f7377944d5cbccdbfd4c851d22cac406a2097ce67a0f16cc01d9dd60a3b",
+        "received_at": "2026-09-26T23:01:48.933588+00:00",
+        "generated_at": "2026-08-18T03:55:55.844414+00:00",
+        "extracted_observations": 0,
+        "eligibility_reasons": [
+          "no_direction_or_rank_observations"
+        ],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/khalid-candidates.json",
+        "stored_sha256": "53a6a439497aef1817757f83f218d0d1ffdde826e753c70bba1713a5284a37c1",
+        "received_at": "2026-09-26T23:01:49.520691+00:00",
+        "generated_at": "2026-09-26T22:25:50.858117+00:00",
+        "extracted_observations": 8,
+        "eligibility_reasons": [],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/khalid.json",
+        "stored_sha256": "35b5c54db42a92533f5207a5af4bbb78f5e862850ef7b82a2a11776776724eb4",
+        "received_at": "2026-09-26T23:01:49.913898+00:00",
+        "generated_at": "2026-09-26T22:25:50.858117+00:00",
+        "extracted_observations": 8,
+        "eligibility_reasons": [],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/quiver-lobbying-cache.json",
+        "stored_sha256": "04e4969779270efe3a7f6b9d4c735a3600cd5be643287ee70c44486eff164ec5",
+        "received_at": "2026-09-26T23:01:50.198102+00:00",
+        "generated_at": "2026-06-11T16:00:08+00:00",
+        "extracted_observations": 0,
+        "eligibility_reasons": [
+          "no_direction_or_rank_observations"
+        ],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/report.json",
+        "stored_sha256": "7462331a6c5fdebb9fe96234640940186833a5e50b1e48542481281260397c4b",
+        "received_at": "2026-09-26T23:01:50.562870+00:00",
+        "generated_at": "2026-09-26T16:35:45.875695+00:00",
+        "extracted_observations": 0,
+        "eligibility_reasons": [
+          "no_direction_or_rank_observations"
+        ],
+        "unsupported_identity_count": 0
+      },
+      {
+        "source_key": "data/tradingview.json",
+        "stored_sha256": "3f5ed21f5cd7e5deb2341173b5b2c1d4902513d8cd144c6933fd530c1810d3ea",
+        "received_at": "2026-09-26T23:01:50.881059+00:00",
+        "generated_at": "2026-09-26T11:46:06.426859+00:00",
+        "extracted_observations": 8,
+        "eligibility_reasons": [],
+        "unsupported_identity_count": 0
+      }
+    ]
+  },
+  "live_assets": {
+    "commit": "a0d967371985b7ea9764c8b681134385f9b6a321",
+    "served_descendant": "a0d967371985b7ea9764c8b681134385f9b6a321",
+    "checked_at": "2026-09-26T23:06:39.241258+00:00",
+    "registry_hash": "d906db923f80cae8efcac91757e09b5cb20d5af36198083d0e7bfd27fb1f5aef",
+    "assets": {
+      "signal-scorecard.html": {
+        "bytes": 17367,
+        "sha256": "19e921cbd568820d3b5ac22ac2648ae163aba9b165666a6446c5114ac95b1734",
+        "matches_commit_manifest": true
+      },
+      "jh-prospective-research.js": {
+        "bytes": 10345,
+        "sha256": "fd67d64173af528d1cbe1c4d3c62bed25b23073acb39b141a46d072cf4238ed4",
+        "matches_commit_manifest": true
+      },
+      "global-sovereign.html": {
+        "bytes": 16311,
+        "sha256": "cf9fcad15e73f9a9bed09f9b274ff2f5ce2c6b2adebd08b628c78c700ef23167",
+        "matches_commit_manifest": true
+      },
+      "jh-sovereign-review.js": {
+        "bytes": 13205,
+        "sha256": "b2df4f67842cde80e988f5089b231f72904ef40de1c41a3440f48e7d3b3a6b9e",
+        "matches_commit_manifest": true
+      },
+      "config/global-sovereign-universe.json": {
+        "bytes": 4509,
+        "sha256": "1bbf832bbb92b7fc16552dd8a4fa37e1d71b544df31acfe2d88e2f7f30d8d85c",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1335227,
+        "sha256": "8401b30782649c12ab73c396b5134ca442e60c154dd10b941f86ac1c2e31e59b",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328666,
+        "sha256": "d906db923f80cae8efcac91757e09b5cb20d5af36198083d0e7bfd27fb1f5aef",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "natural_publication": {
+    "generated_at": "2026-09-26T23:11:06.023790+00:00",
+    "capture": {
+      "key": "data/research-forecasts/captures/93aa2808e54004d20f43d7c8d52bf66000f73c3cf8ceea5356ceb1ab703b0511.json",
+      "sha256": "93aa2808e54004d20f43d7c8d52bf66000f73c3cf8ceea5356ceb1ab703b0511"
+    },
+    "capture_bytes": 475344,
+    "source_read_policy": {
+      "compression": "identity or one complete gzip member; declared encoding and magic must agree when declared",
+      "contract": "research-source-read.v1",
+      "decoded_byte_limit": 33554432,
+      "reader_sha256": "5da171689574f41573207e12e82dd6abffed92d0a300ce2a3078db6e5ae210f2",
+      "source_hash_basis": "complete_stored_representation",
+      "stored_byte_limit": 33554432
+    },
+    "coverage": {
+      "candidate_scan_complete": true,
+      "candidate_sources": 887,
+      "source_read_failures": [],
+      "sources_scanned": 887
+    },
+    "records": 91,
+    "new_records": 8,
+    "rank_observations": 1426,
+    "ineligible_sources": 74,
+    "unsupported_identity_count": 34
+  },
+  "browser": {
+    "build": "a0d967371985b7ea9764c8b681134385f9b6a321",
+    "complete_capture_and_evaluation_bodies_hash_checked": true,
+    "capture_records": 91,
+    "scan_complete": true,
+    "evaluated_forecasts": 100,
+    "pending_windows": 200,
+    "measured_windows": 0,
+    "javascript_errors": 0,
+    "document_width": 1270,
+    "scroll_width": 1270
+  },
+  "remaining_scope": "S3 registration-clock reconciliation follows in operation 6181. No original-model or investment qualification."
+}
