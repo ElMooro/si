@@ -4487,30 +4487,33 @@
     bindSsRows(dest);
     bindFacets();
   }
-  function numish(x){ if(x==null) return null; if(typeof x==="number") return x; if(typeof x==="object" && x.raw!=null) return x.raw; var n=Number(x); return isFinite(n)?n:null; }
+  function numish(x){ if(typeof x==="number") return Number.isFinite(x)?x:null; if(x&&typeof x==="object"&&x.raw!=null) return numish(x.raw); if(typeof x!=="string"||!x.trim()) return null; var n=Number(x); return Number.isFinite(n)?n:null; }
+  function firstNumber(a,b){var n=numish(a);return n==null?numish(b):n;}
   function fmtBig(n){ if(n==null) return "—"; var a=Math.abs(n); if(a>=1e12) return (n/1e12).toFixed(2)+"T"; if(a>=1e9) return (n/1e9).toFixed(2)+"B"; if(a>=1e6) return (n/1e6).toFixed(2)+"M"; return fmt(n); }
   function renderFin(){
     var el=document.getElementById("fin"); if(!el) return;
+    var wanted=active;
     function paint(j){
+      if(active!==wanted) return;
       var p=j.price||{}, sd=j.summaryDetail||{}, ks=j.defaultKeyStatistics||{}, fd=j.financialData||{};
       var rows=[
         ["Name", p.shortName||p.longName||active],
         ["Exchange", p.exchangeName||"—"],
-        ["Mkt cap", fmtBig(numish(p.marketCap)||numish(sd.marketCap))],
-        ["P/E", fmt(numish(sd.trailingPE)||numish(ks.trailingPE))],
-        ["Fwd P/E", fmt(numish(sd.forwardPE)||numish(ks.forwardPE))],
-        ["EPS", fmt(numish(ks.trailingEps)||numish(fd.trailingEps))],
+        ["Mkt cap", fmtBig(firstNumber(p.marketCap,sd.marketCap))],
+        ["P/E", fmt(firstNumber(sd.trailingPE,ks.trailingPE))],
+        ["Fwd P/E", fmt(firstNumber(sd.forwardPE,ks.forwardPE))],
+        ["EPS", fmt(firstNumber(ks.trailingEps,fd.trailingEps))],
         ["Div yld", numish(sd.dividendYield)!=null?(numish(sd.dividendYield)*100).toFixed(2)+"%":"—"],
         ["Beta", fmt(numish(ks.beta))],
-        ["52w high", fmt(numish(sd.fiftyTwoWeekHigh)||numish(p.fiftyTwoWeekHigh))],
-        ["52w low", fmt(numish(sd.fiftyTwoWeekLow)||numish(p.fiftyTwoWeekLow))],
+        ["52w high", fmt(firstNumber(sd.fiftyTwoWeekHigh,p.fiftyTwoWeekHigh))],
+        ["52w low", fmt(firstNumber(sd.fiftyTwoWeekLow,p.fiftyTwoWeekLow))],
         ["Avg vol", fmtBig(numish(sd.averageVolume))],
         ["Target", fmt(numish(fd.targetMeanPrice))],
         ["Margin", numish(fd.profitMargins)!=null?(numish(fd.profitMargins)*100).toFixed(1)+"%":"—"]
       ];
       var inc=((j.incomeStatementHistory||{}).incomeStatementHistory)||[];
-      var incHtml=inc.slice(0,4).map(function(y){ return "<div class=cell><span>"+String(y.endDate&&y.endDate.fmt||"").slice(0,10)+"</span><span>Rev "+fmtBig(numish(y.totalRevenue))+" · NI "+fmtBig(numish(y.netIncome))+"</span></div>"; }).join("");
-      el.innerHTML="<b>KEY STATS · "+active+"</b><div class=fin-grid>"+rows.map(function(r){ return "<div class=cell><span>"+r[0]+"</span><span>"+r[1]+"</span></div>"; }).join("")+"</div>"+(incHtml?"<b style=display:block;margin-top:8px>INCOME STATEMENT</b>"+incHtml:"")+"<div class=cell style=color:var(--mut);font-size:10px>Yahoo fundamentals · delayed · not advice</div>";
+      var incHtml=inc.slice(0,4).map(function(y){ return "<div class=cell><span>"+escHtml(String(y.endDate&&y.endDate.fmt||"").slice(0,10))+"</span><span>Rev "+fmtBig(numish(y.totalRevenue))+" · NI "+fmtBig(numish(y.netIncome))+"</span></div>"; }).join("");
+      el.innerHTML="<b>KEY STATS · "+escHtml(wanted)+"</b><div class=fin-grid>"+rows.map(function(r){ return "<div class=cell><span>"+escHtml(r[0])+"</span><span>"+escHtml(r[1])+"</span></div>"; }).join("")+"</div>"+(incHtml?"<b style=display:block;margin-top:8px>INCOME STATEMENT</b>"+incHtml:"")+"<div class=cell style=color:var(--mut);font-size:10px>Yahoo fundamentals · delayed · not advice</div>";
     }
     var cached=finCache[active]||finCache[bare(active)];
     if(cached && cached.ok){ paint(cached); return; }
@@ -4520,52 +4523,75 @@
     finCache["_f"+active]=1;
     fetch("/api/yahoo-fund?ticker="+encodeURIComponent(bare(active).replace("USDT",""))).then(function(r){ return r.json(); }).then(function(j){
       if(!j||!j.ok) return;
-      finCache[active]=j;
+      finCache[wanted]=j;
+      if(active!==wanted) return;
       paint(j);
       renderDetail();
     }).catch(function(){});
   }
+  function identifiedDetailBars(){
+    var e=barEvidence.get(lastBars);
+    return e&&e.symbol===active&&e.interval===tf?lastBars:[];
+  }
+  function detailBarRanges(d,now){
+    if(!Array.isArray(d)||!d.length) return null;
+    now=now==null?Date.now():now;
+    if(typeof now!=="number"||!Number.isFinite(now)) return null;
+    var previous=-Infinity;
+    for(var i=0;i<d.length;i++){
+      var b=d[i];
+      if(!b||!Number.isInteger(b.time)||!Number.isFinite(b.time*1000)||b.time*1000>now||Math.abs(b.time*1000)>8640000000000000||b.time<=previous) return null;
+      if(![b.open,b.high,b.low,b.close].every(function(x){return typeof x==="number"&&Number.isFinite(x);})||b.low>Math.min(b.open,b.close)||b.high<Math.max(b.open,b.close)||b.low>b.high||!Number.isFinite(b.high-b.low)) return null;
+      previous=b.time;
+    }
+    var last=d[d.length-1],window=d.filter(function(b){return b.time>=last.time-365*86400;});
+    var low=Infinity,high=-Infinity;
+    window.forEach(function(b){low=Math.min(low,b.low);high=Math.max(high,b.high);});
+    if(!Number.isFinite(high-low)) return null;
+    return {last:last,previous:d.length>1?d[d.length-2]:null,low:low,high:high,rows:window.length,
+      start:new Date(window[0].time*1000).toISOString(),end:new Date(last.time*1000).toISOString()};
+  }
   function fillFinFromBars(el){
-    if(!lastBars.length) return;
-    var d=lastBars, last=d[d.length-1];
-    var hi=-1e99, lo=1e99, i, vol=0, n=0;
-    for(i=Math.max(0,d.length-252);i<d.length;i++){ if(d[i].high>hi) hi=d[i].high; if(d[i].low<lo) lo=d[i].low; vol+=d[i].volume||0; n++; }
-    el.innerHTML="<b>KEY STATS · "+active+"</b>"+
-      "<div class=cell><span>Last</span><span>"+fmt(last.close)+"</span></div>"+
-      "<div class=cell><span>52w range</span><span>"+fmt(lo)+" – "+fmt(hi)+"</span></div>"+
-      "<div class=cell><span>Avg vol</span><span>"+fmtVol(n?vol/n:0)+"</span></div>"+
-      "<div class=cell style=color:var(--mut)>Waiting on Yahoo quoteSummary…</div>";
+    var d=identifiedDetailBars(),r=detailBarRanges(d);
+    if(!r) return;
+    var sample=d.slice(-252),valid=sample.every(function(b){return typeof b.volume==="number"&&Number.isFinite(b.volume)&&b.volume>=0;}),sum=sample.reduce(function(a,b){return a+b.volume;},0);
+    var avg=valid&&Number.isFinite(sum)?sum/sample.length:null;
+    el.innerHTML="<b>KEY STATS · "+escHtml(active)+"</b>"+
+      "<div class=cell><span>Last retained close</span><span>"+fmt(r.last.close)+"</span></div>"+
+      "<div class=cell><span>Retained bars dated within trailing 365 days</span><span>"+fmt(r.low)+" – "+fmt(r.high)+"</span></div>"+
+      "<div class=cell><span>Reported volume mean · last "+sample.length+" bars</span><span>"+(avg==null?"Unavailable":fmtVol(avg))+"</span></div>"+
+      "<div class=cell style=color:var(--mut)>"+escHtml(r.start)+" → "+escHtml(r.end)+" · "+r.rows+" bars · "+escHtml(tf)+". Volume units and adjustment basis unverified; awaiting separate fundamentals.</div>";
   }
   function renderDetail(){
     var el=document.getElementById("detail"); if(!el) return;
     el.classList.add("tvcard");
-    var q=quotes[active]||quotes[bare(active)]||{};
-    var last=lastBars.length?lastBars[lastBars.length-1]:null;
-    var prev=lastBars.length>1?lastBars[lastBars.length-2]:last;
-    var px=last?last.close:q.last;
-    var ch=q.chg, chgv=q.chgv;
+    var wanted=active,range=detailBarRanges(identifiedDetailBars());
+    var last=range?range.last:null,prev=range?range.previous:null;
+    var px=last?last.close:null;
+    var ch=null,chgv=null;
     if(last && prev && prev.close){ ch=(last.close-prev.close)/prev.close; chgv=last.close-prev.close; }
-    var hi=-1e99, lo=1e99, yhi=-1e99, ylo=1e99, i, t52=(last?last.time:0)-365*86400;
-    for(i=0;i<lastBars.length;i++){
-      if(lastBars[i].high>hi) hi=lastBars[i].high; if(lastBars[i].low<lo) lo=lastBars[i].low;
-      if(lastBars[i].time>=t52){ if(lastBars[i].high>yhi) yhi=lastBars[i].high; if(lastBars[i].low<ylo) ylo=lastBars[i].low; }
-    }
-    if(!isFinite(yhi)||yhi<-1e90){ yhi=hi; ylo=lo; }
-    var dayHi=last?last.high:hi, dayLo=last?last.low:lo;
-    var dp=dayHi>dayLo&&px!=null? ((px-dayLo)/(dayHi-dayLo))*100 : 50;
-    var yp=yhi>ylo&&px!=null? ((px-ylo)/(yhi-ylo))*100 : 50;
+    if(!Number.isFinite(ch)||!Number.isFinite(chgv)){ch=null;chgv=null;}
+    var yhi=range?range.high:null,ylo=range?range.low:null;
+    var dayHi=last?last.high:null,dayLo=last?last.low:null;
+    var dp=dayHi>dayLo&&px!=null? Math.min(100,Math.max(0,((px-dayLo)/(dayHi-dayLo))*100)) : 50;
+    var yp=yhi>ylo&&px!=null? Math.min(100,Math.max(0,((px-ylo)/(yhi-ylo))*100)) : 50;
     var fin=finCache[active]||finCache[bare(active)]||{};
     var p=fin.price||{}, name=p.shortName||p.longName||active;
     var ex=(p.exchangeName||classifySym(active).toUpperCase());
-    var n1=(news||[]).filter(function(n){ var t=bare(active); return String(n.ticker||"").indexOf(t)>=0 || String(n.title||"").toUpperCase().indexOf(t)>=0; })[0]||news[0];
+    var n1=(news||[]).filter(function(n){
+      if(!n||typeof n!=="object") return false;
+      var symbols=Array.isArray(n.tickers)?n.tickers:String(n.ticker||n.symbol||"").split(/[\s,;|]+/);
+      return symbols.some(function(s){return bare(String(s)).toUpperCase()===bare(active).toUpperCase();});
+    })[0];
     var up=ch==null||ch>=0;
-    el.innerHTML="<div class=nm>"+name+"</div><div class=ex>"+active+" · "+ex+"</div>"+
+    el.innerHTML="<div class=nm>"+escHtml(name)+"</div><div class=ex>"+escHtml(active)+" · "+escHtml(ex)+"</div>"+
       "<div class=px style=color:"+(up?UP:DN)+">"+(px!=null?fmt(px):"—")+" <span style=font-size:13px>"+(ch!=null?((ch>=0?"+":"")+fmt(chgv)+" ("+(ch*100).toFixed(2)+"%)"):"")+"</span></div>"+
-      "<div class=rg-lab><span>DAY'S RANGE</span><span>"+(isFinite(dayLo)?fmt(dayLo):"—")+" – "+(isFinite(dayHi)?fmt(dayHi):"—")+"</span></div>"+
-      "<div class=rg><i style='width:"+dp+"%'></i><b style='left:"+dp+"%'></b></div>"+
-      "<div class=rg-lab><span>52-WEEK RANGE</span><span>"+(isFinite(ylo)?fmt(ylo):"—")+" – "+(isFinite(yhi)?fmt(yhi):"—")+"</span></div>"+
-      "<div class=rg><i style='width:"+yp+"%'></i><b style='left:"+yp+"%'></b></div>"+
-      (n1?"<div class=news>"+(n1.title||"")+"<div style=color:var(--mut);margin-top:4px;font-size:10px>"+String(n1.source||"")+" · "+String(n1.date||n1.published||"").slice(0,16)+"</div></div>":"")+
+      (range?"<div class=cell style=font-size:10px>Retained bar timestamp: "+escHtml(range.end.replace('T',' ').replace('.000Z',' UTC'))+"</div>":"")+
+      "<div class=rg-lab><span>LATEST BAR RANGE · "+escHtml(tf)+"</span><span>"+(last?fmt(dayLo)+" – "+fmt(dayHi):"Unavailable")+"</span></div>"+
+      (last?"<div class=rg><i style='width:"+dp+"%'></i><b style='left:"+dp+"%'></b></div>":"")+
+      "<div class=rg-lab><span>RETAINED BARS DATED WITHIN TRAILING 365 DAYS</span><span>"+(range?fmt(ylo)+" – "+fmt(yhi):"Unavailable")+"</span></div>"+
+      (range?"<div class=rg><i style='width:"+yp+"%'></i><b style='left:"+yp+"%'></b></div><div class=cell>"+escHtml(range.start)+" → "+escHtml(range.end)+" · "+range.rows+" retained bars. Change compares the previous retained bar; not a session or completeness claim.</div>":"<div class=cell>No matching valid dated chart frame. Earlier ticker values are withheld.</div>")+
+      (n1?"<div class=news>"+escHtml(n1.title||"")+"<div style=color:var(--mut);margin-top:4px;font-size:10px>"+escHtml(String(n1.source||""))+" · "+escHtml(String(n1.date||n1.published||"").slice(0,16))+"</div></div>":"")+
       "<div class=jumps>"+
         "<button type=button data-d=fin>Financials</button>"+
         "<button type=button data-d=over>Overview</button>"+
@@ -4578,7 +4604,7 @@
     if(!finCache[active] && !finCache["_p"+active]){
       finCache["_p"+active]=1;
       fetch("/api/yahoo-fund?ticker="+encodeURIComponent(bare(active).replace("USDT",""))).then(function(r){ return r.json(); }).then(function(j){
-        if(j&&j.ok){ finCache[active]=j; renderDetail(); }
+        if(j&&j.ok){ finCache[wanted]=j; if(active===wanted) renderDetail(); }
       }).catch(function(){});
     }
   }
