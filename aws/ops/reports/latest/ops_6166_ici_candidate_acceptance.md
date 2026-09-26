@@ -1,0 +1,14 @@
+
+**Status:** success  
+**Duration:** 3.8s  
+**Finished:** 2026-09-26T19:09:49+00:00  
+
+## Data
+
+| account_reads | all_denied | anonymous_origins_checked | attempt_outcome_counts | baseline_manifest | candidate | candidate_only | checks | failures | flow_latest | forecast_qualified | history_writes | independent_proof | mmf_latest | native_invocations | notifications_sent | protected_paths_checked | provider_requests | public_writes | schedules_changed | scope | source_dates | source_release_vintages_verified | source_table_structure |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | {'mmf': [{'table_index': 0, 'rows': 13, 'widths': [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], 'header': ['', '9/23/2026', '9/16/2026', '$ Change*', '9/9/2026'], 'row_labels': ['Government', 'Retail', 'Institutional', 'Prime', 'Retail', 'Institutional', 'Tax-exempt', 'Retail', 'Institutional', 'Total', 'Retail', 'Institutional']}], 'combined_flows': [{'table_index': 0, 'rows': 10, 'widths': [6, 6, 6, 6, 6, 6, 6, 6, 6, 6], 'header': ['', '9/16/2026', '9/9/2026', '9/2/2026', '8/26/2026', '8/19/2026'], 'row_labels': ['Equity', 'Domestic', 'World', 'Hybrid', 'Bond', 'Taxable', 'Municipal', 'Commodity', 'Total']}]} |
+| 0 | True | 4 | {'404': 2, '403': 2} | 16f1ae5e41fc156ed4c09c61e2acb5e170c3ebaa2d615103c0bbbe031c0755c2 | {'key': 'audit-private/20260909-originals/ici-research/6ab3385f91028bb20a90cb95142b22891cbb8bc5431ede566f59bb10f8131217.bin', 'sha256': '6ab3385f91028bb20a90cb95142b22891cbb8bc5431ede566f59bb10f8131217', 'bytes': 30605} | True | {'whole_original_bytes': 712696, 'observation_checks': 81, 'reported_change_checks': 12, 'independent_rational_reconciliations': 48, 'reconciliation_issues': 0, 'original_release_vintages_verified': False, 'forecast_qualified': False} | [] | {'date': '2026-09-16', 'total_w_m': -10098.0, 'equity_4w_m': -46564.0} | False | 0 | {'key': 'audit-private/20260909-originals/ici-research/20d84953eaeee87663870dca9728f73972b3050c833436eed1cef0380c2f8b66.bin', 'sha256': '20d84953eaeee87663870dca9728f73972b3050c833436eed1cef0380c2f8b66', 'bytes': 221} | {'date': '2026-09-23', 'total_b': 7936.48, 'wow_b': 15.0, 'govt_b': 6530.98, 'prime_b': 1251.42, 'tax_exempt_b': 154.08} | 0 | 0 | 2 | 0 | 0 | 0 | Complete retained-release parsing and independent arithmetic. No engine migration or native publication is performed. | {'mmf': {'release_date': '2026-09-24', 'observation_dates': ['2026-09-09', '2026-09-16', '2026-09-23'], 'unit': 'usd_bn'}, 'combined_flows': {'release_date': '2026-09-23', 'observation_dates': ['2026-08-19', '2026-08-26', '2026-09-02', '2026-09-09', '2026-09-16'], 'unit': 'usd_mn'}} | False |  |
+
+## Log
+
