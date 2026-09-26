@@ -368,6 +368,7 @@
 <script src="/liquidity-credit.js?v=20260925research" defer></script>
 <link rel="stylesheet" href="/assets/liquidity-research.css?v=20260925">
 <script src="/jh-liquidity-research.js?v=20260925" defer></script>
+<script src="/jh-liquidity-legacy-quality.js?v=20260926"></script>
 </head>
 <body>
 
@@ -401,13 +402,14 @@
   <p>BALANCE-SHEET PROXY · FED ASSETS − TGA − RRP · OBSERVATIONS AND DATES</p>
   <div class="header-meta">
     <span>FORMULA: <span class="val">Fed BS − Treasury TGA − Fed RRP = Net Liquidity</span></span>
-    <span>UPDATE: <span class="val" id="last-updated">Loading...</span></span>
+    <span>AGENT SNAPSHOT: <span class="val" id="last-updated">Loading...</span></span>
     <span>SOURCE: <span class="val">FRED / St. Louis Fed</span></span>
   </div>
 </div>
 
 <div class="container">
   <div id="error-banner" class="error-banner">⚠ Error loading liquidity data. Retrying...</div>
+  <aside id="liquidity-agent-status" class="liquidity-reading-note" role="status">Checking the observation snapshot…</aside>
 
   <!-- Hero Net Liquidity -->
   <div class="hero-card" id="hero-card">
@@ -607,7 +609,7 @@
 
   <div class="status-row">
     <div class="status-dot"></div>
-    <span>Data from Federal Reserve Economic Data (FRED) · Updated daily 7:30 AM ET</span>
+    <span>FRED observations · Charts retain their displayed snapshot dates</span>
     <span style="margin-left:auto;color:var(--text3)" id="footer-ts">—</span>
   </div>
 </div>
@@ -795,15 +797,20 @@ function renderNetLiqChart(elId, net_liq, fed_bs, tga, rrp) {
   window.addEventListener('resize', () => chart.resize());
 }
 
+let lastAgentPacket = null;
+let lastAgentUsable = null;
 function render(data) {
-  const published = Date.parse(data.quality?.publication_date || data.meta?.generated_at);
-  const usable = data.quality?.status === 'fresh' && Number.isFinite(published) && published <= Date.now()+300000 && Date.now()-published <= 48*3600000;
-  if (!usable) {
-    data = {...data, core: {...(data.core || {}), net_liquidity: {value_bn: null, score: null, label: 'UNAVAILABLE'}},
-      regime: {trend: 'UNKNOWN', structure: 'UNKNOWN', delta_4w_bn: null, delta_13w_bn: null},
-      spy_signal: {direction: null, confidence: null, basis: 'Required data unavailable or stale.'},
-      components: {tga_analysis: {signal:'UNKNOWN'}, rrp_analysis: {signal:'UNKNOWN'}}};
-  }
+  lastAgentPacket = data;
+  const projection = JHLiquidityLegacyQuality.project(data);
+  const {usable, published_at} = projection.quality;
+  lastAgentUsable = usable;
+  data = projection.view;
+  const snapshotStatus = document.getElementById('liquidity-agent-status');
+  if (snapshotStatus) snapshotStatus.textContent = (usable
+    ? 'Earlier agent measurements · heuristic scores and directional calls remain unvalidated. '
+    : 'Current agent measurements unavailable · all current tiles and tables below are withheld. Charts retain the earlier snapshot. ')
+    + (published_at ? 'Snapshot generated '+published_at+'. ' : 'Publication time is unknown. ')
+    + 'The source calculation above has its own observation and acquisition dates.';
   try { renderCatalog(usable ? (data.catalog || {}) : {}); } catch(e){ console.error('catalog render', e); }
   try { renderPart4(usable ? (data.part4 || {}) : {}); } catch(e){ console.error("part4",e); }
   const core    = data.core    || {};
@@ -822,9 +829,9 @@ function render(data) {
   const charts  = data.chart_data || {};
 
   // Last updated
-  const genAt = data.meta && data.meta.generated_at ? new Date(data.meta.generated_at) : new Date();
-  setEl('last-updated', genAt.toLocaleString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}));
-  setEl('footer-ts', `Generated ${genAt.toISOString().replace('T',' ').substring(0,19)} UTC`);
+  const genAt = published_at ? new Date(published_at) : null;
+  setEl('last-updated', genAt ? genAt.toLocaleString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}) : 'Unknown');
+  setEl('footer-ts', genAt ? `Snapshot generated ${genAt.toISOString().replace('T',' ').substring(0,19)} UTC` : 'Publication time unknown');
 
   // Hero
   const nlVal = nl.value_bn == null ? null : Number(nl.value_bn);
@@ -846,7 +853,7 @@ function render(data) {
   const score = nl.score == null ? null : Number(nl.score);
   const arc = document.getElementById('score-arc');
   if (arc) {
-    const scoreColor = score >= 60 ? COLOR_GREEN : score >= 45 ? COLOR_YELLOW : COLOR_RED;
+    const scoreColor = score == null ? COLOR_TEXT2 : score >= 60 ? COLOR_GREEN : score >= 45 ? COLOR_YELLOW : COLOR_RED;
     arc.style.stroke = scoreColor;
     const circumference = 314;
     const offset = circumference - (score / 100) * circumference;
@@ -861,8 +868,8 @@ function render(data) {
   setEl('stat-4w', !Number.isFinite(d4w) ? '—' : `<span style="color:${d4w>=0?COLOR_GREEN:COLOR_RED}">${d4w>=0?'+':''}${fmt(d4w,1)}B</span>`);
   setEl('stat-13w', !Number.isFinite(d13w) ? '—' : `<span style="color:${d13w>=0?COLOR_GREEN:COLOR_RED}">${d13w>=0?'+':''}${fmt(d13w,1)}B</span>`);
   setEl('stat-structure', (regime.structure || '—').replace(/_/g,' '));
-  setEl('stat-curve', `<span style="color:${yields.curve_status==='INVERTED'?COLOR_RED:COLOR_GREEN}">${yields.curve_status||'—'}</span>`);
-  setEl('stat-sofr', funding.sofr ? fmt(funding.sofr,2)+'%' : '—');
+  setEl('stat-curve', `<span style="color:${!yields.curve_status?COLOR_TEXT2:yields.curve_status==='INVERTED'?COLOR_RED:COLOR_GREEN}">${esc(yields.curve_status||'—')}</span>`);
+  setEl('stat-sofr', funding.sofr != null ? fmt(funding.sofr,2)+'%' : '—');
 
   // Regime banner
   const banner = document.getElementById('regime-banner');
@@ -916,7 +923,7 @@ function render(data) {
 
   // Money supply table
   const moneyRows = [
-    ['M2 Money Supply', fmtB(money.m2_bn), money.date],
+    ['M2 Money Supply', fmtB(money.m2_bn), esc(money.date || '—')],
     ['M1 Money Supply', fmtB(money.m1_bn), ''],
     ['Monetary Base',   fmtB(money.monetary_base), ''],
     ['M2 YoY Growth',  money.m2_yoy_pct != null ? `${fmt(money.m2_yoy_pct,2)}%` : '—', ''],
@@ -930,7 +937,7 @@ function render(data) {
 
   // Dollar table
   const dollarRows = [
-    ['Broad DXY Proxy',  fmt(dollar.broad_index,2),  dollar.trend_4w_pct != null ? `${fmt(dollar.trend_4w_pct,2)}% 4w` : '—'],
+    ['Fed Broad USD Index',  fmt(dollar.broad_index,2),  dollar.trend_4w_pct != null ? `${fmt(dollar.trend_4w_pct,2)}% 4w` : '—'],
     ['vs Advanced Econ', fmt(dollar.advanced_econ,2), ''],
     ['vs Emerging Mkt',  fmt(dollar.emerging_mkt,2),  ''],
   ];
@@ -1004,7 +1011,7 @@ async function loadData() {
 // SLOOS, stress indices, dollar pairs, Fed holdings. Value + 5y z + percentile.
 const CAT_META = {
   credit:        {title:"Credit — ICE BofA OAS Ladder", unit:"bp",  desc:"IG rating cuts, sector OAS, HY BB/B/CCC, EM & Euro HY. HY OAS is the cleanest canary."},
-  yields:        {title:"Rates & Real Yields — Valuation Anchor", unit:"%", desc:"TIPS real yields, breakevens, 5y5y forward, ACM term premium, curve."},
+  yields:        {title:"Rates & Real Yields — Valuation Anchor", unit:"%", desc:"TIPS real yields, breakevens, 5y5y forward, Kim-Wright term premium, curve."},
   stress:        {title:"Financial Stress & Bank Lending (SLOOS)", unit:"", desc:"NFCI/ANFCI, STLFSI, OFR FSI, and SLOOS tightening standards."},
   dollar:        {title:"Dollar Complex", unit:"", desc:"Broad USD, AFE/EME, and bilateral pairs (EUR/JPY/CNY/KRW/BRL)."},
   soma:          {title:"Fed Securities Held (H.4.1 / SOMA)", unit:"B USD", desc:"Treasury maturity/type ladder, TIPS, bills, agency, MBS."},
@@ -1104,6 +1111,9 @@ function renderPart4(p4){
 }
 
 loadData();
+setInterval(() => {
+  if (lastAgentPacket && JHLiquidityLegacyQuality.assess(lastAgentPacket).usable !== lastAgentUsable) render(lastAgentPacket);
+}, 60000);
 // Auto-refresh every 10 minutes
 setInterval(loadData, 600000);
 </script>
