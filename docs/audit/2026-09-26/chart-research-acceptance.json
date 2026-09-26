@@ -1,0 +1,64 @@
+{
+  "commit": "efe1accfd5b71dbaaf0c58940f8d7d8a4c31a3de",
+  "served_descendant": "e8dd6fc57da617aa5d1efcbb5518f1b2ade5339f",
+  "intended_chart_bytes_unchanged": true,
+  "checked_at": "2026-09-26T17:13:13.090013+00:00",
+  "assets": {
+    "chart.html": {
+      "bytes": 51845,
+      "sha256": "0ce86763c8c0f5b396b54720fab20bf23230e28557e7813ac27fe94a913babf5",
+      "matches_commit_manifest": true
+    },
+    "jh-chart-engine.js": {
+      "bytes": 351084,
+      "sha256": "4801bc052fe8541e680a87bc6e97795e81245363da50d9aea8d4e157ed6c09f4",
+      "matches_commit_manifest": true
+    },
+    "jh-stock-desk-research.js": {
+      "bytes": 7080,
+      "sha256": "405076c7dd5e5cf962a7f949c6948f32dd6597e8a9959583fcd0575a4ed9609f",
+      "matches_commit_manifest": true
+    },
+    "jh-chart-stock-desk.js": {
+      "bytes": 8433,
+      "sha256": "6f4cbc0e23f1d62ad299932ba652e27bd96b151c301871bbbf56c0b9ca5fcc06",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2207505,
+      "sha256": "14ad8a294c5e637ea094c6804798c11120de8256048119e74ddefe6f6248dd58",
+      "matches_commit_manifest": true
+    }
+  },
+  "frontend_tests_passed": 1296,
+  "deployment_static_passed": 441,
+  "candidate_shell_passed": 12,
+  "focused_chart_regressions": 14,
+  "pages_run": 36257870582,
+  "page_gate_run": 36257870591,
+  "browser": {
+    "page": "https://justhodl.ai/chart.html",
+    "symbol": "SPY",
+    "retained_chart_bars": 8469,
+    "last_observation": "2026-09-25",
+    "complete_pairs": 2112,
+    "bollinger_windows": 8450,
+    "pair_disclosure_open": true,
+    "first_page_rows": 25,
+    "document_width": 1280,
+    "viewport_width": 1280,
+    "console_errors": 0,
+    "preview_second_ticker": {
+      "symbol": "QQQ",
+      "retained_chart_bars": 6918,
+      "last_observation": "2026-09-10",
+      "complete_pairs": 1191
+    }
+  },
+  "limitations": [
+    "retained chart frame only",
+    "original provider replay unverified",
+    "upstream transformations and volume defaults unverified",
+    "no forecast, Calls or sizing qualification"
+  ]
+}

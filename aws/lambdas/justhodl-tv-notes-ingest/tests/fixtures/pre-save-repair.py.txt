@@ -142,60 +142,27 @@ def _norm(raw):
 
 
 
-def _description_object(pairs):
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("Ambiguous stored description document")
-        result[key] = value
-    return result
-
-
-def _description_constant(value):
-    raise ValueError("Nonfinite value in stored description document")
-
-
 def _save_descs(descs):
-    """Accrete descriptions without replacing unreadable or concurrently updated data."""
+    """Accrete symbol -> description. Additive: never drops a known one."""
     if not descs or not isinstance(descs, dict):
         return 0
     key = "data/tv-descriptions.json"
-    for attempt in range(3):
-        try:
-            response = S3.get_object(Bucket=BUCKET, Key=key)
-            cur = json.loads(response["Body"].read(), object_pairs_hook=_description_object,
-                             parse_constant=_description_constant)
-            if not isinstance(cur, dict) or not isinstance(cur.get("descriptions"), dict):
-                raise ValueError("Invalid existing description document")
-            etag = response.get("ETag")
-            if not isinstance(etag, str) or not etag:
-                raise ValueError("Existing description version is unavailable")
-            condition = {"IfMatch": etag}
-        except Exception as error:
-            code = str(getattr(error, "response", {}).get("Error", {}).get("Code"))
-            if code not in ("NoSuchKey", "404"):
-                raise
-            cur = {"descriptions": {}}
-            condition = {"IfNoneMatch": "*"}
-        merged = dict(cur["descriptions"])
-        before = len(merged)
-        for name, value in descs.items():
-            if isinstance(name, str) and name and isinstance(value, str) and value and name not in merged:
-                merged[name] = value
-        if len(merged) == before:
-            return 0
-        doc = {**cur, "generated_at": datetime.now(timezone.utc).isoformat(),
-               "n": len(merged), "descriptions": merged}
-        try:
-            S3.put_object(Bucket=BUCKET, Key=key, **condition,
-                          Body=json.dumps(doc, ensure_ascii=False, allow_nan=False).encode("utf-8"),
-                          ContentType="application/json", CacheControl="max-age=300")
-            return len(merged) - before
-        except Exception as error:
-            code = str(getattr(error, "response", {}).get("Error", {}).get("Code"))
-            if code not in ("PreconditionFailed", "ConditionalRequestConflict", "412", "409"):
-                raise
-    raise RuntimeError("Description version conflict; no unconditional overwrite attempted")
+    try:
+        cur = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        m = cur.get("descriptions") or {}
+    except Exception:
+        m = {}
+    before = len(m)
+    for k, v in descs.items():
+        if isinstance(v, str) and v and k not in m:
+            m[k] = v
+    s3.put_object(Bucket=BUCKET, Key=key,
+                  Body=json.dumps({"generated_at":
+                                   datetime.now(timezone.utc).isoformat(),
+                                   "n": len(m), "descriptions": m}),
+                  ContentType="application/json", CacheControl="max-age=300")
+    print(f"[ingest] descriptions {before} -> {len(m)}")
+    return len(m) - before
 
 
 def _save_sources(sources, diag=None):
@@ -451,33 +418,10 @@ def lambda_handler(event, context):
         req = json.loads(body)
     except Exception:
         return _resp(400, {"ok": False, "error": "bad json"})
-    if not isinstance(req, dict):
-        return _resp(400, {"ok": False, "error": "JSON object required"})
 
     token = _ssm("/justhodl/tvnotes/ingest-token", "INGEST_TOKEN")
     if str(req.get("token") or "") != token:
         return _resp(403, {"ok": False, "error": "bad token"})
-    # Reject an oversized note batch before any auxiliary or Brain write.
-    if isinstance(req.get("notes"), list) and len(req["notes"]) > MAX_NOTES:
-        return _resp(413, {"ok": False, "error": "too many notes; split the batch", "max_notes": MAX_NOTES})
-    # Dry-run is note normalization only. It must precede UID lookup and ALL
-    # mutation paths, including bars, series, deletions and auxiliary stores.
-    if req.get("selftest"):
-        if req.get("kind") or req.get("delete_ids"):
-            return _resp(400, {"ok": False, "error": "selftest supports note normalization only", "dryrun": True})
-        raw_test = req.get("notes")
-        if not isinstance(raw_test, list) or not raw_test:
-            return _resp(400, {"ok": False, "error": "notes[] required", "dryrun": True})
-        normalized = [_norm(row) for row in raw_test]
-        test_notes = {}
-        for row in normalized:
-            if row is not None and row["id"] not in test_notes:
-                test_notes[row["id"]] = row
-        return _resp(200, {"ok": True, "dryrun": True, "would_ingest": len(test_notes),
-                           "rejected": sum(row is None for row in normalized),
-                           "sample": list(test_notes.values())[:2],
-                           "scope": "note normalization only; no storage reads or writes",
-                           "ignored_sections": [key for key in ("watchlists", "sources", "descs", "harvest_diag") if key in req]})
     uid = _ssm("/justhodl/brain/uid", "BRAIN_UID")
 
     # ── v-bars (Khalid: "TradingView has all ICE data since inception —
@@ -499,22 +443,24 @@ def lambda_handler(event, context):
         return _resp(200, _save_series(req.get("series")))
 
     wl_saved = 0
-    save_errors = []
     try:
         wl_saved = _save_watchlists(req.get("watchlists"))
     except Exception as _e:
-        save_errors.append("watchlists_save_failed")
+        print(f"[tv-ingest] watchlists save failed: {str(_e)[:120]}")
     src_saved = 0
     try:
         src_saved = _save_sources(req.get("sources"), req.get("harvest_diag"))
+        # ops4085: descriptions land in their OWN artifact. TradingView
+        # returns source=null for macro symbols but still returns a
+        # description, and that description is the join key for mapping
+        # ECONOMICS: codes onto real FRED series. Kept separate from
+        # tv-sources so a description can never be misread as attribution.
+        try:
+            _save_descs(req.get("descs"))
+        except Exception as e:
+            print(f"[ingest] descs save failed: {e}")
     except Exception as _e:
-        save_errors.append("sources_save_failed")
-    # Description metadata is independent of provider attribution.
-    desc_saved = 0
-    try:
-        desc_saved = _save_descs(req.get("descs"))
-    except Exception:
-        save_errors.append("descriptions_save_failed")
+        print(f"[tv-ingest] sources save failed: {str(_e)[:120]}")
 
     # ---- delete mode (used by ops self-test cleanup) --------------------
     if req.get("delete_ids"):
@@ -526,18 +472,16 @@ def lambda_handler(event, context):
         m["notes"] = [n for n in m["notes"] if n.get("id") not in set(ids)]
         _mirror_write(m)
         return _resp(200, {"ok": True, "deleted": ids,
-                           "mirror_removed": before - len(m["notes"]),
-                           "save_errors": save_errors, "descriptions_saved": desc_saved})
+                           "mirror_removed": before - len(m["notes"])})
 
     # ---- ingest ----------------------------------------------------------
     raw = req.get("notes") or []
     if not isinstance(raw, list) or not raw:
-        if wl_saved or src_saved or desc_saved or (isinstance(req.get("descs"), dict) and req["descs"] and "descriptions_save_failed" not in save_errors):
+        if wl_saved:
             return _resp(200, {"ok": True, "brain_upserted": 0,
                                "mirror_added": 0,
-                               "watchlists_saved": wl_saved, "sources_saved": src_saved,
-                               "descriptions_saved": desc_saved, "save_errors": save_errors})
-        return _resp(502 if save_errors else 400, {"ok": False, "error": "auxiliary save failed" if save_errors else "notes[] required", "save_errors": save_errors})
+                               "watchlists_saved": wl_saved, "sources_saved": src_saved, "sources_saved": src_saved})
+        return _resp(400, {"ok": False, "error": "notes[] required"})
     raw = raw[:MAX_NOTES]
     notes, rejected = [], 0
     for r in raw:
@@ -553,6 +497,12 @@ def lambda_handler(event, context):
             seen.add(n["id"])
             uniq.append(n)
     notes = uniq
+
+    if req.get("selftest"):
+        return _resp(200, {"ok": True, "dryrun": True,
+                           "would_ingest": len(notes),
+                           "rejected": rejected,
+                           "sample": notes[:2]})
 
     # brain upserts — PARALLEL (ops 3161: 1,983-note harvests were timing
     # out on serial writes; 8 workers keep a 200-note request well inside
@@ -598,7 +548,6 @@ def lambda_handler(event, context):
            "normalized": len(notes), "rejected": rejected,
            "brain_upserted": brain_ok, "brain_failed": brain_err,
            "watchlists_saved": wl_saved, "sources_saved": src_saved,
-           "descriptions_saved": desc_saved, "save_errors": save_errors,
            "mirror_added": added, "mirror_total": len(m["notes"])}
     print(json.dumps(out))
     return _resp(200 if out["ok"] else 502, out)
