@@ -1,0 +1,187 @@
+name: Qualify complete capital-structure source refresh
+on:
+  schedule:
+    - cron: '15 20 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+# Share the accounting collector's group: these two full-provider sweeps cannot overlap.
+concurrency:
+  group: statement-source-refresh
+  cancel-in-progress: false
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: plan complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py plan
+  part_1:
+    needs: plan
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: part-1 complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py part-1
+  part_2:
+    needs: part_1
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: part-2 complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py part-2
+  part_3:
+    needs: part_2
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: part-3 complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py part-3
+  part_4:
+    needs: part_3
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: part-4 complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py part-4
+  part_5:
+    needs: part_4
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: part-5 complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py part-5
+  part_6:
+    needs: part_5
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: part-6 complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py part-6
+  qualify:
+    needs: part_6
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 requests
+      - name: Source refresh boundary tests
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: python3 tests/test_capital_structure_refresh.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: qualify complete source population
+        run: python3 aws/ops/checks/run_capital_structure_refresh.py qualify
