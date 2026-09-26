@@ -1,13 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "b30434ee048e8106bf567eeb726dbc1b8ab57d93",
-  "observed_at": "2026-09-25T23:52:28.114776+00:00",
+  "observed_at": "2026-09-26T00:47:33.913876+00:00",
   "ok": false,
   "routes_checked": 558,
-  "verified_routes": 556,
+  "verified_routes": 557,
   "failed_routes": [
-    "chart.html",
-    "crypto-confluence.html"
+    "chart.html"
   ],
   "source_equivalent_builds": {
     "b30434ee048e8106bf567eeb726dbc1b8ab57d93": true
@@ -1148,7 +1147,7 @@
       "http_status": 200,
       "build_sha": "b30434ee048e8106bf567eeb726dbc1b8ab57d93",
       "inspector_present": true,
-      "bytes_read": 21596,
+      "bytes_read": 21573,
       "product_source_matches_release": true
     },
     {
@@ -1198,12 +1197,12 @@
     },
     {
       "route": "crypto-confluence.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "b30434ee048e8106bf567eeb726dbc1b8ab57d93",
+      "inspector_present": true,
+      "bytes_read": 12204,
+      "product_source_matches_release": true
     },
     {
       "route": "crypto-emergence.html",
@@ -1715,7 +1714,7 @@
       "http_status": 200,
       "build_sha": "b30434ee048e8106bf567eeb726dbc1b8ab57d93",
       "inspector_present": true,
-      "bytes_read": 881029,
+      "bytes_read": 881098,
       "product_source_matches_release": true
     },
     {
@@ -3308,7 +3307,7 @@
       "http_status": 200,
       "build_sha": "b30434ee048e8106bf567eeb726dbc1b8ab57d93",
       "inspector_present": true,
-      "bytes_read": 73678,
+      "bytes_read": 73655,
       "product_source_matches_release": true
     },
     {
@@ -5041,7 +5040,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36202512783,
+  "deployment_run_id": 36205959233,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-25T23:52:28.116524+00:00"
+  "check_finished_at": "2026-09-26T00:47:33.916500+00:00"
 }
