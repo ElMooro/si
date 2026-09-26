@@ -23,7 +23,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(store.puts[0]['IfNoneMatch'],'*')
         self.assertTrue(store.puts[0]['Key'].startswith(operation.baseline.PRIVATE))
         source=Path(operation.__file__).read_text(encoding='utf8')
-        self.assertLess(source.index('journal(s3,progress,True)'),source.index('old=json.loads'))
+        self.assertLess(source.index('write(progress,True)'),source.index('old=json.loads'))
+
+    def test_corrected_attempt_uses_a_distinct_durable_claim(self):
+        first,second=Store(),Store()
+        operation.journal(first,{'status':'claimed'},True)
+        operation.journal(second,{'status':'claimed'},True,'chatgpt-fifx-reviewed-definition-arithmetic-6139')
+        self.assertNotEqual(first.puts[0]['Key'],second.puts[0]['Key'])
+        self.assertEqual(second.puts[0]['IfNoneMatch'],'*')
 
     def test_complete_five_module_closure_includes_parser_and_timezones(self):
         self.assertEqual(set(operation.compiler_paths()),{'fifx_candidate.py','fifx_catalog.py','fifx_originals.py',

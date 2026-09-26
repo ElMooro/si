@@ -10,7 +10,7 @@ MAX_ACQUISITION_SECONDS = 26 * 3600
 AUTHORITY = {k: False for k in ('calls_eligible', 'sizing_eligible', 'execution_eligible',
     'forecast_qualified', 'point_in_time_backtest_qualified', 'publication_eligible')}
 FRED_UNITS = {'VIXCLS': 'Index', 'DGS10': 'Percent', 'DEXUSEU': 'U.S. Dollars to One Euro',
-    'DEXJPUS': 'Japanese Yen to One U.S. Dollar', 'DEXUSUK': 'U.S. Dollars to One British Pound',
+    'DEXJPUS': 'Japanese Yen to One U.S. Dollar', 'DEXUSUK': 'U.S. Dollars to One U.K. Pound Sterling',
     'DTWEXBGS': 'Index Jan 2006=100'}
 QUOTE_IDENTITIES = {
     '^MOVE': ('USD', 'NYS', 'America/New_York', ('ICE BofA MOVE Index',

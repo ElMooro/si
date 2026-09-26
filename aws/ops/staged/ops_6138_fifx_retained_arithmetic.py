@@ -48,11 +48,12 @@ for sid,entry in inputs['sources'].items():
 '''
 
 
-def journal(s3, progress, claim=False):
+def journal(s3, progress, claim=False, request_id=REQUEST):
     raw = baseline.encoded(progress)
-    s3.put_object(Bucket=baseline.BUCKET, Key=STATUS, Body=raw, ContentType='application/json', CacheControl='no-store',
+    key = baseline.PRIVATE+'requests/'+baseline.sha(request_id.encode())+'.json'
+    s3.put_object(Bucket=baseline.BUCKET, Key=key, Body=raw, ContentType='application/json', CacheControl='no-store',
                   **({'IfNoneMatch':'*'} if claim else {}))
-    if baseline.bounded(s3.get_object(Bucket=baseline.BUCKET, Key=STATUS)['Body']) != raw:
+    if baseline.bounded(s3.get_object(Bucket=baseline.BUCKET, Key=key)['Body']) != raw:
         raise ValueError('Qualification journal differs')
 
 
@@ -80,14 +81,16 @@ def isolated(s3, sources, definitions, compilers, stamp, expected):
         return (root/'proofs.json').read_bytes()
 
 
-def main():
+def main(request_id=REQUEST, report_name='ops_6138_fifx_retained_arithmetic'):
     import resource, time
     for name in ('test_fifx_candidate.py','test_fifx_retained_arithmetic.py'):
         subprocess.run([sys.executable,str(ROOT/'tests'/name)],cwd=ROOT,check=True)
     s3,lam,events,scheduler=(boto3.client(n,region_name='us-east-1') for n in ('s3','lambda','events','scheduler'))
-    with report('ops_6138_fifx_retained_arithmetic') as r:
-        progress={'status':'claimed','request_id':REQUEST,'started_at':baseline.now(),'baseline':BASELINE,'capture':CAPTURE}
-        journal(s3,progress,True)
+    write=lambda value,claim=False:journal(s3,value,claim,request_id)
+    status_key=baseline.PRIVATE+'requests/'+baseline.sha(request_id.encode())+'.json'
+    with report(report_name) as r:
+        progress={'status':'claimed','request_id':request_id,'started_at':baseline.now(),'baseline':BASELINE,'capture':CAPTURE}
+        write(progress,True)
         try:
             old=json.loads(read(s3,BASELINE));captured=json.loads(read(s3,CAPTURE))
             if old['status']!='retained' or captured['status']!='captured' or captured['baseline']!=BASELINE:
@@ -125,7 +128,7 @@ def main():
                         if originals.decimal(r['value'])!=originals.decimal(prior[r['date']])]
                     overlap[sid]={'overlap_rows':len(common),'revisions':revised,'point_in_time_qualified':False}
                 outputs[sid]=baseline.retain(s3,candidate.encoded(output));proofs[sid]=proof
-                progress['completed_sources']=list(outputs);journal(s3,progress)
+                progress['completed_sources']=list(outputs);write(progress)
                 del output,raw
             profile={'compile_and_verify_seconds':round(time.monotonic()-started,3),
                 'total_candidate_bytes':sum(ref['bytes'] for ref in outputs.values()),'largest_source_bytes':max(ref['bytes'] for ref in outputs.values()),
@@ -142,7 +145,7 @@ def main():
                 'generated_at':stamp,'bond_vol_context':{'originals':captured['bond_vol_source'],'independent_votes':0},
                 'calls_eligible':False,'sizing_eligible':False,'forecast_qualified':False}
             manifest=baseline.retain(s3,candidate.encoded(population))
-            protected={STATUS,manifest['key'],definitions_ref['key'],proof_ref['key'],overlap_ref['key'],
+            protected={status_key,manifest['key'],definitions_ref['key'],proof_ref['key'],overlap_ref['key'],
                 *(ref['key'] for ref in outputs.values()),*(ref['key'] for ref in compilers.values())}
             outcomes=[access.check(key) for key in sorted(protected)]
             access_ref=baseline.retain(s3,candidate.encoded(outcomes));outcomes.append(access.check(access_ref['key']))
@@ -157,9 +160,9 @@ def main():
                 'fresh_process_replay_verified':True,'native_package_unchanged':True,'provider_requests':0,'producer_invocations':0,
                 'consumer_invocations':0,'public_writes':0,'schedules_changed':0,'notifications_sent':0,'private_account_reads':0,
                 'paid_api_calls':0,'forecast_qualified':False,'sizing_qualified':False}
-            journal(s3,{**progress,'status':'complete','result':result});r.kv(**result)
+            write({**progress,'status':'complete','result':result});r.kv(**result)
         except Exception as exc:
-            journal(s3,{**progress,'status':'failed','error_type':type(exc).__name__});raise
+            write({**progress,'status':'failed','error_type':type(exc).__name__});raise
 
 
 if __name__=='__main__':

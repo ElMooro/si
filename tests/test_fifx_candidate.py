@@ -15,8 +15,10 @@ NOW = '2026-09-26T07:00:00+00:00'
 
 
 def definition(sid):
-    return {'seriess': [{'id': sid, 'units': catalog.FRED_UNITS[sid], 'frequency_short': 'D',
-        'frequency': 'Daily, Close' if sid == 'VIXCLS' else 'Daily', 'seasonal_adjustment': 'Not Seasonally Adjusted'}]}
+    # Fixture comes from retained provider evidence, not the catalogue under test.
+    row=json.loads((ROOT/'tests/fixtures/fifx-retained-definitions.json').read_bytes())['source_summary'][sid]
+    return {'seriess': [{'id': sid, 'units': row['native_unit'], 'frequency_short': row['frequency_short'],
+        'frequency': row['frequency'], 'seasonal_adjustment': row['seasonal_adjustment']}]}
 
 
 def csv(sid, n=550, values=None):
@@ -50,6 +52,12 @@ def build(sid='DGS10', raw=None, stamp=NOW, meta=None):
 
 
 class Tests(unittest.TestCase):
+    def test_exact_retained_provider_definition_and_no_friendly_unit_alias(self):
+        self.assertEqual(definition('DEXUSUK')['seriess'][0]['units'],'U.S. Dollars to One U.K. Pound Sterling')
+        good,_=build('DEXUSUK');self.assertEqual(good['quality']['status'],'within_age_ceiling')
+        bad=definition('DEXUSUK');bad['seriess'][0]['units']='U.S. Dollars to One British Pound'
+        out,_=build('DEXUSUK',meta=bad);self.assertIsNone(out['current'])
+
     def test_complete_original_scope_and_every_historical_estimate(self):
         counts = []
         for sid in catalog.SOURCES:
