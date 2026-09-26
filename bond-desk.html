@@ -57,7 +57,7 @@ td:first-child,th:first-child{text-align:left}
 const PX=['','https://s3.amazonaws.com/justhodl-dashboard-live/'];
 async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:'no-store'});if(r.ok)return await r.json()}catch(e){}}return null}
 const rc=r=>({STRESS:'r',ANXIOUS:'a',UNEASY:'c',CALM:'g'}[r]||'c');
-const sc=v=>v>=75?'var(--red)':v>=60?'var(--amber)':v>=45?'var(--cyan)':'var(--green)';
+const sc=v=>typeof v!=='number'||!Number.isFinite(v)?'var(--fg-3)':v>=75?'var(--red)':v>=60?'var(--amber)':v>=45?'var(--cyan)':'var(--green)';
 const bn=v=>v==null?'—':(v/1e9).toFixed(2)+'B';
 const F=v=>(v==null||v==='')?'—':v;
 (async()=>{
@@ -68,37 +68,38 @@ const F=v=>(v==null||v==='')?'—':v;
  const Fw=(US.flows||{}),Cr=(US.credit||{}),Mi=Cr.fred_micro||{},Sx=(US.stress||{}),Bk=Fw.buckets||{};
  const MAPORD=['ca','us','mx','gb','ez','ch','se','us_fund','em','za','cn','jp','kr','au'];
  const T=Object.fromEntries((d.world_map||[]).map(t=>[t.code,t]));
- const AN=d.crisis_analogs||{},AI=d.ai_brief,AIS=d.ai_status;
+ const qualified=d.calls_eligible!==false&&typeof d.world_anxiety==='number'&&Number.isFinite(d.world_anxiety);
+ const AN=d.crisis_analogs||{},AI=qualified?d.ai_brief:null,AIS=qualified?d.ai_status:'UNQUALIFIED_REQUIRED_INPUT';
  document.getElementById('sub').innerHTML=`${d.n_regions_live}/5 rich regions · ${(d.world_map||[]).filter(t=>t.score!=null).length} map tiles · analogs ${AN.status||'—'} · AI ${AIS||'—'} · v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
  const tile=c=>{const t=T[c];if(!t)return '<div class="tile" style="opacity:.25"></div>';
    return `<div class="tile" style="border-color:${t.score!=null?sc(t.score):'var(--line)'}">
      <div class="l">${t.label}</div><div class="s" style="color:${t.score!=null?sc(t.score):'var(--fg-3)'}">${F(t.score)}</div>
      <div class="m">${t.metric||''}</div></div>`};
  const rcard=(name,r,lines)=>`
-  <div class="rc">${r.fresh===false?'<span class="stale">STALE</span>':''}
+  <div class="rc">${r.fresh===false?'<span class="stale">UNAVAILABLE</span>':''}
     <h3>${name}</h3><div class="rs" style="color:${sc(r.score)}">${F(r.score)}</div>
     <div class="bar"><i style="width:${Math.min(100,r.score||0)}%;background:${sc(r.score)}"></i></div>
     ${lines.map(([k,v])=>`<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('')}</div>`;
  const fwdRow=a=>`<tr><td>${a.name} <span style="color:var(--fg-3)">${a.date}</span></td><td>${a.similarity_pct}%</td>${['SPY','TLT','GLD','HYG','BTCUSD'].map(s=>{const f=(a.fwd||{})[s]||{};return `<td class="${(f.d63||0)<0?'r':'g'}">${f.d63==null?'—':(f.d63>0?'+':'')+f.d63+'%'}</td>`}).join('')}</tr>`;
  app.className='';app.innerHTML=`
  <div class="hero">
-   <div><div class="score ${rc(d.regime)}">${d.world_anxiety}</div>
+   <div><div class="score ${rc(d.regime)}">${qualified?d.world_anxiety:'Unavailable'}</div>
    <div style="color:var(--fg-3);font-family:var(--mono);font-size:11px">world FI anxiety / 100</div></div>
-   <div class="phase ${rc(d.regime)}">${d.regime}</div>
-   <div class="phase">HOTTEST: ${(d.hottest_region||{}).region?.replace(/_/g,' ').toUpperCase()} ${(d.hottest_region||{}).score}</div>
+   <div class="phase ${rc(d.regime)}">${qualified?d.regime:'WAIT · ABSTAIN'}</div>
+   <div class="phase">${qualified&&d.hottest_region?'HOTTEST: '+d.hottest_region.region.replace(/_/g,' ').toUpperCase()+' '+d.hottest_region.score:'Required regional votes incomplete'}</div>
  </div>
- <div class="read"><b>EQUITY READ</b> — ${d.equity_read||''}</div>
+ <div class="read"><b>EQUITY READ</b> — ${qualified?(d.equity_read||''):'No world-anxiety score or equity implication is qualified while a required regional vote is unavailable.'}</div>
 
  <h2>🗺️ WORLD MAP — BOND ANXIETY BY REGION</h2>
  <div class="map">${MAPORD.map(tile).join('')}</div>
  <div class="legend">rich tiles = owned engine composites · others = FRED OECD 10y 6-month repricing (the JGB duration-shock logic applied worldwide) · <span class="g">■</span>&lt;45 calm <span class="c">■</span>45-60 uneasy <span class="a">■</span>60-75 anxious <span class="r">■</span>≥75 stress</div>
 
- <div class="ai"><h3>🤖 AI DESK INTERPRETATION — vs PRIOR CRISES ${AIS==='LIVE'?'':'<span style="color:var(--amber)">('+AIS+' — quantitative analogs below remain active; top up LLM billing to enable)</span>'}</h3>
+ <div class="ai"><h3>🤖 AI DESK INTERPRETATION — vs PRIOR CRISES ${AIS==='LIVE'?'':'<span style="color:var(--amber)">('+AIS+' — source qualification and provider availability are checked separately)</span>'}</h3>
    ${AI?`<div class="b"><b>Interpretation:</b> ${AI.interpretation||''}</div>
    <div class="b"><b>Crisis comparison:</b> ${AI.crisis_comparison||''}</div>
    <div class="pj">${Object.entries(AI.projections||{}).map(([k,v])=>`<div><b>${k.toUpperCase()}</b>${v}</div>`).join('')}</div>
    <div class="note" style="margin-top:9px">confidence ${AI.confidence||'—'} · watch: ${(AI.watch||[]).join(' · ')}</div>`
-   :`<div class="b" style="color:var(--fg-3)">AI narrative offline — deterministic crisis-analog engine below is fully live on real data.</div>`}</div>
+   :`<div class="b" style="color:var(--fg-3)">Narrative unavailable. Historical analogs below are descriptive comparisons, not qualified forecasts or portfolio instructions.</div>`}</div>
 
  <h2>🧬 CRISIS ANALOGS — TODAY'S FINGERPRINT vs HISTORY</h2>
  <div class="grid"><div class="card" style="grid-column:1/-1">

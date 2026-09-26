@@ -42,36 +42,38 @@ a{color:var(--cyan);text-decoration:none}
 <nav class="nav"><a href="/">Home</a><a href="/crypto-narratives.html">Crypto Narratives</a><a href="/crypto-opportunities.html">Crypto Opps</a><a href="/crypto-risk.html" class="active">Dump Risk</a><a href="/bond-vol.html">Bond Vol</a><a href="/glossary.html">Glossary</a></nav></header>
 <div class="wrap">
 <div class="hero"><h1>Crypto <span class="grad">Dump-Risk</span> Gauge</h1>
-<p>A multi-factor composite of what actually drives crypto drawdowns: the 4-year <b>halving cycle</b> (dominant), <b>MVRV</b> over-extension, perp <b>leverage/funding</b>, <b>macro risk</b> (rising yields, inflation, &amp; HY credit spreads), and the bond-vol regime. Not a single overfit pattern.</p></div>
+<p>Research context covering proposed crypto drawdown factors: the 4-year <b>halving cycle</b> (dominant), <b>MVRV</b> over-extension, perp <b>leverage/funding</b>, <b>macro risk</b> (rising yields, inflation, &amp; HY credit spreads), and the bond-vol regime. Predictive accuracy and portfolio suitability require separate validation.</p></div>
 <div id="fresh-slot"></div>
 <div id="content"><div class="loading">Loading dump-risk gauge…</div></div>
 </div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function col(r){return r>=75?'#ff5577':r>=60?'#ff9f43':r>=45?'#fbbf24':'#26ffaf';}
+function scoreAvailable(r){return typeof r==='number'&&Number.isFinite(r);}
+function col(r){return !scoreAvailable(r)?'#6f7b91':r>=75?'#ff5577':r>=60?'#ff9f43':r>=45?'#fbbf24':'#26ffaf';}
 const FNAME={halving_cycle:'Halving Cycle',mvrv_extension:'MVRV Extension',funding_leverage:'Funding / Leverage',fear_greed:'Fear & Greed',macro_risk:'Macro Risk',fed_transition:'Fed Transition',macro_regime:'Bond-Vol Regime',etf_flows:'ETF Flows',ai_rotation:'AI Capital Rotation',inflation_print:'Inflation Print Risk'};
 async function load(){
   let d=null; try{const r=await fetch(`${PROXY}/data/crypto-cycle-risk.json?t=${Date.now()}`);if(r.ok)d=await r.json();}catch(e){}
   if(!d){document.getElementById('content').innerHTML='<div class="loading">Gauge not available yet — refreshes every 6h.</div>';return;}
-  const s=d.dump_risk_score, c=col(s);
+  const eligible=d.calls_eligible!==false&&scoreAvailable(d.dump_risk_score);
+  const s=eligible?d.dump_risk_score:null, c=col(s);
   let h=`<div class="gauge">
-    <div class="score" style="color:${c}">${s}</div>
-    <div class="level" style="color:${c}">${esc(d.risk_level)} DUMP RISK</div>
-    <div class="bar"><div class="fill" style="width:${s}%;background:${c}"></div></div>
-    <div class="action">${esc(d.action||'')}</div>
+    <div class="score" style="color:${c}">${eligible?s:'Unavailable'}</div>
+    <div class="level" style="color:${c}">${eligible?esc(d.risk_level)+' DUMP RISK':'WAIT · ABSTAIN'}</div>
+    ${eligible?`<div class="bar"><div class="fill" style="width:${s}%;background:${c}"></div></div>`:''}
+    <div class="action">${eligible?esc(d.action||''):'Required evidence is unavailable or unqualified. No composite score or portfolio action is supported.'}</div>
   </div>`;
   const order=['halving_cycle','macro_risk','etf_flows','ai_rotation','mvrv_extension','funding_leverage','inflation_print','macro_regime','fear_greed','fed_transition'];
   h+='<div class="factors">';
   order.forEach(k=>{
     const f=(d.factors||{})[k]; if(!f)return;
-    const fc=col(f.risk);
+    const current=scoreAvailable(f.risk),fc=col(f.risk);
     let sub='';
     if(k==='macro_risk'&&f.components){ sub='<div class="sub">'+Object.values(f.components).map(x=>esc(x.note)).join(' · ')+'</div>'; }
     if(k==='fed_transition'&&f.caveat){ sub='<div class="sub">⚠ '+esc(f.caveat)+'</div>'; }
     h+=`<div class="fac"><div class="ftop"><span class="fname">${esc(FNAME[k]||k)}</span><span class="fw">w ${Math.round(f.weight*100)}%</span></div>
-      <div class="frisk" style="color:${fc}">${f.risk}</div>
-      <div class="fbar"><div class="ff" style="width:${f.risk}%;background:${fc}"></div></div>
+      <div class="frisk" style="color:${fc}">${current?f.risk:'Unavailable'}</div>
+      ${current?`<div class="fbar"><div class="ff" style="width:${f.risk}%;background:${fc}"></div></div>`:''}
       <div class="fnote">${esc(f.note||'')}</div>${sub}</div>`;
   });
   h+='</div>';
