@@ -23,6 +23,7 @@ from instrument_identity import resolve_instrument
 from forward_price_measurement import CONTRACT,evaluate,marks
 from outcome_price_evidence import PriceEvidenceVerifier,EASTERN
 from evidence_store import capture
+from research_identity import record_identity_issue, identity_policy
 
 
 class Missing(Exception):response={'Error':{'Code':'NoSuchKey'}}
@@ -49,11 +50,46 @@ def loaded(store):
              PREFIX=PREFIX,canonical=canonical,digest=digest,read_record=read_record,persist_once=persist_once,stamp=stamp,
              CONTRACT=CONTRACT,evaluate=evaluate,marks=marks,PriceEvidenceVerifier=PriceEvidenceVerifier,EASTERN=EASTERN,
              s3=store,BUCKET='fixture',STATE=PREFIX+'evaluator-state.json',SUMMARY='data/prospective-outcomes.json',
-             capture=capture,publish_current=publish,managed_secret=lambda *a:'fixture')
+             capture=capture,publish_current=publish,managed_secret=lambda *a:'fixture',record_identity_issue=record_identity_issue,
+             identity_policy=identity_policy,__file__=str(HERE.parent/'source/lambda_function.py'))
     tree=ast.parse((HERE.parent/'source/lambda_function.py').read_text())
     exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n,ast.FunctionDef)],type_ignores=[]),'evaluator','exec'),env)
     env['compiler_identity']=lambda:{'fixture':'c'*64}
     return env
+
+
+def test_preexisting_crypto_equity_collision_is_excluded_without_rewriting_records_or_results():
+    store=Store();protocol=ensure_protocol(store,'fixture')
+    selected=projection('data/crypto-emergence.json',{'generated_at':NOW.isoformat()},
+        [{'identity':resolve_instrument('LTC','equity'),'direction':'UP','prediction_origin':'explicit_direction'}],'a'*64,NOW.isoformat())
+    refs=register(store,'fixture',selected,protocol,'c'*64,NOW);ref=refs[0]
+    original=store.rows[ref['key']]['Body'];old_key=PREFIX+'measurements/'+ref['forecast_id']+'/s5.json'
+    store.put_object(Key=old_key,Body=b'{"old_unqualified_result":"preserve"}')
+    env=loaded(store);env['source_packet']=lambda *a:(_ for _ in ()).throw(AssertionError('Crypto must not fetch equity marks'))
+    result=env['run']();summary=json.loads(store.rows[env['SUMMARY']]['Body'])
+    assert result['status_counts']=={'UNSUPPORTED_SOURCE_IDENTITY':1}
+    assert summary['coverage']['provider_requests']==0 and summary['forecasts_checked']==1
+    assert summary['identity_policy']==identity_policy()
+    assert summary['selection_handler_sha256']==hashlib.sha256((HERE.parent/'source/lambda_function.py').read_bytes()).hexdigest()
+    assert store.rows[ref['key']]['Body']==original and store.rows[old_key]['Body']==b'{"old_unqualified_result":"preserve"}'
+
+
+def test_calendar_upper_bound_skips_young_windows_without_assuming_trading_sessions():
+    for days,expects_request in ((1,False),(5,False),(6,False),(7,True)):
+        store,_,refs=recorded();env=loaded(store);calls=[]
+        class Later(datetime):
+            @classmethod
+            def now(cls,tz=None):return NOW+timedelta(days=days)
+        env['datetime']=Later;env['source_packet']=lambda *a:calls.append(a)
+        result=env['run']();summary=json.loads(store.rows[env['SUMMARY']]['Body'])
+        assert bool(calls)==expects_request
+        assert summary['coverage']['provider_requests']==len(calls)
+        if not expects_request:
+            assert result['status_counts']=={'PENDING_FORWARD_WINDOW':2}
+            assert all('completed_sessions' not in row and row['calendar_date_capacity']<row['required_sessions_including_entry'] for row in summary['results'])
+        else:
+            assert result['status_counts']=={'PENDING_SOURCE':1,'PENDING_FORWARD_WINDOW':1}
+        assert not any('/measurements/' in key for key in store.rows)
 
 
 def test_new_forecasts_remain_pending_without_quote_requests_or_fake_results():

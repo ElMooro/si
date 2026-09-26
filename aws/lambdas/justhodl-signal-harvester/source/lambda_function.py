@@ -18,6 +18,7 @@ import sys
 import os
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 from instrument_identity import resolve_instrument
+from research_identity import resolve_pick_identity, identity_policy
 from private_artifact import public_source_allowed
 from prospective_journal import projection, ensure_protocol, register, persist_once, digest, PREFIX as JOURNAL_PREFIX
 from calls_research_replay import publish_current
@@ -28,7 +29,7 @@ except Exception:
     def _trust(_st, default=1.0):
         return default
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 S3_BUCKET = "justhodl-dashboard-live"
 SIGNALS_TABLE = "justhodl-signals"
 SEEN_KEY = "data/_harvest/seen.json"
@@ -110,6 +111,7 @@ def read_research_source(key):
 def publish_journal(projections, refs, protocol_ref, errors, scanned, total, started):
     generated = datetime.now(timezone.utc).isoformat()
     manifest = {'contract':'prospective-research-capture.v1','generated_at':generated,
+                'identity_policy':identity_policy(),
                 'started_at':started.isoformat(),'protocol_ref':protocol_ref,'sources':projections,'records':refs,
                 'coverage':{'candidate_sources':total,'sources_scanned':scanned,'source_read_failures':errors,
                             'candidate_scan_complete':scanned==total and not errors},
@@ -117,6 +119,7 @@ def publish_journal(projections, refs, protocol_ref, errors, scanned, total, sta
     key=JOURNAL_PREFIX+'captures/'+digest(manifest)+'.json'
     capture_ref=persist_once(s3,S3_BUCKET,key,manifest)
     summary={'schema_version':'prospective-research-summary.v1','generated_at':generated,
+             'identity_policy':manifest['identity_policy'],
              'status':'COLLECTING','capture':capture_ref,'protocol':protocol_ref,'coverage':manifest['coverage'],
              'records_in_capture':len(refs),'new_records':sum(r['created'] for r in refs),
              'rank_observations':sum(r['origin']=='rank_observation' for p in projections for r in p['observations']),
@@ -128,7 +131,7 @@ def publish_journal(projections, refs, protocol_ref, errors, scanned, total, sta
     return summary
 
 
-def extract_picks(doc):
+def extract_picks(doc, source_key=None):
     """Keep explicit direction/identity; ranked membership alone is no UP call."""
     pools = []
     if isinstance(doc, dict):
@@ -168,7 +171,7 @@ def extract_picks(doc):
                     sc = float(it[ck])
                     break
             seen.add(sym)
-            identity = resolve_instrument(sym, it.get('asset_class') or it.get('asset_type'))
+            identity = resolve_pick_identity(sym,it,source_key)
             direction = next((str(it[k]).upper() for k in ('predicted_direction', 'direction', 'side', 'call')
                               if str(it.get(k) or '').upper() in ('UP', 'DOWN', 'LONG', 'SHORT', 'BULLISH', 'BEARISH')), None)
             picks.append({'symbol': sym, 'score': sc, 'identity': identity,
@@ -180,7 +183,7 @@ def extract_picks(doc):
 
 
 def get_price(sym, identity=None):
-    identity = identity or resolve_instrument(sym)
+    identity = identity or resolve_pick_identity(sym)
     if not identity:
         return None  # BTC/ETH can be ETF tickers or tokens; never guess.
     fmp_symbol = identity['provider_symbols']['fmp']
@@ -267,7 +270,7 @@ def lambda_handler(event, context):
             reason=str(exc) if str(exc) in ('SOURCE_EXCEEDS_CAPTURE_BOUND','UNSUPPORTED_SOURCE_SHAPE') else 'SOURCE_READ_UNAVAILABLE'
             source_errors.append({'source_key':k,'reason':reason})
             continue
-        picks = extract_picks(doc)
+        picks = extract_picks(doc,k)
         if not picks:
             continue
         try:

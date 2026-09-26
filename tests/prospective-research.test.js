@@ -27,3 +27,13 @@ test('future windows stay pending rather than a zero percent performance result'
  p.net_return_pct=0;assert.equal(outcomeView(p,now).ok,false);
  p.net_return_pct=null;p.status_counts={PROFITABLE:42};assert.equal(outcomeView(p,now).ok,false);
 });
+
+test('unsupported identities are excluded records, never outcomes or price windows',()=>{
+ const p={schema_version:'prospective-outcome-batch.v1',generated_at:'2026-09-18T19:00:00Z',
+  sizing_eligible:false,promotion_eligible:false,forecasts_checked:3,
+  status_counts:{UNSUPPORTED_SOURCE_IDENTITY:1,PENDING_FORWARD_WINDOW:4},
+  net_return_pct:null,portfolio_pnl:null,batch:{key:'data/research-forecasts/evaluation-runs/'+'a'.repeat(64)+'.json',sha256:'a'.repeat(64)}};
+ const v=outcomeView(p,now);assert.equal(v.ok,true);assert.equal(v.excluded,1);
+ assert.equal(v.measured,0);assert.equal(v.pending,4);assert.equal(v.gaps,0);
+ p.status_counts.UNSUPPORTED_SOURCE_IDENTITY=-1;assert.equal(outcomeView(p,now).ok,false);
+});

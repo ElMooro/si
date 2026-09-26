@@ -20,6 +20,7 @@ from evidence_store import capture
 from prospective_journal import PREFIX, canonical, digest, read_record, persist_once, stamp
 from forward_price_measurement import CONTRACT, evaluate, marks
 from outcome_price_evidence import PriceEvidenceVerifier, EASTERN
+from research_identity import record_identity_issue, identity_policy
 from calls_research_replay import publish_current
 
 BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
@@ -102,6 +103,11 @@ def run(context=None):
         deferred=False
         try:
             record=read_record(s3,BUCKET,ref)
+            identity_issue=record_identity_issue(record)
+            if identity_issue:
+                rows.append({'forecast_id':fid,'status':'UNSUPPORTED_SOURCE_IDENTITY','reason':identity_issue})
+                processed+=1;last=key
+                continue
             first=(datetime.fromisoformat(record['registration_date_et'])+timedelta(days=1)).date().isoformat()
             end=(datetime.now(timezone.utc).astimezone(EASTERN).date()-timedelta(days=1)).isoformat()
             for horizon in record['protocol']['horizons_sessions']:
@@ -112,8 +118,13 @@ def run(context=None):
                     rows.append({'forecast_id':fid,'horizon_sessions':horizon,'status':output['status'],
                                  'key':result_key,'sha256':digest(previous),'replayed':True})
                     continue
-                if end<first:
-                    rows.append({'forecast_id':fid,'horizon_sessions':horizon,'status':'PENDING_FORWARD_WINDOW'})
+                calendar_capacity=max(0,(datetime.fromisoformat(end)-datetime.fromisoformat(first)).days+1)
+                if calendar_capacity<=horizon:
+                    # At most one completed daily mark exists per calendar date.
+                    # This upper bound cannot certify a trading session/calendar.
+                    rows.append({'forecast_id':fid,'horizon_sessions':horizon,'status':'PENDING_FORWARD_WINDOW',
+                                 'reason':'calendar_date_upper_bound_too_small','calendar_date_capacity':calendar_capacity,
+                                 'required_sessions_including_entry':horizon+1})
                     continue
                 needed=[(sym,first,end) for sym in (record['observation']['instrument']['symbol'],'SPY')]
                 for cache_key in needed:
@@ -140,6 +151,8 @@ def run(context=None):
     status_counts={status:sum(row['status']==status for row in rows) for status in sorted({row['status'] for row in rows})}
     completed=datetime.now(timezone.utc).isoformat()
     batch={'schema_version':'prospective-outcome-batch.v1','generated_at':completed,'started_at':started.isoformat(),
+           'identity_policy':identity_policy(),
+           'selection_handler_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
            'scope':'This bounded traversal batch only; not lifetime totals or independent sample counts',
            'forecasts_checked':processed,'status_counts':status_counts,'results':rows,'compiler':compiler,
            'coverage':{'max_forecasts_per_run':100,'continued_from':after,'reached_end':at_end,

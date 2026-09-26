@@ -19,6 +19,7 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE.parents[2]/'shared'))
 from instrument_identity import resolve_instrument
+from research_identity import resolve_pick_identity, identity_policy
 from private_artifact import public_source_allowed
 from prospective_journal import projection
 TREE=ast.parse((HERE.parent/'source/lambda_function.py').read_text(encoding='utf-8'))
@@ -29,11 +30,42 @@ def load():
              Decimal=Decimal,ThreadPoolExecutor=ThreadPoolExecutor,as_completed=as_completed,resolve_instrument=resolve_instrument,
              urllib=types.SimpleNamespace(parse=urllib.parse,request=types.SimpleNamespace(Request=urllib.request.Request)),
              FMP='fixture',POLYGON='fixture',_trust=lambda *a:1,Path=Path,hashlib=hashlib,
-             __file__=str(HERE.parent/'source/lambda_function.py'),public_source_allowed=public_source_allowed,projection=projection)
+             __file__=str(HERE.parent/'source/lambda_function.py'),public_source_allowed=public_source_allowed,projection=projection,
+             resolve_pick_identity=resolve_pick_identity,identity_policy=identity_policy)
     names={'VERSION','S3_BUCKET','SIGNALS_TABLE','SEEN_KEY','SUMMARY_KEY','TOP_PER_ENGINE','DEDUP_DAYS','WINDOWS','MAX_SIGNALS','TICKER_RE','LIST_KEYS','SYM_KEYS','SCORE_KEYS','SKIP_SUBSTR'}
     nodes=[n for n in TREE.body if isinstance(n,ast.FunctionDef) or isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id in names for t in n.targets)]
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'harvester','exec'),env)
     return env
+
+
+def test_crypto_source_and_untyped_tokens_cannot_borrow_equity_identity():
+    env=load()
+    for symbol in ('BTC','ETH','SOL','XRP','LTC','BCH','DOGE','ADA','AVAX','LINK'):
+        item={'symbol':symbol,'direction':'UP'}
+        assert env['extract_picks']({'picks':[item]})[0]['identity'] is None
+        token=env['extract_picks']({'picks':[item]},'data/crypto-emergence.json')[0]
+        assert token['identity']['asset_class']=='crypto'
+        typed=env['extract_picks']({'picks':[{**item,'asset_class':'equity'}]},'data/equity-research.json')[0]
+        assert typed['identity']['instrument_id']=='equity:US:'+symbol
+        conflict=env['extract_picks']({'picks':[{**item,'asset_class':'equity'}]},'data/crypto-emergence.json')[0]
+        assert conflict['identity'] is None
+    env['urllib'].request.urlopen=lambda *a,**k:(_ for _ in ()).throw(AssertionError('Ambiguous ticker must not fetch a price'))
+    assert env['get_price']('LTC') is None
+    rows=env['extract_picks']({'picks':[{'symbol':'LTC','direction':'UP'}]},'data/crypto-emergence.json')
+    source=projection('data/crypto-emergence.json',{'generated_at':datetime.now(timezone.utc).isoformat()},rows,'a'*64,datetime.now(timezone.utc).isoformat())
+    assert source['observations']==[] and source['unsupported_identity_count']==1
+    assert resolve_pick_identity('DOT') is None
+    assert resolve_pick_identity('DOT',source_key='data/crypto-emergence.json') is None
+
+
+def test_release_preserves_existing_schedule_bindings():
+    sys.path.insert(0,str(HERE.parents[3]/'scripts'))
+    from normalize_lambda_config import normalize_config
+    config=json.loads((HERE.parent/'config.json').read_bytes())
+    normalized=normalize_config(config)
+    assert 'schedule' not in normalized
+    assert normalized['release_schedule_note']['binding_action']=='PRESERVE_EXISTING'
+    assert config['preserved_schedule_reference']['cron']==config['schedule']=='cron(15 23 * * ? *)'
 
 
 def test_rank_membership_is_not_an_up_forecast_and_explicit_short_is_preserved():
