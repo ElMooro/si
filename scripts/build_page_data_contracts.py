@@ -139,7 +139,7 @@ def internal_output_roles(root,engines):
         name,key=row['engine'],row['key'];engine=engines.get(name);evidence=row.get('evidence',{})
         source=evidence.get('source','');approved_roles={'internal_input_cache','internal_operational_storage','private_operational_state','internal_configuration'}
         proofs=engine.get('write_evidence',{}).get(key,[]) if engine else []
-        proven_sources={'aws/lambdas/'+name+'/source/'+p['file'] for p in proofs}
+        proven_sources={p.get('repository_path') or 'aws/lambdas/'+name+'/source/'+p['file'] for p in proofs}
         known=set(engine.get('keys',[]))|set(engine.get('key_patterns',[])) if engine else set()
         if (not engine or key not in known or source not in proven_sources or not (root/source).is_file()
                 or row.get('role') not in approved_roles or not row.get('purpose') or row.get('public_access_approved') is not False

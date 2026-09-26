@@ -29,8 +29,10 @@ class FunctionBinding:
         self.environment=environment
 
 class Scan:
-    def __init__(self, code, environment=None, initial_symbols=None):
+    def __init__(self, code, environment=None, initial_symbols=None, module_graph=None, source_path=None):
         self.tree = ast.parse(code)
+        self.module_graph=module_graph
+        self.source_path=source_path
         self.environment = environment or {}
         self.executor_names=set()
         for item in ast.walk(self.tree):
@@ -77,7 +79,7 @@ class Scan:
             return ''.join(str(v.value) if isinstance(v,ast.Constant) else (self.resolve(v.value,env) or '*') for v in node.values)
         if isinstance(node,ast.BinOp):
             l,r=self.resolve(node.left,env),self.resolve(node.right,env)
-            if isinstance(node.op,ast.Add): return (l or '*')+(r or '*')
+            if isinstance(node.op,ast.Add): return (l if isinstance(l,str) else '*')+(r if isinstance(r,str) else '*')
             if isinstance(node.op,ast.Mod) and isinstance(l,str):
                 values=[self.resolve(v,env) for v in node.right.elts] if isinstance(node.right,ast.Tuple) else [self.resolve(node.right,env)]
                 named=values[0] if len(values)==1 and isinstance(values[0],dict) else {};position=0
@@ -139,8 +141,12 @@ class Scan:
         if isinstance(node,ast.AnnAssign) and node.value:self.assign_target(node.target,node.value,env)
 
     def call(self,node,env,stack):
+        if self.module_graph and self.module_graph.call(self,node,env,stack):return
         local_functions=(env.get('__jh_local_functions') or {})
-        def known_function(name):return local_functions[name] if name in local_functions else self.functions.get(name)
+        def known_function(name):
+            if name in local_functions:return local_functions[name]
+            if self.module_graph and name in env:return None
+            return self.functions.get(name)
         # Standard executor callbacks bind the callable's real argument positions.
         if isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id in self.executor_names and node.func.attr in ('submit','map') and node.args and isinstance(node.args[0],ast.Name) and known_function(node.args[0].id):
             callback=node.args[0]
@@ -204,6 +210,8 @@ class Scan:
 
     def block(self,nodes,env,stack):
         for n in nodes:
+            if self.module_graph and isinstance(n,(ast.Import,ast.ImportFrom)):
+                env.update(self.module_graph.imports(self.source_path,n));continue
             if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)):
                 if stack:env['__jh_local_functions']={**(env.get('__jh_local_functions') or {}),n.name:FunctionBinding(n,env)}
                 continue
@@ -311,6 +319,7 @@ def confirmed_write_keys(code):
     return ast_keys(code)[0]
 
 def build(root=ROOT):
+    from source_write_graph import SharedWriteGraph
     engines=[]
     for d in sorted((root/'aws/lambdas').iterdir()):
         if not d.is_dir() or d.name.startswith('_') or not (d/'source').is_dir():continue
@@ -350,12 +359,32 @@ def build(root=ROOT):
                     else:raise ValueError('Unproven output augmentation contract: '+d.name+' '+str(key))
                 unresolved.extend(dict(x,file=rel) for x in s.unresolved);other_writes.extend(dict(x,file=rel) for x in s.other_writes)
             except SyntaxError as exc:unresolved.append({'file':rel,'line':exc.lineno,'reason':'parse failure'})
+        # Follow only calls reachable from the configured handler. A shared
+        # module's neighbouring functions are not outputs of every importer.
+        analysis_entrypoint=entrypoint if entrypoint and entrypoint.endswith('.py') else None
+        analysis_function=str(handler).rsplit('.',1)[-1]
+        analysis_basis='configured_handler'
+        if not handler and (d/'source/lambda_function.py').is_file():
+            # Existing deploys can lack a recorded handler. Analyze the checked-in
+            # conventional callable, but do not certify an unrecorded AWS setting.
+            try:
+                candidate=ast.parse((d/'source/lambda_function.py').read_text(encoding='utf-8'))
+                if any(isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name=='lambda_handler' for n in candidate.body):
+                    analysis_entrypoint='lambda_function.py';analysis_function='lambda_handler';analysis_basis='conventional_source_handler_runtime_unverified'
+            except SyntaxError:pass
+        if analysis_entrypoint:
+            graph=SharedWriteGraph(root,d/'source',env,Scan,imported_symbols)
+            delegated=graph.analyze(d/'source'/analysis_entrypoint,analysis_function)
+            keys.update(delegated['keys']);reads.update(delegated['reads'])
+            for key,rows in delegated['proofs'].items():proofs.setdefault(key,[]).extend(dict(row,entrypoint_basis=analysis_basis) for row in rows)
+            unresolved.extend(delegated['unresolved'])
         # Resolve parameter-only reports only when that exact write site has a concrete or family binding.
         proven={(x['file'],x['line']) for values in proofs.values() for x in values}
-        unresolved=[dict(t) for t in sorted({tuple(sorted(x.items())) for x in unresolved})]  # A resolved invocation must not hide another unresolved invocation at the same write site.
+        unresolved=[json.loads(t) for t in sorted({json.dumps(x,sort_keys=True) for x in unresolved})]  # A resolved invocation must not hide another unresolved invocation at the same write site.
         exact=sorted(k for k in keys if '*' not in k);patterns=sorted(k for k in keys if '*' in k)
         engines.append({'engine':d.name,'keys':exact,'n_keys':len(exact),'key_patterns':patterns,
-                        'reads':sorted(reads),'other_format_outputs':other_writes,'output_roles':output_roles,'method':'ast-call-binding-v3','write_evidence':proofs,
+                        'reads':sorted(reads),'other_format_outputs':other_writes,'output_roles':output_roles,'method':'ast-call-binding-v4','write_evidence':proofs,
+                        'shared_writer_analysis':{'source':analysis_entrypoint,'function':analysis_function if analysis_entrypoint else None,'basis':analysis_basis if analysis_entrypoint else None,'scope':'reachable checked-in functions; unknown return values and dynamic dispatch not inferred'},
                         'unresolved_writes':unresolved,'environment_key_defaults':defaults,
                         'ownership_status':'incomplete' if unresolved else 'source_bound',
                         'deployment_overrides_verified':False,'configured_handler':handler,'runtime':runtime,'entrypoint_source':entrypoint,'entrypoint_verified':bool(entrypoint),'entrypoint_status':'CONFIGURED_SOURCE_PRESENT' if entrypoint else 'CONFIGURED_SOURCE_MISSING' if handler else 'DEPLOYMENT_CONFIG_NOT_RECORDED','analysis_scope':'Python source writes; API response bodies and unsupported runtimes require separate contracts','description':str(cfg.get('description') or '')[:140]})
