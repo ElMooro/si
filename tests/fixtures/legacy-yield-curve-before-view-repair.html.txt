@@ -102,7 +102,6 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   <p class="timestamp" id="ts"></p>
 </div>
 
-<script src="/jh-yield-curve-view.js?v=20260926"></script>
 <script>
 const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/yield-curve.json";
 const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
@@ -110,7 +109,16 @@ const fmt=v=>typeof v==="number"?(Math.abs(v)>=100?v.toFixed(0):v.toFixed(2)):es
 const TENOR_ORDER=["1M","3M","6M","1Y","2Y","3Y","5Y","7Y","10Y","20Y","30Y"];
 const TENOR_X={"1M":0,"3M":3,"6M":6,"1Y":12,"2Y":24,"3Y":36,"5Y":60,"7Y":84,"10Y":120,"20Y":240,"30Y":360};
 
-function extractYields(obj,real=false){return JHYieldCurve.points(obj,real);}
+function extractYields(obj){
+  if(!obj)return[];
+  const pts=[];
+  for(const t of TENOR_ORDER){
+    let v=obj[t];
+    if(v&&typeof v==="object")v=v.value;
+    if(typeof v==="number"&&TENOR_X[t]!=null)pts.push({tenor:t,x:TENOR_X[t],y:v});
+  }
+  return pts;
+}
 
 function drawCurve(nominalPts,realPts){
   const W=1080,H=300,pad={l:46,r:20,t:16,b:34};
@@ -124,8 +132,8 @@ function drawCurve(nominalPts,realPts){
   const path=pts=>pts.length?pts.map((p,i)=>(i?"L":"M")+sx(p.x).toFixed(1)+" "+sy(p.y).toFixed(1)).join(" "):"";
   let grid="";
   for(let i=0;i<=4;i++){const yv=ymin+(ymax-ymin)*i/4;const yy=sy(yv);grid+=`<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="var(--line)" stroke-width="1"/><text x="${pad.l-6}" y="${yy+3}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="end">${yv.toFixed(1)}%</text>`;}
-  let xlab="";nominalPts.filter(p=>["1M","2Y","5Y","7Y","10Y","20Y","30Y"].includes(p.tenor)).forEach(p=>{xlab+=`<text x="${sx(p.x)}" y="${H-pad.b+18}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="middle">${p.tenor}</text>`;});
-  let dots=nominalPts.map(p=>`<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="3.2" fill="var(--cyan)"><title>${p.tenor}: ${p.y.toFixed(2)}%</title></circle>${p.x>=24?`<text x="${sx(p.x)}" y="${sy(p.y)-9}" fill="var(--cyan)" font-size="9.5" font-family="monospace" text-anchor="middle">${p.y.toFixed(2)}</text>`:''}`).join("");
+  let xlab="";nominalPts.forEach(p=>{xlab+=`<text x="${sx(p.x)}" y="${H-pad.b+18}" fill="var(--dim)" font-size="10" font-family="monospace" text-anchor="middle">${p.tenor}</text>`;});
+  let dots=nominalPts.map(p=>`<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="3.2" fill="var(--cyan)"/><text x="${sx(p.x)}" y="${sy(p.y)-9}" fill="var(--cyan)" font-size="9.5" font-family="monospace" text-anchor="middle">${p.y.toFixed(2)}</text>`).join("");
   return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
     ${grid}${xlab}
     <path d="${path(realPts)}" fill="none" stroke="var(--purple)" stroke-width="2" stroke-dasharray="5 4" opacity="0.85"/>
@@ -226,14 +234,14 @@ function episodeRank(ind,episodes){
   // Build sorted list of episodes by value (desc) with NOW inserted at its rank.
   const epMap={};(episodes||[]).forEach(e=>epMap[e.id]=e);
   const rows=Object.entries(ind.at_episodes||{}).map(([id,v])=>({v,name:(epMap[id]||{}).name||id,type:(epMap[id]||{}).type||"",isNow:false}));
-  rows.push({v:ind.current,name:"Reference observation "+(ind.current_date||"date unavailable"),type:"SNAPSHOT",isNow:true});
+  rows.push({v:ind.current,name:"YOU ARE HERE",type:"NOW",isNow:true});
   rows.sort((a,b)=>b.v-a.v);
   const u=ind.unit||"";
   return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:0;font-family:var(--mono);font-size:11px;margin-top:8px;border:1px solid var(--line);border-radius:6px;overflow:hidden">
     ${rows.map(r=>{
       const c=r.isNow?"var(--cyan)":epTypeColor(r.type);
       const bg=r.isNow?"background:rgba(0,212,255,.10)":"";
-      const badge=r.isNow?"SNAPSHOT":(r.type||"").replace("BOTTOM","BTM").replace("CRISIS","CRI").replace("TOP","TOP");
+      const badge=r.isNow?"NOW":(r.type||"").replace("BOTTOM","BTM").replace("CRISIS","CRI").replace("TOP","TOP");
       return `<div style="padding:6px 11px;${bg};color:${r.isNow?'var(--cyan)':'var(--mute)'};font-weight:${r.isNow?'700':'400'}">${r.isNow?'► ':''}${esc(r.name)}</div>
         <div style="padding:6px 8px;${bg};text-align:right"><span style="color:${c};font-size:9px;font-weight:700;letter-spacing:.5px">${badge}</span></div>
         <div style="padding:6px 11px 6px 8px;${bg};text-align:right;color:${r.isNow?'var(--cyan)':'var(--txt)'};font-weight:${r.isNow?'700':'400'}">${r.v}${u}</div>`;
@@ -246,11 +254,11 @@ function pctColor(p){if(p==null)return"var(--mute)";if(p>=80)return"var(--red)";
 function renderHistCtx(ref,ids){
   const el=document.getElementById("histctx");
   if(!ref||!ref.indicators){el.innerHTML=`<div class="loading">historical reference unavailable</div>`;return;}
-  let html=`<p class="note">Separate historical reference, published ${esc(ref.generated_at||"date unavailable")}. Each observation date is shown below; these readings may differ from the curve date above. Episode similarities and percentiles have not been qualified as forecasts. <a href="${EP_URL}">Inspect the reference packet</a>.</p>`;
+  let html="";
   const primary=ids[0];
   const pind=ref.indicators[primary];
   if(pind&&pind.monthly_history&&pind.monthly_history.length){
-    html+=`<div class="tschart"><div class="tt">${esc(pind.label)} · historical monthly display</div><div class="tl">Reference observation ${esc(pind.current_date||"date unavailable")} · selected episode annotations; not a forecast</div>${drawHistorySeries(pind,ref.recessions,ref.episodes)}</div>`;
+    html+=`<div class="tschart"><div class="tt">${esc(pind.label)} · 1990–today</div><div class="tl">Recession bands shaded · ●tops ●bottoms ●crises · the full journey through every cycle</div>${drawHistorySeries(pind,ref.recessions,ref.episodes)}</div>`;
   }
   ids.forEach(id=>{
     const ind=ref.indicators[id];if(!ind)return;
@@ -260,9 +268,9 @@ function renderHistCtx(ref,ids){
       <div class="histrow">
         <div class="hh">
           <span class="hl">${esc(ind.label)}</span>
-          <span class="hc">observed ${esc(ind.current_date||"date unavailable")} · <b style="color:var(--txt)">${esc(ind.current)}${esc(ind.unit||"")}</b> · <span class="pctbadge" style="background:rgba(255,255,255,.05);color:var(--mute)">reference percentile ${esc(ind.percentile)}</span></span>
+          <span class="hc">now <b style="color:var(--txt)">${ind.current}${ind.unit||""}</b> · <span class="pctbadge" style="background:rgba(255,255,255,.05);color:${pctColor(ind.percentile)}">${ind.percentile}th pctile</span></span>
         </div>
-        <div class="hnear" style="margin-top:2px">Nearest listed episode by level: <b>${esc(ne.name||"—")}</b> — ${tword}${ne.value!=null?` (was ${esc(ne.value)}${esc(ind.unit||"")})`:''}. This is not a probability of recurrence.</div>
+        <div class="hnear" style="margin-top:2px">Closest analog: <b style="color:${epTypeColor(ne.type||"")}">${esc(ne.name||"—")}</b> — ${tword}${ne.value!=null?` (was ${ne.value}${ind.unit||""})`:''}.</div>
         ${episodeRank(ind,ref.episodes)}
       </div>`;
   });
@@ -300,7 +308,7 @@ function drawHistorySeries(ind,recessions,episodes){
   (episodes||[]).forEach(e=>{const v=(ind.at_episodes||{})[e.id];if(v==null)return;const ym=e.date.slice(0,7);const x=sx(ym);if(x<pad.l||x>W-pad.r)return;const c=/TOP/.test(e.type)?"var(--red)":/BOTTOM/.test(e.type)?"var(--green)":"var(--orange)";svg+=`<circle cx="${x}" cy="${sy(v)}" r="3.5" fill="${c}" stroke="var(--bg)" stroke-width="1"/>`;});
   // NOW marker
   const nx=sx(ymN),ny=sy(ind.current);
-  svg+=`<circle cx="${nx}" cy="${ny}" r="4.5" fill="var(--txt)"/><text x="${nx-4}" y="${ny-9}" fill="var(--txt)" font-size="10" font-weight="700" font-family="monospace" text-anchor="end">SNAPSHOT ${esc(ind.current)}</text>`;
+  svg+=`<circle cx="${nx}" cy="${ny}" r="4.5" fill="var(--txt)"/><text x="${nx-4}" y="${ny-9}" fill="var(--txt)" font-size="10" font-weight="700" font-family="monospace" text-anchor="end">NOW ${ind.current}</text>`;
   return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${svg}</svg>`;
 }
 
@@ -361,9 +369,9 @@ function synthesize(d,ref){
 }
 
 (async()=>{
-  let d=null;try{d=await JHYieldCurve.json(URL_+"?t="+Date.now());}catch{}
-  function unavailable(){document.getElementById("hero").innerHTML=`<div class="hero"><div class="lab">Status</div><div class="rg" style="font-size:17px">Current curve unavailable</div><p>Publication or observation age exceeds the reviewed limit, or the packet is not usable.</p></div>`;["chart","metrics","impact","signals","bottomline"].forEach(i=>document.getElementById(i).innerHTML="");}
-  if(!JHYieldCurve.validLegacy(d,Date.now())){unavailable();document.getElementById("histctx").textContent="Current curve unavailable; historical reference has not been requested.";return;}
+  let d=null;try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)d=await r.json();}catch{}
+  const age=d?Date.now()-Date.parse(d.generated_at):NaN, obsAge=d?Date.now()-Date.parse(d.as_of_date):NaN;
+  if(!d||d.methodology_version!=="dated-curve.v2"||d.quality?.status!=="fresh"||!Number.isFinite(age)||age<0||age>48*36e5||!Number.isFinite(obsAge)||obsAge<0||obsAge>8*864e5){document.getElementById("hero").innerHTML=`<div class="hero" style="border-left-color:var(--orange)"><div class="lab">Status</div><div class="rg" style="color:var(--orange);font-size:17px">DATA UNAVAILABLE</div></div>`;["chart","metrics","impact","signals"].forEach(i=>document.getElementById(i).innerHTML="");return;}
   const inv=d.inversion_flags?.any_inversion??null;
   document.getElementById("hero").innerHTML=`
     <div class="hero" style="border-left-color:${inv?'var(--red)':'var(--cyan)'}">
@@ -377,11 +385,13 @@ function synthesize(d,ref){
         ${d.as_of_date?`<span>as of ${esc(d.as_of_date)}</span>`:""}
       </div>
     </div>`;
-  const nom=extractYields(d.nominal_yields),real=extractYields(d.real_yields,true);
+  const nom=extractYields(d.nominal_yields),real=extractYields(d.real_yields);
   document.getElementById("chart").innerHTML=drawCurve(nom,real);
-  document.getElementById("chart").innerHTML+=`<details style="margin-top:14px"><summary>Exact yields and observation dates · ${nom.length+real.length} points</summary><table style="width:100%;font-family:var(--mono);font-size:12px;text-align:left;margin-top:12px"><thead><tr><th>Curve</th><th>Tenor</th><th>Yield (%)</th><th>Observed</th></tr></thead><tbody>${[["Nominal",nom,d.nominal_yields,false],["Real",real,d.real_yields,true]].flatMap(([label,points,source,isReal])=>points.map(p=>`<tr><td>${label}</td><td>${p.tenor}</td><td>${fmt(p.y)}</td><td>${esc(source[p.tenor+(isReal?'_REAL':'')]?.date||"Unavailable")}</td></tr>`)).join('')}</tbody></table></details>`;
   document.getElementById("metrics").innerHTML=(cards(d.spreads_bps,"bps")+cards(d.decomposition,""))||`<div class="loading">no metric detail</div>`;
-  // Main measurements and their interpretation boundary must not wait on auxiliary history.
+  // historical context — fetch FIRST so both the matrix and synthesis can use it
+  let ref=null;
+  try{const er=await fetch(EP_URL+"?t="+Date.now());if(er.ok){ref=await er.json();renderHistCtx(ref,["T10Y2Y","T10Y3M","DGS10","DFII10","T10YIE"]);}else{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}}catch{document.getElementById("histctx").innerHTML=`<div class="loading">reference unavailable</div>`;}
+  // data-driven market & risk-asset matrix (now consistent with cross-checks)
   document.getElementById("impact").innerHTML=`<div class="loading">The curve describes yield levels and changes. A validated mapping from this regime to equity, credit or crypto returns is not available; no asset allocation call is generated.</div>`;
   // bottom line synthesis (needs both curve regime + historical ref)
   const bl="";
@@ -393,9 +403,6 @@ function synthesize(d,ref){
   document.getElementById("eduNote").innerHTML=`<b>How to read this:</b> Treasury constant-maturity yields share one observation date. Bull/bear describes falling/rising average endpoint yields; steepening/flattening describes a wider/narrower 2s10s spread. These shapes do not establish why yields changed or predict a trade. ACM term premium is a separately dated model estimate; nominal minus real minus breakeven is only a consistency residual. Sources: FRED and the NY Fed ACM model.`;
 
   document.getElementById("ts").textContent="engine: justhodl-yield-curve · generated "+(d.generated_at||"?");
-  setInterval(()=>{if(!JHYieldCurve.validLegacy(d,Date.now()))unavailable();},60000);
-  try{const ref=await JHYieldCurve.json(EP_URL+"?t="+Date.now());renderHistCtx(ref,["T10Y2Y","T10Y3M","DGS10","DFII10","T10YIE"]);}
-  catch{document.getElementById("histctx").textContent="Historical reference unavailable. Current curve measurements use their own observation dates.";}
 })();
 </script>
   <script src="/jh-page-ai.js" defer></script>
