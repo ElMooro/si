@@ -2,8 +2,8 @@
  "v": 2,
  "generated_by": "scripts/gen_engine_wiring.py --reconcile (pages are the source of truth; audit 2026-09-08 C-6)",
  "note": "WIRED = the page itself declares the feed via jh-wire.js. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign. ASSIGN in this script is only a proposal applied additively with --apply.",
- "n_pages": 37,
- "n_wired": 157,
+ "n_pages": 36,
+ "n_wired": 143,
  "wired": [
   {
    "engine": "justhodl-consensus-bottom",
@@ -898,118 +898,6 @@
    "feed": "data/canary-grid.json",
    "page": "risk-gate.html",
    "title": "CANARY GRID (early-warning strip)",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-activist-filings-scanner",
-   "feed": "data/activist-filings-state.json",
-   "page": "signal-board.html",
-   "title": "ACTIVIST FILINGS SCANNER",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-analyst-consensus",
-   "feed": "data/analyst-consensus.json",
-   "page": "signal-board.html",
-   "title": "ANALYST CONSENSUS",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-ark-holdings",
-   "feed": "data/ark-holdings-prev.json",
-   "page": "signal-board.html",
-   "title": "ARK HOLDINGS",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-bagger-engine",
-   "feed": "data/bagger-engine.json",
-   "page": "signal-board.html",
-   "title": "BAGGER ENGINE",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-benzinga-earnings",
-   "feed": "data/benzinga-earnings-calendar.json",
-   "page": "signal-board.html",
-   "title": "BENZINGA EARNINGS",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-beta-laggard",
-   "feed": "data/beta-laggards.json",
-   "page": "signal-board.html",
-   "title": "BETA LAGGARD",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-capital-return",
-   "feed": "data/capital-return.json",
-   "page": "signal-board.html",
-   "title": "CAPITAL RETURN",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-causality-scanner",
-   "feed": "data/causality-discoveries.json",
-   "page": "signal-board.html",
-   "title": "CAUSALITY SCANNER",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-chart-patterns",
-   "feed": "data/chart-patterns.json",
-   "page": "signal-board.html",
-   "title": "CHART PATTERNS",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-dividend-growth",
-   "feed": "data/dividend-growth.json",
-   "page": "signal-board.html",
-   "title": "DIVIDEND GROWTH",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-earnings-confluence",
-   "feed": "data/earnings-confluence.json",
-   "page": "signal-board.html",
-   "title": "EARNINGS CONFLUENCE",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-earnings-nlp",
-   "feed": "data/earnings-nlp.json",
-   "page": "signal-board.html",
-   "title": "EARNINGS NLP",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-industry-rotation",
-   "feed": "data/industry-rotation.json",
-   "page": "signal-board.html",
-   "title": "INDUSTRY ROTATION",
-   "schema_version": "unspecified",
-   "via": "jh-wire.js"
-  },
-  {
-   "engine": "justhodl-factor-regime",
-   "feed": "data/factor-regime.json",
-   "page": "signal-board.html",
-   "title": "FACTOR REGIME",
    "schema_version": "unspecified",
    "via": "jh-wire.js"
   },

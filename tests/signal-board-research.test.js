@@ -50,5 +50,6 @@ test('all previous supplementary sources are retained as read-only references',(
  const old=fs.readFileSync(path.join(__dirname,'fixtures/legacy-signal-board-stage140.html.txt'),'utf8');
  const oldFeeds=old.match(/data-feeds="([^"]+)"/)[1].split(';').map(v=>v.split('|')[0]);for(const key of oldFeeds)assert.ok(catalog.supplemental.some(r=>r.source_key===key));
  assert.equal(catalog.supplemental.length,17);
+ const wiring=require('../data/engine-wiring.json');assert.equal(wiring.wired.filter(row=>row.page==='signal-board.html').length,0,'source references must not be recorded as rendered jh-wire cards');
  const html=fs.readFileSync(path.join(__dirname,'../signal-board.html'),'utf8');assert.ok(html.includes('/jh-fifx-board.js'));assert.ok(!html.includes('jh-page-ai.js'));assert.ok(!html.includes('AI commentary loading'));assert.ok(html.includes('00:15, 06:15, 12:15 and 18:15 UTC'));
 });

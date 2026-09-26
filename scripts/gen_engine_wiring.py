@@ -118,14 +118,14 @@ def _scan_pages():
     from page_sources import pages, HTML
     declared={}
     for page in pages(Path(".")):
-        parser=HTML();parser.feed(page.read_text(errors="replace"))
+        parser=HTML();parser.feed(page.read_text(encoding="utf-8", errors="replace"))
         if parser.wires:declared[page.as_posix()]=parser.wires
     return declared
 
 
 def _validate_ownership(declared):
     from collections import Counter
-    manifest=json.load(open("engine-manifest.json"))
+    manifest=json.load(open("engine-manifest.json", encoding="utf-8"))
     owned={e["engine"]:set(e.get("keys") or []) for e in manifest["engines"]}
     errors=[]
     for page,rows in declared.items():
@@ -145,7 +145,7 @@ def _apply_transaction(plan):
         for page,src in plan:
             p=Path(page);originals[page]=p.read_bytes()
             fd,name=tempfile.mkstemp(prefix=p.name+".",suffix=".tmp",dir=str(p.parent))
-            with os.fdopen(fd,"w") as handle:handle.write(src)
+            with os.fdopen(fd,"w",encoding="utf-8") as handle:handle.write(src)
             staged.append((name,page))
         for name,page in staged:os.replace(name,page)
     except Exception:
@@ -158,7 +158,7 @@ def _apply_transaction(plan):
 
 def _atomic_write(path, obj):
     tmp = path + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         json.dump(obj, f, indent=1)
     os.replace(tmp, path)
 
@@ -233,7 +233,7 @@ def main(argv=None):
     }
     if mode == "check":
         try:
-            cur = json.load(open("data/engine-wiring.json"))
+            cur = json.load(open("data/engine-wiring.json", encoding="utf-8"))
         except Exception:
             cur = {}
         fields=("page","feed","engine","title","schema_version","via")
