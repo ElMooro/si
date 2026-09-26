@@ -30,20 +30,42 @@ def page_key(rel):
     return rel or "index"
 
 
+class RequiredPageDependencyError(RuntimeError):
+    pass
+
+
+def publish_sovereign_universe():
+    """Ship the one reviewed page dependency; never copy arbitrary config files."""
+    if not os.path.isfile(os.path.join(SITE, "global-sovereign.html")):
+        return
+    try:
+        src = os.path.join(ROOT, "config", "global-sovereign-universe.json")
+        with open(src, encoding="utf-8") as f:
+            obj = json.load(f)
+        if obj.get("contract") != "sovereign-review-universe.v1" or not isinstance(obj.get("countries"), list) or not obj["countries"]:
+            raise ValueError("Required sovereign page universe is invalid")
+        shutil.copyfile(src, os.path.join(SITE, "config", "global-sovereign-universe.json"))
+    except Exception as exc:
+        raise RequiredPageDependencyError("Required sovereign page dependency was not published") from exc
+
+
 def main():
     reg_path = os.path.join(ROOT, "config", "section-registry.json")
     registry = {}
     try:
-        registry = json.load(open(reg_path, encoding="utf-8")).get("pages", {})
+        with open(reg_path, encoding="utf-8") as f:
+            registry = json.load(f).get("pages", {})
     except Exception as e:  # noqa: BLE001
         print(f"bake_sections: registry unavailable ({e}); numbering will be DOM-order until the first crawl")
     os.makedirs(os.path.join(SITE, "config"), exist_ok=True)
+    publish_sovereign_universe()  # required: a missing page dependency fails the build
     for name in ("section-registry.json", "home-layout.json", "engine-contracts.json"):   # engine-contracts: QA audit 2026-09-07 -- home.js fetched /config/engine-contracts.json and got 404 on every load
         src = os.path.join(ROOT, "config", name)
         if not os.path.exists(src):
             continue
         try:  # compact copy for the site (the repo copy stays indented for diffs)
-            obj = json.load(open(src, encoding="utf-8"))
+            with open(src, encoding="utf-8") as f:
+                obj = json.load(f)
             if name == "section-registry.json":
                 for pk, entry in (obj.get("pages") or {}).items():
                     for sec in entry.get("sections", []):
@@ -66,7 +88,8 @@ def main():
                 continue
             path = os.path.join(dirpath, fn)
             try:
-                text = open(path, encoding="utf-8", errors="replace").read()
+                with open(path, encoding="utf-8", errors="replace") as f:
+                    text = f.read()
             except Exception:
                 continue
             low = text.lower()
@@ -106,12 +129,16 @@ def main():
             if map_tag:
                 baked += 1
             if changed and text2 != text:
-                open(path, "w", encoding="utf-8").write(text2)
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(text2)
     print(f"bake_sections: injected={injected} baked_maps={baked} skipped={skipped} registry_pages={len(registry)}")
 
 
 if __name__ == "__main__":
     try:
         main()
+    except RequiredPageDependencyError as e:
+        print(f"bake_sections: required dependency failed: {e}")
+        sys.exit(1)
     except Exception as e:  # noqa: BLE001
         print(f"bake_sections: non-fatal error {e}")
