@@ -259,7 +259,14 @@ def lambda_handler(event=None, context=None):
               "flow_research":flow_research,"flow_status":flow_status,"calls_eligible":False}
 
     # ─── US CREDIT (owned ICE ladder + FRED micro/chart) ───
-    cs=_s3json("data/credit-stress.json",{}) or {}
+    from bond_credit_store import collect as collect_credit
+    credit_research=None;credit_status="unavailable"
+    try:
+        credit_research=collect_credit(s3,BUCKET,datetime.now(timezone.utc).isoformat())
+        credit_status="dated_native_comparisons"
+    except Exception as error:
+        credit_status="withheld_"+type(error).__name__
+    credit_fields=(credit_research or {}).get("legacy_fields",{})
     ccc=_fred("BAMLH0A3HYC",1560); bb=_fred("BAMLH0A1HYBB",1560)
     micro={"status":"UNAVAILABLE"}; chart=[]
     if ccc and bb:
@@ -303,11 +310,12 @@ def lambda_handler(event=None, context=None):
                       key=lambda p:p["date"])
         if len(merged)>len(chart): chart=merged; chart_src+="+cs_history(%d)"%len(hist_pts)
     print("[desk] chart source:",chart_src,"n=",len(chart))
-    us_credit={"source":"justhodl-credit-stress (ICE BofA ladder)" if cs else "FRED",
-               "ccc_minus_bb_bps":_bps(_first(cs,("ccc_minus_bb",))) or micro.get("ccc_bb_bps"),
-               "hy_minus_ig_bps":_bps(_first(cs,("hy_minus_ig",))),
-               "bbb_minus_aaa_bps":_bps(_first(cs,("bbb_minus_aaa",))),
-               "composite_regime":_first(cs,("composite_regime","hy_regime"),(str,)),
+    us_credit={"source":"Native credit research; older micro/chart context remains separately unqualified",
+               "ccc_minus_bb_bps":credit_fields.get("ccc_minus_bb_bps"),
+               "hy_minus_ig_bps":credit_fields.get("hy_minus_ig_bps"),
+               "bbb_minus_aaa_bps":credit_fields.get("bbb_minus_aaa_bps"),
+               "composite_regime":"RESEARCH_ONLY",
+               "credit_research":credit_research,"credit_status":credit_status,"calls_eligible":False,
                "fred_micro":micro}
     cz=max(-2.5,min(2.5,((micro.get("d21_bps") or 0)/25)+max(0,(micro.get("pctile") or 50)-85)/10))
 
@@ -392,7 +400,7 @@ def lambda_handler(event=None, context=None):
         JP.update(score=None, fresh=False, status='unqualified_yen_vote', source_replay=yc.get('replay'))
 
     # ─── EM ───
-    EM={"em_hy_minus_us_hy_bps":_bps(_first(cs,("em_hy_minus_us_hy",))),
+    EM={"em_hy_minus_us_hy_bps":credit_fields.get("em_hy_minus_us_hy_bps"),
         "em_debt_flow_5d_usd":B["em_debt"]["flow_5d_usd"],
         "fresh":True}
     EM.update(score=None,fresh=False,status="unqualified_flow_forecast",calls_eligible=False)
@@ -483,7 +491,7 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print("[ai]",str(e)[:90]); ai_status="PROVIDER_DOWN"
 
-    doc={"engine":"justhodl-bond-desk","version":"3.1.0",
+    doc={"engine":"justhodl-bond-desk","version":"3.2.0",
          "generated_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),
          "world_anxiety":world,"regime":regime,
          "hottest_region":{"region":hot[0],"score":hot[1]["score"]} if hot else None,

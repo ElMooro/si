@@ -20,8 +20,8 @@ class Memory:
         self.data[Key]=Body
 
 class Tests(unittest.TestCase):
-    def test_every_current_declared_read_is_reviewed_without_importing_engine(self):
-        source=(ROOT/'aws/lambdas/justhodl-bond-desk/source/lambda_function.py').read_text(encoding='utf-8')
+    def test_every_preserved_predecessor_read_is_reviewed_without_importing_engine(self):
+        source=(ROOT/'aws/lambdas/justhodl-bond-desk/tests/fixtures/pre-cohort-lambda_function.py.txt').read_text(encoding='utf-8')
         keys=op.source_reads(source);self.assertEqual(len(keys),17);self.assertIn('data/ici-flows.json',keys)
         for invalid in ('_s3json("data/portfolio.json")','_s3json(dynamic)','_s3json("data/new-input.json")'):
             with self.assertRaises(ValueError):op.source_reads(invalid)

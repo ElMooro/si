@@ -50,6 +50,7 @@ td:first-child,th:first-child{text-align:left}
 .card{min-width:0;overflow:auto}.rc,.tile{min-width:0}.read,.method,.phase,.sub{overflow-wrap:anywhere}
 @media(max-width:900px){.map{grid-template-columns:repeat(4,1fr)}.sim .nm{width:130px}}
 #bond-cohorts a{color:var(--cyan)}#bond-cohorts a:hover{text-decoration:underline}#bond-cohorts details{padding:8px 0;border-bottom:1px solid var(--line)}#bond-cohorts summary{cursor:pointer;color:var(--cyan)}#bond-cohorts th,#bond-cohorts td{white-space:nowrap}
+#bond-credit a{color:var(--cyan)}#bond-credit details{padding:8px 0;border-bottom:1px solid var(--line)}#bond-credit summary{cursor:pointer;color:var(--cyan)}#bond-credit th,#bond-credit td{white-space:nowrap}
 </style></head><body><div class="wrap">
 <h1>GLOBAL BOND DESK — RESEARCH REVIEW</h1>
 <div class="sub" id="sub">Loading the existing research packet…</div>
@@ -57,6 +58,7 @@ td:first-child,th:first-child{text-align:left}
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-fifx-research.js"></script>
 <script src="/jh-bond-cohorts.js"></script>
+<script src="/jh-bond-credit.js"></script>
 <script>
 let originalText='';
 async function getJSON(k){try{const raw=await JHFIFXResearch.bytes('/'+k+'?exact=1&nogen=1',fetch,8*1024*1024,20000);originalText=new TextDecoder('utf-8',{fatal:true}).decode(raw);return JSON.parse(originalText)}catch(e){return null}}
@@ -99,8 +101,9 @@ const F=v=>(v==null||v==='')?'—':v;
  </div>
  <div class="read"><b>EQUITY READ</b> — ${qualified?(d.equity_read||''):'WAIT means abstain. This predecessor has no accepted original-source replay, out-of-sample forecast qualification or portfolio target. Reported fields remain available for review below.'}</div>
 
- <div class="read"><b>Evidence boundary</b> — Publication ${d.generated_at||'date unavailable'} is not an observation date. No field-level source dates, units or historical vintage are certified by this page. Missing inputs are not zero flows.</div>
+ <div class="read"><b>Evidence boundary</b> — Publication ${d.generated_at||'date unavailable'} is not an observation date. Legacy regional fields have not passed source/unit verification. The research sections below report their separate evidence checks when available. Missing inputs are not zero flows.</div>
  <section id="bond-cohorts" style="overflow-wrap:anywhere;min-width:0">Dated issuer cohort publication pending.</section>
+ <section id="bond-credit" style="overflow-wrap:anywhere;min-width:0">Dated credit projection publication pending.</section>
  <details id="bond-legacy"><summary style="cursor:pointer;color:var(--cyan);padding:14px 0">Review unqualified legacy measurements, scores and analogs</summary>
  <p class="note">All values below are reported predecessor fields. Scores, color bands, regional rankings and historical returns have not been independently qualified and must not determine a trade.</p>
  <h2>REPORTED WORLD MAP — UNQUALIFIED LEGACY SCORES</h2>
@@ -150,10 +153,13 @@ const F=v=>(v==null||v==='')?'—':v;
  <div class="method" style="margin-top:18px"><b>REPORTED PREDECESSOR METHOD — UNQUALIFIED</b> — ${d.method||''}</div></details>
  <details style="margin-top:18px"><summary style="cursor:pointer;color:var(--cyan)">Complete original packet — every field and row</summary><p class="note">Exact response text, including unqualified legacy scores and any source gaps. Retaining a field does not grant decision permission.</p><pre id="bond-original" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:600px;overflow:auto"></pre></details>`;
  document.getElementById('bond-original').textContent=originalText;
- if(typeof JHBondCohorts!=='undefined')await JHBondCohorts.mount(document.getElementById('bond-cohorts'),original.regions?.us?.flows?.flow_research);
  const history=Array.isArray(d.chart_ccc_bb)?d.chart_ccc_bb:[];
  const anchor=document.getElementById('chart-anchor');
  anchor.innerHTML='<h2>REPORTED CCC − BB HISTORY · unit reported as basis points, not independently verified</h2><p class="note">All '+history.length+' observations in this same packet. No separate chart fetch or added crisis overlay.</p><details><summary>Review every reported historical observation</summary><div style="overflow:auto;max-height:450px"><table><thead><tr><th>Date</th><th>Reported value</th></tr></thead><tbody>'+history.map(row=>'<tr><td>'+F(row?.date)+'</td><td>'+F(row?.value)+'</td></tr>').join('')+'</tbody></table></div></details>';
+ const jobs=[];
+ if(typeof JHBondCohorts!=='undefined')jobs.push(JHBondCohorts.mount(document.getElementById('bond-cohorts'),original.regions?.us?.flows?.flow_research));
+ if(typeof JHBondCredit!=='undefined')jobs.push(JHBondCredit.mount(document.getElementById('bond-credit'),original.regions?.us?.credit?.credit_research));
+ await Promise.all(jobs);
 
 })();
 </script></div>

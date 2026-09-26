@@ -18,3 +18,4 @@ if __name__=='__main__':
     assert required_region_composite(regions,weights)==(None,'UNAVAILABLE',None)
     print('Required regional votes: no partial reweighting or empty max passed')
     subprocess.run([sys.executable,str(Path(__file__).with_name('test_cohort_native.py'))],check=True)
+    subprocess.run([sys.executable,str(Path(__file__).with_name('test_credit_native.py'))],check=True)

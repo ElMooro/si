@@ -1,0 +1,76 @@
+{
+  "acceptance": {
+    "key": "audit-private/20260909-originals/bond-desk-research/11539530e1215a1023106a991a517bff877f3f1adc63abc0a67d95b112aa1694.bin",
+    "sha256": "11539530e1215a1023106a991a517bff877f3f1adc63abc0a67d95b112aa1694",
+    "bytes": 14394
+  },
+  "account_reads": 0,
+  "all_denied": true,
+  "anonymous_origins_checked": 8,
+  "attempt_outcome_counts": {
+    "404": 4,
+    "403": 4
+  },
+  "candidate_only": true,
+  "checks": {
+    "contract": "bond-credit-original-check.v1",
+    "comparisons_checked": 4,
+    "original_rows_checked": 8,
+    "checks": [
+      {
+        "comparison": "ccc_minus_bb",
+        "observation_date": "2026-09-24",
+        "original_rows_checked": 2,
+        "rational_basis_point_difference": "948.00"
+      },
+      {
+        "comparison": "hy_minus_ig",
+        "observation_date": "2026-09-24",
+        "original_rows_checked": 2,
+        "rational_basis_point_difference": "201.00"
+      },
+      {
+        "comparison": "bbb_minus_aaa",
+        "observation_date": "2026-09-24",
+        "original_rows_checked": 2,
+        "rational_basis_point_difference": "57.00"
+      },
+      {
+        "comparison": "em_hy_minus_us_hy",
+        "observation_date": "2026-09-24",
+        "original_rows_checked": 2,
+        "rational_basis_point_difference": "2.00"
+      }
+    ],
+    "passed": true,
+    "historical_point_in_time_verified": false,
+    "forecast_qualified": false,
+    "sizing_eligible": false
+  },
+  "complete_original_replay_passed": true,
+  "failures": [],
+  "forecast_qualified": false,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "protected_original_bytes": 5390159,
+  "protected_originals": 57,
+  "protected_paths_checked": 4,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "reviewed_credit_series": 28,
+  "schedules_changed": 0,
+  "scope": "Typed original-bound credit comparisons and independent rational checks; native Bond Desk credit integration remains pending.",
+  "source": {
+    "bytes": 170980,
+    "key": "audit-private/20260909-originals/bond-desk-research/8de1af5728f78bc75cac741f54b42d570bfd66167bdc4be6bc94987c1cd84805.bin",
+    "sha256": "8de1af5728f78bc75cac741f54b42d570bfd66167bdc4be6bc94987c1cd84805"
+  },
+  "source_artifacts": 63,
+  "source_run": {
+    "manifest_key": "data/credit-research/runs/34b59ea86765976af959e595518878b1a2ae5328ce306f6f65cea236236331ff.json",
+    "output_sha256": "451b8c5329a258cdc3782ea53768a3a03d8ddf4e6770eb0845e7dad401ea7fd8"
+  },
+  "commit": "58175fbdad5a4b9e8013e36d0d44ea880440d207",
+  "operation_run": 36270195879,
+  "report_commit": "b0daa5ec0"
+}

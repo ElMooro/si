@@ -1,11 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-async function render(file,packet){
+async function render(file,packet,extra={}){
  const html=fs.readFileSync(path.join(__dirname,'..',file),'utf8'),scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
  const source=scripts.find(s=>s.includes(file==='crypto-risk.html'?'function col(':'const sc='));assert.ok(source);
  const elements={},doc={getElementById:id=>elements[id]??={innerHTML:'',textContent:'',appendChild(){}},createElement:()=>({setAttribute(){}})};
  const transport=require('../jh-fifx-research.js');
  const requests=[];
- const scope={document:doc,fetch:async url=>{requests.push(url);return Response.json(packet);},JHFIFXResearch:transport,TextDecoder,Date,Number,Math,console};vm.runInNewContext(source,scope);await new Promise(setImmediate);return {elements,scope,requests};
+ const scope={document:doc,fetch:async url=>{requests.push(url);return Response.json(packet);},JHFIFXResearch:transport,TextDecoder,Date,Number,Math,console,...extra};vm.runInNewContext(source,scope);await new Promise(setImmediate);return {elements,scope,requests};
 }
 test('actual crypto page renders abstention without a green zero or null progress bar',async()=>{
  const {elements,scope}=await render('crypto-risk.html',{calls_eligible:false,dump_risk_score:null,risk_level:'UNAVAILABLE',factors:{macro_regime:{risk:null,weight:.06,note:'Unqualified'}}});
@@ -47,4 +47,14 @@ test('Bond Desk uses one read-only packet and retains every reported historical 
  assert.equal((elements['chart-anchor'].innerHTML.match(/<tr>/g)||[]).length,601);
  assert.match(elements['chart-anchor'].innerHTML,/reported-599/);assert.match(elements['chart-anchor'].innerHTML,/<td>0<\/td>/);
  assert.equal(JSON.parse(elements['bond-original'].textContent).chart_ccc_bb.length,600);
+});
+
+test('a delayed optional cohort cannot block credit, whole packet or reported history',async()=>{
+ const calls=[];
+ const {elements}=await render('bond-desk.html',{regions:{},chart_ccc_bb:[{date:'2026-09-24',value:0}]},{
+  JHBondCohorts:{mount(){calls.push('cohorts');return new Promise(()=>{});}},
+  JHBondCredit:{mount(){calls.push('credit');return Promise.resolve();}}
+ });
+ assert.deepEqual(calls,['cohorts','credit']);assert.match(elements['chart-anchor'].innerHTML,/All 1 observations/);
+ assert.equal(JSON.parse(elements['bond-original'].textContent).chart_ccc_bb[0].value,0);
 });
