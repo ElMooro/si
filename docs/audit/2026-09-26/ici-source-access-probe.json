@@ -1,0 +1,39 @@
+{
+  "purpose": "Pre-migration source availability, not production publication or source qualification",
+  "sources": [
+    {
+      "source": "mmf",
+      "requested_url": "https://www.ici.org/research/stats/mmf",
+      "final_url": "https://www.ici.org/research/stats/mmf",
+      "status": 403,
+      "requested_at": "2026-09-26T18:37:51.127869+00:00",
+      "received_at": "2026-09-26T18:37:51.684014+00:00",
+      "bytes": 389,
+      "sha256": "ccad9d460f12aaf7d101ed794d75b6dc4042b2ee05f9b6d279603cb5f4ef334f",
+      "headers": {
+        "content-type": "text/html",
+        "content-length": "389",
+        "date": "Sat, 26 Sep 2026 18:37:51 GMT"
+      }
+    },
+    {
+      "source": "combined_flows",
+      "requested_url": "https://www.ici.org/research/stats/combined_flows",
+      "final_url": "https://www.ici.org/research/stats/combined_flows",
+      "status": 403,
+      "requested_at": "2026-09-26T18:37:51.127869+00:00",
+      "received_at": "2026-09-26T18:37:52.025340+00:00",
+      "bytes": 406,
+      "sha256": "41ab32814f9b921c19afeb573994a2885d1c7f70c42977d0736258711005a7f4",
+      "headers": {
+        "content-type": "text/html",
+        "content-length": "406",
+        "date": "Sat, 26 Sep 2026 18:37:51 GMT"
+      }
+    }
+  ],
+  "automated_source_requests": 2,
+  "retries": 0,
+  "published_outputs": 0,
+  "next_check": "Runner baseline 6165 preserves deployed code/histories and checks these two official endpoints once."
+}

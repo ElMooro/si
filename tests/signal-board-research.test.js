@@ -12,6 +12,18 @@ test('every reported row and shared source remains visible without votes',()=>{
  assert.equal(rows.filter(r=>r.source_views===2).length,2);assert.ok(rows.every(r=>r.calls_eligible===false&&r.sizing_eligible===false));
  assert.equal(rows[0].as_of,'Not reported');assert.equal(rows[0].raw,p.engines[0]);
 });
+
+test('latest packet links preserve the registered namespace and exclude private paths',async()=>{
+ const doc=document(),old=setInterval;globalThis.setInterval=()=>1;
+ try{
+  const app=api.mount(doc,transport,nativeWire(),webcrypto);await app.refresh();
+  assert.ok(doc.els['sb-table'].innerHTML.includes('href="https://justhodl-data-proxy.raafouis.workers.dev/screener/mean-reversion.json?exact=1&amp;nogen=1"'));
+  assert.ok(!doc.els['sb-table'].innerHTML.includes('href="/screener/'));
+  assert.equal(api.sourceUrl('data/auction-crisis.json'),'/data/auction-crisis.json?exact=1&nogen=1');
+  for(const key of ['data/pm-decision.json','data/sizing.json','data/portfolio/current.json','../data/x.json','//evil.invalid/x.json','https://evil.invalid/x.json','screener/%2e%2e/x.json'])assert.equal(api.sourceUrl(key),null);
+  assert.equal(doc.els['sb-content'].hidden,false);assert.match(doc.els['sb-status'].textContent,/WAIT/);app.destroy();
+ }finally{globalThis.setInterval=old;}
+});
 test('private inputs never become links and untrusted mappings are rejected',()=>{
  const rows=api.inventory(packet(),catalog);for(const key of ['data/pm-decision.json','data/sizing.json'])assert.ok(!api.sourceLink(rows.find(r=>r.source.source_key===key)).includes('<a'));
  for(const value of ['https://evil.invalid','data/../private.json','data/portfolio/snapshot.json']){const c=copy(catalog);c.feeds[0].source_key=value;assert.throws(()=>api.registry(c));}

@@ -1,0 +1,112 @@
+{
+  "actual_runtime": {
+    "code_sha256": "zraSySWu0Ky24uI8Xyf/InN+F4xhQzXQ8CIsHQgB52Q=",
+    "source_files_checked": 5,
+    "handler_bytes": 1179,
+    "timeout": 600,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "matched",
+      "commit": "895427505e65d4d8aa13d15e7d11dd92673e08ba"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "signal-board-3h",
+        "state": "ENABLED",
+        "expression": "cron(15 0/6 * * ? *)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-signal-board",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "checked_at": "2026-09-26T18:42:28.053952+00:00",
+  "consumer_invocations": 0,
+  "expected_commit": "895427505e65d4d8aa13d15e7d11dd92673e08ba",
+  "ici_metadata": {
+    "runtime": {
+      "FunctionName": "justhodl-ici-flows",
+      "State": "Active",
+      "LastUpdateStatus": "Successful",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 120,
+      "MemorySize": 256,
+      "LastModified": "2026-07-02T07:14:35.000+0000",
+      "CodeSha256": "aCLhccgfw7t1eC4shHbObCJdvjIjzi24qZ5ebObiPxs="
+    },
+    "public_head": {
+      "status": "404"
+    }
+  },
+  "native_invocations": 0,
+  "normal_new_code_publication_verified": false,
+  "notifications_sent": 0,
+  "private_account_reads": 0,
+  "provider_requests": 0,
+  "public_derived_read_attempts": 1,
+  "public_route_probe": {
+    "key": "screener/mean-reversion.json",
+    "status": 200,
+    "artifact_identity": "screener/mean-reversion.json",
+    "bytes": 70857,
+    "sha256": "15c652b636d06ea35a272c97a207d899f32739f0ed5e760b9f5491d2d4739b91",
+    "complete_public_response_read": true
+  },
+  "public_writes": 0,
+  "schedules_changed": 0,
+  "scope": "Actual deployed code, preserved runtime and one existing public packet; no native publication is forced. ICI diagnostic is metadata only.",
+  "synthetic_regressions": "passed",
+  "deploy_run": 36263316964,
+  "pages_run": 36263316969,
+  "ops_run": 36263463418,
+  "report_commit": "3514d5984c2065b9f46eb2ba87282411d0f46c27",
+  "live_site": {
+    "commit": "895427505e65d4d8aa13d15e7d11dd92673e08ba",
+    "served_descendant": "895427505e65d4d8aa13d15e7d11dd92673e08ba",
+    "checked_at": "2026-09-26T18:48:10.827593+00:00",
+    "registry_hash": "1769db7a7cb8c78056595d69d1c10f1b1d080783542b832e6717e3c1fc784c6a",
+    "assets": {
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1333902,
+        "sha256": "972269a7c06adc44fa5747b6e913ff3724c2a5dbb4aaf0f11a8313db198e83f4",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328513,
+        "sha256": "1769db7a7cb8c78056595d69d1c10f1b1d080783542b832e6717e3c1fc784c6a",
+        "matches_commit_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3041,
+        "sha256": "8f3242e161664cab413724db7d0b09e3352193b464052a956992f7b952f15374",
+        "matches_commit_manifest": true
+      },
+      "calls.html": {
+        "bytes": 20166,
+        "sha256": "2dc0b011c57d381bf0e229345ae0d1d38d5bfcaa50534e3344c159dd62673398",
+        "matches_commit_manifest": true
+      },
+      "ciss.html": {
+        "bytes": 14537,
+        "sha256": "3fbbea0cefe096381196839aaa353e1b225591dd4adaaf7b07d96ce6979fd68a",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "current_publication": "2026-09-26T18:15:19.508715+00:00",
+  "current_publication_uses_predecessor_code": true,
+  "next_normal_slot": "2026-09-27T00:15:00Z"
+}

@@ -64,9 +64,13 @@
     const stamp=typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value)?Date.parse(value):NaN;
     return !Number.isFinite(stamp)?'Publication date unavailable':stamp>now?'Future publication date — unverified':now-stamp>40*3600000?'Historical snapshot older than 40 hours':'Recent publication; underlying observation freshness unverified';
   }
+  function sourceUrl(key){
+    if(!path(key))return null;
+    return (key.startsWith('data/')?'/':'https://justhodl-data-proxy.raafouis.workers.dev/')+key+'?exact=1&nogen=1';
+  }
   function sourceLink(row){
     if(!row.source||!path(row.source.source_key))return esc(row.source?'Private source excluded':'No verified mapping');
-    return '<a href="/'+esc(row.source.source_key)+'?exact=1&amp;nogen=1" target="_blank" rel="noopener">Latest: '+esc(row.source.source_key)+'</a>'+(row.source_views>1?'<br><small>'+row.source_views+' views share this key</small>':'')+(row.original?'<br><button type="button" data-sb-source="'+row.index+'">Inspect retained input</button>':'');
+    return '<a href="'+esc(sourceUrl(row.source.source_key))+'" target="_blank" rel="noopener">Latest: '+esc(row.source.source_key)+'</a>'+(row.source_views>1?'<br><small>'+row.source_views+' views share this key</small>':'')+(row.original?'<br><button type="button" data-sb-source="'+row.index+'">Inspect retained input</button>':'');
   }
   function mount(doc,api=root.JHFIFXResearch,fetcher=root.fetch,crypto=root.crypto){
     if(!doc.getElementById('sb-research')||!api)return null;
@@ -91,7 +95,7 @@
         const unique=new Set(rows.filter(r=>r.source).map(r=>r.source.source_key)).size;
         el('counts').innerHTML=[['Reported rows',rows.length],['Mapped source keys',unique],['Qualified investment votes',0]].map(([label,n])=>'<div class="fx-panel"><span>'+label+'</span><strong>'+n+'</strong></div>').join('');
         el('raw').textContent=new TextDecoder().decode(raw);el('fingerprint').textContent=raw.length.toLocaleString()+' downloaded bytes · SHA-256 '+digest;
-        el('extra').innerHTML=c.supplemental.map(r=>'<a href="/'+esc(r.source_key)+'?exact=1&amp;nogen=1" target="_blank" rel="noopener">'+esc(r.label)+'</a>').join('');
+        el('extra').innerHTML=c.supplemental.map(r=>'<a href="'+esc(sourceUrl(r.source_key))+'" target="_blank" rel="noopener">'+esc(r.label)+'</a>').join('');
         el('detail-title').textContent='Inspect a reported row';el('detail-note').textContent='Every original field remains available. Legacy scores and narratives are unqualified.';
         el('content').hidden=false;render();
       }catch(_){if(ticket===version)clear('Snapshot unavailable or format changed · WAIT. No current recommendation is displayed.');}
@@ -112,6 +116,6 @@
     el('refresh').addEventListener('click',refresh);el('search').addEventListener('input',render);el('category').addEventListener('change',render);
     const timer=setInterval(render,30000);refresh();return {refresh,render,destroy(){clearInterval(timer);version++;clear('Closed');}};
   }
-  const api={registry,inventory,clockStatus,sourceLink,mount,artifact,retained,bindNative};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.JHSignalBoardResearch=api;
+  const api={registry,inventory,clockStatus,sourceUrl,sourceLink,mount,artifact,retained,bindNative};if(typeof module!=='undefined'&&module.exports)module.exports=api;root.JHSignalBoardResearch=api;
   if(root.document)mount(root.document);
 })(typeof globalThis!=='undefined'?globalThis:this);
