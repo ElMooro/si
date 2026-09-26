@@ -2,10 +2,18 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "timeout": 900,
-  "memory": 1024,
+  "memory": 4096,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Capital-structure fleet map: share-count trend (dilution/shrink), TTM buybacks + yield, issuance, insider buy/sell joins -> data/share-flows.json for opportunities/IR/chart-pro/accumulation joins.",
-  "inherit_env": [
-    "justhodl-confluence-meta"
-  ]
+  "description": "Complete retained-source capital-structure research, independent arithmetic and exact issuer-history replay; descriptive observations only.",
+  "inherit_env": [],
+  "function_name": "justhodl-share-flows",
+  "architectures": [
+    "x86_64"
+  ],
+  "release_schedule_note": {
+    "status": "EXISTING_SCHEDULER_REFERENCE",
+    "schedule_name": "justhodl-share-flows-daily",
+    "configured_expression": "cron(35 13 * * ? *)",
+    "binding_action": "PRESERVE_EXISTING"
+  }
 }

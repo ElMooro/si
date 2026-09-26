@@ -1,0 +1,138 @@
+{
+  "contract": "capital-structure-native-migration.v1",
+  "complete_predecessors": [
+    {
+      "path": "aws/lambdas/justhodl-share-flows/source/lambda_function.py",
+      "predecessor": "tests/fixtures/legacy-share-flows-before-native.py.txt",
+      "bytes": 34908,
+      "sha256": "0f3023006ef64a36a88a0ff0476834a1578da7c7353132d46f7b8156411ea7cc"
+    },
+    {
+      "path": "aws/lambdas/justhodl-share-flows/config.json",
+      "predecessor": "tests/fixtures/legacy-share-flows-before-native-config.json.txt",
+      "bytes": 450,
+      "sha256": "433f2d2ed3c158fa315341ecb5d90696783c962ce7837b3c77219e31df547992"
+    }
+  ],
+  "baseline": {
+    "key": "audit-private/20260909-originals/share-structure-research/eea4a1e35f82a6e0c0459dd5862a026d7da71eac0bdf5604f9e6bfcc0f175da9.bin",
+    "sha256": "eea4a1e35f82a6e0c0459dd5862a026d7da71eac0bdf5604f9e6bfcc0f175da9",
+    "bytes": 19222
+  },
+  "native_predecessor": {
+    "code_sha256": "oaMPY/pOrQKsRmAEsgNsPLvceaBWK6AMp88MC4UL2LM=",
+    "source_files_checked": 2,
+    "handler_bytes": 34908,
+    "timeout": 900,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "missing_predecessor_receipt"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-share-flows-daily",
+        "state": "ENABLED",
+        "expression": "cron(35 13 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-share-flows",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "candidate": {
+    "replay": {
+      "manifest_key": "data/capital-structure-research/runs/0eb3c8df65e5d20c949d08f43683975f6ec7d8f0ff66453886d491a11661b068.json",
+      "output_sha256": "06c6876ffb84823aec348cb61214ee45aad526d2a3328c7bf28cb4e1614989f6"
+    },
+    "profile": {
+      "compile_seconds": 238.563,
+      "index_bytes": 7595157,
+      "shard_count": 1615,
+      "shard_bytes": 511339685,
+      "max_shard_bytes": 446072,
+      "independent_check_seconds": 8.852,
+      "replay_seconds": 408.543,
+      "max_rss_kib": 1942260
+    },
+    "counts": {
+      "reported_names": 1615,
+      "provider_responses": 11305,
+      "provider_rows": 59256,
+      "empty_responses": 1254,
+      "record_statuses": {
+        "complete_exact_filing_pair": 24609,
+        "current_ticker_cik_not_corroborated": 592,
+        "invalid_reported_cik": 124,
+        "reported_filing_precedes_period_end": 2268,
+        "single_original_statement": 637
+      },
+      "metric_statuses": {
+        "descriptive_provider_row_calculation": 234150,
+        "diluted_denominator_below_basic": 16,
+        "nonpositive_denominator": 11893,
+        "provider_cash_flow_or_share_sign_conflict": 3083,
+        "required_original_statement_row_missing": 3318
+      },
+      "unrequestable_reported_labels": [
+        "[NONE]"
+      ]
+    },
+    "qualification": {
+      "original_rows_checked": 59256,
+      "exact_identity_groups_checked": 25246,
+      "identity_metadata_rows_checked": 59256,
+      "invalid_or_uncorroborated_rows_checked": 2984,
+      "snapshot_rows_checked": 6417,
+      "metric_comparisons": 252460,
+      "exact_rational_values_checked": 240478,
+      "unavailable_metrics_checked": 18310,
+      "current_sec_pairs_checked": true,
+      "production_measurement_formulas_imported": false,
+      "all_original_rows_conserved": true,
+      "forecast_qualified": false,
+      "sizing_qualified": false
+    }
+  },
+  "memory_mb": 4096,
+  "memory_reason": "Full-population verification measured 1,942,260 KiB peak RSS; 4 GiB gives more than twice that measured footprint.",
+  "timeout_seconds": 900,
+  "schedule_action": "PRESERVE_EXISTING_DAILY_13_35_UTC",
+  "readiness_report_required": "aws/ops/reports/latest/ops_6123_capital_structure_private_readiness.md",
+  "native_runtime_capacity_verified": false,
+  "native_output_verified": false,
+  "private_readiness": {
+    "result": {
+      "ready_advanced": true,
+      "reason": "qualified",
+      "replay": {
+        "manifest_key": "data/capital-structure-research/runs/0eb3c8df65e5d20c949d08f43683975f6ec7d8f0ff66453886d491a11661b068.json",
+        "output_sha256": "06c6876ffb84823aec348cb61214ee45aad526d2a3328c7bf28cb4e1614989f6"
+      },
+      "counts": {
+        "reported_names": 1615,
+        "provider_responses": 11305,
+        "provider_rows": 59256,
+        "empty_responses": 1254
+      }
+    },
+    "qualified_at": "2026-09-25T23:47:22.959721+00:00",
+    "ready_sha256": "784d1c576f49b88aa09231115d04c247b2f4b9943386df662de33b3ed16cb71d",
+    "original_clocks": {
+      "generated_at": "2026-09-25T21:53:04.124628+00:00",
+      "source_acquisition_started_at": "2026-09-25T09:20:05.801541+00:00",
+      "source_acquisition_completed_at": "2026-09-25T21:53:04.124628+00:00",
+      "sec_index_requested_at": "2026-09-25T10:43:59.464293+00:00"
+    },
+    "max_rss_kib": 1946392,
+    "elapsed_seconds": 1107.506
+  }
+}

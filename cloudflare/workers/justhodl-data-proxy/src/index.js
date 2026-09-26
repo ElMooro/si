@@ -167,6 +167,7 @@ async function fetchUpstream(upstreamUrl, ttl) {
 function mutablePublication(path) {
   const key = path.replace(/^data\//, '');
   if (key === 'liquidity-flow.json' || key === 'liquidity-pulse.json') return true;
+  if (key === 'share-flows.json') return true;
   if (key === 'forensic-screen.json') return true;
   if (['dollar-radar.json', 'cross-asset-flow-state.json', 'gold-equity-rotation.json', 'dark-pool.json', 'finra-short.json', 'short-pressure.json', 'short-interest.json', 'squeeze-fuel.json'].includes(key)) return true;
   if (['fx-quote-research.json', 'polygon-fx-regime.json'].includes(key)) return true;
