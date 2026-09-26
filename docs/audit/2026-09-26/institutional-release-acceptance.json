@@ -1,0 +1,153 @@
+{
+  "schema_version": "institutional-release-acceptance.v1",
+  "product_commit": "d8275589135721ff94e81b16ac3a2430fb07e8b1",
+  "runtime_report_commit": "e22dc1b0d",
+  "runtime_report": "aws/ops/reports/latest/ops_6162_source_restore_acceptance.md",
+  "runtime_checked_at": "2026-09-26T16:22:10.640377+00:00",
+  "actual_source_closures": {
+    "justhodl-tv-notes-ingest": {
+      "code_sha256": "zPWCea8+NZ+/SaG4CLivtDNXjZPP3SBjrSiiM3FFQ98=",
+      "source_files_checked": 1,
+      "handler_bytes": 22974,
+      "receipt": {
+        "status": "matched",
+        "commit": "802540aec69d86521ba75c6413686c4dbfcbcedd"
+      }
+    },
+    "justhodl-liquidity-pulse": {
+      "code_sha256": "hguxfOfQemAwN8kXV4xxq7KnG7f1PXutThR2JBNDVwk=",
+      "source_files_checked": 9,
+      "handler_bytes": 573,
+      "receipt": {
+        "status": "matched",
+        "commit": "110bcd711e1dd17f6dc7f76c79abe4acc34013c9"
+      }
+    },
+    "justhodl-us10y-sentinel": {
+      "code_sha256": "iCEAGgEYZekywUYjabqMmGLSHjgnRf8LX4sOin2ZyGY=",
+      "source_files_checked": 5,
+      "handler_bytes": 702,
+      "receipt": {
+        "status": "matched",
+        "commit": "94b60fe5e7845c4f618dfd1a3d6deb681b7499e7"
+      }
+    }
+  },
+  "normal_pulse": {
+    "contract": "liquidity-pulse-research.v1",
+    "generated_at": "2026-09-26T16:03:45.542418+00:00",
+    "replayed": true,
+    "original_rows": 13457,
+    "requested_series": 11,
+    "fresh_series": 11,
+    "calls_eligible": false,
+    "sizing_eligible": false
+  },
+  "normal_sentinel": {
+    "contract": "us10y-sentinel-research.v1",
+    "generated_at": "2026-09-26T16:20:39.639157+00:00",
+    "replayed": true,
+    "original_rows": 25689,
+    "independent_scalar_checks": 25033,
+    "complete_episode_rows": 12,
+    "valid_original_price_returns": 12,
+    "matched_correlation_pairs": 60,
+    "arithmetic_verified": true,
+    "forecast_qualified": false,
+    "point_in_time_backtest_qualified": false,
+    "output_sha256": "b52251f0ac148ef369a012edde79ed490e2710172e1d73623a1b5793500f18de",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "source_access": "runner_iam",
+    "public_redistribution_qualified": false
+  },
+  "restricted_archive_protection": "anonymous_edge_and_s3_denied",
+  "pages": {
+    "observed_at": "2026-09-26T16:37:47.411514+00:00",
+    "routes_checked": 560,
+    "verified_routes": 560,
+    "failed_routes": [],
+    "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
+    "embedded_inspection_routes": 559,
+    "standalone_inspection_routes": 1
+  },
+  "assets": {
+    "commit": "d8275589135721ff94e81b16ac3a2430fb07e8b1",
+    "checked_at": "2026-09-26T16:37:31.148699+00:00",
+    "assets": {
+      "chart.html": {
+        "bytes": 51783,
+        "sha256": "f7296ffacbcf25ed3ed8b5e1a63256b98581ec071b4c0ed8b9f9d12203a19bd0",
+        "matches_commit_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 2929,
+        "sha256": "8f1e3af7adabbcc21181680b757388360b9c83bede367dcc8d76383dcef48007",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 24065,
+        "sha256": "c64d1e31f2a216e3a74931b0e5b634224fadcb0736e0874aad848282f5f36352",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2207505,
+        "sha256": "ca1809fd4f7969a1fae42289fe3a8d286680245d9202c2aa0a1f1577c9e1c362",
+        "matches_commit_manifest": true
+      },
+      "calls.html": {
+        "bytes": 18710,
+        "sha256": "5b3162c7dd7c0929fee0886e8720372b6b31e219c89c69142dbc96ba338eca9e",
+        "matches_commit_manifest": true
+      },
+      "calls-page.js": {
+        "bytes": 13513,
+        "sha256": "8a4c73cd448d41f62bd2ed1d6078bf01ed4e7433b92e5e5eb2b7bc3fd687e62d",
+        "matches_commit_manifest": true
+      },
+      "yield-curve.html": {
+        "bytes": 40231,
+        "sha256": "20ae62e1844195fd242ed7964b9a630ffd76dba588ed2c31ca35fe23038c307a",
+        "matches_commit_manifest": true
+      },
+      "jh-us10y-snapshot.js": {
+        "bytes": 8860,
+        "sha256": "9a5a61a5e99629468edff4b6fd1b79163cc1f9631b41995dae7a63f26e44757c",
+        "matches_commit_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 58027,
+        "sha256": "4216c2083367533d4094681b3eb50a66ed27544a9379181bd33db48960624161",
+        "matches_commit_manifest": true
+      },
+      "liquidity-pulse.js": {
+        "bytes": 19938,
+        "sha256": "b12b8b5c53ad42599a90a28440380094a26535ed3a157f6181121768ef009dde",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "validation": {
+    "frontend_tests": 1282,
+    "deployment_tests": 441,
+    "candidate_shell_cases": 12
+  },
+  "verification_side_effects": {
+    "native_invocations": 0,
+    "consumer_invocations": 0,
+    "provider_requests": 0,
+    "personal_account_reads": 0,
+    "public_writes": 0,
+    "notifications_sent": 0,
+    "schedules_changed": 0
+  },
+  "scope": "Selected actual source closures, complete normal Pulse/Sentinel original-source replay, and public HTML/build/inspection entry coverage. Browser checks are recorded separately in the implementation ledger.",
+  "not_established": [
+    "Fleet-wide financial model correctness",
+    "Historical first-publication vintages",
+    "Forecast skill after costs",
+    "Portfolio sizing qualification",
+    "All page runtime inputs and interactions"
+  ]
+}
