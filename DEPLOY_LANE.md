@@ -93,6 +93,19 @@ python3 scripts/verify_release.py <function> --commit <sha> --data data/<engine>
 The receipt carries the commit, run id, `CodeSha256`, zip bytes and every source
 file's sha256. Compare `commit` to what you pushed; that is the proof.
 
+For a migrated research producer, require its expected public contract as well:
+
+```sh
+python3 scripts/verify_release.py justhodl-fifx-vol-migration --commit <sha> --data data/fifx-vol.json --data-contract fifx-vol-research.v1
+python3 scripts/replay_fifx_research.py
+```
+
+A fresh predecessor packet is not proof that the new producer has published.
+`--data-contract` rejects a missing or different contract, even if the code receipt
+matches and the predecessor is less than 26 hours old. Receipt/freshness/contract
+checks do not replace complete original-source and compiler replay. When output
+is pending, preserve the normal schedule and report that state explicitly.
+
 ## Several related files at once — batch upload v4 (the default for any multi-file change)
 
 One file per write means an engine can go live before its helper or its `config.json` — every

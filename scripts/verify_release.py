@@ -26,7 +26,7 @@ HOSTS = ("https://justhodl.ai", "https://justhodl-data-proxy.raafouis.workers.de
 UA = "justhodl-verify-release/1.0"
 
 
-def data_freshness(headers, body, max_age_h, now=None):
+def data_freshness(headers, body, max_age_h, now=None, expected_contract=None):
     """Prefer publication time: rewriting a stale last-good object is not freshness.
 
     Reviewed-artifact gateways deliberately omit Last-Modified. GET verifies the
@@ -35,6 +35,8 @@ def data_freshness(headers, body, max_age_h, now=None):
     payload = json.loads(body)
     if not isinstance(payload, dict):
         raise ValueError("engine data must be a JSON object")
+    if expected_contract is not None and payload.get("contract") != expected_contract:
+        raise ValueError(f"native output contract mismatch: expected {expected_contract}, got {payload.get('contract')!r}; deployed code is not proof of a new publication")
     quality = payload.get("quality") or {}
     if not isinstance(quality, dict):
         raise ValueError("invalid quality object")
@@ -72,6 +74,8 @@ def data_freshness(headers, body, max_age_h, now=None):
     detail = f"{basis} {raw} ({age_h:.1f}h old) -> {state}"
     if status:
         detail += f"; quality={status}"
+    if expected_contract is not None:
+        detail += f"; contract={expected_contract}"
     return state == "fresh", detail
 
 
@@ -93,8 +97,11 @@ def main(argv=None) -> int:
     ap.add_argument("function")
     ap.add_argument("--commit", help="expected commit (prefix ok)")
     ap.add_argument("--data", help="engine output key to freshness-check, e.g. data/stock-buying.json")
+    ap.add_argument("--data-contract", help="exact expected top-level data contract; rejects a fresh predecessor packet (requires --data)")
     ap.add_argument("--max-age-h", type=float, default=26.0)
     args = ap.parse_args(argv)
+    if args.data_contract is not None and (not args.data or not args.data_contract.strip()):
+        ap.error("--data-contract requires --data and a non-empty contract")
 
     try:
         _, body = fetch(f"data/ops/releases/{args.function}.json")
@@ -113,13 +120,16 @@ def main(argv=None) -> int:
     if args.data:
         try:
             headers, data_body = fetch(args.data)
-            fresh, detail = data_freshness(headers, data_body, args.max_age_h)
+            fresh, detail = data_freshness(headers, data_body, args.max_age_h, expected_contract=args.data_contract)
             print(f"   {args.data}: {detail}")
             ok = ok and fresh
         except (RuntimeError, ValueError, TypeError, AttributeError) as exc:
             print(f"   {args.data}: {exc}")
             ok = False
     print("VERIFIED" if ok else "NOT VERIFIED")
+    if ok and args.data:
+        print("Scope: code receipt and publication freshness" + ("/contract" if args.data_contract else "") +
+              "; original-source and compiler replay remain separate acceptance checks.")
     return 0 if ok else 1
 
 
