@@ -1,0 +1,135 @@
+{
+  "commit": "0935a93566034d57ee4069161378ce13f62e907d",
+  "lambda_run": 36266465004,
+  "pages_run": 36266465066,
+  "acceptance_run": 36266589902,
+  "report_commit": "77bcaa2685f325b3ba0d3c205f2305ecc497593c",
+  "aws": {
+    "acceptance_evidence": {
+      "key": "audit-private/20260909-originals/ici-research/8c48e1fe1de334f8dc3136d411d6fb0199d1efa2b1068004198d9894df0d491a.bin",
+      "sha256": "8c48e1fe1de334f8dc3136d411d6fb0199d1efa2b1068004198d9894df0d491a",
+      "bytes": 1756
+    },
+    "accepted_original_checks": {
+      "whole_original_bytes": 712696,
+      "observation_checks": 81,
+      "reported_change_checks": 12,
+      "independent_rational_reconciliations": 48,
+      "reconciliation_issues": 0,
+      "original_release_vintages_verified": false,
+      "forecast_qualified": false
+    },
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "fQFyStXUx3Qz9CnakIdHmdcyCU9mwOYFC5ELehB0tV8=",
+      "source_files_checked": 5,
+      "handler_bytes": 1312,
+      "timeout": 120,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "0935a93566034d57ee4069161378ce13f62e907d"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-ici-flows-weekly",
+          "state": "DISABLED",
+          "expression": "cron(30 16 ? * WED,THU *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-ici-flows",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "all_denied": true,
+    "anonymous_origins_checked": 4,
+    "attempt_outcome_counts": {
+      "404": 2,
+      "403": 2
+    },
+    "existing_rules_enabled": 1,
+    "expected_commit": "0935a93566034d57ee4069161378ce13f62e907d",
+    "failures": [],
+    "history_writes": 0,
+    "native_invocations": 0,
+    "new_rules": 0,
+    "next_normal_run": "2026-09-30T16:30:00Z",
+    "normal_publication_verified": false,
+    "notifications_sent": 0,
+    "protected_paths_checked": 2,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedule_after": {
+      "Name": "justhodl-ici-flows-weekly",
+      "Arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-ici-flows-weekly",
+      "State": "ENABLED",
+      "ScheduleExpression": "cron(30 16 ? * WED,THU *)",
+      "EventPattern": null,
+      "RoleArn": null,
+      "Description": "ICI release days (flows Wed, MMF Thu); upsert-idempotent"
+    },
+    "schedule_before": {
+      "Name": "justhodl-ici-flows-weekly",
+      "Arn": "arn:aws:events:us-east-1:857687956942:rule/justhodl-ici-flows-weekly",
+      "State": "DISABLED",
+      "ScheduleExpression": "cron(30 16 ? * WED,THU *)",
+      "EventPattern": null,
+      "RoleArn": null,
+      "Description": "ICI release days (flows Wed, MMF Thu); upsert-idempotent"
+    },
+    "scope": "Actual deployed bytes and complete retained official releases accepted. Existing Wed/Thu 16:30 UTC rule restored unchanged; first normal publication pending."
+  },
+  "live_assets": {
+    "commit": "0935a93566034d57ee4069161378ce13f62e907d",
+    "served_descendant": "0935a93566034d57ee4069161378ce13f62e907d",
+    "checked_at": "2026-09-26T19:38:14.459844+00:00",
+    "registry_hash": "bf8feeceecfe2accb3f89a776239998f61309d712c0112ac2d20fd6947584d76",
+    "assets": {
+      "ici-flows.html": {
+        "bytes": 8030,
+        "sha256": "2c5741f6773b0eed0f2e54c3bbe2d6af67220bcbc15779fcbab89b11fc914591",
+        "matches_commit_manifest": true
+      },
+      "jh-ici-research.js": {
+        "bytes": 10079,
+        "sha256": "726ceb462d284de6f4e2925aa71f9d9c19bd2153b9d28949b1c343da276a2100",
+        "matches_commit_manifest": true
+      },
+      "jh-ici-research.css": {
+        "bytes": 2372,
+        "sha256": "bbe76633cbc1ca39d8a7149e989beb0c171601006b38380219a6057f31eed52f",
+        "matches_commit_manifest": true
+      },
+      "jh-fifx-research.js": {
+        "bytes": 18502,
+        "sha256": "0500225270edb6010a965970d008a6b849009d17a3ac8847aeeb5f679ce60bc2",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1333803,
+        "sha256": "3bf3c295110d3997caa2314e3f05d6ab30787dd3deea0ab8721faf71dfeca05a",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328021,
+        "sha256": "bf8feeceecfe2accb3f89a776239998f61309d712c0112ac2d20fd6947584d76",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "public_json_status": "403: no native publication yet; current head was absent on S3 during acceptance",
+  "normal_publication_verified": false,
+  "browser_qa": {
+    "preview": "Explicit synthetic data only; 81 observations, source switching, no script errors, no overflow at 390px requested viewport",
+    "production": "New research page and exact script tags verified; unavailable publication explicitly withheld, no script errors, document width 1270 equals viewport width."
+  },
+  "source_original_validation": "712696 bytes; 81 observations, 12 reported changes, 48 exact-rational reconciliations; zero issues",
+  "remaining": "Normal native publication, original-release historical vintages, predictive/OOS and portfolio qualification"
+}
