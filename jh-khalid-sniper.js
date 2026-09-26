@@ -12,14 +12,15 @@
     "Materials": "XLB", "Communication Services": "XLC", "Telecommunications": "XLC"
   };
   var CURATED = [
-    ["GLD", "COMMODITY", "Metals"], ["SLV", "COMMODITY", "Metals"], ["GDX", "COMMODITY", "Metals"],
-    ["GDXJ", "COMMODITY", "Metals"], ["PPLT", "COMMODITY", "Metals"], ["CPER", "COMMODITY", "Metals"],
-    ["COPX", "COMMODITY", "Metals"], ["DBB", "COMMODITY", "Metals"], ["LIT", "COMMODITY", "Metals"],
-    ["URA", "COMMODITY", "Metals"], ["TLT", "BOND", "Bonds"], ["IEF", "BOND", "Bonds"],
-    ["TIP", "BOND", "Bonds"], ["HYG", "BOND", "Bonds"], ["LQD", "BOND", "Bonds"],
-    ["EMB", "BOND", "Bonds"], ["BTC-USD", "CRYPTO", "Crypto"], ["ETH-USD", "CRYPTO", "Crypto"]
+    ["GLD", "COMMODITY", "Gold"], ["SLV", "COMMODITY", "Silver"], ["GDX", "COMMODITY", "Gold miners"],
+    ["GDXJ", "COMMODITY", "Junior gold miners"], ["PPLT", "COMMODITY", "Platinum"], ["CPER", "COMMODITY", "Copper"],
+    ["COPX", "COMMODITY", "Copper miners"], ["DBB", "COMMODITY", "Base metals"], ["LIT", "COMMODITY", "Lithium"],
+    ["URA", "COMMODITY", "Uranium"], ["TLT", "BOND", "Long Treasuries"], ["IEF", "BOND", "Intermediate Treasuries"],
+    ["TIP", "BOND", "Inflation bonds"], ["HYG", "BOND", "High yield"], ["LQD", "BOND", "Investment grade"],
+    ["EMB", "BOND", "Emerging-market bonds"], ["BTC-USD", "CRYPTO", "Bitcoin"], ["ETH-USD", "CRYPTO", "Ether"]
   ];
   var SECTORS = ["XLK", "XLV", "XLF", "XLI", "XLY", "XLP", "XLE", "XLU", "XLRE", "XLB", "XLC"];
+  var SECTOR_NAME = { XLK: "Technology", XLV: "Health Care", XLF: "Financials", XLI: "Industrials", XLY: "Consumer Discretionary", XLP: "Consumer Staples", XLE: "Energy", XLU: "Utilities", XLRE: "Real Estate", XLB: "Materials", XLC: "Communication Services" };
   var CRYPTO_LINKED = {
     MSTR: { name: "Strategy", kind: "Bitcoin treasury" },
     XXI: { name: "Twenty One", kind: "Bitcoin treasury" },
@@ -101,8 +102,7 @@
     var i = d.length - 1;
     if (i < 320) {
       var short = "Need 320 daily bars to score this. Have " + d.length + ".";
-      return {
-        checks: [
+      checks = [
           box("book", "S&P 500, Nasdaq-100, ETF, metal, bond, or crypto", !!meta.book, meta.book || "Not tagged", true),
           box("ma250", "Below the 250-day", false, short, true),
           box("offhigh", "At least 50% off the high", false, short, true),
@@ -125,8 +125,12 @@
           box("campaign", "Marked bottom or end of accumulation", false, short, false),
           box("catalyst", "Booming industry or other catalyst", false, short, false),
           box("momentum", "Momentum turning up", false, short, false)
-        ]),
-        sniper: false, drawdown: null, close: i >= 0 ? d[i].close : null, passed: 0, required: 16
+        ]);
+      var requiredN = 0;
+      checks.forEach(function (c) { if (c.required) requiredN++; });
+      return {
+        checks: checks,
+        sniper: false, drawdown: null, close: i >= 0 ? d[i].close : null, passed: 0, required: requiredN
       };
     }
     var c = d.map(function (b) { return b.close; });
@@ -299,7 +303,7 @@
       if (link.asset === "ETF") return { cat: "ETFs", sub: link.kind };
       return { cat: "Crypto", sub: link.kind };
     }
-    if (r.assetClass === "CRYPTO") return { cat: "Crypto", sub: "Spot" };
+    if (r.assetClass === "CRYPTO") return { cat: "Crypto", sub: r.industry || "Spot" };
     if (r.assetClass === "COMMODITY") return { cat: "Metals", sub: r.industry || "Metal" };
     if (r.assetClass === "BOND") return { cat: "Bonds", sub: r.industry || "Bond" };
     if (r.assetClass === "ETF") return { cat: "ETFs", sub: r.industry || "ETF" };
@@ -396,7 +400,7 @@
     Object.keys(sectorPe).forEach(function (s) { sectorN[s] = { pe: median(sectorPe[s]), ps: median(sectorPs[s]) }; });
     var rows = [];
     var seen = {};
-    function add(ticker, assetClass, industry, row) {
+    function add(ticker, assetClass, industry, row, pin) {
       ticker = String(ticker || "").toUpperCase();
       if (!ticker || seen[ticker] || junk((row && row.name), ticker)) return;
       seen[ticker] = 1;
@@ -419,7 +423,8 @@
         valuation: val,
         sectorSymbol: SECTOR_ETF[sector] || null,
         book: member ? ("S&P 500" + (sector ? " · " + sector : "")) : (ndx[ticker] ? "Nasdaq-100" : assetClass),
-        cryptoLinked: !!CRYPTO_LINKED[ticker]
+        cryptoLinked: !!CRYPTO_LINKED[ticker],
+        pin: !!pin
       });
     }
     Object.keys(byTicker).forEach(function (t) {
@@ -431,17 +436,18 @@
       if (!(inBook || klass === "ETF" || klass === "COMMODITY" || klass === "BOND" || klass === "CRYPTO")) return;
       add(t, inBook && klass === "STOCK" ? "STOCK" : klass, r.industry || r.sector, r);
     });
-    CURATED.forEach(function (c) { add(c[0], c[1], c[2], byTicker[c[0]] || byTicker[c[0].replace("-USD", "")]); });
+    CURATED.forEach(function (c) { add(c[0], c[1], c[2], byTicker[c[0]] || byTicker[c[0].replace("-USD", "")], true); });
     Object.keys(CRYPTO_LINKED).forEach(function (t) {
       var c = CRYPTO_LINKED[t];
-      add(t, c.asset || "STOCK", c.kind, byTicker[t]);
+      add(t, c.asset || "STOCK", c.kind, byTicker[t], true);
     });
     rows.sort(function (a, b) { return (a.vs250 == null ? 0 : a.vs250) - (b.vs250 == null ? 0 : b.vs250); });
     var deep = rows.filter(function (r) { return r.assetClass === "STOCK"; }).slice(0, 60);
     var vehicles = rows.filter(function (r) { return r.assetClass !== "STOCK"; }).slice(0, 30);
     var keep = {};
     deep.concat(vehicles).forEach(function (r) { keep[r.ticker] = r; });
-    SECTORS.forEach(function (t) { if (!keep[t]) keep[t] = { ticker: t, name: t, assetClass: "ETF", industry: "Sector ETF", vs250: null, flows: null, catalyst: null, campaign: null, valuation: null, sectorSymbol: t }; });
+    rows.forEach(function (r) { if (r.pin) keep[r.ticker] = r; });
+    SECTORS.forEach(function (t) { if (!keep[t]) keep[t] = { ticker: t, name: t, assetClass: "ETF", industry: SECTOR_NAME[t] || "Sector ETF", vs250: null, flows: null, catalyst: null, campaign: null, valuation: null, sectorSymbol: t }; });
     return Object.keys(keep).map(function (k) { return keep[k]; });
   }
 
@@ -533,7 +539,7 @@
         "Required: RSI washed out, at or under 45.",
         "Required: very tight price spread, tight Bollinger bands, very low volatility, shrinking volume, and a flat 20-day average.",
         "Required: on or within about 3.5% of 3-month support, a higher low, a selling-climax or capitulation bar, and demand showing.",
-        "Required on stocks: PEG under 1, or both P/E and P/S at least 20% under the industry. Missing valuation stays open.",
+        "Required on stocks: PEG under 1, or P/E at least 20% under the industry, or P/S at least 20% under the industry. Missing valuation stays open.",
         "Required: the industry ETF is between 15% under and 8% over its 200-day, unless the name is itself the vehicle.",
         "Required: a verified ETF inflow or institutional buy. Missing flow data stays open.",
         "Required only on bitcoin treasuries, ether treasuries, and altcoin ETFs: ether or bitcoin has turned off a 6-month low and this name is still within 10% of its own low. Not scored on miners or any other stock.",
@@ -556,31 +562,31 @@
 
   var STYLES = ""
     + ".sn-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}"
-    + ".sn-eye{letter-spacing:.14em;font-size:11px;color:#f0b429;margin:0}"
+    + ".sn-eye{letter-spacing:.14em;font-size:11px;color:#F0B429;margin:0}"
     + ".sn-head h2{margin:4px 0 0;font-size:22px}"
     + ".sn-tools{display:flex;gap:8px;align-items:center}"
-    + ".sn-tools select,.sn-tools button{background:#1e222d;color:#d1d4dc;border:1px solid #2a2e39;border-radius:6px;padding:8px 10px}"
-    + ".sn-note,.sn-count,.sn-empty{color:#9aa1ad;font-size:13px;line-height:1.45}"
-    + ".sn-card{border:1px solid #2a2e39;border-radius:10px;padding:12px;margin:10px 0;background:#131722}"
-    + ".sn-card.is-sniper{border-color:#089981}"
+    + ".sn-tools select,.sn-tools button{background:#12110C;color:#b5ad99;border:1px solid #17150E;border-radius:6px;padding:8px 10px}"
+    + ".sn-note,.sn-count,.sn-empty{color:#8a836f;font-size:13px;line-height:1.45}"
+    + ".sn-card{border:1px solid #17150E;border-radius:10px;padding:12px;margin:10px 0;background:#12110C}"
+    + ".sn-card.is-sniper{border-color:#C9942E}"
     + ".sn-card header{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}"
-    + ".sn-tick{color:#f0b429;font-weight:700;text-decoration:none;font-size:16px}"
-    + ".sn-name{color:#d1d4dc}.sn-ind{color:#787b86;font-size:12px}"
-    + ".sn-badge{margin-left:auto;color:#d1d4dc}"
-    + ".sn-card.is-sniper .sn-badge{color:#089981}"
+    + ".sn-tick{color:#F0B429;font-weight:700;text-decoration:none;font-size:16px}"
+    + ".sn-name{color:#b5ad99}.sn-ind{color:#787b86;font-size:12px}"
+    + ".sn-badge{margin-left:auto;color:#b5ad99}"
+    + ".sn-card.is-sniper .sn-badge{color:#C9942E}"
     + ".sn-boxes{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px}"
-    + ".sn-box{display:flex;gap:8px;padding:8px;border-radius:8px;background:#0d1118;color:#8b919c;font-size:12px;line-height:1.35}"
-    + ".sn-box.ok{color:#d1d4dc}.sn-box.ok i{color:#089981}.sn-box i{font-style:normal;width:14px;color:#5c6370}"
+    + ".sn-box{display:flex;gap:8px;padding:8px;border-radius:8px;background:#0C0B09;color:#6a6455;font-size:12px;line-height:1.35}"
+    + ".sn-box.ok{color:#b5ad99}.sn-box.ok i{color:#C9942E}.sn-box i{font-style:normal;width:14px;color:#3A3628}"
     + ".sn-box b{display:block;font-size:12px}.sn-box.bonus{opacity:1}"
-    + ".sn-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;margin:12px 0;padding:14px 18px 14px 34px;background:#0d1118;border:1px solid #2a2e39;border-radius:10px}"
-    + ".sn-legend li{color:#d1d4dc;font-size:13px;line-height:1.35}"
+    + ".sn-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;margin:12px 0;padding:14px 18px 14px 34px;background:#0C0B09;border:1px solid #17150E;border-radius:10px}"
+    + ".sn-legend li{color:#b5ad99;font-size:13px;line-height:1.35}"
     + ".sn-mkt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}"
-    + ".sn-mkt div{background:#1e222d;border-radius:8px;padding:10px;color:#9aa1ad;font-size:12px;line-height:1.4}"
-    + ".sn-mkt b{display:block;color:#d1d4dc;margin-bottom:4px}.sn-mkt div.ok b{color:#089981}"
-    + ".sn-memo{margin-top:22px;border:1px solid #2a2e39;border-radius:10px;padding:14px 16px;background:#0d1118}"
-    + ".sn-memo h3{margin:0 0 8px;font-size:12px;letter-spacing:.12em;color:#f0b429}"
-    + ".sn-memo ol{margin:0;padding-left:18px;color:#d1d4dc;font-size:13px;line-height:1.45}"
-    + ".sn-memo p{color:#9aa1ad;font-size:12px;line-height:1.45}"
+    + ".sn-mkt div{background:#12110C;border-radius:8px;padding:10px;color:#8a836f;font-size:12px;line-height:1.4}"
+    + ".sn-mkt b{display:block;color:#b5ad99;margin-bottom:4px}.sn-mkt div.ok b{color:#C9942E}"
+    + ".sn-memo{margin-top:22px;border:1px solid #17150E;border-radius:10px;padding:14px 16px;background:#0C0B09}"
+    + ".sn-memo h3{margin:0 0 8px;font-size:12px;letter-spacing:.12em;color:#F0B429}"
+    + ".sn-memo ol{margin:0;padding-left:18px;color:#b5ad99;font-size:13px;line-height:1.45}"
+    + ".sn-memo p{color:#8a836f;font-size:12px;line-height:1.45}"
     + "@media(max-width:760px){.sn-boxes,.sn-legend,.sn-mkt{grid-template-columns:1fr}}";
 
   function freshTurn(bars) {

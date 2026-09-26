@@ -168,9 +168,10 @@
   function filteredOpportunities() {
     var q = state.query.toUpperCase();
     return opportunities(state.data).filter(function (r) {
-      var statusOk = state.filter === "ALL"
-        ? r.action !== "REJECTED"
-        : (r.action === state.filter || r.discovery_stage === state.filter);
+      var rejected = r.action === "REJECTED";
+      var statusOk = state.filter === "REJECTED"
+        ? rejected
+        : !rejected && (state.filter === "ALL" || r.action === state.filter || r.discovery_stage === state.filter);
       return statusOk &&
         (state.assetClass === "ALL" || r.asset_class === state.assetClass) &&
         (state.industry === "ALL" || industryLabel(r) === state.industry) &&
