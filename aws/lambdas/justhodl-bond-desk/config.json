@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Fixed-income FLOW desk: duration ladder, credit appetite (HY/loans/EM vs govvies), CCC-BB micro, equity->bond rotation -> anxiety 0-100 + equity read.",
+  "description": "Bond Desk research: exact dated issuer ETF cohorts with explicit missingness and replay. Legacy regional/analog context remains unqualified; WAIT, no portfolio authority.",
   "schedule": {
     "name": "justhodl-bond-desk-daily",
     "expression": "cron(15 15 ? * MON-FRI *)",

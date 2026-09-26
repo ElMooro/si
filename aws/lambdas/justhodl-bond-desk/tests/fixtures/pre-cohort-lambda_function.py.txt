@@ -1,10 +1,4 @@
-"""justhodl-bond-desk v3.1 — dated issuer cohorts with explicit source binding.
-
-Cohort arithmetic is accepted against original issuer evidence. All forecasts
-remain unqualified, and the old regional/analog code below is retained context.
-No issuer-flow difference is treated as a transfer or a validated stress vote.
-
-Historical implementation notes (not current qualification claims):
+"""justhodl-bond-desk v3.0 — GLOBAL FI anxiety desk + WORLD MAP + CRISIS ANALOGS + AI.
 
 v3 additions on top of the v2 five-region blend:
   WORLD MAP    per-country anxiety tiles for every region with real data —
@@ -235,19 +229,27 @@ def _crisis_analogs():
 
 def lambda_handler(event=None, context=None):
     # ─── US FLOWS ───
-    # Preserve the provider-context read; its guard never grants issuer-flow authority.
-    provider_context=_s3json("etf-flows/daily.json",{}) or {}
-    from bond_flow_store import collect as collect_flow, compatibility as flow_compatibility
-    flow_research=None;flow_status="unavailable"
-    try:
-        flow_research=collect_flow(s3,BUCKET,datetime.now(timezone.utc).isoformat())
-        flow_status="dated_issuer_cohorts"
-    except Exception as error:
-        flow_status="withheld_"+type(error).__name__
-    B=flow_compatibility(flow_research)
-    matched=sum(row["n"] for row in B.values())
-    # Issuance estimates do not identify transfers or validate directional models.
-    duration_tilt=appetite=eq_to_bond=None
+    tk=_ticker_map(_s3json("etf-flows/daily.json",{}) or {})
+    tf=_s3json("data/etf-true-flows.json",{}) or {}
+    for r in (tf.get("results") or tf.get("metrics") or []):
+        t=(r.get("ticker") or r.get("symbol") or "").upper()
+        if t and t not in tk and isinstance(r.get("net_flow_5d_usd"),(int,float)):
+            tk[t]={"flow_5d_usd":r["net_flow_5d_usd"],"flow_21d_usd":r.get("net_flow_20d_usd"),
+                   "flow_zscore_90d":r.get("flow_zscore_90d")}
+    B={}
+    for name,ts in BUCKETS.items():
+        rows=[tk[t] for t in ts if t in tk]
+        zs=[r["flow_zscore_90d"] for r in rows if isinstance(r.get("flow_zscore_90d"),(int,float))]
+        B[name]={"flow_5d_usd":round(sum(r.get("flow_5d_usd") or 0 for r in rows),0),
+                 "flow_21d_usd":round(sum(r.get("flow_21d_usd") or 0 for r in rows),0),
+                 "avg_z90":round(st.fmean(zs),2) if zs else None,"n":len(rows)}
+    matched=sum(b["n"] for b in B.values())
+    dur_num=B["long_gov"]["flow_5d_usd"]+0.5*B["belly_gov"]["flow_5d_usd"]-B["front_gov"]["flow_5d_usd"]
+    dur_den=sum(abs(B[k]["flow_5d_usd"]) for k in("long_gov","belly_gov","front_gov")) or 1
+    duration_tilt=round(dur_num/dur_den,3)
+    appetite=round(B["hy_credit"]["flow_5d_usd"]+B["loans"]["flow_5d_usd"]+B["em_debt"]["flow_5d_usd"]
+                   -(B["front_gov"]["flow_5d_usd"]+B["belly_gov"]["flow_5d_usd"]+B["long_gov"]["flow_5d_usd"]),0)
+    eq_to_bond=round(sum(B[k]["flow_5d_usd"] for k in B if k!="equity_core")-B["equity_core"]["flow_5d_usd"],0)
 
     ici=_s3json("data/ici-flows.json",{}) or {}
     ici_bond=_first(ici.get("latest") or ici,("bond",))
@@ -255,8 +257,7 @@ def lambda_handler(event=None, context=None):
     us_flows={"buckets":B,"matched_tickers":matched,"duration_tilt":duration_tilt,
               "credit_appetite_5d_usd":appetite,"equity_to_bond_5d_usd":eq_to_bond,
               "ici_bond_weekly_usd_m":ici_bond,"ici_week":ici_wk,
-              "note":"Dated issuer net-issuance cohorts; partial coverage is not a complete total. ICI remains separate.",
-              "flow_research":flow_research,"flow_status":flow_status,"calls_eligible":False}
+              "note":"ETF ladder + ICI industry-wide bond fund flows (mutual+ETF)"}
 
     # ─── US CREDIT (owned ICE ladder + FRED micro/chart) ───
     cs=_s3json("data/credit-stress.json",{}) or {}
@@ -327,8 +328,10 @@ def lambda_handler(event=None, context=None):
         +((us_stress["fails_pctile"] or 50)-50)/25*0.3
         +max(0,(us_stress["acm_tp10_d21_bps"] or 0))/30*0.2)
 
-    US={"score":None,"flows":us_flows,"credit":us_credit,"stress":us_stress,
-        "fresh":False,"status":"unqualified_flow_forecast","calls_eligible":False}
+    fz=max(-2.5,min(2.5,-(appetite/1.5e9)*0.5+(eq_to_bond/6e9)*0.35
+                    -((ici_bond or 0)/8000)*0.15))
+    US={"score":_sub(0.45*fz+0.35*cz+0.20*sz),"flows":us_flows,"credit":us_credit,"stress":us_stress,
+        "fresh":True}
 
     # Missing model authority is not a neutral term-premium stress contribution.
     if tp.get('calls_eligible') is False:
@@ -395,7 +398,8 @@ def lambda_handler(event=None, context=None):
     EM={"em_hy_minus_us_hy_bps":_bps(_first(cs,("em_hy_minus_us_hy",))),
         "em_debt_flow_5d_usd":B["em_debt"]["flow_5d_usd"],
         "fresh":True}
-    EM.update(score=None,fresh=False,status="unqualified_flow_forecast",calls_eligible=False)
+    EM["score"]=_sub(((EM["em_hy_minus_us_hy_bps"] or 0))/120
+                     -(EM["em_debt_flow_5d_usd"]/8e8))
 
     regions={"us":US,"global_funding":GF,"europe":EU,"japan":JP,"em":EM}
     weights={"us":0.40,"global_funding":0.20,"europe":0.15,"japan":0.15,"em":0.10}
@@ -449,13 +453,13 @@ def lambda_handler(event=None, context=None):
     hist=_s3json(HIST,{}) or {}
     today=datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hist[today]={"anxiety":world,"appetite":appetite,"eqbond":eq_to_bond}
-    hist=dict(sorted(hist.items()))  # Preserve every existing history entry.
+    hist=dict(sorted(hist.items())[-500:])
     s3.put_object(Bucket=BUCKET,Key=HIST,Body=json.dumps(hist,separators=(",",":")).encode(),
                   ContentType="application/json")
 
     er=[("Hottest: %s %.0f"%(hot[0].upper().replace("_"," "),hot[1]["score"])) if hot else "Required regional votes are unqualified",
         "US credit micro CCC-BB %sbps p%s Δ21d %+.0f"%(micro.get("ccc_bb_bps"),micro.get("pctile"),micro.get("d21_bps") or 0),
-        "Equity-to-bond transfer is unmeasured; dated cohort coverage is reported separately.",
+        "Eq→bond $%.1fB/5d · ICI bond $%sM/wk"%(eq_to_bond/1e9,ici_bond),
         "USD funding %s · EU frag %s (BTP-Bund %s Δ1m %+dbp)"%(sev,EU.get("regime"),EU.get("btp_bund_bp"),int(EU.get("btp_chg_1m_bp") or 0)),
         "JGB anchor: %s (Δ6m %+.2fpp)"%(JP.get("carry_stress"),JP.get("jgb10_chg_6m_pp") or 0)]
     equity_read=("WAIT — required regional votes are unavailable; no world-anxiety or equity implication is qualified." if world is None else
@@ -483,7 +487,7 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print("[ai]",str(e)[:90]); ai_status="PROVIDER_DOWN"
 
-    doc={"engine":"justhodl-bond-desk","version":"3.1.0",
+    doc={"engine":"justhodl-bond-desk","version":"3.0.0",
          "generated_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),
          "world_anxiety":world,"regime":regime,
          "hottest_region":{"region":hot[0],"score":hot[1]["score"]} if hot else None,
@@ -491,9 +495,9 @@ def lambda_handler(event=None, context=None):
          "equity_read":equity_read,
          "world_map":tiles,"other_dm_score":other_dm,
          "crisis_analogs":analogs,"ai_brief":ai_brief,"ai_status":ai_status,
-         "chart_ccc_bb":chart,
-         "anxiety_history":[{"date":k,"value":v["anxiety"]} for k,v in sorted(hist.items())],
-         "method":("Unqualified legacy regional research retained for review. Dated issuer cohorts use exact retained packets and independent arithmetic; no flow-derived forecast or transfer inference. Legacy model description: regional blend (US .40 flows/credit/stress · "
+         "chart_ccc_bb":chart[-300:],
+         "anxiety_history":[{"date":k,"value":v["anxiety"]} for k,v in sorted(hist.items())][-260:],
+         "method":("World anxiety = freshness-gated regional blend (US .40 flows/credit/stress · "
                    "USD-funding .20 via eurodollar-plumbing · Europe .15 via fragmentation+CISS · "
                    "Japan .15 via yen-carry/JGB · EM .10 via EM-HY differential + flows). US layer "
                    "fuses ETF ladder (%d matched, ramping), ICI industry flows, owned ICE-BofA "

@@ -1,0 +1,3 @@
+"""Reviewed cohort compiler and upstream issuer compiler identities."""
+QUALIFIED={'bond_flow.py': '3d58999c5e8d52209ddaeba3d7bc420ab70ec824ec68ac4f4d012bdc481ef0ed', 'verify_bond_flow.py': 'fab00fd2d52877977761655d4a241f2067c752e792f5ec2dcbc0b54ace10d7f1'}
+UPSTREAM={'etf_native': '67fbab1a936dadd12da279d63fb87f78e2ce4ce312fd7ac3fe3462ff7ae46614', 'etf_research': '726c2ea25632fe4049cf869edfa51cafd6d12e8470c1ac458b34d984c652205d', 'etf_universe': '7b8da9b7d0a627fd5fd43f96ef77c1ecc3d5064fc8ad937171ac4d5e5b41ad63', 'evidence_store': '3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976'}

@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import subprocess
 sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests'))
 from funding_consumer_test_support import run
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'source'))
@@ -16,3 +17,4 @@ if __name__=='__main__':
     regions['us']={'fresh':True,'score':0,'calls_eligible':False}
     assert required_region_composite(regions,weights)==(None,'UNAVAILABLE',None)
     print('Required regional votes: no partial reweighting or empty max passed')
+    subprocess.run([sys.executable,str(Path(__file__).with_name('test_cohort_native.py'))],check=True)
