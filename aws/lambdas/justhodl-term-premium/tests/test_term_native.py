@@ -50,6 +50,35 @@ class Tests(unittest.TestCase):
         packet=self.packet();bad=deepcopy(packet);bad['series']['D:ACMTP10']['current']['value']=99
         with self.assertRaises(ValueError):store.publish(self.client,'b',bad)
         self.assertTrue(store.publish(self.client,'b',packet));self.assertTrue(store.publish(self.client,'b',packet))
+    def test_type_substitutions_fail_binding_replay_and_publication(self):
+        packet=self.packet();before=self.client.objects[model.CURRENT]
+        for change in (lambda p:p.update(calls_eligible=0),
+                       lambda p:p['view'].update(complete_original_data_rows=320.0),
+                       lambda p:p['dependency_graph'].update(independent_votes=False)):
+            bad=deepcopy(packet);change(bad)
+            with self.assertRaises(ValueError):store.binding(bad,self.read)
+            with self.assertRaises(ValueError):store.replay(bad,self.read)
+            with self.assertRaises(ValueError):store.publish(self.client,'b',bad)
+            self.assertEqual(self.client.objects[model.CURRENT],before)
+    def test_same_clock_type_conflict_and_changed_readback_do_not_pass(self):
+        packet=self.packet();changed=deepcopy(packet);changed['view']['complete_original_data_rows']=320.0
+        self.client.objects[model.CURRENT]=model.encoded(changed)
+        with self.assertRaisesRegex(ValueError,'same-clock'):store.publish(self.client,'b',packet)
+        self.client.objects[model.CURRENT]=b'{"generated_at":"2026-09-25T00:00:00Z"}'
+        original=self.client.put_object
+        def altered(**kw):
+            original(**kw)
+            if kw['Key']==model.CURRENT:self.client.objects[model.CURRENT]=model.encoded(changed)
+        with patch.object(self.client,'put_object',side_effect=altered),self.assertRaisesRegex(ValueError,'readback'):
+            store.publish(self.client,'b',packet)
+    def test_ambiguous_json_cannot_receive_immutable_binding(self):
+        for raw in (b'{"x":1,"x":1}',b'{"x":NaN}',b'{"x":Infinity}',b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        packet=self.packet();manifest=store.binding(packet,self.read)
+        raw=model.encoded(manifest);raw=b'{"contract":"term-premium-replay.v1",'+raw[1:]
+        key=model.PREFIX+'runs/'+store.sha(raw)+'.json';self.client.objects[key]=raw
+        packet['replay']['manifest_key']=key
+        with self.assertRaisesRegex(ValueError,'Duplicate'):store.binding(packet,self.read)
     def test_authority_is_checked_at_final_publication_boundary(self):
         packet=self.packet()
         for change in (lambda p:p.update(sizing_eligible=True),lambda p:p['series']['D:ACMTP10'].update(calls_eligible=True),
@@ -126,10 +155,8 @@ class Tests(unittest.TestCase):
             'legacy_config.json.txt':'2f8ae64c4626a44d373bbe34b39489f5af70652ced0d0a74c3313761193157ab'}.items():
             self.assertEqual(hashlib.sha256((Path(__file__).parent/name).read_bytes()).hexdigest(),digest)
     def test_actual_signal_board_and_bond_desk_abstain(self):
-        path=ROOT/'aws/lambdas/justhodl-signal-board/source/lambda_function.py';tree=ast.parse(path.read_text(encoding='utf8'))
-        fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='n_termprem');namespace={}
-        exec(compile(ast.Module(body=[fn],type_ignores=[]),str(path),'exec'),namespace)
-        self.assertIsNone(namespace['n_termprem'](self.output)[0])
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/term-premium.json',(self.output,{'score':99,'calls_eligible':True},{},None))
         path=ROOT/'aws/lambdas/justhodl-bond-desk/source/lambda_function.py';tree=ast.parse(path.read_text(encoding='utf8'))
         node=next(n for n in ast.walk(tree) if isinstance(n,ast.If) and ast.unparse(n.test)=="tp.get('calls_eligible') is False")
         namespace={'tp':self.output,'US':{'score':50,'fresh':True}}

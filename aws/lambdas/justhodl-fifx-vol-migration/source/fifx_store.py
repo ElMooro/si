@@ -25,6 +25,24 @@ error=lambda exc:str(getattr(exc,'response',{}).get('Error',{}).get('Code',''))
 conflict=lambda exc:error(exc) in ('409','412','ConditionalRequestConflict','PreconditionFailed')
 
 
+def strict(raw):
+    def pairs(items):
+        result={}
+        for key,value in items:
+            if key in result:raise ValueError('Duplicate research JSON key')
+            result[key]=value
+        return result
+    def invalid(value):raise ValueError('Nonfinite research JSON number')
+    value=json.loads(raw,object_pairs_hook=pairs,parse_constant=invalid)
+    model.encoded(value)  # Also rejects numeric overflow such as 1e999.
+    return value
+
+
+def same_json(left,right):
+    # Python equality conflates False/0 and integers/floats. Evidence must not.
+    return model.encoded(left)==model.encoded(right)
+
+
 def bounded(stream,limit=MAX):
     try:raw=stream.read(limit+1)
     finally:stream.close()
@@ -73,15 +91,15 @@ def checked(ref,category,read,extension='json',prefix=model.PREFIX):
         raise ValueError('Exact immutable coordinates required')
     raw=read(ref['key'])
     if len(raw)!=ref['bytes'] or sha(raw)!=ref['sha256']:raise ValueError('Immutable original differs')
-    return raw if extension!='json' else json.loads(raw)
+    return raw if extension!='json' else strict(raw)
 
 
 def binding(packet,read):
     key=(packet.get('replay') or {}).get('manifest_key','')
     if not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json',key):raise ValueError('Native run required')
-    raw=read(key);run=json.loads(raw)
+    raw=read(key);run=strict(raw)
     if key!=model.PREFIX+'runs/'+sha(raw)+'.json' or run.get('contract')!='fifx-vol-replay.v1':raise ValueError('Native run binding differs')
-    if (packet['replay'].get('view_sha256')!=run['view']['sha256'] or checked(run['view'],'views',read)!={k:v for k,v in packet.items() if k!='replay'}
+    if (packet['replay'].get('view_sha256')!=run['view']['sha256'] or not same_json(checked(run['view'],'views',read),{k:v for k,v in packet.items() if k!='replay'})
         or packet['generated_at']!=run['generated_at']):raise ValueError('Current packet differs from immutable view')
     return run
 
@@ -113,14 +131,14 @@ def replay(packet,read):
     defs=definitions(inputs,read);summaries={};marks={};proofs={}
     for sid in catalog.SOURCES:
         output,proof=compile_source(sid,inputs,defs,read);raw=model.encoded(output);ref=run['series'][sid]
-        if ref!={'key':model.PREFIX+'series/'+sha(raw)+'.json','sha256':sha(raw),'bytes':len(raw)}:
+        if not same_json(ref,{'key':model.PREFIX+'series/'+sha(raw)+'.json','sha256':sha(raw),'bytes':len(raw)}):
             raise ValueError('Whole source reconstruction differs: '+sid)
-        if checked(ref,'series',read)!=output:raise ValueError('Retained complete source differs')
+        if not same_json(checked(ref,'series',read),output):raise ValueError('Retained complete source differs')
         summaries[sid],marks[sid]=model.compact_source(output,ref,inputs['previous_watermarks']);proofs[sid]=proof
         del output,raw
-    if proofs!=checked(run['proofs'],'outputs',read):raise ValueError('Complete independent proof differs')
+    if not same_json(proofs,checked(run['proofs'],'outputs',read)):raise ValueError('Complete independent proof differs')
     expected=model.packet(inputs['generated_at'],summaries,marks,inputs['predecessors'],inputs['context'],inputs['acquisition'])
-    if expected!={k:v for k,v in packet.items() if k!='replay'}:raise ValueError('Native compact projection differs')
+    if not same_json(expected,{k:v for k,v in packet.items() if k!='replay'}):raise ValueError('Native compact projection differs')
     return proofs
 
 
@@ -138,14 +156,14 @@ def retain(client,bucket,inputs):
          'view':put(view,'views'),'series':refs,'proofs':put(proofs,'outputs'),
          'compilers':{m.__name__:retain_bytes(client,bucket,Path(m.__file__).read_bytes(),'compilers','py') for m in COMPILERS}}
     ref=put(run,'runs');packet={**view,'replay':{'manifest_key':ref['key'],'view_sha256':run['view']['sha256']}}
-    if replay(packet,reader(client,bucket))!=proofs:raise ValueError('Fresh retained original replay differs')
+    if not same_json(replay(packet,reader(client,bucket)),proofs):raise ValueError('Fresh retained original replay differs')
     return packet
 
 
 def previous_state(client,bucket):
     raw=bounded(client.get_object(Bucket=bucket,Key=model.CURRENT)['Body'])
     current=retain_bytes(client,bucket,raw,'snapshots',private=True)
-    try:packet=json.loads(raw)
+    try:packet=strict(raw)
     except (ValueError,UnicodeError):packet={}
     if not isinstance(packet,dict):packet={}
     if packet.get('contract')==model.CONTRACT:
@@ -159,10 +177,10 @@ def existing_move(packet,read):
     prefix='data/bond-vol-research/';key=(packet.get('replay') or {}).get('manifest_key','')
     if packet.get('contract')!='bond-vol-research.v1' or not re.fullmatch(re.escape(prefix)+r'runs/[a-f0-9]{64}\.json',key):
         raise ValueError('Bound Bond Vol source required')
-    raw=read(key);run=json.loads(raw)
+    raw=read(key);run=strict(raw)
     if key!=prefix+'runs/'+sha(raw)+'.json' or run.get('contract')!='bond-vol-replay.v1' or run['output_sha256']!=packet['replay']['output_sha256']:
         raise ValueError('Bond source run differs')
-    if checked(run['view'],'views',read,prefix=prefix)!={k:v for k,v in packet.items() if k!='replay'}:
+    if not same_json(checked(run['view'],'views',read,prefix=prefix),{k:v for k,v in packet.items() if k!='replay'}):
         raise ValueError('Bond source view differs')
     inputs=checked(run['input'],'inputs',read,prefix=prefix)
     if inputs['quote'] is None:return None,None
@@ -183,14 +201,14 @@ def publish(client,bucket,packet,key=model.CURRENT):
     binding(packet,reader(client,bucket));stamp=model.clock(packet['generated_at']);marks=model.watermarks(packet)
     for _ in range(4):
         obj=client.get_object(Bucket=bucket,Key=key);raw=bounded(obj['Body'])
-        try:old=json.loads(raw)
+        try:old=strict(raw)
         except (ValueError,UnicodeError):old={}
         if not isinstance(old,dict):old={}
         if old.get('generated_at'):
             prior=model.clock(old['generated_at'])
             if prior>stamp:return False
             if prior==stamp:
-                if old!=packet:raise ValueError('Conflicting same-clock head')
+                if not same_json(old,packet):raise ValueError('Conflicting same-clock head')
                 return True
         if old.get('contract')==model.CONTRACT:
             binding(old,reader(client,bucket))
@@ -206,8 +224,8 @@ def publish(client,bucket,packet,key=model.CURRENT):
         retain_bytes(client,bucket,raw,'snapshots',private=True)
         try:
             client.put_object(Bucket=bucket,Key=key,Body=model.encoded(packet),ContentType='application/json',CacheControl='no-store',IfMatch=obj['ETag'])
-            live=json.loads(reader(client,bucket)(key))
-            if live!=packet and model.clock(live['generated_at'])<=stamp:raise ValueError('Head readback differs')
+            live=strict(reader(client,bucket)(key))
+            if not same_json(live,packet) and model.clock(live['generated_at'])<=stamp:raise ValueError('Head readback differs')
             return True
         except Exception as exc:
             if not conflict(exc):raise
@@ -236,7 +254,7 @@ def run(client,bucket,request_id):
         else:context={'source_key':BOND,'original':retain_bytes(client,bucket,bond_raw,'snapshots',private=True),
                      'independent_votes':0,'status':'retained_unqualified_context','captured_at':now()}
         sources={}
-        try:raw,receipt=existing_move(json.loads(bond_raw) if bond_raw else {},read)
+        try:raw,receipt=existing_move(strict(bond_raw) if bond_raw else {},read)
         except Exception as exc:
             raw=receipt=None;progress['sources']['^MOVE']={'status':'bound_source_unavailable','error_type':type(exc).__name__}
         else:progress['sources']['^MOVE']={'status':'reused_bound_original' if raw is not None else 'source_unavailable'}

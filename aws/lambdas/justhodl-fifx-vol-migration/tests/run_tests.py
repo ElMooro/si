@@ -74,6 +74,48 @@ class Tests(unittest.TestCase):
             with patch.object(store,'definitions',return_value=defs),self.assertRaises(ValueError):store.replay(out,store.reader(client,'bucket'))
             client.objects[ref['key']]=old
 
+    def test_json_type_substitutions_fail_binding_and_full_replay(self):
+        client=Store();out,_,defs=packet(client)
+        changes=(lambda p:p.update(calls_eligible=0),
+                 lambda p:p['series']['DGS10'].update(retained_original_rows=42.0),
+                 lambda p:p['series']['DGS10'].update(calls_eligible=0))
+        for change in changes:
+            changed=deepcopy(out);change(changed)
+            with self.assertRaisesRegex(ValueError,'immutable view'):store.binding(changed,store.reader(client,'bucket'))
+            with patch.object(store,'definitions',return_value=defs),self.assertRaises(ValueError):store.replay(changed,store.reader(client,'bucket'))
+
+    def test_type_changed_publication_and_same_clock_head_are_rejected(self):
+        client=Store();out,_,_=packet(client)
+        before=b'{"generated_at":"2026-09-25T21:20:00+00:00"}';client.objects[model.CURRENT]=before
+        changed=deepcopy(out);changed['series']['DGS10']['retained_original_rows']=42.0
+        with self.assertRaisesRegex(ValueError,'immutable view'):store.publish(client,'bucket',changed)
+        self.assertEqual(client.objects[model.CURRENT],before)
+        client.objects[model.CURRENT]=model.encoded(changed)
+        with self.assertRaisesRegex(ValueError,'same-clock'):store.publish(client,'bucket',out)
+        self.assertEqual(client.objects[model.CURRENT],model.encoded(changed))
+
+    def test_post_write_type_change_cannot_receive_successful_readback(self):
+        class ChangedStorage(Store):
+            def put_object(self,**kw):
+                super().put_object(**kw)
+                if kw['Key']==model.CURRENT:
+                    changed=json.loads(self.objects[model.CURRENT]);changed['series']['DGS10']['retained_original_rows']=42.0
+                    self.objects[model.CURRENT]=model.encoded(changed)
+        client=ChangedStorage();out,_,_=packet(client)
+        client.objects[model.CURRENT]=b'{"generated_at":"2026-09-25T21:20:00+00:00"}'
+        with self.assertRaisesRegex(ValueError,'readback'):store.publish(client,'bucket',out)
+
+    def test_ambiguous_or_nonfinite_retained_json_is_rejected(self):
+        for raw in (b'{"x":1,"x":1}',b'{"nested":{"x":1,"x":2}}',b'{"x":NaN}',b'{"x":Infinity}',b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        self.assertEqual(store.strict(b'{"empty":null,"flag":false,"zero":0}'),{'empty':None,'flag':False,'zero':0})
+        client=Store();out,_,_=packet(client);read=store.reader(client,'bucket');run=store.binding(out,read)
+        raw=model.encoded(run)
+        raw=b'{"contract":"fifx-vol-replay.v1",'+raw[1:]
+        key=model.PREFIX+'runs/'+store.sha(raw)+'.json';client.objects[key]=raw
+        changed=deepcopy(out);changed['replay']['manifest_key']=key
+        with self.assertRaisesRegex(ValueError,'Duplicate'):store.binding(changed,read)
+
     def test_both_heads_use_the_same_complete_immutable_run(self):
         client=Store();out,_,_=packet(client)
         for key in (model.CURRENT,model.HISTORY):client.objects[key]=b'{"generated_at":"2026-09-25T21:20:00+00:00","whole_legacy":[1,2,3]}'

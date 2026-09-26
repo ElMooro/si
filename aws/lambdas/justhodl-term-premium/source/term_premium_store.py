@@ -14,6 +14,24 @@ error=lambda exc:str(getattr(exc,'response',{}).get('Error',{}).get('Code',''))
 conflict=lambda exc:error(exc) in ('409','412','ConditionalRequestConflict','PreconditionFailed')
 
 
+def strict(raw):
+    def pairs(items):
+        result={}
+        for key,value in items:
+            if key in result:raise ValueError('Duplicate research JSON key')
+            result[key]=value
+        return result
+    def invalid(value):raise ValueError('Nonfinite research JSON number')
+    value=json.loads(raw,object_pairs_hook=pairs,parse_constant=invalid)
+    model.encoded(value)
+    return value
+
+
+def same_json(left,right):
+    # Keep boolean/integer/float types distinct throughout evidence checks.
+    return model.encoded(left)==model.encoded(right)
+
+
 def bounded(stream):
     try:raw=stream.read(MAX+1)
     finally:stream.close()
@@ -62,7 +80,7 @@ def checked(ref,category,read,extension='json'):
         or type(ref.get('bytes')) is not int or not 0<ref['bytes']<=MAX):raise ValueError('Exact whole artifact reference required')
     raw=read(ref['key'])
     if len(raw)!=ref['bytes'] or sha(raw)!=ref['sha256']:raise ValueError('Artifact bytes differ')
-    return json.loads(raw) if extension=='json' else raw
+    return strict(raw) if extension=='json' else raw
 
 
 def compile_output(inputs,read):
@@ -75,11 +93,11 @@ def compile_output(inputs,read):
 def binding(packet,read):
     ref=packet.get('replay',{});key=ref.get('manifest_key','')
     if not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json',key):raise ValueError('Exact native run required')
-    raw=read(key);manifest=json.loads(raw)
+    raw=read(key);manifest=strict(raw)
     if key!=model.PREFIX+'runs/'+sha(raw)+'.json' or manifest.get('contract')!='term-premium-replay.v1' or manifest.get('output_sha256')!=ref.get('output_sha256'):
         raise ValueError('Native manifest binding differs')
     view=checked(manifest['view'],'views',read)
-    if view!={k:v for k,v in packet.items() if k!='replay'} or view['generated_at']!=manifest['generated_at']:
+    if not same_json(view,{k:v for k,v in packet.items() if k!='replay'}) or view['generated_at']!=manifest['generated_at']:
         raise ValueError('Published view differs from retained original')
     return manifest
 
@@ -90,12 +108,12 @@ def replay(packet,read):
     for name,path in paths.items():
         if checked(manifest['compilers'][name],'compilers',read,'py')!=path.read_bytes():raise ValueError('Reviewed compiler bytes differ')
     inputs=checked(manifest['input'],'inputs',read);output=compile_output(inputs,read)
-    if model.digest(output)!=manifest['output_sha256'] or output!=checked(manifest['output'],'outputs',read):
+    if model.digest(output)!=manifest['output_sha256'] or not same_json(output,checked(manifest['output'],'outputs',read)):
         raise ValueError('Complete original workbook replay differs')
     if set(manifest['tables'])!=set(model.arithmetic.SHEETS):raise ValueError('Both complete table artifacts required')
     for name,table in output['tables'].items():
-        if checked(manifest['tables'][name],'tables',read)!=table:raise ValueError('Complete table bytes differ')
-    if model.compact(output,manifest['tables'])!={k:v for k,v in packet.items() if k!='replay'}:raise ValueError('Compact projection differs')
+        if not same_json(checked(manifest['tables'][name],'tables',read),table):raise ValueError('Complete table bytes differ')
+    if not same_json(model.compact(output,manifest['tables']),{k:v for k,v in packet.items() if k!='replay'}):raise ValueError('Compact projection differs')
     return output
 
 
@@ -107,14 +125,14 @@ def retain(client,bucket,inputs,output):
         'input':put(inputs,'inputs'),'output':put(output,'outputs'),'output_sha256':model.digest(output),'tables':tables,
         'view':put(view,'views'),'compilers':{name:retain_bytes(client,bucket,path.read_bytes(),'compilers','py') for name,path in compilers().items()}}
     ref=put(manifest,'runs');packet={**view,'replay':{'manifest_key':ref['key'],'output_sha256':manifest['output_sha256']}}
-    if replay(packet,reader(client,bucket))!=output:raise ValueError('Fresh retained reconstruction differs')
+    if not same_json(replay(packet,reader(client,bucket)),output):raise ValueError('Fresh retained reconstruction differs')
     return packet
 
 
 def previous_state(client,bucket):
     raw=bounded(client.get_object(Bucket=bucket,Key=model.CURRENT)['Body'])
     ref=retain_bytes(client,bucket,raw,'sources',private=True)
-    try:packet=json.loads(raw)
+    try:packet=strict(raw)
     except (ValueError,UnicodeDecodeError):packet={}
     if not isinstance(packet,dict):packet={}
     if packet.get('contract')==model.CONTRACT:
@@ -136,14 +154,14 @@ def publish(client,bucket,packet):
     binding(packet,reader(client,bucket));stamp=model.clock(packet['generated_at']);marks=model.continuity(packet)
     for _ in range(4):
         obj=client.get_object(Bucket=bucket,Key=model.CURRENT);raw=bounded(obj['Body'])
-        try:old=json.loads(raw)
+        try:old=strict(raw)
         except (ValueError,UnicodeDecodeError):old={}
         if not isinstance(old,dict):old={}
         if old.get('generated_at'):
             prior=model.clock(old['generated_at'])
             if prior>stamp:return False
             if prior==stamp:
-                if old!=packet:raise ValueError('Conflicting same-clock packet')
+                if not same_json(old,packet):raise ValueError('Conflicting same-clock packet')
                 return True
         if old.get('contract')==model.CONTRACT:
             previous=model.continuity(old)
@@ -157,8 +175,8 @@ def publish(client,bucket,packet):
         retain_bytes(client,bucket,raw,'sources',private=True)
         try:
             client.put_object(Bucket=bucket,Key=model.CURRENT,Body=model.encoded(packet),ContentType='application/json',CacheControl='no-store',IfMatch=obj['ETag'])
-            live=json.loads(reader(client,bucket)(model.CURRENT))
-            if live!=packet and model.clock(live['generated_at'])<=stamp:raise ValueError('Published head readback differs')
+            live=strict(reader(client,bucket)(model.CURRENT))
+            if not same_json(live,packet) and model.clock(live['generated_at'])<=stamp:raise ValueError('Published head readback differs')
             return True
         except Exception as exc:
             if not conflict(exc):raise
