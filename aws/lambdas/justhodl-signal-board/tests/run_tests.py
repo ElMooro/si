@@ -1,7 +1,8 @@
 from pathlib import Path
 import subprocess, sys
 root=Path(__file__).resolve().parents[4]
-for name in ('test_signal_board_original_baseline.py','test_signal_board_candidate.py','test_signal_board_inventory_qualification.py','test_signal_board_native.py'):
+for name in ('test_signal_board_original_baseline.py','test_signal_board_candidate.py','test_signal_board_inventory_qualification.py','test_signal_board_native.py',
+             'test_dollar_research_consumers.py','test_gold_rotation_consumers.py','test_offexchange_consumers.py','test_short_volume_consumers.py'):
     subprocess.run([sys.executable,str(root/'tests'/name)],cwd=root,check=True)
 sys.path[:0]=[str(root/'tests'),str(root/'aws/shared'),str(root/'aws/shared/tests')]
 from aaii_consumer_test_support import run as run_aaii

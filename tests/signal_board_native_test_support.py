@@ -1,13 +1,17 @@
 """Exercise the native complete inventory in older donor-consumer regressions."""
 from pathlib import Path
-import importlib.util
+import hashlib, importlib.util
 ROOT = Path(__file__).resolve().parents[1]
 path = ROOT/'aws/lambdas/justhodl-signal-board/source/signal_board_candidate.py'
 spec = importlib.util.spec_from_file_location('native_board_candidate', path)
 candidate = importlib.util.module_from_spec(spec); spec.loader.exec_module(candidate)
 
+def assert_compiler_pin():
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == '5fdb0968d19c5c8c9332d887a79a6ae921aef858932ec4d9ebfe7c7a438aa3c6'
+
 def assert_abstention(key, packets):
     import json
+    assert_compiler_pin()
     rows = json.loads((path.parent/'board_registry.json').read_bytes())
     assert key in {r['source_key'] for r in rows}
     for packet in packets:

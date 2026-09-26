@@ -22,8 +22,8 @@ class Tests(unittest.TestCase):
         self.assertFalse(out['original_provider_replay_performed_by_consumer']);self.assertFalse(out['current_freshness_verified_by_consumer'])
         p['changed']=True;self.assertFalse(gate.context(p)['native_reference_available'])
     def test_actual_signal_board_abstains(self):
-        scope=functions('signal-board',{'n_gold_equity_rotation'})
-        for p in (LEGACY,native(),{}):self.assertIsNone(scope['n_gold_equity_rotation'](p)[0])
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/gold-equity-rotation.json', (LEGACY,native(),{},None))
     def test_actual_allocator_cannot_size_a_gold_sleeve_from_unqualified_momentum(self):
         for p in (LEGACY,native()):
             scope=functions('master-allocator',{'gather_signals','clamp'},{'read_json':lambda key:p if key==gate.CURRENT else {}})
@@ -37,6 +37,10 @@ class Tests(unittest.TestCase):
         self.assertIsNone(value['flow_gold_20d']);self.assertIsNone(value['flow_metals_state']);self.assertFalse(value['gold_research_context']['native_reference_available'])
     def test_each_actual_consumer_bundles_the_shared_boundary(self):
         for name in ('signal-board','master-allocator','morning-intelligence'):
+            if name=='signal-board':
+                from signal_board_native_test_support import assert_compiler_pin
+                assert_compiler_pin()
+                continue
             paths=list((ROOT/f'aws/lambdas/justhodl-{name}/source').glob('*.py'))
             self.assertIn('gold_rotation_context.py',[p.name for p in shared_imports(ROOT,paths)])
 

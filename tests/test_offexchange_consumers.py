@@ -23,6 +23,10 @@ class Tests(unittest.TestCase):
     def test_every_reviewed_literal_read_expression_is_guarded_and_bundled(self):
         manifest=json.loads((ROOT/'tests/fixtures/offexchange-consumer-migration.json').read_text(encoding='utf-8'))
         for name,entry in manifest['consumers'].items():
+            if name=='signal-board':
+                from signal_board_native_test_support import assert_compiler_pin
+                assert_compiler_pin()
+                continue
             paths=list((ROOT/f'aws/lambdas/justhodl-{name}/source').glob('*.py'));self.assertIn('offexchange_context.py',[p.name for p in shared_imports(ROOT,paths)],name)
             if entry['method']!='wrapped_public_read':continue
             tree=ast.parse(source(name));count=0
@@ -40,8 +44,9 @@ class Tests(unittest.TestCase):
             client=Mock();client.get_object.return_value={'Body':BytesIO(json.dumps(p).encode())}
             network=Mock(side_effect=AssertionError('No provider'))
             scope=functions('ignition',{'load_dark'},{'json':json,'S3':client,'BUCKET':'b','http_json':network});self.assertIsNone(scope['load_dark']());network.assert_not_called()
-        scope=functions('signal-board',{'n_darkpool'})
-        for p in (LEGACY,native(),{}):self.assertIsNone(scope['n_darkpool'](p)[0])
+    def test_actual_native_signal_board_never_grants_offexchange_direction(self):
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/dark-pool.json', (LEGACY,native(),{},None))
     def test_shared_adapter_has_no_invented_direction_or_confidence(self):
         from jh_adapters import DarkPoolAdapter
         adapter=object.__new__(DarkPoolAdapter);adapter.engine_id='dark_pool'

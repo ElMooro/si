@@ -39,6 +39,14 @@ class Tests(unittest.TestCase):
         manifest = json.loads((ROOT / 'tests/fixtures/short-volume-consumer-migration.json').read_bytes())
         for name, entry in manifest['consumers'].items():
             paths = list((ROOT / f'aws/lambdas/justhodl-{name}/source').glob('*.py'))
+            if name == 'signal-board':
+                from signal_board_native_test_support import assert_compiler_pin
+                assert_compiler_pin()
+                continue
+            if name == 'squeeze-fuel':
+                imports = {p.name for p in shared_imports(ROOT, paths)}
+                self.assertTrue({'sec_ftd_producer.py', 'sec_ftd_context.py'} <= imports)
+                continue
             self.assertIn('short_volume_context.py', [p.name for p in shared_imports(ROOT, paths)], name)
             if entry['method'] not in ('wrapped_public_read', 'wrapped_symbolic_read'):
                 continue
@@ -72,7 +80,9 @@ class Tests(unittest.TestCase):
             self.assertEqual(call('data/short-interest.json'), LEGACY, name)
 
     def test_signal_and_conviction_normalizers_abstain_instead_of_neutral_zero(self):
-        for name in ('signal-board', 'conviction-engine'):
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/short-pressure.json', (LEGACY, packet(), {}, None))
+        for name in ('conviction-engine',):
             fn = functions(name, {'n_short_pressure'})['n_short_pressure']
             for value in (LEGACY, packet(), {}, None):
                 self.assertIsNone(fn(value)[0])
@@ -89,11 +99,25 @@ class Tests(unittest.TestCase):
             self.assertEqual(out['evidence_family'], 'finra_reported_equity_activity')
 
     def test_raw_s3_readers_cannot_restore_stored_covering_or_squeeze_fields(self):
-        for name, fn in [('risk-radar', 'load_short_pressure'), ('squeeze-fuel', 'fetch_daily_shortvol')]:
+        for name, fn in [('risk-radar', 'load_short_pressure')]:
             client = Mock()
             client.get_object.return_value = {'Body': BytesIO(json.dumps(LEGACY).encode())}
             scope = functions(name, {fn}, {'S3': client, 's3': client, 'BUCKET': 'b', 'S3_BUCKET': 'b', 'json': json})
             self.assertEqual(scope[fn](), {})
+
+    def test_native_sec_engine_refuses_both_daily_volume_aliases_before_storage(self):
+        from test_sec_ftd_consumers import native
+        mod = native()
+        client = Mock()
+        storage = mod.EvidenceStorage(client, mod.publish_current)
+        for key in (gate.CURRENT, gate.ALIAS):
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(ValueError, 'Reviewed SEC research read required'):
+                    storage.get_object(Bucket=mod.BUCKET, Key=key)
+                with self.assertRaises(ValueError):
+                    storage.put_object(Bucket=mod.BUCKET, Key=key, Body=json.dumps(LEGACY).encode())
+        client.get_object.assert_not_called()
+        client.put_object.assert_not_called()
 
     def test_daily_volume_cannot_become_low_lending_risk_via_empty_default(self):
         fn = functions('repo-lending', {'compute_utilization_score'})['compute_utilization_score']
