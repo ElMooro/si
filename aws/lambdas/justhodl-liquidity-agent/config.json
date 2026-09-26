@@ -15,7 +15,7 @@
   "architectures": [
     "arm64"
   ],
-  "eventbridge_scheduler": {
+  "preserved_schedule_reference": {
     "schedule_name": "justhodl-liquidity-agent-daily",
     "group_name": "default",
     "cron": "cron(30 12 * * ? *)",
@@ -29,5 +29,6 @@
     "dead_letter_config": {
       "Arn": "arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default"
     }
-  }
+  },
+  "schedule": "cron(30 12 * * ? *)"
 }

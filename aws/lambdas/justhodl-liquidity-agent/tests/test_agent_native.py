@@ -117,6 +117,63 @@ class Tests(unittest.TestCase):
             with patch.object(self.client,'get_object',side_effect=AssertionError('Storage must not be read')):
                 with self.assertRaises(ValueError):store.publish(self.client,'b',bad)
 
+    def test_changed_value_or_json_type_cannot_borrow_existing_replay(self):
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);packet={**view,'replay':ref}
+        before=self.client.objects[model.CURRENT]
+        for change in (lambda p:p['series']['WALCL']['current'].update(value=999),
+                       lambda p:p['series']['WALCL'].update(retained_original_rows=float(p['series']['WALCL']['retained_original_rows'])),
+                       lambda p:p['quality'].update(release_calendar_verified=0)):
+            bad=deepcopy(packet);change(bad)
+            with self.assertRaisesRegex(ValueError,'retained original-source view'):store.publish(self.client,'b',bad)
+            self.assertEqual(self.client.objects[model.CURRENT],before)
+        self.assertFalse(any(row['Key']==model.CURRENT for row in self.client.writes))
+
+    def test_same_clock_alteration_and_bad_watermarks_or_readback_cannot_pass(self):
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);packet={**view,'replay':ref}
+        bad=deepcopy(packet);bad['series']['WALCL']['retained_original_rows']=float(bad['series']['WALCL']['retained_original_rows'])
+        self.client.objects[model.CURRENT]=model.encoded(bad)
+        with self.assertRaisesRegex(ValueError,'same-clock'):store.publish(self.client,'b',packet)
+        with self.assertRaisesRegex(ValueError,'retained original-source view'):store.previous_state(self.client,'b')
+        self.client.objects[model.CURRENT]=b'{"generated_at":"2026-09-17T00:00:00Z"}';original=self.client.put_object
+        def alter(**request):
+            original(**request)
+            if request['Key']==model.CURRENT:self.client.objects[model.CURRENT]=model.encoded(bad)
+        with patch.object(self.client,'put_object',side_effect=alter),self.assertRaisesRegex(ValueError,'readback'):
+            store.publish(self.client,'b',packet)
+
+    def test_public_replay_command_is_type_exact(self):
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from replay_liquidity_agent_research import verify
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);packet={**view,'replay':ref}
+        self.assertTrue(verify(packet,self.read)['replayed']);packet['calls_eligible']=0
+        with self.assertRaisesRegex(ValueError,'Published view differs'):verify(packet,self.read)
+
+    def test_only_exact_reviewed_storage_predecessor_replays_without_executing_it(self):
+        ref,view=store.retain(self.client,'b',self.inputs,self.output);manifest=json.loads(self.read(ref['manifest_key']))
+        raw=(DRAFT.parent/'tests/legacy_store_before_typed_binding.py.txt').read_bytes()
+        digest=store.sha(raw);self.assertEqual(len(raw),12994);self.assertIn(digest,store.REVIEWED_STORAGE_REVISIONS)
+        key=model.PREFIX+'compilers/'+digest+'.py';self.client.objects[key]=raw
+        manifest['compilers']['liquidity_agent_store']={'key':key,'sha256':digest}
+        def retained_ref(value):
+            r=store.retain_bytes(self.client,'b',model.encoded(value),'runs')
+            return {'manifest_key':r['key'],'output_sha256':value['output_sha256']}
+        prior=retained_ref(manifest)
+        full,restored=store.replay(prior,self.read);self.assertEqual(full,self.output);self.assertEqual(restored,view)
+        self.client.objects[key]=raw+b'\n'
+        with self.assertRaisesRegex(ValueError,'predecessor storage bytes'):store.replay(prior,self.read)
+        unknown=b'raise AssertionError("archived code must never execute")'
+        unknown_key=model.PREFIX+'compilers/'+store.sha(unknown)+'.py';self.client.objects[unknown_key]=unknown
+        manifest['compilers']['liquidity_agent_store']={'key':unknown_key,'sha256':store.sha(unknown)}
+        with self.assertRaisesRegex(ValueError,'reviewed compiler'):store.replay(retained_ref(manifest),self.read)
+
+    def test_ambiguous_or_nonfinite_json_cannot_bind_to_originals(self):
+        for raw in (b'{"x":1,"x":1}',b'{"x":NaN}',b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        ref,view=store.retain(self.client,'b',self.inputs,self.output)
+        raw=self.client.objects[ref['manifest_key']];raw=b'{"contract":"liquidity-agent-replay.v1",'+raw[1:]
+        key=model.PREFIX+'runs/'+store.sha(raw)+'.json';self.client.objects[key]=raw
+        with self.assertRaisesRegex(ValueError,'Duplicate'):store.replay({**ref,'manifest_key':key},self.read)
+
     def test_http_validation_and_missing_execution_context_cannot_publish(self):
         import importlib.util
         spec=importlib.util.spec_from_file_location('native_liquidity_handler',DRAFT/'lambda_function.py')
@@ -139,7 +196,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(definitions,expected)
         config=json.loads((DRAFT.parent/'config.json').read_text())
         self.assertEqual(config['architectures'],['arm64']);self.assertEqual(config['memory_mb'],512);self.assertEqual(config['timeout_s'],300)
-        self.assertEqual(config['eventbridge_scheduler']['cron'],'cron(30 12 * * ? *)')
+        self.assertEqual(config['preserved_schedule_reference']['cron'],'cron(30 12 * * ? *)')
+        sys.path.insert(0,str(ROOT/'scripts'));from normalize_lambda_config import normalize_config
+        normalized=normalize_config(config)
+        self.assertNotIn('eventbridge_scheduler',normalized);self.assertNotIn('schedule',normalized)
+        self.assertEqual(normalized['release_schedule_note']['binding_action'],'PRESERVE_EXISTING')
 
     def test_legacy_verdict_consumer_treats_research_as_unavailable(self):
         import ast

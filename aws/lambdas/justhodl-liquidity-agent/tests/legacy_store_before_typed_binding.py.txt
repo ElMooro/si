@@ -17,26 +17,6 @@ QUALIFIED={'liquidity_agent_arithmetic':'b1904e9004ea65c37be72480b8e4a41afda2a3f
     'liquidity_agent_catalog':'e11bbf8435c544e2275c2e8ca1f604b0f4dadbd2f9bbdf367c9ffcc625c75fb6',
     'liquidity_flow_arithmetic':'5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856'}
 sha=lambda raw:hashlib.sha256(raw).hexdigest()
-# Storage-only predecessor in verified release c81559c; never executed from an archive.
-REVIEWED_STORAGE_REVISIONS=frozenset({'51fda6e8f61aef4b98343bba5091658172d4a6541429d2a391768b0397adcbb6'})
-
-
-def strict(raw):
-    def pairs(items):
-        result={}
-        for key,value in items:
-            if key in result:raise ValueError('Duplicate research JSON key')
-            result[key]=value
-        return result
-    def invalid(value):raise ValueError('Nonfinite research JSON number')
-    value=json.loads(raw,object_pairs_hook=pairs,parse_constant=invalid)
-    model.encoded(value)
-    return value
-
-
-def same_json(left,right):
-    # Keep boolean/integer/float types distinct throughout evidence checks.
-    return model.encoded(left)==model.encoded(right)
 
 
 def bounded(stream):
@@ -103,7 +83,7 @@ def checked(ref,category,read):
         raise ValueError('Exact complete artifact reference required')
     raw=read(ref['key'])
     if len(raw)!=ref['bytes'] or sha(raw)!=ref['sha256']:raise ValueError('Artifact content differs')
-    return strict(raw)
+    return json.loads(raw)
 
 
 def compile_output(inputs,read):
@@ -118,32 +98,26 @@ def replay(ref,read,verify_series=True):
     key=ref.get('manifest_key','')
     if not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json',key):
         raise ValueError('Exact native run path required')
-    raw=read(key);manifest=strict(raw)
+    raw=read(key);manifest=json.loads(raw)
     if (key!=model.PREFIX+'runs/'+sha(raw)+'.json' or manifest.get('contract')!='liquidity-agent-replay.v1'
         or manifest.get('output_sha256')!=ref.get('output_sha256')):
         raise ValueError('Native replay binding differs')
     if set(manifest['compilers'])!={m.__name__ for m in COMPILERS}:raise ValueError('Complete compiler closure required')
     for module in COMPILERS:
         body=Path(module.__file__).read_bytes();expected={'key':model.PREFIX+'compilers/'+sha(body)+'.py','sha256':sha(body)}
-        ref=manifest['compilers'][module.__name__]
-        if module is sys.modules[__name__] and ref.get('sha256') in REVIEWED_STORAGE_REVISIONS:
-            # The financial model and every other compiler still match exactly.
-            # Reconstruct using today's stricter verifier, never archived code.
-            digest=ref['sha256'];expected={'key':model.PREFIX+'compilers/'+digest+'.py','sha256':digest}
-            if ref!=expected or sha(read(expected['key']))!=digest:raise ValueError('Reviewed predecessor storage bytes differ')
-        elif ref!=expected or read(expected['key'])!=body:
+        if manifest['compilers'][module.__name__]!=expected or read(expected['key'])!=body:
             raise ValueError('Matching complete reviewed compiler required')
     inputs=checked(manifest['input'],'inputs',read);output=compile_output(inputs,read)
-    if (model.digest(output)!=manifest['output_sha256'] or not same_json(output,checked(manifest['output'],'outputs',read))
+    if (model.digest(output)!=manifest['output_sha256'] or output!=checked(manifest['output'],'outputs',read)
         or output['generated_at']!=manifest['generated_at']):raise ValueError('Native original reconstruction differs')
     if set(manifest['series'])!=set(catalog.SERIES):raise ValueError('Every requested series artifact required')
     for sid,row in output['series'].items():
         encoded=model.encoded(row);ref=manifest['series'][sid]
-        if not same_json(ref,{'key':model.PREFIX+'series/'+sha(encoded)+'.json','sha256':sha(encoded),'bytes':len(encoded)}):
+        if ref!={'key':model.PREFIX+'series/'+sha(encoded)+'.json','sha256':sha(encoded),'bytes':len(encoded)}:
             raise ValueError('Series artifact identity differs: '+sid)
-        if verify_series and not same_json(checked(ref,'series',read),row):raise ValueError('Whole series artifact differs: '+sid)
+        if verify_series and checked(ref,'series',read)!=row:raise ValueError('Whole series artifact differs: '+sid)
     view=model.compact(output,manifest['series'])
-    if not same_json(view,checked(manifest['view'],'views',read)):raise ValueError('Compact projection differs')
+    if view!=checked(manifest['view'],'views',read):raise ValueError('Compact projection differs')
     return output,view
 
 
@@ -163,7 +137,7 @@ def retain(client,bucket,inputs,output):
     # All shards were read back on immutable writes; this second reconstruction
     # still checks every shard's identity and exact view from source originals.
     restored,projected=replay(ref,reader(client,bucket),verify_series=False)
-    if not same_json(restored,output) or not same_json(projected,view):raise ValueError('Fresh retained native replay differs')
+    if restored!=output or projected!=view:raise ValueError('Fresh retained native replay differs')
     return ref,view
 
 
@@ -172,11 +146,10 @@ def previous_state(client,bucket):
     # only if it was actually stored. A missing key is never a fabricated source.
     raw=bounded(client.get_object(Bucket=bucket,Key=model.CURRENT)['Body'])
     ref=private_bytes(client,bucket,raw)
-    try:packet=strict(raw)
+    try:packet=json.loads(raw)
     except (ValueError,UnicodeDecodeError):packet={}
     if not isinstance(packet,dict):packet={}
     if packet.get('contract')==model.CONTRACT:
-        binding(packet,reader(client,bucket))
         return packet['predecessor'],model.watermarks(packet)
     return ref,{sid:None for sid in catalog.SERIES}
 
@@ -193,17 +166,6 @@ def contexts(client,bucket):
     return result
 
 
-def binding(packet,read):
-    ref=packet.get('replay') or {};key=ref.get('manifest_key','')
-    if not re.fullmatch(re.escape(model.PREFIX)+r'runs/[a-f0-9]{64}\.json',key):raise ValueError('Native immutable run required')
-    raw=read(key);manifest=strict(raw)
-    if (key!=model.PREFIX+'runs/'+sha(raw)+'.json' or manifest.get('contract')!='liquidity-agent-replay.v1'
-        or manifest.get('output_sha256')!=ref.get('output_sha256') or manifest.get('generated_at')!=packet.get('generated_at')
-        or not same_json(checked(manifest['view'],'views',read),{k:v for k,v in packet.items() if k!='replay'})):
-        raise ValueError('Publication differs from retained original-source view')
-    return manifest
-
-
 def publish(client,bucket,packet):
     # Enforce research-only authority again at the mutable publication boundary.
     # A later caller cannot promote measurements merely by changing a field.
@@ -217,18 +179,17 @@ def publish(client,bucket,packet):
         raise ValueError('Complete replay-bound research-only publication required')
     for row in packet['series'].values():
         if any(row.get(k) is not False for k in flags):raise ValueError('Series acquired unqualified authority')
-    binding(packet,reader(client,bucket))
     stamp=model.clock(packet['generated_at']);watermarks=model.watermarks(packet)
     for _ in range(4):
         obj=client.get_object(Bucket=bucket,Key=model.CURRENT);raw=bounded(obj['Body'])
-        try:old=strict(raw)
+        try:old=json.loads(raw)
         except (ValueError,UnicodeDecodeError):old={}
         if not isinstance(old,dict):old={}
         if old.get('generated_at'):
             prior=model.clock(old['generated_at'])
             if prior>stamp:return False
             if prior==stamp:
-                if not same_json(old,packet):raise ValueError('Conflicting same-clock publication')
+                if old!=packet:raise ValueError('Conflicting same-clock publication')
                 return True
         if old.get('contract')==model.CONTRACT:
             if model.clock(old['source_generated_at'])>model.clock(packet['source_generated_at']):return False
@@ -240,8 +201,8 @@ def publish(client,bucket,packet):
         try:
             client.put_object(Bucket=bucket,Key=model.CURRENT,Body=model.encoded(packet),ContentType='application/json',
                 CacheControl='no-store',IfMatch=obj['ETag'])
-            live=strict(reader(client,bucket)(model.CURRENT))
-            if not same_json(live,packet) and model.clock(live['generated_at'])<=stamp:raise ValueError('Published view readback differs')
+            live=json.loads(reader(client,bucket)(model.CURRENT))
+            if live!=packet and model.clock(live['generated_at'])<=stamp:raise ValueError('Published view readback differs')
             return True
         except Exception as exc:
             if not conflict(exc):raise
@@ -250,7 +211,7 @@ def publish(client,bucket,packet):
 
 def run(client,bucket):
     qualified_arithmetic()
-    read=reader(client,bucket);raw=read(SOURCE);source=strict(raw)
+    read=reader(client,bucket);raw=read(SOURCE);source=json.loads(raw)
     canonical.restore(source,catalog.SERIES,read)
     source_ref=retain_bytes(client,bucket,raw,'snapshots')
     predecessor,previous=previous_state(client,bucket)

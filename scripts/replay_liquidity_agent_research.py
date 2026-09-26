@@ -21,7 +21,7 @@ def read(key):
 def verify(packet,reader=read):
     if packet.get('contract')!=store.model.CONTRACT:raise ValueError('Native publication not yet verified')
     full,view=store.replay(packet['replay'],reader)
-    if {k:v for k,v in packet.items() if k!='replay'}!=view:raise ValueError('Published view differs')
+    if not store.same_json({k:v for k,v in packet.items() if k!='replay'},view):raise ValueError('Published view differs')
     return {'contract':full['contract'],'generated_at':full['generated_at'],'replayed':True,
         'original_rows':sum(len(row['history']) for row in full['series'].values()),'requested_series':len(full['series']),
         'current_series':full['quality']['current_series'],'missing_series':full['quality']['missing_series'],
@@ -30,4 +30,4 @@ def verify(packet,reader=read):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--packet',default=store.model.CURRENT);args=parser.parse_args()
-    print(json.dumps(verify(json.loads(read(args.packet))),sort_keys=True))
+    print(json.dumps(verify(store.strict(read(args.packet))),sort_keys=True))
