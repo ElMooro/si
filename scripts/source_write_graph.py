@@ -79,6 +79,19 @@ class SharedWriteGraph:
                                 'operation':'delegated_call','reason':reason})
 
     def call(self, caller, node, env, stack):
+        if (isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name)
+                and node.func.value.id in caller.executor_names and node.func.attr in ('submit','map')
+                and node.args and isinstance(caller.resolve(node.args[0],env),Callable)):
+            def invoke(arguments,keywords):
+                call=ast.copy_location(ast.Call(func=node.args[0],args=arguments,keywords=keywords),node)
+                self.call(caller,call,env,stack)
+            if node.func.attr=='submit':invoke(node.args[1:],node.keywords)
+            else:
+                iterables=[caller.containers.get(arg.id,arg) if isinstance(arg,ast.Name) else arg for arg in node.args[1:]]
+                if iterables and all(isinstance(arg,(ast.List,ast.Tuple)) for arg in iterables):
+                    for values in zip(*(arg.elts for arg in iterables)):invoke(list(values),[])
+                else:invoke([ast.Constant(value=None) for _ in iterables],[])
+            return True
         value = caller.resolve(node.func,env)
         if not isinstance(value,Callable):return False
         target,fn = value.scanner,value.node

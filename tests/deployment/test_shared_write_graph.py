@@ -68,6 +68,12 @@ def test_shared_default_uses_definition_scope_not_callers_same_named_value():
     assert out['keys']=={'data/default.json'},out
 
 
+def test_executor_callbacks_bind_imported_functions_and_unknown_mapped_arguments():
+    code='from concurrent.futures import ThreadPoolExecutor\nimport writer\ndef lambda_handler(event,context):\n with ThreadPoolExecutor() as pool:\n  pool.submit(writer.save,client,"data/submitted.json")\n  list(pool.map(writer.save,[client],["data/mapped.json"]))\n  list(pool.map(writer.save,[client],event["keys"]))'
+    out=scan_files(code,{'writer.py':WRITER})
+    assert out['keys']=={'data/submitted.json','data/mapped.json'} and out['unresolved'],out
+
+
 def test_shared_siblings_and_bound_local_wrappers_keep_call_chain():
     code='from writer import save\ndef helper(key):\n save(client,key)\ndef lambda_handler(event,context):\n helper("data/chained.json")'
     out=scan_files(code,{'writer.py':WRITER})

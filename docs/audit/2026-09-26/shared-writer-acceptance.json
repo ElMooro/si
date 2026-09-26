@@ -1,0 +1,50 @@
+{
+  "commit": "d88b41eb9912b2f3d6f321d68257b7e2d84ee937",
+  "checked_at": "2026-09-26T18:07:04.356723+00:00",
+  "assets": {
+    "engine-manifest.json": {
+      "bytes": 1330856,
+      "sha256": "03e02c3c166a5784153deecaa07c46db483774245372d5d2f06ce6e24fbe0ecb",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2328511,
+      "sha256": "8e96722bdf0385dac9291f19e1db3aeb0e438b5b8ecbbab2ecd83bef10590bb0",
+      "matches_commit_manifest": true
+    },
+    "calls.html": {
+      "bytes": 20054,
+      "sha256": "8c6bed73af6e4c390406f3649d1905c76b3cda21263049d2114e0747de32c188",
+      "matches_commit_manifest": true
+    },
+    "ciss.html": {
+      "bytes": 14425,
+      "sha256": "18d812a7605d187be8472f339cd3c3784f6c9e6dde40204f0bd12f06a0370333",
+      "matches_commit_manifest": true
+    }
+  },
+  "pages": {
+    "calls.html": {
+      "primary_producers": [
+        "justhodl-ai-brief"
+      ],
+      "outputs": 7,
+      "status": "PARTIAL_PRIMARY_OUTPUT_ACCESS"
+    },
+    "ciss.html": {
+      "primary_producers": [
+        "justhodl-ciss-ai",
+        "justhodl-ciss-stress"
+      ],
+      "outputs": 3,
+      "status": "PARTIAL_PRIMARY_OUTPUT_ACCESS"
+    }
+  },
+  "browser": {
+    "checked_on": "2026-09-26",
+    "page_build": "d88b41eb9912b2f3d6f321d68257b7e2d84ee937",
+    "standalone_registry": "stale prior registry observed",
+    "status": "MIXED_BUILD_REPRODUCED",
+    "followup": "Stage 171 pins and verifies registry bytes before rendering ownership"
+  }
+}

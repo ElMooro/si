@@ -17,10 +17,14 @@ def stamp(site, commit):
     pages = sorted(site.rglob("*.html"))
     if not pages:
         raise ValueError("No pages found in build artifact")
+    registry=site/'config/page-data-contracts.json'
+    registry_sha=hashlib.sha256(registry.read_bytes()).hexdigest() if registry.is_file() else None
     for page in pages:
         content = page.read_text()
         content = re.sub(r'<meta\s+name=[\'"]jh-build-commit[\'"][^>]*>\s*', "", content, flags=re.I)
+        content = re.sub(r'<meta\s+name=[\'"]jh-data-registry-sha256[\'"][^>]*>\s*', "", content, flags=re.I)
         tag = f'<meta name="jh-build-commit" content="{commit}">'
+        if registry_sha:tag+=f'<meta name="jh-data-registry-sha256" content="{registry_sha}">'
         if re.search(r"</head\s*>", content, re.I):
             content = re.sub(r"</head\s*>", tag + "\n</head>", content, count=1, flags=re.I)
         else:

@@ -177,7 +177,7 @@ test('standalone chart view loads its complete source contract without fetching 
  const output={engine:'source-engine',key:'data/fixture-public.json',access:'public'},requests=[];
  const contract={outputs:[output],primary_producers:['source-engine'],api_responses:[{engine:'dynamic-engine',origin:'https://api.justhodl.ai',pathname:'/quote'}]};
  const doc={head,body,readyState:'complete',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-page-data-contract'?embedded:all(body,n=>n.id===id)[0]};
- const context={document:doc,location:{pathname:'/engine-data.html',href:'https://justhodl.ai/engine-data.html?page=chart.html',search:'?page=chart.html'},URL,URLSearchParams,TextDecoder,Uint8Array,console,
+ const context={document:doc,location:{pathname:'/engine-data.html',href:'https://justhodl.ai/engine-data.html?page=chart.html',search:'?page=chart.html'},URL,URLSearchParams,TextDecoder,Uint8Array,AbortController,setTimeout,clearTimeout,console,
   fetch:async(url,options)=>{requests.push({url,options});if(url==='/config/page-data-contracts.json')return new Response(JSON.stringify({schema_version:'page-data-contract.v1',pages:{'chart.html':contract}}));
     assert.equal(url,'/data/fixture-public.json?exact=1&nogen=1');return new Response(JSON.stringify({rows:[{value:0},{value:null,extra:false}]}),{headers:{'X-JH-Artifact-Key':output.key}});}};
  vm.runInNewContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);await new Promise(setImmediate);
@@ -187,4 +187,57 @@ test('standalone chart view loads its complete source contract without fetching 
  const choice=all(body,n=>n.attrs['aria-label']==='Engine output')[0];choice.value='source-engine::data/fixture-public.json';await choice.events.change();
  assert.equal(requests.length,2);assert.equal(all(body,n=>n.id==='jh-engine-data')[0].dataset.loadedLeafPaths,'3');
  assert.match(body.textContent,/data\/fixture-public.json/);
+ choice.value='';await choice.events.change();
+ assert.equal(requests.length,2);assert.equal(all(body,n=>n.id==='jh-engine-data')[0].dataset.loadedOutput,undefined);
+ assert.ok(!body.textContent.includes('3 inspectable leaf paths'));
+});
+
+test('source links bind shared writer and complete invocation chain to exact build commit',()=>{
+ const commit='a'.repeat(40),entry={engine:'justhodl-example',ownership_evidence:[{repository_path:'aws/shared/store.py',file:'store.py',line:29,basis:'reachable_shared_write_argument',entrypoint_basis:'configured_handler',via:[{file:'aws/lambdas/justhodl-example/source/handler.py',line:12,function:'aws/shared/store.py:publish'}]}]};
+ const rows=inspector.ownershipRecords(entry,commit);assert.equal(rows.length,1);
+ assert.equal(rows[0].writer.href,'https://github.com/ElMooro/si/blob/'+commit+'/aws/shared/store.py#L29');
+ assert.equal(rows[0].via[0].href,'https://github.com/ElMooro/si/blob/'+commit+'/aws/lambdas/justhodl-example/source/handler.py#L12');
+ assert.deepEqual(inspector.ownershipRecords(entry,null).map(r=>r.writer.href),[null]);
+});
+
+test('unsafe source paths or unpinned builds never become active source links',()=>{
+ for(const path of ['https://evil.invalid/x','javascript:alert(1)','aws/shared/../private.py','aws/shared//x.py','aws/shared/x.py?token=1','aws/shared/%2e%2e/x.py','aws/shared/x.py#L1','aws/shared/x\\y.py']){
+  const entry={engine:'valid',ownership_evidence:[{repository_path:path,file:'valid.py',line:1}]};
+  assert.equal(inspector.ownershipRecords(entry,'a'.repeat(40))[0].writer.href,null,path);
+ }
+ for(const commit of ['main','a'.repeat(7),'https://elsewhere.invalid','A'.repeat(40)]){
+  assert.equal(inspector.ownershipRecords({engine:'valid',ownership_evidence:[{file:'handler.py',line:1}]},commit)[0].writer.href,null);
+ }
+});
+
+test('legacy inventory and conventional handler retain explicit uncertainty and all proof rows',()=>{
+ dom();const entry={engine:'justhodl-example',ownership_evidence:[{file:'legacy_original.py',line:8},...Array.from({length:30},(_,i)=>({repository_path:'aws/shared/store.py',line:20+i,entrypoint_basis:'conventional_source_handler_runtime_unverified'}))]};
+ const rows=inspector.ownershipRecords(entry,'b'.repeat(40));assert.equal(rows.length,31);
+ assert.equal(rows[0].writer.path,'aws/lambdas/justhodl-example/source/legacy_original.py');assert.match(rows[0].basis,/reachability unverified/);
+ const view=inspector.ownershipView(entry,'b'.repeat(40));assert.match(view.textContent,/31 recorded write sites/);assert.match(view.textContent,/AWS handler configuration is unverified/);assert.match(view.textContent,/does not prove the deployed Lambda/);
+ assert.equal(all(view,n=>n.tagName==='a').length,31);assert.ok(view.textContent.includes('store.py:49'));
+});
+
+test('source evidence text is never parsed as HTML and missing evidence is explicit',()=>{
+ dom();const view=inspector.ownershipView({engine:'example',ownership_evidence:[{repository_path:'<img src=x onerror=alert(1)>',basis:'<script>bad()</script>',via:[{file:'javascript:bad()',function:'<svg onload=bad()>',line:Infinity}]}]},'c'.repeat(40));
+ assert.ok(view.textContent.includes('<script>bad()</script>'));
+ assert.equal(all(view,n=>['img','script','svg','a'].includes(n.tagName)).length,0);
+ assert.match(inspector.ownershipView({engine:'example'},null).textContent,/No source-write record/);
+});
+
+test('standalone registry verifies exact build bytes and refuses a stale cached registry',async()=>{
+ const crypto=require('node:crypto'),commit='d'.repeat(40),body=JSON.stringify({pages:{'ciss.html':{outputs:[]}}}),hash=crypto.createHash('sha256').update(body).digest('hex'),requests=[];
+ const result=await inspector.fetchRegistry(async(url,options)=>{requests.push({url,options});return new Response(body);},commit,hash);
+ assert.deepEqual(result,JSON.parse(body));assert.equal(requests[0].url,'/config/page-data-contracts.json?build='+commit+'&sha256='+hash);assert.equal(requests[0].options.cache,'no-store');
+ await assert.rejects(inspector.fetchRegistry(async()=>new Response('{"pages":{}}'),commit,hash),e=>e.code==='REGISTRY_BUILD_MISMATCH');
+ for(const [c,h] of [[commit,null],['main',hash],[null,hash]]){
+  let calls=0;await assert.rejects(inspector.fetchRegistry(async()=>{calls++;},c,h));assert.equal(calls,0);
+ }
+});
+
+test('registry deadline covers a stalled response body even when abort is ignored',async()=>{
+ for(const fetcher of [()=>new Promise(()=>{}),async()=>({ok:true,arrayBuffer:()=>new Promise(()=>{})})]){
+  await assert.rejects(inspector.fetchRegistry(fetcher,null,null,5),/timed out/);
+ }
+ await assert.rejects(inspector.fetchRegistry(async()=>new Response('not JSON'),null,null));
 });

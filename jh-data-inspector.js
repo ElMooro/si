@@ -56,6 +56,62 @@ function inspect(container,payload,provenance){
  });
  container.append(payload!==null&&typeof payload==='object'?collectionView(payload,''):valueView(payload,''));
 }
+function ownershipRecords(entry,commit){
+ const pinned=typeof commit==='string'&&/^[a-f0-9]{40}$/.test(commit);
+ function location(path,line){
+  const safe=typeof path==='string'&&/^(?:aws\/(?:shared|lambdas|ops)\/|tests\/)[A-Za-z0-9_./-]+$/.test(path)&&!path.split('/').some(p=>!p||p==='.'||p==='..');
+  const validLine=Number.isSafeInteger(line)&&line>0;
+  return {path:typeof path==='string'?path:'Source path unavailable',line:validLine?line:null,
+   href:safe&&pinned?'https://github.com/ElMooro/si/blob/'+commit+'/'+path+(validLine?'#L'+line:''):null};
+ }
+ return (Array.isArray(entry?.ownership_evidence)?entry.ownership_evidence:[]).map(proof=>{
+  proof=proof&&typeof proof==='object'?proof:{};
+  let path=proof.repository_path;
+  if(path===undefined&&typeof proof.file==='string'){
+   if(/^(?:aws|tests)\//.test(proof.file))path=proof.file;
+   else if(typeof entry.engine==='string'&&/^[A-Za-z0-9_-]+$/.test(entry.engine))path='aws/lambdas/'+entry.engine+'/source/'+proof.file;
+  }
+  return {writer:location(path,proof.line),basis:proof.basis||'static source write inventory; entrypoint reachability unverified',
+   entrypoint_basis:proof.entrypoint_basis||null,
+   via:(Array.isArray(proof.via)?proof.via:[]).map(edge=>({...location(edge?.file,edge?.line),function:typeof edge?.function==='string'?edge.function:'Unspecified call'}))};
+ });
+}
+function ownershipView(entry,commit){
+ const rows=ownershipRecords(entry,commit),details=node('details');details.className='jdi-source';
+ details.append(node('summary','Source ownership · '+rows.length+' recorded write '+(rows.length===1?'site':'sites')));
+ details.append(node('p','Static source evidence for this site build. It does not prove the deployed Lambda version, a successful publication, source-data accuracy or investment eligibility. Check the engine release receipt and retained run separately.'));
+ details.append(node('p',/^[a-f0-9]{40}$/.test(commit||'')?'Site build: '+commit:'Site build identity unavailable; source links are withheld.'));
+ const sourceLink=where=>{const item=node(where.href?'a':'span',where.path+(where.line?':'+where.line:''));if(where.href)item.href=where.href;return item;};
+ const list=node('ol');
+ for(const row of rows){
+  const item=node('li');item.append(sourceLink(row.writer),node('p',row.basis==='reachable_shared_write_argument'?'Write argument traced through the checked-in call chain.':row.basis));
+  if(row.entrypoint_basis)item.append(node('p',row.entrypoint_basis==='conventional_source_handler_runtime_unverified'?'Conventional source handler; AWS handler configuration is unverified.':row.entrypoint_basis==='configured_handler'?'Handler declared in repository configuration; runtime setting not verified here.':'Handler basis: '+row.entrypoint_basis));
+  if(row.via.length){const chain=node('ol');chain.setAttribute('aria-label','Invoking call chain');for(const edge of row.via){const step=node('li');step.append(sourceLink(edge),node('p',edge.function));chain.append(step);}item.append(chain);}
+  list.append(item);
+ }
+ if(rows.length)details.append(list);else details.append(node('p','No source-write record is available for this output.'));
+ const original=node('details');original.append(node('summary','Complete ownership records'),collectionView(Array.isArray(entry?.ownership_evidence)?entry.ownership_evidence:[],''));details.append(original);
+ return details;
+}
+async function fetchRegistry(fetcher,commit,expectedHash,timeoutMs=20000){
+ const mismatch=()=>Object.assign(new Error('Page and source registry build differ'),{code:'REGISTRY_BUILD_MISMATCH'});
+ const pinned=typeof commit==='string'&&/^[a-f0-9]{40}$/.test(commit);
+ if((commit&&!pinned)||(pinned&&!/^[a-f0-9]{64}$/.test(expectedHash||''))||(!pinned&&expectedHash))throw mismatch();
+ const url='/config/page-data-contracts.json'+(pinned?'?build='+commit+'&sha256='+expectedHash:'');
+ const controller=new AbortController();let timer;
+ const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('Source registry request timed out'));},timeoutMs);});
+ try{return await Promise.race([timeout,(async()=>{
+  const response=await fetcher(url,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
+  if(!response.ok)throw new Error('Page data contract unavailable');
+  const raw=await response.arrayBuffer();if(raw.byteLength>16*1024*1024)throw new Error('Source registry exceeds supported size');
+  if(pinned){
+   if(!global.crypto?.subtle)throw mismatch();
+   const digest=Array.from(new Uint8Array(await global.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');
+   if(digest!==expectedHash)throw mismatch();
+  }
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));
+ })()]);}finally{clearTimeout(timer);}
+}
 async function fetchArtifact(entry,fetcher,privateClient){
  if(entry.access==='owner_authenticated'){
   if(!privateClient||privateClient.kindFor('/'+entry.key)!==entry.private_kind)throw new Error('Authenticated owner data route unavailable');
@@ -144,7 +200,7 @@ function selectedContract(manifest,selection){
  const contract=entries[selection.key];if(!contract||!Array.isArray(contract.outputs))throw new Error('Selected output contract is invalid');
  return contract;
 }
-const api={type,columns,leafPaths,ptr,inspect,collectionView,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,inspectionSelection,selectedContract};
+const api={type,columns,leafPaths,ptr,inspect,collectionView,ownershipRecords,ownershipView,fetchRegistry,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,inspectionSelection,selectedContract};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 global.JHDataInspector=api;
 if(typeof document==='undefined')return;
@@ -171,11 +227,12 @@ async function install(){
  const route=decodeURI(location.pathname).replace(/^\//,'')||'index.html';const canonical=route.endsWith('/')?route+'index.html':route;
  if(/^(?:chart|jh-chart)\.html$/i.test(canonical)) return;
  const selection=inspectionSelection(canonical,location.search),engine=selection.kind==='engine'?selection.key:null;
+ const buildCommit=document.querySelector?.('meta[name="jh-build-commit"]')?.getAttribute('content')||null;
+ const registryHash=document.querySelector?.('meta[name="jh-data-registry-sha256"]')?.getAttribute('content')||null;
  const embedded=document.getElementById('jh-page-data-contract');let contract,version='page-data-contract.v1';
  if(embedded&&!selection.standalone)contract=JSON.parse(embedded.textContent);
  else{
-  const response=await fetch('/config/page-data-contracts.json',{cache:'no-cache'});if(!response.ok)throw new Error('Page data contract unavailable');
-  const manifest=await response.json();version=manifest.schema_version;contract=selectedContract(manifest,selection);
+  const manifest=await fetchRegistry(global.fetch.bind(global),buildCommit,registryHash);version=manifest.schema_version;contract=selectedContract(manifest,selection);
  }
  if(!contract)return;
  const panel=node('details');panel.className='jdi-panel';panel.id='jh-engine-data';panel.dataset.contractVersion=version;
@@ -200,7 +257,7 @@ async function install(){
  const explanation=node('p','Choose an output to inspect every returned field, nested object and row. Source ownership is checked at build time. Availability and payload coverage are checked when opened.');panel.append(explanation);
  const select=node('select');select.setAttribute('aria-label','Engine output');select.append(node('option','Choose an engine output'));
  for(const o of contract.outputs){const option=node('option',o.engine+' · '+o.key+(o.access==='owner_authenticated'?' · owner sign-in':''));option.value=o.engine+'::'+o.key;select.append(option);}
- const body=node('div');panel.append(select,body);
+ const body=node('div'),sourceEvidence=node('div');sourceEvidence.style&&(sourceEvidence.style.overflowWrap='anywhere');panel.append(select,sourceEvidence,body);
  if(contract.api_responses&&contract.api_responses.length&&!(selection.standalone&&selection.kind==='page')){
   const apiSection=node('details');apiSection.append(node('summary','Complete API responses · current page session'));
   const apiChoice=node('select');apiChoice.setAttribute('aria-label','Observed engine API response');const apiBody=node('div');apiSection.append(apiChoice,apiBody);
@@ -218,9 +275,10 @@ async function install(){
  if(contract.historical_or_dynamic_family_count)panel.append(node('p',contract.historical_or_dynamic_family_count+' historical or dynamic output families. Reviewed archive indexes expose their listed keys when opened; other families remain unresolved.'));
  if(contract.owner_authenticated_count)panel.append(node('p',contract.owner_authenticated_count+' owner outputs require sign-in and are fetched only through the authenticated account service.'));
  if(contract.restricted_count)panel.append(node('p',contract.restricted_count+' internal, sensitive or unapproved paths are withheld from this inspector.'));
- let run=0;clearArtifact=()=>{run++;body.replaceChildren();delete panel.dataset.loadedOutput;delete panel.dataset.loadedLeafPaths;};
+ let run=0;clearArtifact=()=>{run++;body.replaceChildren();sourceEvidence.replaceChildren();delete panel.dataset.loadedOutput;delete panel.dataset.loadedLeafPaths;};
  select.addEventListener('change',async()=>{
-  const id=++run,entry=contract.outputs.find(o=>o.engine+'::'+o.key===select.value);if(!entry)return;const key=entry.key;
+  clearArtifact();const id=run,entry=contract.outputs.find(o=>o.engine+'::'+o.key===select.value);if(!entry)return;const key=entry.key;
+  sourceEvidence.append(ownershipView(entry,buildCommit));
   body.replaceChildren(node('p','Loading '+key+'…'));
   try{
    if(entry.access==='owner_authenticated'&&!global.JustHodlPrivateArtifacts){
@@ -239,6 +297,6 @@ async function install(){
  });
  document.body.append(panel);
 }
-function contractError(){if(document.getElementById('jh-engine-data'))return;const panel=node('div','Engine data contract unavailable. Complete output inspection could not be initialized.');panel.id='jh-engine-data';panel.className='jdi-panel jdi-error';document.body.append(panel);}
+function contractError(error){if(document.getElementById('jh-engine-data'))return;const panel=node('div',error?.code==='REGISTRY_BUILD_MISMATCH'?'The source registry does not match this page build. Reload the page to load matching evidence. No source ownership has been inferred.':'Engine data contract unavailable. Complete output inspection could not be initialized.');panel.id='jh-engine-data';panel.className='jdi-panel jdi-error';document.body.append(panel);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>install().catch(contractError));else install().catch(contractError);
 })(typeof globalThis!=='undefined'?globalThis:this);
