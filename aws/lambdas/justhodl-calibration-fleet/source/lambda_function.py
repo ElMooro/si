@@ -285,7 +285,7 @@ def lambda_handler(event, context):
     engine_status = []
     current_scores = {}
     for reg in REGISTRY:
-        d = read_json(reg["source_key"])
+        d = __import__("signal_board_authority").guard(reg["source_key"], read_json(reg["source_key"]))
         score = __import__("gsi_authority").qualified_score(d) if reg["name"] == "global_stress" else __import__("crisis_authority").qualified_score(d) if reg["name"] == "crisis_composite" else __import__("eurodollar_research").qualified_score(d) if reg["name"] == "eurodollar_stress" else __import__("extremes_research").qualified_score(d) if reg["name"] == "market_extremes" else __import__("vrp_research").qualified_score(d) if reg["name"] == "vrp" else __import__("dollar_research_context").qualified_score(d) if reg["name"] == "dollar_radar" else deep_get(d, reg["score_path"])
         engine_status.append({
             "name": reg["name"], "label": reg["label"],
@@ -337,7 +337,7 @@ def lambda_handler(event, context):
     weight_props = {}
     for reg in REGISTRY:
         name, direction = reg["name"], reg["direction"]
-        if name in ("global_stress", "crisis_composite", "eurodollar_stress", "market_extremes", "vrp", "dollar_radar"):
+        if name in ("global_stress", "crisis_composite", "eurodollar_stress", "market_extremes", "vrp", "dollar_radar", "signal_board"):
             # Old full-sample GSI, fleet and DDB histories cannot silently requalify it.
             engines_out.append({"name":name,"label":reg["label"],"n_paired":0,"ic_spearman":None,
                 "hit_rate":None,"quality_rating":"UNQUALIFIED","weight_proposal":0.0,"current_score":None,

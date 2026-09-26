@@ -174,6 +174,8 @@ def _admin_token():
 
 def _extract_summary(engine, body):
     """Pick the small set of fields we want to broadcast."""
+    if engine["name"] == "signal_board":
+        return {"engine": "signal_board", "research_context": __import__("signal_board_authority").context(body)}
     if engine["name"] == "global_stress":
         body = __import__("gsi_authority").decision_view(body)
     if engine["name"] == "crisis_composite":
@@ -188,6 +190,8 @@ def _extract_summary(engine, body):
 
 def _is_meaningful_delta(engine, prev_summary, curr_summary):
     """Apply the per-engine delta rule. Returns (bool, reason)."""
+    if engine["name"] == "signal_board":
+        return False, "unqualified_signal_board"
     if engine["name"] == "global_stress":
         return False, "unqualified_global_stress"
     if engine["name"] == "crisis_composite":

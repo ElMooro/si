@@ -43,9 +43,11 @@ class Tests(unittest.TestCase):
         for key in ('data/dollar.json','data/dollar-radar.json'):self.assertIsNone(gate.guard(key,LEGACY)['regime'])
         self.assertIs(gate.guard('data/other.json',LEGACY),LEGACY)
     def test_actual_signal_board_and_canary_normalizers_abstain(self):
-        signal=funcs('signal-board',{'n_dollar_radar'});canary=funcs('canary-warroom',{'norm_dollar'})
+        from signal_board_native_test_support import assert_abstention
+        assert_abstention('data/dollar-radar.json', (LEGACY,native(),{}))
+        canary=funcs('canary-warroom',{'norm_dollar'})
         for packet in (LEGACY,native(),{}):
-            self.assertIsNone(signal['n_dollar_radar'](packet)[0]);card,rows=canary['norm_dollar'](packet)
+            card,rows=canary['norm_dollar'](packet)
             self.assertEqual(rows,[]);self.assertIsNone(card['score']);self.assertEqual(card['band'],'ABSTAIN')
     def test_actual_allocator_cannot_size_from_dollar_pressure(self):
         scope=funcs('master-allocator',{'gather_signals','clamp'}, {'read_json':lambda key:LEGACY if key==gate.CURRENT else {}})
@@ -95,6 +97,10 @@ class Tests(unittest.TestCase):
     def test_every_changed_consumer_bundles_the_typed_boundary(self):
         for name in CHANGED:
             paths=list((ROOT/f'aws/lambdas/justhodl-{name}/source').glob('*.py'))
+            if name=='signal-board':
+                candidate=next(p for p in paths if p.name=='signal_board_candidate.py')
+                self.assertEqual(hashlib.sha256(candidate.read_bytes()).hexdigest(), '5fdb0968d19c5c8c9332d887a79a6ae921aef858932ec4d9ebfe7c7a438aa3c6')
+                continue
             required='flow_state_model.py' if name=='cross-asset-flow-state' else 'dollar_research_context.py'
             self.assertIn(required,[p.name for p in shared_imports(ROOT,paths)],name)
 
