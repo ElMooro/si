@@ -14,7 +14,7 @@ def read(key):
 
 def verify(packet, reader=read):
     output = store.replay(packet['replay'], reader)
-    if {key: value for key, value in packet.items() if key != 'replay'} != output:
+    if not store.same_json({key: value for key, value in packet.items() if key != 'replay'}, output):
         raise ValueError('Published liquidity differs from original-source replay')
     return {'contract': output['contract'], 'generated_at': output['generated_at'], 'replayed': True,
         'original_rows': sum(len(row['history']) for row in output['series'].values()),
@@ -24,4 +24,4 @@ def verify(packet, reader=read):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(); parser.add_argument('--packet', default=store.model.CURRENT); args = parser.parse_args()
-    print(json.dumps(verify(json.loads(read(args.packet))), sort_keys=True))
+    print(json.dumps(verify(store.strict(read(args.packet))), sort_keys=True))

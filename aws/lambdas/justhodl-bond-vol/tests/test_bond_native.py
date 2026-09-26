@@ -160,4 +160,46 @@ class Tests(unittest.TestCase):
         self.assertEqual(new['timeout'],180);self.assertEqual(new['memory'],1024);self.assertNotIn('inherit_env',new)
         self.assertEqual(store.sha((DRAFT.parent/'tests/legacy_lambda_function.py.txt').read_bytes()),'b60af4dcd0a542e93b53ad32b145f15d5ad43f3dfd2e44858fba34c1d5e0c419')
 
+    def test_json_type_substitution_cannot_bind_publish_or_seed_watermarks(self):
+        packet=self.packet();bad=deepcopy(packet)
+        bad['series']['DGS2']['current']['max_interval_days']=float(bad['series']['DGS2']['current']['max_interval_days'])
+        before=self.client.objects[model.CURRENT]
+        with self.assertRaisesRegex(ValueError,'Published view'):store.publish(self.client,'b',bad)
+        self.assertEqual(self.client.objects[model.CURRENT],before)
+        self.client.objects[model.CURRENT]=model.encoded(bad)
+        with self.assertRaisesRegex(ValueError,'Published view'):store.previous_state(self.client,'b')
+        with self.assertRaisesRegex(ValueError,'same-clock'):store.publish(self.client,'b',packet)
+        self.client.objects[model.CURRENT]=before;put=self.client.put_object
+        def altered(**kw):
+            put(**kw)
+            if kw['Key']==model.CURRENT:self.client.objects[model.CURRENT]=model.encoded(bad)
+        with patch.object(self.client,'put_object',side_effect=altered),self.assertRaisesRegex(ValueError,'readback'):
+            store.publish(self.client,'b',packet)
+
+    def test_exact_storage_predecessor_replays_but_unknown_or_tampered_code_fails(self):
+        packet=self.packet();manifest=store.binding(packet,self.read)
+        raw=(DRAFT.parent/'tests/legacy_store_before_typed_binding.py.txt').read_bytes();digest=store.sha(raw)
+        self.assertIn(digest,store.REVIEWED_STORAGE_REVISIONS)
+        previous=store.retain_bytes(self.client,'b',raw,'compilers','py');manifest['compilers']['bond_vol_store']=previous
+        def legacy_packet():
+            ref=store.retain_bytes(self.client,'b',model.encoded(manifest),'runs')
+            return {**packet,'replay':{'manifest_key':ref['key'],'output_sha256':manifest['output_sha256']}}
+        older=legacy_packet();self.assertTrue(store.same_json(store.replay(older,self.read),self.output))
+        self.client.objects[previous['key']]=raw+b'\n'
+        with self.assertRaises(ValueError):store.replay(older,self.read)
+        unknown=b'raise AssertionError("archived code must never execute")'
+        manifest['compilers']['bond_vol_store']=store.retain_bytes(self.client,'b',unknown,'compilers','py')
+        with self.assertRaisesRegex(ValueError,'Reviewed compiler'):store.replay(legacy_packet(),self.read)
+
+    def test_strict_json_and_public_replay_reject_ambiguous_types(self):
+        for raw in (b'{"x":1,"x":1}',b'{"x":NaN}',b'{"x":Infinity}',b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        sys.path.insert(0,str(ROOT/'scripts'));from replay_bond_vol_research import verify
+        packet=self.packet();self.assertTrue(verify(packet,self.read)['full_replay']);packet['calls_eligible']=0
+        with self.assertRaisesRegex(ValueError,'Published view'):verify(packet,self.read)
+        packet=self.packet();ref=packet['replay'];raw=self.read(ref['manifest_key']);raw=b'{"contract":"bond-vol-replay.v1",'+raw[1:]
+        key=model.PREFIX+'runs/'+store.sha(raw)+'.json';self.client.objects[key]=raw
+        packet['replay']={**ref,'manifest_key':key}
+        with self.assertRaisesRegex(ValueError,'Duplicate'):store.replay(packet,self.read)
+
 if __name__=='__main__':unittest.main(verbosity=2)

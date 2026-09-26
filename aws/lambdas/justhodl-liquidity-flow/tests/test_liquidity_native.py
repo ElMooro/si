@@ -31,6 +31,12 @@ class Tests(unittest.TestCase):
         cls.output = store.compile_output(cls.inputs, store.reader(Storage(cls.objects), 'b'))
     def setUp(self): self.client = Storage(self.objects); self.read = store.reader(self.client, 'b')
 
+    def packet(self, stamp=None):
+        inputs=deepcopy(self.inputs)
+        if stamp:inputs['generated_at']=stamp
+        output=store.compile_output(inputs,self.read)
+        return {**output,'replay':store.retain(self.client,'b',inputs,output)}
+
     def test_native_arithmetic_is_exactly_the_qualified_candidate(self):
         accepted = (ROOT/'aws/ops/checks/liquidity_flow_candidate.py').read_bytes()
         self.assertEqual(Path(store.arithmetic.__file__).read_bytes(), accepted)
@@ -84,20 +90,20 @@ class Tests(unittest.TestCase):
         self.client.objects[model.CURRENT] = prior
         context = store.previous_context(self.client, 'b')
         self.assertEqual(self.client.objects[context['whole_predecessor']['key']], prior)
-        packet = {**self.output, 'replay': {'fixture': True}}
+        packet = self.packet()
         self.assertTrue(store.publish(self.client, 'b', packet))
         newer = deepcopy(packet); newer['generated_at'] = '2026-09-21T00:00:00Z'; newer['source_generated_at'] = '2026-09-21T00:00:00Z'
         self.client.objects[model.CURRENT] = model.encoded(newer)
-        candidate = deepcopy(packet); candidate['generated_at'] = '2026-09-22T00:00:00Z'
+        candidate = self.packet('2026-09-22T00:00:00Z')
         self.assertFalse(store.publish(self.client, 'b', candidate))
         newer['source_generated_at'] = candidate['source_generated_at']; newer['series']['WALCL']['acquired_at'] = '2026-09-21T00:00:00Z'
         self.client.objects[model.CURRENT] = model.encoded(newer)
         self.assertFalse(store.publish(self.client, 'b', candidate))
 
     def test_same_clock_conflict_and_racing_newer_write_are_rejected(self):
-        packet = deepcopy(self.output); self.client.objects[model.CURRENT] = model.encoded(packet)
+        packet = self.packet(); self.client.objects[model.CURRENT] = model.encoded(packet)
         self.assertTrue(store.publish(self.client, 'b', packet))
-        packet['interpretation'] = 'conflicting bytes'
+        bad = deepcopy(packet); bad['interpretation'] = 'conflicting bytes'; self.client.objects[model.CURRENT] = model.encoded(bad)
         with self.assertRaisesRegex(ValueError, 'same-clock'): store.publish(self.client, 'b', packet)
         self.client.objects[model.CURRENT] = b'{"generated_at":"2026-09-18T00:00:00Z"}'
         newer = deepcopy(packet); newer['generated_at'] = '2026-09-23T00:00:00Z'
@@ -163,5 +169,59 @@ class Tests(unittest.TestCase):
         reference, status = store.settlement_input(self.client, 'b', denied)
         self.assertIsNone(reference); self.assertEqual(status, {'status': 'unavailable', 'reason': 'SOURCE_READ_FAILED'})
 
+
+    def test_final_writer_requires_original_binding_and_false_authority(self):
+        packet=self.packet();before=self.client.objects.get(model.CURRENT)
+        for change in (lambda p:p['current'].update(net_liquidity_b=999),lambda p:p['quality'].update(release_calendar_verified=0),
+                       lambda p:p['series']['WALCL'].update(acquisition_age_hours=float(p['series']['WALCL']['acquisition_age_hours'])+1),
+                       lambda p:p.pop('replay')):
+            bad=deepcopy(packet);change(bad)
+            with self.assertRaises(ValueError):store.publish(self.client,'b',bad)
+            self.assertEqual(self.client.objects.get(model.CURRENT),before)
+        for change in (lambda p:p.update(calls_eligible=True),lambda p:p['decision'].update(verb='LONG'),
+                       lambda p:p['portfolio_consequences'].update(target_weights={'SPY':1})):
+            bad=deepcopy(packet);change(bad)
+            with patch.object(self.client,'get_object',side_effect=AssertionError('Storage must not be read')):
+                with self.assertRaises(ValueError):store.publish(self.client,'b',bad)
+        self.assertFalse(any(row['Key']==model.CURRENT for row in self.client.writes))
+
+    def test_typed_current_context_same_clock_readback_and_cli(self):
+        packet=self.packet();bad=deepcopy(packet);bad['calls_eligible']=0
+        with self.assertRaisesRegex(ValueError,'Published liquidity'):cli.verify(bad,self.read)
+        self.client.objects[model.CURRENT]=model.encoded(bad)
+        with self.assertRaisesRegex(ValueError,'same-clock'):store.publish(self.client,'b',packet)
+        with self.assertRaisesRegex(ValueError,'retained original-source'):store.previous_context(self.client,'b')
+        self.client.objects[model.CURRENT]=b'{"generated_at":"2026-09-17T00:00:00Z"}';put=self.client.put_object
+        def altered(**kw):
+            put(**kw)
+            if kw['Key']==model.CURRENT:self.client.objects[model.CURRENT]=model.encoded(bad)
+        with patch.object(self.client,'put_object',side_effect=altered),self.assertRaisesRegex(ValueError,'readback'):
+            store.publish(self.client,'b',packet)
+
+    def test_exact_storage_predecessor_replays_without_executing_archived_code(self):
+        packet=self.packet();manifest=store.binding(packet,self.read)
+        raw=(HERE/'legacy_store_before_typed_binding.py.txt').read_bytes();digest=store.sha(raw)
+        self.assertEqual(digest,'2897e2d75ec708ac49188d37af645f5ae920ac5de0608db2bbc3dd5afbecc3a6')
+        self.assertEqual(len(raw),10866);self.assertIn(digest,store.REVIEWED_STORAGE_REVISIONS)
+        key=model.PREFIX+'compilers/'+digest+'.py';self.client.objects[key]=raw
+        manifest['compilers']['liquidity_flow_store']={'key':key,'sha256':digest}
+        def reference(value):
+            ref=store.retain_bytes(self.client,'b',model.encoded(value),'runs')
+            return {'manifest_key':ref['key'],'output_sha256':value['output_sha256']}
+        ref=reference(manifest);self.assertTrue(store.same_json(store.replay(ref,self.read),self.output))
+        self.client.objects[key]=raw+b'\n'
+        with self.assertRaisesRegex(ValueError,'predecessor storage bytes'):store.replay(ref,self.read)
+        unknown=b'raise AssertionError("archived code must never execute")';key=model.PREFIX+'compilers/'+store.sha(unknown)+'.py'
+        self.client.objects[key]=unknown;manifest['compilers']['liquidity_flow_store']={'key':key,'sha256':store.sha(unknown)}
+        with self.assertRaisesRegex(ValueError,'reviewed compiler'):store.replay(reference(manifest),self.read)
+
+    def test_ambiguous_json_and_noninteger_artifact_sizes_fail(self):
+        for raw in (b'{"x":1,"x":1}',b'{"x":NaN}',b'{"x":Infinity}',b'{"x":1e999}'):
+            with self.assertRaises(ValueError):store.strict(raw)
+        packet=self.packet();manifest=store.binding(packet,self.read);ref=deepcopy(manifest['output']);ref['bytes']=float(ref['bytes'])
+        with self.assertRaisesRegex(ValueError,'byte count'):store.checked(ref,'outputs',self.read)
+        raw=self.read(packet['replay']['manifest_key']);raw=b'{"contract":"liquidity-flow-replay.v1",'+raw[1:]
+        key=model.PREFIX+'runs/'+store.sha(raw)+'.json';self.client.objects[key]=raw
+        with self.assertRaisesRegex(ValueError,'Duplicate'):store.replay({**packet['replay'],'manifest_key':key},self.read)
 
 if __name__ == '__main__': unittest.main(verbosity=2)
