@@ -37,14 +37,16 @@ def summary(events):
             'scope':'Bounded recent log sample, not a count of all failures. Raw messages are retained only in the private evidence artifact.'}
 
 
-def collect(lam,events,scheduler,logs,metrics,now):
-    configuration=lam.get_function_configuration(FunctionName=FUNCTION)
+def collect(lam,events,scheduler,logs,metrics,now,function=FUNCTION):
+    if function not in (FUNCTION,'justhodl-liquidity-agent'):
+        raise ValueError('Reviewed diagnostic function required')
+    configuration=lam.get_function_configuration(FunctionName=function)
     cfg={k:configuration.get(k) for k in CONFIG_FIELDS};arn=cfg['FunctionArn']
     aliases=[];versions=[]
-    for page in lam.get_paginator('list_aliases').paginate(FunctionName=FUNCTION):
+    for page in lam.get_paginator('list_aliases').paginate(FunctionName=function):
         aliases.extend({k:a.get(k) for k in ('Name','FunctionVersion','RoutingConfig')} for a in page['Aliases'])
         if len(aliases)>100:raise ValueError('Alias inventory bound exceeded')
-    for page in lam.get_paginator('list_versions_by_function').paginate(FunctionName=FUNCTION):
+    for page in lam.get_paginator('list_versions_by_function').paginate(FunctionName=function):
         versions.extend({k:v.get(k) for k in CONFIG_FIELDS} for v in page['Versions'])
         if len(versions)>500:raise ValueError('Version inventory bound exceeded')
     targets={arn}|{arn+':'+a['Name'] for a in aliases}|{arn+':'+v['Version'] for v in versions if v['Version']!='$LATEST'}
@@ -58,22 +60,22 @@ def collect(lam,events,scheduler,logs,metrics,now):
                     bound.extend({k:t.get(k) for k in ('Id','Arn','RetryPolicy','DeadLetterConfig')} for t in ts['Targets'] if t.get('Arn') in targets)
                 rules.append({'name':name,'state':rule['State'],'expression':rule.get('ScheduleExpression'),'targets':bound})
     schedules=[]
-    for page in scheduler.get_paginator('list_schedules').paginate(NamePrefix=FUNCTION):
+    for page in scheduler.get_paginator('list_schedules').paginate(NamePrefix=function):
         for item in page.get('Schedules',[]):
             actual=scheduler.get_schedule(Name=item['Name'],GroupName=item['GroupName'])
             schedules.append({k:actual.get(k) for k in ('Name','GroupName','State','ScheduleExpression','ScheduleExpressionTimezone') }|
                 {'target_arn':actual.get('Target',{}).get('Arn')})
-    streams=logs.describe_log_streams(logGroupName='/aws/lambda/'+FUNCTION,orderBy='LastEventTime',descending=True,limit=12)['logStreams']
+    streams=logs.describe_log_streams(logGroupName='/aws/lambda/'+function,orderBy='LastEventTime',descending=True,limit=12)['logStreams']
     raw=[];streams_meta=[]
     for stream in streams:
-        packet=logs.get_log_events(logGroupName='/aws/lambda/'+FUNCTION,logStreamName=stream['logStreamName'],limit=200,startFromHead=False)
+        packet=logs.get_log_events(logGroupName='/aws/lambda/'+function,logStreamName=stream['logStreamName'],limit=200,startFromHead=False)
         raw.extend(packet['events']);streams_meta.append({'stream_sha256':hashlib.sha256(stream['logStreamName'].encode()).hexdigest(),
             'last_event_timestamp_ms':stream.get('lastEventTimestamp'),'sampled_events':len(packet['events'])})
     metric={}
     for name in ('Invocations','Errors','Throttles'):
-        result=metrics.get_metric_statistics(Namespace='AWS/Lambda',MetricName=name,Dimensions=[{'Name':'FunctionName','Value':FUNCTION}],
+        result=metrics.get_metric_statistics(Namespace='AWS/Lambda',MetricName=name,Dimensions=[{'Name':'FunctionName','Value':function}],
             StartTime=now-timedelta(days=7),EndTime=now,Period=86400,Statistics=['Sum'])
         metric[name]=sorted([{'timestamp':p['Timestamp'].isoformat(),'sum':p['Sum'],'unit':p['Unit']} for p in result['Datapoints']],key=lambda p:p['timestamp'])
     return {'observed_at':now.isoformat(),'configuration':cfg,'aliases':aliases,'versions':versions,'eventbridge_rules':rules,
-        'scheduler_name_prefix':FUNCTION,'schedules':schedules,'metric_window_days':7,'metrics':metric,'log_streams':streams_meta,
+        'scheduler_name_prefix':function,'schedules':schedules,'metric_window_days':7,'metrics':metric,'log_streams':streams_meta,
         'log_summary':summary(raw)},raw
