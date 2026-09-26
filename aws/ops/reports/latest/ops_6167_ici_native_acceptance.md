@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 7.0s  
+**Finished:** 2026-09-26T19:36:02+00:00  
+
+## Data
+
+| acceptance_evidence | accepted_original_checks | account_reads | actual_runtime | all_denied | anonymous_origins_checked | attempt_outcome_counts | existing_rules_enabled | expected_commit | failures | history_writes | native_invocations | new_rules | next_normal_run | normal_publication_verified | notifications_sent | protected_paths_checked | provider_requests | public_writes | schedule_after | schedule_before | scope |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| {'key': 'audit-private/20260909-originals/ici-research/8c48e1fe1de334f8dc3136d411d6fb0199d1efa2b1068004198d9894df0d491a.bin', 'sha256': '8c48e1fe1de334f8dc3136d411d6fb0199d1efa2b1068004198d9894df0d491a', 'bytes': 1756} | {'whole_original_bytes': 712696, 'observation_checks': 81, 'reported_change_checks': 12, 'independent_rational_reconciliations': 48, 'reconciliation_issues': 0, 'original_release_vintages_verified': False, 'forecast_qualified': False} | 0 | {'code_sha256': 'fQFyStXUx3Qz9CnakIdHmdcyCU9mwOYFC5ELehB0tV8=', 'source_files_checked': 5, 'handler_bytes': 1312, 'timeout': 120, 'memory_mb': 256, 'receipt': {'status': 'matched', 'commit': '0935a93566034d57ee4069161378ce13f62e907d'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-ici-flows-weekly', 'state': 'DISABLED', 'expression': 'cron(30 16 ? * WED,THU *)', 'native_targets': 1}], 'function_name': 'justhodl-ici-flows', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} | True | 4 | {'404': 2, '403': 2} | 1 | 0935a93566034d57ee4069161378ce13f62e907d | [] | 0 | 0 | 0 | 2026-09-30T16:30:00Z | False | 0 | 2 | 0 | 0 | {'Name': 'justhodl-ici-flows-weekly', 'Arn': 'arn:aws:events:us-east-1:857687956942:rule/justhodl-ici-flows-weekly', 'State': 'ENABLED', 'ScheduleExpression': 'cron(30 16 ? * WED,THU *)', 'EventPattern': None, 'RoleArn': None, 'Description': 'ICI release days (flows Wed, MMF Thu); upsert-idempotent'} | {'Name': 'justhodl-ici-flows-weekly', 'Arn': 'arn:aws:events:us-east-1:857687956942:rule/justhodl-ici-flows-weekly', 'State': 'DISABLED', 'ScheduleExpression': 'cron(30 16 ? * WED,THU *)', 'EventPattern': None, 'RoleArn': None, 'Description': 'ICI release days (flows Wed, MMF Thu); upsert-idempotent'} | Actual deployed bytes and complete retained official releases accepted. Existing Wed/Thu 16:30 UTC rule restored unchanged; first normal publication pending. |
+
+## Log
+
