@@ -1,75 +1,22 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fund Flows &amp; Dry Powder (ICI) — JustHodl.AI</title>
-<style>
-:root{--bg:#0a0e14;--bg-2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg-2:#9db0c8;--fg-3:#5c6f88;--cyan:#46c8ff;--amber:#ffd24a;--red:#ff5d6c;--green:#37d99a;--mono:'SF Mono',Consolas,monospace}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
-h1{font-size:21px;margin:0 0 4px;letter-spacing:.4px}
-.sub{color:var(--fg-3);font-family:var(--mono);font-size:11.5px;margin-bottom:22px}
-.hero{display:flex;gap:22px;align-items:center;background:linear-gradient(135deg,var(--card),var(--bg-2));border:1px solid var(--line);border-radius:14px;padding:20px 26px;margin-bottom:20px;flex-wrap:wrap}
-.regime{font-family:var(--mono);font-size:16px;letter-spacing:2px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--bg-2)}
-.hstat b{font-family:var(--mono);font-size:26px;display:block}
-.hstat span{color:var(--fg-3);font-size:11px;letter-spacing:1px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:22px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
-.card h3{margin:0 0 8px;font-size:11.5px;letter-spacing:1.4px;color:var(--fg-2);font-weight:600}
-.big{font-family:var(--mono);font-size:22px;font-weight:700}
-.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--fg-2);margin-top:4px}
-.chip{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:6px;margin-top:8px;border:1px solid var(--line)}
-.note{color:var(--fg-3);font-size:11px;margin-top:9px;line-height:1.45}
-.method{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--fg-2);font-size:12px;line-height:1.6}
-.g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}.c{color:var(--cyan)}
-.loading{color:var(--fg-3);font-family:var(--mono);padding:40px;text-align:center}
-</style></head><body><div class="wrap">
-<h1>💵 FUND FLOWS &amp; DRY POWDER — ICI WEEKLY</h1>
-<div class="sub" id="sub">Loading slow-money flows…</div>
-<div id="app" class="loading">Loading…</div>
-<script src="/jh-nav-drawer.js" defer></script>
-<script>
-const PX=['','https://s3.amazonaws.com/justhodl-dashboard-live/'];
-async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:'no-store'});if(r.ok)return await r.json()}catch(e){}}return null}
-const f=(v,d=1)=>v==null?'—':(+v).toFixed(d);
-const sgn=v=>v==null?'—':(v>0?'+':'')+f(v,0);
-const zc=z=>z==null?'':z>=1.5?'r':z>=.75?'a':z<=-1.5?'g':z<=-.75?'c':'';
-const rcol={CAPITULATION_HOARD:'g',DEFENSIVE_ROTATION:'c',NEUTRAL:'',CHASE:'a',FULL_DEPLOYMENT:'r'};
-const NAME={eq_dom:'EQUITY · DOMESTIC',eq_world:'EQUITY · WORLD',hybrid:'HYBRID',bond:'BOND (TAXABLE)',muni:'MUNI',commodity:'COMMODITY',total:'TOTAL LONG-TERM'};
-(async()=>{
- const d=await getJSON('data/ici-flows.json');const app=document.getElementById('app');
- if(!d){app.textContent='Feed unavailable.';return}
- const M=d.mmf||{},L=d.long_term||{},C=L.classes||{};
- document.getElementById('sub').innerHTML=`v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC · MMF ${M.weeks_n||0}w history · signal ${d.signal>0?'+':''}${d.signal}${d.provisional?' · <b class="a">PROVISIONAL — z activates at 60w</b>':''}`;
- app.className='';app.innerHTML=`
- <div class="hero">
-  <div class="regime ${rcol[d.regime]||''}">${(d.regime||'').replace(/_/g,' ')}</div>
-  <div class="hstat"><b class="${zc(M.z_13w)||'c'}">$${f((M.total_b||0)/1000,2)}T</b><span>MONEY-MARKET ASSETS ${M.z_13w!=null?'· 13w z '+(M.z_13w>0?'+':'')+M.z_13w:''}</span></div>
-  <div class="hstat"><b class="${zc(L.equity_z_4w)}">${L.equity_sum_4w_m==null?'—':'$'+sgn(L.equity_sum_4w_m/1000)+'B'}</b><span>EQUITY FUND FLOWS · 4W ${L.equity_z_4w!=null?'· z '+(L.equity_z_4w>0?'+':'')+L.equity_z_4w:''}</span></div>
-  <div class="hstat"><b>${L.eq_minus_bond_4w_z==null?'—':(L.eq_minus_bond_4w_z>0?'+':'')+f(L.eq_minus_bond_4w_z,2)}</b><span>EQ−BOND ROTATION z</span></div>
- </div>
- <div class="grid">
-  <div class="card"><h3>MMF DRY POWDER</h3><div class="big">$${f(M.total_b,0)}B</div>
-   <div class="kv"><span>w/w</span><b>${sgn(M.wow_b)}B</b></div>
-   <div class="kv"><span>13-week Δ</span><b class="${zc(M.z_13w)}">${sgn(M.chg_13w_b)}B</b></div>
-   <div class="kv"><span>YoY</span><b>${M.yoy_pct==null?'—':(M.yoy_pct>0?'+':'')+M.yoy_pct+'%'}</b></div>
-   <div class="kv"><span>Govt share</span><b>${f(M.govt_share_pct,1)}%</b></div>
-   <div class="kv"><span>Retail / Inst</span><b>$${f(M.retail_b,0)} / $${f(M.inst_b,0)}B</b></div>
-   <div class="note">${M.date||''} — cash on the sidelines; FRED's weekly series died in 2021, ICI is the live source.</div></div>
-  ${Object.entries(C).filter(([k])=>k!=='total').map(([k,c])=>`
-  <div class="card"><h3>${NAME[k]||k.toUpperCase()}</h3>
-   <div class="big ${zc(c.z_4w)}">${c.sum_4w_m==null?'—':'$'+sgn(c.sum_4w_m/1000)+'B'}</div>
-   <div class="kv"><span>latest week</span><b>${c.latest_w_m==null?'—':'$'+sgn(c.latest_w_m/1000)+'B'}</b></div>
-   <div class="kv"><span>4w z</span><b class="${zc(c.z_4w)}">${c.z_4w==null?'—':(c.z_4w>0?'+':'')+c.z_4w}</b></div>
-   <span class="chip">${c.weeks_n||0}w</span></div>`).join('')}
- </div>
- <div id="chart-anchor"><h1 style="font-size:14px;letter-spacing:1.5px;color:var(--fg-2)">MONEY-MARKET FUND ASSETS ($B)</h1></div>
- <div class="method" style="margin-top:18px"><b>METHOD</b> — ${d.method||''}</div>`;
- const s=document.createElement('script');s.src='/jh-enhance.js';
- s.setAttribute('data-feed','data/ici-flows.json');
- s.setAttribute('data-line','mmf.history');
- s.setAttribute('data-crisis','1');
- document.getElementById('chart-anchor').appendChild(s);
-})();
-</script></div>
-<script defer src="/jh-page-ai.js"></script>
-<script src="/sidebar.js" defer></script>
-</body></html>
+<title>ICI Fund Flows Research | JustHodl</title><link rel="stylesheet" href="/jh-ici-research.css">
+</head><body><main id="ici-research" class="ici-wrap">
+<header><div class="ici-eyebrow">JUSTHODL / FUND FLOW RESEARCH</div><h1>Where fund assets stand</h1>
+<p class="ici-intro">ICI money-market assets and combined mutual-fund flows / ETF net issuance. Explore every reported observation, its original unit and date, and the arithmetic behind the summaries.</p>
+<div class="ici-toolbar"><button id="ici-refresh" type="button">Refresh publication</button><a href="/signal-board.html">Research inventory ↗</a><a href="/capital-inflows.html">Cross-border flows ↗</a></div></header>
+<p id="ici-status" class="ici-status" role="status">Verifying publication…</p>
+<section id="ici-content" hidden><div id="ici-summary" class="ici-summary"></div>
+<div class="ici-toolbar"><label for="ici-kind">Official release </label><select id="ici-kind"><option value="mmf">Money-market assets</option><option value="combined_flows">Combined long-term flows</option></select></div>
+<section id="ici-source" class="ici-panel" aria-label="Source dates and original identity"></section>
+<section class="ici-panel"><h2>Every dated observation</h2><p id="ici-count" class="ici-note"></p><div id="ici-observations" class="ici-scroll" tabindex="0" aria-label="Complete observation table"></div></section>
+<section class="ici-panel"><h2>Reconciliation to the release</h2><p class="ici-note">Residuals are checked against the rounding implied by the printed figures. A passing identity supports arithmetic consistency; it does not establish an investment forecast.</p><div id="ici-checks" class="ici-scroll" tabindex="0" aria-label="Source reconciliation table"></div></section>
+<section class="ici-panel"><h2>Long-term flow windows</h2><p class="ici-note">Four-week sums require all four consecutive weekly observations. Municipal flows are included in the bond total; do not add them again.</p><div id="ici-flow-summary" class="ici-scroll" tabindex="0" aria-label="Dated flow summaries"></div></section>
+<details class="ici-panel"><summary>Complete published packet</summary><p>Includes every parsed observation, printed value, source coordinate, provenance reference and unavailable metric.</p><pre id="ici-raw"></pre></details></section>
+<section class="ici-panel ici-method"><h2>What these measurements mean</h2>
+<p>Money-market assets are a stock. A weekly change does not identify transfers into equities or establish cash waiting to buy risk assets. Long-term figures combine estimates of mutual-fund cash flows with ETF net issuance; they are not a pure ETF-flow measure.</p>
+<p>Release date, observation date and acquisition time are separate. The complete retrieved release is retained for replay, but it can include revisions to earlier weeks. Legacy histories without verified release vintages are preserved separately. Year-on-year growth, 13-week statistics and predictive z-scores remain unavailable.</p>
+<p><strong>Portfolio consequence: unavailable. WAIT means abstain.</strong> This engine has no qualified Calls vote, position size or execution permission. Research measurements require separate out-of-sample validation and portfolio risk information before supporting a trade.</p>
+<p>Refresh reads the existing publication. Failed source requests or invalid measurements preserve the last verified packet and its original timestamp. An unavailable feed is never displayed as zero.</p>
+<p><a href="https://www.ici.org/research/stats/mmf">ICI money-market release</a> · <a href="https://www.ici.org/research/stats/combined_flows">ICI combined-flow release</a> · <a href="/data/ici-flows.json?exact=1&amp;nogen=1">Published JSON</a></p></section>
+</main><script src="/jh-fifx-research.js" defer></script><script src="/jh-ici-research.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>

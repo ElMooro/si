@@ -5,9 +5,11 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 120,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "ICI weekly Fund Flows & Money-Market Dry Powder — total/govt/prime/retail-inst MMF assets ($7T cash gauge, FRED weekly series dead since 2021) + long-term fund flows by class. Contrarian flow regime feeding signal-board. Runner-seeded S3 histories; PROVISIONAL <60w.",
+  "description": "ICI official weekly release research: complete dated MMF assets and combined fund flows, retained originals, independent reconciliation and replay. Research only; no sizing or execution.",
   "schedule": {
     "name": "justhodl-ici-flows-weekly",
     "expression": "cron(30 16 ? * WED,THU *)",
