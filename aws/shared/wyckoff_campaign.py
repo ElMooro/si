@@ -9,10 +9,19 @@ Campaign map (locked 2026-09-25):
   PUMP   = MARKUP | COMPLETED                               # Proof 5 SOS / start of bull run
   ABORT  = FAILED | STOPPED
 
+Lesson map (7 signs of demand absorbing supply, 2026-09-26):
+  1 SC     P1_SC
+  2 ST     P3_ST after P2_AR (automatic rally sets the creek)
+  3 dry-up hinge_of + shrinking reactions inside the range
+  4 spring P4_SPRING
+  5 SOS    P5_SOS jump the creek; LPS / backup is the entry
+  6 RS     P6_RS vs the average during the range — confirmation only
+  7 trend  P7_UPTREND higher highs / higher lows + effort/result — confirmation only
+
 Hinge / springboard (transcript 2 — dullness before expansion):
   approach_vol_slope < 0 AND approach_range_x < 1 AND st_vol_ratio_sc <= 0.4
 
-Historical numbers in HISTORICAL are copied from live data/bottom.json base_rates.
+Historical numbers in HISTORICAL are copied from live data/bottom.json.
 Do not invent additional hit rates here.
 """
 from __future__ import annotations
@@ -26,21 +35,24 @@ CAMPAIGN_STATES = {
 
 PROOF_DEFS = (
     ("P1_SC", "Selling climax", "panic supply meets absorption — stopping action"),
-    ("P2_AR", "Automatic rally", "demand exists; range top is set"),
+    ("P2_AR", "Automatic rally", "demand exists; range top / creek is set"),
     ("P3_ST", "Secondary test on diminished volume", "supply is drying"),
     ("P4_SPRING", "Spring / terminal shakeout", "undercut recovered; weak holders gone"),
     ("P5_SOS", "Sign of strength / jump the creek", "range resolves up; markup begins"),
+    ("P6_RS", "Comparative strength vs the average", "holds or leads while the tape is weak — confirmation, not a buy"),
+    ("P7_UPTREND", "Higher highs and higher lows", "effort expands on advances, contracts on reactions — confirmation"),
 )
 
-# Copied from live justhodl-bottom v1.2.0 base_rates (5y window on the 2026-09-25 board).
-# Source: data/bottom.json method/base_rates as read 2026-09-25. Do not invent.
+# Copied from live justhodl-bottom v1.2.0 as read 2026-09-26 from data/bottom.json.
+# Do not invent.
 HISTORICAL = {
-    "source": "data/bottom.json base_rates",
-    "as_of": "2026-09-25",
-    "window": "5y",
-    "sc_sequences": 6560,
-    "triggered": 2032,
-    "unmanaged_trigger": {"bars": 63, "median_pct": 2.55, "hit_pct": 55},
+    "source": "data/bottom.json method/base_rates + board states",
+    "as_of": "2026-09-26",
+    "window": "2021-09-20 to 2026-09-25",
+    "sc_sequences": 6551,
+    "with_rally": 4882,
+    "triggered": 2033,
+    "unmanaged_trigger": {"bars": 63, "median_pct": 2.56, "hit_pct": 55},
     "grade_a": {"bars": 63, "median_pct": 19.85, "hit_pct": 89, "n": 464},
     "quiet_test_le_0_4x_sc": {"bars": 63, "median_pct": 3.2},
     "loud_test": {"bars": 63, "median_pct": 1.9},
@@ -49,7 +61,8 @@ HISTORICAL = {
     "note": (
         "Quiet tests (<=0.4x SC volume) are the hinge/dry-up edge. "
         "Crowd bounce off the climax is not the entry: 49% later undercut the SC low. "
-        "Grade A (full sequence, quiet test, trigger) is the only bucket with an 89% 63-bar hit rate."
+        "Grade A (full sequence, quiet test, trigger) is the only published bucket with an 89% 63-bar hit rate. "
+        "Raw trigger is 55% at 63 bars. Comparative strength vs SPY is not in the harvest yet, so it is confirmation-only."
     ),
 }
 
@@ -67,6 +80,16 @@ def _ev(row, *path):
     for key in path:
         cur = (cur or {}).get(key) if isinstance(cur, dict) else None
     return cur
+
+
+def _num(value):
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed == parsed and abs(parsed) != float("inf") else None
 
 
 def hinge_of(row):
@@ -103,6 +126,47 @@ def hinge_of(row):
     }
 
 
+def rs_of(row):
+    """Comparative strength vs the average during the range. Confirmation only."""
+    raw = row.get("rs_vs_spy")
+    if raw is None:
+        raw = row.get("rel_strength")
+    if raw is None:
+        raw = _ev(row, "rs", "vs_spy")
+    label = str(row.get("rs_class") or row.get("rel_strength_class") or "").upper()
+    score = _num(raw)
+    leader = label in {"LEADER", "STRONG", "OUTPERFORM"} or (score is not None and score > 0)
+    return {
+        "passed": bool(leader),
+        "score": score,
+        "class": label or None,
+        "why": (
+            "beats or holds vs the average during the range"
+            if leader
+            else "no comparative-strength field yet — confirmation only, not scored as a hard gate"
+        ),
+    }
+
+
+def uptrend_of(row):
+    """Sign 7: higher highs / higher lows after the jump. Confirmation only."""
+    state = (row.get("state") or "").upper()
+    explicit = row.get("hh_hl")
+    if explicit is None:
+        explicit = _ev(row, "trend", "hh_hl")
+    markup = state in {"MARKUP", "COMPLETED"}
+    passed = bool(explicit) or markup
+    return {
+        "passed": passed,
+        "state": state,
+        "why": (
+            "markup / completed — demand still in control until character changes"
+            if markup
+            else ("hh/hl flag set" if explicit else "uptrend not confirmed — wait for higher highs and higher lows after the jump")
+        ),
+    }
+
+
 def proofs_of(row):
     state = (row.get("state") or "").upper()
     sc_date = row.get("sc_date") or _ev(row, "sc", "date")
@@ -128,6 +192,8 @@ def proofs_of(row):
         )
     )
     p3 = bool(st_date) and (st_vol is None or float(st_vol) <= 0.8)
+    rs = rs_of(row)
+    trend = uptrend_of(row)
     return [
         {
             "id": "P1_SC",
@@ -162,6 +228,20 @@ def proofs_of(row):
             "evidence": "state=%s trigger=%s sos=%s"
             % (state, row.get("trigger_date"), _ev(row, "trigger", "sos_date")),
         },
+        {
+            "id": "P6_RS",
+            "label": "Comparative strength vs the average",
+            "passed": bool(rs["passed"]),
+            "hard_gate": False,
+            "evidence": rs["why"],
+        },
+        {
+            "id": "P7_UPTREND",
+            "label": "Higher highs and higher lows",
+            "passed": bool(trend["passed"]),
+            "hard_gate": False,
+            "evidence": trend["why"],
+        },
     ]
 
 
@@ -176,7 +256,7 @@ def pump_start_of(row, campaign=None, hinge=None, proofs=None):
         "flag": campaign == "PUMP",
         "ready": campaign == "ACCUM" and bool(hinge.get("hinge")) and (spring_passed or higher_low),
         "chase": campaign == "PUMP" and bars > 5,
-        "rule": "LPS is the entry. Do not chase SOS. Pump = MARKUP/COMPLETED after hinge + spring.",
+        "rule": "LPS is the entry. Do not chase SOS. Pump = MARKUP/COMPLETED after hinge + spring. RS and HH/HL confirm; they do not create the entry.",
     }
 
 
@@ -189,7 +269,10 @@ def annotate(row):
     out["campaign"] = campaign
     out["proofs"] = proofs
     out["proofs_passed"] = sum(1 for p in proofs if p["passed"])
+    out["proofs_hard_passed"] = sum(1 for p in proofs if p["passed"] and p.get("hard_gate") is not False)
     out["hinge"] = hinge
+    out["rs"] = rs_of(row)
+    out["uptrend"] = uptrend_of(row)
     out["pump_start"] = pump_start_of(row, campaign, hinge, proofs)
     return out
 
@@ -207,12 +290,13 @@ def project_board(document):
         buckets.setdefault(row["campaign"], []).append(row)
     return {
         "engine": "wyckoff-campaign",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "source_engine": (document or {}).get("engine") if isinstance(document, dict) else "justhodl-bottom",
         "source_version": (document or {}).get("version") if isinstance(document, dict) else None,
         "historical": HISTORICAL,
         "counts": {k: len(v) for k, v in buckets.items()},
         "hinge_n": sum(1 for r in annotated if r["hinge"]["hinge"]),
+        "rs_n": sum(1 for r in annotated if r["rs"]["passed"]),
         "pump_ready_n": sum(1 for r in annotated if r["pump_start"]["ready"]),
         "pump_chase_n": sum(1 for r in annotated if r["pump_start"]["chase"]),
         "BOTTOM": buckets["BOTTOM"],
