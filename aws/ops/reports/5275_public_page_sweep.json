@@ -1,12 +1,39 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-  "observed_at": "2026-09-26T05:41:35.162305+00:00",
+  "observed_at": "2026-09-26T05:52:16.137134+00:00",
   "ok": false,
   "routes_checked": 558,
-  "verified_routes": 557,
+  "verified_routes": 530,
   "failed_routes": [
-    "chart.html"
+    "ai_predictions.html",
+    "ark.html",
+    "auctions.html",
+    "bls.html",
+    "boom-radar.html",
+    "brain-compiler.html",
+    "capital-inflows.html",
+    "cb-injection.html",
+    "cftc.html",
+    "chart.html",
+    "consolidation.html",
+    "cot/index.html",
+    "data-sources.html",
+    "dix/index.html",
+    "downloads.html",
+    "engine.html",
+    "etf-census.html",
+    "floor.html",
+    "geo-risk.html",
+    "global-flow-desk.html",
+    "metals-miners.html",
+    "options-scanner.html",
+    "performance.html",
+    "pre-pump-radar.html",
+    "strong.html",
+    "tail-hedge.html",
+    "tv-notes.html",
+    "watchlists.html"
   ],
   "source_equivalent_builds": {
     "45c6adfe2fe399550eca772f5baf53aec3d4f2db": true
@@ -112,7 +139,7 @@
       "http_status": 200,
       "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
       "inspector_present": true,
-      "bytes_read": 9101,
+      "bytes_read": 9124,
       "product_source_matches_release": true
     },
     {
@@ -130,17 +157,17 @@
       "http_status": 200,
       "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
       "inspector_present": true,
-      "bytes_read": 123680,
+      "bytes_read": 123703,
       "product_source_matches_release": true
     },
     {
       "route": "ai_predictions.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 29294,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "alerts.html",
@@ -324,12 +351,12 @@
     },
     {
       "route": "ark.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 16489,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ask.html",
@@ -387,12 +414,12 @@
     },
     {
       "route": "auctions.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 88315,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "audit.html",
@@ -504,12 +531,12 @@
     },
     {
       "route": "bls.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 26341,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "boj-detail.html",
@@ -558,12 +585,12 @@
     },
     {
       "route": "boom-radar.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 10976,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "boom-stage.html",
@@ -621,12 +648,12 @@
     },
     {
       "route": "brain-compiler.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 9853,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "brain.html",
@@ -747,12 +774,12 @@
     },
     {
       "route": "capital-inflows.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 11722,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "capital-return.html",
@@ -846,12 +873,12 @@
     },
     {
       "route": "cb-injection.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 10773,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "cb/index.html",
@@ -882,12 +909,12 @@
     },
     {
       "route": "cftc.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 5757,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "cftc/index.html",
@@ -1044,12 +1071,12 @@
     },
     {
       "route": "consolidation.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 15118,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "construction-housing.html",
@@ -1125,12 +1152,12 @@
     },
     {
       "route": "cot/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 10885,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "credit-before-equity.html",
@@ -1305,12 +1332,12 @@
     },
     {
       "route": "data-sources.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 7086,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "data.html",
@@ -1503,12 +1530,12 @@
     },
     {
       "route": "dix/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 19309,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "dollar.html",
@@ -1539,12 +1566,12 @@
     },
     {
       "route": "downloads.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 26359,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "dxy-predict.html",
@@ -1701,12 +1728,12 @@
     },
     {
       "route": "engine.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 13746,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "engines.html",
@@ -1714,7 +1741,7 @@
       "http_status": 200,
       "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
       "inspector_present": true,
-      "bytes_read": 884085,
+      "bytes_read": 884087,
       "product_source_matches_release": true
     },
     {
@@ -1782,12 +1809,12 @@
     },
     {
       "route": "etf-census.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 20530,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "etf-holdings.html",
@@ -2043,12 +2070,12 @@
     },
     {
       "route": "floor.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 34225,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "flow-confluence.html",
@@ -2259,12 +2286,12 @@
     },
     {
       "route": "geo-risk.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 11846,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "gex/index.html",
@@ -2304,12 +2331,12 @@
     },
     {
       "route": "global-flow-desk.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 13376,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "global-flows.html",
@@ -3177,12 +3204,12 @@
     },
     {
       "route": "metals-miners.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 20118,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "methodology.html",
@@ -3411,12 +3438,12 @@
     },
     {
       "route": "options-scanner.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 21931,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "options.html",
@@ -3501,12 +3528,12 @@
     },
     {
       "route": "performance.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 26388,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "phases.html",
@@ -3672,12 +3699,12 @@
     },
     {
       "route": "pre-pump-radar.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 231856,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "predictability.html",
@@ -4419,12 +4446,12 @@
     },
     {
       "route": "strong.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 13099,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "supply-chain.html",
@@ -4482,12 +4509,12 @@
     },
     {
       "route": "tail-hedge.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 23377,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "tail-risk.html",
@@ -4734,12 +4761,12 @@
     },
     {
       "route": "tv-notes.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 15154,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "tv-workbench.html",
@@ -4914,12 +4941,12 @@
     },
     {
       "route": "watchlists.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "45c6adfe2fe399550eca772f5baf53aec3d4f2db",
-      "inspector_present": true,
-      "bytes_read": 11769,
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "wealth-plan.html",
@@ -5040,7 +5067,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36221414215,
+  "deployment_run_id": 36221904683,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-26T05:41:35.164561+00:00"
+  "check_finished_at": "2026-09-26T05:52:16.138742+00:00"
 }
