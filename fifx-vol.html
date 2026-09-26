@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cross-Asset Volatility Research | JustHodl</title><link rel="stylesheet" href="/jh-fifx-research.css"></head>
+<body><main id="fx-research" class="fx-wrap">
+<header><div class="fx-eyebrow">JUSTHODL / CROSS-ASSET RESEARCH</div><h1>Volatility, with its evidence</h1>
+<p class="fx-intro">Compare dated Treasury, currency and equity measurements. Open the original response, inspect every historical calculation and see exactly which sources are available.</p>
+<div class="fx-toolbar"><span class="fx-badge">Descriptive research</span><button id="fx-refresh" type="button">Refresh publication</button><a href="/signal-board.html">Signal Board ↗</a><a href="/bond-vol.html">Bond volatility ↗</a></div></header>
+<p id="fx-status" class="fx-status" role="status">Verifying publication…</p><section id="fx-legacy" hidden></section>
+<section id="fx-native" hidden><div id="fx-metadata" class="fx-meta"></div>
+<section class="fx-panel"><div class="fx-toolbar"><h2>All source measurements</h2><label>Find a source<input id="fx-search" type="search" placeholder="Treasury, sterling, Nikkei…"></label></div>
+<p class="fx-muted">Each row has its own unit and observation date. H.10 publishes daily FX observations weekly. The four dollar-related series share a dependency; they are not four independent votes.</p>
+<div id="fx-inventory" class="fx-scroll" tabindex="0" aria-label="All eighteen sources"></div></section>
+<label class="fx-select">Inspect a source<select id="fx-series" aria-label="Inspect a source"></select></label><div id="fx-reading"></div>
+<div class="fx-columns"><section class="fx-panel"><h2>Calculation and timing</h2><div id="fx-window"></div></section>
+<section class="fx-panel"><h2>Source identity</h2><div id="fx-identity"></div></section></div>
+<section class="fx-panel"><h2>Every retained observation</h2><p class="fx-muted">Load the complete source history. Charts include every loaded row; the table shows 50 rows at a time. Missing and invalid observations stay visible.</p>
+<div class="fx-toolbar"><button id="fx-load" type="button">Load complete history</button><button id="fx-original" type="button">Verify original response</button>
+<label>History view<select id="fx-kind" aria-label="History view"><option value="original">Original observations</option><option value="calculated">All historical calculations</option></select></label></div>
+<p id="fx-history-status" role="status"></p><div id="fx-chart"></div><div id="fx-history" class="fx-scroll" tabindex="0" aria-label="Complete retained history"></div>
+<div class="fx-toolbar"><button id="fx-newer" type="button" disabled>Newer rows</button><button id="fx-older" type="button" disabled>Older rows</button><span id="fx-pagination"></span></div></section></section>
+<section class="fx-panel fx-method"><h2>What these measurements can tell you</h2>
+<p>Rate dispersion uses 30 successive numeric-observation yield changes in basis points. Currency and equity dispersion use 20 log changes in percent. Annualization assumes 252 comparable steps. Reported implied-index levels remain separate; a Treasury statistic never substitutes for MOVE, and an average of FX volatilities is not portfolio volatility.</p>
+<p>Each descriptive z-score and midrank percentile compares an estimate with 504 preceding estimates, excluding itself. Overlapping windows are dependent. A flat baseline has no defined z-score; missing or invalid windows prevent a clean baseline. These statistics do not establish a migration forecast or a cheap hedge.</p>
+<p>Source acquisition and observation lag are separate. Acquisitions expire after 26 hours; observation ceilings are 12 days for weekly-published H.10 FX data and seven days for other sources. These are explicit review limits, not a verified release calendar. Same-day quotes need matching provider-reported session times and a capture at least 30 minutes after the reported close. Official-feed parity remains unverified.</p>
+<p>Full returned history is the acquired current vintage. It is not a point-in-time backtest. The browser checks immutable output and source hashes; a separate Python replay reconstructs all historical calculations and checks their arithmetic independently.</p>
+<p><strong>Portfolio consequence: unavailable. WAIT means abstain.</strong> Predictive validation, portfolio holdings, covariance, costs and risk constraints are required before these measurements can set target weights or trade permissions.</p>
+<p><a href="https://www.federalreserve.gov/releases/h10/">Federal Reserve H.10 release</a> · <a href="https://fred.stlouisfed.org/series/DGS10">Treasury source</a> · <a href="/data/fifx-vol.json?exact=1&nogen=1">Current packet</a></p></section>
+</main><script src="/jh-fifx-research.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>

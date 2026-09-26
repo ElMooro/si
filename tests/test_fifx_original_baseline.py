@@ -9,12 +9,17 @@ class Storage:
     def get_object(self,**kw):return {'Body':io.BytesIO(self.objects[kw['Key']])}
 class Tests(unittest.TestCase):
     def test_actual_all_rates_fx_and_global_index_sources_are_listed(self):
-        tree=ast.parse((ROOT/'aws/lambdas/justhodl-fifx-vol-migration/source/lambda_function.py').read_text(encoding='utf-8'))
+        original=ROOT/'aws/lambdas/justhodl-fifx-vol-migration/tests/legacy_lambda_function.py.txt'
+        self.assertEqual(hashlib.sha256(original.read_bytes()).hexdigest(),'8ad0b0f88379a4cf253741dcfab9d05890f95a729bb7082ebd9b84e4bb0e78eb')
+        tree=ast.parse(original.read_text(encoding='utf-8'))
         constants={n.value for n in ast.walk(tree) if isinstance(n,ast.Constant) and isinstance(n.value,str)}
         self.assertEqual(set(baseline.SERIES),{'VIXCLS','DGS10','DEXUSEU','DEXJPUS','DEXUSUK','DTWEXBGS'})
         self.assertEqual(set(baseline.QUOTE_SYMBOLS),{s for s in constants if re.fullmatch(r'\^[A-Z0-9]+',s)}|{'000001.SS'})
         self.assertEqual(len(baseline.QUOTE_SYMBOLS),12)
         for sid in baseline.SERIES:self.assertIn(sid,constants)
+        native=ast.parse((ROOT/'aws/lambdas/justhodl-fifx-vol-migration/source/fifx_catalog.py').read_text(encoding='utf-8'))
+        native_constants={n.value for n in ast.walk(native) if isinstance(n,ast.Constant) and isinstance(n.value,str)}
+        for sid in (*baseline.SERIES,*baseline.QUOTE_SYMBOLS):self.assertIn(sid,native_constants)
         for key in ('data/fifx-vol.json','data/fifx-vol-history.json','data/bond-vol.json'):self.assertIn(key,baseline.INPUTS)
     def test_whole_originals_and_empty_tracked_files_are_retained_conditionally(self):
         client=Storage();raw=b'original\x00'+b'x'*60000;ref=baseline.retain(client,raw)
