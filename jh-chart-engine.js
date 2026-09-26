@@ -237,6 +237,12 @@
   var active="SPY", tf="1d", mode="price", kind="candles", scaleMode=0;
   var quotes={}, lists=[], listId="ishares", letter="", filter="", sortCol="sym", sortDir=1;
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null, volSeries=null;
+  // Bind identity to the returned array, never to whichever ticker is selected later.
+  var barEvidence=new WeakMap();
+  function identifyBars(d,sym,interval,source){
+    barEvidence.set(d,{symbol:sym,interval:interval,source:source||"unavailable",bars:d,published_at:new Date().toISOString()});
+    return d;
+  }
   var calCache=null, calAt=0;
   var lastVolShow=false, volTapeEvents=[], lastPatPack=null, lastSdPack=null, lastSrPack=null, lastIch=null;
   var lastFvgPack=null, lastEqhPack=null, lastGSess=null, lastSeps=null, lastOrLv=null, lastOrPack=null, lastAdr=null, lastAtrPts=null, lastHudVwap=null;
@@ -1829,7 +1835,7 @@
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
     var key=t+"|"+tfId, now=Date.now();
     if(barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=8){
-      if(!quiet) lastSource=barCache[key].src||lastSource; return barCache[key].d;
+      if(!quiet) lastSource=barCache[key].src||lastSource; return identifyBars(barCache[key].d,sym,tfId,barCache[key].src);
     }
     if(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function"){
       try{
@@ -1839,7 +1845,7 @@
           if(cd0.length>=8 && barsFitTf(cd0, tfId)){
             if(!quiet) lastSource=catBars.src||"catalog";
             barCache[key]={d:cd0, at:now, src:catBars.src||"catalog"};
-            return cd0;
+            return identifyBars(cd0,sym,tfId,catBars.src||"catalog");
           }
         }
       }catch(eCat){}
@@ -1905,7 +1911,7 @@
           if(d.length<8) continue;
           if(!quiet) lastSource=src;
           barCache[key]={d:d, at:now, src:src};
-          return d;
+          return identifyBars(d,sym,tfId,src);
         }
       }catch(e){}
     }
@@ -2113,7 +2119,7 @@
     if(!d||!d.length){ toast("No bars for "+active); var qe=document.getElementById("quote"); if(qe) qe.textContent="No bars for "+active; return; }
     var saved=null;
     try{ saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
-    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;window.volOn=volOn;}catch(e){}
+    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;window.volOn=volOn;var evidence=barEvidence.get(d);window.jhChartEvidence=evidence&&evidence.symbol===active&&evidence.interval===tf?evidence:null;}catch(e){}
     var p=pal();
     var tapeVol=INDS.some(function(i){ return i.id==="voltape"&&i.on; });
     var volShow=(volOn||tapeVol) && volScore(d)>Math.max(8, d.length*0.05);
@@ -4771,6 +4777,7 @@
     return "<div class=gauge><span>"+label+"</span><div class=bar><i style=left:"+n+"%></i></div><span class="+tag+">"+word+(v==null?"":" "+(typeof v==="number"?v.toFixed(1):v))+"</span></div>";
   }
   function renderTech(d){
+    if(window.JHStockDeskController){window.JHStockDeskController.refresh();return;}
     if(!d||d.length<30){ document.getElementById("tech").innerHTML="<b>TECHNICALS</b><div class=cell>Need more bars</div>"; return; }
     var r=lastOsc(rsi(d,14)), st=lastOsc(stoch(d,14,3,3)), m=macd(d), mh=m.length?m[m.length-1].hist:null;
     var s20=lastOsc(sma(d,20)), s50=lastOsc(sma(d,50)), s200=lastOsc(sma(d,200)), px=d[d.length-1].close;
@@ -5451,12 +5458,14 @@
   async function tickLive(){
     if(!liveOn || replay.on) return;
     try{
-      var key=resolveSym(active).ticker+"|"+tf;
+      var want=active,wantTf=tf,gen=loadGen;
+      var key=resolveSym(want).ticker+"|"+wantTf;
       if(barCache[key]) delete barCache[key];
-      var d=await klines(active, tf);
+      var d=await klines(want, wantTf);
+      if(gen!==loadGen||want!==active||wantTf!==tf||replay.on) return;
       if(!d.length) return;
-      var a=lastBars[lastBars.length-1], b=d[d.length-1];
-      if(!a || a.time!==b.time || a.close!==b.close){ await paint(d); }
+      // Volume or interior-bar revisions also invalidate the retained frame.
+      if(JSON.stringify(lastBars)!==JSON.stringify(d)){ await paint(d); }
       loadTape(false);
     }catch(e){}
   }

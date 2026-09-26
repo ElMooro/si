@@ -11,7 +11,7 @@ test("Khalid sniper sits next to Alert and opens on the chart", () => {
   const eng = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
   const rail = fs.readFileSync(path.join(root, "jh-chart-tvrail.js"), "utf8");
   const page = fs.readFileSync(path.join(root, "khalid.html"), "utf8");
-  assert.match(html, /jh-chart-engine\.js\?v=20260922ab-cqind/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260926-frame-identity/);
   assert.match(html, /jh-khalid-sniper\.js/);
   assert.match(page, /id="k-sniper-host"/);
   assert.match(page, /jh-khalid-sniper\.js/);

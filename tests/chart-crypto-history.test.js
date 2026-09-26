@@ -13,7 +13,7 @@ const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
 const helperURL = pathToFileURL(path.join(root, "cloudflare/workers/justhodl-data-proxy/src/warehouse-ohlc.js"));
 
 test("crypto history + CQ stamps are on chart.html", () => {
-  assert.match(html, /jh-chart-engine\.js\?v=20260922ab-cqind/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260926-frame-identity/);
   assert.match(html, /jh-chart-catalog\.js\?v=20260922ab-cqind/);
   assert.match(html, /jh-chart-tvsearch\.js\?v=20260922ab-cqind/);
   assert.match(html, /jh-chart-indux\.js\?v=20260922ab-cqind/);

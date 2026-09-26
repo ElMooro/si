@@ -10,7 +10,7 @@ test("distribution button sits next to Bottom and stays off until clicked", () =
   const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
   const eng = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
   const src = fs.readFileSync(path.join(root, "jh-chart-distribution.js"), "utf8");
-  assert.match(html, /jh-chart-engine\.js\?v=20260922ab-cqind/);
+  assert.match(html, /jh-chart-engine\.js\?v=20260926-frame-identity/);
   assert.match(html, /jh-chart-distribution\.js/);
   assert.match(eng, /jhDistributionMarks\(display, tf, kind\)/);
   assert.match(eng, /jhDistToggle\(\)/);
