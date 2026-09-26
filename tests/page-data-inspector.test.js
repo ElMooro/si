@@ -158,3 +158,33 @@ test('health and provider inspection requires reviewed public publication marker
   for(const legacy of [null,{},[],{error:'SYNTHETIC_PRIVATE_DIAGNOSTIC'}])assert.throws(()=>inspector.validateProjection({required_projection},legacy),/public projection/);
  }
 });
+
+test('standalone selection accepts one registered target and refuses ambiguous or unsafe requests',()=>{
+ assert.deepEqual(inspector.inspectionSelection('engine-data.html','?page=chart.html'),{kind:'page',key:'chart.html',standalone:true});
+ assert.deepEqual(inspector.inspectionSelection('engine-data.html','?engine=source-engine'),{kind:'engine',key:'source-engine',standalone:true});
+ assert.deepEqual(inspector.inspectionSelection('calls.html','?page=chart.html'),{kind:'page',key:'calls.html',standalone:false});
+ for(const search of ['?page=../private.html','?page=https://elsewhere.invalid/a.html','?page=chart.html&page=calls.html','?page=chart.html&engine=','?engine=','?engine=x/y'])
+  assert.throws(()=>inspector.inspectionSelection('engine-data.html',search));
+ const contract={outputs:[]},manifest={pages:{'chart.html':contract},engines:{'source-engine':contract}};
+ assert.equal(inspector.selectedContract(manifest,{kind:'page',key:'chart.html'}),contract);
+ for(const key of ['missing.html','__proto__','constructor'])assert.throws(()=>inspector.selectedContract(manifest,{kind:'page',key}));
+ assert.throws(()=>inspector.selectedContract({pages:{'chart.html':{}}},{kind:'page',key:'chart.html'}));
+});
+
+test('standalone chart view loads its complete source contract without fetching outputs or claiming another tab response',async()=>{
+ const vm=require('node:vm'),fs=require('node:fs'),head=new Element('head'),body=new Element('body');
+ const embedded=new Element('script');embedded.textContent=JSON.stringify({outputs:[],primary_producers:['wrong-embedded-page']});
+ const output={engine:'source-engine',key:'data/fixture-public.json',access:'public'},requests=[];
+ const contract={outputs:[output],primary_producers:['source-engine'],api_responses:[{engine:'dynamic-engine',origin:'https://api.justhodl.ai',pathname:'/quote'}]};
+ const doc={head,body,readyState:'complete',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-page-data-contract'?embedded:all(body,n=>n.id===id)[0]};
+ const context={document:doc,location:{pathname:'/engine-data.html',href:'https://justhodl.ai/engine-data.html?page=chart.html',search:'?page=chart.html'},URL,URLSearchParams,TextDecoder,Uint8Array,console,
+  fetch:async(url,options)=>{requests.push({url,options});if(url==='/config/page-data-contracts.json')return new Response(JSON.stringify({schema_version:'page-data-contract.v1',pages:{'chart.html':contract}}));
+    assert.equal(url,'/data/fixture-public.json?exact=1&nogen=1');return new Response(JSON.stringify({rows:[{value:0},{value:null,extra:false}]}),{headers:{'X-JH-Artifact-Key':output.key}});}};
+ vm.runInNewContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);await new Promise(setImmediate);
+ assert.equal(requests.length,1);assert.match(body.textContent,/chart.html · Engine data inspector · 1 outputs/);
+ assert.match(body.textContent,/does not observe another tab/);assert.match(body.textContent,/1 registered API response contracts · not captured here/);
+ assert.ok(!body.textContent.includes('wrong-embedded-page'));assert.ok(!body.textContent.includes('Complete API responses · current page session'));
+ const choice=all(body,n=>n.attrs['aria-label']==='Engine output')[0];choice.value='source-engine::data/fixture-public.json';await choice.events.change();
+ assert.equal(requests.length,2);assert.equal(all(body,n=>n.id==='jh-engine-data')[0].dataset.loadedLeafPaths,'3');
+ assert.match(body.textContent,/data\/fixture-public.json/);
+});

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build source-bound public output inspection contracts and install the inspector on every public route.
+"""Build source-bound public output contracts and explicit page inspection entrypoints.
 No network or runtime completeness claim. Dynamic/private/unresolved outputs remain explicitly classified.
 """
 import argparse,ast,hashlib,json,os,re,shutil,sys
@@ -7,7 +7,19 @@ from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 from page_sources import scan_pages,pages
+from html.parser import HTMLParser
 ROOT=Path(__file__).resolve().parents[1]
+STANDALONE_INSPECTION_PAGES={'chart.html','jh-chart.html'}
+
+def require_standalone_link(source,route):
+    class Links(HTMLParser):
+        found=False
+        def handle_starttag(self,tag,attrs):
+            attrs=dict(attrs)
+            if tag=='a' and attrs.get('href')=='/engine-data.html?page='+route and attrs.get('data-jh-inspection-route')==route:
+                self.found=True
+    parser=Links();parser.feed(source)
+    if not parser.found:raise ValueError('Standalone inspection link missing: '+route)
 SENSITIVE=re.compile(r'(^|[/_.-])(private|secrets?|credentials?|tokens?|passwords?|userdata|users?|brain|journal|portfolio|orders?|accounts?|subscriptions?|auth)([/_.-]|$)',re.I)
 REPOSITORY_ASSETS={
  'assets/vendor/world-atlas-2.0.2-countries-110m.json':'Vendored geographic geometry for the country map',
@@ -263,10 +275,13 @@ def contract(root):
                      'historical_or_dynamic_family_count':sum(emap[e]['historical_or_dynamic_family_count'] for e in producers if e not in scopes),
                      'association_basis':'exact source references or explicit validated page declarations; shared-script conditional use not inferred as primary ownership',
                      'runtime_coverage':'unverified_until_opened','missing_script_count':len(graph['missing_scripts'])}
+    for route,row in pmap.items():
+        row['inspection_entry']={'mode':'standalone','href':'/engine-data.html?page='+route} if route in STANDALONE_INSPECTION_PAGES else {'mode':'embedded'}
+    standalone=sum(row['inspection_entry']['mode']=='standalone' for row in pmap.values())
     return {'schema_version':'page-data-contract.v1','inspection_schema':'json-value.v1','source_manifest_schema':doc['schema_version'],
             'pages':pmap,'engines':emap,'coverage':{'public_routes':len(pmap),'engines':len(emap),'routes_with_source_bound_outputs':sum(bool(x['outputs']) for x in pmap.values()),
             'primary_valid_contract':sum(x['coverage_class']=='PRIMARY_VALID_CONTRACT' for x in pmap.values()),'primary_partial':sum(x['coverage_class']=='PRIMARY_PARTIAL' for x in pmap.values()),'support_only':sum(x['coverage_class']=='SUPPORT_ONLY' for x in pmap.values()),'no_association':sum(x['coverage_class']=='NO_ASSOCIATION' for x in pmap.values()),'not_applicable':sum(x['coverage_class']=='NOT_APPLICABLE' for x in pmap.values()),'routes_with_api_response_contract':sum(bool(x['api_responses']) for x in pmap.values()),
-            'routes_without_source_bound_outputs':sum(not x['outputs'] for x in pmap.values()),'routes_with_primary_output_access':sum(x['primary_output_status']!='NO_PRIMARY_OUTPUT_ACCESS_CONTRACT' for x in pmap.values()),'routes_with_partial_primary_output_access':sum(x['primary_output_status']=='PARTIAL_PRIMARY_OUTPUT_ACCESS' for x in pmap.values()),'all_routes_receive_inspector':True,
+            'routes_without_source_bound_outputs':sum(not x['outputs'] for x in pmap.values()),'routes_with_primary_output_access':sum(x['primary_output_status']!='NO_PRIMARY_OUTPUT_ACCESS_CONTRACT' for x in pmap.values()),'routes_with_partial_primary_output_access':sum(x['primary_output_status']=='PARTIAL_PRIMARY_OUTPUT_ACCESS' for x in pmap.values()),'all_routes_receive_inspector':standalone==0,'embedded_inspection_routes':len(pmap)-standalone,'standalone_inspection_routes':standalone,
             'claim':'Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit.'}}
 def install_html(source,apis,page_contract=None,asset_version=None):
     # Refresh generated bootstrap even when a build directory is reused.
@@ -294,11 +309,12 @@ def main():
     tmp=path.with_suffix('.json.tmp');tmp.write_text(json.dumps(doc,separators=(',',':')));os.replace(tmp,path)
     if a.site:
         site=Path(a.site);(site/'config').mkdir(exist_ok=True);shutil.copyfile(path,site/'config/page-data-contracts.json');shutil.copyfile(ROOT/'jh-data-inspector.js',site/'jh-data-inspector.js')
-        SKIP_INSPECTOR_PAGES={"chart.html","jh-chart.html"}
         for page in pages(site):
-            route=str(page.relative_to(site))
-            if page.name in SKIP_INSPECTOR_PAGES or route in SKIP_INSPECTOR_PAGES: continue
+            route=page.relative_to(site).as_posix()
             source=page.read_text(errors='replace')
+            if route in STANDALONE_INSPECTION_PAGES:
+                require_standalone_link(source,route)
+                continue
             apis=doc['pages'].get(route,{}).get('api_responses',[])
             page.write_text(install_html(source,apis,doc['pages'].get(route)))
     print(json.dumps(doc['coverage']))

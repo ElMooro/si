@@ -130,7 +130,21 @@ function observeResponses(fetcher,contracts,onRecord,identity){
   return response;
  };
 }
-const api={type,columns,leafPaths,ptr,inspect,collectionView,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse};
+function inspectionSelection(canonical,search){
+ if(canonical!=='engine-data.html')return {kind:'page',key:canonical,standalone:false};
+ const params=new URLSearchParams(search),engine=params.get('engine'),page=params.get('page');
+ if(params.getAll('engine').length>1||params.getAll('page').length>1||(engine!==null&&page!==null))throw new Error('Choose one registered engine or page');
+ if(engine!==null){if(!/^[A-Za-z0-9_-]+$/.test(engine))throw new Error('Invalid engine selection');return {kind:'engine',key:engine,standalone:true};}
+ if(page!==null){if(!/^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*\.html$/.test(page)||page.includes('..'))throw new Error('Invalid page selection');return {kind:'page',key:page,standalone:true};}
+ return {kind:'page',key:canonical,standalone:false};
+}
+function selectedContract(manifest,selection){
+ const entries=manifest[selection.kind==='engine'?'engines':'pages'];
+ if(!entries||!Object.hasOwn(entries,selection.key))throw new Error('Selected engine or page is not registered');
+ const contract=entries[selection.key];if(!contract||!Array.isArray(contract.outputs))throw new Error('Selected output contract is invalid');
+ return contract;
+}
+const api={type,columns,leafPaths,ptr,inspect,collectionView,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,inspectionSelection,selectedContract};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 global.JHDataInspector=api;
 if(typeof document==='undefined')return;
@@ -156,15 +170,20 @@ async function decodeArtifactResponse(response){
 async function install(){
  const route=decodeURI(location.pathname).replace(/^\//,'')||'index.html';const canonical=route.endsWith('/')?route+'index.html':route;
  if(/^(?:chart|jh-chart)\.html$/i.test(canonical)) return;
- const engine=new URLSearchParams(location.search).get('engine'),embedded=document.getElementById('jh-page-data-contract');let contract,version='page-data-contract.v1';
- if(embedded&&!(canonical==='engine-data.html'&&engine))contract=JSON.parse(embedded.textContent);
+ const selection=inspectionSelection(canonical,location.search),engine=selection.kind==='engine'?selection.key:null;
+ const embedded=document.getElementById('jh-page-data-contract');let contract,version='page-data-contract.v1';
+ if(embedded&&!selection.standalone)contract=JSON.parse(embedded.textContent);
  else{
   const response=await fetch('/config/page-data-contracts.json',{cache:'no-cache'});if(!response.ok)throw new Error('Page data contract unavailable');
-  const manifest=await response.json();version=manifest.schema_version;contract=canonical==='engine-data.html'&&engine?manifest.engines[engine]:manifest.pages[canonical];
+  const manifest=await response.json();version=manifest.schema_version;contract=selectedContract(manifest,selection);
  }
  if(!contract)return;
  const panel=node('details');panel.className='jdi-panel';panel.id='jh-engine-data';panel.dataset.contractVersion=version;
- panel.append(node('summary',(engine?engine+' · ':'')+'Engine data inspector · '+contract.outputs.length+' outputs'));
+ panel.append(node('summary',(selection.standalone?selection.key+' · ':'')+'Engine data inspector · '+contract.outputs.length+' outputs'));
+ if(selection.standalone&&selection.kind==='page'){
+  const returnLink=node('a','Return to '+selection.key);returnLink.href='/'+selection.key;panel.append(returnLink);
+  panel.append(node('p','This separate view lists the registered source outputs for '+selection.key+'. It does not observe another tab’s API responses, selected ticker, chart bars or private session. Listing a source does not verify the displayed chart or qualify a forecast.'));
+ }
  if(!engine&&contract.primary_producers)panel.append(node('p',contract.primary_producers.length?'Primary engine references: '+contract.primary_producers.join(', '):'No primary engine output is declared for this page. Shared context does not establish dedicated-engine coverage.'));
  if(!engine&&contract.page_role==='NO_ENGINE_EXPECTED')panel.append(node('p','This route has no dedicated engine: '+contract.role_reason));
  if(!engine&&contract.page_role!=='NO_ENGINE_EXPECTED'&&contract.primary_output_status==='NO_PRIMARY_OUTPUT_ACCESS_CONTRACT')panel.append(node('p','Primary engine output coverage is unresolved.'));
@@ -182,13 +201,17 @@ async function install(){
  const select=node('select');select.setAttribute('aria-label','Engine output');select.append(node('option','Choose an engine output'));
  for(const o of contract.outputs){const option=node('option',o.engine+' · '+o.key+(o.access==='owner_authenticated'?' · owner sign-in':''));option.value=o.engine+'::'+o.key;select.append(option);}
  const body=node('div');panel.append(select,body);
- if(contract.api_responses&&contract.api_responses.length){
+ if(contract.api_responses&&contract.api_responses.length&&!(selection.standalone&&selection.kind==='page')){
   const apiSection=node('details');apiSection.append(node('summary','Complete API responses · current page session'));
   const apiChoice=node('select');apiChoice.setAttribute('aria-label','Observed engine API response');const apiBody=node('div');apiSection.append(apiChoice,apiBody);
   apiSection.append(node('p','Responses from this page’s existing requests. All returned fields are inspectable; request parameters, headers and bodies are not displayed. A new response replaces the previous response for the same request.'));
   function showObserved(){const record=apiChoice.value===''?null:[...observed.values()][+apiChoice.value];if(record)inspect(apiBody,record.payload,record.engine+' · '+record.endpoint+' · received '+record.received_at);else apiBody.replaceChildren();}
   repaintObserved=()=>{const selected=apiChoice.value;const prompt=node('option','Choose an observed API response');prompt.value='';apiChoice.replaceChildren(prompt);[...observed.values()].forEach((record,i)=>{const option=node('option',record.engine+' · response '+(i+1)+' · '+record.received_at);option.value=String(i);apiChoice.append(option);});if(selected&&+selected<observed.size)apiChoice.value=selected;showObserved();};
   apiChoice.onchange=showObserved;repaintObserved();panel.append(apiSection);
+ }
+ if(selection.standalone&&selection.kind==='page'&&contract.api_responses?.length){
+  const declared=node('details');declared.append(node('summary',contract.api_responses.length+' registered API response contracts · not captured here'));
+  declared.append(collectionView(contract.api_responses,''));panel.append(declared);
  }
 
  if(contract.unresolved_count)panel.append(node('p',contract.unresolved_count+' unresolved ownership/output declarations require review; they are not labeled complete.'));

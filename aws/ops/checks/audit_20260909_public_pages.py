@@ -10,13 +10,16 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 class Markers(HTMLParser):
-    def __init__(self):super().__init__();self.build=None;self.inspector=False
+    def __init__(self):super().__init__();self.build=None;self.inspector=False;self.standalone=[]
     def handle_starttag(self,tag,attrs):
         attrs=dict(attrs)
         if tag=='meta' and attrs.get('name')=='jh-build-commit':
             candidate=attrs.get('content','')
             if re.fullmatch('[a-f0-9]{40}',candidate):self.build=candidate
         if tag=='script' and re.fullmatch(r'(?:/)?jh-data-inspector\.js(?:\?[^#]*)?',attrs.get('src','')):self.inspector=True
+        if tag=='a' and attrs.get('data-jh-inspection-route') in ('chart.html','jh-chart.html'):
+            route=attrs['data-jh-inspection-route']
+            if attrs.get('href')=='/engine-data.html?page='+route:self.standalone.append(route)
 
 class OwnedRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,req,fp,code,msg,headers,newurl):
@@ -36,8 +39,10 @@ def inspect(route,opener):
             if len(body)>4_000_000:row['status']='RESPONSE_LIMIT_EXCEEDED';return row
             if 'text/html' not in response.headers.get('Content-Type','').lower():row['status']='NOT_HTML';return row
         markers=Markers();markers.feed(body.decode('utf-8','replace'))
-        row.update(build_sha=markers.build,inspector_present=markers.inspector)
-        row['status']='HTML_VERIFIED' if row['http_status']==200 and markers.build and markers.inspector else 'MISSING_BUILD_OR_INSPECTOR'
+        standalone=route in markers.standalone
+        row.update(build_sha=markers.build,inspector_present=markers.inspector,
+            inspection_mode='embedded' if markers.inspector else 'standalone' if standalone else 'missing')
+        row['status']='HTML_VERIFIED' if row['http_status']==200 and markers.build and (markers.inspector or standalone) else 'MISSING_BUILD_OR_INSPECTOR'
     except urllib.error.HTTPError as exc:row.update(http_status=exc.code,error_type='HTTPError')
     except Exception as exc:row['error_type']=type(exc).__name__
     return row
@@ -66,5 +71,7 @@ def sweep(root,expected):
     failures=[row['route'] for row in rows if row['status']!='HTML_VERIFIED']
     return {'schema_version':'public-page-html-audit.v1','expected_product_release':expected,'observed_at':datetime.now(timezone.utc).isoformat(),
             'ok':not failures,'routes_checked':len(rows),'verified_routes':len(rows)-len(failures),'failed_routes':failures,
-            'source_equivalent_builds':source_match,'scope':'PUBLIC_HTML_HTTP_BUILD_AND_INSPECTOR_ONLY',
+            'source_equivalent_builds':source_match,'scope':'PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY',
+            'embedded_inspection_routes':sum(row.get('inspection_mode')=='embedded' for row in rows),
+            'standalone_inspection_routes':sum(row.get('inspection_mode')=='standalone' for row in rows),
             'runtime_api_payloads_requested':0,'browser_interaction_claim':False,'page_bodies_reported':0,'rows':rows}
