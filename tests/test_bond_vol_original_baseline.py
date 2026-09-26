@@ -2,7 +2,7 @@
 from pathlib import Path
 import ast,hashlib,io,json,sys,unittest,zipfile
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'aws/ops/staged'))
-import ops_6133_bond_vol_original_baseline as baseline
+import ops_6134_bond_vol_original_baseline as baseline
 
 class Store:
     def __init__(self):self.objects={};self.puts=[]
@@ -63,7 +63,7 @@ class Tests(unittest.TestCase):
         self.assertFalse(inventory['code_matches_repository']);self.assertFalse(inventory['release_verification'])
         self.assertEqual(inventory['source_differences']['_fred_shim.py']['status'],'different_bytes')
         self.assertEqual(inventory['source_differences']['missing.py']['status'],'missing_from_package')
-        self.assertEqual(inventory['complete_zip_inventory']['extra.txt']['bytes'],0)
+        self.assertEqual(next(m['bytes'] for m in inventory['complete_zip_members'] if m['name']=='extra.txt'),0)
         self.assertEqual(inventory['additional_packaged_files'],['extra.txt'])
 
     def test_matching_bytes_still_only_certify_baseline_conservation(self):
@@ -72,5 +72,22 @@ class Tests(unittest.TestCase):
         out=baseline.package_inventory(stream.getvalue(),{'lambda_function.py':b'handler'})
         self.assertTrue(out['code_matches_repository']);self.assertFalse(out['release_verification'])
         self.assertEqual(out['source_differences'],{})
+
+    def test_duplicate_zip_names_keep_every_variant_and_order(self):
+        import warnings
+        stream=io.BytesIO()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore',UserWarning)
+            with zipfile.ZipFile(stream,'w') as archive:
+                archive.writestr('_fred_shim.py',b'first')
+                archive.writestr('_fred_shim.py',b'second')
+                archive.writestr('lambda_function.py',b'handler')
+        out=baseline.package_inventory(stream.getvalue(),{'_fred_shim.py':b'second','lambda_function.py':b'handler'})
+        self.assertEqual(out['duplicate_member_names'],['_fred_shim.py'])
+        variants=out['source_differences']['_fred_shim.py']['deployed_members']
+        self.assertEqual([v['index'] for v in variants],[0,1])
+        self.assertEqual([v['sha256'] for v in variants],[hashlib.sha256(v).hexdigest() for v in (b'first',b'second')])
+        self.assertFalse(out['code_matches_repository']);self.assertFalse(out['runtime_member_resolution_verified'])
+        self.assertFalse(out['release_verification'])
 
 if __name__=='__main__':unittest.main(verbosity=2)
