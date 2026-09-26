@@ -113,6 +113,25 @@ class Tests(unittest.TestCase):
         response = io.BytesIO(b'a'); response.status = 200; response.headers = {'Content-Length': '2'}
         with self.assertRaises(ValueError): store.acquire('data/ici-flows.json', transport=lambda *a, **k: response)
         with self.assertRaises(ValueError): store.bounded(io.BytesIO(b'abc'), 2)
+    def test_registered_non_data_source_uses_worker_without_key_rewrite_or_credentials(self):
+        for key,origin in [('screener/mean-reversion.json','https://justhodl-data-proxy.raafouis.workers.dev/'),('data/ici-flows.json','https://justhodl.ai/')]:
+            requests=[]
+            def transport(req,timeout):
+                requests.append(req)
+                response=io.BytesIO(b'{"complete":true}');response.status=200
+                response.headers={'X-JH-Artifact-Key':key,'Content-Length':'17'}
+                return response
+            raw,status,headers=store.acquire(key,transport=transport)
+            self.assertEqual(status,200);self.assertEqual(raw,b'{"complete":true}')
+            self.assertEqual(headers['x-jh-artifact-key'],key)
+            self.assertEqual(len(requests),1);self.assertEqual(requests[0].full_url,origin+key+'?exact=1&nogen=1')
+            self.assertFalse({'authorization','cookie'} & {k.lower() for k in requests[0].headers})
+    def test_successful_wrong_or_unidentified_artifact_is_not_accepted(self):
+        for identity in (None,'data/mean-reversion.json','data/ici-flows.json'):
+            response=io.BytesIO(b'{}');response.status=200
+            response.headers={'Content-Length':'2',**({'X-JH-Artifact-Key':identity} if identity else {})}
+            with self.assertRaisesRegex(ValueError,'artifact identity'):
+                store.acquire('screener/mean-reversion.json',transport=lambda *a,**k:response)
     def test_http_and_validation_never_create_aws_client(self):
         with patch.object(handler.boto3, 'client', side_effect=AssertionError('No AWS on public read')):
             self.assertEqual(handler.lambda_handler({'httpMethod': 'GET'})['statusCode'], 307)

@@ -1,0 +1,74 @@
+{
+  "commit": "eccf8cca5eadaee00e29ee6c06507bc209ad55a1",
+  "served_descendant": "eccf8cca5eadaee00e29ee6c06507bc209ad55a1",
+  "checked_at": "2026-09-26T18:31:17.864894+00:00",
+  "registry_hash": "a56fad61570c24a8f39c8c0932636fb9fc669018970527922ee7c92a0755e9b3",
+  "assets": {
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_commit_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1333902,
+      "sha256": "9723bbb84d0752cea7a08b5b4becf00eb0b608bdf26791fc6ac5d1c514b972fd",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2328513,
+      "sha256": "a56fad61570c24a8f39c8c0932636fb9fc669018970527922ee7c92a0755e9b3",
+      "matches_commit_manifest": true
+    },
+    "engine-data.html": {
+      "bytes": 3041,
+      "sha256": "a0cbf7203ad530bc9c584656219961ed04d9b33517023e8d27bd026f2075e328",
+      "matches_commit_manifest": true
+    },
+    "calls.html": {
+      "bytes": 20166,
+      "sha256": "aa60bb909f4754699bd897b5214cae837acdef5870dfeb687039c0b055668208",
+      "matches_commit_manifest": true
+    },
+    "ciss.html": {
+      "bytes": 14537,
+      "sha256": "afc563e2736979c62eacd26566309de485514d066e6e4eb630eeaed65c5ebb80",
+      "matches_commit_manifest": true
+    }
+  },
+  "pages_run": 36262120334,
+  "deployment_checks_run": 36262120363,
+  "browser": {
+    "url": "https://justhodl.ai/engine-data.html?page=ciss.html",
+    "ciss_outputs": 3,
+    "primary_engines": [
+      "justhodl-ciss-ai",
+      "justhodl-ciss-stress"
+    ],
+    "selected_key": "data/ciss-stress.json",
+    "inspectable_leaf_paths": 285019,
+    "generated_at": "2026-09-26T07:11:44.104768+00:00",
+    "contract": "ciss-research.v1",
+    "ownership_sites": 1,
+    "writer": "aws/shared/ciss_source_store.py:172",
+    "source_links_pinned_to_build": true,
+    "console_errors": [],
+    "viewport_width": 1280,
+    "document_width": 1270,
+    "calls_outputs": 7,
+    "calls_primary_engine": "justhodl-ai-brief",
+    "private_brief_remains_owner_sign_in": true,
+    "private_output_opened": false
+  },
+  "preview_fault_tests": {
+    "complete_older_registry_rejected": true,
+    "mismatch_withholds_selector": true,
+    "matching_bytes_restore_three_outputs": true,
+    "narrow_viewport_width": 380,
+    "narrow_document_width": 365
+  },
+  "limits": [
+    "Static source ownership is not deployed Lambda verification.",
+    "HTTP availability and complete field inspection are not original-provider replay or forecast qualification.",
+    "Partial ownership, unresolved writes and unindexed historical families remain visible."
+  ]
+}

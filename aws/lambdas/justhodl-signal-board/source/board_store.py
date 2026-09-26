@@ -153,15 +153,19 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 def acquire(key, timeout=20, transport=None):
     keys = {r['source_key'] for r in qualified()} - candidate.PRIVATE
     if key not in keys: raise ValueError('Unreviewed public sidecar')
-    url = 'https://justhodl.ai/'+key+'?exact=1&nogen=1'
+    # Only /data/* has a zone route on Pages. Preserve the exact registered
+    # object key for other public namespaces through the existing data Worker.
+    base = 'https://justhodl.ai/' if key.startswith('data/') else 'https://justhodl-data-proxy.raafouis.workers.dev/'
+    url = base+key+'?exact=1&nogen=1'
     req = urllib.request.Request(url, headers={'User-Agent': 'justhodl-verify-release/1.0', 'Cache-Control': 'no-cache'})
     opened = transport or urllib.request.build_opener(NoRedirect()).open
     try: response = opened(req, timeout=timeout)
     except urllib.error.HTTPError as exc: response = exc
     status = response.status
-    headers = {k.lower(): v for k, v in response.headers.items() if k.lower() in ('content-type', 'content-length', 'cache-control', 'date', 'last-modified', 'etag')}
+    headers = {k.lower(): v for k, v in response.headers.items() if k.lower() in ('content-type', 'content-length', 'cache-control', 'date', 'last-modified', 'etag', 'x-jh-artifact-key')}
     raw = bounded(response)
     if 'content-length' in headers and int(headers['content-length']) != len(raw): raise ValueError('Incomplete HTTP response')
+    if status == 200 and headers.get('x-jh-artifact-key') != key: raise ValueError('Exact public artifact identity differs')
     return raw, status, headers
 
 
