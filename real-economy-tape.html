@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Real-economy tape · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+table{width:100%;border-collapse:collapse;min-width:860px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Real-economy tape</h1>
+<p class="sub">OK legs only from the warm real-economy summary. FAILED and DEGRADED legs stay off the table. ETF map is steel/copper → XLB, rail/freight/orders → XLI, oil products / WTI term → XLE. No composite cycle score.</p>
+<div id="kpis"></div>
+<div id="board" class="table-region">Loading summary.</div>
+<div class="foot"><b>Built for:</b> seeing physical activity that already sits in the warehouse, without inventing ISM, Census M3 levels, or a boom score.<br>
+<b>Data:</b> /data/warm/real-economy/_summary.json legs{} + per-leg JSON when status is OK. Wanted legs: aisi_steel, copper, aar_rail, fbx, eia_distillate, eia_gasoline, eia_jet, eia_refinery, wti_term, fred_neworder, fred_isratio, fred_ttlcons.<br>
+<b>Skipped:</b> fred_houst / fred_permit / fred_claims / fred_hours (FAILED); destatis_toll / acc_cab (DEGRADED); mba_purchase_apps / aia_abi (not public).<br>
+<b>Related:</b> <a href="/physical-economy.html">physical economy</a> · <a href="/freight-pulse.html">freight</a> · <a href="/official-orders.html">official orders</a>. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.id).localeCompare(String(b.id));return 1;}if(bv==null||bv==="")return -1;return String(av).localeCompare(String(bv))*dir;}
+async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function statusOf(legs,id){if(!legs)return "";var x=legs[id];if(x==null)return "";if(typeof x==="string")return x;return String(x.status||x.state||"");}
+function etfOf(id){
+  if(id==="aisi_steel"||id==="copper")return "XLB";
+  if(id==="aar_rail"||id==="fbx"||id==="fred_neworder"||id==="fred_isratio")return "XLI";
+  if(id.indexOf("eia")===0||id==="wti_term")return "XLE";
+  return "";
+}
+function pickVal(pkt){
+  if(!pkt)return {v:null,unit:"",asof:"",note:""};
+  var m=pkt.metrics||{};
+  var keys=Object.keys(m);
+  var v=null,unit="",label="";
+  for(var i=0;i<keys.length;i++){var n=num(m[keys[i]]);if(n!=null){v=n;label=keys[i];break;}}
+  if(v==null&&m.latest_spread!=null){v=num(m.latest_spread);label="latest_spread";}
+  if(v==null&&Array.isArray(pkt.series)&&pkt.series.length){var last=pkt.series[pkt.series.length-1]||{};v=num(last.value!=null?last.value:last.v);unit=last.date||last.as_of||"";}
+  if(v==null)v=num(pkt.latest||pkt.value||pkt.last);
+  return {v:v,unit:label||pkt.unit||"",asof:pkt.fetched_at||unit||"",note:pkt.detail||pkt.source||"",state:m.state||""};
+}
+var WANT=["aisi_steel","copper","aar_rail","fbx","eia_distillate","eia_gasoline","eia_jet","eia_refinery","wti_term","fred_neworder","fred_isratio","fred_ttlcons"];
+var LABELS={aisi_steel:"AISI raw steel",copper:"Copper",aar_rail:"Rail carloads",fbx:"FBX freight",eia_distillate:"EIA distillate",eia_gasoline:"EIA gasoline",eia_jet:"EIA jet",eia_refinery:"EIA refinery",wti_term:"WTI term (C1-C4)",fred_neworder:"NEWORDER",fred_isratio:"I/S ratio",fred_ttlcons:"Total construction"};
+(async function(){
+  var sum=await load("/data/warm/real-economy/_summary.json");
+  var legs=(sum&&sum.legs)||sum||{};
+  var counts=sum&&sum.counts||{};
+  document.getElementById("kpis").innerHTML="<span class='chip'>OK "+(counts.OK!=null?counts.OK:"?")+"</span><span class='chip'>FAILED "+(counts.FAILED!=null?counts.FAILED:"?")+"</span><span class='chip'>DEGRADED "+(counts.DEGRADED!=null?counts.DEGRADED:"?")+"</span><span class='chip'>as of "+esc(sum&&sum.as_of||"")+"</span>";
+  var rows=[];
+  for(var i=0;i<WANT.length;i++){
+    var id=WANT[i];var st=statusOf(legs,id);
+    var row={id:id,label:LABELS[id]||id,status:st||"missing",etf:etfOf(id),v:null,unit:"",asof:"",note:"",state:""};
+    if(st==="OK"){
+      var pkt=await load("/data/warm/real-economy/"+id+".json");
+      var p=pickVal(pkt);
+      row.v=p.v;row.unit=p.unit;row.asof=p.asof;row.note=p.note;row.state=p.state||"";
+      if(pkt&&pkt.status)row.status=pkt.status;
+    }
+    rows.push(row);
+  }
+  var sort="etf",dir=1;
+  function paint(){
+    var list=rows.slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr>";[["id","Leg"],["label","Label"],["status","Status"],["etf","ETF map"],["v","Latest"],["unit","Metric"],["state","State"],["asof","As of"]].forEach(function(c){h+="<th class='"+(sort===c[0]?"on":"")+"' data-k='"+c[0]+"'>"+c[1]+(sort===c[0]?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    list.forEach(function(r){
+      var show=r.status==="OK";
+      h+="<tr><td>"+esc(r.id)+"</td><td>"+esc(r.label)+"</td><td>"+esc(r.status)+"</td><td>"+esc(r.etf)+"</td><td class='r'>"+esc(show&&r.v!=null?r.v:"")+"</td><td>"+esc(show?r.unit:"")+"</td><td>"+esc(show?r.state:"")+"</td><td>"+esc(show?r.asof:"")+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+closeTbl();
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=1;}paint();};});
+  }
+  paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
