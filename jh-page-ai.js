@@ -1,6 +1,6 @@
 /* jh-page-ai.js — universal per-page AI panel (explain + analyze + grounded outlook). */
 (function () {
-  if (!/chart-pro\.html/i.test(location.pathname || "")) return;
+  if (typeof location==="undefined" || !/chart-pro\.html/i.test(location.pathname || "")) return;
   ["jh-chart-pro-dock", "jh-tv-lists-bridge", "jh-chart-tf-fix", "jh-chart-audit-fix"].forEach(function (name) {
     if (document.querySelector('script[src*="' + name + '"]')) return;
     var s = document.createElement("script");
@@ -21,118 +21,90 @@
   document.addEventListener("DOMContentLoaded", hide);
   setTimeout(hide, 1200);
 })();
-(function () {
-  "use strict";
-  if (window.__jhPageAI) return; window.__jhPageAI = true;
-  var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
-  function pageName() {
-    var p = (location.pathname || "").split("/").pop() || "index.html";
-    p = p.replace(/\.html?$/i, "");
-    return p || "index";
+(function(root){
+ 'use strict';
+ const LIMIT=64*1024*1024;
+ function pageName(path){if(path==='/'||path==='')return 'index';const match=/^\/([a-z0-9_-]+)\.html?$/i.exec(path);return match?match[1].toLowerCase():null;}
+ function clock(value){
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value))return null;
+  const day=Date.parse(value.slice(0,10)+'T00:00:00Z'),at=Date.parse(value);return Number.isFinite(day)&&new Date(day).toISOString().slice(0,10)===value.slice(0,10)&&Number.isFinite(at)?at:null;
+ }
+ function strictJSON(source){
+  let i=0;const number=/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+  function ws(){while(/[\x20\t\r\n]/.test(source[i]||'x'))i++;}
+  function string(){const start=i++;for(;i<source.length;i++){if(source[i]==='\\'){i++;continue;}if(source[i]==='"')return JSON.parse(source.slice(start,++i));}throw Error('Incomplete JSON string');}
+  function value(depth){
+   if(depth>128)throw Error('JSON nesting exceeds bound');ws();const c=source[i];
+   if(c==='"')return string();
+   if(c==='{'||c==='['){const object=c==='{',out=object?{}:[],seen=new Set(),end=object?'}':']';i++;ws();if(source[i]===end){i++;return out;}
+    for(;;){ws();let key;if(object){if(source[i]!=='"')throw Error('JSON key required');key=string();if(seen.has(key))throw Error('Duplicate JSON key');seen.add(key);ws();if(source[i++]!==':')throw Error('JSON colon required');}
+     const item=value(depth+1);if(object)Object.defineProperty(out,key,{value:item,enumerable:true,writable:true,configurable:true});else out.push(item);
+     ws();if(source[i]===end){i++;return out;}if(source[i++]!==',')throw Error('Incomplete JSON structure');}
+   }
+   for(const [token,v]of [['true',true],['false',false],['null',null]])if(source.startsWith(token,i)){i+=token.length;return v;}
+   number.lastIndex=i;const m=number.exec(source);if(!m)throw Error('Invalid JSON value');i=number.lastIndex;const n=Number(m[0]);if(!Number.isFinite(n))throw Error('Nonfinite JSON number');return n;
   }
-  function esc(s){return String(s==null?"":s).replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">");}
-  function gj(path) {
-    return fetch("https://justhodl.ai/" + path + "?t=" + Date.now()).then(function (r) {
-      if (r.ok) return r.json(); throw 0;
-    }).catch(function () {
-      return fetch(PROXY + "/" + path + "?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).catch(function(){return null;});
-    });
+  const result=value(0);ws();if(i!==source.length)throw Error('Trailing JSON content');return result;
+ }
+ function view(p,expected,now=Date.now()){
+  if(!expected||!p||typeof p!=='object'||Array.isArray(p)||p.page!==expected)throw Error('Published page identity differs');
+  const at=clock(p.generated_at);if(at===null||at>now)throw Error('Valid nonfuture publication required');
+  return{page:expected,at:p.generated_at,ageHours:(now-at)/3600000,authority:false,
+   fields:[['what_it_is','Purpose'],['what_it_does','Method described by the publisher'],['analysis','Published commentary'],['pick_read','Published instrument commentary']].filter(([k])=>typeof p[k]==='string'&&p[k].trim()).map(([k,label])=>({key:k,label,text:p[k]}))};
+ }
+ async function load(page,options={}){
+  if(typeof page!=='string'||!/^[a-z0-9_-]+$/.test(page))throw Error('Exact page identity required');
+  const controller=new AbortController();let timer,reader;
+  const abort=()=>controller.abort();if(options.signal?.aborted)throw Error('Request cancelled');options.signal?.addEventListener('abort',abort,{once:true});
+  const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('Published explanation request timed out'));},options.timeout||15000);});
+  try{return await Promise.race([deadline,(async()=>{const response=await(options.fetcher||root.fetch.bind(root))('/data/page-ai/'+page+'.json?exact=1&nogen=1',{cache:'no-store',redirect:'error',signal:controller.signal});
+   if(!response.ok||!response.body?.getReader)throw Error('Published explanation unavailable'+(Number.isInteger(response.status)?' (HTTP '+response.status+')':''));
+   reader=response.body.getReader();const parts=[];let size=0;for(;;){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>LIMIT)throw Error('Complete explanation exceeds bound');parts.push(value);}
+   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.byteLength;}const raw=new TextDecoder('utf-8',{fatal:true}).decode(bytes),packet=strictJSON(raw);view(packet,page,options.now??Date.now());return{packet,raw};})()]);
+  }finally{clearTimeout(timer);controller.abort();options.signal?.removeEventListener('abort',abort);if(reader)reader.cancel().catch(()=>{});}
+ }
+ function element(doc,tag,text,parent){const el=doc.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.appendChild(el);return el;}
+ function css(doc){
+  if(doc.getElementById('jhpai-css'))return;const s=element(doc,'style');s.id='jhpai-css';s.textContent=
+   '#jhpai-fab{position:fixed;right:16px;bottom:16px;z-index:99998;background:#26324a;color:#e6edf3;border:1px solid #667898;border-radius:18px;padding:9px 14px;font:600 13px system-ui;cursor:pointer}'+
+   '#jhpai-panel{position:fixed;right:16px;bottom:62px;z-index:99999;width:min(460px,calc(100vw - 32px));max-height:76vh;overflow:auto;background:#0f1726;color:#e6edf3;border:1px solid #53627a;border-radius:12px;box-shadow:0 12px 44px #0007;padding:18px;font:14px/1.55 system-ui}'+
+   '#jhpai-panel[hidden]{display:none}#jhpai-panel h2{font-size:19px;margin:8px 0}#jhpai-panel h3{font-size:13px;color:#b9c9e4;margin:18px 0 5px}#jhpai-panel p{margin:9px 0;overflow-wrap:anywhere}#jhpai-panel .jhpai-muted{color:#b5c0d2;font-size:12px}'+
+   '#jhpai-panel .jhpai-actions{display:flex;gap:10px;flex-wrap:wrap}#jhpai-panel button{background:#21314d;color:#e6edf3;border:1px solid #75869f;border-radius:6px;font:inherit;padding:6px 10px;cursor:pointer}#jhpai-panel button:disabled{opacity:.6}'+
+   '#jhpai-panel a,#jhpai-panel summary{color:#b4c9fa}#jhpai-panel summary{cursor:pointer;margin:18px 0 8px}#jhpai-panel pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;background:#0a1020;padding:12px;font:12px/1.5 ui-monospace,monospace}'+
+   '#jhpai-panel button:focus-visible,#jhpai-fab:focus-visible,#jhpai-panel summary:focus-visible,#jhpai-panel a:focus-visible{outline:2px solid #c5d8ff;outline-offset:3px}';doc.head.appendChild(s);
+ }
+ function init(doc,options={}){
+  if(doc.getElementById('jhpai-fab'))return null;css(doc);const path=options.path||(()=>root.location.pathname),now=options.now||(()=>Date.now()),loader=options.loader||load;
+  const button=element(doc,'button','Page explanation',doc.body);button.id='jhpai-fab';button.type='button';button.setAttribute('aria-controls','jhpai-panel');button.setAttribute('aria-expanded','false');
+  const panel=element(doc,'section',undefined,doc.body);panel.id='jhpai-panel';panel.hidden=true;panel.setAttribute('aria-label','Published page explanation');
+  const actions=element(doc,'div',undefined,panel);actions.className='jhpai-actions';const refresh=element(doc,'button','Refresh published explanation',actions),close=element(doc,'button','Close',actions);refresh.type=close.type='button';
+  element(doc,'h2','Published explanation',panel);const status=element(doc,'p','Open to read the stored publication.',panel);status.className='jhpai-muted';status.setAttribute('role','status');
+  element(doc,'p','Generated text is unqualified research. This panel does not verify the original inputs, model skill or portfolio consequences. A published timestamp is not the age of the underlying evidence.',panel).className='jhpai-muted';
+  const content=element(doc,'div',undefined,panel),source=element(doc,'a','Complete published JSON',panel);source.hidden=true;
+  const details=element(doc,'details',undefined,panel);element(doc,'summary','Inspect all original fields and legacy outcome claims',details);element(doc,'p','Historical return, confidence and alpha-status fields remain in the original packet; they confer no Calls, sizing or execution permission here.',details).className='jhpai-muted';const original=element(doc,'pre','Unavailable',details);
+  const timers=options.timers||root;let generation=0,controller=null,loaded=null,ageTimer=null,activePage=null;
+  function clear(){loaded=null;content.replaceChildren();original.textContent='Unavailable';source.hidden=true;details.ontoggle=null;}
+  function updateAge(){
+   if(activePage!==null&&pageName(path())!==activePage){hide();return;}
+   if(loaded)try{const v=view(loaded.packet,loaded.page,now());status.textContent=v.at+' · '+v.ageHours.toFixed(1)+' hours since publication · underlying observation age unverified.';}catch(e){clear();status.textContent='Publication clock is no longer valid. No previous explanation remains displayed.';}
   }
-  function css() {
-    if (document.getElementById("jhpai-css")) return;
-    var s = document.createElement("style"); s.id = "jhpai-css";
-    s.textContent =
-      "#jhpai-fab{position:fixed;right:16px;bottom:16px;z-index:99998;background:#6d5efc;color:#fff;border:none;"+
-      "border-radius:22px;padding:9px 15px;font:600 13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;"+
-      "cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.4);display:flex;align-items:center;gap:7px}"+
-      "#jhpai-fab .d{width:7px;height:7px;border-radius:50%;background:#7CFFB2;box-shadow:0 0 7px #7CFFB2}"+
-      "#jhpai-panel{position:fixed;right:16px;bottom:64px;z-index:99999;width:min(420px,92vw);max-height:74vh;overflow:auto;"+
-      "background:#0f141b;color:#e6edf3;border:1px solid #222b36;border-radius:13px;"+
-      "box-shadow:0 12px 44px rgba(0,0,0,.6);padding:15px 16px;display:none;font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}"+
-      "#jhpai-panel.open{display:block}"+
-      "#jhpai-panel h4{margin:0 0 2px;font-size:15px;color:#fff}"+
-      "#jhpai-panel .sec{margin-top:11px}"+
-      "#jhpai-panel .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#8a95a3;margin-bottom:3px}"+
-      "#jhpai-panel .txt{color:#c9d3de}"+
-      "#jhpai-panel .out{border:1px solid #222b36;border-radius:9px;padding:9px 10px;margin-top:5px;background:#0b1017}"+
-      "#jhpai-panel .badge{display:inline-block;font-size:10px;font-weight:700;border-radius:5px;padding:1px 7px;margin-bottom:5px}"+
-      "#jhpai-panel .num{font-size:18px;font-weight:700}"+
-      "#jhpai-panel .muted{color:#6b7480;font-size:11px}"+
-      "#jhpai-panel .x{position:absolute;top:9px;right:11px;cursor:pointer;color:#6b7480;font-size:19px;background:none;border:none}"+
-      "#jhpai-panel .row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}"+
-      "#jhpai-panel .gen{display:block;width:100%;margin:4px 0 8px;padding:8px 10px;border-radius:9px;border:1px solid #3b2f63;"+
-      "background:linear-gradient(135deg,#2a1f4d,#1b1533);color:#cfc3ff;font-weight:700;font-size:12.5px;cursor:pointer}"+
-      "#jhpai-panel .gen:hover{border-color:#6d5ae0}#jhpai-panel .gen:disabled{opacity:.6;cursor:wait}";
-    document.head.appendChild(s);
+  async function read(){
+   if(panel.hidden)return;
+   const ticket=++generation;if(controller)controller.abort();controller=new AbortController();clear();refresh.disabled=true;status.textContent='Reading the complete stored publication…';
+   const page=pageName(path());activePage=page;if(!page){status.textContent='No unambiguous published-brief identity is declared for this route. No other page’s explanation is substituted.';refresh.disabled=false;return;}
+   try{const result=await loader(page,{signal:controller.signal,now:now()});if(ticket!==generation||panel.hidden||pageName(path())!==page)return;
+    const v=view(result.packet,page,now());if(typeof result.raw!=='string'||JSON.stringify(strictJSON(result.raw))!==JSON.stringify(result.packet))throw Error('Complete original packet differs');
+    loaded={...result,page};updateAge();for(const field of v.fields){element(doc,'h3',field.label,content);element(doc,'p',field.text,content);}if(!v.fields.length)element(doc,'p','No narrative fields are present. Inspect the complete packet below.',content);
+    source.href='/data/page-ai/'+page+'.json?exact=1&nogen=1';source.hidden=false;let shown=false;function showOriginal(){if(ticket!==generation||!details.open||shown||panel.hidden)return;shown=true;original.textContent=result.raw;}details.ontoggle=showOriginal;showOriginal();
+   }catch(e){if(ticket!==generation||panel.hidden)return;clear();status.textContent='Unavailable: '+e.message+'. No old explanation is substituted; source generation was not requested.';}
+   finally{if(ticket===generation)refresh.disabled=false;}
   }
-  var LIVECFG = null;
-  function liveUrl() {
-    if (LIVECFG !== null) return Promise.resolve(LIVECFG);
-    return gj("data/page-ai-live.json").then(function (c) { LIVECFG = (c && c.url) || ""; return LIVECFG; });
-  }
-  function genFresh() {
-    var b = document.getElementById("jhpai-gen");
-    if (b) { b.disabled = true; b.textContent = "Generating\u2026"; }
-    liveUrl().then(function (u) {
-      if (!u) throw 0;
-      return fetch(u + "?mode=live&page=" + encodeURIComponent(pageName()) + "&t=" + Date.now())
-        .then(function (r) { if (!r.ok) throw 0; return r.json(); });
-    }).then(function (d) {
-      data = d; render(d);
-    }).catch(function () {
-      var b2 = document.getElementById("jhpai-gen");
-      if (b2) { b2.disabled = false; b2.textContent = "\u2728 Generate AI analysis"; }
-      var p = document.getElementById("jhpai-panel");
-      if (p) { var n = document.createElement("div"); n.className = "muted"; n.style.marginTop = "8px";
-        n.textContent = "Live generation is unavailable right now — showing the cached brief."; p.appendChild(n); }
-    });
-  }
-  function outlookHtml(o) {
-    if (!o) return "";
-    var st = o.alpha_status || "UNGRADED";
-    var color = st === "ALPHA_PROVEN" ? "#7CFFB2" : st === "ALPHA_NEGATIVE" ? "#ff8a8a" : "#fbbf24";
-    var bg = st === "ALPHA_PROVEN" ? "rgba(52,211,153,.13)" : st === "ALPHA_NEGATIVE" ? "rgba(248,113,113,.13)" : "rgba(251,191,36,.12)";
-    var h = '<div class="out"><span class="badge" style="color:' + color + ';background:' + bg + '">' + esc(st.replace("ALPHA_", "")) + '</span>';
-    h += '<div class="muted">' + esc(o.confidence || "") + '</div>';
-    if (o.mean_excess_vs_spy_pct != null) {
-      var v = o.mean_excess_vs_spy_pct;
-      h += '<div class="row">';
-      h += '<div><div class="lbl">Hist. mean vs SPY</div><div class="num" style="color:' + (v >= 0 ? "#7CFFB2" : "#ff8a8a") + '">' + (v >= 0 ? "+" : "") + v + '%</div></div>';
-      if (o.hit_rate_pct != null) h += '<div><div class="lbl">Hit rate</div><div class="num">' + o.hit_rate_pct + '%</div></div>';
-      if (o.n_graded) h += '<div><div class="lbl">Graded picks</div><div class="num">' + o.n_graded + '</div></div>';
-      h += '</div>';
-    } else if (o.note) {
-      h += '<div class="muted" style="margin-top:4px">' + esc(o.note) + '</div>';
-    }
-    return h + '</div>';
-  }
-  function render(d) {
-    var p = document.getElementById("jhpai-panel");
-    if (!d) { p.innerHTML = '<button class="x" data-x>&times;</button><div class="muted">No AI brief for this page yet.</div><button id="jhpai-gen" class="gen">\u2728 Generate AI analysis</button>'; return; }
-    var h = '<button class="x" data-x>&times;</button>';
-    h += '<button id="jhpai-gen" class="gen">\u2728 Generate AI analysis</button>';
-    h += '<div class="muted" style="margin-bottom:4px">' + esc(String(d.generated_at || "").slice(0, 16).replace("T", " ")) + " UTC</div>";
-    h += '<h4>' + esc(d.title || d.page) + '</h4>';
-    if (d.what_it_is) h += '<div class="sec"><div class="lbl">What this is</div><div class="txt">' + esc(d.what_it_is) + '</div></div>';
-    if (d.what_it_does) h += '<div class="sec"><div class="lbl">How it works</div><div class="txt">' + esc(d.what_it_does) + '</div></div>';
-    if (d.analysis) h += '<div class="sec"><div class="lbl">AI read of the live data</div><div class="txt">' + esc(d.analysis) + '</div></div>';
-    if (d.outlook) h += '<div class="sec"><div class="lbl">Grounded outlook</div>' + outlookHtml(d.outlook) + '</div>';
-    p.innerHTML = h;
-  }
-  function init() {
-    css();
-    var fab = document.createElement("button"); fab.id = "jhpai-fab";
-    fab.innerHTML = '<span class="d"></span><span>AI: explain & outlook</span>';
-    var panel = document.createElement("div"); panel.id = "jhpai-panel";
-    document.body.appendChild(fab); document.body.appendChild(panel);
-    var loaded = false;
-    function open() {
-      panel.classList.add("open");
-      if (!loaded) { panel.innerHTML = '<div class="muted">loading AI brief…</div>'; loaded = true;
-        gj("data/page-ai/" + pageName() + ".json").then(function (d) { render(d); }); }
-    }
-    fab.addEventListener("click", function () { panel.classList.contains("open") ? panel.classList.remove("open") : open(); });
-    panel.addEventListener("click", function (e) { if (e.target.matches("[data-x]")) panel.classList.remove("open"); if (e.target.id === "jhpai-gen") genFresh(); });
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-})();
+  function hide(){generation++;controller?.abort();if(ageTimer!==null){timers.clearInterval(ageTimer);ageTimer=null;}panel.hidden=true;button.setAttribute('aria-expanded','false');activePage=null;clear();button.focus();}
+  button.onclick=()=>{if(!panel.hidden){hide();return;}panel.hidden=false;button.setAttribute('aria-expanded','true');ageTimer=timers.setInterval(updateAge,60000);read();close.focus();};close.onclick=hide;refresh.onclick=read;panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();hide();}};
+  root.addEventListener?.('pagehide',hide);root.addEventListener?.('popstate',updateAge);
+  return{button,panel,status,content,details,original,refresh,close,read,hide,updateAge};
+ }
+ const api={pageName,clock,strictJSON,view,load,init};
+ if(typeof module!=='undefined'&&module.exports)module.exports=api;
+ else{root.JHPageExplanation=api;if(!root.__jhPageAI){root.__jhPageAI=true;if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',()=>init(root.document),{once:true});else init(root.document);}}
+})(typeof globalThis!=='undefined'?globalThis:this);
