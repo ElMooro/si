@@ -74,3 +74,11 @@ test('complete predecessors remain byte-identical and pages expose labelled scro
  const hashes={'8k-items.html':'b226dc0dfb1a38602d23b6329777aca8f8150f47bb0557e3ca19d9ab1e7baa4b','10kq-filings.html':'a41f4568de568bcde957d1e55ff1da0ad0f3688b3d0151e0377f97ab94c83d2b','filing-redflags.html':'fab848119542179c5ba91dd27d7a665dbcf74c114c36372dcb26f958b5e2ae39'};
  for(const[name,hash]of Object.entries(hashes)){assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'fixtures','pre-filing-desk-'+name+'.txt'))).digest('hex'),hash);const html=fs.readFileSync(path.join(root,name),'utf8');assert.match(html,/<label for="q">/);assert.match(html,/role="region"[^>]*tabindex="0"/);assert.match(html,/id="original"/);assert.match(html,/source:"\/data\//);}
 });
+test('filing desk text remains UTF-8 through Windows editing and asset builds',()=>{
+ for(const file of ['8k-items.html','10kq-filings.html','filing-redflags.html']){
+  const html=fs.readFileSync(path.join(root,file),'utf8');
+  assert.match(html,/<title>[^<]+ · JustHodl<\/title>/);
+  assert.match(html,/content:" ↑"/);assert.match(html,/content:" ↓"/);
+  assert.ok(!/[\u00c2\u00c3\ufffd]/.test(html));
+ }
+});
