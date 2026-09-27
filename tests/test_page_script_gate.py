@@ -45,6 +45,17 @@ class PageScriptGate(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn('INCOMPLETE', result.stderr)
 
+    def test_upload_markers_cannot_pass_as_valid_javascript(self):
+        for marker in ('PLACEHOLDER', 'PLACEHOLDER_WILL_NOT_USE', 'SEE_FILE'):
+            result = self.run_gate({'index.html': '<script src="/entry.js"></script>', 'entry.js': '// upload\n'+marker+';\n'})
+            self.assertEqual(result.returncode, 1, marker)
+            self.assertIn('JavaScript placeholder source', result.stderr)
+        marker = (ROOT/'tests/fixtures/rejected-sidebar-placeholder.js.txt').read_text(encoding='utf-8')
+        result = self.run_gate({'index.html': '<script src="/sidebar.js"></script>', 'sidebar.js': marker})
+        self.assertEqual(result.returncode, 1)
+        safe = self.run_gate({'index.html': '<script>/* PLACEHOLDER */ const text="SEE_FILE";</script>'})
+        self.assertEqual(safe.returncode, 0, safe.stderr)
+
     def test_build_checks_sources_and_final_artifact_before_upload(self):
         workflow = (ROOT / '.github/workflows/pages.yml').read_text(encoding='utf-8')
         self.assertLess(workflow.index('python3 scripts/check_page_scripts.py\n'), workflow.index('Assemble lean site artifact'))

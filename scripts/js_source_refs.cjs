@@ -21,6 +21,13 @@ function nodes(root){
 }
 function extract(code){
  let tree;try{tree=acorn.parse(code,{ecmaVersion:'latest',sourceType:'module',allowReturnOutsideFunction:true,allowAwaitOutsideFunction:true});}catch(error){return {keys:[],imports:[],error:'JavaScript parse failure at '+error.loc.line+':'+error.loc.column};}
+ // A known upload marker is valid grammar but is not a delivered script. Reject
+ // the executable identifier; comments and ordinary string values stay legal.
+ for(const statement of tree.body){
+  const value=statement.type==='ExpressionStatement'&&statement.expression;
+  if(value?.type==='Identifier'&&/^(?:PLACEHOLDER(?:_[A-Z0-9]+)*|SEE_FILE)$/.test(value.name))
+   return {keys:[],imports:[],error:'JavaScript placeholder source: '+value.name};
+ }
  const all=nodes(tree),parents=new Map();for(const parent of all)for(const value of Object.values(parent)){if(Array.isArray(value)){for(const child of value)if(child&&child.type)parents.set(child,parent);}else if(value&&value.type)parents.set(value,parent);}
  const env=new Map(),conflicts=new Set(),keys=new Set(),imports=new Set();
  function resolve(n,scope=env){
