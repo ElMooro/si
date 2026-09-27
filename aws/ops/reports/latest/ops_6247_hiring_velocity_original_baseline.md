@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 5.2s  
+**Finished:** 2026-09-27T21:39:50+00:00  
+
+## Data
+
+| account_reads | actual_producers | all_denied | anonymous_origins_checked | attempt_outcome_counts | baseline | failures | history_writes | learning_log_reads | native_invocations | notifications_sent | originals | protected_paths_checked | provider_requests | public_writes | schedule_changes | scope | source_checks |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | {'justhodl-hiring-velocity': {'status': 'whole_actual_package_retained', 'runtime': {'FunctionName': 'justhodl-hiring-velocity', 'CodeSha256': '6CsBXHI2vqDMDUVwnQWXR6vwd43KxM6gK53UuvXQu0c=', 'Runtime': 'python3.12', 'Handler': 'lambda_function.lambda_handler', 'Timeout': 600, 'MemorySize': 1024, 'Architectures': ['x86_64'], 'Role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'EphemeralStorage': {'Size': 512}, 'LastModified': '2026-09-09T03:27:57.000+0000'}, 'whole_zip': {'key': 'audit-private/20260909-originals/shipping-consumer-research/e82b015c7236bea0cc0d45709d059747abf0778dcac4cea02b9dd4baf5d0bb47.bin', 'sha256': 'e82b015c7236bea0cc0d45709d059747abf0778dcac4cea02b9dd4baf5d0bb47', 'bytes': 4871}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'hiring-velocity-weekly', 'state': 'ENABLED', 'expression': 'cron(30 12 ? * SUN *)', 'native_targets': 1}], 'active_alias': None, 'repository_config_present': True, 'code_matches_repository': True, 'source_files_checked': 1, 'source_differences': {}}} | True | 6 | {'404': 3, '403': 3} | {'key': 'audit-private/20260909-originals/hiring-velocity-research/8fbcc119d8ddcd512aa5b430d4b4d11baa6a5f2d35ca99ca03fffac57c1b1e0f.bin', 'bytes': 2629, 'sha256': '8fbcc119d8ddcd512aa5b430d4b4d11baa6a5f2d35ca99ca03fffac57c1b1e0f'} | [] | 0 | 0 | 0 | 0 | {'data/hiring-velocity.json': {'status': 'whole_object_retained', 'original': {'key': 'audit-private/20260909-originals/hiring-velocity-research/4bf16f789691214b9df1c4fbd40cbc63203400165bae76a1efac1d76c551aa67.bin', 'bytes': 88350, 'sha256': '4bf16f789691214b9df1c4fbd40cbc63203400165bae76a1efac1d76c551aa67'}, 'etag': '"2704dd8e40e3779095280383c356c102"', 'last_modified': '2026-09-27T12:32:15+00:00', 'original_provider_verified': False}} | 3 | 0 | 0 | 0 | Whole deployed packages and one exact existing public Hiring Velocity research packet only. Provider response originals, acquisition completeness, original vintages, donor quality, common input ancestry, category joins, source timing, score calibration and signal performance remain unverified. | {'justhodl-hiring-velocity': {'bytes': 13640, 'sha256': 'a7a55accbfc083a895ec985fa3a3e1328ed4fe3f9beea6f8ba37ffe01c270d33', 'imported_or_executed': False}} |
+
+## Log
+
