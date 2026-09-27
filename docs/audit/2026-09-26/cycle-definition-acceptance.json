@@ -1,0 +1,193 @@
+{
+  "commit": "22c93ec04fe4f0b1d69e6ccd8f737f3f342cdef2",
+  "lambda_run": 36280379340,
+  "pages_run": 36280379341,
+  "operation_run": 36280488709,
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "9QpFOT3MEvs7pmoI+s1+AD+K3LiebqVfv7PS4v054pA=",
+      "source_files_checked": 2,
+      "handler_bytes": 45450,
+      "timeout": 600,
+      "memory_mb": 3008,
+      "receipt": {
+        "status": "matched",
+        "commit": "22c93ec04fe4f0b1d69e6ccd8f737f3f342cdef2"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-cycle-features-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 10 * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-cycle-features",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "archive_writes": 0,
+    "baseline_sha256": "14a62c2163f78b9fd32fa2b8bbb9acc3ff92da141f88009b6b9a1621df0a5ef9",
+    "country_latest_period": {
+      "USA": "2026-08",
+      "CHN": "2026-07",
+      "JPN": "2026-07",
+      "DEU": "2026-08",
+      "IND": "2026-07",
+      "GBR": "2026-02",
+      "FRA": "2026-08",
+      "ITA": "2026-08",
+      "CAN": "2026-08",
+      "BRA": "2026-08",
+      "KOR": "2026-08",
+      "AUS": "2026-08",
+      "ESP": "2026-08",
+      "MEX": "2026-08",
+      "IDN": "2024-12",
+      "NLD": "2026-08",
+      "CHE": "2026-08",
+      "POL": "2026-07",
+      "BEL": "2026-08",
+      "SWE": "2026-08",
+      "IRL": "2026-08",
+      "AUT": "2026-08",
+      "NOR": "2026-08",
+      "ZAF": "2026-08",
+      "DNK": "2026-08",
+      "FIN": "2026-08",
+      "CZE": "2026-08",
+      "HUN": "2026-08",
+      "CHL": "2026-07",
+      "PRT": "2026-07",
+      "GRC": "2026-08",
+      "NZL": "2026-08",
+      "ISR": "2026-08"
+    },
+    "curve_countries": 33,
+    "curve_hash_after": "8e259a014ac0054100f98972e13fe36031c3a0794fe7c345f71240bce8d064c3",
+    "curve_hash_before": "8e259a014ac0054100f98972e13fe36031c3a0794fe7c345f71240bce8d064c3",
+    "curve_observations": 11099,
+    "expected_commit": "22c93ec04fe4f0b1d69e6ccd8f737f3f342cdef2",
+    "history_writes": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "status": "pending_original_1030_schedule",
+      "generated_at": "2026-09-26T10:30:07+00:00",
+      "version": "1.1.1"
+    },
+    "notifications_sent": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "retained_inputs": [
+      {
+        "source_key": "data/warm/oecd/cycle/DF_KEI.csv.gz",
+        "reference": {
+          "bytes": 4724681,
+          "key": "audit-private/20260909-originals/cycle-feature-research/74a6998bdd0264cbafc9d6fa4548b950d9b45358210173cf47eb64ae6576abb9.bin",
+          "sha256": "74a6998bdd0264cbafc9d6fa4548b950d9b45358210173cf47eb64ae6576abb9"
+        },
+        "captured_at": "2026-09-26T23:28:24.872024+00:00",
+        "last_modified": "2026-09-26T10:30:14+00:00"
+      },
+      {
+        "source_key": "data/warm/oecd/cycle/DF_FINMARK.csv.gz",
+        "reference": {
+          "bytes": 198475,
+          "key": "audit-private/20260909-originals/cycle-feature-research/f7adcd62e3ec892b3f84b8137450d01ba9dcc2580cc90519dd4ce09f69d497d4.bin",
+          "sha256": "f7adcd62e3ec892b3f84b8137450d01ba9dcc2580cc90519dd4ce09f69d497d4"
+        },
+        "captured_at": "2026-09-26T23:28:26.561760+00:00",
+        "last_modified": "2026-09-26T10:30:31+00:00"
+      },
+      {
+        "source_key": "data/asia-leads.json",
+        "reference": {
+          "bytes": 7356,
+          "key": "audit-private/20260909-originals/cycle-feature-research/18e75a67fc330a1e658aa8f43acf0557b35b6cb8cd5e47a668e4c6ca2ca12263.bin",
+          "sha256": "18e75a67fc330a1e658aa8f43acf0557b35b6cb8cd5e47a668e4c6ca2ca12263"
+        },
+        "captured_at": "2026-09-26T23:28:33.839482+00:00",
+        "last_modified": "2026-09-26T10:20:47+00:00"
+      },
+      {
+        "source_key": "data/global-sovereign.json",
+        "reference": {
+          "bytes": 22506,
+          "key": "audit-private/20260909-originals/cycle-feature-research/4f275087d42c194e83d8ee1b15685cb7f75a4973a66a059b532dfc07225642d2.bin",
+          "sha256": "4f275087d42c194e83d8ee1b15685cb7f75a4973a66a059b532dfc07225642d2"
+        },
+        "captured_at": "2026-09-26T23:28:34.327553+00:00",
+        "last_modified": "2026-09-26T18:16:53+00:00"
+      }
+    ],
+    "schedules_changed": 0,
+    "scope": "Exact package, complete retained-cache curve compiler and no mutation from sovereign context. Existing definitions, first-publication availability, wider feature transforms and model validation remain unqualified.",
+    "whole_predecessor_hashes": {
+      "data/cycle/features.json.gz": "5e2cbc1a6b948ad1e05ecccf797517a9b6aed05efc01e4ccd5d705ffd1761376",
+      "data/cycle/features-manifest.json": "d2feb8ac77d6956518ba51b01d2247150694215f2854c4d0e3c6ce814833774b"
+    }
+  },
+  "live_assets": {
+    "commit": "22c93ec04fe4f0b1d69e6ccd8f737f3f342cdef2",
+    "served_descendant": "22c93ec04fe4f0b1d69e6ccd8f737f3f342cdef2",
+    "checked_at": "2026-09-26T23:52:52.281680+00:00",
+    "registry_hash": "6859707b449169007bd5500c6399307e1e0b4caca4667e81614267cbef5412f6",
+    "assets": {
+      "global-cycle.html": {
+        "bytes": 52355,
+        "sha256": "6121aac25070d6d82a7a1aef01287d1ed6dcf682fc47c055aac19d23a2689fe1",
+        "matches_commit_manifest": true
+      },
+      "signal-scorecard.html": {
+        "bytes": 17367,
+        "sha256": "2431897a150c6d26659a147b567b26203bb106eb041340fb82b8e85048dc8273",
+        "matches_commit_manifest": true
+      },
+      "jh-prospective-research.js": {
+        "bytes": 10345,
+        "sha256": "fd67d64173af528d1cbe1c4d3c62bed25b23073acb39b141a46d072cf4238ed4",
+        "matches_commit_manifest": true
+      },
+      "global-sovereign.html": {
+        "bytes": 16393,
+        "sha256": "74de9f7a1bab37acf6f441e173828112f0c0e24b986862af595e130a0813e825",
+        "matches_commit_manifest": true
+      },
+      "jh-sovereign-review.js": {
+        "bytes": 14867,
+        "sha256": "892daa13c1f4ad4f7e65cdd5220db8b16693bd6d605ef905113f5a2379004c54",
+        "matches_commit_manifest": true
+      },
+      "config/global-sovereign-universe.json": {
+        "bytes": 4509,
+        "sha256": "1bbf832bbb92b7fc16552dd8a4fa37e1d71b544df31acfe2d88e2f7f30d8d85c",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1335331,
+        "sha256": "13e755b5bb2fb73ae8212f760b4c25ae94833092bbc0ac4c8eaa98648e7f92e0",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328670,
+        "sha256": "6859707b449169007bd5500c6399307e1e0b4caca4667e81614267cbef5412f6",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "status": "exact_code_and_retained_cache_definition_boundary_verified_native_publication_pending"
+}

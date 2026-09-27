@@ -126,11 +126,11 @@ def publish(client, bucket, state, doc, manifest):
     if set(manifest['coverage']) != names or manifest['features_key'] != HEAD:
         raise ValueError('Country coverage or output identity differs')
     root = Path(__file__).parent
-    compiler = {name: sha((root / name).read_bytes()) for name in ('lambda_function.py', 'cycle_publication.py')}
+    compiler = {name: sha((root / name).read_bytes()) for name in ('lambda_function.py', 'cycle_publication.py', 'cycle_sources.py')}
     context = {'contract': 'cycle-publication-context.v1', 'compiler_sha256': compiler,
                'predecessors': state['predecessors'], 'public_projections_atomic': False,
                'original_source_replay_verified': False,
-               'scope': 'Complete derived output and predecessor retention; source definitions, original acquisition and model qualification remain open.'}
+               'scope': 'Complete derived output and predecessor retention; source_evidence identifies this run’s acquisitions. Independent original-source replay, definitions and model qualification remain open.'}
     output = {**doc, 'publication_context': context}
     plain = encode(output)
     if len(plain) > DECODED_LIMIT:

@@ -42,6 +42,7 @@ import io
 import json
 import math
 import cycle_publication
+import cycle_sources
 import os
 import time
 import urllib.error
@@ -51,7 +52,7 @@ from datetime import date, datetime, timezone
 
 import boto3
 
-VERSION = "1.1.2"
+VERSION = "1.1.3"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/cycle/features.json.gz"
 MANIFEST_KEY = "data/cycle/features-manifest.json"
@@ -105,6 +106,9 @@ FEATURE_META = {
 MAX_LAG_MONTHS = {"M": 4, "Q": 7, "D": 2}
 
 LOG = []
+AUDIT = None
+CLI_URL = ("https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.1/"
+           ".M.LI...AA...H?startPeriod=1990-01&format=csvfile")
 
 
 def log(msg):
@@ -220,46 +224,36 @@ class Series:
 
 
 # ── S3 / HTTP ──────────────────────────────────────────────────────────────
+def _now():
+    return AUDIT.now() if AUDIT is not None else datetime.now(timezone.utc)
+
+
 def get_bytes(key):
-    o = S3.get_object(Bucket=BUCKET, Key=key)
-    body = o["Body"].read()
-    if key.endswith(".gz") or body[:2] == b"\x1f\x8b":
-        body = gzip.decompress(body)
-    return body, o["LastModified"]
+    if AUDIT is None:
+        raise cycle_sources.EvidenceError("Cycle input capture is required")
+    return AUDIT.get_bytes(key)
 
 
 def get_json(key):
     try:
         b, _ = get_bytes(key)
-        return json.loads(b)
-    except Exception as e:  # noqa: BLE001
+        return cycle_publication.strict(b)
+    except cycle_sources.EvidenceError:
+        raise
+    except Exception as e:
         log(f"{key}: {str(e)[:80]}")
         return None
 
 
 def http_get(url, headers=None, timeout=90, retries=3, backoff=(15, 45, 90)):
-    last = None
-    for i in range(retries):
-        try:
-            req = urllib.request.Request(url, headers=headers or {"User-Agent": "JustHodl.AI cycle-features/1.0 (+https://justhodl.ai)"})
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read(), r.status
-        except urllib.error.HTTPError as e:
-            last = f"HTTP {e.code}"
-            if e.code in (429, 500, 502, 503, 504) and i < retries - 1:
-                time.sleep(backoff[min(i, len(backoff) - 1)])
-                continue
-            break
-        except Exception as e:  # noqa: BLE001
-            last = str(e)[:100]
-            if i < retries - 1:
-                time.sleep(backoff[min(i, len(backoff) - 1)])
-    return None, last
+    if AUDIT is None:
+        raise cycle_sources.EvidenceError("Cycle request capture is required")
+    return AUDIT.http_get(url, headers, timeout, retries, backoff)
 
 
 def sdmx_rows(body):
     """Yield dict rows from an SDMX-CSV body (OECD csvfile / BIS csv)."""
-    text = body.decode("utf-8", "replace")
+    text = body.decode("utf-8")
     if text.startswith("\ufeff"):
         text = text[1:]
     rd = csv.reader(io.StringIO(text))
@@ -310,7 +304,9 @@ def fetch_lane(name, status, pace_s=3):
     if body is not None and len(body) > 1000:
         try:
             S3.put_object(Bucket=BUCKET, Key=cache_key, Body=gzip.compress(body), ContentType="application/gzip",
-                          Metadata={"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"), "url": url[:900]})
+                          Metadata={"as_of": _now().isoformat(timespec="seconds"), "url": url[:900]})
+        except cycle_sources.EvidenceError:
+            raise
         except Exception as e:  # noqa: BLE001
             log(f"{name}: cache write failed {str(e)[:80]}")
         status[f"lane_{name}"] = {"ok": True, "source": "live", "bytes": len(body)}
@@ -318,11 +314,13 @@ def fetch_lane(name, status, pace_s=3):
     log(f"{name}: live failed ({st}); trying cache")
     try:
         cached, lm = get_bytes(cache_key)
-        age_d = (datetime.now(timezone.utc) - lm).total_seconds() / 86400
+        age_d = (_now() - lm).total_seconds() / 86400
         if age_d <= CACHE_MAX_AGE_D:
             status[f"lane_{name}"] = {"ok": True, "source": f"cache {age_d:.0f}d", "bytes": len(cached), "live_error": str(st)[:80]}
             return cached, f"cache {age_d:.0f}d"
         log(f"{name}: cache too old ({age_d:.0f}d)")
+    except cycle_sources.EvidenceError:
+        raise
     except Exception as e:  # noqa: BLE001
         log(f"{name}: no cache ({str(e)[:60]})")
     if fallback:
@@ -330,6 +328,8 @@ def fetch_lane(name, status, pace_s=3):
             wb, lm = get_bytes(fallback)
             status[f"lane_{name}"] = {"ok": True, "source": "warehouse fallback", "bytes": len(wb), "live_error": str(st)[:80]}
             return wb, "warehouse"
+        except cycle_sources.EvidenceError:
+            raise
         except Exception as e:  # noqa: BLE001
             log(f"{name}: warehouse fallback failed {str(e)[:60]}")
     status[f"lane_{name}"] = {"ok": False, "error": f"live {st}; no usable cache/fallback"}
@@ -338,8 +338,7 @@ def fetch_lane(name, status, pace_s=3):
 
 # ── OECD live CLI (paced, cached) ───────────────────────────────────────────
 def load_oecd_cli(feat, status):
-    url = ("https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.1/"
-           ".M.LI...AA...H?startPeriod=1990-01&format=csvfile")
+    url = CLI_URL
     body, st = http_get(url)
     src = "live"
     if body is None or len(body) < 1000:
@@ -347,13 +346,17 @@ def load_oecd_cli(feat, status):
         try:
             body, lm = get_bytes(CLI_CACHE_KEY)
             src = f"cache {lm.date()}"
+        except cycle_sources.EvidenceError:
+            raise
         except Exception as e:  # noqa: BLE001
             status["oecd_cli"] = {"ok": False, "error": f"live {st}; cache {str(e)[:60]}"}
             return
     else:
         try:
             S3.put_object(Bucket=BUCKET, Key=CLI_CACHE_KEY, Body=gzip.compress(body), ContentType="application/gzip",
-                          Metadata={"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+                          Metadata={"as_of": _now().isoformat(timespec="seconds")})
+        except cycle_sources.EvidenceError:
+            raise
         except Exception as e:  # noqa: BLE001
             log(f"cache write failed: {str(e)[:80]}")
     n = 0
@@ -378,7 +381,7 @@ def load_oecd_kei(feat, status):
     if body is None:
         status["oecd_kei"] = {"ok": False, "error": "no KEI data from any lane"}
         return
-    lm = datetime.now(timezone.utc)
+    lm = _now()
     # collect candidate series: (area, measure, activity, adjustment, transformation, unit) -> Series
     cand = defaultdict(lambda: Series("M"))
     measures = defaultdict(int)
@@ -479,6 +482,8 @@ def load_oecd_kei(feat, status):
 def load_oecd_unemployment(feat, status):
     try:
         body, lm = get_bytes("data/warm/oecd/data/DSD_LFS@DF_IALFS_UNE_M.dat.gz")
+    except cycle_sources.EvidenceError:
+        raise
     except Exception as e:  # noqa: BLE001
         status["oecd_lfs"] = {"ok": False, "error": str(e)[:80]}
         return
@@ -508,7 +513,7 @@ def load_oecd_unemployment(feat, status):
             feat[area]["unemp_12m"].level = best
             feat[area]["unemp_12m"].src_override = "OECD DSD_LFS@DF_IALFS_UNE_M"
             got += 1
-    status["oecd_lfs"] = {"ok": True, "countries": got, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1)}
+    status["oecd_lfs"] = {"ok": True, "countries": got, "file_age_h": round((_now() - lm).total_seconds() / 3600, 1)}
     log(f"OECD LFS unemployment: {got} countries")
 
 
@@ -659,6 +664,8 @@ def load_bis(feat, status):
         try:
             body, lm = get_bytes(f"data/warm/bis/data/{fid}.dat.gz")
             return body, lm
+        except cycle_sources.EvidenceError:
+            raise
         except Exception as e:  # noqa: BLE001
             status[f"bis_{fid}"] = {"ok": False, "error": str(e)[:80]}
             return None, None
@@ -693,7 +700,7 @@ def load_bis(feat, status):
                 feat[i3]["credit_impulse"] = imp
                 feat[i3]["credit_impulse"].level = best
                 got += 1
-        status["bis_WS_TC"] = {"ok": True, "countries": got, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1)}
+        status["bis_WS_TC"] = {"ok": True, "countries": got, "file_age_h": round((_now() - lm).total_seconds() / 3600, 1)}
         log(f"BIS WS_TC credit impulse: {got} countries")
     body, lm = read("WS_SPP")
     if body:
@@ -773,7 +780,7 @@ def load_bis(feat, status):
 # ── Eurostat ──────────────────────────────────────────────────────────────────
 def eurostat_tsv(flow):
     body, lm = get_bytes(f"data/warm/eurostat/data/{flow}.dat.gz")
-    text = body.decode("utf-8", "replace")
+    text = body.decode("utf-8")
     lines = text.split("\n")
     hdr = lines[0].rstrip("\r").split("\t")
     dims = hdr[0].split("\\")[0].split(",")
@@ -820,9 +827,11 @@ def load_eurostat(feat, status):
                     else:
                         feat[i3][name] = s
                     got += 1
-            status[f"eurostat_{flow}"] = {"ok": True, "countries": got, "file_age_h": round((datetime.now(timezone.utc) - lm).total_seconds() / 3600, 1),
+            status[f"eurostat_{flow}"] = {"ok": True, "countries": got, "file_age_h": round((_now() - lm).total_seconds() / 3600, 1),
                                           "indic_seen": sorted(x for x in seen_indic if x)[:20]}
             log(f"Eurostat {flow} -> {name}: {got} countries (indic seen {sorted(x for x in seen_indic if x)[:8]})")
+        except cycle_sources.EvidenceError:
+            raise
         except Exception as e:  # noqa: BLE001
             status[f"eurostat_{flow}"] = {"ok": False, "error": str(e)[:100]}
             log(f"Eurostat {flow} failed: {str(e)[:100]}")
@@ -862,11 +871,10 @@ def load_fleet_feeds(feat, status, context=None):
 
 
 # ── assemble ──────────────────────────────────────────────────────────────────
-def lambda_handler(event=None, context=None):
+def compile_features(now):
+    """Compile the whole 34-country projection from captured or replayed inputs."""
     t0 = time.time()
     LOG.clear()
-    now = datetime.now(timezone.utc)
-    prior = cycle_publication.begin(S3, BUCKET, now.isoformat(timespec="seconds"))
     end_month = now.strftime("%Y-%m")
     grid = month_grid(GRID_START, end_month)
     idx = {m: i for i, m in enumerate(grid)}
@@ -925,7 +933,8 @@ def lambda_handler(event=None, context=None):
         coverage[iso] = {"n_features": len(fs), "pillars": countries[iso]["pillars"],
                          "fresh_features": sum(1 for v in fs.values() if v["months_stale"] is not None and v["months_stale"] <= v["max_lag_months"]),
                          "features": {k: (v["latest_period"], v["months_stale"]) for k, v in fs.items()}}
-    doc = {"version": VERSION, "generated_at": now.isoformat(timespec="seconds"), "elapsed_s": round(time.time() - t0, 1),
+    generated_at = _now().isoformat(timespec="seconds")
+    doc = {"version": VERSION, "started_at": now.isoformat(timespec="seconds"), "generated_at": generated_at, "elapsed_s": round(time.time() - t0, 1),
            "grid": {"start": GRID_START, "end": end_month, "months": grid}, "feature_meta": {k: {"pillar": v[0], "sign": v[1], "label": v[2]} for k, v in FEATURE_META.items()},
            "max_lag_months": MAX_LAG_MONTHS, "countries": countries, "sources": status, "log": LOG[-60:]}
     manifest = {"version": VERSION, "generated_at": doc["generated_at"], "elapsed_s": doc["elapsed_s"], "features_key": OUT_KEY,
@@ -936,7 +945,22 @@ def lambda_handler(event=None, context=None):
         packet.update({name: False for name in cycle_publication.PERMISSIONS})
         packet["quality"] = {"status": "unverified", "scope": "Legacy derived feature definitions, input vintages and model interpretations require original-source qualification."}
         packet["decision"] = {"verb": "WAIT", "meaning": "abstain", "reason": "Feature publication is not validated forecast or portfolio authority."}
-    publication = cycle_publication.publish(S3, BUCKET, prior, doc, manifest)
+    return doc, manifest
+
+
+def lambda_handler(event=None, context=None):
+    global AUDIT
+    now = datetime.now(timezone.utc)
+    prior = cycle_publication.begin(S3, BUCKET, now.isoformat(timespec="seconds"))
+    AUDIT = cycle_sources.Capture(S3, BUCKET, now.isoformat(), [CLI_URL] + [v[0] for v in LANES.values()])
+    try:
+        doc, manifest = compile_features(now)
+        evidence = AUDIT.finish(doc, manifest)
+        for packet in (doc, manifest):
+            packet["source_evidence"] = evidence
+        publication = cycle_publication.publish(S3, BUCKET, prior, doc, manifest)
+    finally:
+        AUDIT = None
     log(f"done: {manifest['n_countries']} countries, features by name {manifest['feature_count_by_name']}")
     return {"statusCode": 200, "body": json.dumps({"version": VERSION, "n_countries": manifest["n_countries"],
                                                    "feature_count_by_name": manifest["feature_count_by_name"], "elapsed_s": doc["elapsed_s"], "publication_attempt": publication})}

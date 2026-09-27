@@ -18,6 +18,7 @@ import urllib.request
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'source'))
 import cycle_publication as pub
+import cycle_sources as sources
 NOW = datetime(2026, 9, 27, 10, 30, tzinfo=timezone.utc)
 
 
@@ -41,7 +42,7 @@ class Memory:
         if Key not in self.rows:
             raise Error('NoSuchKey')
         return {'Body': BytesIO(self.rows[Key]), 'ContentLength': len(self.rows[Key]),
-                'ETag': str(self.versions[Key])}
+                'ETag': str(self.versions[Key]), 'LastModified': NOW-timedelta(days=1)}
 
     def put_object(self, Bucket, Key, Body, **kw):
         if self.fail == 'retention' and Key.startswith(pub.PRIVATE):
@@ -63,11 +64,12 @@ class Frozen(datetime):
 
 
 def load(store):
+    sources.datetime = Frozen
     path = HERE.parent / 'source/lambda_function.py'
     tree = ast.parse(path.read_text(encoding='utf-8'))
     env = {'csv': csv, 'gzip': gzip, 'io': io, 'json': json, 'math': math, 'os': os,
            'urllib': urllib, 'datetime': Frozen, 'date': date, 'timezone': timezone,
-           'defaultdict': defaultdict, 'cycle_publication': pub, 'S3': store,
+           'defaultdict': defaultdict, 'cycle_publication': pub, 'cycle_sources': sources, 'S3': store,
            'time': types.SimpleNamespace(time=lambda: 0, sleep=lambda n: None)}
     nodes = [n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef, ast.Assign))
              and not (isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'S3' for t in n.targets))]
@@ -222,4 +224,6 @@ class Tests(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import subprocess
+    subprocess.run([sys.executable, str(HERE / 'test_acquisitions.py')], check=True)
     unittest.main(verbosity=2)
