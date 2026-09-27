@@ -1,0 +1,31 @@
+{
+  "source_bytes": 16593,
+  "source_sha256": "bcbf618e2879b842e9e8d44ad500cb4e4eb6b82595a6f2ce92c31e549b3afb17",
+  "public_bytes": 90468,
+  "public_sha256": "b47064597f10adc8ec167cfb46b37fdffcc676005adb05e170ac330276db343d",
+  "generated_at": "2026-09-27T22:00:29+00:00",
+  "stats": {
+    "n_universe": 600,
+    "n_evaluated": 144,
+    "n_filtered_out": 456,
+    "n_tier_s": 1,
+    "n_tier_a": 39,
+    "n_tier_b": 65,
+    "n_finra_tickers": 13175
+  },
+  "all_qualifying_occurrences": 144,
+  "top_subset_occurrences": 25,
+  "baseline_acceptance": "pending 6255; native source and schedule unchanged",
+  "observed_source_defects": [
+    "Float is invented as 80% of market cap divided by price, without reported float, issuer/currency/time consistency or corporate-action continuity.",
+    "Cumulative daily short-sale volume is labeled a days-to-cover proxy, enters investment tiers and becomes unqualified days_to_cover in the summary. Daily short-sale flows do not establish outstanding short interest.",
+    "FINRA same-date duplicates, invalid row dates, impossible short/total counts and overwritten symbol rows are not identified. Facility coverage and exempt volumes are not retained in calculations.",
+    "EOD data is cut to ninety source-order rows before sorting. Missing volume becomes zero and boolean prices become numbers. Repeated/future dates and mismatched issuer/currency data can create a high squeeze score.",
+    "Thirty source rows are labeled thirty-day windows without session validation; unobserved longer returns become zero. An unavailable older short-volume window becomes unchanged zero.",
+    "Claimed real-revenue and borrowing-cost filters are not acquired or enforced; publication lacks complete original provider populations, request outcomes and independent forward validation."
+  ],
+  "methodology_sources": [
+    "https://syndication.finra.org/content/short-interest-what-it-what-it-not",
+    "https://www.finra.org/sites/default/files/2020-12/short-sale-volume-user-guide.pdf"
+  ]
+}
