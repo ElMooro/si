@@ -1,0 +1,206 @@
+"""Complete earnings-event observations and price-source coverage; no drift signal."""
+from datetime import date,datetime,timezone,timedelta
+from decimal import Decimal,localcontext
+import base64,hashlib,json,math,re
+
+CONTRACT='earnings-event-observations.v1'
+
+
+
+def number(value):
+    if type(value) not in (int,float):return None
+    try:return value if math.isfinite(value) and abs(value)<=2**53-1 else None
+    except OverflowError:return None
+
+
+def strict(raw):
+    def pairs(items):
+        out={}
+        for key,value in items:
+            if key in out:raise ValueError('Duplicate JSON member')
+            out[key]=value
+        return out
+    def real(value):
+        out=float(value)
+        if not math.isfinite(out) or out==0 and Decimal(value)!=0:raise ValueError('Unrepresentable JSON number')
+        return out
+    def constant(_):raise ValueError('Nonfinite JSON')
+    return json.loads(raw.decode('utf-8'),object_pairs_hook=pairs,parse_float=real,parse_constant=constant)
+
+
+def day(value):
+    try:
+        if not isinstance(value,str) or len(value)!=10:return None
+        out=date.fromisoformat(value);return out if out.isoformat()==value else None
+    except ValueError:return None
+
+
+def clock(value):
+    try:
+        if not isinstance(value,str):return None
+        out=datetime.fromisoformat(value.replace('Z','+00:00'));return out.astimezone(timezone.utc) if out.tzinfo else None
+    except ValueError:return None
+
+
+def symbol(value):
+    if not isinstance(value,str):return None
+    value=value.strip().upper();return value if re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}',value) else None
+
+
+def calculate(values,operation):
+    if any(number(v) is None for v in values):return None
+    try:
+        with localcontext() as ctx:
+            ctx.prec=40;exact=operation(*[Decimal(str(v)) for v in values]);out=float(exact)
+            return number(out) if not(out==0 and exact!=0) else None
+    except (ArithmeticError,ValueError,OverflowError):return None
+
+
+def envelope(raw,endpoint,received_at):
+    if clock(received_at) is None:raise ValueError('Explicit receipt clock required')
+    out={'endpoint':endpoint,'status':'received','received_at':received_at,'original_base64':base64.b64encode(raw).decode(),
+         'original_bytes':len(raw),'original_sha256':hashlib.sha256(raw).hexdigest()}
+    try:strict(raw)
+    except (ValueError,UnicodeError,RecursionError):out['status']='invalid_original'
+    return out
+
+
+def original(acquisition):
+    if acquisition.get('status') not in ('received','invalid_original'):return None
+    raw=base64.b64decode(acquisition['original_base64'],validate=True)
+    if type(acquisition.get('original_bytes')) is not int or len(raw)!=acquisition['original_bytes'] or hashlib.sha256(raw).hexdigest()!=acquisition['original_sha256']:
+        raise ValueError('Complete original response differs')
+    try:parsed=strict(raw)
+    except (ValueError,UnicodeError,RecursionError):
+        if acquisition['status']=='invalid_original':return None
+        raise
+    if acquisition['status']=='invalid_original':raise ValueError('Invalid-source classification differs')
+    return parsed
+
+
+def universe(acquisition,limit):
+    if type(limit) is not int or not 1<=limit<=1500:raise ValueError('Original request bound required')
+    p=original(acquisition);rows=p.get('stocks') if isinstance(p,dict) else None
+    occurrences=[];selected=[]
+    if isinstance(rows,list):
+        for i,raw in enumerate(rows):
+            row=raw if isinstance(raw,dict) else {};ticker=symbol(row.get('symbol'))
+            # Preserve occurrence order and duplicate memberships; do not silently
+            # change the original universe into a deduplicated selection.
+            in_bucket=row.get('cap_bucket') in ('micro','small','mid','large','mega')
+            chosen=in_bucket and len(selected)<limit
+            index=len(selected) if chosen else None
+            if chosen:selected.append({'source_index':i,'ticker':ticker,'raw':raw})
+            occurrences.append({'source_index':i,'raw':raw,'ticker':ticker,'request_index':index,
+                'status':'invalid_symbol' if ticker is None else 'outside_original_cap_buckets' if not in_bucket else 'selected' if chosen else 'outside_original_request_cap'})
+    return {'source_status':'received_stocks_array' if isinstance(rows,list) else 'missing_or_unavailable_stocks_array',
+            'occurrences':occurrences,'selected':selected,'request_limit':limit,'historical_membership_verified':False}
+
+
+def alias(row,names):
+    present=[(k,row[k]) for k in names if row.get(k) is not None]
+    if not present:return None,[],'missing'
+    values=[number(v) for _,v in present]
+    if any(v is None for v in values):return None,[k for k,_ in present],'invalid_numeric_alias'
+    if len(set(values))!=1:return None,[k for k,_ in present],'conflicting_aliases'
+    return values[0],[k for k,_ in present],'reported'
+
+
+def identity(row):
+    issuer=row.get('cik');issuer=issuer.zfill(10) if isinstance(issuer,str) and re.fullmatch(r'[0-9]{1,10}',issuer) and int(issuer) else None
+    currencies=[row[k] for k in ('reportedCurrency','currency') if row.get(k) is not None]
+    currency=currencies[0] if currencies and all(isinstance(v,str) and re.fullmatch(r'[A-Z]{3}',v) and v==currencies[0] for v in currencies) else None
+    return issuer,currency
+
+
+def earnings_event(requested,raw,index,received_at,checked_as_of):
+    today=day(checked_as_of)
+    if today is None:raise ValueError('Explicit check date required')
+    row=raw if isinstance(raw,dict) else {};stamp=day(row.get('date'));issuer,currency=identity(row);issues=[]
+    if row.get('symbol')!=requested:issues.append('issuer_symbol_missing_or_mismatched')
+    if issuer is None:issues.append('issuer_cik_missing_or_invalid')
+    if currency is None:issues.append('currency_missing_or_conflicting')
+    if stamp is None:issues.append('announcement_date_missing_or_invalid')
+    elif stamp>today:issues.append('future_announcement')
+    fields={name:alias(row,keys) for name,keys in {
+        'eps_actual':('epsActual','actualEarningResult','actualEps'),
+        'eps_estimate':('epsEstimated','estimatedEarning','estimatedEps'),
+        'revenue_actual':('revenueActual',),'revenue_estimate':('revenueEstimated',)}.items()}
+    bases=[row.get(k) for k in ('epsBasis','actualEpsBasis','estimatedEpsBasis') if row.get(k) is not None]
+    known={'basic_gaap','diluted_gaap','basic_non_gaap','diluted_non_gaap'}
+    complete_basis=row.get('epsBasis') is not None or all(row.get(k) is not None for k in ('actualEpsBasis','estimatedEpsBasis'))
+    basis=bases[0] if complete_basis and bases and all(isinstance(v,str) and v in known and v==bases[0] for v in bases) else None
+    fiscal=row.get('fiscalYear');fiscal=str(fiscal) if type(fiscal) is int else fiscal
+    fiscal=fiscal if isinstance(fiscal,str) and re.fullmatch(r'[0-9]{4}',fiscal) and 1<=int(fiscal)<=9999 else None
+    period=row.get('period') if row.get('period') in ('Q1','Q2','Q3','Q4') else None
+    end=day(row.get('fiscalDateEnding'));period_issues=[]
+    if not fiscal or not period or not end or not stamp or end>=stamp:period_issues.append('explicit_completed_fiscal_quarter_unavailable')
+    release=clock(row.get('announcementTime'));vintage=clock(row.get('estimateAsOf'))
+    return {'source_index':index,'raw':raw,'ticker':requested,'received_at':received_at,
+        'announcement_date':stamp.isoformat() if stamp else None,'calendar_days_since_announcement':(today-stamp).days if stamp and stamp<=today else None,
+        'reported_cik':issuer,'reported_currency':currency,'reported_eps_basis':basis,
+        'reported_fiscal_year':fiscal,'reported_period':period,'fiscal_period_end':end.isoformat() if end else None,
+        'reported_release_utc':release.isoformat() if release else None,'reported_estimate_as_of_utc':vintage.isoformat() if vintage else None,
+        'reported_last_updated':row.get('lastUpdated'),'fields':{k:{'value':v[0],'keys':v[1],'status':v[2]} for k,v in fields.items()},
+        'issues':issues,'period_issues':period_issues,'status':'reported_event_values' if not issues else 'unqualified_record',
+        'first_release_verified':False,'preannouncement_consensus_verified':False,'surprise_qualified':False}
+
+
+def event_differences(events):
+    from collections import Counter
+    dates=Counter(e['announcement_date'] for e in events if e['announcement_date'])
+    def target(e):return (e['fiscal_period_end'],e['reported_period'],e['reported_fiscal_year'])
+    periods=Counter(target(e) for e in events if e['fiscal_period_end'])
+    out=[]
+    for event in events:
+        same_date=dates[event['announcement_date']];same_period=periods[target(event)]
+        issues=list(event['issues'])+list(event['period_issues'])
+        if same_date!=1 or same_period!=1:issues.append('event_or_target_not_unique')
+        results={}
+        for family in ('eps','revenue'):
+            own=list(issues);actual=event['fields'][family+'_actual']['value'];estimate=event['fields'][family+'_estimate']['value']
+            if family=='eps' and event['reported_eps_basis'] is None:own.append('comparable_eps_basis_unavailable')
+            if actual is None or estimate is None:own.append('actual_or_estimate_unavailable')
+            difference=calculate([actual,estimate],lambda a,b:a-b) if not own else None
+            relative=calculate([actual,estimate],lambda a,b:(a-b)/abs(b)*100) if not own and estimate!=0 else None
+            results[family]={'actual_minus_reported_estimate':difference,'pct_of_absolute_estimate':relative,
+                'denominator':'absolute reported estimate; zero excludes percentage','issues':own,
+                'status':'descriptive_current_record_difference' if not own else 'unqualified_comparison'}
+        out.append({'source_index':event['source_index'],'same_date_occurrences':same_date,'same_period_occurrences':same_period,
+            'differences':results,'earnings_surprise':None,'beat_streak':None,'post_earnings_return_pct':None,
+            'qualification':'Current source records do not establish preannouncement consensus, first-release timing or executable returns.'})
+    return out
+
+
+def price_coverage(requested,acquisition,checked_as_of):
+    values=original(acquisition);today=day(checked_as_of)
+    if today is None:raise ValueError('Explicit check date required')
+    if not isinstance(values,list):return {'status':'price_array_unavailable','records':None,'executable_return_qualified':False}
+    counts={'invalid_record':0,'invalid_or_future_date':0,'missing_or_mismatched_symbol':0,'invalid_close':0,'invalid_or_missing_volume':0,'repeated_date_occurrences':0}
+    dates=[]
+    for raw in values:
+        row=raw if isinstance(raw,dict) else {};stamp=day(row.get('date'))
+        counts['invalid_record']+=not isinstance(raw,dict)
+        counts['invalid_or_future_date']+=not stamp or stamp>today
+        counts['missing_or_mismatched_symbol']+=row.get('symbol')!=requested
+        close=number(row.get('close'));volume=number(row.get('volume'))
+        counts['invalid_close']+=close is None or close<=0
+        counts['invalid_or_missing_volume']+=volume is None or volume<0
+        if stamp:dates.append(stamp.isoformat())
+    from collections import Counter
+    counts['repeated_date_occurrences']=sum(n for n in Counter(dates).values() if n>1)
+    return {'status':'complete_price_response_retained','records':len(values),'first_reported_date':min(dates) if dates else None,
+        'last_reported_date':max(dates) if dates else None,'diagnostics':counts,'executable_return_qualified':False,
+        'adjustment_currency_session_and_entry_protocol_verified':False,
+        'note':'Original price rows are in the acquisition. EOD dates alone do not establish tradable postannouncement entry, split/dividend continuity, benchmark returns or costs.'}
+
+
+def dossier(member,acquisitions,checked_as_of):
+    groups={a['endpoint']:a for a in acquisitions}
+    if len(groups)!=len(acquisitions) or set(groups)-{'earnings','historical-price-eod/full'}:raise ValueError('Unique declared source endpoints required')
+    acquisition=groups.get('earnings',{});values=original(acquisition)
+    events=[earnings_event(member['ticker'],raw,i,acquisition.get('received_at'),checked_as_of) for i,raw in enumerate(values)] if isinstance(values,list) else []
+    return {'ticker':member['ticker'],'universe_member':member,'acquisitions':acquisitions,'event_observations':events,
+        'event_differences':event_differences(events),'price_coverage':price_coverage(member['ticker'],groups.get('historical-price-eod/full',{}),checked_as_of),
+        'source_population_status':'received_event_array' if isinstance(values,list) else 'event_array_unavailable',
+        'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False,'call':None}

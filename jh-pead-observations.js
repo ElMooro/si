@@ -1,0 +1,69 @@
+/* Earnings records and whole price responses; no inferred drift or trade tier. */
+(function(root){
+ 'use strict';
+ const CONTRACT='earnings-event-observations.v1',obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{},text=v=>typeof v==='string'?v:'';
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const numeric=v=>typeof v==='number'&&Number.isFinite(v)&&Math.abs(v)<=Number.MAX_SAFE_INTEGER?v:null;
+ function source(a){
+  if(!['received','invalid_original'].includes(a.status))return null;
+  if(typeof a.original_base64!=='string')throw Error('Complete original price bytes required');
+  const bytes=Uint8Array.from(root.atob(a.original_base64),c=>c.charCodeAt(0));if(bytes.length!==a.original_bytes)throw Error('Original price byte count differs');
+  try{return (root.JHTableValues||(typeof require==='function'?require('./jh-table-values.js'):null)).parseJSON(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}
+  catch(e){if(a.status==='invalid_original')return null;throw e;}
+ }
+ function model(p,includePrices=true){
+  const out={native:p.measurement_contract===CONTRACT,events:[],prices:[],requests:[]};
+  if(out.native){
+   if(!Array.isArray(p.request_records))throw Error('Complete request population required');
+   p.request_records.forEach((value,requestIndex)=>{
+    const r=obj(value);for(const key of ['acquisitions','event_observations','event_differences'])if(!Array.isArray(r[key]))throw Error('Complete source population required: '+key);
+    const acquisitions=r.acquisitions.map(a=>{const{original_base64,...metadata}=obj(a);return metadata;});
+    out.requests.push({index:requestIndex,ticker:text(r.ticker),date:'',period:'',currency:'',actual:r.event_observations.length,estimate:numeric(obj(r.price_coverage).records),
+     status:r.acquisitions.map(a=>text(obj(a).endpoint)+': '+text(obj(a).status)).join(' / '),
+     raw:{universe_member:r.universe_member,price_coverage:r.price_coverage,source_population_status:r.source_population_status,acquisitions},pointer:'/request_records/'+requestIndex});
+    const calculations=new Map();for(const d of r.event_differences){const key=obj(d).source_index;calculations.set(key,calculations.has(key)?null:d);}
+    r.event_observations.forEach((value,i)=>{
+     const e=obj(value),v=obj(e.fields),d=obj(calculations.get(e.source_index)),diff=obj(d.differences),eps=obj(diff.eps),revenue=obj(diff.revenue);
+     out.events.push({index:out.events.length,ticker:text(r.ticker),reported:text(obj(e.raw).symbol),period:[e.reported_period,e.reported_fiscal_year].filter(Boolean).join(' '),
+      date:text(e.announcement_date),end:text(e.fiscal_period_end),currency:text(e.reported_currency)||'Unreported',basis:text(e.reported_eps_basis)||'Unreported',
+      actual:numeric(obj(v.eps_actual).value),estimate:numeric(obj(v.eps_estimate).value),difference:eps.status==='descriptive_current_record_difference'?numeric(eps.actual_minus_reported_estimate):null,
+      revenue_actual:numeric(obj(v.revenue_actual).value),revenue_estimate:numeric(obj(v.revenue_estimate).value),revenue_difference:revenue.status==='descriptive_current_record_difference'?numeric(revenue.actual_minus_reported_estimate):null,
+      status:text(e.status)+' / '+text(eps.status),raw:{event:value,comparison:d,acquisition_metadata:acquisitions},pointer:'/request_records/'+requestIndex+'/event_observations/'+i});
+    });
+    if(includePrices)r.acquisitions.forEach((a,acquisitionIndex)=>{
+     if(a.endpoint!=='historical-price-eod/full')return;const values=source(a);if(!Array.isArray(values))return;
+     values.forEach((raw,i)=>{const row=obj(raw);out.prices.push({index:out.prices.length,ticker:text(r.ticker),reported:text(row.symbol),date:text(row.date),currency:text(row.currency)||'Unreported',
+      close:numeric(row.close),volume:numeric(row.volume),status:'Reported price record; event return unqualified',raw,pointer:'/request_records/'+requestIndex+'/acquisitions/'+acquisitionIndex+'/original_base64 → /'+i});});
+    });
+   });return out;
+  }
+  for(const[key,values]of [['all_qualifying',p.all_qualifying],['summary/top_25_overall',obj(p.summary).top_25_overall],['summary/tier_s',obj(p.summary).tier_s],['summary/tier_s_full',obj(p.summary).tier_s_full]]){
+   if(values!==undefined&&!Array.isArray(values))throw Error('Malformed legacy population: '+key);
+   (values||[]).forEach((value,i)=>{const r=obj(value);out.events.push({index:out.events.length,ticker:typeof value==='string'?value:text(r.symbol),date:'',end:'',period:'Unverified legacy period',currency:'Unreported',basis:'Unreported',
+    actual:null,estimate:null,difference:null,revenue_actual:null,revenue_estimate:null,revenue_difference:null,status:'Legacy '+key+'; streak, surprise and drift claims unverified',raw:value,pointer:'/'+key+'/'+i});});
+  }return out;
+ }
+ function summary(p){const m=model(p,false);return {native:m.native,message:m.native?m.requests.length+' request records and '+m.events.length+' reported earnings events. No qualified drift signal.':m.events.length+' published legacy occurrences. Earnings-surprise and drift claims remain unverified.',generated_at:text(p.generated_at)||'unavailable'};}
+ function start(){
+  const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={events:[],prices:[],requests:[]},page=0,key='index',direction=1;
+  function render(){
+   const mode=$('mode').value||'events',all=data[mode]||[],query=$('q').value.trim().toLowerCase();
+   const rows=all.filter(r=>[r.ticker,r.reported,r.date,r.end,r.period,r.status,r.pointer].join(' ').toLowerCase().includes(query));
+   const numbers=['index','actual','estimate','difference','revenue_actual','revenue_estimate','revenue_difference','close','volume'];rows.sort((a,b)=>api.compare(a,b,key,direction,numbers.includes(key)?'number':'text'));
+   const pages=Math.max(1,Math.ceil(rows.length/100));page=Math.min(Math.max(page,0),pages-1);const shown=rows.slice(page*100,(page+1)*100);
+   $('rows').textContent=rows.length+' matching / '+all.length+' received '+mode+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
+   const cols=mode==='requests'?[['index','Occurrence'],['ticker','Requested ticker'],['actual','Earnings records'],['estimate','Price records'],['status','Acquisition outcomes']]:mode==='prices'?
+    [['index','Occurrence'],['ticker','Requested ticker'],['reported','Reported ticker'],['date','Reported date'],['currency','Reported currency'],['close','Reported close'],['volume','Reported volume'],['status','Qualification']]:
+    [['index','Occurrence'],['ticker','Requested ticker'],['date','Announcement date'],['period','Fiscal period'],['end','Period end'],['currency','Reported currency'],['basis','EPS basis'],['actual','Actual EPS'],['estimate','Reported estimate EPS'],['difference','Current EPS difference'],['revenue_actual','Actual revenue'],['revenue_estimate','Estimated revenue'],['revenue_difference','Current revenue difference'],['status','Qualification']];
+   $('board').innerHTML='<table><thead><tr>'+cols.map(([k,label])=>'<th data-k="'+k+'">'+label+'</th>').join('')+'<th scope="col">Complete source and calculation</th></tr></thead><tbody>'+shown.map(r=>'<tr>'+cols.map(([k])=>'<td>'+esc(k==='index'?r.index+1:numbers.includes(k)?(api.format(r[k],mode==='requests'?0:2)||'Unavailable'):r[k])+'</td>').join('')+'<td><details><summary>Inspect '+esc(r.pointer)+'</summary><pre>'+esc(JSON.stringify(r.raw,null,2))+'</pre></details></td></tr>').join('')+'</tbody></table>';
+   api.bindSort($('board').querySelectorAll('th[data-k]'),key,direction,k=>{direction=key===k?-direction:1;key=k;page=0;render();});
+  }
+  $('q').oninput=()=>{page=0;render();};$('mode').onchange=()=>{page=0;key='index';direction=1;render();};$('previous').onclick=()=>{page--;render();};$('next').onclick=()=>{page++;render();};
+  (async()=>{try{
+   const received=await api.load('/data/earnings-pead.json'),p=received.packet;$('original').textContent=received.raw;data=model(p);const s=summary(p);
+   $('status').textContent=s.message+' Generated '+s.generated_at+'. Collection time does not establish the original announcement or consensus vintage.';
+   $('coverage').textContent='Every published occurrence is retained. Inspect complete earnings and price records, duplicate or future events, and failed or unattempted requests. Current-record differences do not establish an executable post-earnings return.';render();
+  }catch(e){$('status').textContent='Stored earnings research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
+ }
+ const api={CONTRACT,model,summary,start,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHPEADObservations=api;
+})(typeof globalThis!=='undefined'?globalThis:this);

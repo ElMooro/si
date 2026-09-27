@@ -275,7 +275,7 @@ def evaluate_ticker(stock):
     }
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline = started + TIMEOUT_BUDGET_S
     print("[pead] starting v1.0")
@@ -378,3 +378,139 @@ def lambda_handler(event=None, context=None):
             "duration_s": out["duration_s"],
         }),
     }
+
+# Complete predecessor retained above; only the research handler below is active.
+
+from pathlib import Path
+from datetime import datetime,timezone
+from urllib.parse import quote_plus
+import hashlib,math
+from pead_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier
+
+
+def _pead_source_identity():
+    directory=Path(__file__).resolve().parent
+    return {name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+            for name in ('lambda_function.py','pead_observations.py') for raw in [(directory/name).read_bytes()]}
+
+
+def _pead_fetch(ticker,endpoint):
+    if not ticker or symbol(ticker)!=ticker:return {'endpoint':endpoint,'status':'invalid_symbol_not_requested'}
+    if not FMP_KEY:return {'endpoint':endpoint,'status':'credential_unavailable'}
+    url='https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
+    if endpoint not in ('earnings','historical-price-eod/full'):raise ValueError('Undeclared endpoint')
+    req=urllib.request.Request(url,headers={'apikey':FMP_KEY,'User-Agent':'JustHodl-PEAD-Observations/1.1'})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(req,timeout=10) as response:raw=response.read(2*1024*1024+1)
+        if len(raw)>2*1024*1024:return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False}
+        if FMP_KEY.encode() in raw:return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
+        return envelope(raw,endpoint,datetime.now(timezone.utc).isoformat())
+    except Exception as exc:
+        return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
+                'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+
+
+def _pead_company(member):
+    ticker=member['ticker'];captures=[_pead_fetch(ticker,'earnings')];values=original(captures[0])
+    # Preserve the predecessor's price-request gate, solely as a request budget.
+    # It never qualifies an event, quarter streak or price return.
+    rows=[r for r in values if isinstance(r,dict) and r.get('epsActual') is not None and r.get('epsEstimated') is not None] if isinstance(values,list) else []
+    rows=sorted(rows,key=lambda r:r.get('date') if isinstance(r.get('date'),str) else '',reverse=True)[:8]
+    comparable=[]
+    for row in rows:
+        actual=row.get('epsActual') or row.get('actualEarningResult') or row.get('actualEps')
+        estimate=row.get('epsEstimated') or row.get('estimatedEarning') or row.get('estimatedEps')
+        try:
+            if actual is not None and estimate is not None and math.isfinite(float(actual)) and math.isfinite(float(estimate)) and abs(float(estimate))>=0.01:comparable.append(row)
+        except (ValueError,TypeError,OverflowError):pass
+    try:date_valid=bool(comparable and datetime.strptime(comparable[0].get('date',''),'%Y-%m-%d'))
+    except (ValueError,TypeError):date_valid=False
+    if len(rows)<4 or len(comparable)<3 or not date_valid:captures.append({'endpoint':'historical-price-eod/full','status':'not_requested_original_event_gate'})
+    else:captures.append(_pead_fetch(ticker,'historical-price-eod/full'))
+    return captures
+
+
+def _pead_object(key,bound):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole declared object required')
+    return raw,obj['ETag']
+
+
+def _pead_previous():
+    try:raw,etag=_pead_object(S3_KEY,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'):return None,None,None
+        raise
+    p=strict(raw)
+    if not isinstance(p,dict):raise ValueError('Previous publication malformed')
+    return p,raw,etag
+
+
+def _pead_archive(raw):
+    key='data/earnings-pead/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType='application/json',CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    back,_=_pead_object(key,len(raw))
+    if back!=raw:raise ValueError('Whole immutable readback differs')
+    return {'key':key,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc);today=checked.date().isoformat()
+    if S3_KEY!='data/earnings-pead.json':raise ValueError('Declared research output required')
+    if MAX_TICKERS<1 or N_WORKERS<1 or TIMEOUT_BUDGET_S<1:raise ValueError('Original acquisition bounds required')
+    previous,previous_raw,etag=_pead_previous()
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous generation clock invalid')
+    raw,source_etag=_pead_object('data/universe.json',8*1024*1024)
+    capture=envelope(raw,'data/universe.json',datetime.now(timezone.utc).isoformat());capture['etag']=source_etag
+    membership=universe(capture,min(MAX_TICKERS,1500));selected=membership['selected']
+    if not selected:raise ValueError('No selected universe; preserve previous publication')
+    captures=[[{'endpoint':'earnings','status':'not_attempted_runtime_rate_or_size_limit'}] for _ in selected]
+    workers=max(1,min(N_WORKERS,4));total_bytes=0
+    def remaining():
+        own=min(TIMEOUT_BUDGET_S,260)-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if remaining()<50 or total_bytes>=8*1024*1024:break
+            jobs=[(i,pool.submit(_pead_company,selected[i])) for i in range(offset,min(offset+workers,len(selected)))]
+            for i,future in jobs:
+                captures[i]=future.result();total_bytes+=sum(a.get('original_bytes',0) for a in captures[i])
+            if any(a.get('status')=='rate_limited' for i,_ in jobs for a in captures[i]):break
+    if not any(a.get('endpoint')=='earnings' and a.get('status')=='received' and isinstance(original(a),list) for group in captures for a in group):
+        raise ValueError('All earnings populations unavailable; preserve previous publication')
+    records=[]
+    for i,(member,group) in enumerate(zip(selected,captures)):
+        row=dossier(member,group,today);row['request_index']=i;records.append(row)
+    prior_ref=_pead_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-earnings-pead','version':'1.1.0','schema_version':2,'measurement_contract':CONTRACT,
+        'method':'complete_earnings_events_and_price_source_coverage','status':'RESEARCH_ONLY','source_files':_pead_source_identity(),
+        'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
+        'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,
+        'n_event_observations':sum(len(r['event_observations']) for r in records),
+        'n_price_records':sum(r['price_coverage'].get('records') or 0 for r in records),
+        'stats':{'n_universe':len(selected),'n_evaluated':None,'n_no_data':None,'n_tier_s':None,'n_tier_a':None,'n_tier_b':None,'top_100_by_cap_bucket':{}},
+        'summary':{'top_25_overall':[],'tier_s':[],'tier_s_full':[]},'all_qualifying':[],
+        'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,'independent_evidence_eligible':False,
+        'call':None,'signals_logged':0,'notifications_sent':0,'private_state_read_or_written':False,
+        'source_documentation':['https://site.financialmodelingprep.com/developer/docs/stable/earnings-company','https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full'],
+        'caveats':['Every returned earnings event and whole EOD price response is retained, including future, duplicate and invalid records.',
+            'All universe occurrences and failed or unattempted requests remain explicit. Source receipt is not the original release time.',
+            'Current-record differences require explicit matching issuer, currency, quarter and EPS basis. They are not validated earnings surprises.',
+            'Preannouncement consensus and first-release vintages remain unverified. No beat streak, earnings tier or future-return forecast is published.',
+            'Price rows do not establish currency, corporate-action continuity, release timing, session entry, benchmark returns or costs. No postearnings drift is qualified.',
+            'No guidance source is acquired. Revenue actual/estimate fields are retained when present but do not establish guidance raises.',
+            'The same FMP evidence can feed multiple fundamental desks; repeated sources do not create independent agreement.'],
+        'duration_s':round(time.monotonic()-started,2)}
+    raw=json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve previous current packet')
+    archive=_pead_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=S3_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(records),'archive':archive})}

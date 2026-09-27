@@ -15,8 +15,9 @@ function page(file,loader){
   return nodes.get(id);
  };
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
- const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
+ const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,TextDecoder,atob,Uint8Array,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-pead-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-pead-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-revenue-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-revenue-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-eps-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-eps-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-hiring-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-hiring-observations.js'),'utf8'),ctx);
@@ -250,4 +251,41 @@ test('revenue legacy populations, pagination, failures and Intel summary cannot 
  }
  assert.equal(fs.readFileSync(path.join(root,'intel/index.html'),'utf8'),fs.readFileSync(path.join(root,'web/intel/index.html'),'utf8'));
  for(const name of ['pre-revenue-intel-index.html.txt','pre-revenue-web-intel-index.html.txt'])assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures',name))).digest('hex'),'b13437d6ea6b612b49678b05178857fc694b5cda543cdf69d2dfbe4c32e79716');
+});
+
+test('PEAD retains typed event amounts, full price responses, source coordinates and request coverage',async()=>{
+ const M=require('../jh-pead-observations.js'),prices=[{symbol:'TEST',date:'2026-08-01',close:0,volume:0,unknown:'<img src=x>'},{symbol:'TEST',date:'2026-08-02',close:true,volume:null},null];
+ const body=Buffer.from(JSON.stringify(prices)),record={ticker:'TEST',acquisitions:[{endpoint:'earnings',status:'received'},{endpoint:'historical-price-eod/full',status:'received',original_base64:body.toString('base64'),original_bytes:body.length}],price_coverage:{records:3},
+ event_observations:[{source_index:0,raw:{symbol:'TEST',unknown:'<img src=x>'},announcement_date:'2026-08-01',fiscal_period_end:'2026-06-30',reported_period:'Q2',reported_fiscal_year:'2026',reported_currency:'JPY',reported_eps_basis:'diluted_gaap',fields:{eps_actual:{value:0},eps_estimate:{value:1},revenue_actual:{value:200},revenue_estimate:{value:100}},status:'reported_event_values'}],
+ event_differences:[{source_index:0,differences:{eps:{actual_minus_reported_estimate:-1,status:'descriptive_current_record_difference'},revenue:{actual_minus_reported_estimate:100,status:'descriptive_current_record_difference'}}}]};
+ const p={measurement_contract:M.CONTRACT,request_records:[record],all_qualifying:[{symbol:'IGNORE'}]},s=page('earnings-pead.html',async()=>raw(p));await flush();let h=s.get('board').innerHTML;
+ assert.equal(s.calls[0],'/data/earnings-pead.json');assert.match(h,/2026-08-01/);assert.match(h,/JPY/);assert.match(h,/<td>0\.00<\/td>/);assert.match(h,/-1\.00/);assert.match(h,/200\.00/);assert.match(h,/&lt;img/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('IGNORE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ s.get('mode').value='prices';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 received prices/);h=s.get('board').innerHTML;assert.match(h,/0\.00/);assert.match(h,/Unavailable/);assert.match(h,/original_base64/);assert.ok(!h.includes('<img'));
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 received requests/);assert.match(s.get('board').innerHTML,/historical-price-eod\/full: received/);assert.ok(!s.get('board').innerHTML.includes(body.toString('base64')));
+ const header=s.get('board').headers.find(x=>x.dataset.k==='ticker');header.focus();header.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
+ const many=M.model({...p,request_records:Array.from({length:501},()=>record)});assert.equal(many.events.length,501);assert.equal(many.prices.length,1503);
+ assert.throws(()=>M.model({...p,request_records:null}),/Complete/);assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);
+ const bad=structuredClone(p);bad.request_records[0].acquisitions[1].original_bytes=1;assert.throws(()=>M.model(bad),/byte count/);
+});
+
+test('PEAD legacy occurrences paginate, malformed feeds fail visibly and both Intel cards clear stale content',async()=>{
+ const M=require('../jh-pead-observations.js'),p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99,tier:'TIER_S'})),summary:{top_25_overall:[{symbol:'T0'}],tier_s:['T0'],tier_s_full:[{symbol:'T0'}]}};
+ const s=page('earnings-pead.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/204 received/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/204 matching/);
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('earnings-pead.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
+ assert.ok(api.PUBLIC_PATHS.test('/data/earnings-pead.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/earnings-pead/private.json'));
+ for(const file of ['intel/index.html','web/intel/index.html']){
+  const html=fs.readFileSync(path.join(root,file),'utf8'),block=html.split('// Earnings event research:')[1].split('// Options Flow')[0];assert.ok(!block.includes('top_25_overall'));assert.ok(!block.includes('r.score'));assert.match(html,/href="\/earnings-pead.html"/);
+  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'old score'});return nodes.get(id);};let fail=false;const seen=[];
+  const context=vm.createContext({document:{getElementById:get},JHPEADObservations:M,JHTableValues:{load:async path=>{seen.push(path);if(fail)throw Error('HTTP 403');return{packet:p};}}});
+  const actual='(async()=>{\n// Earnings event research:'+block+'\n})()';await vm.runInContext(actual,context);assert.match(get('pead').textContent,/204 published legacy occurrences/);assert.equal(get('pead-fresh').textContent,'RESEARCH');
+  fail=true;await vm.runInContext(actual,context);assert.match(get('pead').textContent,/unavailable/);assert.equal(get('pead-meta').textContent,'');assert.equal(get('pead-fresh').textContent,'UNAVAILABLE');assert.deepEqual(seen,['/data/earnings-pead.json','/data/earnings-pead.json']);
+ }
+ assert.equal(fs.readFileSync(path.join(root,'intel/index.html'),'utf8'),fs.readFileSync(path.join(root,'web/intel/index.html'),'utf8'));
+});
+
+
+test('PEAD original pages are whole and all current tables remain accessible',()=>{
+ for(const [name,digest] of [['pre-earnings-pead-observations.html.txt','b9dcf3e8b86f94260c4b2943d77149ee1b13bade12820da9995108792559963c'],['pre-pead-intel-index-observations.html.txt','bd1507bda262824fba5e5b1fd38b042056b5b3cf81f68d358f80ce1cf38903bc'],['pre-pead-web-intel-index-observations.html.txt','bd1507bda262824fba5e5b1fd38b042056b5b3cf81f68d358f80ce1cf38903bc']])assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures',name))).digest('hex'),digest);
+ const html=fs.readFileSync(path.join(root,'earnings-pead.html'),'utf8');assert.match(html,/role="region"[^>]+tabindex="0"/);assert.match(html,/<label for="q">/);assert.match(html,/overflow:auto/);
 });

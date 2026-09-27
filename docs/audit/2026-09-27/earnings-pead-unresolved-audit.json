@@ -18,7 +18,7 @@
   },
   "all_qualifying_occurrences": 187,
   "top_subset_occurrences": 25,
-  "baseline_acceptance": "pending 6253; native code and schedules unchanged",
+  "baseline_acceptance": "6253 / 36358407034: complete deployed package and declared public packet preserved; source matches repository; runtime 1024 MB / 600 s unchanged; direct schedules absent; fanout acceptance pending 6254",
   "observed_source_defects": [
     "Reported zero EPS can be replaced by an alias or omitted; booleans pass float conversion. Zero estimates and missing rows are skipped, potentially bridging an unobserved streak.",
     "Same-date duplicates, future dates and mismatched issuers/units/EPS bases can enter beat streaks and investment tiers without quarterly event identity.",
@@ -26,5 +26,11 @@
     "Calendar-day windows, announcement date and the first returned same-day close are used without release time, exchange session or price-adjustment identity. Missing volume becomes zero.",
     "Only eight selected events and ninety price rows are used; source originals and discarded/failed acquisitions are not retained.",
     "Claimed revenue beats, guidance raises and published return ranges are not validated by this implementation. Existing public pages display unqualified scores and tiers."
+  ],
+  "candidate_contract": "earnings-event-observations.v1",
+  "candidate_qualification": "Research-only source observations and descriptive current-record differences; predictive validation, first-release consensus history, trading-session returns and sizing remain unresolved",
+  "source_documentation": [
+    "https://site.financialmodelingprep.com/developer/docs/stable/earnings-company",
+    "https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full"
   ]
 }
