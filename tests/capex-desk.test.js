@@ -10,7 +10,7 @@ async function render(packet,error){
 }
 test('Capex renders the complete received population with typed values and inert source metadata',async()=>{
  const p={n:'<img src=x>',fails:0,market:{capex_ttm_b:false,yoy_pct:0},hyperscalers:{total_ttm_b:'',yoy_pct:' '},rows:[{ticker:'TEN',capex_ttm_b:'10',yoy_pct:'',intensity_pct:false,mc_b:0},{ticker:'TWO',capex_ttm_b:'2'},{ticker:'ZERO',capex_ttm_b:0,intensity_pct:0,sector:'<img src=x>'},{ticker:'BAD',capex_ttm_b:' ',yoy_pct:false},null],unknown:'retain'};
- const s=await render(p),h=s.get('board').innerHTML;assert.equal(s.calls[0],'/data/capex-pulse.json');assert.equal(s.calls.length,1);assert.equal(s.get('original').textContent,s.raw);assert.match(h,/4 of 4 received rows/);assert.match(h,/1 malformed/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('NaN'));assert.ok(h.indexOf('TEN')<h.indexOf('TWO'));assert.match(h,/<td>0.00%<\/td>/);assert.match(s.get('kpis').textContent,/Source name count: Unavailable/);assert.match(s.get('kpis').textContent,/Source failures: 0/);assert.match(s.get('kpis').textContent,/Universe YoY: 0.0%/);
+ const s=await render(p),h=s.get('board').innerHTML;assert.equal(s.calls[0],'/data/capex-pulse.json');assert.equal(s.calls.length,1);assert.equal(s.get('original').textContent,s.raw);assert.match(h,/4 of 4 received rows/);assert.match(h,/1 malformed/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('NaN'));assert.ok(h.indexOf('TEN')<h.indexOf('TWO'));assert.match(h,/<td>0.00%<\/td>/);assert.match(s.get('kpis').textContent,/Source name count: Unavailable/);assert.match(s.get('kpis').textContent,/Source failures: 0/);assert.match(s.get('kpis').textContent,/Source annual change: 0.0%/);
  assert.equal(vm.runInContext('fmtB(false)',s.context),'');assert.equal(vm.runInContext('fmtPct(" ")',s.context),'');assert.equal(vm.runInContext('cls(0)',s.context),'');
 });
 test('Capex failed, malformed and empty publications have different visible states',async()=>{
@@ -27,4 +27,13 @@ test('Capex original bytes survive and the startup syntax defect is reproduced b
  const raw=fs.readFileSync(path.join(__dirname,'fixtures/pre-capex-desk.html.txt'));assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'f0562fcdd0820ef1e6f6a9498ad34324d5b3888617a681e7a260de2e13be4901');
  const inline=[...raw.toString().matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)][0][1];assert.throws(()=>new vm.Script(inline),SyntaxError);
  assert.match(source,/<label for="q">/);assert.match(source,/role="region"[^>]*tabindex="0"/);assert.match(source,/Capex pulse · JustHodl/);assert.ok(!/[\u00c2\u00c3\ufffd]/.test(source));assert.match(source,/V.bindSort/);
+});
+
+test('Capex exposes explicit local currency and calendar groups without substituting USD totals',async()=>{
+ const rows=[{ticker:'JPYCO',reported_window_amount:800,reported_currency:'JPY',capex_ttm_b:null,yoy_pct:0,current_window:{start_date:'2025-07-01',end_date:'2026-06-30',status:'four_reported_calendar_quarters'}},{ticker:'UNKNOWN',capex_ttm_b:null,current_window:{status:'four_explicit_contiguous_quarters_unavailable'}}];
+ const cohorts=[{start_date:'2025-07-01',end_date:'2026-06-30',unit:'USD',symbols:['<img>'],value:0}];
+ const s=await render({n:2,rows,market:{cohorts,calendar_cohort_count:1,unmeasured_or_foreign_n:2,ambiguous_issuer_n:0}});
+ const h=s.get('board').innerHTML;assert.ok(h.includes('JPY'));assert.ok(h.includes('2025-07-01'));assert.ok(h.includes('2026-06-30'));assert.ok(h.includes('four_explicit_contiguous_quarters_unavailable'));assert.equal(s.get('cohorts').textContent,JSON.stringify(cohorts,null,2));
+ assert.match(s.get('kpis').textContent,/Source USD window \$B: Unavailable/);assert.match(s.get('kpis').textContent,/Unmeasured or foreign rows: 2/);
+ s.get('q').value='UNKNOWN';s.get('q').oninput();assert.match(s.get('board').innerHTML,/1 of 2/);
 });

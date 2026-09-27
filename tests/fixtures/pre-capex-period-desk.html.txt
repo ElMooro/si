@@ -25,17 +25,16 @@ input{width:100%;max-width:360px}label{display:block;margin-bottom:6px;color:var
 <body>
 <div class="wrap">
 <h1>Capex pulse</h1>
-<p class="sub">Reported capital expenditure with its currency, calendar window and calculation status. Unverified legacy values are labelled below. A blank cell is unavailable, not zero. Click or press Enter on a header to sort; unavailable values stay last.</p>
+<p class="sub">Trailing-twelve-month capital expenditure from cash-flow statements already in the live capex-pulse feed. Intensity is capex / market cap when both exist. A blank cell is a missing tag, not zero. Click a header to sort. Nulls stay last.</p>
 <div class="kpis" id="kpis"></div>
 <label for="q">Filter ticker or sector</label>
 <input id="q" placeholder="filter ticker or sector" autocomplete="off">
 <div id="board" class="table-region" role="region" aria-label="Capital expenditure records, scroll horizontally for every column" tabindex="0"><div class="loading">Loading /data/capex-pulse.json</div></div>
 <details><summary>Complete original publication</summary><pre id="original" tabindex="0">Unavailable</pre></details>
-<details><summary>Comparable reported USD calendar groups</summary><pre id="cohorts" tabindex="0">Unavailable in legacy publication</pre></details>
-<div class="foot"><b>Research scope:</b> inspect every received issuer row, including unavailable calculations and foreign-currency amounts. Repeated issuer CIKs are excluded from aggregation, while every row remains visible.<br>
+<div class="foot"><b>Built for:</b> seeing which issuers are raising or cutting cash capex, and how large that spend is versus market cap, without inventing a growth forecast.<br>
 <b>Data:</b> /data/capex-pulse.json (rows[] with ticker, sector, capex_ttm_b, yoy_pct, mc_b, intensity_pct, asof; market; hyperscalers; fails; method).<br>
-<b>¹ Window amounts:</b> the current contract requires four explicit contiguous quarterly start/end pairs, one currency and one issuer. USD totals use only USD statements with the same window; foreign spending remains in its reported currency. Legacy values lack this validation.<br>
-<b>² Annual change:</b> requires two complete adjacent calendar-year windows for the same issuer and currency. A source tag alone is not verified growth. Original SEC statements and first-release vintages remain unverified. Market-cap intensity and forecast rankings are withheld.</div>
+<b>Formulas as published by the feed:</b> TTM = last four quarterly |capitalExpenditure|; YoY vs prior four quarters; intensity = capex / market cap when both tagged.<br>
+<b>Not:</b> a guidance parser, an ARR/NRR extract, or a purchase-commitment note. These are source-reported measurements; original reporting periods and field definitions still require producer validation. Research only.</div>
 </div>
 <script src="/jh-table-values.js"></script>
 <script>
@@ -46,8 +45,7 @@ function fmtB(v){var n=num(v);return n==null?"":n.toFixed(2);}
 function fmtPct(v){var n=num(v);if(n==null)return "";return (n>0?"+":"")+n.toFixed(1)+"%";}
 function cls(v){var n=num(v);if(n==null)return "";return V.sign(n);}
 var SORT="capex_ttm_b", DIR=-1, PACK=null, ROWS=[], MALFORMED=0;
-var TEXT_COLUMNS=["ticker","sector","asof","reported_currency","window_start","window_end","measurement_status"];
-function cmp(a,b){return V.compare(a,b,SORT,DIR,TEXT_COLUMNS.includes(SORT)?"text":"number");}
+function cmp(a,b){return V.compare(a,b,SORT,DIR,["ticker","sector","asof"].includes(SORT)?"text":"number");}
 function th(k,lab,left){
   return '<th class="'+(left?"l ":"")+(SORT===k?"on":"")+'" data-k="'+k+'">'+lab+(SORT===k?(DIR<0?" \u2193":" \u2191"):"")+"</th>";
 }
@@ -57,31 +55,28 @@ function paint(){
     if(!q) return true;
     return (String(r.ticker||"")+" "+String(r.sector||"")).toUpperCase().indexOf(q)>=0;
   }).slice().sort(cmp);
-  var h='<table><thead><tr>'+th("ticker","Ticker",1)+th("sector","Sector",1)+th("reported_window_amount","Reported amount¹",0)+th("reported_currency","Currency",1)+th("window_start","Window start",1)+th("window_end","Window end",1)+th("capex_ttm_b","USD window $B¹",0)+th("yoy_pct","Source annual change²",0)+th("intensity_pct","Source intensity",0)+th("mc_b","Source mcap $B",0)+th("asof","Source as of",1)+th("measurement_status","Calculation status",1)+"</tr></thead><tbody>";
+  var h='<table><thead><tr>'+th("ticker","Ticker",1)+th("sector","Sector",1)+th("capex_ttm_b","Capex TTM $B",0)+th("yoy_pct","YoY",0)+th("intensity_pct","Intensity",0)+th("mc_b","Mkt cap $B",0)+th("asof","As of",1)+"</tr></thead><tbody>";
   list.forEach(function(r){
     var t=esc(r.ticker||"");
     h+="<tr><td class=l><a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker||"")+"\">"+t+"</a></td>";
     h+="<td class=l>"+esc(r.sector==="?"?"":r.sector)+"</td>";
-    h+="<td>"+esc(num(r.reported_window_amount)==null?"":num(r.reported_window_amount).toLocaleString('en-US',{maximumFractionDigits:2}))+"</td>";
-    h+="<td class=l>"+esc(r.reported_currency||"")+"</td><td class=l>"+esc(r.window_start||"")+"</td><td class=l>"+esc(r.window_end||"")+"</td>";
     h+="<td>"+esc(fmtB(r.capex_ttm_b))+"</td>";
     h+='<td class="'+cls(r.yoy_pct)+'">'+esc(fmtPct(r.yoy_pct))+"</td>";
     h+="<td>"+esc(num(r.intensity_pct)==null?"":fmtB(r.intensity_pct)+"%")+"</td>";
     h+="<td>"+esc(fmtB(r.mc_b))+"</td>";
-    h+="<td class=l>"+esc(r.asof||"")+"</td><td class=l>"+esc(r.measurement_status)+"</td></tr>";
+    h+="<td class=l>"+esc(r.asof||"")+"</td></tr>";
   });
   document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+ROWS.length+" received rows. "+MALFORMED+" malformed rows remain in the original. Publication time (source reported): "+esc((PACK&&PACK.generated_at)||"")+". Blank is missing; publication time does not validate observation freshness.</p>";
-  V.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=TEXT_COLUMNS.includes(k)?1:-1;}paint();});
+  V.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=["ticker","sector","asof"].includes(k)?1:-1;}paint();});
 }
 (async function(){
   var d;
   try{var received=await V.load("/data/capex-pulse.json");document.getElementById("original").textContent=received.raw;d=received.packet;}
   catch(e){document.getElementById("original").textContent=typeof e.original_text==="string"?e.original_text:"Unavailable";document.getElementById("board").textContent="Publication unavailable: "+e.message;return;}
   if(!Array.isArray(d.rows)){document.getElementById("board").textContent="Received rows population is missing or malformed; see the complete original.";return;}
-  PACK=d;ROWS=d.rows.filter(function(row){return row&&typeof row==="object"&&!Array.isArray(row);}).map(function(row){var w=row.current_window||{};return Object.assign({},row,{window_start:w.start_date,window_end:w.end_date,measurement_status:w.status||'Legacy measurement unverified'});});MALFORMED=d.rows.length-ROWS.length;
+  PACK=d;ROWS=d.rows.filter(function(row){return row&&typeof row==="object"&&!Array.isArray(row);});MALFORMED=d.rows.length-ROWS.length;
   var m=d.market||{},h=d.hyperscalers||{};
-  document.getElementById("kpis").textContent="Source name count: "+V.count(d.n)+" · Source USD window $B: "+(fmtB(m.capex_ttm_b)||"Unavailable")+" · Source annual change: "+(fmtPct(m.yoy_pct)||"Unavailable")+" · Hyperscaler USD window $B: "+(fmtB(h.total_ttm_b)||"Unavailable")+" · Comparable USD groups: "+V.count(m.calendar_cohort_count)+" · Unmeasured or foreign rows: "+V.count(m.unmeasured_or_foreign_n)+" · Ambiguous issuer rows: "+V.count(m.ambiguous_issuer_n)+" · Source failures: "+V.count(d.fails);
-  if(Array.isArray(m.cohorts))document.getElementById('cohorts').textContent=JSON.stringify(m.cohorts,null,2);
+  document.getElementById("kpis").textContent="Source name count: "+V.count(d.n)+" · Source universe capex TTM $B: "+(fmtB(m.capex_ttm_b)||"Unavailable")+" · Universe YoY: "+(fmtPct(m.yoy_pct)||"Unavailable")+" · Hyperscaler TTM $B: "+(fmtB(h.total_ttm_b)||"Unavailable")+" · Hyperscaler YoY: "+(fmtPct(h.yoy_pct)||"Unavailable")+" · Source failures: "+V.count(d.fails);
   document.getElementById("q").oninput=paint;
   paint();
 })();
