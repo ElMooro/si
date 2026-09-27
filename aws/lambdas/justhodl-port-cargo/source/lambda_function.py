@@ -19,6 +19,9 @@ OUTPUT: data/port-cargo.json    Daily 12:40 UTC.
 lag_months ≈ -3 to -6 vs recognized revenue (physical precedes financial).
 """
 import json, time, urllib.parse, urllib.request
+import sys
+import cargo_store
+import impact_mapper
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 import boto3
@@ -274,7 +277,7 @@ def seasonal_baseline(fmt, latest_date, fi, fe, gaps, years=(1, 2, 3)):
     return out if out["windows"] else None
 
 
-def lambda_handler(event=None, context=None):
+def _native_calculation(event=None, context=None):
     t0 = time.time(); gaps = []
     resolved = resolve_layer(gaps)
     schema = discover_fields(gaps) if resolved else None
@@ -488,7 +491,7 @@ def lambda_handler(event=None, context=None):
             shock, seasonal_block.get("status")))
 
     out = {
-        "engine": "port-cargo", "version": "1.3.0",
+        "engine": "port-cargo", "version": "1.3.1",
         "date_field_type": sorted(date_type_seen) or None,
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
@@ -535,3 +538,7 @@ def lambda_handler(event=None, context=None):
              fetch_status, len(gaps)))
     return {"statusCode": 200, "body": json.dumps({"ok": fetch_status == "OK",
         "n_ports": len(port_rows), "data_age_days": data_age_days, "gaps": len(gaps)})}
+
+
+def lambda_handler(event=None, context=None):
+    return cargo_store.run(sys.modules[__name__], event, context)
