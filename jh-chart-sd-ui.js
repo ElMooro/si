@@ -49,5 +49,12 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wait);
   else wait();
+  if (typeof MutationObserver !== "undefined" && document.documentElement) {
+    var obs = new MutationObserver(function () {
+      if (!document.getElementById("btn-demand-rail") || !document.getElementById("btn-supply-rail")) return;
+      hook();
+    });
+    try { obs.observe(document.documentElement, { childList: true, subtree: true }); } catch (eObs) {}
+  }
   root.jhSdUiSync = sync;
 })(typeof window !== "undefined" ? window : globalThis);
