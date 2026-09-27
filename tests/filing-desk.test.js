@@ -82,3 +82,16 @@ test('filing desk text remains UTF-8 through Windows editing and asset builds',(
   assert.ok(!/[\u00c2\u00c3\ufffd]/.test(html));
  }
 });
+
+test('dedicated 8-K desks apply their declared item scope and retain the complete source',async()=>{
+ const p={filings:[{company:'Leadership',items:['5.02']},{company:'Agreement',items:['1.01']},{company:'Other',items:['8.01']}],item_labels:{'5.02':'Officers','1.01':'Agreements'},by_item_counts:{'5.02':1,'1.01':1}};
+ for(const[file,item,want,absent]of [['officer-change.html','5.02','Leadership','Agreement'],['material-agreements.html','1.01','Agreement','Leadership']]){
+  const s=await page(file,fixture(p));assert.match(s.get('status').textContent,/1 of 3/);assert.ok(s.get('board').innerHTML.includes(want));assert.ok(!s.get('board').innerHTML.includes(absent));assert.ok(s.get('items').textContent.includes(item));assert.equal(s.get('original').textContent,JSON.stringify(p));
+  s.get('q').value='Other';s.get('q').oninput();assert.match(s.get('status').textContent,/0 of 3/);
+ }
+});
+
+test('the rejected placeholder cannot provide the required filing desk API',()=>{
+ const raw=fs.readFileSync(path.join(__dirname,'fixtures/rejected-filing-desk-placeholder.js.txt'),'utf8');assert.equal(raw.trim(),'PLACEHOLDER');assert.throws(()=>vm.runInNewContext(raw),/PLACEHOLDER is not defined/);
+ assert.equal(typeof api.start,'function');assert.equal(typeof api.model,'function');
+});

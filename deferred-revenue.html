@@ -12,49 +12,29 @@ table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px
 th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
 td.l,th.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+
+input{width:100%;max-width:360px}label{display:block;margin-bottom:6px;color:var(--fg2)}
+.table-region{overflow:auto;max-width:100%;border:1px solid var(--bd);border-radius:8px}table{min-width:1250px}
+th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-index:1;min-width:82px}th:first-child{z-index:2}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto}#status{overflow-wrap:anywhere}a{color:var(--cyan)}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Deferred revenue</h1>
-<p class="sub">ASC 606 contract liability from the live backlog XBRL tape. Rising deferred revenue is cash collected before revenue is recognized. Blank is untagged, not zero. Click headers to sort.</p>
+<p class="sub">Deferred-revenue fields from the published backlog packet. Amounts and growth tags are source outputs awaiting unit and reporting-calendar validation. Blank means unavailable; explicit zero remains visible. Sort with a header or its Enter/Space key.</p>
+<label for="q">Filter ticker, name, sector or source record</label>
 <input id="q" placeholder="filter ticker / sector" autocomplete="off">
-<div id="board">Loading /data/backlog.json</div>
-<div class="foot"><b>Built for:</b> seeing whether customers have prepaid more work than the income statement has recognized.<br>
-<b>Data:</b> /data/backlog.json fields deferred_rev, deferred_asof, deferred_qoq, deferred_yoy, deferred_accelerating, rev_yoy, cik.<br>
-<b>Not:</b> cRPO, ARR, or an 8-K guide. Billings uses this same deferred change only when TTM is also dated.</div>
+<p id="status" class="sub" role="status"></p>
+<div id="board" class="table-region" role="region" aria-label="Source accounting records, scroll horizontally for every column" tabindex="0">Loading /data/backlog.json</div>
+<details><summary>Complete original publication</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Research scope:</b> Compare the source records and inspect the complete original; this desk grants no investment or position-sizing authority.<br>
+<b>1. Amount:</b> The producer chooses an available concept unit without carrying that unit into every output row. No currency is inferred here; K/M/B/T are scale suffixes only.<br>
+<b>2. Growth tags:</b> The producer compares the latest distinct period-end record with the previous or fifth record. These are not verified quarter-on-quarter or year-on-year intervals. Revenue growth also needs reporting-period verification. Values retain their source labels; the desk does not certify them as calendar growth.<br>
+<b>Dates:</b> Period end and filing date are separate source fields. Publication time does not establish observation freshness. A contract-liability tag alone does not establish cash collected or a growth forecast.</div>
 </div>
-<script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-function bn(v){if(v==null||!isFinite(Number(v)))return "";v=Number(v);var a=Math.abs(v);if(a>=1e12)return (v/1e12).toFixed(2)+"T";if(a>=1e9)return (v/1e9).toFixed(2)+"B";if(a>=1e6)return (v/1e6).toFixed(1)+"M";return v.toFixed(0);}
-function pct(v){if(v==null||!isFinite(Number(v)))return "";return (Number(v)>0?"+":"")+Number(v).toFixed(1)+"%";}
-function cls(v){return v==null?"":(Number(v)>0?"pos":Number(v)<0?"neg":"");}
-function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null&&bv==null)return String(a.ticker||"").localeCompare(String(b.ticker||""));if(av==null)return 1;if(bv==null)return -1;if(typeof av==="number"||typeof bv==="number"){av=Number(av);bv=Number(bv);if(!isFinite(av))return 1;if(!isFinite(bv))return -1;return (av-bv)*dir;}return String(av).localeCompare(String(bv))*dir;}
-(async function(){
-  var d=null,SORT="deferred_yoy",DIR=-1;
-  try{var r=await fetch("/data/backlog.json?t="+Date.now(),{cache:"no-store"});if(r.ok)d=await r.json();}catch(e){}
-  var rows=Object.keys((d&&d.by_ticker)||{}).map(function(k){return d.by_ticker[k];});
-  var cols=[["ticker","Ticker","l"],["sector","Sector","l"],["deferred_rev","Deferred $",""],["deferred_yoy","Def YoY",""],["deferred_qoq","Def QoQ",""],["rev_yoy","Rev YoY",""],["deferred_asof","As of","l"]];
-  function paint(){
-    var q=(document.getElementById("q").value||"").toUpperCase();
-    var list=rows.filter(function(x){return !q||(String(x.ticker||"")+" "+String(x.sector||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return cmp(a,b,SORT,DIR);});
-    var h="<table><thead><tr>";
-    cols.forEach(function(c){h+="<th class='"+(c[2]||"")+(SORT===c[0]?" on":"")+"' data-k="+c[0]+">"+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";});
-    h+="</tr></thead><tbody>";
-    list.forEach(function(x){
-      h+="<tr><td class=l><a href=/ticker.html?symbol="+encodeURIComponent(x.ticker)+" style=color:#fff>"+esc(x.ticker)+"</a>"+(x.deferred_accelerating?" \u00b7 accel":"")+"</td>";
-      h+="<td class=l>"+esc(x.sector||"")+"</td><td>"+esc(bn(x.deferred_rev))+"</td>";
-      h+="<td class="+cls(x.deferred_yoy)+">"+esc(pct(x.deferred_yoy))+"</td>";
-      h+="<td class="+cls(x.deferred_qoq)+">"+esc(pct(x.deferred_qoq))+"</td>";
-      h+="<td class="+cls(x.rev_yoy)+">"+esc(pct(x.rev_yoy))+"</td>";
-      h+="<td class=l>"+esc(x.deferred_asof||"")+"</td></tr>";
-    });
-    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" names. Generated "+esc((d&&d.generated_at)||"")+".</p>";
-    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="ticker"||th.dataset.k==="sector"||th.dataset.k==="deferred_asof"?1:-1;}paint();};});
-  }
-  if(!rows.length){document.getElementById("board").textContent="backlog.json missing.";return;}
-  document.getElementById("q").oninput=paint;paint();
-})();
-</script>
+<script src="/jh-table-values.js"></script>
+<script src="/jh-statement-desk.js"></script>
+<script>JHStatementDesk.start({mode:"deferred",source:"/data/backlog.json"});</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/sidebar.js" defer></script>
