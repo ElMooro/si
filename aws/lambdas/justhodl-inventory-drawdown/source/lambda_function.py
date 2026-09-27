@@ -26,7 +26,7 @@ from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no litera
 S3 = boto3.client("s3", "us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/inventory-drawdown.json"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 FMP = managed_secret(('FMP', 'FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 FRED_BASE = "https://api.stlouisfed.org/fred"
@@ -127,7 +127,7 @@ def dio_trend(tk):
             "dio_chg_pct": round(dio_chg, 1), "rev_growth_yoy": round(rev_g, 1) if rev_g is not None else None}
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     t0 = time.time()
     sectors = sector_drawdown()
 
@@ -245,4 +245,78 @@ def lambda_handler(event=None, context=None):
                   ContentType="application/json", CacheControl="public, max-age=3600")
     print(f"[inventory-drawdown] sectors_drawing={out['counts']['sectors_drawing']} "
           f"names_with_inv={len(results)} boom_setups={len(boom_setups)} {out['duration_s']}s")
+    return {"statusCode": 200, "body": json.dumps(out["counts"])}
+
+
+# Observation contract: preserve acquisitions and withhold unqualified forecasts.
+from inventory_measurements import CONTRACT, decode, sector, stock, universe
+
+
+def _research_get(url):
+    try:
+        with urllib.request.urlopen(url, timeout=20) as response:
+            raw = response.read()
+        return {"status": "received", "response": decode(raw)}
+    except Exception as exc:
+        # Provider errors can contain secret-bearing URLs; never publish them.
+        return {"status": "unavailable", "error_type": type(exc).__name__, "response": None}
+
+
+def _research_read(key):
+    try:
+        raw = S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+    except Exception as exc:
+        if str(getattr(exc, "response", {}).get("Error", {}).get("Code")) in ("404", "NoSuchKey"):
+            return None
+        raise
+    value = decode(raw)
+    if not isinstance(value, dict): raise ValueError("Whole universe source object required")
+    return value
+
+
+def lambda_handler(event=None, context=None):
+    started = time.time(); now = datetime.now(timezone.utc); as_of = now.date().isoformat()
+    keys = ("data/bottleneck-boom.json", "data/chokepoint.json", "data/scarcity-radar.json")
+    sources = {key: _research_read(key) for key in keys}
+    plan = universe(sources)
+    sectors = []
+    for sid, (label, theme) in FRED_SECTORS.items():
+        url = f"{FRED_BASE}/series/observations?series_id={sid}&api_key={FRED_KEY}&file_type=json&sort_order=desc&limit=72"
+        sectors.append(sector(sid, label, theme, _research_get(url), as_of))
+    acquired = {}
+    def acquire(symbol):
+        url = f"https://financialmodelingprep.com/stable/key-metrics?symbol={symbol}&period=quarter&limit=8&apikey={FMP}"
+        return _research_get(url)
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        futures = {pool.submit(acquire, symbol): symbol for symbol in plan["requested"]}
+        for future in as_completed(futures):
+            symbol = futures[future]
+            try: acquired[symbol] = future.result()
+            except Exception as exc:
+                acquired[symbol] = {"status": "unavailable", "error_type": type(exc).__name__, "response": None}
+    board = [stock(symbol, acquired[symbol], plan["contexts"][symbol], as_of) for symbol in plan["requested"]]
+    received = sum(bool(r["observations"]) for r in sectors + board)
+    if not received:
+        return {"statusCode": 503, "body": json.dumps({"status": "no_observations_previous_publication_preserved"})}
+    out = {"engine": "inventory-drawdown", "version": VERSION, "measurement_contract": CONTRACT,
+           "generated_at": datetime.now(timezone.utc).isoformat(), "checked_as_of": as_of,
+           "duration_s": round(time.time()-started, 1), "sector_drawdown": sectors,
+           "stock_drawdown_board": board, "boom_setups": [], "universe_plan": plan,
+           "source_contexts": sources, "signals_logged": 0,
+           "counts": {"sectors_drawing": None, "names_scanned": len(plan["requested"]),
+                      "names_with_inventory": sum(r["dio_latest"] is not None for r in board),
+                      "boom_setups": 0, "building_inventory": None,
+                      "names_not_attempted": len(plan["not_attempted"]), "stock_records": len(board)},
+           "call": None, "calls_eligible": False, "forecast_qualified": False,
+           "sizing_eligible": False, "execution_eligible": False,
+           "quality": {"status": "partial", "provider_originals_replayed": False,
+                       "point_in_time_availability_verified": False, "universe_complete": False},
+           "thesis": "Dated inventory-to-sales ratios and provider-reported days of inventory. A ratio can fall because sales rise; depletion and shortages require separate evidence.",
+           "method": "Exact monthly endpoints and comparable reported annual quarter pairs. Full received observations and source positions retained; missing latest values never fall back to older observations.",
+           "legend": {"measurement": "Research only; no shortage, demand, pricing-power or investment signal inferred."},
+           "sources": list(FRED_SECTORS) + ["FMP quarterly key-metrics"] + list(keys),
+           "disclaimer": "Original HTTP responses, first-release vintages, DIO calculation inputs, corporate actions and return predictability remain unverified."}
+    raw = json.dumps(out, allow_nan=False, separators=(",", ":")).encode("utf-8")
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=raw,
+                  ContentType="application/json", CacheControl="public, max-age=3600")
     return {"statusCode": 200, "body": json.dumps(out["counts"])}

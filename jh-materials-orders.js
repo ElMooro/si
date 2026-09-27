@@ -22,7 +22,7 @@
    if(!object(packet)||!Array.isArray(packet[key])){issues.push(source+' '+key+' missing or malformed');return;}
    packet[key].forEach((row,i)=>{const ref=source+':'+key+'['+i+']';if(object(row))append(row,ref,packet);else issues.push(ref+' malformed; retained in original');});
   }
-  array(packets.inventory,'sector_drawdown','inventory-drawdown',(r,ref,p)=>sectors.push({...r,source_record:ref,observation_date:day(r.as_of||r.asof),publication_time:text(p.generated_at)}));
+  array(packets.inventory,'sector_drawdown','inventory-drawdown',(r,ref,p)=>sectors.push({...r,chg_3m:p.measurement_contract==='inventory-observation-measurements.v1'?r.ratio_changes_pct?.['3m']?.value:r.chg_3m,chg_6m:p.measurement_contract==='inventory-observation-measurements.v1'?r.ratio_changes_pct?.['6m']?.value:r.chg_6m,chg_12m:p.measurement_contract==='inventory-observation-measurements.v1'?r.ratio_changes_pct?.['12m']?.value:r.chg_12m,source_record:ref,observation_date:day(r.as_of||r.asof),publication_time:text(p.generated_at)}));
   array(packets.inventory,'stock_drawdown_board','inventory-drawdown',(r,ref,p)=>firms.push({ticker:text(r.ticker),sector:text(r.sector),source:'Inventory / DIO',source_record:ref,
     dio:r.dio_latest,dio_change:r.dio_chg_pct,revenue_change:r.rev_growth_yoy,observation_date:day(r.asof||r.as_of),publication_time:text(p.generated_at),status:'Source tags; period, units and issuer join unverified',original:r}));
   const book=packets.backlog;
