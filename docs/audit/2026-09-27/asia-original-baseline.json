@@ -1,0 +1,107 @@
+{
+  "account_reads": 0,
+  "actual_producer": {
+    "status": "whole_actual_package_retained",
+    "runtime": {
+      "FunctionName": "justhodl-asia-leads",
+      "CodeSha256": "Vlz99Iit053xLE1E1r3YG4BuUMKsClIPV1pFvx4vYmM=",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 300,
+      "MemorySize": 512,
+      "Architectures": [
+        "x86_64"
+      ],
+      "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "EphemeralStorage": {
+        "Size": 512
+      },
+      "LastModified": "2026-09-09T01:57:20.000+0000"
+    },
+    "whole_zip": {
+      "key": "audit-private/20260909-originals/shipping-consumer-research/565cfdf488add39df12c4d44d6bdd81b806e50c2ac0a520f575a45bf1e2f6263.bin",
+      "sha256": "565cfdf488add39df12c4d44d6bdd81b806e50c2ac0a520f575a45bf1e2f6263",
+      "bytes": 172404
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-asia-leads-daily",
+        "state": "ENABLED",
+        "expression": "cron(20 10 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "active_alias": null,
+    "repository_config_present": false,
+    "code_matches_repository": true,
+    "source_files_checked": 2,
+    "source_differences": {}
+  },
+  "all_denied": true,
+  "anonymous_origins_checked": 10,
+  "attempt_outcome_counts": {
+    "404": 5,
+    "403": 5
+  },
+  "baseline": {
+    "key": "audit-private/20260909-originals/asia-leads-research/3613607cfe27e31fdc0a12c67600365601ac290e49a50863689afaf5ed222e10.bin",
+    "bytes": 9051,
+    "sha256": "3613607cfe27e31fdc0a12c67600365601ac290e49a50863689afaf5ed222e10"
+  },
+  "failures": [],
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "originals": {
+    "data/asia-leads.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/asia-leads-research/44698c9ec29469feeda40ecfd6527cb4a0f27d464169da89484a11cd51621ede.bin",
+        "bytes": 7356,
+        "sha256": "44698c9ec29469feeda40ecfd6527cb4a0f27d464169da89484a11cd51621ede"
+      },
+      "etag": "\"cfbed24dbbcf40961bad77f5ce9e3fac\"",
+      "last_modified": "2026-09-27T10:20:38+00:00",
+      "original_provider_verified": false
+    },
+    "asia/kr-flash-tape.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/asia-leads-research/e168bf5a953cf9bede7855183a68cc666cfa241c8842fc7375c3a62058cf3200.bin",
+        "bytes": 1038,
+        "sha256": "e168bf5a953cf9bede7855183a68cc666cfa241c8842fc7375c3a62058cf3200"
+      },
+      "etag": "\"494cdba3de1604ce15e8f9070fc4f0ba\"",
+      "last_modified": "2026-09-27T10:20:23+00:00",
+      "original_provider_verified": false
+    },
+    "kcs/flash-cache.json": {
+      "status": "missing"
+    },
+    "asia/tw-orders-levels.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/asia-leads-research/6a35b36bae7151dca8d3c927c36ad04a4285bcf6e43485dd0d1a7ceacb2ce218.bin",
+        "bytes": 85,
+        "sha256": "6a35b36bae7151dca8d3c927c36ad04a4285bcf6e43485dd0d1a7ceacb2ce218"
+      },
+      "etag": "\"9036887ec0eb60f1af0c8cf7fa7eac45\"",
+      "last_modified": "2026-09-27T10:20:38+00:00",
+      "original_provider_verified": false
+    }
+  },
+  "protected_paths_checked": 5,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Whole original code and four exact research objects only. Source definitions, quoted-news extraction, vintages, forecasting and portfolio consequences remain unqualified.",
+  "source_check": {
+    "bytes": 31448,
+    "sha256": "1a2b4500ee50c13c3889bfe7f23487de6231015f3372830833a9420169897dfb",
+    "imported_or_executed": false
+  }
+}

@@ -18,12 +18,13 @@ Writes data/asia-leads.json. Real data only; blocks degrade independently."""
 import json, os, time, urllib.parse, urllib.request
 from datetime import datetime, timezone
 import boto3
+from botocore.config import Config
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/asia-leads.json"
 FRED = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = boto3.client("s3", region_name="us-east-1", config=Config(connect_timeout=4, read_timeout=8, retries={"total_max_attempts": 1}))
 BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "JustHodl research contact@justhodl.ai", "Accept": "application/json"}
 
@@ -96,8 +97,8 @@ EDGE = "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
 
 def _edge(u, timeout=25, cap=300_000):
     """v1.4: fetch geo-blocked gov hosts through the CF /gov edge (ops 3592
-    proved MOEA 200 via edge vs 403 direct); falls back to direct+noverify."""
-    import ssl, urllib.parse as _up
+    proved MOEA 200 via edge vs 403 direct); direct fallback verifies TLS."""
+    import urllib.parse as _up
     try:
         r = urllib.request.urlopen(urllib.request.Request(
             EDGE + _up.quote(u, safe=""), headers=UA), timeout=timeout)
@@ -107,10 +108,8 @@ def _edge(u, timeout=25, cap=300_000):
     except Exception as e:
         print("[asia] edge fail", str(e)[:60])
     try:
-        ctx = ssl.create_default_context(); ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
         return urllib.request.urlopen(urllib.request.Request(u, headers=UA),
-                                      timeout=timeout, context=ctx).read(cap), "direct"
+                                      timeout=timeout).read(cap), "direct"
     except Exception as e:
         return b"", "fail:" + str(e)[:40]
 
@@ -122,7 +121,7 @@ def korea_flash_tape():
     extraction, month-window tagged; validated against the prior month's print
     so the mechanism is proven before the live one lands. Never fabricates."""
     import re as _re
-    from datetime import datetime, timezone, timedelta
+    from datetime import timedelta
     out = {"label": "Korea 1-20 day exports (news-tape parse)", "method": "news-tape",
            "latest": None, "validated_sample": None, "articles_scanned": 0,
            "sources": [], "error": None}
@@ -233,7 +232,7 @@ def korea_flash():
     CF-worker /gov edge-fetch (KR gov firewalls cloud-ASN runners; data.go.kr
     key path dead: US phone rejected). Parses total + semiconductor prints with
     stated YoY. History caches to S3; never fabricates."""
-    import re, urllib.parse
+    import re
     out = {"source": _KCS_LIST, "via": "cf-edge /gov",
            "label": "Korea exports, 1st-20th of month (KCS provisional flash)",
            "period": None, "total_usd_bn": None, "total_yoy_pct": None,
@@ -543,7 +542,7 @@ def taiwan_orders():
     return out
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     out = {
@@ -579,3 +578,9 @@ def lambda_handler(event=None, context=None):
         "ok": True,
         "kr_yoy": out["korea_exports"].get("yoy_pct"),
         "tw_yoy": out["taiwan_exports"].get("yoy_pct")})}
+
+
+def lambda_handler(event=None, context=None):
+    import sys
+    from asia_store import run
+    return run(sys.modules[__name__], event, context)
