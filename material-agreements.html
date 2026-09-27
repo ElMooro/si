@@ -6,37 +6,71 @@
 :root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
 .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
-h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:860px;margin:0 0 14px}
-.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
-.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2);cursor:pointer}
-.chip.on{border-color:var(--cyan);color:var(--fg)}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:900px;margin:0 0 14px}
 input{max-width:360px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
-table{width:100%;border-collapse:collapse;min-width:900px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+table{width:100%;border-collapse:collapse;min-width:1080px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
 th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
 .item{display:inline-block;margin:0 4px 4px 0;padding:1px 6px;border:1px solid var(--bd);border-radius:4px;font-size:10px;color:var(--fg2)}
 a{color:var(--cyan);text-decoration:none}
+.muted{color:var(--fg3)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 .table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
-details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;color:var(--fg2);font-size:12px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Material agreements 8-K</h1>
-<p class="sub">Current-window Form 8-K Item 1.01 rows from the live EDGAR tape: entry into a material definitive agreement. An item tag is not a parsed contract value or a deal close. Company names remain as filed; no ticker is inferred.</p>
-<div class="kpis" id="kpis"></div>
-<div class="kpis" id="items"></div>
+<p class="sub">Current-window Form 8-K Item 1.01 rows from the live EDGAR tape. Deal $, MoM, QoQ and YoY stay blank because this tape has no contract value and no dated agreement series. Click any header to sort. Company names remain as filed; no ticker is inferred.</p>
 <input id="q" placeholder="Filter company or accession" autocomplete="off">
-<p id="publication" class="sub">Awaiting stored publication.</p>
-<p id="status" class="sub" role="status">Loading received records.</p>
+<p id="status" class="sub" role="status">Loading /data/8k-filings.json</p>
 <div id="board" class="table-region">Loading stored publication.</div>
-<details><summary>Complete original publication</summary><pre id="original">Unavailable</pre></details>
-<div class="foot"><b>Built for:</b> listing current-window Item 1.01 material agreements without inventing a ticker map or a contract value.<br>
-<b>Data:</b> /data/8k-filings.json filings[] filtered to items containing 1.01 (company, accession, filed_at, items, filing_url).<br>
+<div class="foot"><b>Built for:</b> listing current-window Item 1.01 material agreements, with sortable columns, without inventing a contract value or a growth rate.<br>
+<b>Data:</b> /data/8k-filings.json filings[] filtered to items containing 1.01 (company, accession, filed_at, items, filing_url). No deal_value, amount, or agreement-history field exists on that packet.<br>
+<b>Blank columns:</b> Deal $ / MoM / QoQ / YoY are reserved and stay empty. A 7-day item tape cannot produce month, quarter or year change in agreement dollars. Document Size in the Atom snippet is filing kilobytes, not a deal value, and is not shown as dollars.<br>
 <b>Not:</b> an 8-K body parser, a purchase-price extract, or a confirmed closing. Research only.</div>
 </div>
-<script src="/jh-table-values.js"></script>
-<script src="/jh-filing-desk.js"></script>
-<script>JHFilingDesk.start({mode:"8k",source:"/data/8k-filings.json",item:"1.01"});</script>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&","<":"<",">":">",'"':"""}[c];});}
+function hasItem(row,code){return Array.isArray(row&&row.items)&&row.items.indexOf(code)>=0;}
+function secOk(u){return typeof u==="string"&&/^https:\/\/(?:www\.)?sec\.gov\/Archives\/edgar\/data\/\d+\//.test(u);}
+function cmp(a,b,k,dir){
+  var av=a[k],bv=b[k];
+  if(av==null||av===""){if(bv==null||bv==="")return String(a.company||"").localeCompare(String(b.company||""));return 1;}
+  if(bv==null||bv==="")return -1;
+  if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;
+  return String(av).localeCompare(String(bv))*dir;
+}
+(async function(){
+  var d=null,SORT="filed_at",DIR=-1;
+  try{var r=await fetch("/data/8k-filings.json?t="+Date.now(),{cache:"no-store"});if(r.ok)d=await r.json();}catch(e){}
+  var all=(d&&Array.isArray(d.filings))?d.filings:[];
+  var rows=all.filter(function(x){return hasItem(x,"1.01");}).map(function(x){
+    return {company:x.company||"",filed_at:x.filed_at||"",accession:x.accession||"",items:Array.isArray(x.items)?x.items:[],filing_url:x.filing_url||"",deal_usd:null,mom:null,qoq:null,yoy:null};
+  });
+  var COLS=[["filed_at","Filed"],["company","Company / SEC document"],["deal_usd","Deal $"],["mom","MoM %"],["qoq","QoQ %"],["yoy","YoY %"],["items","Items"],["accession","Accession"]];
+  function paint(){
+    var q=(document.getElementById("q").value||"").toUpperCase();
+    var list=rows.filter(function(x){return !q||(x.company+" "+x.accession).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,SORT,DIR);});
+    var h="<table><thead><tr>";
+    COLS.forEach(function(c){
+      h+="<th class='"+(SORT===c[0]?"on":"")+"' data-k="+c[0]+">"+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";
+    });
+    h+="</tr></thead><tbody>";
+    list.forEach(function(x){
+      var name=esc(x.company);
+      var link=secOk(x.filing_url)?'<a href="'+esc(x.filing_url)+'" target="_blank" rel="noopener noreferrer">'+name+"</a>":name;
+      var items=x.items.map(function(it){return "<span class=item>"+esc(it)+"</span>";}).join("");
+      h+="<tr><td>"+esc(x.filed_at)+"</td><td>"+link+"</td><td class=muted></td><td class=muted></td><td class=muted></td><td class=muted></td><td>"+items+"</td><td>"+esc(x.accession)+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+"</tbody></table>";
+    document.getElementById("status").textContent=list.length+" of "+all.length+" received 8-Ks carry Item 1.01. Deal $, MoM, QoQ and YoY are blank — those fields are not in the tape. Click headers to sort.";
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){
+      th.onclick=function(){if(SORT===th.getAttribute("data-k"))DIR=-DIR;else{SORT=th.getAttribute("data-k");DIR=SORT==="filed_at"?-1:1;}paint();};
+    });
+  }
+  if(!all.length){document.getElementById("board").textContent="8k-filings.json missing or filings[] empty.";document.getElementById("status").textContent="No filing conclusion is available from this failed read.";return;}
+  document.getElementById("q").oninput=paint;paint();
+})();
+</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/sidebar.js" defer></script>
