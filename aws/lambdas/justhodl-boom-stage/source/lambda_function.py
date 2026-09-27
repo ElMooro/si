@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-VERSION = "1.7.0"
+VERSION = "1.7.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -268,8 +268,21 @@ def _stage(v_yoy, vol_pct):
     return "MIXED", "legs conflict mildly — watch next prints"
 
 
+def _publish_plan(plan, ledger):
+    """Publish the fully checked plan; history first, with independent CAS guards."""
+    S3.put_object(Bucket=BUCKET, Key="boom/boom-stage-history.json", Body=plan["history_raw"],
+                  ContentType="application/json", CacheControl="no-store",
+                  **({"IfMatch": ledger.old_history["etag"]} if ledger.old_history else {"IfNoneMatch": "*"}))
+    S3.put_object(Bucket=BUCKET, Key=KEY, Body=plan["head_raw"],
+                  ContentType="application/json", CacheControl="public, max-age=1800",
+                  **({"IfMatch": ledger.old_head["etag"]} if ledger.old_head else {"IfNoneMatch": "*"}))
+    return plan["evidence"]
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
+    from boom_history import Ledger
+    ledger = Ledger(S3, BUCKET, now.isoformat())
     asia = _get("data/asia-leads.json")
     pw = _get("data/portwatch.json")
     cn = _get("data/china-liquidity.json")
@@ -497,24 +510,12 @@ def lambda_handler(event=None, context=None):
             p["factor4"] = f4
             p["factor4_note"] = note
 
-    # ---- history ledger + transitions + sliding-watch signals ----
-    try:
-        hist = json.loads(S3.get_object(
-            Bucket=BUCKET, Key="boom/boom-stage-history.json")["Body"].read())
-    except Exception:
-        hist = {"days": {}}
+    # Preserve every original date; stage one new date without public writes.
+    hist = ledger.history
     today = now.strftime("%Y-%m-%d")
     prev_day = max([k for k in hist["days"] if k < today], default=None)
     prev = hist["days"].get(prev_day, {}) if prev_day else {}
-    hist["days"][today] = {p["id"]: {
-        "v": (p["value"] or {}).get("yoy_pct"),
-        "vol": (p["volume"] or {}).get("vs_baseline_pct"),
-        "stage": p["stage"]} for p in pairs}
-    hist["days"] = {k: hist["days"][k]
-                    for k in sorted(hist["days"])[-60:]}
-    S3.put_object(Bucket=BUCKET, Key="boom/boom-stage-history.json",
-                  Body=json.dumps(hist).encode(),
-                  ContentType="application/json")
+    ledger.append(pairs)
 
     signals = []
     for p in pairs:
@@ -799,11 +800,8 @@ def lambda_handler(event=None, context=None):
            "doctrine": ("value-vs-volume: surging value on flat volume = "
                         "pricing power (early); volume catch-up with "
                         "cooling value = plateau forming")}
-    S3.put_object(Bucket=BUCKET, Key=KEY,
-                  Body=json.dumps(doc, default=str).encode(),
-                  ContentType="application/json",
-                  CacheControl="public, max-age=1800")
-    print(f"[boom-stage] live={len(live)}/3 "
+    _publish_plan(ledger.prepare(doc), ledger)
+    print(f"[boom-stage] live={len(live)}/{len(pairs)} "
           f"stages={[(p['id'], p['stage']) for p in pairs]}")
     return {"ok": doc["ok"], "stages": [(p["id"], p["stage"])
                                          for p in pairs]}

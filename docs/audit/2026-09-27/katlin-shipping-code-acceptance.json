@@ -1,0 +1,123 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "wr/BH1lUgl3G5Tet+s6Kb2W53BYld4lHTbXyDa0LRN4=",
+    "source_files_checked": 14,
+    "handler_bytes": 209621,
+    "timeout": 900,
+    "memory_mb": 8192,
+    "receipt": {
+      "status": "matched",
+      "commit": "0f8d354a5931ad3bdc34732e5a1e55481be22c6d"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-katlin-daily",
+        "state": "ENABLED",
+        "expression": "cron(10 4 ? * TUE-SAT *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "target_qualifier": "live"
+      },
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-katlin-backtest-weekly",
+        "state": "ENABLED",
+        "expression": "cron(30 9 ? * SUN *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default",
+        "target_qualifier": "live"
+      },
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-katlin-permission-refresh",
+        "state": "ENABLED",
+        "expression": "rate(15 minutes)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default",
+        "target_qualifier": "live"
+      }
+    ],
+    "function_name": "justhodl-katlin",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 2048,
+    "active_alias": {
+      "alias": "live",
+      "version": "14",
+      "code_sha256": "wr/BH1lUgl3G5Tet+s6Kb2W53BYld4lHTbXyDa0LRN4="
+    }
+  },
+  "baseline_sha256": "eb90d7d59b0c3125a8c6e781def7f1670b0bb42d8d19ecdf0421f6e778008fa9",
+  "expected_commit": "0f8d354a5931ad3bdc34732e5a1e55481be22c6d",
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "provider_requests": 0,
+  "public_source": {
+    "key": "data/portwatch.json",
+    "bytes": 109122,
+    "sha256": "c693ebf0c880ec84c4f57553d03ce3cfcae568c041883779884353a174b83fe7",
+    "consumer_context": {
+      "contract": "shipping-consumer-context.v1",
+      "source_key": "data/portwatch.json",
+      "source_generated_at": "2026-09-26T11:20:50.738439+00:00",
+      "parsed_input_sha256": "09274f5848ef5d0b37025b512ee5b863c75a29acaccbef9d75f2d3dce9d94ec8",
+      "identity_basis": "Complete canonical parsed JSON; not original stored bytes.",
+      "source_object_valid": true,
+      "status": "unqualified_legacy_or_unavailable",
+      "publication_within_26h": true,
+      "observation_freshness_verified": false,
+      "original_source_replay_performed_by_consumer": false,
+      "qualified_investment_votes": 0,
+      "portfolio_action": "WAIT",
+      "meaning": "abstain",
+      "forecast_qualified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "execution_eligible": false,
+      "note": "Vessel counts are not cargo tons, industry revenues or national exports. A calendar count comparison does not establish pricing power, unpriced demand, an industry exposure weight or a portfolio action. Shipping contributes no investment vote."
+    }
+  },
+  "public_writes": 0,
+  "qualified_shipping_investment_votes": 0,
+  "recipient_reads": 0,
+  "schedules_changed": 0,
+  "scope": "Exact code/alias and isolated stock/country-ETF scoring only. Native private research/account outputs are neither invoked nor read. Other ranking models remain outside this qualification.",
+  "served_assets": {
+    "commit": "0f8d354a5931ad3bdc34732e5a1e55481be22c6d",
+    "served_descendant": "0f8d354a5931ad3bdc34732e5a1e55481be22c6d",
+    "checked_at": "2026-09-27T05:25:15.740282+00:00",
+    "registry_hash": "93e746544af4dc911ef67df7b2f9f71a6dc29f2e94628e3be4e174e053b51dee",
+    "assets": {
+      "katlin.html": {
+        "bytes": 68225,
+        "sha256": "3a5bbc5c3fa8b52645244076b2cc529dfc26b4729f648216e812f0129ccb35eb",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1336684,
+        "sha256": "7d31d2445b677e2aa3f4af2323f36f0e2c15a8bc4fdb58fa455ee913753f9699",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2337886,
+        "sha256": "93e746544af4dc911ef67df7b2f9f71a6dc29f2e94628e3be4e174e053b51dee",
+        "matches_commit_manifest": true
+      }
+    }
+  }
+}
