@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash profitability · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 80px}
+h1{margin:0 0 6px}h1 span{color:var(--cyan)}.sub{color:var(--fg2);max-width:820px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:12px;color:var(--fg2);margin:4px 6px 4px 0;display:inline-block}
+table{width:100%;border-collapse:collapse;font:12.5px ui-monospace,Menlo,monospace}
+th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:right}th.l,td.l{text-align:left}
+.tk{color:#fff;font-weight:700;text-decoration:none}.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;color:var(--fg3);font-size:12px;line-height:1.65;border-top:1px solid var(--bd);padding-top:14px}
+input{background:#0a0e14;border:1px solid var(--bd);color:var(--fg);padding:7px 10px;border-radius:8px;margin:8px 0}
+</style></head><body>
+<div class="wrap">
+<h1>Cash <span>profitability</span></h1>
+<p class="sub">Sloan accruals and cash conversion from the earnings-quality tape. A name with no Sloan tag stays blank.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter ticker">
+<div id="board">Loading earnings-quality…</div>
+<div class="foot">
+<b>Built for:</b> seeing whether reported earnings are turning into cash.<br>
+<b>Data:</b> /data/earnings-quality.json via jh-growth-stack.js (Sloan accruals % assets, cash conversion, DSRI, FCF).<br>
+<b>Formulas:</b> Sloan = (NI − OCF) / assets when the producer tagged it. Cash conversion = OCF / NI when both exist. Blank is missing, not zero.
+</div>
+</div>
+<script src="/jh-growth-stack.js"></script>
+<script>
+(async function(){
+  function esc(s){return String(s==null?"":s).replace(/[&<>]/g,function(c){return c==="&"?"&":c==="<"? "<":">";});}
+  function n(v,d){return v==null?"…":Number(v).toFixed(d==null?2:d);}
+  if(!window.jhGrowthStack){document.getElementById("board").textContent="jh-growth-stack.js failed to load.";return;}
+  await jhGrowthStack.boot();
+  const rows=jhGrowthStack.list("quality")||[];
+  document.getElementById("kpis").innerHTML='<span class="chip"><b>'+rows.length+'</b> names with a quality row</span>';
+  function paint(){
+    const q=(document.getElementById("q").value||"").toUpperCase();
+    const view=rows.filter(function(r){return !q||(r.ticker+" "+(r.name||"")).toUpperCase().indexOf(q)>=0;})
+      .sort(function(a,b){return (a.sloan==null)-(b.sloan==null)||(a.sloan||0)-(b.sloan||0);});
+    let h='<table><thead><tr><th class="l">Ticker</th><th>Sloan % assets</th><th>Cash conv</th><th>DSRI</th><th>Quality score</th></tr></thead><tbody>';
+    view.forEach(function(r){
+      h+='<tr><td class="l"><a class="tk" href="/ticker.html?symbol='+esc(r.ticker)+'">'+esc(r.ticker)+'</a></td>';
+      h+='<td class="'+(r.sloan!=null&&r.sloan>0?"neg":"pos")+'">'+(r.sloan==null?"…":n(r.sloan,1))+'</td>';
+      h+='<td>'+n(r.cash_conv,2)+'</td><td>'+n(r.dsri,2)+'</td><td>'+n(r.quality_score,1)+'</td></tr>';
+    });
+    document.getElementById("board").innerHTML=h+"</tbody></table>";
+  }
+  document.getElementById("q").addEventListener("input",paint);
+  paint();
+})();
+</script>
+<script src="/sidebar.js" defer></script>
+</body></html>
