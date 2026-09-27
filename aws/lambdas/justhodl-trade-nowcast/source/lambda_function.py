@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/trade-nowcast.json"
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
@@ -154,7 +154,7 @@ def _cpb():
     return d
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
            "series": {}, "errors": []}
@@ -208,6 +208,15 @@ def lambda_handler(event=None, context=None):
           f"errs={out['errors']}")
     return {"ok": out["ok"], "rate_pressure": out.get("rate_pressure"),
             "verdict": out.get("verdict")}
+
+
+def lambda_handler(event=None, context=None):
+    """Scheduled source research; the complete predecessor remains above."""
+    from botocore.config import Config
+    from trade_store import run
+    client = boto3.client("s3", region_name="us-east-1", config=Config(
+        connect_timeout=4, read_timeout=8, retries={"max_attempts": 1}))
+    return run(client, BUCKET, FRED_KEY, event, context)
 
 
 if __name__ == "__main__":

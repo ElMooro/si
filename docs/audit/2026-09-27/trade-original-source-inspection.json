@@ -1,0 +1,85 @@
+{
+  "checked_at": "2026-09-27T10:32:00+00:00",
+  "scope": "Read-only original official-source inspection; not a native producer invocation or live publication proof.",
+  "source_urls": {
+    "sitemap": "https://www.cpb.nl/sitemap.xml",
+    "report": "https://www.cpb.nl/wereldhandelsmonitor/cpb-wereldhandelsmonitor-juli-2026",
+    "workbook": "https://www.cpb.nl/system/files/cpbmedia/CPB-world-trade-monitor-july-2026.xlsx"
+  },
+  "originals": {
+    "sitemap": {
+      "bytes": 1224404,
+      "sha256": "a016b7c07217b2b639bc8df1d06d0fb5abb35cbfcb233768e221e1c597e30670"
+    },
+    "report": {
+      "bytes": 94749,
+      "sha256": "1a4e14417434a69292a182c8ff74df1d616e6741f84bab7ecff312dfddc3a576"
+    },
+    "workbook": {
+      "bytes": 365055,
+      "sha256": "6f87a884e2f0a840060bb96242a7c912df9a669e25b72f430a2f4a52516b30f2"
+    }
+  },
+  "report": {
+    "report_url": "https://www.cpb.nl/wereldhandelsmonitor/cpb-wereldhandelsmonitor-juli-2026",
+    "period": "2026-07",
+    "published_at": "2026-09-25T10:00:00+00:00",
+    "workbook_url": "https://www.cpb.nl/system/files/cpbmedia/CPB-world-trade-monitor-july-2026.xlsx",
+    "source_description": "Het wereldhandelsvolume is in juli 2026 met 0,3% toegenomen ten opzichte van juni. Die maand kende een stijging van 1,8%. Dit blijkt uit de maandelijkse CPB Wereldhandelsmonitor. Het importvolume van Latijns Amerika kent een stijging van 8,6%, terwijl de exporten met 4,2% toenemen. Voor de Verenigde Staten is er een stijging van 4,2% van het importvolume. Het exportvolume van het Verenigd Koninkrijk stijgt 4,4% volgend op een daling van 4,7% de maand daarvoor.&nbsp;&nbsp;",
+    "description_used_for_numbers": false
+  },
+  "sitemap_entries": 4648,
+  "trade_candidate_count": 292,
+  "series_count": 88,
+  "monthly_positions": 28072,
+  "monthly_columns": 319,
+  "first_month": "2000-01",
+  "last_month": "2026-07",
+  "world_trade": {
+    "series_id": "tgz_w1_qnmi_sn",
+    "sheet": "trade_out",
+    "row": 8,
+    "name": "World trade",
+    "unit": "Index 2021=100",
+    "section": "Volumes, seasonally adjusted",
+    "seasonal_adjustment": "SA",
+    "base_year_weight_or_value_cell": {
+      "cell": "D8",
+      "value": "21254.1206934855",
+      "type": "n",
+      "formula": null,
+      "has_formula": false
+    },
+    "monthly_count": 319,
+    "latest_month": "2026-07",
+    "level": 116.813797475474,
+    "status": "measured",
+    "mom": {
+      "status": "measured",
+      "percent": 0.3428505102780612,
+      "current_month": "2026-07",
+      "previous_month": "2026-06",
+      "unit": "percent"
+    },
+    "three_month": {
+      "status": "measured",
+      "percent": 2.4865050239095683,
+      "current_month": "2026-07",
+      "previous_month": "2026-04",
+      "unit": "percent"
+    },
+    "yoy": {
+      "status": "measured",
+      "percent": 5.9870697105979165,
+      "current_month": "2026-07",
+      "previous_month": "2025-07",
+      "unit": "percent"
+    },
+    "forecast_qualified": false,
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false
+  },
+  "provider_acquisition_original_vintages_verified": false,
+  "forecast_qualified": false
+}
