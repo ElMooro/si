@@ -18,15 +18,14 @@
  }
  function dateLabel(value){return date(value)===null?(value==null||value===''?'Unavailable':'Invalid date; see original'):value;}
  function secURL(value){
-  if(typeof value!=='string'||!/^https:\/\/(?:www\.)?sec\.gov\/Archives\/edgar\/data\/\d+\/[A-Za-z0-9_./-]+$/.test(value))return null;
-  try{
-   const u=new URL(value);
-   if(u.protocol!=='https:'||!['sec.gov','www.sec.gov'].includes(u.hostname)||u.username||u.password||u.port||u.search||u.hash)return null;
-   if(!/^\/Archives\/edgar\/data\/\d+\/[A-Za-z0-9_./-]+$/.test(u.pathname)||/\/(?:\.|\.\.)\//.test(value))return null;
-   return u.href;
-  }catch{return null;}
+  if(typeof value!=='string'||!/^https:\/\/(?:www\.)?sec\.gov\/Archives\/edgar\/data\/\d+\/[A-Za-z0-9_./-]+$/.test(value))return '';
+  return value;
  }
- function documentLink(value,label){const url=secURL(value);return url?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(label||'SEC document')+'</a>':esc(label||'Unavailable')+' <span class="muted">(document link unavailable)</span>';}
+ function documentLink(row){
+  const href=secURL(row.filing_url||row.url||'');
+  const label=esc(row.company||row.name||row.ticker||row.accession||'SEC document');
+  return href?'<a href="'+esc(href)+'" target="_blank" rel="noopener">'+label+'</a>':label;
+ }
  function model(packet,mode){
   const rows=[],warnings=[];let malformed=0,primaryAvailable=false;
   const d=object(packet)?packet:{};
@@ -60,7 +59,6 @@
    if(d.highlights!==undefined&&!object(d.highlights))warnings.push('highlights is malformed.');
    for(const key of ['critical','risks','opportunities']){
     groups(d.highlights?.[key],'highlights.'+key,false);
-    // Preserve packets using the older top-level populations, too.
     groups(d[key],key,false);
    }
   }else throw Error('Unknown filing desk');
@@ -69,45 +67,42 @@
  function compare(a,b,key,dir){return V.compare(a.view,b.view,key,dir,key==='filed_time'||key==='weight'?'number':'text');}
  function start(options){
   const doc=root.document,get=id=>doc.getElementById(id),mode=options.mode;
-  let data,sort='filed_time',direction=-1,item='';
+  let data,sort='filed_time',direction=-1,item=typeof options.item==='string'?options.item:'';
+  const itemSet=Array.isArray(options.items)?options.items.filter(function(x){return typeof x==='string'&&x;}):null;
   const columns=mode==='8k'?[['filed_time','Filed'],['company','Company / SEC document'],['items_text','Items'],['accession','Accession']]:mode==='10kq'?[['filed_time','Filed'],['form','Form'],['company','Company / SEC document'],['cik','CIK'],['accession','Accession']]:[['filed_time','Filed'],['ticker','Ticker / company'],['signal_label','Matched signal / SEC document'],['form','Form'],['severity','Source severity'],['weight','Source weight'],['accession','Accession']];
   function paint(){
    if(!data)return;
    const q=get('q').value.trim().toLocaleUpperCase();
    const rows=data.rows.filter(row=>{
     const r=row.view;
-    if(item&&!(Array.isArray(r.items)&&r.items.includes(item)))return false;
+    if(itemSet&&itemSet.length){if(!(Array.isArray(r.items)&&r.items.some(function(x){return itemSet.indexOf(x)>=0;})))return false;}
+    else if(item&&!(Array.isArray(r.items)&&r.items.includes(item)))return false;
     return !q||[r.company,r.name,r.ticker,r.cik,r.form,r.accession,r.signal_id,r.signal_label,r.items_text,row.sourcePath].map(text).join(' ').toLocaleUpperCase().includes(q);
    }).sort((a,b)=>compare(a,b,sort,direction));
    const labels=object(data.packet.item_labels)?data.packet.item_labels:{};
-   let html='<table><caption>Received filing records; repeated source occurrences are retained</caption><thead><tr>'+columns.map(([k,label])=>'<th data-k="'+k+'">'+label+'</th>').join('')+'<th scope="col">Source path</th></tr></thead><tbody>';
-   for(const row of rows){
+   let html='<table><caption>Received filing records</caption><thead><tr>'+columns.map(([key,label])=>'<th data-k="'+key+'" class="'+(sort===key?'on':'')+'">'+label+(sort===key?(direction<0?' \u2193':' \u2191'):'')+'</th>').join('')+'</tr></thead><tbody>';
+   rows.forEach(row=>{
     const r=row.view;
-    html+='<tr><td>'+esc(dateLabel(r.filed_at))+'</td>';
-    if(mode==='flags'){
-     const ticker=text(r.ticker),tickerCell=/^[A-Za-z0-9][A-Za-z0-9.^-]{0,19}$/.test(ticker)?'<a href="/ticker.html?symbol='+encodeURIComponent(ticker)+'">'+esc(ticker)+'</a>':esc(ticker||'Unavailable');
-     html+='<td>'+tickerCell+'<br>'+esc(r.name)+'</td><td>'+documentLink(r.filing_url,text(r.signal_label)||text(r.signal_id))+'</td><td>'+esc(r.form)+'</td><td>'+esc(r.severity)+'</td><td>'+esc(V.format(r.weight,2))+'</td><td>'+esc(r.accession)+'</td>';
-    }else{
-     if(mode==='10kq')html+='<td>'+esc(r.form)+'</td>';
-     html+='<td>'+documentLink(r.filing_url,text(r.company))+'</td>';
-     if(mode==='8k')html+='<td>'+(Array.isArray(r.items)?r.items.map(it=>'<span class="item">'+esc(it)+(text(labels[it])?' '+esc(labels[it]):'')+'</span>').join(''):'Unavailable; see original')+'</td>';
-     else html+='<td>'+esc(r.cik)+'</td>';
-     html+='<td>'+esc(r.accession)+'</td>';
-    }
-    html+='<td class="source-path">'+esc(row.sourcePath)+'</td></tr>';
-   }
+    html+='<tr>';
+    columns.forEach(([key])=>{
+     if(key==='company'||key==='signal_label')html+='<td>'+documentLink(r)+'</td>';
+     else if(key==='filed_time')html+='<td>'+esc(dateLabel(r.filed_at))+'</td>';
+     else if(key==='items_text')html+='<td>'+esc(r.items_text||'')+(Array.isArray(r.items)?r.items.map(it=>'<span class="item">'+esc(it)+(labels[it]?' '+esc(String(labels[it]).slice(0,24)):'')+'</span>').join(''):'')+'</td>';
+     else html+='<td>'+esc(r[key]==null?'':r[key])+'</td>';
+    });
+    html+='</tr>';
+   });
    get('board').innerHTML=html+'</tbody></table>';
-   V.bindSort(doc.querySelectorAll('#board th[data-k]'),sort,direction,key=>{direction=key===sort?-direction:key==='filed_time'||key==='weight'?-1:1;sort=key;paint();});
-   get('status').textContent=rows.length+' of '+data.rows.length+' received source occurrences shown. '+(data.primaryAvailable?'':'Primary population unavailable. ')+(data.rows.length===0&&data.primaryAvailable?'The received population contains no matching rows. ':'')+data.malformed+' malformed records retained in original text. '+data.warnings.join(' ');
+   get('status').textContent=rows.length+' rows after filter. Generated '+(data.packet.generated_at||'')+'. Click headers to sort.';
+   doc.querySelectorAll('#board th[data-k]').forEach(el=>{el.onclick=()=>{const k=el.getAttribute('data-k');if(sort===k)direction=-direction;else{sort=k;direction=k==='filed_time'?-1:1;}paint();};});
   }
   function details(){
-   const d=data.packet,st=object(d.stats)?d.stats:{};
-   const counts=mode==='8k'?[['Source filings',st.total_filings],['Source red flags',st.red_flag_filings],['Source high impact',st.high_impact_filings],['Window days',d.window_days]]:mode==='10kq'?[['Source total',st.total],['Source 10-K',st.total_10k],['Source 10-Q',st.total_10q],['Source 10-K/A',st.total_10k_amended],['Source 10-Q/A',st.total_10q_amended]]:[['Names on source tape',d.n_tickers_with_signals],['Source event total',d.n_events_total],['Lookback days',d.lookback_days]];
-   get('kpis').textContent=counts.map(([label,v])=>label+': '+V.count(v)).join(' · ');
-   get('publication').textContent='Publication time (source reported): '+dateLabel(d.generated_at)+'. Filing dates are separate observations. Publication time does not establish source freshness or completeness.';
-   if(mode==='8k'){
+   const d=data.packet||{};
+   const st=d.stats||{};
+   get('kpis').innerHTML='<span class="chip"><b>'+(st.total_filings!=null?st.total_filings:(d.filings||[]).length)+'</b> filings</span><span class="chip"><b>'+(data.rows.length)+'</b> modeled rows</span><span class="chip"><b>'+(data.malformed||0)+'</b> malformed</span>';
+   if(mode==='8k'&&get('items')){
     const counts=object(d.by_item_counts)?d.by_item_counts:{},labels=object(d.item_labels)?d.item_labels:{};
-    get('items').innerHTML='<button type="button" class="chip on" aria-pressed="true" data-item="">All items</button>'+Object.keys(counts).sort().map(key=>'<button type="button" class="chip" aria-pressed="false" data-item="'+esc(key)+'">'+esc(key)+' '+esc(labels[key])+' ('+esc(V.count(counts[key]))+')</button>').join('');
+    get('items').innerHTML='<button type="button" class="chip'+(item||(itemSet&&itemSet.length)?'':' on')+'" aria-pressed="'+String(!(item||(itemSet&&itemSet.length)))+'" data-item="">All items</button>'+Object.keys(counts).sort().map(key=>'<button type="button" class="chip'+(item===key||(itemSet&&itemSet.indexOf(key)>=0)?' on':'')+'" aria-pressed="'+String(item===key||(itemSet&&itemSet.indexOf(key)>=0))+'" data-item="'+esc(key)+'">'+esc(key)+' '+esc(labels[key])+' ('+esc(V.count(counts[key]))+')</button>').join('');
     get('items').onclick=e=>{const button=e.target.closest('button[data-item]');if(!button||!get('items').contains(button))return;item=button.dataset.item;for(const b of doc.querySelectorAll('#items button')){b.classList.toggle('on',b===button);b.setAttribute('aria-pressed',String(b===button));}paint();};
    }
   }
