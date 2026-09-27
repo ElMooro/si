@@ -17,35 +17,37 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-
 .pos{color:var(--grn)}.neg{color:var(--red)}a{color:var(--cyan);text-decoration:none}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 .loading{color:var(--fg3);padding:28px 0}
-
-input{width:100%;max-width:360px}label{display:block;margin-bottom:6px;color:var(--fg2)}
-.table-region{overflow:auto;max-width:100%;border:1px solid var(--bd);border-radius:8px}table{min-width:850px}
-:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto}#kpis{overflow-wrap:anywhere}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Capex pulse</h1>
 <p class="sub">Trailing-twelve-month capital expenditure from cash-flow statements already in the live capex-pulse feed. Intensity is capex / market cap when both exist. A blank cell is a missing tag, not zero. Click a header to sort. Nulls stay last.</p>
 <div class="kpis" id="kpis"></div>
-<label for="q">Filter ticker or sector</label>
 <input id="q" placeholder="filter ticker or sector" autocomplete="off">
-<div id="board" class="table-region" role="region" aria-label="Capital expenditure records, scroll horizontally for every column" tabindex="0"><div class="loading">Loading /data/capex-pulse.json</div></div>
-<details><summary>Complete original publication</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div id="board"><div class="loading">Loading /data/capex-pulse.json</div></div>
 <div class="foot"><b>Built for:</b> seeing which issuers are raising or cutting cash capex, and how large that spend is versus market cap, without inventing a growth forecast.<br>
 <b>Data:</b> /data/capex-pulse.json (rows[] with ticker, sector, capex_ttm_b, yoy_pct, mc_b, intensity_pct, asof; market; hyperscalers; fails; method).<br>
 <b>Formulas as published by the feed:</b> TTM = last four quarterly |capitalExpenditure|; YoY vs prior four quarters; intensity = capex / market cap when both tagged.<br>
-<b>Not:</b> a guidance parser, an ARR/NRR extract, or a purchase-commitment note. These are source-reported measurements; original reporting periods and field definitions still require producer validation. Research only.</div>
+<b>Not:</b> a guidance parser, an ARR/NRR extract, or a purchase-commitment note. Research only.</div>
 </div>
-<script src="/jh-table-values.js"></script>
 <script>
-var V=JHTableValues;
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function num(v){return V.number(v);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&","<":"<",">":">",'"':"""}[c];});}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
 function fmtB(v){var n=num(v);return n==null?"":n.toFixed(2);}
 function fmtPct(v){var n=num(v);if(n==null)return "";return (n>0?"+":"")+n.toFixed(1)+"%";}
-function cls(v){var n=num(v);if(n==null)return "";return V.sign(n);}
-var SORT="capex_ttm_b", DIR=-1, PACK=null, ROWS=[], MALFORMED=0;
-function cmp(a,b){return V.compare(a,b,SORT,DIR,["ticker","sector","asof"].includes(SORT)?"text":"number");}
+function cls(v){var n=num(v);if(n==null)return "";return n>=0?"pos":"neg";}
+var SORT="capex_ttm_b", DIR=-1, PACK=null, ROWS=[];
+function cmp(a,b){
+  var av=a[SORT], bv=b[SORT];
+  if(av==null||av===""||av==="?") { if(bv==null||bv===""||bv==="?") return String(a.ticker||"").localeCompare(String(b.ticker||"")); return 1; }
+  if(bv==null||bv===""||bv==="?") return -1;
+  if(SORT==="capex_ttm_b"||SORT==="yoy_pct"||SORT==="intensity_pct"||SORT==="mc_b"){
+    av=Number(av); bv=Number(bv);
+    if(!isFinite(av)) return 1; if(!isFinite(bv)) return -1;
+    return (av-bv)*DIR;
+  }
+  return String(av).localeCompare(String(bv))*DIR;
+}
 function th(k,lab,left){
   return '<th class="'+(left?"l ":"")+(SORT===k?"on":"")+'" data-k="'+k+'">'+lab+(SORT===k?(DIR<0?" \u2193":" \u2191"):"")+"</th>";
 }
@@ -62,21 +64,28 @@ function paint(){
     h+="<td class=l>"+esc(r.sector==="?"?"":r.sector)+"</td>";
     h+="<td>"+esc(fmtB(r.capex_ttm_b))+"</td>";
     h+='<td class="'+cls(r.yoy_pct)+'">'+esc(fmtPct(r.yoy_pct))+"</td>";
-    h+="<td>"+esc(num(r.intensity_pct)==null?"":fmtB(r.intensity_pct)+"%")+"</td>";
+    h+="<td>"+esc(r.intensity_pct==null?"":Number(r.intensity_pct).toFixed(2)+"%")+"</td>";
     h+="<td>"+esc(fmtB(r.mc_b))+"</td>";
     h+="<td class=l>"+esc(r.asof||"")+"</td></tr>";
   });
-  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+ROWS.length+" received rows. "+MALFORMED+" malformed rows remain in the original. Publication time (source reported): "+esc((PACK&&PACK.generated_at)||"")+". Blank is missing; publication time does not validate observation freshness.</p>";
-  V.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=["ticker","sector","asof"].includes(k)?1:-1;}paint();});
+  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+ROWS.length+" names. Generated "+esc((PACK&&PACK.generated_at)||"")+". Click headers to sort. Blank is missing.</p>";
+  document.querySelectorAll("#board th[data-k]").forEach(function(el){
+    el.onclick=function(){var k=el.getAttribute("data-k"); if(SORT===k)DIR=-DIR; else {SORT=k; DIR=(k==="ticker"||k==="sector"||k==="asof")?1:-1;} paint();};
+  });
 }
 (async function(){
-  var d;
-  try{var received=await V.load("/data/capex-pulse.json");document.getElementById("original").textContent=received.raw;d=received.packet;}
-  catch(e){document.getElementById("original").textContent=typeof e.original_text==="string"?e.original_text:"Unavailable";document.getElementById("board").textContent="Publication unavailable: "+e.message;return;}
-  if(!Array.isArray(d.rows)){document.getElementById("board").textContent="Received rows population is missing or malformed; see the complete original.";return;}
-  PACK=d;ROWS=d.rows.filter(function(row){return row&&typeof row==="object"&&!Array.isArray(row);});MALFORMED=d.rows.length-ROWS.length;
-  var m=d.market||{},h=d.hyperscalers||{};
-  document.getElementById("kpis").textContent="Source name count: "+V.count(d.n)+" · Source universe capex TTM $B: "+(fmtB(m.capex_ttm_b)||"Unavailable")+" · Universe YoY: "+(fmtPct(m.yoy_pct)||"Unavailable")+" · Hyperscaler TTM $B: "+(fmtB(h.total_ttm_b)||"Unavailable")+" · Hyperscaler YoY: "+(fmtPct(h.yoy_pct)||"Unavailable")+" · Source failures: "+V.count(d.fails);
+  var d=null;
+  try{var r=await fetch("/data/capex-pulse.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
+  if(!d||!Array.isArray(d.rows)){document.getElementById("board").textContent="capex-pulse.json missing or has no rows[].";return;}
+  PACK=d; ROWS=d.rows.slice();
+  var m=d.market||{}, h=d.hyperscalers||{};
+  document.getElementById("kpis").innerHTML=
+    '<span class="chip"><b>'+(d.n!=null?d.n:ROWS.length)+"</b> names</span>"
+    +'<span class="chip"><b>'+(m.capex_ttm_b!=null?Number(m.capex_ttm_b).toFixed(0):"")+"</b> universe TTM $B</span>"
+    +'<span class="chip"><b>'+esc(fmtPct(m.yoy_pct))+"</b> universe YoY</span>"
+    +'<span class="chip"><b>'+(h.total_ttm_b!=null?Number(h.total_ttm_b).toFixed(0):"")+"</b> hyperscaler TTM $B</span>"
+    +'<span class="chip"><b>'+esc(fmtPct(h.yoy_pct))+"</b> hyperscaler YoY</span>"
+    +'<span class="chip"><b>'+(d.fails!=null?d.fails:"")+"</b> feed fails</span>";
   document.getElementById("q").oninput=paint;
   paint();
 })();

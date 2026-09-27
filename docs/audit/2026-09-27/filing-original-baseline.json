@@ -1,0 +1,196 @@
+{
+  "account_reads": 0,
+  "actual_producers": {
+    "justhodl-sec-8k": {
+      "status": "whole_actual_package_retained",
+      "runtime": {
+        "FunctionName": "justhodl-sec-8k",
+        "CodeSha256": "1LiP1TJrOPj8CrocM9dc9vN5XqoqFrlUB5fNo3FL1lE=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 300,
+        "MemorySize": 768,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "LastModified": "2026-09-09T03:28:16.000+0000"
+      },
+      "whole_zip": {
+        "key": "audit-private/20260909-originals/shipping-consumer-research/d4b88fd5326b38f8fc0aba1c33d75cf6f3795eaa2a16b9540797cda3714bd651.bin",
+        "sha256": "d4b88fd5326b38f8fc0aba1c33d75cf6f3795eaa2a16b9540797cda3714bd651",
+        "bytes": 3363
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-sec-8k-30min",
+          "state": "ENABLED",
+          "expression": "rate(30 minutes)",
+          "native_targets": 1
+        }
+      ],
+      "active_alias": null,
+      "repository_config_present": true,
+      "code_matches_repository": true,
+      "source_files_checked": 1,
+      "source_differences": {}
+    },
+    "justhodl-sec-10kq": {
+      "status": "whole_actual_package_retained",
+      "runtime": {
+        "FunctionName": "justhodl-sec-10kq",
+        "CodeSha256": "ptjXHiZQVcg9nV+SxA45pUJ5f3EIgIiUuz6VZHTVa2U=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 300,
+        "MemorySize": 768,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "LastModified": "2026-09-09T03:36:33.000+0000"
+      },
+      "whole_zip": {
+        "key": "audit-private/20260909-originals/shipping-consumer-research/a6d8d71e265055c83d9d5f92c40e39a542797f7108808894bb3e956474d56b65.bin",
+        "sha256": "a6d8d71e265055c83d9d5f92c40e39a542797f7108808894bb3e956474d56b65",
+        "bytes": 2666
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-sec-10kq-4h",
+          "state": "ENABLED",
+          "expression": "rate(4 hours)",
+          "native_targets": 1
+        }
+      ],
+      "active_alias": null,
+      "repository_config_present": true,
+      "code_matches_repository": true,
+      "source_files_checked": 1,
+      "source_differences": {}
+    },
+    "justhodl-sec-filings-intel": {
+      "status": "whole_actual_package_retained",
+      "runtime": {
+        "FunctionName": "justhodl-sec-filings-intel",
+        "CodeSha256": "jNNxuCIiT/msDGa/6D9r77fT9vmMbI5TSRtm/LRYM+0=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 600,
+        "MemorySize": 256,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "LastModified": "2026-05-31T16:24:31.000+0000"
+      },
+      "whole_zip": {
+        "key": "audit-private/20260909-originals/shipping-consumer-research/8cd371b822224ff9ac0c66bfe83f6befb7d3f6f98c6c8e53491b66fcb45833ed.bin",
+        "sha256": "8cd371b822224ff9ac0c66bfe83f6befb7d3f6f98c6c8e53491b66fcb45833ed",
+        "bytes": 10987
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "sec-filings-intel-3x-daily",
+          "state": "ENABLED",
+          "expression": "cron(7 21 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "active_alias": null,
+      "repository_config_present": true,
+      "code_matches_repository": true,
+      "source_files_checked": 3,
+      "source_differences": {}
+    }
+  },
+  "all_denied": true,
+  "anonymous_origins_checked": 14,
+  "attempt_outcome_counts": {
+    "404": 7,
+    "403": 7
+  },
+  "baseline": {
+    "key": "audit-private/20260909-originals/sec-filing-research/dff5317869f5572d3d12c6fb1db28811cec0dbba58e9c7db43ca401e91d7ff54.bin",
+    "bytes": 8201,
+    "sha256": "dff5317869f5572d3d12c6fb1db28811cec0dbba58e9c7db43ca401e91d7ff54"
+  },
+  "failures": [],
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "originals": {
+    "data/8k-filings.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/sec-filing-research/c8e071fa3337b2616291d4b2385bd758d4628147930ce826473188b02ac87387.bin",
+        "bytes": 161969,
+        "sha256": "c8e071fa3337b2616291d4b2385bd758d4628147930ce826473188b02ac87387"
+      },
+      "etag": "\"3d93e27bfe12eb1b1a0d132f258157ef\"",
+      "last_modified": "2026-09-27T15:03:43+00:00",
+      "original_provider_verified": false
+    },
+    "data/10kq-filings.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/sec-filing-research/f922b7b3d327175dfc916704971fddff891a88e0a194b81fa4f8a5185367cf5d.bin",
+        "bytes": 111996,
+        "sha256": "f922b7b3d327175dfc916704971fddff891a88e0a194b81fa4f8a5185367cf5d"
+      },
+      "etag": "\"b246ae03782c7737dc505a0c4216e379\"",
+      "last_modified": "2026-09-27T12:44:46+00:00",
+      "original_provider_verified": false
+    },
+    "data/sec-filings-intel.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/sec-filing-research/d68875ea4c48c471c6f1fe519ef96a963a54b697da2b250b07da556bf58a978a.bin",
+        "bytes": 257492,
+        "sha256": "d68875ea4c48c471c6f1fe519ef96a963a54b697da2b250b07da556bf58a978a"
+      },
+      "etag": "\"a7cc89ceb003c8b62cd360e8ece11b5f\"",
+      "last_modified": "2026-09-26T21:07:46+00:00",
+      "original_provider_verified": false
+    }
+  },
+  "protected_paths_checked": 7,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Whole deployed packages and three exact existing public research packets only. Provider response originals, acquisition completeness, original vintages, keyword validity and signal performance remain unverified.",
+  "source_checks": {
+    "justhodl-sec-8k": {
+      "bytes": 8225,
+      "sha256": "52b7f4cbcbd2a7b3f5b8c872be06191b3ff7b499e06f665635e9ce5b5562748e",
+      "imported_or_executed": false
+    },
+    "justhodl-sec-10kq": {
+      "bytes": 5969,
+      "sha256": "aee3116ab206ddda095311f3e585d22f057ebca521b8cf9505df32e6158f169d",
+      "imported_or_executed": false
+    },
+    "justhodl-sec-filings-intel": {
+      "bytes": 17714,
+      "sha256": "883a4e8c8dfe2c27bb75428f10c29df36875d7abcf97c5c3b60d702383252ecb",
+      "imported_or_executed": false
+    }
+  },
+  "operation_commit": "74cd1bc9bebb4ddd8d37518b54e790b988222a3f",
+  "runner_run": 36329866345,
+  "report_commit": "dfab9330e7d7b98d5f65f6703a6c48b8ede2e5bc",
+  "acceptance_scope": "Original retention only; no producer repair or new native research contract is accepted."
+}

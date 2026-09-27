@@ -1,0 +1,137 @@
+{
+  "commit": "c63261f1a0b463df25ab162498b7d04e0a5756d6",
+  "served_descendant": "c63261f1a0b463df25ab162498b7d04e0a5756d6",
+  "checked_at": "2026-09-27T15:39:37.134241+00:00",
+  "registry_hash": "724b7b14c64c12efd50a823a936bc9ab25c04501e8eb609369c60622c232df11",
+  "assets": {
+    "8k-items.html": {
+      "bytes": 8189,
+      "sha256": "3053d625256e7a7133dba78810a6fc5c13b60559795aa4a42a1229f1370653a9",
+      "matches_commit_manifest": true
+    },
+    "10kq-filings.html": {
+      "bytes": 7597,
+      "sha256": "725604511d30aaabd50b72c83af2561036cac091856cf9f1fd476204f08c836d",
+      "matches_commit_manifest": true
+    },
+    "filing-redflags.html": {
+      "bytes": 8096,
+      "sha256": "b3bad2ab5b15180243d324d1b5f4849a7b3853ea41a93693c93bb8d7088c2114",
+      "matches_commit_manifest": true
+    },
+    "jh-filing-desk.js": {
+      "bytes": 9699,
+      "sha256": "dcbb24361f479c340937ab2fc22a293120e09151d85099440e6b76c8408f3baa",
+      "matches_commit_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5479,
+      "sha256": "a81a637d0d80e72edefcfb7b5534a0988d4fb695b6a113ca8498352759539665",
+      "matches_commit_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_commit_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1339583,
+      "sha256": "15830fd36ded5bd3c7fe84961b6a4226f5768abe144faac2552c4975067db101",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2331948,
+      "sha256": "724b7b14c64c12efd50a823a936bc9ab25c04501e8eb609369c60622c232df11",
+      "matches_commit_manifest": true
+    }
+  },
+  "pages_run": 36329656439,
+  "page_gate_run": 36329656414,
+  "push_verification": "ALL RUNS GREEN",
+  "initial_ship": "1c1636936588d9729c7919e9b6303e5d17d21c80",
+  "initial_ship_encoding_defect_corrected": true,
+  "public_packets": {
+    "checked_at": "2026-09-27T15:15:31.341711+00:00",
+    "packets": {
+      "8k-filings": {
+        "bytes": 161969,
+        "sha256": "c8e071fa3337b2616291d4b2385bd758d4628147930ce826473188b02ac87387",
+        "generated_at": "2026-09-27T15:03:42+00:00",
+        "populations": {
+          "red_flags": 13,
+          "high_impact": 30,
+          "filings": 300
+        }
+      },
+      "10kq-filings": {
+        "bytes": 111996,
+        "sha256": "f922b7b3d327175dfc916704971fddff891a88e0a194b81fa4f8a5185367cf5d",
+        "generated_at": "2026-09-27T12:44:45+00:00",
+        "populations": {
+          "amended": 9,
+          "filings": 300
+        }
+      },
+      "sec-filings-intel": {
+        "bytes": 257492,
+        "sha256": "d68875ea4c48c471c6f1fe519ef96a963a54b697da2b250b07da556bf58a978a",
+        "generated_at": "2026-09-26T21:07:45+00:00",
+        "populations": {
+          "signal_definitions": 14,
+          "all_tickers": 200
+        }
+      }
+    }
+  },
+  "local_validation": {
+    "frontend_passed": 1515,
+    "deployment_static_passed": 458,
+    "candidate_shell_passed": 12,
+    "focused_filing_groups": 11,
+    "source_syntax_gate_groups": 5,
+    "public_routes_parsed": 568,
+    "source_syntax_errors": 0
+  },
+  "live_browser": {
+    "checked_at": "2026-09-27T15:41:32.090249+00:00",
+    "viewport_px": 390,
+    "document_px": 380,
+    "console_errors": 0,
+    "titles_utf8_correct": true,
+    "pages": {
+      "8k-items.html": {
+        "rows": 300,
+        "original_text_chars": 161969,
+        "scroll_region_px": 346,
+        "table_px": 900,
+        "keyboard_sort": {
+          "direction": "ascending",
+          "focus": "filed_time"
+        },
+        "item_4_02_filter_rows": 1
+      },
+      "10kq-filings.html": {
+        "rows": 309,
+        "original_text_chars": 111996,
+        "scroll_region_px": 346,
+        "table_px": 900
+      },
+      "filing-redflags.html": {
+        "rows": 259,
+        "original_text_chars": 257492,
+        "scroll_region_px": 346,
+        "table_px": 900,
+        "desktop": {
+          "viewport_px": 1280,
+          "document_px": 1270,
+          "table_px": 1146
+        }
+      }
+    }
+  },
+  "limitations": [
+    "This acceptance covers pages and stored research packets, not the upstream SEC acquisition or signal validity.",
+    "Source occurrences across overlapping populations are retained, not presented as independent observations.",
+    "No producer invocation, account read, notification, trade, or schedule change."
+  ]
+}
