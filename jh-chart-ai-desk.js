@@ -51,3 +51,19 @@
   setInterval(pull, 120000);
   window.addEventListener("load", function () { setTimeout(pull, 1200); });
 })();
+
+/* Boot Demand/Supply buttons on chart.html even if the page missed the script tag. */
+(function (root) {
+  if (root.__jhSdUiBoot) return;
+  root.__jhSdUiBoot = true;
+  function go() {
+    if (root.__jhSdUiV3) return;
+    if (document.querySelector('script[src*="jh-chart-sd-ui.js"]')) return;
+    var s = document.createElement("script");
+    s.src = "/jh-chart-sd-ui.js?v=3";
+    s.async = true;
+    (document.head || document.documentElement).appendChild(s);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go);
+  else go();
+})(typeof window !== "undefined" ? window : this);
