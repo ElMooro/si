@@ -1,1 +1,89 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Billings and cRPO · JustHodl.AI</title></head><body><p>loading</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Billings and cRPO · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:820px;margin:0 0 14px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2)}
+.chip b{color:var(--fg);font-size:14px}
+input{width:100%;max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font-size:12.5px}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}
+td.l,th.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}.tk{font-weight:700}
+.flag{font-size:9px;padding:1px 6px;border-radius:4px;border:1px solid var(--grn);color:var(--grn);margin-left:5px}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.loading{color:var(--fg3);padding:36px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Billings and coverage</h1>
+  <p class="sub">Implied billings = TTM revenue + change in deferred revenue. Coverage years = RPO / TTM revenue. Billings stay blank unless both TTM revenue and a deferred change exist. No invented ARR or 8-K cRPO.</p>
+  <div class="kpis" id="kpis"></div>
+  <input id="q" placeholder="filter ticker or sector" autocomplete="off">
+  <div id="board"><div class="loading">Loading backlog and forward-orders feeds.</div></div>
+  <div class="foot"><b>Built for:</b> turning a booked order book into a next-year sales path.<br>
+  <b>Data:</b> /data/backlog.json (RPO, deferred, deferred YoY) and /data/forward-orders.json (dated revenue history + book-to-bill when tagged).<br>
+  <b>Formulas:</b> TTM = last four quarterly revenue points when the gap is 50-160 days; coverage years = RPO / TTM; billings = TTM + (deferred - deferred / (1 + deferred_yoy/100)) only when TTM, deferred, and deferred_yoy are all present. Empty cells mean the tag was missing. Research, not advice.</div>
+</div>
+<script src="/jh-growth-stack.js"></script>
+<script>
+var SORT="coverage_yrs", DIR=-1, ROWS=[];
+function show(){
+  var api=window.jhGrowthStack; if(!api) return;
+  var q=(document.getElementById("q").value||"").toUpperCase();
+  var list=ROWS.filter(function(r){return !q || (r.ticker+" "+(r.sector||"")).toUpperCase().indexOf(q)>=0;});
+  list.sort(function(a,b){
+    var av=a[SORT], bv=b[SORT];
+    if(av==null && bv==null) return String(a.ticker).localeCompare(String(b.ticker));
+    if(av==null) return 1; if(bv==null) return -1;
+    if(typeof av==="number") return (av-bv)*DIR;
+    return String(av).localeCompare(String(bv))*DIR;
+  });
+  var h='<table><thead><tr>';
+  [["ticker","Ticker"],["sector","Sector"],["rpo","RPO"],["ttm_rev","TTM rev"],["billings","Billings"],["coverage_yrs","Coverage yrs"],["btb","Book-to-bill"],["deferred_yoy","Deferred YoY"],["rpo_yoy","RPO YoY"]].forEach(function(c){
+    h+='<th class="'+(c[0]==="ticker"||c[0]==="sector"?"l":"")+'" data-k="'+c[0]+'">'+c[1]+"</th>";
+  });
+  h+="</tr></thead><tbody>";
+  list.forEach(function(r){
+    h+='<tr><td class="l"><span class="tk">'+api.esc(r.ticker)+"</span>"+(r.accelerating?'<span class="flag">ACCEL</span>':'')+"</td>";
+    h+='<td class="l">'+api.esc(r.sector||"")+"</td>";
+    h+="<td>"+api.esc(api.bn(r.rpo))+"</td>";
+    h+="<td>"+api.esc(api.bn(r.ttm_rev))+"</td>";
+    h+="<td>"+api.esc(api.bn(r.billings))+"</td>";
+    h+="<td>"+(r.coverage_yrs==null?"":r.coverage_yrs.toFixed(2))+"</td>";
+    h+='<td class="'+(r.btb>0?"pos":(r.btb<0?"neg":""))+'">'+api.esc(api.pct(r.btb))+"</td>";
+    h+='<td class="'+(r.deferred_yoy>0?"pos":(r.deferred_yoy<0?"neg":""))+'">'+api.esc(api.pct(r.deferred_yoy))+"</td>";
+    h+='<td class="'+(r.rpo_yoy>0?"pos":(r.rpo_yoy<0?"neg":""))+'">'+api.esc(api.pct(r.rpo_yoy))+"</td></tr>";
+  });
+  document.getElementById("board").innerHTML=h+"</tbody></table>";
+  document.querySelectorAll("th[data-k]").forEach(function(th){
+    th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=-1;}show();};
+  });
+}
+(async function(){
+  var api=window.jhGrowthStack;
+  if(!api){document.getElementById("board").innerHTML='<div class="loading">jh-growth-stack.js missing.</div>';return;}
+  await api.boot();
+  ROWS=api.list("billings");
+  var withBill=ROWS.filter(function(r){return r.billings!=null;}).length;
+  var withCov=ROWS.filter(function(r){return r.coverage_yrs!=null;}).length;
+  document.getElementById("kpis").innerHTML='<span class="chip" data-realtime="1"><b>'+ROWS.length+"</b> names on book feeds</span>"
+    +'<span class="chip" data-realtime="1"><b>'+withBill+"</b> with billings (TTM + deferred change)</span>"
+    +'<span class="chip" data-realtime="1"><b>'+withCov+"</b> with coverage years</span>";
+  document.getElementById("q").oninput=show;
+  show();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>
