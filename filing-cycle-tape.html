@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Filing cycle tape · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171;--amb:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:22px 0 8px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+input{max-width:360px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:860px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+.bust{color:var(--red)}.boom{color:var(--grn)}.late{color:var(--amb)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Filing cycle tape</h1>
+<p class="sub">Public 8-K items that historically cluster at industry turning points. A tag is not a dollar amount, a ticker, or a trade. Blank rows mean that item is absent in the current EDGAR window, not zero impairments for the whole market. Click headers to sort.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter company, item, or role" autocomplete="off">
+<p class="sub" id="status">Loading /data/8k-filings.json</p>
+<div id="board" class="table-region">Loading cycle tape.</div>
+<div class="foot"><b>Built for:</b> seeing which cycle-relevant 8-K items issuers just filed, without inventing reserves, AISC, impairment dollars, or a boom/bust score.<br>
+<b>Data:</b> /data/8k-filings.json filings[] (company, accession, filed_at, items, filing_url). Window is the producer window_days field when present.<br>
+<b>Items kept:</b> 1.02 agreement termination; 2.05 exit or disposal costs; 2.06 material impairments; 2.04 obligation acceleration; 3.01 delisting notice; 1.03 bankruptcy; 2.01 acquisition or disposition completed; 2.03 new direct financial obligation.<br>
+<b>Read:</b> 1.02 / 2.05 / 2.06 / 2.04 / 3.01 / 1.03 cluster more often in busts (lost contracts, write-downs, listing stress). 2.01 and 2.03 can appear in both expansions and late-cycle leverage. Role is a label of the item number, not a measured return.<br>
+<b>Not in this packet:</b> S-K 1300 mineral reserves, S-K 1200 proved oil and gas, production volumes, cash costs, purchase-obligation dollars, or 8-K body extract of deal size.<br>
+<b>Related:</b> <a href="/8k-items.html">full 8-K tape</a> · <a href="/material-agreements.html">1.01 agreements</a> · <a href="/agreement-terminations.html">1.02 terminations</a> · <a href="/impairments-8k.html">2.06 impairments</a> · <a href="/delisting-notices.html">3.01 delistings</a> · <a href="/filing-redflags.html">red flags</a> · <a href="/materials-orders.html">materials orders</a> · <a href="/capex-pulse.html">capex</a><br>
+Research only.</div>
+</div>
+<script>
+function esc(s){
+  return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");
+}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function itemsOf(r){
+  var x=r&&r.items;
+  if(Array.isArray(x))return x.map(String);
+  if(x==null)return [];
+  return String(x).split(/[ ,;]+/).filter(Boolean);
+}
+function hasItem(r,code){
+  return itemsOf(r).some(function(i){return i===code||i.indexOf(code)>=0;});
+}
+function cycleHits(r){
+  var map=[
+    ["1.02","termination","bust"],
+    ["2.05","exit/disposal","bust"],
+    ["2.06","impairment","bust"],
+    ["2.04","debt acceleration","bust"],
+    ["3.01","delisting notice","bust"],
+    ["1.03","bankruptcy","bust"],
+    ["2.01","acquisition/disposition close","both"],
+    ["2.03","new financial obligation","late"]
+  ];
+  var hits=[];
+  map.forEach(function(m){if(hasItem(r,m[0]))hits.push({code:m[0],label:m[1],role:m[2]});});
+  return hits;
+}
+function cmp(a,b,k,dir){
+  var av=a[k],bv=b[k];
+  if(av==null||av===""){if(bv==null||bv==="")return String(a.company||"").localeCompare(String(b.company||""));return 1;}
+  if(bv==null||bv==="")return -1;
+  return String(av).localeCompare(String(bv))*dir;
+}
+function table(id,cols,rows,sort,dir,onSort){
+  var h="<table><thead><tr>";
+  cols.forEach(function(c){h+="<th class='"+(sort===c.k?"on":"")+"' data-k='"+c.k+"'>"+c.l+(sort===c.k?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+  h+="</tr></thead><tbody>";
+  rows.forEach(function(r){
+    h+="<tr>";
+    cols.forEach(function(c){h+="<td>"+(c.cell?c.cell(r):esc(r[c.k]==null?"":r[c.k]))+"</td>";});
+    h+="</tr>";
+  });
+  document.getElementById(id).innerHTML=h+closeTbl();
+  document.querySelectorAll("#"+id+" th[data-k]").forEach(function(th){th.onclick=function(){onSort(th.getAttribute("data-k"));};});
+}
+(async function(){
+  var packet=null;
+  try{var res=await fetch("/data/8k-filings.json?t="+Date.now(),{cache:"no-store"});if(res.ok)packet=await res.json();}catch(e){}
+  var filings=(packet&&Array.isArray(packet.filings))?packet.filings:[];
+  var rows=[];
+  filings.forEach(function(r){
+    var hits=cycleHits(r);
+    if(!hits.length)return;
+    rows.push({
+      company:r.company||"",
+      accession:r.accession||"",
+      filed_at:r.filed_at||"",
+      items:itemsOf(r).join(", "),
+      roles:hits.map(function(h){return h.role;}).join(", "),
+      labels:hits.map(function(h){return h.code+" "+h.label;}).join("; "),
+      filing_url:r.filing_url||""
+    });
+  });
+  var counts={"1.02":0,"2.05":0,"2.06":0,"2.04":0,"3.01":0,"1.03":0,"2.01":0,"2.03":0};
+  filings.forEach(function(r){Object.keys(counts).forEach(function(c){if(hasItem(r,c))counts[c]++;});});
+  var chips="";
+  [["1.02","term",counts["1.02"],"bust"],["2.05","exit",counts["2.05"],"bust"],["2.06","impair",counts["2.06"],"bust"],["2.04","accel",counts["2.04"],"bust"],["3.01","delist",counts["3.01"],"bust"],["1.03","BK",counts["1.03"],"bust"],["2.01","close",counts["2.01"],"boom"],["2.03","new debt",counts["2.03"],"late"]].forEach(function(c){
+    chips+="<span class='chip "+c[3]+"'>"+c[0]+" "+c[1]+": "+c[2]+"</span>";
+  });
+  document.getElementById("kpis").innerHTML=chips+"<span class='chip'>"+rows.length+" cycle filings</span><span class='chip'>window "+esc((packet&&packet.window_days)!=null?packet.window_days:"?")+"d</span>";
+  var sort="filed_at",dir=-1,qEl=document.getElementById("q");
+  function paint(){
+    var q=(qEl.value||"").toLowerCase();
+    var list=rows.filter(function(r){return !q||(r.company+" "+r.items+" "+r.roles+" "+r.labels).toLowerCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    table("board",[
+      {k:"filed_at",l:"Filed"},
+      {k:"company",l:"Company"},
+      {k:"labels",l:"Cycle items"},
+      {k:"roles",l:"Role label",cell:function(r){
+        return r.roles.split(", ").map(function(x){return "<span class='"+(x==="bust"?"bust":(x==="late"?"late":"boom"))+"'>"+esc(x)+"</span>";}).join(" ");
+      }},
+      {k:"items",l:"All items"},
+      {k:"filing_url",l:"Filing",cell:function(r){
+        var u=String(r.filing_url||"");
+        if(/^https:\/\/www\.sec\.gov\//i.test(u))return "<a href=\""+esc(u)+"\" target=\"_blank\" rel=\"noopener\">SEC</a>";
+        return "";
+      }}
+    ],list,sort,dir,function(k){if(sort===k)dir=-dir;else{sort=k;dir=k==="filed_at"?-1:1;}paint();});
+    document.getElementById("status").textContent=list.length+" cycle-item filings from 8k-filings.json generated "+((packet&&packet.generated_at)||"")+". Zero count means none tagged in this window.";
+  }
+  if(!packet)document.getElementById("board").textContent="8k-filings.json missing.";
+  else {qEl.oninput=paint;paint();}
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
