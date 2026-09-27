@@ -1,0 +1,95 @@
+{
+  "checked_at": "2026-09-27T19:03:57.768403+00:00",
+  "scope": "Isolated existing pure functions with synthetic inputs; no module import, AWS/provider call, learning write or native invocation.",
+  "source": {
+    "bytes": 12799,
+    "sha256": "7ea0e73d035c212d44f0b7e737a1e197e96b27bb05e18a709b280c460c06b9cc"
+  },
+  "one_date_reported_as_annual_change": {
+    "fixture": [
+      {
+        "symbol": "TEST",
+        "date": "2026-06-30",
+        "daysOfInventoryOutstanding": 20,
+        "revenuePerShare": 1
+      },
+      {
+        "symbol": "TEST",
+        "date": "2026-06-30",
+        "daysOfInventoryOutstanding": 25,
+        "revenuePerShare": 1
+      },
+      {
+        "symbol": "TEST",
+        "date": "2026-06-30",
+        "daysOfInventoryOutstanding": 30,
+        "revenuePerShare": 1
+      },
+      {
+        "symbol": "TEST",
+        "date": "2026-06-30",
+        "daysOfInventoryOutstanding": 35,
+        "revenuePerShare": 1
+      },
+      {
+        "symbol": "TEST",
+        "date": "2026-06-30",
+        "daysOfInventoryOutstanding": 40,
+        "revenuePerShare": 1
+      }
+    ],
+    "result": {
+      "dio_latest": 20,
+      "dio_4q_ago": 40,
+      "dio_chg_pct": -50.0,
+      "rev_growth_yoy": 0.0
+    }
+  },
+  "explicit_zero_dropped": {
+    "latest_reported_dio": 0,
+    "result": null
+  },
+  "boolean_accepted_as_measured_dio": {
+    "dio_latest": 1,
+    "dio_4q_ago": 40,
+    "dio_chg_pct": -97.5,
+    "rev_growth_yoy": 0.0
+  },
+  "missing_latest_and_dates_discarded": {
+    "source": {
+      "observations": [
+        {
+          "date": "2026-08-01",
+          "value": "."
+        },
+        {
+          "date": "2026-07-01",
+          "value": "1.47"
+        }
+      ]
+    },
+    "result": [
+      1.47
+    ]
+  },
+  "constant_ratio_receives_lean_score": {
+    "series": "MNFCTRIRSA",
+    "sector": "Manufacturing",
+    "theme_etf": "XLI",
+    "latest_ratio": 2.0,
+    "chg_3m": 0.0,
+    "chg_6m": 0.0,
+    "chg_12m": 0.0,
+    "percentile_5y": 0.0,
+    "drawdown_score": 40.0,
+    "flag": "STABLE"
+  },
+  "unresolved": [
+    "Keep observation dates and full original responses.",
+    "Require calendar comparisons, explicit issuer and unit identity.",
+    "Do not identify physical inventory drawdown or total revenue growth from ratio/per-share changes.",
+    "Tied historical values require an explicit descriptive rank convention, not a probability.",
+    "Preserve all 130 requested names and measured/unavailable records; current output slices to 40.",
+    "Unvalidated classifications must not log invented UP forecasts or confidence. Existing learning ledgers must not be read or changed."
+  ]
+}
