@@ -1,0 +1,78 @@
+{
+  "checked_at": "2026-09-27T14:03:03.269347+00:00",
+  "operation_run": 36323916292,
+  "report_commit": "59009610e3f5bdef6919d2e9632b29413f6b8eca",
+  "public": {
+    "url": "https://justhodl.ai/data/china-liquidity.json?exact=1&nogen=1",
+    "bytes": 6804,
+    "sha256": "067b7e4bc64652c2c5a5bbc77d697a50fc208192f3479df7404834b67b6bb690",
+    "generated_at": "2026-09-25T14:30:32.880735+00:00",
+    "contract": null,
+    "matches_runner": true,
+    "native_repair_publication_verified": false
+  },
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "XUw42W5kHHmIPxDUH85YlbQm3AD2vTbY58O2VMWjlbo=",
+      "source_files_checked": 4,
+      "handler_bytes": 31746,
+      "timeout": 120,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "cac0fa83b8df15aefac7419d42dbcf1d08b442b2"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "china-liquidity-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 14 ? * MON-FRI *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-china-liquidity",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "all_denied": true,
+    "anonymous_origins_checked": 2,
+    "attempt_outcome_counts": {
+      "404": 1,
+      "403": 1
+    },
+    "compiler_sha256": {
+      "lambda_function.py": "0c7bf8ec3dddb9feb443d3afaa281a6dfbb4865797e7db1c7ba4165bdc86dc03",
+      "china_store.py": "5921cab4edc391fb0bf0a5145fd418f8cd5f5a58ae51f68b231a11e4e46c7ef2",
+      "china_measurements.py": "974bd173fc6d58d14615fcfa23a3d1cdabacd1e655b3256ebe090af50de744d8",
+      "_fred_shim.py": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428"
+    },
+    "credential_reads": 0,
+    "expected_commit": "cac0fa83b8df15aefac7419d42dbcf1d08b442b2",
+    "failures": [],
+    "history_writes": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "status": "pending_original_daily_1430_publication",
+      "bytes": 6804,
+      "sha256": "067b7e4bc64652c2c5a5bbc77d697a50fc208192f3479df7404834b67b6bb690",
+      "generated_at": "2026-09-25T14:30:32.880735+00:00",
+      "version": null
+    },
+    "protected_paths_checked": 1,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedule_changes": 0,
+    "scope": "Whole acquired sources, complete history and exact monetary/rate/price calendars. Legacy NBS/PBoC extraction, historical vintages, economic leads and portfolio consequences remain unqualified."
+  },
+  "code_deployment_verified": true,
+  "native_repair_publication_verified": false,
+  "next_original_schedule": "2026-09-28T14:30:00Z",
+  "limitation": "Exact code, original runtime and unchanged schedule verified. Public data still matches the September 25 predecessor. Contract-aware release verification correctly remains NOT VERIFIED until the next original publication is acquired and replayed. Historical vintages, legacy text extraction, predictive and portfolio qualification remain open."
+}
