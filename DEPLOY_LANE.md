@@ -38,6 +38,22 @@ the complete intended file inventory. On Windows the physical `aws/ops/STAGED`
 directory can differ in case from canonical tracked `aws/ops/staged`; verify
 that a newly added operation actually appears in the index before pushing its
 tests or dispatching it.
+
+For native Git batches, save the exact intended changed-path inventory as a JSON
+array outside the repository, stage every member, then run:
+
+```sh
+python3 scripts/check_staged_batch.py --inventory /path/to/expected-files.json
+```
+
+Run it again **after every pull/rebase** and immediately before committing.
+Autostash can restore tested tracked edits without restoring their staged state.
+The check rejects omitted or unexpected staged files, unresolved conflicts and
+unstaged tracked edits. For renames, list both old and new paths. It never stages
+files or changes refs. Compare its `staged_tree` with `git rev-parse HEAD^{tree}`
+after the commit; if the index changes after validation, validate again. This
+proves the reviewed inventory was committed together, not that AWS deployed it.
+Native Git batches have no Contents-API write-size limit.
 `[skip-ops]` skips the ops runner. `[shrink-ok]` permits a deliberate >50% source shrink.
 
 ## Which lane are you?

@@ -16,6 +16,14 @@ test('older ticker response cannot repaint the current symbol',async()=>{
  const a=s.ctx.loadTicker('AAA'),b=s.ctx.loadTicker('BBB');pending[1]({ok:true,json:async()=>({tracker:{upcoming:[{symbol:'BBB',report_date:'2026-10-02'}]}})});await b;pending[0]({ok:true,json:async()=>({tracker:{upcoming:[{symbol:'AAA',report_date:'2026-10-01'}]}})});await a;
  assert.equal(s.nodes.get('symbolHeader').textContent,'BBB');assert.match(s.nodes.get('results').innerHTML,/2026-10-02/);assert.ok(!s.nodes.get('results').innerHTML.includes('2026-10-01'));
 });
+test('Materials links survive repair and every HTML-significant character is escaped',async()=>{
+ const s=setup();assert.equal(s.ctx.escapeTickerText('&<>"\''),'&amp;&lt;&gt;&quot;&#39;');
+ await s.ctx.loadTicker('AAPL');assert.match(s.nodes.get('results').innerHTML,/href="\/materials-orders.html">Materials orders/);
+ assert.match(source,/class="tab" href="\/materials-orders.html">Materials/);
+ const broken=fs.readFileSync(path.join(__dirname,'fixtures/pre-ticker-materials-escaping-regression.html.txt'),'utf8');
+ const inline=[...broken.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).filter(x=>x.trim());
+ assert.throws(()=>new vm.Script(inline[0]),SyntaxError);assert.ok(broken.endsWith('</html>\n'));
+});
 test('failed provider and malformed populations do not crash or invent an earnings schedule',async()=>{
  const s=setup(async()=>({ok:false}));await s.ctx.loadTicker('ABC');assert.match(s.nodes.get('results').innerHTML,/source unavailable/);
  const m=setup(async()=>({ok:true,json:async()=>({tracker:{upcoming:{fake:1},recent:[null]}})}));await m.ctx.loadTicker('ABC');assert.match(m.nodes.get('results').innerHTML,/No earnings row.*received packet/);assert.match(m.nodes.get('results').innerHTML,/settlement positions/);
