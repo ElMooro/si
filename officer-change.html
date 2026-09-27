@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Officer change 8-K · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:860px;margin:0 0 14px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2);cursor:pointer}
+.chip.on{border-color:var(--cyan);color:var(--fg)}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.item{display:inline-block;margin:0 4px 4px 0;padding:1px 6px;border:1px solid var(--bd);border-radius:4px;font-size:10px;color:var(--fg2)}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+button,input{font:inherit}input{width:100%;max-width:360px}label{display:block;margin-bottom:5px;color:var(--fg2)}
+.table-region{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:8px}table{min-width:900px}caption{text-align:left;padding:10px;color:var(--fg2)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.muted{color:var(--fg2)}.chip{overflow-wrap:anywhere;text-align:left;max-width:100%}#kpis,#publication,#status{overflow-wrap:anywhere}
+details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;color:var(--fg2);font-size:12px}
+.source-path{overflow-wrap:anywhere}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Officer change 8-K</h1>
+<p class="sub">Current-window Form 8-K Item 5.02 rows from the live EDGAR tape: departure, election or appointment of directors or certain officers. An item tag is not a confirmed firing, a succession plan, or a trading signal. Company names remain as filed; no ticker is inferred.</p>
+<div class="kpis" id="kpis"></div>
+<div class="kpis" id="items"></div>
+<label for="q">Filter company or accession</label>
+<input id="q" placeholder="Filter company or accession" autocomplete="off">
+<p id="publication" class="sub">Awaiting stored publication.</p>
+<p id="status" class="sub" role="status" aria-live="polite">Loading received records.</p>
+<div id="board" class="table-region" role="region" aria-label="Item 5.02 filing records" tabindex="0">Loading stored publication.</div>
+<details><summary>Complete original publication</summary><p class="sub">The received JSON text is preserved here. This page only filters Item 5.02 from that tape. It cannot recover filings omitted by the producer.</p><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Built for:</b> reading current-window officer and director changes as tagged Item 5.02, without inventing a ticker map or a reason for the change.<br>
+<b>Data:</b> /data/8k-filings.json filings[] filtered to items containing 5.02 (company, accession, filed_at, items, filing_url).<br>
+<b>Not:</b> a Form 8-K body parser, a compensation extract, or a confirmed resignation cause. Document links only for HTTPS SEC Archives URLs. Research only.</div>
+</div>
+<script src="/jh-table-values.js"></script>
+<script src="/jh-filing-desk.js"></script>
+<script>JHFilingDesk.start({mode:"8k",source:"/data/8k-filings.json",item:"5.02"});</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
