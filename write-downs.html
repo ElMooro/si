@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Write-downs · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:22px 0 8px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+input{max-width:320px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:860px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:12px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Write-downs</h1>
+<p class="sub">Goodwill, PP&E and inventory write-down dollars from 10-Q XBRL when those tags exist. They are not on live quality or inventory packets, so those columns stay blank. Item 2.06 8-K rows are notices, not charge sizes.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter ticker or company" autocomplete="off">
+<h2>Firm rows</h2>
+<div id="board" class="table-region">Loading.</div>
+<h2>8-K Item 2.06</h2>
+<div id="k8" class="table-region">Loading.</div>
+<div class="foot"><b>Built for:</b> 10-Q write-down dollars when tagged. An 8-K item number is not a dollar amount.<br>
+<b>Data:</b> /data/earnings-quality.json all_ranked[]; /data/inventory-drawdown.json stock_drawdown_board[]; /data/8k-filings.json item 2.06.<br>
+<b>Missing:</b> GoodwillImpairmentLoss, ImpairmentOfLongLivedAssetsHeldForUse, InventoryWriteDown, AssetImpairmentCharges.<br>
+<b>Related:</b> <a href="/impairments-8k.html">2.06 tape</a> · <a href="/quality-cycle.html">quality cycle</a>. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function tick(r){return String((r&&(r.ticker||r.symbol))||"").toUpperCase();}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker||a.company||"").localeCompare(String(b.ticker||b.company||""));return 1;}if(bv==null||bv==="")return -1;if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;return String(av).localeCompare(String(bv))*dir;}
+async function load(path){try{var r=await fetch(path+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function itemsOf(r){var x=r&&r.items;if(Array.isArray(x))return x.map(String);if(x==null)return [];return String(x).split(/[ ,;]+/).filter(Boolean);}
+(async function(){
+  var eq=await load("/data/earnings-quality.json");
+  var inv=await load("/data/inventory-drawdown.json");
+  var k8=await load("/data/8k-filings.json");
+  var dio={};((inv&&inv.stock_drawdown_board)||[]).forEach(function(r){var t=tick(r);if(t)dio[t]=r;});
+  var rows=((eq&&eq.all_ranked)||[]).map(function(r){var t=tick(r);var d=dio[t]||{};return {ticker:t,name:r.name||"",sloan:num(r.sloan_accruals_pct_assets),dsri:num(r.dsri_beneish),dio:num(d.dio_latest)};}).filter(function(r){return r.ticker;});
+  var notices=((k8&&k8.filings)||[]).filter(function(r){return itemsOf(r).some(function(i){return i.indexOf("2.06")>=0;});}).map(function(r){return {filed_at:r.filed_at||"",company:r.company||"",items:itemsOf(r).join(", "),filing_url:r.filing_url||""};});
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+rows.length+" quality names</span><span class='chip'>XBRL write-down tagged 0</span><span class='chip'>2.06 notices "+notices.length+"</span>";
+  var sort="dsri",dir=-1,qEl=document.getElementById("q");
+  function paint(){
+    var q=(qEl.value||"").toUpperCase();
+    var list=rows.filter(function(r){return !q||(r.ticker+" "+r.name).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr>";[["ticker","Ticker"],["name","Name"],["dsri","DSRI"],["sloan","Sloan"],["dio","DIO"],["gw","Goodwill WD $"],["ppe","PP&E WD $"],["invw","Inventory WD $"]].forEach(function(c){h+="<th class='"+(sort===c[0]?"on":"")+"' data-k='"+c[0]+"'>"+c[1]+(sort===c[0]?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    list.forEach(function(r){h+="<tr><td><a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker)+"\">"+esc(r.ticker)+"</a></td><td>"+esc(r.name)+"</td><td class='r'>"+esc(r.dsri==null?"":r.dsri.toFixed(2))+"</td><td class='r'>"+esc(r.sloan==null?"":r.sloan.toFixed(2))+"</td><td class='r'>"+esc(r.dio==null?"":r.dio.toFixed(1))+"</td><td class='r'></td><td class='r'></td><td class='r'></td></tr>";});
+    document.getElementById("board").innerHTML=h+closeTbl();
+    var h2="<table><thead><tr><th>Filed</th><th>Company</th><th>Items</th><th>Filing</th></tr></thead><tbody>";
+    notices.filter(function(r){return !q||String(r.company).toUpperCase().indexOf(q)>=0;}).forEach(function(r){var u=String(r.filing_url||"");h2+="<tr><td>"+esc(r.filed_at)+"</td><td>"+esc(r.company)+"</td><td>"+esc(r.items)+"</td><td>"+( /^https:\/\/www\.sec\.gov\//i.test(u)?"<a href=\""+esc(u)+"\" target=\"_blank\" rel=\"noopener\">SEC</a>":"")+"</td></tr>";});
+    document.getElementById("k8").innerHTML=h2+closeTbl();
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=(k==="ticker"||k==="name")?1:-1;}paint();};});
+  }
+  qEl.oninput=paint;paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
