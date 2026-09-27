@@ -1,3 +1,6 @@
+"""v1.4.0 retained research. Legacy calculations below are unvalidated diagnostics.
+No recession probability, sizing or execution authority is granted.
+"""
 """
 justhodl-global-recession v1.0.0 — GDP-WEIGHTED GLOBAL RECESSION PROBABILITY
 =============================================================================
@@ -58,7 +61,10 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.1"
+VERSION = "1.4.0"
+
+import recession_research as research
+_research_session = None
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/global-recession.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -80,6 +86,8 @@ SQUASH_SCALE = 22.0
 
 
 def read_feed(key):
+    if _research_session is not None:
+        return _research_session.feed(key)
     try:
         return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception as e:
@@ -97,13 +105,25 @@ def fred_latest(series, n=30):
         req = urllib.request.Request(
             f"https://api.stlouisfed.org/fred/series/observations?{qs}",
             headers={"User-Agent": "JustHodl/1.0"})
-        with urllib.request.urlopen(req, timeout=20) as r:
+        with (_research_session.fred(req, timeout=20) if _research_session is not None else urllib.request.urlopen(req, timeout=20)) as r:
             obs = json.loads(r.read().decode()).get("observations", [])
         for o in obs:
             if o.get("value") not in (".", "", None):
-                return float(o["value"]), o.get("date")
+                import math
+                try:
+                    value = float(o["value"])
+                    observed = datetime.fromisoformat(str(o.get("date")))
+                    if (isinstance(o["value"], bool) or not math.isfinite(value)
+                            or observed.date().isoformat() != o.get("date")
+                            or observed.date() > datetime.now(timezone.utc).date()):
+                        raise ValueError('Invalid observation')
+                except Exception:
+                    raise research.EvidenceError("Invalid FRED numeric observation or date") from None
+                return value, o.get("date")
+    except research.EvidenceError:
+        raise
     except Exception as e:
-        print(f"[fred] {series} -> {e}")
+        print(f"[fred] {series} -> {type(e).__name__}")
     return None
 
 
@@ -549,7 +569,7 @@ def lambda_handler(event, context):
 _orig_handler_4217 = lambda_handler
 
 
-def lambda_handler(event=None, context=None):
+def _produce_with_bus(event=None, context=None):
     """bus_legs — bus enrichment wrapper (core math untouched)."""
     r = _orig_handler_4217(event, context)
     try:
@@ -571,6 +591,29 @@ def lambda_handler(event=None, context=None):
                       Body=json.dumps(_doc).encode(),
                       ContentType="application/json")
         print("[bus_legs] wired: " + json.dumps(_blk)[:120])
+    except research.EvidenceError:
+        raise
     except Exception as _e:
         print("[bus_legs] EXC " + type(_e).__name__)
     return r
+
+
+def lambda_handler(event=None, context=None):
+    """Retain whole originals, buffer both native stages, publish one research head."""
+    global s3, datetime, _research_session
+    original_client, original_datetime, original_session = s3, datetime, _research_session
+    session = research.Session(s3, BUCKET, datetime.now(timezone.utc).isoformat())
+    class CalculationClock(original_datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return session.now(tz)
+    s3, datetime, _research_session = session, CalculationClock, session
+    try:
+        result = _produce_with_bus(event, context)
+        if not isinstance(result, dict) or result.get('statusCode') != 200:
+            raise research.EvidenceError('Native calculation did not complete')
+        proof = session.finish(research.compiler_hashes())
+        return {'statusCode': 200, 'body': json.dumps({'ok': True, 'contract': 'global-recession-research.v1',
+                'decision': 'WAIT', 'meaning': 'abstain', 'output_sha256': proof['output']['sha256']})}
+    finally:
+        s3, datetime, _research_session = original_client, original_datetime, original_session
