@@ -13,36 +13,40 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-
 td.l,th.l{text-align:left}
 .pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
-#board{max-width:100%;overflow:auto}#board table{min-width:950px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Hiring velocity</h1>
 <p class="sub">Headcount change and revenue per employee from the live hiring-velocity feed. Click any column to sort ascending, click again to sort descending. Blank is missing, not zero.</p>
-<input id="q" aria-label="Filter ticker or sector" placeholder="filter ticker / sector" autocomplete="off">
-<div id="board" role="region" aria-label="Reported hiring rows" tabindex="0">Loading /data/hiring-velocity.json</div>
-<details><summary>Complete received hiring packet, including other published subsets</summary><pre id="original" tabindex="0">Unavailable</pre></details>
-<div class="foot"><b>Built for:</b> inspecting reported headcount changes and revenue per employee. Comparable source periods and forecasting value remain unverified.<br>
+<input id="q" placeholder="filter ticker / sector" autocomplete="off">
+<div id="board">Loading /data/hiring-velocity.json</div>
+<div class="foot"><b>Built for:</b> seeing whether a firm is adding people while revenue per employee is still rising — a real-economy nowcast, not a careers-page scrape.<br>
 <b>Data:</b> /data/hiring-velocity.json (headcount latest, YoY, acceleration, revenue per employee, expansion score, inflection flag).<br>
 <b>Sort:</b> header click toggles asc/desc. Nulls sort last.<br>
 <b>Not:</b> Indeed/LinkedIn posting panels. Those tags are not in the feed.</div>
 </div>
-<script src="/jh-table-values.js"></script>
 <script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-function n(v,d){return JHTableValues.format(v,d==null?1:d);}
-function cls(v){return JHTableValues.sign(v);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&quot;";});}
+function n(v,d){if(v==null||!isFinite(Number(v)))return "";return Number(v).toFixed(d==null?1:d);}
+function cls(v){return v==null?"":(Number(v)>0?"pos":Number(v)<0?"neg":"");}
 function cmp(a,b,k,dir){
-  if(k==="symbol")return JHTableValues.compare({symbol:a.symbol||a.ticker},{symbol:b.symbol||b.ticker},k,dir,"text");
-  return JHTableValues.compare(a,b,k,dir,["name","sector","state"].includes(k)?"text":"number");
+  var av=k==="symbol"?(a.symbol||a.ticker):a[k];
+  var bv=k==="symbol"?(b.symbol||b.ticker):b[k];
+  if(av==null||av==="") av=null; if(bv==null||bv==="") bv=null;
+  if(av==null&&bv==null) return String(a.symbol||a.ticker||"").localeCompare(String(b.symbol||b.ticker||""));
+  if(av==null) return 1; if(bv==null) return -1;
+  if(typeof av==="number"||typeof bv==="number"){
+    av=Number(av); bv=Number(bv);
+    if(!isFinite(av)&&!isFinite(bv)) return 0;
+    if(!isFinite(av)) return 1; if(!isFinite(bv)) return -1;
+    return (av-bv)*dir;
+  }
+  return String(av).localeCompare(String(bv))*dir;
 }
 (async function(){
   var d=null, SORT="expansion_score", DIR=-1;
-  try{var received=await JHTableValues.load("/data/hiring-velocity.json");d=received.packet;document.getElementById("original").textContent=received.raw;}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
+  try{var r=await fetch("/data/hiring-velocity.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
   var rows=(d&&(d.top_50||d.expansion_inflections))||[];
-  if(!Array.isArray(rows)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
-  var malformed=rows.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
-  rows=rows.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});
   var cols=[["symbol","Ticker","l"],["name","Name","l"],["sector","Sector","l"],["headcount_latest","Headcount",""],["headcount_yoy_pct","HC YoY",""],["headcount_accel_pp","Accel pp",""],["revenue_per_employee","Rev/emp",""],["expansion_score","Score",""],["state","State","l"]];
   function paint(){
     var q=(document.getElementById("q").value||"").toUpperCase();
@@ -55,17 +59,19 @@ function cmp(a,b,k,dir){
       var t=x.symbol||x.ticker||"";
       h+="<tr><td class=l><a href=/ticker.html?symbol="+encodeURIComponent(t)+" style=color:#fff>"+esc(t)+"</a></td>";
       h+="<td class=l>"+esc(x.name||"")+"</td><td class=l>"+esc(x.sector||"")+"</td>";
-      h+="<td>"+(JHTableValues.integer(x.headcount_latest)===null?"":JHTableValues.count(x.headcount_latest))+"</td>";
-      h+="<td class="+cls(x.headcount_yoy_pct)+">"+JHTableValues.percent(x.headcount_yoy_pct,1)+"</td>";
+      h+="<td>"+(x.headcount_latest==null?"":Number(x.headcount_latest).toLocaleString())+"</td>";
+      h+="<td class="+cls(x.headcount_yoy_pct)+">"+(x.headcount_yoy_pct==null?"":n(x.headcount_yoy_pct)+"%")+"</td>";
       h+="<td class="+cls(x.headcount_accel_pp)+">"+n(x.headcount_accel_pp)+"</td>";
-      h+="<td>"+(JHTableValues.number(x.revenue_per_employee)===null?"":"$"+n(x.revenue_per_employee,0))+"</td>";
+      h+="<td>"+(x.revenue_per_employee==null?"":"$"+Math.round(x.revenue_per_employee).toLocaleString())+"</td>";
       h+="<td>"+n(x.expansion_score)+"</td>";
-      h+="<td class=l>"+esc((x.state||"")+(x.inflection===true?" · inflection":""))+"</td></tr>";
+      h+="<td class=l>"+esc((x.state||"")+(x.inflection?" · inflection":""))+"</td></tr>";
     });
-    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" rows in the received "+(Array.isArray(d.top_50)?"top_50":"expansion_inflections")+" subset; "+malformed+" malformed rows retained in the original packet. Publication "+esc(d.generated_at||"unavailable")+" does not establish observation freshness. Click headers or press Enter/Space to sort.</p>";
-    JHTableValues.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=["symbol","name","sector","state"].includes(k)?1:-1;}paint();});
+    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" scored names. Generated "+esc((d&&d.generated_at)||"")+". Click headers to sort.</p>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){
+      th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=(th.dataset.k==="symbol"||th.dataset.k==="name"||th.dataset.k==="sector"||th.dataset.k==="state")?1:-1;}paint();};
+    });
   }
-  if(!rows.length){document.getElementById("board").textContent="Received subset has no displayable rows. Malformed rows: "+malformed+". Inspect the complete packet.";return;}
+  if(!rows.length){document.getElementById("board").textContent="hiring-velocity.json missing or empty.";return;}
   document.getElementById("q").oninput=paint; paint();
 })();
 </script>

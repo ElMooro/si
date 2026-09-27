@@ -32,88 +32,81 @@ tr:hover td{background:var(--panel2)}
 .chk{color:var(--grn)}
 .loading{color:var(--dim);padding:40px;text-align:center}
 .foot{color:var(--dim);font-size:11px;margin-top:24px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
 </style>
 </head>
 <body>
 <div class="topbar">
   <h1>🔀 Estimate Revisions</h1>
-  <div class="sub">Consensus EPS &amp; revenue estimates revised <b>up</b> into a print tend to drift positively (and vice versa). Click any column to sort ascending or descending. Nulls stay last.</div>
+  <div class="sub">Reported changes in consensus EPS and revenue estimates. Comparable estimate periods, independent analyst coverage and predictive value remain unverified. Click headers or press Enter/Space to sort. Missing numeric values stay last.</div>
 </div>
 <div id="banner"></div>
 <div class="statbar" id="statbar"></div>
 <div id="content"><div class="loading">⟳ loading estimate revisions…</div></div>
 <div class="foot" id="foot"></div>
+<details><summary>Complete received estimate-revisions packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<script src="/jh-table-values.js"></script>
 <script>
-const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
-  `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
-  `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
-async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const pct=v=>v==null?"":""+(v>=0?"+":"")+(+v).toFixed(2)+"%";
-const num=v=>v==null?"":(+v).toLocaleString(undefined,{maximumFractionDigits:3});
+const pct=v=>JHTableValues.percent(v,2);
+const num=v=>JHTableValues.number(v)===null?"":JHTableValues.number(v).toLocaleString('en-US',{maximumFractionDigits:3});
+const days=v=>{const n=JHTableValues.number(v);return n!==null&&Number.isSafeInteger(n)?n+"d":"";};
+const records=a=>(Array.isArray(a)?a:[]).map(x=>x&&typeof x==="object"&&!Array.isArray(x)?x:{});
 let PACK=null, SORT="eps_rev_pct", DIR=-1;
 const COLS=[["ticker","Ticker","l"],["eps_rev_pct","EPS revision",""],["current_eps_est","Now EPS",""],["rev_rev_pct","Rev revision",""],["revenue_confirms","Conf",""],["earnings_date","Earnings",""],["days_to_earnings","Days",""],["importance","Imp",""]];
 function cmp(a,b,k,dir){
-  var av=a[k], bv=b[k];
-  if(av==null||av==="") av=null; if(bv==null||bv==="") bv=null;
-  if(av==null&&bv==null) return String(a.ticker||"").localeCompare(String(b.ticker||""));
-  if(av==null) return 1; if(bv==null) return -1;
-  if(typeof av==="number"||typeof bv==="number"||k==="eps_rev_pct"||k==="rev_rev_pct"||k==="days_to_earnings"||k==="current_eps_est"||k==="importance"){
-    av=Number(av); bv=Number(bv);
-    if(!isFinite(av)&&!isFinite(bv)) return 0;
-    if(!isFinite(av)) return 1; if(!isFinite(bv)) return -1;
-    return (av-bv)*dir;
-  }
-  return String(av).localeCompare(String(bv))*dir;
+  return JHTableValues.compare(a,b,k,dir,k==="ticker"||k==="earnings_date"?"text":k==="revenue_confirms"?"boolean":"number");
 }
 function revTbl(rows){
   var list=rows.slice().sort(function(a,b){return cmp(a,b,SORT,DIR);});
-  var h='<div style="overflow-x:auto"><table><thead><tr>';
+  var h='<div style="overflow-x:auto" role="region" aria-label="Reported estimate revisions" tabindex="0"><table><thead><tr>';
   COLS.forEach(function(c){h+='<th class="'+(c[2]||"")+(SORT===c[0]?" on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";});
   h+="</tr></thead><tbody>";
   list.forEach(function(s){
     h+="<tr><td class=l><b>"+esc(s.ticker)+"</b></td>";
-    h+='<td class="'+((s.eps_rev_pct||0)>=0?"flowpos":"flowneg")+'"><b>'+esc(pct(s.eps_rev_pct))+"</b></td>";
+    h+='<td class="'+JHTableValues.sign(s.eps_rev_pct,"flowpos","flowneg")+'"><b>'+esc(pct(s.eps_rev_pct))+"</b></td>";
     h+="<td>"+esc(num(s.baseline_eps_est))+"\u2192"+esc(num(s.current_eps_est))+"</td>";
-    h+='<td class="'+((s.rev_rev_pct||0)>=0?"flowpos":"flowneg")+'">'+esc(pct(s.rev_rev_pct))+"</td>";
-    h+="<td>"+(s.revenue_confirms?'<span class="chk">\u2713</span>':"")+"</td>";
+    h+='<td class="'+JHTableValues.sign(s.rev_rev_pct,"flowpos","flowneg")+'">'+esc(pct(s.rev_rev_pct))+"</td>";
+    h+="<td>"+(s.revenue_confirms===true?'Yes':s.revenue_confirms===false?'No':'')+"</td>";
     h+='<td style="color:var(--dim)">'+esc(s.earnings_date||"")+" "+esc(s.session||"")+"</td>";
-    h+="<td>"+(s.days_to_earnings==null?"":s.days_to_earnings+"d")+"</td>";
-    h+="<td>"+esc(s.importance||"")+"</td></tr>";
+    h+="<td>"+days(s.days_to_earnings)+"</td>";
+    h+="<td>"+num(s.importance)+"</td></tr>";
   });
   return h+"</tbody></table></div>";
 }
 function paint(){
   var d=PACK; if(!d) return;
   document.getElementById("banner").innerHTML = d.status==="WARMING"
-    ? '<div class="banner">WARMING \u2014 baseline snapshot recorded for '+(d.n_tracked||0)+" names.</div>"
-    : '<div class="banner live">'+esc(d.status)+" \u2014 tracking revisions across "+(d.n_with_history||0)+" names with history.</div>";
+    ? '<div class="banner">Producer reports WARMING \u2014 tracked count '+JHTableValues.count(d.n_tracked)+".</div>"
+    : '<div class="banner">Producer status '+esc(d.status||"unavailable")+" \u2014 reported names with history: "+JHTableValues.count(d.n_with_history)+".</div>";
   document.getElementById("statbar").innerHTML=
-    '<div class="stat"><div class="v">'+(d.n_tracked||0)+'</div><div class="l">FORWARD NAMES</div></div>'+
-    '<div class="stat"><div class="v">'+(d.n_with_history||0)+'</div><div class="l">WITH HISTORY</div></div>'+
-    '<div class="stat"><div class="v" style="color:var(--grn)">'+(d.upward_revisions||[]).length+'</div><div class="l">REVISED UP</div></div>'+
-    '<div class="stat"><div class="v" style="color:var(--red)">'+(d.downward_revisions||[]).length+'</div><div class="l">REVISED DOWN</div></div>'+
-    '<div class="stat"><div class="v" style="color:var(--cyan)">'+(d.top_picks||[]).length+'</div><div class="l">TRACKED PICKS</div></div>';
+    '<div class="stat"><div class="v">'+JHTableValues.count(d.n_tracked)+'</div><div class="l">REPORTED TRACKED</div></div>'+
+    '<div class="stat"><div class="v">'+JHTableValues.count(d.n_with_history)+'</div><div class="l">REPORTED WITH HISTORY</div></div>'+
+    '<div class="stat"><div class="v">'+(Array.isArray(d.upward_revisions)?d.upward_revisions.length:'Unavailable')+'</div><div class="l">PUBLISHED UP ROWS</div></div>'+
+    '<div class="stat"><div class="v">'+(Array.isArray(d.downward_revisions)?d.downward_revisions.length:'Unavailable')+'</div><div class="l">PUBLISHED DOWN ROWS</div></div>'+
+    '<div class="stat"><div class="v">'+(Array.isArray(d.top_picks)?d.top_picks.length:'Unavailable')+'</div><div class="l">PRODUCER SELECTION ROWS</div></div>';
   var h="";
-  var picks=d.top_picks||[];
+  var picks=records(d.top_picks);
   if(picks.length){
-    h+='<h2 class="g">Tracked Picks <small>upward-revised, near earnings, revenue-confirmed</small></h2><div>'+
-      picks.map(function(p){return '<span class="pick"><b>'+esc(p.ticker)+'</b> <span class="s">'+esc(pct(p.score))+'</span> '+(p.days_to_earnings==null?"":p.days_to_earnings+"d")+"</span>";}).join("")+"</div>";
+    h+='<h2>Producer selection <small>qualification pending; inherited score is not a return</small></h2><div>'+
+      picks.map(function(p){return '<span class="pick"><b>'+esc(p.ticker)+'</b> <span>'+esc(num(p.score))+'</span> '+days(p.days_to_earnings)+"</span>";}).join("")+"</div>";
   }
-  var up=d.upward_revisions||[],dn=d.downward_revisions||[];
+  var up=records(d.upward_revisions),dn=records(d.downward_revisions);
   if(up.length) h+='<h2 class="g">Upward Revisions <small>click headers to sort</small></h2>'+revTbl(up);
   if(dn.length) h+='<h2 class="r">Downward Revisions <small>click headers to sort</small></h2>'+revTbl(dn);
-  if(!up.length&&!dn.length) h+='<div class="loading">No revisions yet \u2014 the engine is building its baseline.</div>';
+  if(!up.length&&!dn.length) h+='<div class="loading">No directional rows in this publication. Inspect the original packet for coverage and source status.</div>';
   document.getElementById("content").innerHTML=h;
-  document.querySelectorAll("#content th[data-k]").forEach(function(th){
-    th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="ticker"||th.dataset.k==="earnings_date"?1:-1;}paint();};
-  });
+  JHTableValues.bindSort(document.querySelectorAll("#content th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=k==="ticker"||k==="earnings_date"?1:-1;}paint();});
   document.getElementById("foot").innerHTML=
-    "Source: "+esc(d.data_source||"Benzinga consensus (via Massive)")+" \u00b7 generated "+esc((d.generated_at||"").replace("T"," ").slice(0,16))+" UTC. Click headers to sort asc/desc. Nulls last. Research only.";
+    "Reported source: "+esc(d.data_source||"unavailable")+" \u00b7 publication "+esc(d.generated_at||"unavailable")+". Publication time does not establish observation freshness. Malformed rows remain in the complete packet and render as empty rows. No Calls or sizing permission.";
 }
-function render(d){PACK=d;paint();}
-load("data/estimate-revisions.json").then(render).catch(function(e){document.getElementById("content").innerHTML='<div class="loading">Could not load estimate-revisions.json \u2014 '+esc(e.message)+"</div>";});
-setInterval(function(){load("data/estimate-revisions.json").then(render).catch(function(){});},300000);
+function render(d){for(const k of ['upward_revisions','downward_revisions','top_picks'])if(d[k]!==undefined&&!Array.isArray(d[k]))throw Error('Malformed published population: '+k);PACK=d;paint();}
+let generation=0,refreshTimer=null;
+function clear(){PACK=null;for(const id of ['banner','statbar','content','foot'])document.getElementById(id).textContent='';document.getElementById('original').textContent='Unavailable';}
+async function refresh(){const ticket=++generation;clear();document.getElementById('content').textContent='Reading stored estimate revisions…';try{const received=await JHTableValues.load('/data/estimate-revisions.json');if(ticket!==generation)return;document.getElementById('original').textContent=received.raw;render(received.packet);}catch(e){if(ticket!==generation)return;PACK=null;if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById('content').textContent='Stored publication unavailable: '+e.message;}}
+refresh();refreshTimer=setInterval(refresh,300000);
+window.addEventListener?.('pagehide',function(){generation++;clearInterval(refreshTimer);clear();});
+window.addEventListener?.('pageshow',function(e){if(e.persisted){refresh();refreshTimer=setInterval(refresh,300000);}});
 </script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>

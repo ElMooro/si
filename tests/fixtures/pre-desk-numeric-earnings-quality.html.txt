@@ -13,35 +13,39 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-
 td.l,th.l{text-align:left}
 .pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
-#board{max-width:100%;overflow:auto}#board table{min-width:740px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Earnings quality</h1>
 <p class="sub">Sloan accruals, cash conversion, and Beneish DSRI/GMI from the live earnings-quality feed. Click any column to sort ascending, click again to sort descending. Blank is missing, not zero.</p>
-<input id="q" aria-label="Filter ticker or company" placeholder="filter ticker" autocomplete="off">
-<div id="board" role="region" aria-label="Reported earnings quality rows" tabindex="0">Loading /data/earnings-quality.json</div>
-<details><summary>Complete received earnings-quality packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<input id="q" placeholder="filter ticker" autocomplete="off">
+<div id="board">Loading /data/earnings-quality.json</div>
 <div class="foot"><b>Built for:</b> seeing whether earnings are cash or accrual-heavy before treating growth as real.<br>
 <b>Data:</b> /data/earnings-quality.json (ttm NI, OCF, FCF, Sloan % assets, cash conversion, DSRI, GMI, quality score).<br>
 <b>Formulas:</b> Sloan = (NI − OCF) / assets when the producer tagged it. Cash conversion = OCF / NI when tagged. DSRI/GMI are the Beneish components on the row only.<br>
 <b>Sort:</b> header click toggles asc/desc. Nulls sort last. Not a full Beneish M-score, ARR, or guidance.</div>
 </div>
-<script src="/jh-table-values.js"></script>
 <script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-function n(v,d){return JHTableValues.format(v,d==null?1:d);}
-function cls(v){return JHTableValues.sign(v,"neg","pos");}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&quot;";});}
+function n(v,d){if(v==null||!isFinite(Number(v)))return "";return Number(v).toFixed(d==null?1:d);}
+function cls(v){return v==null?"":(v>0?"neg":v<0?"pos":"");}
 function cmp(a,b,k,dir){
-  return JHTableValues.compare(a,b,k,dir,k==="ticker"||k==="name"?"text":"number");
+  var av=a[k], bv=b[k];
+  if(av==null||av==="") av=null; if(bv==null||bv==="") bv=null;
+  if(av==null&&bv==null) return String(a.ticker||"").localeCompare(String(b.ticker||""));
+  if(av==null) return 1; if(bv==null) return -1;
+  if(typeof av==="number"||typeof bv==="number"){
+    av=Number(av); bv=Number(bv);
+    if(!isFinite(av)&&!isFinite(bv)) return 0;
+    if(!isFinite(av)) return 1; if(!isFinite(bv)) return -1;
+    return (av-bv)*dir;
+  }
+  return String(av).localeCompare(String(bv))*dir;
 }
 (async function(){
   var d=null, SORT="quality_score", DIR=-1;
-  try{var received=await JHTableValues.load("/data/earnings-quality.json");d=received.packet;document.getElementById("original").textContent=received.raw;}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
+  try{var r=await fetch("/data/earnings-quality.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
   var rows=(d&&(d.all_ranked||d.top_20_high_quality))||[];
-  if(!Array.isArray(rows)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
-  var malformed=rows.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
-  rows=rows.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});
   var cols=[["ticker","Ticker","l"],["name","Name","l"],["sloan_accruals_pct_assets","Sloan % assets",""],["cash_conversion_ratio","Cash conv",""],["dsri_beneish","DSRI",""],["gmi_beneish","GMI",""],["quality_score","Quality",""]];
   function paint(){
     var q=(document.getElementById("q").value||"").toUpperCase();
@@ -59,10 +63,12 @@ function cmp(a,b,k,dir){
       h+="<td>"+n(x.gmi_beneish,2)+"</td>";
       h+="<td>"+n(x.quality_score,1)+"</td></tr>";
     });
-    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" received rows. "+malformed+" malformed rows retained in the original packet. Producer publication "+esc(d.as_of||"unavailable")+"; underlying period freshness is unverified. Click headers or press Enter/Space to sort.</p>";
-    JHTableValues.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=k==="ticker"||k==="name"?1:-1;}paint();});
+    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" ranked names. As of "+esc((d&&d.as_of)||"")+". Click headers to sort.</p>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){
+      th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="ticker"||th.dataset.k==="name"?1:-1;}paint();};
+    });
   }
-  if(!rows.length){document.getElementById("board").textContent="Received population has no displayable rows. Malformed rows: "+malformed+". Inspect the complete packet.";return;}
+  if(!rows.length){document.getElementById("board").textContent="earnings-quality.json missing or empty.";return;}
   document.getElementById("q").oninput=paint; paint();
 })();
 </script>
