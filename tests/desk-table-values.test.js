@@ -194,6 +194,9 @@ test('workforce page pagination and failures retain all original evidence withou
 });
 
 test('EPS forecasts, rating actions and request coverage are separate complete populations',async()=>{
+ const source=fs.readFileSync(path.join(root,'eps-velocity.html'),'utf8');
+ assert.match(source,/data-feeds="data\/revision-breadth\.json\|justhodl-gap-metrics\|REVISION BREADTH · MARKET LEVEL"/);
+ assert.match(source,/not company-level EPS revision evidence/);
  const M=require('../jh-eps-observations.js');const p={measurement_contract:M.CONTRACT,request_records:[{ticker:'TEST',acquisitions:[{endpoint:'grades',status:'received',original_base64:'EXACT_BYTES',original_sha256:'identity'}],quote_records:[{price:0}],
   estimate_observations:[{source_index:0,raw:{symbol:'TEST'},target_period_end:'2026-01-31',target_status:'past_target',values:{epsAvg:0},reported_currency:'JPY',measurement_status:'reported_forecast_observation'}],
   same_target_comparisons:[{source_index:0,eps_change:null}],rating_observations:[{raw:{symbol:'TEST'},reported_date:'2026-09-26',previous_grade:'Sell',new_grade:'Sell',grading_company:'A > B',reported_action:'maintain',status:'reported_rating_record'}]}],all_qualifying:[{symbol:'NEVER_USE'}]};
