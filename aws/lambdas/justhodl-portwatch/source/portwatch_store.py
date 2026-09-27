@@ -13,7 +13,7 @@ import gzip,hashlib,json,math,re,time,urllib.request,urllib.error,urllib.parse
 HEAD='data/portwatch.json';HISTORY='data/warm/portwatch/history/daily-rows.json.gz';IMPORT='data/import-canary.json'
 KEYS=(HEAD,HISTORY,IMPORT);PRIVATE='audit-private/20260909-originals/portwatch-research/'
 LIMIT=64*1024*1024;CONTRACT='portwatch-preserved-calculation.v1'
-COMPILERS=('lambda_function.py','portwatch_store.py','portwatch_measurements.py')
+COMPILERS=('lambda_function.py','portwatch_store.py','portwatch_measurements.py','portwatch_acquisition.py')
 LAYERS=('PortWatch_chokepoints_database','Daily_Chokepoints_Data','Daily_Ports_Data','portwatch_disruptions_database','PortWatch_ports_database')
 sha=lambda raw:hashlib.sha256(raw).hexdigest()
 encode=lambda v:json.dumps(v,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode('utf-8')
@@ -91,7 +91,7 @@ def identity(req,timeout):
     if parts.path not in valid or method not in ('GET','POST') or (method=='POST' and (parts.query or not isinstance(body,bytes))) or (method=='GET' and body is not None):
         raise CaptureError('Unreviewed provider operation')
     pairs=urllib.parse.parse_qsl(body.decode('utf-8') if body is not None else parts.query,keep_blank_values=True);query=dict(pairs)
-    if len(pairs)!=len(query) or set(query)-{'where','outFields','orderByFields','resultRecordCount','resultOffset','f'} or query.get('f')!='json':
+    if len(pairs)!=len(query) or set(query)-{'where','outFields','orderByFields','resultRecordCount','resultOffset','returnCountOnly','returnIdsOnly','objectIds','returnGeometry','f'} or query.get('f')!='json':
         raise CaptureError('Unreviewed provider fields')
     if type(timeout) not in (int,float) or not 0<timeout<=30:raise CaptureError('Bounded native timeout required')
     return {'method':method,'url':url,'body_utf8':body.decode('utf-8') if body is not None else None,'timeout':timeout}

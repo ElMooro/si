@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-09-27T04:57:09.079580+00:00",
+  "scope": "Read-only explicit empty-set provider protocol review; no native invocation or writes",
+  "responses": [
+    {
+      "url": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/portwatch_disruptions_database/FeatureServer/0/query?where=1%3D0&returnCountOnly=true&f=json",
+      "bytes": 13,
+      "sha256": "7886222597aa503c7fcb97ba200bf66c918aaf8bb08b6c702386457d30bdf0d7",
+      "body": {
+        "count": 0
+      }
+    },
+    {
+      "url": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/portwatch_disruptions_database/FeatureServer/0/query?where=1%3D0&returnIdsOnly=true&f=json",
+      "bytes": 49,
+      "sha256": "513ab79b0b0427e80436b0e42bdee67a4db9e576cb8521b56e76cf0654426170",
+      "body": {
+        "objectIdFieldName": "ObjectId",
+        "objectIds": []
+      }
+    }
+  ]
+}

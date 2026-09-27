@@ -33,10 +33,21 @@
   if(w.status==='complete'){if(w.available_days!==n||!finite(w.mean)||w.mean<0||!integer(w.sum)||Math.abs(w.mean*n-w.sum)>1e-9*Math.max(1,w.sum))throw Error('Invalid complete window');}
   else if(!['missing_observations','outside_exact_json_range'].includes(w.status)||w.mean!==null||w.sum!==null)throw Error('Unqualified partial window');
  }
+ function acquisition(p){
+  const a=p.acquisition_review;
+  if(a===undefined)return {rows:[],message:'This packet has no reconciled query-membership declaration. Source population completeness is unverified.',references:[]};
+  if(a?.contract!=='portwatch-query-membership.v1'||!Array.isArray(a.queries)||a.queries.length===0||a.provider_snapshot_atomic!==false||a.point_in_time_verified!==false||a.partial_publication_allowed!==false||a.request_budget!==140||!Array.isArray(p.port_reference_review))throw Error('Unsupported acquisition declaration');
+  const layers=new Set(['PortWatch_chokepoints_database','Daily_Chokepoints_Data','Daily_Ports_Data','portwatch_disruptions_database','PortWatch_ports_database']);
+  for(const q of a.queries){const layer=typeof q.url==='string'?q.url.match(/^https:\/\/services9\.arcgis\.com\/weJ1QsnbMYJlCHdG\/arcgis\/rest\/services\/([^/]+)\/FeatureServer\/0\/query$/)?.[1]:null;
+   if(!layers.has(layer)||typeof q.where!=='string'||!integer(q.declared_count)||q.enumerated_ids!==q.declared_count||q.returned_rows!==q.declared_count||q.object_id_field!=='ObjectId'||!/^[a-f0-9]{64}$/.test(q.object_ids_sha256)||q.membership_reconciled!==true||q.provider_snapshot_atomic!==false)throw Error('Incomplete query membership');
+  }
+  const ids=new Set();for(const row of p.port_reference_review){const id=row?.attributes?.portid;if(typeof id!=='string'||!id||ids.has(id)||typeof row.selected_by_existing_name_rule!=='boolean'||!Array.isArray(row.matching_terms)||row.matching_terms.some(x=>typeof x!=='string'))throw Error('Ambiguous reference selection');ids.add(id);}
+  return {rows:a.queries,references:p.port_reference_review,message:'Producer declares count → unique object IDs → complete feature reconciliation for every listed query. Requests are not an atomic provider snapshot. The browser has not retrieved or replayed protected originals. All matching ports use the inherited name rules; this is not a world-port census.'};
+ }
  function view(p,now=Date.now()){
   if(!p||typeof p!=='object'||Array.isArray(p)||!Array.isArray(p.chokepoints)||!Array.isArray(p.ports))throw Error('Complete shipping packet unavailable');
   const at=clock(p.generated_at);if(at===null||at>now)throw Error('Invalid publication clock');
-  const review=p.measurement_review,native=!!review,ids=new Set();let rows=[];
+  const review=p.measurement_review,native=!!review,ids=new Set();let rows=[];acquisition(p);
   if(native){
    if(p.contract!=='portwatch-preserved-calculation.v1'||review.contract!==CONTRACT||review.calculation_at!==p.generated_at||['forecast_qualified','calls_eligible','sizing_eligible','execution_eligible'].some(k=>p[k]!==false)||p.portfolio_action!=='WAIT'||review.forecast_qualified!==false||review.sizing_eligible!==false)throw Error('Unsupported measurement permission');
    if(!Array.isArray(review.entities)||review.entity_count!==review.entities.length||!integer(review.history_rows))throw Error('Incomplete retained population');
@@ -76,20 +87,21 @@
  function preservation(p){
   const c=p.publication_context;
   if(!c)return 'Legacy packet: complete source acquisitions, calendar coverage and protected replay have not been declared. Original scheduled production is daily 11:20 UTC.';
-  const ref=c.manifest,names=Object.keys(c.compiler_sha256||{}).sort(),expected=p.measurement_review?['lambda_function.py','portwatch_measurements.py','portwatch_store.py']:['lambda_function.py','portwatch_store.py'];
+  const ref=c.manifest,names=Object.keys(c.compiler_sha256||{}).sort(),expected=p.acquisition_review?['lambda_function.py','portwatch_acquisition.py','portwatch_measurements.py','portwatch_store.py']:p.measurement_review?['lambda_function.py','portwatch_measurements.py','portwatch_store.py']:['lambda_function.py','portwatch_store.py'];
   if(c.contract!=='portwatch-preserved-calculation.v1'||['original_source_replay_verified','publication_atomic','point_in_time_verified'].some(k=>c[k]!==false)||!ref||!integer(ref.bytes)||ref.bytes<1||ref.bytes>64*1024*1024||!/^[a-f0-9]{64}$/.test(ref.sha256)||ref.key!=='audit-private/20260909-originals/portwatch-research/'+ref.sha256+'.bin'||JSON.stringify(names)!==JSON.stringify(expected)||!Object.values(c.compiler_sha256).every(x=>/^[a-f0-9]{64}$/.test(x)))return 'Inconsistent preservation declaration; no replay or economic qualification established.';
   return 'Producer declares complete stored predecessors, original HTTP responses and both native outputs retained under the displayed compiler hashes. This browser has not replayed protected originals. Older stored observations are derived inputs. Publication across history and current data is non-atomic. Full source coverage, historical vintages and investment performance remain unqualified.';
  }
  async function mount(doc,loader=load,now){
   if(!doc.getElementById('pw-review'))return;const generation=(doc._pwGeneration||0)+1;doc._pwGeneration=generation;
   const say=(id,value)=>{const n=doc.getElementById(id);if(n)n.textContent=value;};
-  function clear(){for(const id of ['pw-entities','pw-observations','pw-entity'])doc.getElementById(id).replaceChildren();for(const id of ['pw-search','pw-entity']){const n=doc.getElementById(id);n.oninput=n.onchange=null;}for(const id of ['pw-next','pw-prev']){doc.getElementById(id).onclick=null;doc.getElementById(id).disabled=true;}for(const id of ['pw-population','pw-observation-count','pw-raw','pw-window','pw-page'])say(id,'Unavailable');}
+  function clear(){for(const id of ['pw-entities','pw-observations','pw-entity','pw-queries'])doc.getElementById(id).replaceChildren();for(const id of ['pw-search','pw-entity']){const n=doc.getElementById(id);n.oninput=n.onchange=null;}for(const id of ['pw-next','pw-prev']){doc.getElementById(id).onclick=null;doc.getElementById(id).disabled=true;}for(const id of ['pw-population','pw-observation-count','pw-raw','pw-window','pw-page','pw-query-status','pw-reference'])say(id,'Unavailable');}
   clear();say('pw-status','Reading the complete public shipping record…');
   try{
    const p=await loader();if(doc._pwGeneration!==generation)return;const v=view(p,now===undefined?Date.now():now);
    say('pw-status',v.generated_at+' · at page load: '+(v.overdue?'publication overdue (>26h)':'publication less than 26h old')+'. Observation age is shown separately.');
    say('pw-mode',v.native?'Calendar comparisons of identified vessel counts':'Legacy calculations — dates, windows and economic interpretations unverified');
    say('pw-population',v.rows.length+(v.native?' retained entities':' legacy output entities'));say('pw-observation-count',v.native?fmt(v.history_rows)+' complete stored rows':'Complete original history not exposed by this legacy packet');
+   const queries=acquisition(p);say('pw-query-status',queries.message);say('pw-reference',JSON.stringify(queries.references,null,2));table(doc,'pw-queries',['Source query','Declared count','Enumerated IDs','Returned rows','Membership claim','Snapshot limitation'],queries.rows.map(q=>[q.url+' · '+q.where,fmt(q.declared_count),fmt(q.enumerated_ids),fmt(q.returned_rows),'Reconciled by producer','Separate requests; not atomic']));
    say('pw-preservation',preservation(p));say('pw-raw',JSON.stringify(p,null,2));let query='',selected=v.rows[0]?.key,page=0;
    function summaries(){const all=v.rows.filter(r=>(r.name+' '+r.country+' '+r.entity_id+' '+r.family).toLowerCase().includes(query.toLowerCase()));table(doc,'pw-entities',v.native?['Family / source field','Entity','Country','Last observation / age at calculation','Current 7d calls/day','Prior-year 7d calls/day','7d YoY','Current coverage','Preceding 358d calls/day']:['Family','Entity','Country','Last reported date','Legacy stored-observation count','Calendar qualification'],all.map(r=>v.native?[r.family+' / '+r.source_field,r.name+' ['+r.entity_id+']',r.country,(r.last_observation_date||'Unavailable')+' / '+fmt(r.observation_lag_days)+' days at calculation',fmt(r.current_7d.mean),fmt(r.prior_year_7d.mean),finite(r.year_over_year?.percent)?fmt(r.year_over_year.percent)+'%':'Unavailable',r.current_7d.available_days+'/7 days',fmt(r.preceding_358d.mean)]:[r.family,r.name+' ['+r.entity_id+']',r.country,r.last_observation_date||'Unavailable',fmt(r.legacy.n_days),'Unverified']));say('pw-entity-count',all.length+' of '+v.rows.length+' entities shown. Alphabetical within family; no disruption ranking.');}
    function observations(){const r=v.rows.find(x=>x.key===selected),all=r?.observations||[],start=page*200,shown=all.slice(start,start+200);table(doc,'pw-observations',['Stored row identity','Observation date','Exact source field','Original source value','Usable count','Status'],shown.map(o=>[o.row_key,o.date||'Unavailable',o.source_field,JSON.stringify(o.source_value),fmt(o.count),o.status]));say('pw-page',all.length?(start+1)+'–'+(start+shown.length)+' of '+all.length+' complete stored rows':'No original observation rows declared for this legacy entity.');say('pw-window',r&&v.native?JSON.stringify({entity_id:r.entity_id,unit:r.unit,current_7d:r.current_7d,prior_year_7d:r.prior_year_7d,previous_30d:r.previous_30d,preceding_358d:r.preceding_358d,year_over_year:r.year_over_year,versus_preceding_358d:r.versus_preceding_358d,invalid_identity_rows:r.invalid_identity_rows,future_rows:r.future_rows,invalid_count_rows:r.invalid_count_rows},null,2):'Legacy calendar calculations are not promoted.');doc.getElementById('pw-prev').disabled=page===0;doc.getElementById('pw-next').disabled=start+200>=all.length;}
@@ -97,6 +109,6 @@
    doc.getElementById('pw-search').oninput=e=>{query=e.target.value;summaries();};doc.getElementById('pw-entity').onchange=e=>{selected=e.target.value;page=0;observations();};doc.getElementById('pw-next').onclick=()=>{page++;observations();};doc.getElementById('pw-prev').onclick=()=>{page=Math.max(0,page-1);observations();};summaries();observations();
   }catch(e){if(doc._pwGeneration!==generation)return;clear();say('pw-mode','Unavailable');say('pw-status','Shipping research unavailable: '+e.message);say('pw-preservation','No earlier data or interpretation substituted.');}
  }
- const api={PATH,CONTRACT,clock,strictJSON,view,load,preservation,mount};
+ const api={PATH,CONTRACT,clock,strictJSON,view,load,preservation,acquisition,mount};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else{root.JHPortwatchReview=api;if(root.document?.getElementById('pw-review')){mount(root.document);root.document.getElementById('pw-refresh').onclick=()=>mount(root.document);}}
 })(typeof globalThis!=='undefined'?globalThis:this);

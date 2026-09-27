@@ -1,11 +1,13 @@
-"""PortWatch retained shipping research and complete query membership.
+"""justhodl-portwatch v1.0 — IMF PortWatch chokepoint & disruption engine.
 
-The protected wrapper records complete source responses and both outputs,
-retains every prior history row, and publishes only a whole calculation.
-The separate measurement_review uses exact calendar count fields. The original
-legacy statistics below are preserved for inspection, not qualified as economic
-forecasts or portfolio instructions. Query membership is reconciled with source
-counts/IDs; separate HTTP requests do not constitute an atomic provider snapshot.
+Source discovered via Khalid's World Monitor reverse-engineering directive:
+IMF PortWatch public ArcGIS FeatureServers (keyless, free). We query the
+daily chokepoint transit series (Suez, Hormuz, Panama, Bab el-Mandeb,
+Malacca, ...), compute 7d/30d activity vs a trailing-365 baseline + z-scores,
+flag disruptions, and join IMF's own disruptions table. Feeds
+data/portwatch.json. Attribution: IMF PortWatch (portwatch.imf.org),
+UN Global Platform AIS. stdlib-only; source carries full history so no
+self-ledger needed; never fabricates.
 """
 import gzip
 import json
@@ -15,9 +17,8 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
-import portwatch_acquisition as acquisition
 
-VERSION = "1.6.7"
+VERSION = "1.6.6"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -129,7 +130,7 @@ EXPORT_NATIONS = (("taiwan province of china", "Taiwan"),
 
 
 _REQ = {"n": 0, "throttled": 0}
-REQ_BUDGET = 140         # Unchanged native cap; incomplete batches cannot publish.
+REQ_BUDGET = 140         # v1.6: a first fill is ~60 pages (400d x 24 chokepoints + 120 ports at 1000 rows/page); incremental runs ~5
 
 
 def _q(url, params, timeout=30, retries=3):
@@ -300,7 +301,15 @@ def _save_history(h):
 
 def _merge_rows(store, rows, id_keys=("portid", "chokepoint_id")):
     """store: {"pid|YYYY-MM-DD": attrs}. Returns number of new/updated rows."""
-    return acquisition.merge_rows(store, rows)
+    n = 0
+    for a in rows:
+        pid = str(next((a.get(k) for k in id_keys if a.get(k) is not None), "") or "")
+        ds = _row_date(a)
+        if not pid or ds is None:
+            continue
+        store[f"{pid}|{ds.isoformat()}"] = a
+        n += 1
+    return n
 
 
 def _store_rows(store):
@@ -317,9 +326,6 @@ def _native_calculation(event=None, context=None):
     since_ms = int(since.timestamp() * 1000)
     _REQ["n"], _REQ["throttled"] = 0, 0
     hist = _load_history()
-    query_reviews = []
-    def complete_query(url, where):
-        return acquisition.all_features(_q, url, where, lambda: REQ_BUDGET - _REQ["n"], query_reviews)
 
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
            "chokepoints": [], "disruptions": [], "errors": [],
@@ -327,13 +333,12 @@ def _native_calculation(event=None, context=None):
                           "Platform AIS; public ArcGIS FeatureServer, keyless"}
 
     # 1) chokepoint reference (id -> name)
-    ref = {"features": [{"attributes": a} for a in complete_query(CHOKE_REF, "1=1")]}
+    ref = _q(CHOKE_REF, {"where": "1=1", "outFields": "*",
+                         "resultRecordCount": 60})
+    if ref.get("_err"):
+        out["errors"].append("ref: " + ref["_err"])
     names = {}
-    reference_ids = set()
     for a in _feats(ref):
-        if not isinstance(a.get("portid"), str) or not a["portid"] or a["portid"] in reference_ids:
-            raise acquisition.AcquisitionError("Ambiguous chokepoint reference identity")
-        reference_ids.add(a["portid"])
         pid = a.get("portid") or a.get("chokepoint_id") or a.get("id")
         nm = a.get("portname") or a.get("name") or a.get("fullname")
         if pid is not None and nm:
@@ -342,28 +347,58 @@ def _native_calculation(event=None, context=None):
 
     # 2) daily chokepoint series (primary layer; fallback = Daily_Ports
     #    filtered to chokepoint ids)
-    def fetch_daily(url, entity_ids, store, filter_ids=False):
-        first, today = since.date(), now.date()
-        start = acquisition.cohort_start(store, entity_ids, first, today)
-        where = f"date >= timestamp '{start.isoformat()}' AND date <= timestamp '{today.isoformat()}'"
-        if filter_ids:
-            where += " AND portid IN (" + acquisition.quoted_ids(entity_ids) + ")"
-        rows = complete_query(url, where)
-        for row in rows:
-            day = acquisition.source_date(row.get('date'))
-            ident = row.get('portid', row.get('chokepoint_id'))
-            if day is None or not start <= day <= today or (filter_ids and ident not in entity_ids):
-                raise acquisition.AcquisitionError('Provider row outside the declared calendar cohort')
-        _merge_rows(store, rows)
-        return _store_rows(store), None
+    def fetch_daily(url, extra_where="", store=None):
+        """v1.6 incremental: with a history store, only the days since its last
+        date (minus 3 for late revisions) are requested; the returned rows are
+        the merged store, so a throttled source degrades to 'history through
+        <date>' instead of an empty document."""
+        rows, offset = [], 0
+        through = _store_through(store) if store is not None else None
+        start = since
+        if through:
+            start = max(since, datetime.fromisoformat(through).replace(tzinfo=timezone.utc) - timedelta(days=3))
+            # v1.6.3: a store that does not reach back to the window start (a partial first fill)
+            # is backfilled once from `since`; otherwise year-ago comparisons can never exist
+            # v1.6.4: coverage, not the earliest date -- a partial merge can leave a year-old
+            # sliver plus recent days, which looks 'complete' by min-date but has no year-ago window
+            per_pid = {}
+            for k in store:
+                pid_ = k.split("|", 1)[0]
+                per_pid[pid_] = per_pid.get(pid_, 0) + 1
+            if max(per_pid.values(), default=0) < 360:   # no port has a year-ago window yet -> fill the 400-day window once
+                start = since
+        page = 1000            # the IMF layers' maxRecordCount: asking for more returns 1000 and looks like a last page
+        while offset < 120000:
+            w = f"date >= timestamp '{start.strftime('%Y-%m-%d')}'"
+            if extra_where:
+                w += " AND " + extra_where
+            j = _q(url, {"where": w, "outFields": "*",
+                         "orderByFields": "date ASC",
+                         "resultOffset": offset,
+                         "resultRecordCount": page})
+            if j.get("_err"):
+                if store is not None and store:
+                    _merge_rows(store, rows)
+                    return _store_rows(store), f"{j['_err']} (using history through {_store_through(store)}, {len(rows)} new rows merged)"
+                return rows, j["_err"]
+            fs = _feats(j)
+            rows += fs
+            if len(fs) < page and not j.get("exceededTransferLimit"):
+                break
+            offset += len(fs) if fs else page
+        if store is not None:
+            _merge_rows(store, rows)
+            return _store_rows(store), None
+        return rows, None
 
-    rows, err = fetch_daily(DAILY_CHOKE, sorted(set(names) | {k.split("|", 1)[0] for k in hist.get("choke", {})}), hist.setdefault("choke", {}))
+    rows, err = fetch_daily(DAILY_CHOKE, store=hist.setdefault("choke", {}))
     src_layer = "Daily_Chokepoints_Data"
     if err:
         out["errors"].append("daily_choke: " + err)
     if not rows and names:
         # ids are strings on this layer: quote them (v1.5 sent chokepoint1 bare -> 'Invalid field: chokepoint1')
-        rows, err2 = fetch_daily(DAILY_PORTS, sorted(names), hist.setdefault("choke_fallback", {}), filter_ids=True)
+        ids = ",".join("'" + str(n2) + "'" for n2 in sorted(names)[:30])
+        rows, err2 = fetch_daily(DAILY_PORTS, f"portid IN ({ids})", store=hist.setdefault("choke_fallback", {}))
         src_layer = "Daily_Ports_Data(filtered)"
         if err2:
             out["errors"].append("daily_ports: " + err2)
@@ -441,19 +476,38 @@ def _native_calculation(event=None, context=None):
     out["chokepoints"].sort(key=lambda c: (c["z"] is None, c["z"] or 0))
 
     # 4) IMF disruptions table (recent)
-    disruption_rows = complete_query(DISRUPT, "1=1")
-    out["disruption_reference"] = disruption_rows
-    # Retain complete attributes as well as the backward-compatible selected fields.
-    for a in disruption_rows:
-        out["disruptions"].append({k: v for k, v in a.items()
-            if k.lower() in ("portname", "name", "date", "start", "end", "comment",
-                             "type", "status", "chokepoint", "objectid")})
+    dj = _q(DISRUPT, {"where": "1=1", "outFields": "*",
+                      "orderByFields": "OBJECTID DESC",
+                      "resultRecordCount": 25})
+    if dj.get("_err"):
+        out["errors"].append("disrupt: " + dj["_err"])
+    for a in _feats(dj)[:15]:
+        out["disruptions"].append(
+            {k: (str(v)[:120] if isinstance(v, str) else v)
+             for k, v in a.items()
+             if k.lower() in ("portname", "name", "date", "start", "end",
+                              "comment", "type", "status", "chokepoint",
+                              "objectid")})
 
     # v1.1: port-level activity layer (major ports, same stats frame)
     out["ports"] = []
     try:
         cand = {}
-        _pref_rows = complete_query(PORTS_REF, "1=1")
+        _pref_rows = []
+        _off = 0
+        while _off < 12000:
+            pref = _q(PORTS_REF, {"where": "1=1",
+                                  "outFields": "portid,portname,country,fullname",
+                                  "resultOffset": _off,
+                                  "resultRecordCount": 1000})
+            if pref.get("_err"):
+                out["errors"].append("ports_ref: " + pref["_err"])
+                break
+            _fs = _feats(pref)
+            _pref_rows += _fs
+            if len(_fs) < 1000:
+                break
+            _off += 1000
         out["ports_ref_total"] = len(_pref_rows)
         out["ref_search"] = [
             {"name": (r2.get("portname") or "")[:36],
@@ -463,11 +517,7 @@ def _native_calculation(event=None, context=None):
             if any(t in ((str(r2.get("portname") or "") + " " +
                           str(r2.get("fullname") or "")).lower())
                    for t in ("hambur", "phong", "kaohsiung", "callao", "kotka", "jeddah"))][:8]
-        reference_ids = set()
         for a2 in _pref_rows:
-            if not isinstance(a2.get("portid"), str) or not a2["portid"] or a2["portid"] in reference_ids:
-                raise acquisition.AcquisitionError("Ambiguous port reference identity")
-            reference_ids.add(a2["portid"])
             nm = (str(a2.get("portname") or "") + " " +
                   str(a2.get("fullname") or "")).lower()
             pid2 = a2.get("portid")
@@ -479,13 +529,10 @@ def _native_calculation(event=None, context=None):
                                        "country": a2.get("country")}
                     break
         out["ports_ref_matched"] = len(cand)
-        out["port_reference_review"] = [{"attributes": row,
-            "selected_by_existing_name_rule": str(row.get("portid")) in cand,
-            "matching_terms": [term for term in MAJOR_PORTS if term in
-                (str(row.get("portname") or "") + " " + str(row.get("fullname") or "")).lower()]}
-            for row in _pref_rows]
         if cand:
-            # Preserve the old deterministic priority order; every match is queried.
+            # v1.4.1: cap raised — canary nations were truncated
+            # (Taiwan's 6 ports pushed Chile past the old :60 slice)
+            # canary nations first so a slice can never drop them again
             _PRIO = ("chile", "peru", "finland", "saudi", "taiwan",
                      "australia", "indonesia", "qatar", "germany",
                      "switzerland")
@@ -496,9 +543,10 @@ def _native_calculation(event=None, context=None):
             out["ports_ref_matched_total"] = len(_ids_all)
             # v1.6.2: chunks of 40 ids per query; each chunk merges into the same history store
             prow, perr = [], None
-            _chunks = [_ids_all[k:k + 40] for k in range(0, len(_ids_all), 40)]
+            _chunks = [_ids_all[k:k + 40] for k in range(0, min(len(_ids_all), 120), 40)]
             for _ch in _chunks:
-                _rows, _err = fetch_daily(DAILY_PORTS, _ch, hist.setdefault("ports", {}), filter_ids=True)
+                ids = ",".join("'" + i + "'" for i in _ch)
+                _rows, _err = fetch_daily(DAILY_PORTS, "portid IN (" + ids + ")", store=hist.setdefault("ports", {}))
                 if _err:
                     perr = (perr + " | " if perr else "") + _err[:160]
             prow = _store_rows(hist.get("ports") or {})
@@ -536,7 +584,7 @@ def _native_calculation(event=None, context=None):
                        if "chile" in str(m3.get("country") or "").lower()]
             out["chile_trace"] = {
                 "in_cand": _cl_ids[:12],
-                "in_query": [i3 for i3 in _cl_ids if i3 in _ids_all][:12],
+                "in_query": [i3 for i3 in _cl_ids if i3 in _ids_all[:120]][:12],
                 "rows_returned": {i3: len(pby.get(i3) or [])
                                    for i3 in _cl_ids[:8]},
                 "sample": [(str(d3), v3) for d3, v3 in
@@ -629,12 +677,6 @@ def _native_calculation(event=None, context=None):
         out["industry_exposure_summary"] = {"error": str(_ie)[:200]}
         print("[industry] failed: %s" % str(_ie)[:120])
 
-    out["acquisition_review"] = {"contract": acquisition.CONTRACT, "queries": query_reviews,
-        "port_name_selection_terms": list(MAJOR_PORTS),
-        "port_selection": "All matches to the inherited name rules; not a world-port census or an economic weighting.",
-        "calendar_acquisition": "Each queried entity contributes its earliest missing calendar date or three-day revision overlap within the existing 400-day lookback (up to 401 calendar dates). Older revisions are not proven complete.",
-        "provider_snapshot_atomic": False, "point_in_time_verified": False,
-        "request_budget": REQ_BUDGET, "partial_publication_allowed": False}
     _save_history(hist)
     out["requests"] = {"n": _REQ["n"], "throttled_429": _REQ["throttled"], "budget": REQ_BUDGET}
     S3.put_object(Bucket=BUCKET, Key=KEY,

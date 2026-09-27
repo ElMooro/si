@@ -3,7 +3,7 @@ from datetime import datetime,timedelta,timezone
 from io import BytesIO
 from unittest.mock import patch
 from copy import deepcopy
-import ast,contextlib,gzip,hashlib,importlib.util,json,sys,unittest,urllib.error,urllib.parse
+import re,ast,contextlib,gzip,hashlib,importlib.util,json,sys,unittest,urllib.error,urllib.parse
 ROOT=Path(__file__).resolve().parents[4];SOURCE=Path(__file__).resolve().parents[1]/'source'
 sys.path.insert(0,str(SOURCE));import portwatch_store as store
 NOW=datetime(2026,9,27,11,20,tzinfo=timezone.utc)
@@ -50,22 +50,35 @@ def fixture():
         for ident in ids:
             for i in range(600):
                 day=(NOW-timedelta(days=601-i)).date().isoformat()
-                row={'portid':ident,'date':day,field:10+i%19}
+                row={'portid':ident,'date':day,field:10+i%19,'ObjectId':len(hist[kind])+1}
                 hist[kind][ident+'|'+day]=row
     m.seed(store.HISTORY,compress(hist));m.seed(store.HEAD,body({'version':'1.6.5','generated_at':'2026-09-26T11:20:00Z'}))
     m.seed(store.IMPORT,body({'generated_at':'2026-09-26T13:00:00Z','lines':[]}))
     calls=[]
+    datasets={
+        'PortWatch_chokepoints_database':[{'ObjectId':i,'portid':f'chokepoint{i}','portname':f'Channel {i}'} for i in range(1,7)],
+        'PortWatch_ports_database':[{'ObjectId':1,'portid':'port1','portname':'Shanghai','country':'China'},{'ObjectId':2,'portid':'port2','portname':'Busan','country':'Korea'}],
+        'portwatch_disruptions_database':[],
+        'Daily_Chokepoints_Data':list(hist['choke'].values()),
+        'Daily_Ports_Data':list(hist['ports'].values())}
     def opener(req,timeout=None):
         calls.append(store.identity(req,timeout))
         layer=req.full_url.split('/services/',1)[1].split('/')[0]
-        if layer=='PortWatch_chokepoints_database':rows=[{'portid':f'chokepoint{i}','portname':f'Channel {i}'} for i in range(1,7)]
-        elif layer=='PortWatch_ports_database':rows=[{'portid':'port1','portname':'Shanghai','country':'China'},{'portid':'port2','portname':'Busan','country':'Korea'}]
-        elif layer=='portwatch_disruptions_database':rows=[]
+        pairs=urllib.parse.parse_qs(req.data.decode() if req.data else urllib.parse.urlsplit(req.full_url).query)
+        params={k:v[0] for k,v in pairs.items()};rows=datasets[layer]
+        if 'date >=' in params.get('where',''):
+            first,last=re.findall(r"timestamp '([^']+)'",params['where'])
+            rows=[row for row in rows if first <= row['date'] <= last]
+        if 'portid IN (' in params.get('where',''):
+            selected=set(re.findall(r"'([^']+)'",params['where'].split('portid IN (',1)[1]))
+            rows=[row for row in rows if row['portid'] in selected]
+        if params.get('returnCountOnly')=='true':packet={'count':len(rows)}
+        elif params.get('returnIdsOnly')=='true':packet={'objectIdFieldName':'ObjectId','objectIds':[row['ObjectId'] for row in rows]}
         else:
-            kind='choke' if layer=='Daily_Chokepoints_Data' else 'ports'
-            rows=[deepcopy(v) for v in hist[kind].values() if v['date']>='2026-09-23']
-        raw=body({'features':[{'attributes':x} for x in rows],'exceededTransferLimit':False})
-        return store.Response(raw,headers={'Content-Length':str(len(raw))})
+            selected=set(map(int,params['objectIds'].split(',')))
+            packet={'objectIdFieldName':'ObjectId','features':[{'attributes':deepcopy(row)} for row in rows if row['ObjectId'] in selected],'exceededTransferLimit':False}
+        raw=body(packet);return store.Response(raw,headers={'Content-Length':str(len(raw))})
+    opener.datasets=datasets
     return m,hist,calls,opener
 
 
@@ -75,13 +88,13 @@ class Tests(unittest.TestCase):
         with contextlib.redirect_stdout(BytesIOText()):return store.run(native,opener=opener,at=NOW.isoformat())
     def test_full_native_output_history_and_replay(self):
         m,old,calls,opener=fixture();result=self.execute(m,opener)
-        self.assertTrue(result['published']);self.assertEqual(len(calls),5)
+        self.assertTrue(result['published']);self.assertEqual(len(calls),14)
         packet=store.strict(m.data[store.HEAD]);history=store.decode(m.data[store.HISTORY],store.HISTORY)
         self.assertEqual(history,old);self.assertEqual(len(history['choke']),3600);self.assertEqual(len(history['ports']),1200)
         self.assertEqual(packet['contract'],store.CONTRACT);self.assertFalse(packet['sizing_eligible']);self.assertEqual(packet['portfolio_action'],'WAIT')
         with contextlib.redirect_stdout(BytesIOText()):replayed=store.replay(native,m,native.BUCKET,packet)
         self.assertEqual(replayed['history_rows'],{'choke':3600,'ports':1200});self.assertEqual(replayed['provider_requests'],0)
-        self.assertEqual(m.writes[-2:],[store.HISTORY,store.HEAD]);self.assertEqual(len(calls),5)
+        self.assertEqual(m.writes[-2:],[store.HISTORY,store.HEAD]);self.assertEqual(len(calls),14)
         self.assertIs(native.S3,m)
     def test_denied_missing_corrupt_and_truncated_stop_before_provider(self):
         for case in ('denied','missing','corrupt','truncated'):
@@ -169,8 +182,9 @@ class BytesIOText:
 
 
 def load_tests(loader,suite,pattern):
-    import calendar_tests
-    suite.addTests(loader.loadTestsFromModule(calendar_tests));return suite
+    import calendar_tests,acquisition_tests
+    suite.addTests(loader.loadTestsFromModule(calendar_tests))
+    suite.addTests(loader.loadTestsFromModule(acquisition_tests));return suite
 
 
 if __name__=='__main__':unittest.main()

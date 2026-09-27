@@ -41,3 +41,21 @@ test('public reader rejects HTTP errors, redirects, malformed UTF8, duplicate ke
  for(const response of [new Response('denied',{status:403}),new Response('{"x":0,"x":1}'),new Response(new Uint8Array([255]))])await assert.rejects(v.load({fetcher:async()=>response}));
  let canceled=false;await assert.rejects(v.load({timeout:5,fetcher:async()=>new Response(new ReadableStream({start(c){c.enqueue(new TextEncoder().encode('{'));},cancel(){canceled=true;}}))}),/timed out/);assert.equal(canceled,true);
 });
+
+test('every query and port reference is inspectable without promoting a snapshot or census',async()=>{
+ const p=fixture(),q=v.acquisition(p);assert.equal(q.rows.length,5);assert.equal(q.references.length,2);
+ assert.match(q.message,/not an atomic provider snapshot/);assert.match(v.preservation(p),/browser has not replayed/);
+ const doc=document();await v.mount(doc,async()=>p,now);
+ assert.equal(doc.getElementById('pw-queries').children[0].children[1].children.length,5);
+ assert.match(doc.getElementById('pw-reference').textContent,/Shanghai/);
+ await v.mount(doc,async()=>{throw Error('failed');},now);
+ assert.equal(doc.getElementById('pw-queries').children.length,0);assert.equal(doc.getElementById('pw-reference').textContent,'Unavailable');
+});
+
+test('inconsistent query counts, foreign sources and duplicate reference identities fail closed',()=>{
+ for(const mutate of [p=>p.acquisition_review.queries[0].returned_rows++,p=>p.acquisition_review.queries[0].url='https://example.test/query',p=>p.acquisition_review.provider_snapshot_atomic=true,p=>p.acquisition_review.partial_publication_allowed=true,p=>p.port_reference_review.push(p.port_reference_review[0])]){
+  const p=fixture();mutate(p);assert.throws(()=>v.view(p,now));
+ }
+ const old=fixture();delete old.acquisition_review;delete old.port_reference_review;delete old.publication_context.compiler_sha256['portwatch_acquisition.py'];
+ assert.equal(v.view(old,now).rows.length,8);assert.match(v.acquisition(old).message,/no reconciled/);assert.match(v.preservation(old),/browser has not replayed/);
+});
