@@ -1,0 +1,116 @@
+{
+  "commit": "f8dc164f8d4bccfc2ed39f4348854098a3abbebc",
+  "served_descendant": "f8dc164f8d4bccfc2ed39f4348854098a3abbebc",
+  "checked_at": "2026-09-27T15:46:35.284688+00:00",
+  "registry_hash": "bc1c20870d1fd125c30a4a371a39579fd7dc874edea585d0079a1f1feb362907",
+  "assets": {
+    "capex-pulse.html": {
+      "bytes": 10848,
+      "sha256": "500d07ad96e64ec08873a7461880e826ac084ba49d644dfe8b8ff4909eadc131",
+      "matches_commit_manifest": true
+    },
+    "8k-items.html": {
+      "bytes": 8189,
+      "sha256": "459264406d787df0a55c9c60bc859df75c70ceab270ab2bd902251e224bc42e5",
+      "matches_commit_manifest": true
+    },
+    "10kq-filings.html": {
+      "bytes": 7597,
+      "sha256": "6fe8a7151940ee711ef0309c9a84e9380f9e0d00c9f093e5438b4df4455a5bde",
+      "matches_commit_manifest": true
+    },
+    "filing-redflags.html": {
+      "bytes": 8096,
+      "sha256": "c2c8afb9e7e8d70defd76be9a4acb6ff7c2bbb48916d99bf6d70a4b871ef583e",
+      "matches_commit_manifest": true
+    },
+    "jh-filing-desk.js": {
+      "bytes": 9699,
+      "sha256": "dcbb24361f479c340937ab2fc22a293120e09151d85099440e6b76c8408f3baa",
+      "matches_commit_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5491,
+      "sha256": "d763617129cc5d7545ee8222d76e730c1df2cdd0f30240f04b867cbba7c45530",
+      "matches_commit_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_commit_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1339583,
+      "sha256": "a3032a4780032aed385ba51c62ad61507be35cf9e103744908cd7e22497cd4f9",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2337657,
+      "sha256": "bc1c20870d1fd125c30a4a371a39579fd7dc874edea585d0079a1f1feb362907",
+      "matches_commit_manifest": true
+    }
+  },
+  "pages_run": 36330555244,
+  "page_gate_run": 36330555249,
+  "push_verification": "ALL RUNS GREEN",
+  "public_packets": {
+    "checked_at": "2026-09-27T15:37:38.799122+00:00",
+    "packets": {
+      "capex-pulse": {
+        "bytes": 29330,
+        "sha256": "f534cee4832e36950440750040b96dc27313c45c864063f19a352d866d87cfac",
+        "generated_at": "2026-09-25T20:41:03+00:00",
+        "populations": {
+          "rows": 150,
+          "excluded_outliers": 0,
+          "fx_converted": 23
+        }
+      }
+    }
+  },
+  "local_validation": {
+    "frontend_passed": 1519,
+    "deployment_static_passed": 458,
+    "candidate_shell_passed": 12,
+    "capex_regression_groups": 4,
+    "source_syntax_routes": 571,
+    "source_syntax_errors": 0,
+    "secret_findings": 0
+  },
+  "live_browser": {
+    "checked_at": "2026-09-27T15:48:12.641543+00:00",
+    "page": "capex-pulse.html",
+    "title": "Capex pulse \u00b7 JustHodl",
+    "rows": 150,
+    "original_text_chars": 29330,
+    "mobile": {
+      "viewport_px": 390,
+      "document_px": 380,
+      "scroll_region_px": 346,
+      "table_px": 850
+    },
+    "desktop": {
+      "viewport_px": 1280,
+      "document_px": 1270,
+      "scroll_region_px": 1146,
+      "table_px": 1146
+    },
+    "keyboard_sort": {
+      "direction": "ascending",
+      "focus": "capex_ttm_b"
+    },
+    "filter": {
+      "value": "AAPL",
+      "shown_rows": 1,
+      "cleared_rows": 150
+    },
+    "console_errors": 0
+  },
+  "limitations": [
+    "The source packet is dated September 25; the page shows its publication time and source observation dates without treating publication as freshness.",
+    "This page batch does not verify the Capex producer original reporting periods or definitions.",
+    "SEC native producer repairs remain pending after verified original retention.",
+    "Deferred Revenue and Dilution have separately documented unrepaired display/selection defects.",
+    "No native producer invocation, provider acquisition, account read, trade or notification."
+  ]
+}

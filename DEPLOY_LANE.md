@@ -14,6 +14,30 @@ happens on the GitHub Actions runner, which holds the credentials.
 | `aws/ops/patchers/**`, `aws/ops/staged/grok_*.py` | `apply-staged-large-files.yml` | runner assembles/patches, pushes, **dispatches a pinned deploy** |
 
 `[skip-deploy]` skips pages **and** lambdas — never use it on page-only commits.
+
+### Page source and browser acceptance
+
+Run `python3 scripts/check_page_scripts.py` against the current checkout, plus
+the frontend behavioural suite, before publishing page or shared-script changes.
+Pages checks syntax again on the final built artifact. The syntax gate parses
+the public HTML/script graph without executing source; it does not validate
+measurements, links, table behavior or upstream completeness. Fix errors rather
+than weakening the gate. The actual broken 8-K, filing-red-flags and Capex
+predecessors are retained as regression fixtures.
+
+Use explicit UTF-8 when reading and writing text on every platform (for Python,
+`read_text(encoding="utf-8")`). Preserve original fixtures as bytes. Validate
+numeric inputs before formatting; blanks and booleans are not measured zero.
+Retain the whole received packet and distinguish repeated source occurrences
+from independent evidence. Confirm the live page's title, data, keyboard controls
+and mobile layout, and compare its served bytes with the commit-bound build
+manifest. A successful syntax check alone is not page acceptance.
+
+Before committing a related batch, compare `git diff --cached --name-only` with
+the complete intended file inventory. On Windows the physical `aws/ops/STAGED`
+directory can differ in case from canonical tracked `aws/ops/staged`; verify
+that a newly added operation actually appears in the index before pushing its
+tests or dispatching it.
 `[skip-ops]` skips the ops runner. `[shrink-ok]` permits a deliberate >50% source shrink.
 
 ## Which lane are you?

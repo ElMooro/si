@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-09-27T15:43:43.256Z",
+  "scope": "Isolated original page code with synthetic JSON, inert DOM and no network or native producer activity.",
+  "status": "unrepaired",
+  "findings": [
+    {
+      "page": "deferred-revenue.html",
+      "source_sha256": "f4103f246722e86c172084d9b3103b0dd680ef0e4d2dd0a4c0555a583b28ec56",
+      "false_formats_as_amount": "0",
+      "blank_formats_as_percent": "0.0%",
+      "string_false_acceleration_badge": true,
+      "numeric_strings_sorted_lexicographically": true
+    },
+    {
+      "page": "dilution.html",
+      "source_sha256": "0764769e90cd0a60cc607fb9cc399e7ed76b69d54f6f558fad76a295f0b02c9f",
+      "false_formats_as_amount": "0",
+      "blank_formats_as_percent": "0.00%",
+      "source_occurrences": 2,
+      "displayed_occurrences": 1,
+      "string_false_classified_as_net_issuer": true,
+      "later_source_amount_discarded": true
+    }
+  ]
+}
