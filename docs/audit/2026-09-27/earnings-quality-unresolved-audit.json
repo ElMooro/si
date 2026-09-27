@@ -1,0 +1,402 @@
+{
+  "source": "aws/lambdas/justhodl-earnings-quality/source/lambda_function.py",
+  "source_bytes": 18638,
+  "source_sha256": "e83c4d90852b30043f1e09ca2502f7a500e10dd38746e08a9125362de6cc1d22",
+  "scope": "AST-isolated arithmetic on synthetic fixtures only; no native handler, provider, AWS, notification or learning access. All originals preserved; repair not yet applied.",
+  "cases": [
+    {
+      "case": "zero_ocf_alias_and_duplicate_periods",
+      "received_rows": {
+        "income": 8,
+        "cash_flow": 8,
+        "balance_sheet": 8
+      },
+      "synthetic_source": {
+        "income": [
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          }
+        ],
+        "cash_flow": [
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          }
+        ],
+        "balance_sheet": [
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          }
+        ]
+      },
+      "actual_original_result": {
+        "ticker": "SYNTHETIC",
+        "name": null,
+        "price": 10,
+        "market_cap_usd": 3000000000.0,
+        "pe": null,
+        "ttm_ni_usd": 400,
+        "ttm_ocf_usd": 3600,
+        "ttm_fcf_usd": 3580,
+        "sloan_accruals_pct_assets": -320.0,
+        "cash_conversion_ratio": 9.0,
+        "dsri_beneish": 1.0,
+        "gmi_beneish": 1.0,
+        "accruals_change_yoy_pct": 0.0,
+        "quality_score": 0.83
+      }
+    },
+    {
+      "case": "two_rows_called_ttm",
+      "received_rows": {
+        "income": 2,
+        "cash_flow": 2,
+        "balance_sheet": 2
+      },
+      "synthetic_source": {
+        "income": [
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "netIncome": 100,
+            "revenue": 1000,
+            "grossProfit": 500
+          }
+        ],
+        "cash_flow": [
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          }
+        ],
+        "balance_sheet": [
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          }
+        ]
+      },
+      "actual_original_result": {
+        "ticker": "SYNTHETIC",
+        "name": null,
+        "price": 10,
+        "market_cap_usd": 3000000000.0,
+        "pe": null,
+        "ttm_ni_usd": 200,
+        "ttm_ocf_usd": 1800,
+        "ttm_fcf_usd": 1790,
+        "sloan_accruals_pct_assets": -160.0,
+        "cash_conversion_ratio": 9.0,
+        "dsri_beneish": null,
+        "gmi_beneish": null,
+        "accruals_change_yoy_pct": null,
+        "quality_score": 0.6
+      }
+    },
+    {
+      "case": "missing_net_income_becomes_zero",
+      "received_rows": {
+        "income": 8,
+        "cash_flow": 8,
+        "balance_sheet": 8
+      },
+      "synthetic_source": {
+        "income": [
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          },
+          {
+            "date": "2026-06-30",
+            "revenue": 1000,
+            "grossProfit": 500
+          }
+        ],
+        "cash_flow": [
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          },
+          {
+            "date": "2026-06-30",
+            "operatingCashFlow": 0,
+            "netCashProvidedByOperatingActivities": 900,
+            "capitalExpenditure": -5
+          }
+        ],
+        "balance_sheet": [
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          },
+          {
+            "date": "2026-06-30",
+            "totalAssets": 1000,
+            "netReceivables": 100
+          }
+        ]
+      },
+      "actual_original_result": {
+        "ticker": "SYNTHETIC",
+        "name": null,
+        "price": 10,
+        "market_cap_usd": 3000000000.0,
+        "pe": null,
+        "ttm_ni_usd": null,
+        "ttm_ocf_usd": 3600,
+        "ttm_fcf_usd": 3580,
+        "sloan_accruals_pct_assets": -360.0,
+        "cash_conversion_ratio": null,
+        "dsri_beneish": 1.0,
+        "gmi_beneish": 1.0,
+        "accruals_change_yoy_pct": 0.0,
+        "quality_score": 0.58
+      }
+    }
+  ]
+}
