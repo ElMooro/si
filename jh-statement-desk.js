@@ -16,7 +16,11 @@
   if(mode==='deferred'){
    if(!object(packet.by_ticker))throw Error('Received by_ticker population is missing or malformed');
    for(const [key,row] of Object.entries(packet.by_ticker))add(row,'by_ticker['+JSON.stringify(key)+']');
+  }else if(mode==='buyback'){
+   if(!object(packet.tickers))throw Error('Received ticker population is missing or malformed');
+   for(const [key,row] of Object.entries(packet.tickers))add(row,'tickers['+JSON.stringify(key)+']');
   }else if(mode==='dilution'){
+   if(object(packet.tickers))for(const [key,row] of Object.entries(packet.tickers))add(row,'tickers['+JSON.stringify(key)+']');
    for(const name of BAGS){
     if(!Object.prototype.hasOwnProperty.call(packet,name)){issues.push(name+' was not supplied');continue;}
     if(!Array.isArray(packet[name])){issues.push(name+' is a malformed population');continue;}
@@ -26,6 +30,9 @@
   return{rows,issues,malformed};
  }
  const COLUMNS={
+  buyback:[['symbol','Ticker','text'],['company_name','Name','text'],['gross_repurchases_ttm','Source gross amount¹','number'],
+   ['net_buyback_ttm','Source net common amount¹','number'],['window_unit','Window currency','text'],['window_start','Window start','date'],['window_end','Window end','date'],
+   ['share_count_reduction_yoy','Source share reduction %²','number'],['shares_now','Reported shares','number'],['measurement_status','Measurement status','text'],['source','Source record','text']],
   deferred:[['ticker','Ticker','text'],['source','Source record','text'],['sector','Sector','text'],['deferred_rev','Deferred amount¹','number'],
    ['deferred_yoy','Source “YoY” tag %²','number'],['deferred_qoq','Source “QoQ” tag %²','number'],['rev_yoy','Source revenue growth %²','number'],
    ['deferred_asof','Period end','date'],['deferred_filed','Filed','date'],['deferred_accelerating','Source acceleration','boolean']],
@@ -33,13 +40,22 @@
    ['net_buyback_ttm','Net buyback: source TTM¹','number'],['share_count_reduction_yoy','Share reduction tag %²','number'],['shares_now','Source share count','number'],
    ['class','Source class','text'],['net_issuer','Source net-issuer flag','boolean'],['source','Source record','text']]
  };
+ function value(row,key){
+  if(key==='source')return row.source;
+  const window=row.record.measurements?.cashflow_window;
+  if(key==='window_unit')return window?.unit;
+  if(key==='window_start')return window?.start_date;
+  if(key==='window_end')return window?.end_date;
+  if(key==='measurement_status')return window?.status||'Legacy measurement unverified';
+  return row.record[key];
+ }
  function cell(row,key,kind){
-  const value=key==='source'?row.source:row.record[key];
-  if(kind==='text')return text(value);if(kind==='date')return date(value);if(kind==='boolean')return flag(value);
-  return ['deferred_yoy','deferred_qoq','rev_yoy','share_count_reduction_yoy'].includes(key)?V.percent(value,2):amount(value);
+  const v=value(row,key);
+  if(kind==='text')return text(v);if(kind==='date')return date(v);if(kind==='boolean')return flag(v);
+  return ['deferred_yoy','deferred_qoq','rev_yoy','share_count_reduction_yoy'].includes(key)?V.percent(v,2):amount(v);
  }
  function compare(a,b,key,direction,kind){
-  const av=key==='source'?a.source:a.record[key],bv=key==='source'?b.source:b.record[key];
+  const av=value(a,key),bv=value(b,key);
   return V.compare({value:kind==='date'?date(av):av},{value:kind==='date'?date(bv):bv},'value',direction,kind==='date'?'text':kind);
  }
  async function start(options){

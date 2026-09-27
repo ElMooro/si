@@ -1,4 +1,7 @@
 """
+Active entrypoint: descriptive accounting research; forecast scores are withheld.
+The historical methodology below is retained with the complete legacy functions.
+
 justhodl-buyback-engine — UNIFIED BUYBACK INTELLIGENCE
 ======================================================
 Large buybacks are a durable catalyst, but the headline number lies: many
@@ -34,6 +37,7 @@ buyback-scanner). Research, not investment advice.
 """
 import json, os, time, datetime, urllib.request
 
+from buyback_measurements import CONTRACT, dossier, number, decode
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -75,9 +79,11 @@ def is_excluded_profile(prof):
 
 def _read(key, default=None):
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
-    except Exception:
-        return {} if default is None else default
+        return decode(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'):
+            return {} if default is None else default
+        raise
 
 
 def fmp(path, retries=2):
@@ -87,7 +93,7 @@ def fmp(path, retries=2):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
             with urllib.request.urlopen(req, timeout=18) as r:
-                return json.loads(r.read().decode("utf-8", "ignore"))
+                return decode(r.read().decode("utf-8"))
         except Exception:
             if a < retries - 1:
                 time.sleep(0.4)
@@ -105,7 +111,7 @@ def up(t):
     return (t or "").upper().strip()
 
 
-def analyze_ticker(t):
+def _legacy_analyze_ticker(t):
     """Pull FMP and compute the buyback dossier for one ticker.
     Returns None (no data), {"_excluded": reason}, or the dossier dict."""
     if t in EXCLUDE_TICKERS:
@@ -203,7 +209,7 @@ def analyze_ticker(t):
     }
 
 
-def classify_and_score(d, auth_pct, insider):
+def _legacy_classify_and_score(d, auth_pct, insider):
     nbY = d["net_buyback_yield"]
     grY = d["gross_buyback_yield"]
     srP = d["share_count_reduction_yoy"]
@@ -251,6 +257,27 @@ def classify_and_score(d, auth_pct, insider):
     return score, klass, high_conviction_pump, cheap
 
 
+def analyze_ticker(t):
+    if t in EXCLUDE_TICKERS: return {"_excluded": "denylist"}
+    profile = fmp(f"profile?symbol={t}")
+    first = profile[0] if isinstance(profile, list) and profile else {}
+    excluded = is_excluded_profile(first)
+    if excluded: return {"_excluded": excluded, "profile_response": profile}
+    cash = fmp(f"cash-flow-statement?symbol={t}&period=quarter&limit=5")
+    if not isinstance(cash, list) or not cash: return None
+    # A one-row response remains inspectable without making calls that the
+    # preceding acquisition plan did not make for such a response.
+    metrics = fmp(f"key-metrics?symbol={t}&period=quarter&limit=1") if len(cash) >= 2 else None
+    shares = fmp(f"enterprise-values?symbol={t}&period=quarter&limit=5") if len(cash) >= 2 else None
+    return dossier(t, profile, cash, metrics, shares, datetime.datetime.now(datetime.timezone.utc).date().isoformat())
+
+
+def classify_and_score(d, auth_pct, insider):
+    # Statement arithmetic and keyword authorizations have not earned forecast
+    # authority. Never turn unavailable measurements into a zero-valued score.
+    return None, "RESEARCH_ONLY", False, False
+
+
 def lambda_handler(event=None, context=None):
     # ---- universe: scanner authorizations (catalyst) + attention-confluence universe ----
     scanner = _read("data/buyback-scanner.json")
@@ -259,11 +286,11 @@ def lambda_handler(event=None, context=None):
         tk = up(o.get("ticker") or o.get("symbol"))
         if not tk:
             continue
-        mcap = float(o.get("market_cap") or 0)
-        auth = float(o.get("authorization_usd") or 0)
+        mcap = number(o.get("market_cap"))
+        auth = number(o.get("authorization_usd"))
         auths[tk] = {
             "authorization_usd": auth, "market_cap": mcap,
-            "auth_pct_mcap": round(auth / mcap * 100, 2) if mcap > 0 and auth > 0 else None,
+            "auth_pct_mcap": None, "unverified_scanner_record": dict(o),
             "announcement_date": o.get("announcement_date"), "company": o.get("company"),
             "asr": o.get("asr_accelerated"), "expected_drift": o.get("expected_return_basis") or o.get("forward_expectations"),
             "insider_n_buyers": o.get("insider_n_buyers") or o.get("n_buyers"),
@@ -328,7 +355,7 @@ def lambda_handler(event=None, context=None):
         if i % 30 == 0:
             time.sleep(0.25)
         if isinstance(d, dict) and d.get("_excluded"):
-            excluded.append({"ticker": t, "reason": d["_excluded"]})
+            excluded.append({"ticker": t, "reason": d["_excluded"], "profile_response": d.get("profile_response")})
             continue
         if not d:
             continue
@@ -340,10 +367,10 @@ def lambda_handler(event=None, context=None):
         bits = []
         if auth_pct:
             bits.append(f"fresh authorization {auth_pct}% of mcap")
-        if d["net_buyback_yield"] > 0:
-            bits.append(f"net buyback yield {d['net_buyback_yield']}%")
+        if d["net_buyback_yield"] is not None and d["net_buyback_yield"] > 0:
+            bits.append(f"reported calendar-window net repurchases / matched market cap {d['net_buyback_yield']}%")
         if d["share_count_reduction_yoy"] is not None and d["share_count_reduction_yoy"] > 0:
-            bits.append(f"shares -{d['share_count_reduction_yoy']}% YoY")
+            bits.append(f"reported shares -{d['share_count_reduction_yoy']}% over exact calendar-year endpoints; corporate actions unadjusted")
         if d["active_execution"]:
             bits.append("buying this quarter")
         if cheap:
@@ -363,28 +390,18 @@ def lambda_handler(event=None, context=None):
                 "insider_sell_usd_recent", "insider_n_sellers")
                if sf.get(k2) is not None}
         tickers[t] = {**d, **bo, **sfj,
-                      "auth_pct_mcap": auth_pct, "buyback_score": score, "class": klass,
+                      "auth_pct_mcap": auth_pct, "authorization_research": a.get("unverified_scanner_record"),
+                      "blackout_status": "earnings_calendar_proxy_not_verified_corporate_policy",
+                      "buyback_score": score, "class": klass,
                       "high_conviction_pump": pump, "cheap": cheap,
                       "company": a.get("company"), "announcement_date": a.get("announcement_date"),
                       "asr": a.get("asr"), "filing_url": a.get("filing_url"),
                       "why": "; ".join(bits)}
 
-    # dual-class collapse: same company under two tickers (FOX/FOXA)
-    # double-counts one capital-return program on every board -- keep
-    # the larger class on boards, chip the sibling, keep both in map
-    byname = {}
-    for t, v in tickers.items():
-        nm = (v.get("company_name") or v.get("company") or "").strip().lower()
-        if nm:
-            byname.setdefault(nm, []).append(t)
-    for nm, ts in byname.items():
-        if len(ts) > 1:
-            ts.sort(key=lambda x: -(tickers[x].get("market_cap") or 0))
-            keep = ts[0]
-            tickers[keep]["dual_class_with"] = ts[1:]
-            for o in ts[1:]:
-                tickers[o]["dual_class_with"] = [keep]
-                tickers[o]["board_suppressed"] = True
+    # Preserve every source symbol. Matching company labels do not establish
+    # a share-class relationship or authorize dropping a board occurrence.
+    if not tickers:
+        return {"ok": False, "kept_prior": True, "reason": "no_received_statement_rows"}
 
     rows = list(tickers.values())
 
@@ -398,48 +415,52 @@ def lambda_handler(event=None, context=None):
         "capital_structure_context": capital["research_context"],
         "input_eligibility": {"share_flows_pe_and_insider_join": False},
         "calls_eligible": False, "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False,
-        "engine": "buyback-engine", "version": "1.1.0",
+        "engine": "buyback-engine", "version": "1.2.0", "measurement_contract": CONTRACT,
+        "call": None, "quality": {"status": "partial", "provider_originals_replayed": False,
+        "point_in_time_availability_verified": False},
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "thesis": ("Unified buyback intelligence: fresh authorizations (catalyst) + actual execution "
-                   "+ net-of-dilution + share-count shrink + valuation. Net buyback yield and a "
-                   "genuinely shrinking share count separate real returns of capital from SBC offset."),
-        "universe_n": len(universe), "n_scored": len(tickers), "n_fmp_resolved": n_fmp_ok,
-        "n_excluded": len(excluded), "excluded_sample": excluded[:40],
+        "thesis": ("Descriptive reported buyback cash flows and exact-date share comparisons. "
+                   "Annual amounts require four explicit contiguous quarterly durations and one currency; "
+                   "ratios require matched-date/currency market cap. No forecast score or current-execution claim."),
+        "universe_n": len(universe), "n_scored": 0, "n_research_rows": len(tickers), "n_fmp_resolved": n_fmp_ok,
+        "n_excluded": len(excluded), "excluded_sample": excluded[:40], "excluded": excluded,
         "market_blackout": {"pct": bo_agg.get("blackout_mktcap_pct"),
                             "state": bo_agg.get("state")},
         "counts": {k: len([x for x in rows if x["class"] == k]) for k in
-                   ["🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "💰 HIGH_SHAREHOLDER_YIELD",
+                   ["RESEARCH_ONLY", "🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "💰 HIGH_SHAREHOLDER_YIELD",
                     "🎯 CHEAP_REPURCHASER", "⚠️ DILUTION_OFFSET", "ACTIVE", "NEUTRAL"]},
         "scanner_state": scanner.get("state"),
+        "unverified_scanner_records": scanner.get("top_opportunities", []),
         "high_conviction_pumps": top(lambda x: x["high_conviction_pump"],
                                      lambda x: (x.get("auth_pct_mcap") or 0, x["buyback_score"])),
         "fresh_authorizations": top(lambda x: x.get("auth_pct_mcap")
                                     and not x.get("extreme"),
                                     lambda x: (x.get("auth_pct_mcap") or 0)),
         "net_shrinkers": top(lambda x: (x["share_count_reduction_yoy"] or 0) >= 1
-                             and x["net_buyback_ttm"] > 0 and not x.get("net_issuer"),
+                             and x["net_buyback_ttm"] is not None and x["net_buyback_ttm"] > 0 and not x.get("net_issuer"),
                              lambda x: x["share_count_reduction_yoy"] or 0),
-        "high_shareholder_yield": top(lambda x: x["shareholder_yield"] >= 3
-                                      and x["net_buyback_yield"] > 0.5 and not x.get("net_issuer"),
+        "high_shareholder_yield": top(lambda x: x["shareholder_yield"] is not None and x["shareholder_yield"] >= 3
+                                      and x["net_buyback_yield"] is not None and x["net_buyback_yield"] > 0.5 and not x.get("net_issuer"),
                                       lambda x: x["shareholder_yield"]),
         "cheap_repurchasers": top(lambda x: x["cheap"] and not x.get("net_issuer")
-                                  and (x["active_execution"] or x["net_buyback_ttm"] > 0),
+                                  and (x["active_execution"] or (x["net_buyback_ttm"] is not None and x["net_buyback_ttm"] > 0)),
                                   lambda x: x["buyback_score"]),
         "dilution_offset_warnings": top(lambda x: x["class"] == "⚠️ DILUTION_OFFSET",
                                         lambda x: x["gross_buyback_yield"]),
         "tickers": tickers,
         "scoring": {"weights": {"net_buyback": 0.30, "share_reduction": 0.25, "active": 0.12,
                                 "shareholder_yield": 0.10, "cheapness": 0.10, "fresh_auth": 0.13},
-                    "notes": "net buyback yield = (repurchases - issuance)/mcap TTM; share reduction = YoY numberOfShares."},
+                    "active": False, "notes": "Legacy weights retained for inspection only. Scores and forecast classes are unavailable; source arithmetic is descriptive."},
         "sources": ["SEC 8-K via buyback-scanner", "FMP /stable/ cash-flow-statement",
                     "FMP key-metrics (mcap, FCF yield)", "FMP enterprise-values (share count)"],
-        "caveats": ("Authorization != execution; quarters are lumpy. Net buyback yield + a falling "
-                    "share count are the real signal; gross repurchases that only offset SBC are flagged "
-                    "DILUTION_OFFSET. Debt-funded buybacks flagged. Research only, not investment advice."),
+        "caveats": ("Provider statements are not complete original SEC replay. Unverified scanner amounts "
+                    "remain research records, not authorization events. Reported share changes are not adjusted "
+                    "for splits or corporate actions. Debt issuance alongside repurchases does not prove funding. "
+                    "Historical repurchases do not establish buying today; earnings blackout is a calendar proxy."),
     }
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=600")
-    return {"ok": True, "n_scored": len(tickers), "n_fmp": n_fmp_ok,
+    return {"ok": True, "n_scored": 0, "n_research_rows": len(tickers), "n_fmp": n_fmp_ok,
             "pumps": len(out["high_conviction_pumps"]), "counts": out["counts"]}
 
 

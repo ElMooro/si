@@ -47,3 +47,18 @@ test('whole page predecessors survive and new pages explain unverified units and
   const source=fs.readFileSync(path.join(root,name+'.html'),'utf8');assert.match(source,/<label for="q">/);assert.match(source,/role="region"[^>]*tabindex="0"/);assert.match(source,/Complete original publication/);assert.match(source,/not a verified|not verified/);assert.ok(!/[\u00c2\u00c3\ufffd]/.test(source));
  }
 });
+
+test('buyback ledger stays visible with empty forecast boards and full period metadata',async()=>{
+ const packet={tickers:{A:{symbol:'A',gross_repurchases_ttm:0,net_buyback_ttm:null,measurements:{cashflow_window:{unit:'USD',start_date:'2025-07-01',end_date:'2026-06-30',status:'four_reported_calendar_quarters'}}},B:{symbol:'B',company_name:'<img src=x>',gross_repurchases_ttm:false}},high_conviction_pumps:[]};
+ const s=await render(packet,'buyback');assert.match(s.get('board').innerHTML,/2 of 2/);assert.ok(s.get('board').innerHTML.includes('2025-07-01'));assert.ok(s.get('board').innerHTML.includes('2026-06-30'));assert.ok(s.get('board').innerHTML.includes('USD'));assert.ok(!s.get('board').innerHTML.includes('<img'));
+ assert.equal(s.get('original').textContent,JSON.stringify(packet));assert.deepEqual(s.calls,['/data/buyback-engine.json']);
+ s.get('q').value='B';s.get('q').oninput();assert.match(s.get('board').innerHTML,/1 of 2/);
+ const d=D.population({...packet,net_shrinkers:[{symbol:'A',net_buyback_ttm:900}]},'dilution');assert.equal(d.rows.length,3);assert.equal(d.rows[2].record.net_buyback_ttm,900);
+ assert.throws(()=>D.population({tickers:[]},'buyback'),/missing or malformed/);
+});
+
+test('buyback page retains its complete original and binds the descriptive ticker ledger',()=>{
+ const raw=fs.readFileSync(path.join(__dirname,'fixtures/pre-buyback-accounting-desk.html.txt'));
+ assert.equal(raw.length,14188);assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'1e99c155b08c2949243c35a65ee4bf9edabfed3e99b6bc829b1a74a90db6797e');
+ const html=fs.readFileSync(path.join(root,'buybacks.html'),'utf8');assert.match(html,/mode:"buyback"/);assert.match(html,/<label for="q">/);assert.match(html,/role="region"[^>]*tabindex="0"/);assert.match(html,/Complete original publication/);assert.ok(!html.includes('sc=r.buyback_score||0'));
+});

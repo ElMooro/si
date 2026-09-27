@@ -21,15 +21,15 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-in
 <body>
 <div class="wrap">
 <h1>Dilution vs buybacks</h1>
-<p class="sub">Issuance, stock-based compensation and share-count fields from every published buyback list. A ticker may appear more than once with different values; each source record remains visible. Blank means unavailable. Sort with a header or its Enter/Space key.</p>
+<p class="sub">Issuance, stock-based compensation and share-count fields from the full ticker ledger and every published buyback list. A ticker may appear more than once with different values; each source record remains visible. Blank means unavailable. Sort with a header or its Enter/Space key.</p>
 <label for="q">Filter ticker, name, sector or source record</label>
 <input id="q" placeholder="filter ticker" autocomplete="off">
 <p id="status" class="sub" role="status"></p>
 <div id="board" class="table-region" role="region" aria-label="Source accounting records, scroll horizontally for every column" tabindex="0">Loading /data/buyback-engine.json</div>
 <details><summary>Complete original publication</summary><pre id="original" tabindex="0">Unavailable</pre></details>
 <div class="foot"><b>Research scope:</b> Source classifications and repeated list membership are not independently verified signals, recommendations or a complete company universe.<br>
-<b>1. Source TTM amounts:</b> The producer can sum fewer than four returned cash-flow rows and default missing inputs to zero. Published zeros therefore require source validation. Currency and distinct reporting quarters are not established by this page; K/M/B/T are scale suffixes only.<br>
-<b>2. Share reduction tag:</b> The source computes (prior shares − current shares) / prior shares × 100. Positive means fewer shares in that comparison; negative means more. The comparison uses returned row positions and is not a verified annual interval.<br>
+<b>1. Source TTM amounts:</b> Legacy packets can sum fewer than four rows, mix currencies or default missing inputs to zero. New accounting research requires explicit contiguous quarterly start/end dates, one issuer and one currency; absent inputs stay unavailable. Provider-original completeness is not verified. K/M/B/T are scale suffixes only.<br>
+<b>2. Share reduction tag:</b> The source computes (prior shares − current shares) / prior shares × 100. Positive means fewer shares in that comparison; negative means more. Legacy comparison uses returned row positions and is not a verified annual interval. New accounting research requires exact calendar-year endpoints; splits and corporate actions remain unadjusted, so share reduction does not establish dilution or buyback execution.<br>
 <b>Source records:</b> Overlapping lists and conflicting ticker records are retained separately. An amendment, issuance flag or source class alone does not qualify a trade. Every original field remains available below the table.</div>
 </div>
 <script src="/jh-table-values.js"></script>
