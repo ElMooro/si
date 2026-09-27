@@ -32,4 +32,40 @@ class Tests(unittest.TestCase):
         events,scheduler=self.clients(ARN)
         rows=op.schedule_evidence(events,scheduler,'justhodl-test',ARN,{'eventbridge_scheduler':{'schedule_name':'daily'}},None)
         self.assertNotIn('target_qualifier',rows[0]);self.assertEqual(rows[0]['native_targets'],1)
+
+    def test_complete_paginated_scan_finds_unrelated_names_and_groups_without_reading_other_payloads(self):
+        events,scheduler=self.clients(ARN)
+        scheduler.get_paginator.return_value.paginate.return_value=[
+            {'Schedules':[{'Name':'unrelated','GroupName':'default','Target':{'Arn':'another-function'}}]},
+            {'Schedules':[{'Name':'macro-cycle-refresh','GroupName':'research','Target':{'Arn':ARN}}]}]
+        scheduler.get_schedule.return_value.update(Name='macro-cycle-refresh',GroupName='research')
+        scheduler.get_schedule.return_value['Target']['Input']='private fixture payload'
+        rows=op.schedule_evidence(events,scheduler,'justhodl-test',ARN,{},None)
+        self.assertEqual([(r['name'],r['group']) for r in rows],[('macro-cycle-refresh','research')])
+        scheduler.get_paginator.return_value.paginate.assert_called_once_with()
+        scheduler.get_schedule.assert_called_once_with(Name='macro-cycle-refresh',GroupName='research')
+        self.assertNotIn('private fixture payload',str(rows));scheduler.update_schedule.assert_not_called()
+
+    def test_declared_nondefault_group_is_read_exactly_and_deduplicated_with_inventory(self):
+        events,scheduler=self.clients(ARN)
+        scheduler.get_schedule.return_value['GroupName']='research'
+        scheduler.get_paginator.return_value.paginate.return_value=[{'Schedules':[{'Name':'daily','GroupName':'research','Target':{'Arn':ARN}}]}]
+        rows=op.schedule_evidence(events,scheduler,'justhodl-test',ARN,{'eventbridge_scheduler':{'schedule_name':'daily','group_name':'research'}},None)
+        self.assertEqual(len(rows),1)
+        self.assertTrue(all(call.kwargs=={'Name':'daily','GroupName':'research'} for call in scheduler.get_schedule.call_args_list))
+        scheduler.get_schedule.return_value['GroupName']='default'
+        with self.assertRaisesRegex(ValueError,'identity differs'):
+            op.schedule_evidence(events,scheduler,'justhodl-test',ARN,{'eventbridge_scheduler':{'schedule_name':'daily','group_name':'research'}},None)
+
+    def test_incomplete_inventory_and_unverified_qualified_targets_do_not_become_no_schedule(self):
+        events,scheduler=self.clients(ARN)
+        def partial(**kw):
+            yield {'Schedules':[]}
+            raise RuntimeError('second page denied')
+        scheduler.get_paginator.return_value.paginate.side_effect=partial
+        with self.assertRaisesRegex(RuntimeError,'second page denied'):op.schedule_evidence(events,scheduler,'justhodl-test',ARN,{},None)
+        scheduler.get_paginator.return_value.paginate.side_effect=None
+        scheduler.get_paginator.return_value.paginate.return_value=[{'Schedules':[{'Name':'daily','GroupName':'default','Target':{'Arn':ARN+':unverified'}}]}]
+        scheduler.get_schedule.return_value['Target']['Arn']=ARN+':unverified'
+        with self.assertRaisesRegex(ValueError,'unverified function/version'):op.schedule_evidence(events,scheduler,'justhodl-test',ARN,{},None)
 if __name__=='__main__':unittest.main(verbosity=2)

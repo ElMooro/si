@@ -53,12 +53,22 @@ def schedule_evidence(events,scheduler,function,arn,conf,alias):
         if not declared_primary:value['group']=key[0]
         if alias:value['target_qualifier']='live' if target.endswith(':live') else '$LATEST'
         rows.append(value)
-    if declared.get('schedule_name'):append(scheduler.get_schedule(Name=declared['schedule_name']),True)
-    for page in scheduler.get_paginator('list_schedules').paginate(NamePrefix=function):
+    def get_schedule(name, group):
+        actual=scheduler.get_schedule(Name=name,GroupName=group)
+        if actual.get('Name')!=name or actual.get('GroupName','default')!=group:
+            raise ValueError('Schedule response identity differs')
+        return actual
+    if declared.get('schedule_name'):
+        append(get_schedule(declared['schedule_name'],declared.get('group_name','default')),True)
+    # A schedule can have any name and group. NamePrefix=function silently
+    # omitted real native schedules such as global-recession-sched. Paginate
+    # the complete summary inventory, then retrieve only matching targets.
+    # Unrelated schedules' payloads are never requested or returned.
+    for page in scheduler.get_paginator('list_schedules').paginate():
         for item in page.get('Schedules',[]):
             target=item.get('Target',{}).get('Arn','')
             if target!=arn and not target.startswith(arn+':'):continue
-            append(scheduler.get_schedule(Name=item['Name'],GroupName=item['GroupName']))
+            append(get_schedule(item['Name'],item['GroupName']))
     return rows
 
 def runtime(lam,s3,events,scheduler,function):
