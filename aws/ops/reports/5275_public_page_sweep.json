@@ -1,16 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "87f1c30b5d4d205b723a7ab564f3795af085f7f0",
-  "observed_at": "2026-09-27T03:56:27.391557+00:00",
+  "observed_at": "2026-09-27T03:59:38.437653+00:00",
   "ok": true,
-  "routes_checked": 561,
-  "verified_routes": 561,
+  "routes_checked": 562,
+  "verified_routes": 562,
   "failed_routes": [],
   "source_equivalent_builds": {
     "87f1c30b5d4d205b723a7ab564f3795af085f7f0": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 560,
+  "embedded_inspection_routes": 561,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -523,6 +523,16 @@
       "build_sha": "87f1c30b5d4d205b723a7ab564f3795af085f7f0",
       "inspector_present": true,
       "bytes_read": 15311,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
+    },
+    {
+      "route": "billings-crpo.html",
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "87f1c30b5d4d205b723a7ab564f3795af085f7f0",
+      "inspector_present": true,
+      "bytes_read": 2750,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -1902,7 +1912,7 @@
       "http_status": 200,
       "build_sha": "87f1c30b5d4d205b723a7ab564f3795af085f7f0",
       "inspector_present": true,
-      "bytes_read": 978254,
+      "bytes_read": 978206,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -5628,7 +5638,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36292579249,
+  "deployment_run_id": 36292805686,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-27T03:56:27.393631+00:00"
+  "check_finished_at": "2026-09-27T03:59:38.440170+00:00"
 }
