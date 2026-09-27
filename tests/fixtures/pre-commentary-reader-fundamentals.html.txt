@@ -28,8 +28,6 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .big{font-family:var(--mono);font-size:30px;font-weight:700;margin:2px 0}
 .sub{font-size:11px;color:var(--dim);margin-top:4px}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
-#board{max-width:100%;overflow-x:auto}
-#board:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 th{text-align:left;color:var(--dim);font-weight:600;letter-spacing:.5px;padding:9px 8px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:10px}
 td{padding:9px 8px;border-bottom:1px solid rgba(28,36,51,.55)}
 tr.main{cursor:pointer}
@@ -86,15 +84,80 @@ tr.main:hover td{background:var(--panel2)}
 </style>
 <div id="ai-brief-panel" class="ai-brief">
   <div class="ai-brief-hdr">
-    <div class="ai-brief-badge"><span class="pulse"></span>Published source commentary</div>
+    <div class="ai-brief-badge"><span class="pulse"></span>AI Intelligence Brief</div>
     <div class="ai-brief-meta" id="ai-brief-meta">loading…</div>
   </div>
   <div class="ai-brief-headline" id="ai-brief-headline">
-    <span class="ai-brief-loading">Checking the published commentary contract.</span>
+    <span class="ai-brief-loading">AI commentary loading… first run after deployment populates within 2 minutes.</span>
   </div>
   <div class="ai-brief-grid" id="ai-brief-grid"></div>
 </div>
-<script src="/jh-commentary-review.js" defer></script>
+<script>
+(function() {
+  const PAGE = window.__AI_BRIEF_PAGE__ || "default";
+  const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  const ICONS = { "pre-pump-radar": {a:"🎯", b:"📊", c:"⚠️", scoreLbl:"Conviction"},
+                   "signal-board": {a:"📡", b:"🔀", c:"🎚️", scoreLbl:"Regime"},
+                   "risk-desk":   {a:"⚠️", b:"🛡️", c:"🔮", scoreLbl:"Risk Lvl"},
+                   "liquidity":   {a:"💧", b:"📈", c:"🏛️", scoreLbl:"Liquidity"},
+                   "fundamentals":{a:"💎", b:"🚩", c:"👁️", scoreLbl:"Value"} };
+  const SCHEMA = { "pre-pump-radar": {a:"top_pick_analysis", b:"regime_context", c:"what_to_watch", score:"confidence_score"},
+                    "signal-board": {a:"regime_analysis", b:"key_divergences", c:"positioning_view", score:"regime_score"},
+                    "risk-desk":   {a:"primary_risks", b:"hedge_recommendation", c:"leading_indicators", score:"risk_score"},
+                    "liquidity":   {a:"liquidity_flow", b:"implications", c:"policy_outlook", score:"liquidity_score"},
+                    "fundamentals":{a:"best_value", b:"warning_flags", c:"watch_list", score:"value_score"} };
+  const LABELS = { "pre-pump-radar": {a:"TOP PICK", b:"REGIME", c:"WATCH"},
+                    "signal-board": {a:"REGIME", b:"DIVERGENCES", c:"POSITIONING"},
+                    "risk-desk":   {a:"TOP RISKS", b:"HEDGES", c:"WATCH"},
+                    "liquidity":   {a:"FLOWS", b:"IMPLICATIONS", c:"POLICY"},
+                    "fundamentals":{a:"BEST VALUE", b:"WARNINGS", c:"WATCH LIST"} };
+
+  async function load() {
+    try {
+      const r = await fetch(`${PROXY}/data/ai-commentary/${PAGE}.json?t=${Date.now()}`);
+      if (!r.ok) return;
+      const doc = await r.json();
+      render(doc);
+    } catch (e) { console.warn("ai-brief", e); }
+  }
+
+  function render(doc) {
+    const c = (doc && doc.commentary) || {};
+    if (!c || c.error || c.fallback || c.parse_error) {
+      document.getElementById("ai-brief-meta").textContent = "awaiting next run";
+      return;
+    }
+    const meta = `Generated ${(doc.generated_at || "").slice(0,16).replace("T"," ")} · ${doc.model || ""}`;
+    document.getElementById("ai-brief-meta").textContent = meta;
+    document.getElementById("ai-brief-headline").innerHTML = c.headline || "<i>—</i>";
+
+    const sch = SCHEMA[PAGE] || {};
+    const lbls = LABELS[PAGE] || {a:"INSIGHT", b:"DETAIL", c:"WATCH"};
+    const ics = ICONS[PAGE] || {a:"💡", b:"📍", c:"👁️", scoreLbl:"SCORE"};
+    const score = c[sch.score];
+
+    document.getElementById("ai-brief-grid").innerHTML = `
+      <div class="ai-brief-card">
+        <div class="ai-brief-label">${ics.a} ${lbls.a}</div>
+        <div class="ai-brief-body">${c[sch.a] || "<i>—</i>"}</div>
+      </div>
+      <div class="ai-brief-card">
+        <div class="ai-brief-label">${ics.b} ${lbls.b}</div>
+        <div class="ai-brief-body">${c[sch.b] || "<i>—</i>"}</div>
+      </div>
+      <div class="ai-brief-card">
+        <div class="ai-brief-label">${ics.c} ${lbls.c}</div>
+        <div class="ai-brief-body">${c[sch.c] || "<i>—</i>"}</div>
+      </div>
+      ${score != null ? `<div class="ai-brief-score">
+        <div class="val">${score}</div>
+        <div class="lbl">${ics.scoreLbl}</div>
+      </div>` : ""}`;
+  }
+  load();
+  setInterval(load, 5 * 60 * 1000);
+})();
+</script>
 <!-- ═════ END AI INTELLIGENCE BRIEF ═════ -->
 
 <div id="ai-decisive-call" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
@@ -112,7 +175,7 @@ tr.main:hover td{background:var(--panel2)}
   <div class="grid4" id="kpis"><div class="loading">LOADING FUNDAMENTALS…</div></div>
 
   <h2>Coverage — ranked by DCF valuation gap</h2>
-  <div class="card" style="padding:6px 10px"><div id="board" tabindex="0" role="region" aria-label="All fundamentals columns, scroll horizontally on narrow screens"><div class="loading">…</div></div></div>
+  <div class="card" style="padding:6px 10px"><div id="board"><div class="loading">…</div></div></div>
   <p class="note" id="note"></p>
   <p class="timestamp" id="ts"></p>
 </div>
