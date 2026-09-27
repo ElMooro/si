@@ -1,0 +1,103 @@
+{
+  "checked_at": "2026-09-27T12:49:11.972339+00:00",
+  "operation_run": 36320070997,
+  "report_commit": "e0e20c642",
+  "public": {
+    "url": "https://justhodl.ai/data/global-recession.json?exact=1&nogen=1",
+    "bytes": 58579,
+    "sha256": "4dbca09566d2fe1ab6e5237e8506331e57af01ea2163346a7951ff9290388515",
+    "generated_at": "2026-09-27T12:40:04+00:00",
+    "contract": "global-recession-research.v1"
+  },
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "VKFjFlhjdvgq/2BjMxARVyNi9btL94p3JpSVEiVJoVg=",
+      "source_files_checked": 2,
+      "handler_bytes": 30076,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "f648d56424745e88a3449d133aaa68b205a6b443"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "global-recession-sched",
+          "state": "ENABLED",
+          "expression": "cron(40 12 * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-global-recession",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "archive_writes": 0,
+    "baseline_sha256": "863712562cb23f3ac62fb46aaea39d14a98f1ce48afe1ae1f01ab5e37520016a",
+    "complete_derived_input_bytes": {
+      "data/global-business-cycle.json": 261250,
+      "data/oecd-cli.json": 22861,
+      "data/portwatch.json": 109122,
+      "data/china-liquidity.json": 6804,
+      "data/indicator-bus.json": 2862350,
+      "data/global-recession.json": 26822
+    },
+    "complete_predecessor_countries": 34,
+    "complete_predecessor_preserved": true,
+    "current_head_sha256": "4dbca09566d2fe1ab6e5237e8506331e57af01ea2163346a7951ff9290388515",
+    "expected_commit": "f648d56424745e88a3449d133aaa68b205a6b443",
+    "fixture_countries": 34,
+    "fixture_excluded": 0,
+    "fixture_public_head_writes": 1,
+    "fixture_replay": {
+      "contract": "recession-native-replay.v1",
+      "complete_native_stages": 2,
+      "input_operations": 5,
+      "processing_clocks": 3,
+      "final_calculation_sha256": "3b89050545b7a9adc7c6e65f65d304ccbac3949de0df38fc9cddb305d0e9a5df",
+      "point_in_time_verified": false,
+      "forecast_qualified": false
+    },
+    "fixture_scope": "Complete retained derived inputs, both native calculations and offline clock replay in memory. FRED disabled for this fixture; not original-provider replay of the historical baseline.",
+    "history_writes": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "status": "complete_native_acquisition_and_calculation_replayed",
+      "generated_at": "2026-09-27T12:40:04+00:00",
+      "version": "1.4.0",
+      "replay": {
+        "contract": "recession-native-replay.v1",
+        "complete_native_stages": 2,
+        "input_operations": 7,
+        "processing_clocks": 5,
+        "final_calculation_sha256": "605ab2ac97164efa511ad23cf8800b2fa52fcd835fe67bc21275be7a8ef55619",
+        "point_in_time_verified": false,
+        "forecast_qualified": false
+      },
+      "acquisition_manifest_sha256": "db1f97a682f74ac3c31cad6fa10ddabb8acd43a00152c65fe20970da24044ee4"
+    },
+    "notifications_sent": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules_changed": 0,
+    "scope": "Retained evidence, exact calculation replay and research authority boundary. Definition validation, original historical vintages, calibration and portfolio qualification remain open."
+  },
+  "limitation": "Retained derived inputs and exact native calculation replay are not original historical vintages, calibrated recession probabilities or supported portfolio recommendations.",
+  "live_browser": {
+    "country_rows": 34,
+    "diagnostic_choices": 34,
+    "viewport_px": 1280,
+    "document_px": 1270,
+    "console_errors": 0,
+    "publication": "2026-09-27T12:40:04+00:00"
+  }
+}

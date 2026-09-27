@@ -4,14 +4,32 @@ import json, subprocess, sys
 import boto3
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path[:0] = [str(ROOT/p) for p in ('aws/ops', 'aws/ops/checks', 'aws/shared')]
+sys.path[:0] = [str(ROOT/p) for p in ('aws/ops', 'aws/ops/checks', 'aws/shared', 'scripts', 'aws/lambdas/justhodl-liquidity-agent/source')]
 from ops_report import report
 from market_runtime_evidence import runtime
 import liquidity_agent_triggers as triggers
+import replay_liquidity_agent_research as verifier
+import liquidity_agent_store as store
 
 FUNCTIONS = ('justhodl-liquidity-agent',)
 BUCKET = 'justhodl-dashboard-live'
 CLOCKS = {'justhodl-liquidity-agent': 'cron(30 12 * * ? *)'}
+
+
+def publication(read=verifier.read):
+    """Bind one public packet to replay and distinguish reviewed old storage."""
+    raw=read(store.model.CURRENT);packet=store.strict(raw)
+    proof=verifier.verify(packet,read)
+    if proof.get('replayed') is not True or proof.get('requested_series') != 73:
+        raise ValueError('Complete existing public replay required')
+    manifest=store.binding(packet,read)
+    current={module.__name__:{'sha256':store.sha(Path(module.__file__).read_bytes()),
+              'key':store.model.PREFIX+'compilers/'+store.sha(Path(module.__file__).read_bytes())+'.py'}
+             for module in store.COMPILERS}
+    exact=manifest['compilers']==current
+    return proof,{'generated_at':packet['generated_at'],'bytes':len(raw),'sha256':store.sha(raw),
+                  'manifest_key':packet['replay']['manifest_key'],'current_compilers_match':exact,
+                  'compiler_count':len(current),'status':'current_compiler_publication_replayed' if exact else 'reviewed_predecessor_storage_publication_replayed'}
 
 
 def main():
@@ -37,14 +55,17 @@ def main():
             if not clocks or any(row != (CLOCKS[function], 'ENABLED', 'UTC') for row in clocks):
                 raise ValueError('Reviewed normal publication timing differs: '+function)
             rows.append({'runtime': actual, 'trigger_inventory': discovered, 'reviewed_publication_timing_matches': True})
-        replayed = subprocess.check_output([sys.executable, str(ROOT/'scripts/replay_liquidity_agent_research.py')], cwd=ROOT, text=True)
-        proof = json.loads(replayed)
-        if proof.get('replayed') is not True or proof.get('requested_series') != 73: raise ValueError('Complete existing public replay required')
+        proof, native = publication()
+        for row in rows:
+            if runtime(lam,s3,events,scheduler,row['runtime']['function_name']) != row['runtime']:
+                raise ValueError('Actual package changed during publication replay')
         r.kv(expected_commit=expected, packages=rows, code_and_receipt_verified=True, current_public_output_replayed=proof,
              producer_invocations=0, consumer_invocations=0, provider_requests=0,
              private_account_reads=0, public_writes=0, notifications_sent=0, schedules_changed=0,
-             normal_publication_verified=False, original_provider_replay_performed=True,
-             scope='Actual code, exact receipt, preserved timing and full current original-source replay. The existing output may predate this storage-only fix; a normal publication under new code remains separate.')
+             native_publication=native, current_compiler_publication_verified=native['current_compilers_match'],
+             normal_publication_verified=native['current_compilers_match'],trigger_event_independently_verified=False,
+             original_provider_replay_performed=True,
+             scope='Exact deployed source, unchanged scheduler binding and one complete public packet replay. Current compiler identity is distinguished from reviewed predecessor storage. This does not independently attest the trigger event, original release vintages or portfolio qualification.')
 
 
 if __name__ == '__main__':
