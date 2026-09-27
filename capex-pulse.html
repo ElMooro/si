@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capex pulse · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:880px;margin:0 0 14px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2)}
+.chip b{color:var(--fg)}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th,td.l{text-align:left}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.pos{color:var(--grn)}.neg{color:var(--red)}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.loading{color:var(--fg3);padding:28px 0}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Capex pulse</h1>
+<p class="sub">Trailing-twelve-month capital expenditure from cash-flow statements already in the live capex-pulse feed. Intensity is capex / market cap when both exist. A blank cell is a missing tag, not zero. Click a header to sort. Nulls stay last.</p>
+<div class="kpis" id="kpis"></div>
+<input id="q" placeholder="filter ticker or sector" autocomplete="off">
+<div id="board"><div class="loading">Loading /data/capex-pulse.json</div></div>
+<div class="foot"><b>Built for:</b> seeing which issuers are raising or cutting cash capex, and how large that spend is versus market cap, without inventing a growth forecast.<br>
+<b>Data:</b> /data/capex-pulse.json (rows[] with ticker, sector, capex_ttm_b, yoy_pct, mc_b, intensity_pct, asof; market; hyperscalers; fails; method).<br>
+<b>Formulas as published by the feed:</b> TTM = last four quarterly |capitalExpenditure|; YoY vs prior four quarters; intensity = capex / market cap when both tagged.<br>
+<b>Not:</b> a guidance parser, an ARR/NRR extract, or a purchase-commitment note. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&","<":"<",">":">",'"':"""}[c];});}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function fmtB(v){var n=num(v);return n==null?"":n.toFixed(2);}
+function fmtPct(v){var n=num(v);if(n==null)return "";return (n>0?"+":"")+n.toFixed(1)+"%";}
+function cls(v){var n=num(v);if(n==null)return "";return n>=0?"pos":"neg";}
+var SORT="capex_ttm_b", DIR=-1, PACK=null, ROWS=[];
+function cmp(a,b){
+  var av=a[SORT], bv=b[SORT];
+  if(av==null||av===""||av==="?") { if(bv==null||bv===""||bv==="?") return String(a.ticker||"").localeCompare(String(b.ticker||"")); return 1; }
+  if(bv==null||bv===""||bv==="?") return -1;
+  if(SORT==="capex_ttm_b"||SORT==="yoy_pct"||SORT==="intensity_pct"||SORT==="mc_b"){
+    av=Number(av); bv=Number(bv);
+    if(!isFinite(av)) return 1; if(!isFinite(bv)) return -1;
+    return (av-bv)*DIR;
+  }
+  return String(av).localeCompare(String(bv))*DIR;
+}
+function th(k,lab,left){
+  return '<th class="'+(left?"l ":"")+(SORT===k?"on":"")+'" data-k="'+k+'">'+lab+(SORT===k?(DIR<0?" \u2193":" \u2191"):"")+"</th>";
+}
+function paint(){
+  var q=(document.getElementById("q").value||"").toUpperCase();
+  var list=ROWS.filter(function(r){
+    if(!q) return true;
+    return (String(r.ticker||"")+" "+String(r.sector||"")).toUpperCase().indexOf(q)>=0;
+  }).slice().sort(cmp);
+  var h='<table><thead><tr>'+th("ticker","Ticker",1)+th("sector","Sector",1)+th("capex_ttm_b","Capex TTM $B",0)+th("yoy_pct","YoY",0)+th("intensity_pct","Intensity",0)+th("mc_b","Mkt cap $B",0)+th("asof","As of",1)+"</tr></thead><tbody>";
+  list.forEach(function(r){
+    var t=esc(r.ticker||"");
+    h+="<tr><td class=l><a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker||"")+"\">"+t+"</a></td>";
+    h+="<td class=l>"+esc(r.sector==="?"?"":r.sector)+"</td>";
+    h+="<td>"+esc(fmtB(r.capex_ttm_b))+"</td>";
+    h+='<td class="'+cls(r.yoy_pct)+'">'+esc(fmtPct(r.yoy_pct))+"</td>";
+    h+="<td>"+esc(r.intensity_pct==null?"":Number(r.intensity_pct).toFixed(2)+"%")+"</td>";
+    h+="<td>"+esc(fmtB(r.mc_b))+"</td>";
+    h+="<td class=l>"+esc(r.asof||"")+"</td></tr>";
+  });
+  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+ROWS.length+" names. Generated "+esc((PACK&&PACK.generated_at)||"")+". Click headers to sort. Blank is missing.</p>";
+  document.querySelectorAll("#board th[data-k]").forEach(function(el){
+    el.onclick=function(){var k=el.getAttribute("data-k"); if(SORT===k)DIR=-DIR; else {SORT=k; DIR=(k==="ticker"||k==="sector"||k==="asof")?1:-1;} paint();};
+  });
+}
+(async function(){
+  var d=null;
+  try{var r=await fetch("/data/capex-pulse.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
+  if(!d||!Array.isArray(d.rows)){document.getElementById("board").textContent="capex-pulse.json missing or has no rows[].";return;}
+  PACK=d; ROWS=d.rows.slice();
+  var m=d.market||{}, h=d.hyperscalers||{};
+  document.getElementById("kpis").innerHTML=
+    '<span class="chip"><b>'+(d.n!=null?d.n:ROWS.length)+"</b> names</span>"
+    +'<span class="chip"><b>'+(m.capex_ttm_b!=null?Number(m.capex_ttm_b).toFixed(0):"")+"</b> universe TTM $B</span>"
+    +'<span class="chip"><b>'+esc(fmtPct(m.yoy_pct))+"</b> universe YoY</span>"
+    +'<span class="chip"><b>'+(h.total_ttm_b!=null?Number(h.total_ttm_b).toFixed(0):"")+"</b> hyperscaler TTM $B</span>"
+    +'<span class="chip"><b>'+esc(fmtPct(h.yoy_pct))+"</b> hyperscaler YoY</span>"
+    +'<span class="chip"><b>'+(d.fails!=null?d.fails:"")+"</b> feed fails</span>";
+  document.getElementById("q").oninput=paint;
+  paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
