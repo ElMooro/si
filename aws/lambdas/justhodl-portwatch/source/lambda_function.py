@@ -18,7 +18,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.6.5"
+VERSION = "1.6.6"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -302,16 +302,13 @@ def _save_history(h):
 def _merge_rows(store, rows, id_keys=("portid", "chokepoint_id")):
     """store: {"pid|YYYY-MM-DD": attrs}. Returns number of new/updated rows."""
     n = 0
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=HIST_DAYS)).date()
     for a in rows:
         pid = str(next((a.get(k) for k in id_keys if a.get(k) is not None), "") or "")
         ds = _row_date(a)
-        if not pid or ds is None or ds < cutoff:
+        if not pid or ds is None:
             continue
         store[f"{pid}|{ds.isoformat()}"] = a
         n += 1
-    for k in [k for k in store if k.split("|", 1)[1] < cutoff.isoformat()]:
-        del store[k]
     return n
 
 
@@ -323,7 +320,7 @@ def _store_through(store):
     return max((k.split("|", 1)[1] for k in store), default=None)
 
 
-def lambda_handler(event=None, context=None):
+def _native_calculation(event=None, context=None):
     now = datetime.now(timezone.utc)
     since = now - timedelta(days=400)
     since_ms = int(since.timestamp() * 1000)
@@ -689,6 +686,17 @@ def lambda_handler(event=None, context=None):
           f"worst={out['worst']}")
     return {"ok": out["ok"], "chokepoints": len(out["chokepoints"]),
             "worst": out["worst"], "rows": len(rows)}
+
+
+def lambda_handler(event=None, context=None):
+    import sys
+    from portwatch_store import run
+    try:
+        result=run(sys.modules[__name__],event,context)
+        return {"statusCode":200 if result["published"] else 409,"body":json.dumps(result)}
+    except Exception as exc:
+        print("PortWatch preserved publication failed: "+type(exc).__name__)
+        return {"statusCode":503,"body":json.dumps({"ok":False,"error":type(exc).__name__})}
 
 
 if __name__ == "__main__":
