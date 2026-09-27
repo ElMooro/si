@@ -1,0 +1,28 @@
+{
+  "source_bytes": 17886,
+  "source_sha256": "4f94283bae24c7f5f2364bdc4fa5e261025b15b75dbbe84882da3f7aece223f8",
+  "public_bytes": 15719,
+  "public_sha256": "cac94a32e226dd2a1e039e8277714a6346332e193d300f649079dfdf723626a8",
+  "generated_at": "2026-09-27T11:00:13+00:00",
+  "stats": {
+    "n_universe": 10,
+    "n_evaluated": 9,
+    "n_no_data": 1,
+    "n_tier_s": 0,
+    "n_tier_a": 2,
+    "n_tier_b": 1,
+    "n_microcap_picks": 0
+  },
+  "all_qualifying_occurrences": 9,
+  "top_subset_occurrences": 9,
+  "baseline_acceptance": "pending 6251; native source and schedules unchanged",
+  "observed_source_defects": [
+    "Quarter comparisons use array offsets rather than validated fiscal periods, issuer identity, currencies and durations. Duplicate or missing quarters can produce fabricated YoY and acceleration.",
+    "Missing and boolean revenue/profit/expense fields enter arithmetic as zero or one; explicit zero sequential growth is discarded.",
+    "Eight statement rows produce at most three acceleration intervals, making the advertised four-quarter top tier unreachable.",
+    "One quarter multiplied by four is labelled annualized revenue and compared with currency-unqualified USD thresholds; it is not trailing-year revenue.",
+    "Source descriptions advertise earnings beat magnitude and free-cash-flow inflection, but the active calculation acquires neither corresponding source.",
+    "Original HTTP bodies, failed/unattempted request reasons and complete universe selection evidence are absent; request retries include rate limits.",
+    "Unsupported score/tier and institutional-accumulation claims flow to other engines; retained accounting observations must be separated from investment permissions."
+  ]
+}
