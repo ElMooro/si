@@ -1,0 +1,182 @@
+{
+  "account_reads": 0,
+  "actual_runtimes": {
+    "justhodl-katlin": {
+      "code_sha256": "4k2viPmkIQEoeSDzp/rr9im6xy2p+b6kXms0pwCf2n4=",
+      "source_files_checked": 13,
+      "handler_bytes": 209311,
+      "timeout": 900,
+      "memory_mb": 8192,
+      "receipt": {
+        "status": "matched",
+        "commit": "6941781cac78d91662673d49fcf43d5d49782c3e"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-katlin-daily",
+          "state": "ENABLED",
+          "expression": "cron(10 4 ? * TUE-SAT *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "target_qualifier": "live"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-katlin-backtest-weekly",
+          "state": "ENABLED",
+          "expression": "cron(30 9 ? * SUN *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default",
+          "target_qualifier": "live"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-katlin-permission-refresh",
+          "state": "ENABLED",
+          "expression": "rate(15 minutes)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default",
+          "target_qualifier": "live"
+        }
+      ],
+      "function_name": "justhodl-katlin",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 2048,
+      "active_alias": {
+        "alias": "live",
+        "version": "13",
+        "code_sha256": "4k2viPmkIQEoeSDzp/rr9im6xy2p+b6kXms0pwCf2n4="
+      }
+    },
+    "justhodl-allocator": {
+      "code_sha256": "N9VGmX2r3fXqyBwhAuK/yWoodOusg38cL9DMXFTWiak=",
+      "source_files_checked": 6,
+      "handler_bytes": 37933,
+      "timeout": 60,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "6941781cac78d91662673d49fcf43d5d49782c3e"
+      },
+      "schedules": [],
+      "function_name": "justhodl-allocator",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-morning-intelligence": {
+      "code_sha256": "TFDiSD9iQuQWuQKJoZCrSKVPiO23XOjLLn1kNWArvw8=",
+      "source_files_checked": 25,
+      "handler_bytes": 99109,
+      "timeout": 120,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "6941781cac78d91662673d49fcf43d5d49782c3e"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-morning-brief-daily",
+          "state": "ENABLED",
+          "expression": "rate(1 day)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-morning-intelligence",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  },
+  "baseline_sha256": "ccb4e3108429c31638a2af1b20d86fc5623e964e4deea939bb7ac27ab6ef4dbf",
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "model_requests": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "provider_requests": 0,
+  "public_brief": {
+    "status": "source_backed_public_brief",
+    "generated_at": "2026-09-27T00:05:38.911378+00:00",
+    "generation_method": "warehouse_deterministic_v1",
+    "source_chars": 3117,
+    "delivery_chars": 3256,
+    "paid_api_calls_by_acceptance": 0,
+    "notifications_sent": 0
+  },
+  "public_writes": 0,
+  "recipient_reads": 0,
+  "schedules_changed": 0,
+  "scope": "Exact deployment and isolated consumer behavior only. Native notification/consumer publication is not forced or read; other legacy allocation rules remain unqualified and under review.",
+  "synthetic_cycle_qualified_votes": 0,
+  "commit": "6941781cac78d91662673d49fcf43d5d49782c3e",
+  "lambda_run": 36287995582,
+  "pages_run": 36287995613,
+  "ops_run": 36288355745,
+  "report_commit": "4acb10fa2",
+  "status": "exact_code_and_isolated_consumer_boundaries_accepted",
+  "assets": {
+    "commit": "6941781cac78d91662673d49fcf43d5d49782c3e",
+    "served_descendant": "6941781cac78d91662673d49fcf43d5d49782c3e",
+    "checked_at": "2026-09-27T02:21:32.868435+00:00",
+    "registry_hash": "0e8238ccec3463dd6360306f6a61205d0f3eb5e8e8baf19b9f4166efc70b0421",
+    "assets": {
+      "global-recession.html": {
+        "bytes": 13555,
+        "sha256": "f5405539ea5b12c70994637224058edf34b4cebd8f02e1ccea6c92610045f986",
+        "matches_commit_manifest": true
+      },
+      "jh-recession-review.js": {
+        "bytes": 13973,
+        "sha256": "bf8481245cf622044e60f3bf84ade01cb856edfbc9e57dc3fa4727d63eda86b2",
+        "matches_commit_manifest": true
+      },
+      "business-cycle-review.css": {
+        "bytes": 3142,
+        "sha256": "b581c00f1bc3322d64d286538eab892e130dc5bab679c5c46fbba0c5a46e189e",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1335986,
+        "sha256": "ec4097e26356c0665a089db7be6b00a2a30192aa9f9f985fe9b963d996012eef",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2334945,
+        "sha256": "0e8238ccec3463dd6360306f6a61205d0f3eb5e8e8baf19b9f4166efc70b0421",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "browser": {
+    "build_commit": "6941781cac78d91662673d49fcf43d5d49782c3e",
+    "country_rows": 34,
+    "country_diagnostic_fields": 15,
+    "console_errors": 0,
+    "document_width": 1270,
+    "viewport_width": 1280
+  },
+  "native_publication_status": "No consumer/notification handler invoked; production notification and account outputs were not read or asserted."
+}
