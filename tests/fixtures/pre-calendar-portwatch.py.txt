@@ -446,7 +446,7 @@ def _native_calculation(event=None, context=None):
         base = vals[:-7][-358:]
         m = sum(base) / len(base)
         var = sum((x - m) ** 2 for x in base) / len(base)
-        sd = var ** 0.5
+        sd = var ** 0.5 or 1e-9
         l7 = sum(last7) / len(last7)
         p30 = sum(prev30) / len(prev30)
         # same-window prior year if depth allows
@@ -457,10 +457,9 @@ def _native_calculation(event=None, context=None):
                 yprior = sum(yr) / len(yr)
                 if yprior:
                     yoy = round(100 * (l7 / yprior - 1), 1)
-        z = round((l7 - m) / sd, 2) if sd > 0 else None
-        pvy = round(100 * (l7 / m - 1), 1) if m > 0 else None
-        status = ("UNAVAILABLE" if z is None or pvy is None else
-                  "DISRUPTED" if (z <= -1.5 or pvy <= -25) else
+        z = round((l7 - m) / sd, 2)
+        pvy = round(100 * (l7 / m - 1), 1)
+        status = ("DISRUPTED" if (z <= -1.5 or pvy <= -25) else
                   "ELEVATED" if (z >= 1.5 or pvy >= 25) else "NORMAL")
         return {"latest_7d_avg": round(l7, 1), "prev_30d_avg": round(p30, 1),
                 "baseline_1y": round(m, 1), "z": z, "vs_baseline_pct": pvy,
@@ -473,7 +472,7 @@ def _native_calculation(event=None, context=None):
             continue
         out["chokepoints"].append({"id": pid,
                                    "name": names.get(pid, pid), **st})
-    out["chokepoints"].sort(key=lambda c: (c["z"] is None, c["z"] or 0))
+    out["chokepoints"].sort(key=lambda c: c["z"])
 
     # 4) IMF disruptions table (recent)
     dj = _q(DISRUPT, {"where": "1=1", "outFields": "*",
@@ -597,7 +596,7 @@ def _native_calculation(event=None, context=None):
                                          "name": cand[pid2]["name"],
                                          "country": cand[pid2]["country"],
                                          **st2})
-            out["ports"].sort(key=lambda p: (p["z"] is None, p["z"] or 0))
+            out["ports"].sort(key=lambda p: p["z"])
     except Exception as _pe:
         out["errors"].append("ports_layer: " + str(_pe)[:90])
     out["ports_ref_sample"] = [
@@ -628,17 +627,16 @@ def _native_calculation(event=None, context=None):
         exp[cc]["zs"].append(p["z"])
     out["exporters"] = []
     for cc, e in exp.items():
-        avg = round(sum(e["pcts"]) / len(e["pcts"]), 1) if all(x is not None for x in e["pcts"]) else None
-        az = round(sum(e["zs"]) / len(e["zs"]), 2) if all(x is not None for x in e["zs"]) else None
-        verdict = ("UNAVAILABLE" if avg is None or az is None else
-                   "SLOWING" if (avg <= -12 or az <= -1.2) else
+        avg = round(sum(e["pcts"]) / len(e["pcts"]), 1)
+        az = round(sum(e["zs"]) / len(e["zs"]), 2)
+        verdict = ("SLOWING" if (avg <= -12 or az <= -1.2) else
                    "ACCELERATING" if (avg >= 12 or az >= 1.2) else "STABLE")
         out["exporters"].append({"code": cc, "country": e["country"],
                                  "n_ports": len(e["ports"]),
                                  "ports": e["ports"][:4],
                                  "avg_vs_baseline_pct": avg,
                                  "avg_z": az, "verdict": verdict})
-    out["exporters"].sort(key=lambda x: (x["avg_vs_baseline_pct"] is None, x["avg_vs_baseline_pct"] or 0))
+    out["exporters"].sort(key=lambda x: x["avg_vs_baseline_pct"])
     out["exporters_slowing"] = [x["country"] for x in out["exporters"]
                                 if x["verdict"] == "SLOWING"]
 

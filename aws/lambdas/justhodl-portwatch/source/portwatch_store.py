@@ -13,7 +13,7 @@ import gzip,hashlib,json,math,re,time,urllib.request,urllib.error,urllib.parse
 HEAD='data/portwatch.json';HISTORY='data/warm/portwatch/history/daily-rows.json.gz';IMPORT='data/import-canary.json'
 KEYS=(HEAD,HISTORY,IMPORT);PRIVATE='audit-private/20260909-originals/portwatch-research/'
 LIMIT=64*1024*1024;CONTRACT='portwatch-preserved-calculation.v1'
-COMPILERS=('lambda_function.py','portwatch_store.py')
+COMPILERS=('lambda_function.py','portwatch_store.py','portwatch_measurements.py')
 LAYERS=('PortWatch_chokepoints_database','Daily_Chokepoints_Data','Daily_Ports_Data','portwatch_disruptions_database','PortWatch_ports_database')
 sha=lambda raw:hashlib.sha256(raw).hexdigest()
 encode=lambda v:json.dumps(v,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode('utf-8')
@@ -188,11 +188,13 @@ def history_preserved(old,new):
         elif new[key]!=value:raise CaptureError('Unreviewed history metadata mutation')
 
 
-def projection(calculation,context):
+def projection(calculation,context,history):
+    import portwatch_measurements
     packet=deepcopy(calculation)
     packet.update(contract=CONTRACT,forecast_qualified=False,calls_eligible=False,sizing_eligible=False,execution_eligible=False,
         portfolio_action='WAIT',publication_context=context,
         research_limits='Complete acquisition/calculation retention is not validation of legacy day windows, metric substitution, pagination completeness, disruption labels, exporter inference or industry consequences. These interpretations remain unqualified.')
+    packet['measurement_review']=portwatch_measurements.build(history,calculation['generated_at'])
     return packet
 
 
@@ -212,7 +214,7 @@ def run(module,event=None,context=None,opener=None,at=None):
     manifest_ref=retain(s3,bucket,encode(manifest))
     ctx={'contract':CONTRACT,'manifest':manifest_ref,'compiler_sha256':hashes(),'original_source_replay_verified':False,
          'publication_atomic':False,'point_in_time_verified':False}
-    raw=encode(projection(calculation,ctx));planned={HISTORY:session.pending[HISTORY],HEAD:raw}
+    raw=encode(projection(calculation,ctx,history));planned={HISTORY:session.pending[HISTORY],HEAD:raw}
     retain(s3,bucket,encode({'manifest':manifest_ref,'publication_order':[HISTORY,HEAD],'planned_outputs':{k:retain(s3,bucket,v) for k,v in planned.items()}}))
     done=[]
     for key,value in planned.items():
@@ -257,9 +259,18 @@ def replay(module,s3,bucket,packet):
     session=Replay();result=calculate(module,session)
     if session.reads or session.http or encode(result)!=encode(m['native_return']):raise CaptureError('Incomplete deterministic replay')
     for key,raw in session.pending.items():
-        if raw!=retained(s3,bucket,m['complete_native_outputs'][key]):raise CaptureError('Whole native calculation differs')
+        expected=retained(s3,bucket,m['complete_native_outputs'][key])
+        # Gzip's OS/header and deflate representation can differ across runtime
+        # builds. Verify original compressed bytes by hash, then compare the
+        # entire decompressed calculation, not a platform-dependent encoding.
+        if key==HISTORY:
+            actual_plain=whole(gzip.GzipFile(fileobj=BytesIO(raw)))
+            expected_plain=whole(gzip.GzipFile(fileobj=BytesIO(expected)))
+            if actual_plain!=expected_plain:raise CaptureError('Whole native history calculation differs')
+        elif raw!=expected:raise CaptureError('Whole native calculation differs')
     history_preserved(decode(session.inputs[HISTORY]['raw'],HISTORY),decode(session.pending[HISTORY],HISTORY))
-    if encode(packet)!=encode(projection(decode(session.pending[HEAD],HEAD),ctx)):raise CaptureError('Final public projection differs')
+    if encode(packet)!=encode(projection(decode(session.pending[HEAD],HEAD),ctx,decode(session.pending[HISTORY],HISTORY))):raise CaptureError('Final public projection differs')
     return {'status':'whole_native_calculation_replayed','http_attempts':len(m['http_attempts']),
             'history_rows':{k:len(v) for k,v in decode(session.pending[HISTORY],HISTORY).items() if k in ('choke','ports','choke_fallback')},
+            'complete_decompressed_history_replayed':True,'compressed_encoding_reproduced':False,
             'provider_requests':0,'public_writes':0,'point_in_time_verified':False,'model_qualified':False}

@@ -1,66 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PortWatch Shipping Monitor · JustHodl.AI</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="jh-primary-engine" content="justhodl-portwatch"><title>PortWatch Shipping Observations · JustHodl.AI</title>
+<meta name="description" content="Identified vessel counts, exact calendar comparisons, missing dates, complete retained rows and source review.">
+<link rel="stylesheet" href="/business-cycle-review.css">
 <style>
-:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
-h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
-.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
-.chip{display:inline-block;border-radius:999px;padding:2px 11px;font-size:11px;margin:0 6px 6px 0;border:1px solid var(--text-mute);color:var(--text-dim)}
-.brow{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:11.8px}
-.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+body{margin:0;background:#080e17;color:#e7edf7;font-family:system-ui,sans-serif;line-height:1.55}.pw-wrap{max-width:1240px;margin:auto;padding:28px 20px 70px}.pw-eyebrow{font-size:12px;letter-spacing:.12em;color:#8cacd0}h1{font-size:30px;line-height:1.2}h2{font-size:20px;margin:0 0 12px}p{max-width:95ch}.pw-muted{color:#a0b0c5}.pw-panel{padding:20px;border:1px solid #26384c;background:#101b2b;border-radius:10px;margin:18px 0;min-width:0}.pw-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.pw-card{border:1px solid #26384c;padding:16px;border-radius:8px;overflow-wrap:anywhere}.pw-card b{display:block;font-size:20px;color:#d8e6f6}.pw-wait{border-left:4px solid #e0b463}.pw-scroll{max-width:100%;overflow:auto;max-height:640px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid #27374a;min-width:100px;overflow-wrap:anywhere}th{position:sticky;top:0;background:#162438}td:nth-child(2){max-width:440px}button,select,input{font:inherit;background:#17283c;color:#edf5ff;border:1px solid #567089;padding:9px 12px;border-radius:6px;max-width:100%}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}:focus-visible{outline:3px solid #73bdff;outline-offset:3px}.pw-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:600px;overflow:auto;font-size:12px}summary{cursor:pointer;font-weight:600}a{color:#83c2ff}@media(max-width:720px){.pw-grid{grid-template-columns:1fr}.pw-wrap{padding:20px 12px}.pw-panel{padding:14px}h1{font-size:25px}}
 </style>
-</head>
-<body>
-<div class="wrap">
-<h1>🚢 PortWatch — Global Shipping Monitor</h1>
-<div class="sub">IMF PortWatch AIS data: 7-day vessel transits vs 1-year baselines across 28 chokepoints and major ports. DISRUPTED = z ≤ −1.5 or −25% vs baseline. Daily 12:10 UTC.</div>
-<div class="grid3" id="hero"><div class="card mono">LOADING…</div></div>
-<div class="sec">Chokepoints — worst first</div>
-<div class="card" id="cps"></div>
-<div class="sec">Major Ports — worst first</div>
-<div class="card" id="pts"></div>
-<div class="sec">Export Nations Pulse — gateway-port activity by country</div>
-<div class="card" id="exp"></div>
-<div class="sec">IMF-Flagged Disruptions</div>
-<div class="card" id="dis"></div>
-<div class="foot" id="foot"></div>
-</div>
-<script src="/jh-nav-drawer.js" defer></script>
-<script>
-(async function(){try{
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/portwatch.json?t='+Date.now());
-if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable</div>';return;}
-var p=await r.json();
-var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
-function bar(x,nameW){var pct=Math.max(-95,Math.min(60,x.vs_baseline_pct||0));
- var c=x.status==='DISRUPTED'?RED:x.status==='ELEVATED'?AMB:NEU;var neg=pct<0;var w=Math.abs(pct)*1.1;
- return '<div class="brow mono"><div style="width:'+nameW+'px;font-weight:700;color:'+c+'" title="'+(x.country||'')+'">'+x.name+'</div>'
- +'<div style="flex:1;display:flex;justify-content:center"><div style="width:230px;position:relative;height:12px;background:rgba(255,255,255,.05);border-radius:6px"><div style="position:absolute;'+(neg?'right:50%':'left:50%')+';width:'+w+'px;max-width:112px;height:12px;background:'+c+'" title="7d '+x.latest_7d_avg+' vs 1y '+x.baseline_1y+' | last '+x.last_date+'"></div><div style="position:absolute;left:50%;top:-1px;width:1px;height:14px;background:#3a4150"></div></div></div>'
- +'<div style="width:56px;text-align:right;font-weight:800;color:'+c+'">'+(pct>0?'+':'')+pct.toFixed(0)+'%</div>'
- +'<div style="width:58px;text-align:right;color:'+MUT+'">z '+x.z+'</div>'
- +'<div style="width:52px;text-align:right;color:'+MUT+'">'+(x.yoy_pct==null?'—':((x.yoy_pct>0?'+':'')+x.yoy_pct+'%'))+'</div>'
- +'<div style="width:82px;text-align:right;color:'+c+';font-size:10px">'+x.status+'</div></div>';}
-var worst=p.worst||{};
-document.getElementById('hero').innerHTML=
- '<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">WORST CHOKEPOINT</div><div class="mono" style="font-size:24px;font-weight:800;color:'+RED+'">'+(worst.name||'—')+'</div><div class="mono" style="font-size:12px;color:'+RED+'">'+(worst.vs_baseline_pct||0)+'% vs 1y · z '+(worst.z||'')+' · '+(worst.status||'')+'</div></div>'
-+'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">DISRUPTED NOW</div><div class="mono" style="font-size:24px;font-weight:800;color:'+((p.n_disrupted||0)+(p.ports_disrupted||0)>0?RED:GRN)+'">'+(p.n_disrupted||0)+' chokepoints · '+(p.ports_disrupted||0)+' ports</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+((p.chokepoints||[]).length)+' chokepoints · '+((p.ports||[]).length)+' major ports tracked</div></div>'
-+'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">CROSS-CONFIRM</div><div class="mono" style="font-size:12.5px;margin-top:6px">Hormuz collapse × Iran news-stress 80+ = physical supply shock confirmed. Shanghai + Bohai softness joins the China-slowdown stack (TSF credit, NEWS_LEADS).</div><div class="mono" style="font-size:11px;margin-top:6px"><a href="/geo-risk.html" style="color:'+AMB+'">→ Geopolitical Risk Monitor</a></div></div>';
-document.getElementById('cps').innerHTML=(p.chokepoints||[]).map(function(x){return bar(x,150);}).join('')||'<span class="mono" style="color:'+MUT+'">no data</span>';
-document.getElementById('pts').innerHTML=(p.ports||[]).map(function(x){return bar(x,150);}).join('')||'<span class="mono" style="color:'+MUT+'">port layer building…</span>';
-document.getElementById('exp').innerHTML=((p.exporters||[]).map(function(e){var c=e.verdict==='SLOWING'?RED:e.verdict==='ACCELERATING'?GRN:NEU;return '<div class="brow mono"><div style="width:150px;font-weight:700;color:'+c+'">'+e.country+'</div><div style="width:60px;color:'+MUT+'">'+e.n_ports+' ports</div><div style="flex:1;color:'+MUT+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e.ports.join(', ')+'">'+e.ports.join(', ')+'</div><div style="width:66px;text-align:right;font-weight:800;color:'+c+'">'+(e.avg_vs_baseline_pct>0?'+':'')+e.avg_vs_baseline_pct+'%</div><div style="width:58px;text-align:right;color:'+MUT+'">z '+e.avg_z+'</div><div style="width:110px;text-align:right;color:'+c+';font-size:10px">'+e.verdict+'</div></div>';}).join(''))||'<span class="mono" style="color:'+MUT+'">building…</span>';
-document.getElementById('dis').innerHTML=((p.disruptions||[]).map(function(d){var nm=d.portname||d.name||d.chokepoint||'';var extra=[d.type,d.status,d.date].filter(Boolean).join(' · ');return nm?'<span class="chip" title="'+extra+'">'+nm+(extra?' — '+extra:'')+'</span>':'';}).join(''))||'<span class="mono" style="font-size:11px;color:'+MUT+'">none currently flagged by IMF</span>';
-document.getElementById('foot').textContent='Source: IMF PortWatch (portwatch.imf.org) — UN Global Platform AIS; keyless public ArcGIS FeatureServer. Metric: '+(p.metric_field||'')+' (chokepoints) / '+(p.ports_metric||'')+' (ports). Baselines: trailing 1-year mean; yoy = same 7d window prior year. Generated '+p.generated_at;
-}catch(e){console.error(e);}})();
-</script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+</head><body><main class="pw-wrap" id="pw-review">
+<div class="pw-eyebrow">SHIPPING OBSERVATIONS · CALENDAR COVERAGE · SOURCE REVIEW</div>
+<h1>PortWatch Shipping Observations</h1>
+<p class="pw-muted">Review vessel calls at retained ports and chokepoints, with exact dates and denominators. Vessel counts, cargo weight and trade value are different measurements.</p>
+<section class="pw-panel pw-wait"><h2>Research observations · WAIT</h2><p id="pw-mode">Reading measurement definitions…</p><p>Shipping counts do not establish a disruption, national export growth, inflation pressure, an industry earnings effect or a position size. Missing data stays unavailable. No model or portfolio authority is granted.</p></section>
+<div class="pw-controls"><button id="pw-refresh" type="button">Refresh public record</button><span id="pw-status" role="status" aria-live="polite">Reading the complete packet…</span></div>
+<div class="pw-grid"><div class="pw-card">RETAINED POPULATION<b id="pw-population">Unavailable</b>Not a census of all world ports.</div><div class="pw-card">STORED OBSERVATIONS<b id="pw-observation-count">Unavailable</b>All stored rows remain inspectable.</div><div class="pw-card">COMPARISON RULE<b>7 days versus 7 days</b>Matching prior-year calendar ending date; no holiday adjustment.</div></div>
+<section class="pw-panel"><h2>Port and chokepoint observations</h2><p class="pw-muted">All seven dates must be present for a seven-day mean. The baseline uses the 358 calendar days before those seven days; it is not a full-year baseline. Each row has its own observation date and age at the stated calculation time.</p><div class="pw-controls"><label for="pw-search">Find an entity</label><input id="pw-search" type="search" placeholder="Port, country, identifier or family"></div><p id="pw-entity-count"></p><div id="pw-entities" class="pw-scroll" tabindex="0" aria-label="Complete retained shipping entities"></div></section>
+<section class="pw-panel"><h2>Complete dated observations</h2><p class="pw-muted">Pagination changes the view only. Invalid, missing and future-dated values remain visible; a zero count is distinct from an unavailable count. Previously stored rows remain derived inputs, even when today's acquisition is archived.</p><div class="pw-controls"><label for="pw-entity">Entity</label><select id="pw-entity"></select><button id="pw-prev" type="button" disabled>Previous 200</button><button id="pw-next" type="button" disabled>Next 200</button></div><p id="pw-page"></p><div id="pw-observations" class="pw-scroll" tabindex="0" aria-label="Complete stored observation rows"></div><details><summary>Calendar windows, denominators and every missing date</summary><pre id="pw-window">Unavailable</pre></details></section>
+<section class="pw-panel"><h2>Preservation and interpretation limits</h2><p id="pw-preservation">Reading preservation declarations…</p><p class="pw-muted">The original daily producer runs at 11:20 UTC. Query completeness, the selected port universe, AIS estimation/revisions, vintage availability and predictive performance require separate validation. Legacy stress/exporter labels remain in the complete packet for inspection and are not promoted here.</p></section>
+<details class="pw-panel"><summary>Inspect every field in the complete public packet</summary><pre id="pw-raw">Unavailable</pre></details>
+<p class="pw-muted">Sources: <a href="https://portwatch.imf.org/">IMF PortWatch</a>, UN Global Platform AIS. <a href="https://www.elibrary.imf.org/view/journals/001/2025/093/article-A001-en.xml">IMF measurement methodology</a>. These are maritime activity estimates, not customs trade or verified economic forecasts.</p>
+</main><script src="/jh-nav-drawer.js" defer></script><script src="/jh-portwatch-review.js" defer></script><script src="/sidebar.js" defer></script></body></html>

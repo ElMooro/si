@@ -1,0 +1,90 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "6evPQptZLBpvxQfbE5F5zdJBPj5NNIDugnPOGIK4WMk=",
+    "source_files_checked": 2,
+    "handler_bytes": 33616,
+    "timeout": 600,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "matched",
+      "commit": "129513268fc5ef6f0c56f3fbb6f03f447f8e3a0c"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-portwatch-daily",
+        "state": "ENABLED",
+        "expression": "cron(20 11 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-portwatch",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "baseline_sha256": "0c0642b96f7981e80e2199ccc85e18c18e2e012308ff5fa2bf24937c676c5167",
+  "expected_commit": "129513268fc5ef6f0c56f3fbb6f03f447f8e3a0c",
+  "fixture_scope": "Whole original compiler, five provider-query families and 4,800 synthetic retained history rows across eight entities; synthetic bodies do not substitute for complete native publication proof.",
+  "history_writes": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "pending_original_daily_1120_publication",
+    "generated_at": "2026-09-26T11:20:50.738439+00:00",
+    "version": "1.6.5"
+  },
+  "notifications_sent": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedules_changed": 0,
+  "scope": "Whole native ArcGIS HTTP responses and original deterministic calculations/history replay. Query population completeness, economic definitions, day windows, source revisions, historical vintages and portfolio consequences remain unqualified.",
+  "commit": "129513268fc5ef6f0c56f3fbb6f03f447f8e3a0c",
+  "lambda_run": 36293876070,
+  "pages_run": 36293876213,
+  "acceptance_run": 36294024161,
+  "report_commit": "64a649b59fcdd4dc54ba836b075f46793faa9286",
+  "live_assets": {
+    "commit": "129513268fc5ef6f0c56f3fbb6f03f447f8e3a0c",
+    "served_descendant": "64a649b59fcdd4dc54ba836b075f46793faa9286",
+    "checked_at": "2026-09-27T04:35:02.266609+00:00",
+    "registry_hash": "ab135811875e849a0b6dc56d6defc20ed9e5d43fd70fdedc045bac8e2295144c",
+    "assets": {
+      "portwatch.html": {
+        "bytes": 10903,
+        "sha256": "e27585a8906fa1757539e588fd0e148a30ffebc31ac443ef52ced64855be524d",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1336684,
+        "sha256": "5acb7ab10763f7574abf637408a5b03cdd9a5a80513f2cea4db9a40aa79e60e3",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2337886,
+        "sha256": "ab135811875e849a0b6dc56d6defc20ed9e5d43fd70fdedc045bac8e2295144c",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "tests": {
+    "native_groups": 9,
+    "inspector_cases": 24,
+    "peer_inventory_cases": 4,
+    "deployment_static": 458,
+    "candidate_shell": 12
+  },
+  "native_output_accepted": false,
+  "first_native_schedule": "2026-09-27T11:20:00Z"
+}

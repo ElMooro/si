@@ -126,15 +126,34 @@ class Tests(unittest.TestCase):
         rows={'p|2020-01-01':{'portid':'p','date':'2020-01-01','n_total':0}}
         native._merge_rows(rows,[{'portid':'p','date':'2026-09-26','n_total':7}])
         self.assertEqual(len(rows),2);self.assertEqual(rows['p|2020-01-01']['n_total'],0)
-    def test_all_original_calculations_preserved(self):
+    def test_original_source_and_unchanged_helpers_preserved(self):
         original=ast.parse((ROOT/'tests/fixtures/pre-research-portwatch.py.txt').read_text(encoding='utf-8'))
         current=ast.parse((SOURCE/'lambda_function.py').read_text(encoding='utf-8'))
         before={n.name:n for n in original.body if isinstance(n,ast.FunctionDef)}
         after={n.name:n for n in current.body if isinstance(n,ast.FunctionDef)}
         for name,node in before.items():
-            if name=='_merge_rows':continue
+            if name in ('_merge_rows','lambda_handler'):continue
             candidate=deepcopy(after['_native_calculation' if name=='lambda_handler' else name]);candidate.name=name
             self.assertEqual(ast.dump(node,include_attributes=False),ast.dump(candidate,include_attributes=False),name)
+    def test_zero_and_constant_activity_survive_the_complete_native_handler(self):
+        m,old,calls,opener=fixture()
+        for family,field in (('choke','n_total'),('ports','portcalls')):
+            for row in old[family].values():row[field]=0
+        m.data[store.HISTORY]=compress(old)
+        self.assertTrue(self.execute(m,opener)['published'])
+        packet=store.strict(m.data[store.HEAD]);self.assertTrue(all(r['z'] is None and r['vs_baseline_pct'] is None for r in packet['chokepoints']+packet['ports']))
+        self.assertTrue(all(r['current_7d']['mean']==0 and r['year_over_year']['percent'] is None for r in packet['measurement_review']['entities']))
+        with contextlib.redirect_stdout(BytesIOText()):store.replay(native,m,native.BUCKET,packet)
+
+    def test_replay_accepts_different_gzip_header_but_checks_whole_plaintext(self):
+        m,old,calls,opener=fixture();self.execute(m,opener);packet=store.strict(m.data[store.HEAD])
+        original=gzip.compress
+        def other_platform(raw,**kw):
+            result=bytearray(original(raw,**kw));result[9]=0 if result[9]!=0 else 3;return bytes(result)
+        with patch.object(store.gzip,'compress',other_platform),contextlib.redirect_stdout(BytesIOText()):
+            result=store.replay(native,m,native.BUCKET,packet)
+        self.assertTrue(result['complete_decompressed_history_replayed']);self.assertFalse(result['compressed_encoding_reproduced'])
+
     def test_public_provider_identity_rejects_credentials_and_unreviewed_hosts(self):
         for url in ('https://example.test/query?f=json','https://services9.arcgis.com/x?token=secret',native.CHOKE_REF+'?f=json&api_key=secret'):
             with self.assertRaises(store.CaptureError):store.identity(urllib.request.Request(url),30)
@@ -147,6 +166,11 @@ class Tests(unittest.TestCase):
 class BytesIOText:
     def write(self,text):return len(text)
     def flush(self):pass
+
+
+def load_tests(loader,suite,pattern):
+    import calendar_tests
+    suite.addTests(loader.loadTestsFromModule(calendar_tests));return suite
 
 
 if __name__=='__main__':unittest.main()
