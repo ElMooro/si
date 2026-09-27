@@ -15,157 +15,35 @@ a{color:var(--cyan);text-decoration:none}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 .table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px}
 .chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
-</style></head>
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}label{display:block;margin-bottom:6px}input{width:100%;max-width:360px}.table-region{max-width:100%}details{margin:14px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto}#kpis{overflow-wrap:anywhere;color:var(--fg2);font-size:12px;margin-bottom:16px}</style></head>
 <body>
 <div class="wrap">
 <h1>Materials orders and consumption</h1>
-<p class="sub">Sector inventories-to-sales from the live FRED tape already on inventory-drawdown, mapped to XLI / XLB / XRT / Autos when the producer tagged an ETF. Firm rows join DIO + RPO + capex. Census M3 new orders other than NEWORDER, unfilled orders, inventories, the ISM new-orders minus inventories spread, and 10-K purchase-obligation dollars stay blank — those packets are not published. Click headers to sort.</p>
+<p class="sub">Inspect inventory ratios, official order observations and separate company statement records. Each source keeps its own dates and units. Missing values stay unavailable; repeated tickers are not automatically merged across issuers or accounting periods.</p>
 <div id="kpis"></div>
 <h2>Sector I/S tape</h2>
 <p class="sub" id="secStatus">Loading inventory-drawdown.json</p>
-<div id="secBoard" class="table-region">Loading sector tape.</div>
+<div id="secBoard" class="table-region" role="region" aria-label="Sector source observations, scroll horizontally" tabindex="0">Loading sector tape.</div>
 <h2>Official order series</h2>
 <p class="sub" id="m3Status">NEWORDER fills only from canary-macro.json. Other M3 / ISM identities stay blank.</p>
-<div id="m3Board" class="table-region"></div>
-<h2>Firm DIO + RPO + capex</h2>
-<input id="q" placeholder="filter ticker or sector" autocomplete="off">
+<div id="m3Board" class="table-region" role="region" aria-label="Official series observations, scroll horizontally" tabindex="0"></div>
+<h2>Company statement source records</h2>
+<label for="q">Filter ticker, sector or source record</label>
+<input id="q" placeholder="filter ticker, sector or source" autocomplete="off">
 <p class="sub" id="firmStatus">Loading firm feeds.</p>
-<div id="firmBoard" class="table-region">Loading firm rows.</div>
-<div class="foot"><b>Built for:</b> watching materials ordering vs consumption at the sector ETF and the firm, without inventing Census/ISM prints or purchase-commitment dollars.<br>
-<b>Data:</b> /data/inventory-drawdown.json sector_drawdown[] and stock_drawdown_board[]; /data/backlog.json by_ticker object (RPO when tagged); /data/capex-pulse.json rows[]; /data/canary-macro.json NEWORDER (value + prev only).<br>
-<b>Map:</b> Manufacturing MNFCTRIRSA to XLI; building materials theme_etf XLB when tagged; Retail/general merchandise to XRT; Autos AISRSA shown as Autos when theme_etf is null — no ETF invented.<br>
-<b>Blank on purpose:</b> AMTMNO / AMTMUO / UMTMTI / DGORDER and ISM new-orders/inventories are not published as /data JSON. 10-K purchase-obligation tags were not found on any live firm row.<br>
-<b>Not:</b> an 8-K body parser, a per-ETF materials PO book, or a replacement of the inventory boom board. Research only.</div>
+<div id="firmBoard" class="table-region" role="region" aria-label="Company statement source records, scroll horizontally" tabindex="0">Loading firm rows.</div>
+<div class="foot"><b>Definitions:</b> <a href="https://fred.stlouisfed.org/series/NEWORDER">NEWORDER</a> measures seasonally adjusted monthly orders for nondefense capital goods excluding aircraft, in millions of dollars. <a href="https://fred.stlouisfed.org/series/MNFCTRIRSA">Manufacturing I/S</a> is end-of-month inventories relative to monthly sales; a declining ratio alone does not establish declining inventories.<br>
+<b>Company records:</b> DIO, RPO and capex retain separate source occurrences. Periods, issuer identities, currencies and revisions require reconciliation before comparison. Labels beginning “Source” report the packet's field without certifying its definition. Explicit zero differs from unavailable.<br>
+<b>Research limits:</b> ETF theme tags do not establish holdings or portfolio exposure. Purchase-obligation amounts and unprovided order series stay unavailable. Source interpretations, scores and growth tags do not grant forecast, Calls or sizing authority. Packet generation time is distinct from observation time.</div>
+<h2>Complete original publications</h2>
+<details><summary>Inventory and DIO source</summary><pre id="original-inventory" tabindex="0">Loading</pre></details>
+<details><summary>Backlog source</summary><pre id="original-backlog" tabindex="0">Loading</pre></details>
+<details><summary>Capex source</summary><pre id="original-capex" tabindex="0">Loading</pre></details>
+<details><summary>Canary macro source</summary><pre id="original-macro" tabindex="0">Loading</pre></details>
 </div>
-<script>
-function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;").replace(/'/g,"&#39;");}
-function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
-function pct(v){var n=num(v);return n==null?"":n.toFixed(1)+"%";}
-function cls(v){var n=num(v);return n==null?"":(n>0?"pos":(n<0?"neg":""));}
-function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d==null?2:d);}
-function bn(v){var n=num(v);if(n==null)return "";if(Math.abs(n)>=1e9)return (n/1e9).toFixed(2)+"B";if(Math.abs(n)>=1e6)return (n/1e6).toFixed(2)+"M";return String(n);}
-function cmp(a,b,k,dir){
-  var av=a[k],bv=b[k];
-  if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker||a.sector||a.id||"").localeCompare(String(b.ticker||b.sector||b.id||""));return 1;}
-  if(bv==null||bv==="")return -1;
-  if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;
-  return String(av).localeCompare(String(bv))*dir;
-}
-function table(id,cols,rows,sort,dir,onSort){
-  var h="<table><thead><tr>";
-  cols.forEach(function(c){h+="<th class='"+(c.r?"r ":"")+(sort===c.k?"on":"")+"' data-k='"+c.k+"'>"+c.l+(sort===c.k?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
-  h+="</tr></thead><tbody>";
-  rows.forEach(function(r){
-    h+="<tr>";
-    cols.forEach(function(c){
-      var raw=c.cell?c.cell(r):esc(r[c.k]==null?"":r[c.k]);
-      h+="<td class='"+(c.r?"r ":"")+(c.cls?c.cls(r):"")+"'>"+raw+"</td>";
-    });
-    h+="</tr>";
-  });
-  document.getElementById(id).innerHTML=h+"</tbody></table>";
-  document.querySelectorAll("#"+id+" th[data-k]").forEach(function(th){
-    th.onclick=function(){onSort(th.getAttribute("data-k"));};
-  });
-}
-async function load(path){
-  try{var r=await fetch(path+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}
-}
-function bookList(book){
-  var bt=book&&book.by_ticker;
-  if(!bt)return [];
-  if(Array.isArray(bt))return bt;
-  return Object.keys(bt).map(function(k){return bt[k];});
-}
-(async function(){
-  var inv=await load("/data/inventory-drawdown.json");
-  var book=await load("/data/backlog.json");
-  var cap=await load("/data/capex-pulse.json");
-  var macro=await load("/data/canary-macro.json");
-  var sectors=(inv&&Array.isArray(inv.sector_drawdown))?inv.sector_drawdown:[];
-  var focus=sectors.filter(function(s){
-    var etf=String(s.theme_etf||"").toUpperCase();
-    var name=String(s.sector||"");
-    return etf==="XLI"||etf==="XLB"||etf==="XRT"||/^auto/i.test(name)||s.series==="AISRSA"||s.series==="MNFCTRIRSA"||s.series==="RETAILIRSA"||s.series==="MRTSIR444USS"||s.series==="MRTSIR452USS"||s.series==="MRTSIR441USS";
-  });
-  var secSort="drawdown_score",secDir=-1;
-  function paintSec(){
-    var rows=focus.slice().sort(function(a,b){return cmp(a,b,secSort,secDir);});
-    table("secBoard",[
-      {k:"theme_etf",l:"Map"},
-      {k:"sector",l:"Sector"},
-      {k:"series",l:"FRED series"},
-      {k:"latest_ratio",l:"I/S",r:1,cell:function(r){return esc(fmt(r.latest_ratio,3));}},
-      {k:"chg_3m",l:"3m",r:1,cls:function(r){return cls(r.chg_3m);},cell:function(r){return esc(pct(r.chg_3m));}},
-      {k:"chg_6m",l:"6m",r:1,cls:function(r){return cls(r.chg_6m);},cell:function(r){return esc(pct(r.chg_6m));}},
-      {k:"chg_12m",l:"12m",r:1,cls:function(r){return cls(r.chg_12m);},cell:function(r){return esc(pct(r.chg_12m));}},
-      {k:"flag",l:"Flag"}
-    ],rows,secSort,secDir,function(k){if(secSort===k)secDir=-secDir;else{secSort=k;secDir=k==="sector"||k==="theme_etf"||k==="series"||k==="flag"?1:-1;}paintSec();});
-    document.getElementById("secStatus").textContent=rows.length+" mapped sector rows from inventory-drawdown.json. Generated "+((inv&&inv.generated_at)||"")+". Negative I/S change = drawing down.";
-  }
-  if(!sectors.length)document.getElementById("secBoard").textContent="inventory-drawdown.json missing or sector_drawdown[] empty.";
-  else paintSec();
-
-  var nObj=macro&&macro.NEWORDER;
-  var nVal=nObj?num(nObj.value):null;
-  var nPrev=nObj?num(nObj.prev):null;
-  var nMom=(nVal!=null&&nPrev!=null&&nPrev!==0)?((nVal-nPrev)/Math.abs(nPrev))*100:null;
-  var reserved=[
-    {id:"AMTMNO",label:"Census M3 new orders — total manufacturing",map:"XLI",level:null,mom:null,asof:""},
-    {id:"AMTMUO",label:"Census M3 unfilled orders — total manufacturing",map:"XLI",level:null,mom:null,asof:""},
-    {id:"UMTMTI",label:"Census M3 total inventories — manufacturing",map:"XLI",level:null,mom:null,asof:""},
-    {id:"DGORDER",label:"Census M3 new orders — durable goods",map:"XLI",level:null,mom:null,asof:""},
-    {id:"NEWORDER",label:"Census M3 new orders — core capital goods ex-aircraft",map:"XLI",level:nVal,mom:nMom,asof:nObj?(nObj.as_of||""):""},
-    {id:"ISM_NO_INV",label:"ISM new orders minus inventories spread",map:"XLI / XLB",level:null,mom:null,asof:""}
-  ];
-  var m3Sort="id",m3Dir=1;
-  function paintM3(){
-    var rows=reserved.slice().sort(function(a,b){return cmp(a,b,m3Sort,m3Dir);});
-    table("m3Board",[
-      {k:"id",l:"Identity"},
-      {k:"label",l:"What it measures"},
-      {k:"map",l:"ETF map"},
-      {k:"level",l:"Level $M",r:1,cell:function(r){return esc(fmt(r.level,0));}},
-      {k:"mom",l:"MoM",r:1,cls:function(r){return cls(r.mom);},cell:function(r){return esc(pct(r.mom));}},
-      {k:"asof",l:"As of"}
-    ],rows,m3Sort,m3Dir,function(k){if(m3Sort===k)m3Dir=-m3Dir;else{m3Sort=k;m3Dir=k==="id"||k==="label"||k==="map"||k==="asof"?1:-1;}paintM3();});
-    document.getElementById("m3Status").textContent=nVal==null?"NEWORDER missing from canary-macro.json. Other M3/ISM identities stay blank.":"NEWORDER "+nVal.toFixed(0)+" million as of "+(nObj.as_of||"")+". MoM uses prev only. Other M3/ISM identities stay blank.";
-  }
-  paintM3();
-
-  var dioRows=(inv&&Array.isArray(inv.stock_drawdown_board))?inv.stock_drawdown_board:[];
-  var bookRows=bookList(book);
-  var capRows=(cap&&Array.isArray(cap.rows))?cap.rows:[];
-  var by={};
-  function row(t){t=String(t||"").toUpperCase();if(!t)return null;if(!by[t])by[t]={ticker:t,sector:"",dio:null,dio_chg:null,rev_yoy:null,rpo:null,rpo_yoy:null,capex:null,capex_yoy:null,po:null};return by[t];}
-  dioRows.forEach(function(r){var x=row(r.ticker);if(!x)return;x.sector=r.sector||x.sector;x.dio=num(r.dio_latest);x.dio_chg=num(r.dio_chg_pct);x.rev_yoy=num(r.rev_growth_yoy);});
-  bookRows.forEach(function(r){var x=row(r.ticker);if(!x)return;if(r.sector)x.sector=x.sector||r.sector;x.rpo=num(r.rpo);x.rpo_yoy=num(r.rpo_yoy);});
-  capRows.forEach(function(r){var x=row(r.ticker);if(!x)return;if(r.sector)x.sector=x.sector||r.sector;x.capex=num(r.capex_ttm_b);x.capex_yoy=num(r.yoy_pct);});
-  var firms=Object.keys(by).map(function(k){return by[k];}).filter(function(r){return r.dio!=null||r.rpo!=null||r.capex!=null;});
-  var firmSort="dio_chg",firmDir=1,qEl=document.getElementById("q");
-  function paintFirm(){
-    var q=(qEl.value||"").toUpperCase();
-    var list=firms.filter(function(r){return !q||(r.ticker+" "+(r.sector||"")).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,firmSort,firmDir);});
-    table("firmBoard",[
-      {k:"ticker",l:"Ticker",cell:function(r){return "<a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker)+"\">"+esc(r.ticker)+"</a>";}},
-      {k:"sector",l:"Sector"},
-      {k:"dio",l:"DIO",r:1,cell:function(r){return esc(fmt(r.dio,1));}},
-      {k:"dio_chg",l:"DIO YoY",r:1,cls:function(r){return cls(r.dio_chg);},cell:function(r){return esc(pct(r.dio_chg));}},
-      {k:"rev_yoy",l:"Rev YoY",r:1,cls:function(r){return cls(r.rev_yoy);},cell:function(r){return esc(pct(r.rev_yoy));}},
-      {k:"rpo",l:"RPO",r:1,cell:function(r){return esc(bn(r.rpo));}},
-      {k:"rpo_yoy",l:"RPO YoY",r:1,cls:function(r){return cls(r.rpo_yoy);},cell:function(r){return esc(pct(r.rpo_yoy));}},
-      {k:"capex",l:"Capex TTM $B",r:1,cell:function(r){return esc(fmt(r.capex,2));}},
-      {k:"capex_yoy",l:"Capex YoY",r:1,cls:function(r){return cls(r.capex_yoy);},cell:function(r){return esc(pct(r.capex_yoy));}},
-      {k:"po",l:"Purchase obligation $",r:1,cell:function(){return "";}}
-    ],list,firmSort,firmDir,function(k){if(firmSort===k)firmDir=-firmDir;else{firmSort=k;firmDir=(k==="ticker"||k==="sector")?1:-1;}paintFirm();});
-    document.getElementById("firmStatus").textContent=list.length+" firms with DIO, RPO or capex. Purchase-obligation $ blank — tag not on these rows. Click headers to sort.";
-  }
-  var nDio=dioRows.length,nBook=bookRows.filter(function(r){return num(r.rpo)!=null;}).length,nCap=capRows.length;
-  document.getElementById("kpis").innerHTML="<span class=\"chip\">"+nDio+" DIO names</span><span class=\"chip\">"+nBook+" tagged RPO</span><span class=\"chip\">"+nCap+" capex rows</span><span class=\"chip\">NEWORDER "+(nVal==null?"blank":nVal.toFixed(0)+"M")+"</span><span class=\"chip\">PO tag absent</span>";
-  if(!firms.length)document.getElementById("firmBoard").textContent="No firm DIO/RPO/capex rows received.";
-  else {qEl.oninput=paintFirm;paintFirm();}
-})();
-</script>
+<script src="/jh-table-values.js?v=materials-20260927"></script>
+<script src="/jh-materials-orders.js"></script>
+<script>JHMaterialsOrders.start();</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/sidebar.js" defer></script>

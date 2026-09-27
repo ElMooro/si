@@ -125,8 +125,8 @@ test('materials orders preserves its failed original and escapes provider markup
  assert.equal(raw.length,11408);assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'1b8ecb453e086f9e80a7dba57bbf46240013707b1f869e8c042f847a2bffaba0');
  const inline=source=>[...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('function esc'));
  assert.throws(()=>new vm.Script(inline(raw.toString('utf8'))),SyntaxError);
- const fixed=fs.readFileSync(path.join(root,'materials-orders.html'),'utf8');new vm.Script(inline(fixed));
- const esc=vm.runInNewContext('('+fixed.split('\n').find(s=>s.startsWith('function esc(s)'))+')');
+ const fixed=fs.readFileSync(path.join(root,'materials-orders.html'),'utf8');assert.match(fixed,/jh-materials-orders.js/);
+ const esc=require('../jh-materials-orders.js').esc;
  assert.equal(esc('<img src="x" onerror=\'evil()\'>&'), '&lt;img src=&quot;x&quot; onerror=&#39;evil()&#39;&gt;&amp;');
  assert.equal(esc(null),'');assert.equal(esc(0),'0');
 });

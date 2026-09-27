@@ -1,0 +1,44 @@
+{
+  "scope": "Four exact non-generating public desk inputs; no provider or producer invocation.",
+  "sources": [
+    {
+      "source": "inventory-drawdown",
+      "bytes": 15541,
+      "sha256": "b4cb5016b18fa0cbaa2431985dca56f7139857e517d0148423ea2d2abb36fd62",
+      "generated_at": "2026-09-22T23:30:58.599641+00:00",
+      "firm_n": 40,
+      "sector_n": 9
+    },
+    {
+      "source": "backlog",
+      "bytes": 97678,
+      "sha256": "d6ec27c901a8caabb4476ae1eed66a85d6f13d6a706eeb7bf6e3ef85ed23c06c",
+      "generated_at": "2026-09-27T11:30:48.557427+00:00",
+      "firm_n": 122
+    },
+    {
+      "source": "capex-pulse",
+      "bytes": 29330,
+      "sha256": "f534cee4832e36950440750040b96dc27313c45c864063f19a352d866d87cfac",
+      "generated_at": "2026-09-25T20:41:03+00:00",
+      "firm_n": 150
+    },
+    {
+      "source": "canary-macro",
+      "bytes": 177825,
+      "sha256": "bb3a1d5d72123366c5ef3164ea9bafb58f82652bd96e4c16f676776fe973ac67"
+    }
+  ],
+  "issues": [
+    "The prior page used value/prev without checking adjacent monthly dates.",
+    "Ticker-only merges mixed different observation windows and silently overwrote duplicates.",
+    "Company rows with unavailable DIO/RPO/capex were removed.",
+    "Six of nine source sector records were displayed.",
+    "Boolean and whitespace values could become measured zero.",
+    "Falling inventories/sales does not identify which side of the ratio changed."
+  ],
+  "definition_sources": [
+    "https://fred.stlouisfed.org/series/NEWORDER",
+    "https://fred.stlouisfed.org/series/MNFCTRIRSA"
+  ]
+}
