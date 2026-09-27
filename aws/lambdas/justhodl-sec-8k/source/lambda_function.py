@@ -135,7 +135,7 @@ def fetch_recent_8k_filings(count: int = 100):
     return filings
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
 
@@ -226,3 +226,21 @@ def lambda_handler(event, context):
         "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps({"ok": True, "stats": output["stats"]}),
     }
+
+
+def lambda_handler(event, context):
+    """Publish complete, replayable Atom evidence on the original schedule."""
+    import sec_atom_store
+    if isinstance(event, dict) and ("httpMethod" in event or "requestContext" in event):
+        return {"statusCode": 409, "body": "Stored filing research; HTTP does not acquire SEC data."}
+    try:
+        if S3_KEY != "data/8k-filings.json":
+            raise ValueError("Unexpected filing publication key")
+        return sec_atom_store.run(
+            boto3.client("s3"), S3_BUCKET, __file__,
+            {"kind": "8k", "window_days": WINDOW_DAYS, "item_labels": ITEM_LABELS,
+             "red_flag_items": sorted(RED_FLAG_ITEMS), "high_impact_items": sorted(HIGH_IMPACT_ITEMS)},
+            USER_AGENT, event=event, runtime_context=context)
+    except Exception as error:
+        print("SEC Atom publication refused:", type(error).__name__)
+        return {"statusCode": 503, "body": json.dumps({"ok": False, "error": "Filing publication failed; retained evidence available for diagnosis."})}

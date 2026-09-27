@@ -113,7 +113,7 @@ def merge_window(prior: list, fresh: list) -> list:
     return out
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
 
@@ -169,3 +169,20 @@ def lambda_handler(event, context):
         "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps({"ok": True, "stats": output["stats"]}),
     }
+
+
+def lambda_handler(event, context):
+    """Preserve returned forms, complete originals and conditional publication."""
+    import sec_atom_store
+    if isinstance(event, dict) and ("httpMethod" in event or "requestContext" in event):
+        return {"statusCode": 409, "body": "Stored filing research; HTTP does not acquire SEC data."}
+    try:
+        if S3_KEY != "data/10kq-filings.json":
+            raise ValueError("Unexpected filing publication key")
+        return sec_atom_store.run(
+            boto3.client("s3"), S3_BUCKET, __file__,
+            {"kind": "10kq", "window_days": WINDOW_DAYS},
+            USER_AGENT, event=event, runtime_context=context)
+    except Exception as error:
+        print("SEC Atom publication refused:", type(error).__name__)
+        return {"statusCode": 503, "body": json.dumps({"ok": False, "error": "Filing publication failed; retained evidence available for diagnosis."})}
