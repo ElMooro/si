@@ -1,0 +1,33 @@
+{
+  "source_bytes": 14223,
+  "source_sha256": "195ce02fa7f7266d66630ed2aaa831496059eaef35b36a0f8fe9a60605137584",
+  "public_packet_bytes": 11832,
+  "public_packet_sha256": "0b65ee51d7279b8fe991701df78209275eae9119f22ae3ff0818840d4948020c",
+  "generated_at": "2026-09-25T22:45:45.327417+00:00",
+  "version": "1.1.0",
+  "counts": {
+    "names": 139,
+    "prime": 0,
+    "candidates": 4,
+    "verticals_tightening": 13
+  },
+  "population_lengths": {
+    "vertical_tightness": 18,
+    "stealth_shortage_board": 25,
+    "prime_setups": 0,
+    "counts": 4,
+    "legend": 3,
+    "sources": 7
+  },
+  "unresolved": [
+    "Missing vertical tightness defaults to 50; missing phase adds a 50-point phase input.",
+    "Donor scores/discounts have no required quality, observation date, independent-source or performance qualification.",
+    "The synthesis counts engine labels rather than independent original inputs.",
+    "Keyword-first category assignment can map Gold Mining to general mining instead of the specific gold category.",
+    "Full source occurrences are collapsed into one ticker and capped boards.",
+    "The original producer writes UP learning entries at fixed 0.55 confidence even for a ticker with no measured donor values."
+  ],
+  "native_invocations": 0,
+  "consumer_reads": 0,
+  "learning_reads": 0
+}
