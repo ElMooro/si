@@ -5,7 +5,7 @@ async function page(file,received){
  const nodes=new Map();let document;const calls=[];
  const get=id=>{
   if(!nodes.has(id)){
-   const n={value:'',headers:[],contains:()=>true};let html='',text='';
+   const n={value:'',headers:[],contains:()=>true,querySelectorAll(){return this.headers;}};let html='',text='';
    Object.defineProperty(n,'innerHTML',{get:()=>html,set:v=>{html=v;text='';n.headers=[...v.matchAll(/<th data-k="([^"]+)"/g)].map(m=>({dataset:{k:m[1]},ownerDocument:document,setAttribute(k,v){this[k]=v;},focus(){document.activeElement=this;}}));}});
    Object.defineProperty(n,'textContent',{get:()=>text,set:v=>{text=String(v);html='';}});nodes.set(id,n);
   }return nodes.get(id);
@@ -14,6 +14,7 @@ async function page(file,received){
  const ctx=vm.createContext({document,URL,console,JHTableValues:{...values,load:async p=>{calls.push(p);if(received instanceof Error)throw received;return received;}}});
  vm.runInContext(fs.readFileSync(path.join(root,'jh-filing-desk.js'),'utf8'),ctx);
  const source=fs.readFileSync(path.join(root,file),'utf8');
+ if(source.includes('jh-sec-search-desk.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-sec-search-desk.js'),'utf8'),ctx);
  for(const m of source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))vm.runInContext(m[1],ctx);
  for(let i=0;i<3;i++)await new Promise(r=>setImmediate(r));
  return{get,document,calls,source};
@@ -56,7 +57,7 @@ test('10-K/Q counts cannot concatenate and keyboard sort retains focus and both 
 });
 test('red flags show modern highlights, weight missingness and lineage without invented bullish labels',async()=>{
  const p={n_tickers_with_signals:'<img src=x>',all_tickers:[],highlights:{critical:[{events:[{signal_id:'bankruptcy',weight:'<img src=x>',ticker:'X',accession:'<img src=x>',filed_at:'2026-09-26',filing_url:'javascript:1',polarity:'unknown'},{signal_id:'bankruptcy',weight:0,ticker:'X',filed_at:'2026-09-27'}]}]}};
- const s=await page('filing-redflags.html',fixture(p)),h=s.get('board').innerHTML;assert.match(s.get('status').textContent,/2 of 2/);assert.match(h,/highlights.critical\[0\].events\[1\]/);assert.match(h,/<td>0.00<\/td>/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('class="bull"'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ const s=await page('filing-redflags.html',fixture(p)),h=s.get('board').innerHTML;assert.match(s.get('status').textContent,/2 shown \/ 2/);assert.match(h,/highlights.critical\[0\].events\[1\]/);assert.match(h,/&quot;weight&quot;: 0/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('class="bull"'));assert.equal(s.get('original').textContent,JSON.stringify(p));
 });
 test('HTTP and rejected JSON failures are explicit and original rejected text stays inert',async()=>{
  for(const name of ['8k-items.html','10kq-filings.html','filing-redflags.html']){
@@ -72,7 +73,7 @@ test('three exact stored routes use a single non-generating read; unknown paths 
 });
 test('complete predecessors remain byte-identical and pages expose labelled scrollable evidence',()=>{
  const hashes={'8k-items.html':'b226dc0dfb1a38602d23b6329777aca8f8150f47bb0557e3ca19d9ab1e7baa4b','10kq-filings.html':'a41f4568de568bcde957d1e55ff1da0ad0f3688b3d0151e0377f97ab94c83d2b','filing-redflags.html':'fab848119542179c5ba91dd27d7a665dbcf74c114c36372dcb26f958b5e2ae39'};
- for(const[name,hash]of Object.entries(hashes)){assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'fixtures','pre-filing-desk-'+name+'.txt'))).digest('hex'),hash);const html=fs.readFileSync(path.join(root,name),'utf8');assert.match(html,/<label for="q">/);assert.match(html,/role="region"[^>]*tabindex="0"/);assert.match(html,/id="original"/);assert.match(html,/source:"\/data\//);}
+ for(const[name,hash]of Object.entries(hashes)){assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'fixtures','pre-filing-desk-'+name+'.txt'))).digest('hex'),hash);const html=fs.readFileSync(path.join(root,name),'utf8');assert.match(html,/<label for="q">/);assert.match(html,/role="region"[^>]*tabindex="0"/);assert.match(html,/id="original"/);if(name==='filing-redflags.html')assert.match(html,/JHSecSearchDesk.start/);else assert.match(html,/source:"\/data\//);}
 });
 test('filing desk text remains UTF-8 through Windows editing and asset builds',()=>{
  for(const file of ['8k-items.html','10kq-filings.html','filing-redflags.html']){
@@ -129,4 +130,21 @@ test('materials orders preserves its failed original and escapes provider markup
  const esc=require('../jh-materials-orders.js').esc;
  assert.equal(esc('<img src="x" onerror=\'evil()\'>&'), '&lt;img src=&quot;x&quot; onerror=&#39;evil()&#39;&gt;&amp;');
  assert.equal(esc(null),'');assert.equal(esc(0),'0');
+});
+
+
+test('SEC native search keeps every hit including unresolved and excluded co-filers without inventing an issuer',async()=>{
+ const m=require('../jh-sec-search-desk.js');
+ const hit={source_evidence:{query_id:'material_weakness',received_at:'2026-09-27T21:07:00Z'},source_hit:{_source:{file_date:'2026-09-25',form:'10-Q/A',adsh:'0000000001-26-000001'}},entity_associations:[{ticker:'AAA',cik:'1',name:'First'},{ticker:null,cik:'2',name:'Second'}],issues:['returned_form_outside_query']};
+ const p={contract:m.CONTRACT,search_matches:[hit,{...hit,entity_associations:[],source_evidence:{query_id:'buyback'}}],source_responses:[{query_id:'going_concern',http_status:500},{query_id:'material_weakness',http_status:200,returned_hits:1,reported_total:1290,query_population_complete:false},{query_id:'buyback',http_status:200,returned_hits:0,reported_total:0,query_population_complete:true}],quality:{queries_requested:3,queries_parsed:2,returned_hit_occurrences:2,complete_query_populations:1},all_tickers:[]};
+ const all=m.model(p),risk=m.model(p,true);assert.equal(all.rows.length,2);assert.equal(risk.rows.length,1);assert.equal(risk.responses.length,2);assert.equal(all.rows[0].names,'First; Second');assert.equal(all.rows[0].ciks,'1; 2');assert.equal(all.rows[1].tickers,'');assert.equal(all.rows[0].raw,hit);
+ const s=await page('sec-filings.html',fixture(p));assert.equal(s.calls[0],'/data/sec-filings-intel.json');assert.equal(s.calls.length,1);assert.match(s.get('status').textContent,/2 shown \/ 2/);assert.match(s.get('queries').innerHTML,/500/);assert.match(s.get('queries').innerHTML,/>0<\/td>/);assert.match(s.get('queries').innerHTML,/Unavailable/);assert.match(s.get('board').innerHTML,/returned_form_outside_query/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+ const header=s.get('board').headers.find(x=>x.dataset.k==='query');header.focus();header.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'query');assert.equal(s.document.activeElement['aria-sort'],'ascending');
+ s.get('q').value='Second';s.get('q').oninput();assert.match(s.get('status').textContent,/1 shown \/ 2/);
+ assert.equal(m.model({...p,search_matches:Array.from({length:761},()=>hit)}).rows.length,761);assert.throws(()=>m.model({...p,search_matches:null}),/Complete/);
+});
+
+test('SEC source injection is inert and unmatched document URLs cannot become links',async()=>{
+ const p={contract:'sec-search-research.v1',source_responses:[{query_id:'<img src=x>',http_status:500}],search_matches:[{match_id:'fake',source_evidence:{query_id:'<img src=x>'},source_hit:{_source:{adsh:'<script>bad</script>'}},entity_associations:[{ticker:'<img src=x>',name:'A & B'}]}],all_tickers:[{events:[{match_id:'fake',filing_url:'javascript:1'}]}]};
+ const s=await page('sec-filings.html',fixture(p)),h=s.get('board').innerHTML+s.get('queries').innerHTML;assert.ok(!h.includes('<img'));assert.ok(!h.includes('<script>'));assert.ok(!h.includes('href="javascript:'));assert.match(h,/A &amp; B/);assert.equal(s.get('original').textContent,JSON.stringify(p));
 });

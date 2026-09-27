@@ -1,47 +1,36 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Filing red flags · JustHodl</title>
-<style>
-:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
-.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
-h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:860px;margin:0 0 14px}
-.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
-.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2);cursor:pointer}
-.chip.on{border-color:var(--cyan);color:var(--fg)}.chip b{color:var(--fg)}
-input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
-table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
-th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
-.bear{color:var(--red)}.bull{color:var(--grn)}a{color:var(--cyan);text-decoration:none}
-.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="jh-primary-engine" content="justhodl-sec-filings-intel">
+<title>Filing risk keyword review · JustHodl</title><style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--muted:#a5b0bd;--line:#283443;--card:#101720;--accent:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 system-ui,sans-serif}
+main{max-width:1320px;margin:auto;padding:24px 16px 90px}h1{font-size:24px;margin:0 0 8px}h2{font-size:17px;margin:24px 0 8px}
+p{max-width:960px;color:var(--muted)}a{color:var(--accent)}label{display:block;margin:12px 0 6px}
+input{width:100%;max-width:400px;border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--card);color:var(--fg)}
+.table-region{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:8px}table{width:100%;min-width:1100px;border-collapse:collapse}
+th,td{font-size:12px;text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted)}th[data-k]{cursor:pointer}th[aria-sort="ascending"],th[aria-sort="descending"]{color:var(--accent)}
+#board td:last-child{min-width:340px;max-width:540px}td p{margin:6px 0}details{margin:8px 0}summary{cursor:pointer;color:var(--accent)}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;font-size:12px}#original{max-width:100%}:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.notice{padding:12px 14px;border:1px solid var(--line);border-left:3px solid #d4a449;background:var(--card);border-radius:6px}footer{border-top:1px solid var(--line);margin-top:24px;padding-top:12px;color:var(--muted);font-size:12px}
 
-button,input{font:inherit}input{width:100%;max-width:360px}label{display:block;margin-bottom:5px;color:var(--fg2)}
-.table-region{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:8px}table{min-width:900px}caption{text-align:left;padding:10px;color:var(--fg2)}
-:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}th[aria-sort=ascending]::after{content:" ↑"}th[aria-sort=descending]::after{content:" ↓"}
-td:first-child{white-space:nowrap}.source-path{overflow-wrap:anywhere}.muted{color:var(--fg2)}.chip{overflow-wrap:anywhere;text-align:left;max-width:100%}#kpis,#publication,#status{overflow-wrap:anywhere}
-details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;color:var(--fg2);font-size:12px}
-</style></head>
-<body>
-<div class="wrap">
-<h1>Filing red flags</h1>
-<p class="sub">Going concern, restatement, material weakness, auditor change, investigation and bankruptcy keyword matches from EDGAR full text. A match does not confirm a control failure, current issuer distress or fraud. Read the original document in context. Source weights are not probabilities or expected returns.</p>
-<div class="kpis" id="kpis"></div>
-<label for="q">Filter ticker, company, signal or source path</label>
-<input id="q" placeholder="Filter ticker, company, signal or source path" autocomplete="off">
-<p id="publication" class="sub">Awaiting stored publication.</p>
-<p id="status" class="sub" role="status" aria-live="polite">Loading received records.</p>
-<div id="board" class="table-region" role="region" aria-label="Filing records, scroll horizontally for every column" tabindex="0">Loading stored publication.</div>
-<details><summary>Complete original publication</summary><p class="sub">The received JSON text is preserved here, including all source subsets, fields and duplicate occurrences. This page cannot recover observations omitted by the producer. Repeated occurrences across source subsets are not independent evidence.</p><pre id="original" tabindex="0">Unavailable</pre></details>
-<div class="foot"><b>Built for:</b> reviewing source keyword matches across all_tickers and every provided highlight population; identical or incomplete identifiers are retained, with their source paths.<br>
-<b>Data:</b> /data/sec-filings-intel.json (all_tickers[], highlights.critical[], highlights.risks[], highlights.opportunities[] and legacy top-level populations, with their event fields).<br>
-<b>Signals kept here:</b> going_concern, restatement, material_weakness, auditor_change, investigation, bankruptcy.<br>
-<b>Not:</b> a new 8-K guidance parser. <a href="/sec-filings.html">Open the broader 14-signal board</a> or <a href="/8k-items.html">8-K item tape</a>. Document links are enabled only for HTTPS SEC Archives URLs. Other received URLs remain in the original publication. Research only; source completeness and model qualification remain unverified.</div>
-</div>
-<script src="/jh-table-values.js"></script>
-<script src="/jh-filing-desk.js"></script>
-<script>JHFilingDesk.start({mode:"flags",source:"/data/sec-filings-intel.json"});</script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-page-ai.js" defer></script>
-<script src="/sidebar.js" defer></script>
+#board td:last-child{min-width:310px;max-width:450px}#board table{min-width:1600px}#coverage,#publication,#status{overflow-wrap:anywhere}th[aria-sort=ascending]::after{content:" ↑"}th[aria-sort=descending]::after{content:" ↓"}</style></head><body><main>
+<h1>Filing risk keyword review</h1>
+<p>The six declared risk-query families: going concern, restatement, material weakness, auditor change, investigation and bankruptcy. A keyword match is a research lead. It does not establish a current issuer event, control failure, distress, fraud, future return or institutional ownership change.</p>
+<p id="publication">Loading publication timing</p>
+<p id="coverage" class="notice" role="status">Loading query coverage</p>
+<h2>Query acquisition and coverage</h2>
+<p>An HTTP error is unavailable evidence, not zero matching filings. A response may contain only the first page of a larger result set. Complete response retention does not imply a complete SEC universe or verified investment signal.</p>
+<div id="queries" class="table-region" role="region" aria-label="Query responses, scroll horizontally" tabindex="0"></div>
+<h2>Every received search occurrence</h2>
+<p>All returned hits in this desk remain visible, including unresolved ticker associations and records excluded from derived ticker lists. Multiple reported entities are kept together under their source hit; none is selected as the primary issuer. Open the record to inspect all provider fields and acquisition references.</p>
+<label for="q">Filter ticker, entity, CIK, query, accession or source record</label><input id="q" autocomplete="off" placeholder="Ticker, query or accession">
+<p id="status" role="status">Loading source occurrences</p>
+<div id="board" class="table-region" role="region" aria-label="Filing source occurrences, scroll horizontally" tabindex="0"></div>
+<h2>Complete received publication</h2>
+<details><summary>Inspect all source records, acquisition metadata and qualifications</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<footer>Records are retained research observations. Query relevance weights and provider search scores are not probabilities, severity assessments or expected returns. Original first-release availability, event classification, complete source coverage and predictive qualification remain unverified. Document links are limited to existing HTTPS SEC Archives links.<br>
+<a href="/sec-filings.html">All search-query families</a> · <a href="/filing-redflags.html">Six risk-query families</a> · <a href="/8k-items.html">8-K item tape</a></footer>
+</main><script src="/jh-table-values.js"></script><script src="/jh-filing-desk.js"></script><script src="/jh-sec-search-desk.js?v=20260927-v1"></script>
+<script>JHSecSearchDesk.start({riskOnly:true});</script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/sidebar.js" defer></script>
 </body></html>

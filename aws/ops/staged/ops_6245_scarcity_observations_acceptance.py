@@ -69,7 +69,9 @@ def main():
         for fn,(file,count) in baselines.items():
             original=json.loads((ROOT/'docs/audit/2026-09-27'/file).read_bytes())['actual_producers'][fn]
             expected[fn]=subprocess.check_output(['git','log','-1','--format=%H','--','aws/lambdas/'+fn],cwd=ROOT,text=True).strip()
-            before[fn]=runtime(*args,fn);check_runtime(before[fn],original,expected[fn],count)
+            before[fn]=runtime(*args,fn)
+            r.kv(function=fn,runtime_before_check=before[fn],original_runtime=original['runtime'],original_schedules=original['schedules'])
+            check_runtime(before[fn],original,expected[fn],count)
         obj=clients['s3'].get_object(Bucket=BUCKET,Key=KEY);raw=bounded(obj['Body'])
         if obj.get('ContentLength')!=len(raw):raise ValueError('Whole current publication required')
         result,protected=publication(clients['s3'],raw)

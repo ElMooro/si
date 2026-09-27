@@ -8,8 +8,8 @@
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "env": {},
   "schedule": {
-    "scheduler_name": "scarcity-radar-sched",
+    "rule_name": "justhodl-scarcity-radar-daily",
     "cron": "cron(45 22 ? * MON-FRI *)",
-    "description": "Preserve the original existing Scheduler binding and payload."
+    "description": "Next-shortage radar: fuses 8 supply/scarcity engines into a scarcity x stealth board + per-vertical tightness"
   }
 }
