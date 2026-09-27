@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "ee24b39d1c72b51cc3f5ca1253fc16a877d81421",
-  "observed_at": "2026-09-27T17:45:13.205162+00:00",
-  "ok": false,
+  "observed_at": "2026-09-27T17:54:37.736384+00:00",
+  "ok": true,
   "routes_checked": 574,
-  "verified_routes": 573,
-  "failed_routes": [
-    "firm-risk-board.html"
-  ],
+  "verified_routes": 574,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "ee24b39d1c72b51cc3f5ca1253fc16a877d81421": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 572,
+  "embedded_inspection_routes": 573,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2300,12 +2298,13 @@
     },
     {
       "route": "firm-risk-board.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "ee24b39d1c72b51cc3f5ca1253fc16a877d81421",
+      "inspector_present": true,
+      "bytes_read": 20547,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "firm-stress.html",
@@ -5759,7 +5758,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36337777948,
+  "deployment_run_id": 36338388120,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-27T17:45:13.207772+00:00"
+  "check_finished_at": "2026-09-27T17:54:37.738529+00:00"
 }
