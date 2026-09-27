@@ -10,9 +10,9 @@
     "S3_BUCKET": "justhodl-dashboard-live"
   },
   "schedule": {
+    "name": "justhodl-port-cargo-daily",
     "expression": "cron(40 12 * * ? *)",
-    "description": "12:40 UTC daily \u2014 after PortWatch upstream refresh",
-    "scheduler_name": "justhodl-port-cargo-daily"
+    "description": "12:40 UTC daily \u2014 after PortWatch upstream refresh"
   },
   "tags": {
     "Project": "JustHodl",
