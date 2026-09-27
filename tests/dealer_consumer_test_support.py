@@ -2,12 +2,18 @@
 import ast,copy,importlib.util,json,sys,unittest
 from datetime import datetime,timezone
 from pathlib import Path
+from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/lambdas/justhodl-nyfed-pd/source')]
 from dealer_research_context import project
 spec=importlib.util.spec_from_file_location('dealer_fixtures',ROOT/'aws/lambdas/justhodl-nyfed-pd/tests/test_research.py')
 fixture=importlib.util.module_from_spec(spec);spec.loader.exec_module(fixture)
 AT=datetime.fromisoformat(fixture.AT)
+
+
+class FixtureClock(datetime):
+    @classmethod
+    def now(cls,tz=None):return AT.astimezone(tz) if tz else AT.replace(tzinfo=None)
 
 
 def packet():
@@ -23,6 +29,12 @@ def functions(name,wanted,scope):
 
 
 class DealerConsumers(unittest.TestCase):
+    def setUp(self):
+        # Actual consumer blocks use the default clock. Their retained fixture
+        # belongs to AT; wall-clock ageing must not invalidate a fixed test.
+        clock=patch('dealer_research_context.datetime',FixtureClock)
+        clock.start();self.addCleanup(clock.stop)
+
     def test_typed_projection_preserves_units_dated_sums_and_no_authority(self):
         p=packet();result=project(p,AT)
         self.assertEqual(result['corporate']['net_bonds_b'],p['corporate']['net_bonds_b'])

@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-allocator",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 60,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Existing Allocator: synthetic cycle research abstains from allocation tilts; other legacy rules remain under review."
+}

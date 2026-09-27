@@ -30,3 +30,9 @@ if __name__ == '__main__':
     from sector_consumer_test_support import SectorBoundaries
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SectorBoundaries))
     if not result.wasSuccessful():raise SystemExit(1)
+
+
+if __name__=='__main__':
+    import subprocess,sys
+    from pathlib import Path
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/synthetic_cycle_consumer_tests.py')],check=True)

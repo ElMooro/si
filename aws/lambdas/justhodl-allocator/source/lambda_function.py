@@ -466,6 +466,12 @@ def rule_tenor_signals(scores, evidence):
 
 
 def rule_global_business_cycle(scores, evidence):
+    """Keep the complete input identity; synthetic phases cannot tilt assets."""
+    from cycle_model_context import BUSINESS, context
+    return context(BUSINESS, fs3(BUSINESS))
+
+
+def _legacy_rule_global_business_cycle(scores, evidence):
     """Position sizing based on OECD Composite Leading Indicator phase mix.
 
     Reads data/global-business-cycle.json. Translates global phase + key-country
@@ -726,9 +732,12 @@ def lambda_handler(event=None, context=None):
     for name, fn in RULES:
         try:
             before = sum(abs(v) for v in scores.values())
-            fn(scores, evidence)
+            result = fn(scores, evidence)
             after = sum(abs(v) for v in scores.values())
             rule_results[name] = {"applied": True, "tilt_added": round(after - before, 2)}
+            if isinstance(result, dict) and result.get("contract") == "synthetic-cycle-consumer-context.v1":
+                rule_results[name].update(applied=False, abstained=True, research_context=result,
+                                          reason=result["note"], qualified_investment_votes=0)
         except Exception as e:
             rule_results[name] = {"applied": False, "error": str(e)}
             print(f"[allocator] {name} ERROR: {e}")

@@ -31,7 +31,7 @@ if __name__ == "__main__":
     suite=unittest.defaultTestLoader.discover(str(ROOT/'aws/shared/tests'),pattern='test_hot_money_authority.py')
     if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():sys.exit(1)
     from dealer_consumer_test_support import run as run_dealer
-    sys.exit(0 if run_dealer('morning-intelligence') else 1)
+    if not run_dealer('morning-intelligence'):sys.exit(1)
 
 if __name__ == '__main__':
     from pathlib import Path
@@ -54,3 +54,9 @@ if __name__ == '__main__':
     from sector_consumer_test_support import SectorBoundaries
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SectorBoundaries))
     if not result.wasSuccessful():raise SystemExit(1)
+
+
+if __name__=='__main__':
+    import subprocess,sys
+    from pathlib import Path
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/synthetic_cycle_consumer_tests.py')],check=True)

@@ -1752,6 +1752,13 @@ def war_room(F):
     gp = ph = dp6 = cli = crypto_risk = y10 = None
     now = datetime.now(timezone.utc)
     F = dict(F)
+    from cycle_model_context import BUSINESS, RECESSION, decision_view
+    cycle_context = {}
+    for feed, key in (("gbc", BUSINESS), ("recession", RECESSION)):
+        guarded = decision_view(key, F.get(feed))
+        cycle_context[feed] = guarded["research_context"]
+        F[feed] = guarded
+        missing.append(feed + " synthetic model unqualified; abstains from risk votes")
     leg_health = []
     for key, payload in list(F.items()):
         if key == "khalid_risk" or not isinstance(payload, dict):
@@ -1759,6 +1766,9 @@ def war_room(F):
         ts = payload.get("generated_at") or payload.get("as_of") or payload.get("asof")
         is_fresh = fresh_timestamp(ts, now, 36.0)
         leg_health.append({"source": key, "generated_at": ts, "age_h": contract_age_hours(ts, now), "max_age_h": 36.0, "status": "FRESH" if is_fresh else "UNUSABLE"})
+        if key in cycle_context:
+            leg_health[-1].update(decision_eligible=False, qualified_investment_votes=0,
+                                  qualification_status="UNQUALIFIED_RESEARCH")
         if not is_fresh:
             if payload:
                 missing.append(key + " timestamp missing, stale or future; excluded from local risk")
@@ -2083,7 +2093,7 @@ def war_room(F):
             "hold_reasons": hold_reasons, "source_health": leg_health,
             "expires_at": min(now + timedelta(hours=24), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now, datetime.fromisoformat(rg["generated_at"].replace("Z", "+00:00")) + timedelta(hours=GATE_SLA_H) if gate_fresh else now).isoformat(),
             "legs": legs, "missing": missing, "brief": " ".join(brief), "crypto_dump_risk": crypto_risk, "y10": y10,
-            "cycle": {"phase": ph or None, "cli": cli, "downturn_prob_6m": dp6, "recession_prob_pct": gp},
+            "cycle": {"phase": ph or None, "cli": cli, "downturn_prob_6m": dp6, "recession_prob_pct": gp, "research_context": cycle_context},
             "words": words[posture]}
 
 

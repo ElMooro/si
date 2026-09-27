@@ -85,22 +85,8 @@ def stg(chat_id,text):
         except Exception as e: print("[TG] "+str(e))
 
 def ai(prompt,max_tokens=800):
-    # Resilient: GLM-5.1/Z.ai primary with Claude fallback via the shared
-    # llm_router, so the daily brief survives an Anthropic credit-exhaustion /
-    # outage (previously this was hard-wired to Anthropic-only and went silent
-    # whenever credits ran out). Direct Anthropic is kept as the last resort.
-    try:
-        from llm_router import complete
-        txt=complete(prompt,tier="reason",max_tokens=max_tokens)
-        if txt and txt.strip(): return txt.strip()
-    except Exception as e: print("[AI router] "+str(e))
-    try:
-        body=json.dumps({"model":"claude-haiku-4-5-20251001","max_tokens":max_tokens,"messages":[{"role":"user","content":prompt}]}).encode()
-        req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=body,
-            headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_KEY,"anthropic-version":"2023-06-01"})
-        with urllib.request.urlopen(req,timeout=30) as r:
-            return json.loads(r.read().decode())["content"][0]["text"].strip()
-    except Exception as e: print("[AI] "+str(e)); return None
+    """Paid/model routes disabled; the complete predecessor is retained in fixtures."""
+    return None
 
 def load_weights():
     raw=gp(WEIGHTS_PARAM)
@@ -268,7 +254,7 @@ def load_all():
         "gold_equity_rotation":"data/gold-equity-rotation.json",
         "sector_flow_state":"data/sector-flow-state.json",
     }
-    return {k:__import__("sector_research").guard(v,__import__("nowcast_research").guard(v,__import__("valuation_research").guard(v,__import__("retail_research").guard(v,__import__("extremes_research").guard(v,__import__("crisis_authority").guard(v,fs3(v))))))) for k,v in keys.items()}
+    return {k:__import__("cycle_model_context").guard(v,__import__("sector_research").guard(v,__import__("nowcast_research").guard(v,__import__("valuation_research").guard(v,__import__("retail_research").guard(v,__import__("extremes_research").guard(v,__import__("crisis_authority").guard(v,fs3(v)))))))) for k,v in keys.items()}
 
 def extract_metrics(data,weights):
     from credit_research import morning_fields as credit_morning_fields
@@ -659,7 +645,8 @@ def extract_metrics(data,weights):
             "sloos_mortgage_demand": (l.get("series") or {}).get("SUBLPDHMNQ", {}).get("latest_value"),
         })(),
         # Global Business Cycle (OECD CLI across 35 economies)
-        **(lambda g=data.get("global_cycle", {}): {
+        **(lambda g=__import__("cycle_model_context").guard("data/global-business-cycle.json",data.get("global_cycle", {})): {
+            "gbc_research": g["research_context"],
             "gbc_global_phase": (g.get("aggregate") or {}).get("global_phase"),
             "gbc_avg_cli": (g.get("aggregate") or {}).get("global_avg_cli"),
             "gbc_expansion_pct": (g.get("aggregate") or {}).get("expansion_breadth_pct"),
@@ -1213,6 +1200,11 @@ def self_improve(outcomes,templates,accuracy):
     return templates,analysis
 
 def build_brief(templates,m,perf,err_analysis,weights,accuracy):
+    from morning_free_research import build, read_public
+    return build(lambda key: read_public(s3,S3_BUCKET,key))
+
+
+def _legacy_build_brief(templates,m,perf,err_analysis,weights,accuracy):
     from aaii_research import context as aaii_research_context, describe as describe_aaii
     now_et=datetime.now(timezone(timedelta(hours=-5)))
     date_str=now_et.strftime("%a %b %d, %Y")
@@ -1343,6 +1335,11 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
     return brief
 
 def format_accuracy(perf,accuracy,weights):
+    from morning_free_research import accuracy_status
+    return accuracy_status()
+
+
+def _legacy_format_accuracy(perf,accuracy,weights):
     if not perf:
         run=fs3("learning/last_log_run.json")
         return ("Signal Accuracy\n\nBuilding baseline - first results in 7 days\n"
