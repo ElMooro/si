@@ -1,1 +1,278 @@
-PLACEHOLDER_HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Company Order Book · JustHodl.AI</title>
+<meta name="description" content="Company order books from SEC RPO, MD&A backlog, and deferred revenue plus price MoM/QoQ/YoY. Sortable ascending or descending. MoM on the book only when two filings are 20-40 days apart.">
+<style>
+:root{--bg:#0a0e14;--bg-1:#0c1018;--border:#1c2433;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--mono:ui-monospace,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
+a{color:var(--cyan);text-decoration:none}
+.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
+.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%}
+.nav{display:flex;gap:4px;margin-left:12px;flex-wrap:wrap}
+.nav a{padding:7px 11px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
+.nav a.active{color:var(--cyan)}
+.wrap{max-width:1360px;margin:0 auto;padding:34px 24px 70px}
+.hero h1{font-size:28px;font-weight:800;color:var(--fg-0)}
+.hero p{color:var(--fg-2);margin:6px 0 16px;max-width:900px;line-height:1.55}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.tools input,.tools select{background:var(--bg-1);border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:12px}
+.tools input{min-width:200px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin:0 0 18px}
+.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:12px}
+.kpi .l{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);font-family:var(--mono)}
+.kpi .v{font-size:22px;font-weight:700;margin-top:4px;font-family:var(--mono);color:var(--fg-0)}
+.card{overflow:auto;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--border);font-size:12px;font-family:var(--mono)}
+th{font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.4px;cursor:pointer;user-select:none;white-space:nowrap}
+th.l,td.l{text-align:left}
+th.on{color:var(--cyan)}
+.tk{font-weight:700;color:var(--fg-0)}
+.tk:hover{color:var(--cyan)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.flag{font-size:9px;padding:1px 6px;border-radius:4px;border:1px solid var(--green);color:var(--green);margin-left:5px}
+.warn{border-color:var(--amber);color:var(--amber)}
+.kind{font-size:10px;color:var(--fg-3)}
+.loading{text-align:center;padding:50px;color:var(--fg-3);font-family:var(--mono)}
+.disc{margin-top:22px;font-size:11px;color:var(--fg-3);font-family:var(--mono);line-height:1.6;border-top:1px solid var(--border);padding-top:14px}
+.tabs{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.tab{padding:7px 14px;border-radius:16px;font-family:var(--mono);font-size:12px;color:var(--fg-3);border:1px solid var(--border);background:var(--bg-1);cursor:pointer}
+.tab.on{color:var(--bg);background:var(--cyan);border-color:var(--cyan)}
+@media(max-width:800px){.kpis{grid-template-columns:1fr 1fr}.header{height:auto;flex-wrap:wrap;padding:10px}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
+  <nav class="nav">
+    <a href="/">Home</a>
+    <a href="/backlog.html">Backlog Radar</a>
+    <a href="/orderbook.html" class="active">Order Book</a>
+    <a href="/forward-orders.html">Forward Orders</a>
+    <a href="/momentum.html">Momentum</a>
+    <a href="/glossary.html">Glossary</a>
+  </nav>
+  <div id="fresh-slot" style="padding:6px 24px"></div>
+  <div data-auth-slot style="margin-left:auto"></div>
+</header>
+<div class="wrap">
+  <div class="hero">
+    <h1>Company Order Book</h1>
+    <p>Locked future demand from SEC XBRL remaining performance obligations, MD&A backlog footnotes, and deferred revenue plus price MoM / QoQ / YoY when the momentum scanner covers the name. Book QoQ and YoY are computed from the same series as the book level. Book MoM is shown only when two prints are 20-40 days apart. Click any column to sort ascending or descending.</p>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="l">Names with a book</div><div class="v" id="kpi-n" data-realtime="1">...</div></div>
+    <div class="kpi"><div class="l">Book QoQ prints</div><div class="v" id="kpi-qoq" data-realtime="1">...</div></div>
+    <div class="kpi"><div class="l">Book YoY prints</div><div class="v" id="kpi-yoy" data-realtime="1">...</div></div>
+    <div class="kpi"><div class="l">Price prints joined</div><div class="v" id="kpi-px" data-realtime="1">...</div></div>
+  </div>
+  <div class="tabs" id="views">
+    <button type="button" class="tab on" data-view="demand">Demand book</button>
+    <button type="button" class="tab" data-view="price">Price book · MoM QoQ YoY</button>
+  </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Filter ticker, name, sector" autocomplete="off">
+    <select id="kind">
+      <option value="all">All book types</option>
+      <option value="rpo">RPO only</option>
+      <option value="backlog">Mined backlog only</option>
+      <option value="deferred">Deferred revenue only</option>
+    </select>
+    <select id="cap">
+      <option value="all">All caps</option>
+      <option value="mega">Mega</option>
+      <option value="large">Large</option>
+      <option value="mid">Mid</option>
+      <option value="small">Small</option>
+      <option value="micro">Micro</option>
+      <option value="nano">Nano</option>
+    </select>
+  </div>
+  <div id="content" aria-live="polite"><div class="loading">Loading SEC order-book prints...</div></div>
+</div>
+<script src="/jh-orderbook.js"></script>
+<script>
+const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+const S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+    if (c === "&") return "\u0026amp;";
+    if (c === "<") return "\u0026lt;";
+    if (c === ">") return "\u0026gt;";
+    return "\u0026quot;";
+  });
+}
+function pct(v){ return v == null ? "..." : ((v >= 0 ? "+" : "") + Number(v).toFixed(1) + "%"); }
+function bn(v){
+  if (v == null || !isFinite(v)) return "...";
+  var a = Math.abs(v);
+  if (a >= 1e9) return "$" + (v / 1e9).toFixed(1) + "B";
+  if (a >= 1e6) return "$" + (v / 1e6).toFixed(0) + "M";
+  return "$" + Math.round(v).toLocaleString("en-US");
+}
+function cls(v){ return v == null ? "" : (v >= 0 ? "pos" : "neg"); }
+
+var ROWS = [];
+var PRICE = [];
+var VIEW = "demand";
+var sortKey = "book_usd";
+var sortDir = "desc";
+
+async function pull(path){
+  var urls = [
+    path + "?t=" + Date.now(),
+    PROXY + path + "?t=" + Date.now(),
+    S3 + path + "?t=" + Date.now()
+  ];
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var r = await fetch(urls[i], { cache: "no-store" });
+      if (r.ok) return await r.json();
+    } catch (e) {}
+  }
+  return null;
+}
+
+async function load(){
+  if (!window.jhOrderbook) {
+    document.getElementById("content").innerHTML = '<div class="loading">Order-book engine failed to load.</div>';
+    return;
+  }
+  var pack = await Promise.all([
+    pull("/data/backlog.json"),
+    pull("/data/backlog-mined.json"),
+    pull("/data/forward-orders.json"),
+    pull("/data/momentum-scanner.json")
+  ]);
+  ROWS = window.jhOrderbook.buildRows(pack[0] || {}, pack[1] || {}, pack[2] || {}, Date.now());
+  if (window.jhOrderbook.attachPrices) window.jhOrderbook.attachPrices(ROWS, pack[3] || {});
+  if (window.jhOrderbook.priceBookRows) PRICE = window.jhOrderbook.priceBookRows(pack[3] || {});
+  else {
+    var ranks = ((pack[3] || {}).rankings) || {}, seen = {};
+    Object.keys(ranks).forEach(function(k){
+      (ranks[k] || []).forEach(function(p){
+        if (!p || !p.ticker || seen[p.ticker]) return;
+        seen[p.ticker] = 1;
+        PRICE.push({ ticker: String(p.ticker).toUpperCase(), name: p.name || p.ticker, sector: p.sector || "", book_kind: "price",
+          price_mom: p.ret_1m, price_qoq: p.ret_3m, price_yoy: p.ret_12m, last_close: p.last_close });
+      });
+    });
+  }
+  if (!ROWS.length && !PRICE.length) {
+    document.getElementById("content").innerHTML = '<div class="loading">No current order-book prints. Feeds refresh from SEC XBRL.</div>';
+    return;
+  }
+  document.getElementById("q").oninput = render;
+  document.getElementById("kind").onchange = render;
+  document.getElementById("cap").onchange = render;
+  document.getElementById("views").onclick = function(e){
+    var b = e.target.closest("[data-view]");
+    if (!b) return;
+    VIEW = b.getAttribute("data-view");
+    document.querySelectorAll("#views .tab").forEach(function(x){ x.classList.toggle("on", x.getAttribute("data-view")===VIEW); });
+    sortKey = VIEW === "price" ? "price_yoy" : "book_usd";
+    sortDir = "desc";
+    render();
+  };
+  render();
+}
+
+function visible(){
+  var q = String(document.getElementById("q").value || "").trim().toLowerCase();
+  var kind = document.getElementById("kind").value;
+  var cap = document.getElementById("cap").value;
+  var src = VIEW === "price" ? PRICE : ROWS;
+  return src.filter(function(r){
+    if (VIEW !== "price" && kind !== "all" && r.book_kind !== kind) return false;
+    if (VIEW !== "price" && cap !== "all" && r.cap !== cap) return false;
+    if (!q) return true;
+    return (r.ticker + " " + (r.name||"") + " " + (r.sector||"")).toLowerCase().indexOf(q) >= 0;
+  });
+}
+
+function render(){
+  var list = window.jhOrderbook.sortRows(visible(), sortKey, sortDir);
+  var nQ = 0, nY = 0, nP = 0, i;
+  for (i = 0; i < list.length; i++) {
+    if (list[i].qoq != null) nQ++;
+    if (list[i].yoy != null) nY++;
+    if (list[i].price_mom != null || list[i].price_qoq != null || list[i].price_yoy != null) nP++;
+  }
+  document.getElementById("kpi-n").textContent = String(list.length);
+  document.getElementById("kpi-qoq").textContent = String(nQ);
+  document.getElementById("kpi-yoy").textContent = String(nY);
+  document.getElementById("kpi-px").textContent = String(nP);
+  var h = '<div class="card"><table><thead><tr>'
+    + header("ticker", "Ticker", "l")
+    + header("sector", "Sector", "l")
+    + header("book_usd", "Book $")
+    + header("mom", "Book MoM")
+    + header("qoq", "Book QoQ")
+    + header("yoy", "Book YoY")
+    + header("price_mom", "Px MoM")
+    + header("price_qoq", "Px QoQ")
+    + header("price_yoy", "Px YoY")
+    + header("asof", "As of")
+    + header("book_kind", "Source")
+    + "</tr></thead><tbody>";
+  list.forEach(function(r){
+    var href = "/chart.html?s=" + encodeURIComponent(r.ticker);
+    h += "<tr>"
+      + '<td class="l"><a class="tk" href="' + href + '">' + esc(r.ticker) + "</a>"
+      + (r.accelerating ? '<span class="flag">ACCEL</span>' : "")
+      + (r.warn && r.warn.length ? '<span class="flag warn">CHECK</span>' : "")
+      + "</td>"
+      + '<td class="l" style="color:var(--fg-3)">' + esc(r.sector || "...") + "</td>"
+      + "<td>" + bn(r.book_usd) + "</td>"
+      + '<td class="' + cls(r.mom) + '" title="' + esc(r.mom_reason || "Two prints 20-40 days apart") + '">' + pct(r.mom) + "</td>"
+      + '<td class="' + cls(r.qoq) + '">' + pct(r.qoq) + "</td>"
+      + '<td class="' + cls(r.yoy) + '">' + pct(r.yoy) + "</td>"
+      + '<td class="' + cls(r.price_mom) + '">' + pct(r.price_mom) + "</td>"
+      + '<td class="' + cls(r.price_qoq) + '">' + pct(r.price_qoq) + "</td>"
+      + '<td class="' + cls(r.price_yoy) + '">' + pct(r.price_yoy) + "</td>"
+      + "<td>" + esc(r.asof || "...") + "</td>"
+      + '<td class="kind">' + esc(r.book_kind) + "</td>"
+      + "</tr>";
+  });
+  h += "</tbody></table></div>";
+  h += '<div class="disc">Book source priority: fresh forward-orders RPO (dated XBRL history, 18 months), else backlog.json RPO, else mined MD&A backlog when the dollar amount is plausible versus XBRL, else deferred revenue. '
+    + "Book QoQ uses a prior print 70-120 days back; Book YoY uses 330-400 days and prefers the same fiscal period when tagged. Book MoM is blank unless two prints sit 20-40 days apart. "
+    + "Price MoM/QoQ/YoY are momentum-scanner ret_1m / ret_3m / ret_12m joined by ticker. "
+    + "CHECK flags a book move of 150% or more that should be read against the filing. Research and analytics, not investment advice. "
+    + "Feeds: /data/forward-orders.json, /data/backlog.json, /data/backlog-mined.json, /data/momentum-scanner.json.</div>";
+  document.getElementById("content").innerHTML = h;
+  document.querySelectorAll("th[data-k]").forEach(function(th){
+    th.onclick = function(){
+      var k = th.getAttribute("data-k");
+      if (sortKey === k) sortDir = sortDir === "desc" ? "asc" : "desc";
+      else { sortKey = k; sortDir = (k === "ticker" || k === "sector" || k === "asof" || k === "book_kind") ? "asc" : "desc"; }
+      render();
+    };
+  });
+}
+
+function header(key, label, extra){
+  var on = sortKey === key ? " on" : "";
+  var arrow = sortKey === key ? (sortDir === "asc" ? " ^" : " v") : "";
+  return '<th class="' + (extra || "") + on + '" data-k="' + key + '">' + label + arrow + "</th>";
+}
+
+load();
+</script>
+<script src="/cmdk.js"></script>
+<script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
+<script src="/freshness.js"></script>
+<script>window.addEventListener("load",function(){if(window.Freshness)Freshness.fromUrl("fresh-slot","/data/forward-orders.json",{label:"Data"});});</script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>
