@@ -1,4 +1,4 @@
-"""justhodl-global-business-cycle  v3.0.3  (multi-pillar composite; equity momentum is one pillar)
+"""justhodl-global-business-cycle  v3.0.4  (multi-pillar composite; equity momentum is one pillar)
 ═══════════════════════════════════════════════════════════════════════════
 The OECD CLI series on FRED stopped updating ~Jan 2024 (28+ months stale at
 time of writing). To provide a USEFUL global business cycle map with
@@ -76,6 +76,7 @@ v2.1.0 (ops 5094/5095, 2026-09-01):
 Author: JustHodl.AI
 """
 import json
+import business_cycle_store
 import os
 import time
 import urllib.request
@@ -98,7 +99,7 @@ except Exception as _cce:  # noqa: BLE001
     CC = None
     print(f"[gbc] cycle_composite unavailable: {_cce}")
 
-ENGINE_VERSION = "3.0.3"
+ENGINE_VERSION = "3.0.4"
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
@@ -1471,7 +1472,7 @@ def _load_previous_output():
         return None
 
 
-def lambda_handler(event=None, context=None):
+def _produce(event=None, context=None):
     started = time.time()
     print(f"[gbc] v{ENGINE_VERSION} start, {len(COUNTRY_MAP)} countries (equity-momentum-based)")
     previous_output = _load_previous_output()
@@ -1892,3 +1893,23 @@ def lambda_handler(event=None, context=None):
         "sources_used": dict(sources_used),
         "elapsed_sec": output["elapsed_sec"],
     })}
+
+
+def lambda_handler(event=None, context=None):
+    """Retain whole predecessors before acquiring inputs; publish research only."""
+    global S3
+    client = S3
+    started_at = datetime.now(timezone.utc).isoformat()
+    publication = business_cycle_store.PublicationClient(client, BUCKET, started_at)
+    S3 = publication
+    try:
+        result = _produce(event, context)
+        if not isinstance(result, dict) or result.get("statusCode") != 200:
+            raise business_cycle_store.PublicationError("Complete producer result required")
+        proof = publication.finish(business_cycle_store.compiler_hashes())
+        return {"statusCode": 200, "body": json.dumps({
+            "engine_version": ENGINE_VERSION, "contract": "global-business-cycle-research.v1",
+            "portfolio_action": "WAIT", "calls_eligible": False, "sizing_eligible": False,
+            "execution_eligible": False, "forecast_qualified": False, "publication": proof})}
+    finally:
+        S3 = client
