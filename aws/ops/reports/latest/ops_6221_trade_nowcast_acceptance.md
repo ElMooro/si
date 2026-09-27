@@ -1,0 +1,14 @@
+
+**Status:** success  
+**Duration:** 10.1s  
+**Finished:** 2026-09-27T10:39:58+00:00  
+
+## Data
+
+| account_reads | actual_runtime | actual_runtime_before_validation | all_denied | anonymous_origins_checked | attempt_outcome_counts | compiler_sha256 | expected_commit | failures | history_writes | native_invocations | native_publication | protected_paths_checked | provider_requests | public_writes | schedule_changes | scope |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  | {'code_sha256': 'v6aj47zStl/vAoF6oNPeMAE49TyTPa8npDqATX1YQT0=', 'source_files_checked': 4, 'handler_bytes': 9026, 'timeout': 180, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': '67693eb133fc4e66bd37b17e66b9a2e57f556829'}, 'schedules': [{'kind': 'EventBridge Scheduler', 'name': 'justhodl-trade-nowcast-daily', 'state': 'ENABLED', 'expression': 'cron(50 12 * * ? *)', 'timezone': 'UTC', 'native_targets': 1, 'group': 'default'}], 'function_name': 'justhodl-trade-nowcast', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| 0 | {'code_sha256': 'v6aj47zStl/vAoF6oNPeMAE49TyTPa8npDqATX1YQT0=', 'source_files_checked': 4, 'handler_bytes': 9026, 'timeout': 180, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': '67693eb133fc4e66bd37b17e66b9a2e57f556829'}, 'schedules': [{'kind': 'EventBridge Scheduler', 'name': 'justhodl-trade-nowcast-daily', 'state': 'ENABLED', 'expression': 'cron(50 12 * * ? *)', 'timezone': 'UTC', 'native_targets': 1, 'group': 'default'}], 'function_name': 'justhodl-trade-nowcast', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} |  | True | 2 | {'404': 1, '403': 1} | {'lambda_function.py': '3541c393a1c1fcf16d2cbd5bc8feaee4dfe748083bb918861df4615228e784e3', 'trade_store.py': 'fa99445801827d825899578fcaa3a0497e6a51d3eb4da675fb799c14fae4371b', 'trade_measurements.py': 'e7620532d5abcaca851b04219ac36d20d1e26d6659abae461fe657bac060a651', 'managed_secret.py': 'afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e'} | 67693eb133fc4e66bd37b17e66b9a2e57f556829 | [] | 0 | 0 | {'status': 'pending_original_1250_publication', 'generated_at': '2026-09-26T12:50:05.873939+00:00', 'version': '1.0.0', 'bytes': 1572, 'sha256': 'eb8a7b278e02d57915407a9232799d00a90ba071f7433d3ee1d69d894123815c', 'cpb_period': '2026-8'} | 1 | 0 | 0 | 0 | Complete CPB/FRED acquisition and monthly compiler replay. One conditional public head. Not original release vintages, demand inference, forecast performance or portfolio permission. |
+
+## Log
+
