@@ -1,0 +1,42 @@
+{
+  "source_sha256": "e22e7311023f5ffd1bdfc0e3b0f50d7035d2467501592f68158876ae5f01748a",
+  "source_bytes": 13479,
+  "public_snapshot": {
+    "bytes": 231172,
+    "sha256": "34b9686fc1bee82daf5991502da68c814550763b488804722d989308d693de51",
+    "generated_at": "2026-09-27T12:00:35.962613+00:00",
+    "counts": {
+      "direction_map": 260,
+      "estimate_strength_leaders": 40,
+      "upward_revisions": 27,
+      "downward_revisions": 30,
+      "top_picks": 15,
+      "by_ticker": 260,
+      "caveats": 6
+    }
+  },
+  "isolated_original_reproductions": {
+    "boolean_numeric": true,
+    "no_measurement_strength": 50.0,
+    "wholly_past_annual_profile": {
+      "fwd_eps_growth_pct": 100.0,
+      "fwd_eps_cur": 1,
+      "fwd_eps_next": 2,
+      "n_analysts": 20,
+      "dispersion_pct": 200.0
+    }
+  },
+  "unresolved": [
+    "Annual EPS target dates and currencies are stripped before joining to scheduled quarterly calendar identities.",
+    "Historical targets can be called forward when no future estimate exists.",
+    "Prior snapshot comparison has no retained estimate target identity; a fiscal roll can masquerade as a revision.",
+    "Missing observations receive a 50-point strength prior; direction may be synthesized from strength.",
+    "Published leader/revision arrays are capped; full calendar and estimate responses are absent.",
+    "Original producer prunes its state; preservation and prospective comparable vintages require a separate explicit design.",
+    "Public observation audit does not authorize reading the private state or consumer/learning outputs."
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "private_state_reads": 0,
+  "investment_authority": false
+}
