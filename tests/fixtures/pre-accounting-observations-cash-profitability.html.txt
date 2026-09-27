@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash profitability · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 80px}
+h1{margin:0 0 6px}h1 span{color:var(--cyan)}.sub{color:var(--fg2);max-width:820px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:5px 10px;font-size:12px;color:var(--fg2);margin:4px 6px 4px 0;display:inline-block}
+table{width:100%;border-collapse:collapse;font:12.5px ui-monospace,Menlo,monospace}
+th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:right}th.l,td.l{text-align:left}
+th{cursor:pointer;user-select:none;color:var(--fg3);font-size:10px;text-transform:uppercase}th:hover{color:var(--fg)}th.on{color:var(--cyan)}
+.tk{color:#fff;font-weight:700;text-decoration:none}.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;color:var(--fg3);font-size:12px;line-height:1.65;border-top:1px solid var(--bd);padding-top:14px}
+input{background:#0a0e14;border:1px solid var(--bd);color:var(--fg);padding:7px 10px;border-radius:8px;margin:8px 0}
+#board{max-width:100%;overflow:auto}#board table{min-width:620px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style></head><body>
+<div class="wrap">
+<h1>Cash <span>profitability</span></h1>
+<p class="sub">Sloan accruals and cash conversion from the earnings-quality tape. Click any column to sort ascending or descending. A name with no Sloan tag stays blank.</p>
+<div id="kpis"></div>
+<input id="q" aria-label="Filter ticker or company" placeholder="filter ticker">
+<div id="board" role="region" aria-label="Reported cash profitability rows" tabindex="0">Loading earnings-quality…</div>
+<details><summary>Complete received earnings-quality packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot">
+<b>Built for:</b> seeing whether reported earnings are turning into cash.<br>
+<b>Data:</b> /data/earnings-quality.json (reported Sloan accruals % assets, cash conversion, DSRI, FCF).<br>
+<b>Definitions:</b> Sloan = (NI − OCF) / assets; cash conversion = OCF / NI. The table displays producer-tagged values only. Period alignment and underlying filing evidence remain unverified. Blank is missing, not zero.<br>
+<b>Sort:</b> header click toggles asc/desc. Nulls sort last.
+</div>
+</div>
+<script src="/jh-table-values.js"></script>
+<script>
+(async function(){
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function n(v,d){return JHTableValues.format(v,d==null?2:d);}
+  function cmp(a,b,k,dir){
+    return JHTableValues.compare(a,b,k,dir,k==="ticker"?"text":"number");
+  }
+  var received;
+  try{received=await JHTableValues.load("/data/earnings-quality.json");}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
+  document.getElementById("original").textContent=received.raw;
+  var d=received.packet,source=d.all_ranked||d.top_20_high_quality||[];
+  if(!Array.isArray(source)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
+  var malformed=source.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
+  var rows=source.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);}).map(function(x){return {ticker:x.ticker,name:x.name,sloan:x.sloan_accruals_pct_assets,cash_conv:x.cash_conversion_ratio,dsri:x.dsri_beneish,quality_score:x.quality_score};});
+  var SORT="sloan", DIR=1;
+  document.getElementById("kpis").textContent=rows.length+" received rows; "+malformed+" malformed rows retained in the original packet. Producer publication "+(d.as_of||"unavailable")+". Source-period freshness is unverified.";
+  var cols=[["ticker","Ticker","l"],["sloan","Sloan % assets",""],["cash_conv","Cash conv",""],["dsri","DSRI",""],["quality_score","Quality score",""]];
+  function paint(){
+    var q=(document.getElementById("q").value||"").toUpperCase();
+    var view=rows.filter(function(r){return !q||(r.ticker+" "+(r.name||"")).toUpperCase().indexOf(q)>=0;});
+    view.sort(function(a,b){return cmp(a,b,SORT,DIR);});
+    var h="<table><thead><tr>";
+    cols.forEach(function(c){h+="<th class='"+(c[2]||"")+(SORT===c[0]?" on":"")+"' data-k="+c[0]+">"+c[1]+(SORT===c[0]?(DIR>0?" ↑":" ↓"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    view.forEach(function(r){
+      h+='<tr><td class="l"><a class="tk" href="/ticker.html?symbol='+encodeURIComponent(r.ticker)+'">'+esc(r.ticker)+"</a></td>";
+      h+='<td class="'+JHTableValues.sign(r.sloan,"neg","pos")+'">'+n(r.sloan,1)+"</td>";
+      h+="<td>"+n(r.cash_conv,2)+"</td><td>"+n(r.dsri,2)+"</td><td>"+n(r.quality_score,1)+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+"</tbody></table>";
+    JHTableValues.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=1;}paint();});
+  }
+  document.getElementById("q").addEventListener("input",paint);
+  paint();
+})();
+</script>
+<script src="/sidebar.js" defer></script>
+</body></html>
