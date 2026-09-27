@@ -1,1 +1,95 @@
-PLACEHOLDER_WILL_REPLACE
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/private-artifacts.js?v=20260909"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ticker · JustHodl</title>
+<meta name="description" content="Unified ticker view.">
+<style>
+:root{--bg:#0a0d12;--bg1:#0f131a;--brd:#1c2433;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--cyan:#00d4ff;--green:#00e676;--red:#ff174a;--display:Georgia,serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--t1);font:15px/1.5 system-ui,sans-serif;min-height:100vh}
+.tabs{position:sticky;top:0;background:rgba(15,19,26,.92);border-bottom:1px solid var(--brd);z-index:100}
+.tabs-inner{display:flex;gap:0;padding:0 8px;height:48px;overflow-x:auto;max-width:1400px;margin:0 auto}
+.tab{padding:8px 12px;font:11px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--t3);text-decoration:none}
+.tab.active{color:var(--cyan)}
+.shell{padding:32px 20px 80px;max-width:1400px;margin:0 auto}
+.hero{padding:24px 0 28px;border-bottom:1px solid var(--brd);margin-bottom:28px}
+.hero-eyebrow{font:11px var(--mono);color:var(--cyan);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:10px}
+.hero-title{font:600 44px/1.05 var(--display);margin-bottom:8px}
+.hero-title em{font-style:italic;color:var(--cyan)}
+.hero-blurb{color:var(--t2);max-width:780px}
+.search{margin:18px 0 8px;display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1;min-width:240px;padding:14px 18px;background:var(--bg1);border:1px solid var(--brd);border-radius:10px;color:var(--t1);font:15px var(--mono);text-transform:uppercase}
+.search button{padding:14px 24px;background:var(--cyan);color:var(--bg);border:0;border-radius:10px;font:600 13px var(--mono);cursor:pointer}
+.quick-tickers a{display:inline-block;margin:6px 6px 0 0;font:11px var(--mono);color:var(--t3);text-decoration:none;border:1px solid var(--brd);padding:5px 9px;border-radius:5px}
+.section{margin-bottom:28px}.section-title{font:600 24px var(--display);margin:0 0 8px}
+.card{background:var(--bg1);border:1px solid var(--brd);border-radius:14px;padding:18px;margin-bottom:12px}
+.empty{padding:18px;color:var(--t3);font-style:italic}
+.links a{color:var(--cyan);text-decoration:none;margin-right:12px}
+</style>
+<script src="/jh-short-interest-research.js"></script>
+</head>
+<body>
+<nav class="tabs"><div class="tabs-inner">
+<a class="tab" href="/today.html">Today</a>
+<a class="tab active" href="/ticker.html">Ticker</a>
+<a class="tab" href="/inventory-drawdown.html">Inventory</a>
+<a class="tab" href="/backlog.html">Backlog</a>
+<a class="tab" href="/billings-crpo.html">Billings</a>
+<a class="tab" href="/orderbook.html">Order book</a>
+</div></nav>
+<div class="shell">
+<header class="hero">
+<div class="hero-eyebrow">Unified Symbol View</div>
+<h1 class="hero-title">Ticker <em id="symbolHeader"></em></h1>
+<p class="hero-blurb">Earnings, short interest, 13F, inventory four-state and book fuse for one symbol. Four-state paints only when the name is on the inventory board.</p>
+<div class="search"><input id="symbolInput" placeholder="Enter ticker" autocomplete="off"><button id="goBtn">Open</button></div>
+<div class="quick-tickers" id="quickTickers"></div>
+</header>
+<div id="results"></div>
+</div>
+<script>
+const BUCKET="https://justhodl-dashboard-live.s3.amazonaws.com";
+const QUICK=["AAPL","MSFT","NVDA","MU","CAMT","MPC","PSX","LRCX","ASML","AMZN","GOOGL","META"];
+function getSymbolFromUrl(){try{var u=new URL(location.href);return (u.searchParams.get("symbol")||u.searchParams.get("s")||"").toUpperCase().trim();}catch(e){return "";}}
+function setSymbolInUrl(sym){var u=new URL(location.href);u.searchParams.set("symbol",sym);history.replaceState(null,"",u);}
+async function fetchJson(path){try{var r=await fetch(BUCKET+"/"+path+"?t="+Date.now());if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function loadTicker(sym){
+  document.getElementById("symbolHeader").textContent=sym;
+  document.getElementById("symbolInput").value=sym;
+  setSymbolInUrl(sym); document.title=sym+" · Ticker · JustHodl";
+  var box=document.getElementById("results");
+  box.innerHTML='<div class="empty">Loading '+sym+'</div>';
+  var q=encodeURIComponent(sym);
+  var html='<div class="card links"><a href="/inventory-drawdown.html">Inventory desk</a><a href="/backlog.html">Backlog</a><a href="/billings-crpo.html">Billings</a><a href="/orderbook.html">Order book</a><a href="/chart.html?s='+q+'">Chart</a></div>';
+  var earnings=await fetchJson("data/earnings-tracker.json");
+  var tracker=earnings&&(earnings.tracker||earnings);
+  var upcoming=tracker&&(tracker.upcoming||[]).find(function(x){return String(x.symbol||x.ticker||"").toUpperCase()===sym;});
+  var recent=tracker&&(tracker.recent||[]).find(function(x){return String(x.symbol||x.ticker||"").toUpperCase()===sym;});
+  html+='<div class="section"><h2 class="section-title">Earnings</h2>';
+  if(upcoming||recent){
+    html+='<div class="card">'+(upcoming?("Next "+(upcoming.report_date||upcoming.date||"")):"")+(recent?(" Last "+(recent.report_date||recent.date||"")):"")+"</div>";
+  } else html+='<div class="empty">No earnings row for '+sym+".</div>";
+  html+="</div>";
+  box.innerHTML=html;
+}
+function init(){
+  document.getElementById("quickTickers").innerHTML=QUICK.map(function(t){return '<a href="?symbol='+t+'">'+t+"</a>";}).join("");
+  document.getElementById("goBtn").onclick=function(){var v=document.getElementById("symbolInput").value.trim().toUpperCase();if(v)loadTicker(v);};
+  document.getElementById("symbolInput").addEventListener("keypress",function(e){if(e.key==="Enter"){var v=e.target.value.trim().toUpperCase();if(v)loadTicker(v);}});
+  document.getElementById("quickTickers").addEventListener("click",function(e){if(e.target.tagName==="A"){e.preventDefault();loadTicker(new URL(e.target.href).searchParams.get("symbol"));}});
+  var s=getSymbolFromUrl();
+  if(s)loadTicker(s);
+  else document.getElementById("results").innerHTML='<div class="empty">Enter a ticker. Inventory four-state mounts under the header when that name is on the board.</div>';
+}
+init();
+</script>
+<script src="/jh-inventory-v2.js"></script>
+<script src="/jh-inventory-v2-mount.js"></script>
+<script src="/jh-book-fuse.js"></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>
