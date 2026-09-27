@@ -1,0 +1,114 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "9el14ir0zwfqw7D5ZXJTqgXRExSU08HdYXmWdK1SnnY=",
+    "source_files_checked": 6,
+    "handler_bytes": 94365,
+    "timeout": 900,
+    "memory_mb": 1536,
+    "receipt": {
+      "status": "matched",
+      "commit": "c6823a5e50338a8604b9edf4a92010dac4149606"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-gbc-daily",
+        "state": "ENABLED",
+        "expression": "cron(0 12 * * ? *)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-global-business-cycle",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "baseline_sha256": "486237160e60f960ebf12a1db05064a5983cef706413608e6b0c6e94dacdaa35",
+  "expected_commit": "c6823a5e50338a8604b9edf4a92010dac4149606",
+  "history_writes": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "pending_original_daily_1200_publication",
+    "generated_at": "2026-09-26T12:01:10.137528+00:00",
+    "engine_version": "3.0.3"
+  },
+  "notifications_sent": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedules_changed": 0,
+  "scope": "Whole acquisition and exact parsed-calculation replay. Stored warehouse inputs remain derived; original upstream Polygon responses, definitions, historical vintages, predictive edge and portfolio qualification remain unverified.",
+  "synthetic_fixture_scope": "All 34 countries, all three full native output packets and all recorded clocks; separately all 1254 warehouse objects across every fixture metadata page. Synthetic tests are not historical provider proof.",
+  "code_commit": "c6823a5e50338a8604b9edf4a92010dac4149606",
+  "lambda_run": 36290119704,
+  "pages_run": 36290119708,
+  "read_only_acceptance_run": 36290205382,
+  "report_commit": "c45bd2db8",
+  "source_test_groups": 18,
+  "frontend_tests": 1368,
+  "concurrent_new_frontend_tests": 3,
+  "deployment_tests": 458,
+  "candidate_shell_tests": 12,
+  "live_assets": {
+    "commit": "c6823a5e50338a8604b9edf4a92010dac4149606",
+    "served_descendant": "c6823a5e50338a8604b9edf4a92010dac4149606",
+    "checked_at": "2026-09-27T03:06:12.053647+00:00",
+    "registry_hash": "22a5d4f4e365bdda627889b09de5b4857c184e35600d24fa5cfc9d0628f21521",
+    "assets": {
+      "global-cycle.html": {
+        "bytes": 10697,
+        "sha256": "1fae95cb968a336dfad23fd3ced779c3a111febb9608fbf04c5e5886ab9c5b8e",
+        "matches_commit_manifest": true
+      },
+      "global-cycle/index.html": {
+        "bytes": 9278,
+        "sha256": "f085457b7d14ded5df74c72c2339b3f4adfbe77ac8d1864edb726de7be01e6e5",
+        "matches_commit_manifest": true
+      },
+      "jh-business-cycle-review.js": {
+        "bytes": 18142,
+        "sha256": "8584b89c9716cd38094337c9baebe715a9fe52b46f7c548486da9f477328bb50",
+        "matches_commit_manifest": true
+      },
+      "business-cycle-review.css": {
+        "bytes": 3142,
+        "sha256": "b581c00f1bc3322d64d286538eab892e130dc5bab679c5c46fbba0c5a46e189e",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1336124,
+        "sha256": "b52354dcf623b319d8afccba2c2142bda58712cba2fbcdc43ae259e288f2e464",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2334945,
+        "sha256": "22a5d4f4e365bdda627889b09de5b4857c184e35600d24fa5cfc9d0628f21521",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "browser": {
+    "build": "c6823a5e50338a8604b9edf4a92010dac4149606",
+    "country_rows": 34,
+    "selected_country_feature_rows": 12,
+    "console_errors": 0,
+    "document_width": 1270,
+    "viewport_width": 1280,
+    "preservation_status": "Legacy publication; normal daily 12:00 acquisition still pending",
+    "phone_note": "Current production attempt remained at 1280px despite requested override; no new phone-width verification claimed. Stage203 local 390px preview is recorded in the ledger."
+  },
+  "push_rejection": {
+    "sha": "8dce5b2408da3ae5a71f0acdbf7ee6072746cc0f",
+    "reason": "Concurrent main advanced; no remote change from rejected push",
+    "resolution": "Rebased, reviewed new files, protected queued page runs, then pushed c6823a5e5"
+  }
+}

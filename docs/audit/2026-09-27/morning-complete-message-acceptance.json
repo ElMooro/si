@@ -1,0 +1,59 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "Q2idgrHDGBfemI5k59asd9J/4GAtDIVXincPo3jgdUc=",
+    "source_files_checked": 25,
+    "handler_bytes": 99109,
+    "timeout": 120,
+    "memory_mb": 256,
+    "receipt": {
+      "status": "matched",
+      "commit": "9fcb0e985b87a32e2bc6f972d829bb8890f49877"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-morning-brief-daily",
+        "state": "ENABLED",
+        "expression": "rate(1 day)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-morning-intelligence",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "arm64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "baseline_sha256": "ccb4e3108429c31638a2af1b20d86fc5623e964e4deea939bb7ac27ab6ef4dbf",
+  "expected_commit": "9fcb0e985b87a32e2bc6f972d829bb8890f49877",
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "model_requests": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "public_brief": {
+    "generated_at": "2026-09-27T00:05:38.911378+00:00",
+    "source_chars": 3117,
+    "delivery_utf16_units": 3256,
+    "delivery_limit_utf16_units": 4096,
+    "status": "source_backed_public_brief"
+  },
+  "public_writes": 0,
+  "recipient_reads": 0,
+  "schedules_changed": 0,
+  "scope": "Exact deployed package and isolated complete-message construction. No live notification or recipient delivery is claimed.",
+  "synthetic_regressions": "Complete final-message limit, astral Unicode, exact 4096 boundary, over-limit link, malformed/oversized publication timestamp, stale/paid/actionable packet rejection.",
+  "code_commit": "9fcb0e985b87a32e2bc6f972d829bb8890f49877",
+  "lambda_run": 36290403322,
+  "read_only_acceptance_run": 36290530125,
+  "acceptance_checkout": "3951f26a7d0c2aaed836c9d4e14ac8130bb7aa0e",
+  "report_commit": "b56c55d0c",
+  "focused_test_groups": 13,
+  "native_test_chain": "All existing Morning consumer suites completed",
+  "deployment_tests": 458,
+  "candidate_shell_tests": 12
+}
