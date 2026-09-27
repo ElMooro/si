@@ -1,0 +1,157 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "WxCP/ijS/DateQCzmUmLyjCpr8Wcofl5rkGXNW8kQNA=",
+    "source_files_checked": 5,
+    "handler_bytes": 93782,
+    "timeout": 900,
+    "memory_mb": 1536,
+    "receipt": {
+      "status": "matched",
+      "commit": "c6c61129abccdad8a754f68e8bc52a281af24437"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-gbc-daily",
+        "state": "ENABLED",
+        "expression": "cron(0 12 * * ? *)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-global-business-cycle",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "archive_writes": 0,
+  "baseline_sha256": "5385a8c96a3929aa463af0b3e78cd6acba9dc1b99936d4a4863428f1e762f3d9",
+  "complete_population": {
+    "data/global-business-cycle.json": {
+      "countries": 34,
+      "country_history_rows": 0,
+      "global_history_rows": 0,
+      "feature_rows": 562
+    },
+    "data/global-business-cycle-history.json": {
+      "countries": 34,
+      "country_history_rows": 6777,
+      "global_history_rows": 1105,
+      "feature_rows": 0
+    },
+    "data/global-business-cycle-composite-history.json": {
+      "countries": 34,
+      "country_history_rows": 9282,
+      "global_history_rows": 273,
+      "feature_rows": 0
+    }
+  },
+  "current_head_sha256": {
+    "data/global-business-cycle.json": "83f982ffc9c4ad38f5bf1bef907dd824cba6610bab0fb00b8a38bbbf31a58e11",
+    "data/global-business-cycle-history.json": "e0c6e7e63fb40b0d15b3eabbad8c9179d17339fc178d144d5acc7836ae4cffa0",
+    "data/global-business-cycle-composite-history.json": "52d7a8387f1c86d9b95c9145fdb1d3ef6b45bb7f6ddd3c09c5b80c6a543fa4c9"
+  },
+  "expected_commit": "c6c61129abccdad8a754f68e8bc52a281af24437",
+  "fixture_publication_order": [
+    "data/global-business-cycle-history.json",
+    "data/global-business-cycle-composite-history.json",
+    "data/global-business-cycle.json"
+  ],
+  "fixture_scope": "Complete retained derived calculations projected in memory, not original-provider or arithmetic replay",
+  "history_writes": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "pending_original_1200_schedule",
+    "current_generated_at": "2026-09-26T12:01:10.137528+00:00",
+    "version": "3.0.3"
+  },
+  "notifications_sent": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedules_changed": 0,
+  "scope": "Exact deployed code, complete retained-output projection and public-page acceptance. First normal new-code output is pending the original 12:00 schedule; original provider acquisitions, definitions, PIT/model qualification and consumer migration remain open.",
+  "whole_fixture_output_sha256": {
+    "data/global-business-cycle.json": "9c0d27b90bf12880253b6ddca6a53e00fd86a32f9831d74b94443a8a88310efd",
+    "data/global-business-cycle-history.json": "e800605a65f6d7b704b3723a72c9196ca121f00648bb05e3ca53b64432495961",
+    "data/global-business-cycle-composite-history.json": "33a770ca99c8028412be7305220d140e6783259cb4dbc6e40fd534fcf33317e1"
+  },
+  "whole_predecessor_bytes": {
+    "data/global-business-cycle.json": 261250,
+    "data/global-business-cycle-history.json": 1429955,
+    "data/global-business-cycle-composite-history.json": 2098300
+  },
+  "code_commit": "c6c61129abccdad8a754f68e8bc52a281af24437",
+  "initial_full_source_commit": "c4518b65f0d693e65c9867eaf4a6dd6b845e2769",
+  "lambda_run": 36283984763,
+  "read_only_acceptance_run": 36284082568,
+  "report_commit": "3995d3669",
+  "source_tests": 10,
+  "frontend_tests": 1351,
+  "deployment_tests": 458,
+  "candidate_shell_tests": 12,
+  "initial_deploy_failure": "Description exceeded 256 characters; preflight prevented AWS mutation; corrected before accepted release",
+  "page_run_cancelled": 36283984770,
+  "page_superseding_run": 36284012966,
+  "live_assets": {
+    "commit": "c6c61129abccdad8a754f68e8bc52a281af24437",
+    "served_descendant": "6b279faff4e0c099559a783cfda595f05dafd4dc",
+    "checked_at": "2026-09-27T01:00:21.921792+00:00",
+    "registry_hash": "b4496fbde693796f5f810445fb852bde8bc9ad9a022472ae58aeab900297fb25",
+    "assets": {
+      "global-cycle.html": {
+        "bytes": 10697,
+        "sha256": "15184f6325f6dabe355c487c6e4ee5976bce6d1d7494357348f834ea1d5b7e72",
+        "matches_commit_manifest": true
+      },
+      "global-cycle/index.html": {
+        "bytes": 9278,
+        "sha256": "9d9e8fc83389e7c4070adbfcf1e2b0197a4e93021d41649adcbd87e30ec25c8f",
+        "matches_commit_manifest": true
+      },
+      "jh-business-cycle-review.js": {
+        "bytes": 17038,
+        "sha256": "942871b3717b871cbf47b4b05f2f726c0c348fe2e8c4f622c90a90c185dba319",
+        "matches_commit_manifest": true
+      },
+      "business-cycle-review.css": {
+        "bytes": 3142,
+        "sha256": "b581c00f1bc3322d64d286538eab892e130dc5bab679c5c46fbba0c5a46e189e",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1335540,
+        "sha256": "9a37149bd64a186b62b9b17bd8038f0e0aae0d47a221593b65c084d80c1701dd",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2328813,
+        "sha256": "b4496fbde693796f5f810445fb852bde8bc9ad9a022472ae58aeab900297fb25",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "browser": {
+    "current_countries": 34,
+    "europe_filter": 20,
+    "usa_feature_rows": 18,
+    "equity_history_rows": 7882,
+    "monthly_history_rows": 9555,
+    "global_equity_chart_points": 1105,
+    "global_monthly_chart_points": 273,
+    "console_errors": 0,
+    "phone_viewport": 390,
+    "current_document_width": 380,
+    "history_document_width": 380,
+    "current_table_width": 306,
+    "current_table_content_width": 1677
+  }
+}
