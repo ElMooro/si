@@ -61,7 +61,14 @@
   const c=packet.publication_context;
   if(!c)return 'Legacy publication: complete-output retention is pending the original daily 12:00 UTC run. No provider-original replay or forecast qualification is established.';
   const names=['lambda_function.py','cycle_composite.py','_fred_shim.py','business_cycle_store.py','managed_secret.py'];
+  const a=c.native_acquisition;
+  if(a){
+   const ref=a.manifest,prefix='audit-private/20260909-originals/global-business-cycle-research/';
+   if(a.contract!=='business-cycle-native-acquisition.v1'||a.original_source_replay_verified!==false||a.point_in_time_verified!==false||!ref||!/^[a-f0-9]{64}$/.test(ref.sha256)||ref.key!==prefix+ref.sha256+'.bin'||!Number.isSafeInteger(ref.bytes)||ref.bytes<1||ref.bytes>64*1024*1024||!['operations','provider_attempts','warehouse_objects'].every(k=>Number.isSafeInteger(a[k])&&a[k]>=0))return 'Publication contract is inconsistent; no source or decision qualification is inferred.';
+   names.push('business_cycle_acquisition.py');
+  }
   const valid=packet.contract==='global-business-cycle-research.v1'&&['forecast_qualified','calls_eligible','sizing_eligible','execution_eligible'].every(k=>packet[k]===false)&&c.contract==='business-cycle-derived-publication.v1'&&c.public_projections_atomic===false&&c.original_source_replay_verified===false&&c.compiler_sha256&&Object.keys(c.compiler_sha256).length===names.length&&names.every(n=>/^[a-f0-9]{64}$/.test(c.compiler_sha256[n]));
+  if(valid&&a)return 'Producer declares a protected native acquisition ledger: '+a.operations+' input operations, '+a.provider_attempts+' provider attempts and '+a.warehouse_objects+' stored warehouse objects. Cached responses retain their original acquisition clock. Protected originals have not been replayed by this browser; stored warehouse data is derived, and point-in-time or forecast qualification remains unverified.';
   return valid?'Producer declares complete derived-output and predecessor retention. Protected originals have not been replayed by this browser. Source vintages and predictive qualification remain open.':'Publication metadata is inconsistent; retention and qualification are unverified.';
  }
  async function load(kind,options={}){

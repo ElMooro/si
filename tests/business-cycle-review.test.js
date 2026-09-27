@@ -30,6 +30,16 @@ test('retention declarations never become original-source or browser replay proo
  p.publication_context={contract:'business-cycle-derived-publication.v1',public_projections_atomic:false,original_source_replay_verified:false,compiler_sha256:Object.fromEntries(['lambda_function.py','cycle_composite.py','_fred_shim.py','business_cycle_store.py','managed_secret.py'].map(k=>[k,'a'.repeat(64)]))};
  assert.match(v.publicationStatus(p),/not been replayed/);p.calls_eligible=true;assert.match(v.publicationStatus(p),/inconsistent/);
 });
+
+test('native acquisition declarations require the complete six-file compiler and remain unverified by the browser',()=>{
+ const p=current();p.contract='global-business-cycle-research.v1';for(const k of ['forecast_qualified','calls_eligible','sizing_eligible','execution_eligible'])p[k]=false;
+ const names=['lambda_function.py','cycle_composite.py','_fred_shim.py','business_cycle_store.py','managed_secret.py','business_cycle_acquisition.py'];
+ p.publication_context={contract:'business-cycle-derived-publication.v1',public_projections_atomic:false,original_source_replay_verified:false,compiler_sha256:Object.fromEntries(names.map(k=>[k,'a'.repeat(64)])),native_acquisition:{contract:'business-cycle-native-acquisition.v1',operations:1264,provider_attempts:40,warehouse_objects:1254,manifest:{sha256:'b'.repeat(64),bytes:400000,key:'audit-private/20260909-originals/global-business-cycle-research/'+'b'.repeat(64)+'.bin'},original_source_replay_verified:false,point_in_time_verified:false}};
+ assert.match(v.publicationStatus(p),/1254 stored warehouse objects/);assert.match(v.publicationStatus(p),/not been replayed by this browser/);
+ for(const mutate of [q=>delete q.publication_context.compiler_sha256['business_cycle_acquisition.py'],q=>q.publication_context.native_acquisition.manifest.key='private/account.json',q=>q.publication_context.native_acquisition.warehouse_objects=true,q=>q.publication_context.native_acquisition.original_source_replay_verified=true]){
+  const bad=structuredClone(p);mutate(bad);assert.match(v.publicationStatus(bad),/inconsistent/);
+ }
+});
 test('bounded loader rejects HTTP denial, malformed UTF-8, duplicate fields and hanging streams with no fallback mutation',async()=>{
  let calls=0;await assert.rejects(v.load('other',{fetcher:()=>calls++}));assert.equal(calls,0);
  const out=await v.load('current',{fetcher:async(url,options)=>{assert.equal(url,v.PATHS.current+'?exact=1&nogen=1');assert.equal(options.redirect,'error');return new Response('{"zero":0}');}});assert.equal(out.zero,0);

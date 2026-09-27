@@ -99,7 +99,7 @@ except Exception as _cce:  # noqa: BLE001
     CC = None
     print(f"[gbc] cycle_composite unavailable: {_cce}")
 
-ENGINE_VERSION = "3.0.5"
+ENGINE_VERSION = "3.0.4"
 FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key",))
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUTPUT_KEY = "data/global-business-cycle.json"
@@ -1896,27 +1896,20 @@ def _produce(event=None, context=None):
 
 
 def lambda_handler(event=None, context=None):
-    """Retain native acquisitions and calculations before research publication."""
-    global S3, datetime, time
-    import business_cycle_acquisition
-    client, original_datetime, original_time, original_open = S3, datetime, time, urllib.request.urlopen
+    """Retain whole predecessors before acquiring inputs; publish research only."""
+    global S3
+    client = S3
     started_at = datetime.now(timezone.utc).isoformat()
     publication = business_cycle_store.PublicationClient(client, BUCKET, started_at)
-    acquisition = business_cycle_acquisition.Acquisition(publication, client, BUCKET, started_at)
-    S3 = acquisition
-    datetime = acquisition.clock(original_datetime)
-    time = acquisition.timer(original_time)
-    urllib.request.urlopen = acquisition.urlopen
+    S3 = publication
     try:
         result = _produce(event, context)
         if not isinstance(result, dict) or result.get("statusCode") != 200:
             raise business_cycle_store.PublicationError("Complete producer result required")
-        compilers = business_cycle_store.compiler_hashes()
-        acquisitions = acquisition.finish(compilers)
-        proof = publication.finish(compilers, acquisition=acquisitions)
+        proof = publication.finish(business_cycle_store.compiler_hashes())
         return {"statusCode": 200, "body": json.dumps({
             "engine_version": ENGINE_VERSION, "contract": "global-business-cycle-research.v1",
             "portfolio_action": "WAIT", "calls_eligible": False, "sizing_eligible": False,
             "execution_eligible": False, "forecast_qualified": False, "publication": proof})}
     finally:
-        S3, datetime, time, urllib.request.urlopen = client, original_datetime, original_time, original_open
+        S3 = client

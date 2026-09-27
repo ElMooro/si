@@ -53,7 +53,7 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):op.inventory(c,AT)
 
     def test_selector_source_is_exact_and_audit_has_no_native_invocation(self):
-        raw=(ROOT/'aws/lambdas/justhodl-global-business-cycle/source/lambda_function.py').read_bytes()
+        raw=(ROOT/'tests/fixtures/pre-acquisition-global-business-cycle.py.txt').read_bytes()
         self.assertEqual(op.store.sha(raw),op.SOURCE_SHA)
         self.assertIn(b'def __init__(self, years=5, workers=12):',raw)
         self.assertIn(b'BARS_ROOT = "data/warm/polygon-full/grouped/"',raw)

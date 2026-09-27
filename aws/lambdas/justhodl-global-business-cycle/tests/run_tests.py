@@ -190,4 +190,6 @@ class Tests(unittest.TestCase):
             self.assertTrue(all(v['tilt'] is None for v in result['interpretation']['country_tilts'].values()))
 
 
-if __name__=='__main__':unittest.main(verbosity=2)
+if __name__=='__main__':
+    from test_acquisition import AcquisitionTests
+    unittest.main(verbosity=2)

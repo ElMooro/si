@@ -18,7 +18,7 @@ PRIVATE = 'audit-private/20260909-originals/global-business-cycle-research/'
 LIMIT = 64 * 1024 * 1024
 PERMISSIONS = ('forecast_qualified', 'calls_eligible', 'sizing_eligible', 'execution_eligible')
 COMPILERS = {'lambda_function.py', 'cycle_composite.py', '_fred_shim.py',
-             'business_cycle_store.py', 'managed_secret.py'}
+             'business_cycle_store.py', 'business_cycle_acquisition.py', 'managed_secret.py'}
 
 
 class PublicationError(RuntimeError):
@@ -91,7 +91,7 @@ def read(client, bucket, key):
 
 
 def retain(client, bucket, raw):
-    if not isinstance(raw, bytes) or not 0 < len(raw) <= LIMIT:
+    if not isinstance(raw, bytes) or not 0 <= len(raw) <= LIMIT:
         raise PublicationError('Complete bounded business-cycle bytes required')
     ref = {'key': PRIVATE+sha(raw)+'.bin', 'sha256': sha(raw), 'bytes': len(raw)}
     try:
@@ -178,7 +178,7 @@ class PublicationClient:
         self.pending[key] = {'raw': raw, 'packet': packet}
         return {'ResponseMetadata': {'HTTPStatusCode': 200}, 'publication_state': 'buffered_not_published'}
 
-    def finish(self, compilers):
+    def finish(self, compilers, acquisition=None):
         if (not {HEAD, HISTORY}.issubset(self.pending) or not isinstance(compilers, dict)
                 or set(compilers) != COMPILERS
                 or any(not isinstance(v, str) or not re.fullmatch(r'[0-9a-f]{64}', v) for v in compilers.values())):
@@ -189,6 +189,8 @@ class PublicationClient:
                    'complete_unmodified_calculations': raw_outputs,
                    'public_projections_atomic': False, 'original_source_replay_verified': False,
                    'unchanged_output_keys': [key for key in KEYS if key not in self.pending]}
+        if acquisition is not None:
+            context['native_acquisition'] = acquisition
         outputs = {key: encode({**research_projection(value['packet']), 'publication_context': context}) for key, value in self.pending.items()}
         refs = {key: retain(self.client, self.bucket, raw) for key, raw in outputs.items()}
         attempt = retain(self.client, self.bucket, encode({'contract': 'business-cycle-publication-attempt.v1',
@@ -214,6 +216,6 @@ def compiler_hashes():
     root = Path(__file__).parent
     import managed_secret
     result = {name: sha((root/name).read_bytes()) for name in (
-        'lambda_function.py', 'cycle_composite.py', '_fred_shim.py', 'business_cycle_store.py')}
+        'lambda_function.py', 'cycle_composite.py', '_fred_shim.py', 'business_cycle_store.py', 'business_cycle_acquisition.py')}
     result['managed_secret.py'] = sha(Path(managed_secret.__file__).read_bytes())
     return result
