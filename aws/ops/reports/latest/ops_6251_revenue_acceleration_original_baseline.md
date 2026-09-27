@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 4.8s  
+**Finished:** 2026-09-27T22:47:43+00:00  
+
+## Data
+
+| account_reads | actual_producers | all_denied | anonymous_origins_checked | attempt_outcome_counts | baseline | failures | history_writes | learning_log_reads | native_invocations | notifications_sent | originals | protected_paths_checked | provider_requests | public_writes | schedule_changes | scope | source_checks |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | {'justhodl-revenue-acceleration': {'status': 'whole_actual_package_retained', 'runtime': {'FunctionName': 'justhodl-revenue-acceleration', 'CodeSha256': 'M8cgLyAb84FSCnjuMEFn8zvKXwCIugIfZRUvSVxQfOs=', 'Runtime': 'python3.12', 'Handler': 'lambda_function.lambda_handler', 'Timeout': 600, 'MemorySize': 1024, 'Architectures': ['x86_64'], 'Role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'EphemeralStorage': {'Size': 512}, 'LastModified': '2026-09-09T03:36:53.000+0000'}, 'whole_zip': {'key': 'audit-private/20260909-originals/shipping-consumer-research/33c7202f201bf381520a78ee304167f33bca5f0088ba021f65152f495c507ceb.bin', 'sha256': '33c7202f201bf381520a78ee304167f33bca5f0088ba021f65152f495c507ceb', 'bytes': 156968}, 'schedules': [], 'active_alias': None, 'repository_config_present': False, 'code_matches_repository': True, 'source_files_checked': 2, 'source_differences': {}}} | True | 6 | {'404': 3, '403': 3} | {'key': 'audit-private/20260909-originals/revenue-acceleration-research/dc6592c7d818dc0ccd117208c066f2bf69e189595346e339bfc4363427f68daa.bin', 'bytes': 8124, 'sha256': 'dc6592c7d818dc0ccd117208c066f2bf69e189595346e339bfc4363427f68daa'} | [] | 0 | 0 | 0 | 0 | {'data/revenue-acceleration.json': {'status': 'whole_object_retained', 'original': {'key': 'audit-private/20260909-originals/revenue-acceleration-research/cac94a32e226dd2a1e039e8277714a6346332e193d300f649079dfdf723626a8.bin', 'bytes': 15719, 'sha256': 'cac94a32e226dd2a1e039e8277714a6346332e193d300f649079dfdf723626a8'}, 'etag': '"af6e5272ca9a57acf528dfd5c248867f"', 'last_modified': '2026-09-27T11:00:14+00:00', 'original_provider_verified': False}} | 3 | 0 | 0 | 0 | Whole deployed packages and one exact existing public Revenue Acceleration research packet only. Provider response originals, acquisition completeness, original vintages, donor quality, common input ancestry, category joins, source timing, score calibration and signal performance remain unverified. | {'justhodl-revenue-acceleration': {'bytes': 17886, 'sha256': '4f94283bae24c7f5f2364bdc4fa5e261025b15b75dbbe84882da3f7aece223f8', 'imported_or_executed': False}} |
+
+## Log
+
