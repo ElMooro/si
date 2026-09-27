@@ -17,11 +17,32 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-earnings-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-earnings-observations.js'),'utf8'),ctx);
  for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))vm.runInContext(m[1],ctx);
  return{ctx,get,calls,document,intervals,listeners,html};
 }
 const raw=p=>({packet:p,raw:JSON.stringify(p)});
 const quality=()=>({as_of:'2026-09-27T12:00:00Z',all_ranked:[{ticker:'TEN',name:'A > B',sloan_accruals_pct_assets:'10',cash_conversion_ratio:0,quality_score:'10'},{ticker:'TWO',sloan_accruals_pct_assets:'2',cash_conversion_ratio:false,quality_score:'2'},{ticker:'MISSING',sloan_accruals_pct_assets:' ',cash_conversion_ratio:'',quality_score:null},{ticker:'ZERO',sloan_accruals_pct_assets:0,quality_score:0},null],unknown:{retain:true}});
+
+test('both accounting pages use native issuer occurrences with explicit units and periods',async()=>{
+ const p={measurement_contract:'earnings-accounting-measurements.v1',as_of:'2026-09-27T12:00:00Z',all_ranked:[],issuer_rows:[
+  {ticker:'ZERO',name:'A > B',quality_score:999,reported_currency:'JPY',amounts:{net_income:10,operating_cash_flow:0,free_cash_flow_derived:-2},measurements:{earnings_cash_gap_pct_end_assets:10,cash_flow_accruals_pct_average_assets:5,cash_conversion_ratio:0},windows:{current:{income:{start_date:'2025-07-01',end_date:'2026-06-30'}}},status:'aligned_reported_accounting_windows'},
+  {ticker:'ZERO',amounts:{},measurements:{},windows:{},status:'accounting_alignment_unavailable'},null]};
+ for(const file of ['earnings-quality.html','cash-profitability.html']){
+  const s=page(file,async()=>raw(p));await flush();const html=s.get('board').innerHTML;
+  assert.equal(s.get('original').textContent,JSON.stringify(p));assert.match(html,/JPY/);assert.match(html,/2025-07-01/);assert.match(html,/2026-06-30/);
+  assert.match(html,/0\.00/);assert.match(html,/issuer_rows\[0\]/);assert.match(html,/issuer_rows\[1\]/);assert.ok(!html.includes('999'));
+  assert.match(s.get('kpis').textContent+html,/1 malformed/);assert.match(html,/accounting_alignment_unavailable/);
+ }
+});
+
+test('native display projections never recover an unavailable source from a legacy ranking',()=>{
+ const M=require('../jh-earnings-observations.js');
+ assert.deepEqual(M.rows({measurement_contract:'earnings-accounting-measurements.v1',issuer_rows:[],all_ranked:[{ticker:'BAD'}]}),[]);
+ assert.deepEqual(M.rows({measurement_contract:'earnings-accounting-measurements.v1',issuer_rows:{bad:true}}),{bad:true});
+ assert.equal(M.rows({top_20_high_quality:[{ticker:'A'}]})[0].source_record,'top_20_high_quality[0]');
+ const original={ticker:'A',quality_score:0};assert.match(M.rows({all_ranked:[original]})[0].measurement_status,/Legacy/);assert.deepEqual(original,{ticker:'A',quality_score:0});
+});
 
 test('blank, boolean, compound, unsafe, overflow and underflow inputs cannot become measured zero',()=>{
  for(const v of [null,undefined,'',' ',false,true,[],{},'0x10','Infinity',Infinity,'1e999','1e-999',9007199254740992]){

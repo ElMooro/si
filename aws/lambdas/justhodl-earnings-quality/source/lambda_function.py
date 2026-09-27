@@ -45,7 +45,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/earnings-quality.json"
 SSM_STATE_KEY = "/justhodl/earnings-quality/state"
@@ -302,7 +302,7 @@ def analyze_ticker(symbol):
     }
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     start = time.time()
     try:
         universe = load_universe()
@@ -457,3 +457,103 @@ def lambda_handler(event, context):
         except Exception:
             pass
         return {"statusCode": 500, "body": json.dumps({"error": str(e)[:300]})}
+
+
+# Full accounting research; the original scoring/notifying implementation is retained above.
+from datetime import datetime, timezone
+from earnings_measurements import CONTRACT, decode, number, dossier
+
+
+def _accounting_fetch(url):
+    error_type = None
+    for i in range(3):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "justhodl/1.0"})
+            with urllib.request.urlopen(request, timeout=15) as response:
+                raw = response.read()
+            try: parsed = decode(raw)
+            except (ValueError, TypeError) as exc:
+                return {"status": "invalid_json", "response": None, "error_type": type(exc).__name__}
+            return {"status": "received", "response": parsed}
+        except Exception as exc:
+            error_type = type(exc).__name__
+            # Preserve the existing maximum attempt count, but never retry a rate limit.
+            if getattr(exc, "code", None) == 429: break
+            time.sleep(0.5 * (i + 1))
+    return {"status": "unavailable", "response": None, "error_type": error_type}
+
+
+def _accounting_universe():
+    try:
+        raw = s3.get_object(Bucket=S3_BUCKET, Key="data/master-ranker.json")["Body"].read()
+    except Exception as exc:
+        if str(getattr(exc, "response", {}).get("Error", {}).get("Code")) not in ("404", "NoSuchKey"): raise
+        packet = None
+    else:
+        packet = decode(raw)
+        if not isinstance(packet, dict): raise ValueError("Whole public universe required")
+    picks = None
+    if packet:
+        for key in ("picks", "ranks", "universe", "results"):
+            if key in packet and packet[key] is not None and not isinstance(packet[key], list): raise ValueError("Malformed original universe population")
+        picks = packet.get("picks") or packet.get("ranks") or packet.get("universe") or packet.get("results")
+        if picks is not None and not isinstance(picks, list): raise ValueError("Malformed original universe population")
+    names = []
+    for row in (picks or [])[:300]:
+        value = (row.get("ticker") or row.get("symbol")) if isinstance(row, dict) else row
+        if isinstance(value, str) and value: names.append(value.upper())
+    fallback = not names
+    universe_names = list(FALLBACK_UNIVERSE) if fallback else names[:200]
+    return {"original": packet, "fallback_used": fallback, "universe_names": universe_names,
+            "requested": universe_names[:120], "not_attempted": universe_names[120:],
+            "upstream_universe_complete": False, "request_limit": 120}
+
+
+def _accounting_acquire(symbol):
+    import re
+    unavailable = {"status": "not_requested_quote_gate", "response": None}
+    responses = {key: dict(unavailable) for key in ("quote", "income", "cash_flow", "balance_sheet")}
+    if not isinstance(symbol, str) or not re.fullmatch('[A-Z0-9][A-Z0-9.-]{0,15}', symbol):
+        responses['quote']['status'] = 'invalid_symbol_not_requested'; return responses
+    q = urllib.parse.quote_plus(symbol)
+    responses['quote'] = _accounting_fetch(f"https://financialmodelingprep.com/stable/quote?symbol={q}&apikey={FMP_KEY}")
+    raw = responses['quote']['response']
+    first = raw[0] if isinstance(raw, list) and raw and isinstance(raw[0], dict) else {}
+    cap = number(first.get('marketCap'))
+    # Preserve existing sampling/request scope; this gate does not verify USD value.
+    if cap is None or cap < 2_000_000_000: return responses
+    for key, endpoint in (("income", "income-statement"), ("cash_flow", "cash-flow-statement"), ("balance_sheet", "balance-sheet-statement")):
+        responses[key] = _accounting_fetch(f"https://financialmodelingprep.com/stable/{endpoint}?symbol={q}&period=quarter&limit=8&apikey={FMP_KEY}")
+    return responses
+
+
+def lambda_handler(event=None, context=None):
+    started=time.time(); today=datetime.now(timezone.utc).date().isoformat(); plan=_accounting_universe()
+    acquired={}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures={pool.submit(_accounting_acquire,symbol):i for i,symbol in enumerate(plan['requested'])}
+        for future in as_completed(futures):
+            index=futures[future]
+            try: acquired[index]=future.result()
+            except Exception as exc:
+                acquired[index]={key:{'status':'unavailable','error_type':type(exc).__name__,'response':None}
+                                 for key in ('quote','income','cash_flow','balance_sheet')}
+    rows=[dict(dossier(symbol,acquired[i],today),request_index=i) for i,symbol in enumerate(plan['requested'])]
+    if not any(any(isinstance(a.get('response'),list) and a['response'] for a in row['acquisitions'].values()) for row in rows):
+        return {'statusCode':503,'body':json.dumps({'status':'previous_publication_preserved_no_received_records'})}
+    stamp=datetime.now(timezone.utc).isoformat()
+    out={'engine':'earnings-quality','version':VERSION,'measurement_contract':CONTRACT,'generated_at':stamp,'as_of':stamp,
+         'checked_as_of':today,'universe_plan':plan,'issuer_rows':rows,'n_received':len(rows),
+         'n_aligned':sum(row['windows']['current']['aligned'] for row in rows),'universe_size':len(plan['universe_names']),
+         'state':'RESEARCH_ONLY','signal_strength':None,'n_qualified':0,'n_high_quality':None,'n_low_quality':None,'n_mid_quality':None,
+         'top_20_high_quality':[],'top_10_low_quality_avoid':[],'all_ranked':[],'trade_tickets':[],'n_tickets':0,
+         'call':None,'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,
+         'quality':{'status':'partial','original_provider_bytes_replayed':False,'original_sec_filings_replayed':False,
+                    'point_in_time_availability_verified':False,'accounting_audit':False},
+         'methodology':'Four explicit contiguous quarters, matched income/cash-flow issuer, currency, fiscal periods and provider filing identity. Balance-sheet endpoints matched separately. Zero OCF is not an absent alias. Cash conversion uses positive NI; end-assets and average-assets formulas remain distinct.',
+         'sources':['data/master-ranker.json','FMP quote','FMP quarterly income-statement','FMP quarterly cash-flow-statement','FMP quarterly balance-sheet-statement'],
+         'why_now':'Descriptive accounting observations only. Source replay, vintages, normalization and return predictability require further evidence.',
+         'notifications_sent':0,'signals_logged':0,'run_seconds':round(time.time()-started,2)}
+    body=json.dumps(out,allow_nan=False,separators=(',',':')).encode('utf-8')
+    s3.put_object(Bucket=S3_BUCKET,Key=S3_KEY,Body=body,ContentType='application/json',CacheControl='public, max-age=3600')
+    return {'statusCode':200,'body':json.dumps({'received':len(rows),'aligned':out['n_aligned']})}

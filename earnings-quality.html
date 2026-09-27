@@ -13,36 +13,38 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-
 td.l,th.l{text-align:left}
 .pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
-#board{max-width:100%;overflow:auto}#board table{min-width:740px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+#board{max-width:100%;overflow:auto}#board table{min-width:1300px}#board td{white-space:nowrap}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Earnings quality</h1>
-<p class="sub">Sloan accruals, cash conversion, and Beneish DSRI/GMI from the live earnings-quality feed. Click any column to sort ascending, click again to sort descending. Blank is missing, not zero.</p>
+<p class="sub">Inspect reported accounting amounts, cash conversion and dated statement comparisons. Period-end and average-assets formulas remain distinct. Legacy scores are unverified; no fraud finding, return forecast or portfolio allocation follows from this table.</p>
 <input id="q" aria-label="Filter ticker or company" placeholder="filter ticker" autocomplete="off">
 <div id="board" role="region" aria-label="Reported earnings quality rows" tabindex="0">Loading /data/earnings-quality.json</div>
 <details><summary>Complete received earnings-quality packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
 <div class="foot"><b>Built for:</b> seeing whether earnings are cash or accrual-heavy before treating growth as real.<br>
-<b>Data:</b> /data/earnings-quality.json (ttm NI, OCF, FCF, Sloan % assets, cash conversion, DSRI, GMI, quality score).<br>
-<b>Formulas:</b> Sloan = (NI − OCF) / assets when the producer tagged it. Cash conversion = OCF / NI when tagged. DSRI/GMI are the Beneish components on the row only.<br>
+<b>Data:</b> /data/earnings-quality.json (reported NI, OCF, derived FCF, currency, dated asset-denominator gaps, cash conversion and component ratios).<br>
+<b>Formulas:</b> End-assets gap = (NI − OCF) / period-end assets. Average-assets gap uses the mean of opening and closing assets. Cash conversion requires positive NI. DSRI/GMI are descriptive component ratios, not a Beneish M-score or accounting audit.<br>
 <b>Sort:</b> header click toggles asc/desc. Nulls sort last. Not a full Beneish M-score, ARR, or guidance.</div>
 </div>
 <script src="/jh-table-values.js"></script>
+<script src="/jh-earnings-observations.js"></script>
 <script>
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function n(v,d){return JHTableValues.format(v,d==null?1:d);}
 function cls(v){return JHTableValues.sign(v,"neg","pos");}
 function cmp(a,b,k,dir){
-  return JHTableValues.compare(a,b,k,dir,k==="ticker"||k==="name"?"text":"number");
+  return JHTableValues.compare(a,b,k,dir,["ticker","name","reported_currency","window_start","window_end","measurement_status","source_record"].includes(k)?"text":"number");
 }
 (async function(){
-  var d=null, SORT="quality_score", DIR=-1;
+  var d=null, SORT="ticker", DIR=1;
   try{var received=await JHTableValues.load("/data/earnings-quality.json");d=received.packet;document.getElementById("original").textContent=received.raw;}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
-  var rows=(d&&(d.all_ranked||d.top_20_high_quality))||[];
+  var rows=JHEarningsObservations.rows(d);
   if(!Array.isArray(rows)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
   var malformed=rows.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
   rows=rows.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});
-  var cols=[["ticker","Ticker","l"],["name","Name","l"],["sloan_accruals_pct_assets","Sloan % assets",""],["cash_conversion_ratio","Cash conv",""],["dsri_beneish","DSRI",""],["gmi_beneish","GMI",""],["quality_score","Quality",""]];
+  var cols=[["ticker","Ticker","l"],["name","Name","l"],["sloan_accruals_pct_assets","End-assets gap %",""],["cash_conversion_ratio","Cash conv",""],["dsri_beneish","DSRI",""],["gmi_beneish","GMI",""],["quality_score","Legacy score (unverified)",""]];
+  cols=cols.concat([["reported_currency","Currency","l"],["reported_net_income","Reported NI",""],["reported_ocf","Reported OCF",""],["reported_fcf","Derived FCF",""],["average_assets_gap_pct","Average-assets gap %",""],["window_start","Window start","l"],["window_end","Window end","l"],["measurement_status","Measurement status","l"],["source_record","Source record","l"]]);
   function paint(){
     var q=(document.getElementById("q").value||"").toUpperCase();
     var list=rows.filter(function(x){return !q||String(x.ticker||"").toUpperCase().indexOf(q)>=0||String(x.name||"").toUpperCase().indexOf(q)>=0;});
@@ -57,7 +59,8 @@ function cmp(a,b,k,dir){
       h+="<td>"+n(x.cash_conversion_ratio,2)+"</td>";
       h+="<td>"+n(x.dsri_beneish,2)+"</td>";
       h+="<td>"+n(x.gmi_beneish,2)+"</td>";
-      h+="<td>"+n(x.quality_score,1)+"</td></tr>";
+      h+="<td>"+n(x.quality_score,1)+"</td>";
+      cols.slice(7).forEach(function(c){h+="<td>"+(c[2]==="l"?esc(typeof x[c[0]]==="string"?x[c[0]]:""):n(x[c[0]],2))+"</td>";});h+="</tr>";
     });
     document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" received rows. "+malformed+" malformed rows retained in the original packet. Producer publication "+esc(d.as_of||"unavailable")+"; underlying period freshness is unverified. Click headers or press Enter/Space to sort.</p>";
     JHTableValues.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=k==="ticker"||k==="name"?1:-1;}paint();});
