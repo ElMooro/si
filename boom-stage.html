@@ -1,113 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Boom-Stage Lens · JustHodl.AI</title>
-<style>
-:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
-h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
-.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-.life{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:ui-monospace,Menlo,monospace;font-size:11px}
-.stagebox{border:1px solid var(--border);border-radius:9px;padding:8px 12px;min-width:150px}
-.pair{border-left:3px solid var(--border);padding:10px 12px;margin:10px 0;background:rgba(255,255,255,.02);border-radius:0 10px 10px 0}
-.leg{display:inline-block;margin-right:18px;font-size:12px}
-.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
-a{color:var(--accent)}
-.arrow{color:var(--text-mute)}
-</style>
-</head>
-<body>
-<div class="wrap">
-<h1>🧭 Boom-Stage Lens</h1>
-<div class="sub">Is a boom EARLY or PLATEAUING? Physical proof: cross VALUE signals (export value, orders, credit) against VOLUME signals (AIS port calls, air cargo). A boom where price does all the work and volume hasn't expanded is in its pricing-power phase — not at plateau. Plateaus look like the opposite: volume caught up, value cooling. Daily 12:30 UTC.</div>
-<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
-<div class="sec">⚡ Divergence Radar — same commodity, opposite physical flow</div>
-<div class="card" id="diverge"></div>
-<div class="sec">📊 Breadth — is the world price-led or volume-led?</div>
-<div class="card" id="breadth"></div>
-<div class="sec">🚨 Signals — transitions &amp; sliding-watches</div>
-<div class="card" id="signals"></div>
-<div class="sec">Lifecycle — where each pair sits</div>
-<div class="card"><div class="life" id="life"></div></div>
-<div class="sec">Country-Industry Pairs — value leg × volume leg</div>
-<div id="pairs"></div>
-<div class="sec">Doctrine &amp; Method</div>
-<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
-<div class="sec">Cross-links</div>
-<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Volume legs: <a href="/portwatch.html">PortWatch Export-Nations Pulse</a> · <a href="/freight-pulse.html">US Freight &amp; Air Cargo</a>. Value legs: <a href="/macro-leads.html">Macro Leads (KR flash · TW orders · CN TSF)</a>. Industry context: <a href="/boom-radar.html">Boom Radar</a>.</div>
-<div class="foot" id="foot"></div>
-</div>
-<script src="/jh-nav-drawer.js" defer></script>
-<script>
-(async function(){try{
-var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
-var SC={SUPPLY_SHOCK_PRICING:RED,EARLY_PRICE_LED:GRN,BROADENING:GRN,PLATEAU_FORMING:AMB,MIXED:NEU,VALUE_LED_DOWNTURN:AMB,CONTRACTION:RED,NA:MUT};
-var ORDER=['EARLY_PRICE_LED','BROADENING','SUPPLY_SHOCK_PRICING','PLATEAU_FORMING','VALUE_LED_DOWNTURN','CONTRACTION'];
-var DESC={SUPPLY_SHOCK_PRICING:'price UP · volume COLLAPSING — supply shock (inflationary)',EARLY_PRICE_LED:'value surging · volume flat — pricing power',BROADENING:'value AND volume up — capex phase',PLATEAU_FORMING:'volume caught up · value cooling',VALUE_LED_DOWNTURN:'value falls first · margin squeeze',CONTRACTION:'both falling — demand fade'};
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/boom-stage.json?t='+Date.now());
-if(!r.ok){document.getElementById('hero').innerHTML='<span class="mono">feed unavailable</span>';return;}
-var b=await r.json();
-var hp=(b.pairs||[]).filter(function(p){return p.stage==='EARLY_PRICE_LED';})[0];
-var M=b.macro||{};
-var RC={'STAGFLATIONARY SQUEEZE':RED,'GLOBAL SLOWDOWN':RED,'INFLATIONARY BOOM':AMB,'GOLDILOCKS':GRN,'MIXED / TRANSITIONAL':NEU};
-function dial(lbl,val,band,col){return '<div style="flex:1;min-width:230px"><div class="mono" style="font-size:11px;color:'+MUT+'">'+lbl+'</div><div class="mono" style="font-size:26px;font-weight:800;color:'+col+'">'+band+' <span style="font-size:14px;color:'+MUT+'">'+val+'/100</span></div><div style="height:7px;background:#1c2330;border-radius:4px;margin-top:5px;overflow:hidden"><div style="width:'+val+'%;height:100%;background:'+col+'"></div></div></div>';}
-var sCol=M.slowdown_risk>=70?RED:M.slowdown_risk>=40?AMB:GRN;
-var iCol=M.inflation_pressure>=70?RED:M.inflation_pressure>=40?AMB:GRN;
-document.getElementById('hero').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+'">GLOBAL REGIME</div>'+'<div class="mono" style="font-size:24px;font-weight:800;color:'+(RC[M.regime]||NEU)+';margin-bottom:4px">'+(M.regime||'—')+'</div>'+'<div style="font-size:14px;line-height:1.6;color:var(--text);margin-bottom:14px">'+(M.plain_english||'')+'</div>'+'<div style="display:flex;gap:26px;flex-wrap:wrap">'+dial('GLOBAL SLOWDOWN RISK',M.slowdown_risk,M.slowdown_band,sCol)+dial('INFLATION PRESSURE',M.inflation_pressure,M.inflation_band,iCol)+'</div>'+'<div class="mono" style="font-size:10.5px;color:'+MUT+';margin-top:10px">'+(M.growth_canaries||0)+' growth canaries \u00b7 '+(M.inflation_canaries||0)+' inflation canaries'+((M.inventory_tilt!=null)?(' \u00b7 inventory/utilization tilt '+(M.inventory_tilt>0?'+':'')+M.inventory_tilt+' (build/idle = slowdown-ward)'):'')+' \u00b7 dials move as pairs change stage</div>';
-var _unusedHero='<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:baseline">'
-+'<div><div class="mono" style="font-size:11px;color:'+MUT+'">HEADLINE</div><div class="mono" style="font-size:19px;font-weight:800;color:'+(hp?GRN:NEU)+'">'+(b.headline||'no EARLY_PRICE_LED pair right now')+'</div></div>'
-+(hp?('<div class="mono" style="font-size:12px;color:'+MUT+'">value '+(hp.value.yoy_pct>0?'+':'')+hp.value.yoy_pct+'% vs volume '+(hp.volume.vs_baseline_pct>0?'+':'')+hp.volume.vs_baseline_pct+'% — the divergence IS the proof</div>'):'')
-+'</div>';
-var dv=b.divergences||[];
-document.getElementById('diverge').innerHTML=(dv.length?dv.map(function(x){return '<div style="border-left:3px solid '+RED+';padding:8px 12px;margin:6px 0;font-family:ui-monospace,Menlo,monospace"><div style="font-size:13px;font-weight:800;color:'+RED+'">'+x.commodity.toUpperCase()+' \u2014 '+x.spread_pp+'pp SPREAD</div><div style="font-size:12px;margin-top:4px">'+x.read+'</div><div style="font-size:11px;color:'+MUT+';margin-top:4px">trade: '+x.trade+'</div></div>';}).join(''):'<span class="mono" style="color:'+MUT+';font-size:12px">no same-commodity divergence \u2265 25pp \u2014 physical flows are globally consistent right now</span>');
-var bw=b.breadth;
-document.getElementById('breadth').innerHTML=(bw?('<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:baseline"><div><div class="mono" style="font-size:11px;color:'+MUT+'">PRICE-LED SHARE</div><div class="mono" style="font-size:26px;font-weight:800;color:'+(bw.price_led_share>=50?RED:GRN)+'">'+bw.price_led_share+'%</div></div><div style="flex:1;min-width:280px"><div class="mono" style="font-size:13px;font-weight:700;color:'+(bw.price_led_share>=50?RED:GRN)+'">'+bw.read+'</div><div class="mono" style="font-size:11px;color:'+MUT+';margin-top:4px">'+bw.price_led_n+' price-led ('+bw.price_led.join(', ')+') \u00b7 '+bw.volume_led_n+' volume-led ('+(bw.volume_led.join(', ')||'none')+') \u00b7 '+bw.falling_n+' falling ('+(bw.falling.join(', ')||'none')+')</div></div></div>'+'<div class="mono" style="font-size:10.5px;color:'+MUT+';margin-top:8px">Price-led means the value leg is doing the work while physical volume is flat or falling \u2014 activity you can see in prices but not in ships. A high share is the classic late-cycle / supply-constrained signature.</div>'):'<span class="mono" style="color:'+MUT+';font-size:12px">breadth building\u2026</span>');
-var sg=b.signals||[];
-document.getElementById('signals').innerHTML=(sg.length?sg.map(function(x){var c=x.type==='STAGE_CHANGE'?RED:x.type==='SLIDING_WATCH'?AMB:GRN;var t=x.trade||{};return '<div style="border-left:3px solid '+c+';padding:7px 10px;margin:6px 0;font-family:ui-monospace,Menlo,monospace;font-size:12px"><b style="color:'+c+'">'+(x.type==='STAGE_CHANGE'?'\uD83D\uDEA8 ':x.type==='SLIDING_WATCH'?'\u26A0\uFE0F ':'\uD83D\uDFE2 ')+x.type+'</b> '+x.line+(t.bias?('<div style="color:'+MUT+';font-size:11px;margin-top:3px">trade: <b style="color:'+c+'">'+t.bias+'</b> '+t.instruments+' \u2014 '+t.line+'</div>'):'')+'</div>';}).join(''):'<span class="mono" style="color:'+MUT+';font-size:12px">no transitions or sliding-watches today \u2014 '+(b.pairs||[]).length+' pairs steady. '+(b.signals_note||'')+'</span>');
-document.getElementById('life').innerHTML=ORDER.map(function(st,i){
- var here=(b.pairs||[]).filter(function(p){return p.stage===st;});
- return '<div class="stagebox" style="border-color:'+(here.length?SC[st]:'#1c2330')+'">'
- +'<div style="font-weight:800;color:'+SC[st]+'">'+st+'</div>'
- +'<div style="color:'+MUT+';font-size:10px">'+DESC[st]+'</div>'
- +(here.length?('<div style="margin-top:5px">'+here.map(function(p){return '<span style="color:'+SC[st]+'">● '+p.id+'</span>';}).join(' ')+'</div>'):'')
- +'</div>'+(i<ORDER.length-1?'<span class="arrow">→</span>':'');}).join('');
-function card(p){
- var c=SC[p.stage]||NEU,v=p.value||{},vo=p.volume||{},cx=p.context||{};
- return '<div class="pair" style="border-left-color:'+c+'">'
- +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline"><b class="mono" style="font-size:14px">'+p.label+'</b><b class="mono" style="color:'+c+'">'+p.stage+'</b></div>'
- +((p.canary)?('<div class="mono" style="font-size:10.5px;color:'+MUT+'">'+((p.canary.type==='GROWTH')?'\uD83D\uDCC9':'\uD83D\uDD25')+' '+p.canary.type+' canary \u2014 '+p.canary.why+'</div>'):'')
- +'<div style="margin-top:6px" class="mono">'
- +'<span class="leg"><span style="color:'+MUT+'">VALUE</span> <b style="color:'+((v.yoy_pct||0)>=0?GRN:RED)+'">'+(v.yoy_pct==null?'building':((v.yoy_pct>0?'+':'')+v.yoy_pct+'%'))+'</b> <span style="color:'+MUT+';font-size:10.5px">'+(v.src||'')+'</span></span>'
- +'<span class="leg"><span style="color:'+MUT+'">VOLUME</span> <b style="color:'+((vo.vs_baseline_pct||0)>=0?NEU:RED)+'">'+(vo.vs_baseline_pct==null?'—':((vo.vs_baseline_pct>0?'+':'')+vo.vs_baseline_pct+'%'))+'</b> <span style="color:'+MUT+';font-size:10.5px">'+(vo.src||'')+((vo.n_ports)?(' · '+vo.n_ports+' ports'):'')+'</span></span>'
- +((cx.industry_boom_score!=null)?('<span class="leg"><span style="color:'+MUT+'">IND-BOOM</span> <b style="color:'+AMB+'">'+cx.industry_boom_score+'</b></span>'):'')
- +((cx.air_cargo!=null)?('<span class="leg"><span style="color:'+MUT+'">AIR</span> <b>'+(cx.air_cargo>0?'+':'')+cx.air_cargo+'%</b></span>'):'')
- +'</div>'
- +'<div class="mono" style="color:'+MUT+';font-size:11.5px;margin-top:5px">→ '+p.why+'</div>'
- +((p.trajectory)?('<div class="mono" style="font-size:11px;margin-top:4px;color:'+MUT+'">trajectory vs '+p.trajectory.prev_day+': value '+(p.trajectory.d_value>0?'\u2197 +':'\u2198 ')+p.trajectory.d_value+'pp \u00b7 volume '+(p.trajectory.d_volume>0?'\u2197 +':'\u2198 ')+p.trajectory.d_volume+'pp</div>'):'')
- +((p.choke_cause)?('<div class="mono" style="font-size:11px;margin-top:4px;color:'+RED+'">\u26D3\uFE0F cause: '+p.choke_cause+'</div>'):'')
- +((p.chokepoints&&p.chokepoints.length&&!p.choke_cause)?('<div class="mono" style="font-size:10.5px;margin-top:3px;color:'+MUT+'">\u26D3\uFE0F transit: '+p.chokepoints.map(function(h){return h.name+' '+(h.vs_baseline_pct>0?'+':'')+h.vs_baseline_pct+'%';}).join(' \u00b7 ')+'</div>'):'')
- +((p.maturity)?('<div class="mono" style="font-size:11px;margin-top:3px;color:'+((p.stage_days>=30)?AMB:MUT)+'">\u23F1 '+p.maturity+'</div>'):'')
- +((p.reclassified)?('<div class="mono" style="font-size:10.5px;margin-top:3px;color:'+AMB+'">\u21BB reclassified to INFLATION this run \u2014 supply bottleneck behaviour</div>'):'')
- +((p.factor4)?('<div class="mono" style="font-size:11px;margin-top:4px"><span style="color:'+MUT+'">\uD83D\uDCE6 4th factor:</span> <b style="color:'+((p.factor4.read==='INVENTORY_DRAW'||p.factor4.read==='RAMPING')?GRN:(p.factor4.read==='INVENTORY_BUILD'||p.factor4.read==='IDLING')?RED:NEU)+'">'+p.factor4.read+'</b> <span style="color:'+MUT+'">'+p.factor4.name+' '+p.factor4.level+(p.factor4.yoy_chg!=null?(' ('+(p.factor4.yoy_chg>0?'+':'')+p.factor4.yoy_chg+' yoy)'):'')+' \u2014 '+(p.factor4.means||'')+'</span></div>'):'')
- +((p.factor4_note)?('<div class="mono" style="font-size:11px;margin-top:3px;color:'+AMB+'">\u2713 '+p.factor4_note+'</div>'):'')
- +((p.trade)?('<div class="mono" style="font-size:11px;margin-top:4px"><span style="color:'+MUT+'">stage trade:</span> <b style="color:'+c+'">'+p.trade.bias+'</b> '+p.trade.instruments+' <span style="color:'+MUT+'">\u2014 '+p.trade.line+'</span></div>'):'')
- +((v.note)?('<div class="mono" style="color:'+MUT+';font-size:10.5px;margin-top:3px">'+v.note+'</div>'):'')
- +'</div>';}
-var isNA=function(p){return p.stage==='NA';};
-var naP=(b.pairs||[]).filter(isNA);
-var gp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='GROWTH'&&!isNA(p);});
-var ip=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='INFLATION'&&!isNA(p);});
-var dp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='DEFENSIVE'&&!isNA(p);});
-document.getElementById('pairs').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+';margin:4px 0">\uD83D\uDCC9 GROWTH CANARIES \u2014 physical demand for goods (slowdown detectors)</div>'+gp.map(card).join('')+'<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDD25 INFLATION CANARIES \u2014 input prices vs supply flow</div>'+ip.map(card).join('')+((naP.length)?('<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\u23F3 AWAITING DATA ('+naP.length+') \u2014 one leg still building; shown for transparency, excluded from dials</div>'+naP.map(function(p){return '<div class="mono" style="font-size:11.5px;color:'+MUT+';padding:4px 10px">'+p.label+' \u2014 '+((p.value||{}).yoy_pct==null?'value building':'volume leg missing')+'</div>';}).join('')):'')+((dp.length)?('<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDEE1\uFE0F DEFENSIVE \u2014 acyclical demand baseline</div>'+dp.map(card).join('')):'');
-document.getElementById('method').textContent=(b.method||'')+' — '+(b.doctrine||'');
-document.getElementById('foot').textContent='Feed data/boom-stage.json · legs from asia-leads / portwatch / china-liquidity / air-cargo / industry-boom · generated '+b.generated_at;
-}catch(e){console.error(e);}})();
-</script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="jh-primary-engine" content="justhodl-boom-stage">
+<title>Boom Stage Research · JustHodl.AI</title>
+<meta name="description" content="Inspect every country-industry pair, dated FRED measurement and source limitation before drawing an investment conclusion.">
+<link rel="stylesheet" href="/business-cycle-review.css">
+<style>button{font:inherit;color:#e6edfc;background:#192740;border:1px solid #667898;border-radius:6px;padding:10px 16px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible{outline:3px solid #9dbafa;outline-offset:3px}.paging{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:16px 0}td{overflow-wrap:anywhere;max-width:350px}</style>
+</head><body><header><a href="/">JustHodl.AI</a><nav aria-label="Related research"><a href="/physical-trade.html">Physical trade</a><a href="/portwatch.html">Shipping observations</a><a href="/calls.html">Calls</a></nav></header>
+<main id="boom-review"><div class="eyebrow">Economic research · definitions before inference</div><h1>What does the evidence actually measure?</h1>
+<p class="intro">Inspect the sources behind each country and industry comparison. Equity prices, export values, ship calls and US industrial series have different meanings. A difference between them does not, by itself, prove pricing power, a supply shock or a trade.</p>
+<section class="note"><h2>Research only · WAIT</h2><p>No validated forecast or portfolio change is supported by this model yet. WAIT means abstain. The original model stages and trade narratives remain available in the complete record, labeled as unqualified research.</p><p class="muted">Correct dates and arithmetic are necessary evidence. They do not establish causality, independent confirmation, investment edge or a suitable position size.</p></section>
+<button id="boom-refresh" type="button">Refresh public research</button><p id="boom-status" class="timestamp" role="status" aria-live="polite">Loading…</p><p id="boom-coverage">Unavailable</p>
+<section class="card"><h2>Every configured country–industry pair</h2><p class="muted">The reported percentage fields below belong to the inherited model. Their economic scope, denominators, timing and country/industry mappings remain unqualified. Missing pairs stay visible; zero and unavailable remain distinct.</p><label for="boom-search">Find a pair, country, industry or source<input id="boom-search" type="search"></label><p id="boom-count"></p><div id="boom-pairs" class="table-region" tabindex="0" aria-label="Complete country-industry pair population"></div></section>
+<section class="card"><h2>Dated FRED measurements</h2><p>Compare the exact same month across calendar years. Capacity utilization is a percentage level with changes in percentage points. An inventories-to-sales ratio changes in ratio points; that change does not tell us whether physical inventories rose or fell.</p><p class="muted">These reviewed series describe the United States. Applying them to foreign countries, specific companies or commodity inventories requires separate evidence. The inherited natural-gas identifier conflicts with EIA's gasoline-stock definition and remains unavailable for that interpretation.</p><div id="boom-measurements" class="table-region" tabindex="0" aria-label="FRED definitions and dated comparisons"></div><p id="boom-preservation" class="muted"></p>
+<h3>Every returned observation</h3><p class="muted">Dates are observation labels, not publication times. Missing and invalid rows remain inspectable. The two-year request window is explicitly bounded; this is not full series history or first-release-vintage evidence.</p><label for="boom-series">Choose a FRED series<select id="boom-series"></select></label><p id="boom-observation-count" role="status" aria-live="polite"></p><div id="boom-observations" class="table-region" tabindex="0" aria-label="Complete returned observation rows"></div><div class="paging"><button id="boom-prev" type="button" disabled>Previous 200 rows</button><button id="boom-next" type="button" disabled>Next 200 rows</button></div></section>
+<section class="card"><h2>Complete original research record</h2><p>All source fields, inherited stages, signals, divergences, trade narratives and preservation declarations are retained for inspection. Inclusion in this record does not qualify those claims.</p><details><summary>Inspect every field in the published packet</summary><pre id="boom-original">Unavailable</pre></details></section>
+<section class="card"><h2>Before this research can inform a position</h2><p>Match instruments, economic definitions, observation horizons and source vintages. Distinguish equity-price proxies from export value and vessel counts from cargo volume. Validate the country and industry mapping, then measure prospective performance with costs, uncertainty and dependence accounted for.</p><p class="muted">The original daily 12:30 UTC producer schedule is unchanged. A recent generated timestamp does not make its underlying observations current.</p></section>
+</main><footer>Data: <a href="/data/boom-stage.json">complete Boom Stage packet</a>. Related inputs: <a href="/macro-leads.html">macro leads</a> · <a href="/freight-pulse.html">freight research</a>. No paid AI is required.</footer>
+<script src="/jh-nav-drawer.js" defer></script><script src="/jh-business-cycle-review.js" defer></script><script src="/jh-boom-stage-review.js" defer></script><script src="/sidebar.js" defer></script></body></html>

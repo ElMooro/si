@@ -1,0 +1,90 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "nL8mEWZWjdO85n489zv7hsVve0CZ+EB291dmyBr1L8k=",
+    "source_files_checked": 4,
+    "handler_bytes": 39815,
+    "timeout": 300,
+    "memory_mb": 512,
+    "receipt": {
+      "status": "matched",
+      "commit": "137cc617cb5d2affd9406f6927e2dc6284bccdf9"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-boom-stage-daily",
+        "state": "ENABLED",
+        "expression": "cron(30 12 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-boom-stage",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "baseline_sha256": "c835e015ac32b810ed943370b52b32b7500e627ef3515d431d9e98637d128b86",
+  "expected_commit": "137cc617cb5d2affd9406f6927e2dc6284bccdf9",
+  "history_writes": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "pending_original_daily_1230_publication",
+    "generated_at": "2026-09-26T12:30:45.888474+00:00",
+    "version": "1.7.0",
+    "bytes": 24180,
+    "sha256": "10848094464f61c1da805fe104a67a0e7275d61d8f2cbea0ca05c79ec50f09d5"
+  },
+  "notifications_sent": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedules_changed": 0,
+  "scope": "Exact source and original runtime/cadence, seventeen isolated native/history/measurement cases, and retained stored calculation consistency. Whole FRED metadata and requested-window observations replayed only when a new native packet exists. Other provider acquisitions, original vintages and legacy model claims remain unqualified.",
+  "stored_history": {
+    "bytes": 78475,
+    "sha256": "ea759e1de7cff6b341044620091c3d91a4ad7fe31821ca3f195d2ee250621b0d",
+    "dates": 60,
+    "pair_records": 1200
+  },
+  "ops_run": 36299321490,
+  "report_commit": "815ea93d9",
+  "lambda_run": 36299117108,
+  "pages_run": 36299117002,
+  "native_test_groups": 17,
+  "deployment_checks": 458,
+  "shell_cases": 12,
+  "live_assets": {
+    "commit": "137cc617cb5d2affd9406f6927e2dc6284bccdf9",
+    "served_descendant": "137cc617cb5d2affd9406f6927e2dc6284bccdf9",
+    "checked_at": "2026-09-27T06:13:35.572981+00:00",
+    "registry_hash": "36a284431941dd7410548345be231768f8083a30dc50ac5ef4dac5c5100a7533",
+    "assets": {
+      "boom-stage.html": {
+        "bytes": 20628,
+        "sha256": "8339c9c5797f3903a31fc0dc27805c9f8ced58fd2d1b8b5e8575f416e08d529a",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1336876,
+        "sha256": "c33392891c5d5f786ff28af3f44a5bd0054d2c2da8a29d5b6dd9feffa4b18f87",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2338349,
+        "sha256": "36a284431941dd7410548345be231768f8083a30dc50ac5ef4dac5c5100a7533",
+        "matches_commit_manifest": true
+      }
+    }
+  }
+}
