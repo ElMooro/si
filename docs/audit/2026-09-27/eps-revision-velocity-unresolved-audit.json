@@ -1,0 +1,29 @@
+{
+  "source_bytes": 16411,
+  "source_sha256": "0ab8693191a9a44b732cf9b3c8e176e91de9eefdddfaa2baca324d5bf11d3e76",
+  "public_bytes": 129794,
+  "public_sha256": "d750a55d85bc1004a346c2b09a5532b012cc225b7f17af5df14d8b1bb110f54e",
+  "generated_at": "2026-09-27T11:00:19+00:00",
+  "stats": {
+    "n_universe": 400,
+    "n_qualifying": 194,
+    "n_tier_a": 0,
+    "n_tier_b": 73,
+    "statuses": {
+      "ok": 194,
+      "below_min_velocity": 41
+    }
+  },
+  "all_qualifying_occurrences": 194,
+  "top_subset_occurrences": 25,
+  "baseline_acceptance": "pending",
+  "observed_source_defects": [
+    "Different annual target periods are labelled revision velocity without any prior same-target acquisition.",
+    "Calendar-year bucketing overwrites distinct dates, ignores fiscal-year identity and can label an already-past target forward.",
+    "Boolean, missing, zero and unknown quote/estimate units and dates are not strictly validated.",
+    "Rating opinions and grading-company text are used as a proxy for earnings-estimate revision breadth; downgrade labels include unchanged ratings.",
+    "Only 30 of at most 50 grade records are used; failed/unattempted company requests and original provider responses are discarded.",
+    "The page claims 12–18% six-month outperformance and tiered setups without engine-specific point-in-time qualification.",
+    "No repository config exists; actual runtime and schedules require preservation before native deployment."
+  ]
+}
