@@ -23,8 +23,10 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from botocore.config import Config
 
-S3 = boto3.client("s3", region_name="us-east-1")
+S3 = boto3.client("s3", region_name="us-east-1", config=Config(
+    connect_timeout=4, read_timeout=8, retries={"max_attempts": 1}))
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/macro-leads.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -285,5 +287,12 @@ def handler(event=None, context=None):
     return {"ok": True, "populated": populated}
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     return handler(event, context)
+
+
+def lambda_handler(event=None, context=None):
+    """Capture every original source and publish exact monthly research."""
+    import sys
+    from macro_store import run
+    return run(sys.modules[__name__], event, context)
