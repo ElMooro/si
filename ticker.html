@@ -37,6 +37,8 @@
 <a class="tab" href="/inventory-drawdown.html">Inventory</a>
 <a class="tab" href="/backlog.html">Backlog</a>
 <a class="tab" href="/billings-crpo.html">Billings</a>
+<a class="tab" href="/deferred-revenue.html">Deferred</a>
+<a class="tab" href="/capex-pulse.html">Capex</a>
 <a class="tab" href="/orderbook.html">Order book</a>
 </div></nav>
 <div class="shell">
@@ -66,7 +68,7 @@ async function loadTicker(sym){
   var box=document.getElementById("results");
   box.innerHTML='<div class="empty">Loading '+sym+'</div>';
   var q=encodeURIComponent(sym);
-  var html='<div class="card links"><a href="/inventory-drawdown.html">Inventory desk</a><a href="/backlog.html">Backlog</a><a href="/billings-crpo.html">Billings</a><a href="/orderbook.html">Order book</a><a href="/chart.html?s='+q+'">Chart</a></div>';
+  var html='<div class="card links"><a href="/inventory-drawdown.html">Inventory desk</a><a href="/backlog.html">Backlog</a><a href="/billings-crpo.html">Billings</a><a href="/deferred-revenue.html">Deferred</a><a href="/capex-pulse.html">Capex</a><a href="/dilution.html">Dilution</a><a href="/earnings-quality.html">Quality</a><a href="/orderbook.html">Order book</a><a href="/chart.html?s='+q+'">Chart</a></div>';
   var earnings=await fetchJson("data/earnings-tracker.json");
   if(request!==tickerRequest)return;
   var tracker=earnings&&(earnings.tracker||earnings);
