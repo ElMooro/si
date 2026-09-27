@@ -1,0 +1,126 @@
+{
+  "actual_runtime_before_validation": {
+    "code_sha256": "m/fWLJtje6tXAtpPS40zG3y4MfqQbgSLUygD29E+ti0=",
+    "source_files_checked": 4,
+    "handler_bytes": 25464,
+    "timeout": 780,
+    "memory_mb": 1536,
+    "receipt": {
+      "status": "matched",
+      "commit": "2751273d77db739ec8bd3e58b8d4daf8f8316885"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-port-cargo-daily",
+        "state": "DISABLED",
+        "expression": "cron(40 12 * * ? *)",
+        "native_targets": 1
+      },
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-port-cargo-daily",
+        "state": "ENABLED",
+        "expression": "cron(40 12 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-port-cargo",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "m/fWLJtje6tXAtpPS40zG3y4MfqQbgSLUygD29E+ti0=",
+    "source_files_checked": 4,
+    "handler_bytes": 25464,
+    "timeout": 780,
+    "memory_mb": 1536,
+    "receipt": {
+      "status": "matched",
+      "commit": "2751273d77db739ec8bd3e58b8d4daf8f8316885"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-port-cargo-daily",
+        "state": "DISABLED",
+        "expression": "cron(40 12 * * ? *)",
+        "native_targets": 1
+      },
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-port-cargo-daily",
+        "state": "ENABLED",
+        "expression": "cron(40 12 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-port-cargo",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "all_denied": true,
+  "anonymous_origins_checked": 2,
+  "archive_writes": 0,
+  "attempt_outcome_counts": {
+    "404": 1,
+    "403": 1
+  },
+  "compiler_sha256": {
+    "lambda_function.py": "8d18ef95a0c892f2629c62501237d3b1dfa38b92f62945ea47f43a6375685e9d",
+    "cargo_store.py": "c36d916cef8d7240bf5833570a179d127eac340e24d32eac6a1e6ae4bb47e845",
+    "cargo_measurements.py": "1b898ba36e7bc540fd4a1a684e85bc87e2b79fb11fd8b72d55cc962cf5dac436",
+    "impact_mapper.py": "7af05dbf63e5053b9e5e4e2aba38e6da96b7475b763dfad0d09d597a825aa86e"
+  },
+  "expected_commit": "2751273d77db739ec8bd3e58b8d4daf8f8316885",
+  "failures": [],
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "pending_original_daily_1240_publication",
+    "generated_at": "2026-09-26T12:44:50.968962+00:00",
+    "version": "1.3.0",
+    "whole_bytes": 20678,
+    "whole_sha256": "b4626aff4e46e417881d5ea60a3e72c0550cd8282b7dfabf414d9f004a6b71cd"
+  },
+  "protected_paths_checked": 1,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Complete source/catalog membership, exact seven-day and preceding 28-day estimates over identical covered port cohorts. This is not a world-port census, atomic provider snapshot, customs trade value, holiday-adjusted signal, forecast or portfolio qualification.",
+  "commit": "2751273d77db739ec8bd3e58b8d4daf8f8316885",
+  "lambda_run": 36302234927,
+  "acceptance_run": 36302501816,
+  "report_commit": "fa05e7de8",
+  "live_http": {
+    "port-cargo.html": {
+      "http_status": 200,
+      "bytes": 10566,
+      "sha256": "8204b5c0360cc677e6efc2713e7c1a5abcfcbb69dcb7778cbe9b921a311fe828"
+    },
+    "data/port-cargo.json": {
+      "http_status": 200,
+      "bytes": 20678,
+      "sha256": "b4626aff4e46e417881d5ea60a3e72c0550cd8282b7dfabf414d9f004a6b71cd"
+    },
+    "data/ops/releases/justhodl-port-cargo.json": {
+      "http_status": 200,
+      "bytes": 916,
+      "sha256": "a1a877f20ef2391439ab5fb50abebfb285fcecb671b81ace40b1733916278a92"
+    }
+  }
+}

@@ -1,0 +1,1734 @@
+{
+  "accelerating_ports": [
+    {
+      "country": "Fixture country",
+      "export_chg_pct": 19.3,
+      "export_tpd_7d": 10800,
+      "export_tpd_base": 9050,
+      "import_chg_pct": null,
+      "import_tpd_7d": 0,
+      "import_tpd_base": 0,
+      "industry_exposure": [
+        "Fixture industry"
+      ],
+      "port": "Port 0",
+      "total_chg_pct": 19.3
+    },
+    {
+      "country": "Fixture country",
+      "export_chg_pct": null,
+      "export_tpd_7d": 0,
+      "export_tpd_base": 0,
+      "import_chg_pct": 14.5,
+      "import_tpd_7d": 13800,
+      "import_tpd_base": 12050,
+      "industry_exposure": [
+        "Fixture industry"
+      ],
+      "port": "Port 2",
+      "total_chg_pct": 14.5
+    },
+    {
+      "country": "Fixture country",
+      "export_chg_pct": 19.3,
+      "export_tpd_7d": 10800,
+      "export_tpd_base": 9050,
+      "import_chg_pct": -2.2,
+      "import_tpd_7d": 11786,
+      "import_tpd_base": 12050,
+      "industry_exposure": [
+        "Fixture industry"
+      ],
+      "port": "Port 1",
+      "total_chg_pct": 7.0
+    }
+  ],
+  "acquisition_review": {
+    "contract": "port-cargo-query-membership.v1",
+    "end": "2026-09-23",
+    "provider_snapshot_atomic": false,
+    "queries": [
+      {
+        "declared_count": 4,
+        "enumerated_ids": 4,
+        "layer": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/PortWatch_ports_database/FeatureServer/0/query",
+        "membership_reconciled": true,
+        "object_ids_sha256": "f6bd10506e9a4daed7c03eda2f2fde54be3bd58eee49dab471c18a888ffbdb6f",
+        "provider_snapshot_atomic": false,
+        "returned_rows": 4,
+        "where": "1=1"
+      },
+      {
+        "declared_count": 126,
+        "enumerated_ids": 126,
+        "layer": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Ports_Data/FeatureServer/0/query",
+        "membership_reconciled": true,
+        "object_ids_sha256": "e464e1a560c5e0a67acf5ed718779ac07a03fe76da65e305b91a337dfe10e4eb",
+        "provider_snapshot_atomic": false,
+        "returned_rows": 126,
+        "where": "date >= timestamp '2026-08-13' AND date <= timestamp '2026-09-23'"
+      }
+    ],
+    "source_catalog_is_world_census": false,
+    "start": "2026-08-13",
+    "window_days": 42
+  },
+  "calls_eligible": false,
+  "chokepoints_context": {
+    "disrupted": null,
+    "n": 1,
+    "note": "congestion up while throughput falls = supply-side; both falling = demand-side \u2014 different trades"
+  },
+  "complete_through": "2026-09-23",
+  "contract": "port-cargo-preserved-calculation.v1",
+  "countries": [
+    {
+      "country": "Fixture country",
+      "export_tpd_7d": 21600,
+      "import_tpd_7d": 25586,
+      "seasonal_chg_pct": -81.6,
+      "total_chg_pct": 11.8
+    }
+  ],
+  "coverage": {
+    "median_ports_per_day": 3,
+    "ports_on_last_complete_day": 3
+  },
+  "data_age_days": 3,
+  "date_field_type": [
+    "iso_string"
+  ],
+  "decelerating_ports": [],
+  "duration_basis": "Complete retained input acquisition and calculation; excludes final conditional publication",
+  "duration_s": 0.016,
+  "engine": "port-cargo",
+  "engine_class": "physical_trade_fast_layer",
+  "evidence_tier": "tier_1_measured_physical",
+  "execution_eligible": false,
+  "expected_lag_days": 6,
+  "fetch_status": "OK",
+  "forecast_qualified": false,
+  "gaps": [],
+  "generated_at": "2026-09-26T12:40:00+00:00",
+  "global_pulse": {
+    "export_tpd_7d": 21600,
+    "import_tpd_7d": 25586,
+    "total_chg_pct": 11.81
+  },
+  "impact_map": {
+    "basis_note": "global pulse +11.81%; seasonal OK",
+    "benefiting": [
+      {
+        "basis": "tonnage-weighted mean 7d-vs-28d change of 3 exposed ports (Port 0,Port 2,Port 1)",
+        "kind": "industry",
+        "n_members": 3,
+        "name": "Fixture industry",
+        "pp": 11.78,
+        "pp_kind": "measured",
+        "tier": "measured_fact",
+        "unit": "port_throughput_chg_pct"
+      },
+      {
+        "basis": "beta 0.500 (n=12) x shock 11.81 \u2014 OLS on archived factor history",
+        "ci": [
+          1.28,
+          10.53
+        ],
+        "kind": "industry",
+        "n_obs": 12,
+        "name": "Fixture sector",
+        "pp": 5.91,
+        "pp_kind": "estimated",
+        "r2": null,
+        "tier": "estimated_beta",
+        "unit": "rel_return_60d"
+      }
+    ],
+    "engine": "port-cargo",
+    "factor": "port_throughput_pulse",
+    "generated_at": "2026-09-26T12:40:00+00:00",
+    "insufficient": [],
+    "method": "Industry rows: measured tonnage-weighted throughput change of ports carrying that PortWatch industry exposure. Sector rows: estimated from the accruing beta store (nightly factor history) \u2014 absent until n_obs>=8, honestly.",
+    "schema": "impact-map/1.0",
+    "suffering": []
+  },
+  "lag_months": -4,
+  "latest_data_date": "2026-09-23",
+  "layer": {
+    "datefield": "date",
+    "service_path": "cached:Daily_Ports_Data",
+    "url_tail": "com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Ports_Data/FeatureServer/0/query"
+  },
+  "measurement_review": {
+    "calculation_at": "2026-09-26T12:40:00+00:00",
+    "calls_eligible": false,
+    "catalog_ports": 4,
+    "contract": "port-cargo-calendar-measurements.v1",
+    "countries": [
+      {
+        "country_code": "FIX",
+        "legs": {
+          "export": {
+            "comparison": {
+              "delta_metric_tons_per_day": 3500.0,
+              "percent": 19.33701657458564,
+              "status": "defined"
+            },
+            "current_7d": {
+              "mean_metric_tons_per_day": 21600.0,
+              "sum_metric_tons": 151200
+            },
+            "excluded_port_ids": [
+              "p3"
+            ],
+            "matched_port_ids": [
+              "p0",
+              "p1",
+              "p2"
+            ],
+            "matched_ports": 3,
+            "previous_28d": {
+              "mean_metric_tons_per_day": 18100.0,
+              "sum_metric_tons": 506800
+            }
+          },
+          "import": {
+            "comparison": {
+              "delta_metric_tons_per_day": 1750.0,
+              "percent": 14.522821576763478,
+              "status": "defined"
+            },
+            "current_7d": {
+              "mean_metric_tons_per_day": 13800.0,
+              "sum_metric_tons": 96600
+            },
+            "excluded_port_ids": [
+              "p1",
+              "p3"
+            ],
+            "matched_port_ids": [
+              "p0",
+              "p2"
+            ],
+            "matched_ports": 2,
+            "previous_28d": {
+              "mean_metric_tons_per_day": 12050.0,
+              "sum_metric_tons": 337400
+            }
+          }
+        },
+        "population_port_ids": [
+          "p0",
+          "p1",
+          "p2",
+          "p3"
+        ],
+        "population_ports": 4
+      }
+    ],
+    "covered_port_cohort": {
+      "legs": {
+        "export": {
+          "comparison": {
+            "delta_metric_tons_per_day": 3500.0,
+            "percent": 19.33701657458564,
+            "status": "defined"
+          },
+          "current_7d": {
+            "mean_metric_tons_per_day": 21600.0,
+            "sum_metric_tons": 151200
+          },
+          "excluded_port_ids": [
+            "p3"
+          ],
+          "matched_port_ids": [
+            "p0",
+            "p1",
+            "p2"
+          ],
+          "matched_ports": 3,
+          "previous_28d": {
+            "mean_metric_tons_per_day": 18100.0,
+            "sum_metric_tons": 506800
+          }
+        },
+        "import": {
+          "comparison": {
+            "delta_metric_tons_per_day": 1750.0,
+            "percent": 14.522821576763478,
+            "status": "defined"
+          },
+          "current_7d": {
+            "mean_metric_tons_per_day": 13800.0,
+            "sum_metric_tons": 96600
+          },
+          "excluded_port_ids": [
+            "p1",
+            "p3"
+          ],
+          "matched_port_ids": [
+            "p0",
+            "p2"
+          ],
+          "matched_ports": 2,
+          "previous_28d": {
+            "mean_metric_tons_per_day": 12050.0,
+            "sum_metric_tons": 337400
+          }
+        }
+      },
+      "population_port_ids": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ],
+      "population_ports": 4
+    },
+    "definitions": {
+      "cohort": "Each direction uses the identical registered, country-consistent ports with both windows complete. Imports and exports can have different cohorts; no combined world total is calculated.",
+      "coverage": "Includes every provider catalog port and all unregistered observation IDs. Missing catalog ports remain visible. This catalog and matching query membership are not a world-port census or atomic provider snapshot.",
+      "interpretation": "Descriptive estimated shipment weight. Not customs value, deflated trade volume, unique global cargo, a seasonally/holiday-adjusted change, a company earnings forecast or a portfolio instruction.",
+      "window": "Exact seven calendar dates and immediately preceding 28 dates, ending at the explicit latest provider date. Every date and value required; no ragged-date trimming or missing-as-zero substitution."
+    },
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "methodology_url": "https://www.imf.org/en/publications/wp/issues/2025/05/16/nowcasting-global-trade-from-space-566957",
+    "observation_rows": 126,
+    "port_rows": 4,
+    "ports": [
+      {
+        "catalog_status": "registered",
+        "country_code": "FIX",
+        "country_identity_consistent": true,
+        "country_name": "Fixture country",
+        "last_observation_date": "2026-09-23",
+        "legs": {
+          "export": {
+            "comparison": {
+              "delta_metric_tons_per_day": 1750.0,
+              "percent": 19.33701657458564,
+              "status": "defined"
+            },
+            "current_7d": {
+              "available_days": 7,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": 10800.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-09-17",
+              "status": "complete",
+              "sum_metric_tons": 75600
+            },
+            "previous_28d": {
+              "available_days": 28,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": 9050.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-08-20",
+              "status": "complete",
+              "sum_metric_tons": 253400
+            }
+          },
+          "import": {
+            "comparison": {
+              "delta_metric_tons_per_day": 0.0,
+              "percent": null,
+              "status": "zero_denominator"
+            },
+            "current_7d": {
+              "available_days": 7,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": 0.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-09-17",
+              "status": "complete",
+              "sum_metric_tons": 0
+            },
+            "previous_28d": {
+              "available_days": 28,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": 0.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-08-20",
+              "status": "complete",
+              "sum_metric_tons": 0
+            }
+          }
+        },
+        "names": [
+          "Port 0"
+        ],
+        "observation_rows": 42,
+        "observations": [
+          {
+            "date": "2026-08-13",
+            "export_source_value": 7000,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 1
+          },
+          {
+            "date": "2026-08-14",
+            "export_source_value": 7100,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 2
+          },
+          {
+            "date": "2026-08-15",
+            "export_source_value": 7200,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 3
+          },
+          {
+            "date": "2026-08-16",
+            "export_source_value": 7300,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 4
+          },
+          {
+            "date": "2026-08-17",
+            "export_source_value": 7400,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 5
+          },
+          {
+            "date": "2026-08-18",
+            "export_source_value": 7500,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 6
+          },
+          {
+            "date": "2026-08-19",
+            "export_source_value": 7600,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 7
+          },
+          {
+            "date": "2026-08-20",
+            "export_source_value": 7700,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 8
+          },
+          {
+            "date": "2026-08-21",
+            "export_source_value": 7800,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 9
+          },
+          {
+            "date": "2026-08-22",
+            "export_source_value": 7900,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 10
+          },
+          {
+            "date": "2026-08-23",
+            "export_source_value": 8000,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 11
+          },
+          {
+            "date": "2026-08-24",
+            "export_source_value": 8100,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 12
+          },
+          {
+            "date": "2026-08-25",
+            "export_source_value": 8200,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 13
+          },
+          {
+            "date": "2026-08-26",
+            "export_source_value": 8300,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 14
+          },
+          {
+            "date": "2026-08-27",
+            "export_source_value": 8400,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 15
+          },
+          {
+            "date": "2026-08-28",
+            "export_source_value": 8500,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 16
+          },
+          {
+            "date": "2026-08-29",
+            "export_source_value": 8600,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 17
+          },
+          {
+            "date": "2026-08-30",
+            "export_source_value": 8700,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 18
+          },
+          {
+            "date": "2026-08-31",
+            "export_source_value": 8800,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 19
+          },
+          {
+            "date": "2026-09-01",
+            "export_source_value": 8900,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 20
+          },
+          {
+            "date": "2026-09-02",
+            "export_source_value": 9000,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 21
+          },
+          {
+            "date": "2026-09-03",
+            "export_source_value": 9100,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 22
+          },
+          {
+            "date": "2026-09-04",
+            "export_source_value": 9200,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 23
+          },
+          {
+            "date": "2026-09-05",
+            "export_source_value": 9300,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 24
+          },
+          {
+            "date": "2026-09-06",
+            "export_source_value": 9400,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 25
+          },
+          {
+            "date": "2026-09-07",
+            "export_source_value": 9500,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 26
+          },
+          {
+            "date": "2026-09-08",
+            "export_source_value": 9600,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 27
+          },
+          {
+            "date": "2026-09-09",
+            "export_source_value": 9700,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 28
+          },
+          {
+            "date": "2026-09-10",
+            "export_source_value": 9800,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 29
+          },
+          {
+            "date": "2026-09-11",
+            "export_source_value": 9900,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 30
+          },
+          {
+            "date": "2026-09-12",
+            "export_source_value": 10000,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 31
+          },
+          {
+            "date": "2026-09-13",
+            "export_source_value": 10100,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 32
+          },
+          {
+            "date": "2026-09-14",
+            "export_source_value": 10200,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 33
+          },
+          {
+            "date": "2026-09-15",
+            "export_source_value": 10300,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 34
+          },
+          {
+            "date": "2026-09-16",
+            "export_source_value": 10400,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 35
+          },
+          {
+            "date": "2026-09-17",
+            "export_source_value": 10500,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 36
+          },
+          {
+            "date": "2026-09-18",
+            "export_source_value": 10600,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 37
+          },
+          {
+            "date": "2026-09-19",
+            "export_source_value": 10700,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 38
+          },
+          {
+            "date": "2026-09-20",
+            "export_source_value": 10800,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 39
+          },
+          {
+            "date": "2026-09-21",
+            "export_source_value": 10900,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 40
+          },
+          {
+            "date": "2026-09-22",
+            "export_source_value": 11000,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 41
+          },
+          {
+            "date": "2026-09-23",
+            "export_source_value": 11100,
+            "export_valid": true,
+            "import_source_value": 0,
+            "import_valid": true,
+            "source_object_id": 42
+          }
+        ],
+        "port_id": "p0"
+      },
+      {
+        "catalog_status": "registered",
+        "country_code": "FIX",
+        "country_identity_consistent": true,
+        "country_name": "Fixture country",
+        "last_observation_date": "2026-09-23",
+        "legs": {
+          "export": {
+            "comparison": {
+              "delta_metric_tons_per_day": 1750.0,
+              "percent": 19.33701657458564,
+              "status": "defined"
+            },
+            "current_7d": {
+              "available_days": 7,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": 10800.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-09-17",
+              "status": "complete",
+              "sum_metric_tons": 75600
+            },
+            "previous_28d": {
+              "available_days": 28,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": 9050.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-08-20",
+              "status": "complete",
+              "sum_metric_tons": 253400
+            }
+          },
+          "import": {
+            "comparison": {
+              "delta_metric_tons_per_day": null,
+              "percent": null,
+              "status": "incomplete_windows"
+            },
+            "current_7d": {
+              "available_days": 6,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": null,
+              "missing_or_invalid_dates": [
+                "2026-09-23"
+              ],
+              "start": "2026-09-17",
+              "status": "incomplete",
+              "sum_metric_tons": null
+            },
+            "previous_28d": {
+              "available_days": 28,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": 12050.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-08-20",
+              "status": "complete",
+              "sum_metric_tons": 337400
+            }
+          }
+        },
+        "names": [
+          "Port 1"
+        ],
+        "observation_rows": 42,
+        "observations": [
+          {
+            "date": "2026-08-13",
+            "export_source_value": 7000,
+            "export_valid": true,
+            "import_source_value": 10000,
+            "import_valid": true,
+            "source_object_id": 43
+          },
+          {
+            "date": "2026-08-14",
+            "export_source_value": 7100,
+            "export_valid": true,
+            "import_source_value": 10100,
+            "import_valid": true,
+            "source_object_id": 44
+          },
+          {
+            "date": "2026-08-15",
+            "export_source_value": 7200,
+            "export_valid": true,
+            "import_source_value": 10200,
+            "import_valid": true,
+            "source_object_id": 45
+          },
+          {
+            "date": "2026-08-16",
+            "export_source_value": 7300,
+            "export_valid": true,
+            "import_source_value": 10300,
+            "import_valid": true,
+            "source_object_id": 46
+          },
+          {
+            "date": "2026-08-17",
+            "export_source_value": 7400,
+            "export_valid": true,
+            "import_source_value": 10400,
+            "import_valid": true,
+            "source_object_id": 47
+          },
+          {
+            "date": "2026-08-18",
+            "export_source_value": 7500,
+            "export_valid": true,
+            "import_source_value": 10500,
+            "import_valid": true,
+            "source_object_id": 48
+          },
+          {
+            "date": "2026-08-19",
+            "export_source_value": 7600,
+            "export_valid": true,
+            "import_source_value": 10600,
+            "import_valid": true,
+            "source_object_id": 49
+          },
+          {
+            "date": "2026-08-20",
+            "export_source_value": 7700,
+            "export_valid": true,
+            "import_source_value": 10700,
+            "import_valid": true,
+            "source_object_id": 50
+          },
+          {
+            "date": "2026-08-21",
+            "export_source_value": 7800,
+            "export_valid": true,
+            "import_source_value": 10800,
+            "import_valid": true,
+            "source_object_id": 51
+          },
+          {
+            "date": "2026-08-22",
+            "export_source_value": 7900,
+            "export_valid": true,
+            "import_source_value": 10900,
+            "import_valid": true,
+            "source_object_id": 52
+          },
+          {
+            "date": "2026-08-23",
+            "export_source_value": 8000,
+            "export_valid": true,
+            "import_source_value": 11000,
+            "import_valid": true,
+            "source_object_id": 53
+          },
+          {
+            "date": "2026-08-24",
+            "export_source_value": 8100,
+            "export_valid": true,
+            "import_source_value": 11100,
+            "import_valid": true,
+            "source_object_id": 54
+          },
+          {
+            "date": "2026-08-25",
+            "export_source_value": 8200,
+            "export_valid": true,
+            "import_source_value": 11200,
+            "import_valid": true,
+            "source_object_id": 55
+          },
+          {
+            "date": "2026-08-26",
+            "export_source_value": 8300,
+            "export_valid": true,
+            "import_source_value": 11300,
+            "import_valid": true,
+            "source_object_id": 56
+          },
+          {
+            "date": "2026-08-27",
+            "export_source_value": 8400,
+            "export_valid": true,
+            "import_source_value": 11400,
+            "import_valid": true,
+            "source_object_id": 57
+          },
+          {
+            "date": "2026-08-28",
+            "export_source_value": 8500,
+            "export_valid": true,
+            "import_source_value": 11500,
+            "import_valid": true,
+            "source_object_id": 58
+          },
+          {
+            "date": "2026-08-29",
+            "export_source_value": 8600,
+            "export_valid": true,
+            "import_source_value": 11600,
+            "import_valid": true,
+            "source_object_id": 59
+          },
+          {
+            "date": "2026-08-30",
+            "export_source_value": 8700,
+            "export_valid": true,
+            "import_source_value": 11700,
+            "import_valid": true,
+            "source_object_id": 60
+          },
+          {
+            "date": "2026-08-31",
+            "export_source_value": 8800,
+            "export_valid": true,
+            "import_source_value": 11800,
+            "import_valid": true,
+            "source_object_id": 61
+          },
+          {
+            "date": "2026-09-01",
+            "export_source_value": 8900,
+            "export_valid": true,
+            "import_source_value": 11900,
+            "import_valid": true,
+            "source_object_id": 62
+          },
+          {
+            "date": "2026-09-02",
+            "export_source_value": 9000,
+            "export_valid": true,
+            "import_source_value": 12000,
+            "import_valid": true,
+            "source_object_id": 63
+          },
+          {
+            "date": "2026-09-03",
+            "export_source_value": 9100,
+            "export_valid": true,
+            "import_source_value": 12100,
+            "import_valid": true,
+            "source_object_id": 64
+          },
+          {
+            "date": "2026-09-04",
+            "export_source_value": 9200,
+            "export_valid": true,
+            "import_source_value": 12200,
+            "import_valid": true,
+            "source_object_id": 65
+          },
+          {
+            "date": "2026-09-05",
+            "export_source_value": 9300,
+            "export_valid": true,
+            "import_source_value": 12300,
+            "import_valid": true,
+            "source_object_id": 66
+          },
+          {
+            "date": "2026-09-06",
+            "export_source_value": 9400,
+            "export_valid": true,
+            "import_source_value": 12400,
+            "import_valid": true,
+            "source_object_id": 67
+          },
+          {
+            "date": "2026-09-07",
+            "export_source_value": 9500,
+            "export_valid": true,
+            "import_source_value": 12500,
+            "import_valid": true,
+            "source_object_id": 68
+          },
+          {
+            "date": "2026-09-08",
+            "export_source_value": 9600,
+            "export_valid": true,
+            "import_source_value": 12600,
+            "import_valid": true,
+            "source_object_id": 69
+          },
+          {
+            "date": "2026-09-09",
+            "export_source_value": 9700,
+            "export_valid": true,
+            "import_source_value": 12700,
+            "import_valid": true,
+            "source_object_id": 70
+          },
+          {
+            "date": "2026-09-10",
+            "export_source_value": 9800,
+            "export_valid": true,
+            "import_source_value": 12800,
+            "import_valid": true,
+            "source_object_id": 71
+          },
+          {
+            "date": "2026-09-11",
+            "export_source_value": 9900,
+            "export_valid": true,
+            "import_source_value": 12900,
+            "import_valid": true,
+            "source_object_id": 72
+          },
+          {
+            "date": "2026-09-12",
+            "export_source_value": 10000,
+            "export_valid": true,
+            "import_source_value": 13000,
+            "import_valid": true,
+            "source_object_id": 73
+          },
+          {
+            "date": "2026-09-13",
+            "export_source_value": 10100,
+            "export_valid": true,
+            "import_source_value": 13100,
+            "import_valid": true,
+            "source_object_id": 74
+          },
+          {
+            "date": "2026-09-14",
+            "export_source_value": 10200,
+            "export_valid": true,
+            "import_source_value": 13200,
+            "import_valid": true,
+            "source_object_id": 75
+          },
+          {
+            "date": "2026-09-15",
+            "export_source_value": 10300,
+            "export_valid": true,
+            "import_source_value": 13300,
+            "import_valid": true,
+            "source_object_id": 76
+          },
+          {
+            "date": "2026-09-16",
+            "export_source_value": 10400,
+            "export_valid": true,
+            "import_source_value": 13400,
+            "import_valid": true,
+            "source_object_id": 77
+          },
+          {
+            "date": "2026-09-17",
+            "export_source_value": 10500,
+            "export_valid": true,
+            "import_source_value": 13500,
+            "import_valid": true,
+            "source_object_id": 78
+          },
+          {
+            "date": "2026-09-18",
+            "export_source_value": 10600,
+            "export_valid": true,
+            "import_source_value": 13600,
+            "import_valid": true,
+            "source_object_id": 79
+          },
+          {
+            "date": "2026-09-19",
+            "export_source_value": 10700,
+            "export_valid": true,
+            "import_source_value": 13700,
+            "import_valid": true,
+            "source_object_id": 80
+          },
+          {
+            "date": "2026-09-20",
+            "export_source_value": 10800,
+            "export_valid": true,
+            "import_source_value": 13800,
+            "import_valid": true,
+            "source_object_id": 81
+          },
+          {
+            "date": "2026-09-21",
+            "export_source_value": 10900,
+            "export_valid": true,
+            "import_source_value": 13900,
+            "import_valid": true,
+            "source_object_id": 82
+          },
+          {
+            "date": "2026-09-22",
+            "export_source_value": 11000,
+            "export_valid": true,
+            "import_source_value": 14000,
+            "import_valid": true,
+            "source_object_id": 83
+          },
+          {
+            "date": "2026-09-23",
+            "export_source_value": 11100,
+            "export_valid": true,
+            "import_source_value": null,
+            "import_valid": false,
+            "source_object_id": 84
+          }
+        ],
+        "port_id": "p1"
+      },
+      {
+        "catalog_status": "registered",
+        "country_code": "FIX",
+        "country_identity_consistent": true,
+        "country_name": "Fixture country",
+        "last_observation_date": "2026-09-23",
+        "legs": {
+          "export": {
+            "comparison": {
+              "delta_metric_tons_per_day": 0.0,
+              "percent": null,
+              "status": "zero_denominator"
+            },
+            "current_7d": {
+              "available_days": 7,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": 0.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-09-17",
+              "status": "complete",
+              "sum_metric_tons": 0
+            },
+            "previous_28d": {
+              "available_days": 28,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": 0.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-08-20",
+              "status": "complete",
+              "sum_metric_tons": 0
+            }
+          },
+          "import": {
+            "comparison": {
+              "delta_metric_tons_per_day": 1750.0,
+              "percent": 14.522821576763478,
+              "status": "defined"
+            },
+            "current_7d": {
+              "available_days": 7,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": 13800.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-09-17",
+              "status": "complete",
+              "sum_metric_tons": 96600
+            },
+            "previous_28d": {
+              "available_days": 28,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": 12050.0,
+              "missing_or_invalid_dates": [],
+              "start": "2026-08-20",
+              "status": "complete",
+              "sum_metric_tons": 337400
+            }
+          }
+        },
+        "names": [
+          "Port 2"
+        ],
+        "observation_rows": 42,
+        "observations": [
+          {
+            "date": "2026-08-13",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10000,
+            "import_valid": true,
+            "source_object_id": 85
+          },
+          {
+            "date": "2026-08-14",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10100,
+            "import_valid": true,
+            "source_object_id": 86
+          },
+          {
+            "date": "2026-08-15",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10200,
+            "import_valid": true,
+            "source_object_id": 87
+          },
+          {
+            "date": "2026-08-16",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10300,
+            "import_valid": true,
+            "source_object_id": 88
+          },
+          {
+            "date": "2026-08-17",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10400,
+            "import_valid": true,
+            "source_object_id": 89
+          },
+          {
+            "date": "2026-08-18",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10500,
+            "import_valid": true,
+            "source_object_id": 90
+          },
+          {
+            "date": "2026-08-19",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10600,
+            "import_valid": true,
+            "source_object_id": 91
+          },
+          {
+            "date": "2026-08-20",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10700,
+            "import_valid": true,
+            "source_object_id": 92
+          },
+          {
+            "date": "2026-08-21",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10800,
+            "import_valid": true,
+            "source_object_id": 93
+          },
+          {
+            "date": "2026-08-22",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 10900,
+            "import_valid": true,
+            "source_object_id": 94
+          },
+          {
+            "date": "2026-08-23",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11000,
+            "import_valid": true,
+            "source_object_id": 95
+          },
+          {
+            "date": "2026-08-24",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11100,
+            "import_valid": true,
+            "source_object_id": 96
+          },
+          {
+            "date": "2026-08-25",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11200,
+            "import_valid": true,
+            "source_object_id": 97
+          },
+          {
+            "date": "2026-08-26",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11300,
+            "import_valid": true,
+            "source_object_id": 98
+          },
+          {
+            "date": "2026-08-27",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11400,
+            "import_valid": true,
+            "source_object_id": 99
+          },
+          {
+            "date": "2026-08-28",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11500,
+            "import_valid": true,
+            "source_object_id": 100
+          },
+          {
+            "date": "2026-08-29",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11600,
+            "import_valid": true,
+            "source_object_id": 101
+          },
+          {
+            "date": "2026-08-30",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11700,
+            "import_valid": true,
+            "source_object_id": 102
+          },
+          {
+            "date": "2026-08-31",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11800,
+            "import_valid": true,
+            "source_object_id": 103
+          },
+          {
+            "date": "2026-09-01",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 11900,
+            "import_valid": true,
+            "source_object_id": 104
+          },
+          {
+            "date": "2026-09-02",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12000,
+            "import_valid": true,
+            "source_object_id": 105
+          },
+          {
+            "date": "2026-09-03",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12100,
+            "import_valid": true,
+            "source_object_id": 106
+          },
+          {
+            "date": "2026-09-04",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12200,
+            "import_valid": true,
+            "source_object_id": 107
+          },
+          {
+            "date": "2026-09-05",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12300,
+            "import_valid": true,
+            "source_object_id": 108
+          },
+          {
+            "date": "2026-09-06",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12400,
+            "import_valid": true,
+            "source_object_id": 109
+          },
+          {
+            "date": "2026-09-07",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12500,
+            "import_valid": true,
+            "source_object_id": 110
+          },
+          {
+            "date": "2026-09-08",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12600,
+            "import_valid": true,
+            "source_object_id": 111
+          },
+          {
+            "date": "2026-09-09",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12700,
+            "import_valid": true,
+            "source_object_id": 112
+          },
+          {
+            "date": "2026-09-10",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12800,
+            "import_valid": true,
+            "source_object_id": 113
+          },
+          {
+            "date": "2026-09-11",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 12900,
+            "import_valid": true,
+            "source_object_id": 114
+          },
+          {
+            "date": "2026-09-12",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13000,
+            "import_valid": true,
+            "source_object_id": 115
+          },
+          {
+            "date": "2026-09-13",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13100,
+            "import_valid": true,
+            "source_object_id": 116
+          },
+          {
+            "date": "2026-09-14",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13200,
+            "import_valid": true,
+            "source_object_id": 117
+          },
+          {
+            "date": "2026-09-15",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13300,
+            "import_valid": true,
+            "source_object_id": 118
+          },
+          {
+            "date": "2026-09-16",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13400,
+            "import_valid": true,
+            "source_object_id": 119
+          },
+          {
+            "date": "2026-09-17",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13500,
+            "import_valid": true,
+            "source_object_id": 120
+          },
+          {
+            "date": "2026-09-18",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13600,
+            "import_valid": true,
+            "source_object_id": 121
+          },
+          {
+            "date": "2026-09-19",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13700,
+            "import_valid": true,
+            "source_object_id": 122
+          },
+          {
+            "date": "2026-09-20",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13800,
+            "import_valid": true,
+            "source_object_id": 123
+          },
+          {
+            "date": "2026-09-21",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 13900,
+            "import_valid": true,
+            "source_object_id": 124
+          },
+          {
+            "date": "2026-09-22",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 14000,
+            "import_valid": true,
+            "source_object_id": 125
+          },
+          {
+            "date": "2026-09-23",
+            "export_source_value": 0,
+            "export_valid": true,
+            "import_source_value": 14100,
+            "import_valid": true,
+            "source_object_id": 126
+          }
+        ],
+        "port_id": "p2"
+      },
+      {
+        "catalog_status": "registered",
+        "country_code": "FIX",
+        "country_identity_consistent": true,
+        "country_name": "Fixture country",
+        "last_observation_date": null,
+        "legs": {
+          "export": {
+            "comparison": {
+              "delta_metric_tons_per_day": null,
+              "percent": null,
+              "status": "incomplete_windows"
+            },
+            "current_7d": {
+              "available_days": 0,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": null,
+              "missing_or_invalid_dates": [
+                "2026-09-17",
+                "2026-09-18",
+                "2026-09-19",
+                "2026-09-20",
+                "2026-09-21",
+                "2026-09-22",
+                "2026-09-23"
+              ],
+              "start": "2026-09-17",
+              "status": "incomplete",
+              "sum_metric_tons": null
+            },
+            "previous_28d": {
+              "available_days": 0,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": null,
+              "missing_or_invalid_dates": [
+                "2026-08-20",
+                "2026-08-21",
+                "2026-08-22",
+                "2026-08-23",
+                "2026-08-24",
+                "2026-08-25",
+                "2026-08-26",
+                "2026-08-27",
+                "2026-08-28",
+                "2026-08-29",
+                "2026-08-30",
+                "2026-08-31",
+                "2026-09-01",
+                "2026-09-02",
+                "2026-09-03",
+                "2026-09-04",
+                "2026-09-05",
+                "2026-09-06",
+                "2026-09-07",
+                "2026-09-08",
+                "2026-09-09",
+                "2026-09-10",
+                "2026-09-11",
+                "2026-09-12",
+                "2026-09-13",
+                "2026-09-14",
+                "2026-09-15",
+                "2026-09-16"
+              ],
+              "start": "2026-08-20",
+              "status": "incomplete",
+              "sum_metric_tons": null
+            }
+          },
+          "import": {
+            "comparison": {
+              "delta_metric_tons_per_day": null,
+              "percent": null,
+              "status": "incomplete_windows"
+            },
+            "current_7d": {
+              "available_days": 0,
+              "end": "2026-09-23",
+              "expected_days": 7,
+              "mean_metric_tons_per_day": null,
+              "missing_or_invalid_dates": [
+                "2026-09-17",
+                "2026-09-18",
+                "2026-09-19",
+                "2026-09-20",
+                "2026-09-21",
+                "2026-09-22",
+                "2026-09-23"
+              ],
+              "start": "2026-09-17",
+              "status": "incomplete",
+              "sum_metric_tons": null
+            },
+            "previous_28d": {
+              "available_days": 0,
+              "end": "2026-09-16",
+              "expected_days": 28,
+              "mean_metric_tons_per_day": null,
+              "missing_or_invalid_dates": [
+                "2026-08-20",
+                "2026-08-21",
+                "2026-08-22",
+                "2026-08-23",
+                "2026-08-24",
+                "2026-08-25",
+                "2026-08-26",
+                "2026-08-27",
+                "2026-08-28",
+                "2026-08-29",
+                "2026-08-30",
+                "2026-08-31",
+                "2026-09-01",
+                "2026-09-02",
+                "2026-09-03",
+                "2026-09-04",
+                "2026-09-05",
+                "2026-09-06",
+                "2026-09-07",
+                "2026-09-08",
+                "2026-09-09",
+                "2026-09-10",
+                "2026-09-11",
+                "2026-09-12",
+                "2026-09-13",
+                "2026-09-14",
+                "2026-09-15",
+                "2026-09-16"
+              ],
+              "start": "2026-08-20",
+              "status": "incomplete",
+              "sum_metric_tons": null
+            }
+          }
+        },
+        "names": [
+          "Port 3"
+        ],
+        "observation_rows": 0,
+        "observations": [],
+        "port_id": "p3"
+      }
+    ],
+    "rate_unit": "estimated_metric_tons_per_day",
+    "sizing_eligible": false,
+    "source_latest_date": "2026-09-23",
+    "source_observation_lag_days": 3,
+    "unit": "estimated_metric_tons"
+  },
+  "method": "IMF PortWatch Daily_Ports_Data (keyless ArcGIS): per-port daily estimated import/export cargo in METRIC TONS. 7d daily-rate vs prior-28d baseline per port; country + global rollups. Fields are schema-discovered each run, never assumed (ops-4559 BUG-11).",
+  "n_ports_with_data": 3,
+  "n_rows_window": 126,
+  "portfolio_action": "WAIT",
+  "publication_context": {
+    "capture_elapsed_s": 0.016,
+    "compiler_sha256": {
+      "cargo_measurements.py": "1b898ba36e7bc540fd4a1a684e85bc87e2b79fb11fd8b72d55cc962cf5dac436",
+      "cargo_store.py": "c36d916cef8d7240bf5833570a179d127eac340e24d32eac6a1e6ae4bb47e845",
+      "impact_mapper.py": "7af05dbf63e5053b9e5e4e2aba38e6da96b7475b763dfad0d09d597a825aa86e",
+      "lambda_function.py": "8d18ef95a0c892f2629c62501237d3b1dfa38b92f62945ea47f43a6375685e9d"
+    },
+    "contract": "port-cargo-preserved-calculation.v1",
+    "manifest": {
+      "bytes": 20024,
+      "key": "audit-private/20260909-originals/port-cargo-research/47dddde5f0ba3ee4168524601c1db7c4d8c0a94d4bd7fd48f7f4f86f98e60b8a.bin",
+      "sha256": "47dddde5f0ba3ee4168524601c1db7c4d8c0a94d4bd7fd48f7f4f86f98e60b8a"
+    },
+    "original_source_replay_verified": false,
+    "point_in_time_verified": false,
+    "publication_atomic": false
+  },
+  "ragged_days_trimmed": 0,
+  "research_limits": "Source query membership and the separate measurement_review reproduce exact dated shipment comparisons over matched port cohorts. Legacy fields retain their inherited missing-as-zero arithmetic, ragged trimming, seasonal alignment, name joins and unqualified impact models. Neither field set is a customs-value, company-revenue or portfolio forecast.",
+  "seasonal_baseline": {
+    "current_window_t": 330300,
+    "method": "current 7d tonnage vs mean of the SAME weekday-aligned 7d window 1-3 years back (364-day steps, server-side sums) \u2014 kills Chinese-New-Year / pre-tariff false signals the naive 28d baseline screams on",
+    "n_years": 3,
+    "same_week_prior_years": [
+      {
+        "export_t": 800000,
+        "import_t": 1000000,
+        "window_end": "2025-09-24",
+        "years_back": 1
+      },
+      {
+        "export_t": 800000,
+        "import_t": 1000000,
+        "window_end": "2024-09-25",
+        "years_back": 2
+      },
+      {
+        "export_t": 800000,
+        "import_t": 1000000,
+        "window_end": "2023-09-27",
+        "years_back": 3
+      }
+    ],
+    "seasonal_chg_pct": -81.7,
+    "status": "OK"
+  },
+  "sizing_eligible": false,
+  "stale": false,
+  "tonnage_fields": {
+    "class_fields_export": [],
+    "class_fields_import": [
+      "import_container"
+    ],
+    "export": "export",
+    "import": "import"
+  },
+  "true_latest_date": "2026-09-23",
+  "version": "1.3.2",
+  "_synthetic_fixture": true
+}

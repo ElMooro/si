@@ -1,67 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Port Cargo Tonnage · JustHodl.AI</title>
-<style>
-:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
-h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
-.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-@media(max-width:860px){.grid3{grid-template-columns:1fr}}
-.brow{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:11.8px}
-.chip{display:inline-block;border-radius:999px;padding:2px 11px;font-size:11px;margin:0 6px 6px 0;border:1px solid var(--text-mute);color:var(--text-dim)}
-.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
-</style>
+<title>Port Cargo Research · JustHodl.AI</title>
+<link rel="stylesheet" href="/business-cycle-review.css">
+<style>button{font:inherit;background:#192740;color:#e6edfc;border:1px solid #667898;border-radius:6px;padding:8px 14px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible{outline:2px solid #9dbafa;outline-offset:3px}.pager{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}</style>
+<script src="/jh-business-cycle-review.js" defer></script>
+<script src="/jh-cargo-review.js" defer></script>
 </head>
 <body>
-<div class="wrap">
-<h1>⚓ Port Cargo — Daily Tonnage Layer</h1>
-<div class="sub">IMF PortWatch Daily_Ports_Data: per-port daily estimated import/export cargo in <b>metric tons</b> across 2,065 ports — the physical-trade fast layer (ops-4559). 7-day daily rate vs prior-28d baseline. Cargo tonnage, not vessel counts.</div>
-<div class="grid3" id="hero"><div class="card mono">LOADING…</div></div>
-<div class="sec">Accelerating Ports — tonnage vs 28d baseline</div>
-<div class="card" id="acc"></div>
-<div class="sec">Decelerating Ports</div>
-<div class="card" id="dec"></div>
-<div class="sec">Country Pulse — biggest movers</div>
-<div class="card" id="cty"></div>
-<div class="foot" id="foot"></div>
-</div>
-<script src="/jh-nav-drawer.js" defer></script>
-<script>
-(async function(){try{
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/port-cargo.json?t='+Date.now());
-if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable — engine deploying</div>';return;}
-var p=await r.json();
-var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479';
-function fmt(n){if(n==null)return '—';if(Math.abs(n)>=1e6)return (n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return (n/1e3).toFixed(0)+'k';return ''+Math.round(n);}
-function row(x,nameKey){var pct=x.total_chg_pct==null?0:x.total_chg_pct;var c=pct>3?GRN:pct<-3?RED:'#e8e8e8';var w=Math.min(Math.abs(pct)*1.6,112);var neg=pct<0;
- return '<div class="brow mono"><div style="width:190px;font-weight:700;color:'+c+'" title="'+(x.country||'')+'">'+(x[nameKey]||x.port||x.country)+'</div>'
- +'<div style="width:88px;text-align:right;color:'+MUT+'">'+fmt(x.import_tpd_7d)+' in</div>'
- +'<div style="width:88px;text-align:right;color:'+MUT+'">'+fmt(x.export_tpd_7d)+' out</div>'
- +'<div style="flex:1;display:flex;justify-content:center"><div style="width:230px;position:relative;height:12px;background:rgba(255,255,255,.05);border-radius:6px"><div style="position:absolute;'+(neg?'right:50%':'left:50%')+';width:'+w+'px;height:12px;background:'+c+'"></div><div style="position:absolute;left:50%;top:-1px;width:1px;height:14px;background:#3a4150"></div></div></div>'
- +'<div style="width:62px;text-align:right;font-weight:800;color:'+c+'">'+(pct>0?'+':'')+pct.toFixed(1)+'%</div></div>';}
-var g=p.global_pulse||{};var gc=(g.total_chg_pct||0)>0?GRN:RED;
-document.getElementById('hero').innerHTML=
- '<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">GLOBAL CARGO PULSE (7d vs 28d)</div><div class="mono" style="font-size:26px;font-weight:800;color:'+gc+'">'+((g.total_chg_pct>0?'+':'')+(g.total_chg_pct==null?'—':g.total_chg_pct)+'%')+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+fmt(g.import_tpd_7d)+' t/day in · '+fmt(g.export_tpd_7d)+' t/day out</div></div>'
-+'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">COVERAGE</div><div class="mono" style="font-size:26px;font-weight:800;color:#e8e8e8">'+(p.n_ports_with_data||0)+' ports</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+(p.n_rows_window||0)+' daily rows · fields discovered: '+((p.tonnage_fields||{}).import||'?')+' / '+((p.tonnage_fields||{}).export||'?')+'</div></div>'
-+'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">DATA HONESTY</div><div class="mono" style="font-size:13px;margin-top:4px;color:'+(p.stale?RED:GRN)+'">'+(p.fetch_status||'')+' · data '+(p.data_age_days==null?'—':p.data_age_days+'d old')+' (expected ≤'+(p.expected_lag_days||6)+'d)</div><div class="mono" style="font-size:11px;color:'+MUT+'">evidence: '+(p.evidence_tier||'')+' · lag ≈ '+(p.lag_months||'')+'mo vs revenue · '+((p.gaps||[]).length)+' gaps</div></div>';
-document.getElementById('acc').innerHTML=(p.accelerating_ports||[]).map(function(x){return row(x,'port');}).join('')||'<span class="mono" style="color:'+MUT+'">building…</span>';
-document.getElementById('dec').innerHTML=(p.decelerating_ports||[]).map(function(x){return row(x,'port');}).join('')||'<span class="mono" style="color:'+MUT+'">building…</span>';
-document.getElementById('cty').innerHTML=(p.countries||[]).map(function(x){return row(x,'country');}).join('')||'<span class="mono" style="color:'+MUT+'">building…</span>';
-document.getElementById('foot').textContent='Source: IMF PortWatch Daily_Ports_Data (keyless public ArcGIS) — estimated import/export metric tons per port per day. Method: '+(p.method||'')+' Generated '+(p.generated_at||'');
-}catch(e){console.error(e);}})();
-</script>
-
-<!-- wo4580: impact layer strip (additive) -->
-<div id="jh-impact-strip" style="max-width:1180px;margin:0 auto;padding:0 18px"></div>
-<script src="/assets/impact-strip.js" defer></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl-dashboard-live.s3.amazonaws.com/data/port-cargo.json");});</script>
-<script src="/sidebar.js" defer></script>
+<header><a href="/index.html">JUSTHODL · RESEARCH</a><nav aria-label="Related research"><a href="/portwatch.html">Vessel calls</a><a href="/physical-trade.html">Physical trade</a><a href="/boom-stage.html">Industry context</a><a href="/calls.html">Calls</a></nav></header>
+<main id="cargo-review">
+<p class="eyebrow">Physical trade · shipments · evidence review</p>
+<h1>Port Cargo Research</h1>
+<p class="intro">Inspect estimated import and export shipment weights across the PortWatch catalog. Compare exact calendar windows over the same covered ports, with missing observations and source dates visible.</p>
+<section class="note" aria-labelledby="cargo-limits"><h2 id="cargo-limits">Research only · no position instruction</h2><p>These AIS-derived shipment estimates are not customs trade values, company revenue, or forecasts. Their changes are not adjusted for holidays or seasonality. Imports and exports stay separate; adding both would not measure unique global cargo.</p><p>The original daily acquisition remains scheduled at <strong>12:40 UTC</strong>. Publication time and the latest observed shipping date have different meanings.</p></section>
+<p id="cargo-status" class="timestamp" role="status">Reading complete shipment packet…</p>
+<section class="card" aria-labelledby="cargo-cohort-title"><h2 id="cargo-cohort-title">Same-port cohort comparison</h2><p id="cargo-cohort">Unavailable</p><p id="cargo-window" class="timestamp">Exact comparison dates will appear with the reviewed packet.</p><p id="cargo-coverage" class="muted">Reading source coverage…</p><p>Only ports with every date and valid value in both windows enter a direction's cohort. Import and export coverage can differ. An incomplete window stays unavailable, and zero never becomes a percentage denominator.</p></section>
+<section class="card" aria-labelledby="cargo-ports-title"><h2 id="cargo-ports-title">All port identities</h2><p>Every catalog port remains accessible, including ports without observations. Unregistered IDs and inconsistent country labels stay explicit. Each comparison uses seven calendar dates and the immediately preceding 28 dates.</p>
+<div class="filters"><label>Find a port or country<input id="cargo-search" type="search" placeholder="Port ID, name, or country"></label><label>Shipment direction<select id="cargo-direction"><option value="import">Imports</option><option value="export">Exports</option></select></label></div>
+<p id="cargo-count" class="muted">Waiting for complete source population.</p><div id="cargo-ports" class="table-region" role="region" aria-label="Complete port population" tabindex="0"></div><div class="pager"><button id="cargo-prev" type="button" disabled>Previous ports</button><button id="cargo-next" type="button" disabled>Next ports</button><span class="muted">200 rows per page; filtering searches the full population.</span></div></section>
+<section class="card" aria-labelledby="cargo-countries-title"><h2 id="cargo-countries-title">Country cohorts</h2><p>Totals describe covered catalog ports in the selected direction. They are not a country's official trade statistics or a world-port census. Every included and excluded port ID is retained in the complete packet.</p><div id="cargo-countries" class="table-region" role="region" aria-label="All country cohorts" tabindex="0"></div></section>
+<section class="card" aria-labelledby="cargo-observations-title"><h2 id="cargo-observations-title">Dated observations</h2><p>Inspect each returned observation and its provider object ID. Source values that are missing or invalid remain available in the complete packet; they do not become zero in these tables.</p><label>Select port observations<select id="cargo-port-choice"></select></label><p id="cargo-observation-count" class="muted">Waiting for dated observations.</p><div id="cargo-observations" class="table-region" role="region" aria-label="All observations for selected port" tabindex="0"></div><div class="pager"><button id="cargo-obs-prev" type="button" disabled>Previous observations</button><button id="cargo-obs-next" type="button" disabled>Next observations</button></div></section>
+<section class="card" aria-labelledby="cargo-evidence-title"><h2 id="cargo-evidence-title">Evidence and original fields</h2><p id="cargo-preservation">Reading preservation and measurement status…</p><div class="links"><a href="/data/port-cargo.json?exact=1&amp;nogen=1">Complete published JSON</a><a href="/data/ops/releases/justhodl-port-cargo.json">Deployed code receipt</a><a href="https://www.imf.org/en/publications/wp/issues/2025/05/16/nowcasting-global-trade-from-space-566957">IMF methodology</a><a href="/engine-data.html?page=port-cargo.html">Complete engine data</a></div><details id="cargo-original-details"><summary>Inspect every published field, including inherited calculations</summary><p>The earlier rankings, seasonal claims, impact maps and revenue-lag labels are retained for inspection. They remain unqualified. Opening this section renders the complete packet and can be large.</p><pre id="cargo-original">Open this section to render the complete packet.</pre></details></section>
+</main><footer>Source: IMF PortWatch through its public ArcGIS service. Complete provider responses remain in protected research storage. Byte retention and arithmetic reproducibility do not establish point-in-time vintages or predictive accuracy.</footer>
+<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
 </body>
 </html>
