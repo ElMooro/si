@@ -6,7 +6,7 @@ function page(file,loader){
  let document;
  const get=id=>{
   if(!nodes.has(id)){
-   const n={value:'',headers:[],addEventListener(k,fn){this['on'+k]=fn;},setAttribute(k,v){this[k]=v;}};
+   const n={value:'',headers:[],querySelectorAll(){return this.headers;},addEventListener(k,fn){this['on'+k]=fn;},setAttribute(k,v){this[k]=v;}};
    let html='',text='';
    Object.defineProperty(n,'innerHTML',{get:()=>html,set:v=>{html=v;text='';n.headers=[...v.matchAll(/<th\b[^>]*data-k=(?:"([^"]+)"|([^ >]+))[^>]*>/g)].map(m=>({dataset:{k:m[1]||m[2]},ownerDocument:document,setAttribute(k,v){this[k]=v;},focus(){document.activeElement=this;}}));}});
    Object.defineProperty(n,'textContent',{get:()=>text,set:v=>{text=String(v);html='';n.headers=[];}});
@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-scarcity-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-scarcity-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-estimate-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-estimate-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-earnings-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-earnings-observations.js'),'utf8'),ctx);
  for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))vm.runInContext(m[1],ctx);
@@ -136,4 +137,31 @@ test('legacy full map and every published list occurrence are retained as unveri
  const copy=JSON.stringify(p),r=m.rows(p);assert.equal(r.length,4);assert.equal(r[3].eps,0);assert.ok(r.every(x=>x.target===null&&x.change===null));assert.equal(JSON.stringify(p),copy);
  assert.throws(()=>m.rows({measurement_contract:m.CONTRACT,request_records:[],calendar_rows:null}),/Complete/);
  assert.throws(()=>m.rows({measurement_contract:m.CONTRACT,request_records:[{observations:null}],calendar_rows:[]}),/Malformed/);
+});
+
+
+test('scarcity retains every legacy subset and never rebrands scores as shortage evidence',async()=>{
+ const p={vertical_tightness:[{theme_etf:'GDX',tightness:0}],stealth_shortage_board:[{ticker:'TEST',composite:13,why:'<img src=x>'}],prime_setups:[{ticker:'TEST'}]};
+ const s=page('scarcity-radar.html',async()=>raw(p));await flush();assert.equal(s.calls.length,1);assert.equal(s.calls[0],'/data/scarcity-radar.json');
+ assert.match(s.get('rows').textContent,/3 received/);assert.match(s.get('status').textContent,/Legacy publication/);assert.ok(!s.get('board').innerHTML.includes('<img'));
+ assert.equal(s.get('original').textContent,JSON.stringify(p));assert.match(s.get('board').innerHTML,/&lt;img/);
+ s.get('q').value='TEST';s.get('q').oninput();assert.match(s.get('rows').textContent,/2 shown \/ 3/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/3 shown/);
+ const h=s.get('board').headers.find(x=>x.dataset.k==='ticker');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');assert.equal(s.document.activeElement['aria-sort'],'ascending');
+ s.document.activeElement.onkeydown({key:' ',preventDefault(){}});assert.equal(s.document.activeElement['aria-sort'],'descending');
+});
+
+test('scarcity native donor meaning, coordinates, zero and whole records stay intact',async()=>{
+ const p={measurement_contract:'scarcity-donor-observations.v1',source_inventory:[{key:'data/narrative-vs-tape.json',label:'Narrative',status:'retained',producer_generated_at:'2026-09-27T00:00:00Z',capture:{},populations:[]}],donor_occurrences:[{ticker:'TEST',source_key:'data/narrative-vs-tape.json',source_pointer:'/quiet_accumulation/0',raw:{edge:'No inference of institutional buying',score:0,missing:null}}],stealth_shortage_board:[{ticker:'DO_NOT_USE'}]};
+ const s=page('scarcity-radar.html',async()=>raw(p));await flush();const html=s.get('board').innerHTML;
+ assert.match(html,/No inference of institutional buying/);assert.match(html,/\/quiet_accumulation\/0/);assert.match(html,/&quot;score&quot;: 0/);assert.ok(!html.includes('DO_NOT_USE'));
+ assert.match(s.get('status').textContent,/no qualified shortage forecast/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+ const m=require('../jh-scarcity-observations.js');assert.equal(m.rows({...p,donor_occurrences:Array.from({length:400},()=>p.donor_occurrences[0])}).length,400);
+ assert.throws(()=>m.rows({...p,donor_occurrences:{}}),/Complete/);assert.throws(()=>m.rows({prime_setups:{}}),/Malformed/);
+});
+
+test('scarcity failures preserve inert source and never show an empty valid board',async()=>{
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({stealth_shortage_board:{bad:true}}),async()=>{const e=Error('Duplicate JSON key');e.original_text='{"x":"<script>bad</script>","x":2}';throw e;}]){
+  const s=page('scarcity-radar.html',loader);await flush();assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('rows').textContent,'');assert.ok(!s.get('original').innerHTML.includes('<script>'));
+ }
+ assert.ok(api.PUBLIC_PATHS.test('/data/scarcity-radar.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/scarcity-radar/private.json'));
 });

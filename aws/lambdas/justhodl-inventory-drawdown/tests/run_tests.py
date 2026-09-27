@@ -51,6 +51,13 @@ def native(**extra):
 
 
 class Tests(unittest.TestCase):
+    def test_scarcity_observation_transition_preserves_every_company_occurrence_without_ranking(self):
+        rows=[{'ticker':'TEST','raw':{'industry':'Gold Mining'}},{'ticker':'TEST','raw':{}},{'ticker':'OTHER','raw':{}}]
+        p=universe({'data/scarcity-radar.json':{'measurement_contract':'scarcity-donor-observations.v1','donor_occurrences':rows,'stealth_shortage_board':[]}})
+        self.assertEqual(p['requested'],['TEST','OTHER']);self.assertEqual(len(p['occurrences']),3)
+        self.assertEqual(p['contexts']['TEST']['industry'],'Gold Mining')
+        self.assertEqual([r['original'] for r in p['occurrences']],rows)
+
     def test_constant_sixty_month_midrank_is_fifty_not_zero(self):
         out = sector('ISRATIO','Total',None,received(months()),'2026-09-27')
         self.assertEqual(out['percentile_5y'],50); self.assertEqual(out['percentile_sample_n'],60)

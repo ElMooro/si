@@ -79,7 +79,7 @@ def map_vertical(industry, sector=None, theme=None):
     return None
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     t0 = time.time()
     si = _read("data/supply-inflection.json") or {}
     bb = _read("data/bottleneck-boom.json") or {}
@@ -249,3 +249,85 @@ def lambda_handler(event=None, context=None):
     print(f"[scarcity-radar] names={len(book)} prime={len(prime)} "
           f"verticals_tightening={out['counts']['verticals_tightening']} {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps(out["counts"])}
+
+
+# Active path: preserve exact public donors; no legacy scoring or signal-log writes.
+from scarcity_observations import CONTRACT, SOURCES, PRIVATE, MAX, sha, strict, clock, reference, compile_packet
+
+
+def _scarcity_read(key, maximum):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    body=obj['Body']
+    try:raw=body.read(maximum+1)
+    finally:
+        if hasattr(body,'close'):body.close()
+    if len(raw)>maximum:raise OverflowError('Complete object exceeds acquisition bound')
+    if type(obj.get('ContentLength')) is not int or obj['ContentLength']!=len(raw) or not obj.get('ETag'):
+        raise ValueError('Whole versioned object required')
+    return raw,obj
+
+
+def _scarcity_archive(raw,private=False):
+    ref=reference(raw) if private else {'key':'data/scarcity-radar/history/'+sha(raw)+'.json','sha256':sha(raw),'bytes':len(raw)}
+    try:
+        S3.put_object(Bucket=BUCKET,Key=ref['key'],Body=raw,IfNoneMatch='*',
+                      ContentType='application/octet-stream' if private else 'application/json',
+                      CacheControl='no-store' if private else 'public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','ConditionalRequestConflict','PreconditionFailed'):raise
+    back,_=_scarcity_read(ref['key'],len(raw))
+    if back!=raw:raise ValueError('Whole immutable readback differs')
+    return ref
+
+
+def _scarcity_previous():
+    try:raw,obj=_scarcity_read(OUT_KEY,32*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'):return None,None,None
+        raise
+    parsed=strict(raw)
+    if not isinstance(parsed,dict):raise ValueError('Whole previous publication required')
+    return parsed,raw,obj['ETag']
+
+
+def _scarcity_capture(key,remaining):
+    if key not in SOURCES:raise ValueError('Undeclared public donor')
+    try:raw,obj=_scarcity_read(key,min(MAX,remaining))
+    except OverflowError:return {'status':'size_bound'},None
+    except Exception as exc:
+        code=str(getattr(exc,'response',{}).get('Error',{}).get('Code'))
+        return {'status':'missing' if code in ('404','NoSuchKey') else 'unavailable','error_type':type(exc).__name__},None
+    # Archive failure is fatal: never publish a fabricated original reference.
+    ref=_scarcity_archive(raw,private=True)
+    result={'status':'retained','original':ref,'etag':obj['ETag'],'received_at':datetime.now(timezone.utc).isoformat()}
+    modified=obj.get('LastModified')
+    result['object_last_modified']=modified.isoformat() if hasattr(modified,'isoformat') else None
+    try:
+        if not isinstance(strict(raw),dict):result['status']='invalid_original'
+    except (ValueError,UnicodeError):result['status']='invalid_original'
+    return result,raw
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc)
+    previous,prior_raw,etag=_scarcity_previous()
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous publication clock invalid')
+    captures={};originals={};remaining=8*1024*1024
+    for key in SOURCES:
+        budget=min(context.get_remaining_time_in_millis()/1000 if context and hasattr(context,'get_remaining_time_in_millis') else 180,180-(time.monotonic()-started))
+        if budget<25:captures[key]={'status':'time_bound'};continue
+        if remaining<=0:captures[key]={'status':'size_bound'};continue
+        capture,raw=_scarcity_capture(key,remaining);captures[key]=capture
+        if raw is not None:originals[key]=raw;remaining-=len(raw)
+    out=compile_packet(captures,originals,datetime.now(timezone.utc).isoformat())
+    out['acquisition_started_at']=checked.isoformat()
+    out['previous_publication']=_scarcity_archive(prior_raw) if prior_raw is not None else None
+    out['duration_s']=round(time.monotonic()-started,2)
+    raw=json.dumps(out,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
+    if len(raw)>32*1024*1024:raise ValueError('Whole publication exceeds bound; preserve previous output')
+    archived=_scarcity_archive(raw)
+    precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=OUT_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=3600',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'sources_received':out['source_count'],'occurrences':out['occurrence_count'],'archive':archived})}

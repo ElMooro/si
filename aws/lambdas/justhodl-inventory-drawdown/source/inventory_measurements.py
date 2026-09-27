@@ -168,13 +168,16 @@ def universe(sources):
                        ('data/scarcity-radar.json','stealth_shortage_board')):
         packet = sources.get(key)
         if packet is None: continue
+        if key=='data/scarcity-radar.json' and isinstance(packet,dict) and packet.get('measurement_contract')=='scarcity-donor-observations.v1':
+            field='donor_occurrences'
         if not isinstance(packet, dict) or not isinstance(packet.get(field, []), list): raise ValueError('Malformed universe source')
         for i, row in enumerate(packet.get(field, [])):
             symbol = row.get('ticker') if isinstance(row, dict) else None
             valid = isinstance(symbol, str) and bool(re.fullmatch('[A-Z0-9][A-Z0-9.-]{0,15}', symbol))
             occurrences.append({'key': key, 'field': field, 'source_row': i, 'original': row, 'valid_symbol': valid})
             if valid and symbol not in seen:
-                seen[symbol] = {'industry': row.get('industry'), 'sector': row.get('sector'), 'source_key': key, 'source_row': i}
+                context=row.get('raw') if field=='donor_occurrences' and isinstance(row.get('raw'),dict) else row
+                seen[symbol] = {'industry': context.get('industry'), 'sector': context.get('sector'), 'source_key': key, 'source_row': i}
     names = list(seen)
     return {'requested': names[:130], 'not_attempted': names[130:], 'contexts': seen, 'occurrences': occurrences,
             'limit': 130, 'ordering': 'First received occurrence across declared sources; no random set slicing',
