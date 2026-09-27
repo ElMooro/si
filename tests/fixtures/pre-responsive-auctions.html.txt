@@ -256,8 +256,8 @@
   @media(max-width:800px){ .desk-ai { grid-template-columns:1fr; } }
   .desk-ai h4 { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); margin-bottom:4px; }
   .desk-ai p { font-size:12.5px; color:var(--fg-2); line-height:1.6; }
-  .desk-ops { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr)); gap:12px; }
-  .op-card { min-width:0; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; position:relative; }
+  .desk-ops { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:12px; }
+  .op-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; position:relative; }
   .op-card.buyback { border-color:rgba(167,139,250,.45); }
   .op-card.bull { border-left:3px solid var(--green); } .op-card.bear { border-left:3px solid var(--red); }
   .op-head { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
@@ -281,9 +281,7 @@
   .op-verdict { font-size:12.5px; color:var(--fg-2); line-height:1.55; margin-top:8px; }
   .op-imp { font-size:11.5px; color:var(--fg-3); margin-top:6px; }
   .op-imp b.bull { color:var(--green); } .op-imp b.bear { color:var(--red); } .op-imp b.warn { color:var(--amber); }
-  .op-secs { margin-top:8px; font-size:11px; color:var(--fg-3); min-width:0; max-width:100%; }
-  .op-secs-table { max-width:100%; overflow-x:auto; margin-top:6px; }
-  .op-secs-table:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+  .op-secs { margin-top:8px; font-size:11px; color:var(--fg-3); }
   .op-secs summary { cursor:pointer; color:var(--fg-2); }
   .desk-grid2 { display:grid; grid-template-columns:1.3fr 1fr; gap:18px; margin-bottom:18px; }
   @media(max-width:1000px){ .desk-grid2 { grid-template-columns:1fr; } }
@@ -501,7 +499,7 @@
       </div>
       <div class="op-verdict">${esc(b.verdict)}</div>
       ${b.implication ? `<div class="op-imp">Liquidity: <b class="${toneOf(b.implication.tone)}">${esc(b.implication.liquidity)}</b> · Rates: <b>${esc(b.implication.rates)}</b> · Risk assets: <b class="${toneOf(b.implication.tone)}">${esc(b.implication.risk)}</b></div>` : ""}
-      ${secs.length ? `<details class="op-secs"><summary>${secs.length} securities bought — sorted by time left to maturity</summary><div class="op-secs-table" tabindex="0" role="region" aria-label="All bought securities, scroll horizontally for every column"><table><thead><tr><th>CUSIP</th><th>Left to maturity</th><th>Original</th><th class="r">Coupon</th><th>Matures</th><th class="r">Par accepted</th><th class="r">Avg price</th></tr></thead><tbody>${secs.map(s => `<tr><td>${esc(s.cusip)}</td><td class="tk">${esc(s.ttm_label || "—")}</td><td>${esc(s.orig_term || "—")}</td><td class="r">${num(s.coupon, 3)}</td><td>${esc(s.maturity)}</td><td class="r">${bn(s.par_accepted)}</td><td class="r">${num(s.price, 3)}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
+      ${secs.length ? `<details class="op-secs"><summary>${secs.length} securities bought — sorted by time left to maturity</summary><table style="margin-top:6px"><thead><tr><th>CUSIP</th><th>Left to maturity</th><th>Original</th><th class="r">Coupon</th><th>Matures</th><th class="r">Par accepted</th><th class="r">Avg price</th></tr></thead><tbody>${secs.map(s => `<tr><td>${esc(s.cusip)}</td><td class="tk">${esc(s.ttm_label || "—")}</td><td>${esc(s.orig_term || "—")}</td><td class="r">${num(s.coupon, 3)}</td><td>${esc(s.maturity)}</td><td class="r">${bn(s.par_accepted)}</td><td class="r">${num(s.price, 3)}</td></tr>`).join("")}</tbody></table></details>` : ""}
     </div>`;
   }
 
