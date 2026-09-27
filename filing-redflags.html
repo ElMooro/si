@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Filing red flags · JustHodl</title>
+<title>Filing red flags Â· JustHodl</title>
 <style>
 :root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
@@ -15,83 +15,32 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;
 th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
 .bear{color:var(--red)}.bull{color:var(--grn)}a{color:var(--cyan);text-decoration:none}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+
+button,input{font:inherit}input{width:100%;max-width:360px}label{display:block;margin-bottom:5px;color:var(--fg2)}
+.table-region{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:8px}table{min-width:900px}caption{text-align:left;padding:10px;color:var(--fg2)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}th[aria-sort=ascending]::after{content:" â†‘"}th[aria-sort=descending]::after{content:" â†“"}
+td:first-child{white-space:nowrap}.source-path{overflow-wrap:anywhere}.muted{color:var(--fg2)}.chip{overflow-wrap:anywhere;text-align:left;max-width:100%}#kpis,#publication,#status{overflow-wrap:anywhere}
+details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;color:var(--fg2);font-size:12px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Filing red flags</h1>
-<p class="sub">Going concern, restatement, material weakness, auditor change, investigation, and bankruptcy hits already tagged on the SEC filings-intel feed. These are keyword/event matches from EDGAR full text, not a full 10-K parse. Click a header to sort. Blank is missing, not zero.</p>
+<p class="sub">Going concern, restatement, material weakness, auditor change, investigation and bankruptcy keyword matches from EDGAR full text. A match does not confirm a control failure, current issuer distress or fraud. Read the original document in context. Source weights are not probabilities or expected returns.</p>
 <div class="kpis" id="kpis"></div>
-<input id="q" placeholder="filter ticker or signal" autocomplete="off">
-<div id="board">Loading /data/sec-filings-intel.json</div>
-<div class="foot"><b>Built for:</b> isolating the control-failure and distress events inside the existing filings-intel tape.<br>
-<b>Data:</b> /data/sec-filings-intel.json (all_tickers[], critical[], events with ticker, form, filed_at, signal_id, polarity, severity, weight, filing_url).<br>
+<label for="q">Filter ticker, company, signal or source path</label>
+<input id="q" placeholder="Filter ticker, company, signal or source path" autocomplete="off">
+<p id="publication" class="sub">Awaiting stored publication.</p>
+<p id="status" class="sub" role="status" aria-live="polite">Loading received records.</p>
+<div id="board" class="table-region" role="region" aria-label="Filing records, scroll horizontally for every column" tabindex="0">Loading stored publication.</div>
+<details><summary>Complete original publication</summary><p class="sub">The received JSON text is preserved here, including all source subsets, fields and duplicate occurrences. This page cannot recover observations omitted by the producer. Repeated occurrences across source subsets are not independent evidence.</p><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Built for:</b> reviewing source keyword matches across all_tickers and every provided highlight population; identical or incomplete identifiers are retained, with their source paths.<br>
+<b>Data:</b> /data/sec-filings-intel.json (all_tickers[], highlights.critical[], highlights.risks[], highlights.opportunities[] and legacy top-level populations, with their event fields).<br>
 <b>Signals kept here:</b> going_concern, restatement, material_weakness, auditor_change, investigation, bankruptcy.<br>
-<b>Not:</b> a new 8-K guidance parser. The broader 14-signal board remains on /sec-filings.html. Research only.</div>
+<b>Not:</b> a new 8-K guidance parser. <a href="/sec-filings.html">Open the broader 14-signal board</a> or <a href="/8k-items.html">8-K item tape</a>. Document links are enabled only for HTTPS SEC Archives URLs. Other received URLs remain in the original publication. Research only; source completeness and model qualification remain unverified.</div>
 </div>
-<script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-var KEEP={going_concern:1,restatement:1,material_weakness:1,auditor_change:1,investigation:1,bankruptcy:1};
-var SORT="filed_at", DIR=-1, PACK=null, ROWS=[];
-function cmp(a,b){
-  var av=a[SORT], bv=b[SORT];
-  if(av==null||av==="") return 1; if(bv==null||bv==="") return -1;
-  if(SORT==="weight"||SORT==="score") return (Number(av)-Number(bv))*DIR;
-  if(SORT==="filed_at") return ((Date.parse(av)||0)-(Date.parse(bv)||0))*DIR;
-  return String(av).localeCompare(String(bv))*DIR;
-}
-function flatten(d){
-  var out=[], seen={};
-  function add(ev){
-    if(!ev||!KEEP[ev.signal_id]) return;
-    var k=(ev.ticker||"")+"|"+(ev.accession||"")+"|"+(ev.signal_id||"");
-    if(seen[k]) return; seen[k]=1;
-    out.push({
-      ticker:ev.ticker||"", name:ev.name||"", form:ev.form||"",
-      filed_at:ev.filed_at||"", signal_id:ev.signal_id||"", signal_label:ev.signal_label||ev.signal_id||"",
-      polarity:ev.polarity||"", severity:ev.severity||"", weight:ev.weight,
-      filing_url:ev.filing_url||"", snippet:ev.snippet||""
-    });
-  }
-  (d.critical||[]).forEach(function(row){ (row.events||[row]).forEach(add); });
-  (d.all_tickers||[]).forEach(function(row){ (row.events||[]).forEach(add); });
-  (d.opportunities||[]).forEach(function(row){ (row.events||[row]).forEach(add); });
-  return out;
-}
-function paint(){
-  var q=(document.getElementById("q").value||"").toUpperCase();
-  var list=ROWS.filter(function(r){
-    if(!q) return true;
-    return (r.ticker+" "+r.name+" "+r.signal_id+" "+r.signal_label).toUpperCase().indexOf(q)>=0;
-  }).sort(cmp);
-  var h='<table><thead><tr>';
-  [["filed_at","Filed"],["ticker","Ticker"],["signal_label","Signal"],["form","Form"],["severity","Severity"],["weight","Weight"]].forEach(function(c){
-    h+='<th class="'+(SORT===c[0]?"on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR<0?" \u2193":" \u2191"):"")+"</th>";
-  });
-  h+="</tr></thead><tbody>";
-  list.forEach(function(r){
-    h+="<tr><td>"+esc(String(r.filed_at).replace("T"," ").slice(0,19))+"</td>";
-    h+="<td><a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker)+"\">"+esc(r.ticker)+"</a></td>";
-    h+='<td class="'+(r.polarity==="bearish"?"bear":"bull")+'">'+(r.filing_url?"<a href=\""+esc(r.filing_url)+"\" target=_blank rel=noopener>"+esc(r.signal_label)+"</a>":esc(r.signal_label))+"</td>";
-    h+="<td>"+esc(r.form)+"</td><td>"+esc(r.severity)+"</td><td>"+(r.weight==null?"":r.weight)+"</td></tr>";
-  });
-  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+ROWS.length+" tagged red-flag events. Generated "+esc((PACK&&PACK.generated_at)||"")+".</p>";
-  document.querySelectorAll("#board th[data-k]").forEach(function(el){
-    el.onclick=function(){var k=el.getAttribute("data-k"); if(SORT===k)DIR=-DIR; else {SORT=k; DIR=k==="ticker"||k==="signal_label"||k==="form"||k==="severity"?1:-1;} paint();};
-  });
-}
-(async function(){
-  var d=null;
-  try{var r=await fetch("/data/sec-filings-intel.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
-  if(!d){document.getElementById("board").textContent="sec-filings-intel.json missing.";return;}
-  PACK=d; ROWS=flatten(d);
-  document.getElementById("kpis").innerHTML=
-    '<span class="chip"><b>'+ROWS.length+"</b> red-flag events</span>"
-    +'<span class="chip"><b>'+(d.n_tickers_with_signals||0)+"</b> names on full intel tape</span>"
-    +'<span class="chip"><a href=\"/sec-filings.html\">full 14-signal desk</a></span>"
-    +'<span class="chip"><a href=\"/8k-items.html\">8-K item tape</a></span>';
-  document.getElementById("q").oninput=paint; paint();
-})();
-</script>
+<script src="/jh-table-values.js"></script>
+<script src="/jh-filing-desk.js"></script>
+<script>JHFilingDesk.start({mode:"flags",source:"/data/sec-filings-intel.json"});</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/sidebar.js" defer></script>

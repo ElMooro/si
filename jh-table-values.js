@@ -49,7 +49,7 @@
  }
  // A validation grammar, not a list of consumed feeds. Each caller owns its
  // literal source binding; merely importing this helper requests nothing.
- const PUBLIC_PATHS=/^\/data\/(?:earnings-quality|hiring-velocity|estimate-revisions)\.json$/;
+ const PUBLIC_PATHS=/^\/data\/(?:earnings-quality|hiring-velocity|estimate-revisions|8k-filings|10kq-filings|sec-filings-intel)\.json$/;
  async function load(path,options={}){
   if(typeof path!=='string'||!PUBLIC_PATHS.test(path))throw Error('Unreviewed public desk path');
   const controller=new AbortController();let timer,reader;

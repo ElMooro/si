@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>10-K / 10-Q tape · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:860px;margin:0 0 14px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2);cursor:pointer}
+.chip.on{border-color:var(--cyan);color:var(--fg)}.chip b{color:var(--fg)}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.amd{color:var(--amb)}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>10-K / 10-Q tape</h1>
+<p class="sub">Recent Form 10-K and 10-Q filings plus amendments from the live EDGAR index. An amendment is a restated or corrected filing, not a parsed accounting change. The feed has company name and CIK; no ticker is invented. Click a header to sort.</p>
+<div class="kpis" id="kpis"></div>
+<input id="q" placeholder="filter company, CIK, or form" autocomplete="off">
+<div id="board">Loading /data/10kq-filings.json</div>
+<div class="foot"><b>Built for:</b> seeing which issuers just filed a 10-K, 10-Q, or amendment without pretending the text was parsed.<br>
+<b>Data:</b> /data/10kq-filings.json (stats, filings[], amended[] with form, company, cik, accession, filed_at, filing_url).<br>
+<b>Not:</b> an MD&amp;A miner, an 8-K guidance parser, or a ticker map. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+var SORT="filed_at", DIR=-1, PACK=null;
+function cmp(a,b){
+  var av=a[SORT], bv=b[SORT];
+  if(av==null||av==="") return 1; if(bv==null||bv==="") return -1;
+  if(SORT==="filed_at") return ((Date.parse(av)||0)-(Date.parse(bv)||0))*DIR;
+  return String(av).localeCompare(String(bv))*DIR;
+}
+function paint(){
+  var d=PACK; if(!d) return;
+  var rows=(d.filings||[]).concat(d.amended||[]);
+  var q=(document.getElementById("q").value||"").toUpperCase();
+  rows=rows.filter(function(r){
+    if(!q) return true;
+    return (String(r.company||"")+" "+String(r.cik||"")+" "+String(r.form||"")+" "+String(r.accession||"")).toUpperCase().indexOf(q)>=0;
+  }).sort(cmp);
+  var h='<table><thead><tr>';
+  [["filed_at","Filed"],["form","Form"],["company","Company"],["cik","CIK"],["accession","Accession"]].forEach(function(c){
+    h+='<th class="'+(SORT===c[0]?"on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR<0?" \u2193":" \u2191"):"")+"</th>";
+  });
+  h+="</tr></thead><tbody>";
+  rows.forEach(function(r){
+    var amd=/\/A$/.test(r.form||"");
+    h+="<tr><td>"+esc((r.filed_at||"").replace("T"," ").slice(0,19))+"</td>";
+    h+='<td class="'+(amd?"amd":"")+'">'+esc(r.form||"")+"</td>";
+    h+="<td>"+(r.filing_url?"<a href=\""+esc(r.filing_url)+"\" target=_blank rel=noopener>"+esc(r.company||"")+"</a>":esc(r.company||""))+"</td>";
+    h+="<td>"+esc(r.cik||"")+"</td><td>"+esc(r.accession||"")+"</td></tr>";
+  });
+  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+rows.length+" rows in the "+esc(d.window_days)+"-day window. Generated "+esc(d.generated_at||"")+". Amendments stay marked. No ticker invented.</p>";
+  document.querySelectorAll("#board th[data-k]").forEach(function(el){
+    el.onclick=function(){var k=el.getAttribute("data-k"); if(SORT===k)DIR=-DIR; else {SORT=k; DIR=k==="filed_at"?-1:1;} paint();};
+  });
+}
+(async function(){
+  var d=null;
+  try{var r=await fetch("/data/10kq-filings.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
+  if(!d){document.getElementById("board").textContent="10kq-filings.json missing.";return;}
+  PACK=d; var st=d.stats||{};
+  document.getElementById("kpis").innerHTML=
+    '<span class="chip"><b>'+(st.total!=null?st.total:(d.filings||[]).length)+"</b> filings</span>"
+    +'<span class="chip"><b>'+(st.total_10k||0)+"</b> 10-K</span>"
+    +'<span class="chip"><b>'+(st.total_10q||0)+"</b> 10-Q</span>"
+    +'<span class="chip"><b>'+((st.total_10k_amended||0)+(st.total_10q_amended||0))+"</b> amendments</span>";
+  document.getElementById("q").oninput=paint; paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>

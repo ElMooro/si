@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Filing red flags · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:860px;margin:0 0 14px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2);cursor:pointer}
+.chip.on{border-color:var(--cyan);color:var(--fg)}.chip b{color:var(--fg)}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.bear{color:var(--red)}.bull{color:var(--grn)}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Filing red flags</h1>
+<p class="sub">Going concern, restatement, material weakness, auditor change, investigation, and bankruptcy hits already tagged on the SEC filings-intel feed. These are keyword/event matches from EDGAR full text, not a full 10-K parse. Click a header to sort. Blank is missing, not zero.</p>
+<div class="kpis" id="kpis"></div>
+<input id="q" placeholder="filter ticker or signal" autocomplete="off">
+<div id="board">Loading /data/sec-filings-intel.json</div>
+<div class="foot"><b>Built for:</b> isolating the control-failure and distress events inside the existing filings-intel tape.<br>
+<b>Data:</b> /data/sec-filings-intel.json (all_tickers[], critical[], events with ticker, form, filed_at, signal_id, polarity, severity, weight, filing_url).<br>
+<b>Signals kept here:</b> going_concern, restatement, material_weakness, auditor_change, investigation, bankruptcy.<br>
+<b>Not:</b> a new 8-K guidance parser. The broader 14-signal board remains on /sec-filings.html. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+var KEEP={going_concern:1,restatement:1,material_weakness:1,auditor_change:1,investigation:1,bankruptcy:1};
+var SORT="filed_at", DIR=-1, PACK=null, ROWS=[];
+function cmp(a,b){
+  var av=a[SORT], bv=b[SORT];
+  if(av==null||av==="") return 1; if(bv==null||bv==="") return -1;
+  if(SORT==="weight"||SORT==="score") return (Number(av)-Number(bv))*DIR;
+  if(SORT==="filed_at") return ((Date.parse(av)||0)-(Date.parse(bv)||0))*DIR;
+  return String(av).localeCompare(String(bv))*DIR;
+}
+function flatten(d){
+  var out=[], seen={};
+  function add(ev){
+    if(!ev||!KEEP[ev.signal_id]) return;
+    var k=(ev.ticker||"")+"|"+(ev.accession||"")+"|"+(ev.signal_id||"");
+    if(seen[k]) return; seen[k]=1;
+    out.push({
+      ticker:ev.ticker||"", name:ev.name||"", form:ev.form||"",
+      filed_at:ev.filed_at||"", signal_id:ev.signal_id||"", signal_label:ev.signal_label||ev.signal_id||"",
+      polarity:ev.polarity||"", severity:ev.severity||"", weight:ev.weight,
+      filing_url:ev.filing_url||"", snippet:ev.snippet||""
+    });
+  }
+  (d.critical||[]).forEach(function(row){ (row.events||[row]).forEach(add); });
+  (d.all_tickers||[]).forEach(function(row){ (row.events||[]).forEach(add); });
+  (d.opportunities||[]).forEach(function(row){ (row.events||[row]).forEach(add); });
+  return out;
+}
+function paint(){
+  var q=(document.getElementById("q").value||"").toUpperCase();
+  var list=ROWS.filter(function(r){
+    if(!q) return true;
+    return (r.ticker+" "+r.name+" "+r.signal_id+" "+r.signal_label).toUpperCase().indexOf(q)>=0;
+  }).sort(cmp);
+  var h='<table><thead><tr>';
+  [["filed_at","Filed"],["ticker","Ticker"],["signal_label","Signal"],["form","Form"],["severity","Severity"],["weight","Weight"]].forEach(function(c){
+    h+='<th class="'+(SORT===c[0]?"on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR<0?" \u2193":" \u2191"):"")+"</th>";
+  });
+  h+="</tr></thead><tbody>";
+  list.forEach(function(r){
+    h+="<tr><td>"+esc(String(r.filed_at).replace("T"," ").slice(0,19))+"</td>";
+    h+="<td><a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker)+"\">"+esc(r.ticker)+"</a></td>";
+    h+='<td class="'+(r.polarity==="bearish"?"bear":"bull")+'">'+(r.filing_url?"<a href=\""+esc(r.filing_url)+"\" target=_blank rel=noopener>"+esc(r.signal_label)+"</a>":esc(r.signal_label))+"</td>";
+    h+="<td>"+esc(r.form)+"</td><td>"+esc(r.severity)+"</td><td>"+(r.weight==null?"":r.weight)+"</td></tr>";
+  });
+  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+ROWS.length+" tagged red-flag events. Generated "+esc((PACK&&PACK.generated_at)||"")+".</p>";
+  document.querySelectorAll("#board th[data-k]").forEach(function(el){
+    el.onclick=function(){var k=el.getAttribute("data-k"); if(SORT===k)DIR=-DIR; else {SORT=k; DIR=k==="ticker"||k==="signal_label"||k==="form"||k==="severity"?1:-1;} paint();};
+  });
+}
+(async function(){
+  var d=null;
+  try{var r=await fetch("/data/sec-filings-intel.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
+  if(!d){document.getElementById("board").textContent="sec-filings-intel.json missing.";return;}
+  PACK=d; ROWS=flatten(d);
+  document.getElementById("kpis").innerHTML=
+    '<span class="chip"><b>'+ROWS.length+"</b> red-flag events</span>"
+    +'<span class="chip"><b>'+(d.n_tickers_with_signals||0)+"</b> names on full intel tape</span>"
+    +'<span class="chip"><a href=\"/sec-filings.html\">full 14-signal desk</a></span>"
+    +'<span class="chip"><a href=\"/8k-items.html\">8-K item tape</a></span>';
+  document.getElementById("q").oninput=paint; paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>

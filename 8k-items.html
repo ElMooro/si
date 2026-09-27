@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>8-K item tape · JustHodl</title>
+<title>8-K item tape Â· JustHodl</title>
 <style>
 :root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--amb:#fbbf24;--cyan:#38bdf8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
@@ -20,91 +20,33 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-
 a{color:var(--cyan);text-decoration:none}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 .loading{color:var(--fg3);padding:28px 0}
+
+button,input{font:inherit}input{width:100%;max-width:360px}label{display:block;margin-bottom:5px;color:var(--fg2)}
+.table-region{max-width:100%;overflow:auto;border:1px solid var(--bd);border-radius:8px}table{min-width:900px}caption{text-align:left;padding:10px;color:var(--fg2)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}th[aria-sort=ascending]::after{content:" â†‘"}th[aria-sort=descending]::after{content:" â†“"}
+td:first-child{white-space:nowrap}.source-path{overflow-wrap:anywhere}.muted{color:var(--fg2)}.chip{overflow-wrap:anywhere;text-align:left;max-width:100%}#kpis,#publication,#status{overflow-wrap:anywhere}
+details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;color:var(--fg2);font-size:12px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>8-K item tape</h1>
-<p class="sub">Current-window Form 8-K items from the live EDGAR feed. Item 4.02 is non-reliance on prior statements. Item 3.01 is a listing notice. Item 2.02 is results of operations, not a parsed earnings beat. The feed has no ticker tag — company name and the SEC URL are shown as filed. Click a header to sort.</p>
+<p class="sub">Current-window Form 8-K items as published by the EDGAR feed. An item tag is not an earnings surprise, a confirmed restatement or a trading signal. Company names remain as filed; no ticker is inferred.</p>
 <div class="kpis" id="kpis"></div>
 <div class="kpis" id="items"></div>
-<input id="q" placeholder="filter company or item" autocomplete="off">
-<div id="board"><div class="loading">Loading /data/8k-filings.json</div></div>
+<label for="q">Filter company, item or accession</label>
+<input id="q" placeholder="Filter company, item or accession" autocomplete="off">
+<p id="publication" class="sub">Awaiting stored publication.</p>
+<p id="status" class="sub" role="status" aria-live="polite">Loading received records.</p>
+<div id="board" class="table-region" role="region" aria-label="Filing records, scroll horizontally for every column" tabindex="0">Loading stored publication.</div>
+<details><summary>Complete original publication</summary><p class="sub">The received JSON text is preserved here, including all source subsets, fields and duplicate occurrences. This page cannot recover observations omitted by the producer. Repeated occurrences across source subsets are not independent evidence.</p><pre id="original" tabindex="0">Unavailable</pre></details>
 <div class="foot"><b>Built for:</b> reading what issuers just told the SEC, by 8-K item, without inventing a ticker map or an earnings surprise.<br>
 <b>Data:</b> /data/8k-filings.json (generated_at, window_days, item_labels, by_item_counts, red_flags, high_impact, filings[] with company, accession, filed_at, items, filing_url).<br>
-<b>Important items:</b> 4.02 non-reliance / restatement; 4.01 auditor change; 3.01 delisting notice; 1.03 bankruptcy; 2.06 impairment; 1.05 cyber (shown when tagged); 2.02 results of operations; 5.02 officer change; 1.01 material agreement; 2.01 acquisition.<br>
-<b>Not:</b> an 8-K guidance parser, an Item 2.02 beat/miss, or a ticker join. Research only.</div>
+<b>Important items:</b> 4.02 non-reliance notice (read the filing for its implications); 4.01 auditor change; 3.01 delisting notice; 1.03 bankruptcy; 2.06 impairment; 1.05 cyber (shown when tagged); 2.02 results of operations; 5.02 officer change; 1.01 material agreement; 2.01 acquisition.<br>
+<b>Not:</b> an 8-K guidance parser, an Item 2.02 beat/miss, or a ticker join. Document links are enabled only for HTTPS SEC Archives URLs. Other received URLs remain in the original publication. Research only; source completeness and model qualification remain unverified.</div>
 </div>
-<script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&","<":"<",">":">",'"':"""}[c];});}
-function strip(s){return String(s==null?"":s).replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();}
-function hot(it){return it==="4.02"||it==="4.01"||it==="3.01"||it==="1.03"||it==="2.06"||it==="1.05";}
-var SORT="filed_at", DIR=-1, ITEM="", PACK=null;
-function val(r,k){
-  if(k==="company") return r.company||"";
-  if(k==="filed_at") return r.filed_at||"";
-  if(k==="items") return (r.items||[]).join(",");
-  if(k==="accession") return r.accession||"";
-  return r[k];
-}
-function cmp(a,b){
-  var av=val(a,SORT), bv=val(b,SORT);
-  if(av==null||av==="") { if(bv==null||bv==="") return 0; return 1; }
-  if(bv==null||bv==="") return -1;
-  if(SORT==="filed_at") return (Date.parse(av)-Date.parse(bv))*DIR || 0;
-  return String(av).localeCompare(String(bv))*DIR;
-}
-function th(key,label){
-  var arrow=SORT===key?(DIR<0?" v":" ^"):"";
-  return '<th class="'+(SORT===key?"on":"")+'" data-k="'+key+'">'+label+arrow+"</th>";
-}
-function paint(){
-  var d=PACK; if(!d) return;
-  var labels=d.item_labels||{};
-  var rows=(d.filings||[]).slice();
-  var q=(document.getElementById("q").value||"").toUpperCase();
-  rows=rows.filter(function(r){
-    if(ITEM && !(r.items||[]).some(function(x){return x===ITEM;})) return false;
-    if(!q) return true;
-    var blob=(r.company||"")+" "+(r.items||[]).join(" ")+" "+(r.accession||"");
-    return blob.toUpperCase().indexOf(q)>=0;
-  }).sort(cmp);
-  var h="<table><thead><tr>"+th("filed_at","Filed")+th("company","Company")+th("items","Items")+th("accession","Accession")+"</tr></thead><tbody>";
-  rows.forEach(function(r){
-    h+="<tr><td>"+esc((r.filed_at||"").replace("T"," ").slice(0,19))+"</td>";
-    h+="<td>"+(r.filing_url?"<a href=\""+esc(r.filing_url)+"\" target=_blank rel=noopener>"+esc(r.company||"")+"</a>":esc(r.company||""))+"</td>";
-    h+="<td>"+(r.items||[]).map(function(it){return '<span class="item '+(hot(it)?"hot":(it==="2.02"?"earn":""))+'">'+esc(it)+(labels[it]?" "+esc(String(labels[it]).slice(0,28)):"")+"</span>";}).join("")+"</td>";
-    h+="<td>"+esc(r.accession||"")+"</td></tr>";
-  });
-  document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+rows.length+" of "+(d.filings||[]).length+" filings in the "+esc(d.window_days)+"-day window. Generated "+esc(d.generated_at||"")+". Click headers to sort. Company names are as filed; no ticker was invented.</p>";
-  document.querySelectorAll("#board th[data-k]").forEach(function(el){
-    el.onclick=function(){var k=el.getAttribute("data-k"); if(SORT===k)DIR=-DIR; else {SORT=k; DIR=k==="filed_at"?-1:1;} paint();};
-  });
-}
-(async function(){
-  var d=null;
-  try{var r=await fetch("/data/8k-filings.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
-  if(!d||!Array.isArray(d.filings)){document.getElementById("board").textContent="8k-filings.json missing or empty.";return;}
-  PACK=d;
-  var st=d.stats||{}, counts=d.by_item_counts||{}, labels=d.item_labels||{};
-  document.getElementById("kpis").innerHTML=
-    '<span class="chip"><b>'+(st.total_filings!=null?st.total_filings:d.filings.length)+"</b> filings</span>"
-    +'<span class="chip"><b>'+(st.red_flag_filings!=null?st.red_flag_filings:(d.red_flags||[]).length)+"</b> feed red flags</span>"
-    +'<span class="chip"><b>'+(st.high_impact_filings!=null?st.high_impact_filings:(d.high_impact||[]).length)+"</b> feed high-impact</span>"
-    +'<span class="chip">window '+(d.window_days!=null?d.window_days:"?")+"d</span>";
-  var keys=Object.keys(counts).sort(function(a,b){return (counts[b]||0)-(counts[a]||0);});
-  document.getElementById("items").innerHTML='<span class="chip on" data-item="">all items</span>'+keys.map(function(k){
-    return '<span class="chip" data-item="'+esc(k)+'"><b>'+esc(k)+"</b> "+esc(String(labels[k]||"").slice(0,22))+" ("+counts[k]+")</span>";
-  }).join("");
-  document.getElementById("items").onclick=function(e){
-    var c=e.target.closest("[data-item]"); if(!c) return;
-    ITEM=c.getAttribute("data-item")||"";
-    document.querySelectorAll("#items .chip").forEach(function(x){x.classList.toggle("on",x===c);});
-    paint();
-  };
-  document.getElementById("q").oninput=paint;
-  paint();
-})();
-</script>
+<script src="/jh-table-values.js"></script>
+<script src="/jh-filing-desk.js"></script>
+<script>JHFilingDesk.start({mode:"8k",source:"/data/8k-filings.json"});</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/sidebar.js" defer></script>
