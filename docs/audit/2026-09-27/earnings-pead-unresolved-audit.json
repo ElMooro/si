@@ -1,0 +1,30 @@
+{
+  "source_bytes": 13505,
+  "source_sha256": "c7d92d604f574f14e217a715bc9aff89606031461f6b31cca58fc8d0fce257a8",
+  "public_bytes": 211449,
+  "public_sha256": "34cd4729e3dfdb5eb7390a1bda59c7aec29f2b838b28fe6299a76225892f88ed",
+  "generated_at": "2026-09-27T08:00:51+00:00",
+  "stats": {
+    "n_universe": 1500,
+    "n_evaluated": 187,
+    "n_no_data": 1313,
+    "n_tier_s": 14,
+    "n_tier_a": 23,
+    "n_tier_b": 39,
+    "top_100_by_cap_bucket": {
+      "mega": 48,
+      "large": 52
+    }
+  },
+  "all_qualifying_occurrences": 187,
+  "top_subset_occurrences": 25,
+  "baseline_acceptance": "pending 6253; native code and schedules unchanged",
+  "observed_source_defects": [
+    "Reported zero EPS can be replaced by an alias or omitted; booleans pass float conversion. Zero estimates and missing rows are skipped, potentially bridging an unobserved streak.",
+    "Same-date duplicates, future dates and mismatched issuers/units/EPS bases can enter beat streaks and investment tiers without quarterly event identity.",
+    "The percentage uses absolute negative estimates despite the comment requiring a positive estimate; no standardized unexpected-earnings test is present.",
+    "Calendar-day windows, announcement date and the first returned same-day close are used without release time, exchange session or price-adjustment identity. Missing volume becomes zero.",
+    "Only eight selected events and ninety price rows are used; source originals and discarded/failed acquisitions are not retained.",
+    "Claimed revenue beats, guidance raises and published return ranges are not validated by this implementation. Existing public pages display unqualified scores and tiers."
+  ]
+}
