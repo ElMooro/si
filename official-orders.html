@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Official orders · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase}
+.r{text-align:right}.pos{color:var(--grn)}.neg{color:var(--red)}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Official orders</h1>
+<p class="sub">Official new-order prints that exist on canary-macro. Census M3 levels and the ISM new-orders minus inventories spread stay blank because those series are not published as /data JSON.</p>
+<div id="kpis"></div>
+<div id="board" class="table-region">Loading canary-macro.</div>
+<div class="foot"><b>Built for:</b> official orders without inventing Census M3 or ISM diffusion values.<br>
+<b>Data:</b> /data/canary-macro.json NEWORDER and ACOGNO (value + prev when present).<br>
+<b>Blank:</b> AMTMNO, AMTMUO, UMTMTI, DGORDER, ISM new orders, ISM inventories, ISM spread.<br>
+<b>Related:</b> <a href="/materials-orders.html">materials orders</a> · <a href="/inventory-drawdown.html">inventory</a>. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function pick(packet,id){
+  var series=packet&&(packet.series||packet.rows||packet.items||[]);
+  if(Array.isArray(series)){for(var i=0;i<series.length;i++){var s=series[i]||{};if(String(s.id||s.series_id||s.symbol||"")===id)return s;}}
+  else if(series&&typeof series==="object"&&series[id])return series[id];
+  if(packet&&packet[id])return packet[id];
+  return null;
+}
+function val(s){if(!s)return {v:null,p:null,d:""};return {v:num(s.value!=null?s.value:s.last),p:num(s.prev!=null?s.prev:s.previous),d:s.date||s.as_of||s.obs_date||""};}
+(async function(){
+  var packet=null;
+  try{var r=await fetch("/data/canary-macro.json?t="+Date.now(),{cache:"no-store"});if(r.ok)packet=await r.json();}catch(e){}
+  var no=val(pick(packet,"NEWORDER"));var ac=val(pick(packet,"ACOGNO"));
+  function chg(o){if(o.v==null||o.p==null||o.p===0)return null;return 100*(o.v-o.p)/Math.abs(o.p);}
+  var rows=[
+    {id:"NEWORDER",label:"Manufacturers new orders",v:no.v,p:no.p,chg:chg(no),d:no.d},
+    {id:"ACOGNO",label:"Construction new orders",v:ac.v,p:ac.p,chg:chg(ac),d:ac.d},
+    {id:"AMTMNO",label:"Census M3 manufacturers new orders",v:null,p:null,chg:null,d:""},
+    {id:"AMTMUO",label:"Census M3 unfilled orders",v:null,p:null,chg:null,d:""},
+    {id:"UMTMTI",label:"Census M3 total inventories",v:null,p:null,chg:null,d:""},
+    {id:"DGORDER",label:"Durable goods new orders",v:null,p:null,chg:null,d:""},
+    {id:"ISM_SPREAD",label:"ISM new-orders minus inventories",v:null,p:null,chg:null,d:""}
+  ];
+  document.getElementById("kpis").innerHTML="<span class='chip'>live series "+rows.filter(function(r){return r.v!=null;}).length+"</span><span class='chip'>M3/ISM tagged 0</span>";
+  var h="<table><thead><tr><th>Series</th><th>Label</th><th class='r'>Latest</th><th class='r'>Prev</th><th class='r'>Change</th><th>As of</th></tr></thead><tbody>";
+  rows.forEach(function(r){var c=r.chg==null?"":r.chg.toFixed(1)+"%";h+="<tr><td>"+esc(r.id)+"</td><td>"+esc(r.label)+"</td><td class='r'>"+esc(r.v==null?"":r.v)+"</td><td class='r'>"+esc(r.p==null?"":r.p)+"</td><td class='r "+(r.chg==null?"":(r.chg>0?"pos":"neg"))+"'>"+esc(c)+"</td><td>"+esc(r.d)+"</td></tr>";});
+  document.getElementById("board").innerHTML=h+closeTbl();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
