@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hiring velocity · JustHodl</title>
+<meta name="jh-primary-engine" content="justhodl-hiring-velocity">
+<title>Reported workforce · JustHodl</title>
 <style>
 :root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
@@ -14,61 +15,26 @@ td.l,th.l{text-align:left}
 .pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 #board{max-width:100%;overflow:auto}#board table{min-width:950px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
-</style></head>
-<body>
-<div class="wrap">
-<h1>Hiring velocity</h1>
-<p class="sub">Headcount change and revenue per employee from the live hiring-velocity feed. Click any column to sort ascending, click again to sort descending. Blank is missing, not zero.</p>
-<input id="q" aria-label="Filter ticker or sector" placeholder="filter ticker / sector" autocomplete="off">
-<div id="board" role="region" aria-label="Reported hiring rows" tabindex="0">Loading /data/hiring-velocity.json</div>
-<details><summary>Complete received hiring packet, including other published subsets</summary><pre id="original" tabindex="0">Unavailable</pre></details>
-<div class="foot"><b>Built for:</b> inspecting reported headcount changes and revenue per employee. Comparable source periods and forecasting value remain unverified.<br>
-<b>Data:</b> /data/hiring-velocity.json (headcount latest, YoY, acceleration, revenue per employee, expansion score, inflection flag).<br>
-<b>Sort:</b> header click toggles asc/desc. Nulls sort last.<br>
-<b>Not:</b> Indeed/LinkedIn posting panels. Those tags are not in the feed.</div>
-</div>
+</style>
+<style>button{padding:8px 12px;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}button:disabled{opacity:.5}button:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}#board td{text-align:left;vertical-align:top;max-width:390px;overflow-wrap:anywhere}#board table{min-width:1350px}#status,#coverage{margin:12px 0}#rows{color:var(--fg2)}details{margin:12px 0}</style>
+</head><body><main class="wrap">
+<h1>Reported workforce</h1>
+<p class="sub">Compare reported employee counts and aligned annual revenue. Company acquisitions, disposals and workforce definitions can change headcount; a count increase does not establish organic hiring or future returns.</p>
+<p id="status" role="status">Loading stored research…</p><p id="coverage" class="sub"></p>
+<label for="q">Find a company, sector or acquisition status</label><br>
+<input id="q" placeholder="Ticker, company, sector or status" autocomplete="off">
+<p id="rows" aria-live="polite"></p><button id="previous" type="button" disabled>Previous 100</button> <button id="next" type="button" disabled>Next 100</button>
+<div id="board" role="region" aria-label="Complete reported workforce population, paginated" tabindex="0">Loading /data/hiring-velocity.json</div>
+<details><summary>Complete received packet: all records, provider originals and acquisition evidence</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Measurement:</b> annual comparisons require matching issuer, count field and annual filing form, unique periods and 350–380 elapsed days. Missing data remains unavailable; a reported zero remains zero.<br>
+<b>Revenue ratio:</b> annual revenue divided by the same period's ending employee count, in the reported currency. It is not average-worker productivity.<br>
+<b>Source clocks:</b> reporting period, filing date, acceptance time and collection time remain separate. Unknown time zones and original release vintages are not inferred.<br>
+<b>Research limits:</b> coverage, entity continuity, comparable workforce scope and predictive performance require further validation. No investment score or position-size permission is granted.<br>
+<b>Source:</b> <a href="https://site.financialmodelingprep.com/developer/docs/stable/historical-employee-count">FMP reported employee-count documentation</a>. Complete retained response identities are in each record.</div>
+</main>
 <script src="/jh-table-values.js"></script>
-<script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-function n(v,d){return JHTableValues.format(v,d==null?1:d);}
-function cls(v){return JHTableValues.sign(v);}
-function cmp(a,b,k,dir){
-  if(k==="symbol")return JHTableValues.compare({symbol:a.symbol||a.ticker},{symbol:b.symbol||b.ticker},k,dir,"text");
-  return JHTableValues.compare(a,b,k,dir,["name","sector","state"].includes(k)?"text":"number");
-}
-(async function(){
-  var d=null, SORT="expansion_score", DIR=-1;
-  try{var received=await JHTableValues.load("/data/hiring-velocity.json");d=received.packet;document.getElementById("original").textContent=received.raw;}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
-  var rows=(d&&(d.top_50||d.expansion_inflections))||[];
-  if(!Array.isArray(rows)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
-  var malformed=rows.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
-  rows=rows.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});
-  var cols=[["symbol","Ticker","l"],["name","Name","l"],["sector","Sector","l"],["headcount_latest","Headcount",""],["headcount_yoy_pct","HC YoY",""],["headcount_accel_pp","Accel pp",""],["revenue_per_employee","Rev/emp",""],["expansion_score","Score",""],["state","State","l"]];
-  function paint(){
-    var q=(document.getElementById("q").value||"").toUpperCase();
-    var list=rows.filter(function(x){var t=String(x.symbol||x.ticker||"");return !q||t.toUpperCase().indexOf(q)>=0||String(x.sector||"").toUpperCase().indexOf(q)>=0;});
-    list.sort(function(a,b){return cmp(a,b,SORT,DIR);});
-    var h="<table><thead><tr>";
-    cols.forEach(function(c){h+="<th class='"+(c[2]||"")+(SORT===c[0]?" on":"")+"' data-k="+c[0]+">"+c[1]+(SORT===c[0]?(DIR>0?" ↑":" ↓"):"")+"</th>";});
-    h+="</tr></thead><tbody>";
-    list.forEach(function(x){
-      var t=x.symbol||x.ticker||"";
-      h+="<tr><td class=l><a href=/ticker.html?symbol="+encodeURIComponent(t)+" style=color:#fff>"+esc(t)+"</a></td>";
-      h+="<td class=l>"+esc(x.name||"")+"</td><td class=l>"+esc(x.sector||"")+"</td>";
-      h+="<td>"+(JHTableValues.integer(x.headcount_latest)===null?"":JHTableValues.count(x.headcount_latest))+"</td>";
-      h+="<td class="+cls(x.headcount_yoy_pct)+">"+JHTableValues.percent(x.headcount_yoy_pct,1)+"</td>";
-      h+="<td class="+cls(x.headcount_accel_pp)+">"+n(x.headcount_accel_pp)+"</td>";
-      h+="<td>"+(JHTableValues.number(x.revenue_per_employee)===null?"":"$"+n(x.revenue_per_employee,0))+"</td>";
-      h+="<td>"+n(x.expansion_score)+"</td>";
-      h+="<td class=l>"+esc((x.state||"")+(x.inflection===true?" · inflection":""))+"</td></tr>";
-    });
-    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" rows in the received "+(Array.isArray(d.top_50)?"top_50":"expansion_inflections")+" subset; "+malformed+" malformed rows retained in the original packet. Publication "+esc(d.generated_at||"unavailable")+" does not establish observation freshness. Click headers or press Enter/Space to sort.</p>";
-    JHTableValues.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=["symbol","name","sector","state"].includes(k)?1:-1;}paint();});
-  }
-  if(!rows.length){document.getElementById("board").textContent="Received subset has no displayable rows. Malformed rows: "+malformed+". Inspect the complete packet.";return;}
-  document.getElementById("q").oninput=paint; paint();
-})();
-</script>
+<script src="/jh-hiring-observations.js"></script>
+<script>JHHiringObservations.start();</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 <script src="/sidebar.js" defer></script>

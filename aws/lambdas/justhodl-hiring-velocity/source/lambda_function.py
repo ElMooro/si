@@ -1,4 +1,10 @@
-"""justhodl-hiring-velocity — headcount-inflection leading-growth detector.
+"""Preserved v1 methodology below; active v1.1 emits dated research observations.
+
+The unvalidated leading-growth/score claims in this historical description are
+not the active measurement contract. See hiring_observations.py and the final
+lambda_handler. The full unmodified predecessor is retained as an audit fixture.
+
+justhodl-hiring-velocity — headcount-inflection leading-growth detector.
 
 A microcap that is aggressively growing headcount is scaling its business
 BEFORE the revenue line fully shows it. Hiring velocity is one of the
@@ -241,7 +247,7 @@ def analyze(stock):
     }
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[hiring-velocity] starting {datetime.now(timezone.utc).isoformat()}")
     if not FMP_KEY:
@@ -344,3 +350,177 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "n_scored": len(results), "counts": out["counts"],
         "top_5": [r["symbol"] for r in results[:5]]})}
+
+
+# Active reported-workforce research path. Complete predecessor retained above.
+import hashlib
+import re
+from urllib.parse import quote_plus
+from hiring_observations import CONTRACT, strict, clock, envelope, original, employee_rows, dossier
+
+
+def _hiring_fetch(symbol, endpoint, limit):
+    if not isinstance(symbol, str) or not re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}', symbol):
+        return {'status': 'invalid_symbol_not_requested', 'endpoint': endpoint}
+    if not FMP_KEY:
+        return {'status': 'credential_unavailable', 'endpoint': endpoint}
+    url = 'https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(symbol)+'&limit='+str(limit)
+    # Provider documents header authorization; the secret never enters a logged URL.
+    req = request.Request(url, headers={'User-Agent': 'JustHodl-Hiring/1.1', 'apikey': FMP_KEY})
+    class NoRedirect(request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+    try:
+        with request.build_opener(NoRedirect()).open(req, timeout=12) as response:
+            raw = response.read(256*1024+1)
+        if len(raw) > 256*1024:
+            return {'status': 'response_exceeds_bound', 'endpoint': endpoint, 'original_retained': False}
+        if FMP_KEY.encode() in raw:
+            return {'status': 'credential_echo_withheld', 'endpoint': endpoint, 'original_retained': False}
+        return envelope(raw, datetime.now(timezone.utc).isoformat(), endpoint)
+    except Exception as exc:
+        return {'status': 'rate_limited' if getattr(exc, 'code', None) == 429 else 'unavailable',
+                'endpoint': endpoint, 'http_status': getattr(exc, 'code', None), 'error_type': type(exc).__name__}
+
+
+def _hiring_company(stock, today):
+    item = stock if isinstance(stock, dict) else {}; symbol = item.get('symbol'); acquisitions = []
+    for endpoint in ('historical-employee-count', 'employee-count'):
+        capture = _hiring_fetch(symbol, endpoint, 16); acquisitions.append(capture)
+        if capture['status'] in ('rate_limited', 'credential_unavailable', 'invalid_symbol_not_requested'):
+            return acquisitions
+        # Never blend a received population with another endpoint, even when unqualified.
+        parsed = original(capture)
+        if isinstance(parsed, list) and parsed:
+            employees = employee_rows(symbol, capture, today)
+            if sum(r['measurement_status'] == 'reported_count' for r in employees) >= 3:
+                acquisitions.append(_hiring_fetch(symbol, 'income-statement', 3))
+            else:
+                acquisitions.append({'endpoint': 'income-statement', 'status': 'not_requested_insufficient_employee_history'})
+            return acquisitions
+    acquisitions.append({'endpoint': 'income-statement', 'status': 'not_requested_insufficient_employee_history'})
+    return acquisitions
+
+
+def _hiring_object(key, bound):
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+    raw = obj['Body'].read(bound+1)
+    if len(raw) > bound or obj.get('ContentLength') != len(raw) or not obj.get('ETag'):
+        raise ValueError('Whole declared public object required')
+    return raw, obj['ETag']
+
+
+def _hiring_previous():
+    try:
+        raw, etag = _hiring_object(S3_KEY, 64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc, 'response', {}).get('Error', {}).get('Code')) in ('404', 'NoSuchKey'):
+            return None, None, None
+        raise
+    parsed = strict(raw)
+    if not isinstance(parsed, dict):
+        raise ValueError('Previous public packet malformed')
+    return parsed, raw, etag
+
+
+def _hiring_archive(raw):
+    key = 'data/hiring-velocity/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=key, Body=raw, IfNoneMatch='*',
+                      ContentType='application/json', CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc, 'response', {}).get('Error', {}).get('Code')) not in ('409', '412', 'ConditionalRequestConflict', 'PreconditionFailed'):
+            raise
+    back, _ = _hiring_object(key, len(raw))
+    if back != raw:
+        raise ValueError('Immutable whole publication readback differs')
+    return {'key': key, 'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw)}
+
+
+def lambda_handler(event=None, context=None):
+    started = time.monotonic(); checked = datetime.now(timezone.utc); today = checked.date().isoformat()
+    previous, previous_raw, etag = _hiring_previous()
+    if previous and previous.get('measurement_contract') == CONTRACT:
+        stamp = clock(previous.get('generated_at'))
+        if stamp is None or stamp >= checked:
+            raise ValueError('Previous publication clock invalid')
+    raw, universe_etag = _hiring_object(UNIVERSE_KEY, 8*1024*1024)
+    universe_capture = envelope(raw, datetime.now(timezone.utc).isoformat(), UNIVERSE_KEY)
+    universe_doc = original(universe_capture)
+    if not isinstance(universe_doc, dict) or not isinstance(universe_doc.get('stocks'), list):
+        raise ValueError('Complete received universe required; preserve previous publication')
+    universe = universe_doc['stocks']; selected = [i for i, row in enumerate(universe)
+        if isinstance(row, dict) and row.get('cap_bucket') in CAP_BUCKETS]
+    requested_limit = event.get('limit') if isinstance(event, dict) else None
+    if requested_limit is not None and (type(requested_limit) is not int or requested_limit < 0):
+        raise ValueError('Event limit must be a nonnegative integer')
+    if requested_limit:
+        selected = selected[:requested_limit]
+    # Preserve the existing bagger donor as context; scores never imply confirmation.
+    try:
+        bagger_raw, bagger_etag = _hiring_object(BAGGER_KEY, 4*1024*1024)
+        bagger_capture = envelope(bagger_raw, datetime.now(timezone.utc).isoformat(), BAGGER_KEY)
+        bagger_capture['etag'] = bagger_etag
+    except Exception as exc:
+        bagger_capture = {'endpoint': BAGGER_KEY, 'status': 'unavailable', 'error_type': type(exc).__name__}
+    universe_capture['etag'] = universe_etag
+    acquisitions = [[{'status': 'not_attempted_runtime_rate_or_size_limit', 'endpoint': 'historical-employee-count'}] for _ in selected]
+    workers = max(1, min(MAX_WORKERS, 8)); received_bytes = 0
+    def remaining():
+        own = 600-(time.monotonic()-started)
+        return min(own, context.get_remaining_time_in_millis()/1000) if context and hasattr(context, 'get_remaining_time_in_millis') else own
+    # Bounded windows do not enqueue thousands of jobs beyond the Lambda deadline.
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0, len(selected), workers):
+            if remaining() < 90 or received_bytes >= 8*1024*1024:
+                break
+            jobs = [(i, pool.submit(_hiring_company, universe[selected[i]], today))
+                    for i in range(offset, min(offset+workers, len(selected)))]
+            for index, future in jobs:
+                acquisitions[index] = future.result()
+                received_bytes += sum(a.get('original_bytes', 0) for a in acquisitions[index])
+            if any(a.get('status') == 'rate_limited' for i, _ in jobs for a in acquisitions[i]):
+                break
+    if not any(a.get('status') == 'received' and isinstance(original(a), list)
+               for group in acquisitions for a in group):
+        raise ValueError('No received employee/income population; preserve previous publication')
+    records = []
+    for index, (universe_index, captures) in enumerate(zip(selected, acquisitions)):
+        record = dossier(universe[universe_index], captures, today)
+        record.update(request_index=index, universe_index=universe_index)
+        records.append(record)
+    selected_set = set(selected)
+    prior = _hiring_archive(previous_raw) if previous_raw is not None else None
+    out = {'engine': 'justhodl-hiring-velocity', 'version': '1.1.0', 'schema_version': '1.1',
+           'method': 'dated_reported_workforce_observations', 'measurement_contract': CONTRACT,
+           'generated_at': datetime.now(timezone.utc).isoformat(), 'acquisition_started_at': checked.isoformat(),
+           'checked_as_of': today, 'status': 'RESEARCH_ONLY', 'universe_acquisition': universe_capture,
+           'bagger_context_acquisition': bagger_capture, 'request_records': records,
+           'unselected_universe_indices': [i for i in range(len(universe)) if i not in selected_set],
+           'universe_occurrences': len(universe), 'n_selected_occurrences': len(selected),
+           'n_scanned': sum(any(a['status'] not in ('not_attempted_runtime_rate_or_size_limit', 'invalid_symbol_not_requested', 'credential_unavailable') for a in group) for group in acquisitions),
+           'n_scored': 0, 'n_errors': sum(any(a['status'] in ('unavailable', 'rate_limited', 'invalid_original', 'response_exceeds_bound', 'credential_echo_withheld') for a in group) for group in acquisitions),
+           'n_employee_observations': sum(len(r['employee_observations']) for r in records),
+           'n_income_observations': sum(len(r['income_observations']) for r in records),
+           'event_limit': requested_limit, 'cap_buckets': sorted(CAP_BUCKETS), 'previous_publication': prior,
+           'top_50': [], 'expansion_inflections': [], 'double_confirmed': [],
+           'counts': {'expansion_inflection': None, 'aggressive_expansion': None, 'double_confirmed_with_bagger': None},
+           'call': None, 'calls_eligible': False, 'forecast_qualified': False, 'sizing_eligible': False, 'execution_eligible': False,
+           'signals_logged': 0, 'notifications_sent': 0, 'private_state_read_or_written': False,
+           'source_documentation': ['https://site.financialmodelingprep.com/developer/docs/stable/historical-employee-count'],
+           'caveats': ['Reporting period, filing date, naive acceptance time and UTC receipt clock are separate; no timezone is invented.',
+                       'Annual intervals require unique periods, matching issuer/count definition/annual form and 350–380 elapsed days.',
+                       'Reported employee change includes unknown acquisition/disposal, geographic and workforce-definition effects; organic hiring is not verified.',
+                       'Revenue divided by ending headcount is not revenue per average worker or a verified productivity measure.',
+                       'Every selected occurrence remains visible, including unattempted acquisitions; provider history/universe completeness and original release vintages remain unverified.',
+                       'The existing bagger context is retained without independent-evidence or investment confirmation claims.'],
+           'elapsed_s': round(time.monotonic()-started, 2)}
+    publication = json.dumps(out, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')
+    if len(publication) > 64*1024*1024 or remaining() < 20:
+        raise ValueError('Whole publication exceeds size/runtime reserve; preserve prior current packet')
+    archived = _hiring_archive(publication)
+    precondition = {'IfMatch': etag} if etag else {'IfNoneMatch': '*'}
+    s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY, Body=publication, ContentType='application/json',
+                  CacheControl='public, max-age=3600', **precondition)
+    return {'statusCode': 200, 'body': json.dumps({'measurement_contract': CONTRACT,
+            'n_selected_occurrences': len(selected), 'n_employee_observations': out['n_employee_observations'], 'archive': archived})}

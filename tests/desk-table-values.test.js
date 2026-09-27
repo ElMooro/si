@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-hiring-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-hiring-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-scarcity-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-scarcity-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-estimate-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-estimate-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-earnings-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-earnings-observations.js'),'utf8'),ctx);
@@ -78,11 +79,11 @@ test('earnings and cash pages use the complete quality population and preserve m
 test('hiring retains every original subset and refuses coercive headcounts, false inflections and text injection',async()=>{
  const p={generated_at:'2026-09-27T12:00:00Z',top_50:[{symbol:'VALID',name:'A > B',headcount_latest:0,headcount_yoy_pct:0,headcount_accel_pp:false,revenue_per_employee:' ',expansion_score:'10'},{symbol:'BAD',headcount_latest:false,headcount_yoy_pct:'',revenue_per_employee:'<img src=x>',inflection:'false',state:'<img src=x>'},null],double_confirmed:[{symbol:'OTHER'}]};
  const s=page('hiring-velocity.html',async()=>raw(p));await flush();const h=s.get('board').innerHTML;
- assert.match(h,/A &gt; B/);assert.match(h,/top_50 subset/);assert.match(h,/1 malformed/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('$0'));assert.ok(!h.includes(' · inflection'));assert.match(h,/0\.0%/);assert.deepEqual(JSON.parse(s.get('original').textContent),p);
+ assert.match(h,/A &gt; B/);assert.match(h,/Legacy top_50/);assert.match(s.get('rows').textContent,/4 received occurrences/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('$0'));assert.ok(!h.includes(' · inflection'));assert.match(h,/<td>0<\/td>/);assert.match(h,/unverified/);assert.deepEqual(JSON.parse(s.get('original').textContent),p);
 });
 
 test('failed and malformed publications are visibly distinct from an empty received population',async()=>{
- for(const file of ['earnings-quality.html','cash-profitability.html','hiring-velocity.html']){
+ for(const file of ['earnings-quality.html','cash-profitability.html']){
   const fail=page(file,async()=>{throw Error('HTTP 403');});await flush();assert.match(fail.get('board').textContent,/HTTP 403/);
   const malformed=page(file,async()=>raw({all_ranked:{wrong:true},top_50:{wrong:true}}));await flush();assert.match(malformed.get('board').textContent,/malformed/);assert.match(malformed.get('original').textContent,/wrong/);
  }
@@ -164,4 +165,29 @@ test('scarcity failures preserve inert source and never show an empty valid boar
   const s=page('scarcity-radar.html',loader);await flush();assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('rows').textContent,'');assert.ok(!s.get('original').innerHTML.includes('<script>'));
  }
  assert.ok(api.PUBLIC_PATHS.test('/data/scarcity-radar.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/scarcity-radar/private.json'));
+});
+
+test('workforce native rows keep date/currency/source and no legacy ranking fallback',async()=>{
+ const m=require('../jh-hiring-observations.js'),record={symbol:'TEST',universe_record:{name:'A > B',sector:'Tech'},acquisitions:[{endpoint:'historical-employee-count',status:'received'}],
+ employee_observations:[{source_index:0,report_period_end:'2025-12-31',employee_count:100,measurement_status:'reported_count'}],
+ annual_comparisons:[{source_index:0,annual_interval_change_pct:0}],income_observations:[{employee_source_index:0,status:'aligned_descriptive_ratio',annual_revenue_per_ending_employee:0,reported_currency:'JPY'}]};
+ const p={measurement_contract:m.CONTRACT,universe_occurrences:2,request_records:[record,{...record,symbol:'FAILED',employee_observations:[],annual_comparisons:[],income_observations:[],acquisitions:[{endpoint:'historical-employee-count',status:'unavailable'}]}],top_50:[{symbol:'NEVER_USE'}]};
+ const s=page('hiring-velocity.html',async()=>raw(p));await flush();const h=s.get('board').innerHTML;
+ assert.equal(s.calls.length,1);assert.match(h,/2025-12-31/);assert.match(h,/0\.00 JPY/);assert.match(h,/0\.00%/);assert.match(h,/FAILED/);assert.match(h,/Unavailable/);assert.ok(!h.includes('NEVER_USE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ const th=s.get('board').headers.find(x=>x.dataset.k==='ticker');th.focus();th.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');assert.equal(s.document.activeElement['aria-sort'],'ascending');
+ s.get('q').value='FAILED';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching \/ 2 received/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/2 matching/);
+ const all=m.rows({...p,request_records:Array.from({length:4202},(_,i)=>({...record,symbol:'T'+i}))});assert.equal(all.length,4202);
+ let seen=[];for(let i=0;i<43;i++)seen.push(...m.pageRows(all,'','index',1,i,100,api).rows.map(x=>x.index));assert.equal(seen.length,4202);assert.equal(new Set(seen).size,4202);
+ assert.equal(m.pageRows(all,'T4201','index',1,42,100,api).page,0);
+ const ambiguous={...record,employee_observations:[...record.employee_observations,...record.employee_observations]};assert.equal(m.rows({...p,request_records:[ambiguous]})[0].headcount,null);
+ assert.throws(()=>m.rows({...p,request_records:null}),/Whole/);assert.throws(()=>m.rows({...p,request_records:[{}]}),/Complete/);
+});
+
+test('workforce page pagination and failures retain all original evidence without executable markup',async()=>{
+ const p={top_50:Array.from({length:205},(_,i)=>({symbol:'T'+i,name:i===0?'<img src=x>':'Company'}))};
+ const s=page('hiring-velocity.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/Page 1 of 3/);assert.ok(!s.get('board').innerHTML.includes('<img'));assert.match(s.get('board').innerHTML,/&lt;img/);
+ s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 2 of 3/);s.get('next').onclick();assert.match(s.get('board').innerHTML,/T204/);assert.equal(s.get('next').disabled,true);s.get('previous').onclick();assert.match(s.get('rows').textContent,/Page 2 of 3/);
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({top_50:{bad:true}})]){
+  const fail=page('hiring-velocity.html',loader);await flush();assert.match(fail.get('status').textContent,/unavailable/);assert.equal(fail.get('board').textContent,'No verified display population');assert.equal(fail.get('next').disabled,true);
+ }
 });
