@@ -3957,3 +3957,10 @@ Live Liquidity/Credit verification for that consumer change: scripts/replay_lce_
 - Deployment and live browser acceptance are pending below. All ten institutional workstreams remain open.
 
 - Initial page ship `1c1636936588d9729c7919e9b6303e5d17d21c80` passed Pages `36329160440` and page-gate `36329160521`; all eight served assets matched the build manifest. Live mobile data rendering passed, but the browser title revealed a Windows text-decoding regression in punctuation. The release is not accepted as final: all three HTML files are corrected as UTF-8 and an explicit title/arrow encoding regression test is added. Complete corrected release acceptance follows below.
+
+
+## Stage 250: SEC filing producer originals and pending upstream repairs
+
+- An isolated original-function fixture confirms that the 10-K/Q producer labels a returned 10-K/A as requested 10-K and retains an invalid filing date in its current window. Static review also identifies discarded summaries, accession-only deduplication and capped public/history populations in the 8-K, 10-K/Q and filings-intel producers. The 8-K handler substitutes now for a bad date and later parses that same invalid date without a guard. These are unresolved producer defects, separate from the repaired pages.
+- Exact complete repository predecessors are retained in three fixtures. Operation 6229 pins those identities, captures each actual deployed package/runtime/schedule and only the three declared public filing packets, and verifies immutable private readback and denied public access. It never imports or invokes a producer, acquires SEC data, changes schedules or reads accounts/learning logs. Four operation regression groups and five shared runtime-preservation groups pass, together with 458 deployment static and 12 shell checks.
+- Runner preservation acceptance is pending. Producer edits follow verified original retention; current outputs do not establish complete SEC history, keyword validity, issuer distress, return predictability or portfolio authority.

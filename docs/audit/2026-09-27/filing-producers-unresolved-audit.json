@@ -1,0 +1,122 @@
+{
+  "checked_at": "2026-09-27T15:24:37.394750+00:00",
+  "status": "producer_repairs_pending",
+  "provider_requests": 0,
+  "native_imports": 0,
+  "native_invocations": 0,
+  "public_writes": 0,
+  "findings": [
+    {
+      "engine": "justhodl-sec-10kq",
+      "source_sha256": "aee3116ab206ddda095311f3e585d22f057ebca521b8cf9505df32e6158f169d",
+      "requested_form": "10-K",
+      "fixture_returned_form": "10-K/A",
+      "actual_output_form": "10-K",
+      "invalid_date_retained_as_current_window": true
+    },
+    {
+      "engine": "justhodl-sec-8k",
+      "source_sha256": "52b7f4cbcbd2a7b3f5b8c872be06191b3ff7b499e06f665635e9ce5b5562748e",
+      "static_slice_limits": [
+        {
+          "line": 214,
+          "expression": "red_flag_filings[:20]"
+        },
+        {
+          "line": 215,
+          "expression": "high_impact[:30]"
+        },
+        {
+          "line": 216,
+          "expression": "merged[:300]"
+        },
+        {
+          "line": 116,
+          "expression": "title[:80]"
+        },
+        {
+          "line": 133,
+          "expression": "summary[:200]"
+        }
+      ],
+      "original_provider_payload_preservation_present": false,
+      "finding_scope": "Static code audit, not a complete runtime behavior claim"
+    },
+    {
+      "engine": "justhodl-sec-10kq",
+      "source_sha256": "aee3116ab206ddda095311f3e585d22f057ebca521b8cf9505df32e6158f169d",
+      "static_slice_limits": [
+        {
+          "line": 158,
+          "expression": "amended[:30]"
+        },
+        {
+          "line": 159,
+          "expression": "merged[:300]"
+        },
+        {
+          "line": 79,
+          "expression": "title[:80]"
+        },
+        {
+          "line": 92,
+          "expression": "summary[:160]"
+        }
+      ],
+      "original_provider_payload_preservation_present": false,
+      "finding_scope": "Static code audit, not a complete runtime behavior claim"
+    },
+    {
+      "engine": "justhodl-sec-filings-intel",
+      "source_sha256": "883a4e8c8dfe2c27bb75428f10c29df36875d7abcf97c5c3b60d702383252ecb",
+      "static_slice_limits": [
+        {
+          "line": 403,
+          "expression": "[r for r in per_ticker if r['verdict'] == 'RISK' and r['score'] <= -15][:30]"
+        },
+        {
+          "line": 404,
+          "expression": "[r for r in per_ticker if r['verdict'] == 'OPPORTUNITY' and r['score'] >= 15][:30]"
+        },
+        {
+          "line": 405,
+          "expression": "[r for r in per_ticker if r['highest_severity'] == 'critical'][:20]"
+        },
+        {
+          "line": 348,
+          "expression": "rec['events'][:15]"
+        },
+        {
+          "line": 428,
+          "expression": "per_ticker[:200]"
+        },
+        {
+          "line": 449,
+          "expression": "critical[:8]"
+        },
+        {
+          "line": 304,
+          "expression": "accession[:10]"
+        },
+        {
+          "line": 304,
+          "expression": "accession[10:12]"
+        },
+        {
+          "line": 293,
+          "expression": "(src.get('_search_id') or '')[:100]"
+        },
+        {
+          "line": 239,
+          "expression": "url[:120]"
+        },
+        {
+          "line": 245,
+          "expression": "str(e)[:100]"
+        }
+      ],
+      "original_provider_payload_preservation_present": false,
+      "finding_scope": "Static code audit, not a complete runtime behavior claim"
+    }
+  ]
+}
