@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO, StringIO
 from unittest.mock import patch
 from copy import deepcopy
-import ast, contextlib, hashlib, importlib.util, json, sys, unittest, urllib.error, urllib.parse
+import ast, contextlib, hashlib, importlib.util, json, re, sys, unittest, urllib.error, urllib.parse
 
 ROOT = Path(__file__).resolve().parents[4]
 SOURCE = Path(__file__).resolve().parents[1]/'source'
@@ -62,11 +62,23 @@ def fixture():
             rows.append({'ObjectId': len(rows)+1, 'portid': 'p'+str(p), 'portname': 'Port '+str(p),
                          'country': 'Fixture country', 'ISO3': 'FIX', 'date': (NOW-timedelta(days=44-i)).date().isoformat(),
                          'import': 10000 + i*100, 'export': 7000 + i*100, 'import_container': 9000})
+    catalog = [{'ObjectId': i+1, 'portid': 'p'+str(i), 'portname': 'Port '+str(i), 'country': 'Fixture country', 'ISO3': 'FIX'} for i in range(4)]
+    schemas = json.loads((ROOT/'docs/audit/2026-09-27/portwatch-provider-schema-review.json').read_bytes())['layers']
     calls = []
     def opener(req, timeout=None):
         calls.append(req.full_url)
-        params = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(req.full_url).query))
-        if params.get('returnCountOnly') == 'true': result = {'count': len(rows)}
+        params = dict(urllib.parse.parse_qsl(req.data.decode() if req.data else urllib.parse.urlsplit(req.full_url).query))
+        layer = req.full_url.split('/services/')[1].split('/')[0]
+        population = catalog if layer == 'PortWatch_ports_database' else rows
+        dates = re.findall(r"timestamp '([0-9-]+)'", params.get('where', ''), re.I)
+        if layer == 'Daily_Ports_Data' and len(dates) == 2:
+            population = [row for row in population if dates[0] <= native.cargo_measurements.source_date(row['date']).isoformat() <= dates[1]]
+        if not urllib.parse.urlsplit(req.full_url).path.endswith('/query'): result = schemas[layer]
+        elif params.get('returnCountOnly') == 'true': result = {'count': len(population)}
+        elif params.get('returnIdsOnly') == 'true': result = {'objectIdFieldName': 'ObjectId', 'objectIds': [r['ObjectId'] for r in population]}
+        elif 'objectIds' in params:
+            ids = set(map(int, params['objectIds'].split(',')))
+            result = {'objectIdFieldName': 'ObjectId', 'features': [{'attributes': r} for r in population if r['ObjectId'] in ids], 'exceededTransferLimit': False}
         elif 'outStatistics' in params:
             value = {'imp': 1000000, 'exp': 800000}
             if 'groupByFieldsForStatistics' in params: value['country'] = 'Fixture country'
@@ -75,6 +87,7 @@ def fixture():
         else: result = {'features': [{'attributes': r} for r in rows], 'exceededTransferLimit': False}
         raw = store.encode(result)
         return store.Response(raw, headers={'Content-Length': str(len(raw))})
+    opener.catalog = catalog
     return memory, rows, calls, opener
 
 
@@ -95,7 +108,9 @@ class Tests(unittest.TestCase):
         for key, raw in previous.items():
             self.assertEqual(store.retained(memory, native.BUCKET, manifest['inputs'][key]['original']), raw)
         self.assertEqual(set(manifest['compiler_sha256']), set(store.COMPILERS))
-        self.assertEqual(len(manifest['http_attempts']), 10)
+        self.assertEqual(len(manifest['http_attempts']), 17)
+        self.assertEqual(packet['measurement_review']['port_rows'], 4)
+        self.assertEqual(packet['measurement_review']['catalog_ports'], 4)
         with contextlib.redirect_stdout(StringIO()): replay = store.replay(native, memory, native.BUCKET, packet)
         self.assertEqual(replay['original_native_rows'], 126); self.assertEqual(len(calls), count)
         self.assertEqual([k for k in memory.writes if not k.startswith(store.PRIVATE)], [store.HEAD])
@@ -173,7 +188,7 @@ class Tests(unittest.TestCase):
         def fail_later(req, timeout=None):
             if len(calls) > 2: raise urllib.error.URLError('later input failed')
             return opener(req, timeout=timeout)
-        with self.assertRaises(store.CaptureError): self.execute(memory, fail_later)
+        with self.assertRaises(ValueError): self.execute(memory, fail_later)
         self.assertEqual(memory.data[store.CHOICE], b'{}')
         self.assertTrue(all(k.startswith(store.PRIVATE) for k in memory.writes))
 
@@ -182,7 +197,7 @@ class Tests(unittest.TestCase):
         rows.append({**rows[-1], 'ObjectId': 127, 'date': (NOW-timedelta(days=2)).date().isoformat()})
         self.assertTrue(self.execute(memory, opener)['published'])
         packet = store.decode(memory.data[store.HEAD]); self.assertEqual(packet['ragged_days_trimmed'], 1)
-        self.assertEqual(packet['n_rows_window'], 127); self.assertFalse(packet['forecast_qualified'])
+        self.assertEqual(packet['n_rows_window'], 124); self.assertFalse(packet['forecast_qualified'])
         with contextlib.redirect_stdout(StringIO()): store.replay(native, memory, native.BUCKET, packet)
 
     def test_malformed_or_credential_bearing_cached_url_never_leaves_session(self):
@@ -202,17 +217,21 @@ class Tests(unittest.TestCase):
         with self.assertRaises(store.CaptureError), contextlib.redirect_stdout(StringIO()): store.replay(native, memory, native.BUCKET, packet)
 
     def test_complete_original_source_and_unchanged_calculations_are_preserved(self):
+        previous = (ROOT/'tests/fixtures/pre-calendar-port-cargo.py.txt').read_bytes()
+        self.assertEqual(len(previous), 25717)
+        self.assertEqual(store.sha(previous), '9c1103b34135f23816292d49fcee4e95a0495f739d71139162b8a87ab8a365e4')
         raw = (ROOT/'tests/fixtures/pre-shipping-qualification-port-cargo.py.txt').read_bytes()
         self.assertEqual(store.sha(raw), 'f5d32c04ea2c204e873464c8b8edec2df92efcad7a51de78adc66bec5ee717fc')
         original = ast.parse(raw); current = ast.parse((SOURCE/'lambda_function.py').read_bytes())
         old = {n.name: ast.dump(n, include_attributes=False) for n in original.body if isinstance(n, ast.FunctionDef)}
         new = {n.name: n for n in current.body if isinstance(n, ast.FunctionDef)}
         for name, tree in old.items():
+            if name in ('_q', 'fetch_window'): continue  # Explicit acquisition repair; all legacy economic calculations stay preserved.
             node = deepcopy(new['_native_calculation' if name == 'lambda_handler' else name])
             if name == 'lambda_handler':
                 node.name = name
                 for item in ast.walk(node):
-                    if isinstance(item, ast.Constant) and item.value == '1.3.1': item.value = '1.3.0'
+                    if isinstance(item, ast.Constant) and item.value == '1.3.2': item.value = '1.3.0'
             self.assertEqual(ast.dump(node, include_attributes=False), tree, name)
 
     def test_budget_exhaustion_and_retention_failure_never_publish(self):
@@ -227,6 +246,15 @@ class Tests(unittest.TestCase):
         for raw in (b'{"x":NaN}', b'{"x":1e400}', b'{"x":1,"x":2}'):
             with self.assertRaises(store.CaptureError): store.strict(raw)
         with patch.object(store, 'LIMIT', 2), self.assertRaises(store.CaptureError): store.whole(BytesIO(b'123'))
+
+
+sys.modules['cargo_test_harness'] = sys.modules[__name__]
+
+
+def load_tests(loader, suite, pattern):
+    import cargo_calendar_tests
+    suite.addTests(loader.loadTestsFromModule(cargo_calendar_tests))
+    return suite
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

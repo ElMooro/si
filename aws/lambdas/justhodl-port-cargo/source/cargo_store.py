@@ -21,7 +21,7 @@ PRIVATE = 'audit-private/20260909-originals/port-cargo-research/'
 BASE = 'https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services'
 LIMIT = 64 * 1024 * 1024
 CONTRACT = 'port-cargo-preserved-calculation.v1'
-COMPILERS = ('lambda_function.py', 'cargo_store.py', 'impact_mapper.py')
+COMPILERS = ('lambda_function.py', 'cargo_store.py', 'cargo_measurements.py', 'impact_mapper.py')
 sha = lambda raw: hashlib.sha256(raw).hexdigest()
 encode = lambda v: json.dumps(v, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode('utf-8')
 class CaptureError(ValueError): pass
@@ -91,22 +91,25 @@ def decode(raw):
 def identity(req, timeout):
     url = req.full_url
     parts = urllib.parse.urlsplit(url)
-    if (parts.scheme != 'https' or parts.netloc != 'services9.arcgis.com'
-            or parts.fragment or req.get_method() != 'GET' or req.data is not None):
-        raise CaptureError('Only reviewed keyless provider GET requests allowed')
+    method, body = req.get_method(), req.data
+    if (parts.scheme != 'https' or parts.netloc != 'services9.arcgis.com' or parts.fragment
+            or method not in ('GET', 'POST') or (method == 'GET' and body is not None)
+            or (method == 'POST' and (parts.query or not isinstance(body, bytes)))):
+        raise CaptureError('Only reviewed keyless provider query requests allowed')
     root = urllib.parse.urlsplit(BASE).path
     suffix = parts.path[len(root):] if parts.path.startswith(root) else None
-    if suffix != '' and (not isinstance(suffix, str) or not re.fullmatch(r'/[A-Za-z0-9_]*[Pp]orts?[A-Za-z0-9_]*/FeatureServer/[012]/query', suffix)):
+    metadata = {'/Daily_Ports_Data/FeatureServer/0', '/PortWatch_ports_database/FeatureServer/0'}
+    if suffix != '' and suffix not in metadata and (not isinstance(suffix, str) or not re.fullmatch(r'/[A-Za-z0-9_]*[Pp]orts?[A-Za-z0-9_]*/FeatureServer/[012]/query', suffix)):
         raise CaptureError('Unreviewed provider layer path')
-    pairs = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+    pairs = urllib.parse.parse_qsl(body.decode('utf-8') if body is not None else parts.query, keep_blank_values=True)
     params = dict(pairs)
     allowed = {'where', 'outFields', 'resultRecordCount', 'resultOffset', 'orderByFields',
-               'returnCountOnly', 'outStatistics', 'groupByFieldsForStatistics', 'f'}
+               'returnCountOnly', 'returnIdsOnly', 'objectIds', 'returnGeometry', 'outStatistics', 'groupByFieldsForStatistics', 'f'}
     if len(pairs) != len(params) or set(params) - allowed or params.get('f') != 'pjson':
         raise CaptureError('Unreviewed provider parameters')
     if type(timeout) not in (int, float) or not 0 < timeout <= 60:
         raise CaptureError('Bounded native timeout required')
-    return {'method': 'GET', 'url': url, 'timeout': timeout}
+    return {'method': method, 'url': url, 'body_utf8': body.decode('utf-8') if body is not None else None, 'timeout': timeout}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -197,7 +200,7 @@ class Session:
 
 
 def calculate(module, session):
-    names = ('s3', 'datetime', 'urllib', 'time', 'LAYER', 'DATEFIELD', 'RESOLVER_PATH')
+    names = ('s3', 'datetime', 'urllib', 'time', 'LAYER', 'DATEFIELD', 'RESOLVER_PATH', '_REQUEST_COUNT', '_CARGO_REVIEW', '_CARGO_ACQUISITION')
     original = {k: getattr(module, k) for k in names}
     impact = module.impact_mapper
     previous = {k: getattr(impact, k) for k in ('_S3', '_CACHE', 'datetime')}
@@ -215,21 +218,26 @@ def calculate(module, session):
         module.time = SimpleNamespace(time=lambda: stamp.timestamp())
         module.urllib = SimpleNamespace(parse=urllib.parse, request=SimpleNamespace(Request=urllib.request.Request, urlopen=session.urlopen))
         module.LAYER, module.DATEFIELD, module.RESOLVER_PATH = BASE + '/Daily_Ports_Data/FeatureServer/0/query', 'date', 'unresolved'
+        module._REQUEST_COUNT, module._CARGO_REVIEW, module._CARGO_ACQUISITION = 0, None, None
         result = module._native_calculation()
         session.ready()
         if HEAD not in session.pending:
             raise CaptureError('Complete native result required')
+        if not isinstance(module._CARGO_REVIEW, dict) or not isinstance(module._CARGO_ACQUISITION, dict):
+            raise CaptureError('Complete source membership and calendar review required')
+        session.measurements, session.acquisition = module._CARGO_REVIEW, module._CARGO_ACQUISITION
         return result
     finally:
         for key, value in original.items(): setattr(module, key, value)
         for key, value in previous.items(): setattr(impact, key, value)
 
 
-def projection(calculation, context):
+def projection(calculation, context, measurements, acquisition):
     packet = deepcopy(calculation)
     packet.update(contract=CONTRACT, publication_context=context, forecast_qualified=False,
                   calls_eligible=False, sizing_eligible=False, execution_eligible=False, portfolio_action='WAIT',
-                  research_limits='Complete native acquisition and calculation retention does not qualify the inherited pagination, missing-as-zero arithmetic, ragged-date trimming, seasonal alignment, port-name exposure joins, betas or causal forecasts. Estimated shipment weight is not trade value or company revenue.')
+                  research_limits='Source query membership and the separate measurement_review reproduce exact dated shipment comparisons over matched port cohorts. Legacy fields retain their inherited missing-as-zero arithmetic, ragged trimming, seasonal alignment, name joins and unqualified impact models. Neither field set is a customs-value, company-revenue or portfolio forecast.')
+    packet['measurement_review'], packet['acquisition_review'] = measurements, acquisition
     packet['duration_s'] = context['capture_elapsed_s']
     packet['duration_basis'] = 'Complete retained input acquisition and calculation; excludes final conditional publication'
     return packet
@@ -264,7 +272,7 @@ def run(module, event=None, context=None, opener=None, at=None):
     manifest_ref = retain(client, bucket, encode(manifest))
     context = publication_context(manifest, manifest_ref)
     planned = {k: raw for k, raw in session.pending.items() if k != HEAD}
-    planned[HEAD] = encode(projection(calculation, context))
+    planned[HEAD] = encode(projection(calculation, context, session.measurements, session.acquisition))
     retain(client, bucket, encode({'manifest': manifest_ref, 'publication_order': list(planned),
                                   'planned_outputs': {k: retain(client, bucket, raw) for k, raw in planned.items()}}))
     completed = []
@@ -324,8 +332,10 @@ def replay(module, client, bucket, packet):
     for key, raw in session.pending.items():
         if raw != retained(client, bucket, manifest['complete_native_outputs'][key]):
             raise CaptureError('Whole native calculation differs')
-    if encode(packet) != encode(projection(decode(session.pending[HEAD]), context)):
+    if encode(packet) != encode(projection(decode(session.pending[HEAD]), context, session.measurements, session.acquisition)):
         raise CaptureError('Public projection differs')
     return {'status': 'whole_native_calculation_replayed', 'http_attempts': len(manifest['http_attempts']),
             'complete_stored_inputs': len(KEYS), 'original_native_rows': packet['n_rows_window'],
+            'calendar_port_rows': len(session.measurements['ports']), 'source_catalog_ports': session.measurements['catalog_ports'],
+            'complete_query_membership_replayed': True, 'complete_calendar_measurements_replayed': True,
             'provider_requests': 0, 'public_writes': 0, 'point_in_time_verified': False, 'model_qualified': False}

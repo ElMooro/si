@@ -21,7 +21,6 @@ lag_months ≈ -3 to -6 vs recognized revenue (physical precedes financial).
 import json, time, urllib.parse, urllib.request
 import sys
 import cargo_store
-import cargo_measurements
 import impact_mapper
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
@@ -55,23 +54,14 @@ PAGE = 2000
 MAX_PAGES = 260        # hard ceiling ≈ 520k rows (2065 ports × 42d ≈ 87k — generous)
 EXPECTED_LAG_D = 6
 s3 = boto3.client("s3", region_name=REGION)
-_REQUEST_COUNT = 0
-_CARGO_REVIEW = None
-_CARGO_ACQUISITION = None
 
 
 def _q(url, params, t=60):
     """ArcGIS returns errors as HTTP-200 {"error": {...}} — surface, never
     swallow (ops-4559 follow-up: a where-clause type error looked exactly
     like an empty layer)."""
-    global _REQUEST_COUNT
-    if _REQUEST_COUNT >= 292:
-        return None, "bounded complete acquisition budget exhausted"
-    _REQUEST_COUNT += 1
     try:
-        encoded = urllib.parse.urlencode(params)
-        req = (urllib.request.Request(url, data=encoded.encode(), headers={**UA, "Content-Type": "application/x-www-form-urlencoded"})
-               if len(encoded) > 1200 else urllib.request.Request(url + "?" + encoded, headers=UA))
+        req = urllib.request.Request(url + "?" + urllib.parse.urlencode(params), headers=UA)
         with urllib.request.urlopen(req, timeout=t) as r:
             j = json.loads(r.read().decode())
             if isinstance(j, dict) and j.get("error"):
@@ -221,13 +211,31 @@ def negotiate_where(gaps):
 
 
 def fetch_window(gaps):
-    """Reconcile every provider ID before any legacy or reviewed calculation."""
-    global _CARGO_REVIEW, _CARGO_ACQUISITION
-    at = datetime.now(timezone.utc).isoformat()
-    rows, catalog, acquisition = cargo_measurements.acquire(_q, LAYER, at, lambda: 292 - _REQUEST_COUNT)
-    _CARGO_REVIEW = cargo_measurements.build(rows, catalog, acquisition, at)
-    _CARGO_ACQUISITION = acquisition
-    return rows, lambda d: "TIMESTAMP '%s'" % d.strftime("%Y-%m-%d %H:%M:%S")
+    where, expected, fmt = negotiate_where(gaps)
+    if not where:
+        return [], None
+    rows, offset = [], 0
+    for _ in range(MAX_PAGES):
+        j, err = _q(LAYER, {"where": where, "outFields": "*",
+                            "resultOffset": offset, "resultRecordCount": PAGE,
+                            "orderByFields": DATEFIELD + " ASC", "f": "pjson"})
+        if err:
+            gaps.append("page fetch failed at offset %d: %s" % (offset, err))
+            break
+        feats = (j or {}).get("features") or []
+        if not feats:
+            break
+        rows.extend(a.get("attributes") or {} for a in feats)
+        # servers cap below the requested count (maxRecordCount) — advance by
+        # what was RETURNED and stop only when the transfer-limit flag clears
+        if not j.get("exceededTransferLimit") and len(feats) < PAGE:
+            break
+        offset += len(feats)
+    else:
+        gaps.append("pagination hit MAX_PAGES ceiling — window truncated")
+    if expected and len(rows) < expected * 0.9:
+        gaps.append("fetched %d of %d counted rows — partial window" % (len(rows), expected))
+    return rows, fmt
 
 
 def seasonal_baseline(fmt, latest_date, fi, fe, gaps, years=(1, 2, 3)):
@@ -483,7 +491,7 @@ def _native_calculation(event=None, context=None):
             shock, seasonal_block.get("status")))
 
     out = {
-        "engine": "port-cargo", "version": "1.3.2",
+        "engine": "port-cargo", "version": "1.3.1",
         "date_field_type": sorted(date_type_seen) or None,
         "engine_class": "physical_trade_fast_layer",
         "evidence_tier": "tier_1_measured_physical",
