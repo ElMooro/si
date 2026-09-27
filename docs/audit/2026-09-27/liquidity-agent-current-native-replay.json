@@ -1,0 +1,107 @@
+{
+  "operation_run": 36320922987,
+  "report_commit": "d0ee62743",
+  "public_verification_performed_by": "GitHub Actions runner via the declared public reader",
+  "acceptance": {
+    "code_and_receipt_verified": true,
+    "consumer_invocations": 0,
+    "current_compiler_publication_verified": true,
+    "current_public_output_replayed": {
+      "contract": "liquidity-agent-research.v1",
+      "generated_at": "2026-09-27T12:30:28.724128+00:00",
+      "replayed": true,
+      "original_rows": 145590,
+      "requested_series": 73,
+      "current_series": 61,
+      "missing_series": [
+        "EXCSRESNW",
+        "WSHONBIILB",
+        "WSHOBL",
+        "WSHOMBLS",
+        "H41RESPPALDKNWA",
+        "WCBSL",
+        "TRESEGUSM052N",
+        "BAMLC0A0CMFOAS",
+        "BAMLC0A0CMIOAS",
+        "BAMLC0A0CMUOAS",
+        "DRTSCLM",
+        "OFRFSI"
+      ],
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "expected_commit": "3838b7ef01939ac00e120e2ab34fd81e9a83490b",
+    "native_publication": {
+      "generated_at": "2026-09-27T12:30:28.724128+00:00",
+      "bytes": 591272,
+      "sha256": "df7cc47c3eca9c9662c971902205ca7295a82442d00e8e43c242d2c6440d068f",
+      "manifest_key": "data/liquidity-agent-research/runs/ba733c2d024e4c10b8a000a2e40286f98f7a4c7e9fd0bf4923d479d8c104a5fd.json",
+      "current_compilers_match": true,
+      "compiler_count": 9,
+      "status": "current_compiler_publication_replayed"
+    },
+    "normal_publication_verified": true,
+    "notifications_sent": 0,
+    "original_provider_replay_performed": true,
+    "packages": [
+      {
+        "runtime": {
+          "code_sha256": "TD3FsYGmZLR+TlJ3bWAm3ISHOzbc8CnGed66aq3ZXVU=",
+          "source_files_checked": 11,
+          "handler_bytes": 1323,
+          "timeout": 300,
+          "memory_mb": 512,
+          "receipt": {
+            "status": "matched",
+            "commit": "3838b7ef01939ac00e120e2ab34fd81e9a83490b"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-liquidity-agent-daily",
+              "state": "ENABLED",
+              "expression": "cron(30 12 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-liquidity-agent",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "arm64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "trigger_inventory": {
+          "schedule_groups_scanned": 1,
+          "schedules_scanned": 408,
+          "matching_schedules": [
+            {
+              "Name": "justhodl-liquidity-agent-daily",
+              "GroupName": "default",
+              "State": "ENABLED",
+              "ScheduleExpression": "cron(30 12 * * ? *)",
+              "ScheduleExpressionTimezone": "UTC",
+              "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-liquidity-agent"
+            }
+          ],
+          "event_source_mappings": [],
+          "direct_bucket_notifications": [],
+          "indirect_lambda_stepfunction_and_eventbus_callers_verified": false
+        },
+        "reviewed_publication_timing_matches": true
+      }
+    ],
+    "private_account_reads": 0,
+    "producer_invocations": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules_changed": 0,
+    "scope": "Exact deployed source, unchanged scheduler binding and one complete public packet replay. Current compiler identity is distinguished from reviewed predecessor storage. This does not independently attest the trigger event, original release vintages or portfolio qualification.",
+    "trigger_event_independently_verified": false
+  },
+  "limitation": "Nine current compilers and all 73 series replay; 12 series remain missing. Trigger event, first-release vintages and portfolio qualification remain unverified. This record copies committed runner evidence; it does not claim a second desktop network read."
+}

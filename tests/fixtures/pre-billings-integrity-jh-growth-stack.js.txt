@@ -10,11 +10,7 @@
   var STATE = { ready: false, billings: {}, street: {}, quality: {}, hiring: {}, fo: {}, radar: {} };
 
   function up(t) { return String(t == null ? "" : t).toUpperCase().trim(); }
-  function num(v) {
-    if (typeof v !== "number" && typeof v !== "string") return null;
-    if (typeof v === "string" && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(v.trim())) return null;
-    var n = Number(v); return Number.isFinite(n) ? n : null;
-  }
+  function num(v) { var n = Number(v); return isFinite(n) ? n : null; }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
       if (c === "&") return "\u0026amp;";
@@ -39,26 +35,22 @@
 
   function ttmFromHistory(hist) {
     if (!Array.isArray(hist) || !hist.length) return null;
-    function date(s) {
-      if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-      var d=Date.parse(s+"T00:00:00Z");return Number.isFinite(d)&&new Date(d).toISOString().slice(0,10)===s?d:null;
+    var rows = hist.filter(function (h) { return h && isFinite(Number(h.value)); })
+      .slice().sort(function (a, b) { return String(a.end || "").localeCompare(String(b.end || "")); });
+    if (!rows.length) return null;
+    var last = rows[rows.length - 1];
+    if (rows.length >= 4) {
+      var tail = rows.slice(-4);
+      var ta = Date.parse(tail[2].end);
+      var tb = Date.parse(tail[3].end);
+      var gap = (isFinite(ta) && isFinite(tb)) ? (tb - ta) / 864e5 : 9999;
+      if (gap > 50 && gap < 160) {
+        var s = 0;
+        tail.forEach(function (h) { s += Number(h.value); });
+        return s;
+      }
     }
-    // End dates and FY labels alone cannot distinguish a quarter from YTD.
-    var rows=hist.slice().sort(function(a,b){return String(a&&a.end||"").localeCompare(String(b&&b.end||""));});
-    if (rows.some(function(r,i){return !r||date(r.end)===null||(i&&r.end===rows[i-1].end);})) return null;
-    var last=rows[rows.length-1],start=date(last.start),end=date(last.end),value=num(last.value);
-    if(start===null||value===null||value<0||end>Date.now())return null;
-    var duration=(end-start)/864e5+1;
-    if(duration>=350&&duration<=380)return value;
-    if(rows.length<4)return null;
-    var tail=rows.slice(-4),total=0,previous=null;
-    for(var i=0;i<tail.length;i++){
-      var r=tail[i],a=date(r.start),b=date(r.end),n=num(r.value);
-      if(a===null||n===null||n<0||(b-a)/864e5+1<70||(b-a)/864e5+1>105||(previous!==null&&a!==previous+864e5))return null;
-      previous=b;total+=n;
-    }
-    duration=(end-date(tail[0].start))/864e5+1;
-    return Number.isFinite(total)&&duration>=350&&duration<=380?total:null;
+    return Number(last.value);
   }
 
   function foList(doc) {
@@ -88,14 +80,14 @@
       var ttm = ttmFromHistory(d.revenue_history);
       var rpo = num(d.rpo_latest_usd) != null ? num(d.rpo_latest_usd) : num(r.rpo);
       var deferred = num(r.deferred_rev);
-      var coverage = (rpo != null && rpo >= 0 && ttm && ttm > 0) ? rpo / ttm : null;
+      var coverage = (rpo != null && ttm && ttm > 0) ? rpo / ttm : null;
       var defYoy = num(r.deferred_yoy);
       var billingsEst = null;
-      if (ttm != null && defYoy != null && deferred != null && deferred >= 0 && defYoy > -100) {
+      if (ttm != null && defYoy != null && deferred != null && defYoy > -100) {
         billingsEst = ttm + (deferred - (deferred / (1 + defYoy / 100)));
+      } else if (ttm != null) {
+        billingsEst = ttm;
       }
-      if (!Number.isFinite(billingsEst)) billingsEst = null;
-      if (!Number.isFinite(coverage)) coverage = null;
       billings[t] = {
         ticker: t,
         sector: r.sector || f.sector || "",
@@ -103,11 +95,6 @@
         deferred: deferred,
         ttm_rev: ttm,
         billings: billingsEst,
-        billings_basis: billingsEst===null ? "insufficient_source_fields" : "estimate_from_reported_deferred_yoy; balance_period_alignment_unverified",
-        forecast_qualified: false,
-        calls_eligible: false,
-        sizing_eligible: false,
-        execution_eligible: false,
         coverage_yrs: coverage,
         deferred_yoy: defYoy,
         deferred_qoq: num(r.deferred_qoq),

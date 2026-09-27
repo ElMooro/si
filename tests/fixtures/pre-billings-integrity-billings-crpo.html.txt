@@ -14,7 +14,6 @@ h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:
 .chip b{color:var(--fg);font-size:14px}
 input{width:100%;max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
 table{width:100%;border-collapse:collapse}
-#board{max-width:100%;overflow:auto}#board:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font-size:12.5px}
 th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}
 td.l,th.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}.tk{font-weight:700}
@@ -26,13 +25,13 @@ td.l,th.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}.tk{font-w
 <body>
 <div class="wrap">
   <h1>Billings and coverage</h1>
-  <p class="sub">Implied billings estimate = dated annual revenue + reconstructed deferred-revenue change. Coverage years = RPO / TTM revenue. Revenue duration must be explicit. Missing amounts or periods stay blank; rounded deferred growth and unmatched balance dates make any result an unqualified estimate. No invented ARR or 8-K cRPO.</p>
+  <p class="sub">Implied billings = TTM revenue + change in deferred revenue. Coverage years = RPO / TTM revenue. Billings stay blank unless both TTM revenue and a deferred change exist. No invented ARR or 8-K cRPO.</p>
   <div class="kpis" id="kpis"></div>
-  <input id="q" aria-label="Filter ticker or sector" placeholder="filter ticker or sector" autocomplete="off">
-  <div id="board" role="region" aria-label="All reported billings source fields; scroll for columns" tabindex="0"><div class="loading">Loading backlog and forward-orders feeds.</div></div>
-  <div class="foot"><b>Built for:</b> inspecting reported backlog and measurement gaps; no verified next-year sales forecast.<br>
+  <input id="q" placeholder="filter ticker or sector" autocomplete="off">
+  <div id="board"><div class="loading">Loading backlog and forward-orders feeds.</div></div>
+  <div class="foot"><b>Built for:</b> turning a booked order book into a next-year sales path.<br>
   <b>Data:</b> /data/backlog.json (RPO, deferred, deferred YoY) and /data/forward-orders.json (dated revenue history + book-to-bill when tagged).<br>
-  <b>Formulas:</b> Revenue requires one explicitly dated 350–380-day period or four contiguous 70–105-day periods spanning 350–380 days. The current forward-orders history omits start dates, so it cannot establish this denominator; coverage years = RPO / TTM; billings = TTM + (deferred - deferred / (1 + deferred_yoy/100)) only when TTM, deferred, and deferred_yoy are all present. Empty cells mean required fields, durations or valid calculations are unavailable. Deferred balance alignment, reported growth and RPO comparability remain unverified. Research, not advice.</div>
+  <b>Formulas:</b> TTM = last four quarterly revenue points when the gap is 50-160 days; coverage years = RPO / TTM; billings = TTM + (deferred - deferred / (1 + deferred_yoy/100)) only when TTM, deferred, and deferred_yoy are all present. Empty cells mean the tag was missing. Research, not advice.</div>
 </div>
 <script src="/jh-growth-stack.js"></script>
 <script>
@@ -49,7 +48,7 @@ function show(){
     return String(av).localeCompare(String(bv))*DIR;
   });
   var h='<table><thead><tr>';
-  [["ticker","Ticker"],["sector","Sector"],["rpo","RPO"],["ttm_rev","TTM rev"],["billings","Implied billings estimate"],["coverage_yrs","Coverage yrs"],["btb","RPO–revenue growth gap"],["deferred_yoy","Deferred YoY"],["rpo_yoy","RPO YoY"]].forEach(function(c){
+  [["ticker","Ticker"],["sector","Sector"],["rpo","RPO"],["ttm_rev","TTM rev"],["billings","Billings"],["coverage_yrs","Coverage yrs"],["btb","Book-to-bill"],["deferred_yoy","Deferred YoY"],["rpo_yoy","RPO YoY"]].forEach(function(c){
     h+='<th class="'+(c[0]==="ticker"||c[0]==="sector"?"l":"")+'" data-k="'+c[0]+'">'+c[1]+"</th>";
   });
   h+="</tr></thead><tbody>";
@@ -77,7 +76,7 @@ function show(){
   var withBill=ROWS.filter(function(r){return r.billings!=null;}).length;
   var withCov=ROWS.filter(function(r){return r.coverage_yrs!=null;}).length;
   document.getElementById("kpis").innerHTML='<span class="chip" data-realtime="1"><b>'+ROWS.length+"</b> names on book feeds</span>"
-    +'<span class="chip" data-realtime="1"><b>'+withBill+"</b> with implied billings estimates</span>"
+    +'<span class="chip" data-realtime="1"><b>'+withBill+"</b> with billings (TTM + deferred change)</span>"
     +'<span class="chip" data-realtime="1"><b>'+withCov+"</b> with coverage years</span>";
   document.getElementById("q").oninput=show;
   show();
