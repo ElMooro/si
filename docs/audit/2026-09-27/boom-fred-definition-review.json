@@ -1,0 +1,56 @@
+{
+  "reviewed_at": "2026-09-27",
+  "scope": "Series definitions; not current observation or original-vintage acceptance",
+  "verified_series": {
+    "CAPUTLG3344S": {
+      "url": "https://fred.stlouisfed.org/series/CAPUTLG3344S",
+      "unit": "Percent",
+      "frequency": "Monthly",
+      "seasonal_adjustment": "Seasonally Adjusted"
+    },
+    "CAPUTLG21S": {
+      "url": "https://fred.stlouisfed.org/series/CAPUTLG21S",
+      "unit": "Percent",
+      "frequency": "Monthly",
+      "seasonal_adjustment": "Seasonally Adjusted"
+    },
+    "TCU": {
+      "url": "https://fred.stlouisfed.org/series/TCU",
+      "unit": "Percent",
+      "frequency": "Monthly",
+      "seasonal_adjustment": "Seasonally Adjusted"
+    },
+    "MNFCTRIRSA": {
+      "url": "https://fred.stlouisfed.org/series/MNFCTRIRSA",
+      "unit": "Ratio",
+      "frequency": "Monthly",
+      "seasonal_adjustment": "Seasonally Adjusted"
+    },
+    "ISRATIO": {
+      "url": "https://fred.stlouisfed.org/series/ISRATIO",
+      "unit": "Ratio",
+      "frequency": "Monthly",
+      "seasonal_adjustment": "Seasonally Adjusted"
+    },
+    "RETAILIRSA": {
+      "url": "https://fred.stlouisfed.org/series/RETAILIRSA",
+      "unit": "Ratio",
+      "frequency": "Monthly",
+      "seasonal_adjustment": "Seasonally Adjusted"
+    }
+  },
+  "rejected_inherited_definition": {
+    "series": "WGTSTUS1",
+    "inherited_label": "US natural gas in storage",
+    "publisher_definition": "Weekly U.S. Ending Stocks of Total Gasoline",
+    "unit": "Thousand Barrels",
+    "source": "https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=WGTSTUS1&f=W",
+    "fred_identity_verified": false
+  },
+  "api_references": [
+    "https://fred.stlouisfed.org/docs/api/fred/series.html",
+    "https://fred.stlouisfed.org/docs/api/fred/series_observations.html"
+  ],
+  "copper_proxy_definition_verified": false,
+  "investment_mapping_qualified": false
+}

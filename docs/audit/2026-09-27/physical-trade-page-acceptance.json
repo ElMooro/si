@@ -1,0 +1,77 @@
+{
+  "commit": "a7e41f30e3bd1085dfb37273c93149da42bfdff9",
+  "served_descendant": "a7e41f30e3bd1085dfb37273c93149da42bfdff9",
+  "checked_at": "2026-09-27T05:53:21.016093+00:00",
+  "registry_hash": "35fdc1417f5387b74b9d9792a6a9c06ea74cd16f7a7ac6f167a60a735f36536e",
+  "assets": {
+    "physical-trade.html": {
+      "bytes": 10145,
+      "sha256": "f3487dd90ef4b9a05099811a61ef370cd9bdd79d88f329865556cef016ae7a75",
+      "matches_commit_manifest": true
+    },
+    "jh-physical-trade-review.js": {
+      "bytes": 5289,
+      "sha256": "1b49216379fa0d6c474d3bcfcbe84575eb7658d8c7931db412996d0c7de54e24",
+      "matches_commit_manifest": true
+    },
+    "jh-portwatch-review.js": {
+      "bytes": 17680,
+      "sha256": "7179ba654b12ba9e81512729cdb937e017e840f0b4d6bb03fe8c6659e5fcbaa5",
+      "matches_commit_manifest": true
+    },
+    "jh-business-cycle-review.js": {
+      "bytes": 18142,
+      "sha256": "8584b89c9716cd38094337c9baebe715a9fe52b46f7c548486da9f477328bb50",
+      "matches_commit_manifest": true
+    },
+    "business-cycle-review.css": {
+      "bytes": 3142,
+      "sha256": "b581c00f1bc3322d64d286538eab892e130dc5bab679c5c46fbba0c5a46e189e",
+      "matches_commit_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_commit_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1336876,
+      "sha256": "4529cae1320318240389a39b038657c710cf49e4c1a45bc8efb12ee0bfd5a231",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2338349,
+      "sha256": "35fdc1417f5387b74b9d9792a6a9c06ea74cd16f7a7ac6f167a60a735f36536e",
+      "matches_commit_manifest": true
+    }
+  },
+  "frontend_tests_passed": 1397,
+  "deployment_checks_passed": 458,
+  "shell_cases_passed": 12,
+  "page_workflow": 36298208262,
+  "page_gate": 36298208260,
+  "live_browser": {
+    "shipping_rows": 101,
+    "cycle_rows": 34,
+    "filtered_shipping_rows": 1,
+    "filtered_cycle_rows": 1,
+    "script_errors": 0,
+    "document_width": 1270,
+    "viewport_width": 1280,
+    "mobile_verified": false
+  },
+  "public_packets": {
+    "portwatch": {
+      "http_status": 200,
+      "bytes": 109122,
+      "sha256": "c693ebf0c880ec84c4f57553d03ce3cfcae568c041883779884353a174b83fe7",
+      "generated_at": "2026-09-26T11:20:50.738439+00:00"
+    },
+    "global-business-cycle": {
+      "http_status": 200,
+      "bytes": 261250,
+      "sha256": "83f982ffc9c4ad38f5bf1bef907dd824cba6610bab0fb00b8a38bbbf31a58e11",
+      "generated_at": "2026-09-26T12:01:10.137528+00:00"
+    }
+  }
+}

@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-VERSION = "1.7.2"
+VERSION = "1.7.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -49,21 +49,55 @@ FACTOR4 = {
 }
 
 
-def _fred_pair(sid, session=None):
-    """Dated metadata-validated measurements; no positional year-ago row."""
-    from boom_measurements import empty
-    return session.get(sid) if session is not None else empty(sid, 'measurement_session_unavailable')
+def _fred_pair(sid):
+    """latest + 12m-ago value."""
+    try:
+        u = ("https://api.stlouisfed.org/fred/series/observations?"
+             f"series_id={sid}&api_key={FRED_KEY}&file_type=json"
+             "&sort_order=desc&limit=16")
+        o = json.loads(urllib.request.urlopen(
+            urllib.request.Request(u, headers=UA), timeout=20).read())
+        obs = [x for x in (o.get("observations") or [])
+               if x.get("value") not in (".", "", None)]
+        if not obs:
+            return None, None, None
+        cur = float(obs[0]["value"])
+        prior = float(obs[12]["value"]) if len(obs) > 12 else None
+        return cur, prior, obs[0]["date"]
+    except Exception:
+        return None, None, None
 
 
-def _factor4(kind, session=None):
-    """Keep legacy keys; expose a typed measurement without economic inference."""
+def _factor4(kind):
+    """Returns dict for a factor-4 key: level, yoy delta, and read."""
     spec = FACTOR4.get(kind)
     if not spec:
         return None
     sid, typ, name = spec
-    result = _fred_pair(sid, session)
-    result.update(type=typ, inherited_name=name, inherited_definition_qualified=False)
-    return result
+    cur, prior, dt = _fred_pair(sid)
+    if cur is None:
+        return None
+    d = {"name": name, "series": sid, "level": round(cur, 2),
+         "date": dt, "type": typ}
+    if prior:
+        chg = round(cur - prior, 2)
+        d["yoy_chg"] = chg
+        if typ == "util":
+            d["read"] = ("RAMPING" if chg >= 1.5 else
+                         "IDLING" if chg <= -1.5 else "STEADY")
+            d["means"] = ("producers running hotter — supply responding"
+                          if chg >= 1.5 else
+                          "capacity going idle — demand not pulling"
+                          if chg <= -1.5 else "utilization flat")
+        else:
+            d["read"] = ("INVENTORY_BUILD" if chg >= 0.04 else
+                         "INVENTORY_DRAW" if chg <= -0.04 else "BALANCED")
+            d["means"] = ("stock piling up vs sales — slowdown warning"
+                          if chg >= 0.04 else
+                          "stocks drawn down vs sales — tightening, "
+                          "bullish for price" if chg <= -0.04 else
+                          "inventories balanced")
+    return d
 
 
 def _refine(stage, f4):
@@ -249,8 +283,6 @@ def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     from boom_history import Ledger
     ledger = Ledger(S3, BUCKET, now.isoformat())
-    from boom_measurements import Session
-    measurement_session = Session(S3, BUCKET, now.isoformat(), FRED_KEY)
     asia = _get("data/asia-leads.json")
     pw = _get("data/portwatch.json")
     cn = _get("data/china-liquidity.json")
@@ -450,7 +482,7 @@ def lambda_handler(event=None, context=None):
         vv = _yoy_yahoo(sym) if sym != "NICKEL" else _yoy_yahoo("XME")
         vpn, vzn, nptn = vol(ctry)
         stn, whyn = _stage(vv, vpn)
-        f4 = _factor4(f4key, measurement_session) if f4key else None
+        f4 = _factor4(f4key) if f4key else None
         stn, note = _refine(stn, f4)
         pairs.append({"id": pid, "label": label, "stage": stn, "why": whyn,
                       "value": {"src": vsrc, "yoy_pct": vv},
@@ -472,7 +504,7 @@ def lambda_handler(event=None, context=None):
         if p.get("factor4") is not None or p["id"] not in F4MAP:
             continue
         k = F4MAP.get(p["id"])
-        f4 = _factor4(k, measurement_session) if k else None
+        f4 = _factor4(k) if k else None
         if f4:
             st_new, note = _refine(p["stage"], f4)
             p["factor4"] = f4
@@ -768,7 +800,6 @@ def lambda_handler(event=None, context=None):
            "doctrine": ("value-vs-volume: surging value on flat volume = "
                         "pricing power (early); volume catch-up with "
                         "cooling value = plateau forming")}
-    doc["fred_measurements"] = measurement_session.review()
     _publish_plan(ledger.prepare(doc), ledger)
     print(f"[boom-stage] live={len(live)}/{len(pairs)} "
           f"stages={[(p['id'], p['stage']) for p in pairs]}")

@@ -66,7 +66,7 @@ def packet():
     return {'generated_at': NOW.isoformat(), 'pairs': [pair()], 'unknown': [0, None]}
 
 
-def native(memory):
+def native(memory, mock_factor=True):
     boto = types.ModuleType('boto3'); boto.client = lambda *a, **kw: memory
     secret = types.ModuleType('managed_secret'); secret.managed_secret = lambda *a, **kw: ''
     spec = importlib.util.spec_from_file_location('boom_native_fixture', SOURCE/'lambda_function.py')
@@ -79,7 +79,8 @@ def native(memory):
             return NOW.astimezone(tz) if tz else NOW.replace(tzinfo=None)
     mod.datetime = Clock
     mod._yoy_yahoo = lambda *a: None
-    mod._factor4 = lambda *a: None
+    if mock_factor:
+        mod._factor4 = lambda *a: None
     return mod
 
 
@@ -107,7 +108,7 @@ class Tests(unittest.TestCase):
             self.assertEqual(mem.data[ref['key']], original[key])
         calculation = h.decode(mem.data[evidence['complete_native_calculation']['key']])
         self.assertEqual(calculation['pairs'], out['pairs'])
-        self.assertEqual(len(evidence['compiler_sha256']), 3)
+        self.assertEqual(len(evidence['compiler_sha256']), 4)
 
     def test_denied_malformed_nonfinite_duplicate_and_future_predecessors_cannot_reset_history(self):
         for raw in (b'', b'bad', b'[]', b'{"days":{}} trailing', b'{"days":{},"days":{}}',
@@ -181,8 +182,10 @@ class Tests(unittest.TestCase):
         functions = lambda raw: {n.name: ast.dump(n) for n in ast.parse(raw).body if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
         before, after = functions(old), functions((SOURCE/'lambda_function.py').read_bytes())
         for name in before:
-            if name != 'lambda_handler': self.assertEqual(before[name], after[name], name)
+            if name not in ('lambda_handler', '_fred_pair', '_factor4'): self.assertEqual(before[name], after[name], name)
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    import test_measurements
+    suite = unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(Tests), unittest.defaultTestLoader.loadTestsFromModule(test_measurements)])
+    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)

@@ -184,7 +184,7 @@ class Ledger:
         original_calculation = retain(self.client, self.bucket, encode(packet))
         planned_history = retain(self.client, self.bucket, history_raw)
         compilers = {name: sha((Path(__file__).parent/name).read_bytes())
-                     for name in ('lambda_function.py', 'boom_history.py')}
+                     for name in ('lambda_function.py', 'boom_history.py', 'boom_measurements.py')}
         shared = Path(__file__).parent/'managed_secret.py'
         if not shared.exists():
             shared = Path(__file__).resolve().parents[3]/'shared/managed_secret.py'
