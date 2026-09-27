@@ -36,13 +36,12 @@ th:first-child,td:first-child{text-align:left}
 td{padding:7px 8px;border-bottom:1px solid var(--border)}
 tr:last-child td{border-bottom:none}
 .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin:2px;border:1px solid var(--border-hi)}
-.macro-scroll{max-width:100%;overflow:auto}.macro-scroll:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.macro-scroll table{min-width:620px}.macro-controls{display:flex;gap:10px;flex-wrap:wrap}#macro-calendar{min-width:0;overflow:hidden}#macro-calendar p{overflow-wrap:anywhere}#macro-choice{display:block;width:100%;max-width:100%;min-width:0;margin:10px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border)}.macro-controls button{padding:9px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:7px}.macro-controls button:disabled{opacity:.45}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Macro Leads</h1>
-  <div class="sub">Public macro research. Metals, policy-rate classifications and Asia data still need source qualification; no displayed score establishes a forecast or position instruction. <span class="mute" id="asof"></span></div>
+  <div class="sub">Public macro research. Legacy metal, rate, truck and Asia calculations still need source/calendar qualification; no displayed score establishes a forecast or position instruction. <span class="mute" id="asof"></span></div>
 
   <div class="sec">Metals ratio observations</div>
   <div class="grid2">
@@ -62,18 +61,6 @@ tr:last-child td{border-bottom:none}
     <div class="card" id="next-prints"><div class="err">loading…</div></div>
   </div>
 
-  <section id="macro-calendar" aria-labelledby="macro-calendar-title" class="card" style="margin-top:26px">
-    <h2 id="macro-calendar-title">Monthly truck and geopolitical source research</h2>
-    <p id="macro-calendar-status" role="status">Loading original monthly source contract…</p>
-    <p class="note">Exact calendar comparisons, original units and every source position. GPR, historical GPR, article percentages and article counts have separate definitions. Publication time does not certify observation freshness or first-release availability.</p>
-    <div id="macro-series" class="macro-scroll" tabindex="0" role="region" aria-label="Every monthly macro source series"></div>
-    <p id="macro-series-count"></p><div class="macro-controls"><button id="macro-source-prev" type="button" disabled>Previous sources</button><button id="macro-source-next" type="button" disabled>Next sources</button></div>
-    <h3>Inspect every monthly observation</h3><label for="macro-choice">Monthly source series</label><select id="macro-choice"></select>
-    <p id="macro-definition"></p><div id="macro-months" class="macro-scroll" tabindex="0" role="region" aria-label="Every observation for the selected macro source"></div>
-    <p id="macro-row-count"></p><div class="macro-controls"><button id="macro-prev" type="button" disabled>Previous observations</button><button id="macro-next" type="button" disabled>Next observations</button></div>
-    <p class="note">Missing months remain missing. Baselines exclude the current month. Browser checks reproduce the published calendar arithmetic; replay from protected original provider bytes is a separate runner check. Neither establishes a forecast or permission to size a position.</p>
-    <p><a href="https://fred.stlouisfed.org/series/HTRUCKSSAAR">Heavy-truck definition</a> · <a href="https://www.matteoiacoviello.com/gpr.htm">GPR methodology and source</a> · <a href="/data/ops/releases/justhodl-macro-leads.json">Deployed code receipt</a></p>
-  </section>
   <section id="macro-transport" aria-labelledby="transport-title" style="margin-top:26px">
     <h2 id="transport-title">Transport evidence · separate source populations</h2>
     <p class="note">Vessel calls, freight indexes, credit flows and bank-claim stocks describe different populations and clocks. There is no additive China-stack vote or cross-source slowdown conclusion here.</p>
@@ -88,7 +75,6 @@ tr:last-child td{border-bottom:none}
 </div>
 <script src="/jh-geo-review.js"></script>
 <script src="/jh-business-cycle-review.js"></script>
-<script src="/jh-macro-calendar.js"></script>
 <script src="/jh-freight-review.js"></script>
 <script src="/jh-portwatch-review.js"></script>
 <script src="/jh-macro-transport.js"></script>
@@ -102,8 +88,8 @@ function el(id){return document.getElementById(id);}
     var cl={};try{var cj=JHMacroTransport.legacy(await JHMacroTransport.load('china'));cl=(cj.tsf&&cj.tsf.pboc_cn)||{};}catch(e){}
     var gr={};try{gr=JHMacroTransport.legacy(await JHMacroTransport.load('geo'));}catch(e){}
     gr=JHGeoResearch.context(gr); // Dated observations cannot inherit legacy stress/pricing authority.
-    function row(lbl,b){ var y=b.yoy_pct; var c='';
-      return '<div class="kv"><span>'+lbl+'</span><b class="'+c+'">'+(typeof y==='number'&&Number.isFinite(y)?(y>0?'+':'')+y+'% YoY':'YoY unavailable')+'</b><span class="mute"> · 3m '+(typeof b.chg_3m_pct==='number'&&Number.isFinite(b.chg_3m_pct)?(b.chg_3m_pct>0?'+':'')+b.chg_3m_pct+'%':'unavailable')+' · '+(b.last_period||'').slice(0,7)+'</span></div>'; }
+    function row(lbl,b){ var y=b.yoy_pct; var c=(y>10?'good':y<0?'bad':'flat');
+      return '<div class="kv"><span>'+lbl+'</span><b class="'+c+'">'+(y>0?'+':'')+y+'% YoY</b><span class="mute"> · 3m '+(b.chg_3m_pct>0?'+':'')+b.chg_3m_pct+'% · '+(b.last_period||'').slice(0,7)+'</span></div>'; }
     el('asia-pulse').innerHTML='<h3>Asia export observations — KR &amp; TW</h3>'
       +'<div class="note">Reported aggregate exports are not a semiconductor-demand measure. Source definitions, exact calendar comparisons and original vintages remain unqualified.</div>'
       +((a.korea_flash&&a.korea_flash.total_yoy_pct!=null)?('<div class="kv"><span>🇰🇷 Korea 20-day flash</span><b class="'+(a.korea_flash.total_yoy_pct>10?'good':a.korea_flash.total_yoy_pct<0?'bad':'flat')+'">'+(a.korea_flash.total_yoy_pct>0?'+':'')+a.korea_flash.total_yoy_pct+'% YoY</b><span class="mute"> · $'+(a.korea_flash.total_usd_bn||'—')+'B'+(a.korea_flash.semis_yoy_pct!=null?' · semis '+(a.korea_flash.semis_yoy_pct>0?'+':'')+a.korea_flash.semis_yoy_pct+'%':'')+' · KCS provisional, prints the 21st</span></div>'):((a.korea_flash_tape&&a.korea_flash_tape.latest)?('<div class="kv"><span>🇰🇷 Korea 20-day flash</span><b class="'+(a.korea_flash_tape.latest.yoy_pct>10?'good':a.korea_flash_tape.latest.yoy_pct<0?'bad':'flat')+'">'+(a.korea_flash_tape.latest.yoy_pct>0?'+':'')+a.korea_flash_tape.latest.yoy_pct+'% YoY</b><span class="mute">'+(a.korea_flash_tape.latest.semis_yoy_pct!=null?' · semis '+(a.korea_flash_tape.latest.semis_yoy_pct>0?'+':'')+a.korea_flash_tape.latest.semis_yoy_pct+'%':'')+' · '+(a.korea_flash_tape.latest.period||'')+' · news-tape</span></div>'):''))
@@ -131,7 +117,6 @@ async function getJSON(){return JHMacroTransport.load('macro');}
 
 function render(d){
   el('macro-complete-original').textContent=JSON.stringify(d,null,2);
-  try{JHMacroCalendar.render(document,d);}catch(e){JHMacroCalendar.clear(document,'Monthly research unavailable: '+e.message);}
   d=JHMacroTransport.legacy(d);
   try{ if(d.generated_at) el('asof').textContent='· updated '+new Date(d.generated_at).toLocaleString(); }catch(e){}
   var cgs=d.copper_gold_silver||{};
@@ -146,18 +131,27 @@ function render(d){
   // rate-cut diffusion
   try{ var rc=d.rate_cut_diffusion||{};
     if(rc.net_pct_cutting!=null){
-      var reg='UNQUALIFIED'; var c='';
-      var rows=Object.entries(rc.by_country||{}).map(function(kv){ var col='mute'; return '<span class="pill '+col+'">'+kv[0]+': '+kv[1]+'</span>'; }).join(' ');
-      el('rate-cut').innerHTML='<h3>Legacy monthly-rate classifications</h3><div class="big">'+(rc.net_pct_cutting>0?'+':'')+rc.net_pct_cutting+'% <span class="badge '+c+'">'+reg+'</span></div><div class="note">'+rc.cutting+' cutting · '+rc.hiking+' hiking · '+rc.holding+' holding ('+rc.n_central_banks+' returned series out of 20 requested). Monthly averages are not a verified policy-decision ledger. Cross-country dates and source definitions remain unqualified.</div><div style="margin-top:10px">'+rows+'</div>';
+      var reg=rc.regime||''; var c=reg==='EASING'?'bd-cool':reg==='TIGHTENING'?'bd-hot':'bd-warm';
+      var rows=Object.entries(rc.by_country||{}).map(function(kv){ var col=kv[1]==='cut'?'pos':kv[1]==='hike'?'neg':'mute'; return '<span class="pill '+col+'">'+kv[0]+': '+kv[1]+'</span>'; }).join(' ');
+      el('rate-cut').innerHTML='<h3>Rate-cut diffusion — net % of central banks easing</h3><div class="big">'+(rc.net_pct_cutting>0?'+':'')+rc.net_pct_cutting+'% <span class="badge '+c+'">'+reg+'</span></div><div class="note">'+rc.cutting+' cutting · '+rc.hiking+' hiking · '+rc.holding+' holding ('+rc.n_central_banks+' central banks). '+rc.note+'.</div><div style="margin-top:10px">'+rows+'</div>';
     } else el('rate-cut').innerHTML='<h3>Rate-cut diffusion</h3><div class="err">'+(rc.error||'unavailable')+'</div>';
   }catch(e){ el('rate-cut').innerHTML='<h3>Rate-cut diffusion</h3><div class="err">render error</div>'; }
+  // GPR
+  try{ var g=d.geopolitical_risk||{}; el('gpr').innerHTML = (typeof g.gpr==='number')
+    ? '<h3>Geopolitical Risk Index (GPR)</h3><div class="big mono">'+g.gpr.toFixed(1)+' '+zbadge(g.z_5y)+'</div><div class="note">'+'This news index does not establish what financial markets have priced. The native series calendar and normalization still require source review.</div>'
+    : '<h3>Geopolitical Risk Index</h3><div class="err">'+(g.error||'unavailable')+'</div>'; }catch(e){ el('gpr').innerHTML='<h3>Geopolitical Risk</h3><div class="err">render error</div>'; }
+  // heavy truck
+  try{ var ht=d.heavy_truck_sales||{}; el('heavy-truck').innerHTML = (typeof ht.saar_millions==='number')
+    ? '<h3>US Heavy Truck Sales</h3><div class="big mono">'+(ht.saar_millions*1000).toFixed(0)+'k <span class="lab">SAAR</span> '+((ht.yoy_pct!=null)?'<span class="badge '+(ht.yoy_pct<0?'bd-hot':'bd-cool')+'">YoY '+(ht.yoy_pct>0?'+':'')+ht.yoy_pct+'%</span>':'')+'</div><div class="note">'+ht.note+'.</div>'
+    : '<h3>US Heavy Truck Sales</h3><div class="err">'+(ht.error||'unavailable')+'</div>'; }catch(e){ el('heavy-truck').innerHTML='<h3>Heavy Truck Sales</h3><div class="err">render error</div>'; }
   el('freight').innerHTML='<h3>Freight activity</h3><div class="note">The inherited average mixes overlapping monthly sources. Read the exact-month Freight Pulse measurements below; the original macro freight fields remain in the complete packet.</div>';
 }
-getJSON().then(render).catch(function(e){ JHMacroCalendar.clear(document,'Macro source unavailable.'); for(var id of ['copper-gold','gold-silver','rate-cut','freight'])el(id).textContent='Macro source unavailable.'; });
+getJSON().then(render).catch(function(e){ el('copper-gold').innerHTML='<h3>Copper / Gold</h3><div class="err">feed unavailable</div>'; });
 </script>
 
 <script defer src="/jh-nav-drawer.js"></script>
 <script defer src="/jh-page-ai.js"></script>
+<script src="/jh-enhance.js" data-feed="data/macro-leads.json" data-metrics="geopolitical_risk.gpr:GPR index|geopolitical_risk.z_5y:GPR z(5y)|heavy_truck_sales.yoy_pct:Heavy trucks YoY %|rate_cut_diffusion.net_pct_cutting:Net CBs cutting %" data-title="Macro source observations" data-sub="legacy scalar observations; predictive meaning unqualified"></script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>
