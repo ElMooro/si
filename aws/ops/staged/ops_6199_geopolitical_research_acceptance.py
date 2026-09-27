@@ -1,5 +1,6 @@
 """Read-only code, full fixture and original-schedule news research acceptance."""
 from pathlib import Path
+from hashlib import sha256
 import subprocess,sys
 import boto3
 ROOT=Path(__file__).resolve().parents[3]
@@ -26,7 +27,7 @@ def main():
         obj=s3.get_object(Bucket=BUCKET,Key=store.HEAD);raw=store.whole(obj['Body'],length=obj.get('ContentLength'))
         packet=store.strict(raw)
         native={'status':'pending_original_daily_1130_publication','generated_at':packet.get('generated_at'),'version':packet.get('version'),
-                'bytes':len(raw),'sha256':store.sha(raw)}
+                'bytes':len(raw),'sha256':sha256(raw).hexdigest()}
         if packet.get('contract')==store.model.CONTRACT:
             replay=store.replay(s3,BUCKET,packet)
             history=s3.get_object(Bucket=BUCKET,Key=store.HISTORY)

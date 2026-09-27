@@ -110,3 +110,38 @@ class Tests(unittest.TestCase):
         with contextlib.redirect_stdout(t.BytesIOText()),self.assertRaises(acquisition.AcquisitionError):
             t.store.run(t.native,opener=bad,at=t.NOW.isoformat())
         self.assertEqual({k:m.data[k] for k in before},before)
+
+    def test_full_133_port_backfill_fits_original_budget_without_dropped_ids_or_days(self):
+        t=self.native_module();m,old,calls,opener=t.fixture()
+        ids=['port'+str(i) for i in range(1,134)]
+        opener.datasets['PortWatch_ports_database']=[{'ObjectId':i,'portid':pid,'portname':'Shanghai '+pid,'country':'China'} for i,pid in enumerate(ids,1)]
+        rows=[{'ObjectId':i*401+n+1,'portid':pid,'date':(t.NOW-timedelta(days=400-n)).date().isoformat(),'portcalls':0}
+              for i,pid in enumerate(ids) for n in range(401)]
+        opener.datasets['Daily_Ports_Data']=rows
+        old['ports']={};m.seed(t.store.HISTORY,t.compress(old));t.native.S3=m
+        with contextlib.redirect_stdout(t.BytesIOText()):t.store.run(t.native,opener=opener,at=t.NOW.isoformat())
+        p=t.store.strict(m.data[t.store.HEAD]);hist=t.store.decode(m.data[t.store.HISTORY],t.store.HISTORY)
+        self.assertEqual(len(hist['ports']),133*401)
+        self.assertEqual(set(hist['ports']),{r['portid']+'|'+r['date'] for r in rows})
+        reviews=[q for q in p['acquisition_review']['queries'] if '/Daily_Ports_Data/' in q['url']]
+        self.assertEqual(len(reviews),14);self.assertEqual(sum(q['returned_rows'] for q in reviews),133*401)
+        selected=[]
+        for q in reviews:
+            batch=t.re.findall(r"'([^']+)'",q['where'].split('portid IN (',1)[1])
+            self.assertLessEqual(len(batch),10);selected.extend(batch)
+            self.assertIn("2025-08-23",q['where']);self.assertIn("2026-09-27",q['where'])
+        self.assertEqual(sorted(selected),sorted(ids));self.assertEqual(len(calls),106)
+        self.assertEqual(t.native.REQ_BUDGET,140);self.assertEqual(p['acquisition_review']['port_cohort_max_ids'],10)
+        with contextlib.redirect_stdout(t.BytesIOText()):result=t.store.replay(t.native,m,t.native.BUCKET,p)
+        self.assertEqual(result['history_rows']['ports'],53333);self.assertEqual(result['provider_requests'],0)
+
+    def test_port_count_transport_failure_has_one_attempt_and_preserves_both_heads(self):
+        t=self.native_module();m,old,calls,opener=t.fixture();before=deepcopy(m.data);failed=[]
+        def transport(req,timeout=None):
+            if '/Daily_Ports_Data/' in req.full_url and 'returnCountOnly=true' in req.full_url:
+                failed.append(req.full_url);raise TimeoutError('fixture transport timeout')
+            return opener(req,timeout)
+        t.native.S3=m
+        with contextlib.redirect_stdout(t.BytesIOText()),self.assertRaises(t.store.CaptureError):
+            t.store.run(t.native,opener=transport,at=t.NOW.isoformat())
+        self.assertEqual(len(failed),1);self.assertEqual({k:m.data[k] for k in before},before)

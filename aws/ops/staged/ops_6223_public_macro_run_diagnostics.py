@@ -89,6 +89,11 @@ def portwatch_attempts(s3, end):
                    'operation': 'count' if 'returnCountOnly' in params else 'ids' if 'returnIdsOnly' in params else 'features',
                    'where': params.get('where'), 'requested_object_count': len(params['objectIds'][0].split(',')) if 'objectIds' in params else None}
             ref = body.get('original')
+            error_type = body.get('error_type')
+            if error_type is not None:
+                if not isinstance(error_type, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,79}', error_type):
+                    raise ValueError('Retained exception class is not a class identifier')
+                row['error_type'] = error_type
             if ref:
                 row.update(original_sha256=ref['sha256'], original_bytes=ref['bytes'])
                 if ref['bytes'] <= 65536:

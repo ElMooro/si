@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 import boto3
 import portwatch_acquisition as acquisition
 
-VERSION = "1.6.8"
+VERSION = "1.6.7"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -494,9 +494,9 @@ def _native_calculation(event=None, context=None):
                 return (0 if any(p3 in c3 for p3 in _PRIO) else 1, i2)
             _ids_all = sorted(cand, key=_pk)
             out["ports_ref_matched_total"] = len(_ids_all)
-            # Bound query complexity, not universe/history. All cohorts must complete.
+            # v1.6.2: chunks of 40 ids per query; each chunk merges into the same history store
             prow, perr = [], None
-            _chunks = [_ids_all[k:k + 10] for k in range(0, len(_ids_all), 10)]
+            _chunks = [_ids_all[k:k + 40] for k in range(0, len(_ids_all), 40)]
             for _ch in _chunks:
                 _rows, _err = fetch_daily(DAILY_PORTS, _ch, hist.setdefault("ports", {}), filter_ids=True)
                 if _err:
@@ -635,7 +635,6 @@ def _native_calculation(event=None, context=None):
         "calendar_acquisition": "Each queried entity contributes its earliest missing calendar date or three-day revision overlap within the existing 400-day lookback (up to 401 calendar dates). Older revisions are not proven complete.",
         "provider_snapshot_atomic": False, "point_in_time_verified": False,
         "request_budget": REQ_BUDGET, "partial_publication_allowed": False}
-    out["acquisition_review"]["port_cohort_max_ids"] = 10
     _save_history(hist)
     out["requests"] = {"n": _REQ["n"], "throttled_429": _REQ["throttled"], "budget": REQ_BUDGET}
     S3.put_object(Bucket=BUCKET, Key=KEY,

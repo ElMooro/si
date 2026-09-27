@@ -61,7 +61,7 @@ class Tests(unittest.TestCase):
         ref = put({'error': {'code': 400, 'message': 'Invalid query'}})
         url = 'https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Ports_Data/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json'
         attempt = put({'request': {'url': url, 'method': 'GET', 'body_utf8': None, 'timeout': 25},
-                       'acquired_at': stamp.isoformat(), 'status': 'http_response', 'http_status': 200, 'original': ref})
+                       'acquired_at': stamp.isoformat(), 'status': 'http_response', 'http_status': 200, 'original': ref, 'error_type': 'TimeoutError'})
         class S3:
             def get_paginator(self, name):
                 assert name == 'list_objects_v2'; return self
@@ -73,6 +73,7 @@ class Tests(unittest.TestCase):
         out = subject.portwatch_attempts(S3(), END)
         self.assertEqual(len(out['attempts']), 1); self.assertEqual(out['attempts'][0]['operation'], 'count')
         self.assertEqual(out['attempts'][0]['provider_error']['code'], 400)
+        self.assertEqual(out['attempts'][0]['error_type'], 'TimeoutError')
         data[attempt['key']] += b' '
         with self.assertRaises(ValueError): subject.portwatch_attempts(S3(), END)
     def test_pagination_bound_cannot_be_reported_as_complete(self):
