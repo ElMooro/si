@@ -1,0 +1,2542 @@
+{
+  "contract": "page-explanation-source-policy.v1",
+  "basis": "Exact source-owned public output associations; private/projection/learning/account paths excluded before any read. This is an access boundary, not economic qualification.",
+  "pages": {
+    "13f": [
+      "data/13f-by-ticker.json",
+      "data/13f-cusip-map.json",
+      "data/13f-desk.json",
+      "data/13f-flows-by-ticker.json",
+      "data/13f-positions.json",
+      "data/13f-price-anchors.json",
+      "data/13f-state/first-seen.json",
+      "data/holdings-research.json",
+      "data/market-tape.json"
+    ],
+    "aaii": [
+      "data/aaii-sentiment.json",
+      "data/market-tape.json"
+    ],
+    "about": [
+      "data/market-tape.json"
+    ],
+    "accum-composite": [
+      "data/accum-composite.json",
+      "data/market-tape.json"
+    ],
+    "accuracy": [
+      "data/calibration-snapshot.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "activist-13d": [
+      "data/activist-13d.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "activity-nowcast": [
+      "data/activity-nowcast.json"
+    ],
+    "ai-rerating": [
+      "data/ai-rerating-radar.json",
+      "data/market-tape.json"
+    ],
+    "ai_predictions": [
+      "data/market-tape.json",
+      "data/wl-engines.json",
+      "data/wl-predictions.json"
+    ],
+    "allocator": [
+      "data/allocator.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "alpha-atlas": [
+      "data/alpha-atlas.json",
+      "data/market-tape.json"
+    ],
+    "alpha-council": [
+      "data/alpha-council.json"
+    ],
+    "alpha-families": [
+      "data/auction-tail.json",
+      "data/cannibals.json",
+      "data/congress-alpha.json",
+      "data/congress-filer-skill.json",
+      "data/credit-composite.json",
+      "data/deal-history.json",
+      "data/deal-scanner.json",
+      "data/equity-ftd.json",
+      "data/market-tape.json",
+      "data/stealth-flow.json"
+    ],
+    "alpha-scoreboard": [
+      "data/alpha-prev-state.json",
+      "data/alpha-scoreboard-research.json",
+      "data/alpha-track-record.json",
+      "data/asymmetric-scorer.json",
+      "data/auction-tenor-signals.json",
+      "data/compound-firstseen.json",
+      "data/compound-history.json",
+      "data/compound-signals-state.json",
+      "data/compound-signals.json",
+      "data/deep-value.json",
+      "data/eps-revision-velocity.json",
+      "data/insider-clusters.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/prime-convergence.json",
+      "data/sector-rotation.json",
+      "data/smart-money-clusters.json",
+      "data/theme-tiers.json"
+    ],
+    "altseason": [
+      "data/_altseason/global-history.json",
+      "data/altseason.json",
+      "data/market-tape.json"
+    ],
+    "analogs": [
+      "data/auction-tenor-signals.json",
+      "data/historical-analogs.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "analyst-actions": [
+      "data/analyst-actions.json",
+      "data/market-tape.json"
+    ],
+    "analytics": [
+      "data/market-tape.json"
+    ],
+    "apac": [
+      "data/apac-flows.json",
+      "data/apac-leadlag-series.json",
+      "data/apac-leadlag.json",
+      "data/history/apac-flows.json",
+      "data/market-tape.json"
+    ],
+    "apex": [
+      "data/apex-fusion.json",
+      "data/market-tape.json"
+    ],
+    "api-docs": [
+      "data/market-tape.json"
+    ],
+    "approvals": [
+      "data/a2a/cli-sessions.json",
+      "data/a2a/decisions.json",
+      "data/a2a/patches.json",
+      "data/a2a/registry.json",
+      "data/a2a/stalled.json",
+      "data/a2a/tasks.json",
+      "data/a2a/threads/0805201645.json",
+      "data/audit/approvals.json"
+    ],
+    "ark": [
+      "data/ark-holdings-prev.json",
+      "data/ark-holdings.json",
+      "data/market-tape.json"
+    ],
+    "ask": [
+      "data/market-tape.json"
+    ],
+    "asset-compass": [
+      "data/asset-compass.json",
+      "data/asset-discovery.json",
+      "data/compass-forecast-ledger.json",
+      "data/market-tape.json"
+    ],
+    "asymmetric": [
+      "data/market-tape.json"
+    ],
+    "ath": [
+      "data/ath.json",
+      "data/episode-reference.json",
+      "data/fred-cache.json",
+      "data/market-tape.json",
+      "data/report-measurements.json",
+      "data/report.json"
+    ],
+    "attention": [
+      "data/attention-confluence.json",
+      "data/attention-signals.json",
+      "data/market-tape.json",
+      "data/search-attention-titlemap.json",
+      "data/search-attention.json"
+    ],
+    "auctions": [
+      "data/auction-crisis.json",
+      "data/auction-desk.json",
+      "data/auction-tenor-signals.json",
+      "data/market-tape.json",
+      "data/warm/treasury-auctions/buybacks.json",
+      "data/warm/treasury-auctions/composite-history.json"
+    ],
+    "audit": [
+      "data/history-index.json",
+      "data/history-snapshotter-status.json",
+      "data/market-tape.json"
+    ],
+    "backlog": [
+      "data/backlog-coverage-cache.json",
+      "data/backlog.json",
+      "data/market-tape.json"
+    ],
+    "backtest": [
+      "data/calls-replay.json",
+      "data/market-tape.json"
+    ],
+    "baggers": [
+      "data/bagger-engine.json",
+      "data/coffee-can-holdings.json",
+      "data/coffee-can.json",
+      "data/episode-reference.json",
+      "data/global-liquidity-history.json",
+      "data/global-liquidity.json",
+      "data/hiring-velocity.json",
+      "data/insider-aggregate-history.json",
+      "data/insider-aggregate.json",
+      "data/market-tape.json"
+    ],
+    "bb-go": [],
+    "beneish": [
+      "data/beneish.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "benzinga": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "best-ideas": [
+      "data/best-ideas.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "billings-crpo": [],
+    "bis-crossborder": [
+      "data/bis-crossborder.json",
+      "data/market-tape.json"
+    ],
+    "blackout": [
+      "data/earnings-blackout.json",
+      "data/history/blackout.json",
+      "data/market-tape.json"
+    ],
+    "blackswan-watch": [
+      "data/blackswan-watch.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "bls": [
+      "data/bls-employment.json",
+      "data/bls-labor.json",
+      "data/market-tape.json"
+    ],
+    "boj-detail": [
+      "data/boj-detail.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "bond-desk": [
+      "data/bond-desk.json",
+      "data/fifx-vol-history.json",
+      "data/fifx-vol.json",
+      "data/history/bond-crisis-analogs.json",
+      "data/history/bond-desk.json",
+      "data/market-tape.json"
+    ],
+    "bond-vol": [
+      "data/bond-vol.json",
+      "data/market-tape.json"
+    ],
+    "boom-board": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "boom-radar": [
+      "data/boom-radar.json",
+      "data/market-tape.json"
+    ],
+    "boom-stage": [
+      "data/boom-stage.json",
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/market-tape.json"
+    ],
+    "bottleneck-boom": [
+      "data/bottleneck-boom-research.json",
+      "data/bottleneck-boom.json",
+      "data/bottleneck-pressure-history.json",
+      "data/bottleneck-prev-state.json",
+      "data/bottleneck-track-record.json",
+      "data/market-tape.json"
+    ],
+    "bottleneck": [
+      "data/market-tape.json"
+    ],
+    "bottom-signals": [
+      "data/bottom-signals.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "bottom": [
+      "data/bottom.json",
+      "data/market-tape.json"
+    ],
+    "breadth-thrust": [
+      "data/breadth-history.json",
+      "data/breadth-thrust.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "btc-cycle": [
+      "data/onchain-ratios.json"
+    ],
+    "buyback-scanner": [
+      "data/13f-by-ticker.json",
+      "data/13f-cusip-map.json",
+      "data/13f-desk.json",
+      "data/13f-flows-by-ticker.json",
+      "data/13f-positions.json",
+      "data/13f-price-anchors.json",
+      "data/13f-state/first-seen.json",
+      "data/ab-test-results.json",
+      "data/best-setups.json",
+      "data/buyback-scanner.json",
+      "data/correlation-surface.json",
+      "data/earnings-tracker.json",
+      "data/estimate-revisions-latest.json",
+      "data/event-study.json",
+      "data/historical-analogs.json",
+      "data/holdings-research.json",
+      "data/macro-surprise.json",
+      "data/market-tape.json",
+      "data/opportunities.json",
+      "data/short-interest.json",
+      "data/signal-board.json",
+      "data/yield-curve.json"
+    ],
+    "buybacks": [
+      "data/buyback-engine.json",
+      "data/market-tape.json"
+    ],
+    "buzz-velocity": [
+      "data/buzz-velocity.json",
+      "data/market-tape.json"
+    ],
+    "calibration-fleet": [
+      "data/calibration-fleet-history.json",
+      "data/calibration-fleet.json",
+      "data/market-tape.json"
+    ],
+    "canaries": [
+      "data/canary-warroom.json",
+      "data/market-tape.json",
+      "data/warroom-history.json",
+      "data/warroom-replay.json",
+      "data/warroom-weights.json"
+    ],
+    "capital-flow-radar": [
+      "data/capital-flow-radar.json",
+      "data/provider-flow-research/migration.json",
+      "data/provider-fund-flow-research.json"
+    ],
+    "capital-flow": [
+      "data/capital-flow-history.json",
+      "data/capital-flow.json",
+      "data/market-tape.json"
+    ],
+    "capital-inflows": [
+      "data/capital-inflows.json",
+      "data/market-tape.json",
+      "data/tic-research/migration.json"
+    ],
+    "capital-return": [
+      "data/capital-return.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "capitulation": [],
+    "capture-gap": [
+      "data/chokepoint.json",
+      "data/market-tape.json"
+    ],
+    "carry-surface": [
+      "data/market-tape.json"
+    ],
+    "carry": [
+      "data/carry-research/migration.json",
+      "data/carry-surface.json",
+      "data/carry-surface/alert-history.json"
+    ],
+    "catalyst-calendar": [
+      "data/catalyst-calendar.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "catalyst": [
+      "data/catalyst.json"
+    ],
+    "catalysts": [
+      "data/market-tape.json"
+    ],
+    "catch-up": [
+      "data/beta-laggards.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "cb-injection": [
+      "data/archive-indexes/justhodl-cb-injection.json",
+      "data/cb-injection.json",
+      "data/market-tape.json"
+    ],
+    "cds-monitor": [
+      "data/cds-monitor.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "census": [
+      "data/market-tape.json"
+    ],
+    "cftc": [
+      "data/market-tape.json"
+    ],
+    "chart-macro": [
+      "data/market-tape.json"
+    ],
+    "chart-patterns": [
+      "data/chart-patterns.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "charts": [
+      "data/market-tape.json"
+    ],
+    "ciss": [
+      "data/ciss-ai.json",
+      "data/ciss-stress.json",
+      "data/market-tape.json"
+    ],
+    "comeback": [
+      "data/comeback-screener.json",
+      "data/market-tape.json"
+    ],
+    "compass": [
+      "data/asset-compass.json",
+      "data/compass-forecast-ledger.json",
+      "data/forward-returns.json",
+      "data/market-tape.json"
+    ],
+    "compound-signals": [
+      "data/auction-tenor-signals.json",
+      "data/compound-firstseen.json",
+      "data/compound-history.json",
+      "data/compound-signals-state.json",
+      "data/compound-signals.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/prime-convergence.json"
+    ],
+    "compounders": [
+      "data/estimate-revisions-latest.json",
+      "data/market-tape.json",
+      "data/opportunities.json"
+    ],
+    "confluence": [
+      "data/confluence-meta.json",
+      "data/earnings-cascade.json",
+      "data/market-tape.json"
+    ],
+    "consolidation": [
+      "data/finviz-signals.json",
+      "data/market-tape.json"
+    ],
+    "construction-housing": [
+      "data/construction-housing.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "consumer-pulse": [
+      "data/archive-indexes/justhodl-consumer-pulse.json",
+      "data/consumer-pulse.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "contact": [
+      "data/market-tape.json"
+    ],
+    "convergence-desk": [
+      "data/compound-firstseen.json",
+      "data/compound-history.json",
+      "data/compound-signals-state.json",
+      "data/compound-signals.json",
+      "data/fed-pivot-factor-trades.json",
+      "data/macro-confluence.json",
+      "data/prime-convergence.json"
+    ],
+    "conviction": [
+      "data/archive-indexes/justhodl-conviction-engine.json",
+      "data/conviction.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "cot-extremes": [
+      "data/auction-tenor-signals.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "credit-before-equity": [
+      "data/credit-before-equity.json",
+      "data/market-tape.json"
+    ],
+    "crisis": [
+      "data/archive-indexes/justhodl-crisis-plumbing.json",
+      "data/crisis-composite-history.json",
+      "data/crisis-composite.json",
+      "data/crisis-plumbing.json",
+      "data/defcon.json",
+      "data/fails-research/migration.json",
+      "data/liquidity-flow.json",
+      "data/market-tape.json",
+      "data/settlement-fails.json"
+    ],
+    "cross-asset-flow": [
+      "data/capital-inflows.json",
+      "data/cross-asset-flow-state.json",
+      "data/dollar-radar.json",
+      "data/etf-research/migration.json",
+      "data/etf-shares-history.json",
+      "data/etf-shares-snapshots/latest.json",
+      "data/etf-true-flows.json",
+      "data/fx-quote-research.json",
+      "data/market-tape.json",
+      "data/option-flow-research.json",
+      "data/polygon-fx-regime.json",
+      "data/polygon-options-flow.json",
+      "data/risk-regime-state.json",
+      "data/risk-regime.json",
+      "data/tic-research/migration.json"
+    ],
+    "cross-asset-rv": [
+      "data/cross-asset-rv-history.json",
+      "data/cross-asset-rv.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "cross-asset": [
+      "data/auction-tenor-signals.json",
+      "data/cross-asset-regime-state.json",
+      "data/cross-asset-regime.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "crypto-confluence": [
+      "data/crypto-confluence.json",
+      "data/market-tape.json"
+    ],
+    "crypto-emergence": [
+      "data/crypto-emergence.json",
+      "data/market-tape.json"
+    ],
+    "crypto-liquidity": [
+      "data/crypto-liquidity.json",
+      "data/index-inclusion.json",
+      "data/market-tape.json"
+    ],
+    "crypto-narratives": [
+      "data/crypto-narratives.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "crypto-opportunities": [
+      "data/crypto-opportunities.json",
+      "data/market-tape.json"
+    ],
+    "crypto-risk": [
+      "data/coinbase-premium-history.json",
+      "data/coinbase-premium.json",
+      "data/crypto-basis-history.json",
+      "data/crypto-basis.json",
+      "data/crypto-cot-history.json",
+      "data/crypto-cot.json",
+      "data/crypto-cycle-risk-prev.json",
+      "data/crypto-cycle-risk.json",
+      "data/crypto-dvol.json",
+      "data/crypto-engine-trust.json",
+      "data/crypto-etf-flows-history.json",
+      "data/crypto-etf-flows.json",
+      "data/crypto-funding.json",
+      "data/crypto-gex.json",
+      "data/crypto-narratives.json",
+      "data/crypto-options-history.json",
+      "data/crypto-options-surface-history.json",
+      "data/crypto-options-surface.json",
+      "data/crypto-options.json",
+      "data/crypto-scorecard.json",
+      "data/hyperliquid-perps-history.json",
+      "data/hyperliquid-perps.json",
+      "data/market-tape.json"
+    ],
+    "crypto": [],
+    "cycle-clock": [
+      "data/cycle-clock.json"
+    ],
+    "dark-pool": [
+      "data/archive-indexes/justhodl-dark-pool.json",
+      "data/dark-pool.json",
+      "data/market-tape.json"
+    ],
+    "data-quality": [
+      "data/audit/fabrication-weekly.json"
+    ],
+    "data-sources": [
+      "data/audit/data-source-rollup.json"
+    ],
+    "deal-scanner": [
+      "data/deal-history.json",
+      "data/deal-scanner.json",
+      "data/market-tape.json"
+    ],
+    "dealer-survey": [
+      "data/auction-tenor-signals.json",
+      "data/dealer-survey.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "deep-value-overlap": [
+      "data/deep-value-overlap.json",
+      "data/market-tape.json"
+    ],
+    "deep-value": [
+      "data/deep-value.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "defcon": [
+      "data/crisis-composite-history.json",
+      "data/crisis-composite.json",
+      "data/defcon.json",
+      "data/fails-research/migration.json",
+      "data/liquidity-flow.json",
+      "data/market-tape.json",
+      "data/settlement-fails.json"
+    ],
+    "dep-graph": [
+      "data/dependency-graph.json",
+      "data/market-tape.json",
+      "data/synthetic-monitor-prev.json",
+      "data/synthetic-monitor.json"
+    ],
+    "desk-allocator": [
+      "data/desk-allocator-history.json",
+      "data/desk-allocator.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "dex": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "directory": [
+      "data/market-tape.json"
+    ],
+    "dislocations": [
+      "data/dislocation-ai.json",
+      "data/dislocations.json",
+      "data/market-tape.json"
+    ],
+    "distribution-composite": [
+      "data/distribution-composite.json",
+      "data/market-tape.json"
+    ],
+    "divergence-v2": [
+      "data/divergence-v2.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "dividend-growth": [
+      "data/dividend-growth.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "dollar": [
+      "data/dollar-radar.json",
+      "data/market-tape.json",
+      "data/option-flow-research.json",
+      "data/polygon-options-flow.json"
+    ],
+    "dossier": [
+      "data/13f-by-ticker.json",
+      "data/13f-cusip-map.json",
+      "data/13f-desk.json",
+      "data/13f-flows-by-ticker.json",
+      "data/13f-positions.json",
+      "data/13f-price-anchors.json",
+      "data/13f-state/first-seen.json",
+      "data/backlog-coverage-cache.json",
+      "data/backlog.json",
+      "data/earnings-tracker.json",
+      "data/holdings-research.json",
+      "data/market-tape.json",
+      "data/redflag-alerts.json",
+      "data/stock-xray.json"
+    ],
+    "download": [
+      "data/market-tape.json"
+    ],
+    "downloads": [
+      "data/market-tape.json"
+    ],
+    "dxy-predict": [
+      "data/dxy-predict.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "dxy": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "early-signals": [
+      "data/market-tape.json",
+      "data/structural-pre-signals.json",
+      "data/talent-migration.json",
+      "data/universe-discovery.json"
+    ],
+    "earnings-pead": [
+      "data/earnings-pead.json"
+    ],
+    "earnings-whisper": [
+      "data/earnings-whisper.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "earnings": [
+      "data/earnings.json",
+      "data/earnings/history.json"
+    ],
+    "ecb-detail": [
+      "data/ecb-derived.json",
+      "data/ecb-detail.json",
+      "data/ecb-hist/esi.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "ecb-history": [
+      "data/ecb-hist/_manifest.json",
+      "data/ecb-hist/real_m1_growth.json",
+      "data/market-tape.json"
+    ],
+    "ecb": [
+      "data/ciss-stress.json",
+      "data/ecb-derived.json",
+      "data/ecb-detail.json",
+      "data/ecb-hist/_manifest.json",
+      "data/ecb-hist/esi.json",
+      "data/ecb-hist/real_m1_growth.json",
+      "data/market-tape.json"
+    ],
+    "econ-calendar": [
+      "data/econ-calendar.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "edge-discovery": [
+      "data/edge-discovery-graduated.json",
+      "data/edge-discovery.json",
+      "data/market-tape.json"
+    ],
+    "edge": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "eia": [
+      "data/eia-energy.json",
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "engine-data": [],
+    "engine-leaderboard": [
+      "data/engine-leaderboard.json"
+    ],
+    "engine": [
+      "data/market-tape.json"
+    ],
+    "engines": [
+      "data/market-tape.json"
+    ],
+    "episode-compass": [
+      "data/episode-compass.json",
+      "data/market-tape.json"
+    ],
+    "eps-velocity": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/em-carry.json",
+      "data/episode-reference.json",
+      "data/eps-revision-velocity.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json"
+    ],
+    "equity-chokepoint": [
+      "data/chokepoint.json",
+      "data/market-tape.json"
+    ],
+    "equity-confluence": [
+      "data/equity-confluence.json",
+      "data/market-tape.json"
+    ],
+    "equity-cyclical-bagger": [
+      "data/cyclical-bagger.json",
+      "data/market-tape.json"
+    ],
+    "errors": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "estimate-revisions": [
+      "data/estimate-revisions.json",
+      "data/market-tape.json"
+    ],
+    "etf-census": [
+      "data/etf-census-matrix.json",
+      "data/etf-census.json",
+      "data/market-tape.json"
+    ],
+    "etf-holdings": [
+      "data/etf-holdings-research.json",
+      "data/etf-holdings-research/migration.json",
+      "data/flow-lookthrough.json",
+      "data/impact/etf-holdings-index.json"
+    ],
+    "etf-research": [
+      "data/etf-research/migration.json",
+      "data/etf-shares-history.json",
+      "data/etf-shares-snapshots/latest.json",
+      "data/etf-true-flows.json",
+      "data/market-tape.json"
+    ],
+    "eu-dump-radar": [
+      "data/ecb-derived.json",
+      "data/ecb-hist/esi.json",
+      "data/market-tape.json"
+    ],
+    "euro-fragmentation": [
+      "data/episode-reference.json",
+      "data/euro-fragmentation.json",
+      "data/market-tape.json"
+    ],
+    "eurodollar": [
+      "data/eurodollar-plumbing.json",
+      "data/eurodollar-stress.json",
+      "data/funding-research/migration.json"
+    ],
+    "eva": [
+      "data/episode-reference.json",
+      "data/eva-spread.json",
+      "data/market-tape.json"
+    ],
+    "event-study": [
+      "data/episode-reference.json",
+      "data/event-study.json",
+      "data/market-tape.json"
+    ],
+    "factor-returns": [
+      "data/factor-returns.json",
+      "data/history/factor-returns.json",
+      "data/market-tape.json"
+    ],
+    "factor-risk": [
+      "data/episode-reference.json",
+      "data/factor-loadings-cache.json",
+      "data/factor-risk.json",
+      "data/market-tape.json"
+    ],
+    "factory-command": [],
+    "fails": [
+      "data/fails-research/migration.json",
+      "data/settlement-fails.json"
+    ],
+    "fed-speak": [
+      "data/episode-reference.json",
+      "data/fed-speak-state.json",
+      "data/fed-speak.json",
+      "data/market-tape.json"
+    ],
+    "fedwatch": [
+      "data/fedwatch.json"
+    ],
+    "feedback": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "fifx-vol": [
+      "data/fifx-vol-history.json",
+      "data/fifx-vol.json",
+      "data/market-tape.json"
+    ],
+    "finiviz": [
+      "data/finviz-earnings-calendar.json",
+      "data/finviz-earnings-surprise.json",
+      "data/finviz-etf-flows.json",
+      "data/finviz-groups.json",
+      "data/finviz-heatmap.json",
+      "data/finviz-index-membership.json",
+      "data/finviz-news.json",
+      "data/finviz-short.json",
+      "data/finviz-signals.json",
+      "data/finviz-universe.json"
+    ],
+    "finviz-signals": [
+      "data/finviz-earnings-calendar.json",
+      "data/finviz-earnings-surprise.json",
+      "data/finviz-etf-flows.json",
+      "data/finviz-groups.json",
+      "data/finviz-heatmap.json",
+      "data/finviz-index-membership.json",
+      "data/finviz-news.json",
+      "data/finviz-short.json",
+      "data/finviz-signals.json",
+      "data/finviz-universe.json",
+      "data/market-tape.json"
+    ],
+    "finviz": [
+      "data/finviz-earnings-calendar.json",
+      "data/finviz-earnings-surprise.json",
+      "data/finviz-etf-flows.json",
+      "data/finviz-groups.json",
+      "data/finviz-heatmap.json",
+      "data/finviz-index-membership.json",
+      "data/finviz-news.json",
+      "data/finviz-short.json",
+      "data/finviz-signals.json",
+      "data/finviz-universe.json"
+    ],
+    "firm-book": [
+      "data/episode-reference.json",
+      "data/firm-book.json",
+      "data/market-tape.json"
+    ],
+    "firm-risk-board": [
+      "data/episode-reference.json",
+      "data/firm-risk-board-history.json",
+      "data/firm-risk-board.json",
+      "data/market-tape.json"
+    ],
+    "firm-stress": [
+      "data/episode-reference.json",
+      "data/firm-stress.json",
+      "data/market-tape.json"
+    ],
+    "fixed-income-census": [
+      "data/fi-census-matrix.json",
+      "data/fi-census.json",
+      "data/market-tape.json"
+    ],
+    "fleet-audit": [
+      "data/fleet-audit-history.json",
+      "data/fleet-audit-queue.json",
+      "data/fleet-audit.json",
+      "data/market-tape.json",
+      "data/naaim.json",
+      "data/peer-comparison.json",
+      "data/seasonality.json",
+      "data/sellside-views.json",
+      "data/singapore-nodx.json",
+      "data/structural-pre-signals.json",
+      "data/taiwan-moea.json",
+      "data/talent-migration.json",
+      "data/universe-discovery.json",
+      "data/universe.json"
+    ],
+    "fleet-edge": [
+      "data/engine-trust.json",
+      "data/lead-lag-graph.json",
+      "data/market-tape.json"
+    ],
+    "fleet-map": [
+      "data/audit/lambda-config-issues.json",
+      "data/audit/lambda-health.json",
+      "data/audit/lambda-inventory.json"
+    ],
+    "floor": [
+      "data/floor-audit.json",
+      "data/floor-audit/config.json"
+    ],
+    "flow-confluence": [
+      "data/flow-confluence.json",
+      "data/market-tape.json"
+    ],
+    "flow-lookthrough": [
+      "data/etf-holdings-research.json",
+      "data/etf-holdings-research/migration.json",
+      "data/flow-lookthrough.json"
+    ],
+    "flow": [
+      "data/auction-tenor-signals.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "flows": [
+      "data/capital-flow-radar.json",
+      "data/provider-flow-research/migration.json",
+      "data/provider-fund-flow-research.json"
+    ],
+    "fmp": [
+      "data/episode-reference.json",
+      "data/fmp-market-snapshot-last-good.json",
+      "data/market-tape.json"
+    ],
+    "fomc": [
+      "data/fomc-reaction.json"
+    ],
+    "foreign-flows": [
+      "data/foreign-flows.json",
+      "data/foreign-research/migration.json",
+      "data/market-tape.json"
+    ],
+    "forensic": [
+      "data/forensic-screen.json",
+      "data/market-tape.json"
+    ],
+    "fortress": [
+      "data/fortress-backtest.json",
+      "data/fortress.json"
+    ],
+    "fred": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "freight-pulse": [
+      "data/air-cargo.json",
+      "data/archive-indexes/justhodl-freight-pulse.json",
+      "data/boom-stage.json",
+      "data/freight-pulse.json",
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/market-tape.json",
+      "data/portwatch.json",
+      "data/trade-nowcast.json"
+    ],
+    "fundamental-graphs": [
+      "data/fundgraph/sector-medians.json",
+      "data/fundgraph/symdir2.json",
+      "data/market-tape.json"
+    ],
+    "fundamentals": [
+      "data/episode-reference.json",
+      "data/fundamentals.json",
+      "data/market-tape.json"
+    ],
+    "funding-plumbing": [
+      "data/funding-plumbing-prev.json",
+      "data/funding-plumbing.json",
+      "data/market-tape.json"
+    ],
+    "fusion": [
+      "data/jh-fusion.json",
+      "data/jh-fusion/shadow.json",
+      "data/jhsignal/bridge-run.json",
+      "data/jhsignal/state/latest.json",
+      "data/jhsignal/state/registry.json",
+      "data/market-tape.json"
+    ],
+    "future-intel": [
+      "data/future-intelligence.json",
+      "data/market-tape.json"
+    ],
+    "futures-research": [
+      "data/futures-research.json",
+      "data/market-tape.json",
+      "data/option-flow-research.json",
+      "data/polygon-options-flow.json"
+    ],
+    "fx-research": [
+      "data/fx-quote-research.json",
+      "data/market-tape.json",
+      "data/option-flow-research.json",
+      "data/polygon-options-flow.json"
+    ],
+    "gdelt": [
+      "data/auction-tenor-signals.json",
+      "data/episode-reference.json",
+      "data/gdelt-news.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "geo-risk": [
+      "data/geopolitical-risk.json",
+      "data/market-tape.json"
+    ],
+    "gf-value": [
+      "data/episode-reference.json",
+      "data/gf-value.json",
+      "data/market-tape.json"
+    ],
+    "global-cycle": [
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/market-tape.json"
+    ],
+    "global-flow-desk": [
+      "data/flow-desk-research/migration.json",
+      "data/global-flow-desk.json",
+      "data/history/global-flow-desk.json",
+      "data/market-tape.json"
+    ],
+    "global-flows": [
+      "data/global-flows.json",
+      "data/providers/mof/weekly-securities.json"
+    ],
+    "global-liquidity": [
+      "data/global-liquidity-history.json",
+      "data/global-liquidity.json",
+      "data/market-tape.json"
+    ],
+    "global-macro": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/em-carry.json",
+      "data/episode-reference.json",
+      "data/fx-intelligence.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/global-macro.json",
+      "data/global-markets.json",
+      "data/hiring-velocity.json",
+      "data/implied-corr.json",
+      "data/leading-markets-history.json",
+      "data/leading-markets.json",
+      "data/liquidity-profile.json",
+      "data/macro-calendar.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json"
+    ],
+    "global-recession": [
+      "data/china-liquidity-history.json",
+      "data/china-liquidity.json",
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/global-recession.json",
+      "data/indicator-bus.json",
+      "data/market-tape.json",
+      "data/oecd-cli.json",
+      "data/portwatch.json"
+    ],
+    "global-sovereign": [
+      "data/global-sovereign-history.json",
+      "data/global-sovereign.json",
+      "data/market-tape.json"
+    ],
+    "global-stress": [
+      "data/global-stress-history.json",
+      "data/global-stress.json",
+      "data/gsi-calibration.json",
+      "data/gsi-dim-history.json",
+      "data/gsi-horizons.json",
+      "data/market-tape.json"
+    ],
+    "global-tide": [
+      "data/global-tide.json",
+      "data/market-tape.json"
+    ],
+    "glossary": [
+      "data/market-tape.json"
+    ],
+    "gold-rotation": [
+      "data/gold-equity-rotation.json",
+      "data/market-tape.json",
+      "data/option-flow-research.json",
+      "data/polygon-options-flow.json"
+    ],
+    "gov-sources": [
+      "data/gov-sources.json"
+    ],
+    "grid-queue": [
+      "data/archive-indexes/justhodl-grid-queue.json",
+      "data/grid-queue-history.json",
+      "data/grid-queue.json",
+      "data/market-tape.json"
+    ],
+    "gsi-calibration": [
+      "data/global-stress-history.json",
+      "data/global-stress.json",
+      "data/gsi-calibration.json",
+      "data/gsi-dim-history.json",
+      "data/gsi-horizons.json",
+      "data/market-tape.json"
+    ],
+    "harvest-monitor": [],
+    "health": [
+      "data/market-tape.json"
+    ],
+    "hedge-planner": [
+      "data/episode-reference.json",
+      "data/hedge-book.json",
+      "data/hedge-planner-history.json",
+      "data/hedge-planner.json",
+      "data/market-tape.json"
+    ],
+    "hedge-pnl": [
+      "data/episode-reference.json",
+      "data/hedge-pnl-history.json",
+      "data/hedge-pnl.json",
+      "data/market-tape.json"
+    ],
+    "highs-lows": [
+      "data/finviz-signals.json",
+      "data/market-tape.json"
+    ],
+    "holdings-research": [
+      "data/13f-by-ticker.json",
+      "data/13f-cusip-map.json",
+      "data/13f-desk.json",
+      "data/13f-flows-by-ticker.json",
+      "data/13f-positions.json",
+      "data/13f-price-anchors.json",
+      "data/13f-state/first-seen.json",
+      "data/holdings-research.json",
+      "data/market-tape.json"
+    ],
+    "horizons-gsi": [
+      "data/global-stress-history.json",
+      "data/global-stress.json",
+      "data/gsi-calibration.json",
+      "data/gsi-dim-history.json",
+      "data/gsi-horizons.json",
+      "data/market-tape.json"
+    ],
+    "horizons": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "hot-money": [
+      "data/hot-money-research/ledger.json",
+      "data/hot-money.json",
+      "data/providers/tpex/insti-foreign.json",
+      "data/providers/twse/bfi82u-foreign.json"
+    ],
+    "hot-stocks": [
+      "data/hot-stocks-digest.json",
+      "data/market-tape.json"
+    ],
+    "ici-flows": [
+      "data/fifx-vol-history.json",
+      "data/fifx-vol.json",
+      "data/ici-flows.json",
+      "data/market-tape.json"
+    ],
+    "ignition": [
+      "data/ignition.json",
+      "data/market-tape.json"
+    ],
+    "implied-prob": [
+      "data/implied-prob.json"
+    ],
+    "import-canary": [
+      "data/import-canary-history.json",
+      "data/import-canary.json",
+      "data/market-tape.json"
+    ],
+    "index-recon": [
+      "data/episode-reference.json",
+      "data/index-recon.json",
+      "data/market-tape.json"
+    ],
+    "index": [
+      "data/contract-violations.json",
+      "data/engine-fusion.json",
+      "data/khalid-risk.json",
+      "data/market-tape.json"
+    ],
+    "industry-case": [
+      "data/industry-case.json"
+    ],
+    "industry-rotation": [
+      "data/capex-pulse.json",
+      "data/finviz-groups.json",
+      "data/history/capex-pulse.json",
+      "data/industry-boom-history.json",
+      "data/industry-boom.json",
+      "data/industry-rotation.json",
+      "data/market-tape.json",
+      "data/share-flows.json",
+      "data/structural-pre-signals.json"
+    ],
+    "inflection": [
+      "data/composite-snapshots.json",
+      "data/liquidity-inflection-decisive-call.json",
+      "data/liquidity-inflection.json",
+      "data/market-tape.json"
+    ],
+    "insider-buys": [
+      "data/episode-reference.json",
+      "data/insider-buys-enriched.json",
+      "data/market-tape.json"
+    ],
+    "insider-clusters": [
+      "data/episode-reference.json",
+      "data/forensic-screen.json",
+      "data/insider-clusters.json",
+      "data/market-tape.json",
+      "data/share-flows.json"
+    ],
+    "insider-drawdown": [
+      "data/insider-clusters.json",
+      "data/market-tape.json"
+    ],
+    "insider-industry-cluster": [
+      "data/insider-industry-cluster-history.json",
+      "data/insider-industry-cluster.json",
+      "data/market-tape.json"
+    ],
+    "insider-research": [
+      "data/insider-aggregate-history.json",
+      "data/insider-aggregate.json"
+    ],
+    "insider": [
+      "data/forensic-screen.json",
+      "data/insider-radar.json",
+      "data/market-tape.json",
+      "data/share-flows.json"
+    ],
+    "institutional-footprint": [
+      "data/history/institutional-footprint.json",
+      "data/institutional-footprint.json",
+      "data/market-tape.json",
+      "data/positioning-analog.json"
+    ],
+    "intelligence": [
+      "data/market-tape.json"
+    ],
+    "interpretation-scorecard": [
+      "data/interpretation-ledger.json",
+      "data/interpretation-scorecard.json",
+      "data/market-tape.json"
+    ],
+    "inventory-drawdown": [
+      "data/backlog-coverage-cache.json",
+      "data/backlog.json",
+      "data/earnings-quality.json",
+      "data/estimate-revisions.json",
+      "data/inventory-drawdown.json",
+      "data/market-tape.json"
+    ],
+    "invest": [
+      "data/invest.json",
+      "data/invest/leg-history.json"
+    ],
+    "investor": [
+      "data/auction-tenor-signals.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "ipo-pipeline": [
+      "data/episode-reference.json",
+      "data/ipo-pipeline.json",
+      "data/market-tape.json"
+    ],
+    "jsi": [
+      "data/jsi-calibration.json",
+      "data/jsi-history.json",
+      "data/jsi-overlay-history.json",
+      "data/jsi.json",
+      "data/market-tape.json"
+    ],
+    "katlin": [
+      "data/katlin-backtest.json",
+      "data/katlin.json",
+      "data/market-tape.json",
+      "data/warm/katlin/splits.json"
+    ],
+    "khalid": [
+      "data/bottom.json",
+      "data/history/khalid.json",
+      "data/khalid-candidates.json",
+      "data/khalid.json",
+      "data/market-tape.json",
+      "data/sp500-history.json",
+      "data/sp500.json"
+    ],
+    "khalidrisk": [
+      "data/khalid-risk.json",
+      "data/market-tape.json"
+    ],
+    "kill-theses": [
+      "data/history/kill-theses-history.json",
+      "data/kill-theses.json",
+      "data/market-tape.json"
+    ],
+    "lce": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/bond-trace.json",
+      "data/cb-stance.json",
+      "data/cftc-all-cache.json",
+      "data/cftc-deep-view.json",
+      "data/china-liquidity-history.json",
+      "data/china-liquidity.json",
+      "data/construction-housing.json",
+      "data/cot-extremes.json",
+      "data/cross-asset-rv-history.json",
+      "data/cross-asset-rv.json",
+      "data/econ-calendar.json",
+      "data/em-carry.json",
+      "data/fed-nlp.json",
+      "data/fed-pivot-factor-trades.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/liquidity-credit-engine.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json"
+    ],
+    "leverage": [
+      "data/history/finra-margin.json",
+      "data/history/lev-etf-tilt.json",
+      "data/leverage-monitor.json",
+      "data/margin-lending.json",
+      "data/market-tape.json"
+    ],
+    "liq-indicators": [
+      "data/liq-indicators.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "liquidity-capacity": [
+      "data/episode-reference.json",
+      "data/liquidity-capacity.json",
+      "data/market-tape.json"
+    ],
+    "liquidity-reversal": [
+      "data/liquidity-reversal.json",
+      "data/reversal-research/migration.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "liquidity": [
+      "data/auction-tenor-signals.json",
+      "data/fails-research/migration.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-flow.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/settlement-fails.json"
+    ],
+    "live-pulse": [
+      "data/episode-reference.json",
+      "data/live-pulse-history.json",
+      "data/live-pulse.json",
+      "data/market-tape.json"
+    ],
+    "livermore": [
+      "data/etf-flows.json",
+      "data/finviz-earnings-calendar.json",
+      "data/finviz-earnings-surprise.json",
+      "data/finviz-etf-flows.json",
+      "data/finviz-heatmap.json",
+      "data/finviz-index-membership.json",
+      "data/finviz-short.json",
+      "data/finviz-universe.json",
+      "data/market-tape.json"
+    ],
+    "llm-cost": [
+      "data/llm-cost.json",
+      "data/market-tape.json"
+    ],
+    "lobbying": [
+      "data/lobbying-intel.json",
+      "data/market-tape.json",
+      "data/quiver-lobbying-cache.json"
+    ],
+    "ma-crosses": [
+      "data/finviz-signals.json",
+      "data/market-tape.json"
+    ],
+    "ma-reversion": [
+      "data/ma-reversion.json",
+      "data/market-tape.json"
+    ],
+    "ma200-radar": [
+      "data/_ma200/closes.json",
+      "data/_ma200/crypto-closes.json",
+      "data/crypto-ma200.json",
+      "data/ma200-reclaim.json",
+      "data/market-tape.json"
+    ],
+    "macro-data": [
+      "data/bea-gdp.json",
+      "data/bls-macro.json",
+      "data/fails-research/migration.json",
+      "data/liquidity-flow.json",
+      "data/macro-nowcast.json",
+      "data/manufacturing.json",
+      "data/market-tape.json",
+      "data/ofr-funding.json",
+      "data/settlement-fails.json",
+      "data/soma-holdings.json",
+      "data/treasury-fiscal.json"
+    ],
+    "macro-leads": [
+      "data/air-cargo.json",
+      "data/archive-indexes/justhodl-freight-pulse.json",
+      "data/asia-leads.json",
+      "data/bis-crossborder.json",
+      "data/boom-stage.json",
+      "data/china-liquidity-history.json",
+      "data/china-liquidity.json",
+      "data/econ-calendar.json",
+      "data/freight-pulse.json",
+      "data/geopolitical-risk.json",
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/macro-leads.json",
+      "data/market-tape.json",
+      "data/portwatch.json",
+      "data/trade-nowcast.json"
+    ],
+    "macro-nowcast": [
+      "data/macro-nowcast.json"
+    ],
+    "macro-predict": [
+      "data/macro-predict.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "macro-rooms": [
+      "data/dollar-radar.json",
+      "data/eurodollar-stress.json",
+      "data/fails-research/migration.json",
+      "data/liquidity-flow.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/option-flow-research.json",
+      "data/polygon-options-flow.json",
+      "data/risk-gate.json",
+      "data/settlement-fails.json"
+    ],
+    "magic-formula": [
+      "data/episode-reference.json",
+      "data/magic-formula.json",
+      "data/market-tape.json"
+    ],
+    "market-evidence": [
+      "data/market-tape.json",
+      "data/massive-research.json",
+      "data/option-flow-research.json",
+      "data/polygon-options-flow.json"
+    ],
+    "market-extremes": [],
+    "market-internals": [
+      "data/market-internals.json",
+      "data/market-tape.json"
+    ],
+    "market-machine": [
+      "data/market-machine-history.json",
+      "data/market-machine.json"
+    ],
+    "market-measurements": [
+      "data/ath.json",
+      "data/fred-cache.json",
+      "data/report-measurements.json",
+      "data/report.json"
+    ],
+    "master-allocator": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/master-allocation.json"
+    ],
+    "master-board": [
+      "data/best-setups.json",
+      "data/bond-vol.json",
+      "data/crypto-cycle-risk-prev.json",
+      "data/crypto-cycle-risk.json",
+      "data/funding-plumbing-prev.json",
+      "data/funding-plumbing.json",
+      "data/market-tape.json"
+    ],
+    "merger-arb-risk": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/merger-arb-risk.json"
+    ],
+    "merger-arb": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/merger-arb.json"
+    ],
+    "metals-miners": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/commodity-curves.json",
+      "data/em-carry.json",
+      "data/episode-reference.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/peru-copper.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json"
+    ],
+    "methodology": [
+      "data/market-tape.json",
+      "data/signal-board.json"
+    ],
+    "ml-predictions": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "momentum": [
+      "data/finviz-signals.json",
+      "data/market-tape.json",
+      "data/momentum-scanner.json"
+    ],
+    "money-flow": [
+      "data/money-flow-state.json"
+    ],
+    "narrative": [
+      "data/auction-tenor-signals.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/narrative-density.json"
+    ],
+    "nasdaq-datalink": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "nobrainers": [
+      "data/auction-tenor-signals.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/nobrainers-rationale.json",
+      "data/nobrainers.json"
+    ],
+    "notifications": [
+      "data/market-tape.json"
+    ],
+    "nowcast-desk": [
+      "data/market-tape.json",
+      "data/nowcast-desk.json"
+    ],
+    "ny-fed": [
+      "data/config/nyfed-pd-spec.json",
+      "data/dealer-research/migration.json",
+      "data/history/nyfed-pd-corp.json",
+      "data/history/nyfed-pd.json",
+      "data/market-tape.json",
+      "data/nyfed-primary-dealer.json"
+    ],
+    "offexchange-research": [
+      "data/archive-indexes/justhodl-dark-pool.json",
+      "data/dark-pool.json",
+      "data/market-tape.json"
+    ],
+    "official-pulse": [
+      "data/market-tape.json",
+      "data/official-pulse.json",
+      "data/official-research/migration.json",
+      "data/providers/h41/WLRRAFOIAL.json"
+    ],
+    "ofr": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/em-carry.json",
+      "data/fails-research/migration.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/settlement-fails.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json"
+    ],
+    "onchain": [
+      "data/config/cryptoquant-spec.json",
+      "data/cryptoquant-onchain.json",
+      "data/cryptoquant-series.json",
+      "data/history/alt-px-cm.json",
+      "data/history/btc-price-cm.json",
+      "data/history/cryptoquant.json",
+      "data/history/eth-price-cm.json",
+      "data/market-tape.json"
+    ],
+    "opex-calendar": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/opex-calendar.json"
+    ],
+    "opportunities": [
+      "data/comeback-screener.json",
+      "data/earnings-pead.json",
+      "data/earnings-tone-velocity.json",
+      "data/episode-reference.json",
+      "data/estimate-revisions-latest.json",
+      "data/eva-spread.json",
+      "data/factor-data-cache.json",
+      "data/factor-decomposition.json",
+      "data/forced-selling-bounce.json",
+      "data/gf-value.json",
+      "data/google-trends.json",
+      "data/hkma.json",
+      "data/ipo-pipeline.json",
+      "data/lobbying-intel.json",
+      "data/magic-formula.json",
+      "data/magnitude-distributions.json",
+      "data/market-tape.json",
+      "data/opportunities-research.json",
+      "data/opportunities.json",
+      "data/opportunity-calibration.json",
+      "data/quality-on-sale.json",
+      "data/quiver-lobbying-cache.json",
+      "data/share-flows.json",
+      "data/track-record.json"
+    ],
+    "option-chain-research": [
+      "data/market-tape.json",
+      "data/option-flow-research.json"
+    ],
+    "options-analytics": [
+      "data/market-tape.json",
+      "data/options-analytics-iv-history.json",
+      "data/options-analytics.json"
+    ],
+    "options-confluence": [
+      "data/market-tape.json",
+      "data/options-confluence.json"
+    ],
+    "options-flow": [
+      "data/market-tape.json"
+    ],
+    "options-scanner": [
+      "data/auction-tenor-signals.json",
+      "data/episode-reference.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/options-flow-scanner.json"
+    ],
+    "options": [
+      "data/catalyst-skew-premove.json",
+      "data/dealer-gex.json",
+      "data/dix-history.json",
+      "data/dix.json",
+      "data/earnings-iv-crush.json",
+      "data/market-tape.json",
+      "data/opex-calendar.json",
+      "data/option-flow-research.json",
+      "data/option-population-research.json",
+      "data/options-analytics-iv-history.json",
+      "data/options-analytics.json",
+      "data/options-confluence.json",
+      "data/options-flow-scanner.json",
+      "data/options-gamma.json",
+      "data/polygon-options-flow.json",
+      "data/volatility-squeeze.json"
+    ],
+    "orderbook": [
+      "data/backlog-coverage-cache.json",
+      "data/backlog-mined.json",
+      "data/backlog.json",
+      "data/market-tape.json",
+      "data/momentum-scanner.json"
+    ],
+    "pairs-arb": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/pairs-arb.json"
+    ],
+    "pairs-scanner": [
+      "data/market-tape.json"
+    ],
+    "pairs": [
+      "data/market-tape.json",
+      "data/pairs-scanner.json"
+    ],
+    "paper-book": [
+      "data/market-tape.json",
+      "data/paper-book.json"
+    ],
+    "patent-velocity": [
+      "data/market-tape.json",
+      "data/patent-velocity.json"
+    ],
+    "patterns": [
+      "data/chart-vision.json",
+      "data/finviz-signals.json",
+      "data/market-tape.json"
+    ],
+    "pead-signals": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/pead-signals.json"
+    ],
+    "performance": [
+      "data/market-tape.json"
+    ],
+    "phases": [
+      "data/market-tape.json",
+      "data/phase-detector.json"
+    ],
+    "physical-economy": [
+      "data/physical-economy-history.json",
+      "data/physical-economy.json"
+    ],
+    "physical-trade": [
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/market-tape.json",
+      "data/portwatch.json"
+    ],
+    "pjm-grid": [
+      "data/pjm-grid-history.json",
+      "data/pjm-grid.json"
+    ],
+    "plumbing": [
+      "data/eurodollar-stress.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/plumbing-history.json",
+      "data/plumbing-stress.json"
+    ],
+    "pnl-attribution": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/pnl-attribution.json",
+      "data/pnl-ledger.json"
+    ],
+    "political": [
+      "data/congress-direct.json",
+      "data/congress-party-map.json",
+      "data/lobbying-intel.json",
+      "data/market-tape.json",
+      "data/political-stocks.json",
+      "data/quiver-congress-cache.json",
+      "data/quiver-lobbying-cache.json"
+    ],
+    "port-cargo": [
+      "data/global-business-cycle-composite-history.json",
+      "data/global-business-cycle-history.json",
+      "data/global-business-cycle.json",
+      "data/market-tape.json",
+      "data/port-cargo.json",
+      "data/warm/portwatch/layer-choice.json"
+    ],
+    "portwatch": [
+      "data/market-tape.json",
+      "data/portwatch.json"
+    ],
+    "position-sizer": [
+      "data/position-sizing.json"
+    ],
+    "positioning": [
+      "data/market-tape.json"
+    ],
+    "ppi-acceleration": [
+      "data/market-tape.json",
+      "data/ppi-acceleration.json"
+    ],
+    "predictability": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/predictability.json"
+    ],
+    "pricing": [
+      "data/market-tape.json"
+    ],
+    "primary-dealers": [
+      "data/config/nyfed-pd-spec.json",
+      "data/dealer-research/migration.json",
+      "data/history/nyfed-pd-corp.json",
+      "data/history/nyfed-pd.json",
+      "data/nyfed-primary-dealer.json"
+    ],
+    "privacy": [
+      "data/market-tape.json"
+    ],
+    "proven-alpha": [
+      "data/market-tape.json",
+      "data/proven-alpha.json"
+    ],
+    "provider": [
+      "data/audit/provider-join-debug.json",
+      "data/audit/provider-join-lastgood.json",
+      "data/market-tape.json",
+      "data/provider-catalog.json",
+      "data/search/provider-shards.json"
+    ],
+    "quality-on-sale": [
+      "data/earnings-quality.json"
+    ],
+    "quantum-desk": [
+      "data/market-tape.json",
+      "data/quantum-desk-history.json",
+      "data/quantum-desk.json"
+    ],
+    "read": [
+      "data/ath.json",
+      "data/fred-cache.json",
+      "data/market-tape.json",
+      "data/report-measurements.json",
+      "data/report.json"
+    ],
+    "readthrough": [
+      "data/market-tape.json",
+      "data/readthrough-state.json",
+      "data/readthrough.json"
+    ],
+    "rebalance-radar": [
+      "data/history/rebalance-eventstudy.json",
+      "data/market-tape.json",
+      "data/rebalance-radar.json"
+    ],
+    "regime-map": [
+      "data/market-tape.json",
+      "data/regime-map-prev.json",
+      "data/regime-map.json"
+    ],
+    "regime": [
+      "data/market-tape.json",
+      "data/regime-conditional-router.json",
+      "data/regime-conditional-trust.json",
+      "data/regime.json"
+    ],
+    "repo": [
+      "data/repo.json",
+      "data/warm/dtcc-fails/agency.json",
+      "data/warm/dtcc-fails/treasury.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXAFEGS.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXB.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXBGS.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXEMEGS.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXM.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/RTWEXBGS.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/TWEXAFEGSMTH.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/TWEXBGSMTH.json",
+      "data/warm/fred-scoped/Dollar_TradeWeighted/TWEXEMEGSMTH.json",
+      "data/warm/official-yields/de-10y-bbk.json",
+      "data/warm/official-yields/ea-aaa-10y-ecb.json"
+    ],
+    "reports": [
+      "data/market-tape.json"
+    ],
+    "research-spine": [],
+    "retail-edges": [
+      "data/13f-price-divergence.json",
+      "data/52wk-quality-breakout.json",
+      "data/breadth-divergence.json",
+      "data/buyback-yield-ranking.json",
+      "data/catalyst-skew-premove.json",
+      "data/cef-discount.json",
+      "data/credit-equity-divergence.json",
+      "data/crypto-etf-arb.json",
+      "data/cta-trend-exhaust.json",
+      "data/divcut-warning.json",
+      "data/dxy-equity-divergence.json",
+      "data/earnings-iv-crush.json",
+      "data/earnings-quality.json",
+      "data/failed-pattern-reversal.json",
+      "data/gap-fill-confirm.json",
+      "data/gold-equity-rotation.json",
+      "data/insider-buyback-confluence.json",
+      "data/insider-sell-cluster.json",
+      "data/lockup-expiration.json",
+      "data/market-tape.json",
+      "data/multi-tf-convergence.json",
+      "data/ndx-spx-spread.json",
+      "data/post-earnings-mean-rev.json",
+      "data/precatalyst-vol-expansion.json",
+      "data/put-call-extreme.json",
+      "data/rating-change-cluster.json",
+      "data/reit-nav-discount.json",
+      "data/skew-tail-hedging.json",
+      "data/spac-floor-warrant.json",
+      "data/squeeze-pretrigger.json",
+      "data/stealth-accumulation.json",
+      "data/sympathetic-momentum.json",
+      "data/vix9d-vix-inversion.json",
+      "data/vvix-vov-regime.json"
+    ],
+    "risk-desk": [
+      "data/bond-vol.json",
+      "data/coffee-can-holdings.json",
+      "data/coffee-can.json",
+      "data/cro-digest-history.json",
+      "data/cro-digest.json",
+      "data/cro-escalation.json",
+      "data/episode-reference.json",
+      "data/ka-analysis.json",
+      "data/ka-config.json",
+      "data/ka-metrics.json",
+      "data/khalid-analysis.json",
+      "data/khalid-config.json",
+      "data/khalid-metrics.json",
+      "data/market-tape.json",
+      "data/stress-factor-loadings.json"
+    ],
+    "risk-gate": [
+      "data/canary-grid.json",
+      "data/market-tape.json",
+      "data/risk-gate.json"
+    ],
+    "risk-monitor": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/risk-monitor.json"
+    ],
+    "risk-radar": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/risk-radar.json"
+    ],
+    "risk-regime": [
+      "data/market-tape.json",
+      "data/risk-regime-state.json",
+      "data/risk-regime.json"
+    ],
+    "rotation-chains": [
+      "data/market-tape.json",
+      "data/rotation-chains.json"
+    ],
+    "rotation-dashboard": [
+      "data/rotation-dashboard-history.json",
+      "data/rotation-dashboard.json"
+    ],
+    "rotation-radar": [
+      "data/market-tape.json",
+      "data/rotation-radar.json"
+    ],
+    "russell-recon": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/russell-recon-frontrun.json"
+    ],
+    "rv-iv-scanner": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/rv-iv-scanner.json"
+    ],
+    "scarcity-radar": [
+      "data/market-tape.json",
+      "data/scarcity-radar.json"
+    ],
+    "scorecard": [
+      "data/factor-ic.json",
+      "data/market-tape.json",
+      "data/signal-backtest.json"
+    ],
+    "sec-filings": [
+      "data/market-tape.json",
+      "data/sec-filings-intel.json"
+    ],
+    "sector-emergence": [
+      "data/market-tape.json",
+      "data/sector-emergence.json"
+    ],
+    "sector-flow": [
+      "data/sector-flow-state.json"
+    ],
+    "sector-tilt": [
+      "data/sector-rotation.json",
+      "data/sector-tilt.json"
+    ],
+    "sectors": [
+      "data/sector-rotation.json",
+      "data/sector-tilt.json"
+    ],
+    "settings": [
+      "data/market-tape.json"
+    ],
+    "share-flows": [
+      "data/share-flows.json"
+    ],
+    "short-book": [
+      "data/market-tape.json",
+      "data/proven-alpha.json",
+      "data/short-book.json"
+    ],
+    "short-interest-research": [
+      "data/market-tape.json",
+      "data/short-interest.json"
+    ],
+    "short-pressure": [
+      "data/finra-short.json",
+      "data/market-tape.json",
+      "data/short-pressure.json"
+    ],
+    "short-volume-research": [
+      "data/finra-short.json",
+      "data/market-tape.json"
+    ],
+    "signal-genealogy": [
+      "data/market-tape.json",
+      "data/signal-genealogy.json"
+    ],
+    "signal-halflife": [
+      "data/episode-reference.json",
+      "data/history/signal-halflife-history.json",
+      "data/market-tape.json",
+      "data/signal-halflife.json"
+    ],
+    "signal-orthogonality": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/signal-orthogonality.json"
+    ],
+    "signal-replay": [
+      "data/13f-by-ticker.json",
+      "data/13f-cusip-map.json",
+      "data/13f-desk.json",
+      "data/13f-flows-by-ticker.json",
+      "data/13f-positions.json",
+      "data/13f-price-anchors.json",
+      "data/13f-state/first-seen.json",
+      "data/ab-test-results.json",
+      "data/best-setups.json",
+      "data/correlation-surface.json",
+      "data/earnings-tracker.json",
+      "data/estimate-revisions-latest.json",
+      "data/event-study.json",
+      "data/historical-analogs.json",
+      "data/holdings-research.json",
+      "data/macro-surprise.json",
+      "data/market-tape.json",
+      "data/opportunities.json",
+      "data/short-interest.json",
+      "data/signal-board.json",
+      "data/snapshots-index.json",
+      "data/whats-changed.json",
+      "data/yield-curve.json"
+    ],
+    "sizing": [
+      "data/market-tape.json"
+    ],
+    "smart-beta": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/smart-beta.json"
+    ],
+    "smart-money-13f": [
+      "data/market-tape.json",
+      "data/smart-money-13f.json"
+    ],
+    "smart-money": [
+      "data/market-tape.json",
+      "data/smart-money-clusters.json"
+    ],
+    "snb-detail": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/snb-detail.json"
+    ],
+    "sovereign-stress": [
+      "data/market-tape.json",
+      "data/sovereign-gssi.json",
+      "data/sovereign-stress-history.json",
+      "data/sovereign-stress.json"
+    ],
+    "sovereign": [
+      "data/fails-research/migration.json",
+      "data/fed-collateral.json",
+      "data/market-tape.json",
+      "data/settlement-fails.json",
+      "data/sovereign-fiscal.json",
+      "data/treasury-auctions.json"
+    ],
+    "sp500": [
+      "data/sp500-history.json",
+      "data/sp500.json",
+      "data/spx-beaters.json"
+    ],
+    "spinoff-desk": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/spinoff-desk.json"
+    ],
+    "spx-beaters": [
+      "data/spx-beaters.json"
+    ],
+    "squeeze-fuel": [
+      "data/market-tape.json",
+      "data/squeeze-fuel.json"
+    ],
+    "squeeze": [
+      "data/episode-reference.json",
+      "data/finra-short.json",
+      "data/market-tape.json",
+      "data/microcap-float-squeeze.json",
+      "data/short-interest.json",
+      "data/short-pressure.json",
+      "data/squeeze-pretrigger.json"
+    ],
+    "stablecoin-flow": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/stablecoin-flow.json"
+    ],
+    "starmine": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/starmine.json"
+    ],
+    "statement-research": [
+      "data/forensic-screen.json",
+      "data/market-tape.json"
+    ],
+    "status": [
+      "data/market-tape.json"
+    ],
+    "stock-buying": [
+      "data/13f-by-ticker.json",
+      "data/13f-cusip-map.json",
+      "data/13f-desk.json",
+      "data/13f-flows-by-ticker.json",
+      "data/13f-positions.json",
+      "data/13f-price-anchors.json",
+      "data/13f-state/first-seen.json",
+      "data/backlog-coverage-cache.json",
+      "data/backlog.json",
+      "data/catalyst.json",
+      "data/holdings-research.json",
+      "data/industry-boom-history.json",
+      "data/industry-boom.json",
+      "data/stock-buying.json"
+    ],
+    "strategist": [
+      "data/market-tape.json",
+      "data/strategist.json"
+    ],
+    "stress": [
+      "data/auction-tenor-signals.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json"
+    ],
+    "supply-chain": [
+      "data/market-tape.json",
+      "data/polygon-related-graph.json",
+      "data/refining-stress.json",
+      "data/supply-chain-graph.json"
+    ],
+    "supply-inflection": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/supply-inflection.json"
+    ],
+    "switzerland": [
+      "data/market-tape.json",
+      "data/switzerland.json"
+    ],
+    "system-health": [
+      "data/market-tape.json"
+    ],
+    "systemic-stress": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/systemic-stress.json"
+    ],
+    "tail-hedge": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/tail-hedge-history.json",
+      "data/tail-hedge.json"
+    ],
+    "tail-risk": [
+      "data/tail-risk.json"
+    ],
+    "tape-reader": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/tape-reader.json"
+    ],
+    "tape-truth": [
+      "data/providers/finra/shortvol.json",
+      "data/providers/tape/cvd-daily.json",
+      "data/tape-truth.json"
+    ],
+    "tax-plan": [
+      "data/market-tape.json",
+      "data/tax-plan-snapshot.json"
+    ],
+    "term-premium": [
+      "data/market-tape.json",
+      "data/term-premium.json"
+    ],
+    "terms": [
+      "data/market-tape.json"
+    ],
+    "theme-tiers": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/theme-tiers.json"
+    ],
+    "theses": [
+      "data/market-tape.json",
+      "data/thesis-engine.json"
+    ],
+    "top-signals": [
+      "data/top-signals.json",
+      "data/warm/blackswan/stoxx_V2TX.json",
+      "data/warm/blackswan/vn_VNINDEX.json"
+    ],
+    "track-public": [
+      "data/factor-ic.json",
+      "data/market-tape.json",
+      "data/signal-backtest.json"
+    ],
+    "track-record": [
+      "data/market-tape.json"
+    ],
+    "trading-signals": [
+      "data/episode-reference.json",
+      "data/market-tape.json"
+    ],
+    "treasury-auctions": [
+      "data/auction-tenor-signals.json",
+      "data/liquidity-credit-engine.json",
+      "data/liquidity-pulse.json",
+      "data/market-tape.json",
+      "data/sovereign-fiscal.json",
+      "data/treasury-auctions.json"
+    ],
+    "treasury-desk": [
+      "data/auction-crisis.json",
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/em-carry.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json"
+    ],
+    "treasury-noise": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/em-carry.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json",
+      "data/treasury-noise-history.json",
+      "data/treasury-noise.json"
+    ],
+    "treasury-rehypo": [
+      "data/market-tape.json",
+      "data/treasury-rehypo-history.json",
+      "data/treasury-rehypo-long.json",
+      "data/treasury-rehypo.json"
+    ],
+    "trend-engine": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/trend-engine.json"
+    ],
+    "tv-notes": [
+      "data/market-tape.json",
+      "data/tv-watchlist-state.json",
+      "data/tv-watchlist-tracker.json"
+    ],
+    "tv-workbench": [
+      "data/tv-workbench.json"
+    ],
+    "uptime": [
+      "data/market-tape.json"
+    ],
+    "us-cycle": [
+      "data/market-tape.json",
+      "data/us-cycle.json"
+    ],
+    "us-data-desk": [
+      "data/bea-economic.json",
+      "data/bls-employment.json",
+      "data/bls-labor.json",
+      "data/census-economic.json",
+      "data/eia-energy.json",
+      "data/market-tape.json"
+    ],
+    "valuations-macro": [],
+    "vix-capitulation": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/vix-backwardation-trigger.json"
+    ],
+    "vix-curve": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/vix-curve-history.json",
+      "data/vix-curve.json"
+    ],
+    "vol-radar": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/vol-radar-history.json",
+      "data/vol-radar.json"
+    ],
+    "vol-target-unwind": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/vol-target-unwind.json"
+    ],
+    "vol": [
+      "data/baltic-dry.json",
+      "data/bill-share.json",
+      "data/em-carry.json",
+      "data/gap-est-snapshots.json",
+      "data/gap-metrics.json",
+      "data/global-m2.json",
+      "data/implied-corr.json",
+      "data/market-tape.json",
+      "data/miner-margin.json",
+      "data/muni-ratio.json",
+      "data/ofr-fsi.json",
+      "data/revision-breadth.json",
+      "data/sifma-issuance.json",
+      "data/sloos.json",
+      "data/stock-bond-corr.json",
+      "data/vix-curve-history.json",
+      "data/vix-curve.json"
+    ],
+    "volatility": [
+      "data/market-tape.json",
+      "data/vol-surface-history.json",
+      "data/vol-surface.json"
+    ],
+    "vrp": [
+      "data/vrp-history.json",
+      "data/vrp.json"
+    ],
+    "wealth-plan": [
+      "data/market-tape.json",
+      "data/wealth-plan-snapshot.json"
+    ],
+    "weights": [
+      "data/market-tape.json"
+    ],
+    "welcome": [
+      "data/market-tape.json"
+    ],
+    "whales": [
+      "data/market-tape.json",
+      "data/whales.json"
+    ],
+    "why-now": [
+      "data/best-setups.json",
+      "data/bond-vol.json",
+      "data/compound-firstseen.json",
+      "data/compound-history.json",
+      "data/compound-signals-state.json",
+      "data/compound-signals.json",
+      "data/crypto-cycle-risk-prev.json",
+      "data/crypto-cycle-risk.json",
+      "data/estimate-revisions-latest.json",
+      "data/funding-plumbing-prev.json",
+      "data/funding-plumbing.json",
+      "data/market-tape.json",
+      "data/master-ranker.json",
+      "data/opportunities.json",
+      "data/prime-convergence.json",
+      "data/signal-board.json"
+    ],
+    "workspace": [
+      "data/contract-violations.json",
+      "data/feed-catalog.json"
+    ],
+    "wyckoff": [
+      "data/etf-flows.json",
+      "data/finviz-earnings-calendar.json",
+      "data/finviz-earnings-surprise.json",
+      "data/finviz-etf-flows.json",
+      "data/finviz-heatmap.json",
+      "data/finviz-index-membership.json",
+      "data/finviz-short.json",
+      "data/finviz-universe.json",
+      "data/market-tape.json"
+    ],
+    "yen-carry": [
+      "data/yen-carry.json",
+      "data/yen-research/migration.json"
+    ],
+    "yield-curve": [
+      "data/episode-reference.json",
+      "data/market-tape.json",
+      "data/us10y-sentinel.json",
+      "data/yield-curve.json"
+    ]
+  }
+}

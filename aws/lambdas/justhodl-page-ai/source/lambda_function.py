@@ -164,7 +164,7 @@ def live_mode(qs, manifest):
                                     "note": "Live generation failed; any cached brief still applies."})}
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     if ((event or {}).get("requestContext") or {}).get("http", {}).get("method") == "OPTIONS":
         return {"statusCode": 204, "headers": _CORS}
@@ -202,3 +202,11 @@ def lambda_handler(event, context):
     print(f"[page-ai v{VERSION}] {done} pages ({with_outlook} graded-outlook, {errors} err) {elapsed}s · cursor {cur}->{new_cur}/{len(pages)} · cached {len(explain_cache)}")
     return {"statusCode": 200, "body": json.dumps({"processed": done, "with_outlook": with_outlook,
             "errors": errors, "cursor": new_cur, "total_pages": len(pages)})}
+
+
+def lambda_handler(event, context):
+    # Native schedule retained; no paid provider or click-generation path.
+    import page_explanation_store
+    from botocore.config import Config
+    client = boto3.client('s3', region_name='us-east-1', config=Config(connect_timeout=5, read_timeout=12, retries={'total_max_attempts':2}))
+    return page_explanation_store.run(client, BUCKET, event, context)
