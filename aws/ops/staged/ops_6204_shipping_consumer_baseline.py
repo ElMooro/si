@@ -22,8 +22,8 @@ sha=lambda raw:hashlib.sha256(raw).hexdigest()
 encode=lambda v:json.dumps(v,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
 
 
-def retain(client,raw):
-    if not isinstance(raw,bytes) or not 0<len(raw)<=64*1024*1024:raise ValueError('Complete bounded original required')
+def retain(client,raw,allow_empty=False):
+    if not isinstance(raw,bytes) or not (0 if allow_empty else 1)<=len(raw)<=64*1024*1024:raise ValueError('Complete bounded original required')
     ref={'key':PRIVATE+sha(raw)+'.bin','sha256':sha(raw),'bytes':len(raw)}
     try:client.put_object(Bucket=BUCKET,Key=ref['key'],Body=raw,IfNoneMatch='*',ContentType='application/octet-stream',CacheControl='no-store')
     except Exception as exc:
@@ -70,7 +70,7 @@ def runtime(lam,s3,events,scheduler,function):
     result={'status':'whole_actual_package_retained','runtime':{k:cfg.get(k) for k in fields},
             'inventory':inventory,'whole_zip':retain(s3,raw),'schedules':schedules,'active_alias':alias,
             'repository_config_present':config.exists(),
-            'repository_sources':{p.relative_to(ROOT).as_posix():retain(s3,p.read_bytes()) for p in [*paths,*shared,*([config] if config.exists() else [])]}}
+            'repository_sources':{p.relative_to(ROOT).as_posix():retain(s3,p.read_bytes(),allow_empty=True) for p in [*paths,*shared,*([config] if config.exists() else [])]}}
     after=lam.get_function_configuration(FunctionName=function)
     if any(after.get(k)!=cfg.get(k) for k in fields):raise ValueError('Runtime changed during retention')
     return result

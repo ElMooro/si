@@ -3671,3 +3671,9 @@ Live Liquidity/Credit verification for that consumer change: scripts/replay_lce_
 
 - Operation 6213 pins four complete original producer files, records each actual deployed package, runtime, aliases and every discovered schedule without invoking them, and preserves seven declared research inputs. Enumerate every freight archive page with duplicate/foreign/date/token checks, retain every complete original object, and recheck membership; no 500-object cutoff. Source histories, live publications and schedules are not modified.
 - Protected content-addressed readback and explicit missing/denied/truncated distinctions precede any later repair. Six isolated regressions verify complete source pins, no account/learning-log reads, all archive pages, malformed/empty/zero originals and failure cases. This baseline establishes stored bytes only, not original provider vintages, economic comparability, forecast edge or portfolio permission.
+
+
+## Stage 224: preserve empty package metadata without weakening source checks
+
+- Stage 223 operation 6213 failed safely in readback preparation (`36303545834`, report `561063046`): Macro Leads includes the legitimate zero-byte `xlrd-2.0.1.dist-info/REQUESTED` installation marker. The general package-source retainer wrongly required every file to be nonempty. Source pins and ZIP validation were unaffected; no native producer, public/history writer or scheduler ran.
+- Allow zero-byte originals only for the explicitly enumerated repository package files; keep the default nonempty requirement for packages and other callers. A regression checks strict default refusal, exact empty-byte retention/readback, idempotence and corruption refusal. Operation 6214 uses a new report identity so the original failure remains available.

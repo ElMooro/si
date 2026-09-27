@@ -90,10 +90,11 @@ def archive_keys(s3):
     raise ValueError('Archive exceeds reviewed enumeration bound; nothing truncated')
 
 
-def main():
+def main(report_name='ops_6213_freight_original_baseline'):
     subprocess.run([sys.executable,str(ROOT/'tests/test_freight_original_baseline.py')],cwd=ROOT,check=True)
+    subprocess.run([sys.executable,str(ROOT/'tests/test_shipping_consumer_baseline.py')],cwd=ROOT,check=True)
     clients={n:boto3.client(n,region_name='us-east-1') for n in ('lambda','s3','events','scheduler')}
-    with report('ops_6213_freight_original_baseline') as r:
+    with report(report_name) as r:
         s3=clients['s3'];baseline={'contract':'freight-original-baseline.v1','captured_at':datetime.now(timezone.utc).isoformat(),
              'snapshot_atomic':False,'source_checks':{},'consumers':{},'captures':{}}
         for fn in PINS:

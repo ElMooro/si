@@ -39,6 +39,15 @@ class Tests(unittest.TestCase):
         raw=b'{"complete":[0,null,1],"generated_at":"old"}';memory.rows[op.KEYS[0]]=raw
         out=op.capture(memory,op.KEYS[0]);self.assertEqual(memory.rows[out['original']['key']],raw)
 
+    def test_empty_package_metadata_is_retained_only_when_explicitly_allowed(self):
+        memory=Memory()
+        with self.assertRaises(ValueError):op.retain(memory,b'')
+        ref=op.retain(memory,b'',allow_empty=True)
+        self.assertEqual(ref['bytes'],0);self.assertEqual(memory.rows[ref['key']],b'')
+        self.assertEqual(op.retain(memory,b'',allow_empty=True),ref)
+        memory.rows[ref['key']]=b'not-empty'
+        with self.assertRaises(ValueError):op.retain(memory,b'',allow_empty=True)
+
     def test_truncation_denied_access_and_corrupt_retention_fail(self):
         memory=Memory();memory.rows[op.KEYS[0]]=b'{}';get=memory.get_object
         memory.get_object=lambda **kw:{**get(**kw),'ContentLength':123}
