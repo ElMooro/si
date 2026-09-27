@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 5.9s  
+**Finished:** 2026-09-27T22:10:54+00:00  
+
+## Data
+
+| account_reads | actual_producers | all_denied | anonymous_origins_checked | attempt_outcome_counts | baseline | failures | history_writes | learning_log_reads | native_invocations | notifications_sent | originals | protected_paths_checked | provider_requests | public_writes | schedule_changes | scope | source_checks |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | {'justhodl-eps-revision-velocity': {'status': 'whole_actual_package_retained', 'runtime': {'FunctionName': 'justhodl-eps-revision-velocity', 'CodeSha256': 'i6+ZvA2YERdLrK2MUypnAunIpmmlIVe7uvKIj0XovSc=', 'Runtime': 'python3.12', 'Handler': 'lambda_function.lambda_handler', 'Timeout': 300, 'MemorySize': 1024, 'Architectures': ['x86_64'], 'Role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'EphemeralStorage': {'Size': 512}, 'LastModified': '2026-09-09T03:27:23.000+0000'}, 'whole_zip': {'key': 'audit-private/20260909-originals/shipping-consumer-research/8baf99bc0d9811174bacad8c532a6702e9c8a669a52157bbbaf2888f45e8bd27.bin', 'sha256': '8baf99bc0d9811174bacad8c532a6702e9c8a669a52157bbbaf2888f45e8bd27', 'bytes': 157778}, 'schedules': [], 'active_alias': None, 'repository_config_present': False, 'code_matches_repository': True, 'source_files_checked': 2, 'source_differences': {}}} | True | 6 | {'404': 3, '403': 3} | {'key': 'audit-private/20260909-originals/eps-revision-velocity-research/453be041fd537dc6ef705edbf679b445a0905d302a5628d611a083ce14c800e0.bin', 'bytes': 8132, 'sha256': '453be041fd537dc6ef705edbf679b445a0905d302a5628d611a083ce14c800e0'} | [] | 0 | 0 | 0 | 0 | {'data/eps-revision-velocity.json': {'status': 'whole_object_retained', 'original': {'key': 'audit-private/20260909-originals/eps-revision-velocity-research/d750a55d85bc1004a346c2b09a5532b012cc225b7f17af5df14d8b1bb110f54e.bin', 'bytes': 129794, 'sha256': 'd750a55d85bc1004a346c2b09a5532b012cc225b7f17af5df14d8b1bb110f54e'}, 'etag': '"1a77246615be41012057e2e1f1a8ad80"', 'last_modified': '2026-09-27T11:00:20+00:00', 'original_provider_verified': False}} | 3 | 0 | 0 | 0 | Whole deployed packages and one exact existing public EPS Revision Velocity research packet only. Provider response originals, acquisition completeness, original vintages, donor quality, common input ancestry, category joins, source timing, score calibration and signal performance remain unverified. | {'justhodl-eps-revision-velocity': {'bytes': 16411, 'sha256': '0ab8693191a9a44b732cf9b3c8e176e91de9eefdddfaa2baca324d5bf11d3e76', 'imported_or_executed': False}} |
+
+## Log
+
