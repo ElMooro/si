@@ -365,7 +365,7 @@ def usable_previous(page, document):
     return commentary if isinstance(commentary, dict) and "error" not in commentary else {}
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     target_page = event.get("page")  # if provided, only generate for one page
 
@@ -461,3 +461,11 @@ def lambda_handler(event, context):
             "results": results,
         }),
     }
+
+
+def lambda_handler(event, context):
+    # Keep the original cadence; this entry never enters a model fallback.
+    import commentary_store
+    from botocore.config import Config
+    client=boto3.client("s3",region_name="us-east-1",config=Config(connect_timeout=5,read_timeout=12,retries={"total_max_attempts":2}))
+    return commentary_store.run(client,S3_BUCKET,event,context)

@@ -84,7 +84,9 @@ def run_commentary():
             store.docs["data/ai-commentary/history/portfolio/new.json"] = {"commentary": {"headline": "Simulated book review"},
                 "privacy_version": PUBLIC_CONTEXT_PRIVACY_VERSION, "generated_at": "safe-history"}
         scope = load("page-ai-commentary", store)
-        handler = scope["lambda_handler"]
+        # Preserve the old fallback regression as historical-function coverage.
+        # The new entry has separate whole-input/no-private-read native tests.
+        handler = scope.get("_legacy_lambda_handler", scope["lambda_handler"])
         env = handler.__globals__
         # Reintroduce the old config as a canary: the reader itself must deny it.
         env["PAGE_CONFIGS"]["portfolio"]["data_files"].append("data/pm-decision.json")
@@ -106,9 +108,10 @@ def run_commentary():
     # A successful regeneration uses only public inputs and can replace the marker.
     store = Store()
     scope = load("page-ai-commentary", store)
-    scope["lambda_handler"].__globals__["generate_commentary"] = lambda page, context: {"headline": "Public simulated research"}
+    legacy = scope.get("_legacy_lambda_handler", scope["lambda_handler"])
+    legacy.__globals__["generate_commentary"] = lambda page, context: {"headline": "Public simulated research"}
     with redirect_stdout(io.StringIO()):
-        scope["lambda_handler"]({"page": "portfolio"}, None)
+        legacy({"page": "portfolio"}, None)
     assert store.docs["data/ai-commentary/portfolio.json"]["commentary"]["headline"] == "Public simulated research"
     print("page-ai-commentary: 3 source/fallback/regeneration scenarios passed")
 

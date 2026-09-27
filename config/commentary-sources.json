@@ -1,0 +1,375 @@
+{
+  "contract": "commentary-source-policy.v1",
+  "basis": "Six existing public commentary heads, exact original declarations and source-owned public bindings. Unbound, private, account and learning inputs are listed without being read. Other commentary pages and their histories remain untouched.",
+  "pages": {
+    "signal-board": {
+      "data_files": [
+        "data/signal-board.json"
+      ],
+      "allowed": [
+        "data/signal-board.json"
+      ],
+      "bindings": {
+        "data/signal-board.json": {
+          "engine": "justhodl-signal-board",
+          "key": "data/signal-board.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "board_store.py",
+              "line": 137
+            }
+          ]
+        }
+      }
+    },
+    "risk-desk": {
+      "data_files": [
+        "data/risk-composite.json",
+        "data/cro-digest.json",
+        "data/crisis-composite.json",
+        "data/regime-composite.json",
+        "data/dealer-gex.json"
+      ],
+      "allowed": [
+        "data/cro-digest.json",
+        "data/crisis-composite.json",
+        "data/regime-composite.json",
+        "data/dealer-gex.json"
+      ],
+      "bindings": {
+        "data/cro-digest.json": {
+          "engine": "justhodl-cro-digest",
+          "key": "data/cro-digest.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 352
+            }
+          ]
+        },
+        "data/crisis-composite.json": {
+          "engine": "justhodl-crisis-composite",
+          "key": "data/crisis-composite.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "crisis_research_store.py",
+              "line": 184
+            },
+            {
+              "file": "lambda_function.py",
+              "line": 391
+            }
+          ]
+        },
+        "data/regime-composite.json": {
+          "engine": "justhodl-regime-composite",
+          "key": "data/regime-composite.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 695
+            }
+          ]
+        },
+        "data/dealer-gex.json": {
+          "engine": "justhodl-dealer-gex",
+          "key": "data/dealer-gex.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "option_population_store.py",
+              "repository_path": "aws/shared/option_population_store.py",
+              "line": 160,
+              "via": [
+                {
+                  "file": "aws/lambdas/justhodl-dealer-gex/source/lambda_function.py",
+                  "line": 16,
+                  "function": "aws/lambdas/justhodl-dealer-gex/source/lambda_function.py:lambda_handler"
+                },
+                {
+                  "file": "aws/lambdas/justhodl-dealer-gex/source/lambda_function.py",
+                  "line": 32,
+                  "function": "aws/shared/option_population_store.py:run"
+                },
+                {
+                  "file": "aws/shared/option_population_store.py",
+                  "line": 198,
+                  "function": "aws/shared/option_population_store.py:conditional"
+                }
+              ],
+              "basis": "reachable_shared_write_argument",
+              "entrypoint_basis": "configured_handler"
+            }
+          ]
+        }
+      }
+    },
+    "liquidity": {
+      "data_files": [
+        "data/fed-liquidity.json",
+        "data/tga.json",
+        "data/rrp.json",
+        "data/eurodollar-stress.json",
+        "data/treasury-auction-crisis.json"
+      ],
+      "allowed": [
+        "data/eurodollar-stress.json"
+      ],
+      "bindings": {
+        "data/eurodollar-stress.json": {
+          "engine": "justhodl-eurodollar-stress",
+          "key": "data/eurodollar-stress.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "eurodollar_research_store.py",
+              "line": 141
+            },
+            {
+              "file": "legacy_eurodollar_stress.py",
+              "line": 310
+            }
+          ]
+        }
+      }
+    },
+    "fundamentals": {
+      "data_files": [
+        "data/fundamentals-engine.json",
+        "data/theme-cascade.json"
+      ],
+      "allowed": [
+        "data/theme-cascade.json"
+      ],
+      "bindings": {
+        "data/theme-cascade.json": {
+          "engine": "justhodl-theme-cascade",
+          "key": "data/theme-cascade.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 711
+            }
+          ]
+        }
+      }
+    },
+    "crisis": {
+      "data_files": [
+        "data/crisis-composite.json",
+        "data/eurodollar-stress.json",
+        "data/auction-crisis.json",
+        "data/treasury-auction-crisis.json",
+        "data/credit-stress.json",
+        "data/bank-stress.json"
+      ],
+      "allowed": [
+        "data/crisis-composite.json",
+        "data/eurodollar-stress.json",
+        "data/auction-crisis.json",
+        "data/credit-stress.json",
+        "data/bank-stress.json"
+      ],
+      "bindings": {
+        "data/crisis-composite.json": {
+          "engine": "justhodl-crisis-composite",
+          "key": "data/crisis-composite.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "crisis_research_store.py",
+              "line": 184
+            },
+            {
+              "file": "lambda_function.py",
+              "line": 391
+            }
+          ]
+        },
+        "data/eurodollar-stress.json": {
+          "engine": "justhodl-eurodollar-stress",
+          "key": "data/eurodollar-stress.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "eurodollar_research_store.py",
+              "line": 141
+            },
+            {
+              "file": "legacy_eurodollar_stress.py",
+              "line": 310
+            }
+          ]
+        },
+        "data/auction-crisis.json": {
+          "engine": "justhodl-auction-crisis-detector",
+          "key": "data/auction-crisis.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 525
+            },
+            {
+              "file": "lambda_function.py",
+              "line": 807
+            }
+          ]
+        },
+        "data/credit-stress.json": {
+          "engine": "justhodl-credit-stress",
+          "key": "data/credit-stress.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "credit_research_store.py",
+              "line": 239
+            },
+            {
+              "file": "legacy_credit_stress.py",
+              "line": 450
+            }
+          ]
+        },
+        "data/bank-stress.json": {
+          "engine": "justhodl-bank-stress",
+          "key": "data/bank-stress.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 280
+            }
+          ]
+        }
+      }
+    },
+    "13f": {
+      "data_files": [
+        "data/13f-positions.json",
+        "data/13f-price-divergence.json",
+        "data/insider-clusters.json",
+        "data/activist-13d.json"
+      ],
+      "allowed": [
+        "data/13f-positions.json",
+        "data/13f-price-divergence.json",
+        "data/insider-clusters.json",
+        "data/activist-13d.json"
+      ],
+      "bindings": {
+        "data/13f-positions.json": {
+          "engine": "justhodl-13f-positions",
+          "key": "data/13f-positions.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "holdings_canonical.py",
+              "line": 229
+            },
+            {
+              "file": "lambda_function.py",
+              "line": 360
+            }
+          ]
+        },
+        "data/13f-price-divergence.json": {
+          "engine": "justhodl-13f-price-divergence",
+          "key": "data/13f-price-divergence.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 421
+            },
+            {
+              "file": "lambda_function.py",
+              "line": 435
+            }
+          ]
+        },
+        "data/insider-clusters.json": {
+          "engine": "justhodl-insider-cluster-scanner",
+          "key": "data/insider-clusters.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 629
+            }
+          ]
+        },
+        "data/activist-13d.json": {
+          "engine": "justhodl-activist-13d",
+          "key": "data/activist-13d.json",
+          "access": "public",
+          "private_kind": null,
+          "required_projection": null,
+          "inspection_schema": "json-value.v1",
+          "ownership_evidence": [
+            {
+              "file": "lambda_function.py",
+              "line": 596
+            }
+          ]
+        }
+      }
+    }
+  },
+  "excluded_pages": [
+    "pre-pump-radar",
+    "signals",
+    "portfolio",
+    "screener"
+  ]
+}
