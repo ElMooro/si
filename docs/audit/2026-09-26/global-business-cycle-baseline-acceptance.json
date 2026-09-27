@@ -1,0 +1,75 @@
+{
+  "commit": "00cd7211c0da348f9335e92e6c8aafabf13f172e",
+  "operation_run": 36282000948,
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "FunctionName": "justhodl-global-business-cycle",
+      "CodeSha256": "SwUosBZMmcwV6w4IS2bP8C5HUI9BD1nTIM2HbVPssq8=",
+      "LastModified": "2026-09-09T13:13:06.000+0000",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 900,
+      "MemorySize": 1536,
+      "Architectures": [
+        "x86_64"
+      ]
+    },
+    "all_denied": true,
+    "anonymous_origins_checked": 30,
+    "attempt_outcome_counts": {
+      "404": 15,
+      "403": 15
+    },
+    "baseline": {
+      "key": "audit-private/20260909-originals/global-business-cycle-research/5385a8c96a3929aa463af0b3e78cd6acba9dc1b99936d4a4863428f1e762f3d9.bin",
+      "sha256": "5385a8c96a3929aa463af0b3e78cd6acba9dc1b99936d4a4863428f1e762f3d9",
+      "bytes": 15423
+    },
+    "capture_status": {
+      "data/cycle/features.json.gz": "whole_object_retained",
+      "data/cycle/features-manifest.json": "whole_object_retained",
+      "data/portwatch.json": "whole_object_retained",
+      "data/global-business-cycle.json": "whole_object_retained",
+      "data/global-business-cycle-history.json": "whole_object_retained",
+      "data/global-business-cycle-composite-history.json": "whole_object_retained",
+      "data/ops/releases/justhodl-global-business-cycle.json": "missing"
+    },
+    "code_matches_repository": true,
+    "failures": [],
+    "history_writes": 0,
+    "native_invocations": 0,
+    "notifications_sent": 0,
+    "protected_paths_checked": 15,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-gbc-daily",
+        "state": "ENABLED",
+        "expression": "cron(0 12 * * ? *)",
+        "native_targets": 1
+      }
+    ],
+    "schedules_changed": 0,
+    "scope": "Complete actual predecessor package, published histories and fixed derived inputs only. Earlier provider bodies and dynamic price-warehouse acquisitions are not recreated. Source arithmetic, historical vintages, investment and portfolio qualification remain unverified.",
+    "source_difference_names": [],
+    "source_files_checked": 4,
+    "source_inventory": {
+      "fixed_derived_inputs": [
+        "data/cycle/features.json.gz",
+        "data/cycle/features-manifest.json",
+        "data/portwatch.json"
+      ],
+      "prior_head": "data/global-business-cycle.json",
+      "dynamic_price_family": "data/warm/polygon-full/grouped/YYYY/YYYY-MM-DD.json.gz",
+      "dynamic_price_family_retained": false,
+      "provider_families": [
+        "Yahoo Finance chart responses",
+        "FRED observations through managed-secret shim"
+      ],
+      "original_provider_responses_retained": false
+    }
+  }
+}

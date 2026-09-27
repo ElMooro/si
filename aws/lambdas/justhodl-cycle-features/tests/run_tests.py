@@ -71,7 +71,13 @@ def load(store):
            'urllib': urllib, 'datetime': Frozen, 'date': date, 'timezone': timezone,
            'defaultdict': defaultdict, 'cycle_publication': pub, 'cycle_sources': sources, 'S3': store,
            'time': types.SimpleNamespace(time=lambda: 0, sleep=lambda n: None)}
-    nodes = [n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef, ast.Assign))
+    # Preserve the checked-in Eurostat country aliases. Omitting this module-level
+    # update silently drops EL (Greece) and UK from otherwise complete replay.
+    def alias_update(node):
+        return (isinstance(node, ast.Expr) and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Attribute) and node.value.func.attr == 'update'
+                and isinstance(node.value.func.value, ast.Name) and node.value.func.value.id == 'ISO2_TO_3')
+    nodes = [n for n in tree.body if (isinstance(n, (ast.FunctionDef, ast.ClassDef, ast.Assign)) or alias_update(n))
              and not (isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'S3' for t in n.targets))]
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(path), 'exec'), env)
     return env
@@ -95,6 +101,19 @@ def packets():
 
 
 class Tests(unittest.TestCase):
+    def test_whole_compiler_fixture_preserves_eurostat_greece_and_uk_aliases(self):
+        env = load(Memory())
+        self.assertEqual(env['ISO2_TO_3']['EL'], 'GRC')
+        self.assertEqual(env['ISO2_TO_3']['UK'], 'GBR')
+        months = env['month_grid']('2023-01', '2026-08')
+        header = 'freq,indic,s_adj,geo\\TIME_PERIOD\t' + '\t'.join(months) + '\n'
+        rows = '\n'.join('M,BS-CSMCI,SA,'+iso+'\t'+'\t'.join(['0']*len(months)) for iso in ('EL','UK'))
+        env['get_bytes'] = lambda key: ((header+rows).encode(), NOW)
+        feat = {iso: defaultdict(lambda: env['Series']('M')) for iso in env['ISO3']}
+        env['load_eurostat'](feat, {})
+        for iso in ('GRC', 'GBR'):
+            self.assertEqual(feat[iso]['cons_conf_eu'].d, {month: 0 for month in months})
+
     def test_undated_sovereign_policy_spread_cannot_extend_or_change_oecd_curve(self):
         env = load(Memory());curve = env['Series']()
         curve.put('2026-07', 0);curve.put('2026-08', 0.5)
