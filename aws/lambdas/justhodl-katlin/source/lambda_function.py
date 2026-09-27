@@ -1614,7 +1614,8 @@ def load_feeds():
     F["floor_screen"] = {str(r.get("ticker")).upper(): r for r in (fa.get("screen") or []) if isinstance(r, dict)}
     si = __import__("short_interest_context").decision_view(s3_json("data/short-interest.json", {})) or {}
     F["short"] = si.get("by_ticker") or {}
-    pw = s3_json("data/portwatch.json", {}) or {}
+    pw = __import__("shipping_model_context").decision_view(s3_json("data/portwatch.json", {}))
+    F["shipping_research_context"] = pw["research_context"]
     # PortWatch shape (ops 3846+): ports[] rows carry z / vs_baseline_pct / yoy_pct and an industry_exposure block whose
     # industries[] rows name the import-canary industry line, the exporter's share and exposure_pct. Aggregate per industry:
     # share-weighted port yoy plus the ports/countries behind it. exporters[] gives the country read (verdict + avg vs baseline).
@@ -2326,6 +2327,8 @@ def _fuzzy_industry(table, industry):
 def catalyst_block(sym, fv, cs, F, mcap, asset_class, industry, country, industry_etf):
     """named catalysts: scheduled events, contracts/backlog, revisions, industry boom, ports/physical economy, commodity curves,
     peers waking up, short-squeeze fuel, rates. Each with a plain sentence; score 0-100."""
+    # An old/forged prepared frame cannot reintroduce unqualified shipping votes.
+    F = dict(F, ports={}, ports_countries={})
     items = []
     pts = 0.0
     if asset_class == "stock":
@@ -3798,6 +3801,7 @@ def _run_handler(event=None, context=None):
            "watch": [{k: r.get(k) for k in ("ticker", "name", "asset_class", "sub_class", "sector", "industry", "last", "dist_sma200_pct", "dist_sma250_pct", "rsi_w", "rsi_d",
                                             "structure_state", "composite", "gates", "pillars", "knife", "tier")} for r in published if r["tier"] == "WATCH"][:400],
            "panels": desk_panels(rows, wr), "changes": changes, "base_rates": base_rates, "validation": validation_summary(F.get("backtest")),
+           "shipping_research_context": F.get("shipping_research_context"),
            "feeds_asof": F["asof"], "bottom_context_health": F.get("bottom_health"), "definitions": DEFINITIONS, "degraded": DEGRADED, "log": LOG[-60:]}
     out["research_generated_at"] = out["generated_at"]
     out["research_status"] = "FRESH" if research_data_fresh else "STALE"

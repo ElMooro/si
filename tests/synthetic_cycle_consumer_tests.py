@@ -119,7 +119,9 @@ class CycleBoundaries(unittest.TestCase):
             self.assertEqual(result['gbc_research']['qualified_investment_votes'],0)
 
     def test_unrelated_functions_and_whole_legacy_calculations_are_preserved(self):
-        changed={'katlin':{'war_room'},'allocator':{'lambda_handler','rule_global_business_cycle'},
+        # Later shipping changes are independently compared against the complete
+        # pre-shipping predecessor in shipping_consumer_tests.py.
+        changed={'katlin':{'war_room','load_feeds','catalyst_block','_run_handler'},'allocator':{'lambda_handler','rule_global_business_cycle'},
                  'morning-intelligence':{'ai','load_all','extract_metrics','build_brief','format_accuracy'}}
         renamed={'rule_global_business_cycle':'_legacy_rule_global_business_cycle','build_brief':'_legacy_build_brief','format_accuracy':'_legacy_format_accuracy'}
         for engine,allowed in changed.items():

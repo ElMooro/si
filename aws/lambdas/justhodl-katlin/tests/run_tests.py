@@ -225,3 +225,9 @@ if __name__=='__main__':
     import subprocess,sys
     from pathlib import Path
     subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/synthetic_cycle_consumer_tests.py')],check=True)
+
+
+if __name__=='__main__':
+    import subprocess,sys
+    from pathlib import Path
+    subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/shipping_consumer_tests.py')],check=True)
