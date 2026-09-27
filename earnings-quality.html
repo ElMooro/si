@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earnings quality · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:820px;margin:0 0 14px}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase}td.l,th.l{text-align:left}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Earnings quality</h1>
+<p class="sub">Sloan accruals, cash conversion, and Beneish DSRI/GMI from the live earnings-quality feed. Blank is missing, not zero. This is not a Beneish M-score (other ratios are not on the row).</p>
+<input id="q" placeholder="filter ticker" autocomplete="off">
+<div id="board">Loading /data/earnings-quality.json</div>
+<div class="foot"><b>Built for:</b> seeing whether earnings are cash or accrual-heavy before treating growth as real.<br>
+<b>Data:</b> /data/earnings-quality.json (ttm NI, OCF, FCF, Sloan % assets, cash conversion, DSRI, GMI, quality score).<br>
+<b>Formulas:</b> Sloan = (NI − OCF) / assets when the producer tagged it. Cash conversion = OCF / NI when tagged. DSRI/GMI are the Beneish components on the row only.<br>
+<b>Not:</b> a full Beneish M-score, ARR, or guidance. Inventory four-state reads Sloan/DSRI from this same feed.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return c==="&"?"&amp;":c==="<"?"&lt;":"&quot;";});}
+function n(v,d){if(v==null||!isFinite(Number(v)))return "";return Number(v).toFixed(d==null?1:d);}
+function cls(v){return v==null?"":(v>0?"neg":v<0?"pos":"");}
+(async function(){
+  var d=null;
+  try{var r=await fetch("/data/earnings-quality.json?t="+Date.now(),{cache:"no-store"}); if(r.ok)d=await r.json();}catch(e){}
+  var rows=(d&&(d.all_ranked||d.top_20_high_quality))||[];
+  function paint(){
+    var q=(document.getElementById("q").value||"").toUpperCase();
+    var list=rows.filter(function(x){return !q||String(x.ticker||"").toUpperCase().indexOf(q)>=0||String(x.name||"").toUpperCase().indexOf(q)>=0;});
+    var h="<table><thead><tr><th class=l>Ticker</th><th class=l>Name</th><th>Sloan % assets</th><th>Cash conv</th><th>DSRI</th><th>GMI</th><th>Quality</th></tr></thead><tbody>";
+    list.forEach(function(x){
+      h+="<tr><td class=l><a href=/ticker.html?symbol="+encodeURIComponent(x.ticker)+" style=color:#fff>"+esc(x.ticker)+"</a></td>";
+      h+="<td class=l>"+esc(x.name||"")+"</td>";
+      h+="<td class="+cls(x.sloan_accruals_pct_assets)+">"+n(x.sloan_accruals_pct_assets)+"</td>";
+      h+="<td>"+n(x.cash_conversion_ratio,2)+"</td>";
+      h+="<td>"+n(x.dsri_beneish,2)+"</td>";
+      h+="<td>"+n(x.gmi_beneish,2)+"</td>";
+      h+="<td>"+n(x.quality_score,1)+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" ranked names. As of "+esc((d&&d.as_of)||"")+".</p>";
+  }
+  if(!rows.length){document.getElementById("board").textContent="earnings-quality.json missing or empty.";return;}
+  document.getElementById("q").oninput=paint; paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
