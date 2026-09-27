@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:68px 14px 60px;margin:0}
+body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px;margin:0}
 a{color:var(--cyan);text-decoration:none}
 h1{font-size:20px;margin:0}
 .sub{color:var(--dim);font-size:12px;margin-top:3px;max-width:700px}
@@ -33,7 +33,6 @@ tr:hover td{background:var(--panel2)}
 .loading{color:var(--dim);padding:40px;text-align:center}
 .foot{color:var(--dim);font-size:11px;margin-top:24px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
-#observationFilter{display:block;width:100%;max-width:360px;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:5px;padding:9px 11px;margin:6px 0 12px;font:inherit}#observationFilter:focus-visible{outline:2px solid var(--cyan)}
 </style>
 </head>
 <body>
@@ -43,12 +42,10 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}t
 </div>
 <div id="banner"></div>
 <div class="statbar" id="statbar"></div>
-<label for="observationFilter">Filter received ticker / source record</label> <input id="observationFilter" aria-label="Filter received ticker or source record" autocomplete="off">
 <div id="content"><div class="loading">⟳ loading estimate revisions…</div></div>
 <div class="foot" id="foot"></div>
 <details><summary>Complete received estimate-revisions packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
 <script src="/jh-table-values.js"></script>
-<script src="/jh-estimate-observations.js?v=20260927-estimate-observations-v1"></script>
 <script>
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pct=v=>JHTableValues.percent(v,2);
@@ -79,7 +76,6 @@ function revTbl(rows){
 }
 function paint(){
   var d=PACK; if(!d) return;
-  if(d.measurement_contract===JHEstimateObservations.CONTRACT){paintObservations(d);return;}
   document.getElementById("banner").innerHTML = d.status==="WARMING"
     ? '<div class="banner">Producer reports WARMING \u2014 tracked count '+JHTableValues.count(d.n_tracked)+".</div>"
     : '<div class="banner">Producer status '+esc(d.status||"unavailable")+" \u2014 reported names with history: "+JHTableValues.count(d.n_with_history)+".</div>";
@@ -99,41 +95,11 @@ function paint(){
   if(up.length) h+='<h2 class="g">Upward Revisions <small>click headers to sort</small></h2>'+revTbl(up);
   if(dn.length) h+='<h2 class="r">Downward Revisions <small>click headers to sort</small></h2>'+revTbl(dn);
   if(!up.length&&!dn.length) h+='<div class="loading">No directional rows in this publication. Inspect the original packet for coverage and source status.</div>';
-  h+=observationTable(d);
   document.getElementById("content").innerHTML=h;
   JHTableValues.bindSort(document.querySelectorAll("#content th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=k==="ticker"||k==="earnings_date"?1:-1;}paint();});
   document.getElementById("foot").innerHTML=
     "Reported source: "+esc(d.data_source||"unavailable")+" \u00b7 publication "+esc(d.generated_at||"unavailable")+". Publication time does not establish observation freshness. Malformed rows remain in the complete packet and render as empty rows. No Calls or sizing permission.";
-  bindObservations();
 }
-let OBS_SORT='ticker',OBS_DIR=1;
-const OBS_COLS=[['ticker','Ticker','text'],['target','Annual target end','text'],['event_date','Calendar event date','text'],['event_period','Calendar period','text'],['currency','Currency','text'],['basis','EPS basis','text'],['eps','Reported EPS','number'],['low','EPS low','number'],['high','EPS high','number'],['analysts','EPS analysts','number'],['change','Same-target change','number'],['change_pct','Change % (positive base)','number'],['received','Received UTC','text'],['status','Measurement status','text'],['source','Source record','text']];
-function observationTable(d){
- const all=JHEstimateObservations.rows(d),q=document.getElementById('observationFilter').value.trim().toUpperCase();
- const filtered=all.filter(r=>!q||String(r.ticker||'').toUpperCase().includes(q)||String(r.source||'').toUpperCase().includes(q));
- const kind=OBS_COLS.find(c=>c[0]===OBS_SORT)?.[2]||'text';filtered.sort((a,b)=>JHTableValues.compare(a,b,OBS_SORT,OBS_DIR,kind));
- let h='<h2>Complete received occurrences</h2><p>'+filtered.length+' shown / '+all.length+' received display records. Repeated symbols are retained source occurrences, not independent votes.</p>';
- h+='<div role="region" aria-label="Annual estimate observations" tabindex="0" style="overflow:auto"><table id="observationBoard" style="min-width:1800px"><thead><tr>';
- for(const c of OBS_COLS)h+='<th data-k="'+c[0]+'">'+esc(c[1])+(OBS_SORT===c[0]?(OBS_DIR>0?' ↑':' ↓'):'')+'</th>';
- h+='</tr></thead><tbody>';
- for(const row of filtered){h+='<tr>';for(const c of OBS_COLS)h+='<td>'+esc(c[2]==='number'?num(row[c[0]]):row[c[0]])+'</td>';h+='</tr>';}
- return h+'</tbody></table></div>';
-}
-function bindObservations(){
- const headers=document.querySelectorAll('#observationBoard th[data-k]');
- JHTableValues.bindSort(headers,OBS_SORT,OBS_DIR,k=>{if(OBS_SORT===k)OBS_DIR=-OBS_DIR;else{OBS_SORT=k;OBS_DIR=1;}paint();});
-}
-function paintObservations(d){
- document.getElementById('banner').textContent='Reported annual estimates and calendar events. Missing issuer, currency or EPS basis prevents a comparable revision. No strength score or sizing permission.';
- document.getElementById('statbar').textContent=JHTableValues.count(d.n_tracked)+' calendar rows · '+JHTableValues.count(d.n_requested_occurrences)+' selected request occurrences · '+JHTableValues.count(d.n_estimate_observations)+' estimate observations.';
- let h=observationTable(d);
- h+='<details><summary>All '+d.calendar_rows.length+' received calendar rows</summary><div role="region" aria-label="Received earnings calendar" tabindex="0" style="overflow:auto"><table><thead><tr><th>Ticker</th><th>Event date</th><th>Period</th><th>Year</th><th>Source record</th></tr></thead><tbody>';
- d.calendar_rows.forEach((value,i)=>{const r=value&&typeof value==='object'?value:{};h+='<tr><td>'+esc(r.ticker)+'</td><td>'+esc(r.date)+'</td><td>'+esc(r.fiscal_period)+'</td><td>'+esc(r.fiscal_year)+'</td><td>calendar_rows['+i+']</td></tr>';});
- document.getElementById('content').innerHTML=h+'</tbody></table></div></details>';
- document.getElementById('foot').textContent='Published '+(d.generated_at||'Unavailable')+'. Received timestamps are acquisition clocks, not the provider first-release time. Analyst estimates update weekly according to provider documentation. Calendar normalization, coverage, analyst-panel stability and corporate actions remain unverified.';
- bindObservations();
-}
-document.getElementById('observationFilter').addEventListener('input',()=>{paint();});
 function render(d){for(const k of ['upward_revisions','downward_revisions','top_picks'])if(d[k]!==undefined&&!Array.isArray(d[k]))throw Error('Malformed published population: '+k);PACK=d;paint();}
 let generation=0,refreshTimer=null;
 function clear(){PACK=null;for(const id of ['banner','statbar','content','foot'])document.getElementById(id).textContent='';document.getElementById('original').textContent='Unavailable';}

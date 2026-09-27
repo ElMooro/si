@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-estimate-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-estimate-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-earnings-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-earnings-observations.js'),'utf8'),ctx);
  for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))vm.runInContext(m[1],ctx);
  return{ctx,get,calls,document,intervals,listeners,html};
@@ -117,4 +118,22 @@ test('rejected JSON remains inert inspectable source text on every desk',async()
 test('all four complete predecessors are retained and tables remain keyboard-scrollable',()=>{
  const hashes={'earnings-quality.html':'0e30458ec4b63879ec3269b73a041ef6e611c08fa0af4caea656b0d06a2fa1ae','cash-profitability.html':'ded12b28cc35ef6b5445245a8a874ac663fda7ea765260927e18ffac798a9a39','hiring-velocity.html':'a2bb015cc9356aab7d816dcb4d4e9b78f8e8c9b8095ab8ac2d2c5f24c514e42e','estimate-revisions.html':'51dbbd81ed5f65b57de563a19e4a65e862948df5759b4d618cefa6a9a465db6f'};
  for(const[file,hash]of Object.entries(hashes)){assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'fixtures','pre-desk-numeric-'+file+'.txt'))).digest('hex'),hash);const current=fs.readFileSync(path.join(root,file),'utf8');assert.match(current,/jh-table-values\.js/);assert.match(current,/tabindex="0"/);assert.match(current,/id="original"/);}
+});
+
+test('annual estimates retain every target and failed occurrence without restoring scores or event-period joins',async()=>{
+ const p={measurement_contract:'estimate-observations.v1',calendar_rows:[{ticker:'TEST',date:'2030-01-01',fiscal_period:'Q1'}],request_records:[
+  {ticker:'TEST',calendar_index:0,observations:[{target_period_end:'2030-12-31',reported_currency:'JPY',eps_basis:'reported',values:{epsAvg:0,numAnalystsEps:3},target_status:'current_or_future_target',measurement_status:'reported_estimate_observation'}],comparisons:[{eps_change:null,status:'no_unique_comparable_prior_observation'}]},
+  {ticker:'<script>BAD</script>',calendar_index:0,acquisition:{status:'unavailable'},observations:[],comparisons:[]}],top_picks:[{ticker:'SHOULD_NOT_SHOW',score:999}]};
+ const s=page('estimate-revisions.html',async()=>raw(p));await flush();const h=s.get('content').innerHTML;
+ assert.match(h,/2030-12-31/);assert.match(h,/2030-01-01/);assert.match(h,/JPY/);assert.match(h,/<td>0<\/td>/);assert.match(h,/2 received display records/);
+ assert.match(h,/&lt;script&gt;BAD/);assert.ok(!h.includes('SHOULD_NOT_SHOW'));assert.ok(!h.includes('<script>'));
+ assert.match(s.get('banner').textContent,/Missing issuer, currency or EPS basis/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+ s.get('observationFilter').value='TEST';s.get('observationFilter').oninput();assert.match(s.get('content').innerHTML,/1 shown \/ 2/);s.listeners.pagehide();
+});
+
+test('legacy full map and every published list occurrence are retained as unverified estimates',()=>{
+ const m=require('../jh-estimate-observations.js'),p={by_ticker:{A:{ticker:'A',current_eps_est:0}},estimate_strength_leaders:[{ticker:'A'}],upward_revisions:[{ticker:'A'}],top_picks:[{ticker:'A'}]};
+ const copy=JSON.stringify(p),r=m.rows(p);assert.equal(r.length,4);assert.equal(r[3].eps,0);assert.ok(r.every(x=>x.target===null&&x.change===null));assert.equal(JSON.stringify(p),copy);
+ assert.throws(()=>m.rows({measurement_contract:m.CONTRACT,request_records:[],calendar_rows:null}),/Complete/);
+ assert.throws(()=>m.rows({measurement_contract:m.CONTRACT,request_records:[{observations:null}],calendar_rows:[]}),/Malformed/);
 });

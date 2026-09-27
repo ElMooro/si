@@ -95,7 +95,7 @@ def _strength(growth, eps_rev_pct, n_an):
     return round(max(0, min(100, s)), 1)
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     t0 = time.time()
     today = datetime.now(timezone.utc).date().isoformat()
 
@@ -276,3 +276,120 @@ def lambda_handler(event=None, context=None):
         "n_with_history": n_with_history, "n_up": len(up), "n_down": len(down),
         "n_strength_leaders": len(strength_leaders), "n_picks": len(top_picks),
         "elapsed_s": out["elapsed_s"]})}
+
+# Same existing provider scope; full target identities replace heuristic rankings.
+import hashlib
+import urllib.parse
+from estimate_observations import CONTRACT, strict, number, day, clock, envelope, dossier
+
+
+def _estimate_fetch(symbol):
+    import re
+    if not isinstance(symbol,str) or not re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}',symbol):
+        return {'status':'invalid_symbol_not_requested'}
+    if not FMP_KEY:return {'status':'credential_unavailable'}
+    url='https://financialmodelingprep.com/stable/analyst-estimates?symbol='+urllib.parse.quote_plus(symbol)+'&period=annual&limit=6&apikey='+FMP_KEY
+    try:
+        request=urllib.request.Request(url,headers={'User-Agent':'jh-rev/1'})
+        with urllib.request.urlopen(request,timeout=12) as response:raw=response.read(1024*1024+1)
+        if len(raw)>1024*1024:raise ValueError('Complete response exceeds acquisition bound')
+        # Never publish an echoed credential, including an error masquerading as data.
+        if len(FMP_KEY)>=8 and FMP_KEY.encode() in raw:raise ValueError('Credential echo')
+        return envelope(raw,datetime.now(timezone.utc).isoformat())
+    except Exception as exc:
+        return {'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
+                'error_type':type(exc).__name__}
+
+
+def _estimate_previous():
+    try:obj=S3.get_object(Bucket=BUCKET,Key=OUT_KEY)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'):return None,None,None
+        raise
+    raw=obj['Body'].read(32*1024*1024+1)
+    if len(raw)>32*1024*1024 or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole previous publication required')
+    parsed=strict(raw)
+    if not isinstance(parsed,dict):raise ValueError('Previous publication is malformed')
+    return parsed,raw,obj['ETag']
+
+
+def _estimate_archive(raw):
+    key='data/estimate-revisions/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType='application/json',CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','ConditionalRequestConflict','PreconditionFailed'):raise
+    obj=S3.get_object(Bucket=BUCKET,Key=key);back=obj['Body'].read(len(raw)+1)
+    if obj.get('ContentLength')!=len(raw) or back!=raw:raise ValueError('Immutable publication readback differs')
+    return {'key':key,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc);today=checked.date().isoformat()
+    previous,previous_raw,etag=_estimate_previous()
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous publication clock is invalid')
+    calendar=fetch_calendar(days_ahead=HORIZON_DAYS,min_importance=MIN_IMPORTANCE,limit=1000)
+    if not isinstance(calendar,list) or not calendar:raise ValueError('No complete received calendar; preserve previous output')
+    def priority(pair):
+        _,row=pair;row=row if isinstance(row,dict) else {};target=day(row.get('date'));importance=number(row.get('importance'))
+        return ((target-checked.date()).days if target else 999,-(importance if importance is not None else 0))
+    selected=sorted(enumerate(calendar),key=priority)[:FMP_SEED_CAP]
+    acquisitions=[{'status':'not_attempted_runtime_rate_or_size_limit'} for _ in selected]
+    def remaining():
+        value=(context.get_remaining_time_in_millis()/1000 if context and hasattr(context,'get_remaining_time_in_millis') else 120-(time.monotonic()-started))
+        return min(value,120-(time.monotonic()-started))
+    # Bounded windows preserve the 10-thread maximum and declare every unattempted occurrence.
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        for offset in range(0,len(selected),10):
+            if remaining()<22:break
+            jobs=[]
+            for index in range(offset,min(offset+10,len(selected))):
+                row=selected[index][1];symbol=row.get('ticker') if isinstance(row,dict) else None
+                jobs.append((index,pool.submit(_estimate_fetch,symbol)))
+            for index,future in jobs:acquisitions[index]=future.result()
+            if any(acquisitions[index].get('status')=='rate_limited' for index,_ in jobs):break
+            if sum(a.get('original_bytes',0) for a in acquisitions)>=4*1024*1024:break
+    if not any(a.get('status')=='received' for a in acquisitions):raise ValueError('All estimate acquisitions failed; preserve previous output')
+    prior_by_symbol={}
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        old_rows=previous.get('request_records')
+        if not isinstance(old_rows,list):raise ValueError('Complete prior observation population required')
+        for row in old_rows:
+            if not isinstance(row,dict):raise ValueError('Invalid prior observation')
+            prior_by_symbol.setdefault(row.get('ticker'),[]).append(row)
+    records=[]
+    for request_index,((calendar_index,row),acquisition) in enumerate(zip(selected,acquisitions)):
+        symbol=row.get('ticker') if isinstance(row,dict) else None
+        old=prior_by_symbol.get(symbol,[])
+        prior=old[0].get('acquisition') if len(old)==1 else None
+        record=dossier(symbol,acquisition,today,prior)
+        record.update(request_index=request_index,calendar_index=calendar_index)
+        records.append(record)
+    selected_indices={index for index,_ in selected}
+    prior_ref=_estimate_archive(previous_raw) if previous_raw is not None else None
+    out={'engine':'justhodl-estimate-revisions','version':'3.2.0','measurement_contract':CONTRACT,
+         'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,'status':'RESEARCH_ONLY',
+         'calendar_rows':calendar,'calendar_original_http_retained':False,
+         'calendar_lineage':'existing bundled benzinga.fetch_calendar normalization; event date is not estimate target period',
+         'request_records':records,'not_selected_calendar_indices':[i for i in range(len(calendar)) if i not in selected_indices],
+         'horizon_days':HORIZON_DAYS,'request_limit':FMP_SEED_CAP,'n_tracked':len(calendar),
+         'n_requested_occurrences':len(records),'n_fmp_enriched':sum(a.get('status')=='received' for a in acquisitions),
+         'n_estimate_observations':sum(len(r['observations']) for r in records),'n_with_history':None,'n_state_keys':None,
+         'previous_publication':prior_ref,'direction_map':{},'estimate_strength_leaders':[],
+         'upward_revisions':[],'downward_revisions':[],'top_picks':[],'by_ticker':{},
+         'call':None,'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,
+         'signals_logged':0,'notifications_sent':0,'private_state_read_or_written':False,
+         'source_documentation':['https://site.financialmodelingprep.com/developer/docs/cycle-times'],
+         'caveats':['Annual target dates remain separate from scheduled earnings events. Historical targets are retained, never relabelled forward.',
+                    'Consensus changes require one matching target, reported issuer, currency and EPS basis across ordered received snapshots.',
+                    'A consensus-average change does not verify a fixed analyst panel, corporate actions, first publication time or forecast edge.',
+                    'Provider analyst estimates update weekly according to documentation; fetching daily does not make them daily observations.',
+                    'Calendar normalization, request limits, provider universe completeness and first-release availability remain unverified.'],
+         'elapsed_s':round(time.monotonic()-started,2)}
+    raw=json.dumps(out,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
+    if len(raw)>32*1024*1024:raise ValueError('Whole publication exceeds bound; preserve previous output')
+    archived=_estimate_archive(raw)
+    precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=OUT_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'n_tracked':len(calendar),'n_estimate_observations':out['n_estimate_observations'],'archive':archived})}
