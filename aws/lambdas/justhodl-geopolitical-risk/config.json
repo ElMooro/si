@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-geopolitical-risk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Dated public RSS research: whole originals, complete feed/country coverage, retained histories and replay. No market-pricing or forecast authority."
+}

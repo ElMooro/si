@@ -3,75 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Geopolitical Risk Monitor · JustHodl.AI</title>
+<meta name="jh-primary-engine" content="justhodl-geopolitical-risk">
+<title>Geopolitical News Research · JustHodl.AI</title>
+<meta name="description" content="Dated public-news observations, complete feed coverage, publisher-date exclusions and source evidence. No geopolitical probability or market-pricing claim.">
+<link rel="stylesheet" href="/business-cycle-review.css">
 <style>
-:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
-h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
-.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}@media(max-width:820px){.grid3{grid-template-columns:1fr}}
-.chip{display:inline-block;border-radius:999px;padding:2px 11px;font-size:11px;margin:0 6px 6px 0;border:1px solid var(--text-mute);color:var(--text-dim)}
-.row{display:flex;align-items:center;gap:9px;margin:5px 0;font-size:12.5px}
-.bar{flex:1;height:13px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{color:var(--text-mute);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
-td{padding:6px 8px;border-bottom:1px solid var(--border)}
-.hl{cursor:pointer}.hl:hover{background:rgba(255,255,255,.03)}
-.hdrow{display:none}.hdrow.open{display:table-row}.hd{color:var(--text-dim);font-size:11.5px;padding:4px 8px 10px 24px}
-.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+body{margin:0;background:#080e17;color:#e7edf7;font-family:system-ui,sans-serif;line-height:1.55}.geo-wrap{max-width:1240px;margin:auto;padding:28px 20px 70px}.geo-eyebrow{font-size:12px;letter-spacing:.12em;color:#8cacd0}h1{font-size:30px;line-height:1.2}h2{font-size:20px;margin:0 0 12px}p{max-width:95ch}.geo-muted{color:#a0b0c5}.geo-panel{padding:20px;border:1px solid #26384c;background:#101b2b;border-radius:10px;margin:18px 0;min-width:0}.geo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.geo-card{border:1px solid #26384c;padding:16px;border-radius:8px;overflow-wrap:anywhere}.geo-card b{display:block;font-size:20px;color:#d8e6f6}.geo-wait{border-left:4px solid #e0b463}.geo-scroll{max-width:100%;overflow:auto;max-height:640px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid #27374a;min-width:100px;overflow-wrap:anywhere}th{position:sticky;top:0;background:#162438}td:nth-child(2){max-width:440px}button,select,input{font:inherit;background:#17283c;color:#edf5ff;border:1px solid #567089;padding:9px 12px;border-radius:6px;max-width:100%}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}:focus-visible{outline:3px solid #73bdff;outline-offset:3px}.geo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:600px;overflow:auto;font-size:12px}summary{cursor:pointer;font-weight:600}a{color:#83c2ff}@media(max-width:720px){.geo-grid{grid-template-columns:1fr}.geo-wrap{padding:20px 12px}.geo-panel{padding:14px}h1{font-size:25px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>🌍 Geopolitical Risk Monitor</h1>
-<div class="sub">Country stress from live news-flow — 208-feed corpus, crisis-lexicon intensity, escalation z-scores, crossed vs CDS-derived financial stress. Daily 11:30 UTC.</div>
-<div class="grid3" id="hero"><div class="card mono">LOADING…</div></div>
-<div class="sec">Country Board — score · crisis flow · escalation (click a row for headlines)</div>
-<div class="card"><table id="tbl"><thead><tr><th>Country</th><th style="width:34%">Stress 0–100</th><th>48h mentions</th><th>Crisis hits</th><th>Crisis share</th><th>Vel z</th><th>Crisis z</th></tr></thead><tbody></tbody></table></div>
-<div class="sec">News vs Financial Stress — the divergence board</div>
-<div class="grid3" id="cross"></div>
-<div class="foot" id="foot"></div>
+<main class="geo-wrap" id="geo-review">
+<div class="geo-eyebrow">PUBLIC NEWS · DATED OBSERVATIONS · SOURCE COVERAGE</div>
+<h1>Geopolitical News Research</h1>
+<p class="geo-muted">Inspect country mentions and literal vocabulary in the configured public RSS corpus. Publisher selection, syndication and missing dates limit what these observations can establish.</p>
+<section class="geo-panel geo-wait" aria-labelledby="geo-authority">
+<h2 id="geo-authority">WAIT · research abstention</h2>
+<p>News counts do not establish geopolitical severity, an investable forecast, a risk premium or what markets have priced in. No stress ranking, escalation instruction, position size or execution permission is available.</p>
+<p id="geo-mode">Reading measurement definitions…</p>
+</section>
+<div class="geo-controls"><button id="geo-refresh" type="button">Refresh public record</button><span id="geo-status" role="status" aria-live="polite">Reading the complete public packet…</span></div>
+<div class="geo-grid">
+<div class="geo-card">SOURCE COVERAGE<b id="geo-coverage">Unavailable</b>Failed feeds remain visible.</div>
+<div class="geo-card">OBSERVATION POPULATION<b id="geo-entry-count">Unavailable</b>Title grouping is not verification of unique events.</div>
+<div class="geo-card">MODEL AUTHORITY<b>None</b>No qualified forecast or portfolio instruction.</div>
 </div>
+<section class="geo-panel"><h2>Country observations</h2>
+<p class="geo-muted">New packets count normalized title groups with explicit publisher dates inside the stated 24/48-hour windows. Raw feed-entry counts are separate. Legacy packets are labeled unverified. Zero observed mentions never means zero geopolitical risk.</p>
+<div class="geo-controls"><label for="geo-search">Find a country</label><input id="geo-search" type="search" placeholder="Country name"></div>
+<p id="geo-country-count"></p><div class="geo-scroll" id="geo-countries" tabindex="0" aria-label="Complete country observations"></div></section>
+<section class="geo-panel"><h2>Country headline evidence</h2>
+<p class="geo-muted">Every matching raw entry remains available through pagination. Undated, future-dated and older entries remain in the complete packet below; they cannot borrow the time at which this system downloaded a feed.</p>
+<div class="geo-controls"><label for="geo-country">Country</label><select id="geo-country"></select><button id="geo-prev" type="button" disabled>Previous 50</button><button id="geo-next" type="button" disabled>Next 50</button></div>
+<p id="geo-entry-status"></p><div class="geo-scroll" id="geo-entries" tabindex="0" aria-label="Dated headline evidence"></div></section>
+<section class="geo-panel"><h2>Complete feed coverage</h2><p class="geo-muted">All configured feeds are listed for new publications. HTTP failures and malformed responses are distinct from valid empty feeds. The acquisition clock is not a publisher date.</p><div class="geo-scroll" id="geo-feeds" tabindex="0" aria-label="All configured feed acquisition results"></div></section>
+<section class="geo-panel"><h2>Preservation and replay</h2><p id="geo-preservation">Reading preservation metadata…</p><p class="geo-muted">Legacy history is preserved with its original definitions. New observations do not acquire a historical z-score or predictive track record merely because the code deploys. The original daily producer runs at 11:30 UTC.</p></section>
+<details class="geo-panel"><summary>Inspect the complete public packet, including exclusions and all original fields</summary><pre id="geo-raw">Unavailable</pre></details>
+<p class="geo-muted">Corpus attribution: curated public RSS URLs adapted from <a href="https://github.com/koala73/worldmonitor" rel="noreferrer">World Monitor</a> (AGPL-3.0). Measurements and qualification rules are JustHodl-original. <a href="/global-sovereign.html">Review sovereign source observations separately</a>.</p>
+</main>
 <script src="/jh-nav-drawer.js" defer></script>
-<script>
-(async function(){try{
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/geopolitical-risk.json?t='+Date.now());
-if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable</div>';return;}
-var g=await r.json();
-var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
-function col(s){return s>=70?RED:s>=50?AMB:s>=30?NEU:GRN;}
-var esc=(g.escalating||[]).map(function(e){return '<span class="chip" style="border-color:'+RED+';color:'+RED+'">▲ '+e.country+' z'+e.velocity_z+'</span>';}).join('')||'<span class="chip">no z-escalations yet — 90d history building</span>';
-document.getElementById('hero').innerHTML=
- '<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">GLOBAL TEMPERATURE</div><div class="mono" style="font-size:34px;font-weight:800;color:'+col(g.global_temp)+'">'+g.global_temp+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">mean stress across '+((g.rankings||[]).length)+' tracked countries</div></div>'
-+'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">TOP COUNTRY</div><div class="mono" style="font-size:28px;font-weight:800;color:'+RED+'">'+g.top_country+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+((g.rankings||[])[0]||{}).mentions_48h+' mentions · '+((g.rankings||[])[0]||{}).crisis_hits+' crisis headlines (48h)</div></div>'
-+'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">ESCALATING (z≥1.5)</div><div style="margin-top:8px">'+esc+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+((g.sources||{}).feeds_responding||0)+'/'+((g.sources||{}).feeds_in_corpus||0)+' feeds · '+((g.sources||{}).articles_scanned||0)+' articles</div></div>';
-var tb=document.querySelector('#tbl tbody');
-(g.rankings||[]).forEach(function(x,i){
- var c=col(x.stress_score);
- var tr=document.createElement('tr');tr.className='hl';
- tr.innerHTML='<td class="mono" style="font-weight:700;color:'+c+'">'+x.country+'</td>'
- +'<td><div class="row"><div class="bar"><div style="width:'+x.stress_score+'%;height:13px;background:linear-gradient(90deg,'+c+'44,'+c+')"></div></div><b class="mono" style="width:42px;text-align:right;color:'+c+'">'+x.stress_score+'</b></div></td>'
- +'<td class="mono">'+x.mentions_48h+'</td><td class="mono" style="color:'+(x.crisis_hits>=20?RED:NEU)+'">'+x.crisis_hits+'</td>'
- +'<td class="mono">'+Math.round((x.crisis_share||0)*100)+'%</td>'
- +'<td class="mono" style="color:'+((x.velocity_z||0)>=1.5?RED:MUT)+'">'+(x.velocity_z||0)+'</td>'
- +'<td class="mono" style="color:'+((x.crisis_z||0)>=1.5?RED:MUT)+'">'+(x.crisis_z||0)+'</td>';
- var hd=document.createElement('tr');hd.className='hdrow';
- hd.innerHTML='<td colspan="7" class="hd">'+((x.headlines||[]).map(function(h){return (h.crisis?'⚠ ':'• ')+h.title+' <span style="color:'+MUT+'">('+h.src+')</span>';}).join('<br>')||'<span style="color:'+MUT+'">no recent headlines captured</span>')+'</td>';
- tr.onclick=function(){hd.classList.toggle('open');};
- tb.appendChild(tr);tb.appendChild(hd);
-});
-var gc=g.gssi_cross||{};
-function crossCard(t,items,c,note){return '<div class="card"><div class="mono" style="font-size:11px;color:'+c+';letter-spacing:1px">'+t+'</div><div style="margin-top:8px">'+(items.map(function(x){return '<div class="row mono" style="font-size:12px"><b style="width:84px;color:'+c+'">'+x.country+'</b><span style="color:'+MUT+'">news '+x.news+' vs fin '+x.fin+'</span><b style="margin-left:auto;color:'+c+'">'+(x.gap>0?'+':'')+x.gap+'</b></div>';}).join('')||'<span class="mono" style="font-size:11px;color:'+MUT+'">none</span>')+'</div><div class="mono" style="font-size:10.5px;color:'+MUT+';margin-top:8px">'+note+'</div></div>';}
-document.getElementById('cross').innerHTML=
- crossCard('NEWS LEADS — early warning',gc.news_leads||[],AMB,'news-flow hot before CDS moves: watch for financial catch-up')
-+crossCard('PRICED IN — market already knows',gc.priced_in||[],'#8b96a8','CDS stressed while news quiet: chronic, no new information')
-+crossCard('CONFIRMED HIGH — both hot',(gc.rows||[]).filter(function(x){return x.state==='CONFIRMED_HIGH';}),RED,'news and financial stress aligned: full risk premium justified');
-document.getElementById('foot').textContent='Corpus adapted from World Monitor (koala73/worldmonitor, AGPL-3.0) — URLs as facts; scoring, escalation model and GSSI cross are JustHodl-original. Financial stress: global-sovereign CDS-derived stress_0_100 ('+(gc.mapped_n||0)+'/'+((g.rankings||[]).length)+' countries mapped). Generated '+g.generated_at;
-}catch(e){console.error(e);}})();
-</script>
+<script src="/jh-geo-review.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>

@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "2.0.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/geopolitical-risk.json"
 HIST_KEY = "geo/geopolitical-risk-history.json"
@@ -125,7 +125,7 @@ def _parse_date(s):
     return None
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_unqualified_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     cutoff = (now - timedelta(days=2)).timestamp()
 
@@ -321,6 +321,17 @@ def lambda_handler(event=None, context=None):
           f"escalating={len(escalating)}")
     return {"ok": True, "top": doc["top_country"], "temp": doc["global_temp"],
             "escalating": len(escalating), "articles": n_articles}
+
+
+# Complete dated news observations; no score-derived financial or alert authority.
+def lambda_handler(event=None, context=None):
+    from geo_news_store import run
+    try:
+        result=run(S3,BUCKET,CORPUS,COUNTRIES)
+        return {"statusCode":200 if result["published"] else 409,"body":json.dumps(result)}
+    except Exception as exc:
+        print("Geopolitical research publication failed: "+type(exc).__name__)
+        return {"statusCode":503,"body":json.dumps({"ok":False,"error":type(exc).__name__})}
 
 
 if __name__ == "__main__":
