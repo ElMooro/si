@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reserves production · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+input{max-width:320px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:860px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
+</style></head><body><div class="wrap">
+<h1>Reserves and production</h1>
+<p class="sub">S-K 1200 / 1300 proved reserves, revisions and production only when those tags exist. Energy and materials names come from capex + inventory sector text. PV-10 and AISC stay blank.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter ticker" autocomplete="off">
+<p class="sub" id="status">Loading capex and inventory.</p>
+<div id="board" class="table-region">Loading.</div>
+<div class="foot"><b>Built for:</b> energy and metals cycle from reserve revisions.<br><b>Data:</b> /data/capex-pulse.json rows[]; /data/inventory-drawdown.json stock_drawdown_board[].<br><b>Blank on purpose:</b> proved, revisions, production, PV-10, AISC.<br><b>Not:</b> a commodity forecast. Research only.</div></div>
+<script>
+function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function energyish(s){s=String(s||"").toLowerCase();return /energy|oil|gas|miner|metal|coal|copper|gold|silver|steel|material/.test(s);}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker).localeCompare(String(b.ticker));return 1;}if(bv==null||bv==="")return -1;if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;return String(av).localeCompare(String(bv))*dir;}
+async function load(p){try{var r=await fetch(p,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+(async function(){
+  var cap=await load("/data/capex-pulse.json"),inv=await load("/data/inventory-drawdown.json"),by={};
+  function row(t){t=String(t||"").toUpperCase();if(!t)return null;if(!by[t])by[t]={ticker:t,sector:"",dio:null,capex:null};return by[t];}
+  ((cap&&cap.rows)||[]).forEach(function(r){if(!energyish(r.sector))return;var x=row(r.ticker);if(x){x.sector=r.sector||"";x.capex=num(r.capex_ttm_b);}});
+  ((inv&&inv.stock_drawdown_board)||[]).forEach(function(r){var sec=r.sector||r.industry||"";if(!energyish(sec)&&!by[String(r.ticker||"").toUpperCase()])return;var x=row(r.ticker);if(x){if(!x.sector)x.sector=sec;x.dio=num(r.dio_latest);}});
+  var rows=Object.keys(by).map(function(k){return by[k];});
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+rows.length+" energy/materials names</span><span class='chip'>0 S-K reserve tags</span>";
+  var sort="ticker",dir=1,q="";
+  function paint(){
+    var list=rows.filter(function(r){return !q||(r.ticker+" "+r.sector).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr><th data-k='ticker'>Ticker</th><th data-k='sector'>Sector</th><th data-k='dio'>DIO</th><th data-k='capex'>Capex $B</th><th>Proved</th><th>Revisions</th><th>Production</th><th>PV-10</th><th>AISC</th></tr></thead><tbody>";
+    list.forEach(function(r){h+="<tr><td><a href='/ticker.html?symbol="+encodeURIComponent(r.ticker)+"'>"+esc(r.ticker)+"</a></td><td>"+esc(r.sector)+"</td><td class='r'>"+esc(r.dio==null?"":r.dio.toFixed(1))+"</td><td class='r'>"+esc(r.capex==null?"":r.capex.toFixed(2))+"</td><td></td><td></td><td></td><td></td><td></td></tr>";});
+    document.getElementById("board").innerHTML=h+"</tbody></table>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=k==="ticker"||k==="sector"?1:-1;}paint();};});
+    document.getElementById("status").textContent=list.length+" names. Reserve/PV-10/AISC columns blank.";
+  }
+  document.getElementById("q").oninput=function(){q=(this.value||"").toUpperCase();paint();};paint();
+})();
+</script>
+</div><script src="/jh-nav-drawer.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/sidebar.js" defer></script></body></html>

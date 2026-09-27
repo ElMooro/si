@@ -3,71 +3,48 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cash conversion cycle · JustHodl</title>
 <style>
-:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
 .wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
 h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
 .chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
 input{max-width:320px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
-table{width:100%;border-collapse:collapse;min-width:980px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
-th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
-.r{text-align:right}.pos{color:var(--grn)}.neg{color:var(--red)}a{color:var(--cyan);text-decoration:none}
+table{width:100%;border-collapse:collapse;min-width:860px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}.r{text-align:right}a{color:var(--cyan);text-decoration:none}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 .table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
-</style></head>
-<body>
-<div class="wrap">
+</style></head><body><div class="wrap">
 <h1>Cash conversion cycle</h1>
-<p class="sub">Working-capital cycle. DSRI and cash conversion come from earnings-quality. DIO comes from inventory-drawdown. Dollar DSO, DPO and CCC days stay blank until those tags exist. This page does not invent CCC = DSO + DIO − DPO from missing parts. Click headers to sort. Nulls stay last.</p>
+<p class="sub">DSO days, DPO days and CCC days stay blank until those tags exist. DSRI and DIO are live from earnings-quality and inventory-drawdown. Cash conversion here is OCF/NI, not CCC days.</p>
 <div id="kpis"></div>
-<input id="q" placeholder="filter ticker or name" autocomplete="off">
+<input id="q" placeholder="filter ticker" autocomplete="off">
 <p class="sub" id="status">Loading quality and inventory.</p>
-<div id="board" class="table-region">Loading working-capital desk.</div>
-<div class="foot"><b>Built for:</b> seeing receivables quality and inventory days together, without inventing a complete cash-conversion-cycle number.<br>
-<b>Data:</b> /data/earnings-quality.json all_ranked[] (ticker, name, dsri_beneish, sloan_accruals_pct_assets, cash_conversion_ratio); /data/inventory-drawdown.json stock_drawdown_board[] (dio_latest, dio_chg_pct).<br>
-<b>Blank on purpose:</b> DSO days, DPO days, CCC days. Receivables / payables dollar tags are not on these packets. DSRI is a ratio, not days sales outstanding.<br>
-<b>Related:</b> <a href="/quality-cycle.html">quality cycle</a> · <a href="/earnings-quality.html">earnings quality</a>. Research only.</div>
-</div>
+<div id="board" class="table-region">Loading.</div>
+<div class="foot"><b>Built for:</b> working-capital cycle in days when DSO and DPO exist.<br><b>Data:</b> /data/earnings-quality.json all_ranked[]; /data/inventory-drawdown.json stock_drawdown_board[].<br><b>Blank on purpose:</b> DSO days, DPO days, CCC days. DSRI is not DSO.<br><b>Not:</b> a replacement of quality-cycle. Research only.</div></div>
 <script>
-function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
-function pct(v){var n=num(v);return n==null?"":n.toFixed(1)+"%";}
-function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d);}
-function cls(v){var n=num(v);return n==null?"":(n>0?"pos":(n<0?"neg":""));}
-function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
-function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker||"").localeCompare(String(b.ticker||""));return 1;}if(bv==null||bv==="")return -1;if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;return String(av).localeCompare(String(bv))*dir;}
-async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function pct(v){var n=num(v);return n==null?"":n.toFixed(2);}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker).localeCompare(String(b.ticker));return 1;}if(bv==null||bv==="")return -1;if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;return String(av).localeCompare(String(bv))*dir;}
+async function load(p){try{var r=await fetch(p,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 (async function(){
-  var eq=await load("/data/earnings-quality.json");
-  var inv=await load("/data/inventory-drawdown.json");
-  var dio={};((inv&&inv.stock_drawdown_board)||[]).forEach(function(r){var t=String(r.ticker||"").toUpperCase();if(t)dio[t]=r;});
-  var rows=((eq&&eq.all_ranked)||[]).map(function(r){
-    var t=String(r.ticker||"").toUpperCase();var d=dio[t]||{};
-    return {ticker:t,name:r.name||"",dsri:num(r.dsri_beneish),sloan:num(r.sloan_accruals_pct_assets),cash:num(r.cash_conversion_ratio),dio:num(d.dio_latest),dio_chg:num(d.dio_chg_pct)};
-  }).filter(function(r){return r.ticker;});
-  var nDio=rows.filter(function(r){return r.dio!=null;}).length;
-  document.getElementById("kpis").innerHTML="<span class=chip>"+rows.length+" quality names</span><span class=chip>"+nDio+" with DIO</span><span class=chip>0 DSO/DPO/CCC tags</span>";
+  var eq=await load("/data/earnings-quality.json"),inv=await load("/data/inventory-drawdown.json"),by={};
+  function row(t){t=String(t||"").toUpperCase();if(!t)return null;if(!by[t])by[t]={ticker:t,dsri:null,ccr:null,dio:null};return by[t];}
+  ((eq&&eq.all_ranked)||[]).forEach(function(r){var x=row(r.ticker);if(x){x.dsri=num(r.dsri_beneish);x.ccr=num(r.cash_conversion_ratio);}});
+  ((inv&&inv.stock_drawdown_board)||[]).forEach(function(r){var x=row(r.ticker);if(x)x.dio=num(r.dio_latest);});
+  var rows=Object.keys(by).map(function(k){return by[k];}).filter(function(r){return r.dsri!=null||r.dio!=null||r.ccr!=null;});
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+rows.length+" names</span><span class='chip'>0 DSO/DPO tags</span>";
   var sort="dsri",dir=-1,qEl=document.getElementById("q");
   function paint(){
     var q=(qEl.value||"").toUpperCase();
-    var list=rows.filter(function(r){return !q||(r.ticker+" "+r.name).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
-    var h="<table><thead><tr>";[["ticker","Ticker"],["name","Name"],["dsri","DSRI"],["sloan","Sloan"],["cash","Cash conv"],["dio","DIO"],["dio_chg","DIO YoY"],["dso","DSO days"],["dpo","DPO days"],["ccc","CCC days"]].forEach(function(c){h+="<th class='"+(sort===c[0]?"on":"")+"' data-k='"+c[0]+"'>"+c[1]+(sort===c[0]?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
-    h+="</tr></thead><tbody>";
-    list.forEach(function(r){
-      h+="<tr><td><a href='/ticker.html?symbol="+encodeURIComponent(r.ticker)+"'>"+esc(r.ticker)+"</a></td><td>"+esc(r.name)+"</td>";
-      h+="<td class='r'>"+esc(fmt(r.dsri,2))+"</td><td class='r "+cls(r.sloan)+"'>"+esc(fmt(r.sloan,2))+"</td>";
-      h+="<td class='r'>"+esc(fmt(r.cash,2))+"</td><td class='r'>"+esc(fmt(r.dio,1))+"</td>";
-      h+="<td class='r "+cls(r.dio_chg)+"'>"+esc(pct(r.dio_chg))+"</td><td class='r'></td><td class='r'></td><td class='r'></td></tr>";
-    });
-    document.getElementById("board").innerHTML=h+closeTbl();
-    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=(k==="ticker"||k==="name")?1:-1;}paint();};});
-    document.getElementById("status").textContent=list.length+" of "+rows.length+" names. DSO / DPO / CCC days blank — tags not published.";
+    var list=rows.filter(function(r){return !q||r.ticker.indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr><th data-k='ticker'>Ticker</th><th data-k='dsri'>DSRI</th><th data-k='dio'>DIO</th><th data-k='ccr'>OCF/NI</th><th>DSO days</th><th>DPO days</th><th>CCC days</th></tr></thead><tbody>";
+    list.forEach(function(r){h+="<tr><td><a href='/ticker.html?symbol="+encodeURIComponent(r.ticker)+"'>"+esc(r.ticker)+"</a></td><td class='r'>"+esc(pct(r.dsri))+"</td><td class='r'>"+esc(r.dio==null?"":r.dio.toFixed(1))+"</td><td class='r'>"+esc(pct(r.ccr))+"</td><td></td><td></td><td></td></tr>";});
+    document.getElementById("board").innerHTML=h+"</tbody></table>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=k==="ticker"?1:-1;}paint();};});
+    document.getElementById("status").textContent=list.length+" names. DSO/DPO/CCC days blank.";
   }
-  if(!rows.length)document.getElementById("board").textContent="earnings-quality.json all_ranked missing.";
-  else {qEl.oninput=paint;paint();}
+  qEl.oninput=paint;paint();
 })();
 </script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-page-ai.js" defer></script>
-<script src="/sidebar.js" defer></script>
-</body></html>
+</div><script src="/jh-nav-drawer.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/sidebar.js" defer></script></body></html>
