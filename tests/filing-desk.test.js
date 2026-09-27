@@ -95,3 +95,38 @@ test('the rejected placeholder cannot provide the required filing desk API',()=>
  const raw=fs.readFileSync(path.join(__dirname,'fixtures/rejected-filing-desk-placeholder.js.txt'),'utf8');assert.equal(raw.trim(),'PLACEHOLDER');assert.throws(()=>vm.runInNewContext(raw),/PLACEHOLDER is not defined/);
  assert.equal(typeof api.start,'function');assert.equal(typeof api.model,'function');
 });
+
+test('agreement reserved columns stay blank and keyboard sortable even when source aliases contain numbers',async()=>{
+ const p={filings:[{company:'Z <img src=x>',items:['1.01'],filed_at:'2026-09-27',deal_usd:900,mom:100,agreement_deal_unavailable:123,filing_url:'javascript:1'},{company:'A',items:['1.01'],filed_at:'2026-09-26',deal_value:200},{company:'Other',items:['5.02']}]};
+ const s=await page('material-agreements.html',fixture(p));
+ for(const label of ['Deal $','MoM %','QoQ %','YoY %'])assert.ok(s.get('board').innerHTML.includes('>'+label+'</th>'));
+ assert.equal((s.get('board').innerHTML.match(/<td aria-label="[^"]+unavailable:[^"]*"><\/td>/g)||[]).length,8);
+ assert.ok(!s.get('board').innerHTML.includes('<img'));assert.ok(!s.get('board').innerHTML.includes('javascript:'));
+ const first=s.get('board').innerHTML;
+ for(const key of ['agreement_deal_unavailable','agreement_mom_unavailable','agreement_qoq_unavailable','agreement_yoy_unavailable']){
+  const header=s.get('board').headers.find(h=>h.dataset.k===key);header.focus();header.onkeydown({key:'Enter',preventDefault(){}});
+  assert.equal(s.document.activeElement.dataset.k,key);assert.equal(s.document.activeElement['aria-sort'],'ascending');
+  s.document.activeElement.onkeydown({key:' ',preventDefault(){}});assert.equal(s.document.activeElement['aria-sort'],'descending');
+  assert.equal(s.get('board').innerHTML,first);
+ }
+ assert.equal(s.get('original').textContent,JSON.stringify(p));assert.match(s.get('status').textContent,/2 of 3/);
+ assert.match(s.source,/<label for="q">/);assert.match(s.source,/role="region"[^>]*tabindex="0"/);
+});
+
+test('failed concurrent agreement rewrite is retained and rejected before script execution',()=>{
+ const raw=fs.readFileSync(path.join(__dirname,'fixtures/pre-material-agreements-invalid-inline.html.txt'));
+ assert.equal(raw.length,6029);assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'d2fed6617fbcfe41aadfc867386fd0604daa90ca890a0376f0033169998f3b89');
+ const inline=[...raw.toString('utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('function esc'));
+ assert.throws(()=>new vm.Script(inline),SyntaxError);
+});
+
+test('materials orders preserves its failed original and escapes provider markup as text',()=>{
+ const raw=fs.readFileSync(path.join(__dirname,'fixtures/pre-materials-orders-invalid-inline.html.txt'));
+ assert.equal(raw.length,11408);assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'1b8ecb453e086f9e80a7dba57bbf46240013707b1f869e8c042f847a2bffaba0');
+ const inline=source=>[...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('function esc'));
+ assert.throws(()=>new vm.Script(inline(raw.toString('utf8'))),SyntaxError);
+ const fixed=fs.readFileSync(path.join(root,'materials-orders.html'),'utf8');new vm.Script(inline(fixed));
+ const esc=vm.runInNewContext('('+fixed.split('\n').find(s=>s.startsWith('function esc(s)'))+')');
+ assert.equal(esc('<img src="x" onerror=\'evil()\'>&'), '&lt;img src=&quot;x&quot; onerror=&#39;evil()&#39;&gt;&amp;');
+ assert.equal(esc(null),'');assert.equal(esc(0),'0');
+});

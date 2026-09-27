@@ -71,8 +71,13 @@
   const doc=root.document,get=id=>doc.getElementById(id),mode=options.mode;
   if(options.item!==undefined&&(mode!=='8k'||typeof options.item!=='string'||!/^\d\.\d{2}$/.test(options.item)))throw Error('A scoped filing desk requires one valid 8-K item');
   const fixedItem=options.item||'';
+  if(options.reservedAgreementColumns!==undefined&&(options.reservedAgreementColumns!==true||mode!=='8k'||fixedItem!=='1.01'))throw Error('Reserved agreement columns require the Item 1.01 desk');
+  const reserved=options.reservedAgreementColumns===true;
+  const reservedColumns=[['agreement_deal_unavailable','Deal $'],['agreement_mom_unavailable','MoM %'],['agreement_qoq_unavailable','QoQ %'],['agreement_yoy_unavailable','YoY %']];
+  const reservedKeys=new Set(reservedColumns.map(c=>c[0]));
   let data,sort='filed_time',direction=-1,item='';
   const columns=mode==='8k'?[['filed_time','Filed'],['company','Company / SEC document'],['items_text','Items'],['accession','Accession']]:mode==='10kq'?[['filed_time','Filed'],['form','Form'],['company','Company / SEC document'],['cik','CIK'],['accession','Accession']]:[['filed_time','Filed'],['ticker','Ticker / company'],['signal_label','Matched signal / SEC document'],['form','Form'],['severity','Source severity'],['weight','Source weight'],['accession','Accession']];
+  if(reserved)columns.splice(2,0,...reservedColumns);
   function paint(){
    if(!data)return;
    const q=get('q').value.trim().toLocaleUpperCase();
@@ -80,7 +85,7 @@
     const r=row.view;
     if((fixedItem||item)&&!(Array.isArray(r.items)&&r.items.includes(fixedItem||item)))return false;
     return !q||[r.company,r.name,r.ticker,r.cik,r.form,r.accession,r.signal_id,r.signal_label,r.items_text,row.sourcePath].map(text).join(' ').toLocaleUpperCase().includes(q);
-   }).sort((a,b)=>compare(a,b,sort,direction));
+   }).sort((a,b)=>reserved&&reservedKeys.has(sort)?0:compare(a,b,sort,direction));
    const labels=object(data.packet.item_labels)?data.packet.item_labels:{};
    let html='<table><caption>Received filing records; repeated source occurrences are retained</caption><thead><tr>'+columns.map(([k,label])=>'<th data-k="'+k+'">'+label+'</th>').join('')+'<th scope="col">Source path</th></tr></thead><tbody>';
    for(const row of rows){
@@ -92,6 +97,7 @@
     }else{
      if(mode==='10kq')html+='<td>'+esc(r.form)+'</td>';
      html+='<td>'+documentLink(r.filing_url,text(r.company))+'</td>';
+     if(reserved)html+=reservedColumns.map(([,label])=>'<td aria-label="'+label+' unavailable: no contract-value time series in this source"></td>').join('');
      if(mode==='8k')html+='<td>'+(Array.isArray(r.items)?r.items.map(it=>'<span class="item">'+esc(it)+(text(labels[it])?' '+esc(labels[it]):'')+'</span>').join(''):'Unavailable; see original')+'</td>';
      else html+='<td>'+esc(r.cik)+'</td>';
      html+='<td>'+esc(r.accession)+'</td>';
