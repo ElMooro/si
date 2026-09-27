@@ -16,6 +16,8 @@ SCHEDULE: daily 11:30 UTC.
 """
 import json, os, time
 import urllib.request
+import urllib.error
+from backlog_measurements import CONTRACT, compile_concept, row_from_concepts, decode
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
@@ -56,16 +58,22 @@ def http_json(url, t=15):
             raw = r.read()
             if r.headers.get("Content-Encoding") == "gzip":
                 import gzip; raw = gzip.decompress(raw)
-            return json.loads(raw.decode())
+            return decode(raw.decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404 and url.startswith("https://data.sec.gov/api/xbrl/companyconcept/"):
+            return {"_source_status": 404}
+        return None
     except Exception:
         return None
 
 
 def read_json(key, default=None):
     try:
-        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
-    except Exception:
-        return default
+        return decode(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception as exc:
+        if str(getattr(exc, 'response', {}).get('Error', {}).get('Code')) in ('404', 'NoSuchKey'):
+            return default
+        raise
 
 
 def load_cik_map():
@@ -79,7 +87,7 @@ def load_cik_map():
     return out
 
 
-def concept_series(cik, tag):
+def _legacy_concept_series(cik, tag):
     """Return time-ordered USD values for a us-gaap concept."""
     d = http_json(f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/us-gaap/{tag}.json")
     if not d:
@@ -100,7 +108,7 @@ def concept_series(cik, tag):
     return sorted(seen.values(), key=lambda x: x["end"])
 
 
-def first_series(cik, tags):
+def _legacy_first_series(cik, tags):
     for tag in tags:
         s = concept_series(cik, tag)
         if len(s) >= 2:
@@ -120,7 +128,7 @@ def pct(cur, prev):
     return None
 
 
-def analyze(sym, cik_map, meta):
+def _legacy_analyze(sym, cik_map, meta):
     cik = cik_map.get(sym)
     if not cik:
         return None
@@ -180,6 +188,74 @@ def analyze(sym, cik_map, meta):
     return rec
 
 
+def concept_series(cik, tag):
+    payload = http_json(f"https://data.sec.gov/api/xbrl/companyconcept/CIK{cik}/us-gaap/{tag}.json")
+    if payload is None:
+        raise ValueError("Concept acquisition unavailable; never cache as absent")
+    result = compile_concept(payload, cik, tag, datetime.now(timezone.utc).date().isoformat())
+    # Preserve the existing request stopping rule without using its preferred
+    # unit or input order to select a measurement. This cannot expand fallbacks.
+    units = payload.get('units') or {}
+    received = units.get('USD') or units.get('USD/shares') or next(iter(units.values()), [])
+    ends = set()
+    for row in received:
+        if row.get('val') is not None and row.get('end'):
+            float(row['val'])  # Original malformed numeric response failed here.
+            ends.add(row['end'])
+    result['legacy_request_stop_count'] = len(ends)
+    return result
+
+
+def first_series(cik, tags):
+    attempted = []
+    for tag in tags:
+        result = concept_series(cik, tag)
+        if result['legacy_request_stop_count'] >= 2:
+            result['alternate_concepts'] = attempted
+            return tag, result
+        attempted.append(result)
+    return None, {'latest': None, 'observations': [], 'alternate_concepts': attempted,
+                  'status': 'no_reviewed_concept_with_two_observations', 'qoq': None, 'yoy': None}
+
+
+def analyze(sym, cik_map, meta):
+    cik = cik_map.get(sym)
+    if not cik: return None
+    rpo_tag, rpo = first_series(cik, RPO_TAGS)
+    deferred_tag, deferred = first_series(cik, DEF_TAGS)
+    _, eps = first_series(cik, EPS_TAGS)
+    def observed(concept):
+        return bool(concept.get('observations')) or any(observed(c) for c in concept.get('alternate_concepts', []))
+    if not observed(rpo) and not observed(deferred): return None
+    m = meta.get(sym, {})
+    rec = row_from_concepts(sym, cik, {'sector': m.get('sector'), 'cap_bucket': m.get('cap_bucket'),
+        'group': SECTOR_GROUP.get(m.get('sector'), m.get('sector'))}, {'rpo': rpo, 'deferred': deferred, 'eps': eps})
+    # Keep the two existing enrichments and every received row. Cross-source
+    # currencies/periods and provider-normalized durations are not verified.
+    enrich = bool(rpo_tag or deferred_tag)
+    rec['provider_enrichment'] = {
+        'income_statement': fetch_fmp(sym, "income-statement?period=quarter&limit=6") if enrich else None,
+        'key_metrics_ttm': fetch_fmp(sym, "key-metrics-ttm") if enrich else None,
+        'ratios_qualified': False, 'provider_originals_replayed': False}
+    return rec
+
+
+def qualify_carried(row):
+    if not isinstance(row, dict): raise ValueError("Whole prior research row required")
+    if row.get('measurement_contract') == CONTRACT: return row
+    result = dict(row)
+    result['legacy_unverified_original'] = (row['legacy_unverified_original']
+        if row.get('quality', {}).get('status') == 'legacy_measurements_unverified'
+        and isinstance(row.get('legacy_unverified_original'), dict) else dict(row))
+    for field in ('rpo', 'rpo_qoq', 'rpo_yoy', 'deferred_rev', 'deferred_qoq', 'deferred_yoy',
+                  'eps', 'eps_qoq', 'eps_yoy', 'rev_yoy', 'ev_to_rpo', 'rpo_minus_rev_growth',
+                  'demand_accelerating', 'deferred_accelerating'):
+        result[field] = None
+    result.update(call=None, calls_eligible=False, forecast_qualified=False, sizing_eligible=False,
+                  quality={'status': 'legacy_measurements_unverified', 'provider_originals_replayed': False})
+    return result
+
+
 def _capdist(rows):
     out = {}
     for r in rows:
@@ -208,7 +284,7 @@ def lambda_handler(event=None, context=None):
         if tk:
             meta[tk] = {"sector": s.get("sector"), "cap_bucket": s.get("cap_bucket")}
     for tk in SEED:
-        meta.setdefault(tk, {"sector": "Technology", "cap_bucket": None})
+        meta.setdefault(tk, {"sector": None, "cap_bucket": None})
     # candidate order: SEED → known-has-backlog → relevant-sector unknowns
     relevant = [t for t, m in meta.items()
                 if (m.get("sector") in BACKLOG_SECTORS or t in SEED) and t in cik_map]
@@ -230,9 +306,12 @@ def lambda_handler(event=None, context=None):
                 if r:
                     results.append(r); new_has.add(sym)
                 else:
-                    new_no.add(sym)
+                    pass  # No negative evidence from missing or unavailable concept responses.
             except Exception:
                 pass
+    if not results:
+        return {"statusCode": 503, "body": json.dumps({"ok": False, "kept_prior": True,
+                "reason": "no_usable_concept_observations"})}
     # update coverage cache — throttle-safe:
     #  • never demote a known-has-backlog name to no_backlog (transient empties)
     #  • if we captured far fewer than the known-has set, the run was likely
@@ -243,11 +322,6 @@ def lambda_handler(event=None, context=None):
         merged_has = has_set | new_has
         merged_no = (no_set | new_no) - merged_has   # has always wins
         cache = {"has_backlog": sorted(merged_has), "no_backlog": sorted(merged_no)}
-        try:
-            s3.put_object(Bucket=BUCKET, Key="data/backlog-coverage-cache.json",
-                          Body=json.dumps(cache).encode(), ContentType="application/json")
-        except Exception:
-            pass
     else:
         print(f"[backlog] suspected SEC throttle ({len(new_has)}/{expected_known}) — cache NOT updated")
     # if THIS run was throttled, keep the prior good output instead of clobbering
@@ -272,17 +346,19 @@ def lambda_handler(event=None, context=None):
     # cannot go stale silently.
     _now = datetime.now(timezone.utc).isoformat()
     _prev = (read_json(OUT_KEY) or {}).get("by_ticker") or {}
-    ledger = dict(_prev)
+    ledger = {k: qualify_carried(v) for k, v in _prev.items()}
     for _r in results:
         _r["refreshed_at"] = _now
         ledger[_r["ticker"]] = _r
-    _cut = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
-    ledger = {k: v for k, v in ledger.items()
-              if not v.get("refreshed_at") or v["refreshed_at"] >= _cut}
+    # Preserve all prior observations; each row retains its own refresh/observation dates.
     print(f"[backlog] ledger {len(_prev)} + slice {len(results)} -> {len(ledger)}")
 
     out = {
-        "engine": "backlog", "version": "1.0",
+        "engine": "backlog", "version": "1.1.0", "measurement_contract": CONTRACT,
+        "call": None, "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
+        "quality": {"status": "partial", "provider_originals_replayed": False,
+                    "point_in_time_availability_verified": False,
+                    "legacy_negative_cache_unverified_count": len(no_set)},
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "n_covered": len(results),
@@ -290,16 +366,22 @@ def lambda_handler(event=None, context=None):
         "by_ticker": ledger,
         "accelerating": accelerating,
         "cheap_vs_backlog": cheap_vs_backlog,
-        "method": ("RPO (RevenueRemainingPerformanceObligation) + deferred revenue/"
-                   "contract liabilities from free SEC XBRL company facts; YoY/QoQ "
-                   "growth, RPO-vs-revenue-growth divergence (demand accelerating), "
-                   "deferred-revenue acceleration, EV/RPO. Leads earnings 1-2 quarters."),
+        "method": ("SEC concept observations retain unit, start/end, filing date, accession and received values. "
+                   "Only exact calendar period pairs supply descriptive growth. Annual EPS is not QoQ; "
+                   "mixed durations and conflicting latest facts abstain. Revenue/EV ratios and acceleration "
+                   "remain unavailable pending aligned source originals. No predictive lead is established."),
         "sources": {"backlog": "SEC XBRL (data.sec.gov)", "revenue/EV": "FMP"},
         "ledger_size": len(ledger),
         "slice_this_run": len(results),
     }
-    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
+    if not throttled:
+        try:
+            s3.put_object(Bucket=BUCKET, Key="data/backlog-coverage-cache.json",
+                          Body=json.dumps(cache, allow_nan=False).encode(), ContentType="application/json")
+        except Exception:
+            print('[backlog] research published; coverage cache write failed')
     print(f"[backlog] DONE {round(time.time()-t0,1)}s — {len(results)} covered, "
           f"{len(accelerating)} accelerating")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "covered": len(results),
