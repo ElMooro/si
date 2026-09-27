@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-air-cargo",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 180,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Complete CAD monthly freight observations and retained workbook research. Existing daily 10:40 Scheduler unchanged."
+}

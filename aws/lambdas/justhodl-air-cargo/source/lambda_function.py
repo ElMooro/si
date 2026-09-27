@@ -158,7 +158,7 @@ def _parse_workbook(rb, out):
     return series
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_calculation(event=None, context=None):
     now = datetime.now(timezone.utc)
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
            "airport": "HKIA (Hong Kong Intl) — world #1 cargo airport",
@@ -219,6 +219,13 @@ def lambda_handler(event=None, context=None):
     return {"ok": out["ok"], "tonnes_k": out.get("tonnes_k"),
             "month": out.get("month"), "yoy_pct": out.get("yoy_pct"),
             "via": out.get("fetch_via")}
+
+
+def lambda_handler(event=None, context=None):
+    import air_store
+    from botocore.config import Config
+    client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=5,read_timeout=12,retries={'total_max_attempts':2}))
+    return air_store.run(client,BUCKET,event,context)
 
 
 if __name__ == "__main__":
