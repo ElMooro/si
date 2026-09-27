@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Impairments 8-K · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:860px;margin:0 0 14px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--fg2);cursor:pointer}
+.chip.on{border-color:var(--cyan);color:var(--fg)}
+input{max-width:360px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:900px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.item{display:inline-block;margin:0 4px 4px 0;padding:1px 6px;border:1px solid var(--bd);border-radius:4px;font-size:10px;color:var(--fg2)}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
+details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;color:var(--fg2);font-size:12px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Material impairments 8-K</h1>
+<p class="sub">Current-window Form 8-K Item 2.06 rows: material impairments. A write-down is a bust tell when it appears. An empty table means no Item 2.06 was tagged in this EDGAR window, not that impairments are zero across the market. Company names remain as filed; no dollar amount is inferred.</p>
+<div class="kpis" id="kpis"></div>
+<div class="kpis" id="items"></div>
+<input id="q" placeholder="Filter company or accession" autocomplete="off">
+<p id="publication" class="sub">Awaiting stored publication.</p>
+<p id="status" class="sub" role="status">Loading received records.</p>
+<div id="board" class="table-region">Loading stored publication.</div>
+<details><summary>Complete original publication</summary><pre id="original">Unavailable</pre></details>
+<div class="foot"><b>Built for:</b> reading current-window material impairment notices without inventing the charge size or the asset class.<br>
+<b>Data:</b> /data/8k-filings.json filings[] filtered to items containing 2.06.<br>
+<b>Not:</b> an XBRL goodwill-impairment series, an S-K 1300 reserve revision, or a 10-K PP&E roll-forward. Those tags are not on this packet. Research only.</div>
+</div>
+<script src="/jh-table-values.js"></script>
+<script src="/jh-filing-desk.js"></script>
+<script>JHFilingDesk.start({mode:"8k",source:"/data/8k-filings.json",item:"2.06"});</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
