@@ -3,10 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="jh-primary-engine" content="justhodl-macro-leads justhodl-asia-leads justhodl-china-liquidity justhodl-geopolitical-risk justhodl-bis-crossborder justhodl-econ-calendar justhodl-freight-pulse justhodl-portwatch">
 <title>Macro Leads · JustHodl.AI</title>
 <style>
-:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--accent:#a78bfa;--gold:#fbbf24;--pos:#00e676;--neg:#ff3d5a;--text:#e6ecf3;--text-dim:#bac5d8;--text-mute:#a5b2c9}
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--accent:#a78bfa;--gold:#fbbf24;--pos:#00e676;--neg:#ff3d5a;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
@@ -29,7 +28,6 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:.2px}
 .bd-cool{background:rgba(0,230,118,.12);color:var(--pos);border:1px solid rgba(0,230,118,.3)}
 .note{color:var(--text-mute);font-size:12px;margin-top:8px;line-height:1.45}
 .err{color:var(--text-mute);font-size:12px}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;font:12px/1.6 ui-monospace,monospace;background:var(--bg);padding:12px}.card{min-width:0}summary{cursor:pointer;color:var(--accent);margin-top:14px}a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:right;color:var(--text-mute);font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
 th:first-child,td:first-child{text-align:left}
@@ -41,18 +39,18 @@ tr:last-child td{border-bottom:none}
 <body>
 <div class="wrap">
   <h1>Macro Leads</h1>
-  <div class="sub">Public macro research. Legacy metal, rate, truck and Asia calculations still need source/calendar qualification; no displayed score establishes a forecast or position instruction. <span class="mute" id="asof"></span></div>
+  <div class="sub">Free forward-looking macro indicators pulled straight from public origins — the MacroMicro-style signals, without the paywall. <span class="mute" id="asof"></span></div>
 
-  <div class="sec">Metals ratio observations</div>
+  <div class="sec">Cyclical &amp; rate tells</div>
   <div class="grid2">
     <div class="card" id="copper-gold"><div class="err">loading…</div></div>
     <div class="card" id="gold-silver"><div class="err">loading…</div></div>
   </div>
 
-  <div class="sec">Legacy central-bank classifications</div>
+  <div class="sec">Global monetary regime</div>
   <div class="card" id="rate-cut"><div class="err">loading…</div></div>
 
-  <div class="sec">Additional observed series</div>
+  <div class="sec">Risk &amp; long-lead</div>
   <div class="grid2">
     <div class="card" id="gpr"><div class="err">loading…</div></div>
     <div class="card" id="heavy-truck"><div class="err">loading…</div></div>
@@ -61,72 +59,65 @@ tr:last-child td{border-bottom:none}
     <div class="card" id="next-prints"><div class="err">loading…</div></div>
   </div>
 
-  <section id="macro-transport" aria-labelledby="transport-title" style="margin-top:26px">
-    <h2 id="transport-title">Transport evidence · separate source populations</h2>
-    <p class="note">Vessel calls, freight indexes, credit flows and bank-claim stocks describe different populations and clocks. There is no additive China-stack vote or cross-source slowdown conclusion here.</p>
-    <div class="grid2">
-      <div class="card"><h3>Monthly Freight Pulse</h3><p id="transport-freight-status" class="note" role="status">Loading complete freight packet…</p><p id="transport-freight-description"></p><p id="transport-freight-limitation" class="note"></p><a href="/freight-pulse.html">Inspect every monthly freight observation</a><details id="transport-freight-details"><summary>All original freight fields</summary><pre id="transport-freight-original"></pre></details></div>
-      <div class="card"><h3>PortWatch vessel counts</h3><p id="transport-shipping-status" class="note" role="status">Loading complete shipping packet…</p><p id="transport-shipping-description"></p><p id="transport-shipping-limitation" class="note"></p><a href="/portwatch.html">Inspect complete shipping calendars</a><details id="transport-shipping-details"><summary>All original shipping fields</summary><pre id="transport-shipping-original"></pre></details></div>
-    </div>
-    <p class="note">Other original contexts remain accessible without being counted as votes: <a href="/data/bis-crossborder.json?exact=1&amp;nogen=1">BIS bank-claim stocks</a> · <a href="/data/china-liquidity.json?exact=1&amp;nogen=1">China credit flows</a> · <a href="/geo-risk.html">Geopolitical news</a>.</p>
-    <details><summary>Complete original Macro Leads packet</summary><p class="note">Legacy definitions and model conclusions remain unqualified. No field is omitted from this inspection view.</p><pre id="macro-complete-original">Unavailable</pre></details>
-  </section>
-  <div class="note" style="margin-top:24px">Sources: metals ratios (Yahoo/COMEX), rate-cut diffusion (FRED central-bank rates), Geopolitical Risk Index (Caldara &amp; Iacoviello), heavy-truck sales (FRED HTRUCKSSAAR). Refreshed daily. Source definitions and original observation dates require their own checks.</div>
+  <div class="note" style="margin-top:24px">Sources: metals ratios (Yahoo/COMEX), rate-cut diffusion (FRED central-bank rates), Geopolitical Risk Index (Caldara &amp; Iacoviello), heavy-truck sales (FRED HTRUCKSSAAR). Refreshed daily. Real data only.</div>
 </div>
 <script src="/jh-geo-review.js"></script>
-<script src="/jh-business-cycle-review.js"></script>
-<script src="/jh-freight-review.js"></script>
-<script src="/jh-portwatch-review.js"></script>
-<script src="/jh-macro-transport.js"></script>
 <script>
-function zbadge(z){ if(typeof z!=='number'||!Number.isFinite(z)) return ''; return '<span class="badge">legacy z '+(z>0?'+':'')+z+'</span>'; }
+function zbadge(z){ if(z==null) return ''; var c=z>=1?'bd-hot':z<=-1?'bd-cool':'bd-warm'; return '<span class="badge '+c+'">z '+(z>0?'+':'')+z+'</span>'; }
 function el(id){return document.getElementById(id);}
 /* ops 3584 ADDITIVE: Asia tech-pulse (justhodl-asia-leads) + next prints (existing justhodl-econ-calendar — wired, not rebuilt) */
 (async function(){
   try{
-    var a=JHMacroTransport.legacy(await JHMacroTransport.load('asia')), kr=a.korea_exports||{}, tw=a.taiwan_exports||{};
-    var cl={};try{var cj=JHMacroTransport.legacy(await JHMacroTransport.load('china'));cl=(cj.tsf&&cj.tsf.pboc_cn)||{};}catch(e){}
-    var gr={};try{gr=JHMacroTransport.legacy(await JHMacroTransport.load('geo'));}catch(e){}
+    var r=await fetch('data/asia-leads.json?cb='+Date.now()); if(!r.ok) throw 0;
+    var a=await r.json(), kr=a.korea_exports||{}, tw=a.taiwan_exports||{};
+    var cl={};try{var rc=await fetch(PX+'data/china-liquidity.json?ts='+Date.now());if(rc.ok){var cj=await rc.json();cl=(cj.tsf&&cj.tsf.pboc_cn)||{};}}catch(e){}
+    var gr={};try{var rg=await fetch(PX+'data/geopolitical-risk.json?ts='+Date.now());if(rg.ok){gr=await rg.json();}}catch(e){}
     gr=JHGeoResearch.context(gr); // Dated observations cannot inherit legacy stress/pricing authority.
+    var pw={};try{var rp2=await fetch(PX+'data/portwatch.json?ts='+Date.now());if(rp2.ok){pw=await rp2.json();}}catch(e){}
+    var bcb={};try{var rb=await fetch(PX+'data/bis-crossborder.json?ts='+Date.now());if(rb.ok){bcb=await rb.json();}}catch(e){}
+    var fp={};try{var rf=await fetch(PX+'data/freight-pulse.json?ts='+Date.now());if(rf.ok){fp=await rf.json();}}catch(e){}
     function row(lbl,b){ var y=b.yoy_pct; var c=(y>10?'good':y<0?'bad':'flat');
       return '<div class="kv"><span>'+lbl+'</span><b class="'+c+'">'+(y>0?'+':'')+y+'% YoY</b><span class="mute"> · 3m '+(b.chg_3m_pct>0?'+':'')+b.chg_3m_pct+'% · '+(b.last_period||'').slice(0,7)+'</span></div>'; }
-    el('asia-pulse').innerHTML='<h3>Asia export observations — KR &amp; TW</h3>'
-      +'<div class="note">Reported aggregate exports are not a semiconductor-demand measure. Source definitions, exact calendar comparisons and original vintages remain unqualified.</div>'
+    var hot=(Math.min(kr.yoy_pct||0,tw.yoy_pct||0)>15);
+    el('asia-pulse').innerHTML='<h3>🌏 Asia tech pulse — KR &amp; TW exports</h3>'
+      +'<div class="big">'+(hot?'SEMIS DEMAND HOT':'MIXED')+' <span class="badge '+(hot?'bd-hot':'bd-warm')+'">'+(hot?'AI-cycle tailwind':'watch')+'</span></div>'
       +((a.korea_flash&&a.korea_flash.total_yoy_pct!=null)?('<div class="kv"><span>🇰🇷 Korea 20-day flash</span><b class="'+(a.korea_flash.total_yoy_pct>10?'good':a.korea_flash.total_yoy_pct<0?'bad':'flat')+'">'+(a.korea_flash.total_yoy_pct>0?'+':'')+a.korea_flash.total_yoy_pct+'% YoY</b><span class="mute"> · $'+(a.korea_flash.total_usd_bn||'—')+'B'+(a.korea_flash.semis_yoy_pct!=null?' · semis '+(a.korea_flash.semis_yoy_pct>0?'+':'')+a.korea_flash.semis_yoy_pct+'%':'')+' · KCS provisional, prints the 21st</span></div>'):((a.korea_flash_tape&&a.korea_flash_tape.latest)?('<div class="kv"><span>🇰🇷 Korea 20-day flash</span><b class="'+(a.korea_flash_tape.latest.yoy_pct>10?'good':a.korea_flash_tape.latest.yoy_pct<0?'bad':'flat')+'">'+(a.korea_flash_tape.latest.yoy_pct>0?'+':'')+a.korea_flash_tape.latest.yoy_pct+'% YoY</b><span class="mute">'+(a.korea_flash_tape.latest.semis_yoy_pct!=null?' · semis '+(a.korea_flash_tape.latest.semis_yoy_pct>0?'+':'')+a.korea_flash_tape.latest.semis_yoy_pct+'%':'')+' · '+(a.korea_flash_tape.latest.period||'')+' · news-tape</span></div>'):''))
       +row('Korea exports',kr)+row('Taiwan exports',tw)
-      +((a.taiwan_orders&&(a.taiwan_orders.yoy_pct!=null||a.taiwan_orders.latest_usd_bn!=null))?('<div class="kv"><span>Taiwan export ORDERS</span><b class="'+(a.taiwan_orders.yoy_pct>10?'good':a.taiwan_orders.yoy_pct<0?'bad':'flat')+'">'+(a.taiwan_orders.yoy_pct!=null?((a.taiwan_orders.yoy_pct>0?'+':'')+a.taiwan_orders.yoy_pct+'% YoY'):('US$'+(a.taiwan_orders.latest_usd_bn||'—')+'B'))+'</b><span class="mute"> · US$'+(a.taiwan_orders.latest_usd_bn||'—')+'B · '+(a.taiwan_orders.period||'')+' · orders and shipments use different source definitions</span></div>'):'')
-      +((cl.flow_trn_cny!=null)?('<div class="kv"><span>🇨🇳 China TSF flow</span><b class="'+((cl.yoy_delta_trn||0)>0?'good':(cl.yoy_delta_trn||0)<0?'bad':'flat')+'">¥'+cl.flow_trn_cny+'tn</b><span class="mute"> · '+(cl.period||'')+(cl.yoy_delta_trn!=null?' · Δ '+(cl.yoy_delta_trn>0?'+':'')+cl.yoy_delta_trn+'tn YoY':'')+' · reported financing flow; not a GDP-normalized credit impulse</span></div>'):'')
+      +((a.taiwan_orders&&(a.taiwan_orders.yoy_pct!=null||a.taiwan_orders.latest_usd_bn!=null))?('<div class="kv"><span>Taiwan export ORDERS</span><b class="'+(a.taiwan_orders.yoy_pct>10?'good':a.taiwan_orders.yoy_pct<0?'bad':'flat')+'">'+(a.taiwan_orders.yoy_pct!=null?((a.taiwan_orders.yoy_pct>0?'+':'')+a.taiwan_orders.yoy_pct+'% YoY'):('US$'+(a.taiwan_orders.latest_usd_bn||'—')+'B'))+'</b><span class="mute"> · US$'+(a.taiwan_orders.latest_usd_bn||'—')+'B · '+(a.taiwan_orders.period||'')+' · the true lead (orders precede shipments)</span></div>'):'')
+      +((cl.flow_trn_cny!=null)?('<div class="kv"><span>🇨🇳 China TSF flow</span><b class="'+((cl.yoy_delta_trn||0)>0?'good':(cl.yoy_delta_trn||0)<0?'bad':'flat')+'">¥'+cl.flow_trn_cny+'tn</b><span class="mute"> · '+(cl.period||'')+(cl.yoy_delta_trn!=null?' · Δ '+(cl.yoy_delta_trn>0?'+':'')+cl.yoy_delta_trn+'tn YoY':'')+' · PBoC via edge — credit impulse</span></div>'):'')
+      +(((cl.yoy_delta_trn||0)<0&&(a.korea_flash_tape&&a.korea_flash_tape.latest&&a.korea_flash_tape.latest.yoy_pct>15))?('<div class="kv" style="border-left:3px solid #F0B429;padding-left:8px;margin-top:6px"><span>⚡ Asia divergence</span><b class="good">EXTERNAL-DEMAND-LED</b><span class="mute"> · CN credit impulse '+cl.yoy_delta_trn+'tn YoY vs KR chips +'+a.korea_flash_tape.latest.yoy_pct+'% — supercycle pulled by demand, not China credit</span></div>'):'')
       +'<div class="kv"><span>Geopolitical news</span><b>Research only</b><span class="mute"> · no score-derived market-pricing conclusion · <a href="/geo-risk.html">Review coverage and publisher dates</a></span></div>'
       +(gr&&gr.top_country?('<div class="kv"><span>🌍 Geo stress</span><b class="'+(gr.global_temp>=45?'bad':gr.global_temp>=30?'flat':'good')+'">'+gr.top_country+' '+((gr.rankings&&gr.rankings[0])?gr.rankings[0].stress_score:'')+'</b><span class="mute"> · temp '+gr.global_temp+((gr.escalating&&gr.escalating.length)?' · ▲ '+gr.escalating.map(function(e){return e.country;}).join(', '):'')+' · news-flow</span></div>'):'')
-      +'<div class="note">All Asia fields remain inspectable in the <a href="/data/asia-leads.json?exact=1&amp;nogen=1">complete Asia packet</a>. A growth rate or order total alone supplies no portfolio instruction.</div>';
+      +((pw.worst&&pw.chokepoints)?('<div class="kv"><span>🚢 Chokepoints</span><b class="'+(pw.n_disrupted>0?'bad':pw.worst.z<=-1?'flat':'good')+'">'+(pw.n_disrupted>0?(pw.n_disrupted+' DISRUPTED'):'flowing')+'</b><span class="mute"> · worst '+pw.worst.name+' '+(pw.worst.vs_baseline_pct>0?'+':'')+pw.worst.vs_baseline_pct+'% vs 1y (z '+pw.worst.z+') · IMF PortWatch</span></div>'):'')
+      +(function(){try{var legs=[];var cn=((gr.gssi_cross||{}).rows||[]).filter(function(x){return x.country==='China';})[0];if(cn&&cn.state==='NEWS_LEADS')legs.push('news-leads +'+cn.gap);if((cl.yoy_delta_trn||0)<0)legs.push('TSF '+cl.yoy_delta_trn+'tn');var bo=(pw.chokepoints||[]).filter(function(x){return /bohai/i.test(x.name);})[0];if(bo&&bo.vs_baseline_pct<=-10)legs.push('Bohai '+bo.vs_baseline_pct+'%');var sh=(pw.ports||[]).filter(function(x){return /shanghai/i.test(x.name);})[0];if(sh&&sh.status==='DISRUPTED')legs.push('Shanghai z '+sh.z);var bc=((bcb.by_counterparty)||[]).filter(function(x){return x.code==='CN';})[0];if(bc&&bc.yoy_pct!=null&&bc.yoy_pct<2)legs.push('bank claims +'+bc.yoy_pct+'%');if(legs.length<2)return '';return '<div class="kv" style="border-left:3px solid #E07A6A;padding-left:8px;margin-top:6px"><span>🇨🇳 China stack</span><b class="bad">'+legs.length+'/5 legs soft</b><span class="mute"> · '+legs.join(' · ')+' — cross-confirmed slowdown</span></div>';}catch(e){return '';}})()
+      +((fp.verdict)?('<div class="kv"><span>🚛 US Freight</span><b class="'+(fp.verdict==='DECELERATING'?'bad':fp.verdict==='ACCELERATING'?'good':'flat')+'">'+fp.verdict+' '+(fp.composite>0?'+':'')+fp.composite+'</b><span class="mute"> · '+fp.n_live+' series (TSI/Cass/truck/rail)'+((fp.inflections&&fp.inflections.length)?' · ⚠ inflection: '+fp.inflections.join(', '):'')+'</span></div>'):'')
+      +((pw.exporters&&pw.exporters.length)?(function(){var sl=pw.exporters_slowing||[];var w=pw.exporters[0];return '<div class="kv"><span>📦 Exporters</span><b class="'+(sl.length>=3?'bad':sl.length?'flat':'good')+'">'+(sl.length?sl.length+' SLOWING':'flowing')+'</b><span class="mute"> · '+(sl.length?sl.join(', '):('worst '+w.country+' '+w.avg_vs_baseline_pct+'%'))+' · gateway ports</span></div>';})():'')
+      +'<div class="note">The classic global semis/AI-demand leads, straight from FRED primaries. Korea 20-day customs flash + true MOEA export ORDERS queued (free-key / endpoint discovery).</div>';
   }catch(e){ try{el('asia-pulse').innerHTML='<h3>🌏 Asia tech pulse</h3><div class="err">unavailable</div>';}catch(_e){} }
   try{
-    var c=JHMacroTransport.legacy(await JHMacroTransport.load('calendar'));
-    if(c.feed_status!=='ok'){
-      el('next-prints').innerHTML='<h3>Next economic releases</h3><div class="note">Schedule unavailable: '+(c.feed_status||'source status not declared')+'. An empty response does not mean no releases are scheduled. Publication '+(c.generated_at||'unavailable')+'. <a href="/data/econ-calendar.json?exact=1&amp;nogen=1">Inspect complete calendar packet</a></div>';
-    }else{
-    var up=(c.upcoming||[]).slice(0,6); var nm=c.next_major||null;
+    var r2=await fetch('data/econ-calendar.json?cb='+Date.now()); if(!r2.ok) throw 0;
+    var c=await r2.json(); var up=(c.upcoming||[]).slice(0,6); var nm=c.next_major||null;
     var rows=up.map(function(u){ return '<div class="kv"><span>'+(u.date||'').slice(5)+'</span><b>'+((u.event||u.release||'')+'').slice(0,34)+'</b><span class="mute">'+(u.estimate!=null?' est '+u.estimate:'')+'</span></div>'; }).join('');
     el('next-prints').innerHTML='<h3>📅 Next prints — consensus watch</h3>'
       +(nm?('<div class="big">'+((nm.event||'')+'').slice(0,26)+' <span class="badge bd-warm">'+(nm.date||'')+'</span></div>'):'')
-      +rows+(up.length?'':'<div class="note">No upcoming rows in this source window; this is not proof of an empty economic calendar.</div>')+'<div class="note">Source publication '+(c.generated_at||'unavailable')+'. <a href="/data/econ-calendar.json?exact=1&amp;nogen=1">All releases and source status</a></div>';
-    }
+      +rows+'<div class="note">Forward calendar with consensus from the econ-calendar desk (surprise tape on its own page).</div>';
   }catch(e){ try{el('next-prints').innerHTML='<h3>📅 Next prints</h3><div class="err">unavailable</div>';}catch(_e){} }
 })();
-async function getJSON(){return JHMacroTransport.load('macro');}
-
+async function getJSON(){
+  var urls=['data/macro-leads.json','https://justhodl.ai/data/macro-leads.json','https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-leads.json'];
+  for(var i=0;i<urls.length;i++){ try{ var r=await fetch(urls[i]+'?cb='+Date.now()); if(r.ok) return await r.json(); }catch(e){} }
+  throw new Error('feed unavailable');
+}
 function render(d){
-  el('macro-complete-original').textContent=JSON.stringify(d,null,2);
-  d=JHMacroTransport.legacy(d);
   try{ if(d.generated_at) el('asof').textContent='· updated '+new Date(d.generated_at).toLocaleString(); }catch(e){}
   var cgs=d.copper_gold_silver||{};
   // copper/gold
   try{ var cg=cgs.copper_gold; el('copper-gold').innerHTML = cg&&cg.ratio!=null
-    ? '<h3>Copper / Gold ratio</h3><div class="big mono">'+cg.ratio.toFixed(5)+' '+zbadge(cg.z_1y)+'</div><div class="note">'+'Ratio units, quote alignment and any relationship to yields remain unqualified.</div><div class="lab" style="margin-top:6px">as of '+(cg.asof||'')+'</div>'
+    ? '<h3>Copper / Gold ratio</h3><div class="big mono">'+cg.ratio.toFixed(5)+' '+zbadge(cg.z_1y)+'</div><div class="note">'+cg.note+'. Elevated = growth/reflation lean, tends to lead the US 10Y yield higher.</div><div class="lab" style="margin-top:6px">as of '+(cg.asof||'')+'</div>'
     : '<h3>Copper / Gold ratio</h3><div class="err">'+(cgs.error||'unavailable')+'</div>'; }catch(e){ el('copper-gold').innerHTML='<h3>Copper / Gold</h3><div class="err">render error</div>'; }
   // gold/silver
   try{ var gs=cgs.gold_silver; el('gold-silver').innerHTML = gs&&gs.ratio!=null
-    ? '<h3>Gold / Silver ratio</h3><div class="big mono">'+gs.ratio.toFixed(1)+' '+zbadge(gs.z_1y)+'</div><div class="note">'+'Ratio units, quote alignment and original source observations remain unqualified.</div><div class="lab" style="margin-top:6px">as of '+(gs.asof||'')+'</div>'
+    ? '<h3>Gold / Silver ratio</h3><div class="big mono">'+gs.ratio.toFixed(1)+' '+zbadge(gs.z_1y)+'</div><div class="note">'+gs.note+'.</div><div class="lab" style="margin-top:6px">as of '+(gs.asof||'')+'</div>'
     : '<h3>Gold / Silver ratio</h3><div class="err">unavailable</div>'; }catch(e){ el('gold-silver').innerHTML='<h3>Gold / Silver</h3><div class="err">render error</div>'; }
   // rate-cut diffusion
   try{ var rc=d.rate_cut_diffusion||{};
@@ -138,20 +129,27 @@ function render(d){
   }catch(e){ el('rate-cut').innerHTML='<h3>Rate-cut diffusion</h3><div class="err">render error</div>'; }
   // GPR
   try{ var g=d.geopolitical_risk||{}; el('gpr').innerHTML = (typeof g.gpr==='number')
-    ? '<h3>Geopolitical Risk Index (GPR)</h3><div class="big mono">'+g.gpr.toFixed(1)+' '+zbadge(g.z_5y)+'</div><div class="note">'+'This news index does not establish what financial markets have priced. The native series calendar and normalization still require source review.</div>'
+    ? '<h3>Geopolitical Risk Index (GPR)</h3><div class="big mono">'+g.gpr.toFixed(1)+' '+zbadge(g.z_5y)+'</div><div class="note">'+g.note+'. Higher = more geopolitical stress priced into the tape.</div>'
     : '<h3>Geopolitical Risk Index</h3><div class="err">'+(g.error||'unavailable')+'</div>'; }catch(e){ el('gpr').innerHTML='<h3>Geopolitical Risk</h3><div class="err">render error</div>'; }
   // heavy truck
   try{ var ht=d.heavy_truck_sales||{}; el('heavy-truck').innerHTML = (typeof ht.saar_millions==='number')
     ? '<h3>US Heavy Truck Sales</h3><div class="big mono">'+(ht.saar_millions*1000).toFixed(0)+'k <span class="lab">SAAR</span> '+((ht.yoy_pct!=null)?'<span class="badge '+(ht.yoy_pct<0?'bd-hot':'bd-cool')+'">YoY '+(ht.yoy_pct>0?'+':'')+ht.yoy_pct+'%</span>':'')+'</div><div class="note">'+ht.note+'.</div>'
     : '<h3>US Heavy Truck Sales</h3><div class="err">'+(ht.error||'unavailable')+'</div>'; }catch(e){ el('heavy-truck').innerHTML='<h3>Heavy Truck Sales</h3><div class="err">render error</div>'; }
-  el('freight').innerHTML='<h3>Freight activity</h3><div class="note">The inherited average mixes overlapping monthly sources. Read the exact-month Freight Pulse measurements below; the original macro freight fields remain in the complete packet.</div>';
+  try{ var fr=d.freight_activity||{}; var comp=fr.composite||{};
+    if(comp.avg_yoy_pct!=null){
+      var reads=[['Cass shipments',(fr.cass_shipments||{}).yoy_pct],['BTS freight TSI',(fr.bts_freight_tsi||{}).yoy_pct],['Rail intermodal',(fr.rail_intermodal||{}).yoy_pct],['Truck tonnage',(fr.truck_tonnage||{}).yoy_pct]];
+      var rr=reads.map(function(x){return x[1]!=null?('<div class="lab" style="margin-top:3px">'+x[0]+': <span class="mono" style="color:'+(x[1]>0?'#00e676':x[1]<0?'#ff3d5a':'#8b96a8')+'">'+(x[1]>0?'+':'')+x[1]+'%</span></div>'):'';}).join('');
+      var cls=/EXPAND/.test(comp.read)?'bd-cool':/CONTRACT/.test(comp.read)?'bd-hot':'bd-neu';
+      el('freight').innerHTML='<h3>Freight &amp; trucking activity</h3><div class="big">'+(comp.avg_yoy_pct>0?'+':'')+comp.avg_yoy_pct+'% <span class="badge '+cls+'">'+comp.read+'</span></div><div class="note">'+comp.note+'.</div>'+rr;
+    } else el('freight').innerHTML='<h3>Freight activity</h3><div class="err">'+((fr.cass_shipments||{}).error||'unavailable')+'</div>';
+  }catch(e){ el('freight').innerHTML='<h3>Freight activity</h3><div class="err">render error</div>'; }
 }
 getJSON().then(render).catch(function(e){ el('copper-gold').innerHTML='<h3>Copper / Gold</h3><div class="err">feed unavailable</div>'; });
 </script>
 
 <script defer src="/jh-nav-drawer.js"></script>
 <script defer src="/jh-page-ai.js"></script>
-<script src="/jh-enhance.js" data-feed="data/macro-leads.json" data-metrics="geopolitical_risk.gpr:GPR index|geopolitical_risk.z_5y:GPR z(5y)|heavy_truck_sales.yoy_pct:Heavy trucks YoY %|rate_cut_diffusion.net_pct_cutting:Net CBs cutting %" data-title="Macro source observations" data-sub="legacy scalar observations; predictive meaning unqualified"></script>
+<script src="/jh-enhance.js" data-feed="data/macro-leads.json" data-metrics="geopolitical_risk.gpr:GPR index|geopolitical_risk.z_5y:GPR z(5y)|heavy_truck_sales.yoy_pct:Heavy trucks YoY %|rate_cut_diffusion.net_pct_cutting:Net CBs cutting %" data-title="Macro leading pulse" data-sub="proven scalar leads"></script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>
