@@ -1,0 +1,118 @@
+{
+  "checked_at": "2026-09-27T17:04:34.720831+00:00",
+  "scope": "Synthetic pure-function/AST fixtures only. No native module imports, credential/account/learning reads, provider calls, output writes or notifications. Producer repairs remain pending.",
+  "sources": {
+    "backlog": {
+      "sha256": "7295c7ab8d026071bd24eaa3052298a325f7905fe5b98e1d4e66216f3039eeff",
+      "bytes": 14823
+    },
+    "buyback-engine": {
+      "sha256": "b1a2849bc714003ed2790a68ad4e9b654c02db70e8359161d9f2b806a88f06b4",
+      "bytes": 21481
+    },
+    "capex-pulse": {
+      "sha256": "017f475f8981fb56083344548214e1f3675274c78861e4182147f3fae9ae70d0",
+      "bytes": 12930
+    }
+  },
+  "backlog_loses_currency_duration_and_accession": {
+    "synthetic_source": {
+      "units": {
+        "JPY": [
+          {
+            "val": 100,
+            "start": "2023-01-01",
+            "end": "2023-12-31",
+            "filed": "2024-02-01",
+            "accn": "a"
+          },
+          {
+            "val": 120,
+            "start": "2024-01-01",
+            "end": "2024-12-31",
+            "filed": "2025-02-01",
+            "accn": "b"
+          }
+        ]
+      }
+    },
+    "observed_series": [
+      {
+        "end": "2023-12-31",
+        "val": 100.0,
+        "fp": null,
+        "form": null,
+        "filed": "2024-02-01"
+      },
+      {
+        "end": "2024-12-31",
+        "val": 120.0,
+        "fp": null,
+        "form": null,
+        "filed": "2025-02-01"
+      }
+    ]
+  },
+  "annual_observation_pair_reported_as_qoq": {
+    "period_ends": [
+      "2023-12-31",
+      "2024-12-31"
+    ],
+    "observed_rpo_qoq": 20.0,
+    "expected_qoq": "unavailable: observations are one year apart"
+  },
+  "buyback_two_mixed_currency_rows_accepted_as_ttm": {
+    "synthetic_cashflows": [
+      {
+        "date": "2026-06-30",
+        "reportedCurrency": "USD",
+        "commonStockRepurchased": -100,
+        "netCommonStockIssuance": 0,
+        "netStockIssuance": -500
+      },
+      {
+        "date": "2026-03-31",
+        "reportedCurrency": "JPY",
+        "commonStockRepurchased": -100
+      }
+    ],
+    "observed_gross_repurchases_ttm": 200.0,
+    "observed_net_buyback_ttm": 500.0,
+    "observed_fcf_yield_annualized": 0.0,
+    "explicit_zero_overwritten_by_fallback": true
+  },
+  "nine_month_share_difference_reported_as_yoy": {
+    "period_ends": [
+      "2026-09-30",
+      "2025-12-31"
+    ],
+    "observed_share_count_reduction_yoy": 20.0,
+    "expected_yoy": "unavailable: dates do not span a year"
+  },
+  "capex_sector_growth_mixes_paired_and_unpaired_populations": {
+    "synthetic_rows": [
+      {
+        "ticker": "PAIRED",
+        "sector": "Industrials",
+        "capex_ttm_b": 10,
+        "yoy_pct": 0
+      },
+      {
+        "ticker": "UNPAIRED",
+        "sector": "Industrials",
+        "capex_ttm_b": 10,
+        "yoy_pct": null
+      }
+    ],
+    "observed_sector": {
+      "capex_ttm_b": 20.0,
+      "n": 2,
+      "yoy_pct": 100.0,
+      "top": [
+        "PAIRED",
+        "UNPAIRED"
+      ]
+    },
+    "paired_cohort_yoy_pct": 0
+  }
+}
