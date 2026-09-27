@@ -1,4 +1,6 @@
-"""
+"""Preserved v1 description below. The active final handler emits source-backed
+annual forecast targets and same-target snapshot observations, without scores.
+
 justhodl-eps-revision-velocity — Detects stocks where consensus EPS estimates
 are accelerating upward over rolling windows. The MU pattern in code form.
 
@@ -331,7 +333,7 @@ def _build_rationale(sym, fy1y, fy2y, lift, rev_g, breadth, sector):
     return " ".join(parts) + "."
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline_at = started + TIMEOUT_BUDGET_S
     print(f"[eps-velocity] starting v1.0, max_tickers={MAX_TICKERS}")
@@ -410,3 +412,159 @@ def lambda_handler(event=None, context=None):
             "duration_s": round(time.time() - started, 1),
         }),
     }
+
+
+# Whole v1 predecessor retained above; no positional revision or ratings proxy.
+from datetime import datetime, timezone
+from pathlib import Path
+from urllib.parse import quote_plus
+import hashlib
+from eps_observations import CONTRACT, strict, clock, number, symbol, envelope, original, universe, dossier
+
+
+def _eps_source_identity():
+    directory = Path(__file__).resolve().parent
+    return {name: {'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+            for name in ('lambda_function.py','eps_observations.py') for raw in [(directory/name).read_bytes()]}
+
+
+def _eps_fetch(ticker, endpoint):
+    if symbol(ticker) != ticker or not ticker:
+        return {'endpoint': endpoint, 'status': 'invalid_symbol_not_requested'}
+    if not FMP_KEY:
+        return {'endpoint': endpoint, 'status': 'credential_unavailable'}
+    url = 'https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
+    if endpoint == 'analyst-estimates': url += '&period=annual&limit=5'
+    req = urllib.request.Request(url, headers={'User-Agent':'JustHodl-EPS-Observations/1.1','apikey':FMP_KEY})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl): return None
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(req, timeout=10) as response:
+            raw = response.read(256*1024+1)
+        if len(raw) > 256*1024:
+            return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False}
+        if FMP_KEY.encode() in raw:
+            return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
+        return envelope(raw, endpoint, datetime.now(timezone.utc).isoformat())
+    except Exception as exc:
+        return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
+                'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+
+
+def _eps_company(ticker):
+    captures = [_eps_fetch(ticker, 'quote')]; quotes = original(captures[0])
+    # Preserve the existing numerical acquisition budget gate, without claiming
+    # that an unreported quote currency is USD or that market cap establishes value.
+    quote = quotes[0] if isinstance(quotes,list) and len(quotes)==1 and isinstance(quotes[0],dict) else {}
+    mcap = number(quote.get('marketCap'))
+    if quote.get('symbol') != ticker or mcap is None or mcap < MIN_MCAP:
+        captures.append({'endpoint':'analyst-estimates','status':'not_requested_original_quote_gate'})
+        return captures
+    captures.append(_eps_fetch(ticker, 'analyst-estimates')); parsed = original(captures[-1])
+    if not isinstance(parsed,list) or len(parsed)<2:
+        captures.append({'endpoint':'grades','status':'not_requested_original_estimate_gate'})
+        return captures
+    captures.append(_eps_fetch(ticker,'grades'))
+    return captures
+
+
+def _eps_object(key, bound):
+    obj = S3.get_object(Bucket=BUCKET, Key=key); raw = obj['Body'].read(bound+1)
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):
+        raise ValueError('Complete declared source object required')
+    return raw,obj['ETag']
+
+
+def _eps_previous():
+    try: raw,etag = _eps_object(S3_KEY,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'): return None,None,None
+        raise
+    p = strict(raw)
+    if not isinstance(p,dict): raise ValueError('Previous publication malformed')
+    return p,raw,etag
+
+
+def _eps_archive(raw):
+    key = 'data/eps-revision-velocity/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    try:
+        S3.put_object(Bucket=BUCKET, Key=key, Body=raw, IfNoneMatch='*', ContentType='application/json',
+                      CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'): raise
+    back,_ = _eps_object(key,len(raw))
+    if back!=raw: raise ValueError('Immutable whole-publication readback differs')
+    return {'key':key,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+
+
+def lambda_handler(event=None,context=None):
+    started = time.monotonic(); checked = datetime.now(timezone.utc); today = checked.date().isoformat()
+    if S3_KEY != 'data/eps-revision-velocity.json': raise ValueError('Declared research output required')
+    if MAX_TICKERS<1 or N_WORKERS<1 or TIMEOUT_BUDGET_S<1 or number(MIN_MCAP) is None or MIN_MCAP<0:
+        raise ValueError('Original acquisition limits must be valid')
+    previous,previous_raw,etag = _eps_previous()
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp = clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked: raise ValueError('Previous publication time invalid')
+    captures = []
+    for key in ('data/universe.json','screener/data.json'):
+        try:
+            raw,source_etag = _eps_object(key,4*1024*1024)
+            capture = envelope(raw,key,datetime.now(timezone.utc).isoformat());capture['etag']=source_etag
+        except Exception as exc:
+            capture = {'endpoint':key,'status':'unavailable','error_type':type(exc).__name__}
+        captures.append(capture)
+    membership = universe(captures,SP500_BACKUP,min(MAX_TICKERS,500)); selected = membership['selected_symbols']
+    acquisitions = [[{'endpoint':'quote','status':'not_attempted_runtime_rate_or_size_limit'}] for _ in selected]
+    workers = max(1,min(N_WORKERS,10)); total_bytes = 0
+    def remaining():
+        own = min(TIMEOUT_BUDGET_S,300)-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if remaining()<50 or total_bytes>=12*1024*1024: break
+            jobs = [(i,pool.submit(_eps_company,selected[i])) for i in range(offset,min(offset+workers,len(selected)))]
+            for i,future in jobs:
+                acquisitions[i] = future.result();total_bytes += sum(a.get('original_bytes',0) for a in acquisitions[i])
+            if any(a.get('status')=='rate_limited' for i,_ in jobs for a in acquisitions[i]): break
+    if not any(a.get('status')=='received' and isinstance(original(a),list) for group in acquisitions for a in group):
+        raise ValueError('All provider populations unavailable; preserve previous publication')
+    old = {}
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        if not isinstance(previous.get('request_records'),list): raise ValueError('Previous complete request population required')
+        for row in previous['request_records']:
+            if not isinstance(row,dict): raise ValueError('Previous request record malformed')
+            old.setdefault(row.get('ticker'),[]).append(row)
+    records = []
+    for i,(ticker,group) in enumerate(zip(selected,acquisitions)):
+        matches = old.get(ticker,[]);prior = matches[0]['acquisitions'] if len(matches)==1 else None
+        record = dossier(ticker,group,today,prior);record['request_index']=i;records.append(record)
+    prior_ref = _eps_archive(previous_raw) if previous_raw is not None else None
+    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.1.0','schema_version':2,
+              'source_files':_eps_source_identity(),
+              'measurement_contract':CONTRACT,'method':'received_annual_targets_and_same_target_changes','status':'RESEARCH_ONLY',
+              'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
+              'universe_acquisitions':captures,'legacy_static_backup':SP500_BACKUP,'universe_membership':membership,'request_records':records,
+              'acquisition_policy':{'request_limit':membership['request_limit'],'numeric_market_cap_floor':MIN_MCAP,
+                                    'threshold_currency_verified':False,'quote_gate_is_budget_selection_not_valuation':True},
+              'previous_publication':prior_ref,'stats':{'n_universe':len(selected),'n_qualifying':None,'n_tier_a':None,'n_tier_b':None},
+              'n_estimate_observations':sum(len(r['estimate_observations']) for r in records),
+              'n_rating_observations':sum(len(r['rating_observations']) for r in records),
+              'summary':{'top_25_overall':[],'tier_a':[],'tier_b_symbols':[]},'all_qualifying':[],
+              'call':None,'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,
+              'signals_logged':0,'notifications_sent':0,'private_state_read_or_written':False,'independent_evidence_eligible':False,
+              'source_documentation':['https://site.financialmodelingprep.com/developer/docs/stable/grades',
+                                      'https://site.financialmodelingprep.com/developer/docs/cycle-times'],
+              'caveats':['A different annual forecast target is not a revision or acceleration. Historical target dates remain historical.',
+                         'Changes require one identical target/issuer/currency/EPS basis across ordered captured responses. This is prospective received history, not reconstructed first releases.',
+                         'Rating actions remain separate records; a rating company name, unchanged sell opinion or future-dated action is not an earnings revision.',
+                         'Raw quote units/timing, corporate actions, fixed analyst panels, complete provider history and independent predictive performance remain unverified.',
+                         'The static backup is a legacy selection list, not verified present or historical S&P 500 membership.',
+                         'Same FMP annual estimates also feed Estimate Revisions; these are not independent votes. No six-month outperformance claim is made.'],
+              'duration_s':round(time.monotonic()-started,2)}
+    raw = json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
+    if len(raw)>64*1024*1024 or remaining()<15: raise ValueError('Whole publication exceeds reserve; preserve previous current packet')
+    archive = _eps_archive(raw)
+    precondition = {'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=S3_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(records),'archive':archive})}

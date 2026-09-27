@@ -1,0 +1,211 @@
+"""Annual forecast targets, received-snapshot changes and rating actions stay separate."""
+from datetime import date, datetime, timezone
+from decimal import Decimal
+import base64
+import hashlib
+import json
+import math
+import re
+
+CONTRACT = 'eps-target-observations.v1'
+FIELDS = {'epsAvg': 'estimatedEpsAvg', 'epsLow': 'estimatedEpsLow', 'epsHigh': 'estimatedEpsHigh',
+          'revenueAvg': 'estimatedRevenueAvg', 'revenueLow': 'estimatedRevenueLow', 'revenueHigh': 'estimatedRevenueHigh',
+          'numAnalystsEps': 'numberAnalystEstimatedEps', 'numAnalystsRevenue': 'numberAnalystsEstimatedRevenue'}
+
+
+def number(value):
+    if type(value) not in (int, float): return None
+    try: return value if math.isfinite(value) and abs(value) <= 2**53-1 else None
+    except OverflowError: return None
+
+
+def strict(raw):
+    def pairs(items):
+        out = {}
+        for key, value in items:
+            if key in out: raise ValueError('Duplicate JSON member')
+            out[key] = value
+        return out
+    def real(value):
+        out = float(value)
+        if not math.isfinite(out) or (out == 0 and Decimal(value) != 0): raise ValueError('Unrepresentable JSON number')
+        return out
+    def constant(_): raise ValueError('Nonfinite JSON')
+    return json.loads(raw.decode('utf-8'), object_pairs_hook=pairs, parse_float=real, parse_constant=constant)
+
+
+def day(value):
+    try:
+        if not isinstance(value, str) or len(value) != 10: return None
+        out = date.fromisoformat(value)
+        return out if out.isoformat() == value else None
+    except ValueError: return None
+
+
+def clock(value):
+    try:
+        if not isinstance(value, str): return None
+        out = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        return out.astimezone(timezone.utc) if out.tzinfo else None
+    except ValueError: return None
+
+
+def envelope(raw, endpoint, received_at):
+    if clock(received_at) is None: raise ValueError('UTC receipt clock required')
+    out = {'status': 'received', 'endpoint': endpoint, 'received_at': received_at,
+           'original_base64': base64.b64encode(raw).decode(), 'original_sha256': hashlib.sha256(raw).hexdigest(), 'original_bytes': len(raw)}
+    try: strict(raw)
+    except (ValueError, UnicodeError, RecursionError): out['status'] = 'invalid_original'
+    return out
+
+
+def original(acquisition):
+    if acquisition.get('status') not in ('received', 'invalid_original'): return None
+    raw = base64.b64decode(acquisition['original_base64'], validate=True)
+    if (type(acquisition.get('original_bytes')) is not int or len(raw) != acquisition['original_bytes']
+            or hashlib.sha256(raw).hexdigest() != acquisition['original_sha256']): raise ValueError('Whole source bytes differ')
+    try: parsed = strict(raw)
+    except (ValueError, UnicodeError, RecursionError):
+        if acquisition['status'] == 'invalid_original': return None
+        raise
+    if acquisition['status'] == 'invalid_original': raise ValueError('Invalid-original classification differs')
+    return parsed
+
+
+def symbol(value):
+    if not isinstance(value, str): return None
+    value = value.strip().upper()
+    return value if re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}', value) else None
+
+
+def universe(captures, backup, limit):
+    if type(limit) is not int or limit < 1 or limit > 500: raise ValueError('Bounded original request limit required')
+    occurrences = []; unique = []; indices = {}; source_populations = []
+    def add(raw, key, pointer):
+        item = raw if isinstance(raw, dict) else {}
+        candidate = symbol(item.get('symbol', item.get('ticker')))
+        if candidate and candidate not in indices:
+            indices[candidate] = len(unique); unique.append(candidate)
+        index = indices.get(candidate)
+        occurrences.append({'source_key': key, 'source_pointer': pointer, 'reported_symbol': item.get('symbol', item.get('ticker')),
+                            'request_symbol': candidate, 'request_index': index if index is not None and index < limit else None,
+                            'status': 'invalid_symbol' if candidate is None else 'selected' if index < limit else 'outside_original_request_cap'})
+    for capture in captures:
+        p = original(capture); key = capture['endpoint']
+        if not isinstance(p, dict):
+            source_populations.append({'key': key, 'status': 'unavailable_or_non_object', 'source_field': None, 'occurrences': None})
+            continue
+        field = 'stocks' if key == 'data/universe.json' else next((k for k in ('rows', 'stocks', 'data') if isinstance(p.get(k), list) and p[k]), 'rows')
+        values = p.get(field)
+        source_populations.append({'key': key, 'status': 'received_population' if isinstance(values,list) else 'missing_expected_population',
+                                   'source_field': field, 'occurrences': len(values) if isinstance(values,list) else None})
+        if isinstance(values, list):
+            for i, row in enumerate(values): add(row, key, '/'+field+'/'+str(i))
+    for i, item in enumerate(backup): add({'symbol': item}, 'legacy_static_backup', '/'+str(i))
+    return {'occurrences': occurrences, 'source_populations': source_populations, 'distinct_request_symbols': unique, 'selected_symbols': unique[:limit],
+            'request_limit': limit, 'historical_index_membership_verified': False}
+
+
+def estimates(requested, acquisition, checked_as_of):
+    today = day(checked_as_of)
+    if today is None: raise ValueError('Explicit check date required')
+    parsed = original(acquisition)
+    if not isinstance(parsed, list): return []
+    output = []
+    for i, raw in enumerate(parsed):
+        item = raw if isinstance(raw, dict) else {}; target = day(item.get('date')); values = {}; origins = {}; issues = []
+        for field, alias in FIELDS.items():
+            supplied = [k for k in (field, alias) if k in item]
+            origins[field] = supplied
+            values[field] = number(item.get(supplied[0])) if len(supplied) == 1 else None
+            if len(supplied) > 1: issues.append('ambiguous_alias:'+field)
+            if supplied and values[field] is None: issues.append('invalid_numeric:'+field)
+        for field in ('numAnalystsEps', 'numAnalystsRevenue'):
+            value = values[field]
+            if value is not None and (value < 0 or int(value) != value): issues.append('invalid_count:'+field)
+        for lo, avg, hi in (('epsLow','epsAvg','epsHigh'), ('revenueLow','revenueAvg','revenueHigh')):
+            low, value, high = (values[k] for k in (lo, avg, hi))
+            if ((low is not None and high is not None and low > high) or
+                (value is not None and low is not None and value < low) or
+                (value is not None and high is not None and value > high)): issues.append('inconsistent_range:'+avg)
+        if values['epsAvg'] is None and values['revenueAvg'] is None: issues.append('forecast_average_missing')
+        if item.get('symbol') != requested: issues.append('issuer_symbol_unresolved')
+        if target is None: issues.append('target_date_invalid')
+        if 'period' in item and item['period'] not in ('annual', 'FY'):
+            issues.append('reported_period_conflicts_with_annual_request')
+        currency = item.get('reportedCurrency', item.get('currency'))
+        if 'reportedCurrency' in item and 'currency' in item and item['reportedCurrency'] != item['currency']:
+            issues.append('conflicting_currency_fields')
+        if not isinstance(currency, str) or not re.fullmatch(r'[A-Z]{3}', currency): currency = None
+        issuer = item.get('cik')
+        issuer = issuer.zfill(10) if isinstance(issuer, str) and re.fullmatch(r'\d{1,10}', issuer) and int(issuer) else None
+        basis = item.get('epsBasis'); basis = basis.strip() if isinstance(basis, str) and basis.strip() else None
+        output.append({'source_index': i, 'raw': raw, 'ticker': requested, 'target_period_end': target.isoformat() if target else None,
+                       'target_status': 'unidentified' if target is None else 'past_target' if target < today else 'current_or_future_target',
+                       'requested_period': 'annual', 'received_at': acquisition['received_at'], 'values': values, 'value_fields': origins,
+                       'reported_cik': issuer, 'reported_currency': currency, 'eps_basis': basis, 'issues': issues,
+                       'measurement_status': 'reported_forecast_observation' if not issues else 'unqualified_record',
+                       'first_publication_at': None, 'provider_documented_update_frequency': 'weekly'})
+    return output
+
+
+def identity(row):
+    if row['measurement_status'] != 'reported_forecast_observation' or not all(row[k] for k in ('reported_cik','reported_currency','eps_basis')): return None
+    return (row['ticker'],row['reported_cik'],row['reported_currency'],row['eps_basis'],row['target_period_end'],row['requested_period'])
+
+
+def compare(current, previous):
+    out = []
+    for row in current:
+        key = identity(row); matches = [r for r in previous if key and identity(r) == key]
+        unique = sum(identity(r) == key for r in current) == 1 if key else False
+        result = {'source_index': row['source_index'], 'prior_source_index': None, 'prior_received_at': None,
+                  'eps_change': None, 'eps_change_pct_positive_base': None, 'analyst_count_change': None,
+                  'status': 'no_unique_comparable_prior_target', 'same_analyst_panel_verified': False, 'corporate_actions_verified': False}
+        if unique and len(matches) == 1:
+            prior = matches[0]; first = clock(prior['received_at']); last = clock(row['received_at'])
+            old = prior['values']['epsAvg']; new = row['values']['epsAvg']
+            if first and last and first < last and old is not None and new is not None:
+                delta = number(new-old)
+                if delta is not None:
+                    a, b = row['values']['numAnalystsEps'], prior['values']['numAnalystsEps']
+                    result.update(status='observed_same_target_consensus_change', prior_source_index=prior['source_index'], prior_received_at=prior['received_at'],
+                                  eps_change=delta, eps_change_pct_positive_base=number(delta/old*100) if old > 0 else None,
+                                  analyst_count_change=number(a-b) if a is not None and b is not None else None)
+        out.append(result)
+    return out
+
+
+def ratings(requested, acquisition, checked_as_of):
+    today = day(checked_as_of)
+    if today is None: raise ValueError('Explicit check date required')
+    parsed = original(acquisition)
+    if not isinstance(parsed, list): return []
+    output = []
+    for i, raw in enumerate(parsed):
+        item = raw if isinstance(raw, dict) else {}; dated = day(item.get('date')); issues = []
+        if item.get('symbol') != requested: issues.append('issuer_symbol_unresolved')
+        if dated is None or dated > today: issues.append('date_invalid_or_future')
+        output.append({'source_index': i, 'raw': raw, 'reported_action': item.get('action'),
+                       'reported_date': item.get('date'), 'grading_company': item.get('gradingCompany'),
+                       'previous_grade': item.get('previousGrade'), 'new_grade': item.get('newGrade'),
+                       'status': 'reported_rating_record' if not issues else 'unqualified_record', 'issues': issues,
+                       'earnings_revision_breadth': None, 'independent_analyst_identity_verified': False})
+    return output
+
+
+def dossier(requested, acquisitions, checked_as_of, prior_acquisitions=None):
+    by_endpoint = {a['endpoint']: a for a in acquisitions}
+    if len(by_endpoint) != len(acquisitions): raise ValueError('Repeated acquisition endpoint')
+    est = by_endpoint.get('analyst-estimates', {'status':'not_requested'})
+    prior = next((a for a in (prior_acquisitions or []) if a['endpoint'] == 'analyst-estimates'), {'status':'not_requested'})
+    rows = estimates(requested, est, checked_as_of); old = estimates(requested, prior, checked_as_of)
+    quote = original(by_endpoint.get('quote', {'status':'not_requested'}))
+    return {'ticker': requested, 'acquisitions': acquisitions, 'quote_records': quote if isinstance(quote, list) else [],
+            'source_population_status': {k: 'received_array' if isinstance(original(a),list) else 'received_non_array' if a.get('status') == 'received' else a.get('status') for k,a in by_endpoint.items()},
+            'estimate_observations': rows, 'same_target_comparisons': compare(rows, old),
+            'rating_observations': ratings(requested, by_endpoint.get('grades', {'status':'not_requested'}), checked_as_of),
+            'source_family': 'FMP annual analyst estimates; shared with Estimate Revisions',
+            'independent_evidence_eligible': False, 'forecast_qualified': False, 'calls_eligible': False,
+            'sizing_eligible': False, 'execution_eligible': False, 'call': None, 'score': None,
+            'revision_velocity_60d': None, 'revision_acceleration': None, 'ratings_revision_breadth': None}

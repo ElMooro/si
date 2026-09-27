@@ -1,138 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EPS Velocity · JustHodl.AI</title>
-<meta name="description" content="Stocks with accelerating consensus EPS estimates. The MU/SNDK pattern in code form.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&display=swap" rel="stylesheet">
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="jh-primary-engine" content="justhodl-eps-revision-velocity">
+<title>EPS targets and revisions · JustHodl</title>
 <style>
-:root{--bg:#0a0d12;--bg1:#0f131a;--bg2:#141a23;--brd:#1c2433;--brd2:#2a3548;--t1:#e9eef7;--t2:#a8b3c7;--t3:#6f7b91;--green:#00e676;--green-bg:rgba(0,230,118,.08);--pink:#ec4899;--pink-bg:rgba(236,72,153,.1);--cyan:#00d4ff;--cyan-bg:rgba(0,212,255,.1);--red:#ff174a;--red-bg:rgba(255,23,74,.1);--display:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
-*{margin:0;padding:0;box-sizing:border-box}html,body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}body{background-image:radial-gradient(ellipse at 80% -10%,rgba(236,72,153,.05),transparent 50%);min-height:100vh}
-.topnav{background:rgba(15,19,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd);padding:0 16px;display:flex;align-items:center;gap:4px;height:42px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:100}.topnav a{color:var(--t3);text-decoration:none;padding:6px 12px;font-size:11px;letter-spacing:1px;font-family:var(--mono);transition:color .15s;text-transform:uppercase}.topnav a:hover{color:var(--pink)}.topnav a.active{color:var(--pink);border-bottom:2px solid var(--pink)}.nav-brand{font-family:var(--display);font-weight:700;font-size:14px;color:var(--t1);margin-right:18px;font-style:italic}.nav-brand i{color:var(--pink);font-style:normal}
-.shell{max-width:1280px;margin:0 auto;padding:36px 24px 80px}@media(max-width:700px){.shell{padding:20px 14px 60px}}
-.hero{margin-bottom:32px}.hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--pink);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;display:inline-flex;align-items:center;gap:8px}.hero-eyebrow::before{content:'';width:7px;height:7px;background:var(--pink);border-radius:50%;animation:pulse 2.4s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}.hero-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.05;letter-spacing:-.012em;margin-bottom:10px;max-width:920px}.hero-title em{font-style:italic;color:var(--pink);font-weight:500}.hero-blurb{font-size:15px;color:var(--t2);max-width:700px;line-height:1.55;margin-bottom:18px}
-.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:8px}.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}.kpi-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:1.6px;text-transform:uppercase}.kpi-val{font-family:var(--display);font-size:24px;font-weight:600;color:var(--t1);letter-spacing:-.01em}.kpi-sub{font-size:11px;color:var(--t3)}
-.primer{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px 20px;margin-bottom:32px;border-left:3px solid var(--pink)}.primer h3{font-family:var(--display);font-weight:600;font-size:16px;color:var(--pink);margin-bottom:8px}.primer p{font-size:13px;color:var(--t2);margin-bottom:6px;line-height:1.6}.primer p:last-child{margin-bottom:0}.primer strong{color:var(--t1)}
-.section{margin-bottom:48px}.section-eyebrow{font-family:var(--mono);font-size:11px;color:var(--cyan);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}.section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}.section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:680px}
-.dv-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--brd);border-radius:8px;overflow:hidden;font-size:13px}.dv-table th{background:var(--bg2);text-align:left;padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--brd)}.dv-table td{padding:10px 14px;border-bottom:1px solid var(--brd);color:var(--t1)}.dv-table tr:hover td{background:var(--bg2)}.dv-table .num{font-family:var(--mono)}.dv-table .pos{color:var(--green)}.dv-table .neg{color:var(--red)}
-.flag-pill{font-family:var(--mono);font-size:9.5px;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:1px;font-weight:500;display:inline-block}.flag-tier_a{background:var(--green-bg);color:var(--green);border:1px solid rgba(0,230,118,.25)}.flag-tier_b{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}.flag-watch{background:var(--pink-bg);color:var(--pink);border:1px solid rgba(236,72,153,.25)}
-.empty{text-align:center;padding:48px 20px;color:var(--t3);font-style:italic}
-.foot{background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0}.foot-grid{max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-family:var(--mono);font-size:11px}.foot-section{display:flex;flex-direction:column;gap:4px}.foot-label{color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;font-size:9px;margin-bottom:4px}.foot-section span{color:var(--t2)}.foot-section a{color:var(--cyan);text-decoration:none}
-.fade-in{animation:fade .35s ease-out}@keyframes fade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:820px;margin:0 0 14px}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th:hover{color:var(--fg)}th.on{color:var(--cyan)}
+td.l,th.l{text-align:left}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+#board{max-width:100%;overflow:auto}#board table{min-width:950px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style>
-<script src="/ai-name-brief-kit.js"></script>
-</head>
-<body>
-<nav class="topnav">
-  <span class="nav-brand">just<i>hodl</i>.ai</span>
-  <a href="/">Home</a>
-  <a href="/brief.html">Brief</a>
-  <a href="/calls.html">Calls</a>
-  <a href="/desk.html">Desk</a>
-  <a href="/compound-signals.html">Compound</a>
-  <a href="/themes.html">Themes</a>
-  <a href="/nobrainers.html">Nobrainers</a>
-  <a href="/defcon.html">DEFCON</a>
-  <a href="/baggers.html">Baggers</a>
-  <a href="/insider-clusters.html">Clusters</a>
-  <a href="/smart-money.html">Smart Money</a>
-  <a href="/deep-value.html">Deep Value</a>
-  <a href="/eps-velocity.html" class="active">EPS Velocity</a>
-</nav>
-<main class="shell">
-  <section class="hero fade-in">
-    <span class="hero-eyebrow">Accelerating Consensus Estimates</span>
-    <h1 class="hero-title">When the Street's <em>EPS estimates are accelerating</em> upward.</h1>
-<div id="ai-names-mount" style="max-width:1280px;margin:14px auto 8px;padding:0 18px"></div>
-<script>if(window.JHAINameBrief)JHAINameBrief.mount("ai-names-mount","eps-velocity-names");</script>
-    <p class="hero-blurb">The MU/SNDK pattern in code form. When forward-year EPS estimates rise sharply versus the prior year and revenue growth confirms it, the stock historically outperforms by 12-18% over 6 months (Womack 1996; Givoly-Lakonishok). The system pulls multi-year analyst estimates from FMP and computes the second derivative — is the rate-of-change accelerating?</p>
-    <div class="kpi-strip">
-      <div class="kpi"><span class="kpi-label">Universe</span><span class="kpi-val" id="kpi-universe">—</span><span class="kpi-sub">stocks scanned</span></div>
-      <div class="kpi"><span class="kpi-label">Qualifying</span><span class="kpi-val" id="kpi-qualifying">—</span><span class="kpi-sub">≥ 5% velocity</span></div>
-      <div class="kpi"><span class="kpi-label">Tier-A</span><span class="kpi-val" id="kpi-tier-a">—</span><span class="kpi-sub">≥ 25% lift</span></div>
-      <div class="kpi"><span class="kpi-label">Tier-B</span><span class="kpi-val" id="kpi-tier-b">—</span><span class="kpi-sub">≥ 15% lift</span></div>
-    </div>
-  </section>
-  <div class="primer fade-in">
-    <h3>Why velocity beats absolute estimates</h3>
-    <p>What matters isn't the analyst consensus — it's <strong>how that consensus is changing</strong>. Markets price the current expectation efficiently; what's mispriced is the rate of revision. When sell-side analysts revise their estimates up systematically, it signals they're seeing positive incremental data they hadn't priced in. The trade is to be in the stock <em>before</em> consensus catches up.</p>
-    <p>The MU pattern: in 2023-24, sell-side EPS estimates went $0.50 → $1.10 → $1.85 over 90 days. Anyone tracking the velocity saw the move 6-9 months early. The system flags this signature: forward EPS lift &gt; 15%, forward revenue growth &gt; 8%, with rising analyst participation count.</p>
-  </div>
-  <section class="section fade-in">
-    <div class="section-eyebrow">All qualifying setups</div>
-    <h2 class="section-title">Top 25 by EPS-velocity score</h2>
-    <p class="section-blurb">Sorted by composite score: 40% velocity (FY2 vs FY1 lift), 20% acceleration (forward revenue), 15% breadth (analyst upgrades), 15% positive earnings, 10% growth alignment.</p>
-    <div id="table-host" class="empty">Loading…</div>
-  </section>
-</main>
-<footer class="foot">
-  <div class="foot-grid">
-    <div class="foot-section"><span class="foot-label">Source</span><span><strong style="color:var(--t1)">FMP /stable</strong> analyst-estimates + grades</span><span>justhodl-eps-revision-velocity</span></div>
-    <div class="foot-section"><span class="foot-label">Schedule</span><span>Daily 09:30 UTC</span><span id="foot-refresh">—</span></div>
-    <div class="foot-section"><span class="foot-label">Filters</span><span>≥ $300M mcap</span><span>≥ 5% velocity to qualify</span></div>
-    <div class="foot-section"><span class="foot-label">Reload</span><span><a href="javascript:location.reload()">Refresh</a></span></div>
-  </div>
-</footer>
-<script>
-const BUCKET = 'https://justhodl-dashboard-live.s3.amazonaws.com';
-const escape = s => (s||'').toString().replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
-const flagClass = f => {
-  if (f === 'HIGH_VELOCITY_TIER_A') return 'flag-tier_a';
-  if (f === 'HIGH_VELOCITY_TIER_B') return 'flag-tier_b';
-  return 'flag-watch';
-};
-async function load() {
-  const r = await fetch(BUCKET + '/data/eps-revision-velocity.json?_=' + Date.now());
-  return await r.json();
-}
-(async () => {
-  try {
-    const data = await load();
-    const stats = data.stats || {};
-    document.getElementById('kpi-universe').textContent = stats.n_universe || '—';
-    document.getElementById('kpi-qualifying').textContent = stats.n_qualifying || '—';
-    document.getElementById('kpi-tier-a').textContent = stats.n_tier_a || '—';
-    document.getElementById('kpi-tier-b').textContent = stats.n_tier_b || '—';
-    if (data.generated_at) document.getElementById('foot-refresh').textContent = new Date(data.generated_at).toLocaleString();
-    const top = data.summary?.top_25_overall || [];
-    if (!top.length) {
-      document.getElementById('table-host').innerHTML = '<div class="empty">No qualifying setups.</div>';
-      return;
-    }
-    const rows = top.map((c,i) => `
-      <tr>
-        <td class="num">${i+1}</td>
-        <td><strong>${escape(c.symbol)}</strong> <span style="color:var(--t3);font-size:11px">${escape((c.company||'').substring(0,30))}</span></td>
-        <td class="num">${(c.score||0).toFixed(1)}</td>
-        <td><span class="flag-pill ${flagClass(c.flag)}">${(c.flag||'').replace('HIGH_VELOCITY_','').replace('_',' ')}</span></td>
-        <td class="num pos">+${(c.fy2_lift_pct||0).toFixed(0)}%</td>
-        <td class="num pos">+${(c.fwd_rev_growth_pct||0).toFixed(0)}%</td>
-        <td class="num">${((c.upgrade_pct||0)*100).toFixed(0)}%</td>
-        <td class="num">${c.n_estimates || 0}</td>
-        <td>${escape((c.sector||'').substring(0,18))}</td>
-      </tr>
-    `).join('');
-    document.getElementById('table-host').innerHTML = `<table class="dv-table">
-      <thead><tr><th>#</th><th>Stock</th><th>Score</th><th>Flag</th><th>FY2 Lift</th><th>Rev G</th><th>Upg%</th><th>NEst</th><th>Sector</th></tr></thead>
-      <tbody>${rows}</tbody></table>`;
-  } catch (e) {
-    document.getElementById('table-host').innerHTML = '<div class="empty">Load error: ' + escape(e.message) + '</div>';
-  }
-})();
-</script>
+<style>button{padding:8px 12px;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}button:disabled{opacity:.5}button:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}#board td{text-align:left;vertical-align:top;max-width:390px;overflow-wrap:anywhere}#board table{min-width:1350px}#status,#coverage{margin:12px 0}#rows{color:var(--fg2)}details{margin:12px 0}</style>
 
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 24px">
-  <h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(148,163,184,.25)">Historical Context — vs Crises, Tops &amp; Bottoms</h2>
-  <div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div>
-</div>
-<script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','BAMLH0A0HYM2']);});</script>
-  <script src="/jh-enhance.js" data-feed="data/eps-revision-velocity.json" data-bars="all_qualifying:symbol:score" data-title="EPS-revision velocity — score" data-sub="accelerating estimate revisions" ></script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-wire.js" defer data-feeds="data/revision-breadth.json|justhodl-gap-metrics|REVISION BREADTH · MARKET LEVEL"></script>
-<script src="/sidebar.js" defer></script>
-</body>
-</html>
+<style>select{padding:8px;margin:8px 12px 12px 0;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}select:focus-visible{outline:2px solid var(--cyan)}#board details{margin:0}#board td{min-width:90px;max-width:260px}a{color:var(--cyan)}input{width:100%}</style>
+</head><body><main class="wrap">
+<h1>EPS targets and revisions</h1>
+<p class="sub">Annual consensus forecasts, observed changes in the same forecast target, and analyst rating actions. Each has a different meaning and remains a separate research population.</p>
+<p id="status" role="status">Loading stored research…</p><p id="coverage" class="sub"></p>
+<label for="mode">Research population</label><br>
+<select id="mode"><option value="targets">Annual forecast targets</option><option value="ratings">Reported rating actions</option><option value="requests">Request coverage</option></select><br>
+<label for="q">Find a ticker, target date or source status</label><br>
+<input id="q" placeholder="Ticker, date or status" autocomplete="off">
+<p id="rows" aria-live="polite"></p><button id="previous" type="button" disabled>Previous 100</button> <button id="next" type="button" disabled>Next 100</button>
+<div id="board" role="region" aria-label="Complete forecast and rating populations, paginated" tabindex="0">Loading /data/eps-revision-velocity.json</div>
+<details><summary>Complete received packet, all source responses and universe membership</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Different forecast years:</b> a difference between FY1 and FY2 estimates is a target comparison, not a revision over time or an acceleration.<br>
+<b>Observed same-target changes:</b> require matching target, issuer, reported currency and EPS basis in two ordered captures. Original release timing, fixed analyst panels and corporate actions remain unverified.<br>
+<b>Rating actions:</b> provider-reported opinions remain separate from earnings forecasts. A maintained sell rating is not automatically a downgrade, and the grading company's name is not a rating.<br>
+<b>Coverage and independence:</b> incomplete requests and source populations stay visible. The same annual-estimate provider also feeds Estimate Revisions, so the two engines cannot count as independent votes.<br>
+<b>Research limits:</b> no validated return forecast, investment tier or position-size permission. Missing measurements remain unavailable; reported zero remains zero.<br>
+<b>Provider documentation:</b> <a href="https://site.financialmodelingprep.com/developer/docs/stable/grades">rating actions</a> and <a href="https://site.financialmodelingprep.com/developer/docs/cycle-times">update frequencies</a>. Collection frequency does not establish a new estimate vintage.</div>
+</main>
+<script src="/jh-table-values.js?v=eps-targets-v1"></script><script src="/jh-eps-observations.js?v=eps-targets-v1"></script>
+<script>JHEPSObservations.start();</script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/sidebar.js" defer></script>
+</body></html>

@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-eps-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-eps-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-hiring-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-hiring-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-scarcity-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-scarcity-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-estimate-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-estimate-observations.js'),'utf8'),ctx);
@@ -190,4 +191,26 @@ test('workforce page pagination and failures retain all original evidence withou
  for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({top_50:{bad:true}})]){
   const fail=page('hiring-velocity.html',loader);await flush();assert.match(fail.get('status').textContent,/unavailable/);assert.equal(fail.get('board').textContent,'No verified display population');assert.equal(fail.get('next').disabled,true);
  }
+});
+
+test('EPS forecasts, rating actions and request coverage are separate complete populations',async()=>{
+ const M=require('../jh-eps-observations.js');const p={measurement_contract:M.CONTRACT,request_records:[{ticker:'TEST',acquisitions:[{endpoint:'grades',status:'received',original_base64:'EXACT_BYTES',original_sha256:'identity'}],quote_records:[{price:0}],
+  estimate_observations:[{source_index:0,raw:{symbol:'TEST'},target_period_end:'2026-01-31',target_status:'past_target',values:{epsAvg:0},reported_currency:'JPY',measurement_status:'reported_forecast_observation'}],
+  same_target_comparisons:[{source_index:0,eps_change:null}],rating_observations:[{raw:{symbol:'TEST'},reported_date:'2026-09-26',previous_grade:'Sell',new_grade:'Sell',grading_company:'A > B',reported_action:'maintain',status:'reported_rating_record'}]}],all_qualifying:[{symbol:'NEVER_USE'}]};
+ const s=page('eps-velocity.html',async()=>raw(p));await flush();let html=s.get('board').innerHTML;
+ assert.equal(s.calls.length,1);assert.equal(s.calls[0],'/data/eps-revision-velocity.json');assert.match(html,/2026-01-31/);assert.match(html,/<td>0\.000<\/td>/);assert.match(html,/JPY/);assert.match(html,/past_target/);assert.ok(!html.includes('NEVER_USE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ s.get('mode').value='ratings';s.get('mode').onchange();html=s.get('board').innerHTML;assert.match(html,/maintain/);assert.match(html,/A &gt; B/);assert.match(s.get('rows').textContent,/1 received ratings/);assert.ok(!html.includes('earnings_revision_breadth'));
+ const h=s.get('board').headers.find(x=>x.dataset.k==='ticker');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');assert.equal(s.document.activeElement['aria-sort'],'ascending');
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('board').innerHTML,/grades: received/);assert.ok(!s.get('board').innerHTML.includes('EXACT_BYTES'));assert.match(s.get('original').textContent,/EXACT_BYTES/);
+ const all=M.model({...p,request_records:Array.from({length:501},()=>p.request_records[0])});assert.equal(all.targets.length,501);assert.equal(all.ratings.length,501);assert.equal(all.requests.length,501);
+ assert.throws(()=>M.model({...p,request_records:null}),/Complete/);assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);
+});
+
+test('EPS legacy complete company and summary occurrences stay unverified, paginated and escaped',async()=>{
+ const p={all_qualifying:Array.from({length:194},(_,i)=>({symbol:'T'+i,score:99,rationale:'<img src=x>'})),summary:{top_25_overall:[{symbol:'T0'}],tier_a:['T0'],tier_b_symbols:['T1']}};
+ const s=page('eps-velocity.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/197 received targets/);assert.match(s.get('status').textContent,/unverified/);assert.ok(!s.get('board').innerHTML.includes('<img'));assert.match(s.get('board').innerHTML,/&lt;img/);
+ s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 2 of 2/);assert.match(s.get('board').innerHTML,/T193/);
+ s.get('q').value='T193';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching \/ 197/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/197 matching/);
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{}})]){const failed=page('eps-velocity.html',loader);await flush();assert.match(failed.get('status').textContent,/unavailable/);assert.equal(failed.get('board').textContent,'No verified display population');}
+ assert.ok(api.PUBLIC_PATHS.test('/data/eps-revision-velocity.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/eps-revision-velocity/private.json'));
 });
