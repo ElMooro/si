@@ -27,19 +27,18 @@ import json, os, time
 from datetime import datetime, timezone
 from urllib import request, error
 import boto3
-try:
-    import _fred_shim  # noqa: F401
-except Exception:
-    pass
+# Retained shim is not imported: its warm stale cache and nested retries
+# cannot participate in original-source research publication.
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/china-liquidity.json"
 S3_HISTORY_KEY = "data/china-liquidity-history.json"
+BUCKET = S3_BUCKET  # Existing AFRE cache uses this name.
 HISTORY_MAX = 260
 
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+TELEGRAM_TOKEN = ""  # Research publication never reads recipient credentials.
+TELEGRAM_CHAT_ID = ""
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -138,7 +137,7 @@ EDGE = "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
 def _edge(u, timeout=25, cap=500_000):
     """ops 3625: fetch CN gov via the CF /gov edge (allowlisted); direct fallback."""
     import urllib.parse as _up
-    from urllib import request as _rq
+    _rq = request  # Scoped retained transport; no unrecorded local import.
     try:
         r = _rq.urlopen(_rq.Request(EDGE + _up.quote(u, safe=""),
                                      headers={"User-Agent": "Mozilla/5.0"}), timeout=timeout)
@@ -339,7 +338,7 @@ _MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
 
 def _html(url, timeout=18, limit=500_000):
     import re as _re
-    from urllib import request as _rq
+    _rq = request  # Scoped retained transport; no unrecorded local import.
     try:
         r = _rq.urlopen(_rq.Request(url, headers={"User-Agent": "JustHodl research contact@justhodl.ai"}),
                         timeout=timeout)
@@ -495,7 +494,7 @@ def real_tsf_block():
     return out
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[china-liquidity] starting {datetime.now(timezone.utc).isoformat()}")
     if not FRED_KEY:
@@ -655,3 +654,15 @@ def lambda_handler(event, context):
         "credit_impulse_pp": round(impulse, 2) if impulse is not None else None,
         "m2_yoy": round(m2_yoy, 2) if m2_yoy is not None else None,
         "fred_failed": failed})}
+
+
+def lambda_handler(event, context):
+    """Retain original sources and full history before conditional publication."""
+    import sys
+    import china_store
+    try:
+        return china_store.run(sys.modules[__name__], event, context)
+    except Exception as exc:
+        # Safe diagnostic only; raw provider/credential URLs never enter logs.
+        print('[china-research] retained publication refused:', type(exc).__name__)
+        return {'statusCode': 503, 'body': 'Research acquisition incomplete; prior publication retained.'}

@@ -36,7 +36,7 @@ th:first-child,td:first-child{text-align:left}
 td{padding:7px 8px;border-bottom:1px solid var(--border)}
 tr:last-child td{border-bottom:none}
 .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin:2px;border:1px solid var(--border-hi)}
-.macro-scroll{max-width:100%;overflow:auto}.macro-scroll:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.macro-scroll table{min-width:620px}.macro-controls{display:flex;gap:10px;flex-wrap:wrap}#macro-calendar,#asia-calendar,#china-calendar{min-width:0;overflow:hidden}#macro-calendar p,#asia-calendar p,#china-calendar p{overflow-wrap:anywhere}#macro-choice,#asia-choice,#china-choice{display:block;width:100%;max-width:100%;min-width:0;margin:10px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border)}.macro-controls button{padding:9px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:7px}.macro-controls button:disabled{opacity:.45}
+.macro-scroll{max-width:100%;overflow:auto}.macro-scroll:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.macro-scroll table{min-width:620px}.macro-controls{display:flex;gap:10px;flex-wrap:wrap}#macro-calendar,#asia-calendar{min-width:0;overflow:hidden}#macro-calendar p,#asia-calendar p{overflow-wrap:anywhere}#macro-choice,#asia-choice{display:block;width:100%;max-width:100%;min-width:0;margin:10px 0;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border)}.macro-controls button{padding:9px 12px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:7px}.macro-controls button:disabled{opacity:.45}
 </style>
 </head>
 <body>
@@ -86,18 +86,6 @@ tr:last-child td{border-bottom:none}
     <p><a href="https://fred.stlouisfed.org/series/XTEXVA01KRM667N">Korea source definition</a> · <a href="https://fred.stlouisfed.org/series/VALEXPTWM052N">Taiwan source definition</a> · <a href="/data/ops/releases/justhodl-asia-leads.json">Deployed code receipt</a></p>
     <details id="asia-details"><summary>Complete Asia packet, including unqualified legacy fields</summary><pre id="asia-original">Unavailable</pre></details>
   </section>
-  <section id="china-calendar" aria-labelledby="china-calendar-title" style="margin-top:26px">
-    <h2 id="china-calendar-title">China monetary and price research</h2>
-    <p class="note">M1, M2 and M3 are separate monetary stocks. Monthly and quarterly periods stay separate. Money-growth acceleration is not a TSF credit impulse; a currency move is not a capital flow, and a gold export-price index is not bullion. Financing text extraction remains unqualified.</p>
-    <p id="china-calendar-status" role="status">Loading original China packet…</p>
-    <div id="china-series" class="macro-scroll" role="region" aria-label="China source definitions and observation ages" tabindex="0"></div>
-    <label for="china-choice">Inspect every original observation</label><select id="china-choice"></select>
-    <p id="china-definition" class="note"></p>
-    <div id="china-months" class="macro-scroll" role="region" aria-label="Complete China source observations" tabindex="0"></div>
-    <p class="macro-controls"><button id="china-prev" type="button" disabled>Previous 100 China observations</button> <span id="china-row-count" aria-live="polite"></span> <button id="china-next" type="button" disabled>Next 100 China observations</button></p>
-    <p><a href="https://fred.stlouisfed.org/series/MYAGM2CNM189N">M2 definition</a> · <a href="https://fred.stlouisfed.org/series/MABMM301CNM189S">Separate M3 definition</a> · <a href="https://fred.stlouisfed.org/series/IQ12260">Gold export-price index</a> · <a href="/data/ops/releases/justhodl-china-liquidity.json">Deployed code receipt</a></p>
-    <details id="china-details"><summary>Complete China packet, including unqualified native calculations</summary><pre id="china-original">Unavailable</pre></details>
-  </section>
   <section id="macro-transport" aria-labelledby="transport-title" style="margin-top:26px">
     <h2 id="transport-title">Transport evidence · separate source populations</h2>
     <p class="note">Vessel calls, freight indexes, credit flows and bank-claim stocks describe different populations and clocks. There is no additive China-stack vote or cross-source slowdown conclusion here.</p>
@@ -105,7 +93,7 @@ tr:last-child td{border-bottom:none}
       <div class="card"><h3>Monthly Freight Pulse</h3><p id="transport-freight-status" class="note" role="status">Loading complete freight packet…</p><p id="transport-freight-description"></p><p id="transport-freight-limitation" class="note"></p><a href="/freight-pulse.html">Inspect every monthly freight observation</a><details id="transport-freight-details"><summary>All original freight fields</summary><pre id="transport-freight-original"></pre></details></div>
       <div class="card"><h3>PortWatch vessel counts</h3><p id="transport-shipping-status" class="note" role="status">Loading complete shipping packet…</p><p id="transport-shipping-description"></p><p id="transport-shipping-limitation" class="note"></p><a href="/portwatch.html">Inspect complete shipping calendars</a><details id="transport-shipping-details"><summary>All original shipping fields</summary><pre id="transport-shipping-original"></pre></details></div>
     </div>
-    <p class="note">Other original contexts remain accessible without being counted as votes: <a href="/data/bis-crossborder.json?exact=1&amp;nogen=1">BIS bank-claim stocks</a> · <a href="/data/china-liquidity.json?exact=1&amp;nogen=1">China monetary and financing context</a> · <a href="/geo-risk.html">Geopolitical news</a>.</p>
+    <p class="note">Other original contexts remain accessible without being counted as votes: <a href="/data/bis-crossborder.json?exact=1&amp;nogen=1">BIS bank-claim stocks</a> · <a href="/data/china-liquidity.json?exact=1&amp;nogen=1">China credit flows</a> · <a href="/geo-risk.html">Geopolitical news</a>.</p>
     <details><summary>Complete original Macro Leads packet</summary><p class="note">Legacy definitions and model conclusions remain unqualified. No field is omitted from this inspection view.</p><pre id="macro-complete-original">Unavailable</pre></details>
   </section>
   <div class="note" style="margin-top:24px">Sources: metals ratios (Yahoo/COMEX), rate-cut diffusion (FRED central-bank rates), Geopolitical Risk Index (Caldara &amp; Iacoviello), heavy-truck sales (FRED HTRUCKSSAAR). Refreshed daily. Source definitions and original observation dates require their own checks.</div>
@@ -114,7 +102,6 @@ tr:last-child td{border-bottom:none}
 <script src="/jh-business-cycle-review.js"></script>
 <script src="/jh-macro-calendar.js"></script>
 <script src="/jh-asia-calendar.js"></script>
-<script src="/jh-china-calendar.js"></script>
 <script src="/jh-freight-review.js"></script>
 <script src="/jh-portwatch-review.js"></script>
 <script src="/jh-macro-transport.js"></script>
@@ -123,24 +110,18 @@ function zbadge(z){ if(typeof z!=='number'||!Number.isFinite(z)) return ''; retu
 function el(id){return document.getElementById(id);}
 /* ops 3584 ADDITIVE: Asia tech-pulse (justhodl-asia-leads) + next prints (existing justhodl-econ-calendar — wired, not rebuilt) */
 (async function(){
-  var chinaContext={};
-  try{
-    var chinaRaw=await JHMacroTransport.load('china');
-    try{JHChinaCalendar.render(document,chinaRaw);}catch(e){JHChinaCalendar.clear(document,'China calendar unavailable: '+e.message);}
-    var chinaLegacy=JHMacroTransport.legacy(chinaRaw);chinaContext=(chinaLegacy.tsf&&chinaLegacy.tsf.pboc_cn)||{};
-  }catch(e){JHChinaCalendar.clear(document,'China source unavailable. Earlier measurements cleared.');}
   try{
     var asiaRaw=await JHMacroTransport.load('asia');
     try{JHAsiaCalendar.render(document,asiaRaw);}catch(e){JHAsiaCalendar.clear(document,'Asia calendar unavailable: '+e.message);}
     var a=JHMacroTransport.legacy(asiaRaw);
-    var cl=chinaContext;
+    var cl={};try{var cj=JHMacroTransport.legacy(await JHMacroTransport.load('china'));cl=(cj.tsf&&cj.tsf.pboc_cn)||{};}catch(e){}
     var gr={};try{gr=JHMacroTransport.legacy(await JHMacroTransport.load('geo'));}catch(e){}
     gr=JHGeoResearch.context(gr); // Dated observations cannot inherit legacy stress/pricing authority.
     el('asia-pulse').innerHTML='<h3>Asia customs, news and order context</h3>'
       +'<div class="note">Legacy text extractions below are unqualified: signs, periods and sources need review. They are not independent evidence or a semiconductor-demand signal. <a href="#asia-calendar">Inspect the separate monthly export series below</a>.</div>'
       +((a.korea_flash&&a.korea_flash.total_yoy_pct!=null)?('<div class="kv"><span>🇰🇷 Korea 20-day flash</span><b class="'+'mute'+'">'+(a.korea_flash.total_yoy_pct>0?'+':'')+a.korea_flash.total_yoy_pct+'% YoY</b><span class="mute"> · $'+(a.korea_flash.total_usd_bn??'—')+'B'+(a.korea_flash.semis_yoy_pct!=null?' · semis '+(a.korea_flash.semis_yoy_pct>0?'+':'')+a.korea_flash.semis_yoy_pct+'%':'')+' · KCS provisional, prints the 21st</span></div>'):((a.korea_flash_tape&&a.korea_flash_tape.latest)?('<div class="kv"><span>🇰🇷 Korea 20-day flash</span><b class="'+'mute'+'">'+(a.korea_flash_tape.latest.yoy_pct>0?'+':'')+a.korea_flash_tape.latest.yoy_pct+'% YoY</b><span class="mute">'+(a.korea_flash_tape.latest.semis_yoy_pct!=null?' · semis '+(a.korea_flash_tape.latest.semis_yoy_pct>0?'+':'')+a.korea_flash_tape.latest.semis_yoy_pct+'%':'')+' · '+(a.korea_flash_tape.latest.period||'')+' · news-tape</span></div>'):''))
       +((a.taiwan_orders&&(a.taiwan_orders.yoy_pct!=null||a.taiwan_orders.latest_usd_bn!=null))?('<div class="kv"><span>Taiwan export ORDERS</span><b class="'+'mute'+'">'+(a.taiwan_orders.yoy_pct!=null?((a.taiwan_orders.yoy_pct>0?'+':'')+a.taiwan_orders.yoy_pct+'% YoY'):('US$'+(a.taiwan_orders.latest_usd_bn??'—')+'B'))+'</b><span class="mute"> · US$'+(a.taiwan_orders.latest_usd_bn??'—')+'B · '+(a.taiwan_orders.period||'')+' · orders and shipments use different source definitions</span></div>'):'')
-      +((cl.flow_trn_cny!=null)?('<div class="kv"><span>🇨🇳 China TSF flow</span><b class="'+'mute'+'">¥'+cl.flow_trn_cny+'tn</b><span class="mute"> · '+(cl.period||'')+(cl.yoy_delta_trn!=null?' · Δ '+(cl.yoy_delta_trn>0?'+':'')+cl.yoy_delta_trn+'tn YoY':'')+' · unqualified financing extraction; monthly/cumulative scope and YoY periods need review</span></div>'):'')
+      +((cl.flow_trn_cny!=null)?('<div class="kv"><span>🇨🇳 China TSF flow</span><b class="'+((cl.yoy_delta_trn||0)>0?'good':(cl.yoy_delta_trn||0)<0?'bad':'flat')+'">¥'+cl.flow_trn_cny+'tn</b><span class="mute"> · '+(cl.period||'')+(cl.yoy_delta_trn!=null?' · Δ '+(cl.yoy_delta_trn>0?'+':'')+cl.yoy_delta_trn+'tn YoY':'')+' · reported financing flow; not a GDP-normalized credit impulse</span></div>'):'')
       +'<div class="kv"><span>Geopolitical news</span><b>Research only</b><span class="mute"> · no score-derived market-pricing conclusion · <a href="/geo-risk.html">Review coverage and publisher dates</a></span></div>'
       +(gr&&gr.top_country?('<div class="kv"><span>🌍 Geo stress</span><b class="'+(gr.global_temp>=45?'bad':gr.global_temp>=30?'flat':'good')+'">'+gr.top_country+' '+((gr.rankings&&gr.rankings[0])?gr.rankings[0].stress_score:'')+'</b><span class="mute"> · temp '+gr.global_temp+((gr.escalating&&gr.escalating.length)?' · ▲ '+gr.escalating.map(function(e){return e.country;}).join(', '):'')+' · news-flow</span></div>'):'')
       +'<div class="note">All Asia fields remain inspectable in the <a href="/data/asia-leads.json?exact=1&amp;nogen=1">complete Asia packet</a>. A growth rate or order total alone supplies no portfolio instruction.</div>';

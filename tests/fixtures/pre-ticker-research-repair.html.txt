@@ -43,23 +43,19 @@
 <header class="hero">
 <div class="hero-eyebrow">Unified Symbol View</div>
 <h1 class="hero-title">Ticker <em id="symbolHeader"></em></h1>
-<p class="hero-blurb">Reported earnings context, inventory classifications and links to source research for one symbol. Classifications do not establish a trade or position size.</p>
-<div class="search"><input id="symbolInput" aria-label="Ticker symbol" maxlength="20" placeholder="Enter ticker" autocomplete="off"><button id="goBtn">Open</button></div>
+<p class="hero-blurb">Earnings, short interest, 13F, inventory four-state and book fuse for one symbol. Four-state paints only when the name is on the inventory board.</p>
+<div class="search"><input id="symbolInput" placeholder="Enter ticker" autocomplete="off"><button id="goBtn">Open</button></div>
 <div class="quick-tickers" id="quickTickers"></div>
 </header>
 <div id="results"></div>
 </div>
 <script>
-let tickerRequest=0;
-function tickerSymbol(value){const s=String(value||"").trim().toUpperCase();return /^[A-Z0-9][A-Z0-9.^=-]{0,19}$/.test(s)?s:null;}
-function escapeTickerText(value){return String(value==null?"":value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+const BUCKET="https://justhodl-dashboard-live.s3.amazonaws.com";
 const QUICK=["AAPL","MSFT","NVDA","MU","CAMT","MPC","PSX","LRCX","ASML","AMZN","GOOGL","META"];
 function getSymbolFromUrl(){try{var u=new URL(location.href);return (u.searchParams.get("symbol")||u.searchParams.get("s")||"").toUpperCase().trim();}catch(e){return "";}}
 function setSymbolInUrl(sym){var u=new URL(location.href);u.searchParams.set("symbol",sym);history.replaceState(null,"",u);}
-async function fetchJson(path){try{if(path!=="data/earnings-tracker.json")return null;var r=await fetch("/"+path+"?exact=1&nogen=1",{cache:"no-store",redirect:"error"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function fetchJson(path){try{var r=await fetch(BUCKET+"/"+path+"?t="+Date.now());if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 async function loadTicker(sym){
-  const request=++tickerRequest;sym=tickerSymbol(sym);
-  if(!sym){document.getElementById("results").textContent="Enter a valid ticker (up to 20 letters, numbers or ticker punctuation).";return;}
   document.getElementById("symbolHeader").textContent=sym;
   document.getElementById("symbolInput").value=sym;
   setSymbolInUrl(sym); document.title=sym+" · Ticker · JustHodl";
@@ -68,20 +64,15 @@ async function loadTicker(sym){
   var q=encodeURIComponent(sym);
   var html='<div class="card links"><a href="/inventory-drawdown.html">Inventory desk</a><a href="/backlog.html">Backlog</a><a href="/billings-crpo.html">Billings</a><a href="/orderbook.html">Order book</a><a href="/chart.html?s='+q+'">Chart</a></div>';
   var earnings=await fetchJson("data/earnings-tracker.json");
-  if(request!==tickerRequest)return;
   var tracker=earnings&&(earnings.tracker||earnings);
-  var upcoming=tracker&&(Array.isArray(tracker.upcoming)?tracker.upcoming:[]).find(function(x){return String((x&&(x.symbol||x.ticker))||"").toUpperCase()===sym;});
-  var recent=tracker&&(Array.isArray(tracker.recent)?tracker.recent:[]).find(function(x){return String((x&&(x.symbol||x.ticker))||"").toUpperCase()===sym;});
+  var upcoming=tracker&&(tracker.upcoming||[]).find(function(x){return String(x.symbol||x.ticker||"").toUpperCase()===sym;});
+  var recent=tracker&&(tracker.recent||[]).find(function(x){return String(x.symbol||x.ticker||"").toUpperCase()===sym;});
   html+='<div class="section"><h2 class="section-title">Earnings</h2>';
-  if(!earnings){
-    html+='<div class="empty">Earnings source unavailable; no conclusion about scheduled reports.</div>';
-  }else if(upcoming||recent){
-    html+='<div class="card">'+(upcoming?("Next "+escapeTickerText(upcoming.report_date||upcoming.date||"")):"")+(recent?(" Last "+escapeTickerText(recent.report_date||recent.date||"")):"")+"</div>";
-  } else html+='<div class="empty">No earnings row for '+sym+" in the received packet.</div>";
+  if(upcoming||recent){
+    html+='<div class="card">'+(upcoming?("Next "+(upcoming.report_date||upcoming.date||"")):"")+(recent?(" Last "+(recent.report_date||recent.date||"")):"")+"</div>";
+  } else html+='<div class="empty">No earnings row for '+sym+".</div>";
   html+="</div>";
-  const shortView=window.JHShortInterestResearch?window.JHShortInterestResearch.decisionView():{evidence_note:'Short-interest qualification is unavailable. Inspect the source research; no signal or size is inferred.'};
-  html+='<section class="card"><h2 class="section-title">Short-interest research</h2><p>'+escapeTickerText(shortView.evidence_note)+'</p><p class="links"><a href="/short-interest-research.html">Inspect reported settlement positions</a></p></section>';
-  if(request===tickerRequest)box.innerHTML=html;
+  box.innerHTML=html;
 }
 function init(){
   document.getElementById("quickTickers").innerHTML=QUICK.map(function(t){return '<a href="?symbol='+t+'">'+t+"</a>";}).join("");

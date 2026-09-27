@@ -1,0 +1,56 @@
+{
+  "commit": "8e93c6f83411c8274343064b6dfdbcf531042b7b",
+  "served_descendant": "8e93c6f83411c8274343064b6dfdbcf531042b7b",
+  "checked_at": "2026-09-27T13:21:36.470884+00:00",
+  "registry_hash": "bc75da5187710c94ee02081581dcde5b4abf5e4d94610dad8485ddf757cddb22",
+  "assets": {
+    "billings-crpo.html": {
+      "bytes": 11361,
+      "sha256": "bbd689ea9e4f2e512a096c9c8ba67350fbac4d67672280550ca763c7a16bd081",
+      "matches_commit_manifest": true
+    },
+    "jh-growth-stack.js": {
+      "bytes": 10148,
+      "sha256": "74bf2c740affd5d648024264c1c62176c273cc3ffe7143465f3216a51039db4f",
+      "matches_commit_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_commit_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1339028,
+      "sha256": "388d383559afb37bee09b8c91d796aa8fa1dbc639884772f610e3c9c1198e60c",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2323221,
+      "sha256": "bc75da5187710c94ee02081581dcde5b4abf5e4d94610dad8485ddf757cddb22",
+      "matches_commit_manifest": true
+    }
+  },
+  "pages_run": "36321496990",
+  "gate_run": "36321497005",
+  "browser": {
+    "rows": 144,
+    "nonempty_billings": 0,
+    "nonempty_coverage": 0,
+    "filter": "ORCL retains $664.0B RPO and original growth fields",
+    "desktop": {
+      "viewport": 1280,
+      "document": 1270
+    },
+    "mobile": {
+      "viewport": 390,
+      "document": 380,
+      "board_width": 348,
+      "board_scroll": 581
+    },
+    "console_errors": 0
+  },
+  "limitations": [
+    "Revenue start dates missing in producer; billings/coverage unavailable.",
+    "SEC periods, accession identities, deferred balances and forward implications remain unqualified."
+  ]
+}
