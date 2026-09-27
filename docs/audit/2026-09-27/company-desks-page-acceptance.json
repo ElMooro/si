@@ -1,0 +1,143 @@
+{
+  "commit": "4392e5fe5b3a241a7450b7cca71fc93aff5d0533",
+  "served_descendant": "4392e5fe5b3a241a7450b7cca71fc93aff5d0533",
+  "checked_at": "2026-09-27T15:01:02.577521+00:00",
+  "registry_hash": "6cbc7e3e4467eebf28f7869b2868c32b918ac3c052b3ba9a0861b07de99c8cb9",
+  "assets": {
+    "earnings-quality.html": {
+      "bytes": 9336,
+      "sha256": "881ccfe91a3764265b3899a7a4f12c78237a07a524e3575d7cf6d3fce8f7d3b1",
+      "matches_commit_manifest": true
+    },
+    "cash-profitability.html": {
+      "bytes": 8581,
+      "sha256": "b75e2972356678016ec06ca25fe69fc26739053b847f0b5134f758d9b8ad601c",
+      "matches_commit_manifest": true
+    },
+    "hiring-velocity.html": {
+      "bytes": 9827,
+      "sha256": "2f0610863b131413c67336e046e1a5cf9003618715829d0a527d215f2415b4e4",
+      "matches_commit_manifest": true
+    },
+    "estimate-revisions.html": {
+      "bytes": 13242,
+      "sha256": "2ea90cb519afb8b98099d2b7d430b00600462280340471a056538d79501d7dc3",
+      "matches_commit_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5437,
+      "sha256": "6fde84c0e1f3f1a39a492f581bd4b03f15fbcbd7ab7cd4334306b09483785e50",
+      "matches_commit_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_commit_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1339583,
+      "sha256": "7ba31393130a709ef5ce14157a272d20b405cb6f5b4aba77d82a864615123e89",
+      "matches_commit_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2331540,
+      "sha256": "6cbc7e3e4467eebf28f7869b2868c32b918ac3c052b3ba9a0861b07de99c8cb9",
+      "matches_commit_manifest": true
+    }
+  },
+  "pages_run": 36327731572,
+  "page_gate_run": 36327731591,
+  "push_verification": "ALL RUNS GREEN",
+  "public_packets": {
+    "checked_at": "2026-09-27T14:54:21.463188+00:00",
+    "packets": {
+      "earnings-quality": {
+        "bytes": 70428,
+        "sha256": "f3194fd60429b11c9588793cf0cd55c2577369e1b31fec82791e0bd30bcf9633",
+        "generated_at": "2026-09-27T14:18:40Z",
+        "populations": {
+          "top_20_high_quality": 20,
+          "top_10_low_quality_avoid": 3,
+          "all_ranked": 120,
+          "trade_tickets": 13,
+          "sources": 5
+        }
+      },
+      "hiring-velocity": {
+        "bytes": 88350,
+        "sha256": "4bf16f789691214b9df1c4fbd40cbc63203400165bae76a1efac1d76c551aa67",
+        "generated_at": "2026-09-27T12:32:14.113495+00:00",
+        "populations": {
+          "top_50": 50,
+          "expansion_inflections": 30,
+          "double_confirmed": 23
+        }
+      },
+      "estimate-revisions": {
+        "bytes": 231172,
+        "sha256": "34b9686fc1bee82daf5991502da68c814550763b488804722d989308d693de51",
+        "generated_at": "2026-09-27T12:00:35.962613+00:00",
+        "populations": {
+          "estimate_strength_leaders": 40,
+          "upward_revisions": 27,
+          "downward_revisions": 30,
+          "top_picks": 15,
+          "caveats": 6
+        }
+      }
+    }
+  },
+  "local_validation": {
+    "frontend_passed": 1504,
+    "deployment_static_passed": 458,
+    "candidate_shell_passed": 12,
+    "focused_desk_groups": 10,
+    "secret_findings": 0
+  },
+  "live_browser": {
+    "checked_at": "2026-09-27T15:03:04.278791+00:00",
+    "viewport_px": 390,
+    "document_px": 380,
+    "console_errors": 0,
+    "pages": {
+      "earnings-quality.html": {
+        "rows": 120,
+        "original_text_chars": 70428,
+        "scroll_region_px": 348,
+        "table_px": 740,
+        "keyboard_sort": {
+          "direction": "ascending",
+          "retained_focus_key": "quality_score"
+        }
+      },
+      "cash-profitability.html": {
+        "rows": 120,
+        "original_text_chars": 70428,
+        "scroll_region_px": 348,
+        "table_px": 620
+      },
+      "hiring-velocity.html": {
+        "rows": 50,
+        "original_text_chars": 88350,
+        "scroll_region_px": 348,
+        "table_px": 950,
+        "population": "top_50"
+      },
+      "estimate-revisions.html": {
+        "rows": 57,
+        "original_text_chars": 231172,
+        "scroll_region_px": 352,
+        "table_widths_px": [
+          645.25,
+          681.25
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "Publications and complete rendered packets verified; upstream provider originals and filing periods are not revalidated by this UI batch.",
+    "No native producer invocation, source replacement, schedule change, account read, notification or trade.",
+    "Forward Orders engine preservation and page edit remain blocked by automatic approval review.",
+    "Separate newly added filing pages have unresolved syntax and data-display defects."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "synthetic_isolated_dom_audit": true,
+  "network_calls": 0,
+  "pages": [
+    {
+      "page": "8k-items.html",
+      "source_sha256": "b226dc0dfb1a38602d23b6329777aca8f8150f47bb0557e3ca19d9ab1e7baa4b",
+      "inline_syntax": "invalid",
+      "error_class": "SyntaxError"
+    },
+    {
+      "page": "10kq-filings.html",
+      "source_sha256": "a41f4568de568bcde957d1e55ff1da0ad0f3688b3d0151e0377f97ab94c83d2b",
+      "inline_syntax": "valid",
+      "unsafe_scheme_rendered": true,
+      "unescaped_fixture_markup": true
+    },
+    {
+      "page": "filing-redflags.html",
+      "source_sha256": "fab848119542179c5ba91dd27d7a665dbcf74c114c36372dcb26f958b5e2ae39",
+      "inline_syntax": "invalid",
+      "error_class": "SyntaxError"
+    }
+  ],
+  "inspected_commit": "4392e5fe5b3a241a7450b7cca71fc93aff5d0533",
+  "status": "unrepaired",
+  "scope": "Isolated parsing and inert DOM fixture render only; no source provider, account or runtime invocation.",
+  "next_required": [
+    "Repair inline JavaScript syntax in 8k-items.html and filing-redflags.html.",
+    "Validate SEC document URLs and escape/count-check every source value.",
+    "Preserve whole source packets and distinguish missing observations, periods and incomplete populations.",
+    "Add a source syntax gate so the detected failures cannot pass a future site build."
+  ]
+}
