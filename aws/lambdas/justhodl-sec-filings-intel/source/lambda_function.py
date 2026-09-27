@@ -364,7 +364,7 @@ def aggregate_signals(all_events: list) -> dict:
 
 
 @track_errors
-def handler(event, context):
+def _legacy_handler(event, context):
     started = datetime.now(timezone.utc)
     
     all_events = []
@@ -474,6 +474,20 @@ def handler(event, context):
         "n_opportunities":  len(opp_tickers),
         "duration_s":       out["duration_s"],
     })}
+
+
+def handler(event, context):
+    """Scheduled complete search research; keyword matches never emit events."""
+    if isinstance(event, dict) and ('httpMethod' in event or 'requestContext' in event):
+        return {'statusCode': 409, 'body': 'Stored search research; HTTP cannot acquire sources.'}
+    try:
+        import sec_search_store
+        return sec_search_store.run(s3, BUCKET, __file__,
+            {'lookback_days': LOOKBACK_DAYS, 'queries': SIGNAL_QUERIES}, USER_AGENT,
+            event=event, runtime_context=context)
+    except Exception as error:
+        print('[sec-search-research] publication refused: ' + type(error).__name__)
+        return {'statusCode': 503, 'body': 'Search research unavailable; previous publication retained.'}
 
 
 lambda_handler = handler

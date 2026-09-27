@@ -339,6 +339,8 @@ def extract_ticker_signals_from_engine(spec_name: str, spec: dict, items: list) 
     """Returns {ticker: signal_dict} for this engine's items."""
     if spec_name == "massive-flow" or spec.get("key") in ("data/massive-signals.json", "data/massive-research.json"):
         return {}  # Recorded composite research supplies zero qualified votes.
+    if __import__("sec_search_research").covered(spec_name) or __import__("sec_search_research").covered(spec.get("key")):
+        return {}  # Research remains stored; unverified keywords add no convergence vote.
     out = {}
     # Handle string-list format (items are just ticker strings, no dict)
     if spec.get("is_string_list"):
@@ -571,6 +573,11 @@ def _direction_earnings_pead(sig: dict) -> tuple:
 
 
 def _direction_sec_filings(sig: dict) -> tuple:
+    """Abstain until issuer events and predictive relevance are independently qualified."""
+    return (0.0, __import__("sec_search_research").context()['reason'])
+
+
+def _legacy_direction_sec_filings(sig: dict) -> tuple:
     """sec-filings-intel has EXPLICIT bullish_signals / bearish_signals counts."""
     b = sig.get("bullish_signals", 0)
     x = sig.get("bearish_signals", 0)
@@ -739,6 +746,8 @@ def compute_directional_score(engines: Dict[str, dict]) -> dict:
     weight_total = 0.0
 
     for engine_name, sig in engines.items():
+        if __import__("sec_search_research").covered(engine_name):
+            continue  # Abstention contributes neither numerator nor denominator.
         if not isinstance(sig, dict):
             continue
         fn = DIRECTION_FN.get(engine_name)
@@ -768,6 +777,7 @@ def compute_directional_score(engines: Dict[str, dict]) -> dict:
     contributions.sort(key=lambda c: abs(c["weighted"]), reverse=True)
 
     return {
+        "sec_search_research": __import__("sec_search_research").context(),
         "directional_score":   round(directional_raw, 1),
         "bullish_engines":     [c for c in contributions if c["mag"] > 0.3][:8],
         "bearish_engines":     [c for c in contributions if c["mag"] < -0.3][:5],

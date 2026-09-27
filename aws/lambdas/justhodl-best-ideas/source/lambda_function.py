@@ -256,7 +256,7 @@ def forensic_flags():
         if sy:
             bad.add(sy)
             notes[sy] = "Beneish manipulation flag"
-    sec = _load_json("data/sec-filings-intel.json") or {}
+    sec = __import__("sec_search_research").guard("data/sec-filings-intel.json", _load_json("data/sec-filings-intel.json")) or {}
     for it in (sec.get("events") or sec.get("critical") or []):
         if not isinstance(it, dict):
             continue

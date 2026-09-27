@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-09-27T16:42:00.576977+00:00",
+  "scope": "Selected pure-function fixtures only; no native module imports, provider requests, consumer output/account reads, writes or notifications. Findings remain unrepaired.",
+  "sources": {
+    "justhodl-convergence-radar": {
+      "bytes": 51425,
+      "sha256": "81b53e62b4964fc2ae0e2f9caa1a46e5f1d503d89d2bf04f070921e509af45e1"
+    },
+    "justhodl-pump-mechanics": {
+      "bytes": 24263,
+      "sha256": "998aa2614ccf51a521118cc6bd9ec376fdac6194b9e681ea18483af12243ce76"
+    },
+    "justhodl-best-ideas": {
+      "bytes": 19237,
+      "sha256": "d5637f2ff46dcc1f406cf1d99caf27ce6902c4858e710d7dcaa25cbe80e992db"
+    }
+  },
+  "directional_vote_despite_explicit_ineligibility": {
+    "synthetic_input": {
+      "bullish_signals": 2,
+      "bearish_signals": 0,
+      "highest_severity": "high",
+      "calls_eligible": false,
+      "forecast_qualified": false,
+      "sizing_eligible": false
+    },
+    "observed_output": [
+      1.0,
+      "2 bull / 0 bear filings (sev=high)"
+    ]
+  },
+  "hypothetical_new_event_alias_can_activate_squeeze_points": {
+    "synthetic_input": {
+      "calls_eligible": false,
+      "forecast_qualified": false,
+      "events": [
+        {
+          "type": "13D",
+          "description": "Synthetic unverified keyword match"
+        }
+      ]
+    },
+    "observed_concentration": [
+      "13D: Synthetic unverified keyword match"
+    ],
+    "score_increment": 10,
+    "current_producer_uses_signal_id_not_type": true
+  },
+  "population_alias_changes_blacklist_without_eligibility_check": {
+    "nested_population_flags": [],
+    "top_level_population_flags": [
+      "TEST"
+    ],
+    "notes": {
+      "TEST": "SEC material event"
+    }
+  }
+}

@@ -298,6 +298,11 @@ def load_sec_filings_map() -> Dict[str, dict]:
 
 
 def extract_concentration_signals(sec_record: dict) -> List[str]:
+    """Unverified keyword events establish no ownership or squeeze signal."""
+    return []
+
+
+def _legacy_extract_concentration_signals(sec_record: dict) -> List[str]:
     """Pull 13D/13G / large institutional ownership signals."""
     if not sec_record:
         return []
@@ -451,6 +456,7 @@ def enrich_candidate(cand: dict, options_map: Dict[str, dict],
             "atr_14":              round(atr_14, 2) if atr_14 else None,
             "atr_pct":             round(atr_pct, 2) if atr_pct else None,
             "concentration_signals": concentration,
+            "sec_search_research": __import__("sec_search_research").context(),
             "shorts_covering_flag": options_data.get("shorts_covering", False),
             "squeeze_proxy_score": sq_score,
             "squeeze_potential":   classify_squeeze_potential(sq_score),
