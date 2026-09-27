@@ -1,0 +1,20 @@
+{
+  "source_bytes": 13640,
+  "source_sha256": "a7a55accbfc083a895ec985fa3a3e1328ed4fe3f9beea6f8ba37ffe01c270d33",
+  "public_bytes": 88350,
+  "public_sha256": "4bf16f789691214b9df1c4fbd40cbc63203400165bae76a1efac1d76c551aa67",
+  "generated_at": "2026-09-27T12:32:14.113495+00:00",
+  "n_scanned": 4202,
+  "n_scored": 3218,
+  "n_errors": 0,
+  "published_occurrences": 103,
+  "baseline_acceptance": "pending",
+  "observed_source_defects": [
+    "Employee history collapses distinct period/report/filing/acceptance dates and drops zero counts.",
+    "Adjacent records are assumed to represent one year; elapsed calendar periods are not checked.",
+    "CAGR years equal row count minus one, irrespective of dates.",
+    "Revenue and headcount are paired by array position without issuer, currency, basis or fiscal-period validation.",
+    "Top-50/30/25 caps omit the remaining scored company records.",
+    "Unqualified expansion and bagger scores can trigger an active notification path; no native invocation is used for this audit."
+  ]
+}
