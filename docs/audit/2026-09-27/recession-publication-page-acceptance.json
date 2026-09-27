@@ -1,0 +1,138 @@
+{
+  "status": "code_and_page_accepted_native_publication_pending",
+  "commit": "f648d56424745e88a3449d133aaa68b205a6b443",
+  "lambda_run": 36286432294,
+  "pages_run": 36286432277,
+  "read_only_run": 36286537261,
+  "report_commit": "f5f206ab5",
+  "native_tests": 12,
+  "frontend_tests": 1358,
+  "deployment_checks": 458,
+  "candidate_shell_checks": 12,
+  "runtime": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "VKFjFlhjdvgq/2BjMxARVyNi9btL94p3JpSVEiVJoVg=",
+      "source_files_checked": 2,
+      "handler_bytes": 30076,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "f648d56424745e88a3449d133aaa68b205a6b443"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "global-recession-sched",
+          "state": "ENABLED",
+          "expression": "cron(40 12 * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-global-recession",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "archive_writes": 0,
+    "baseline_sha256": "863712562cb23f3ac62fb46aaea39d14a98f1ce48afe1ae1f01ab5e37520016a",
+    "complete_derived_input_bytes": {
+      "data/global-business-cycle.json": 261250,
+      "data/oecd-cli.json": 22861,
+      "data/portwatch.json": 109122,
+      "data/china-liquidity.json": 6804,
+      "data/indicator-bus.json": 2862350,
+      "data/global-recession.json": 26822
+    },
+    "complete_predecessor_countries": 34,
+    "complete_predecessor_preserved": true,
+    "current_head_sha256": "bee30cf67d4dd85d084c48e63d8c05e21f068de3537ad4f6e4be0ba346b9ab8e",
+    "expected_commit": "f648d56424745e88a3449d133aaa68b205a6b443",
+    "fixture_countries": 34,
+    "fixture_excluded": 0,
+    "fixture_public_head_writes": 1,
+    "fixture_replay": {
+      "contract": "recession-native-replay.v1",
+      "complete_native_stages": 2,
+      "input_operations": 5,
+      "processing_clocks": 3,
+      "final_calculation_sha256": "3b89050545b7a9adc7c6e65f65d304ccbac3949de0df38fc9cddb305d0e9a5df",
+      "point_in_time_verified": false,
+      "forecast_qualified": false
+    },
+    "fixture_scope": "Complete retained derived inputs, both native calculations and offline clock replay in memory. FRED disabled for this fixture; not original-provider replay of the historical baseline.",
+    "history_writes": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "status": "pending_original_1240_schedule",
+      "generated_at": "2026-09-26T12:40:04+00:00",
+      "version": "1.3.1"
+    },
+    "notifications_sent": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedules_changed": 0,
+    "scope": "Retained evidence, exact calculation replay and research authority boundary. Definition validation, original historical vintages, calibration and portfolio qualification remain open."
+  },
+  "live_assets": {
+    "commit": "f648d56424745e88a3449d133aaa68b205a6b443",
+    "served_descendant": "f648d56424745e88a3449d133aaa68b205a6b443",
+    "checked_at": "2026-09-27T01:47:26.083422+00:00",
+    "registry_hash": "b8131d2712297497646a7925d754e1d26df20e46d8fbbcf1427e6824f5002204",
+    "assets": {
+      "global-recession.html": {
+        "bytes": 13555,
+        "sha256": "2f58ee213452870cc9a301de8743819e90da24698fe88aac426ccccbfc9a3cbb",
+        "matches_commit_manifest": true
+      },
+      "jh-recession-review.js": {
+        "bytes": 13973,
+        "sha256": "bf8481245cf622044e60f3bf84ade01cb856edfbc9e57dc3fa4727d63eda86b2",
+        "matches_commit_manifest": true
+      },
+      "business-cycle-review.css": {
+        "bytes": 3142,
+        "sha256": "b581c00f1bc3322d64d286538eab892e130dc5bab679c5c46fbba0c5a46e189e",
+        "matches_commit_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 29423,
+        "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+        "matches_commit_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1335852,
+        "sha256": "e45d9ebe9df2c1ed8a0b51a5f338b55765d9d85311baee111b4269810dc257bf",
+        "matches_commit_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2331956,
+        "sha256": "b8131d2712297497646a7925d754e1d26df20e46d8fbbcf1427e6824f5002204",
+        "matches_commit_manifest": true
+      }
+    }
+  },
+  "browser": {
+    "countries": 34,
+    "europe_filter": 20,
+    "usa_diagnostic_fields": 15,
+    "usa_six_month_change_display": "19.55%",
+    "us_spread_display": "0.93 pp",
+    "sahm_display": "-0.07 pp",
+    "script_errors": 0,
+    "document_overflow": false,
+    "native_contract_still_pending": true
+  },
+  "limits": [
+    "Native acquisition at original 12:40 UTC remains pending; no producer invoked.",
+    "Complete derived-input replay is not historical FRED-original replay.",
+    "Forecast, sizing, point-in-time and downstream consumer qualification remain open."
+  ]
+}
