@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Purchase obligations · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+input{max-width:320px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:980px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}.pos{color:var(--grn)}.neg{color:var(--red)}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Purchase obligations</h1>
+<p class="sub">Firm DIO, RPO and capex from live packets, with a purchase-obligation dollar column that fills only when a 10-K contractual-cash tag exists. That tag is not on the current firm rows, so the column stays blank. Not a take-or-pay parser. Click headers to sort.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter ticker or sector" autocomplete="off">
+<p class="sub" id="status">Loading inventory, backlog and capex.</p>
+<div id="board" class="table-region">Loading.</div>
+<div class="foot"><b>Built for:</b> watching forward materials demand next to inventory days and capex without inventing a contractual-cash dollar.<br>
+<b>Data:</b> /data/inventory-drawdown.json stock_drawdown_board[]; /data/backlog.json by_ticker; /data/capex-pulse.json rows[]. Purchase-obligation $ is not a field on those packets.<br>
+<b>Map:</b> Basic Materials → XLB; Industrials → XLI; Energy miners stay on their sector label. No ETF invented.<br>
+<b>Blank on purpose:</b> us-gaap PurchaseObligation / UnrecordedUnconditionalPurchaseObligation tags were not found on any live row. A dedicated 10-K producer is not in /data.<br>
+<b>Related:</b> <a href="/materials-orders.html">materials orders</a> · <a href="/inventory-drawdown.html">inventory</a> · <a href="/capex-pulse.html">capex</a><br>
+Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function pct(v){var n=num(v);return n==null?"":n.toFixed(1)+"%";}
+function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d==null?2:d);}
+function cls(v){var n=num(v);return n==null?"":(n>0?"pos":(n<0?"neg":""));}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function tick(r){return String((r&&(r.ticker||r.symbol))||"").toUpperCase();}
+function mapEtf(sec){
+  var s=String(sec||"").toLowerCase();
+  if(s.indexOf("basic")>=0||s.indexOf("material")>=0)return "XLB";
+  if(s.indexOf("industrial")>=0)return "XLI";
+  if(s.indexOf("energy")>=0)return "XLE";
+  return "";
+}
+function poOf(r){
+  var keys=["purchase_obligation","purchase_obligation_usd","purchaseObligation","unconditional_purchase_obligation"];
+  for(var i=0;i<keys.length;i++){var n=num(r[keys[i]]);if(n!=null)return n;}
+  return null;
+}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker||"").localeCompare(String(b.ticker||""));return 1;}if(bv==null||bv==="")return -1;if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;return String(av).localeCompare(String(bv))*dir;}
+async function load(path){try{var r=await fetch(path+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+(async function(){
+  var inv=await load("/data/inventory-drawdown.json");
+  var bk=await load("/data/backlog.json");
+  var cap=await load("/data/capex-pulse.json");
+  var by={};
+  function put(r){var t=tick(r);if(!t)return;by[t]=by[t]||{ticker:t};Object.keys(r||{}).forEach(function(k){if(by[t][k]==null)by[t][k]=r[k];});}
+  ((inv&&inv.stock_drawdown_board)||[]).forEach(put);
+  ((cap&&cap.rows)||[]).forEach(put);
+  var bt=(bk&&bk.by_ticker)||(bk&&bk.rows)||{};
+  if(Array.isArray(bt))bt.forEach(put);
+  else Object.keys(bt).forEach(function(t){var r=bt[t]||{};r.ticker=r.ticker||t;put(r);});
+  var rows=Object.keys(by).map(function(t){
+    var r=by[t];
+    return {ticker:t,sector:r.sector||"",etf:mapEtf(r.sector),dio:num(r.dio_latest),dio_chg:num(r.dio_chg_pct),rpo:num(r.rpo||r.book||r.backlog_usd),rpo_yoy:num(r.rpo_yoy||r.yoy||r.book_yoy),capex:num(r.capex_ttm_b),capex_yoy:num(r.yoy_pct),po:poOf(r)};
+  });
+  var nPo=rows.filter(function(r){return r.po!=null;}).length;
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+rows.length+" firms</span><span class='chip'>PO tagged "+nPo+"</span><span class='chip'>XLB/XLI mapped from sector only</span>";
+  var sort="dio_chg",dir=1,qEl=document.getElementById("q");
+  function paint(){
+    var q=(qEl.value||"").toUpperCase();
+    var list=rows.filter(function(r){return !q||(r.ticker+" "+r.sector+" "+r.etf).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr>";[["ticker","Ticker"],["sector","Sector"],["etf","ETF map"],["dio","DIO"],["dio_chg","DIO YoY"],["rpo","RPO"],["rpo_yoy","RPO YoY"],["capex","Capex TTM $B"],["capex_yoy","Capex YoY"],["po","Purchase obligation $"]].forEach(function(c){h+="<th class='"+(sort===c[0]?"on":"")+"' data-k='"+c[0]+"'>"+c[1]+(sort===c[0]?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    list.forEach(function(r){
+      h+="<tr><td><a href=\"/ticker.html?symbol="+encodeURIComponent(r.ticker)+"\">"+esc(r.ticker)+"</a></td><td>"+esc(r.sector)+"</td><td>"+esc(r.etf)+"</td><td class='r'>"+esc(fmt(r.dio,1))+"</td><td class='r "+cls(r.dio_chg)+"'>"+esc(pct(r.dio_chg))+"</td><td class='r'>"+esc(fmt(r.rpo,2))+"</td><td class='r "+cls(r.rpo_yoy)+"'>"+esc(pct(r.rpo_yoy))+"</td><td class='r'>"+esc(fmt(r.capex,2))+"</td><td class='r "+cls(r.capex_yoy)+"'>"+esc(pct(r.capex_yoy))+"</td><td class='r'>"+esc(fmt(r.po,2))+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+closeTbl();
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=(k==="ticker"||k==="sector"||k==="etf")?1:-1;}paint();};});
+    document.getElementById("status").textContent=list.length+" rows. PO $ fills only when a contractual-cash tag exists on the row.";
+  }
+  if(!rows.length)document.getElementById("board").textContent="inventory / capex packets missing.";
+  else {qEl.oninput=paint;paint();}
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
