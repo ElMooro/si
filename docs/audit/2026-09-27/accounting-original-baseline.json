@@ -1,0 +1,213 @@
+{
+  "account_reads": 0,
+  "actual_producers": {
+    "justhodl-backlog": {
+      "status": "whole_actual_package_retained",
+      "runtime": {
+        "FunctionName": "justhodl-backlog",
+        "CodeSha256": "qVKUIeHgdopJwOCL37ZHdinUYnwn8sq1GOYVCJdxKCA=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 600,
+        "MemorySize": 1024,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "LastModified": "2026-09-09T01:57:21.000+0000"
+      },
+      "whole_zip": {
+        "key": "audit-private/20260909-originals/shipping-consumer-research/a9529421e1e0768a49c0e08bdfb6477629d4627c27f2cab518e6150897712820.bin",
+        "sha256": "a9529421e1e0768a49c0e08bdfb6477629d4627c27f2cab518e6150897712820",
+        "bytes": 157294
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-backlog-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 11 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "active_alias": null,
+      "repository_config_present": true,
+      "code_matches_repository": true,
+      "source_files_checked": 2,
+      "source_differences": {}
+    },
+    "justhodl-buyback-engine": {
+      "status": "whole_actual_package_retained",
+      "runtime": {
+        "FunctionName": "justhodl-buyback-engine",
+        "CodeSha256": "LRPsoFRxM9GvBsnkpcin9uDMhsBcX6Wrfmh61K5K4i0=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 600,
+        "MemorySize": 512,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "LastModified": "2026-09-25T14:57:33.000+0000"
+      },
+      "whole_zip": {
+        "key": "audit-private/20260909-originals/shipping-consumer-research/2d13eca0547133d1af06c9e4a5c8a7f6e0cc86c05c5fa5ab7e687ad4ae4ae22d.bin",
+        "sha256": "2d13eca0547133d1af06c9e4a5c8a7f6e0cc86c05c5fa5ab7e687ad4ae4ae22d",
+        "bytes": 787254
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-buyback-engine-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 13 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "active_alias": null,
+      "repository_config_present": true,
+      "code_matches_repository": true,
+      "source_files_checked": 3,
+      "source_differences": {}
+    },
+    "justhodl-capex-pulse": {
+      "status": "whole_actual_package_retained",
+      "runtime": {
+        "FunctionName": "justhodl-capex-pulse",
+        "CodeSha256": "W3KmN+W1iMPwdjktLXDsp31TlWYymwGRAAsF+002rD8=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 280,
+        "MemorySize": 768,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "LastModified": "2026-09-09T01:57:25.000+0000"
+      },
+      "whole_zip": {
+        "key": "audit-private/20260909-originals/shipping-consumer-research/5b72a637e5b588c3f076392d2d70eca77d539566329b0191000b05fb4d36ac3f.bin",
+        "sha256": "5b72a637e5b588c3f076392d2d70eca77d539566329b0191000b05fb4d36ac3f",
+        "bytes": 156610
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-capex-pulse-daily",
+          "state": "ENABLED",
+          "expression": "cron(40 20 ? * MON-FRI *)",
+          "native_targets": 1
+        }
+      ],
+      "active_alias": null,
+      "repository_config_present": true,
+      "code_matches_repository": true,
+      "source_files_checked": 2,
+      "source_differences": {}
+    }
+  },
+  "all_denied": true,
+  "anonymous_origins_checked": 14,
+  "attempt_outcome_counts": {
+    "404": 7,
+    "403": 7
+  },
+  "baseline": {
+    "key": "audit-private/20260909-originals/accounting-research/b73b73acfff4d17d8c4c66937f6ec4448ee0fe04c97a05e69c679d611c480690.bin",
+    "bytes": 58697,
+    "sha256": "b73b73acfff4d17d8c4c66937f6ec4448ee0fe04c97a05e69c679d611c480690"
+  },
+  "failures": [],
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "notifications_sent": 0,
+  "originals": {
+    "data/backlog.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/accounting-research/d6ec27c901a8caabb4476ae1eed66a85d6f13d6a706eeb7bf6e3ef85ed23c06c.bin",
+        "bytes": 97678,
+        "sha256": "d6ec27c901a8caabb4476ae1eed66a85d6f13d6a706eeb7bf6e3ef85ed23c06c"
+      },
+      "etag": "\"3a05fa05fdf69b202fffa755f4c8c388\"",
+      "last_modified": "2026-09-27T11:30:49+00:00",
+      "original_provider_verified": false
+    },
+    "data/buyback-engine.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/accounting-research/cb11edb342ff17ac0433b12f6a936cae8aa7962fd0b87b1dc91f721cf444ab42.bin",
+        "bytes": 199036,
+        "sha256": "cb11edb342ff17ac0433b12f6a936cae8aa7962fd0b87b1dc91f721cf444ab42"
+      },
+      "etag": "\"831e174b4ffb496ed3534628249c021e\"",
+      "last_modified": "2026-09-27T13:30:27+00:00",
+      "original_provider_verified": false
+    },
+    "data/capex-pulse.json": {
+      "status": "whole_object_retained",
+      "original": {
+        "key": "audit-private/20260909-originals/accounting-research/f534cee4832e36950440750040b96dc27313c45c864063f19a352d866d87cfac.bin",
+        "bytes": 29330,
+        "sha256": "f534cee4832e36950440750040b96dc27313c45c864063f19a352d866d87cfac"
+      },
+      "etag": "\"0647e92faeb3973f26d291bbef09cd81\"",
+      "last_modified": "2026-09-25T20:41:04+00:00",
+      "original_provider_verified": false
+    }
+  },
+  "protected_paths_checked": 7,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Whole deployed packages and three exact existing public research packets only. Provider response originals, acquisition completeness, original vintages, period alignment, unit consistency and signal performance remain unverified.",
+  "source_checks": {
+    "justhodl-backlog": {
+      "bytes": 14823,
+      "sha256": "7295c7ab8d026071bd24eaa3052298a325f7905fe5b98e1d4e66216f3039eeff",
+      "imported_or_executed": false
+    },
+    "justhodl-buyback-engine": {
+      "bytes": 21481,
+      "sha256": "b1a2849bc714003ed2790a68ad4e9b654c02db70e8359161d9f2b806a88f06b4",
+      "imported_or_executed": false
+    },
+    "justhodl-capex-pulse": {
+      "bytes": 12930,
+      "sha256": "017f475f8981fb56083344548214e1f3675274c78861e4182147f3fae9ae70d0",
+      "imported_or_executed": false
+    }
+  },
+  "operation_run": 36335834605,
+  "public_byte_equality": {
+    "data/backlog.json": {
+      "bytes": 97678,
+      "sha256": "d6ec27c901a8caabb4476ae1eed66a85d6f13d6a706eeb7bf6e3ef85ed23c06c",
+      "generated_at": "2026-09-27T11:30:48.557427+00:00",
+      "equal": true
+    },
+    "data/buyback-engine.json": {
+      "bytes": 199036,
+      "sha256": "cb11edb342ff17ac0433b12f6a936cae8aa7962fd0b87b1dc91f721cf444ab42",
+      "generated_at": "2026-09-27T13:30:26.227712+00:00",
+      "equal": true
+    },
+    "data/capex-pulse.json": {
+      "bytes": 29330,
+      "sha256": "f534cee4832e36950440750040b96dc27313c45c864063f19a352d866d87cfac",
+      "generated_at": "2026-09-25T20:41:03+00:00",
+      "equal": true
+    }
+  }
+}

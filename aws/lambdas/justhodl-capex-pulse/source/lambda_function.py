@@ -129,7 +129,41 @@ def _fred_intentions():
     return out or None
 
 
+def aggregate_capex(rows):
+    """Like-for-like acquired-window totals; not proof of annual comparability.
+
+    Use the unrounded current/prior amounts. A missing prior window cannot add
+    to the comparison numerator, and rounding a -99.999% change to -100% cannot
+    trigger a division by zero. Every received row remains in the native output.
+    """
+    import math
+    total, matched_current, matched_prior = 0.0, 0.0, 0.0
+    matched = 0
+    for row in rows:
+        current = row.get('current_window_usd')
+        prior = row.get('prior_window_usd')
+        if type(current) not in (int, float) or not math.isfinite(current) or current < 0:
+            raise ValueError('Finite observed current window required')
+        total += current
+        if (type(row.get('current_window_rows')) is int and row['current_window_rows'] == 4
+                and type(row.get('prior_window_rows')) is int and row['prior_window_rows'] == 4
+                and type(prior) in (int, float) and math.isfinite(prior) and prior > 0):
+            matched_current += current; matched_prior += prior; matched += 1
+    if not all(math.isfinite(v) for v in (total, matched_current, matched_prior)):
+        raise ValueError('Finite complete cohort totals required')
+    growth = (100 * (matched_current / matched_prior - 1)) if matched_prior > 0 else None
+    if growth is not None and not math.isfinite(growth): growth = None
+    return {'capex_ttm_b': round(total / 1e9, 1),
+            'yoy_pct': round(growth, 1) if growth is not None else None,
+            'n': len(rows), 'comparison_n': matched, 'comparison_missing_n': len(rows) - matched,
+            'comparison_current_usd': matched_current if matched else None,
+            'comparison_prior_usd': matched_prior if matched else None,
+            'comparison_scope': 'Same source rows with four returned observations in each window; issuer identity, annual dates, currency consistency and statement duration remain unverified.',
+            'annual_comparability_verified': False}
+
+
 def lambda_handler(event=None, context=None):
+    import math
     x = _j("data/stock-xray.json", {}) or {}
     cards = x.get("cards") or {}
     ranked = sorted(((t, c) for t, c in cards.items() if c.get("mc_b")),
@@ -146,9 +180,13 @@ def lambda_handler(event=None, context=None):
             qs = _fmp_cf(t)
             if not isinstance(qs, list) or len(qs) < 5:
                 fails += 1; continue
-            cx = [abs(q.get("capitalExpenditure") or 0) for q in qs[:8]]
+            values = [q.get("capitalExpenditure") for q in qs[:8]]
+            if any(type(v) not in (int, float) or not math.isfinite(v) for v in values):
+                raise ValueError('Measured cash-flow amounts required; missing is not zero')
+            cx = [abs(v) for v in values]
             ttm, prior = sum(cx[:4]), sum(cx[4:8])
-            if ttm <= 0: fails += 1; continue
+            if not math.isfinite(ttm) or not math.isfinite(prior):
+                raise ValueError('Finite acquired-window totals required')
             ccy = (qs[0].get("reportedCurrency") or "USD").upper()
             fx_meta = None
             if ccy != "USD":
@@ -157,9 +195,13 @@ def lambda_handler(event=None, context=None):
                     excluded.append({"ticker": t, "capex_ttm_b": round(ttm / 1e9, 1),
                                      "why": "fx unavailable for %s" % ccy})
                     continue
+                if type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0:
+                    raise ValueError('Finite positive currency translation required')
                 ttm *= rate; prior *= rate
+                if not math.isfinite(ttm) or not math.isfinite(prior):
+                    raise ValueError('Finite translated windows required')
                 fx_meta = {"ccy": ccy, "usd_per_ccy": round(rate, 6), "src": fsrc}
-            yoy = round(100 * (ttm / prior - 1), 1) if prior > 0 else None
+            yoy = round(100 * (ttm / prior - 1), 1) if len(cx) == 8 and prior > 0 else None
             c = cards.get(t) or {}
             mcb = c.get("mc_b")
             # sanity gate: FMP mislabels investing-activity totals as capex for some
@@ -172,7 +214,10 @@ def lambda_handler(event=None, context=None):
                    "capex_ttm_b": round(ttm / 1e9, 2), "yoy_pct": yoy,
                    "mc_b": c.get("mc_b"),
                    "intensity_pct": round(100 * ttm / (c["mc_b"] * 1e9), 2) if c.get("mc_b") else None,
-                   "asof": qs[0].get("date")}
+                   "asof": qs[0].get("date"),
+                   "current_window_usd": ttm, "prior_window_usd": prior if len(cx) == 8 else None,
+                   "current_window_rows": len(cx[:4]), "prior_window_rows": len(cx[4:8]),
+                   "annual_comparability_verified": False}
             if fx_meta: row["fx"] = fx_meta
             rows.append(row)
         except Exception:
@@ -182,53 +227,51 @@ def lambda_handler(event=None, context=None):
     print("[capex] rows=%d fails=%d converted=%d %s excluded=%d %s" % (
         len(rows), fails, len(conv), [(r["ticker"], r["fx"]["ccy"]) for r in conv][:8],
         len(excluded), [e["ticker"] for e in excluded][:6]))
+    if not rows:
+        return {"ok": False, "status": "no_usable_capex_rows", "kept_prior": True, "fails": fails}
 
     sectors = {}
-    for r in rows:
-        e = sectors.setdefault(r["sector"], {"capex_ttm_b": 0.0, "prior_proxy_b": 0.0, "n": 0, "names": []})
-        e["capex_ttm_b"] += r["capex_ttm_b"]; e["n"] += 1
-        if r["yoy_pct"] is not None:
-            e["prior_proxy_b"] += r["capex_ttm_b"] / (1 + r["yoy_pct"] / 100)
-        e["names"].append((r["ticker"], r["capex_ttm_b"]))
-    for s_, e in sectors.items():
-        e["yoy_pct"] = round(100 * (e["capex_ttm_b"] / e["prior_proxy_b"] - 1), 1) if e["prior_proxy_b"] > 0 else None
-        e["capex_ttm_b"] = round(e["capex_ttm_b"], 1)
-        e["top"] = [t for t, _ in sorted(e.pop("names"), key=lambda kv: kv[1], reverse=True)[:4]]
-        e.pop("prior_proxy_b", None)
+    for sector in dict.fromkeys(r['sector'] for r in rows):
+        cohort = [r for r in rows if r['sector'] == sector]
+        sectors[sector] = aggregate_capex(cohort)
+        sectors[sector]['top'] = [r['ticker'] for r in sorted(cohort, key=lambda r: r['current_window_usd'], reverse=True)[:4]]
 
     hyp = [r for r in rows if r["ticker"] in HYPERSCALERS]
-    hyp_ttm = round(sum(r["capex_ttm_b"] for r in hyp), 1)
-    hyp_prior = sum(r["capex_ttm_b"] / (1 + r["yoy_pct"] / 100) for r in hyp if r["yoy_pct"] is not None)
-    hyperscalers = {"total_ttm_b": hyp_ttm,
-                    "yoy_pct": round(100 * (sum(r["capex_ttm_b"] for r in hyp if r["yoy_pct"] is not None) / hyp_prior - 1), 1) if hyp_prior else None,
+    hyp_aggregate = aggregate_capex(hyp)
+    hyp_ttm = hyp_aggregate['capex_ttm_b']
+    hyperscalers = {**hyp_aggregate, "total_ttm_b": hyp_ttm,
                     "rows": sorted(hyp, key=lambda r: r["capex_ttm_b"], reverse=True),
-                    "read": "the AI-buildout spend pulse"}
+                    "read": "Reported spending windows; annual comparability unverified"}
 
     big = [r for r in rows if r["capex_ttm_b"] >= 0.5 and r["yoy_pct"] is not None]
     boards = {"top_accelerators": sorted(big, key=lambda r: r["yoy_pct"], reverse=True)[:12],
               "top_cutters": sorted(big, key=lambda r: r["yoy_pct"])[:12]}
-    mkt_ttm = round(sum(r["capex_ttm_b"] for r in rows), 1)
-    prior_m = sum(r["capex_ttm_b"] / (1 + r["yoy_pct"] / 100) for r in rows if r["yoy_pct"] is not None)
-    mkt_yoy = round(100 * (sum(r["capex_ttm_b"] for r in rows if r["yoy_pct"] is not None) / prior_m - 1), 1) if prior_m else None
+    market_aggregate = aggregate_capex(rows)
+    mkt_ttm = market_aggregate['capex_ttm_b']; mkt_yoy = market_aggregate['yoy_pct']
 
     hist = _j(HIST, {}) or {}
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hist[today] = {"mkt_ttm_b": mkt_ttm, "mkt_yoy": mkt_yoy, "hyp_ttm_b": hyp_ttm, "hyp_yoy": hyperscalers["yoy_pct"]}
-    hist = dict(sorted(hist.items())[-400:])
+    hist = dict(sorted(hist.items()))  # Preserve every existing history entry.
     s3.put_object(Bucket=BUCKET, Key=HIST, Body=json.dumps(hist).encode(), ContentType="application/json")
 
-    doc = {"engine": "justhodl-capex-pulse", "version": "1.1.0",
+    doc = {"engine": "justhodl-capex-pulse", "version": "1.1.1",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+           "call": None, "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
+           "quality": {"status": "partial", "annual_comparability_verified": False,
+                       "provider_originals_replayed": False,
+                       "reason": "Paired acquired-window arithmetic corrected; period/currency validation and whole-source replay remain pending."},
            "n": len(rows), "fails": fails,
-           "market": {"capex_ttm_b": mkt_ttm, "yoy_pct": mkt_yoy, "universe": "top-%d mcap (stock-xray) + hyperscalers" % N_TOP},
+           "market": {**market_aggregate, "universe": "top-%d mcap (stock-xray) + hyperscalers" % N_TOP},
            "macro_intentions": _fred_intentions(), "capex_intentions_v": "1.0", "hyperscalers": hyperscalers, "sectors": sectors, "boards": boards, "rows": rows,
            "excluded_outliers": excluded,
            "fx_converted": [{"ticker": r["ticker"], **r["fx"], "capex_ttm_b": r["capex_ttm_b"]} for r in conv],
-           "method": ("FMP /stable/cash-flow-statement quarterly x8 per name; TTM = last 4q "
-                      "|capitalExpenditure|, yoy vs prior 4q; sector aggregates dollar-weighted; "
-                      "intensity = capex/mcap. Foreign issuers (FMP reportedCurrency != USD) converted "
-                      "to USD at spot (FRED DEX cache primary, FMP forex quote fallback); TTM and "
-                      "prior share the spot so yoy%% equals the local-currency truth.")}
+           "method": ("Existing TTM/YoY keys describe two windows of four returned cash-flow rows requested as quarterly. "
+                      "Calendar alignment, discrete statement durations and cross-row currency consistency are not yet verified. "
+                      "A comparison requires four rows in both windows. Sector, market and hyperscaler comparisons use the same "
+                      "issuer cohort and unrounded amounts. Foreign levels use the existing spot translation, not historical FX. "
+                      "Full provider-response replay and investment qualification remain pending.")}
+
     s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, separators=(",", ":"), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"ok": True, "n": len(rows), "fails": fails, "mkt_ttm_b": mkt_ttm, "mkt_yoy": mkt_yoy,
