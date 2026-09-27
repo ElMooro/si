@@ -16,12 +16,15 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+import sys
+import impact_mapper
+import freight_store
 
 from impact_mapper import (build as impact_build,
                            structural_row, beta_impact)
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-VERSION = "2.0.0"
+VERSION = "2.0.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/freight-pulse.json"
 FRED_KEY = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
@@ -94,7 +97,7 @@ def _fred(sid):
         return [], str(e)[:100]
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_calculation(event=None, context=None):
     now = datetime.now(timezone.utc)
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
            "engine_class": "physical_trade_slow_confirmation",
@@ -290,6 +293,10 @@ def lambda_handler(event=None, context=None):
           f"errs={out['errors']}")
     return {"ok": out["ok"], "composite": out.get("composite"),
             "verdict": out.get("verdict")}
+
+
+def lambda_handler(event=None, context=None):
+    return freight_store.run(sys.modules[__name__], event, context)
 
 
 if __name__ == "__main__":

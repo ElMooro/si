@@ -1,0 +1,49 @@
+{
+  "reviewed_at": "2026-09-27",
+  "profiles": {
+    "TSIFRGHT": {
+      "unit": "Index 2000=100",
+      "seasonal_adjustment": "SA",
+      "source_url": "https://fred.stlouisfed.org/series/TSIFRGHT",
+      "frequency": "monthly"
+    },
+    "FRGSHPUSM649NCIS": {
+      "unit": "Index Jan 1990=1",
+      "seasonal_adjustment": "NSA",
+      "source_url": "https://fred.stlouisfed.org/series/FRGSHPUSM649NCIS",
+      "frequency": "monthly"
+    },
+    "FRGEXPUSM649NCIS": {
+      "unit": "Index Jan 1990=1",
+      "seasonal_adjustment": "NSA",
+      "source_url": "https://fred.stlouisfed.org/series/FRGEXPUSM649NCIS",
+      "frequency": "monthly"
+    },
+    "TRUCKD11": {
+      "unit": "Index 2015=100",
+      "seasonal_adjustment": "SA",
+      "source_url": "https://fred.stlouisfed.org/series/TRUCKD11",
+      "frequency": "monthly"
+    },
+    "RAILFRTCARLOADSD11": {
+      "unit": "Carloads",
+      "seasonal_adjustment": "SA",
+      "source_url": "https://fred.stlouisfed.org/series/RAILFRTCARLOADSD11",
+      "frequency": "monthly"
+    },
+    "RAILFRTINTERMODALD11": {
+      "unit": "Containers and Trailers",
+      "seasonal_adjustment": "SA",
+      "source_url": "https://fred.stlouisfed.org/series/RAILFRTINTERMODALD11",
+      "frequency": "monthly"
+    }
+  },
+  "interpretation_limits": {
+    "cass": "Provider series tracks processed client transactions; an expenditure/shipments index ratio is not a pure price or dollars-per-shipment measurement.",
+    "eia": "Product supplied is a petroleum supply-balance approximation to consumption, not measured road-truck fuel burn. Weekly source/calendar qualification remains open.",
+    "rail": "BTS monthly series derive from AAR weekly traffic. They are separate carload and container/trailer counts."
+  },
+  "eia_definition_url": "https://www.eia.gov/tools/glossary/index.php?id=product%20supplied",
+  "original_release_vintages_verified": false,
+  "forecast_qualified": false
+}
