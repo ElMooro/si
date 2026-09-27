@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quality by sector · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 6px}.sub,.foot{color:var(--fg2);max-width:900px}
+table{width:100%;border-collapse:collapse}th,td{padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;text-align:right}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}th.l,td.l{text-align:left}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);border-top:1px solid var(--bd);padding-top:14px;line-height:1.65}
+.chip{display:inline-block;margin:0 6px 8px 0;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head><body>
+<div class="wrap">
+<h1>Quality by sector</h1>
+<p class="sub">Median DSRI, Sloan and DIO for names that map to XLI / XLB / XRT / XLE. Sector comes from inventory or capex. A median is not a composite boom score.</p>
+<div id="kpis"></div>
+<div id="board">Loading</div>
+<div class="foot"><b>Built for:</b> the industry boom/bust read that a single-name table cannot give.<br><b>Data:</b> /data/earnings-quality.json all_ranked; /data/inventory-drawdown.json stock_drawdown_board; /data/capex-pulse.json rows.<br><b>Map:</b> Industrials → XLI, Basic Materials → XLB, Consumer → XRT, Energy → XLE.<br>Related: <a href="/quality-cycle.html">quality-cycle</a>.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c];});}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d);}
+function etfOf(sec){sec=String(sec||"").toLowerCase();if(/industri/.test(sec))return "XLI";if(/material/.test(sec))return "XLB";if(/consumer/.test(sec))return "XRT";if(/energy/.test(sec))return "XLE";return "";}
+function median(arr){arr=arr.filter(function(x){return x!=null&&isFinite(x);}).sort(function(a,b){return a-b;});if(!arr.length)return null;var m=Math.floor(arr.length/2);return arr.length%2?arr[m]:(arr[m-1]+arr[m])/2;}
+async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(r.ok)return r.json();}catch(e){}return null;}
+(async function(){
+  var eq=await load("/data/earnings-quality.json");
+  var inv=await load("/data/inventory-drawdown.json");
+  var cx=await load("/data/capex-pulse.json");
+  var sec={}, dio={};
+  ((inv&&inv.stock_drawdown_board)||[]).forEach(function(r){var t=String(r.ticker||"").toUpperCase();sec[t]=r.sector||sec[t];dio[t]=num(r.dio_latest);});
+  ((cx&&cx.rows)||[]).forEach(function(r){var t=String(r.ticker||"").toUpperCase();if(!sec[t])sec[t]=r.sector||"";});
+  var buckets={XLI:[],XLB:[],XRT:[],XLE:[]};
+  ((eq&&eq.all_ranked)||[]).forEach(function(r){var t=String(r.ticker||"").toUpperCase(), e=etfOf(sec[t]);if(!e)return;buckets[e].push({dsri:num(r.dsri_beneish),sloan:num(r.sloan_accruals_pct_assets),ccr:num(r.cash_conversion_ratio),dio:dio[t]});});
+  var rows=["XLI","XLB","XRT","XLE"].map(function(e){var b=buckets[e];return {etf:e,n:b.length,dsri:median(b.map(function(x){return x.dsri;})),sloan:median(b.map(function(x){return x.sloan;})),ccr:median(b.map(function(x){return x.ccr;})),dio:median(b.map(function(x){return x.dio;}))};});
+  var SORT={k:"etf",dir:1};
+  function paint(){
+    var list=rows.slice().sort(function(a,b){var av=a[SORT.k],bv=b[SORT.k];if(typeof av==="string")return SORT.dir*String(av).localeCompare(String(bv));if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return -1;return SORT.dir*((av>bv)-(av<bv));});
+    var h="<table><thead><tr><th class=l data-k=etf>ETF</th><th data-k=n>Names joined</th><th data-k=dsri>Median DSRI</th><th data-k=sloan>Median Sloan %A</th><th data-k=ccr>Median cash conv</th><th data-k=dio>Median DIO</th></tr></thead><tbody>";
+    list.forEach(function(r){h+="<tr><td class=l>"+esc(r.etf)+"</td><td>"+r.n+"</td><td>"+fmt(r.dsri,2)+"</td><td>"+fmt(r.sloan,2)+"</td><td>"+fmt(r.ccr,2)+"</td><td>"+fmt(r.dio,1)+"</td></tr>";});
+    document.getElementById("board").innerHTML=h+"</tbody><\/table>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(el){el.onclick=function(){var k=el.getAttribute("data-k");if(SORT.k===k)SORT.dir=-SORT.dir;else{SORT.k=k;SORT.dir=1;}paint();};});
+  }
+  document.getElementById("kpis").innerHTML='<span class="chip">'+rows.reduce(function(a,r){return a+r.n;},0)+' names in the four ETFs</span><span class="chip">medians only</span>';
+  paint();
+})();
+</script>
+<script src="/sidebar.js" defer></script>
+</body></html>
