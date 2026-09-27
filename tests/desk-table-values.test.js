@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-revenue-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-revenue-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-eps-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-eps-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-hiring-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-hiring-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-scarcity-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-scarcity-observations.js'),'utf8'),ctx);
@@ -216,4 +217,37 @@ test('EPS legacy complete company and summary occurrences stay unverified, pagin
  s.get('q').value='T193';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching \/ 197/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/197 matching/);
  for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{}})]){const failed=page('eps-velocity.html',loader);await flush();assert.match(failed.get('status').textContent,/unavailable/);assert.equal(failed.get('board').textContent,'No verified display population');}
  assert.ok(api.PUBLIC_PATHS.test('/data/eps-revision-velocity.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/eps-revision-velocity/private.json'));
+});
+
+test('revenue statements retain all periods, zero amounts, units, calculations and request evidence',async()=>{
+ const M=require('../jh-revenue-observations.js');const record={ticker:'TEST',acquisitions:[{endpoint:'income-statement',status:'received',original_base64:'WHOLE_BYTES'}],quote_records:[],
+ statement_observations:[{source_index:0,raw:{symbol:'TEST',unknown:'<img src=x>'},period_start:'2026-04-01',period_end:'2026-06-30',reported_period:'Q2',reported_currency:'JPY',values:{revenue:0},gross_margin_pct:null,status:'reported_statement_amounts'}],
+ period_comparisons:[{source_index:0,yoy:{changes:{revenue:{pct_positive_base:-100}}},revenue_growth_acceleration_pp:-20,ttm_revenue:400,status:'explicit_comparable_calendar_quarters'}]};
+ const p={measurement_contract:M.CONTRACT,request_records:[record],all_qualifying:[{symbol:'IGNORE'}]};const s=page('revenue-acceleration.html',async()=>raw(p));await flush();let html=s.get('board').innerHTML;
+ assert.equal(s.calls[0],'/data/revenue-acceleration.json');assert.match(html,/2026-04-01/);assert.match(html,/JPY/);assert.match(html,/<td>0\.00<\/td>/);assert.match(html,/-100\.00/);assert.match(html,/400\.00/);assert.match(html,/&lt;img/);assert.ok(!html.includes('<img'));assert.ok(!html.includes('IGNORE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 received requests/);assert.match(s.get('board').innerHTML,/income-statement: received/);assert.ok(!s.get('board').innerHTML.includes('WHOLE_BYTES'));
+ const h=s.get('board').headers.find(x=>x.dataset.k==='ticker');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
+ const many=M.model({...p,request_records:Array.from({length:501},()=>record)});assert.equal(many.statements.length,501);assert.equal(many.requests.length,501);
+ assert.throws(()=>M.model({...p,request_records:null}),/Complete/);assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);
+});
+
+test('revenue legacy populations, pagination, failures and Intel summary cannot recover unsupported tiers',async()=>{
+ const M=require('../jh-revenue-observations.js');const p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99,tier:'TIER_S'})),summary:{top_25_overall:[{symbol:'T0'}],tier_s:['T0'],microcap_picks:[{symbol:'T1'}]}};
+ const s=page('revenue-acceleration.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/204 received/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/204 matching/);
+ assert.match(M.summary(p).message,/unverified/);assert.ok(!M.summary(p).message.includes('99'));
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('revenue-acceleration.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
+ assert.ok(api.PUBLIC_PATHS.test('/data/revenue-acceleration.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/revenue-acceleration/private.json'));
+ for(const file of ['intel/index.html','web/intel/index.html']){
+  const html=fs.readFileSync(path.join(root,file),'utf8'),block=html.split('// Revenue statement research:')[1].split('// Microcap Squeeze')[0];
+  assert.match(block,/JHTableValues.load\('\/data\/revenue-acceleration.json'\)/);assert.match(block,/JHRevenueObservations.summary/);assert.ok(!block.includes('top_25_overall'));assert.ok(!block.includes('r.score'));assert.match(block,/catch/);assert.match(html,/href="\/revenue-acceleration.html"/);
+  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'old score'});return nodes.get(id);};
+  let fail=false;const seen=[];
+  const context=vm.createContext({document:{getElementById:get},JHRevenueObservations:M,JHTableValues:{load:async path=>{seen.push(path);if(fail)throw Error('HTTP 403');return{packet:p};}}});
+  const actual='(async()=>{\n// Revenue statement research:'+block+'\n})()';
+  await vm.runInContext(actual,context);assert.match(get('rev-accel').textContent,/204 published legacy occurrences/);assert.equal(get('ra-fresh').textContent,'RESEARCH');
+  fail=true;await vm.runInContext(actual,context);assert.match(get('rev-accel').textContent,/unavailable/);assert.equal(get('ra-meta').textContent,'');assert.equal(get('ra-fresh').textContent,'UNAVAILABLE');assert.deepEqual(seen,['/data/revenue-acceleration.json','/data/revenue-acceleration.json']);
+ }
+ assert.equal(fs.readFileSync(path.join(root,'intel/index.html'),'utf8'),fs.readFileSync(path.join(root,'web/intel/index.html'),'utf8'));
+ for(const name of ['pre-revenue-intel-index.html.txt','pre-revenue-web-intel-index.html.txt'])assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures',name))).digest('hex'),'b13437d6ea6b612b49678b05178857fc694b5cda543cdf69d2dfbe4c32e79716');
 });

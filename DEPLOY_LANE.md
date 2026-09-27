@@ -19,6 +19,9 @@ happens on the GitHub Actions runner, which holds the credentials.
 
 Run `python3 scripts/check_page_scripts.py` against the current checkout, plus
 the frontend behavioural suite, before publishing page or shared-script changes.
+Also run `python3 scripts/gen_engine_wiring.py --check`: rewriting a primary desk
+must preserve its existing companion-feed access and matching wiring declaration.
+The page syntax and behavior suites do not substitute for this registry check.
 Pages checks syntax again on the final built artifact. The syntax gate parses
 the public HTML/script graph without executing source; it does not validate
 measurements, links, table behavior or upstream completeness. Fix errors rather

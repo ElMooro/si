@@ -1,4 +1,6 @@
-"""
+"""Preserved v1 description. The active final handler emits reported statements
+and explicitly comparable calendar periods, without ranks or predictions.
+
 justhodl-revenue-acceleration — fundamental coiled-spring detector
 
 Catches names where revenue growth is INFLECTING — the rate of growth
@@ -352,7 +354,7 @@ def evaluate_ticker(stock):
     }
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline = started + TIMEOUT_BUDGET_S
     print("[rev-accel] starting v1.0")
@@ -467,3 +469,132 @@ def lambda_handler(event=None, context=None):
             "duration_s": out["duration_s"],
         }),
     }
+
+
+# Original producer retained above; only the following final handler is active.
+from pathlib import Path
+from datetime import datetime,timezone
+from urllib.parse import quote_plus
+import hashlib
+from revenue_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier
+
+
+def _revenue_source_identity():
+    directory=Path(__file__).resolve().parent
+    return {name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+            for name in ('lambda_function.py','revenue_observations.py') for raw in [(directory/name).read_bytes()]}
+
+
+def _revenue_fetch(ticker,endpoint):
+    if not ticker or symbol(ticker)!=ticker:return {'endpoint':endpoint,'status':'invalid_symbol_not_requested'}
+    if not FMP_KEY:return {'endpoint':endpoint,'status':'credential_unavailable'}
+    url='https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
+    if endpoint=='income-statement':url+='&period=quarter&limit=8'
+    req=urllib.request.Request(url,headers={'apikey':FMP_KEY,'User-Agent':'JustHodl-Revenue-Observations/1.1'})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(req,timeout=10) as response:raw=response.read(512*1024+1)
+        if len(raw)>512*1024:return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False}
+        if FMP_KEY.encode() in raw:return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
+        return envelope(raw,endpoint,datetime.now(timezone.utc).isoformat())
+    except Exception as exc:
+        return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
+                'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+
+
+def _revenue_company(member):
+    ticker=member['ticker'];captures=[_revenue_fetch(ticker,'income-statement')];values=original(captures[0])
+    # Maintain the original quote-acquisition budget gate, without using array
+    # offsets to publish a growth measurement or treating cap currency as USD.
+    rows=sorted(values,key=lambda r:r.get('date','') if isinstance(r,dict) and isinstance(r.get('date'),str) else '',reverse=True) if isinstance(values,list) else []
+    pairs=sum(1 for i in range(min(4,max(0,len(rows)-4))) if isinstance(rows[i+4],dict) and number(rows[i+4].get('revenue')) is not None and rows[i+4]['revenue']>0)
+    if pairs<2:
+        captures.append({'endpoint':'quote','status':'not_requested_original_statement_gate'})
+    elif member['raw'].get('market_cap'):
+        captures.append({'endpoint':'quote','status':'not_requested_original_universe_cap'})
+    else:captures.append(_revenue_fetch(ticker,'quote'))
+    return captures
+
+
+def _revenue_object(key,bound):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole declared object required')
+    return raw,obj['ETag']
+
+
+def _revenue_previous():
+    try:raw,etag=_revenue_object(S3_KEY,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'):return None,None,None
+        raise
+    p=strict(raw)
+    if not isinstance(p,dict):raise ValueError('Previous publication malformed')
+    return p,raw,etag
+
+
+def _revenue_archive(raw):
+    key='data/revenue-acceleration/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType='application/json',CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    back,_=_revenue_object(key,len(raw))
+    if back!=raw:raise ValueError('Whole immutable readback differs')
+    return {'key':key,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc);today=checked.date().isoformat()
+    if S3_KEY!='data/revenue-acceleration.json':raise ValueError('Declared research output required')
+    if MAX_TICKERS<1 or N_WORKERS<1 or TIMEOUT_BUDGET_S<1:raise ValueError('Original acquisition bounds required')
+    previous,previous_raw,etag=_revenue_previous()
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous generation clock invalid')
+    raw,source_etag=_revenue_object('data/universe.json',8*1024*1024)
+    capture=envelope(raw,'data/universe.json',datetime.now(timezone.utc).isoformat());capture['etag']=source_etag
+    membership=universe(capture,min(MAX_TICKERS,1200));selected=membership['selected']
+    if not selected:raise ValueError('No selected universe; preserve previous publication')
+    captures=[[{'endpoint':'income-statement','status':'not_attempted_runtime_rate_or_size_limit'}] for _ in selected]
+    workers=max(1,min(N_WORKERS,6));total_bytes=0
+    def remaining():
+        own=min(TIMEOUT_BUDGET_S,600)-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if remaining()<50 or total_bytes>=16*1024*1024:break
+            jobs=[(i,pool.submit(_revenue_company,selected[i])) for i in range(offset,min(offset+workers,len(selected)))]
+            for i,future in jobs:
+                captures[i]=future.result();total_bytes+=sum(a.get('original_bytes',0) for a in captures[i])
+            if any(a.get('status')=='rate_limited' for i,_ in jobs for a in captures[i]):break
+    if not any(a.get('endpoint')=='income-statement' and a.get('status')=='received' and isinstance(original(a),list) for group in captures for a in group):
+        raise ValueError('All statement populations unavailable; preserve previous publication')
+    records=[]
+    for i,(member,group) in enumerate(zip(selected,captures)):
+        row=dossier(member,group,today);row['request_index']=i;records.append(row)
+    prior_ref=_revenue_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-revenue-acceleration','version':'1.1.0','schema_version':2,'measurement_contract':CONTRACT,
+        'method':'reported_statements_and_explicit_calendar_quarter_comparisons','status':'RESEARCH_ONLY','source_files':_revenue_source_identity(),
+        'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
+        'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,
+        'n_statement_observations':sum(len(r['statement_observations']) for r in records),
+        'stats':{'n_universe':len(selected),'n_evaluated':None,'n_no_data':None,'n_tier_s':None,'n_tier_a':None,'n_tier_b':None,'n_microcap_picks':None},
+        'summary':{'top_25_overall':[],'tier_s':[],'microcap_picks':[]},'all_qualifying':[],
+        'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,'independent_evidence_eligible':False,
+        'call':None,'signals_logged':0,'notifications_sent':0,'private_state_read_or_written':False,
+        'source_documentation':['https://site.financialmodelingprep.com/developer/docs/stable/income-statement','https://site.financialmodelingprep.com/developer/docs/cycle-times'],
+        'caveats':['Every returned statement and selected/unattempted request is retained. Invalid records never become measured zero.',
+            'Changes require unique explicit comparable issuer/currency/calendar-quarter periods. Fiscal-week calendars remain unresolved.',
+            'Acquired normalized statements do not recover original first-release vintages, acquisitions, FX or corporate-action adjustments.',
+            'Revenue-growth acceleration is the change between comparable adjacent annual-growth rates, in percentage points; it is not a forecast.',
+            'Trailing revenue requires four contiguous quarters. One quarter multiplied by four is not reported as trailing-year revenue.',
+            'No earnings-beat or free-cash-flow source is acquired by this engine. No stock tiers, accumulation or sizing claims are made.',
+            'FMP income statements also feed other fundamentals engines; repeated source evidence cannot count as independent agreement.'],
+        'duration_s':round(time.monotonic()-started,2)}
+    raw=json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve previous current packet')
+    archive=_revenue_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=S3_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(records),'archive':archive})}

@@ -1,0 +1,214 @@
+"""Reported statement amounts and explicit comparable periods, without rankings."""
+from datetime import date,datetime,timezone,timedelta
+from decimal import Decimal,localcontext
+import base64,calendar,hashlib,json,math,re
+
+CONTRACT='revenue-statement-observations.v1'
+FIELDS=('revenue','grossProfit','operatingExpenses','operatingIncome','netIncome','eps','epsdiluted')
+
+
+def number(value):
+    if type(value) not in (int,float):return None
+    try:return value if math.isfinite(value) and abs(value)<=2**53-1 else None
+    except OverflowError:return None
+
+
+def strict(raw):
+    def pairs(items):
+        out={}
+        for key,value in items:
+            if key in out:raise ValueError('Duplicate JSON member')
+            out[key]=value
+        return out
+    def real(value):
+        out=float(value)
+        if not math.isfinite(out) or out==0 and Decimal(value)!=0:raise ValueError('Unrepresentable JSON number')
+        return out
+    def constant(_):raise ValueError('Nonfinite JSON')
+    return json.loads(raw.decode('utf-8'),object_pairs_hook=pairs,parse_float=real,parse_constant=constant)
+
+
+def day(value):
+    try:
+        if not isinstance(value,str) or len(value)!=10:return None
+        out=date.fromisoformat(value);return out if out.isoformat()==value else None
+    except ValueError:return None
+
+
+def clock(value):
+    try:
+        if not isinstance(value,str):return None
+        out=datetime.fromisoformat(value.replace('Z','+00:00'));return out.astimezone(timezone.utc) if out.tzinfo else None
+    except ValueError:return None
+
+
+def symbol(value):
+    if not isinstance(value,str):return None
+    value=value.strip().upper();return value if re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}',value) else None
+
+
+def shift(value,months):
+    y,m=divmod(value.year*12+value.month-1+months,12);m+=1
+    return date(y,m,min(value.day,calendar.monthrange(y,m)[1])) if 1<=y<=9999 else None
+
+
+def calculate(values,operation):
+    if any(number(v) is None for v in values):return None
+    try:
+        with localcontext() as ctx:
+            ctx.prec=40;exact=operation(*[Decimal(str(v)) for v in values]);out=float(exact)
+            return number(out) if not(out==0 and exact!=0) else None
+    except (ArithmeticError,ValueError,OverflowError):return None
+
+
+def percentage(value,base):
+    return calculate([value,base],lambda a,b:(a-b)/b*100) if number(base) is not None and base>0 else None
+
+
+def envelope(raw,endpoint,received_at):
+    if clock(received_at) is None:raise ValueError('Explicit receipt clock required')
+    out={'endpoint':endpoint,'status':'received','received_at':received_at,'original_base64':base64.b64encode(raw).decode(),
+         'original_bytes':len(raw),'original_sha256':hashlib.sha256(raw).hexdigest()}
+    try:strict(raw)
+    except (ValueError,UnicodeError,RecursionError):out['status']='invalid_original'
+    return out
+
+
+def original(acquisition):
+    if acquisition.get('status') not in ('received','invalid_original'):return None
+    raw=base64.b64decode(acquisition['original_base64'],validate=True)
+    if type(acquisition.get('original_bytes')) is not int or len(raw)!=acquisition['original_bytes'] or hashlib.sha256(raw).hexdigest()!=acquisition['original_sha256']:
+        raise ValueError('Complete original response differs')
+    try:parsed=strict(raw)
+    except (ValueError,UnicodeError,RecursionError):
+        if acquisition['status']=='invalid_original':return None
+        raise
+    if acquisition['status']=='invalid_original':raise ValueError('Invalid-source classification differs')
+    return parsed
+
+
+def universe(acquisition,limit):
+    if type(limit) is not int or not 1<=limit<=1200:raise ValueError('Original request bound required')
+    p=original(acquisition);rows=p.get('stocks') if isinstance(p,dict) else None
+    occurrences=[];selected=[]
+    if isinstance(rows,list):
+        for i,raw in enumerate(rows):
+            row=raw if isinstance(raw,dict) else {};ticker=symbol(row.get('symbol'))
+            # Preserve occurrence order and duplicate memberships; do not silently
+            # change the original universe into a deduplicated selection.
+            in_bucket=row.get('cap_bucket') in ('micro','small','mid','large','mega')
+            chosen=in_bucket and len(selected)<limit
+            index=len(selected) if chosen else None
+            if chosen:selected.append({'source_index':i,'ticker':ticker,'raw':raw})
+            occurrences.append({'source_index':i,'raw':raw,'ticker':ticker,'request_index':index,
+                'status':'invalid_symbol' if ticker is None else 'outside_original_cap_buckets' if not in_bucket else 'selected' if chosen else 'outside_original_request_cap'})
+    return {'source_status':'received_stocks_array' if isinstance(rows,list) else 'missing_or_unavailable_stocks_array',
+            'occurrences':occurrences,'selected':selected,'request_limit':limit,'historical_membership_verified':False}
+
+
+def statement(requested,raw,index,received_at,checked_as_of):
+    today=day(checked_as_of)
+    if today is None:raise ValueError('Explicit check date required')
+    row=raw if isinstance(raw,dict) else {};issues=[];comparison_issues=[]
+    end=day(row.get('date'));start=day(row.get('startDate'));filing=day(row.get('filingDate'))
+    issuer=row.get('cik');issuer=issuer.zfill(10) if isinstance(issuer,str) and re.fullmatch(r'[0-9]{1,10}',issuer) and int(issuer) else None
+    currency=row.get('reportedCurrency');currency=currency if isinstance(currency,str) and re.fullmatch(r'[A-Z]{3}',currency) else None
+    period=row.get('period');fiscal=row.get('fiscalYear');fiscal=str(fiscal) if type(fiscal) is int else fiscal
+    if row.get('symbol')!=requested:issues.append('issuer_symbol_missing_or_mismatched')
+    if issuer is None:issues.append('issuer_cik_missing_or_invalid')
+    if currency is None:issues.append('currency_missing_or_invalid')
+    if end is None or end>today:issues.append('period_end_invalid_or_future')
+    if period not in ('Q1','Q2','Q3','Q4'):comparison_issues.append('not_an_explicit_quarter')
+    if not isinstance(fiscal,str) or not re.fullmatch(r'[0-9]{4}',fiscal) or not 1<=int(fiscal)<=9999:
+        comparison_issues.append('fiscal_year_invalid');fiscal=None
+    next_start=shift(start,3) if start else None
+    duration=bool(start and start.day==1 and end and next_start and next_start-timedelta(days=1)==end)
+    if not duration:comparison_issues.append('explicit_calendar_quarter_duration_unavailable')
+    if not filing or not end or not end<=filing<=today:comparison_issues.append('filing_date_missing_or_invalid')
+    accepted=row.get('acceptedDate');accepted_clock=clock(accepted);accepted_day=None
+    try:accepted_day=datetime.fromisoformat(accepted.replace('Z','+00:00')).date() if isinstance(accepted,str) and len(accepted)>=16 else None
+    except ValueError:pass
+    if not accepted_day or not end or not end<=accepted_day<=today:comparison_issues.append('acceptance_date_missing_or_invalid')
+    values={key:number(row.get(key)) for key in FIELDS}
+    invalid=[key for key in FIELDS if key in row and row[key] is not None and values[key] is None]
+    rev=values['revenue'];gp=values['grossProfit']
+    gross_margin=calculate([gp,rev],lambda a,b:a/b*100) if not issues and rev is not None and rev>0 else None
+    return {'source_index':index,'raw':raw,'ticker':requested,'received_at':received_at,'period_end':end.isoformat() if end else None,
+            'period_start':start.isoformat() if start else None,'reported_cik':issuer,'reported_currency':currency,'reported_period':period,
+            'reported_fiscal_year':fiscal,'filing_date':filing.isoformat() if filing else None,'reported_accepted_at':accepted,
+            'accepted_utc':accepted_clock.isoformat() if accepted_clock else None,'first_publication_at':None,
+            'duration_verified':duration,'issues':issues,'comparison_issues':comparison_issues,'invalid_numeric_fields':invalid,
+            'values':values,'gross_margin_pct':gross_margin,'status':'reported_statement_amounts' if not issues else 'unqualified_record'}
+
+
+def comparable(a,b,months):
+    if a['issues'] or b['issues'] or a['comparison_issues'] or b['comparison_issues']:return False
+    if (a['reported_cik'],a['reported_currency'])!=(b['reported_cik'],b['reported_currency']):return False
+    if shift(day(b['period_start']),months)!=day(a['period_start']):return False
+    aq,bq=int(a['reported_period'][1]),int(b['reported_period'][1]);ay,by=int(a['reported_fiscal_year']),int(b['reported_fiscal_year'])
+    return (aq==bq and ay==by+1) if months==12 else (aq==bq%4+1 and ay==by+(bq==4))
+
+
+def prior_end(row,months):
+    start=day(row['period_start']);next_start=shift(start,3-months) if start else None
+    return (next_start-timedelta(days=1)).isoformat() if next_start and next_start>date.min else None
+
+
+def comparisons(rows):
+    def unique_at(end):
+        found=[r for r in rows if r['period_end']==end];return found[0] if len(found)==1 else None
+    output=[]
+    for row in rows:
+        end=day(row['period_end']);unique=unique_at(row['period_end']) is row
+        result={'source_index':row['source_index'],'yoy':None,'sequential':None,'revenue_growth_acceleration_pp':None,
+                'prior_yoy_source_index':None,'consecutive_acceleration_intervals':None,'ttm_revenue':None,'ttm_source_indices':[],
+                'status':'explicit_comparable_quarters_unavailable'}
+        if end and unique:
+            for label,months in (('yoy',12),('sequential',3)):
+                prior_date=prior_end(row,months);prior=unique_at(prior_date) if prior_date else None
+                if prior and comparable(row,prior,months):
+                    values={field:{'absolute_change':calculate([row['values'][field],prior['values'][field]],lambda a,b:a-b),
+                                   'pct_positive_base':percentage(row['values'][field],prior['values'][field])} for field in FIELDS}
+                    result[label]={'current_source_index':row['source_index'],'prior_source_index':prior['source_index'],
+                                   'current_period_end':row['period_end'],'prior_period_end':prior['period_end'],
+                                   'currency':row['reported_currency'],'changes':values,
+                                   'gross_margin_change_pp':calculate([row['gross_margin_pct'],prior['gross_margin_pct']],lambda a,b:a-b)}
+                    result['status']='explicit_comparable_calendar_quarters'
+            # A trailing-year total needs four contiguous, identified quarters.
+            trailing=[row]
+            for _ in range(3):
+                prior_date=prior_end(trailing[-1],3);prior=unique_at(prior_date) if prior_date else None
+                if prior is None or not comparable(trailing[-1],prior,3):break
+                trailing.append(prior)
+            if len(trailing)==4:
+                result['ttm_revenue']=calculate([r['values']['revenue'] for r in trailing],lambda *v:sum(v))
+                result['ttm_source_indices']=[r['source_index'] for r in trailing]
+        output.append(result)
+    by_index={r['source_index']:r for r in output}
+    for current in output:
+        seq=current['sequential'];year=current['yoy'];old=by_index.get(seq['prior_source_index']) if seq else None
+        if year and old and old['yoy']:
+            a=year['changes']['revenue']['pct_positive_base'];b=old['yoy']['changes']['revenue']['pct_positive_base']
+            current['revenue_growth_acceleration_pp']=calculate([a,b],lambda x,y:x-y)
+            current['prior_yoy_source_index']=old['source_index']
+    for current in output:
+        if current['revenue_growth_acceleration_pp'] is None:continue
+        count=0;cursor=current;seen=set()
+        while cursor and cursor['source_index'] not in seen and cursor['revenue_growth_acceleration_pp'] is not None and cursor['revenue_growth_acceleration_pp']>0:
+            seen.add(cursor['source_index']);count+=1;cursor=by_index.get(cursor['prior_yoy_source_index'])
+        current['consecutive_acceleration_intervals']=count
+    return output
+
+
+def dossier(member,acquisitions,checked_as_of):
+    ticker=member['ticker'];by_endpoint={a['endpoint']:a for a in acquisitions}
+    if len(by_endpoint)!=len(acquisitions):raise ValueError('Repeated endpoint')
+    income=by_endpoint.get('income-statement',{'status':'not_requested'});parsed=original(income)
+    rows=[statement(ticker,row,i,income['received_at'],checked_as_of) for i,row in enumerate(parsed)] if isinstance(parsed,list) else []
+    quote=original(by_endpoint.get('quote',{'status':'not_requested'}))
+    return {'ticker':ticker,'universe_member':member,'acquisitions':acquisitions,'statement_observations':rows,'period_comparisons':comparisons(rows),
+            'quote_records':quote if isinstance(quote,list) else [],'universe_market_cap_reported':member['raw'].get('market_cap'),
+            'source_population_status':{k:'received_array' if isinstance(original(a),list) else 'received_non_array' if a.get('status')=='received' else a.get('status') for k,a in by_endpoint.items()},
+            'call':None,'score':None,'tier':None,'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,
+            'source_family':'FMP income statements; shared with Earnings Quality and other fundamental engines','independent_evidence_eligible':False,
+            'measurement_limits':'Explicit calendar quarters only. 52/53-week alignment, original filing vintages, amendments, acquisitions, FX and corporate-action continuity remain unverified. EPS percentages require a positive base; basic and diluted EPS remain separate. No beat, free-cash-flow, accumulation or return claim.'}
