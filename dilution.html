@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dilution vs buybacks · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:840px;margin:0 0 14px}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+td.l,th.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Dilution vs buybacks</h1>
+<p class="sub">Issuance, stock-based compensation and share-count change from the live buyback engine. A repurchase that only offsets SBC is not shrink. Blank is untagged. Click headers to sort.</p>
+<input id="q" placeholder="filter ticker" autocomplete="off">
+<div id="board">Loading /data/buyback-engine.json</div>
+<div class="foot"><b>Built for:</b> seeing whether buybacks actually reduce the share count after issuance and SBC.<br>
+<b>Data:</b> /data/buyback-engine.json lists (net_shrinkers, dilution_offset_warnings, fresh_authorizations, high_shareholder_yield, cheap_repurchasers, high_conviction_pumps) fields issuance_ttm, sbc_ttm, net_buyback_ttm, share_count_reduction_yoy, shares_now, net_issuer.<br>
+<b>Not:</b> a new Form 10-K share-count parser. Same tape as buybacks.html.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function bn(v){if(v==null||!isFinite(Number(v)))return "";v=Number(v);var a=Math.abs(v);if(a>=1e9)return (v/1e9).toFixed(2)+"B";if(a>=1e6)return (v/1e6).toFixed(1)+"M";return v.toFixed(0);}
+function pct(v){if(v==null||!isFinite(Number(v)))return "";return (Number(v)>0?"+":"")+Number(v).toFixed(2)+"%";}
+function cls(v){return v==null?"":(Number(v)>0?"pos":Number(v)<0?"neg":"");}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null&&bv==null)return String(a.symbol||"").localeCompare(String(b.symbol||""));if(av==null)return 1;if(bv==null)return -1;if(typeof av==="number"||typeof bv==="number"){av=Number(av);bv=Number(bv);if(!isFinite(av))return 1;if(!isFinite(bv))return -1;return (av-bv)*dir;}return String(av).localeCompare(String(bv))*dir;}
+(async function(){
+  var d=null,SORT="share_count_reduction_yoy",DIR=1;
+  try{var r=await fetch("/data/buyback-engine.json?t="+Date.now(),{cache:"no-store"});if(r.ok)d=await r.json();}catch(e){}
+  var bags=["dilution_offset_warnings","net_shrinkers","fresh_authorizations","high_shareholder_yield","cheap_repurchasers","high_conviction_pumps"];
+  var seen={},rows=[];
+  bags.forEach(function(k){(d&&d[k]||[]).forEach(function(x){var t=String(x.symbol||"").toUpperCase();if(!t||seen[t])return;seen[t]=1;rows.push(x);});});
+  var cols=[["symbol","Ticker","l"],["company_name","Name","l"],["issuance_ttm","Issuance TTM",""],["sbc_ttm","SBC TTM",""],["net_buyback_ttm","Net buyback TTM",""],["share_count_reduction_yoy","Shares YoY",""],["class","Class","l"]];
+  function paint(){
+    var q=(document.getElementById("q").value||"").toUpperCase();
+    var list=rows.filter(function(x){return !q||(String(x.symbol||"")+" "+String(x.company_name||"")+" "+String(x.class||"")).toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return cmp(a,b,SORT,DIR);});
+    var h="<table><thead><tr>";
+    cols.forEach(function(c){h+="<th class='"+(c[2]||"")+(SORT===c[0]?" on":"")+"' data-k="+c[0]+">"+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    list.forEach(function(x){
+      h+="<tr><td class=l><a href=/ticker.html?symbol="+encodeURIComponent(x.symbol)+" style=color:#fff>"+esc(x.symbol)+"</a></td><td class=l>"+esc(x.company_name||"")+"</td>";
+      h+="<td>"+esc(bn(x.issuance_ttm))+"</td><td>"+esc(bn(x.sbc_ttm))+"</td><td>"+esc(bn(x.net_buyback_ttm))+"</td>";
+      h+="<td class="+cls(x.share_count_reduction_yoy)+">"+esc(pct(x.share_count_reduction_yoy))+"</td><td class=l>"+esc(x.class||(x.net_issuer?"NET_ISSUER":""))+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" unique names from buyback lists. Generated "+esc((d&&d.generated_at)||"")+".</p>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="symbol"||th.dataset.k==="company_name"||th.dataset.k==="class"?1:1;}paint();};});
+  }
+  if(!rows.length){document.getElementById("board").textContent="buyback-engine.json missing or lists empty.";return;}
+  document.getElementById("q").oninput=paint;paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
