@@ -55,7 +55,7 @@
 <script>
 let tickerRequest=0;
 function tickerSymbol(value){const s=String(value||"").trim().toUpperCase();return /^[A-Z0-9][A-Z0-9.^=-]{0,19}$/.test(s)?s:null;}
-function escapeTickerText(value){return String(value==null?"":value).replace(/[&<>"']/g,c=>({"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c]));}
+function escapeTickerText(value){return String(value==null?"":value).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;").replace(/'/g,"&#39;");}
 const QUICK=["AAPL","MSFT","NVDA","MU","CAMT","MPC","PSX","LRCX","ASML","AMZN","GOOGL","META"];
 function getSymbolFromUrl(){try{var u=new URL(location.href);return (u.searchParams.get("symbol")||u.searchParams.get("s")||"").toUpperCase().trim();}catch(e){return "";}}
 function setSymbolInUrl(sym){var u=new URL(location.href);u.searchParams.set("symbol",sym);history.replaceState(null,"",u);}
@@ -69,7 +69,7 @@ async function loadTicker(sym){
   var box=document.getElementById("results");
   box.innerHTML='<div class="empty">Loading '+sym+'</div>';
   var q=encodeURIComponent(sym);
-  var html='<div class="card links"><a href="/inventory-drawdown.html">Inventory desk</a><a href="/materials-orders.html">Materials orders</a><a href="/backlog.html">Backlog</a><a href="/billings-crpo.html">Billings</a><a href="/deferred-revenue.html">Deferred</a><a href="/capex-pulse.html">Capex</a><a href="/dilution.html">Dilution</a><a href="/earnings-quality.html">Quality</a><a href="/orderbook.html">Order book</a><a href="/chart.html?s='+q+'">Chart</a></div>';
+  var html='<div class="card links"><a href="/inventory-drawdown.html">Inventory desk</a><a href="/materials-orders.html">Materials orders</a><a href="/filing-cycle-tape.html">Filing cycle</a><a href="/backlog.html">Backlog</a><a href="/billings-crpo.html">Billings</a><a href="/deferred-revenue.html">Deferred</a><a href="/capex-pulse.html">Capex</a><a href="/dilution.html">Dilution</a><a href="/earnings-quality.html">Quality</a><a href="/orderbook.html">Order book</a><a href="/chart.html?s='+q+'">Chart</a></div>';
   var earnings=await fetchJson("data/earnings-tracker.json");
   if(request!==tickerRequest)return;
   var tracker=earnings&&(earnings.tracker||earnings);
