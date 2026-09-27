@@ -334,6 +334,12 @@ class Tests(unittest.TestCase):
             with self.assertRaises(ValueError): store.identity(url)
         url = 'https://api.stlouisfed.org/fred/series?' + urllib.parse.urlencode({'series_id': 'IR', 'file_type': 'json', 'api_key': 'never-store-this', 'realtime_start': AT[:10], 'realtime_end': AT[:10]})
         self.assertNotIn('never-store-this', store.encode(store.identity(url)).decode())
+    def test_numeric_grammar_and_overflow_comparisons_remain_unavailable(self):
+        for value in ('1_000', 'NaN', 'Infinity', True, '1e-999', '-1'):
+            with self.assertRaises(ValueError): m.number(value)
+        result = m.change(m.number('1e15'), m.number('1e-300'), '2026-07', '2025-07')
+        self.assertEqual(result['status'], 'outside_numeric_range'); self.assertIsNone(result['percent'])
+        self.assertEqual(m.number('0e-999'), 0)
 
 
 if __name__ == '__main__':

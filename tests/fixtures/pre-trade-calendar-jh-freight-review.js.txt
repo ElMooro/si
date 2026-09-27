@@ -2,7 +2,6 @@
 (function(root){
  'use strict';
  const shared=typeof module!=='undefined'&&module.exports?require('./jh-business-cycle-review.js'):root.JHBusinessCycleReview;
- const trade=typeof module!=='undefined'&&module.exports?require('./jh-trade-review.js'):root.JHTradeReview;
  const SOURCES={freight:'/data/freight-pulse.json',air:'/data/air-cargo.json',trade:'/data/trade-nowcast.json',boom:'/data/boom-stage.json',shipping:'/data/portwatch.json'};
  const PROFILES={TSIFRGHT:['tsi_freight','Index 2000=100','SA','Freight Transportation Services Index'],FRGSHPUSM649NCIS:['cass_shipments','Index Jan 1990=1','NSA','Cass Freight Index: Shipments'],FRGEXPUSM649NCIS:['cass_expend','Index Jan 1990=1','NSA','Cass Freight Index: Expenditures'],TRUCKD11:['truck_tonnage','Index 2015=100','SA','Truck Tonnage Index'],RAILFRTCARLOADSD11:['rail_carloads','Carloads','SA','Rail Freight Carloads'],RAILFRTINTERMODALD11:['rail_intermodal','Containers and Trailers','SA','Rail Freight Intermodal Traffic']};
  const FLAGS=['forecast_qualified','calls_eligible','sizing_eligible','execution_eligible'],DAY=86400000;
@@ -87,7 +86,6 @@
   const say=(id,value)=>{doc.getElementById(id).textContent=value;};
   function clearFreight(){for(const id of ['freight-series','freight-observations','freight-choice'])doc.getElementById(id).replaceChildren();for(const id of ['freight-count','freight-ratio','freight-definition','freight-observation-count','freight-preservation'])say(id,'Unavailable');doc.getElementById('freight-choice').onchange=null;for(const id of ['freight-prev','freight-next']){doc.getElementById(id).onclick=null;doc.getElementById(id).disabled=true;}}
   clearFreight();
-  trade?.clear(doc);
   for(const key of Object.keys(SOURCES)){say(key+'-status','Reading complete packet…');say(key+'-original','Open to inspect the complete packet.');doc.getElementById(key+'-details').ontoggle=null;}
   await Promise.all(Object.keys(SOURCES).map(async key=>{
    try{
@@ -95,7 +93,6 @@
     if(!packet||typeof packet!=='object'||Array.isArray(packet))fail('Complete object required');const at=shared.clock(packet.generated_at);if(at===null||at>now)fail('Valid nonfuture publication required');
     say(key+'-status',packet.generated_at+' · '+(now-at>26*3600000?'publication overdue (>26h)':'publication less than 26h old')+' at page load. Observation dates are separate.');
     const details=doc.getElementById(key+'-details');let rendered=false;function original(){if(!current()||!details.open||rendered)return;rendered=true;say(key+'-original',JSON.stringify(packet,null,2));}details.ontoggle=original;original();
-    if(key==='trade')trade?.render(doc,packet,now);
     if(key!=='freight')return;
     const v=view(packet,now);
     if(!v.native){say('freight-count','Legacy publication: exact monthly comparisons have not been published yet.');say('freight-preservation','Awaiting the original daily 11:50 UTC run. All earlier fields remain in the original packet; composites, inflections and beta impacts are unqualified.');return;}
@@ -110,7 +107,7 @@
      say('freight-observation-count',(rows.length?page*100+1:0)+'–'+Math.min((page+1)*100,rows.length)+' of '+rows.length+' observations; all source dates accessible.');doc.getElementById('freight-prev').disabled=page===0;doc.getElementById('freight-next').disabled=(page+1)*100>=rows.length;
     }
     choice.onchange=()=>{page=0;observations();};doc.getElementById('freight-prev').onclick=()=>{page--;observations();};doc.getElementById('freight-next').onclick=()=>{page++;observations();};observations();
-   }catch(error){if(!current())return;if(key==='freight')clearFreight();if(key==='trade')trade?.clear(doc,'Trade measurements unavailable: '+error.message);say(key+'-status','Unavailable: '+error.message+'. No previous measurements remain displayed.');}
+   }catch(error){if(!current())return;if(key==='freight')clearFreight();say(key+'-status','Unavailable: '+error.message+'. No previous measurements remain displayed.');}
   }));
  }
  const api={SOURCES,PROFILES,number,view,load,mount};if(typeof module!=='undefined'&&module.exports)module.exports=api;else{root.JHFreightReview=api;if(root.document)mount(root.document);}

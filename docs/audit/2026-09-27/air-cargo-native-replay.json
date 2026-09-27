@@ -1,0 +1,113 @@
+{
+  "actual_runtime_before_validation": {
+    "code_sha256": "lmpjy45N8YRSVKh78WlU30R+JgWcWIMVYlvB0N/cqhw=",
+    "source_files_checked": 3,
+    "handler_bytes": 9335,
+    "timeout": 180,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "matched",
+      "commit": "0303dd0ed41e97da7bc735426dbd427288891b03"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-air-cargo-daily",
+        "state": "ENABLED",
+        "expression": "cron(40 10 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-air-cargo",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "lmpjy45N8YRSVKh78WlU30R+JgWcWIMVYlvB0N/cqhw=",
+    "source_files_checked": 3,
+    "handler_bytes": 9335,
+    "timeout": 180,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "matched",
+      "commit": "0303dd0ed41e97da7bc735426dbd427288891b03"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-air-cargo-daily",
+        "state": "ENABLED",
+        "expression": "cron(40 10 * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default"
+      }
+    ],
+    "function_name": "justhodl-air-cargo",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "all_denied": true,
+  "anonymous_origins_checked": 4,
+  "archive_writes": 0,
+  "attempt_outcome_counts": {
+    "404": 2,
+    "403": 2
+  },
+  "compiler_sha256": {
+    "lambda_function.py": "b28539389e91d2550b2ff3800cc896fae1370722db17810127c95c2c625b92bc",
+    "air_store.py": "9a85a5c347a564fc82f65680543f7807c9e97293dec590f1a51cc97a237ed984",
+    "air_measurements.py": "83c91476fd0ddaffa445ceddffe0b515721bf25390d2230814c9689adf960ec8"
+  },
+  "expected_commit": "0303dd0ed41e97da7bc735426dbd427288891b03",
+  "failures": [],
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "complete_workbook_and_calendar_replayed",
+    "generated_at": "2026-09-27T10:40:40.909480+00:00",
+    "version": "2.1.0",
+    "bytes": 291411,
+    "sha256": "5342fbf26575b822534be22e318209a5c090806c59034a2f658fc6001cab8033",
+    "month": "2026-08",
+    "replay": {
+      "status": "matched",
+      "http_attempts": 1,
+      "workbook_bytes": 2225762,
+      "monthly_observations": 344,
+      "annual_rows": 29,
+      "ledger_months": 344,
+      "provider_requests": 0,
+      "original_vintage_verified": false
+    },
+    "latest_month": "2026-08"
+  },
+  "protected_paths_checked": 2,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Complete workbook/ledger replay and monthly freight tonnage. No cargo-value, commodity-mix, original-vintage, financial forecast or sizing qualification. Publication remains non-atomic; partial-head recovery is separate.",
+  "acceptance_run": 36313390520,
+  "report_commit": "5af661e7eec0082b762b2bd995b63ff5a982e042",
+  "public_http": {
+    "url": "https://justhodl.ai/data/air-cargo.json",
+    "http_status": 200,
+    "bytes": 291411,
+    "sha256": "5342fbf26575b822534be22e318209a5c090806c59034a2f658fc6001cab8033",
+    "generated_at": "2026-09-27T10:40:40.909480+00:00",
+    "contract": "air-cargo-research.v1",
+    "month": "2026-08"
+  }
+}

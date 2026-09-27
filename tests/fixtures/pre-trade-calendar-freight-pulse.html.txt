@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="/business-cycle-review.css">
 <style>button{font:inherit;background:#192740;color:#e6edfc;border:1px solid #667898;border-radius:6px;padding:8px 14px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible{outline:2px solid #9dbafa;outline-offset:3px}.pager{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.research-links{display:grid;grid-template-columns:1fr 1fr;gap:16px}.research-links .card{margin:0}@media(max-width:760px){.research-links{grid-template-columns:1fr}}</style>
 <script src="/jh-business-cycle-review.js" defer></script>
-<script src="/jh-trade-review.js" defer></script>
 <script src="/jh-freight-review.js" defer></script>
 </head>
 <body>
@@ -25,26 +24,10 @@
 <h2>Related evidence, separate definitions</h2><p>No missing source is interpreted as agreement. These packets remain independently accessible while their definitions and native publication clocks are reviewed.</p>
 <div class="research-links">
 <section class="card"><h3>Air cargo</h3><p>HKIA cargo weight is not cargo value, a semiconductor breakdown, or a global air-cargo census. Workbook, monthly ledger and revision validation remain separate work.</p><p id="air-status" class="timestamp" role="status">Reading air packet…</p><a href="/data/air-cargo.json?exact=1&amp;nogen=1">Complete air-cargo JSON</a><details id="air-details"><summary>Inspect every air-cargo field</summary><pre id="air-original">Open to inspect the complete packet.</pre></details></section>
-<section class="card"><h3>Transport prices and merchandise trade</h3><p>Inspect the four FRED price indexes and all CPB volume, price and industrial-production series below. Their different definitions cannot form one rate-pressure or demand score; scraped Baltic Dry text has no qualified quote clock.</p><p id="trade-status" class="timestamp" role="status">Reading trade packet…</p><div class="links"><a href="#trade-research">Monthly trade research</a><a href="/data/trade-nowcast.json?exact=1&amp;nogen=1">Complete trade JSON</a></div><details id="trade-details"><summary>Inspect every trade-source field</summary><pre id="trade-original">Open to inspect the complete packet.</pre></details></section>
+<section class="card"><h3>Transport price and trade sources</h3><p>The inherited rate-pressure composite mixes differently defined series. Source-specific units, dates and forecast meaning are not yet qualified; its score and scraped Baltic Dry claims are not used here.</p><p id="trade-status" class="timestamp" role="status">Reading trade packet…</p><a href="/data/trade-nowcast.json?exact=1&amp;nogen=1">Complete trade JSON</a><details id="trade-details"><summary>Inspect every trade-source field</summary><pre id="trade-original">Open to inspect the complete packet.</pre></details></section>
 <section class="card"><h3>Industry value and volume</h3><p>Inspect each price index and physical shipment comparison in the dedicated research view. Different units and covered-port populations cannot be combined into an automatic industry-cycle call.</p><p id="boom-status" class="timestamp" role="status">Reading industry packet…</p><a href="/boom-stage.html">Open industry research</a><details id="boom-details"><summary>Inspect every industry packet field</summary><pre id="boom-original">Open to inspect the complete packet.</pre></details></section>
 <section class="card"><h3>Shipping calls and estimated weights</h3><p>Vessel calls and estimated cargo weights are separate measurements. Neither measures customs trade values or company revenue. Geographic coverage and exact dates are shown on their research pages.</p><p id="shipping-status" class="timestamp" role="status">Reading vessel-call packet…</p><div class="links"><a href="/portwatch.html">Vessel-call research</a><a href="/port-cargo.html">Cargo-weight research</a></div><details id="shipping-details"><summary>Inspect every vessel-call field</summary><pre id="shipping-original">Open to inspect the complete packet.</pre></details></section>
 </div>
-<section id="trade-research" class="card" aria-labelledby="trade-title">
-<h2 id="trade-title">Trade prices and merchandise volumes</h2>
-<p id="trade-summary" role="status">Waiting for the complete trade calendar contract.</p>
-<p id="trade-measurement-count" class="timestamp">Each observation keeps its source identity, unit and calendar month.</p>
-<p>World merchandise volume covers goods, not services. An increase in a price index is not an increase in trade volume or proof of demand. Industrial production uses separate import and production weights. These series do not grant Calls, sizing or execution permission.</p>
-<div id="trade-series" class="table-region" role="region" aria-label="Every CPB and FRED trade source series" tabindex="0"></div>
-<p id="trade-source-count" class="muted">Waiting for all source series.</p>
-<div class="pager"><button id="trade-source-prev" type="button" disabled>Previous sources</button><button id="trade-source-next" type="button" disabled>Next sources</button></div>
-<h3>Inspect every monthly position</h3><label for="trade-choice">Trade source series</label><select id="trade-choice"></select>
-<p id="trade-definition" class="timestamp">Definitions appear with the selected source.</p>
-<p id="trade-observation-count" class="muted">Waiting for complete observations.</p>
-<div id="trade-observations" class="table-region" role="region" aria-label="Every monthly position in the selected trade source" tabindex="0"></div>
-<div class="pager"><button id="trade-prev" type="button" disabled>Previous trade observations</button><button id="trade-next" type="button" disabled>Next trade observations</button></div>
-<p>Comparisons use exact calendar months and unrounded source values. Missing months cannot shift the comparison, zero denominators stay unavailable, and NSA changes are not annualized. The browser checks displayed arithmetic against every published observation; replay of protected original provider bytes is a separate runner check.</p>
-<div class="links"><a href="https://fred.stlouisfed.org/series/PCU4831114831115">Deep sea freight prices</a><a href="https://fred.stlouisfed.org/series/PCU484121484121">Truckload prices</a><a href="https://fred.stlouisfed.org/series/IR">Import prices</a><a href="https://fred.stlouisfed.org/series/IQ">Export prices</a><a href="/data/ops/releases/justhodl-trade-nowcast.json">Trade code receipt</a></div>
-</section>
 </main><footer>Definitions: FRED and its BTS, Cass, ATA and AAR source series. Publication checks describe the page-load time. Complete original-provider replay and point-in-time research are distinct from arithmetic checks on a published packet.</footer>
 <script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
 </body>

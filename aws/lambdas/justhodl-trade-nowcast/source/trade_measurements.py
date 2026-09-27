@@ -58,6 +58,8 @@ def number(value):
         return None
     if isinstance(value, bool) or not isinstance(value, (str, int, float)):
         raise MeasurementError('Published numeric value required')
+    if not re.fullmatch(r'[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?', str(value).strip()):
+        raise MeasurementError('Direct decimal source representation required')
     try:
         d = Decimal(str(value))
     except InvalidOperation:
@@ -69,7 +71,10 @@ def number(value):
 
 def change(current, previous, current_month, previous_month):
     status = 'latest_missing' if current is None else 'prior_month_missing' if previous is None else 'zero_denominator' if previous == 0 else 'measured'
-    return {'status': status, 'percent': float((current / previous - 1) * 100) if status == 'measured' else None,
+    value = float((current / previous - 1) * 100) if status == 'measured' else None
+    if value is not None and not math.isfinite(value):
+        status = 'outside_numeric_range'; value = None
+    return {'status': status, 'percent': value,
             'current_month': current_month, 'previous_month': previous_month, 'unit': 'percent'}
 
 
