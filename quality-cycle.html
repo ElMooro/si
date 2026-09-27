@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quality cycle · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+input{max-width:320px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:980px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}.pos{color:var(--grn)}.neg{color:var(--red)}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Quality cycle</h1>
+<p class="sub">Earnings-quality DSRI and Sloan joined to firm DIO and capex when the same ticker exists on those packets. A late boom often shows DSRI rising with DIO rising while capex is still high. Missing joins stay blank. This page does not invent a composite boom/bust score. Click headers to sort. Nulls stay last.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter ticker or name" autocomplete="off">
+<p class="sub" id="status">Loading quality, inventory and capex packets.</p>
+<div id="board" class="table-region">Loading quality cycle.</div>
+<div class="foot"><b>Built for:</b> seeing whether reported earnings quality and physical inventory/capex agree, without inventing a cycle score or a trade.<br>
+<b>Data:</b> /data/earnings-quality.json all_ranked[] (ticker, sloan_accruals_pct_assets, cash_conversion_ratio, dsri_beneish, gmi_beneish, quality_score); /data/inventory-drawdown.json stock_drawdown_board[] (dio_latest, dio_chg_pct, rev_growth_yoy); /data/capex-pulse.json rows[] (capex_ttm_b, yoy_pct).<br>
+<b>Read:</b> DSRI above 1 with DIO rising is a late-cycle stuffing risk when both exist. Sloan above 0 means NI exceeds OCF. Capex YoY is spend, not a reserve or AISC figure.<br>
+<b>Not:</b> a full Beneish M-score, PV-10, S-K 1300 reserves, purchase-obligation dollars, or a replacement of earnings-quality.html. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function pct(v){var n=num(v);return n==null?"":n.toFixed(1)+"%";}
+function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d==null?2:d);}
+function cls(v){var n=num(v);return n==null?"":(n>0?"pos":(n<0?"neg":""));}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function cmp(a,b,k,dir){
+  var av=a[k],bv=b[k];
+  if(av==null||av===""){if(bv==null||bv==="")return String(a.ticker||"").localeCompare(String(b.ticker||""));return 1;}
+  if(bv==null||bv==="")return -1;
+  if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;
+  return String(av).localeCompare(String(bv))*dir;
+}
+function table(id,cols,rows,sort,dir,onSort){
+  var h="<table><thead><tr>";
+  cols.forEach(function(c){h+="<th class='"+(c.r?"r ":"")+(sort===c.k?"on":"")+"' data-k='"+c.k+"'>"+c.l+(sort===c.k?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+  h+="</tr></thead><tbody>";
+  rows.forEach(function(r){
+    h+="<tr>";
+    cols.forEach(function(c){
+      var raw=c.cell?c.cell(r):esc(r[c.k]==null?"":r[c.k]);
+      h+="<td class='"+(c.r?"r ":"")+(c.cls?c.cls(r):"")+"'>"+raw+"</td>";
+    });
+    h+="</tr>";
+  });
+  document.getElementById(id).innerHTML=h+closeTbl();
+  document.querySelectorAll("#"+id+" th[data-k]").forEach(function(th){th.onclick=function(){onSort(th.getAttribute("data-k"));};});
+}
+async function load(path){
+  try{var r=await fetch(path+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}
+}
+(async function(){
+  var eq=await load("/data/earnings-quality.json");
+  var inv=await load("/data/inventory-drawdown.json");
+  var cap=await load("/data/capex-pulse.json");
+  var ranked=(eq&&Array.isArray(eq.all_ranked))?eq.all_ranked:[];
+  var dioRows=(inv&&Array.isArray(inv.stock_drawdown_board))?inv.stock_drawdown_board:[];
+  var capRows=(cap&&Array.isArray(cap.rows))?cap.rows:[];
+  var dio={};dioRows.forEach(function(r){var t=String(r.ticker||"").toUpperCase();if(t)dio[t]=r;});
+  var cx={};capRows.forEach(function(r){var t=String(r.ticker||"").toUpperCase();if(t)cx[t]=r;});
+  var rows=ranked.map(function(r){
+    var t=String(r.ticker||"").toUpperCase();
+    var d=dio[t]||{};
+    var c=cx[t]||{};
+    return {
+      ticker:t,
+      name:r.name||"",
+      sloan:num(r.sloan_accruals_pct_assets),
+      cash:num(r.cash_conversion_ratio),
+      dsri:num(r.dsri_beneish),
+      gmi:num(r.gmi_beneish),
+      qscore:num(r.quality_score),
+      dio:num(d.dio_latest),
+      dio_chg:num(d.dio_chg_pct),
+      rev_yoy:num(d.rev_growth_yoy),
+      capex:num(c.capex_ttm_b),
+      capex_yoy:num(c.yoy_pct)
+    };
+  });
+  var nDio=rows.filter(function(r){return r.dio!=null||r.dio_chg!=null;}).length;
+  var nCap=rows.filter(function(r){return r.capex!=null||r.capex_yoy!=null;}).length;
+  document.getElementById("kpis").innerHTML="<span class=chip>"+rows.length+" quality names</span><span class=chip>"+nDio+" with DIO</span><span class=chip>"+nCap+" with capex</span>";
+  var sort="dsri",dir=-1,qEl=document.getElementById("q");
+  function paint(){
+    var q=(qEl.value||"").toUpperCase();
+    var list=rows.filter(function(r){return !q||(r.ticker+" "+r.name).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    table("board",[
+      {k:"ticker",l:"Ticker",cell:function(r){return "<a href='/ticker.html?symbol="+encodeURIComponent(r.ticker)+"'>"+esc(r.ticker)+"</a>";}},
+      {k:"name",l:"Name"},
+      {k:"dsri",l:"DSRI",r:1,cell:function(r){return esc(fmt(r.dsri,2));}},
+      {k:"sloan",l:"Sloan % assets",r:1,cls:function(r){return cls(r.sloan);},cell:function(r){return esc(fmt(r.sloan,2));}},
+      {k:"cash",l:"Cash conv",r:1,cell:function(r){return esc(fmt(r.cash,2));}},
+      {k:"gmi",l:"GMI",r:1,cell:function(r){return esc(fmt(r.gmi,2));}},
+      {k:"qscore",l:"Quality score",r:1,cell:function(r){return esc(fmt(r.qscore,2));}},
+      {k:"dio",l:"DIO",r:1,cell:function(r){return esc(fmt(r.dio,1));}},
+      {k:"dio_chg",l:"DIO YoY",r:1,cls:function(r){return cls(r.dio_chg);},cell:function(r){return esc(pct(r.dio_chg));}},
+      {k:"rev_yoy",l:"Rev YoY",r:1,cls:function(r){return cls(r.rev_yoy);},cell:function(r){return esc(pct(r.rev_yoy));}},
+      {k:"capex",l:"Capex TTM $B",r:1,cell:function(r){return esc(fmt(r.capex,2));}},
+      {k:"capex_yoy",l:"Capex YoY",r:1,cls:function(r){return cls(r.capex_yoy);},cell:function(r){return esc(pct(r.capex_yoy));}}
+    ],list,sort,dir,function(k){if(sort===k)dir=-dir;else{sort=k;dir=(k==="ticker"||k==="name")?1:-1;}paint();});
+    document.getElementById("status").textContent=list.length+" of "+rows.length+" quality names. DIO and capex blank when that ticker is absent from those packets.";
+  }
+  if(!rows.length)document.getElementById("board").textContent="earnings-quality.json all_ranked missing.";
+  else {qEl.oninput=paint;paint();}
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
