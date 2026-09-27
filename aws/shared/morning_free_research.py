@@ -5,6 +5,8 @@ import json
 import math
 PUBLIC_KEY='data/ai-brief-public.json'
 MAX_AGE_H=8
+MAX_MESSAGE_UNITS=4096
+PUBLICATION_STAMP=re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})',re.ASCII)
 UNAVAILABLE=('JustHodl research update\n\nThe public source-backed brief is unavailable, malformed or more than eight hours old. '
              'No fresh measurements or investment conclusion are substituted.\n\n**DECISIVE CALL: WAIT**\n'
              'Abstain from new allocation guidance. WAIT does not mean sell existing positions. '
@@ -17,6 +19,7 @@ def build(load,at=None):
         p=load(PUBLIC_KEY)
         if not isinstance(p,dict):return UNAVAILABLE
         generated=p.get('generated_at')
+        if not isinstance(generated,str) or not 20<=len(generated)<=32 or not PUBLICATION_STAMP.fullmatch(generated):return UNAVAILABLE
         stamp=datetime.fromisoformat(generated.replace('Z','+00:00'))
         now=at or datetime.now(timezone.utc)
         if stamp.tzinfo is None or now.tzinfo is None or not 0 <= (now-stamp).total_seconds() <= MAX_AGE_H*3600:return UNAVAILABLE
@@ -31,13 +34,16 @@ def build(load,at=None):
                 or not re.search(r'\*\*DECISIVE CALL: WAIT\*\*\s+Abstain from new allocation guidance\.',text)
                 or re.search(r'\*\*DECISIVE CALL: (?!WAIT\*\*)',text)):
             return UNAVAILABLE
-        if len(text.encode('utf-16-le'))//2>3800:
+        message=text.rstrip()+'\n\nResearch source: https://justhodl.ai/calls.html\nPublication: '+generated+'\nNo model API called by Morning Intelligence.'
+        # Budget the complete delivered text, including provenance and astral
+        # characters. Never let the transport truncate the abstention or dates.
+        if len(message.encode('utf-16-le'))//2>MAX_MESSAGE_UNITS:
             return ('JustHodl source-backed research update\n\nPublication: '+generated+
                     '\nThe complete brief exceeds this message size. Read every dated measurement and limitation at '+
                     'https://justhodl.ai/calls.html . No excerpt is substituted for the complete evidence.\n\n'+
                     '**DECISIVE CALL: WAIT**\nAbstain from new allocation guidance. WAIT does not mean sell existing positions. '+
                     'No model API called by Morning Intelligence.')
-        return text.rstrip()+'\n\nResearch source: https://justhodl.ai/calls.html\nPublication: '+generated+'\nNo model API called by Morning Intelligence.'
+        return message
     except Exception:
         return UNAVAILABLE
 

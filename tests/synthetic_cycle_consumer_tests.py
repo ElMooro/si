@@ -176,6 +176,31 @@ class MorningBoundaries(unittest.TestCase):
         memory=Memory(raw);get=memory.get_object;memory.get_object=lambda **kw:{**get(**kw),'ContentLength':1}
         with self.assertRaises(ValueError):morning.read_public(memory,'bucket')
 
+    def test_publication_clock_rejects_unbounded_or_control_character_forms(self):
+        base=self.public()
+        for stamp in (NOW.strftime('%Y-%m-%dT%H:%M:%S')+'.'+'0'*5000+'+00:00',
+                      NOW.isoformat().replace('T','\n'),NOW.isoformat().replace('T','\u202e')):
+            self.assertEqual(morning.build(lambda k:{**base,'generated_at':stamp},NOW),morning.UNAVAILABLE)
+        for stamp in (NOW.isoformat(),NOW.isoformat().replace('+00:00','Z'),NOW.replace(microsecond=0).isoformat()):
+            self.assertNotEqual(morning.build(lambda k:{**base,'generated_at':stamp},NOW),morning.UNAVAILABLE)
+
+    def test_final_utf16_budget_includes_footer_and_preserves_whole_brief_or_link(self):
+        base=self.public()
+        original=morning.build(lambda k:base,NOW)
+        room=4096-len(original.encode('utf-16-le'))//2
+        self.assertGreater(room,0)
+        for extra in ('x'*room,'x'*(room-2)+'\U0001f310'):
+            packet={**base,'brief_md':base['brief_md'].replace('## DATA TAPE','## DATA TAPE'+extra,1)}
+            exact=morning.build(lambda k:packet,NOW)
+            self.assertEqual(len(exact.encode('utf-16-le'))//2,4096)
+            self.assertIn(packet['brief_md'].rstrip(),exact)
+            packet['brief_md']=packet['brief_md'].replace('## DATA TAPE','## DATA TAPE'+'x',1)
+            linked=morning.build(lambda k:packet,NOW)
+            self.assertIn('complete brief exceeds',linked)
+            self.assertIn('**DECISIVE CALL: WAIT**',linked)
+            self.assertIn(base['generated_at'],linked)
+            self.assertLessEqual(len(linked.encode('utf-16-le'))//2,4096)
+
     def test_actual_active_builder_and_accuracy_never_call_models_or_private_logs(self):
         memory=Memory(json.dumps(self.public()).encode())
         env=functions('morning-intelligence',{'ai','build_brief','format_accuracy'},
