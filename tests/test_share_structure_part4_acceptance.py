@@ -1,6 +1,7 @@
 from pathlib import Path
 import hashlib,json,sys,unittest
 from unittest.mock import patch
+from frozen_collector_evidence import reviewed_collector_digest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/p) for p in ('aws/ops/checks','aws/ops/staged','aws/ops')]
 import share_structure_batch_runner as batches
@@ -27,7 +28,7 @@ class Tests(unittest.TestCase):
   frozen=json.loads((ROOT/'tests/fixtures/share-structure-batch3-recovery.json').read_text())['frozen_collectors']
   for name,digest in frozen.items():
    path=ROOT/'aws/ops/checks'/str(name+'.py')
-   self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),digest,name)
+   self.assertEqual(reviewed_collector_digest(name),digest,name)
   self.assertEqual(batches.collection_limits(5),(2.0,5100))
 
 

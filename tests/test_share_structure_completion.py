@@ -1,5 +1,6 @@
 from pathlib import Path
 import hashlib,json,sys,unittest
+from frozen_collector_evidence import reviewed_collector_digest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'aws/ops/checks'),str(ROOT/'aws/ops/staged')]
 import share_structure_batch_runner as runner
@@ -12,7 +13,7 @@ class Tests(unittest.TestCase):
         raw=(ROOT/manifest['predecessor']).read_bytes()
         self.assertEqual((len(raw),hashlib.sha256(raw).hexdigest()),(manifest['bytes'],manifest['sha256']))
         pinned=json.loads((ROOT/'tests/fixtures/share-structure-batch3-recovery.json').read_bytes())['frozen_collectors']
-        for name,digest in pinned.items():self.assertEqual(hashlib.sha256((ROOT/('aws/ops/checks/'+name+'.py')).read_bytes()).hexdigest(),digest)
+        for name,digest in pinned.items():self.assertEqual(reviewed_collector_digest(name),digest)
 
     def test_recovery_acceptance_requires_both_exact_whole_journals_and_manifest(self):
         state={'accepted_by_ops':'ops_6103_share_structure_recovery_acceptance',

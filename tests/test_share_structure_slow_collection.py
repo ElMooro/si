@@ -2,6 +2,7 @@
 from pathlib import Path
 from unittest.mock import Mock,patch
 import hashlib,json,re,sys,unittest,urllib.error
+from frozen_collector_evidence import reviewed_collector_digest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'aws/ops/checks'))
 import share_structure_batch_runner as runner
@@ -15,7 +16,7 @@ class Tests(unittest.TestCase):
             self.assertEqual((len(body),hashlib.sha256(body).hexdigest()),(row['bytes'],row['sha256']))
         frozen=json.loads((ROOT/'tests/fixtures/share-structure-batch3-recovery.json').read_bytes())['frozen_collectors']
         for name,digest in frozen.items():
-            self.assertEqual(hashlib.sha256((ROOT/('aws/ops/checks/'+name+'.py')).read_bytes()).hexdigest(),digest)
+            self.assertEqual(reviewed_collector_digest(name),digest)
 
     def test_budget_preserves_previous_parts_and_covers_worst_case_new_request_pacing(self):
         for part in (1,2,3):self.assertEqual(runner.collection_limits(part),(1.0,3300))

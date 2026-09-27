@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest.mock import Mock,patch
 import ast,hashlib,json,sys,unittest,urllib.error
+from frozen_collector_evidence import reviewed_collector_digest
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/p) for p in ('aws/ops/checks','aws/ops/staged','aws/ops')]
 import share_structure_batch_runner as batches
@@ -42,7 +43,7 @@ class Tests(unittest.TestCase):
         path=ROOT/'tests/fixtures/share-structure-batch3-recovery.json'
         record=json.loads(path.read_bytes())
         for name,digest in record['frozen_collectors'].items():
-            self.assertEqual(hashlib.sha256((ROOT/('aws/ops/checks/'+name+'.py')).read_bytes()).hexdigest(),digest)
+            self.assertEqual(reviewed_collector_digest(name),digest)
         tree=ast.parse((ROOT/'aws/ops/staged/ops_6098_share_structure_batch3_limit_check.py').read_text(encoding='utf-8'))
         assertions=[ast.unparse(n.test) for n in ast.walk(tree) if isinstance(n,ast.Assert)]
         self.assertIn('elapsed >= 1800',assertions)
