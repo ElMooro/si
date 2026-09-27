@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Debt wall · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+input{max-width:320px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:860px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;vertical-align:top}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:16px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Debt wall</h1>
+<p class="sub">Late-cycle funding stress. Market spreads and 8-K obligation items fill from live packets. Firm interest coverage and debt due in 12 months stay blank until those XBRL tags exist. Click headers to sort.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter company" autocomplete="off">
+<p class="sub" id="status">Loading canary-macro, capex and 8-K.</p>
+<h2 style="font-size:16px;margin:18px 0 8px">Market credit</h2>
+<div id="macro" class="table-region">Loading spreads.</div>
+<h2 style="font-size:16px;margin:18px 0 8px">8-K 2.03 / 2.04 this window</h2>
+<div id="board" class="table-region">Loading obligations.</div>
+<div class="foot"><b>Built for:</b> seeing when credit is tightening around cyclicals and miners without inventing a firm maturity ladder.<br>
+<b>Data:</b> /data/canary-macro.json BAMLH0A0HYM2, BAMLC0A0CM, NFCINONFINLEVERAGE; /data/8k-filings.json items 2.03 and 2.04; /data/capex-pulse.json is not used for coverage.<br>
+<b>Blank on purpose:</b> interest coverage, debt due 12 months, long-term debt, maturity year. Those tags are not on a live packet.<br>
+<b>Related:</b> <a href="/financial-obligations.html">2.03 tape</a> · <a href="/filing-cycle-tape.html">cycle tape</a>. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function pick(pkt,id){return pkt&&pkt[id]&&typeof pkt[id]==="object"?pkt[id]:null;}
+function hasItem(items,code){var arr=Array.isArray(items)?items:String(items||"").split(/[,;\s]+/);for(var i=0;i<arr.length;i++){if(String(arr[i]).indexOf(code)>=0)return true;}return false;}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return 0;return 1;}if(bv==null||bv==="")return -1;return String(av).localeCompare(String(bv))*dir;}
+async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+(async function(){
+  var macro=await load("/data/canary-macro.json");
+  var k8=await load("/data/8k-filings.json");
+  var ids=[["BAMLH0A0HYM2","HY OAS"],["BAMLC0A0CM","IG OAS"],["NFCINONFINLEVERAGE","NFCI nonfin leverage"]];
+  var mh="<table><thead><tr><th>Series</th><th>Label</th><th class=r>Value</th><th>Unit</th><th>As of</th></tr></thead><tbody>";
+  ids.forEach(function(pair){var s=pick(macro,pair[0])||{};mh+="<tr><td>"+esc(pair[0])+"</td><td>"+esc(pair[1])+"</td><td class=r>"+esc(s.value==null?"":s.value)+"</td><td>"+esc(s.unit||"")+"</td><td>"+esc(s.as_of||s.observation_period||"")+"</td></tr>";});
+  document.getElementById("macro").innerHTML=mh+closeTbl();
+  var rows=((k8&&k8.filings)||[]).filter(function(f){return hasItem(f.items,"2.03")||hasItem(f.items,"2.04");}).map(function(f){
+    return {company:f.company||"",filed:f.filed_at||"",items:Array.isArray(f.items)?f.items.join(", "):String(f.items||""),url:f.filing_url||"",accession:f.accession||""};
+  });
+  document.getElementById("kpis").innerHTML="<span class=chip>"+rows.length+" 2.03/2.04 rows</span><span class=chip>0 firm coverage tags</span>";
+  var sort="filed",dir=-1,qEl=document.getElementById("q");
+  function paint(){
+    var q=(qEl.value||"").toUpperCase();
+    var list=rows.filter(function(r){return !q||(r.company+" "+r.accession).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr>";[["company","Company"],["filed","Filed"],["items","Items"],["accession","Accession"],["cov","Coverage"],["due12","Debt due 12m"]].forEach(function(c){h+="<th class='"+(sort===c[0]?"on":"")+"' data-k='"+c[0]+"'>"+c[1]+(sort===c[0]?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    list.forEach(function(r){var acc=r.url?("<a href='"+esc(r.url)+"' target='_blank' rel='noopener'>"+esc(r.accession||"SEC")+"</a>"):esc(r.accession);h+="<tr><td>"+esc(r.company)+"</td><td>"+esc(r.filed)+"</td><td>"+esc(r.items)+"</td><td>"+acc+"</td><td class=r></td><td class=r></td></tr>";});
+    if(!list.length)h+="<tr><td colspan='6'>No 2.03/2.04 in this window. Firm coverage stays blank.</td></tr>";
+    document.getElementById("board").innerHTML=h+closeTbl();
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=k==="filed"?-1:1;}paint();};});
+    document.getElementById("status").textContent=list.length+" of "+rows.length+" obligation rows. Coverage and 12-month debt blank — producer not published.";
+  }
+  qEl.oninput=paint;paint();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
