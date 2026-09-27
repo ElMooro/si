@@ -23,11 +23,10 @@ function ensureCss(){
     +".jh-inv-v2-ticker a{color:#22d3ee;text-decoration:none}"
     +".jh-inv-v2-st{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:4px;font-size:10px;letter-spacing:.4px}"
     +".jh-inv-v2 table{width:100%;border-collapse:collapse;margin-top:8px}"
-    +".jh-inv-v2 th,.jh-inv-v2 td{text-align:right;padding:6px 8px;border-bottom:1px solid #1d242e;font:12px ui-monospace,Menlo,monospace}"
-    +".jh-inv-v2 th{cursor:pointer;user-select:none;font-size:10px;color:#6b7480;text-transform:uppercase}"
+    +".jh-inv-v2 th,.jh-inv-v2 td{text-align:right;padding:6px 8px;border-bottom:1px solid #1c2433;font:12px ui-monospace,Menlo,monospace}"
+    +".jh-inv-v2 th{color:#6b7480;font-size:10px;text-transform:uppercase;cursor:pointer;user-select:none}"
     +".jh-inv-v2 th.on{color:#38bdf8}"
-    +".jh-inv-v2 th.l,.jh-inv-v2 td.l{text-align:left}"
-    +".jh-inv-v2 a{color:#e1e8f4;text-decoration:none}";
+    +".jh-inv-v2 td.l,.jh-inv-v2 th.l{text-align:left}";
   document.head.appendChild(s);
 }
 async function loadJoined(){
@@ -38,7 +37,6 @@ async function loadJoined(){
 }
 function cmp(a,b,k,dir){
   var av=a[k], bv=b[k];
-  if(av==null||av==="") av=null; if(bv==null||bv==="") bv=null;
   if(av==null&&bv==null) return String(a.ticker||"").localeCompare(String(b.ticker||""));
   if(av==null) return 1; if(bv==null) return -1;
   if(typeof av==="number"||typeof bv==="number"){
@@ -58,35 +56,35 @@ function bootDesk(){
     if(w.querySelector(".jh-inv-v2"))return;
     var pack=await loadJoined();
     if(!pack||!pack.d||!pack.d.sector_drawdown)return;
-    ensureCss();
     var joined=pack.joined,tape=pack.tape;
     var box=document.createElement("div");
     box.className="jh-inv-v2";
+    ensureCss();
     var SORT="four_state", DIR=1;
-    var COLS=[["ticker","Ticker","l"],["four_state","State","l"],["dio_chg_pct","DIO chg",""],["rev_growth_yoy","Rev YoY",""],["book","Book","l"],["sloan","Sloan",""]];
-    function paint(){
+    var cols=[["ticker","Ticker","l"],["four_state","State","l"],["dio_chg_pct","DIO Δ%",""],["rev_growth_yoy","Rev YoY",""],["book","Book","l"],["sloan","Sloan",""]];
+    function paintTable(){
       var list=joined.slice().sort(function(a,b){return cmp(a,b,SORT,DIR);});
       var h='<div class="sec">Sector chain tape <span class="n">same FRED I/S rows</span></div>';
       h+='<div class="card">Factory '+(tape.factory_dir||"n/a")+' \u00b7 Store '+(tape.store_dir||"n/a")+' \u00b7 Autos '+(tape.auto_dir||"n/a")+(tape.read?" \u00b7 "+esc(tape.read):"")+'</div>';
-      h+='<div class="sec">Four-state overlay <span class="n">Click a header to sort. RM/WIP/FG untagged.</span></div>';
+      h+='<div class="sec">Four-state overlay <span class="n">Click headers to sort. RM/WIP/FG untagged. Sloan/DSRI from earnings-quality.</span></div>';
       h+='<table><thead><tr>';
-      COLS.forEach(function(c){h+='<th class="'+(c[2]||"")+(SORT===c[0]?" on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";});
+      cols.forEach(function(c){h+='<th class="'+(c[2]||"")+(SORT===c[0]?" on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";});
       h+="</tr></thead><tbody>";
       list.forEach(function(r){
-        h+='<tr><td class="l"><a href="/ticker.html?symbol='+encodeURIComponent(r.ticker)+'">'+esc(r.ticker)+"</a></td>";
+        h+='<tr><td class="l"><a href="/ticker.html?symbol='+encodeURIComponent(r.ticker)+'" style="color:#fff">'+esc(r.ticker)+"</a></td>";
         h+='<td class="l">'+esc(r.four_state||"")+"</td>";
         h+="<td>"+esc(sign(r.dio_chg_pct,"%"))+"</td>";
         h+="<td>"+esc(sign(r.rev_growth_yoy,"%"))+"</td>";
         h+='<td class="l">'+esc(r.book||"")+"</td>";
         h+="<td>"+(r.sloan==null?"":r.sloan.toFixed(1))+"</td></tr>";
       });
-      h+='</tbody></table><div class="foot">Composition columns stay blank. Click headers to sort asc/desc; blanks last. Data: inventory-drawdown + backlog + estimate-revisions + earnings-quality.</div>';
+      h+='</tbody></table><div class="foot">Composition columns stay blank. Data: inventory-drawdown + backlog + estimate-revisions + earnings-quality. Click headers to sort asc/desc. Nulls last.</div>';
       box.innerHTML=h;
       box.querySelectorAll("th[data-k]").forEach(function(th){
-        th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="ticker"||th.dataset.k==="four_state"||th.dataset.k==="book"?1:-1;}paint();};
+        th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="ticker"||th.dataset.k==="four_state"||th.dataset.k==="book"?1:-1;}paintTable();};
       });
     }
-    paint();
+    paintTable();
     var foot=w.querySelector(".foot");
     if(foot)w.insertBefore(box,foot);else w.appendChild(box);
   },250);

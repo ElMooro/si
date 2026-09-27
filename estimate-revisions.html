@@ -24,7 +24,8 @@ h2 small{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400;f
 .pick b{color:#fff}.pick .s{color:var(--grn)}
 table{border-collapse:collapse;width:100%;font-size:12px}
 th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;position:sticky;top:0;background:var(--bg)}
+th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;position:sticky;top:0;background:var(--bg);cursor:pointer;user-select:none}
+th:hover{color:var(--txt)}th.on{color:var(--cyan)}
 td.l,th.l{text-align:left}
 tr:hover td{background:var(--panel2)}
 .flowpos{color:var(--grn)}.flowneg{color:var(--red)}
@@ -36,7 +37,7 @@ tr:hover td{background:var(--panel2)}
 <body>
 <div class="topbar">
   <h1>🔀 Estimate Revisions</h1>
-  <div class="sub">Consensus EPS &amp; revenue estimates revised <b>up</b> into a print tend to drift positively (and vice versa). The raw feed only shows the current estimate, so this engine snapshots forward consensus daily and diffs it — building revision momentum the feed can't show on its own.</div>
+  <div class="sub">Consensus EPS &amp; revenue estimates revised <b>up</b> into a print tend to drift positively (and vice versa). Click any column to sort ascending or descending. Nulls stay last.</div>
 </div>
 <div id="banner"></div>
 <div class="statbar" id="statbar"></div>
@@ -48,56 +49,73 @@ const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
   `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
 async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}throw new Error("sources failed");}
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const pct=v=>v==null?"—":(v>=0?"+":"")+(+v).toFixed(2)+"%";
-const num=v=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:3});
-
-function revTbl(rows){
-  return `<div style="overflow-x:auto"><table><thead><tr>
-    <th class="l">Ticker</th><th>EPS revision</th><th>Base→Now</th><th>Rev revision</th><th>Conf</th><th>Earnings</th><th>Days</th><th>Imp</th>
-    </tr></thead><tbody>`+
-    rows.map(s=>`<tr>
-      <td class="l"><b>${esc(s.ticker)}</b></td>
-      <td class="${(s.eps_rev_pct||0)>=0?'flowpos':'flowneg'}"><b>${pct(s.eps_rev_pct)}</b></td>
-      <td>${num(s.baseline_eps_est)}→${num(s.current_eps_est)}</td>
-      <td class="${(s.rev_rev_pct||0)>=0?'flowpos':'flowneg'}">${pct(s.rev_rev_pct)}</td>
-      <td>${s.revenue_confirms?'<span class="chk">✓</span>':'—'}</td>
-      <td style="color:var(--dim)">${esc(s.earnings_date||"")} ${esc(s.session||"")}</td>
-      <td>${s.days_to_earnings==null?"—":s.days_to_earnings+"d"}</td>
-      <td>${s.importance||""}</td></tr>`).join("")+`</tbody></table></div>`;
-}
-
-function render(d){
-  const live=d.status==="LIVE"||d.status==="PARTIAL";
-  document.getElementById("banner").innerHTML = d.status==="WARMING"
-    ? `<div class="banner">⏳ WARMING — baseline snapshot recorded for ${d.n_tracked||0} names. Revisions appear after the next daily snapshot (12:00 UTC) gives a prior value to diff against.</div>`
-    : `<div class="banner live">✓ ${esc(d.status)} — tracking revisions across ${d.n_with_history||0} names with history.</div>`;
-  document.getElementById("statbar").innerHTML=
-    `<div class="stat"><div class="v">${d.n_tracked||0}</div><div class="l">FORWARD NAMES</div></div>`+
-    `<div class="stat"><div class="v">${d.n_with_history||0}</div><div class="l">WITH HISTORY</div></div>`+
-    `<div class="stat"><div class="v" style="color:var(--grn)">${(d.upward_revisions||[]).length}</div><div class="l">REVISED UP</div></div>`+
-    `<div class="stat"><div class="v" style="color:var(--red)">${(d.downward_revisions||[]).length}</div><div class="l">REVISED DOWN</div></div>`+
-    `<div class="stat"><div class="v" style="color:var(--cyan)">${(d.top_picks||[]).length}</div><div class="l">TRACKED PICKS</div></div>`;
-
-  let h="";
-  const picks=d.top_picks||[];
-  if(picks.length){
-    h+=`<h2 class="g">🎯 Tracked Picks <small>— upward-revised, near earnings, revenue-confirmed; logged as eng:estimate-revisions and graded vs SPY before any engine trusts them</small></h2><div>`+
-      picks.map(p=>`<span class="pick"><b>${esc(p.ticker)}</b> <span class="s">${pct(p.score)}</span> ${p.days_to_earnings==null?"":p.days_to_earnings+"d"}</span>`).join("")+`</div>`;
+const pct=v=>v==null?"":""+(v>=0?"+":"")+(+v).toFixed(2)+"%";
+const num=v=>v==null?"":(+v).toLocaleString(undefined,{maximumFractionDigits:3});
+let PACK=null, SORT="eps_rev_pct", DIR=-1;
+const COLS=[["ticker","Ticker","l"],["eps_rev_pct","EPS revision",""],["current_eps_est","Now EPS",""],["rev_rev_pct","Rev revision",""],["revenue_confirms","Conf",""],["earnings_date","Earnings",""],["days_to_earnings","Days",""],["importance","Imp",""]];
+function cmp(a,b,k,dir){
+  var av=a[k], bv=b[k];
+  if(av==null||av==="") av=null; if(bv==null||bv==="") bv=null;
+  if(av==null&&bv==null) return String(a.ticker||"").localeCompare(String(b.ticker||""));
+  if(av==null) return 1; if(bv==null) return -1;
+  if(typeof av==="number"||typeof bv==="number"||k==="eps_rev_pct"||k==="rev_rev_pct"||k==="days_to_earnings"||k==="current_eps_est"||k==="importance"){
+    av=Number(av); bv=Number(bv);
+    if(!isFinite(av)&&!isFinite(bv)) return 0;
+    if(!isFinite(av)) return 1; if(!isFinite(bv)) return -1;
+    return (av-bv)*dir;
   }
-  const up=d.upward_revisions||[],dn=d.downward_revisions||[];
-  if(up.length) h+=`<h2 class="g">🟢 Upward Revisions <small>— consensus EPS lifted since baseline</small></h2>${revTbl(up.slice(0,30))}`;
-  if(dn.length) h+=`<h2 class="r">🔴 Downward Revisions <small>— consensus EPS cut since baseline</small></h2>${revTbl(dn.slice(0,25))}`;
-  if(!up.length&&!dn.length) h+=`<div class="loading">No revisions yet — the engine is building its baseline. Check back after the next daily snapshot.</div>`;
-
-  document.getElementById("content").innerHTML=h;
-  document.getElementById("foot").innerHTML=
-    `Source: ${esc(d.data_source||"Benzinga consensus (via Massive)")} · generated ${esc((d.generated_at||"").replace("T"," ").slice(0,16))} UTC · updates daily 12:00 UTC.<br>`+
-    (Array.isArray(d.caveats)?esc(d.caveats.join(" ")):esc(d.caveats||""))+" Research only — not investment advice.";
+  return String(av).localeCompare(String(bv))*dir;
 }
-load("data/estimate-revisions.json").then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load estimate-revisions.json — '+esc(e.message)+'</div>';});
-setInterval(()=>load("data/estimate-revisions.json").then(render).catch(()=>{}),300000);
+function revTbl(rows){
+  var list=rows.slice().sort(function(a,b){return cmp(a,b,SORT,DIR);});
+  var h='<div style="overflow-x:auto"><table><thead><tr>';
+  COLS.forEach(function(c){h+='<th class="'+(c[2]||"")+(SORT===c[0]?" on":"")+'" data-k="'+c[0]+'">'+c[1]+(SORT===c[0]?(DIR>0?" \u2191":" \u2193"):"")+"</th>";});
+  h+="</tr></thead><tbody>";
+  list.forEach(function(s){
+    h+="<tr><td class=l><b>"+esc(s.ticker)+"</b></td>";
+    h+='<td class="'+((s.eps_rev_pct||0)>=0?"flowpos":"flowneg")+'"><b>'+esc(pct(s.eps_rev_pct))+"</b></td>";
+    h+="<td>"+esc(num(s.baseline_eps_est))+"\u2192"+esc(num(s.current_eps_est))+"</td>";
+    h+='<td class="'+((s.rev_rev_pct||0)>=0?"flowpos":"flowneg")+'">'+esc(pct(s.rev_rev_pct))+"</td>";
+    h+="<td>"+(s.revenue_confirms?'<span class="chk">\u2713</span>':"")+"</td>";
+    h+='<td style="color:var(--dim)">'+esc(s.earnings_date||"")+" "+esc(s.session||"")+"</td>";
+    h+="<td>"+(s.days_to_earnings==null?"":s.days_to_earnings+"d")+"</td>";
+    h+="<td>"+esc(s.importance||"")+"</td></tr>";
+  });
+  return h+"</tbody></table></div>";
+}
+function paint(){
+  var d=PACK; if(!d) return;
+  document.getElementById("banner").innerHTML = d.status==="WARMING"
+    ? '<div class="banner">WARMING \u2014 baseline snapshot recorded for '+(d.n_tracked||0)+" names.</div>"
+    : '<div class="banner live">'+esc(d.status)+" \u2014 tracking revisions across "+(d.n_with_history||0)+" names with history.</div>";
+  document.getElementById("statbar").innerHTML=
+    '<div class="stat"><div class="v">'+(d.n_tracked||0)+'</div><div class="l">FORWARD NAMES</div></div>'+
+    '<div class="stat"><div class="v">'+(d.n_with_history||0)+'</div><div class="l">WITH HISTORY</div></div>'+
+    '<div class="stat"><div class="v" style="color:var(--grn)">'+(d.upward_revisions||[]).length+'</div><div class="l">REVISED UP</div></div>'+
+    '<div class="stat"><div class="v" style="color:var(--red)">'+(d.downward_revisions||[]).length+'</div><div class="l">REVISED DOWN</div></div>'+
+    '<div class="stat"><div class="v" style="color:var(--cyan)">'+(d.top_picks||[]).length+'</div><div class="l">TRACKED PICKS</div></div>';
+  var h="";
+  var picks=d.top_picks||[];
+  if(picks.length){
+    h+='<h2 class="g">Tracked Picks <small>upward-revised, near earnings, revenue-confirmed</small></h2><div>'+
+      picks.map(function(p){return '<span class="pick"><b>'+esc(p.ticker)+'</b> <span class="s">'+esc(pct(p.score))+'</span> '+(p.days_to_earnings==null?"":p.days_to_earnings+"d")+"</span>";}).join("")+"</div>";
+  }
+  var up=d.upward_revisions||[],dn=d.downward_revisions||[];
+  if(up.length) h+='<h2 class="g">Upward Revisions <small>click headers to sort</small></h2>'+revTbl(up);
+  if(dn.length) h+='<h2 class="r">Downward Revisions <small>click headers to sort</small></h2>'+revTbl(dn);
+  if(!up.length&&!dn.length) h+='<div class="loading">No revisions yet \u2014 the engine is building its baseline.</div>';
+  document.getElementById("content").innerHTML=h;
+  document.querySelectorAll("#content th[data-k]").forEach(function(th){
+    th.onclick=function(){if(SORT===th.dataset.k)DIR=-DIR;else{SORT=th.dataset.k;DIR=th.dataset.k==="ticker"||th.dataset.k==="earnings_date"?1:-1;}paint();};
+  });
+  document.getElementById("foot").innerHTML=
+    "Source: "+esc(d.data_source||"Benzinga consensus (via Massive)")+" \u00b7 generated "+esc((d.generated_at||"").replace("T"," ").slice(0,16))+" UTC. Click headers to sort asc/desc. Nulls last. Research only.";
+}
+function render(d){PACK=d;paint();}
+load("data/estimate-revisions.json").then(render).catch(function(e){document.getElementById("content").innerHTML='<div class="loading">Could not load estimate-revisions.json \u2014 '+esc(e.message)+"</div>";});
+setInterval(function(){load("data/estimate-revisions.json").then(render).catch(function(){});},300000);
 </script>
-  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>
