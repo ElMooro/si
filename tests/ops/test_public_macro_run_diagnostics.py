@@ -1,7 +1,8 @@
 """Read-only diagnostics return only reviewed literals and runtime counters."""
 from pathlib import Path
 from unittest.mock import patch
-import ast, importlib.util, unittest
+import ast, importlib.util, unittest, hashlib, json, sys
+from io import BytesIO
 
 ROOT = Path(__file__).resolve().parents[2]
 path = ROOT / 'aws/ops/staged/ops_6223_public_macro_run_diagnostics.py'
@@ -45,6 +46,35 @@ class Tests(unittest.TestCase):
         out = subject.diagnose(Logs(), 'justhodl-portwatch', END)
         self.assertEqual(out['exception_type_counts'], {'ValueError': 1}); self.assertEqual(out['reviewed_error_counts'], {})
         self.assertEqual(out['source_locations'], {}); self.assertNotIn('private', str(out))
+    def test_caught_native_failure_class_is_visible_without_raw_message(self):
+        class Logs:
+            def filter_log_events(self, **kw):
+                return {'events': [{'eventId': 'x', 'timestamp': 1, 'message': 'PortWatch preserved publication failed: CaptureError\n'}]}
+        self.assertEqual(subject.diagnose(Logs(), 'justhodl-portwatch', END)['exception_type_counts'], {'CaptureError': 1})
+    def test_only_bound_complete_retained_public_attempts_are_inspected(self):
+        sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-portwatch/source'))
+        import portwatch_store as store
+        data = {}; stamp = subject.datetime(2026, 9, 27, 11, 20, tzinfo=subject.timezone.utc)
+        def put(value):
+            raw = json.dumps(value).encode(); h = hashlib.sha256(raw).hexdigest(); key = store.PRIVATE+h+'.bin'; data[key] = raw
+            return {'key': key, 'sha256': h, 'bytes': len(raw)}
+        ref = put({'error': {'code': 400, 'message': 'Invalid query'}})
+        url = 'https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Ports_Data/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json'
+        attempt = put({'request': {'url': url, 'method': 'GET', 'body_utf8': None, 'timeout': 25},
+                       'acquired_at': stamp.isoformat(), 'status': 'http_response', 'http_status': 200, 'original': ref})
+        class S3:
+            def get_paginator(self, name):
+                assert name == 'list_objects_v2'; return self
+            def paginate(self, **kw):
+                assert kw == {'Bucket': 'justhodl-dashboard-live', 'Prefix': store.PRIVATE}
+                yield {'Contents': [{'Key': k, 'Size': len(v), 'LastModified': stamp} for k, v in data.items()]}
+            def get_object(self, **kw):
+                raw = data[kw['Key']]; return {'Body': BytesIO(raw), 'ContentLength': len(raw)}
+        out = subject.portwatch_attempts(S3(), END)
+        self.assertEqual(len(out['attempts']), 1); self.assertEqual(out['attempts'][0]['operation'], 'count')
+        self.assertEqual(out['attempts'][0]['provider_error']['code'], 400)
+        data[attempt['key']] += b' '
+        with self.assertRaises(ValueError): subject.portwatch_attempts(S3(), END)
     def test_pagination_bound_cannot_be_reported_as_complete(self):
         class Logs:
             n = 0

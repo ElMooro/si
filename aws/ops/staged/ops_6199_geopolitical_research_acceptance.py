@@ -25,7 +25,8 @@ def main():
         subprocess.run([sys.executable,str(ROOT/'aws/lambdas'/FN/'tests/run_tests.py')],cwd=ROOT,check=True)
         obj=s3.get_object(Bucket=BUCKET,Key=store.HEAD);raw=store.whole(obj['Body'],length=obj.get('ContentLength'))
         packet=store.strict(raw)
-        native={'status':'pending_original_daily_1130_publication','generated_at':packet.get('generated_at'),'version':packet.get('version')}
+        native={'status':'pending_original_daily_1130_publication','generated_at':packet.get('generated_at'),'version':packet.get('version'),
+                'bytes':len(raw),'sha256':store.sha(raw)}
         if packet.get('contract')==store.model.CONTRACT:
             replay=store.replay(s3,BUCKET,packet)
             history=s3.get_object(Bucket=BUCKET,Key=store.HISTORY)
