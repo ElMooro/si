@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 3.9s  
+**Finished:** 2026-09-27T23:50:06+00:00  
+
+## Data
+
+| account_reads | actual_producers | all_denied | anonymous_origins_checked | attempt_outcome_counts | baseline | failures | history_writes | learning_log_reads | native_invocations | notifications_sent | originals | protected_paths_checked | provider_requests | public_writes | schedule_changes | scope | source_checks |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | {'justhodl-microcap-float-squeeze': {'status': 'whole_actual_package_retained', 'runtime': {'FunctionName': 'justhodl-microcap-float-squeeze', 'CodeSha256': 'hE5vQnFg/0tLHy8lSfKCSfSs+FLq6zTNFL0CE1D/+F8=', 'Runtime': 'python3.12', 'Handler': 'lambda_function.lambda_handler', 'Timeout': 600, 'MemorySize': 2048, 'Architectures': ['x86_64'], 'Role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'EphemeralStorage': {'Size': 512}, 'LastModified': '2026-09-09T03:27:01.000+0000'}, 'whole_zip': {'key': 'audit-private/20260909-originals/shipping-consumer-research/844e6f427160ff4b4b1f2f2549f28249f4acf852eaeb34cd14bd021350fff85f.bin', 'sha256': '844e6f427160ff4b4b1f2f2549f28249f4acf852eaeb34cd14bd021350fff85f', 'bytes': 157381}, 'schedules': [], 'active_alias': None, 'repository_config_present': False, 'code_matches_repository': True, 'source_files_checked': 2, 'source_differences': {}}} | True | 6 | {'404': 3, '403': 3} | {'key': 'audit-private/20260909-originals/microcap-float-squeeze-research/4f25a41a055ea1c97bb11f7d02fcdd554d26d0d98c3942685845a24989b3108b.bin', 'bytes': 8138, 'sha256': '4f25a41a055ea1c97bb11f7d02fcdd554d26d0d98c3942685845a24989b3108b'} | [] | 0 | 0 | 0 | 0 | {'data/microcap-float-squeeze.json': {'status': 'whole_object_retained', 'original': {'key': 'audit-private/20260909-originals/microcap-float-squeeze-research/b47064597f10adc8ec167cfb46b37fdffcc676005adb05e170ac330276db343d.bin', 'bytes': 90468, 'sha256': 'b47064597f10adc8ec167cfb46b37fdffcc676005adb05e170ac330276db343d'}, 'etag': '"1bcce7b0033ca201156a93ee047b1e0d"', 'last_modified': '2026-09-27T22:00:30+00:00', 'original_provider_verified': False}} | 3 | 0 | 0 | 0 | Whole deployed packages and one exact existing public Microcap Float Squeeze research packet only. Provider response originals, acquisition completeness, original vintages, donor quality, common input ancestry, category joins, source timing, score calibration and signal performance remain unverified. | {'justhodl-microcap-float-squeeze': {'bytes': 16593, 'sha256': 'bcbf618e2879b842e9e8d44ad500cb4e4eb6b82595a6f2ce92c31e549b3afb17', 'imported_or_executed': False}} |
+
+## Log
+
