@@ -38,7 +38,8 @@ def main():
         current=store.read(s3,BUCKET,store.HEAD)
         if current is None:raise ValueError('Existing public head missing')
         packet=current['packet'];ctx=packet.get('publication_context') or {};declared=ctx.get('native_acquisition')
-        native={'status':'pending_original_daily_1200_publication','generated_at':packet['generated_at'],'engine_version':packet.get('engine_version')}
+        native={'status':'pending_original_daily_1200_publication','generated_at':packet['generated_at'],'engine_version':packet.get('engine_version'),
+                'bytes':len(current['raw']),'sha256':store.sha(current['raw'])}
         if declared is not None:
             raw_manifest=fetch(declared['manifest']['key'])
             if len(raw_manifest)!=declared['manifest']['bytes']:raise ValueError('Complete acquisition manifest differs')
