@@ -1,10 +1,11 @@
-/* jh-orderbook.js — company order-book desk (SEC RPO / backlog / deferred).
-   QoQ and YoY come from the same series as the chosen book level.
-   MoM is only printed when two observations are 20–40 calendar days apart.
-   Quarterly 10-Q prints are not interpolated into a monthly %. */
+/* jh-orderbook.js — company order-book desk (SEC RPO / backlog / deferred + price).
+   Book QoQ/YoY come from the same series as the chosen book level.
+   Book MoM is only printed when two observations are 20–40 calendar days apart.
+   Quarterly 10-Q prints are not interpolated into a monthly %.
+   Price MoM/QoQ/YoY are ret_1m/ret_3m/ret_12m from momentum-scanner when present. */
 (function (root) {
-  if (root.__jhOrderbookV1) return;
-  root.__jhOrderbookV1 = true;
+  if (root.__jhOrderbookV2) return;
+  root.__jhOrderbookV2 = true;
 
   var MAX_AGE_DAYS = 550;
   var MOM_MIN = 20;
@@ -43,7 +44,15 @@
       p = hist[i] || {};
       t = parseDay(p.end || p.asof || p.date || p.as_of);
       v = p.value != null ? p.value : (p.backlog_usd != null ? p.backlog_usd : p.rpo);
-      if (t != null && finite(v) && v > 0) out.push({ t: t, asof: String(p.end || p.asof || p.date || p.as_of).slice(0, 10), value: v, form: p.form || p.src || "" });
+      if (t != null && finite(v) && v > 0) {
+        out.push({
+          t: t,
+          asof: String(p.end || p.asof || p.date || p.as_of).slice(0, 10),
+          value: v,
+          form: p.form || p.src || "",
+          fp: p.fp || p.period || ""
+        });
+      }
     }
     out.sort(function (a, b) { return b.t - a.t; });
     var seen = {}, dedup = [];
@@ -55,27 +64,31 @@
     return dedup;
   }
 
-  function changeFromHistory(points, newer, minD, maxD) {
-    var i, days;
+  function changeFromHistory(points, newer, minD, maxD, preferFp) {
+    var i, days, hit, best = null;
     if (!newer || !finite(newer.value)) return null;
     for (i = 0; i < points.length; i++) {
       if (points[i].asof === newer.asof) continue;
       days = (newer.t - points[i].t) / 86400000;
       if (days >= minD && days <= maxD) {
-        return { pct: round1(pctChange(newer.value, points[i].value)), prior: points[i].value, prior_asof: points[i].asof, days: Math.round(days) };
+        hit = { pct: round1(pctChange(newer.value, points[i].value)), prior: points[i].value, prior_asof: points[i].asof, days: Math.round(days), fp: points[i].fp || "" };
+        if (preferFp && newer.fp && points[i].fp && String(newer.fp) === String(points[i].fp)) return hit;
+        if (!best) best = hit;
       }
     }
-    return null;
+    return best;
   }
 
-  function computeChanges(hist, latestValue, latestAsof) {
+  function computeChanges(hist, latestValue, latestAsof, latestFp) {
     var pts = historyPoints(hist);
     var t = parseDay(latestAsof);
-    var newer = (t != null && finite(latestValue)) ? { t: t, asof: String(latestAsof).slice(0, 10), value: latestValue } : pts[0];
+    var newer = (t != null && finite(latestValue))
+      ? { t: t, asof: String(latestAsof).slice(0, 10), value: latestValue, fp: latestFp || "" }
+      : pts[0];
     if (!newer) return { mom: null, qoq: null, yoy: null, mom_meta: null, qoq_meta: null, yoy_meta: null };
-    var mom = changeFromHistory(pts, newer, MOM_MIN, MOM_MAX);
-    var qoq = changeFromHistory(pts, newer, QOQ_MIN, QOQ_MAX);
-    var yoy = changeFromHistory(pts, newer, YOY_MIN, YOY_MAX);
+    var mom = changeFromHistory(pts, newer, MOM_MIN, MOM_MAX, false);
+    var qoq = changeFromHistory(pts, newer, QOQ_MIN, QOQ_MAX, false);
+    var yoy = changeFromHistory(pts, newer, YOY_MIN, YOY_MAX, true);
     return {
       mom: mom ? mom.pct : null,
       qoq: qoq ? qoq.pct : null,
@@ -94,16 +107,34 @@
     return true;
   }
 
-  function chooseBook(xbrl, mined, now) {
+  function chooseBook(xbrl, mined, now, fo) {
     xbrl = xbrl || {};
     mined = mined || {};
+    fo = fo || {};
+    var fd = fo.data || {};
     var xAge = ageDays(xbrl.rpo_asof, now);
     var dAge = ageDays(xbrl.deferred_asof, now);
     var mAge = ageDays(mined.asof, now);
+    var fAge = ageDays(fd.rpo_as_of, now);
+    var refUsd = finite(fd.rpo_latest_usd) && fd.rpo_latest_usd > 0 ? fd.rpo_latest_usd : xbrl.rpo;
     var xOk = finite(xbrl.rpo) && xbrl.rpo > 0 && xAge != null && xAge <= MAX_AGE_DAYS;
+    var fOk = finite(fd.rpo_latest_usd) && fd.rpo_latest_usd > 0 && fAge != null && fAge <= MAX_AGE_DAYS;
     var dOk = finite(xbrl.deferred_rev) && xbrl.deferred_rev > 0 && dAge != null && dAge <= MAX_AGE_DAYS;
-    var mOk = mined.status === "MINED" && finite(mined.backlog_usd) && mined.backlog_usd > 0 && mAge != null && mAge <= MAX_AGE_DAYS && plausibleVsXbrl(mined.backlog_usd, xbrl.rpo);
+    var mOk = mined.status === "MINED" && finite(mined.backlog_usd) && mined.backlog_usd > 0 && mAge != null && mAge <= MAX_AGE_DAYS && plausibleVsXbrl(mined.backlog_usd, refUsd);
 
+    if (fOk) {
+      return {
+        kind: "rpo",
+        usd: fd.rpo_latest_usd,
+        asof: fd.rpo_as_of,
+        tag: fd.rpo_tag || "RevenueRemainingPerformanceObligation",
+        form: "10-Q",
+        fp: (fd.rpo_history && fd.rpo_history[0] && fd.rpo_history[0].fp) || "",
+        qoq_given: null,
+        yoy_given: finite(fd.rpo_growth_yoy_pct) ? fd.rpo_growth_yoy_pct : null,
+        src: "forward"
+      };
+    }
     if (xOk) {
       return {
         kind: "rpo",
@@ -111,6 +142,7 @@
         asof: xbrl.rpo_asof,
         tag: xbrl.rpo_tag || "RevenueRemainingPerformanceObligation",
         form: xbrl.rpo_form || "10-Q",
+        fp: "",
         qoq_given: finite(xbrl.rpo_qoq) ? xbrl.rpo_qoq : null,
         yoy_given: finite(xbrl.rpo_yoy) ? xbrl.rpo_yoy : null,
         src: "xbrl"
@@ -123,6 +155,7 @@
         asof: mined.asof,
         tag: "MD&A backlog (mined)",
         form: mined.src || "",
+        fp: "",
         qoq_given: finite(mined.backlog_qoq_pct) ? mined.backlog_qoq_pct : null,
         yoy_given: finite(mined.backlog_yoy_pct) ? mined.backlog_yoy_pct : null,
         src: "mined"
@@ -135,6 +168,7 @@
         asof: xbrl.deferred_asof,
         tag: "DeferredRevenue",
         form: xbrl.deferred_filed || "",
+        fp: "",
         qoq_given: finite(xbrl.deferred_qoq) ? xbrl.deferred_qoq : null,
         yoy_given: finite(xbrl.deferred_yoy) ? xbrl.deferred_yoy : null,
         src: "deferred"
@@ -148,10 +182,10 @@
     xbrl = xbrl || {};
     mined = mined || {};
     fo = fo || {};
-    var book = chooseBook(xbrl, mined, now);
+    var book = chooseBook(xbrl, mined, now, fo);
     if (!book) return null;
     var hist = (fo.data && fo.data.rpo_history) || [];
-    var ch = computeChanges(hist, book.usd, book.asof);
+    var ch = computeChanges(hist, book.usd, book.asof, book.fp);
     var qoq = ch.qoq != null ? ch.qoq : book.qoq_given;
     var yoy = ch.yoy != null ? ch.yoy : book.yoy_given;
     var mom = ch.mom;
@@ -172,6 +206,10 @@
       qoq: finite(qoq) ? round1(qoq) : null,
       yoy: finite(yoy) ? round1(yoy) : null,
       mom_reason: mom == null ? "10-Q cadence, not monthly" : null,
+      price_mom: null,
+      price_qoq: null,
+      price_yoy: null,
+      last_close: null,
       rev_yoy: finite(xbrl.rev_yoy) ? xbrl.rev_yoy : null,
       ev_to_rpo: finite(xbrl.ev_to_rpo) ? xbrl.ev_to_rpo : null,
       accelerating: !!xbrl.demand_accelerating,
@@ -202,10 +240,29 @@
     return rows;
   }
 
+  function attachPrices(rows, momDoc) {
+    var map = {}, rankings = (momDoc && momDoc.rankings) || {}, k;
+    Object.keys(rankings).forEach(function (key) {
+      (rankings[key] || []).forEach(function (r) {
+        if (!r || !r.ticker) return;
+        map[String(r.ticker).toUpperCase()] = r;
+      });
+    });
+    (rows || []).forEach(function (row) {
+      var p = map[row.ticker];
+      if (!p) return;
+      row.price_mom = finite(p.ret_1m) ? round1(p.ret_1m) : null;
+      row.price_qoq = finite(p.ret_3m) ? round1(p.ret_3m) : null;
+      row.price_yoy = finite(p.ret_12m) ? round1(p.ret_12m) : null;
+      row.last_close = finite(p.last_close) ? p.last_close : null;
+    });
+    return rows;
+  }
+
   function sortRows(rows, key, dir) {
     var out = (rows || []).slice();
     var sign = dir === "asc" ? 1 : -1;
-    var numeric = { book_usd: 1, mom: 1, qoq: 1, yoy: 1, ev_to_rpo: 1 };
+    var numeric = { book_usd: 1, mom: 1, qoq: 1, yoy: 1, ev_to_rpo: 1, price_mom: 1, price_qoq: 1, price_yoy: 1, last_close: 1 };
     out.sort(function (a, b) {
       var av = a[key], bv = b[key];
       var aNull = av == null || av === "";
@@ -235,6 +292,7 @@
     chooseBook: chooseBook,
     rowFromParts: rowFromParts,
     buildRows: buildRows,
+    attachPrices: attachPrices,
     sortRows: sortRows
   };
   root.jhOrderbook = api;
