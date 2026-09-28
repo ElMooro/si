@@ -110,7 +110,7 @@ test('price source desk preserves complete request, measurement, window and univ
  const M=require('../jh-price-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-compression-synthetic.json'),'utf8')),p=fixture.packet;
  const model=M.model(p);assert.equal(model.requests.length,2);assert.equal(model.measurements.length,26);assert.equal(model.windows.length,2);assert.equal(model.universe.length,3);
  const s=page('volatility-observations.html',async()=>raw(p));await flush();assert.equal(s.calls[0],'/data/volatility-squeeze.json');assert.equal(s.get('original').textContent,JSON.stringify(p));
- for(const [mode,n]of [['measurements',26],['windows',2],['universe',3]]){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(n+' received '+mode));assert.match(s.get('board').innerHTML,/Inspect whole original/);}
+ for(const [mode,n,label]of [['measurements',26,'descriptive measurement'],['windows',2,'observation window'],['universe',3,'source universe']]){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(n+' '+label+' occurrences'));assert.match(s.get('board').innerHTML,/Inspect whole original/);}
  assert.match(s.get('board').innerHTML,/&lt;img/);assert.ok(!s.get('board').innerHTML.includes('<img'));
  s.get('mode').value='measurements';s.get('mode').onchange();assert.match(s.get('board').innerHTML,/<td>0<\/td>/);
  const h=s.get('board').headers.find(x=>x.dataset.k==='value');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'value');
@@ -121,7 +121,7 @@ test('price source desk preserves complete request, measurement, window and univ
 
 test('legacy price occurrences retain full pagination, search, sorting and failure clearing',async()=>{
  const p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99})),summary:{top_25_overall:[{symbol:'T0'}],tier_s:['T0']}};
- const s=page('volatility-observations.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/203 received/);assert.match(s.get('status').textContent,/Scores, tiers, source dates and coverage are unqualified/);
+ const s=page('volatility-observations.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/203 legacy occurrences/);assert.match(s.get('status').textContent,/Scores, tiers, source dates and coverage are unqualified/);
  s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
  s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/203 matching/);
  for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('volatility-observations.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
@@ -313,6 +313,20 @@ test('workforce page pagination and failures retain all original evidence withou
  s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 2 of 3/);s.get('next').onclick();assert.match(s.get('board').innerHTML,/T204/);assert.equal(s.get('next').disabled,true);s.get('previous').onclick();assert.match(s.get('rows').textContent,/Page 2 of 3/);
  for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({top_50:{bad:true}})]){
   const fail=page('hiring-velocity.html',loader);await flush();assert.match(fail.get('status').textContent,/unavailable/);assert.equal(fail.get('board').textContent,'No verified display population');assert.equal(fail.get('next').disabled,true);
+ }
+});
+
+test('price acquisition resumption exposes pending requests and does not refresh earlier windows',async()=>{
+ const M=require('../jh-price-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-resumption-synthetic.json'),'utf8'));
+ const first=M.model(f.packet),next=M.model(f.next_packet);assert.deepEqual([first.progress.visited,first.progress.pending],[2,1]);assert.deepEqual([next.progress.visited,next.progress.pending],[1,0]);
+ assert.equal(next.requests[0].name,'not_attempted_runtime_rate_or_size_limit');assert.equal(next.requests[1].name,'not_attempted_runtime_rate_or_size_limit');
+ const s=page('volatility-observations.html',async()=>raw(f.packet));await flush();assert.match(s.get('coverage').textContent,/2 request occurrences visited/);assert.match(s.get('coverage').textContent,/1 remain/);assert.match(s.get('coverage').textContent,/not simultaneous whole-market coverage/);assert.match(s.get('rows').textContent,/3 selected request occurrences/);assert.doesNotMatch(s.get('rows').textContent,/received requests/);
+});
+
+test('price malformed queue counters, membership and source bytes cannot display progress',()=>{
+ const M=require('../jh-price-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-resumption-synthetic.json'),'utf8'));
+ for(const edit of [p=>p.acquisition_progress.visited_occurrences=true,p=>p.acquisition_progress.cycle_complete=0,p=>p.acquisition_progress.planned_request_indices=[0,0],p=>p.acquisition_progress.remaining_occurrence_keys=[],p=>p.acquisition_progress.retained_source_bytes++,p=>p.acquisition_progress.schedule_accelerated=0,p=>delete p.acquisition_progress]){
+  const p=structuredClone(f.packet);edit(p);assert.throws(()=>M.model(p));
  }
 });
 

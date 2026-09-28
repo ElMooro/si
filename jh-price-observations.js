@@ -27,6 +27,26 @@
   })()]);}finally{clearTimeout(timer);controller.abort();if(reader)reader.cancel().catch(()=>{});}
  }
 
+ function progress(p){
+  const g=p.acquisition_progress;if(g===undefined){if(p.version==='2.1.0')throw Error('Acquisition progress missing');return null;}
+  const selected=p.universe_membership.selected,counts=new Map(),keys=selected.map(r=>{const n=counts.get(r.ticker)||0;counts.set(r.ticker,n+1);return JSON.stringify([r.ticker,n]);});
+  const integer=v=>Number.isSafeInteger(v)&&v>=0,valid=i=>typeof selected[i]?.ticker==='string'&&/^[A-Z0-9][A-Z0-9.\-^]{0,24}$/.test(selected[i].ticker);
+  if(!g||g.contract!=='price-acquisition-progress.v1'||!['initial_population','resume_prior_unattempted_occurrences','resume_remaining_occurrences','previous_cycle_complete_or_retired'].includes(g.plan_reason)
+    ||g.occurrence_identity!=='ticker label and duplicate ordinal; not legal-security identity'||g.request_order_is_rank!==false||g.schedule_accelerated!==false||g.visit_does_not_mean_success!==true||g.whole_universe_current_coverage_verified!==false
+    ||typeof g.cycle_complete!=='boolean'||!['visited_occurrences','pending_occurrences','retained_source_bytes','original_dispatch_byte_budget'].every(k=>integer(g[k]))||g.original_dispatch_byte_budget!==96*1024*1024
+    ||!Array.isArray(g.planned_request_indices)||!Array.isArray(g.visited_request_indices)||!Array.isArray(g.planned_occurrence_keys)||!Array.isArray(g.remaining_occurrence_keys))throw Error('Invalid acquisition progress contract');
+  const planned=g.planned_request_indices,visited=g.visited_request_indices,done=new Set(visited);
+  if(planned.some(i=>!integer(i)||i>=selected.length||!valid(i))||new Set(planned).size!==planned.length||visited.some(i=>!integer(i))||done.size!==visited.length
+    ||JSON.stringify(g.planned_occurrence_keys)!==JSON.stringify(planned.map(i=>keys[i]))||JSON.stringify(visited)!==JSON.stringify(planned.filter(i=>done.has(i))))throw Error('Acquisition progress coordinates differ');
+  const pending=planned.filter(i=>!done.has(i)).map(i=>keys[i]);
+  const actual=p.request_records.map((r,i)=>valid(i)&&r.acquisition.status!=='not_attempted_runtime_rate_or_size_limit'?i:null).filter(i=>i!==null);
+  if(g.visited_occurrences!==visited.length||g.pending_occurrences!==pending.length||g.cycle_complete!==(pending.length===0)||JSON.stringify(pending)!==JSON.stringify(g.remaining_occurrence_keys)
+    ||actual.length!==visited.length||actual.some(i=>!done.has(i))||!['planned_window_complete','runtime_reserve','source_byte_budget','provider_denial_or_rate_limit'].includes(g.stop_reason)
+    ||(g.stop_reason==='planned_window_complete')!==g.cycle_complete)throw Error('Acquisition progress and actual outcomes differ');
+  const refs=new Map();for(const a of [p.universe_acquisition,...p.request_records.map(r=>r.acquisition)])if(a.original_ref){const ref=source(a.original_ref);refs.set(ref.href,ref.bytes);}
+  const bytes=[...refs.values()].reduce((a,b)=>a+b,0);if(bytes!==g.retained_source_bytes||bytes!==p.retained_unique_source_bytes||bytes>160*1024*1024)throw Error('Retained source coverage differs');
+  return {visited:visited.length,pending:pending.length,selected:selected.length,planned:planned.length,stop:g.stop_reason,cycle_complete:g.cycle_complete};
+ }
  function model(p){
   p=obj(p);const out={native:p.measurement_contract===CONTRACT,requests:[],measurements:[],windows:[],universe:[]};
   function add(mode,v,raw,sources,pointer){out[mode].push({index:out[mode].length,ticker:'',name:'',date:'',value:null,unit:'',status:'',...v,raw,sources:sources.filter(Boolean),pointer});}
@@ -50,7 +70,7 @@
     if(o.selected_indices!==undefined){if(!Array.isArray(o.selected_indices)||!o.selected_indices.every(n=>Number.isInteger(n)&&n>=0&&n<o.source_records))throw Error('Selected source coordinate invalid');}
    });
    members.occurrences.forEach((v,i)=>add('universe',{ticker:text(v.ticker),name:text(obj(v.raw).name),value:v.selected===true?1:0,unit:'selected occurrence',status:text(v.status)},v,[u],'/universe_membership/occurrences/'+i));
-   return out;
+   out.progress=progress(p);return out;
   }
   if(!Array.isArray(p.all_qualifying))throw Error('Dedicated price-compression packet unavailable');
   const populations=[['all_qualifying',p.all_qualifying],...Object.entries(obj(p.summary)).filter(([,v])=>Array.isArray(v)).map(([k,v])=>['summary/'+k,v])];
@@ -71,7 +91,7 @@
    const rows=all.filter(r=>[r.ticker,r.name,r.date,r.unit,r.status,r.pointer].join(' ').toLowerCase().includes(query));
    rows.sort((a,b)=>api.compare(a,b,key,direction,['index','value'].includes(key)?'number':'text')||a.index-b.index);
    const pages=Math.max(1,Math.ceil(rows.length/100));page=Math.min(Math.max(page,0),pages-1);const shown=rows.slice(page*100,(page+1)*100);
-   $('rows').textContent=rows.length+' matching / '+all.length+' received '+mode+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
+   $('rows').textContent=rows.length+' matching / '+all.length+' '+(mode==='requests'?(data.native?'selected request':'legacy'):mode==='universe'?'source universe':mode==='windows'?'observation window':'descriptive measurement')+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
    const cols=[['index','Occurrence'],['ticker','Literal ticker'],['name','Measurement / request'],['date','Observation / receipt date'],['value','Numeric value'],['unit','Unit'],['status','Scope and quality']];
    $('board').innerHTML='<table><thead><tr>'+cols.map(([k,label])=>'<th data-k="'+k+'">'+label+'</th>').join('')+'<th scope="col">Complete evidence</th></tr></thead><tbody>'+shown.map(r=>'<tr>'+cols.map(([k])=>'<td>'+esc(k==='index'?r.index+1:k==='value'?r.value===null?'Unavailable':r.value:r[k]||'Unavailable')+'</td>').join('')+'<td>'+r.sources.map(s=>'<button type="button" data-source-index="'+(links.push({ref:s.ref,pointer:r.pointer})-1)+'">Inspect whole original</button><details><summary>Source SHA-256</summary><code>'+s.sha256+'</code></details>').join('')+'<details><summary>Inspect '+esc(r.pointer)+'</summary><pre>'+esc(JSON.stringify(r.raw,null,2))+'</pre></details></td></tr>').join('')+'</tbody></table>';
    $('board').querySelectorAll('button[data-source-index]').forEach(button=>{button.onclick=()=>{const value=links[Number(button.dataset.sourceIndex)];if(value)inspect(value.ref,value.pointer);};});
@@ -80,7 +100,7 @@
   $('q').oninput=()=>{page=0;render();};$('mode').onchange=()=>{page=0;key='index';direction=1;render();};$('previous').onclick=()=>{page--;render();};$('next').onclick=()=>{page++;render();};
   (async()=>{try{const received=await api.load('/data/volatility-squeeze.json'),p=received.packet;$('original').textContent=received.raw;data=model(p);const s=summary(p);
    $('status').textContent=s.message+' Generated '+s.generated_at+'. Collection time is distinct from the last price observation.';
-   $('coverage').textContent='Inspect all selected request outcomes, complete original universe occurrences, explicit observation windows and calculation definitions. Duplicate memberships do not create independent evidence.';render();
+   $('coverage').textContent=(data.progress?data.progress.visited+' request occurrences visited this run; '+data.progress.pending+' remain in the selected visit cycle. Stop: '+data.progress.stop+'. Requests resume on the original schedule. A visit is not a successful response; a completed visit cycle is not simultaneous whole-market coverage. Unvisited observations are not refreshed. ':'')+'Inspect all selected request outcomes, complete original universe occurrences, explicit observation windows and calculation definitions. Duplicate memberships do not create independent evidence.';render();
   }catch(e){$('status').textContent='Stored price research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
  }
  const api={CONTRACT,model,summary,start,source,loadSource,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHPriceObservations=api;

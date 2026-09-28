@@ -55,7 +55,7 @@ def native(memory=None):
     ns={'S3':memory or Memory(),'BUCKET':'fixture','S3_KEY':m.HEAD,'MAX_TICKERS':1500,'N_WORKERS':12,'TIMEOUT_BUDGET_S':550,
         'FMP_KEY':'SYNTHETIC_SECRET_ONLY','time':time,'datetime':datetime,'timezone':timezone,'Path':Path,
         '__file__':str(SRC/'lambda_function.py'),'urllib':urllib,'json':json,'threading':threading,'ThreadPoolExecutor':ThreadPoolExecutor}
-    ns.update({name:getattr(m,name) for name in ('CONTRACT','HEAD','FLAGS','sha','encode','strict','clock','symbol','endpoint','source_ref','validate_ref','content','universe','history','build')})
+    ns.update({name:getattr(m,name) for name in ('CONTRACT','HEAD','FLAGS','sha','encode','strict','clock','symbol','endpoint','source_ref','validate_ref','content','universe','history','build','acquisition_plan','acquisition_progress','validate_acquisition_progress','UNATTEMPTED')})
     tree=ast.parse((SRC/'lambda_function.py').read_bytes())
     nodes=[n for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef)) and (n.name.startswith('_price_') or n.name in ('_PriceSources','lambda_handler'))]
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'<isolated native price functions>','exec'),ns);return ns
@@ -69,6 +69,27 @@ def fake_fetch(ticker,sources,remaining):
 def publication(memory=None):
     memory=memory or Memory();ns=native(memory);ns['_price_fetch']=fake_fetch;ns['lambda_handler']()
     return memory,m.strict(memory.data[m.HEAD])
+
+
+def resumed_publication(memory=None,denied='SECOND',workers=1,executor=None):
+    memory=memory or Memory();ns=native(memory);ns['N_WORKERS']=workers;calls=[]
+    if executor is not None:ns['ThreadPoolExecutor']=executor
+    class OrderedClock(datetime):
+        current=max(datetime.now(timezone.utc),m.clock(m.strict(memory.data[m.HEAD]).get('generated_at')))
+        @classmethod
+        def now(cls,tz=None):
+            cls.current+=timedelta(microseconds=1);return cls.current
+    ns['datetime']=OrderedClock
+    def fetch(ticker,sources,remaining):
+        if sources.stop.is_set():return {'endpoint':m.endpoint(ticker),'status':m.UNATTEMPTED}
+        calls.append(ticker)
+        raw=m.encode([{**r,'symbol':ticker} for r in rows()]) if ticker!=denied else b'{"error":"rate"}'
+        a=sources.capture(raw,m.endpoint(ticker),OrderedClock.now(timezone.utc).isoformat())
+        a['http_status']=429 if ticker==denied else 200
+        if ticker==denied:sources.stop.set()
+        return a
+    ns['_price_fetch']=fetch;ns['lambda_handler']()
+    return m.strict(memory.data[m.HEAD]),calls
 
 
 class Tests(unittest.TestCase):
@@ -177,6 +198,57 @@ class Tests(unittest.TestCase):
             opener.return_value.open.return_value=response;a=ns['_price_fetch']('TEST',sources,lambda:100)
             self.assertEqual(a['status'],'credential_echo_withheld');self.assertEqual(sources.raw,{})
             self.assertIsNone(opener.call_args.args[0].redirect_request(None,None,None,None,None,None))
+    def test_original_rate_limit_resumes_without_refreshing_unvisited_rows(self):
+        db=Memory();db.data['data/universe.json']=m.encode({'stocks':[{'symbol':s,'cap_bucket':'small'} for s in ('TEST','SECOND','THIRD')]})
+        first,calls=resumed_publication(db);old=db.data[m.HEAD]
+        self.assertEqual(calls,['TEST','SECOND']);self.assertEqual(first['acquisition_progress']['pending_occurrences'],1)
+        second,calls=resumed_publication(db)
+        self.assertEqual(calls,['THIRD']);self.assertTrue(second['acquisition_progress']['cycle_complete'])
+        self.assertEqual([r['acquisition']['status'] for r in second['request_records']],[m.UNATTEMPTED,m.UNATTEMPTED,'received'])
+        self.assertEqual(db.data[second['previous_publication']['key']],old)
+        third,calls=resumed_publication(db);self.assertEqual(calls,['TEST','SECOND'])
+        self.assertEqual(third['acquisition_progress']['plan_reason'],'previous_cycle_complete_or_retired')
+    def test_bootstrap_from_complete_preprogress_outcomes_and_changed_membership(self):
+        db=Memory();db.data['data/universe.json']=m.encode({'stocks':[{'symbol':s,'cap_bucket':'small'} for s in ('TEST','SECOND','THIRD')]})
+        old,_=resumed_publication(db);old.pop('acquisition_progress');old['version']='2.0.0';db.data[m.HEAD]=m.encode(old)
+        p,calls=resumed_publication(db);self.assertEqual(calls,['THIRD'])
+        self.assertEqual(p['acquisition_progress']['plan_reason'],'resume_prior_unattempted_occurrences')
+        db.data['data/universe.json']=m.encode({'stocks':[{'symbol':s,'cap_bucket':'small'} for s in ('THIRD','TEST','NEW','TEST')]})
+        p,calls=resumed_publication(db)
+        self.assertEqual(calls,['NEW','TEST']);self.assertEqual(p['acquisition_progress']['planned_request_indices'],[2,3])
+        self.assertTrue(p['universe_membership']['duplicate_memberships_retained'])
+    def test_inflight_gaps_remain_pending_instead_of_being_skipped(self):
+        db=Memory();db.data['data/universe.json']=m.encode({'stocks':[{'symbol':s,'cap_bucket':'small'} for s in ('TEST','SECOND','THIRD')]})
+        p,_=resumed_publication(db,denied=None);selected=p['universe_membership']['selected'];plan=m.acquisition_plan(selected,None)
+        p['request_records'][1]['acquisition']={'endpoint':m.endpoint('SECOND'),'status':m.UNATTEMPTED}
+        progress=m.acquisition_progress(plan,[0,2],'provider_denial_or_rate_limit',p['retained_unique_source_bytes'])
+        p['acquisition_progress']=progress;m.validate_acquisition_progress(selected,p['request_records'],progress)
+        self.assertEqual(m.acquisition_plan(selected,p)['planned_request_indices'],[1])
+    def test_malformed_progress_and_outcome_coordinates_fail_closed(self):
+        db=Memory();p,_=resumed_publication(db,denied=None);selected=p['universe_membership']['selected']
+        edits=[lambda p:p['acquisition_progress'].update(visited_occurrences=True),
+               lambda p:p['acquisition_progress'].update(pending_occurrences=0.0),
+               lambda p:p['acquisition_progress'].update(cycle_complete=1),
+               lambda p:p['acquisition_progress'].update(request_order_is_rank=0),
+               lambda p:p['acquisition_progress'].update(occurrence_identity='legal issuer identity'),
+               lambda p:p['acquisition_progress'].update(plan_reason='unreviewed'),
+               lambda p:p['acquisition_progress'].update(planned_request_indices=[True,0]),
+               lambda p:p['acquisition_progress'].update(planned_request_indices=[False,1]),
+               lambda p:p['request_records'][0].update(request_index=False),
+               lambda p:p['request_records'][0]['acquisition'].update(status=m.UNATTEMPTED)]
+        for edit in edits:
+            broken=deepcopy(p);edit(broken)
+            with self.assertRaises(ValueError):m.acquisition_plan(selected,broken)
+    def test_invalid_members_remain_visible_without_blocking_valid_queue(self):
+        db=Memory();db.data['data/universe.json']=m.encode({'stocks':[{'symbol':s,'cap_bucket':'small'} for s in ('BAD!','TEST','TEST')]})
+        p,calls=resumed_publication(db,denied=None);self.assertEqual(calls,['TEST','TEST'])
+        self.assertEqual(len(p['request_records']),3);self.assertEqual(p['request_records'][0]['acquisition']['status'],'invalid_symbol_not_requested')
+        self.assertEqual(p['acquisition_progress']['planned_request_indices'],[1,2])
+    def test_all_failed_remaining_window_preserves_head_and_queue(self):
+        db=Memory();db.data['data/universe.json']=m.encode({'stocks':[{'symbol':s,'cap_bucket':'small'} for s in ('TEST','SECOND','THIRD')]})
+        resumed_publication(db);old=db.data[m.HEAD]
+        with self.assertRaises(ValueError):resumed_publication(db,denied='THIRD')
+        self.assertEqual(db.data[m.HEAD],old)
 
 
 if __name__=='__main__':unittest.main()

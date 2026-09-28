@@ -438,8 +438,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 import threading
 from price_observations import (CONTRACT, HEAD, FLAGS, sha, encode, strict, clock,
-    symbol, endpoint, source_ref, validate_ref, content, universe, history, build,
-    acquisition_plan, acquisition_progress, validate_acquisition_progress, UNATTEMPTED)
+    symbol, endpoint, source_ref, validate_ref, content, universe, history, build)
 
 
 def _price_source_identity():
@@ -535,31 +534,22 @@ def lambda_handler(event=None,context=None):
     attempts=[{'status':'invalid_symbol_not_requested'} if symbol(m['ticker']) is None else {'endpoint':endpoint(m['ticker']),'status':'not_attempted_runtime_rate_or_size_limit'} for m in selected]
     # Bounded in-flight work; all selected occurrences remain in coverage. The
     # actual configured 1,500-name population and 550-second budget are retained.
-    plan=acquisition_plan(selected,previous);planned=plan['planned_request_indices']
     workers=min(N_WORKERS,4)
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        for offset in range(0,len(planned),workers):
+        for offset in range(0,len(selected),workers):
             if remaining()<60 or sources.bytes>=96*1024*1024 or sources.stop.is_set():break
-            jobs=[(i,pool.submit(_price_fetch,selected[i]['ticker'],sources,remaining)) for i in planned[offset:offset+workers]]
+            jobs=[(i,pool.submit(_price_fetch,selected[i]['ticker'],sources,remaining)) for i in range(offset,min(offset+workers,len(selected)))]
             for i,future in jobs:attempts[i]=future.result()
-    visited=[i for i in planned if attempts[i]['status']!=UNATTEMPTED]
-    if len(visited)==len(planned):stop_reason='planned_window_complete'
-    elif sources.stop.is_set():stop_reason='provider_denial_or_rate_limit'
-    elif sources.bytes>=96*1024*1024:stop_reason='source_byte_budget'
-    elif remaining()<60:stop_reason='runtime_reserve'
-    else:raise ValueError('Unexplained unattempted planned requests; preserve current')
-    progress=acquisition_progress(plan,visited,stop_reason,sources.bytes)
     finished=datetime.now(timezone.utc).isoformat()
     research=build(capture,attempts,sources.raw,finished,MAX_TICKERS)
     if not any(r['observations']['status'] in ('parsed_completed_observations','reported_empty_history','unresolved_identity_or_window','no_completed_observations') for r in research['request_records']):
         raise ValueError('No received market observations; preserve current')
-    validate_acquisition_progress(selected,research['request_records'],progress)
     prior_ref=_price_archive(previous_raw) if previous_raw is not None else None
-    packet={'engine':'justhodl-volatility-squeeze-hunter','version':'2.1.0','schema_version':2,
+    packet={'engine':'justhodl-volatility-squeeze-hunter','version':'2.0.0','schema_version':2,
         'measurement_contract':CONTRACT,'method':'dated_price_compression_observations','status':'RESEARCH_ONLY',
         'generated_at':finished,'acquisition_started_at':checked.isoformat(),'source_files':_price_source_identity(),
         'universe_acquisition':capture,'acquisition_limits':{'MAX_TICKERS':MAX_TICKERS,'N_WORKERS':N_WORKERS,'TIMEOUT_BUDGET_S':TIMEOUT_BUDGET_S,'active_workers':workers},
-        'previous_publication':prior_ref,'retained_unique_source_bytes':sources.bytes,'acquisition_progress':progress,**research,
+        'previous_publication':prior_ref,'retained_unique_source_bytes':sources.bytes,**research,
         'stats':{'n_universe':len(selected),'n_evaluated':None,'n_no_data':None,'n_tier_s':None,'n_tier_a':None,'n_tier_b':None,'n_watch':None},
         'summary':{'top_25_overall':[],'tier_s':[],'tier_a':[]},'all_qualifying':[],
         'call':None,**FLAGS,'signals_logged':0,'notifications_sent':0,'duration_s':round(time.monotonic()-started,2),

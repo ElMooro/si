@@ -1,0 +1,84 @@
+{
+  "checked_at": "2026-09-28T11:41:14.080175+00:00",
+  "originals": {
+    "lambda_function.py": {
+      "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b",
+      "bytes": 25967,
+      "sha256": "0e36b47c13e95047b48e9fe3ab78ff50d048c93800f74b95897d604930a777db"
+    },
+    "price_observations.py": {
+      "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b",
+      "bytes": 14858,
+      "sha256": "2673b72bce9b4f639c97f054cbc93f97ae830d4afeaf6d7b10332f05c29f6d1d"
+    }
+  },
+  "reproduction": {
+    "base_commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b",
+    "actual_isolated_original_runs": [
+      {
+        "visited": [
+          "TEST",
+          "SECOND"
+        ],
+        "outcomes": [
+          "received",
+          "received",
+          "not_attempted_runtime_rate_or_size_limit"
+        ]
+      },
+      {
+        "visited": [
+          "TEST",
+          "SECOND"
+        ],
+        "outcomes": [
+          "received",
+          "received",
+          "not_attempted_runtime_rate_or_size_limit"
+        ]
+      }
+    ],
+    "defect": "Repeated provider stop restarts first selected names and never visits THIRD.",
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_reads": 0
+  },
+  "repair": "Version 2.1.0 resumes remaining selected request occurrences across original scheduled runs, including noncontiguous outcomes in an in-flight batch. Invalid symbols remain visible but are never dispatched. Duplicate ordinal identities are operational, not legal-security identity.",
+  "preserved": [
+    "1,500 configured selected population; 550-second own budget; four active workers from configured twelve",
+    "Original daily 11:00 UTC fanout and 1024 MB / 600 s runtime",
+    "96 MiB dispatch and 160 MiB retained-source budgets; 8 MiB complete response bound",
+    "Whole original responses, current/prior immutable publication and compare-and-swap",
+    "All observation calculations, failed/unattempted distinctions and research-only permissions"
+  ],
+  "tests": {
+    "native": 22,
+    "new_acceptance": 4,
+    "existing_acceptance": 4,
+    "morning_replay": 4,
+    "frontend": 1651,
+    "deployment_static": 468,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "engine_wiring": 143,
+    "registry": "passed"
+  },
+  "browser_preview": {
+    "selected_requests": 3,
+    "visited": 2,
+    "pending": 1,
+    "received_price_window": 1,
+    "unattempted_visible": true,
+    "captured_console_errors": 0
+  },
+  "limitations": [
+    "No current market-wide or original-release coverage claim",
+    "No native publication from the new compiler yet; next original schedule required",
+    "A completely failed remaining window preserves head and queue; durable failed-run progress outside accepted publications remains open",
+    "No currency, corporate-action, independent evidence or predictive/sizing qualification"
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_state_reads": 0
+}
