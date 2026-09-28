@@ -1,8 +1,9 @@
-"""Provider-flow decision boundary regression; no AWS calls."""
+"""Original flow boundary, backtest counterexamples and whole-context replay."""
 from pathlib import Path
 import sys,unittest
-sys.path.insert(0,str(Path(__file__).resolve().parents[4]/"tests"))
+ROOT=Path(__file__).resolve().parents[4]
+sys.path[:0]=[str(ROOT/'tests'),str(ROOT/'tests/ops')]
 from provider_flow_test_support import FlowBoundaries
-if __name__ == "__main__":
-    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(FlowBoundaries))
-    if not result.wasSuccessful():raise SystemExit(1)
+from test_cascade_backtest_original import Tests as OriginalTests
+from test_cascade_snapshot import Tests as SnapshotTests
+if __name__=='__main__':unittest.main(verbosity=2)

@@ -29,7 +29,7 @@ from typing import Optional
 import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = None  # Legacy calculations retained, active producer is read-only research context.
 
 
 def _read_json(key: str) -> Optional[dict]:
@@ -131,7 +131,7 @@ def get_best_theme_for_ticker(ticker: str, etfs_for_ticker: list,
     return max(candidates, key=lambda x: x.get("momentum_score") or 0)
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[backtest] starting at {datetime.now(timezone.utc).isoformat()}")
 
@@ -353,3 +353,34 @@ def lambda_handler(event, context):
             ],
         }),
     }
+
+
+# Whole retained contexts and deterministic descriptive projection.
+from pathlib import Path
+import os,sys
+sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+from botocore.config import Config
+import context_evidence_store
+import snapshot_evidence
+import provider_flow_research
+import provider_flow_catalog
+from context_evidence_store import ContextStore
+
+
+def lambda_handler(event,context):
+    try:
+        here=Path(__file__).resolve().parent
+        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))
+        paths={'lambda_function.py':here/'lambda_function.py','snapshot_evidence.py':here/'snapshot_evidence.py',
+            'context_evidence_store.py':Path(context_evidence_store.__file__),
+            'provider_flow_research.py':Path(provider_flow_research.__file__),'provider_flow_catalog.py':Path(provider_flow_catalog.__file__)}
+        store=ContextStore(client,S3_BUCKET,snapshot_evidence.HEAD,snapshot_evidence.INPUTS,snapshot_evidence.PRIVATE,snapshot_evidence.CONTRACT,paths,
+            acquisition_budget_s=10,publication_budget_s=22)
+        packet,ref=store.publish(snapshot_evidence.build)
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':snapshot_evidence.CONTRACT,
+            'generated_at':packet['generated_at'],'output_sha256':ref['sha256'],'call':'WAIT','predictive_validation':False})}
+    except Exception as exc:
+        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
+            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted','preservation_scope':'this_attempt_only',
+            'error':'Whole context acquisition, retention or conditional publication failed','predictive_validation':False})}
