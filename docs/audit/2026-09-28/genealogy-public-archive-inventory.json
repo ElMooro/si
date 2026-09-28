@@ -1,5 +1,5 @@
 {
-  "status": "complete_metadata_inventory_verified_content_reconciliation_pending",
+  "status": "complete_original_archive_reconciled_with_source_echo_and_identity_exclusions",
   "operation": 6303,
   "run": 36467705600,
   "commit": "9ad3a919e368c737694aac7a29d5477a68e8b5dc",
@@ -43,8 +43,52 @@
   "synthetic_regression_groups": 7,
   "deployment_static": 517,
   "deployment_shell": 12,
-  "scope": "Complete fixed-cutoff metadata. No record body, registration clock, chronology or forecast is qualified by metadata alone.",
+  "scope": "All fixed-cutoff public archive bodies and storage clocks reconciled; 205 captures explicitly had incomplete candidate scans. This is not upstream model replay or forecast qualification.",
   "native_source_changed": false,
   "calls_eligible": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "content_reconciliation": {
+    "operation": 6304,
+    "run": 36469128376,
+    "commit": "5940250bc125cc291e74429fc55bd1f03542ead2",
+    "report_commit": "b2e8f821e",
+    "validated_captures": 251,
+    "validated_records": 3305,
+    "validated_original_bytes": 129773477,
+    "capture_scans_complete": 46,
+    "total_record_reference_occurrences": 24335,
+    "unique_referenced_records": 3305,
+    "failures": [],
+    "reference_errors": [],
+    "reference_conflicts": [],
+    "unreferenced_records": 0,
+    "registration_counts_by_source": {
+      "data/alpha-council.json": 14,
+      "data/cftc-deep-view.json": 48,
+      "data/chart-patterns.json": 88,
+      "data/crypto-emergence.json": 27,
+      "data/dark-pool.json": 56,
+      "data/finviz-signals.json": 248,
+      "data/firm-book.json": 88,
+      "data/index-recon.json": 88,
+      "data/liquidity-capacity.json": 88,
+      "data/merger-arb-risk.json": 88,
+      "data/options-analytics.json": 101,
+      "data/prospective-research.json": 1992,
+      "data/proven-portfolio.json": 7,
+      "data/resilience.json": 56,
+      "data/sector-emergence.json": 12,
+      "data/sizing.json": 88,
+      "data/squeeze-fuel.json": 80,
+      "data/supply-chain-graph.json": 136
+    },
+    "identity_issue_counts": {
+      "crypto_source_not_supported_by_equity_measurement_protocol": 27
+    },
+    "elapsed_seconds": 43.002,
+    "candidate_source_sha256": "de2a9c167a36cde98a5e4ca7ac329a46a1ef43cd0a295e7cc36350e9126c14cc",
+    "complete_record_projection_sha256": "43983cf6cb1b77bb66629156d6cb4f637be23a3c404642468283b98201ba9c5d",
+    "complete_read_evidence_sha256": "5da3528204effe7d26f4adc397d6964b5dd1a900e24094bc90324ef4b15e54d3"
+  },
+  "finding": "1992/3305 retained registrations came from the collector re-reading its own prospective-research summary. A further 27 belong to the known crypto/equity source mismatch. Preserve all history; these rows are not independent original forecasts."
 }

@@ -19,7 +19,7 @@ from pathlib import Path
 HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE.parents[2]/'shared'))
 from instrument_identity import resolve_instrument
-from research_identity import resolve_pick_identity, identity_policy
+from research_identity import resolve_pick_identity, identity_policy, research_output_source, source_selection_policy
 from private_artifact import public_source_allowed
 from prospective_journal import projection
 import research_source_reader
@@ -32,7 +32,8 @@ def load():
              urllib=types.SimpleNamespace(parse=urllib.parse,request=types.SimpleNamespace(Request=urllib.request.Request)),
              FMP='fixture',POLYGON='fixture',_trust=lambda *a:1,Path=Path,hashlib=hashlib,
              __file__=str(HERE.parent/'source/lambda_function.py'),public_source_allowed=public_source_allowed,projection=projection,research_source_reader=research_source_reader,
-             resolve_pick_identity=resolve_pick_identity,identity_policy=identity_policy)
+             resolve_pick_identity=resolve_pick_identity,identity_policy=identity_policy,
+             research_output_source=research_output_source,source_selection_policy=source_selection_policy)
     names={'VERSION','S3_BUCKET','SIGNALS_TABLE','SEEN_KEY','SUMMARY_KEY','TOP_PER_ENGINE','DEDUP_DAYS','WINDOWS','MAX_SIGNALS','TICKER_RE','LIST_KEYS','SYM_KEYS','SCORE_KEYS','SKIP_SUBSTR'}
     nodes=[n for n in TREE.body if isinstance(n,ast.FunctionDef) or isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id in names for t in n.targets)]
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'harvester','exec'),env)
@@ -155,6 +156,45 @@ def test_unsupported_projection_reports_gap_without_losing_other_sources():
     env['lambda_handler']({'capture_only':True},None)
     assert registered==['data/example.json']
     assert problems==[{'source_key':'data/unsupported@name.json','reason':'UNSUPPORTED_SOURCE_PROJECTION'}]
+
+
+def test_whole_predecessor_self_ingests_its_summary_but_repair_excludes_before_read():
+    env=load();legacy=load()
+    fixture=HERE.parents[3]/'tests/fixtures/pre-research-self-ingestion-harvester.py.txt'
+    tree=ast.parse(fixture.read_bytes())
+    exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n,ast.FunctionDef)],type_ignores=[]),'whole_predecessor_functions','exec'),legacy)
+    keys=['data/prospective-research.json','data/prospective-outcomes.json','data/example.json','data/prospective-research-alternative.json']
+    def paginator(name):
+        assert name=='list_objects_v2'
+        return types.SimpleNamespace(paginate=lambda **kw:iter([{'Contents':[{'Key':k} for k in keys]}]))
+    for module in (env,legacy):module['s3']=types.SimpleNamespace(get_paginator=paginator)
+    assert legacy['list_outputs']()==keys
+    assert env['list_outputs']()==keys[2:]
+    summary={'record_previews':[{'symbol':'AAA','direction':'UP'}]}
+    assert legacy['extract_picks'](summary,'data/prospective-research.json')[0]['prediction_origin']=='explicit_direction'
+    assert env['extract_picks'](summary,'data/prospective-research.json')==[]
+    class NoRead:
+        def get_object(self,**kw):raise AssertionError('Research summary must be excluded before acquisition')
+    env['s3']=NoRead()
+    for key in keys[:2]:
+        try:env['read_research_source'](key)
+        except ValueError as exc:assert str(exc)=='RESEARCH_OUTPUT_ECHO'
+        else:raise AssertionError('Own derived output was acquired')
+
+
+def test_source_selection_policy_is_retained_in_both_whole_capture_and_summary():
+    env=load();writes={}
+    env['s3']=object();env['JOURNAL_PREFIX']='data/research-forecasts/'
+    from prospective_journal import digest
+    env['digest']=digest
+    def once(client,bucket,key,doc):
+        writes[key]=doc;return {'key':key,'sha256':digest(doc)}
+    env['persist_once']=once
+    env['publish_current']=lambda client,bucket,key,doc:writes.update({key:doc})
+    result=env['publish_journal']([],[],{},[],0,0,datetime.now(timezone.utc))
+    assert result['source_selection_policy']==source_selection_policy()
+    assert writes[result['capture']['key']]['source_selection_policy']==source_selection_policy()
+    assert result['sizing_eligible'] is False
 
 
 if __name__=='__main__':

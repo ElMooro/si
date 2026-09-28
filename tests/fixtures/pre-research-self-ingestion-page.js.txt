@@ -24,13 +24,12 @@
     if(!packet || packet.schema_version!=='prospective-outcome-batch.v1' || packet.sizing_eligible!==false || packet.promotion_eligible!==false) return bad;
     const age=now-Date.parse(packet.generated_at),ref=packet.batch;
     if(!Number.isFinite(age)||age<0||age>3*3600000||!ref||!/^[a-f0-9]{64}$/.test(ref.sha256)||ref.key!=='data/research-forecasts/evaluation-runs/'+ref.sha256+'.json')return bad;
-    const allowed=['PENDING_FORWARD_WINDOW','PENDING_SOURCE','MISSING_MATCHING_ENDPOINT','DEFERRED_REQUEST_BUDGET','EVIDENCE_OR_REPLAY_REJECTED','MEASURED_PRICE_ONLY','UNSUPPORTED_SOURCE_IDENTITY','RESEARCH_OUTPUT_ECHO'];
+    const allowed=['PENDING_FORWARD_WINDOW','PENDING_SOURCE','MISSING_MATCHING_ENDPOINT','DEFERRED_REQUEST_BUDGET','EVIDENCE_OR_REPLAY_REJECTED','MEASURED_PRICE_ONLY','UNSUPPORTED_SOURCE_IDENTITY'];
     if(!packet.status_counts||Object.entries(packet.status_counts).some(([k,v])=>!allowed.includes(k)||!Number.isSafeInteger(v)||v<0))return bad;
     const n=packet.forecasts_checked;
     if(!Number.isSafeInteger(n)||n<0||packet.net_return_pct!==null||packet.portfolio_pnl!==null)return bad;
     return {ok:true,checked:n,measured:packet.status_counts.MEASURED_PRICE_ONLY||0,
       excluded:packet.status_counts.UNSUPPORTED_SOURCE_IDENTITY||0,
-      echoes:packet.status_counts.RESEARCH_OUTPUT_ECHO||0,
       pending:(packet.status_counts.PENDING_FORWARD_WINDOW||0)+(packet.status_counts.PENDING_SOURCE||0),
       gaps:(packet.status_counts.MISSING_MATCHING_ENDPOINT||0)+(packet.status_counts.EVIDENCE_OR_REPLAY_REJECTED||0),
       deferred:packet.status_counts.DEFERRED_REQUEST_BUDGET||0,batch:'/'+ref.key,at:packet.generated_at};
@@ -43,7 +42,6 @@
     if(!doc || doc.contract!=='prospective-research-capture.v1' || doc.generated_at!==head.generated_at ||
        doc.sizing_eligible!==false || doc.promotion_eligible!==false || !equal(doc.protocol_ref,head.protocol) ||
        !equal(doc.coverage,head.coverage) || !equal(doc.identity_policy,head.identity_policy) || !equal(doc.source_read_policy,head.source_read_policy) ||
-       !equal(doc.source_selection_policy,head.source_selection_policy) ||
        !Array.isArray(doc.records) || !Array.isArray(doc.sources))return false;
     if(doc.records.some(r=>!r || typeof r.created!=='boolean') || doc.sources.some(s=>!s ||
        !Array.isArray(s.observations) || !Array.isArray(s.eligibility_reasons) || !count(s.unsupported_identity_count)))return false;
@@ -108,8 +106,7 @@
           add('a','Download complete capture',state.capture);add('span',' · ');add('a','Read fixed measurement rules',state.protocol);
           add('p','Capture published '+state.at).className='timestamp';
         }else{
-          add('p',state.checked+' registered records checked in this batch · '+state.measured+' measured price windows · '+state.pending+' pending windows · '+state.gaps+' evidence gaps · '+state.excluded+' records excluded for unsupported source identity · '+state.deferred+' deferred for request budget.');
-          add('p',(state.echoes||0)+' records excluded because they repeat a research summary. Their archived records remain available; they are not new forecasts.');
+          add('p',state.checked+' forecasts checked in this batch · '+state.measured+' measured price windows · '+state.pending+' pending windows · '+state.gaps+' evidence gaps · '+state.excluded+' records excluded for unsupported source identity · '+state.deferred+' deferred for request budget.');
           add('p','Batch counts are not lifetime results or independent samples. Future windows remain pending. Price observations do not establish net returns or portfolio profit.');
           add('a','Download complete evaluation batch',state.batch);add('p','Evaluated '+state.at).className='timestamp';
         }

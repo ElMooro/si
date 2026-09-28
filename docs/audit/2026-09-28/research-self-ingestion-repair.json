@@ -1,0 +1,71 @@
+{
+  "status": "tested_native_and_page_repair_release_pending",
+  "finding_source": "genealogy-public-archive-inventory.json",
+  "predecessors": {
+    "harvester": {
+      "source": "aws/lambdas/justhodl-signal-harvester/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-research-self-ingestion-harvester.py.txt",
+      "bytes": 18280,
+      "sha256": "ff0a4bee2f221787af73bcf7592921e254dc6aa7e96e96c159b887bd6c6fddc2"
+    },
+    "evaluator": {
+      "source": "aws/lambdas/justhodl-prospective-evaluator/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-research-self-ingestion-evaluator.py.txt",
+      "bytes": 11327,
+      "sha256": "87523c78b2184c57a15e1d6e36f93981decd505899d8cae9bf9f15e19efe3a57"
+    },
+    "identity": {
+      "source": "aws/shared/research_identity.py",
+      "fixture": "tests/fixtures/pre-research-self-ingestion-identity.py.txt",
+      "bytes": 1638,
+      "sha256": "e5f56284e3e3ddde69e86b68e7bf4beb186f49874ddb5d09b48510d4e4da5ec3"
+    },
+    "page": {
+      "source": "jh-prospective-research.js",
+      "fixture": "tests/fixtures/pre-research-self-ingestion-page.js.txt",
+      "bytes": 10345,
+      "sha256": "fd67d64173af528d1cbe1c4d3c62bed25b23073acb39b141a46d072cf4238ed4"
+    }
+  },
+  "archive_population": 3305,
+  "self_summary_registrations": 1992,
+  "crypto_identity_exclusions": 27,
+  "other_registrations": 1286,
+  "other_registrations_qualified": false,
+  "changes": [
+    "Exclude the exact collector/evaluator summary keys before acquisition and again at extraction",
+    "Keep historical records and measurements whole, but classify research-summary echoes before new measurement or replay",
+    "Retain a source-selection policy in whole capture/summary and whole evaluation batch",
+    "Display research echoes separately from identity exclusions, measured windows and pending windows",
+    "Reconcile new-policy captures and continue classifying old archive echoes without rewriting them"
+  ],
+  "tests": {
+    "harvester_groups": 11,
+    "evaluator_groups": 10,
+    "archive_synthetic_groups": 8,
+    "deployment_static": 520,
+    "deployment_shell": 12,
+    "frontend": 1686,
+    "final_focused_page_tests": 12,
+    "page_graphs": 599,
+    "page_syntax_errors": 0,
+    "wired_feeds": 143,
+    "access_registry": "unchanged"
+  },
+  "browser_preview": {
+    "data": "synthetic fixture, not live outcomes",
+    "echoes_displayed": 2,
+    "identity_exclusions_displayed": 1,
+    "measured_windows": 0,
+    "mobile_document_width": 375,
+    "mobile_viewport_width": 390,
+    "new_console_errors": 0
+  },
+  "read_only_acceptance_operation": 6305,
+  "native_invocations": 0,
+  "history_rewrites": 0,
+  "schedule_changes": 0,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "next": "Verify both exact native receipts and packages, unchanged original cadences, served page script and next normal public capture. Evaluator consumer results are not read."
+}

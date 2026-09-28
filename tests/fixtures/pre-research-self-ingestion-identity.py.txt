@@ -13,20 +13,6 @@ CRYPTO_CLASSES=frozenset(('crypto','cryptocurrency','digital_asset'))
 # DOT is in the source's coin universe but is unsupported by the older resolver.
 # It must remain unavailable, never inherit the default US-equity route.
 TOKEN_COLLISIONS=CRYPTO|{'DOT'}
-RESEARCH_OUTPUT_SOURCES=frozenset(('data/prospective-research.json','data/prospective-outcomes.json'))
-
-
-def research_output_source(source_key):
-    """These two native outputs summarize registrations/evaluation, not forecasts."""
-    return type(source_key) is str and source_key in RESEARCH_OUTPUT_SOURCES
-
-
-def source_selection_policy():
-    return {'contract':'research-input-selection.v1',
-            'excluded_sources':sorted(RESEARCH_OUTPUT_SOURCES),
-            'reason':'Collector and evaluator summaries must not generate new forecasts from their own previews or results',
-            'historical_record_policy':'Preserve whole records and measurements; exclude derived-report echoes from new measurement batches',
-            'source_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
 
 
 def identity_policy():

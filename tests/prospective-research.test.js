@@ -31,6 +31,27 @@ test('future windows stay pending rather than a zero percent performance result'
  p.net_return_pct=null;p.status_counts={PROFITABLE:42};assert.equal(outcomeView(p,now).ok,false);
 });
 
+test('whole predecessor rejects a new echo exclusion while repaired view preserves its separate meaning',()=>{
+ const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+ const context={module:{exports:{}}};vm.createContext(context);
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'fixtures/pre-research-self-ingestion-page.js.txt'),'utf8'),context);
+ const p={schema_version:'prospective-outcome-batch.v1',generated_at:'2026-09-18T19:00:00Z',
+  sizing_eligible:false,promotion_eligible:false,forecasts_checked:3,status_counts:{RESEARCH_OUTPUT_ECHO:2,UNSUPPORTED_SOURCE_IDENTITY:1},
+  net_return_pct:null,portfolio_pnl:null,batch:{key:'data/research-forecasts/evaluation-runs/'+'a'.repeat(64)+'.json',sha256:'a'.repeat(64)}};
+ assert.equal(context.module.exports.outcomeView(p,now).ok,false);
+ const result=outcomeView(p,now);assert.equal(result.ok,true);assert.equal(result.echoes,2);
+ assert.equal(result.excluded,1);assert.equal(result.measured,0);assert.equal(result.pending,0);
+ p.status_counts.RESEARCH_OUTPUT_ECHO=true;assert.equal(outcomeView(p,now).ok,false);
+});
+
+test('capture cannot borrow a source selection policy absent from its retained body',()=>{
+ const {head,doc}=retainedFixture();
+ head.source_selection_policy={contract:'research-input-selection.v1',excluded_sources:['data/prospective-research.json']};
+ assert.equal(captureMatches(head,doc),false);
+ doc.source_selection_policy=structuredClone(head.source_selection_policy);assert.equal(captureMatches(head,doc),true);
+ doc.source_selection_policy.excluded_sources=[];assert.equal(captureMatches(head,doc),false);
+});
+
 test('unsupported identities are excluded records, never outcomes or price windows',()=>{
  const p={schema_version:'prospective-outcome-batch.v1',generated_at:'2026-09-18T19:00:00Z',
   sizing_eligible:false,promotion_eligible:false,forecasts_checked:3,

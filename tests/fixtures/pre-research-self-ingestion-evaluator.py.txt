@@ -20,7 +20,7 @@ from evidence_store import capture
 from prospective_journal import PREFIX, canonical, digest, read_record, persist_once, stamp
 from forward_price_measurement import CONTRACT, evaluate, marks
 from outcome_price_evidence import PriceEvidenceVerifier, EASTERN
-from research_identity import record_identity_issue, identity_policy, research_output_source, source_selection_policy
+from research_identity import record_identity_issue, identity_policy
 from calls_research_replay import publish_current
 
 BUCKET=os.environ.get('S3_BUCKET','justhodl-dashboard-live')
@@ -103,11 +103,6 @@ def run(context=None):
         deferred=False
         try:
             record=read_record(s3,BUCKET,ref)
-            if research_output_source(record['source']['source_key']):
-                rows.append({'forecast_id':fid,'status':'RESEARCH_OUTPUT_ECHO',
-                             'reason':'derived_research_summary_is_not_an_original_forecast'})
-                processed+=1;last=key
-                continue
             identity_issue=record_identity_issue(record)
             if identity_issue:
                 rows.append({'forecast_id':fid,'status':'UNSUPPORTED_SOURCE_IDENTITY','reason':identity_issue})
@@ -156,7 +151,7 @@ def run(context=None):
     status_counts={status:sum(row['status']==status for row in rows) for status in sorted({row['status'] for row in rows})}
     completed=datetime.now(timezone.utc).isoformat()
     batch={'schema_version':'prospective-outcome-batch.v1','generated_at':completed,'started_at':started.isoformat(),
-           'identity_policy':identity_policy(),'source_selection_policy':source_selection_policy(),
+           'identity_policy':identity_policy(),
            'selection_handler_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
            'scope':'This bounded traversal batch only; not lifetime totals or independent sample counts',
            'forecasts_checked':processed,'status_counts':status_counts,'results':rows,'compiler':compiler,

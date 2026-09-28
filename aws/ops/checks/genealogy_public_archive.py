@@ -17,7 +17,7 @@ import re
 from instrument_identity import resolve_instrument
 from private_artifact import public_source_allowed
 from prospective_journal import canonical, digest, protocol_document, validate_record
-from research_identity import record_identity_issue
+from research_identity import record_identity_issue, research_output_source, source_selection_policy
 
 BUCKET = 'justhodl-dashboard-live'
 PREFIX = 'data/research-forecasts/'
@@ -144,9 +144,11 @@ def validate_protocol_ref(ref):
 def validate_capture(doc, evidence):
     base = {'contract', 'generated_at', 'started_at', 'protocol_ref', 'sources', 'records',
             'coverage', 'sizing_eligible', 'promotion_eligible'}
-    require(base <= set(doc) <= base | {'identity_policy', 'source_read_policy'}, 'capture_schema')
+    require(base <= set(doc) <= base | {'identity_policy', 'source_read_policy', 'source_selection_policy'}, 'capture_schema')
     require(doc['contract'] == 'prospective-research-capture.v1', 'capture_contract')
     require(doc['sizing_eligible'] is False and doc['promotion_eligible'] is False, 'capture_authority')
+    if 'source_selection_policy' in doc:
+        require(canonical(doc['source_selection_policy']) == canonical(source_selection_policy()), 'capture_source_selection_policy')
     generated, started, stored = [clock(v) for v in (doc['generated_at'], doc['started_at'], evidence['last_modified'])]
     require(started <= generated and abs((stored-generated).total_seconds()) <= 300, 'capture_storage_clock')
     validate_protocol_ref(doc['protocol_ref'])
@@ -172,6 +174,8 @@ def validate_capture(doc, evidence):
         require(type(source) is dict and set(source) == {'source_key', 'source_bytes_sha256', 'source_generated_at', 'source_received_at', 'quality_status', 'eligibility_reasons', 'observations', 'unsupported_identity_count', 'scope'}, 'projection_schema')
         key = source['source_key']
         require(public_key(key) and key not in sources and key not in error_keys, 'projection_key')
+        if 'source_selection_policy' in doc:
+            require(not research_output_source(key), 'capture_research_output_echo')
         require(hex64(source['source_bytes_sha256']), 'projection_hash')
         receipt = clock(source['source_received_at'])
         require(started <= receipt <= generated, 'projection_receipt_clock')
@@ -225,7 +229,8 @@ def validate_capture(doc, evidence):
             'rank_occurrences': sum(o['origin'] == 'rank_observation' for s in sources.values() for o in s['observations']),
             'explicit_occurrences': sum(o['origin'] == 'explicit_direction' for s in sources.values() for o in s['observations']),
             'record_references': len(refs), 'new_record_references': sum(r['created'] for r in refs.values()),
-            'identity_policy': doc.get('identity_policy'), 'source_read_policy': doc.get('source_read_policy')}, refs
+            'identity_policy': doc.get('identity_policy'), 'source_read_policy': doc.get('source_read_policy'),
+            'source_selection_policy': doc.get('source_selection_policy')}, refs
 
 
 def validate_registered_record(doc, evidence):
@@ -244,6 +249,7 @@ def validate_registered_record(doc, evidence):
             'source_key': doc['source']['source_key'], 'source_generated_at': doc['source']['source_generated_at'],
             'source_bytes_sha256': doc['source']['source_bytes_sha256'], 'instrument': doc['observation']['instrument'],
             'direction': doc['observation']['direction'], 'identity_issue': issue,
+            'source_issue': 'derived_research_summary_is_not_an_original_forecast' if research_output_source(doc['source']['source_key']) else None,
             'protocol_ref': doc['protocol_ref'], 'collector': doc['collector']}
 
 
@@ -310,6 +316,7 @@ def audit(client, inventories, workers=8):
     days = Counter(clock(r['registered_at']).date().isoformat() for r in ordered_records)
     sources = Counter(r['source_key'] for r in ordered_records)
     issues = Counter(r['identity_issue'] for r in ordered_records if r['identity_issue'])
+    source_issues = Counter(r['source_issue'] for r in ordered_records if r['source_issue'])
     complete = not failures and not ref_errors and not reference_conflicts
     return {'contract': CONTRACT, 'cutoff': next(iter(inventories.values()))['cutoff'],
             'inventory_hashes': {p: i['inventory_sha256'] for p, i in inventories.items()},
@@ -323,7 +330,7 @@ def audit(client, inventories, workers=8):
             'reference_conflicts': reference_conflicts, 'unreferenced_record_ids': unreferenced,
             'unique_referenced_records': len(references), 'total_record_reference_occurrences': sum(reference_counts.values()),
             'registration_counts_by_utc_day': dict(sorted(days.items())), 'registration_counts_by_source': dict(sorted(sources.items())),
-            'identity_issue_counts': dict(sorted(issues.items())), 'records': ordered_records,
+            'identity_issue_counts': dict(sorted(issues.items())), 'source_issue_counts': dict(sorted(source_issues.items())), 'records': ordered_records,
             'evidence': sorted(evidence, key=lambda r: r['key']),
             'forecast_qualified': False, 'calls_eligible': False, 'sizing_eligible': False,
             'scope': 'Complete retained public registration archive at cutoff, including incomplete capture scans and identity issues. First stored registration is not signal onset. Unreferenced records may come from an interrupted capture. No private learning ledger, original engine reasoning or market prices are read.'}

@@ -46,14 +46,14 @@ class Store:
         return out
 
 
-def fixture():
+def fixture(first_source=None):
     store = Store()
     protocol = protocol_document()
     pref = {'key': model.PREFIX+'protocols/'+digest(protocol)+'.json', 'sha256': digest(protocol), 'first_stored_at': NOW.isoformat()}
     store.add(pref['key'], protocol)
     sources, refs, records = [], [], []
     for index, (symbol, direction) in enumerate((('AAA', 'UP'), ('BBB', 'DOWN'))):
-        key = 'data/synthetic-'+str(index)+'.json'
+        key = first_source if index == 0 and first_source else 'data/synthetic-'+str(index)+'.json'
         observed = {'instrument': resolve_instrument(symbol), 'direction': direction, 'origin': 'explicit_direction'}
         source = projection(key, {'generated_at': NOW.isoformat()},
                             [{'identity': observed['instrument'], 'direction': direction, 'prediction_origin': 'explicit_direction'}],
@@ -87,6 +87,21 @@ def add_capture(store, doc):
 
 
 class Archive(unittest.TestCase):
+    def test_legacy_echo_is_preserved_but_cannot_claim_the_new_source_selection_policy(self):
+        store, capture, _ = fixture('data/prospective-research.json')
+        result = model.audit(store, store.inventories())
+        self.assertTrue(result['record_body_and_storage_checks_complete'])
+        self.assertEqual(result['validated_records'], 2)
+        self.assertEqual(result['source_issue_counts'], {'derived_research_summary_is_not_an_original_forecast': 1})
+        capture['source_selection_policy'] = model.source_selection_policy()
+        with self.assertRaisesRegex(ValueError, 'capture_research_output_echo'):
+            model.validate_capture(capture, {'key':'test','sha256':'a'*64,'last_modified':capture['generated_at']})
+        _, good, _ = fixture()
+        good['source_selection_policy'] = model.source_selection_policy()
+        summary, refs = model.validate_capture(good, {'key':'test','sha256':'b'*64,'last_modified':good['generated_at']})
+        self.assertEqual(summary['source_selection_policy'], model.source_selection_policy())
+        self.assertEqual(len(refs), 2)
+
     def test_complete_repeated_capture_reconciliation_deduplicates_records_not_history(self):
         store, capture, _ = fixture()
         second = deepcopy(capture)

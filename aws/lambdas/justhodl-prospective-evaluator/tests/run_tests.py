@@ -23,7 +23,7 @@ from instrument_identity import resolve_instrument
 from forward_price_measurement import CONTRACT,evaluate,marks
 from outcome_price_evidence import PriceEvidenceVerifier,EASTERN
 from evidence_store import capture
-from research_identity import record_identity_issue, identity_policy
+from research_identity import record_identity_issue, identity_policy, research_output_source, source_selection_policy
 
 
 class Missing(Exception):response={'Error':{'Code':'NoSuchKey'}}
@@ -51,7 +51,8 @@ def loaded(store):
              CONTRACT=CONTRACT,evaluate=evaluate,marks=marks,PriceEvidenceVerifier=PriceEvidenceVerifier,EASTERN=EASTERN,
              s3=store,BUCKET='fixture',STATE=PREFIX+'evaluator-state.json',SUMMARY='data/prospective-outcomes.json',
              capture=capture,publish_current=publish,managed_secret=lambda *a:'fixture',record_identity_issue=record_identity_issue,
-             identity_policy=identity_policy,__file__=str(HERE.parent/'source/lambda_function.py'))
+             identity_policy=identity_policy,research_output_source=research_output_source,source_selection_policy=source_selection_policy,
+             __file__=str(HERE.parent/'source/lambda_function.py'))
     tree=ast.parse((HERE.parent/'source/lambda_function.py').read_text())
     exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n,ast.FunctionDef)],type_ignores=[]),'evaluator','exec'),env)
     env['compiler_identity']=lambda:{'fixture':'c'*64}
@@ -168,6 +169,26 @@ def test_market_probe_archives_prices_without_creating_a_forecast_or_measurement
     assert result['observation_count']==6 and result['archive_checks']['marks_verified']==6
     assert result['forecast_writes']==0 and result['legacy_ledger_writes']==0
     assert all(k.startswith('data/evidence/') for k in set(store.rows)-before)
+
+
+def test_historical_research_echoes_are_explicitly_excluded_without_rewriting_any_history():
+    for source in ('data/prospective-research.json','data/prospective-outcomes.json'):
+        store=Store();protocol=ensure_protocol(store,'fixture')
+        selected=projection(source,{'generated_at':NOW.isoformat()},
+            [{'identity':resolve_instrument('AAA'),'direction':'UP','prediction_origin':'explicit_direction'}],'a'*64,NOW.isoformat())
+        ref=register(store,'fixture',selected,protocol,'c'*64,NOW)[0]
+        original=store.rows[ref['key']]['Body'];old_key=PREFIX+'measurements/'+ref['forecast_id']+'/s5.json'
+        store.put_object(Key=old_key,Body=b'{"historical_result":"preserve whole"}')
+        env=loaded(store)
+        env['source_packet']=lambda *a:(_ for _ in ()).throw(AssertionError('Echo requested price evidence'))
+        env['replay_measurement']=lambda *a:(_ for _ in ()).throw(AssertionError('Echo entered measurement replay'))
+        result=env['run']();summary=json.loads(store.rows[env['SUMMARY']]['Body'])
+        assert result['status_counts']=={'RESEARCH_OUTPUT_ECHO':1}
+        assert summary['coverage']['provider_requests']==0 and summary['forecasts_checked']==1
+        assert summary['source_selection_policy']==source_selection_policy()
+        assert store.rows[ref['key']]['Body']==original
+        assert store.rows[old_key]['Body']==b'{"historical_result":"preserve whole"}'
+        assert summary['sizing_eligible'] is False
 
 
 if __name__=='__main__':
