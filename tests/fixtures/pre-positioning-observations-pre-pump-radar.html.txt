@@ -619,7 +619,6 @@ a:hover{color:var(--violet)}
   .pair-table th,.pair-table td{padding:6px 7px;font-size:10px}
 }
 </style>
-<script src="/jh-positioning-observations.js?v=20260928"></script>
 </head>
 <body>
 <div class="wrap">
@@ -627,7 +626,7 @@ a:hover{color:var(--violet)}
   <div class="page-hdr" style="margin-top:8px">
     <div>
       <div class="title">CROSS-ENGINE CONVERGENCE</div>
-      <h1>Pre-Pump Radar <span class="regime-badge" id="regime-badge">unqualified</span></h1>
+      <h1>Pre-Pump Radar <span class="regime-badge NEUTRAL" id="regime-badge">— regime</span></h1>
     </div>
 <script>window.__AI_BRIEF_PAGE__ = "pre-pump-radar";</script>
 <!-- ═════ AI INTELLIGENCE BRIEF — auto-generated daily by Claude ═════ -->
@@ -1031,19 +1030,19 @@ a:hover{color:var(--violet)}
   <!-- Portfolio Basket Panel -->
   <div class="basket-panel" id="basket-panel">
     <div class="panel-hdr">
-      <h3>Portfolio risk · unqualified</h3>
-      <div class="sub">Explicit portfolio assumptions and validated decisions are required</div>
+      <h3>🎒 Portfolio Basket (Conservative)</h3>
+      <div class="sub">sector-neutralized · max 5%/name · max 30%/sector · vol-targeted sizing</div>
     </div>
-    <div id="basket-content"><div class="edge-empty">Portfolio sizing unavailable.</div></div>
+    <div id="basket-content"><div class="edge-empty">loading positioning…</div></div>
   </div>
 
   <!-- Aggressive (Pump-Hunter) Basket -->
   <div class="aggressive-panel" id="agg-panel">
     <div class="panel-hdr">
-      <h3>Selected price observations <span class="pump-mode-pill">RESEARCH</span></h3>
-      <div class="sub">Complete reported-date windows · exact source references · no allocation authority</div>
+      <h3>🔥 Aggressive Pump-Hunter Basket <span class="pump-mode-pill">PUMP MODE</span></h3>
+      <div class="sub">concentrated · 5-7 names · up to 18%/name · sized by sqrt(pump × momentum) × catalyst grade × cluster modifier</div>
     </div>
-    <div id="agg-content"><div class="edge-empty">Price observations loading; investment decisions withheld.</div></div>
+    <div id="agg-content"><div class="edge-empty">loading aggressive basket…</div></div>
   </div>
 
   <!-- Catalyst Clusters Panel (post-aggressive, pre-momentum) -->
@@ -1998,11 +1997,6 @@ function renderEarlyItem(item, kind){
 
 // ─── Aggressive Pump-Hunter Basket ──────────────────────────────────
 function renderAggressivePanel(){
-  const el=document.getElementById('agg-content');
-  if(el)el.innerHTML=JHPositioningEvidence.render(POSITIONING);
-}
-
-function _legacy_renderAggressivePanel(){
   const el = document.getElementById('agg-content');
   if (!POSITIONING || POSITIONING.status === "error" || !POSITIONING.aggressive_basket) {
     el.innerHTML = '<div class="edge-empty">⏳ Aggressive basket loading — runs hourly at :10 UTC.</div>';
@@ -2712,12 +2706,6 @@ function renderEdgePanel(){
 
 // ─── Portfolio Basket Panel ──────────────────────────────────────────
 function renderBasketPanel(){
-  const el=document.getElementById('basket-content');
-  if(el)el.innerHTML=JHPositioningEvidence.basket();
-  const badge=document.getElementById('regime-badge');if(badge){badge.className='regime-badge';badge.textContent='unqualified';}
-}
-
-function _legacy_renderBasketPanel(){
   const el = document.getElementById('basket-content');
   if (!POSITIONING || POSITIONING.status === "error") {
     el.innerHTML = '<div class="edge-empty">⏳ Positioning Lambda hasn\'t produced data yet — runs hourly at :10 UTC. Try again in a few minutes.</div>';
@@ -3046,8 +3034,7 @@ function renderResearch(r){
   html += '</div>';
 
   // ─── POSITIONING SECTION (NEW — hedge-fund trade framework) ───
-  html += '<div class="r-sec frame"><h4>Positioning research · unqualified</h4>' + JHPositioningEvidence.render(POSITIONING,r.ticker) + '</div>';
-  const pos = null; // Preserved legacy sizing renderer cannot supply a decision.
+  const pos = POSITIONING && POSITIONING.candidates && POSITIONING.candidates.find(c => c.ticker === r.ticker);
   if (pos && pos.trade_framework && !pos.trade_framework.err) {
     const pd = pos.price_data || {};
     const tf = pos.trade_framework;

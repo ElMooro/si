@@ -28,5 +28,5 @@ test('untrusted source labels and model narratives cannot inject markup or trade
 test('whole predecessor is retained and only the brief renderer is replaced',()=>{
  const old=fs.readFileSync(path.join(__dirname,'fixtures/pre-pump-brief-evidence-pre-pump-radar.html.txt'),'utf8');assert.ok(old.length>200000);
  assert.ok(old.includes('function renderBriefHero(){'));assert.ok(html.includes('function _legacy_renderBriefHero(){'));
- assert.equal(old.replace('function renderBriefHero(){',code+'function _legacy_renderBriefHero(){').replace(/\r\n/g,'\n'),html.replace(/\r\n/g,'\n'));
+ assert.equal(old.replace('function renderBriefHero(){',code+'function _legacy_renderBriefHero(){').replace(/\r\n/g,'\n'),fs.readFileSync(path.join(__dirname,'fixtures/pre-positioning-observations-pre-pump-radar.html.txt'),'utf8').replace(/\r\n/g,'\n'));
 });

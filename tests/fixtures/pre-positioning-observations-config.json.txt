@@ -4,7 +4,7 @@
   "timeout": 300,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Complete-source descriptive price windows; investment sizing withheld. Original hourly :10 schedule.",
+  "description": "Hedge-fund trade framework layer: ATR stops, TP ladders, vol+Kelly sizing, sector context, catalyst proximity, portfolio basket. Hourly :10.",
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-pump-positioning-hourly",

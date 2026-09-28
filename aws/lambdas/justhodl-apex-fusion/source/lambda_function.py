@@ -86,6 +86,12 @@ def tier_inversion():
     return {"active": False, "alert_tier_hit_pct": st.get("hit_rate_pct"), "n_validated": st.get("n")}
 
 
+def _positioning_candidates_for_scoring(packet):
+    # Neither legacy allocations nor descriptive price observations have an
+    # accepted forecast/portfolio validation contract. Keep the input, abstain.
+    return ()
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
@@ -105,7 +111,7 @@ def lambda_handler(event, context):
 
     # 1) pump-positioning
     pp = _rd("data/pump-positioning.json")
-    for c in (pp.get("candidates") or []):
+    for c in _positioning_candidates_for_scoring(pp):
         e = slot(c.get("ticker"))
         if e is None:
             continue
@@ -248,6 +254,7 @@ def lambda_handler(event, context):
             (f"\n⚠ tier-inversion active (ALERT_TIER {inv['alert_tier_hit_pct']}% hit)" if inv["active"] else ""))
 
     out = {"engine": "apex-fusion", "version": "1.2", "generated_at": now.isoformat(),
+           "input_eligibility": {"pump": {"eligible": False, "reason": "positioning_forecast_unqualified"}},
            "weights_used": W, "weight_sources": w_src, "tier_inversion": inv,
            "n_universe": len(book), "n_scored": len(rows), "by_tier": by_tier,
            "n_logged_to_ddb": len(logged), "log_errors": log_errors[:5], "top": top,

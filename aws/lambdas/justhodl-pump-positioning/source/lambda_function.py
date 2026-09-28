@@ -900,7 +900,7 @@ def build_aggressive_basket(candidates: List[dict],
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[positioning] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -1016,3 +1016,136 @@ def _write_error(message: str, **extras) -> dict:
         pass
     print(f"[positioning] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+
+# Deterministic price observations; no legacy grading, allocation or trade framework.
+from pathlib import Path
+from threading import Event
+from botocore.config import Config
+import urllib.error
+import context_evidence_store
+import managed_secret as managed_secret_module
+import positioning_observations as observations
+from context_evidence_store import ContextStore,encode,code,now
+
+
+class _PositioningNoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,req,fp,status,msg,headers,newurl):
+        # Credentials must not follow a vendor redirect to another origin.
+        raise urllib.error.HTTPError(req.full_url,status,'Provider redirect refused',headers,fp)
+
+
+def _positioning_request(ticker,kind,as_of,started,stop):
+    requested=now();url=observations.endpoint(ticker,kind,as_of)
+    attempt={'ticker':ticker,'kind':kind,'endpoint':url,'requested_at':requested,'received_at':requested,
+             'status':'not_attempted_stop','http_status':None,'content_encoding':'','network_attempted':False}
+    if stop.is_set() or not FMP_KEY:return attempt,None
+    if time.monotonic()-started>150:
+        attempt['status']='not_attempted_budget';return attempt,None
+    request=urllib.request.Request(url,headers={'User-Agent':'JustHodl/positioning-observations','apikey':FMP_KEY,'Accept-Encoding':'identity'})
+    opener=urllib.request.build_opener(_PositioningNoRedirect());response=None
+    try:
+        attempt['network_attempted']=True
+        try:
+            response=opener.open(request,timeout=12);status=response.status
+        except urllib.error.HTTPError as exc:response=exc;status=exc.code
+        attempt['http_status']=int(status)
+        if status in (401,403,429):stop.set()
+        attempt['content_encoding']=str(response.headers.get('Content-Encoding') or '').strip().lower()
+        declared=response.headers.get('Content-Length')
+        if declared is not None and (not declared.isdecimal() or int(declared)>observations.MAX_SOURCE_BYTES):
+            attempt.update(status='source_limit_exceeded',received_at=now());return attempt,None
+        chunks=[];size=0;deadline=min(started+170,time.monotonic()+20)
+        # read1 returns after one buffered/socket read. Bound both the aggregate
+        # bytes and elapsed transfer time; an idle timeout alone permits dribbling.
+        while True:
+            if time.monotonic()>deadline:raise ValueError('Provider transfer budget exhausted')
+            chunk=response.read1(min(65536,observations.MAX_SOURCE_BYTES+1-size))
+            if not chunk:break
+            chunks.append(chunk);size+=len(chunk)
+            if size>observations.MAX_SOURCE_BYTES:
+                attempt.update(status='source_limit_exceeded',received_at=now());return attempt,None
+        raw=b''.join(chunks)
+        if declared is not None and len(raw)!=int(declared):raise ValueError('Whole declared provider body required')
+        attempt.update(status='received' if status==200 else 'http_error',received_at=now())
+        return attempt,raw
+    except Exception:
+        attempt.update(status='transport_unavailable',received_at=now());return attempt,None
+    finally:
+        if response is not None:response.close()
+
+
+def lambda_handler(event,context):
+    started=time.monotonic();started_at=now();stop=Event()
+    try:
+        here=Path(__file__).resolve().parent
+        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=3,read_timeout=8,retries={'max_attempts':0}))
+        paths={'lambda_function.py':here/'lambda_function.py','positioning_observations.py':here/'positioning_observations.py',
+            'context_evidence_store.py':Path(context_evidence_store.__file__),'managed_secret.py':Path(managed_secret_module.__file__)}
+        store=ContextStore(client,S3_BUCKET,observations.HEAD,observations.INPUTS,observations.PRIVATE,observations.CONTRACT,paths)
+        try:previous,meta=store.read(observations.HEAD)
+        except Exception as exc:
+            if code(exc) not in ('NoSuchKey','404'):raise
+            etag=None;previous_ref=None
+        else:
+            etag=meta.get('ETag')
+            if not isinstance(etag,str) or not etag:raise ValueError('Prior head identity required')
+            previous_ref=store.retain(previous,'outputs')
+        inputs={};sources={};total=0
+        for name,key in observations.INPUTS.items():
+            if time.monotonic()-started>150:raise ValueError('Context acquisition budget exhausted')
+            requested=now()
+            try:raw,meta=store.read(key)
+            except Exception:
+                inputs[name]={'source_key':key,'status':'source_read_unavailable','requested_at':requested,'received_at':now()};continue
+            received=now();total+=len(raw)
+            if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+            ref=store.retain(raw,'sources');sources[ref['key']]=raw
+            inputs[name]={'source_key':key,'status':'received','requested_at':requested,'received_at':received,
+                'original_ref':ref,'content_encoding':str(meta.get('ContentEncoding') or '').strip().lower()}
+        radar_raw=observations.content(inputs['radar'],sources)
+        if radar_raw is None:raise ValueError('Original candidate source unavailable')
+        radar=observations.strict(radar_raw,inputs['radar'].get('content_encoding',''))
+        universe=observations.selection(radar);as_of=datetime.now(timezone.utc).date()
+        planned=[(ticker,kind) for ticker in universe['selected_tickers'] for kind in ('history','quote','profile')]
+        outcomes=[None]*len(planned)
+        # At most twelve original source occurrences, three original endpoint
+        # kinds and four active requests. No retry or substitute provider.
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures={executor.submit(_positioning_request,ticker,kind,as_of,started,stop):index for index,(ticker,kind) in enumerate(planned)}
+            try:
+                for future in as_completed(futures,timeout=max(1,175-(time.monotonic()-started))):
+                    if time.monotonic()-started>175:raise ValueError('Complete collection budget exhausted')
+                    attempt,raw=future.result();index=futures[future]
+                    if raw is not None:
+                        total+=len(raw)
+                        if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+                        ref=store.retain(raw,'sources');sources[ref['key']]=raw;attempt['original_ref']=ref
+                    outcomes[index]=attempt
+            finally:stop.set()
+        generated=now()
+        if observations.clock(generated).date()!=as_of:raise ValueError('Acquisition crossed its declared UTC date')
+        packet=observations.build(inputs,outcomes,sources,generated)
+        compilers={name:store.retain(Path(path).read_bytes(),'compilers') for name,path in paths.items()}
+        manifest={'contract':observations.CONTRACT,'acquisition_started_at':started_at,'generated_at':generated,
+            'input_attempts':inputs,'provider_attempts':outcomes,'previous_publication':previous_ref,'source_files':compilers,
+            'stored_source_bytes':total,'controls':{'candidate_occurrences':12,'lookback_calendar_days':90,'active_requests':4,
+                'maximum_planned_provider_requests':36,'per_source_bytes':observations.MAX_SOURCE_BYTES,
+                'aggregate_source_bytes':64*1024*1024,'acquisition_budget_s':150,'collection_budget_s':175,'publication_budget_s':240,
+                'provider_retries':0,'stop_on_http_status':[401,403,429]}}
+        packet['replay']={'input_ref':store.retain(encode(manifest),'inputs'),'source_files':compilers,'previous_publication':previous_ref,'originals_public':False}
+        packet['acquisition_started_at']=started_at;body=encode(packet);ref=store.retain(body,'outputs')
+        if time.monotonic()-started>240:raise ValueError('Publication budget exhausted')
+        condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
+        try:
+            client.put_object(Bucket=S3_BUCKET,Key=observations.HEAD,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
+        except Exception as exc:
+            raise context_evidence_store.PublicationUncertain(observations.HEAD) from exc
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':observations.CONTRACT,
+            'generated_at':generated,'output_sha256':ref['sha256'],'call':'WAIT','model_requests':0,'notifications_sent':0})}
+    except Exception as exc:
+        stop.set()
+        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
+            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted','preservation_scope':'this_attempt_only',
+            'error':'Whole source acquisition, validation, retention or conditional publication failed','model_requests':0,'notifications_sent':0})}
