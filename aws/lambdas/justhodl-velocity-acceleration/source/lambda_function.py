@@ -133,7 +133,7 @@ CONFIRMERS = {
     "buzz-velocity":     BUZZ_KEY,
 }
 
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = None  # Legacy writer is retained but inactive.
 PRICE_CACHE: Dict[str, List[dict]] = {}
 
 
@@ -395,7 +395,7 @@ def save_state(state: dict) -> None:
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[accel] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -727,3 +727,152 @@ def _write_error(message: str, **extras) -> dict:
     except Exception: pass
     print(f"[accel] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+
+# Deterministic price observations; no legacy grading, allocation or trade framework.
+from pathlib import Path
+from threading import Event
+from botocore.config import Config
+import urllib.error
+import context_evidence_store
+import managed_secret as managed_secret_module
+import velocity_evidence as observations
+import volume_observations
+import momentum_research_boundary
+from context_evidence_store import ContextStore,encode,code,now
+
+
+class _VelocityNoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,req,fp,status,msg,headers,newurl):
+        # Credentials must not follow a vendor redirect to another origin.
+        raise urllib.error.HTTPError(req.full_url,status,'Provider redirect refused',headers,fp)
+
+
+def _velocity_request(ticker,as_of,started,stop):
+    requested=now();url=observations.endpoint(ticker,as_of)
+    attempt={'ticker':ticker,'endpoint':url,'requested_at':requested,'received_at':requested,
+             'status':'not_attempted_stop','http_status':None,'content_encoding':'','network_attempted':False}
+    if stop.is_set() or not FMP_KEY:return attempt,None
+    if time.monotonic()-started>150:
+        attempt['status']='not_attempted_budget';return attempt,None
+    request=urllib.request.Request(url,headers={'User-Agent':'JustHodl/velocity-observations','apikey':FMP_KEY,'Accept-Encoding':'identity'})
+    opener=urllib.request.build_opener(_VelocityNoRedirect());response=None
+    try:
+        attempt['network_attempted']=True
+        try:
+            response=opener.open(request,timeout=12);status=response.status
+        except urllib.error.HTTPError as exc:response=exc;status=exc.code
+        attempt['http_status']=int(status)
+        if status in (401,403,429):stop.set()
+        attempt['content_encoding']=str(response.headers.get('Content-Encoding') or '').strip().lower()
+        declared=response.headers.get('Content-Length')
+        if declared is not None and (not declared.isdecimal() or int(declared)>observations.MAX_SOURCE_BYTES):
+            attempt.update(status='source_limit_exceeded',received_at=now());return attempt,None
+        chunks=[];size=0;deadline=min(started+170,time.monotonic()+20)
+        # read1 returns after one buffered/socket read. Bound both the aggregate
+        # bytes and elapsed transfer time; an idle timeout alone permits dribbling.
+        while True:
+            if time.monotonic()>deadline:raise ValueError('Provider transfer budget exhausted')
+            chunk=response.read1(min(65536,observations.MAX_SOURCE_BYTES+1-size))
+            if not chunk:break
+            chunks.append(chunk);size+=len(chunk)
+            if size>observations.MAX_SOURCE_BYTES:
+                attempt.update(status='source_limit_exceeded',received_at=now());return attempt,None
+        raw=b''.join(chunks)
+        if declared is not None and len(raw)!=int(declared):raise ValueError('Whole declared provider body required')
+        attempt.update(status='received' if status==200 else 'http_error',received_at=now())
+        return attempt,raw
+    except Exception:
+        attempt.update(status='transport_unavailable',received_at=now());return attempt,None
+    finally:
+        if response is not None:response.close()
+
+
+def _velocity_read_pending(client):
+    # One original internal state key; never broaden the shared context reader.
+    obj=client.get_object(Bucket=S3_BUCKET,Key=observations.STATE_KEY);stream=obj['Body']
+    try:raw=stream.read(context_evidence_store.MAX_BYTES+1)
+    finally:stream.close()
+    if len(raw)>context_evidence_store.MAX_BYTES or type(obj.get('ContentLength')) is not int or obj['ContentLength']!=len(raw):
+        raise ValueError('Whole original pending state required')
+    return raw,obj
+
+
+def lambda_handler(event,context):
+    started=time.monotonic();started_at=now();stop=Event()
+    try:
+        here=Path(__file__).resolve().parent
+        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=3,read_timeout=8,retries={'max_attempts':0}))
+        paths={'lambda_function.py':here/'lambda_function.py','velocity_evidence.py':here/'velocity_evidence.py',
+            'volume_observations.py':here/'volume_observations.py','momentum_research_boundary.py':Path(momentum_research_boundary.__file__),
+            'context_evidence_store.py':Path(context_evidence_store.__file__),'managed_secret.py':Path(managed_secret_module.__file__)}
+        store=ContextStore(client,S3_BUCKET,observations.HEAD,observations.INPUTS,observations.PRIVATE,observations.CONTRACT,paths)
+        try:previous,meta=store.read(observations.HEAD)
+        except Exception as exc:
+            if code(exc) not in ('NoSuchKey','404'):raise
+            etag=None;previous_ref=None
+        else:
+            etag=meta.get('ETag')
+            if not isinstance(etag,str) or not etag:raise ValueError('Prior head identity required')
+            previous_ref=store.retain(previous,'outputs')
+        inputs={};sources={};total=0
+        for name,key in observations.ALL_INPUTS.items():
+            if time.monotonic()-started>150:raise ValueError('Context acquisition budget exhausted')
+            requested=now()
+            if name=='breakout':
+                inputs[name]={'source_key':key,'status':'not_read_existing_research_exclusion','requested_at':requested,'received_at':now()};continue
+            try:raw,meta=_velocity_read_pending(client) if name=='previous_pending_state' else store.read(key)
+            except Exception:
+                inputs[name]={'source_key':key,'status':'source_read_unavailable','requested_at':requested,'received_at':now()};continue
+            received=now();total+=len(raw)
+            if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+            ref=store.retain(raw,'sources');sources[ref['key']]=raw
+            inputs[name]={'source_key':key,'status':'received','requested_at':requested,'received_at':received,
+                'original_ref':ref,'content_encoding':str(meta.get('ContentEncoding') or '').strip().lower()}
+        parent_raw=observations.content(inputs['momentum'],sources)
+        if parent_raw is None:raise ValueError('Original research population unavailable')
+        parent=observations.strict(parent_raw,inputs['momentum'].get('content_encoding',''))
+        universe=observations.selection(parent,observations.clock(now()));as_of=datetime.now(timezone.utc).date()
+        planned=universe['selected_tickers']
+        outcomes=[None]*len(planned)
+        # Original eighty-name and 57-day bounds; four concurrent requests.
+        # Research membership never inherits the parent score or confirmation.
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures={executor.submit(_velocity_request,ticker,as_of,started,stop):index for index,ticker in enumerate(planned)}
+            try:
+                for future in as_completed(futures,timeout=max(1,175-(time.monotonic()-started))):
+                    if time.monotonic()-started>175:raise ValueError('Complete collection budget exhausted')
+                    attempt,raw=future.result();index=futures[future]
+                    if raw is not None:
+                        total+=len(raw)
+                        if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+                        ref=store.retain(raw,'sources');sources[ref['key']]=raw;attempt['original_ref']=ref
+                    outcomes[index]=attempt
+            finally:stop.set()
+        generated=now()
+        if observations.clock(generated).date()!=as_of:raise ValueError('Acquisition crossed its declared UTC date')
+        packet=observations.build(inputs,outcomes,sources,generated)
+        compilers={name:store.retain(Path(path).read_bytes(),'compilers') for name,path in paths.items()}
+        manifest={'contract':observations.CONTRACT,'acquisition_started_at':started_at,'generated_at':generated,
+            'input_attempts':inputs,'provider_attempts':outcomes,'previous_publication':previous_ref,'source_files':compilers,
+            'stored_source_bytes':total,'controls':{'maximum_tickers':80,'lookback_calendar_days':57,'active_requests':4,
+                'maximum_planned_provider_requests':80,'per_provider_source_bytes':observations.MAX_SOURCE_BYTES,
+                'per_context_source_bytes':context_evidence_store.MAX_BYTES,
+                'aggregate_source_bytes':64*1024*1024,'acquisition_budget_s':150,'collection_budget_s':175,'publication_budget_s':240,
+                'provider_retries':0,'stop_on_http_status':[401,403,429]}}
+        packet['replay']={'input_ref':store.retain(encode(manifest),'inputs'),'source_files':compilers,'previous_publication':previous_ref,'originals_public':False}
+        packet['acquisition_started_at']=started_at;body=encode(packet);ref=store.retain(body,'outputs')
+        if time.monotonic()-started>240:raise ValueError('Publication budget exhausted')
+        condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
+        try:
+            client.put_object(Bucket=S3_BUCKET,Key=observations.HEAD,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
+        except Exception as exc:
+            raise context_evidence_store.PublicationUncertain(observations.HEAD) from exc
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':observations.CONTRACT,
+            'generated_at':generated,'output_sha256':ref['sha256'],'call':'WAIT','model_requests':0,'notifications_sent':0})}
+    except Exception as exc:
+        stop.set()
+        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
+            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted','preservation_scope':'this_attempt_only',
+            'error':'Whole source acquisition, validation, retention or conditional publication failed','model_requests':0,'notifications_sent':0})}

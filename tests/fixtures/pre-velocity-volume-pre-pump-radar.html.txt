@@ -620,7 +620,6 @@ a:hover{color:var(--violet)}
 }
 </style>
 <script src="/jh-positioning-observations.js?v=20260928"></script>
-<script src="/jh-volume-observations.js?v=20260928"></script>
 </head>
 <body>
 <div class="wrap">
@@ -1008,8 +1007,8 @@ a:hover{color:var(--violet)}
   <!-- Early Detection — the earliness layer (existing velocity-acceleration feed) -->
   <div class="early-panel" id="early-panel" style="display:none">
     <div class="panel-hdr">
-      <h3>Volume observations <span class="pre-pump-tag">RESEARCH</span></h3>
-      <div class="sub">dated source windows · exact operands · no validated advance-warning claim</div>
+      <h3>🎯 Early Detection <span class="pre-pump-tag">PRE-PUMP</span></h3>
+      <div class="sub">volume acceleration on names already in active themes — 1-3 days before velocity-surge would fire</div>
     </div>
     <div id="early-content"></div>
   </div>
@@ -1650,8 +1649,6 @@ function ageStr(iso){
 }
 
 async function load(){
-  EARLY = null;
-  renderEarlyDetection();
   try {
     // Fetch convergence-radar (primary) + all hedge-fund layers in parallel
     const [radarR, posR, btR, mechR, anR, prR, nlpR, brR, momR, earlyR, themesR, catR, clusR] = await Promise.all([
@@ -1664,7 +1661,7 @@ async function load(){
       fetch(NLP_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BRIEF_URL + "?t=" + Date.now()).catch(() => null),
       Promise.resolve(null) /* Ranked Momentum Leaders abstains; source desk retains observations. */,
-      fetch(EARLY_URL + "?exact=1&nogen=1&t=" + Date.now()).catch(() => null),
+      fetch(EARLY_URL + "?t=" + Date.now()).catch(() => null),
       fetch(THEMES_URL + "?t=" + Date.now()).catch(() => null),
       fetch(CATALYSTS_URL + "?t=" + Date.now()).catch(() => null),
       fetch(CLUSTERS_URL + "?t=" + Date.now()).catch(() => null),
@@ -1679,7 +1676,6 @@ async function load(){
     if (nlpR && nlpR.ok)    { try { NLP         = await nlpR.json(); } catch(_) {} }
     if (brR && brR.ok)      { try { BRIEF       = await brR.json(); } catch(_) {} }
     if (momR && momR.ok)    { try { MOMENTUM    = await momR.json(); } catch(_) {} }
-    EARLY = null;
     if (earlyR && earlyR.ok){ try { EARLY       = await earlyR.json(); } catch(_) {} }
     if (themesR && themesR.ok){ try { THEMES    = await themesR.json(); } catch(_) {} }
     if (catR && catR.ok)    { try { CATALYSTS   = await catR.json(); } catch(_) {} }
@@ -1705,11 +1701,6 @@ async function load(){
 
 // ─── EARLY DETECTION — the earliness panel ──────────────────────────
 function renderEarlyDetection(){
-  document.getElementById('early-panel').style.display='block';
-  document.getElementById('early-content').innerHTML=JHVolumeObservations.render(EARLY);
-}
-
-function _legacy_renderEarlyDetection(){
   const wrapEl = document.getElementById('early-panel');
   const el = document.getElementById('early-content');
   if (!EARLY || EARLY.status === "error" ||

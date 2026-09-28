@@ -4,7 +4,7 @@
   "timeout": 300,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Replayable dated volume observations; no forecast, confirmation or sizing. Original hourly :30 schedule.",
+  "description": "Earliness detector. Scans momentum+theme universe for volume acceleration (slope + accumulation + floor lift). State: pending\u2192confirmed via momentum-breakout/options-flow/buzz-velocity. Hourly :30.",
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-velocity-acceleration-hourly",
