@@ -21,9 +21,7 @@ def original_operating_settings(actual,original):
 
 def main():
     import boto3
-    # The candidate helper has the same import name. Replay must bind the exact
-    # production module bytes, even though the candidate arithmetic matches.
-    sys.path[:0]=[str(ROOT/p) for p in ('aws/shared','aws/lambdas/justhodl-credit-stress/source','aws/ops','aws/ops/checks','scripts')]
+    sys.path[:0]=[str(ROOT/p) for p in ('aws/ops','aws/ops/checks','aws/shared','aws/lambdas/justhodl-credit-stress/source','scripts')]
     from ops_report import report
     from market_runtime_evidence import runtime
     import credit_collection_clock as clock,credit_research_store as store

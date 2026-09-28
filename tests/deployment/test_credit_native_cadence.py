@@ -117,6 +117,26 @@ def test_cadence_acceptance_requires_original_resources_and_has_no_invocation_or
     assert 'sys.exit(1)' in source and 'downstream_output_reads=0' in source
 
 
+def test_acceptance_imports_production_clock_instead_of_same_named_candidate():
+    from types import SimpleNamespace
+    path=ROOT/'aws/ops/staged/ops_6301_credit_cadence_acceptance.py'
+    if not path.exists():path=ROOT/'aws/ops/STAGED/ops_6301_credit_cadence_acceptance.py'
+    tree=ast.parse(path.read_text(encoding='utf-8'));main=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='main')
+    assignment=next(n for n in main.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Subscript))
+    state={'ROOT':ROOT,'sys':SimpleNamespace(path=[])}
+    exec(compile(ast.Module(body=[assignment],type_ignores=[]),'reviewed import path assignment','exec'),state)
+    spec=importlib.machinery.PathFinder.find_spec('credit_collection_clock',state['sys'].path)
+    assert Path(spec.origin).resolve()==(ROOT/'aws/shared/credit_collection_clock.py').resolve()
+    before=ast.parse((ROOT/'tests/fixtures/pre-credit-cadence-acceptance.py.txt').read_text(encoding='utf-8'))
+    before_main=next(n for n in before.body if isinstance(n,ast.FunctionDef) and n.name=='main')
+    before_assignment=next(n for n in before_main.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Subscript))
+    state={'ROOT':ROOT,'sys':SimpleNamespace(path=[])}
+    exec(compile(ast.Module(body=[before_assignment],type_ignores=[]),'whole predecessor import assignment','exec'),state)
+    predecessor=importlib.machinery.PathFinder.find_spec('credit_collection_clock',state['sys'].path)
+    assert Path(predecessor.origin).resolve()==(ROOT/'aws/ops/checks/credit_collection_clock.py').resolve()
+    assert hashlib.sha256(Path(spec.origin).read_bytes()).digest()!=hashlib.sha256(Path(predecessor.origin).read_bytes()).digest()
+
+
 def test_real_native_compile_shared_consumer_and_independent_bond_check_agree_across_weekend():
     import credit_research,bond_credit,verify_bond_credit
     # Shift synthetic originals, including every response-vintage/request field.
