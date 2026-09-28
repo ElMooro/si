@@ -43,34 +43,7 @@
     actual:null,estimate:null,difference:null,revenue_actual:null,revenue_estimate:null,revenue_difference:null,status:'Legacy '+key+'; streak, surprise and drift claims unverified',raw:value,pointer:'/'+key+'/'+i});});
   }return out;
  }
- function coverage(p){
-  if(p.measurement_contract!==CONTRACT)return null;
-  if(!Array.isArray(p.request_records))throw Error('Complete request population required');
-  const rows=p.request_records,counts={selected:rows.length,received:0,unattempted:0,other:0,pending:null,visited:null,stop:null,cycle_complete:null};
-  const statuses=rows.map(r=>{const a=obj(r).acquisitions;if(!Array.isArray(a)||!a.length||obj(a[0]).endpoint!=='earnings')throw Error('Earnings acquisition outcome required');return obj(a[0]).status;});
-  for(const status of statuses){if(status==='received')counts.received++;else if(status==='not_attempted_runtime_rate_or_size_limit')counts.unattempted++;else counts.other++;}
-  if(p.acquisition_progress!==undefined){
-   const a=obj(p.acquisition_progress),members=obj(p.universe_membership).selected;
-   if(a.contract!=='earnings-acquisition-progress.v1'||!Array.isArray(members)||members.length!==rows.length)throw Error('Acquisition progress population differs');
-   const seen=new Map(),keys=members.map((r,i)=>{if(rows[i].request_index!==i||!r||typeof r!=='object'||(r.ticker!==null&&typeof r.ticker!=='string'))throw Error('Acquisition occurrence coordinates differ');const label=r.ticker===null?'!invalid':r.ticker,n=seen.get(label)||0;seen.set(label,n+1);return label+'#'+n;});
-   const planned=a.planned_request_indices,visited=a.visited_request_indices;
-   if(!Array.isArray(planned)||!Array.isArray(visited)||planned.some(i=>!Number.isInteger(i)||i<0||i>=rows.length)||new Set(planned).size!==planned.length||
-    visited.some((i,n)=>!Number.isInteger(i)||i!==planned[n])||visited.length>planned.length||
-    JSON.stringify(a.planned_occurrence_keys)!==JSON.stringify(planned.map(i=>keys[i]))||
-    JSON.stringify(a.remaining_occurrence_keys)!==JSON.stringify(planned.slice(visited.length).map(i=>keys[i]))||
-    a.visited_occurrences!==visited.length||a.pending_occurrences!==planned.length-visited.length||a.cycle_complete!==(planned.length===visited.length)||
-    !['planned_window_complete','source_byte_budget','runtime_reserve','provider_rate_limit'].includes(a.stop_reason)||
-    (a.stop_reason==='planned_window_complete'&&a.pending_occurrences!==0)||a.schedule_accelerated!==false||a.request_order_is_rank!==false)throw Error('Acquisition progress partition differs');
-   const visitedSet=new Set(visited);
-   if(statuses.some((status,i)=>(status==='not_attempted_runtime_rate_or_size_limit')===visitedSet.has(i)))throw Error('Visited acquisition outcomes differ');
-   Object.assign(counts,{pending:a.pending_occurrences,visited:a.visited_occurrences,stop:a.stop_reason,cycle_complete:a.cycle_complete});
-  }return counts;
- }
- function summary(p){const m=model(p,false),c=coverage(p);return {native:m.native,coverage:c,message:m.native?
-  c.received+' / '+c.selected+' selected request occurrences returned earnings data in this publication; '+c.unattempted+' not attempted; '+c.other+' other acquisition outcomes. '+m.events.length+' reported earnings events. No qualified drift signal.':m.events.length+' published legacy occurrences. Earnings-surprise and drift claims remain unverified.',generated_at:text(p.generated_at)||'unavailable'};}
- function coverageMessage(c){return c?(c.pending===null?'This older publication has no resumable progress record. ':c.pending+' request occurrences remain in this acquisition cycle. '+c.visited+' visited this run; a visit is not necessarily a successful response. Stop reason: '+c.stop.replace(/_/g,' ')+'. ')+
-  'Coverage is partial unless every selected occurrence returned data. Unvisited rows are not refreshed; earlier complete publications remain in immutable history. '+
-  'The next original scheduled run resumes the remaining queue. A full cycle is not simultaneous or current whole-universe coverage.':'Legacy acquisition coverage is unverified. ';}
+ function summary(p){const m=model(p,false);return {native:m.native,message:m.native?m.requests.length+' request records and '+m.events.length+' reported earnings events. No qualified drift signal.':m.events.length+' published legacy occurrences. Earnings-surprise and drift claims remain unverified.',generated_at:text(p.generated_at)||'unavailable'};}
  function start(){
   const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={events:[],prices:[],requests:[]},page=0,key='index',direction=1;
   function render(){
@@ -78,7 +51,7 @@
    const rows=all.filter(r=>[r.ticker,r.reported,r.date,r.end,r.period,r.status,r.pointer].join(' ').toLowerCase().includes(query));
    const numbers=['index','actual','estimate','difference','revenue_actual','revenue_estimate','revenue_difference','close','volume'];rows.sort((a,b)=>api.compare(a,b,key,direction,numbers.includes(key)?'number':'text'));
    const pages=Math.max(1,Math.ceil(rows.length/100));page=Math.min(Math.max(page,0),pages-1);const shown=rows.slice(page*100,(page+1)*100);
-   $('rows').textContent=rows.length+' matching / '+all.length+(mode==='requests'?' selected requests':' received '+mode)+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
+   $('rows').textContent=rows.length+' matching / '+all.length+' received '+mode+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
    const cols=mode==='requests'?[['index','Occurrence'],['ticker','Requested ticker'],['actual','Earnings records'],['estimate','Price records'],['status','Acquisition outcomes']]:mode==='prices'?
     [['index','Occurrence'],['ticker','Requested ticker'],['reported','Reported ticker'],['date','Reported date'],['currency','Reported currency'],['close','Reported close'],['volume','Reported volume'],['status','Qualification']]:
     [['index','Occurrence'],['ticker','Requested ticker'],['date','Announcement date'],['period','Fiscal period'],['end','Period end'],['currency','Reported currency'],['basis','EPS basis'],['actual','Actual EPS'],['estimate','Reported estimate EPS'],['difference','Current EPS difference'],['revenue_actual','Actual revenue'],['revenue_estimate','Estimated revenue'],['revenue_difference','Current revenue difference'],['status','Qualification']];
@@ -89,8 +62,8 @@
   (async()=>{try{
    const received=await api.load('/data/earnings-pead.json'),p=received.packet;$('original').textContent=received.raw;data=model(p);const s=summary(p);
    $('status').textContent=s.message+' Generated '+s.generated_at+'. Collection time does not establish the original announcement or consensus vintage.';
-   $('coverage').textContent=coverageMessage(s.coverage)+' Every published occurrence is retained. Inspect complete earnings and price records, duplicate or future events, and failed or unattempted requests. Current-record differences do not establish an executable post-earnings return.';render();
+   $('coverage').textContent='Every published occurrence is retained. Inspect complete earnings and price records, duplicate or future events, and failed or unattempted requests. Current-record differences do not establish an executable post-earnings return.';render();
   }catch(e){$('status').textContent='Stored earnings research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
  }
- const api={CONTRACT,model,summary,coverage,coverageMessage,start,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHPEADObservations=api;
+ const api={CONTRACT,model,summary,start,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHPEADObservations=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

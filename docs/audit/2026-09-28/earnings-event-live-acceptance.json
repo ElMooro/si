@@ -1,0 +1,96 @@
+{
+  "source_commit": "a986c0eeb733c33d23ab254c6e2dc9bb005435d9",
+  "served_commit": "be623de98807c0ea92455b32854d33c3431e7d63",
+  "shared_table_helper_commit": "2ec7f109d714f8cb1d7848b89af17cacb20c6141",
+  "shared_helper_review": "Only the reviewed explicit public-path allowlist expanded since the earnings release; the earnings loader behavior is unchanged.",
+  "checked_at": "2026-09-28T08:26:53.174683+00:00",
+  "assets": {
+    "earnings-pead.html": {
+      "bytes": 8650,
+      "sha256": "f282c0e3b537bdabe420c0248f72489d83c246116a439d6435780e622817391b",
+      "matches_build_manifest": true
+    },
+    "jh-pead-observations.js": {
+      "bytes": 9019,
+      "sha256": "897f273f5ce0db6082dc9759649694dd530834c09e48c248b5d092f7f922a9a1",
+      "matches_build_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5733,
+      "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+      "matches_build_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_build_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2412669,
+      "sha256": "dea0bdaea99416ed39d9aa16c02fa94a7620958add26e743ce142294028c473c",
+      "matches_build_manifest": true
+    }
+  },
+  "public_packet": {
+    "public_packet_bytes": 26344274,
+    "public_packet_sha256": "c20adda3b2dacc836d8c95d11dd98dc26fe0043ba0c03b4befa2824b091bc5e2",
+    "generated_at": "2026-09-28T08:00:48.071710+00:00",
+    "universe_occurrences": 5135,
+    "request_occurrences": 1500,
+    "distinct_requested_ticker_labels": 1500,
+    "acquisition_outcomes": [
+      {
+        "endpoint": "earnings",
+        "status": "not_attempted_runtime_rate_or_size_limit",
+        "count": 1468
+      },
+      {
+        "endpoint": "earnings",
+        "status": "received",
+        "count": 32
+      },
+      {
+        "endpoint": "historical-price-eod/full",
+        "status": "not_requested_original_event_gate",
+        "count": 1
+      },
+      {
+        "endpoint": "historical-price-eod/full",
+        "status": "received",
+        "count": 31
+      }
+    ],
+    "event_observations": 3927,
+    "price_records": 37645,
+    "investment_authority": false,
+    "coverage_note": "Counts are source/request occurrences, not independent issuers or complete market coverage."
+  },
+  "browser": {
+    "events": 3927,
+    "prices": 37645,
+    "requests": 1500,
+    "displayed_rows_per_page": 100,
+    "price_next_page_first_occurrence": 101,
+    "price_next_page_last_occurrence": 200,
+    "numeric_keyboard_sort": "ascending",
+    "sort_focus_retained": true,
+    "NVDA_price_filter_matches": 1253,
+    "query_clear_restores_population": true,
+    "opened_request_source_characters": 1721,
+    "whole_received_packet_characters": 26344192,
+    "console_errors": 0,
+    "viewport": 390,
+    "document_width": 380,
+    "document_scroll_width": 380,
+    "region_width": 348,
+    "table_width": 1900,
+    "keyboard_scroll_px": 40,
+    "keyboard_focus_retained": true,
+    "viewport_reset": true,
+    "final_view": "events"
+  },
+  "consumer_output_reads": 0,
+  "private_state_reads": 0,
+  "native_invocations": 0,
+  "investment_authority": false
+}

@@ -1,0 +1,69 @@
+{
+  "actual_runtime": {
+    "code_sha256": "ChaUovoNvZxhgmBH4kri2D1J1wmvgOLh7BQXJpLcnDo=",
+    "source_files_checked": 3,
+    "handler_bytes": 23617,
+    "timeout": 600,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "matched",
+      "commit": "a986c0eeb733c33d23ab254c6e2dc9bb005435d9"
+    },
+    "schedules": [],
+    "function_name": "justhodl-earnings-pead",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "fanout_route": {
+    "manifest_key": "config/fanout-manifest.json",
+    "sha256": "decdf10e3114fef2919769327ad6c19a7041fb6f33f8b8b6a017a7ed03f086dd",
+    "bytes": 11573,
+    "etag": "\"a8b0d37b4f8e60d26597b7c0fd0f08a5\"",
+    "matching_ticks": [
+      "daily-08utc"
+    ],
+    "routes": [
+      {
+        "tick": "daily-08utc",
+        "kind": "EventBridge rule",
+        "name": "jhk-tick-daily-08utc",
+        "state": "ENABLED",
+        "expression": "cron(0 8 * * ? *)",
+        "timezone": "UTC"
+      }
+    ],
+    "router_code_sha256": "fIYL7j/Di8OpAhWWDKG3dnE9ay6kNjsWbe9tt72okZE=",
+    "router_sources_checked": 2
+  },
+  "account_reads": 0,
+  "consumer_output_reads": 0,
+  "current_archive_verified": true,
+  "expected_commit": "a986c0eeb733c33d23ab254c6e2dc9bb005435d9",
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "published_earnings_originals_replayed",
+    "bytes": 26344274,
+    "sha256": "c20adda3b2dacc836d8c95d11dd98dc26fe0043ba0c03b4befa2824b091bc5e2",
+    "generated_at": "2026-09-28T08:00:48.071710+00:00",
+    "version": "1.1.0",
+    "universe_occurrences": 5135,
+    "request_occurrences": 1500,
+    "event_observations": 3927,
+    "price_records": 37645,
+    "first_release_history_verified": false,
+    "independent_evidence": false,
+    "investment_authority": false
+  },
+  "private_state_reads": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Exact producer package; actual router code, selected Earnings fanout membership and enabled tick payload. Whole declared public packet and its own history only; no predictive qualification."
+}

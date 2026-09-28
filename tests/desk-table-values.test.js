@@ -35,6 +35,37 @@ function page(file,loader){
 }
 const raw=p=>({packet:p,raw:JSON.stringify(p)});
 
+function resumedEarnings(){
+ const selected=['TEST','TEST','LATER'].map(ticker=>({ticker})),keys=['TEST#0','TEST#1','LATER#0'];
+ return{measurement_contract:'earnings-event-observations.v1',universe_membership:{selected},
+  request_records:selected.map((member,i)=>({ticker:member.ticker,request_index:i,universe_member:member,
+   acquisitions:[{endpoint:'earnings',status:i===0?'received':i===1?'rate_limited':'not_attempted_runtime_rate_or_size_limit'}],event_observations:[],event_differences:[],price_coverage:{records:0}})),
+  acquisition_progress:{contract:'earnings-acquisition-progress.v1',planned_request_indices:[0,1,2],planned_occurrence_keys:keys,visited_request_indices:[0,1],
+   remaining_occurrence_keys:['LATER#0'],visited_occurrences:2,pending_occurrences:1,cycle_complete:false,stop_reason:'provider_rate_limit',schedule_accelerated:false,request_order_is_rank:false}};
+}
+
+test('earnings desk distinguishes returned data, visits and unattempted occurrences',async()=>{
+ const M=require('../jh-pead-observations.js'),p=resumedEarnings(),s=page('earnings-pead.html',async()=>raw(p));await flush();
+ assert.match(s.get('status').textContent,/1 \/ 3 selected request occurrences returned earnings data/);
+ assert.match(s.get('status').textContent,/1 not attempted; 1 other acquisition outcomes/);
+ assert.match(s.get('coverage').textContent,/1 request occurrences remain/);assert.match(s.get('coverage').textContent,/not simultaneous/);
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 selected requests occurrences/);
+ assert.match(s.get('board').innerHTML,/LATER/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+ const old=structuredClone(p);delete old.acquisition_progress;const c=M.coverage(old);
+ assert.equal(c.received,1);assert.equal(c.unattempted,1);assert.equal(c.pending,null);assert.match(M.coverageMessage(c),/older publication has no resumable progress/);
+});
+
+test('earnings acquisition progress corruption cannot imply complete coverage',async()=>{
+ const M=require('../jh-pead-observations.js');
+ for(const edit of [p=>p.acquisition_progress.pending_occurrences=0,p=>p.acquisition_progress.visited_request_indices=[true],
+  p=>p.acquisition_progress.planned_request_indices=[0,0,2],p=>p.acquisition_progress.remaining_occurrence_keys=[],
+  p=>p.request_records[2].acquisitions[0].status='received',p=>p.acquisition_progress.stop_reason='planned_window_complete']){
+  const p=resumedEarnings();edit(p);assert.throws(()=>M.coverage(p),/progress|outcomes/);
+ }
+ const p=resumedEarnings();p.acquisition_progress.pending_occurrences=0;const s=page('earnings-pead.html',async()=>raw(p));await flush();
+ assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('next').disabled,true);
+});
+
 test('price source desk preserves complete request, measurement, window and universe populations',async()=>{
  const M=require('../jh-price-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-compression-synthetic.json'),'utf8')),p=fixture.packet;
  const model=M.model(p);assert.equal(model.requests.length,2);assert.equal(model.measurements.length,26);assert.equal(model.windows.length,2);assert.equal(model.universe.length,3);
@@ -311,7 +342,7 @@ test('PEAD retains typed event amounts, full price responses, source coordinates
  const p={measurement_contract:M.CONTRACT,request_records:[record],all_qualifying:[{symbol:'IGNORE'}]},s=page('earnings-pead.html',async()=>raw(p));await flush();let h=s.get('board').innerHTML;
  assert.equal(s.calls[0],'/data/earnings-pead.json');assert.match(h,/2026-08-01/);assert.match(h,/JPY/);assert.match(h,/<td>0\.00<\/td>/);assert.match(h,/-1\.00/);assert.match(h,/200\.00/);assert.match(h,/&lt;img/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('IGNORE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
  s.get('mode').value='prices';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 received prices/);h=s.get('board').innerHTML;assert.match(h,/0\.00/);assert.match(h,/Unavailable/);assert.match(h,/original_base64/);assert.ok(!h.includes('<img'));
- s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 received requests/);assert.match(s.get('board').innerHTML,/historical-price-eod\/full: received/);assert.ok(!s.get('board').innerHTML.includes(body.toString('base64')));
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 selected requests/);assert.match(s.get('board').innerHTML,/historical-price-eod\/full: received/);assert.ok(!s.get('board').innerHTML.includes(body.toString('base64')));
  const header=s.get('board').headers.find(x=>x.dataset.k==='ticker');header.focus();header.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
  const many=M.model({...p,request_records:Array.from({length:501},()=>record)});assert.equal(many.events.length,501);assert.equal(many.prices.length,1503);
  assert.throws(()=>M.model({...p,request_records:null}),/Complete/);assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);

@@ -1,0 +1,30 @@
+{
+  "original_sources": {
+    "lambda_function.py": {
+      "bytes": 23617,
+      "sha256": "d025ed46a439b24fd7c45b91c4f238eb3c6a019cc6f202d640463ab269ffd48f",
+      "fixture": "tests/fixtures/pre-pead-resume-lambda_function.py.txt"
+    },
+    "pead_observations.py": {
+      "bytes": 12838,
+      "sha256": "2523ee0df43ed5308de7700cb475e99c08a052c784933d22862a67f3d8db0819",
+      "fixture": "tests/fixtures/pre-pead-resume-pead_observations.py.txt"
+    }
+  },
+  "public_packet_bytes": 26344274,
+  "public_packet_sha256": "c20adda3b2dacc836d8c95d11dd98dc26fe0043ba0c03b4befa2824b091bc5e2",
+  "observed_received_earnings": 32,
+  "observed_not_attempted_earnings": 1468,
+  "source_byte_stop": 8388608,
+  "defect": "Each invocation restarts its byte-limited loop at selected occurrence zero; later occurrences can starve indefinitely.",
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "private_state_reads": 0,
+  "investment_authority": false,
+  "read_only_original_packet_queue_replay": {
+    "next_original_request_index": 32,
+    "remaining_occurrences": 1468,
+    "all_remaining_indices_exact": true,
+    "provider_requests": 0
+  }
+}
