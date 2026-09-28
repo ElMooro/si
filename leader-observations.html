@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="jh-primary-engine" content="justhodl-momentum-leaders">
+<title>Selected price observations · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:820px;margin:0 0 14px}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th:hover{color:var(--fg)}th.on{color:var(--cyan)}
+td.l,th.l{text-align:left}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+#board{max-width:100%;overflow:auto}#board table{min-width:950px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+<style>button{padding:8px 12px;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}button:disabled{opacity:.5}button:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}#board td{text-align:left;vertical-align:top;max-width:390px;overflow-wrap:anywhere}#board table{min-width:1350px}#status,#coverage{margin:12px 0}#rows{color:var(--fg2)}details{margin:12px 0}</style>
+<style>select{padding:8px;margin:8px 12px 12px 0;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}select:focus-visible{outline:2px solid var(--cyan)}#board details{margin:0}#board td{min-width:90px;max-width:260px}a{color:var(--cyan)}input{width:100%}</style>
+<style>#board table{min-width:1500px}select{max-width:100%;width:100%;margin-right:0}</style></head><body><main class="wrap">
+<h1>Selected price observations</h1>
+<p class="sub">Dated price and volume measurements, complete original responses and explicit acquisition coverage. Inspect the original composite-selected population, dated changes, reported price gaps, volume and exact-date SPY comparisons.</p>
+<p id="status" role="status">Loading stored research…</p><p id="coverage" class="sub"></p>
+<label for="mode">Research population</label><br><select id="mode"><option value="requests">All acquisition outcomes / legacy occurrences</option><option value="measurements">Descriptive measurements and definitions</option><option value="windows">Selected observation windows</option><option value="universe">Complete original universe occurrences</option></select><br>
+<label for="q">Find a ticker, measurement or issue</label><br><input id="q" placeholder="Ticker, measurement or issue" autocomplete="off">
+<p id="rows" aria-live="polite"></p><button id="previous" type="button" disabled>Previous 100</button> <button id="next" type="button" disabled>Next 100</button>
+<div id="board" role="region" aria-label="Complete price research populations, paginated" tabindex="0">Loading /data/momentum-leaders.json</div>
+<section aria-label="Original source viewer"><h2>Original source viewer</h2><p id="source-status" role="status">Select an original in the table.</p><pre id="source-original" tabindex="0"></pre></section>
+<details><summary>Complete received packet and source-file identities</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Selection:</b> retain the original 60-name queue and all occurrences from Convergence Radar and Ticker Trends, including duplicate membership, excluded lists and acquisition failures. The current Ticker Trends v2 all_results field supplies its first 25 entries; legacy aliases remain separately recognized. Breakout remains excluded. This selected population is not a representative market sample; its composite ancestry is explicit.<br>
+<b>Window:</b> the original request spans 290 calendar days. Select at most 250 completed-date observations before validation. The reported maximum high carries its actual dates and count; it is not a 52-week high. No annual-high tag is manufactured.<br>
+<b>Measurements:</b> 5, 20 and 60 reported-observation price changes; latest volume divided by the preceding 20-observation mean, including real zeros; and the last three open-versus-prior-close pairs. Missing values and zero denominators stay unavailable.<br>
+<b>Benchmark:</b> SPY must contain both exact stock endpoint dates. Missing dates stay unavailable. Local-price differences are not verified total returns, executable excess returns or alpha.<br>
+<b>Clocks and authority:</b> currency, corporate actions, security continuity, exchange sessions, historical membership and first-release vintages remain unverified. Related OHLCV transforms are one evidence family. No composite rank, score, pump confirmation, investment call or position size is produced. Legacy rankings remain inspectable as unqualified records.<br>
+<b>Evidence:</b> whole source bytes and SHA-256 are verified before inert display. Every selection-source outcome, SPY request and selected ticker is inspectable. Current and previous packets retain immutable history. <a href="https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full">FMP price and volume documentation</a>.</div>
+</main><script src="/jh-table-values.js?v=leader-observations-v1"></script><script src="/jh-leader-observations.js?v=leader-observations-v1"></script><script>JHLeaderObservations.start();</script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/sidebar.js" defer></script>
+</body></html>

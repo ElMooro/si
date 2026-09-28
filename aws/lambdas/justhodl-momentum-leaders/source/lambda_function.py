@@ -388,7 +388,7 @@ def derive_tags(dossier: dict, score: float, in_pump_candidates: bool) -> List[s
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[momentum] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -533,3 +533,146 @@ def _write_error(message: str, **extras) -> dict:
     except Exception: pass
     print(f"[momentum] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+
+# Whole predecessor remains above. The active handler publishes dated observations only.
+from pathlib import Path
+import threading
+from leader_price_observations import (CONTRACT,HEAD,FLAGS,INPUTS,sha,encode,strict,clock,
+    symbol,endpoint,source_ref,validate_ref,content,universe,history,build)
+
+def _leaders_source_identity():
+    root=Path(__file__).resolve().parent
+    paths={name:root/name for name in ('lambda_function.py','leader_price_observations.py','momentum_research_boundary.py')}
+    if not paths['momentum_research_boundary.py'].exists():
+        paths['momentum_research_boundary.py']=root.parents[2]/'shared/momentum_research_boundary.py'
+    return {name:{'bytes':len(raw),'sha256':sha(raw)} for name,path in paths.items() for raw in [path.read_bytes()]}
+
+def _leaders_object(key,bound):
+    obj=s3.get_object(Bucket=S3_BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole versioned declared object required')
+    return raw,obj['ETag']
+
+def _leaders_immutable(key,raw):
+    try:s3.put_object(Bucket=S3_BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType='application/json',CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    if _leaders_object(key,len(raw))[0]!=raw:raise ValueError('Whole immutable readback differs')
+
+def _leaders_archive(raw):
+    ref={'key':'data/momentum-leaders/history/'+sha(raw)+'.json','bytes':len(raw),'sha256':sha(raw)}
+    _leaders_immutable(ref['key'],raw);return ref
+
+class _LeadersSources:
+    def __init__(self):self.raw={};self.bytes=0;self.lock=threading.Lock();self.stop=threading.Event()
+    def capture(self,raw,url,requested_at):
+        ref=source_ref(raw)
+        with self.lock:
+            if ref['key'] not in self.raw:
+                if self.bytes+len(raw)>160*1024*1024:raise ValueError('Whole source retention budget exceeded; preserve current')
+                _leaders_immutable(ref['key'],raw);self.raw[ref['key']]=raw;self.bytes+=len(raw)
+        return {'status':'received','endpoint':url,'requested_at':requested_at,
+            'received_at':datetime.now(timezone.utc).isoformat(),'original_ref':ref}
+
+def _leaders_fetch(ticker,sources,remaining):
+    if symbol(ticker) is None:return {'status':'invalid_symbol_not_requested'}
+    url=endpoint(ticker);base={'endpoint':url,'status':'not_attempted_runtime_rate_or_size_limit'}
+    if remaining()<60 or sources.bytes>=96*1024*1024 or sources.stop.is_set():return base
+    if not FMP_KEY:return {**base,'status':'credential_unavailable'}
+    requested=datetime.now(timezone.utc).isoformat()
+    to=clock(requested).date();window={'from':(to-timedelta(days=290)).isoformat(),'to':to.isoformat()}
+    request_url=url+'&from='+window['from']+'&to='+window['to']
+    base['request_window']=window
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        req=urllib.request.Request(request_url,headers={'apikey':FMP_KEY,'User-Agent':'JustHodl-Leader-Observations/1.0','Accept-Encoding':'identity'})
+        try:response=urllib.request.build_opener(NoRedirect()).open(req,timeout=15)
+        except urllib.error.HTTPError as exc:response=exc
+        with response:status=response.status;raw=response.read(8*1024*1024+1)
+    except Exception as exc:
+        return {**base,'status':'transport_unavailable','requested_at':requested,'received_at':datetime.now(timezone.utc).isoformat(),'error_type':type(exc).__name__}
+    if status in (401,403,429):sources.stop.set()
+    result={**base,'http_status':status,'requested_at':requested,'received_at':datetime.now(timezone.utc).isoformat()}
+    if len(raw)>8*1024*1024:return {**result,'status':'response_exceeds_bound','original_retained':False}
+    reflected=FMP_KEY.encode() in raw
+    try:decoded=json.loads(raw)
+    except (ValueError,UnicodeError,RecursionError):decoded=None
+    pending=[decoded]
+    while pending and not reflected:
+        value=pending.pop()
+        if isinstance(value,str):reflected=FMP_KEY in value
+        elif isinstance(value,dict):pending.extend(value.keys());pending.extend(value.values())
+        elif isinstance(value,list):pending.extend(value)
+    if reflected:return {**result,'status':'credential_echo_withheld','original_retained':False}
+    # Whole retention failures propagate; they cannot become a successful empty response.
+    out=sources.capture(raw,url,requested);out['http_status']=status;out['request_window']=window;return out
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc)
+    if OUTPUT_KEY!=HEAD or MAX_UNIVERSE!=60 or LOOKBACK_DAYS!=90:raise ValueError('Original output, population and lookback controls required')
+    try:previous_raw,etag=_leaders_object(HEAD,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('404','NoSuchKey'):raise
+        previous_raw=None;etag=None
+    previous=strict(previous_raw) if previous_raw is not None else None
+    if previous is not None and not isinstance(previous,dict):raise ValueError('Malformed previous publication')
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous publication clock invalid')
+    def remaining():
+        own=240-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    sources=_LeadersSources();captures={}
+    for key in INPUTS:
+        requested=datetime.now(timezone.utc).isoformat()
+        try:raw,source_etag=_leaders_object(key,8*1024*1024)
+        except Exception as exc:
+            captures[key]={'endpoint':key,'status':'selection_source_unavailable','error_type':type(exc).__name__,
+                'requested_at':requested,'received_at':datetime.now(timezone.utc).isoformat()}
+            continue
+        captures[key]=sources.capture(raw,key,requested);captures[key]['etag']=source_etag
+    membership=universe(captures,sources.raw,MAX_UNIVERSE);selected=membership['selected']
+    if not selected and not any(r['status']=='parsed_public_selection_source' and not r.get('shape_issues') for r in membership['input_outcomes']):
+        raise ValueError('No usable selection sources; preserve current publication')
+    benchmark_attempt=_leaders_fetch('SPY',sources,remaining) if selected else {'endpoint':endpoint('SPY'),'status':'not_requested_no_selected_tickers'}
+    attempts=[{'status':'invalid_symbol_not_requested'} if symbol(m['ticker']) is None else {'endpoint':endpoint(m['ticker']),'status':'not_attempted_runtime_rate_or_size_limit'} for m in selected]
+    stock_started=time.monotonic()
+    def acquisition_remaining():return min(remaining(),180-(time.monotonic()-stock_started))
+    workers=4
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if acquisition_remaining()<60 or sources.bytes>=96*1024*1024 or sources.stop.is_set():break
+            jobs=[]
+            for i in range(offset,min(offset+workers,len(selected))):
+                if selected[i]['ticker']=='SPY':attempts[i]=benchmark_attempt
+                else:jobs.append((i,pool.submit(_leaders_fetch,selected[i]['ticker'],sources,acquisition_remaining)))
+            for i,future in jobs:attempts[i]=future.result()
+    finished=datetime.now(timezone.utc).isoformat()
+    research=build(captures,attempts,sources.raw,finished,MAX_UNIVERSE,benchmark_attempt)
+    if selected and not any(r['observations']['status'] in ('parsed_completed_observations','reported_empty_history','unresolved_identity_or_window','no_completed_observations') for r in research['request_records']):
+        raise ValueError('No received market observations; preserve current')
+    prior_ref=_leaders_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-momentum-leaders','version':'2.0.0','schema_version':'2.0','measurement_contract':CONTRACT,
+        'status':'RESEARCH_ONLY','method':'composite_selected_dated_price_observations','generated_at':finished,'acquisition_started_at':checked.isoformat(),
+        'source_files':_leaders_source_identity(),'input_acquisitions':captures,'previous_publication':prior_ref,
+        'acquisition_limits':{'MAX_UNIVERSE':60,'LOOKBACK_DAYS':90,'request_calendar_span':290,'original_configured_workers':8,
+                              'active_workers':workers,'stock_acquisition_budget_seconds':120,'publication_budget_seconds':240},
+        'retained_unique_source_bytes':sources.bytes,**research,'momentum_research_exclusion':momentum_exclusion(),
+        'leaders':[],'pump_confirmed':[],'all_scored':[],'n_scored':None,'n_leaders':None,'n_pump_confirmed':None,
+        'lookback_days':LOOKBACK_DAYS,'metadata':{'universe_size':len(selected),'universe_sources':list(INPUTS),
+            'spy_perf_20d':None,'spy_perf_60d':None,'scoring_weights':{},'tag_definitions':{}},
+        'call':None,**FLAGS,'signals_logged':0,'notifications_sent':0,'elapsed_sec':round(time.monotonic()-started,2),
+        'source_documentation':['https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full'],
+        'caveats':['Every received source is retained whole, with dated coordinates, original selected-universe ancestry and failed/unattempted outcomes.',
+            'The original 290-calendar-day request cannot establish a 52-week high. Available-window maxima carry actual dates, counts and scope.',
+            'Missing benchmark endpoints and price windows remain unavailable. Zero historical volume remains in the denominator; no warm-container price cache is reused.',
+            'No composite score, percentile leadership, pump confirmation, call, position size or execution authority is produced.',
+            'Corporate actions, currency, exchange calendars, total returns, first-release vintages, historical membership and forecast performance remain unverified.']}
+    raw=encode(packet)
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve current')
+    archive=_leaders_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    s3.put_object(Bucket=S3_BUCKET,Key=HEAD,Body=raw,ContentType='application/json',CacheControl='public, max-age=600',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(selected),'archive':archive})}

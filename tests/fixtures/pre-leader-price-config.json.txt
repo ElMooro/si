@@ -4,7 +4,7 @@
   "timeout": 300,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Dated source-backed price observations for the original composite-selected population. Exact SPY dates, complete source history, no score or sizing authority. Original hourly :25 cadence.",
+  "description": "Pure momentum ranker: 30 perf_20d_rank + 25 perf_60d_rank + 20 RS_SPY + 15 wk52_proximity + 10 vol_surge. Tags AT_52W_HIGH, RS_LEADER, ACCELERATING, PUMP_CONFIRMED. Hourly :25.",
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-momentum-leaders-hourly",

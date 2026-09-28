@@ -49,7 +49,7 @@
  }
  // A validation grammar, not a list of consumed feeds. Each caller owns its
  // literal source binding; merely importing this helper requests nothing.
- const PUBLIC_PATHS=/^\/data\/(?:earnings-quality|hiring-velocity|estimate-revisions|eps-revision-velocity|revenue-acceleration|earnings-pead|microcap-float-squeeze|options-flow-scanner|activist-filings|volatility-squeeze|momentum-breakout|8k-filings|10kq-filings|sec-filings-intel|capex-pulse|backlog|buyback-engine|inventory-drawdown|canary-macro|scarcity-radar)\.json$/;
+ const PUBLIC_PATHS=/^\/data\/(?:earnings-quality|hiring-velocity|estimate-revisions|eps-revision-velocity|revenue-acceleration|earnings-pead|microcap-float-squeeze|options-flow-scanner|activist-filings|volatility-squeeze|momentum-breakout|momentum-leaders|8k-filings|10kq-filings|sec-filings-intel|capex-pulse|backlog|buyback-engine|inventory-drawdown|canary-macro|scarcity-radar)\.json$/;
  async function load(path,options={}){
   if(typeof path!=='string'||!PUBLIC_PATHS.test(path))throw Error('Unreviewed public desk path');
   const controller=new AbortController();let timer,reader;

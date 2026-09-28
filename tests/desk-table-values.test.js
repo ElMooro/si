@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,TextDecoder,atob,Uint8Array,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-leader-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-leader-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-momentum-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-momentum-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-price-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-price-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-activist-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-activist-observations.js'),'utf8'),ctx);
@@ -423,6 +424,39 @@ test('option native page exposes every contract, bar, request, daily ratio and F
  assert.throws(()=>M.model({...p,request_records:[{acquisitions:{}}]}),/Incomplete/);
 });
 
+
+test('selected leader price observations retain acquisition ancestry and unavailable annual windows',async()=>{
+ const M=require('../jh-leader-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/leader-price-synthetic.json'),'utf8')),p=fixture.packet;
+ const model=M.model(p);assert.equal(model.requests.length,4);assert.equal(model.windows.length,2);assert.equal(model.universe.length,3);assert.equal(model.measurements.length,9);
+ assert.equal(model.measurements.find(r=>r.name==='fifty_two_week_high').value,null);
+ const s=page('leader-observations.html',async()=>raw(p));await flush();assert.equal(s.calls[0],'/data/momentum-leaders.json');assert.equal(s.get('original').textContent,JSON.stringify(p));
+ for(const [mode,n]of [['measurements',9],['windows',2],['universe',3]]){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(n+' received '+mode));}
+ s.get('mode').value='measurements';s.get('mode').onchange();const head=s.get('board').headers.find(x=>x.dataset.k==='value');head.focus();head.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'value');
+ for(const field of ['calls_eligible','sizing_eligible','execution_eligible'])assert.throws(()=>M.model({...p,[field]:true}),/permissions/);
+ const missing=structuredClone(p);delete missing.input_acquisitions['data/ticker-trends.json'];assert.throws(()=>M.model(missing),/outcomes/);
+ const wrong=structuredClone(p);wrong.input_acquisitions['data/ticker-trends.json'].original_ref.key='private/accounts.json';assert.throws(()=>M.model(wrong),/source identity/);
+ const unsafe=structuredClone(p);unsafe.universe_membership.occurrences[0].category='<img src=x onerror=alert(1)>';
+ const escaped=page('leader-observations.html',async()=>raw(unsafe));await flush();escaped.get('mode').value='universe';escaped.get('mode').onchange();assert.match(escaped.get('board').innerHTML,/&lt;img/);assert.ok(!escaped.get('board').innerHTML.includes('<img'));
+});
+
+test('selected leader legacy populations paginate fully and whole originals verify by hash',async()=>{
+ const M=require('../jh-leader-observations.js'),p={all_scored:Array.from({length:201},(_,i)=>({ticker:'T'+i,momentum_score:99})),leaders:[{ticker:'T0'}],pump_confirmed:[]};
+ const s=page('leader-observations.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/202 received/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/202 matching/);
+ const fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/leader-price-synthetic.json'),'utf8')),ref=fixture.packet.input_acquisitions['data/convergence-radar.json'].original_ref,body=Buffer.from(fixture.sources[ref.key]);
+ assert.equal((await M.loadSource(ref,{fetcher:async()=>new Response(body)})).raw,body.toString());
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(body.subarray(0,4))}),/byte count/);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(Buffer.alloc(body.length,97))}),/SHA-256/);
+ assert.ok(api.PUBLIC_PATHS.test('/data/momentum-leaders.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/momentum-leaders-state.json'));
+ const f=page('leader-observations.html',async()=>{throw Error('HTTP 403');});await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');
+});
+
+test('pre-pump selected-price component abstains without fetching legacy ranks',()=>{
+ const html=fs.readFileSync(path.join(root,'pre-pump-radar.html'),'utf8');
+ const active=html.split('function renderMomentumPanel(){')[1].split('function _legacy_renderMomentumPanel(){')[0];
+ assert.match(active,/href="\/leader-observations.html"/);assert.ok(!active.includes('momentum_score'));assert.ok(!html.includes('fetch(MOMENTUM_URL'));
+ const predecessor=fs.readFileSync(path.join(root,'tests/fixtures/pre-leader-price-pre-pump-radar.html.txt'),'utf8');assert.ok(predecessor.includes('fetch(MOMENTUM_URL'));assert.ok(predecessor.includes('The Actual Movers'));
+});
 
 test('momentum observations expose matched benchmark sources and every selected occurrence',async()=>{
  const M=require('../jh-momentum-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/momentum-price-synthetic.json'),'utf8')),p=fixture.packet;

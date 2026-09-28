@@ -1057,8 +1057,8 @@ a:hover{color:var(--violet)}
   <!-- Momentum Leaders -->
   <div class="momentum-panel" id="mom-panel">
     <div class="panel-hdr">
-      <h3>Selected price research</h3>
-      <div class="sub">Dated price and volume observations · explicit selected-universe ancestry · no score or investment vote</div>
+      <h3>🚀 Momentum Leaders — The Actual Movers</h3>
+      <div class="sub">composite: 30 perf_20d_rank + 25 perf_60d_rank + 20 RS_SPY + 15 wk52_proximity + 10 vol_surge</div>
     </div>
     <div id="mom-content"><div class="edge-empty">loading momentum…</div></div>
   </div>
@@ -1659,7 +1659,7 @@ async function load(){
       fetch(PAIRS_URL + "?t=" + Date.now()).catch(() => null),
       fetch(NLP_URL + "?t=" + Date.now()).catch(() => null),
       fetch(BRIEF_URL + "?t=" + Date.now()).catch(() => null),
-      Promise.resolve(null) /* Ranked Momentum Leaders abstains; source desk retains observations. */,
+      fetch(MOMENTUM_URL + "?t=" + Date.now()).catch(() => null),
       fetch(EARLY_URL + "?t=" + Date.now()).catch(() => null),
       fetch(THEMES_URL + "?t=" + Date.now()).catch(() => null),
       fetch(CATALYSTS_URL + "?t=" + Date.now()).catch(() => null),
@@ -2089,10 +2089,6 @@ function renderAggressivePanel(){
 
 // ─── Momentum Leaders ───────────────────────────────────────────────
 function renderMomentumPanel(){
-  const el=document.getElementById('mom-content');
-  el.innerHTML='<p>Momentum Leaders is a selected price-research population. Its legacy score, annual-high tags and pump confirmations are unqualified. <a href="/leader-observations.html">Inspect complete source observations, dates and coverage</a>. No investment vote is supplied here.</p>';
-}
-function _legacy_renderMomentumPanel(){
   const el = document.getElementById('mom-content');
   if (!MOMENTUM || MOMENTUM.status === "error" || !MOMENTUM.leaders) {
     el.innerHTML = '<div class="edge-empty">⏳ Momentum-leaders Lambda loading — runs hourly at :25 UTC.</div>';

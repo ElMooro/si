@@ -2,5 +2,6 @@
 from pathlib import Path
 import sys,unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[4]/'tests/ops'))
-from test_momentum_price_consumers import Tests
+from test_momentum_price_consumers import Tests as BoundaryTests
+from test_leader_price_candidate import Tests as CandidateTests
 if __name__=='__main__':unittest.main(verbosity=2)
