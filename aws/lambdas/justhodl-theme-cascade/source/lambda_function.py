@@ -22,10 +22,10 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import boto3
-from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+# Legacy notification credential resolver is not initialized by the evidence producer.
 
 S3_BUCKET = "justhodl-dashboard-live"
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = None  # Original source helpers retained, inactive in the evidence writer.
 
 
 def _read_json(key: str) -> Optional[dict]:
@@ -522,7 +522,7 @@ def scan_laggards_in_hot_themes(momentum: dict, theme_index: dict,
     return laggards
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[theme-cascade] starting at {datetime.now(timezone.utc).isoformat()}")
 
@@ -744,3 +744,88 @@ def lambda_handler(event, context):
             ],
         }),
     }
+
+
+# Deterministic context/roster evidence; no native learning or notification path.
+from pathlib import Path
+from botocore.config import Config
+import context_evidence_store
+import cascade_evidence
+import provider_flow_research
+import provider_flow_catalog
+from context_evidence_store import ContextStore,encode,code,now
+
+
+def _get_telegram_config(*args,**kwargs):
+    raise RuntimeError('Notification configuration is not read by the evidence producer')
+
+
+def _send_telegram_html(*args,**kwargs):
+    raise RuntimeError('Notifications disabled for the evidence producer')
+
+
+def deliver_telegram_alerts(*args,**kwargs):
+    raise RuntimeError('Notifications disabled for the evidence producer')
+
+
+def _cascade_read_macro(client):
+    # Exactly the original macro input, not an arbitrary nested source path.
+    obj=client.get_object(Bucket=S3_BUCKET,Key='macro/regime.json');stream=obj['Body']
+    try:raw=stream.read(context_evidence_store.MAX_BYTES+1)
+    finally:stream.close()
+    if len(raw)>context_evidence_store.MAX_BYTES or type(obj.get('ContentLength')) is not int or obj['ContentLength']!=len(raw):
+        raise ValueError('Whole original macro context required')
+    return raw,obj
+
+
+def lambda_handler(event,context):
+    started=time.monotonic();started_at=now()
+    try:
+        here=Path(__file__).resolve().parent
+        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=4,retries={'max_attempts':0}))
+        paths={'lambda_function.py':here/'lambda_function.py','cascade_evidence.py':here/'cascade_evidence.py',
+            'context_evidence_store.py':Path(context_evidence_store.__file__),
+            'provider_flow_research.py':Path(provider_flow_research.__file__),'provider_flow_catalog.py':Path(provider_flow_catalog.__file__)}
+        root_inputs={name:key for name,key in cascade_evidence.INPUTS.items() if name!='macro'}
+        store=ContextStore(client,S3_BUCKET,cascade_evidence.HEAD,root_inputs,cascade_evidence.PRIVATE,cascade_evidence.CONTRACT,paths,
+            acquisition_budget_s=30,publication_budget_s=42)
+        try:previous,meta=store.read(cascade_evidence.HEAD)
+        except Exception as exc:
+            if code(exc) not in ('NoSuchKey','404'):raise
+            previous_ref=None;etag=None
+        else:
+            etag=meta.get('ETag')
+            if not isinstance(etag,str) or not etag:raise ValueError('Prior head identity required')
+            previous_ref=store.retain(previous,'outputs')
+        attempts={};sources={};total=0
+        for name,key in cascade_evidence.INPUTS.items():
+            if time.monotonic()-started>30:raise ValueError('Acquisition budget exhausted')
+            requested=now()
+            try:raw,meta=_cascade_read_macro(client) if name=='macro' else store.read(key)
+            except Exception:
+                attempts[name]={'source_key':key,'status':'source_read_unavailable','requested_at':requested,'received_at':now()};continue
+            received=now();total+=len(raw)
+            if total>context_evidence_store.MAX_TOTAL:raise ValueError('Whole aggregate source bound exceeded')
+            ref=store.retain(raw,'sources');sources[ref['key']]=raw
+            attempts[name]={'source_key':key,'status':'received','requested_at':requested,'received_at':received,
+                'original_ref':ref,'content_encoding':str(meta.get('ContentEncoding') or '').strip().lower()}
+        generated=now();packet=cascade_evidence.build(attempts,sources,generated)
+        compilers={name:store.retain(Path(path).read_bytes(),'compilers') for name,path in paths.items()}
+        manifest={'contract':cascade_evidence.CONTRACT,'acquisition_started_at':started_at,'generated_at':generated,
+            'attempts':attempts,'excluded_source':{'key':cascade_evidence.EXCLUDED,'status':'not_read_existing_flow_exclusion'},
+            'previous_publication':previous_ref,'source_files':compilers,'stored_source_bytes':total,
+            'limits':{'per_source_bytes':context_evidence_store.MAX_BYTES,'aggregate_source_bytes':context_evidence_store.MAX_TOTAL,
+                'acquisition_budget_s':30,'publication_budget_s':42}}
+        packet['replay']={'input_ref':store.retain(encode(manifest),'inputs'),'source_files':compilers,'previous_publication':previous_ref,'originals_public':False}
+        packet['acquisition_started_at']=started_at;body=encode(packet);ref=store.retain(body,'outputs')
+        if time.monotonic()-started>42:raise ValueError('Publication budget exhausted')
+        condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
+        try:client.put_object(Bucket=S3_BUCKET,Key=cascade_evidence.HEAD,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
+        except Exception as exc:raise context_evidence_store.PublicationUncertain(cascade_evidence.HEAD) from exc
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':cascade_evidence.CONTRACT,
+            'generated_at':generated,'output_sha256':ref['sha256'],'call':'WAIT','model_requests':0,'notifications_sent':0,'alert_state_writes':0})}
+    except Exception as exc:
+        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
+            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted','preservation_scope':'this_attempt_only',
+            'error':'Complete acquisition, validation, retention or conditional publication failed','model_requests':0,'notifications_sent':0,'alert_state_writes':0})}

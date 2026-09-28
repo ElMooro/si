@@ -621,7 +621,6 @@ a:hover{color:var(--violet)}
 </style>
 <script src="/jh-positioning-observations.js?v=20260928"></script>
 <script src="/jh-volume-observations.js?v=20260928"></script>
-<script src="/jh-theme-cascade-evidence.js?v=20260928"></script>
 </head>
 <body>
 <div class="wrap">
@@ -977,14 +976,14 @@ a:hover{color:var(--violet)}
        highest-probability next-pump candidates. -->
   <div class="theme-cascade-hero" id="theme-cascade-hero" style="display:none; background:linear-gradient(135deg, rgba(56,255,168,.08), rgba(255,177,61,.06), rgba(0,212,255,.04), transparent); border:1px solid var(--border); border-left:4px solid var(--green); border-radius:10px; padding:18px 22px; margin-bottom:24px">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px">
-      <h2 style="margin:0; font-size:17px; color:var(--fg-1)">Theme Cascade · Source evidence
+      <h2 style="margin:0; font-size:17px; color:var(--fg-1)">🌊 Theme Cascade · Hot Themes × Accumulation × ETF Flow
         <span style="font-family:var(--font-mono); font-size:10px; color:var(--green); background:rgba(56,255,168,.18); padding:2px 8px; border-radius:3px; margin-left:8px; letter-spacing:1.5px">SYNTHESIS</span>
       </h2>
       <span id="theme-cascade-age" style="font-family:var(--font-mono); font-size:10.5px; color:var(--fg-3)">—</span>
     </div>
     <div style="color:var(--fg-2); font-size:12.5px; line-height:1.55; margin-bottom:14px">
-      Inspect reported theme and constituent memberships, their source coordinates and repeated occurrences.
-      Forecasts, rankings and allocations remain unqualified until independent evidence, dated histories and portfolio assumptions support them.
+      <b style="color:var(--green)">Theme rotation thesis</b>: when capital flows into a theme (AI semis), leaders pump first (NVDA/AVGO), then <b>laggards pump in sympathy</b>. This score combines theme heat × ticker accumulation × cross-ETF $$ flow.
+      Formula: <code style="color:var(--cyan); background:var(--bg-sunken); padding:1px 4px; border-radius:2px">combined = base × theme_mult × flow_mult</code>
     </div>
     <div id="theme-cascade-content"></div>
   </div>
@@ -1404,9 +1403,8 @@ function renderValidation(doc) {
 
 // Fetch + render Theme Cascade (theme rotation thesis)
 async function fetchThemeCascade() {
-  renderThemeCascade(null);
   try {
-    const r = await fetch(THEME_CASCADE_URL + "?exact=1&nogen=1&t=" + Date.now());
+    const r = await fetch(THEME_CASCADE_URL + "?t=" + Date.now());
     if(!r.ok) return;
     const doc = await r.json();
     renderThemeCascade(doc);
@@ -1416,12 +1414,6 @@ async function fetchThemeCascade() {
 }
 
 function renderThemeCascade(doc) {
-  document.getElementById('theme-cascade-hero').style.display='block';
-  document.getElementById('theme-cascade-content').innerHTML=JHCascadeEvidence.render(doc);
-  document.getElementById('theme-cascade-age').textContent='Research only';
-}
-
-function _legacy_renderThemeCascade(doc) {
   const alertTier = doc.alert_tier || [];
   const mediumTier = doc.medium_tier || [];
   const topThemes = (doc.top_hot_themes || []).slice(0, 8);

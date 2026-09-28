@@ -9,6 +9,7 @@ sys.path[:0] = [str(ROOT / 'aws/shared'), str(ROOT / 'aws/shared/tests')]
 import provider_flow_research as boundary
 import provider_flow_model as model
 import provider_flow_store as store
+import momentum_research_boundary as momentum_boundary
 from test_provider_flow_store import Storage, source_fixture
 
 CANARY = {'generated_at': '2026-09-21T06:00:00Z', 'calls_eligible': True,
@@ -123,8 +124,10 @@ class FlowBoundaries(unittest.TestCase):
                 self.assertEqual(ns[name], {})
 
     def test_actual_ranker_and_desk_abstain_without_counting_a_neutral_vote(self):
-        health = []; f = actual('master-ranker', 'fetch_json', {'_FEED_HEALTH': health})
+        health = []; f = actual('master-ranker', 'fetch_json', {'_FEED_HEALTH': health,
+            'MOMENTUM_SOURCE': momentum_boundary.DIRECT, 'momentum_exclusion': momentum_boundary.exclusion})
         self.assertIsNone(f('data/flow-lookthrough.json')); self.assertFalse(health[0]['used'])
+        self.assertEqual(f(momentum_boundary.DIRECT),momentum_boundary.exclusion());self.assertFalse(health[1]['used'])
         client = Client(); f = actual('quantum-desk', 'read_source',
             dict(LOCAL_DIR=None, s3=client, BUCKET='b', json=json, _now=lambda: datetime.now(timezone.utc)))
         doc, meta = f('etf_flows', {'key': 'etf-flows/daily.json', 'max_age_h': 40})
