@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 7.5s  
+**Finished:** 2026-09-28T13:57:02+00:00  
+
+## Data
+
+| account_reads | acquired_original | actual_runtime | consumer_reads | native_invocations | own_acquisition_journal | privacy | provider_requests | public_writes | schedule_changes | scope | system_reports |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | {'original': {'bytes': 10150912, 'key': 'audit-private/20260909-originals/term-premium-research/0875a289a00e593b0fdfc6cd6d67b8059779719bb671275f8af69d7ef888a9ac.bin', 'sha256': '0875a289a00e593b0fdfc6cd6d67b8059779719bb671275f8af69d7ef888a9ac'}, 'whole_original_hash_verified': True} | {'code_sha256': 'WCNv0NgyuziaTIk6TZpe0P4NHubUR3Jl0U2qEe5vNT8=', 'source_files_checked': 23, 'handler_bytes': 1359, 'timeout': 120, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': 'bdfd0c10bcafd6d41e47f59512057c7f928d9b45'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-acm-daily', 'state': 'ENABLED', 'expression': 'cron(45 13 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-term-premium', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} | 0 | 0 | {'status': 'acquisition_attempted', 'started_at': '2026-09-28T13:45:15.369949+00:00', 'provider_request_attempts': 1, 'key': 'audit-private/20260909-originals/term-premium-research/requests/13098c191a84e04aaeb1ab00734aba410c525aa93d31ca5e6cfa9c5bf3a17233.json', 'bytes': 359, 'sha256': '53ca789bc1b3df105c095c8f64c992191b441975f86cf3328440cbf695522a6c', 'last_modified': '2026-09-28T13:45:18+00:00'} | {'protected_paths_checked': 2, 'anonymous_origins_checked': 4, 'attempt_outcome_counts': {'404': 2, '403': 2}, 'all_denied': True, 'failures': []} | 0 | 0 | 0 | Only this public producer package, its latest own acquisition journal/original, and system REPORT records in its ten-minute scheduled execution window. No application log bodies or consumer outputs. | [{'request_id': '840eef48-29fa-4f2a-b45b-cd10924ec698', 'timestamp_ms': 1790603234916, 'duration_ms': 120000.0, 'billed_duration_ms': 120376.0, 'memory_mb': 512.0, 'max_memory_mb': 271.0, 'status': 'timeout'}, {'request_id': '840eef48-29fa-4f2a-b45b-cd10924ec698', 'timestamp_ms': 1790603302771, 'duration_ms': 730.16, 'billed_duration_ms': 731.0, 'memory_mb': 512.0, 'max_memory_mb': 104.0}, {'request_id': '840eef48-29fa-4f2a-b45b-cd10924ec698', 'timestamp_ms': 1790603416090, 'duration_ms': 158.09, 'billed_duration_ms': 159.0, 'memory_mb': 512.0, 'max_memory_mb': 105.0}] |
+
+## Log
+
