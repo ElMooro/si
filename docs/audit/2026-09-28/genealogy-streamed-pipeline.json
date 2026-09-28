@@ -1,0 +1,198 @@
+{
+  "status": "complete_fixed_original_population_and_streamed_artifacts_accepted",
+  "source_commit": "66eeae003cdf12793dd9e952d4dd2013d4179e1a",
+  "operation": 6313,
+  "run": 36484631705,
+  "report_commit": "59e6d490bd29c0e27edc3392b1d90bccd8ff95c0",
+  "evidence": {
+    "actual_aws_writes": 0,
+    "downstream_output_reads": 0,
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "passes": [
+      {
+        "pass": "cold_originals",
+        "computation": {
+          "contract": "genealogy-streamed-computation.v1",
+          "cutoff": "2026-09-28T18:48:09.350067+00:00",
+          "files": {
+            "inputs": {
+              "file": "inputs.json",
+              "bytes": 27587539,
+              "sha256": "aa2f9c68d0f3fd9a9e5da65ef465bc2648f61c21b6e258df1e045c3ee313fe9f"
+            },
+            "output": {
+              "file": "output.json",
+              "bytes": 8268319,
+              "sha256": "6b37529b9ca7d1b04c85fbbf4a3bfe973a50a103de2024e04b9003cd6ddf823f"
+            },
+            "head": {
+              "file": "head.json",
+              "bytes": 30148,
+              "sha256": "6384acf06c568659ea888fdafb7fccc1df6178902ceab2720fa0a5134a867c48"
+            },
+            "membership": {
+              "file": "membership.json",
+              "bytes": 892773,
+              "sha256": "a1b1500fa1490c3f671890bbe327b7882ef87855770f1bebfea8e7026a1e3a1d"
+            }
+          },
+          "timing": {
+            "complete_output_sha256": "a1b1500fa1490c3f671890bbe327b7882ef87855770f1bebfea8e7026a1e3a1d",
+            "output_bytes": 892773,
+            "input_contexts_sha256": "f2f0bc9dc3b70d6c1a959cff15ae949068e1c1f2d9465e9b709a9310bf72ec06",
+            "capture_count": 251,
+            "source_count": 247,
+            "first_observed_groups": 333,
+            "possible_comparisons": 55,
+            "comparison_status_counts": {
+              "a_observed_presence_before_b_bounded_entry": 29,
+              "unresolved_prior_observation_missing": 25,
+              "b_observed_presence_before_a_bounded_entry": 1
+            },
+            "database_bytes": 60923904,
+            "scope": "Complete validated input iterator, disk-backed ordering and full canonical output. Original-body validation and durable incremental caching are separate required boundaries."
+          },
+          "coverage": {
+            "captures": 251,
+            "complete_capture_scans": 46,
+            "partial_capture_scans": 205,
+            "registered_records": 3305,
+            "retained_records": 1286,
+            "excluded_records": 2019,
+            "ineligible_source_snapshots": 15096,
+            "identity_partial_source_snapshots": 1010,
+            "first_observed_groups": 333,
+            "possible_comparisons": 55
+          },
+          "comparison_status_counts": {
+            "a_observed_presence_before_b_bounded_entry": 29,
+            "b_observed_presence_before_a_bounded_entry": 1,
+            "unresolved_prior_observation_missing": 25
+          },
+          "context_database_bytes": 22028288,
+          "artifact_byte_limit": 67108864,
+          "native_deployed": false,
+          "calls_eligible": false,
+          "sizing_eligible": false
+        },
+        "aws_body_reads": 3557,
+        "aws_body_bytes": 129773477,
+        "cache": {
+          "hits": 0,
+          "misses": 3557,
+          "invalidated": 0,
+          "evicted": 0,
+          "entries": 3557,
+          "compressed_bytes": 20338486,
+          "compressed_byte_budget": 50331648,
+          "entry_budget": 10000
+        },
+        "revision_inventory_sha256": "137ff3a3c3920e4ecbbda8c79bf6c80c0f206ef7acaa9e6143fce2815b09f188",
+        "metadata_reconciled_before_and_after": true,
+        "seconds": 84.32,
+        "single_computation_disk_bytes": 142813807
+      },
+      {
+        "pass": "reopened_cache",
+        "computation": {
+          "contract": "genealogy-streamed-computation.v1",
+          "cutoff": "2026-09-28T18:48:09.350067+00:00",
+          "files": {
+            "inputs": {
+              "file": "inputs.json",
+              "bytes": 27587539,
+              "sha256": "aa2f9c68d0f3fd9a9e5da65ef465bc2648f61c21b6e258df1e045c3ee313fe9f"
+            },
+            "output": {
+              "file": "output.json",
+              "bytes": 8268319,
+              "sha256": "6b37529b9ca7d1b04c85fbbf4a3bfe973a50a103de2024e04b9003cd6ddf823f"
+            },
+            "head": {
+              "file": "head.json",
+              "bytes": 30148,
+              "sha256": "6384acf06c568659ea888fdafb7fccc1df6178902ceab2720fa0a5134a867c48"
+            },
+            "membership": {
+              "file": "membership.json",
+              "bytes": 892773,
+              "sha256": "a1b1500fa1490c3f671890bbe327b7882ef87855770f1bebfea8e7026a1e3a1d"
+            }
+          },
+          "timing": {
+            "complete_output_sha256": "a1b1500fa1490c3f671890bbe327b7882ef87855770f1bebfea8e7026a1e3a1d",
+            "output_bytes": 892773,
+            "input_contexts_sha256": "f2f0bc9dc3b70d6c1a959cff15ae949068e1c1f2d9465e9b709a9310bf72ec06",
+            "capture_count": 251,
+            "source_count": 247,
+            "first_observed_groups": 333,
+            "possible_comparisons": 55,
+            "comparison_status_counts": {
+              "a_observed_presence_before_b_bounded_entry": 29,
+              "unresolved_prior_observation_missing": 25,
+              "b_observed_presence_before_a_bounded_entry": 1
+            },
+            "database_bytes": 60923904,
+            "scope": "Complete validated input iterator, disk-backed ordering and full canonical output. Original-body validation and durable incremental caching are separate required boundaries."
+          },
+          "coverage": {
+            "captures": 251,
+            "complete_capture_scans": 46,
+            "partial_capture_scans": 205,
+            "registered_records": 3305,
+            "retained_records": 1286,
+            "excluded_records": 2019,
+            "ineligible_source_snapshots": 15096,
+            "identity_partial_source_snapshots": 1010,
+            "first_observed_groups": 333,
+            "possible_comparisons": 55
+          },
+          "comparison_status_counts": {
+            "a_observed_presence_before_b_bounded_entry": 29,
+            "b_observed_presence_before_a_bounded_entry": 1,
+            "unresolved_prior_observation_missing": 25
+          },
+          "context_database_bytes": 22028288,
+          "artifact_byte_limit": 67108864,
+          "native_deployed": false,
+          "calls_eligible": false,
+          "sizing_eligible": false
+        },
+        "aws_body_reads": 0,
+        "aws_body_bytes": 0,
+        "cache": {
+          "hits": 3557,
+          "misses": 0,
+          "invalidated": 0,
+          "evicted": 0,
+          "entries": 3557,
+          "compressed_bytes": 20338486,
+          "compressed_byte_budget": 50331648,
+          "entry_budget": 10000
+        },
+        "revision_inventory_sha256": "137ff3a3c3920e4ecbbda8c79bf6c80c0f206ef7acaa9e6143fce2815b09f188",
+        "metadata_reconciled_before_and_after": true,
+        "seconds": 25.823,
+        "single_computation_disk_bytes": 142813807
+      }
+    ],
+    "peak_runner_rss_kib": 125340,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0,
+    "scope": "Complete fixed public original population. Every accepted input/output byte is reproduced using disk-backed capture history. Record reconciliation and membership summaries remain in memory with explicit artifact limits. No persistent Lambda cache, native rollout, archive-growth qualification or public publication is asserted."
+  },
+  "native_deployed": false,
+  "persistent_cold_start_state_verified": false,
+  "future_archive_growth_qualified": false,
+  "public_genealogy_head_published": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "remaining": [
+    "Durable validated state across Lambda starts",
+    "Incremental compilation and bounded archive growth",
+    "Native package, retained replay and page adoption",
+    "Exact native receipt and original scheduled publication acceptance"
+  ]
+}
