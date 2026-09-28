@@ -1,6 +1,6 @@
 {
   "checked_at": "2026-09-28T16:40:13.991820+00:00",
-  "status": "local_candidate_accepted_deploy_pending",
+  "status": "deployed_and_live_inspector_accepted",
   "scope": "Source tracing and audit metadata; no native engine bytes, AWS data access, schedules, current packet calculations or investment permissions changed.",
   "bugs_fixed": [
     "Returned reader closures lost their lexical input binding.",
@@ -315,5 +315,65 @@
     "The inventory refresh includes already-shipped source changes since the September 27 checked-in snapshot; they are not new native releases.",
     "More explicit historical families change 28 static page contracts from valid to partial; no old public output is removed.",
     "No source qualifies for Calls or sizing from these metadata changes. All ten institutional workstreams remain open."
-  ]
+  ],
+  "deployment": {
+    "commit": "5cfd2c5e92ec4c3e4a30ec1246e72824cb8ed725",
+    "pages_run": 36452763695,
+    "deploy_workflow_run": 36452763707,
+    "push_checks": "all_runs_green",
+    "native_engine_bytes_changed": false
+  },
+  "large_file_readback": {
+    "checked_at": "2026-09-28T16:41:48.709856+00:00",
+    "commit": "5cfd2c5e92ec4c3e4a30ec1246e72824cb8ed725",
+    "path": "docs/audit/dependency-map.json",
+    "bytes": 15589842,
+    "github_blob_sha1": "13a11e1b352b9997aa2b75c78734b8b4eb5f1067",
+    "sha256": "be8f97313d94a8f0c66da0f71b92205570ea837bd99292871d70cbda7b1da68b",
+    "whole_remote_bytes_match": true,
+    "scope": "Complete remote GitHub blob read back through read-only API after one native atomic Git push. Not an AWS engine deployment."
+  },
+  "live_assets": {
+    "checked_at": "2026-09-28T16:45:53.838907+00:00",
+    "intended_commit": "5cfd2c5e92ec4c3e4a30ec1246e72824cb8ed725",
+    "served_commit": "5cfd2c5e92ec4c3e4a30ec1246e72824cb8ed725",
+    "assets": {
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "284273645c7ab95e5ce37b9c9e4d75f02253576c1882b1d4f5ce8c2e9954075e",
+        "matches_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4691454,
+        "sha256": "5ce503816e0ea666412cfc205277a2ecc705ec6b1749616a9d18819760dbc5cc",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Build/page acceptance; no native engine bytes changed.",
+    "bond_group": {
+      "public_references": 18,
+      "withheld_or_dynamic": 6,
+      "new_inputs_present": true,
+      "independent_evidence_count": null
+    }
+  },
+  "live_browser": {
+    "build": "5cfd2c5e92ec4c3e4a30ec1246e72824cb8ed725",
+    "url": "https://justhodl.ai/engine-data.html?engine=justhodl-bond-desk",
+    "keyboard_opened": true,
+    "public_references": 18,
+    "withheld_or_dynamic": 6,
+    "new_inputs_visible": true,
+    "output_selected": false,
+    "followed_producer": "justhodl-etf-true-flows",
+    "destination_output_options": 4,
+    "desktop_document_width": 1270,
+    "desktop_viewport": 1280,
+    "live_page_console_errors": 0
+  }
 }

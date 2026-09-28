@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-09-28T16:43:45.485041+00:00",
+  "bytes": 170980,
+  "sha256": "8de1af5728f78bc75cac741f54b42d570bfd66167bdc4be6bc94987c1cd84805",
+  "contract": "credit-native-research.v1",
+  "version": "2.0.0",
+  "generated_at": "2026-09-25T22:11:08.786018+00:00",
+  "as_of": "2026-09-24",
+  "freshness": {
+    "pipeline_check_due_at": "2026-09-27T10:11:08.786018+00:00",
+    "source_age_rule": "Five calendar-day ceiling per observed row; source and collection clocks remain separate. Release deadlines not verified.",
+    "valid_until": "2026-09-27T10:11:08.786018+00:00"
+  },
+  "quality": {
+    "basis": "Strict native response checks and explicit observation-age ceiling; not strategy qualification.",
+    "independence_note": "Rating and maturity subindices share a provider and overlapping constituents; 28 series are not 28 independent votes.",
+    "provider_families_observed": [
+      "ICE_BofA_indices_via_FRED",
+      "US_Treasury_curve_via_FRED"
+    ],
+    "release_calendar_verified": false,
+    "reviewed_series": 28,
+    "status": "fresh",
+    "unavailable_series": [],
+    "within_age_ceiling": 28
+  },
+  "comparisons": {
+    "bbb_minus_aaa": {
+      "observation_date": "2026-09-24",
+      "current_comparison_available": true,
+      "value_bps": 57.0
+    },
+    "ccc_minus_bb": {
+      "observation_date": "2026-09-24",
+      "current_comparison_available": true,
+      "value_bps": 948.0
+    },
+    "em_hy_minus_us_hy": {
+      "observation_date": "2026-09-24",
+      "current_comparison_available": true,
+      "value_bps": 2.0
+    },
+    "hy_minus_ig": {
+      "observation_date": "2026-09-24",
+      "current_comparison_available": true,
+      "value_bps": 201.0
+    }
+  },
+  "status": "public_packet_and_source_investigation_runtime_baseline_pending",
+  "native_receipt_commit": "9cb4a62b116865bbf9695493bcff820c87da9277",
+  "declared_schedule": "cron(10 22 ? * MON-FRI *)",
+  "production_changes": false
+}
