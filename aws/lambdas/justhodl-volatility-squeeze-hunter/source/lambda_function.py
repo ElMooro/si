@@ -331,7 +331,7 @@ def compute_squeeze_signals(symbol, history):
     }
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline = started + TIMEOUT_BUDGET_S
     print("[squeeze] starting v1.0")
@@ -432,3 +432,135 @@ def lambda_handler(event=None, context=None):
             "duration_s": out["duration_s"],
         }),
     }
+
+# Complete predecessor remains above; only this source-backed handler is active.
+from pathlib import Path
+from datetime import datetime, timezone
+import threading
+from price_observations import (CONTRACT, HEAD, FLAGS, sha, encode, strict, clock,
+    symbol, endpoint, source_ref, validate_ref, content, universe, history, build)
+
+
+def _price_source_identity():
+    root=Path(__file__).resolve().parent
+    return {name:{'bytes':len(raw),'sha256':sha(raw)} for name in ('lambda_function.py','price_observations.py') for raw in [(root/name).read_bytes()]}
+
+
+def _price_object(key,bound):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole versioned declared object required')
+    return raw,obj['ETag']
+
+
+def _price_immutable(key,raw):
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType='application/json',CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    if _price_object(key,len(raw))[0]!=raw:raise ValueError('Whole immutable readback differs')
+
+
+def _price_archive(raw):
+    ref={'key':'data/volatility-squeeze/history/'+sha(raw)+'.json','bytes':len(raw),'sha256':sha(raw)}
+    _price_immutable(ref['key'],raw);return ref
+
+
+class _PriceSources:
+    def __init__(self):self.raw={};self.bytes=0;self.lock=threading.Lock();self.stop=threading.Event()
+    def capture(self,raw,url,requested_at):
+        ref=source_ref(raw)
+        with self.lock:
+            if ref['key'] not in self.raw:
+                if self.bytes+len(raw)>160*1024*1024:raise ValueError('Whole source retention budget exceeded; preserve current')
+                _price_immutable(ref['key'],raw);self.raw[ref['key']]=raw;self.bytes+=len(raw)
+        return {'status':'received','endpoint':url,'requested_at':requested_at,
+            'received_at':datetime.now(timezone.utc).isoformat(),'original_ref':ref}
+
+
+def _price_fetch(ticker,sources,remaining):
+    if symbol(ticker) is None:return {'status':'invalid_symbol_not_requested'}
+    url=endpoint(ticker);base={'endpoint':url,'status':'not_attempted_runtime_rate_or_size_limit'}
+    if remaining()<60 or sources.bytes>=96*1024*1024 or sources.stop.is_set():return base
+    if not FMP_KEY:return {**base,'status':'credential_unavailable'}
+    requested=datetime.now(timezone.utc).isoformat()
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        req=urllib.request.Request(url,headers={'apikey':FMP_KEY,'User-Agent':'JustHodl-Price-Observations/1.0','Accept-Encoding':'identity'})
+        try:response=urllib.request.build_opener(NoRedirect()).open(req,timeout=15)
+        except urllib.error.HTTPError as exc:response=exc
+        with response:status=response.status;raw=response.read(8*1024*1024+1)
+    except Exception as exc:
+        return {**base,'status':'transport_unavailable','requested_at':requested,'received_at':datetime.now(timezone.utc).isoformat(),'error_type':type(exc).__name__}
+    if status in (401,403,429):sources.stop.set()
+    result={**base,'http_status':status,'requested_at':requested,'received_at':datetime.now(timezone.utc).isoformat()}
+    if len(raw)>8*1024*1024:return {**result,'status':'response_exceeds_bound','original_retained':False}
+    reflected=FMP_KEY.encode() in raw
+    try:decoded=json.loads(raw)
+    except (ValueError,UnicodeError,RecursionError):decoded=None
+    pending=[decoded]
+    while pending and not reflected:
+        value=pending.pop()
+        if isinstance(value,str):reflected=FMP_KEY in value
+        elif isinstance(value,dict):pending.extend(value.keys());pending.extend(value.values())
+        elif isinstance(value,list):pending.extend(value)
+    if reflected:return {**result,'status':'credential_echo_withheld','original_retained':False}
+    # Whole retention failures propagate; they cannot become a successful empty response.
+    out=sources.capture(raw,url,requested);out['http_status']=status;return out
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc)
+    if S3_KEY!=HEAD or not all(type(v) is int and 1<=v<=100000 for v in (MAX_TICKERS,N_WORKERS,TIMEOUT_BUDGET_S)):
+        raise ValueError('Fixed output and original configured request limits required')
+    try:previous_raw,etag=_price_object(HEAD,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('404','NoSuchKey'):raise
+        previous_raw=None;etag=None
+    previous=strict(previous_raw) if previous_raw is not None else None
+    if previous is not None and not isinstance(previous,dict):raise ValueError('Malformed previous publication')
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous publication clock invalid')
+    def remaining():
+        own=TIMEOUT_BUDGET_S-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    sources=_PriceSources();requested=datetime.now(timezone.utc).isoformat()
+    raw,universe_etag=_price_object('data/universe.json',8*1024*1024)
+    capture=sources.capture(raw,'data/universe.json',requested);capture['etag']=universe_etag
+    membership=universe(capture,sources.raw,MAX_TICKERS);selected=membership['selected']
+    if not selected:raise ValueError('No original-scope membership; preserve current')
+    attempts=[{'status':'invalid_symbol_not_requested'} if symbol(m['ticker']) is None else {'endpoint':endpoint(m['ticker']),'status':'not_attempted_runtime_rate_or_size_limit'} for m in selected]
+    # Bounded in-flight work; all selected occurrences remain in coverage. The
+    # actual configured 1,500-name population and 550-second budget are retained.
+    workers=min(N_WORKERS,4)
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if remaining()<60 or sources.bytes>=96*1024*1024 or sources.stop.is_set():break
+            jobs=[(i,pool.submit(_price_fetch,selected[i]['ticker'],sources,remaining)) for i in range(offset,min(offset+workers,len(selected)))]
+            for i,future in jobs:attempts[i]=future.result()
+    finished=datetime.now(timezone.utc).isoformat()
+    research=build(capture,attempts,sources.raw,finished,MAX_TICKERS)
+    if not any(r['observations']['status'] in ('parsed_completed_observations','reported_empty_history','unresolved_identity_or_window','no_completed_observations') for r in research['request_records']):
+        raise ValueError('No received market observations; preserve current')
+    prior_ref=_price_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-volatility-squeeze-hunter','version':'2.0.0','schema_version':2,
+        'measurement_contract':CONTRACT,'method':'dated_price_compression_observations','status':'RESEARCH_ONLY',
+        'generated_at':finished,'acquisition_started_at':checked.isoformat(),'source_files':_price_source_identity(),
+        'universe_acquisition':capture,'acquisition_limits':{'MAX_TICKERS':MAX_TICKERS,'N_WORKERS':N_WORKERS,'TIMEOUT_BUDGET_S':TIMEOUT_BUDGET_S,'active_workers':workers},
+        'previous_publication':prior_ref,'retained_unique_source_bytes':sources.bytes,**research,
+        'stats':{'n_universe':len(selected),'n_evaluated':None,'n_no_data':None,'n_tier_s':None,'n_tier_a':None,'n_tier_b':None,'n_watch':None},
+        'summary':{'top_25_overall':[],'tier_s':[],'tier_a':[]},'all_qualifying':[],
+        'call':None,**FLAGS,'signals_logged':0,'notifications_sent':0,'duration_s':round(time.monotonic()-started,2),
+        'source_documentation':['https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full'],
+        'caveats':['Complete original responses, original row coordinates, selected windows and exclusion reasons are retained; failed, empty and unattempted requests differ.',
+            'The latest 300 completed-date reported occurrences are selected before validation. Bad window members cannot disappear into a clean sample.',
+            'Every measurement is descriptive. Related OHLCV transforms are one evidence root; nested ranges are not a VCP correction sequence.',
+            'Observation windows are not verified exchange sessions. Currency, corporate actions, historical security membership, source first-release vintages and executable returns remain unverified.',
+            'No score, tier, investment call, portfolio size or trading authority is produced. The original nominal liquidity threshold is displayed as context, not a verified dollar-volume gate.']}
+    raw=encode(packet)
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve current')
+    archive=_price_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=HEAD,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(selected),'archive':archive})}

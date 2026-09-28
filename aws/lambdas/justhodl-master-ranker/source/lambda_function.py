@@ -170,11 +170,24 @@ def _risk_gate_doc():
 
 _RG_RANK_CLAMP = {"RISK_ON": 1.05, "NEUTRAL": 1.0, "RISK_OFF": 0.88, "SEVERE": 0.80}
 
+
+def _volatility_research_abstention():
+    """OHLCV transforms and legacy tiers cannot grant investment authority."""
+    return {"source": "data/volatility-squeeze.json", "status": "research_only_abstain",
+            "basis": "price-compression-abstention.v1", "investment_votes": 0,
+            "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
+            "execution_eligible": False, "independent_evidence_eligible": False, "call": None,
+            "reason": "Related price/volume descriptions are one evidence root; no validated direction, breakout probability or returns."}
+
+
 def fetch_json(key, default=None, max_age_h=None):
     """Load a feed. If max_age_h is set and the feed is older, treat it as ABSENT
     (return default) so stale data never silently contaminates a decision. Every
     load is recorded in _FEED_HEALTH for transparency. Feeds with no max_age_h are
     age-tracked but never auto-excluded (cadence may legitimately be slow)."""
+    if key == "data/volatility-squeeze.json":
+        _FEED_HEALTH.append({"key": key, "used": False, "age_h": None, "stale": None, "exclusion": "price_compression_not_forecast_qualified"})
+        return _volatility_research_abstention()
     if __import__("provider_flow_research").covered(key):
         _FEED_HEALTH.append({"key": key, "age_h": None, "stale": None, "used": False,
                              "exclusion": "provider_flow_or_derived_pressure_not_qualified"})
@@ -275,6 +288,8 @@ def build_ticker_index():
     # 1. compound — primary spine
     if feeds["compound"]:
         for c in compound_rows(feeds["compound"]):
+            if any(s in c.get("systems", []) for s in ("vol_squeeze", "activist")):
+                continue  # Stored pre-boundary composite contributions stay excluded.
             sym = c.get("symbol")
             if not sym:
                 continue
@@ -366,6 +381,8 @@ def build_ticker_index():
     # 6b. fused confluence synthesizers — a name confirmed by a synthesizer (several
     #     independent engines stacked) is higher-quality than one raw-engine flag.
     for _key in ("options_confluence", "flow_confluence"):
+        if _key == "options_confluence" and (feeds.get(_key) or {}).get("volatility_research_exclusion", {}).get("basis") != "price-compression-abstention.v1":
+            continue  # A fresh legacy composite can still contain retired squeeze votes.
         if _key == "flow_confluence" and not (current_basis(feeds.get(_key)) and capital_current_basis(feeds.get(_key))):
             continue  # Old stored scores can contain retired 13F contributions.
         if feeds.get(_key):

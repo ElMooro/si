@@ -81,7 +81,19 @@ LAYERS = [
 ]
 
 
+
+def _volatility_research_abstention():
+    """OHLCV transforms and legacy tiers cannot grant investment authority."""
+    return {"source": "data/volatility-squeeze.json", "status": "research_only_abstain",
+            "basis": "price-compression-abstention.v1", "investment_votes": 0,
+            "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
+            "execution_eligible": False, "independent_evidence_eligible": False, "call": None,
+            "reason": "Related price/volume descriptions are one evidence root; no validated direction, breakout probability or returns."}
+
+
 def _read(key):
+    if key == "data/volatility-squeeze.json":
+        return _volatility_research_abstention()
     try:
         return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
     except Exception as e:

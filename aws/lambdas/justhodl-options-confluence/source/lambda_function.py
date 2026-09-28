@@ -37,7 +37,19 @@ _BULL = re.compile(r"bull|call|long|accumulat|buy|up\b", re.I)
 _BEAR = re.compile(r"bear|put|short|distribut|sell|down\b", re.I)
 
 
+
+def _volatility_research_abstention():
+    """OHLCV transforms and legacy tiers cannot grant investment authority."""
+    return {"source": "data/volatility-squeeze.json", "status": "research_only_abstain",
+            "basis": "price-compression-abstention.v1", "investment_votes": 0,
+            "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
+            "execution_eligible": False, "independent_evidence_eligible": False, "call": None,
+            "reason": "Related price/volume descriptions are one evidence root; no validated direction, breakout probability or returns."}
+
+
 def _read(key):
+    if key == "data/volatility-squeeze.json":
+        return _volatility_research_abstention()
     try: return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception: return {}
 
@@ -270,6 +282,7 @@ def lambda_handler(event, context):
                         "forensic_flagged": len(bad)},
            "note": "New synthesizer — consumable by best-setups/master-ranker so options confluence finally counts as one coherent factor."}
     out["options_scanner_exclusion"] = scanner_exclusion
+    out["volatility_research_exclusion"] = _volatility_research_abstention()
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     print("[options-confluence v%s] names=%d multi=%d squeeze_fuel=%d bullish=%d bearish=%d coiled=%d" % (

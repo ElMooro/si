@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,TextDecoder,atob,Uint8Array,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-price-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-price-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-activist-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-activist-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-option-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-option-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-microcap-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-microcap-observations.js'),'utf8'),ctx);
@@ -31,6 +32,50 @@ function page(file,loader){
  return{ctx,get,calls,document,intervals,listeners,html};
 }
 const raw=p=>({packet:p,raw:JSON.stringify(p)});
+
+test('price source desk preserves complete request, measurement, window and universe populations',async()=>{
+ const M=require('../jh-price-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-compression-synthetic.json'),'utf8')),p=fixture.packet;
+ const model=M.model(p);assert.equal(model.requests.length,2);assert.equal(model.measurements.length,26);assert.equal(model.windows.length,2);assert.equal(model.universe.length,3);
+ const s=page('volatility-observations.html',async()=>raw(p));await flush();assert.equal(s.calls[0],'/data/volatility-squeeze.json');assert.equal(s.get('original').textContent,JSON.stringify(p));
+ for(const [mode,n]of [['measurements',26],['windows',2],['universe',3]]){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(n+' received '+mode));assert.match(s.get('board').innerHTML,/Inspect whole original/);}
+ assert.match(s.get('board').innerHTML,/&lt;img/);assert.ok(!s.get('board').innerHTML.includes('<img'));
+ s.get('mode').value='measurements';s.get('mode').onchange();assert.match(s.get('board').innerHTML,/<td>0<\/td>/);
+ const h=s.get('board').headers.find(x=>x.dataset.k==='value');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'value');
+ for(const field of ['calls_eligible','sizing_eligible','execution_eligible'])assert.throws(()=>M.model({...p,[field]:true}),/permissions/);
+ const bad=structuredClone(p);bad.request_records[0].observations.selected_indices=[999999];assert.throws(()=>M.model(bad),/coordinate/);
+ assert.throws(()=>M.model({...p,request_records:[]}),/populations/);
+});
+
+test('legacy price occurrences retain full pagination, search, sorting and failure clearing',async()=>{
+ const p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99})),summary:{top_25_overall:[{symbol:'T0'}],tier_s:['T0']}};
+ const s=page('volatility-observations.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/203 received/);assert.match(s.get('status').textContent,/Scores, tiers, source dates and coverage are unqualified/);
+ s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/203 matching/);
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('volatility-observations.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
+ assert.ok(api.PUBLIC_PATHS.test('/data/volatility-squeeze.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/volatility-squeeze-state.json'));
+});
+
+test('price originals require complete verified bytes and prohibit arbitrary paths',async()=>{
+ const M=require('../jh-price-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-compression-synthetic.json'),'utf8')),ref=fixture.packet.request_records[0].acquisition.original_ref,body=Buffer.from(fixture.sources[ref.key]),calls=[];
+ const fetcher=async(url,options)=>{calls.push(url);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');return new Response(body);};
+ assert.equal((await M.loadSource(ref,{fetcher})).raw,body.toString());assert.deepEqual(calls,['/'+ref.key+'?exact=1&nogen=1']);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(body.subarray(0,4))}),/byte count/);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(Buffer.alloc(body.length,97))}),/SHA-256/);
+ await assert.rejects(()=>M.loadSource({...ref,key:'data/private.json'},{fetcher}),/source identity/);assert.equal(calls.length,1);
+ await assert.rejects(()=>M.loadSource(ref,{timeout:5,fetcher:()=>new Promise(()=>{})}),/timed out/);
+});
+
+test('three price preview components abstain and clear score text on unavailable input',async()=>{
+ const M=require('../jh-price-observations.js'),p={all_qualifying:[{symbol:'TEST',score:99}],summary:{top_25_overall:[{symbol:'TEST',score:99}]}};
+ for(const file of ['intel/index.html','web/intel/index.html','options.html']){
+  const html=fs.readFileSync(path.join(root,file),'utf8'),intel=file!=='options.html';let block=intel?html.split('// Price compression source observations;')[1].split('// Revenue statement research:')[0]:html.split('// Price compression source observations;')[1].split("document.getElementById('foot')")[0];
+  block=block.slice(block.indexOf('\n'));assert.ok(!block.includes('top_25_overall'));assert.match(html,/href="\/volatility-observations.html"/);
+  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'old score'});return nodes.get(id);};let fail=false;
+  const context=vm.createContext({document:{getElementById:get},JHPriceObservations:M,fetchJson:async()=>fail?null:p,vsq:p});
+  const actual='(async()=>{'+block+'\n})()';await vm.runInContext(actual,context);assert.match(get(intel?'vol-squeeze':'vsq').textContent,/2 legacy occurrences/);assert.equal(get(intel?'vs-fresh':'f-vs').textContent,'RESEARCH');
+  fail=true;context.vsq=null;await vm.runInContext(actual,context);assert.match(get(intel?'vol-squeeze':'vsq').textContent,/unavailable/);assert.equal(get(intel?'vs-fresh':'f-vs').textContent,'UNAVAILABLE');
+ }
+});
 const quality=()=>({as_of:'2026-09-27T12:00:00Z',all_ranked:[{ticker:'TEN',name:'A > B',sloan_accruals_pct_assets:'10',cash_conversion_ratio:0,quality_score:'10'},{ticker:'TWO',sloan_accruals_pct_assets:'2',cash_conversion_ratio:false,quality_score:'2'},{ticker:'MISSING',sloan_accruals_pct_assets:' ',cash_conversion_ratio:'',quality_score:null},{ticker:'ZERO',sloan_accruals_pct_assets:0,quality_score:0},null],unknown:{retain:true}});
 
 test('both accounting pages use native issuer occurrences with explicit units and periods',async()=>{

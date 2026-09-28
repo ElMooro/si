@@ -55,7 +55,6 @@ svg text{font-family:var(--font-mono)}
 <script defer src="/jh-option-research-hub.js"></script>
 <script defer src="/jh-option-populations.js"></script>
 <script defer src="/jh-option-populations-hub.js"></script>
-<script src="/jh-price-observations.js?v=price-observations-v1"></script>
 </head>
 <body>
 <div class="wrap">
@@ -98,7 +97,7 @@ svg text{font-family:var(--font-mono)}
 <div class="grid3" style="margin-top:14px">
 <div class="card"><h3>CATALYST SKEW SETUPS <span class="fresh" id="f-cat"></span></h3><div id="catalyst"></div></div>
 <div class="card"><h3>EARNINGS IV — RICH vs CHEAP <span class="fresh" id="f-eiv"></span></h3><div id="eiv"></div></div>
-<div class="card"><h3><a href="/volatility-observations.html">PRICE COMPRESSION OBSERVATIONS</a> <span class="fresh" id="f-vs"></span></h3><div id="vsq"></div></div>
+<div class="card"><h3>VOLATILITY SQUEEZE <span class="fresh" id="f-vs"></span></h3><div id="vsq"></div></div>
 </div>
 
 <div class="foot" id="foot"></div>
@@ -205,15 +204,9 @@ Promise.all([Promise.resolve(null),F('options-gamma.json'),F('options-confluence
  else document.getElementById('eiv').innerHTML='<div class="err">unavailable</div>';
  setFresh('f-eiv',eiv&&(eiv.as_of||eiv.generated_at),48); }catch(_e){console.error('opt-section',_e);} 
 
- // Price compression source observations; no tier or signal chips.
- try {
-  const research=JHPriceObservations.summary(vsq);
-  document.getElementById('vsq').textContent=research.message+' Collected '+research.generated_at+'; inspect observation dates.';
-  document.getElementById('f-vs').textContent='RESEARCH';
- } catch(e) {
-  document.getElementById('vsq').textContent='Price research unavailable; no verified display population';
-  document.getElementById('f-vs').textContent='UNAVAILABLE';
- }
+ try{ if(vsq&&vsq.all_qualifying){document.getElementById('vsq').innerHTML='<div class="dim" style="font-size:11px;margin-bottom:6px">'+((vsq.summary&&(vsq.summary.headline||vsq.summary.text))||(vsq.stats?('qualifying '+(vsq.stats.n_qualifying||vsq.all_qualifying.length)):''))+'</div><div class="chip-list">'+vsq.all_qualifying.slice(0,12).map(x=>'<span class="tag co">'+(x.symbol||x.ticker)+' '+(x.score?N(x.score,0):'')+'</span>').join('')+'</div>';}
+ else document.getElementById('vsq').innerHTML='<div class="err">unavailable</div>';
+ setFresh('f-vs',vsq&&vsq.generated_at,30); }catch(_e){console.error('opt-section',_e);} 
 
  document.getElementById('foot').innerHTML='Sources: option-population-research (captured call/put OI, coefficients and source membership) · options-gamma · options-confluence · options-analytics (58-name board) · option-flow-research (verified captured records) · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. The captured-chain dataset has source replay. Other legacy models have not passed that qualification; open interest alone does not identify dealer positions. Click board headers to sort. Not investment advice.';
 }).catch(function(e){document.getElementById('asof').textContent='load error: '+e;});

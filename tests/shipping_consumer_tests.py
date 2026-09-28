@@ -91,6 +91,12 @@ class Tests(unittest.TestCase):
         old={n.name:n for n in ast.parse(previous.read_text(encoding='utf-8')).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
         new={n.name:n for n in ast.parse(source.read_text(encoding='utf-8')).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
         for name,node in old.items():
+            if name in ('s3_json','s3_json_quiet'):
+                guarded=__import__('copy').deepcopy(new[name])
+                expected=ast.parse('if key == "data/volatility-squeeze.json":\n    return _volatility_research_abstention()').body[0]
+                self.assertEqual(ast.dump(guarded.body.pop(0)),ast.dump(expected))
+                self.assertEqual(ast.dump(node),ast.dump(guarded),name)
+                continue
             if name not in ('load_feeds','catalyst_block','_run_handler'):
                 self.assertEqual(ast.dump(node),ast.dump(new[name]),name)
         self.assertEqual(hashlib.sha256(previous.read_bytes()).hexdigest(),'847b84fca0869ab3c73858702c40d746a60650d31c12aa9d62c8585320a2c029')

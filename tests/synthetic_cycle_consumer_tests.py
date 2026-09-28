@@ -134,6 +134,15 @@ class CycleBoundaries(unittest.TestCase):
                 return result
             previous,current=group(old),group(new)
             for name,nodes in previous.items():
+                if engine=='katlin' and name in ('s3_json','s3_json_quiet'):
+                    # The later price-source boundary has its own behavioural
+                    # tests. Verify its exact narrow guard, then still compare
+                    # every original reader statement instead of exempting it.
+                    guarded=copy.deepcopy(current[name][0])
+                    expected=ast.parse('if key == "data/volatility-squeeze.json":\n    return _volatility_research_abstention()').body[0]
+                    self.assertEqual(ast.dump(guarded.body.pop(0)),ast.dump(expected))
+                    self.assertEqual([ast.dump(n) for n in nodes],[ast.dump(guarded)],(engine,name))
+                    continue
                 if name not in allowed:self.assertEqual([ast.dump(n) for n in nodes],[ast.dump(n) for n in current[name]],(engine,name))
                 elif name in renamed:
                     retained=copy.deepcopy(current[renamed[name]][0]);retained.name=name

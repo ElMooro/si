@@ -94,7 +94,6 @@ a:hover{color:var(--green2)}
 footer{padding:30px 20px;text-align:center;color:var(--t3);font-size:10px;border-top:1px solid var(--brd);margin-top:30px}
 footer a{color:var(--t2)}
 </style>
-<script src="/jh-price-observations.js?v=price-observations-v1"></script>
 </head>
 <body>
 <div class="topbar">
@@ -150,7 +149,7 @@ footer a{color:var(--t2)}
 
     <!-- Volatility Squeeze -->
     <div class="signal-card">
-      <div class="header"><h3><a href="/volatility-observations.html">Price compression observations</a></h3><span class="badge" id="vs-fresh">RESEARCH</span></div>
+      <div class="header"><h3>🔋 Volatility Squeeze (coiled springs)</h3><span class="badge fresh" id="vs-fresh">FRESH</span></div>
       <div class="body" id="vol-squeeze"><div class="loading">Loading…</div></div>
       <div class="footer">
         <span>BB squeeze + TTM + NR7 + VCP + ATR + inside-day</span>
@@ -376,17 +375,21 @@ async function loadAll() {
     ]);
   }
 
-  // Price compression source observations; no score or independent vote.
-  try {
-    const vs = await fetchJson('volatility-squeeze.json');
-    const research = JHPriceObservations.summary(vs);
-    document.getElementById('vol-squeeze').textContent = research.message;
-    document.getElementById('vs-meta').textContent = 'Collected ' + research.generated_at + '; inspect observation dates';
-    document.getElementById('vs-fresh').textContent = 'RESEARCH';
-  } catch(e) {
-    document.getElementById('vol-squeeze').textContent = 'Price research unavailable; no verified display population';
-    document.getElementById('vs-meta').textContent = '';
-    document.getElementById('vs-fresh').textContent = 'UNAVAILABLE';
+  // Volatility Squeeze
+  const vs = await fetchJson('volatility-squeeze.json');
+  if (vs) {
+    const top = (vs.summary && vs.summary.top_25_overall || []).slice(0, 8);
+    document.getElementById('vol-squeeze').innerHTML = tableHTML(top, [
+      {label:'Sym', cls:'sym', render:r => r.symbol},
+      {label:'Score', cls:'score', cellCls:r =>
+        r.tier === 'TIER_S_EXCEPTIONAL' ? 'tier-s' : r.tier === 'TIER_A_STRONG_SQUEEZE' ? 'tier-a' : 'tier-b',
+        render:r => fmt(r.score,1)},
+      {label:'Sig', render:r => r.n_signals + '/6'},
+      {label:'Base', render:r => (r.base_days||0)+'d'},
+      {label:'BB%ile', cls:'meta', render:r => fmt(r.bb_pct,0)+'%'},
+    ]);
+    document.getElementById('vs-meta').textContent =
+      (vs.stats||{}).n_evaluated + ' evaluated · ' + ageMin(vs.generated_at) + 'm ago';
   }
 
   // Revenue statement research: source observations have no score or tier authority.

@@ -66,7 +66,19 @@ FEEDS = {
 }
 
 
+
+def _volatility_research_abstention():
+    """OHLCV transforms and legacy tiers cannot grant investment authority."""
+    return {"source": "data/volatility-squeeze.json", "status": "research_only_abstain",
+            "basis": "price-compression-abstention.v1", "investment_votes": 0,
+            "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
+            "execution_eligible": False, "independent_evidence_eligible": False, "call": None,
+            "reason": "Related price/volume descriptions are one evidence root; no validated direction, breakout probability or returns."}
+
+
 def load_packet(key):
+    if key == "data/volatility-squeeze.json":
+        return _volatility_research_abstention()
     try:
         return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception:
@@ -75,7 +87,7 @@ def load_packet(key):
 
 def load_feed(key, path, sym_field):
     """Load a feed and return list of records with normalized keys."""
-    if key == "data/activist-filings.json":
+    if key in ("data/activist-filings.json", "data/volatility-squeeze.json"):
         # Filing-role observations and legacy name tiers have no calibrated
         # directional meaning. This boundary also rejects forged permissions.
         return []
@@ -403,7 +415,8 @@ def aggregate():
     except Exception:
         _h = {"days": []}
     _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS
-                       and d.get("activist_boundary") == "ownership-feed-abstention.v1"]
+                       and d.get("activist_boundary") == "ownership-feed-abstention.v1"
+                       and d.get("volatility_boundary") == "price-compression-abstention.v1"]
     _prior_vals = [v for day in _qualified_days
                    for v in (day.get("scores") or {}).values()]
     _prior_by = {}
@@ -427,6 +440,7 @@ def aggregate():
              if d.get("d") != _today][-89:]
     _days.append({"d": _today, "score_basis": BASIS,
                   "activist_boundary": "ownership-feed-abstention.v1",
+                  "volatility_boundary": "price-compression-abstention.v1",
                   "scores": {r["symbol"]: r["compound_score"]
                              for r in ranked[:400]}})
     S3.put_object(Bucket=BUCKET,
@@ -455,6 +469,7 @@ def aggregate():
 
     return {
         "feed_stats": feed_stats,
+        "volatility_research_exclusion": _volatility_research_abstention(),
         "activist_research_exclusion": {"source": "data/activist-filings.json",
             "status": "research_only_abstain", "investment_votes": 0, "basis": "ownership-feed-abstention.v1",
             "reason": "Feed identities, filer names and form types do not establish activist intent or validated forward returns."},
@@ -625,6 +640,7 @@ def lambda_handler(event=None, context=None):
         "feed_stats": feed_stats,
         "holdings_exclusions": agg["holdings_exclusions"],
         "activist_research_exclusion": agg["activist_research_exclusion"],
+        "volatility_research_exclusion": agg["volatility_research_exclusion"],
         "notifications_suppressed": suppress_alerts,
         "score_basis": BASIS,
         "history_comparability": "Percentiles use only snapshots with this score_basis; earlier snapshots are retained but excluded.",
