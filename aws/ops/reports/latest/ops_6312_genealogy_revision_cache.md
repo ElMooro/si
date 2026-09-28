@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 81.6s  
+**Finished:** 2026-09-28T20:51:19+00:00  
+
+## Data
+
+| actual_aws_writes | contract | downstream_output_reads | learning_ledger_reads | native_invocations | passes | peak_runner_rss_kib | private_account_reads | provider_requests | schedule_changes | scope |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | genealogy-original-revision-cache.v1 | 0 | 0 | 0 | [{'pass': 'cold_originals', 'complete_input_sha256': 'aa2f9c68d0f3fd9a9e5da65ef465bc2648f61c21b6e258df1e045c3ee313fe9f', 'complete_output_sha256': '6b37529b9ca7d1b04c85fbbf4a3bfe973a50a103de2024e04b9003cd6ddf823f', 'whole_output_equal': True, 'revision_inventory_sha256': '137ff3a3c3920e4ecbbda8c79bf6c80c0f206ef7acaa9e6143fce2815b09f188', 'original_objects': 3557, 'aws_body_reads': 3557, 'aws_body_bytes': 129773477, 'metadata_reconciled_before_and_after': True, 'cache': {'hits': 0, 'misses': 3557, 'invalidated': 0, 'evicted': 0, 'entries': 3557, 'compressed_bytes': 20338486, 'compressed_byte_budget': 50331648, 'entry_budget': 10000}, 'coverage': {'captures': 251, 'complete_capture_scans': 46, 'partial_capture_scans': 205, 'registered_records': 3305, 'retained_records': 1286, 'excluded_records': 2019, 'ineligible_source_snapshots': 15096, 'identity_partial_source_snapshots': 1010, 'first_observed_groups': 333, 'possible_comparisons': 55}, 'seconds': 53.032, 'temporary_database_bytes': 23089152}, {'pass': 'reopened_cache', 'complete_input_sha256': 'aa2f9c68d0f3fd9a9e5da65ef465bc2648f61c21b6e258df1e045c3ee313fe9f', 'complete_output_sha256': '6b37529b9ca7d1b04c85fbbf4a3bfe973a50a103de2024e04b9003cd6ddf823f', 'whole_output_equal': True, 'revision_inventory_sha256': '137ff3a3c3920e4ecbbda8c79bf6c80c0f206ef7acaa9e6143fce2815b09f188', 'original_objects': 3557, 'aws_body_reads': 0, 'aws_body_bytes': 0, 'metadata_reconciled_before_and_after': True, 'cache': {'hits': 3557, 'misses': 0, 'invalidated': 0, 'evicted': 0, 'entries': 3557, 'compressed_bytes': 20338486, 'compressed_byte_budget': 50331648, 'entry_budget': 10000}, 'coverage': {'captures': 251, 'complete_capture_scans': 46, 'partial_capture_scans': 205, 'registered_records': 3305, 'retained_records': 1286, 'excluded_records': 2019, 'ineligible_source_snapshots': 15096, 'identity_partial_source_snapshots': 1010, 'first_observed_groups': 333, 'possible_comparisons': 55}, 'seconds': 28.531, 'temporary_database_bytes': 23089152}] | 255632 | 0 | 0 | 0 | All approved fixed original public-journal objects. Both passes run every current validator and reproduce the entire accepted candidate. Cache exists only in a temporary runner directory; no Lambda cache durability, native resource qualification or public Genealogy deployment is asserted. |
+
+## Log
+
