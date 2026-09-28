@@ -1,0 +1,74 @@
+{
+  "commit": "7978892379f5ab33bd65beb8a7640c12a2ab921f",
+  "served_commit": "7978892379f5ab33bd65beb8a7640c12a2ab921f",
+  "checked_at": "2026-09-28T12:07:17.333595+00:00",
+  "assets": {
+    "momentum-observations.html": {
+      "bytes": 9403,
+      "sha256": "fea36510270bcc7cba3394e8e0d1f1344658e2d27dd331e9f82069d65d673ae6",
+      "matches_manifest": true
+    },
+    "jh-momentum-observations.js": {
+      "bytes": 15852,
+      "sha256": "8e2b0b1083451ec69d3be17c06e41333ee31ca713aad251d1c8b5cd451e325cf",
+      "matches_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5733,
+      "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+      "matches_manifest": true
+    }
+  },
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "5FYlZ8HrqG+c9yjHGWd7EX+m9YYdD9YTHaSVUvU6ZG0=",
+    "commit": "7978892379f5ab33bd65beb8a7640c12a2ab921f",
+    "deployed_at": "2026-09-28T12:03:57Z",
+    "function": "justhodl-momentum-breakout",
+    "run_id": "36419339916",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36419339916",
+    "schema": "release-receipt.v1",
+    "source": {
+      "lambda_function.py": {
+        "bytes": 23776,
+        "sha256": "e07cd6f8f06adb09279c0860b86e844d715d3e628067df255d8fbb79a3ba885f"
+      },
+      "momentum_observations.py": {
+        "bytes": 24076,
+        "sha256": "041e2eb425cac50e548ae7eb314499e44981629b9c3ee723fbbc3724e1182df8"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 860126,
+    "zip_sha256_hex": "e4562567c1eba86f9cf728c719677b117fa6f5861d0fd6131da49552f53a646d"
+  },
+  "public_packet": {
+    "bytes": 4270783,
+    "sha256": "b6f8059968ca64bc14e6b91800a333d08f75d86c8ac2f66ae9d03991e83ee057",
+    "generated_at": "2026-09-28T11:00:25.675909+00:00",
+    "version": "2.0.0",
+    "resumption_publication_verified": false
+  },
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "consumer_reads": 0,
+  "private_state_reads": 0,
+  "investment_authority": false,
+  "pages_run": 36419339914,
+  "browser": {
+    "request_occurrences": 601,
+    "selected_occurrences": 600,
+    "benchmark_occurrences": 1,
+    "pages": 7,
+    "second_page_verified": true,
+    "descriptive_measurement_records": 2028,
+    "captured_console_errors": 0,
+    "original_viewer": {
+      "bytes": 285792,
+      "sha256": "2a3414266dbff11868c5d2572f97112e3896520786a2ff3e42bfe9e8ffbeec0a",
+      "pointer": "/request_records/0",
+      "verified_complete_live_bytes": true
+    }
+  }
+}

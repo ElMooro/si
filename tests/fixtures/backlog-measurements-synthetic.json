@@ -1,0 +1,629 @@
+{
+  "purpose": "Isolated actual Backlog publication; no network or native invocation.",
+  "packet": {
+    "engine": "backlog",
+    "version": "1.1.0",
+    "measurement_contract": "backlog-measurements.v1",
+    "call": null,
+    "calls_eligible": false,
+    "forecast_qualified": false,
+    "sizing_eligible": false,
+    "quality": {
+      "status": "partial",
+      "provider_originals_replayed": false,
+      "point_in_time_availability_verified": false,
+      "legacy_negative_cache_unverified_count": 1
+    },
+    "generated_at": "2026-09-28T12:12:32.757459+00:00",
+    "duration_s": 0,
+    "n_covered": 1,
+    "cap_distribution": {
+      "?": 1
+    },
+    "by_ticker": {
+      "OLD": {
+        "ticker": "OLD",
+        "rpo": null,
+        "rpo_qoq": null,
+        "refreshed_at": "2020-01-01",
+        "legacy_unverified_original": {
+          "ticker": "OLD",
+          "rpo": 999,
+          "rpo_qoq": 500,
+          "refreshed_at": "2020-01-01"
+        },
+        "rpo_yoy": null,
+        "deferred_rev": null,
+        "deferred_qoq": null,
+        "deferred_yoy": null,
+        "eps": null,
+        "eps_qoq": null,
+        "eps_yoy": null,
+        "rev_yoy": null,
+        "ev_to_rpo": null,
+        "rpo_minus_rev_growth": null,
+        "demand_accelerating": null,
+        "deferred_accelerating": null,
+        "call": null,
+        "calls_eligible": false,
+        "forecast_qualified": false,
+        "sizing_eligible": false,
+        "quality": {
+          "status": "legacy_measurements_unverified",
+          "provider_originals_replayed": false
+        }
+      },
+      "TEST": {
+        "ticker": "TEST",
+        "cik": "0000000001",
+        "measurement_contract": "backlog-measurements.v1",
+        "measurements": {
+          "rpo": {
+            "contract": "backlog-measurements.v1",
+            "cik": "0000000001",
+            "tag": "RevenueRemainingPerformanceObligation",
+            "unit": "USD",
+            "checked_as_of": "2026-09-27",
+            "source_status": "received",
+            "source_metadata": {
+              "cik": 1,
+              "tag": "RevenueRemainingPerformanceObligation",
+              "taxonomy": "us-gaap"
+            },
+            "observations": [
+              {
+                "source_unit": "USD",
+                "source_index": 0,
+                "source": {
+                  "end": "2025-12-31",
+                  "val": 100,
+                  "filed": "2026-09-15",
+                  "accn": "0000000001-26-000001",
+                  "form": "10-Q"
+                },
+                "eligible": true,
+                "reasons": [],
+                "unit": "USD",
+                "value": 100,
+                "start": null,
+                "end": "2025-12-31",
+                "filed": "2026-09-15",
+                "accession": "0000000001-26-000001",
+                "period_kind": "instant"
+              },
+              {
+                "source_unit": "USD",
+                "source_index": 1,
+                "source": {
+                  "end": "2026-03-31",
+                  "val": 110,
+                  "filed": "2026-09-15",
+                  "accn": "0000000001-26-000001",
+                  "form": "10-Q"
+                },
+                "eligible": true,
+                "reasons": [],
+                "unit": "USD",
+                "value": 110,
+                "start": null,
+                "end": "2026-03-31",
+                "filed": "2026-09-15",
+                "accession": "0000000001-26-000001",
+                "period_kind": "instant"
+              }
+            ],
+            "periods": [
+              {
+                "start": null,
+                "end": "2025-12-31",
+                "filed": "2026-09-15",
+                "unit": "USD",
+                "period_kind": "instant",
+                "value": 100,
+                "status": "latest_reported_value",
+                "source_indices": [
+                  0
+                ],
+                "accessions": [
+                  "0000000001-26-000001"
+                ]
+              },
+              {
+                "start": null,
+                "end": "2026-03-31",
+                "filed": "2026-09-15",
+                "unit": "USD",
+                "period_kind": "instant",
+                "value": 110,
+                "status": "latest_reported_value",
+                "source_indices": [
+                  1
+                ],
+                "accessions": [
+                  "0000000001-26-000001"
+                ]
+              }
+            ],
+            "eligible_observation_count": 2,
+            "latest": {
+              "start": null,
+              "end": "2026-03-31",
+              "filed": "2026-09-15",
+              "unit": "USD",
+              "period_kind": "instant",
+              "value": 110,
+              "status": "latest_reported_value",
+              "source_indices": [
+                1
+              ],
+              "accessions": [
+                "0000000001-26-000001"
+              ]
+            },
+            "qoq": 10.0,
+            "yoy": null,
+            "comparisons": {
+              "qoq": {
+                "status": "exact_calendar_pair",
+                "value_pct": 10.0,
+                "current": {
+                  "start": null,
+                  "end": "2026-03-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 110,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    1
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                },
+                "prior": {
+                  "start": null,
+                  "end": "2025-12-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 100,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    0
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                }
+              },
+              "yoy": {
+                "status": "exact_calendar_pair_missing",
+                "value_pct": null,
+                "current": {
+                  "start": null,
+                  "end": "2026-03-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 110,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    1
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                },
+                "prior": null
+              }
+            },
+            "provider_originals_replayed": false,
+            "point_in_time_availability_verified": false,
+            "forecast_qualified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false,
+            "status": "descriptive_measurement"
+          },
+          "deferred": {
+            "contract": "backlog-measurements.v1",
+            "cik": "0000000001",
+            "tag": "RevenueRemainingPerformanceObligation",
+            "unit": "USD",
+            "checked_as_of": "2026-09-27",
+            "source_status": "received",
+            "source_metadata": {
+              "cik": 1,
+              "tag": "RevenueRemainingPerformanceObligation",
+              "taxonomy": "us-gaap"
+            },
+            "observations": [
+              {
+                "source_unit": "USD",
+                "source_index": 0,
+                "source": {
+                  "end": "2025-12-31",
+                  "val": 100,
+                  "filed": "2026-09-15",
+                  "accn": "0000000001-26-000001",
+                  "form": "10-Q"
+                },
+                "eligible": true,
+                "reasons": [],
+                "unit": "USD",
+                "value": 100,
+                "start": null,
+                "end": "2025-12-31",
+                "filed": "2026-09-15",
+                "accession": "0000000001-26-000001",
+                "period_kind": "instant"
+              },
+              {
+                "source_unit": "USD",
+                "source_index": 1,
+                "source": {
+                  "end": "2026-03-31",
+                  "val": 110,
+                  "filed": "2026-09-15",
+                  "accn": "0000000001-26-000001",
+                  "form": "10-Q"
+                },
+                "eligible": true,
+                "reasons": [],
+                "unit": "USD",
+                "value": 110,
+                "start": null,
+                "end": "2026-03-31",
+                "filed": "2026-09-15",
+                "accession": "0000000001-26-000001",
+                "period_kind": "instant"
+              }
+            ],
+            "periods": [
+              {
+                "start": null,
+                "end": "2025-12-31",
+                "filed": "2026-09-15",
+                "unit": "USD",
+                "period_kind": "instant",
+                "value": 100,
+                "status": "latest_reported_value",
+                "source_indices": [
+                  0
+                ],
+                "accessions": [
+                  "0000000001-26-000001"
+                ]
+              },
+              {
+                "start": null,
+                "end": "2026-03-31",
+                "filed": "2026-09-15",
+                "unit": "USD",
+                "period_kind": "instant",
+                "value": 110,
+                "status": "latest_reported_value",
+                "source_indices": [
+                  1
+                ],
+                "accessions": [
+                  "0000000001-26-000001"
+                ]
+              }
+            ],
+            "eligible_observation_count": 2,
+            "latest": {
+              "start": null,
+              "end": "2026-03-31",
+              "filed": "2026-09-15",
+              "unit": "USD",
+              "period_kind": "instant",
+              "value": 110,
+              "status": "latest_reported_value",
+              "source_indices": [
+                1
+              ],
+              "accessions": [
+                "0000000001-26-000001"
+              ]
+            },
+            "qoq": 10.0,
+            "yoy": null,
+            "comparisons": {
+              "qoq": {
+                "status": "exact_calendar_pair",
+                "value_pct": 10.0,
+                "current": {
+                  "start": null,
+                  "end": "2026-03-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 110,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    1
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                },
+                "prior": {
+                  "start": null,
+                  "end": "2025-12-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 100,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    0
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                }
+              },
+              "yoy": {
+                "status": "exact_calendar_pair_missing",
+                "value_pct": null,
+                "current": {
+                  "start": null,
+                  "end": "2026-03-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 110,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    1
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                },
+                "prior": null
+              }
+            },
+            "provider_originals_replayed": false,
+            "point_in_time_availability_verified": false,
+            "forecast_qualified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false,
+            "status": "descriptive_measurement"
+          },
+          "eps": {
+            "contract": "backlog-measurements.v1",
+            "cik": "0000000001",
+            "tag": "RevenueRemainingPerformanceObligation",
+            "unit": "USD",
+            "checked_as_of": "2026-09-27",
+            "source_status": "received",
+            "source_metadata": {
+              "cik": 1,
+              "tag": "RevenueRemainingPerformanceObligation",
+              "taxonomy": "us-gaap"
+            },
+            "observations": [
+              {
+                "source_unit": "USD",
+                "source_index": 0,
+                "source": {
+                  "end": "2025-12-31",
+                  "val": 100,
+                  "filed": "2026-09-15",
+                  "accn": "0000000001-26-000001",
+                  "form": "10-Q"
+                },
+                "eligible": true,
+                "reasons": [],
+                "unit": "USD",
+                "value": 100,
+                "start": null,
+                "end": "2025-12-31",
+                "filed": "2026-09-15",
+                "accession": "0000000001-26-000001",
+                "period_kind": "instant"
+              },
+              {
+                "source_unit": "USD",
+                "source_index": 1,
+                "source": {
+                  "end": "2026-03-31",
+                  "val": 110,
+                  "filed": "2026-09-15",
+                  "accn": "0000000001-26-000001",
+                  "form": "10-Q"
+                },
+                "eligible": true,
+                "reasons": [],
+                "unit": "USD",
+                "value": 110,
+                "start": null,
+                "end": "2026-03-31",
+                "filed": "2026-09-15",
+                "accession": "0000000001-26-000001",
+                "period_kind": "instant"
+              }
+            ],
+            "periods": [
+              {
+                "start": null,
+                "end": "2025-12-31",
+                "filed": "2026-09-15",
+                "unit": "USD",
+                "period_kind": "instant",
+                "value": 100,
+                "status": "latest_reported_value",
+                "source_indices": [
+                  0
+                ],
+                "accessions": [
+                  "0000000001-26-000001"
+                ]
+              },
+              {
+                "start": null,
+                "end": "2026-03-31",
+                "filed": "2026-09-15",
+                "unit": "USD",
+                "period_kind": "instant",
+                "value": 110,
+                "status": "latest_reported_value",
+                "source_indices": [
+                  1
+                ],
+                "accessions": [
+                  "0000000001-26-000001"
+                ]
+              }
+            ],
+            "eligible_observation_count": 2,
+            "latest": {
+              "start": null,
+              "end": "2026-03-31",
+              "filed": "2026-09-15",
+              "unit": "USD",
+              "period_kind": "instant",
+              "value": 110,
+              "status": "latest_reported_value",
+              "source_indices": [
+                1
+              ],
+              "accessions": [
+                "0000000001-26-000001"
+              ]
+            },
+            "qoq": 10.0,
+            "yoy": null,
+            "comparisons": {
+              "qoq": {
+                "status": "exact_calendar_pair",
+                "value_pct": 10.0,
+                "current": {
+                  "start": null,
+                  "end": "2026-03-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 110,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    1
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                },
+                "prior": {
+                  "start": null,
+                  "end": "2025-12-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 100,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    0
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                }
+              },
+              "yoy": {
+                "status": "exact_calendar_pair_missing",
+                "value_pct": null,
+                "current": {
+                  "start": null,
+                  "end": "2026-03-31",
+                  "filed": "2026-09-15",
+                  "unit": "USD",
+                  "period_kind": "instant",
+                  "value": 110,
+                  "status": "latest_reported_value",
+                  "source_indices": [
+                    1
+                  ],
+                  "accessions": [
+                    "0000000001-26-000001"
+                  ]
+                },
+                "prior": null
+              }
+            },
+            "provider_originals_replayed": false,
+            "point_in_time_availability_verified": false,
+            "forecast_qualified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false,
+            "status": "descriptive_measurement"
+          }
+        },
+        "call": null,
+        "calls_eligible": false,
+        "forecast_qualified": false,
+        "sizing_eligible": false,
+        "quality": {
+          "status": "partial",
+          "provider_originals_replayed": false,
+          "point_in_time_availability_verified": false
+        },
+        "rev_yoy": null,
+        "ev_to_rpo": null,
+        "rpo_minus_rev_growth": null,
+        "demand_accelerating": null,
+        "deferred_accelerating": null,
+        "rpo": 110,
+        "rpo_qoq": 10.0,
+        "rpo_yoy": null,
+        "rpo_asof": "2026-03-31",
+        "rpo_filed": "2026-09-15",
+        "rpo_unit": "USD",
+        "rpo_tag": "RevenueRemainingPerformanceObligation",
+        "rpo_period_start": null,
+        "rpo_accessions": [
+          "0000000001-26-000001"
+        ],
+        "rpo_form": "10-Q",
+        "deferred_rev": 110,
+        "deferred_qoq": 10.0,
+        "deferred_yoy": null,
+        "deferred_asof": "2026-03-31",
+        "deferred_filed": "2026-09-15",
+        "deferred_unit": "USD",
+        "deferred_tag": "RevenueRemainingPerformanceObligation",
+        "deferred_period_start": null,
+        "deferred_accessions": [
+          "0000000001-26-000001"
+        ],
+        "deferred_form": "10-Q",
+        "eps": 110,
+        "eps_qoq": 10.0,
+        "eps_yoy": null,
+        "eps_asof": "2026-03-31",
+        "eps_filed": "2026-09-15",
+        "eps_unit": "USD",
+        "eps_tag": "RevenueRemainingPerformanceObligation",
+        "eps_period_start": null,
+        "eps_accessions": [
+          "0000000001-26-000001"
+        ],
+        "eps_form": "10-Q",
+        "comparison_limits": "Exact calendar pairs only; noncalendar and 52/53-week periods are not inferred. Revenue/EV ratios and acceleration remain unavailable without aligned currency, periods and source originals.",
+        "refreshed_at": "2026-09-28T12:12:32.757459+00:00"
+      }
+    },
+    "accelerating": [],
+    "cheap_vs_backlog": [],
+    "method": "SEC concept observations retain unit, start/end, filing date, accession and received values. Only exact calendar period pairs supply descriptive growth. Annual EPS is not QoQ; mixed durations and conflicting latest facts abstain. Revenue/EV ratios and acceleration remain unavailable pending aligned source originals. No predictive lead is established.",
+    "sources": {
+      "backlog": "SEC XBRL (data.sec.gov)",
+      "revenue/EV": "FMP"
+    },
+    "ledger_size": 2,
+    "slice_this_run": 1
+  },
+  "native_invocations": 0,
+  "provider_requests": 0
+}

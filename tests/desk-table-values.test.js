@@ -17,6 +17,7 @@ function page(file,loader,scripts={}){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,TextDecoder,atob,Uint8Array,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-backlog-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-backlog-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-leader-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-leader-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-momentum-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-momentum-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-price-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-price-observations.js'),'utf8'),ctx);
@@ -34,6 +35,44 @@ function page(file,loader,scripts={}){
  return{ctx,get,calls,document,intervals,listeners,html};
 }
 const raw=p=>({packet:p,raw:JSON.stringify(p)});
+
+test('Backlog exposes the whole actual issuer, concept, period and source populations',async()=>{
+ const M=require('../jh-backlog-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/backlog-measurements-synthetic.json'),'utf8')),p=f.packet,m=M.model(p);
+ assert.equal(m.issuers.length,2);assert.equal(m.measurements.filter(r=>r.family==='Legacy').length,1);
+ function count(c){return c.observations.length+(c.alternate_concepts||[]).reduce((a,b)=>a+count(b),0);}
+ const expected=Object.values(p.by_ticker.TEST.measurements).reduce((a,c)=>a+count(c),0);assert.equal(m.observations.length,expected);assert.ok(m.comparisons.length>0);
+ const s=page('backlog.html',async()=>raw(p));await flush();assert.deepEqual(s.calls,['/data/backlog.json']);assert.equal(s.get('original').textContent,JSON.stringify(p));assert.match(s.get('status').textContent,/2 retained issuers/);
+ for(const mode of ['issuers','comparisons','periods','observations']){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(m[mode].length+' matching'));assert.match(s.get('board').innerHTML,/Inspect \/by_ticker\//);}
+});
+test('Backlog preserves dated, differently denominated, excluded and duplicate original observations',()=>{
+ const M=require('../jh-backlog-observations.js'),p=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/backlog-measurements-synthetic.json'),'utf8')).packet;
+ const c=p.by_ticker.TEST.measurements.rpo;c.latest={...c.latest,value:0,end:'2018-07-31',filed:'2018-09-05'};
+ c.observations.push({source_unit:'EUR',source_index:0,source:{val:7,end:'2026-07-31',filed:'2026-08-20'},eligible:false,reasons:['unreviewed_unit']});
+ c.alternate_concepts=[structuredClone({...c,alternate_concepts:[]})];
+ const m=M.model(p),summary=m.measurements.find(r=>r.family==='rpo');assert.equal(summary.value,0);assert.equal(summary.end,'2018-07-31');assert.equal(summary.filed,'2018-09-05');
+ const excluded=m.observations.filter(r=>r.unit==='EUR');assert.equal(excluded.length,2);assert.ok(excluded.every(r=>r.value===7&&r.status.includes('unreviewed_unit')));assert.notEqual(excluded[0].pointer,excluded[1].pointer);
+ c.observations[0].source.val=true;assert.equal(M.model(p).observations.find(r=>r.pointer.endsWith('/rpo/observations/0')).value,null);
+ const pair=Object.values(c.comparisons)[0];pair.value_pct=123;pair.status='exact_calendar_pair_missing';assert.equal(M.model(p).comparisons.find(r=>r.pointer.includes('/rpo/comparisons/')).value,null);
+});
+test('Backlog pagination, filtering, escaping and keyboard sorting preserve all legacy evidence',async()=>{
+ const p={by_ticker:Object.fromEntries(Array.from({length:205},(_,i)=>['T'+i,{ticker:'T'+i,rpo:999,claim:'<img src=x onerror=alert(1)>'}]))};
+ const s=page('backlog.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/205 matching/);assert.match(s.get('board').innerHTML,/No verified measurement/);assert.match(s.get('board').innerHTML,/&lt;img/);assert.ok(!s.get('board').innerHTML.includes('<img'));
+ s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T204';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/205 matching/);
+ const h=s.get('board').headers.find(x=>x.dataset.k==='ticker');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
+});
+test('Backlog malformed populations, active authority and failed loads cannot display old claims',async()=>{
+ const M=require('../jh-backlog-observations.js'),p=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/backlog-measurements-synthetic.json'),'utf8')).packet;
+ for(const edit of [p=>p.calls_eligible=true,p=>p.ledger_size++,p=>p.by_ticker.TEST.ticker='OTHER',p=>p.by_ticker.TEST.sizing_eligible=true,p=>delete p.by_ticker.TEST.measurements.rpo,p=>p.by_ticker.TEST.measurements.rpo.observations=null,p=>p.by_ticker.TEST.measurements.rpo.alternate_concepts={},p=>p.by_ticker.TEST.measurements.rpo.observations[0].source_index=false]){
+  const changed=structuredClone(p);edit(changed);assert.throws(()=>M.model(changed));
+ }
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({by_ticker:null})]){const s=page('backlog.html',loader);await flush();assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('previous').disabled,true);assert.equal(s.get('next').disabled,true);}
+});
+test('Backlog removes unbound lead-time and valuation claims while retaining the complete predecessor',()=>{
+ const html=fs.readFileSync(path.join(root,'backlog.html'),'utf8'),old=fs.readFileSync(path.join(root,'tests/fixtures/pre-backlog-measurement-page.html.txt'),'utf8');
+ assert.match(old,/leads earnings by 1–2 quarters/);assert.match(old,/Demand Accelerating/);assert.ok(!html.includes('leads earnings by'));assert.ok(!html.includes('data-t="accelerating"'));assert.match(html,/filing vintages/);assert.match(html,/jh-backlog-observations\.js/);
+});
+
 
 function resumedEarnings(){
  const selected=['TEST','TEST','LATER'].map(ticker=>({ticker})),keys=['TEST#0','TEST#1','LATER#0'];

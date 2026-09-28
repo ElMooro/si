@@ -1,0 +1,91 @@
+{
+  "account_reads": 0,
+  "actual_runtime": {
+    "code_sha256": "LnV+KCmIfn2soHpNOob+04PQsNrLxHUpTVgrdagPrvc=",
+    "source_files_checked": 4,
+    "handler_bytes": 25133,
+    "timeout": 120,
+    "memory_mb": 512,
+    "receipt": {
+      "status": "matched",
+      "commit": "fcf6aa1a6633abb6faace6f2020b44bd9ddc1905"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "estrev-daily-am",
+        "state": "ENABLED",
+        "expression": "cron(40 13 ? * MON-FRI *)",
+        "native_targets": 1
+      },
+      {
+        "kind": "EventBridge rule",
+        "name": "estrev-daily-pm",
+        "state": "ENABLED",
+        "expression": "cron(40 17 ? * MON-FRI *)",
+        "native_targets": 1
+      },
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-estimate-revisions-daily",
+        "state": "ENABLED",
+        "expression": "cron(0 12 * * ? *)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-estimate-revisions",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "consumer_output_reads": 0,
+  "current_archive_verified": true,
+  "expected_commit": "fcf6aa1a6633abb6faace6f2020b44bd9ddc1905",
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "published_original_estimate_observations_replayed",
+    "bytes": 4475044,
+    "sha256": "9fc51152a1ca1b4ada41615fcebd7518a0f9ef17939f736ea814c4738b50f2a6",
+    "generated_at": "2026-09-28T12:01:01.521309+00:00",
+    "version": "3.3.0",
+    "calendar_occurrences": 675,
+    "request_occurrences": 280,
+    "estimate_observations": 1587,
+    "calendar_originals_verified": true,
+    "first_release_history_verified": false,
+    "investment_authority": false,
+    "current_compiler_publication_verified": true,
+    "compiler_files": 4,
+    "calendar_received_occurrences": 1000,
+    "calendar_excluded_occurrences": 325,
+    "calendar_pagination": "next_page_unrequested",
+    "provider_universe_complete": false,
+    "market_session_qualified": false
+  },
+  "private_state_reads": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Four complete sources and original runtime/schedules. Declared public estimate source and own history only. Whole single calendar response and filtering replay; no additional pages, market-session or first-release qualification, private state or investment authority.",
+  "acceptance_run": 36419479654,
+  "report_commit": "8e02f7bd63c511fd7de5743058cad4a0fc0ca39c",
+  "public_http_evidence": {
+    "key": "data/estimate-revisions.json",
+    "bytes": 4475044,
+    "sha256": "9fc51152a1ca1b4ada41615fcebd7518a0f9ef17939f736ea814c4738b50f2a6",
+    "generated_at": "2026-09-28T12:01:01.521309+00:00",
+    "version": "3.3.0",
+    "contract": "estimate-observations.v1"
+  },
+  "public_http_matches_runner": {
+    "generated_at": true,
+    "version": true,
+    "bytes_and_sha256": true
+  }
+}

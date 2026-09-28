@@ -1,0 +1,45 @@
+{
+  "checked_at": "2026-09-28T12:17:25.124179+00:00",
+  "original_page": {
+    "bytes": 8851,
+    "sha256": "233500a040b6f4c40c3004855ad37a3d9e24882c88b8572adf5d82a448c420f2",
+    "retained_path": "tests/fixtures/pre-backlog-measurement-page.html.txt"
+  },
+  "defect": "Repaired engine data is withheld from the legacy default accelerating tab while unsupported earnings-lead and EV/RPO claims remain visible. Old observations can appear current without period dates.",
+  "repair": "Complete retained issuer, primary/alternative concept, derived period, comparison and source observation populations. Every row exposes its source pointer and full record. Preserve literal units, end/start/filing dates, ambiguity, exclusions, unavailable comparisons and whole legacy records.",
+  "native_publication_fixture": {
+    "key": "data/backlog.json",
+    "bytes": 5329946,
+    "sha256": "9ec825e81d9696d557bbf4e9a90c50d12c925c78b087906f233a39f7a7a8ab4e",
+    "generated_at": "2026-09-28T11:30:46.257362+00:00",
+    "version": "1.1.0",
+    "contract": "backlog-measurements.v1"
+  },
+  "production_preview": {
+    "issuers": 122,
+    "concept_and_legacy_records": 203,
+    "source_observations": 8797,
+    "observation_pages": 88,
+    "second_page_verified": true,
+    "workday_rpo_date": "2018-07-31",
+    "workday_deferred_date": "2026-07-31",
+    "ambiguous_eps_unavailable": true,
+    "captured_errors": 0
+  },
+  "tests": {
+    "focused_frontend": 68,
+    "all_frontend": 1658,
+    "existing_native": 16,
+    "existing_acceptance": 3,
+    "deployment_static": 468,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "engine_wiring": 143
+  },
+  "no_new_investment_authority": true,
+  "provider_original_http_replay_verified": false,
+  "first_release_availability_verified": false,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "private_reads": 0
+}
