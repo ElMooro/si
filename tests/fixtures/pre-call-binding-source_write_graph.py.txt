@@ -7,7 +7,6 @@ Simple unconditional local-function factories preserve lexical arguments.
 """
 import ast
 from pathlib import Path
-from source_call_binding import bind_call
 
 
 class Callable:
@@ -115,10 +114,23 @@ class SharedWriteGraph:
             self.issue(caller,node,'shared call graph recursion or analysis bound: '+identity);return True
         args=list(fn.args.posonlyargs)+list(fn.args.args)
         lexical=value.environment if value.environment is not None else target.globals
-        bound,invalid=bind_call(fn,node,lambda n:caller.resolve(n,env),lambda n:target.resolve(n,lexical),
-                               lexical,getattr(node,'_external_root',False))
-        if invalid:
-            self.issue(caller,node,'invalid Python call binding: '+invalid+'; '+identity);return True
+        bound=dict(lexical)
+        for arg in args+list(fn.args.kwonlyargs):bound[arg.arg]=None
+        for arg,default in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:
+            bound[arg.arg]=target.resolve(default,lexical)
+        for arg,default in zip(fn.args.kwonlyargs,fn.args.kw_defaults):
+            if default is not None:bound[arg.arg]=target.resolve(default,lexical)
+        if any(isinstance(passed,ast.Starred) for passed in node.args):
+            for arg in args:bound[arg.arg]=None
+        else:
+            for arg,passed in zip(args,node.args):bound[arg.arg]=caller.resolve(passed,env)
+        for kw in node.keywords:
+            if kw.arg:bound[kw.arg]=caller.resolve(kw.value,env)
+            else:
+                mapping=caller.resolve(kw.value,env)
+                if isinstance(mapping,dict):bound.update(mapping)
+                else:
+                    for arg in args+list(fn.args.kwonlyargs):bound[arg.arg]=None
         def fingerprint(value,depth=0):
             if isinstance(value,str) or value is None:return value
             if isinstance(value,Callable) and depth<3:
@@ -132,8 +144,7 @@ class SharedWriteGraph:
                 token=self.fingerprint_objects.setdefault(id(value),(value,len(self.fingerprint_objects)))[1]
                 return ('bounded_object',token)
             return None
-        parameters=args+list(fn.args.kwonlyargs)+([fn.args.vararg] if fn.args.vararg else [])+([fn.args.kwarg] if fn.args.kwarg else [])
-        signature=(identity,fn.lineno,tuple((arg.arg,fingerprint(bound.get(arg.arg))) for arg in parameters),fingerprint(value))
+        signature=(identity,fn.lineno,tuple((arg.arg,fingerprint(bound.get(arg.arg))) for arg in args+list(fn.args.kwonlyargs)),fingerprint(value))
         if signature in self.seen:return True
         self.seen.add(signature)
         self.calls += 1
@@ -165,7 +176,6 @@ class SharedWriteGraph:
         if isinstance(target,Callable):
             # The synthetic external invocation binds no invented event values.
             node=ast.Call(func=ast.Name(id=function,ctx=ast.Load()),args=[],keywords=[])
-            node._external_root=True
             node.lineno=target.node.lineno
             self.call(scan,node,{function:target},())
         return {'keys':set(self.proofs),'reads':self.reads,'proofs':self.proofs,'unresolved':self.unresolved}

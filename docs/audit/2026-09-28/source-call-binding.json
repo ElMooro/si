@@ -1,0 +1,35 @@
+{
+  "status": "source_analyzer_repair_tested",
+  "scope": "AST-only tooling; no application import, provider request or AWS operation",
+  "defect": "Impossible calls could contribute fabricated read/write lineage; extra keywords could replace unrelated lexical globals.",
+  "repair": [
+    "Respect positional-only, keyword-only, required, default and variadic parameters.",
+    "Reject proven duplicate, missing, excessive and unexpected arguments before walking a body.",
+    "Keep unknown expansions unresolved and extra keyword names inside their declared mapping.",
+    "Reject duplicate storage-call keywords and retain real executor callback arity for unknown iterables."
+  ],
+  "validation": {
+    "focused_pytest_passed": 27,
+    "concrete_signature_binding_comparisons": 480,
+    "deployment_static_passed": 561,
+    "candidate_shell_passed": 12,
+    "engine_registry_rows_compared": 893,
+    "changed_engine_rows": 0,
+    "timestamp_only_generated_files_discarded": true
+  },
+  "predecessors": {
+    "tests/fixtures/pre-call-binding-gen_engine_manifest.py.txt": {
+      "bytes": 31354,
+      "sha256": "89eca96a045c875c2cfb6c8c6ec8b0c06b7ee3d8320f02df6def558211779653"
+    },
+    "tests/fixtures/pre-call-binding-source_write_graph.py.txt": {
+      "bytes": 10578,
+      "sha256": "b990039721d116cf11123b91d066d47d1845b922726eb1309f146a6a028309be"
+    }
+  },
+  "limitations": [
+    "Static source possibility is not runtime execution proof.",
+    "Dynamic return values and unknown expansions remain unresolved.",
+    "No new live production fault or native publication acceptance is claimed."
+  ]
+}

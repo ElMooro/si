@@ -9,7 +9,6 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from source_call_binding import bind_call, duplicate_keyword
 ROOT = Path(__file__).resolve().parents[1]
 LAMBDAS = ROOT / 'aws' / 'lambdas'
 WRITE_POS = {'put_object': None, 'upload_file': 2, 'upload_fileobj': 2,
@@ -202,12 +201,12 @@ class Scan:
         if isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id in self.executor_names and node.func.attr in ('submit','map') and node.args and isinstance(node.args[0],ast.Name) and known_function(node.args[0].id):
             callback=node.args[0]
             if node.func.attr=='submit':
-                self.call(ast.copy_location(ast.Call(func=callback,args=node.args[1:],keywords=node.keywords),node),env,stack)
+                self.call(ast.Call(func=callback,args=node.args[1:],keywords=node.keywords),env,stack)
             else:
                 iterables=[self.containers.get(arg.id,arg) if isinstance(arg,ast.Name) else arg for arg in node.args[1:]]
                 if iterables and all(isinstance(arg,(ast.List,ast.Tuple)) for arg in iterables):
-                    for values in zip(*(arg.elts for arg in iterables)):self.call(ast.copy_location(ast.Call(func=callback,args=list(values),keywords=[]),node),env,stack)
-                else:self.call(ast.copy_location(ast.Call(func=callback,args=[ast.Constant(value=None) for _ in iterables],keywords=[]),node),env,stack)
+                    for values in zip(*(arg.elts for arg in iterables)):self.call(ast.Call(func=callback,args=list(values),keywords=[]),env,stack)
+                else:self.call(ast.Call(func=callback,args=[],keywords=[]),env,stack)
             return
         binding=known_function(node.func.id) if isinstance(node.func,ast.Name) else self.resolve(node.func,env)
         if isinstance(binding,(FunctionBinding,ast.FunctionDef,ast.AsyncFunctionDef)):
@@ -216,11 +215,18 @@ class Scan:
             fn=binding.node if isinstance(binding,FunctionBinding) else binding; args=list(fn.args.posonlyargs)+list(fn.args.args)
             # A nested function captures its lexical caller values. A module
             # function does not inherit arbitrary locals from its caller.
+            bound=dict(binding.environment if isinstance(binding,FunctionBinding) else self.globals)
+            for a in args+list(fn.args.kwonlyargs):bound[a.arg]=None
             lexical=binding.environment if isinstance(binding,FunctionBinding) else self.globals
-            bound,invalid=bind_call(fn,node,lambda n:self.resolve(n,env),lambda n:self.resolve(n,lexical),lexical)
-            if invalid:
-                self.unresolved.append({'line':getattr(node,'lineno',fn.lineno),'operation':'local_call','reason':'invalid Python call binding: '+invalid+'; '+name})
-                return
+            for a,d in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:bound[a.arg]=self.resolve(d,lexical)
+            for a,d in zip(fn.args.kwonlyargs,fn.args.kw_defaults):
+                if d is not None:bound[a.arg]=self.resolve(d,lexical)
+            for a,v in zip(args,node.args):bound[a.arg]=self.resolve(v,env)
+            for kw in node.keywords:
+                if kw.arg:bound[kw.arg]=self.resolve(kw.value,env)
+                else:
+                    unpack=self.resolve(kw.value,env)
+                    if isinstance(unpack,dict):bound.update(unpack)
             self.block(fn.body,bound,stack+(name,))
             return
         if not isinstance(node.func,ast.Attribute):return
@@ -228,10 +234,6 @@ class Scan:
         kind='write' if attr in WRITE_POS else 'read' if attr in READ_POS else None
         if not kind:return
         if kind=='write':self.visited_write_lines.add(node.lineno)
-        duplicate=duplicate_keyword(node,lambda n:self.resolve(n,env))
-        if duplicate is not None:
-            self.unresolved.append({'line':node.lineno,'operation':attr,'reason':'invalid Python call binding: duplicate keyword argument: '+duplicate})
-            return
         keynode=next((kw.value for kw in node.keywords if kw.arg=='Key'),None)
         unpacked={}
         for kw in node.keywords:
