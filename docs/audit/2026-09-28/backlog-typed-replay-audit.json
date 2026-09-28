@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-09-28T13:07:07.936342+00:00",
+  "reproduction": {
+    "published_permission_zero_passed_as_false": true,
+    "published_original_integer_passed_as_float": true,
+    "utf16_accepted_despite_original_utf8_reader": true,
+    "native_invocations": 0,
+    "provider_requests": 0
+  },
+  "predecessors": [
+    {
+      "path": "tests/fixtures/pre-backlog-typed-source-replay.py.txt",
+      "bytes": 15659,
+      "sha256": "2f2fd1e4ff98f47fa899d00e715200ca9c02ad4d73e30cf4b26e08ca755154d6"
+    },
+    {
+      "path": "tests/fixtures/pre-backlog-typed-measurement-replay.py.txt",
+      "bytes": 5845,
+      "sha256": "38f5ee3e544b22146e9976b7e3f62a0f99a9310e7dcbdeddaac4df99c48aa1cd"
+    }
+  ],
+  "repair": [
+    "Compare serialized typed JSON for compiler projections, source observations, enrichment bodies and receipt bindings",
+    "Require every projected field and a literal integer ledger count; numeric zero cannot masquerade as false permission",
+    "Retain original strict UTF-8 source decoding; do not silently accept UTF-16/32",
+    "Correct isolated native fixture to contain the explicit null metadata written by the actual producer"
+  ],
+  "validation": {
+    "native": 32,
+    "arithmetic_acceptance": 4,
+    "history_acceptance": 4,
+    "originals_acceptance": 3,
+    "deployment_static": 474,
+    "candidate_shell": 12
+  },
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "private_reads": 0,
+  "limits": [
+    "Source-enabled normal publication is still pending",
+    "No forecast, private-selection or investment qualification"
+  ]
+}

@@ -5,7 +5,6 @@ from threading import Lock
 from urllib.parse import urlsplit, parse_qsl, urlencode, unquote
 import gzip
 import hashlib
-import json
 import re
 import urllib.error
 import urllib.request
@@ -17,10 +16,6 @@ CONTRACT = 'backlog-provider-originals.v1'
 PREFIX = 'data/backlog/sources/'
 WIRE_BOUND = 8 * 1024 * 1024
 DECODED_BOUND = 16 * 1024 * 1024
-
-
-def same(left, right):
-    return json.dumps(left, sort_keys=True, ensure_ascii=False, allow_nan=False, separators=(',', ':')) == json.dumps(right, sort_keys=True, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
 
 
 def endpoint(url):
@@ -86,7 +81,7 @@ def result(raw, encoding, status, url):
     if not 200 <= status < 300:
         return None, 'http_error'
     try:
-        return decode(expanded(raw, encoding).decode('utf-8')), 'received'
+        return decode(expanded(raw, encoding)), 'received'
     except (ValueError, UnicodeError, OSError, EOFError, RecursionError, zlib.error):
         return None, 'invalid_response'
 
@@ -140,6 +135,7 @@ class Capture:
                 decoded = expanded(raw, encoding)
                 text = decoded.decode('utf-8')
                 try:
+                    import json
                     text += json.dumps(decode(decoded), ensure_ascii=False)
                 except (ValueError, RecursionError):
                     if clean.startswith('https://financialmodelingprep.com/'):
@@ -218,7 +214,7 @@ def replay(packet, read):
             raise ValueError('Missing original response')
     def source(attempt, expected):
         if (not isinstance(attempt, dict) or type(attempt.get('request_index')) is not int or
-                not 0 <= attempt['request_index'] < len(attempts) or not same(attempt, attempts[attempt['request_index']]) or
+                not 0 <= attempt['request_index'] < len(attempts) or attempt != attempts[attempt['request_index']] or
                 attempt['endpoint'] != endpoint(expected)):
             raise ValueError('Published measurement is not bound to its exact request')
         return values.get(attempt['request_index'])
@@ -230,7 +226,7 @@ def replay(packet, read):
             if original is None:
                 raise ValueError('A measurement requires a complete usable original')
             rebuilt = compile_concept(original, cik, tag, c['checked_as_of'])
-            if any(k not in c or not same(c[k], v) for k, v in rebuilt.items()):
+            if any(c.get(k) != v for k, v in rebuilt.items()):
                 raise ValueError('Original concept replay differs')
             units = original.get('units') or {}
             selected = units.get('USD') or units.get('USD/shares') or next(iter(units.values()), [])
@@ -271,7 +267,7 @@ def replay(packet, read):
             attempt = refs.get(name)
             original = source(attempt, 'https://financialmodelingprep.com/stable/' + path + 'symbol=' + ticker) if attempt is not None else None
             expected = original if isinstance(original, (list, dict)) else None
-            if name not in enrichment or not same(enrichment[name], expected):
+            if enrichment.get(name) != expected:
                 raise ValueError('Complete enrichment differs')
         rows += 1
     if type(packet.get('slice_this_run')) is not int or rows != packet['slice_this_run']:

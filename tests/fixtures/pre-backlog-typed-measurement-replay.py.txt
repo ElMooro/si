@@ -20,10 +20,6 @@ from sec_atom_model import strict, sha, clock
 FN='justhodl-backlog';KEY='data/backlog.json';BUCKET='justhodl-dashboard-live'
 
 
-def same(left,right):
-    return json.dumps(left,sort_keys=True,ensure_ascii=False,allow_nan=False,separators=(',',':'))==json.dumps(right,sort_keys=True,ensure_ascii=False,allow_nan=False,separators=(',',':'))
-
-
 def compiler():
     p=ROOT/'aws/lambdas'/FN/'source/backlog_measurements.py'
     spec=importlib.util.spec_from_file_location('isolated_backlog_measurements',p)
@@ -40,7 +36,7 @@ def check_concept(c, m):
             values.append(row['source'])
         if original.get('_source_status')!=404:original['units']=units
         rebuilt=m.compile_concept(original,c['cik'],c['tag'],c['checked_as_of'])
-        if any(key not in c or not same(c[key],value) for key,value in rebuilt.items()):raise ValueError('Published concept calculation differs')
+        if any(c.get(key)!=value for key,value in rebuilt.items()):raise ValueError('Published concept calculation differs')
     elif c.get('latest') is not None or c.get('observations') or c.get('qoq') is not None or c.get('yoy') is not None:
         raise ValueError('Unreviewed concept cannot supply measurements')
     for alternate in c.get('alternate_concepts',[]):check_concept(alternate,m)
@@ -64,14 +60,14 @@ def publication(raw):
             for c in row['measurements'].values():
                 check_concept(c,m);counts['observations']+=len(c.get('observations',[]))
             expected=m.row_from_concepts(ticker,row['cik'],{k:row.get(k) for k in ('sector','cap_bucket','group')},row['measurements'])
-            if any(k not in row or not same(row[k],v) for k,v in expected.items()):raise ValueError('Published issuer projection differs')
+            if any(row.get(k)!=v for k,v in expected.items()):raise ValueError('Published issuer projection differs')
             counts['rebuilt_rows']+=1
         else:
             if not isinstance(row.get('legacy_unverified_original'),dict):raise ValueError('Whole legacy observation required')
             for k in ('rpo','rpo_qoq','rpo_yoy','deferred_rev','deferred_qoq','deferred_yoy','eps','eps_qoq','eps_yoy','rev_yoy','ev_to_rpo','rpo_minus_rev_growth','demand_accelerating','deferred_accelerating'):
                 if row.get(k) is not None:raise ValueError('Unverified legacy measurement remains active')
             counts['retained_legacy_rows']+=1
-    if type(packet.get('ledger_size')) is not int or packet['ledger_size']!=len(packet['by_ticker']):raise ValueError('Whole ledger count differs')
+    if packet.get('ledger_size')!=len(packet['by_ticker']):raise ValueError('Whole ledger count differs')
     result.update(status='published_observation_arithmetic_reproduced',**counts,
                   provider_originals_replayed=False,point_in_time_availability_verified=False)
     return result

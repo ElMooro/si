@@ -213,7 +213,7 @@ class Tests(unittest.TestCase):
                 return {'by_ticker':copy.deepcopy(old)}
             raise AssertionError(key)
         c=compile([observation('2025-12-31',100),observation('2026-03-31',110)])
-        row=row_from_concepts('TEST','0000000001',{}, {'rpo':c,'deferred':c,'eps':c})
+        row=row_from_concepts('TEST','0000000001',{'sector':None,'cap_bucket':None,'group':None}, {'rpo':c,'deferred':c,'eps':c})
         ns=native(load_cik_map=lambda **kw:{'TEST':'0000000001'},read_json=read,
                   analyze=lambda *a,**kw:None if unavailable else copy.deepcopy(row),
                   s3=Memory({'by_ticker':copy.deepcopy(old)},writes))
@@ -398,6 +398,16 @@ class Tests(unittest.TestCase):
         db.put_object=write
         with self.assertRaises(ValueError):ns['lambda_handler']()
         self.assertEqual(db.raw[store.HEAD],prior);self.assertNotIn('data/backlog-coverage-cache.json',db.raw)
+
+
+    def test_replay_requires_exact_json_types_and_original_utf8(self):
+        ns,db,_,_=captured_handler();ns['lambda_handler']();p=json.loads(db.raw[store.HEAD])
+        p['by_ticker']['TEST']['measurements']['rpo']['observations'][0]['source']['val']=100.0
+        with self.assertRaises(ValueError):sources.replay(p,lambda ref:sources.read_original(db,'fixture',ref))
+        for raw in ('{"test":1}'.encode('utf-16'),'{} '.encode('utf-32')):
+            value,status=sources.result(raw,'',200,'https://www.sec.gov/files/company_tickers.json')
+            self.assertIsNone(value);self.assertEqual(status,'invalid_response')
+        self.assertFalse(sources.same(False,0));self.assertFalse(sources.same(1,1.0))
 
 
 if __name__ == '__main__': unittest.main()

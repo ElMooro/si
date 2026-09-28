@@ -31,12 +31,12 @@ def publication(raw,prior_raw=None):
         return {'status':'pending_original_schedule_archived_publication','generated_at':p.get('generated_at'),
                 'version':p.get('version'),'bytes':len(raw),'sha256':store.reference(raw)['sha256'],
                 'publication_history_verified':False,'investment_authority':False}
-    if p.get('version') not in ('1.2.0','1.3.0') or p.get('source_files')!=store.source_identity():
+    if p.get('version') not in ('1.2.0','1.3.0') or not original.same(p.get('source_files'),store.source_identity()):
         raise ValueError('Exact publication compiler required')
     prior=store.decode(prior_raw) if prior_raw is not None else None
     if prior_raw is not None and (not isinstance(prior,dict) or not isinstance(prior.get('by_ticker'),dict)):
         raise ValueError('Whole previous ledger required')
-    if p.get('previous_publication')!=(store.reference(prior_raw) if prior_raw is not None else None):
+    if not original.same(p.get('previous_publication'),(store.reference(prior_raw) if prior_raw is not None else None)):
         raise ValueError('Exact previous publication differs')
     result=original.publication(raw)
     if result['status']!='published_observation_arithmetic_reproduced':raise ValueError('Measurement arithmetic replay required')

@@ -24,6 +24,7 @@ def publication(raw,s3):
     prior=history.retained(s3,packet['previous_publication']) if packet.get('previous_publication') is not None else None
     result=history.publication(raw,prior)
     result['provider_replay']=sources.replay(packet,lambda ref:sources.read_original(s3,BUCKET,ref))
+    result['whole_provider_http_replay_verified']=result['provider_replay']['whole_provider_http_replay_verified']
     return result
 
 

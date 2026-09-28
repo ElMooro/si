@@ -1,6 +1,7 @@
 from pathlib import Path
 import importlib.util
 import json
+import copy
 import sys
 import unittest
 
@@ -29,6 +30,15 @@ class Tests(unittest.TestCase):
         ns,writes,_=fixture.Tests().handler();ns['lambda_handler']();p=writes[op.KEY]
         p['by_ticker']['OLD']['rpo']=42
         with self.assertRaises(ValueError):op.publication(json.dumps(p).encode())
+
+
+    def test_numeric_permission_and_counter_substitutions_cannot_pass_replay(self):
+        ns,writes,_=fixture.Tests().handler();ns['lambda_handler']();original=writes[op.KEY]
+        for edit in (lambda p:p['by_ticker']['TEST'].update(calls_eligible=0),
+                     lambda p:p.update(ledger_size=float(p['ledger_size'])),
+                     lambda p:p['by_ticker']['TEST']['measurements']['rpo'].update(sizing_eligible=0)):
+            p=copy.deepcopy(original);edit(p)
+            with self.assertRaises(ValueError):op.publication(json.dumps(p).encode())
 
 
 if __name__=='__main__':unittest.main()

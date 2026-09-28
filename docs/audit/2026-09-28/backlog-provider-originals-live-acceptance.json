@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-09-28T13:05:44.845704+00:00",
+  "commit": "b60466f876139cde1b74e8aa8cafde27c1f1d1a4",
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "KWB6Ie5zi9Ttg+UBz28xgyqnwipYmpN7c78Qsus1DBk=",
+    "commit": "b60466f876139cde1b74e8aa8cafde27c1f1d1a4",
+    "deployed_at": "2026-09-28T13:01:54Z",
+    "function": "justhodl-backlog",
+    "run_id": "36425612684",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36425612684",
+    "schema": "release-receipt.v1",
+    "source": {
+      "backlog_measurements.py": {
+        "bytes": 10763,
+        "sha256": "279562ea68d391fbd83ad8cd347c1c0111b6ce36087b5c0f7c4c5348d3962d33"
+      },
+      "backlog_sources.py": {
+        "bytes": 15659,
+        "sha256": "2f2fd1e4ff98f47fa899d00e715200ca9c02ad4d73e30cf4b26e08ca755154d6"
+      },
+      "backlog_store.py": {
+        "bytes": 3091,
+        "sha256": "ae777d71227ae91f311ee616feb35f96cd8fb46d59fdbc255419468312629a4a"
+      },
+      "lambda_function.py": {
+        "bytes": 20489,
+        "sha256": "f6be32cfa3d3b1d2903dd596778ce04e5d57a1ef0105f9b72f062b7f6a448427"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 864322,
+    "zip_sha256_hex": "29607a21ee738bd4ed83e501cf6f31832aa7c22a589a937b73bf10b2eb350c19"
+  },
+  "public_packet": {
+    "key": "data/backlog.json",
+    "bytes": 5329946,
+    "sha256": "9ec825e81d9696d557bbf4e9a90c50d12c925c78b087906f233a39f7a7a8ab4e",
+    "generated_at": "2026-09-28T11:30:46.257362+00:00",
+    "version": "1.1.0",
+    "contract": "backlog-measurements.v1"
+  },
+  "publication_history_verified": false,
+  "first_new_native_publication": "Pending 1.3.0 on original September 29 11:30 UTC schedule",
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_reads": 0,
+  "lambda_run": 36425612684,
+  "acceptance_run": 36425824058,
+  "report_commit": "6ca8d2c31eaa1e049881bf2d905b680763114a39",
+  "page_assets": {
+    "checked_at": "2026-09-28T13:04:26.880325+00:00",
+    "served_commit": "3836ba324d027c7faaf5854441aa8841d189163e",
+    "assets": {
+      "backlog.html": {
+        "bytes": 9308,
+        "sha256": "f2e71cbed84a04bac364cf5bdaa8b6e2e069a8e404f0003d20de0dbf97a92fd0",
+        "matches_manifest": true
+      },
+      "jh-backlog-observations.js": {
+        "bytes": 8831,
+        "sha256": "23067389fcb60aab7525bfc1dc6de09263601645ee748ea42c997691ee3391a1",
+        "matches_manifest": true
+      },
+      "jh-table-values.js": {
+        "bytes": 5733,
+        "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 2412556,
+        "sha256": "2a1b3acbf4fd7fccd09e8945e6923eba26295ae61efc595b62e51ce7d8255756",
+        "matches_manifest": true
+      }
+    }
+  }
+}
