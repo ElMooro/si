@@ -1,0 +1,35 @@
+{
+  "checked_at": "2026-09-28T14:15:58.764338+00:00",
+  "reproduced": [
+    {
+      "mutation": "count_as_float",
+      "incorrectly_accepted": true
+    },
+    {
+      "mutation": "zero_as_boolean",
+      "incorrectly_accepted": true
+    },
+    {
+      "mutation": "index_as_boolean",
+      "incorrectly_accepted": true
+    },
+    {
+      "mutation": "missing_explicit_call",
+      "incorrectly_accepted": true
+    }
+  ],
+  "repair": [
+    "Require integer count fields and explicit call null",
+    "Compare whole issuer projections with canonical JSON preserving boolean/integer/float distinctions"
+  ],
+  "tests": {
+    "acceptance": 4,
+    "native_unchanged": 19
+  },
+  "native_source_changed": false,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "new_native_deployment_claim": false,
+  "live_acceptance_pending": true
+}

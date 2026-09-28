@@ -20,11 +20,6 @@ from sec_atom_model import strict,sha,clock
 FN='justhodl-earnings-quality';KEY='data/earnings-quality.json';BUCKET='justhodl-dashboard-live'
 
 
-def same_json(left,right):
-    options={'sort_keys':True,'separators':(',',':'),'allow_nan':False}
-    return json.dumps(left,**options)==json.dumps(right,**options)
-
-
 def compiler():
     p=ROOT/'aws/lambdas'/FN/'source/earnings_measurements.py'
     spec=importlib.util.spec_from_file_location('isolated_earnings_measurements',p)
@@ -38,9 +33,7 @@ def publication(raw):
             'generated_at':packet.get('generated_at',packet.get('as_of')),'version':packet.get('version')}
     m=compiler()
     if packet.get('measurement_contract')!=m.CONTRACT:return result
-    if (any(type(packet.get(k)) is not int or packet[k]<0 for k in ('signals_logged','notifications_sent','n_received','n_aligned'))
-        or 'call' not in packet):raise ValueError('Literal counts and explicit call required')
-    if clock(packet.get('generated_at')) is None or packet['call'] is not None or packet['signals_logged']!=0 or packet['notifications_sent']!=0 or any(
+    if clock(packet.get('generated_at')) is None or packet.get('call') is not None or packet.get('signals_logged')!=0 or packet.get('notifications_sent')!=0 or any(
             packet.get(k) is not False for k in ('calls_eligible','forecast_qualified','sizing_eligible','execution_eligible')):
         raise ValueError('Explicit research publication required')
     if any(packet.get(k)!=[] for k in ('all_ranked','top_20_high_quality','top_10_low_quality_avoid','trade_tickets')):
@@ -52,7 +45,7 @@ def publication(raw):
     for i,row in enumerate(rows):
         expected=m.dossier(row['ticker'],row['acquisitions'],packet['checked_as_of'])
         expected['request_index']=i
-        if not same_json(row,expected):raise ValueError('Whole typed reported accounting projection differs')
+        if row!=expected:raise ValueError('Whole reported accounting projection differs')
         observations+=sum(len(v) for v in row['statement_observations'].values())
     if packet['n_aligned']!=sum(r['windows']['current']['aligned'] for r in rows):raise ValueError('Aligned count differs')
     result.update(status='published_accounting_projections_reproduced',company_occurrences=len(rows),observations=observations,

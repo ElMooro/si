@@ -28,5 +28,13 @@ class Tests(unittest.TestCase):
             else:p['sizing_eligible']=True
             with self.assertRaises(ValueError):op.publication(json.dumps(p).encode())
 
+    def test_typed_counts_indices_and_explicit_call_are_required(self):
+        changes=[lambda p:p.update(n_received=float(p['n_received'])),lambda p:p.update(signals_logged=False),
+                 lambda p:p.update(notifications_sent=0.0),lambda p:p.update(n_aligned=float(p['n_aligned'])),
+                 lambda p:p['issuer_rows'][0].update(request_index=False),lambda p:p.pop('call')]
+        for change in changes:
+            _,writes=fixture.Tests().handler();p=writes[0];change(p)
+            with self.assertRaises(ValueError):op.publication(json.dumps(p).encode())
+
 
 if __name__=='__main__':unittest.main()
