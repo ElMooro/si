@@ -1,0 +1,48 @@
+{
+  "engine": "justhodl-volatility-squeeze-hunter",
+  "source": {
+    "bytes": 16359,
+    "sha256": "01b674d9d396b1432be4a3624d606e46e983d326b79b18be68924bcf3db006de"
+  },
+  "public_packet": {
+    "key": "data/volatility-squeeze.json",
+    "bytes": 93917,
+    "sha256": "2b5c62a46f0e20f69d33d5fd3b355a8d3fad172cbfdec8ab8e170c6873a86862",
+    "generated_at": "2026-09-27T11:00:23+00:00",
+    "stats": {
+      "n_universe": 1500,
+      "n_evaluated": 169,
+      "n_no_data": 1331,
+      "n_tier_s": 1,
+      "n_tier_a": 4,
+      "n_tier_b": 13,
+      "n_watch": 55
+    }
+  },
+  "baseline_operation": 6261,
+  "status": "original_package_preservation_pending",
+  "unresolved": [
+    "Repeated future-dated rows from another issuer produce a ranked squeeze setup.",
+    "The latest Bollinger width excludes the latest close, while ATR and the approximate channel use different ending windows.",
+    "Missing high/low are silently filled with close; missing volume becomes zero; boolean prices become one.",
+    "Inverted OHLC can produce negative range drawdowns without rejection.",
+    "Nested 66/126/252 observation ranges are labeled a VCP without identifying corrections or contraction-leg volume.",
+    "Equal-range ties count as all thirty narrow-range events; repeated OHLC can imply 100 percent inside days.",
+    "Observation windows are labeled days and an unlabeled price-times-volume filter is called USD liquidity.",
+    "Six related transforms of the same price/volume source are summed as independent high-conviction signals without calibration.",
+    "Returned source rows are truncated and provider failures, gate exclusions and unattempted requests are collapsed into no_data.",
+    "Six dependent consumers require explicit research boundaries; their private outputs are not in scope."
+  ],
+  "consumers": [
+    "justhodl-compound-aggregator",
+    "justhodl-options-confluence",
+    "justhodl-master-ranker",
+    "justhodl-katlin",
+    "justhodl-ai-infra-stack",
+    "justhodl-theme-second-wave"
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_output_reads": 0,
+  "investment_authority": false
+}
