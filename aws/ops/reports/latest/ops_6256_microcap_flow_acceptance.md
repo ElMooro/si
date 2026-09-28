@@ -1,0 +1,15 @@
+
+**Status:** success  
+**Duration:** 11.2s  
+**Finished:** 2026-09-28T00:25:56+00:00  
+
+## Data
+
+| account_reads | actual_runtime | consumer_output_reads | current_archive_verified | expected_commit | fanout_route | history_writes | learning_log_reads | native_invocations | native_publication | private_state_reads | provider_requests | public_writes | schedule_changes | scope |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  | {'code_sha256': 'NWaltUYgecSIHijRkv3yPLhRIFUX+lbn0WOaZH0CXFs=', 'source_files_checked': 4, 'handler_bytes': 29678, 'timeout': 600, 'memory_mb': 2048, 'receipt': {'status': 'matched', 'commit': 'edf9d60d5e57e19aa178c7c6a11bd4d445e7541f'}, 'schedules': [], 'function_name': 'justhodl-microcap-float-squeeze', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  | {'manifest_key': 'config/fanout-manifest.json', 'sha256': 'decdf10e3114fef2919769327ad6c19a7041fb6f33f8b8b6a017a7ed03f086dd', 'bytes': 11573, 'etag': '"a8b0d37b4f8e60d26597b7c0fd0f08a5"', 'matching_ticks': ['daily-eve'], 'routes': [{'tick': 'daily-eve', 'kind': 'EventBridge rule', 'name': 'jhk-tick-daily-eve', 'state': 'ENABLED', 'expression': 'cron(0 22 * * ? *)', 'timezone': 'UTC'}], 'router_code_sha256': 'fIYL7j/Di8OpAhWWDKG3dnE9ay6kNjsWbe9tt72okZE=', 'router_sources_checked': 2} |  |  |  |  |  |  |  |  |  |
+| 0 | {'code_sha256': 'NWaltUYgecSIHijRkv3yPLhRIFUX+lbn0WOaZH0CXFs=', 'source_files_checked': 4, 'handler_bytes': 29678, 'timeout': 600, 'memory_mb': 2048, 'receipt': {'status': 'matched', 'commit': 'edf9d60d5e57e19aa178c7c6a11bd4d445e7541f'}, 'schedules': [], 'function_name': 'justhodl-microcap-float-squeeze', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} | 0 | False | edf9d60d5e57e19aa178c7c6a11bd4d445e7541f | {'manifest_key': 'config/fanout-manifest.json', 'sha256': 'decdf10e3114fef2919769327ad6c19a7041fb6f33f8b8b6a017a7ed03f086dd', 'bytes': 11573, 'etag': '"a8b0d37b4f8e60d26597b7c0fd0f08a5"', 'matching_ticks': ['daily-eve'], 'routes': [{'tick': 'daily-eve', 'kind': 'EventBridge rule', 'name': 'jhk-tick-daily-eve', 'state': 'ENABLED', 'expression': 'cron(0 22 * * ? *)', 'timezone': 'UTC'}], 'router_code_sha256': 'fIYL7j/Di8OpAhWWDKG3dnE9ay6kNjsWbe9tt72okZE=', 'router_sources_checked': 2} | 0 | 0 | 0 | {'status': 'pending_original_fanout_publication', 'bytes': 90468, 'sha256': 'b47064597f10adc8ec167cfb46b37fdffcc676005adb05e170ac330276db343d', 'generated_at': '2026-09-27T22:00:29+00:00', 'version': None} | 0 | 0 | 0 | 0 | Exact producer package; actual router code, selected Microcap fanout membership and enabled tick payload. Whole declared public packet, its own history and exact content-addressed provider blobs only; no predictive qualification. |
+
+## Log
+
