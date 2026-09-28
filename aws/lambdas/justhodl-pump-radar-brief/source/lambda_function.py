@@ -880,7 +880,10 @@ def lambda_handler(event,context):
         packet,ref=store.publish(build_brief_evidence)
         return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':CONTRACT,
             'generated_at':packet['generated_at'],'call':'WAIT','model_requests':0,'output_sha256':ref['sha256']})}
-    except Exception:
-        # Do not publish an error over the prior brief or log original context.
-        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':True,
+    except Exception as exc:
+        # Never replace the packet with an error or infer rollback from a timeout.
+        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
+            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted',
+            'preservation_scope':'this_attempt_only',
             'model_requests':0,'error':'Complete context acquisition, retention or conditional publication failed'})}

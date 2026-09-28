@@ -65,6 +65,13 @@ def validate_ref(ref,prefix,kind):
     return ref
 
 
+class PublicationUncertain(Exception):
+    """A head write was attempted without acknowledgement; never infer rollback."""
+    def __init__(self,key):
+        super().__init__('Conditional publication acknowledgement unavailable')
+        self.key=key
+
+
 class ContextStore:
     def __init__(self,client,bucket,head,inputs,prefix,contract,compiler_paths,acquisition_budget_s=230,publication_budget_s=250):
         if not isinstance(inputs,dict) or not inputs or len(set(inputs.values()))!=len(inputs):raise ValueError('Unique declared inputs required')
@@ -123,5 +130,10 @@ class ContextStore:
         packet['acquisition_started_at']=started_at;body=encode(packet);ref=self.retain(body,'outputs')
         if time.monotonic()-started>self.publication_budget_s:raise ValueError('Context publication budget exhausted')
         condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
-        self.client.put_object(Bucket=self.bucket,Key=self.head,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
+        try:
+            self.client.put_object(Bucket=self.bucket,Key=self.head,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
+        except Exception as exc:
+            # A timeout can arrive after S3 committed; a failed condition can mean
+            # another writer changed the head. Do not retry or assert preservation.
+            raise PublicationUncertain(self.head) from exc
         return packet,ref

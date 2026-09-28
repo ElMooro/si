@@ -121,6 +121,39 @@ class Tests(unittest.TestCase):
         ns,mem,_=native()
         for key in m.INPUTS.values():mem.data.pop(key)
         self.assertEqual(ns['lambda_handler']({},None)['statusCode'],503);self.assertEqual(mem.data[m.HEAD],mem.previous)
+    def test_ambiguous_primary_and_each_alias_report_only_acknowledged_writes(self):
+        for failed_key in (m.HEAD,*m.ALIASES):
+            for committed in (False,True):
+                class LostAcknowledgement(Memory):
+                    def put_object(self,**kw):
+                        if kw['Key']==failed_key and not committed:
+                            self.writes.append(kw);raise Error('RequestTimeout')
+                        super().put_object(**kw)
+                        if kw['Key']==failed_key:raise Error('RequestTimeout')
+                ns,mem,_=native(LostAcknowledgement());r=ns['lambda_handler']({},None);body=json.loads(r['body'])
+                self.assertEqual(r['statusCode'],503);self.assertEqual(mem.data[failed_key]!=mem.previous,committed)
+                self.assertEqual(sum(w['Key']==failed_key for w in mem.writes),1)
+                if failed_key==m.HEAD:
+                    self.assertIsNone(body['previous_primary_preserved'])
+                    self.assertEqual(body['primary_publication_status'],'acknowledgement_unknown')
+                    self.assertEqual(body['compatibility_outputs_published'],[])
+                    self.assertEqual(body['compatibility_publication_uncertain'],[])
+                    self.assertTrue(all(mem.data[k]==mem.previous for k in m.ALIASES))
+                else:
+                    self.assertIs(body['previous_primary_preserved'],False)
+                    self.assertEqual(body['primary_publication_status'],'acknowledged')
+                    self.assertEqual(body['compatibility_publication_uncertain'],[failed_key])
+                    index=m.ALIASES.index(failed_key)
+                    self.assertEqual(body['compatibility_outputs_published'],list(m.ALIASES[:index]))
+                    self.assertTrue(all(mem.data[k]==mem.previous for k in m.ALIASES[index+1:]))
+                self.assertFalse(body['atomic_across_keys'])
+    def test_failure_before_primary_attempt_never_claims_remote_rollback(self):
+        ns,mem,_=native();mem.fail_retention=True;r=ns['lambda_handler']({},None);body=json.loads(r['body'])
+        self.assertIs(body['previous_primary_preserved'],True)
+        self.assertEqual(body['primary_publication_status'],'head_write_not_attempted')
+        self.assertEqual(body['preservation_scope'],'this_attempt_only')
+        self.assertEqual(body['compatibility_publication_uncertain'],[])
+        self.assertFalse(any(w['Key'] in (m.HEAD,*m.ALIASES) for w in mem.writes))
     def test_original_runtime_and_shorter_declared_budgets(self):
         cfg=json.loads((SRC.parent/'config.json').read_bytes());original=json.loads((ROOT/'tests/fixtures/pre-prepump-summary-evidence-config.json.txt').read_bytes())
         for key in ('runtime','memory','timeout','handler','role_arn','environment','eventbridge_scheduler'):self.assertEqual(cfg[key],original[key])

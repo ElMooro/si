@@ -139,6 +139,35 @@ class Tests(unittest.TestCase):
         first=json.loads(mem.data[m.HEAD]);self.assertIsNone(first['replay']['previous_publication'])
         self.assertEqual(scope['lambda_handler']({},None)['statusCode'],200)
         writes=[w for w in mem.writes if w['Key']==m.HEAD];self.assertEqual(writes[0]['IfNoneMatch'],'*');self.assertIn('IfMatch',writes[1])
+    def test_unacknowledged_head_may_have_committed_and_is_never_retried(self):
+        for committed in (False,True):
+            class LostAcknowledgement(Memory):
+                def put_object(self,**kw):
+                    if kw['Key']==m.HEAD and not committed:
+                        self.writes.append(kw);raise Error('RequestTimeout')
+                    super().put_object(**kw)
+                    if kw['Key']==m.HEAD:raise Error('RequestTimeout')
+            ns,mem=native(LostAcknowledgement());r=ns['lambda_handler']({},None);body=json.loads(r['body'])
+            self.assertEqual(r['statusCode'],503);self.assertIsNone(body['previous_publication_preserved'])
+            self.assertEqual(body['publication_status'],'acknowledgement_unknown')
+            self.assertEqual(mem.data[m.HEAD]!=mem.previous,committed)
+            self.assertEqual(sum(w['Key']==m.HEAD for w in mem.writes),1)
+            self.assertEqual(mem.reads.count(m.HEAD),1)
+            if committed:
+                self.assertEqual(mem.data[store.identity(mem.data[m.HEAD],m.PRIVATE,'outputs')['key']],mem.data[m.HEAD])
+    def test_prepublication_failure_and_competing_writer_are_distinct(self):
+        ns,mem=native();mem.fail_retention=True;r=ns['lambda_handler']({},None);body=json.loads(r['body'])
+        self.assertIs(body['previous_publication_preserved'],True)
+        self.assertEqual(body['publication_status'],'head_write_not_attempted')
+        self.assertEqual(body['preservation_scope'],'this_attempt_only')
+        self.assertFalse(any(w['Key']==m.HEAD for w in mem.writes))
+        class Competitor(Memory):
+            def put_object(self,**kw):
+                if kw['Key']==m.HEAD:self.data[m.HEAD]=b'{"synthetic_competitor":true}'
+                super().put_object(**kw)
+        ns,mem=native(Competitor());r=ns['lambda_handler']({},None);body=json.loads(r['body'])
+        self.assertIsNone(body['previous_publication_preserved']);self.assertEqual(mem.data[m.HEAD],b'{"synthetic_competitor":true}')
+        self.assertEqual(sum(w['Key']==m.HEAD for w in mem.writes),1)
     def test_declared_scope_rejects_arbitrary_reads_and_bad_archive_names(self):
         obj=store.ContextStore(Memory(),'synthetic',m.HEAD,m.INPUTS,m.PRIVATE,m.CONTRACT,{'brief_evidence.py':SRC/'brief_evidence.py'})
         for key in ('data/accounts.json','private/accounts.json',m.PRIVATE+'../escape'):

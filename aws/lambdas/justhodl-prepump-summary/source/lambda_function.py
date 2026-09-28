@@ -311,7 +311,10 @@ def _publish_summary_alias(client,store,key,body,started):
     condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
     encoding={'ContentEncoding':'gzip'} if key.endswith('.gz') else {}
     if time.monotonic()-started>50:raise ValueError('Alias publication budget exhausted')
-    client.put_object(Bucket=S3_BUCKET,Key=key,Body=raw,ContentType='application/json',CacheControl='max-age=300',**encoding,**condition)
+    try:
+        client.put_object(Bucket=S3_BUCKET,Key=key,Body=raw,ContentType='application/json',CacheControl='max-age=300',**encoding,**condition)
+    except Exception as exc:
+        raise context_evidence_store.PublicationUncertain(key) from exc
 
 
 def lambda_handler(event,context):
@@ -328,7 +331,12 @@ def lambda_handler(event,context):
             _publish_summary_alias(client,store,key,body,started);aliases.append(key)
         return {'statusCode':200,'body':json.dumps({'status':'research_only','call':'WAIT','measurement_contract':CONTRACT,
             'output_sha256':ref['sha256'],'compatibility_outputs_published':aliases,'atomic_across_keys':False})}
-    except Exception:
-        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_primary_preserved':not primary_written,
+    except Exception as exc:
+        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        primary_unknown=uncertain and exc.key==HEAD
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_primary_preserved':False if primary_written else None if primary_unknown else True,
+            'primary_publication_status':'acknowledged' if primary_written else 'acknowledgement_unknown' if primary_unknown else 'head_write_not_attempted',
+            'preservation_scope':'this_attempt_only',
+            'compatibility_publication_uncertain':[exc.key] if uncertain and exc.key in ALIASES else [],
             'compatibility_outputs_published':aliases,'atomic_across_keys':False,'model_requests':0,
             'error':'Complete retention or conditional publication failed; inspect each output contract separately'})}

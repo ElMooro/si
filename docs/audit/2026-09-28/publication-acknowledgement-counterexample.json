@@ -1,0 +1,9 @@
+{
+  "synthetic_only": true,
+  "returned_status": 503,
+  "reported_previous_publication_preserved": true,
+  "actual_synthetic_head_changed": true,
+  "predecessor_commit": "48ce81b3f6ca427c983e9e4e0befccebbc478ed4",
+  "scope": "Synthetic in-memory commit-then-timeout against actual predecessor handler; no native or consumer output read.",
+  "corrected_semantics": "A failed acknowledgement does not prove rollback or unchanged public state."
+}
