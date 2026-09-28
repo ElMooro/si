@@ -353,7 +353,7 @@ def evaluate_ticker(ticker, finra_history):
     }
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline_at = started + TIMEOUT_BUDGET_S
     print("[opt-flow] starting v1.0")
@@ -452,3 +452,186 @@ def lambda_handler(event=None, context=None):
             "duration_s": out["duration_s"],
         }),
     }
+
+# Complete predecessor is retained above. The source-backed handler below is active.
+from pathlib import Path
+from datetime import datetime,timezone,timedelta
+from urllib.parse import quote_plus
+import hashlib,threading
+import offexchange_measurements as offexchange
+from flow_observations import (CONTRACT,strict,clock,number,symbol,envelope,content,original,
+    source_ref,validate_ref,universe,finra_files,dossier,spot,initial_url,cursor_url,provider_rows,contracts,bars_url)
+
+
+def _option_source_identity():
+    directory=Path(__file__).resolve().parent
+    paths={name:directory/name for name in ('lambda_function.py','flow_observations.py')}
+    paths['offexchange_measurements.py']=Path(offexchange.__file__)
+    return {name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} for name,path in paths.items() for raw in [path.read_bytes()]}
+
+
+def _option_object(key,bound):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole declared object required')
+    return raw,obj['ETag']
+
+
+def _option_immutable(key,raw,kind):
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType=kind,CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    back,_=_option_object(key,len(raw))
+    if back!=raw:raise ValueError('Whole immutable readback differs')
+
+
+def _option_archive(raw):
+    key='data/options-flow-scanner/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    _option_immutable(key,raw,'application/json')
+    return {'key':key,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
+class _OptionSources:
+    """One invocation's bounded, exact public provider originals; no private data."""
+    def __init__(self):self.raw={};self.lock=threading.Lock();self.bytes=0;self.stop=threading.Event()
+    def capture(self,raw,endpoint,kind='json'):
+        if len(raw)>8*1024*1024:raise ValueError('Whole provider response exceeds bound')
+        ref=source_ref(raw,kind);a=envelope(raw,endpoint,datetime.now(timezone.utc).isoformat(),kind)
+        with self.lock:
+            if ref['key'] not in self.raw:
+                # A launched four-worker window can retain two 8 MiB responses
+                # per worker beyond the 80 MiB launch threshold (144 MiB total).
+                if self.bytes+len(raw)>160*1024*1024:raise ValueError('Source retention budget exceeded; preserve current publication')
+                _option_immutable(ref['key'],raw,'application/json' if kind=='json' else 'text/plain; charset=utf-8')
+                self.raw[ref['key']]=raw;self.bytes+=len(raw)
+        return a
+
+
+def _option_fetch(url,sources,remaining,kind='json'):
+    from urllib.parse import urlsplit,quote
+    import re
+    p=urlsplit(url);headers={'User-Agent':'JustHodl-Option-Observations/1.1','Accept-Encoding':'identity'};secret=None;full=url
+    if p.scheme!='https' or p.fragment:raise ValueError('Declared provider destination required')
+    if p.netloc=='financialmodelingprep.com' and p.path=='/stable/quote':
+        secret=managed_secret(('fmp_key','FMP_KEY','FMP_API_KEY'),('/justhodl/fmp/api-key',));headers['apikey']=secret or ''
+    elif p.netloc in ('api.polygon.io','api.massive.com') and (p.path=='/v3/reference/options/contracts' or re.fullmatch(r'/v2/aggs/ticker/O:[A-Z0-9.]+\d{6}[CP]\d{8}/range/1/day/\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}',p.path)):
+        secret=POLY_KEY;full=url+('&' if p.query else '?')+'apiKey='+quote(secret or '',safe='')
+    elif p.netloc!='cdn.finra.org' or not re.fullmatch(r'/equity/regsho/daily/CNMSshvol\d{8}\.txt',p.path) or p.query:raise ValueError('Unreviewed provider destination')
+    base={'endpoint':url,'status':'not_attempted_runtime_rate_or_size_limit'}
+    if remaining()<30 or sources.bytes>=80*1024*1024 or sources.stop.is_set():return base
+    if p.netloc!='cdn.finra.org' and not secret:return {**base,'status':'credential_unavailable'}
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        request=urllib.request.Request(full,headers=headers)
+        try:response=urllib.request.build_opener(NoRedirect()).open(request,timeout=10)
+        except urllib.error.HTTPError as exc:response=exc
+        with response:status=response.status;raw=response.read(8*1024*1024+1)
+    except Exception as exc:return {**base,'status':'transport_unavailable','error_type':type(exc).__name__}
+    if status==429:sources.stop.set()
+    if len(raw)>8*1024*1024:return {**base,'status':'response_exceeds_bound','http_status':status,'original_retained':False}
+    if secret:
+        reflected=secret.encode() in raw
+        try:decoded=json.loads(raw)
+        except (ValueError,UnicodeError,RecursionError):decoded=None
+        pending=[decoded]
+        while pending and not reflected:
+            value=pending.pop()
+            if isinstance(value,str):reflected=secret in value
+            elif isinstance(value,dict):pending.extend(value.keys());pending.extend(value.values())
+            elif isinstance(value,list):pending.extend(value)
+        if reflected:return {**base,'status':'credential_echo_withheld','http_status':status,'original_retained':False}
+    a=sources.capture(raw,url,kind);a['http_status']=status
+    # Even denied/error originals survive. Their HTTP status prevents measurements.
+    return a
+
+
+def _option_company(member,sources,remaining,checked,days_back):
+    ticker=member['ticker'];url='https://financialmodelingprep.com/stable/quote?symbol='+quote_plus(ticker or '')
+    a=_option_fetch(url,sources,remaining) if ticker else {'endpoint':url,'status':'invalid_symbol_not_requested'}
+    result={'quote':a,'contract_pages':[],'bar_requests':[]};price=spot(a,sources.raw,ticker)
+    if a.get('http_status')!=200 or price is None:return result
+    url=initial_url(ticker,price,checked);seen=set()
+    for i in range(10):
+        if url in seen:break
+        seen.add(url);a=_option_fetch(url,sources,remaining);result['contract_pages'].append(a)
+        rows,p=provider_rows(a,sources.raw)
+        if rows is None or not p.get('next_url'):break
+        try:url=cursor_url(p['next_url'])
+        except ValueError:break
+    chain=contracts(ticker,price,result['contract_pages'],sources.raw,checked)
+    for index in chain['selected_record_indices']:
+        identity=chain['records'][index]['contract_id'];url=bars_url(identity,checked,days_back)
+        result['bar_requests'].append(_option_fetch(url,sources,remaining))
+    return result
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc);today=checked.date().isoformat()
+    if S3_KEY!='data/options-flow-scanner.json':raise ValueError('Fixed output ownership required')
+    if MAX_TICKERS<1 or N_WORKERS<1 or TIMEOUT_BUDGET_S<1 or not 1<=DAYS_BACK<=20:raise ValueError('Reviewed original acquisition bounds required')
+    try:previous_raw,etag=_option_object(S3_KEY,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('404','NoSuchKey'):raise
+        previous_raw=None;etag=None
+    previous=strict(previous_raw) if previous_raw is not None else None
+    if previous is not None and not isinstance(previous,dict):raise ValueError('Previous publication malformed')
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous generation clock invalid')
+    sources=_OptionSources();raw,universe_etag=_option_object('data/universe.json',8*1024*1024)
+    capture=sources.capture(raw,'data/universe.json');capture['etag']=universe_etag
+    membership=universe(capture,min(MAX_TICKERS,300),sources.raw);selected=membership['selected']
+    if not selected:raise ValueError('No selected universe; preserve previous publication')
+    def remaining():
+        own=min(TIMEOUT_BUDGET_S,260)-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    finra=[];parsed_dates=0;looked_back=0;stopped=None
+    for back in range(1,DAYS_BACK*2+5):
+        if parsed_dates>=DAYS_BACK:stopped='original_file_target_reached';break
+        if remaining()<90 or sources.bytes>=48*1024*1024:stopped='runtime_or_source_byte_reserve';break
+        looked_back=back;stamp=checked.date()-timedelta(days=back)
+        if stamp.weekday()>=5:continue
+        url='https://cdn.finra.org/equity/regsho/daily/CNMSshvol'+stamp.strftime('%Y%m%d')+'.txt'
+        a=_option_fetch(url,sources,remaining,'txt');a['observation_date']=stamp.isoformat();finra.append(a)
+        if a['status']=='received' and a.get('http_status')==200:
+            try:rows=offexchange.cnms(content(a,sources.raw),stamp.isoformat())
+            except (ValueError,UnicodeError):pass
+            else:parsed_dates+=bool(rows)
+        if sources.stop.is_set():stopped='rate_limited_no_retry';break
+    flow=finra_files(finra,sources.raw,selected,today)
+    captures=[{'quote':{'endpoint':'https://financialmodelingprep.com/stable/quote?symbol='+quote_plus(m['ticker'] or ''),'status':'not_attempted_runtime_rate_or_size_limit'},'contract_pages':[],'bar_requests':[]} for m in selected]
+    workers=max(1,min(N_WORKERS,4))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if remaining()<40 or sources.bytes>=80*1024*1024 or sources.stop.is_set():break
+            jobs=[(i,pool.submit(_option_company,selected[i],sources,remaining,today,DAYS_BACK)) for i in range(offset,min(offset+workers,len(selected)))]
+            for i,future in jobs:captures[i]=future.result()
+    records=[]
+    for i,(member,group) in enumerate(zip(selected,captures)):
+        row=dossier(member,group,sources.raw,flow,today,DAYS_BACK);row['request_index']=i;records.append(row)
+    if not any(f['status']=='whole_cnms_file_parsed' for f in flow['files']) and not any(r['contract_population']['records'] for r in records):raise ValueError('All research populations unavailable; preserve last publication')
+    prior_ref=_option_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-options-flow-scanner','version':'1.1.0','schema_version':2,'measurement_contract':CONTRACT,
+        'method':'current_contract_bar_observations_and_separate_finra_flows','status':'RESEARCH_ONLY','source_files':_option_source_identity(),
+        'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,'days_back':DAYS_BACK,
+        'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,
+        'finra_acquisitions':finra,'finra_file_coverage':{k:v for k,v in flow.items() if k!='by_literal_symbol'},
+        'finra_request_window':{'calendar_days_examined':looked_back,'maximum_calendar_days':DAYS_BACK*2+4,'target_nonempty_files':DAYS_BACK,'nonempty_parsed_files':parsed_dates,'stop_reason':stopped or 'original_lookback_exhausted'},
+        'stats':{'n_universe':len(selected),'n_evaluated':None,'n_no_data':None,'n_tier_a':None,'n_tier_b':None,'n_finra_tickers':None},
+        'summary':{'top_25_overall':[],'tier_a':[]},'all_qualifying':[],
+        'call':None,'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,'independent_evidence_eligible':False,
+        'private_state_read_or_written':False,'signals_logged':0,'notifications_sent':0,'retained_unique_source_bytes':sources.bytes,'duration_s':round(time.monotonic()-started,2),
+        'caveats':['Current 14–90-day, ±10% strike contracts are a sampled current population, not a historical fixed universe or complete market flow.',
+            'Each source response and every returned contract/bar occurrence is retained; unattempted, denied, incomplete and rate-limited requests are explicit.',
+            'Call/put ratios require every selected call and put to have one valid same-date volume observation and complete returned reference pagination. Missing sessions are not zero.',
+            'FINRA ShortVolume includes exempt trades and measures daily off-exchange trading flow, not outstanding short interest, covering or borrowing.',
+            'No trade direction, opening/closing identity, spread legs, OI, IV, premium notional, investment tier, independent vote or sizing authority is supplied.',
+            'Original release vintages, exchange calendars, historical contract membership, currency, adjustments, executable returns and forward performance remain unverified.'],
+        'source_documentation':['https://massive.com/docs/rest/options/contracts/all-contracts','https://massive.com/docs/rest/options/aggregates/custom-bars','https://www.finra.org/sites/default/files/2020-12/short-sale-volume-user-guide.pdf']}
+    raw=json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve current')
+    archive=_option_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=S3_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(records),'archive':archive})}

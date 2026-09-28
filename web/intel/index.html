@@ -192,7 +192,7 @@ footer a{color:var(--t2)}
       <div class="header"><h3>📞 Options Flow</h3><span class="badge fresh" id="of-fresh">FRESH</span></div>
       <div class="body" id="options-flow"><div class="loading">Loading…</div></div>
       <div class="footer">
-        <span>Polygon options + FINRA short interest</span>
+        <a href="/options-scanner.html">Complete option bars + separate FINRA trading flows</a>
         <span id="of-meta"></span>
       </div>
     </div>
@@ -263,6 +263,7 @@ footer a{color:var(--t2)}
 </footer>
 
 <script src="/jh-table-values.js?v=earnings-events-v1"></script><script src="/jh-revenue-observations.js?v=revenue-statements-v1"></script><script src="/jh-pead-observations.js?v=earnings-events-v1"></script><script src="/jh-microcap-observations.js?v=microcap-flows-v2"></script>
+<script src="/jh-option-observations.js?v=option-observations-v1"></script>
 <script>
 const BASE = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/';
 
@@ -429,20 +430,18 @@ async function loadAll() {
     document.getElementById('pead-fresh').textContent = 'UNAVAILABLE';
   }
 
-  // Options Flow
-  const of = await fetchJson('options-flow-scanner.json');
-  if (of) {
-    const top = (of.summary && of.summary.top_25_overall || []).slice(0, 8);
-    document.getElementById('options-flow').innerHTML = tableHTML(top, [
-      {label:'Sym', cls:'sym', render:r => r.symbol},
-      {label:'Score', cls:'score', cellCls:r =>
-        r.score>=85?'tier-s':r.score>=70?'tier-a':'tier-b', render:r => fmt(r.score,0)},
-      {label:'Tier', render:r => r.tier||'-'},
-      {label:'CPR Δ', cls:'meta', render:r => fmt(r.cpr_change_pct,0)+'%'},
-    ]);
-    document.getElementById('of-meta').textContent =
-      ((of.stats||{}).n_evaluated || (of.stats||{}).n_tickers_with_options || '-') + ' tickers · ' + ageMin(of.generated_at) + 'm ago';
+  // Options Flow: source context only; clear old scores on every outcome.
+  try {
+    const of = await fetchJson('options-flow-scanner.json');
+    if (!of) throw Error('Stored packet unavailable');
+    document.getElementById('options-flow').textContent=JHOptionObservations.summary(of).message;
+    document.getElementById('of-meta').textContent='Generated '+String(of.generated_at||'unavailable');
+    document.getElementById('of-fresh').textContent='RESEARCH';
+  } catch (_e) {
+    document.getElementById('options-flow').textContent='Stored option observations unavailable.';
+    document.getElementById('of-meta').textContent='';document.getElementById('of-fresh').textContent='UNAVAILABLE';
   }
+  document.getElementById('of-fresh').className='badge';
 
   // Activist
   const af = await fetchJson('activist-filings.json');

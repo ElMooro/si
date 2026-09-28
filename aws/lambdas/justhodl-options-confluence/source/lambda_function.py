@@ -164,14 +164,16 @@ def lambda_handler(event, context):
                     ("volatility-squeeze", "data/volatility-squeeze.json")]:
         inc, _ = gated(fk)
         if not inc: continue
-        for it in (_read(key).get("all_qualifying") or []):
+        for it in (__import__("option_scanner_boundary").guard(key, _read(key)).get("all_qualifying") or []):
             if not isinstance(it, dict): continue
             if fk == "options-flow-scanner" and it.get("tier") == "TIER_A_BULLISH_FLOW":
                 add(_tk(it), fk, 0.0, tag="scanner Tier-A bullish flow")
             elif fk == "volatility-squeeze" and (it.get("tier") or "").upper() in ("S", "A"):
                 add(_tk(it), fk, 0.0, coiled=True, tag="coiled (vol compression)")
 
-    of = _read("data/options-flow.json") or _read("data/flow-data.json")
+    scanner_source = _read("data/options-flow-scanner.json")
+    scanner_exclusion = __import__("option_scanner_boundary").context(scanner_source)
+    of = __import__("option_scanner_boundary").guard("data/options-flow-scanner.json", scanner_source)
     seen_of = set()
     for it in _rows(of):
         tk = _tk(it)
@@ -267,6 +269,7 @@ def lambda_handler(event, context):
            "overlays": {"regime_haircut": hair, "regime_state": state or None,
                         "forensic_flagged": len(bad)},
            "note": "New synthesizer — consumable by best-setups/master-ranker so options confluence finally counts as one coherent factor."}
+    out["options_scanner_exclusion"] = scanner_exclusion
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     print("[options-confluence v%s] names=%d multi=%d squeeze_fuel=%d bullish=%d bearish=%d coiled=%d" % (

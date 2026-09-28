@@ -11,10 +11,14 @@ function app(page, needle, docs) {
   const elements = new Map();
   const calls = [];
   const context = vm.createContext({ console, Date, setInterval() {},
-    document: {getElementById(id) {if (!elements.has(id)) elements.set(id, {innerHTML: '', textContent: ''}); return elements.get(id);}},
+    document: {getElementById(id) {if (!elements.has(id)) elements.set(id, {innerHTML: '', textContent: '',value:'',querySelectorAll(){return []}}); return elements.get(id);}},
     fetch: async url => {const key = new URL(url).pathname.split('/').pop(); calls.push(key); return {ok: key in docs, json: async () => docs[key]};},
   });
   context.window = context;
+  if(page==='options-scanner.html'){
+    context.JHTableValues={compare:()=>0,format:v=>String(v),bindSort(){},load:async url=>{const key=url.split('/').pop();calls.push(key);if(!(key in docs))throw Error('unavailable');return {packet:docs[key],raw:JSON.stringify(docs[key])};}};
+    vm.runInContext(fs.readFileSync(path.join(root,'jh-option-observations.js'),'utf8'),context);
+  }
   vm.runInContext(script, context);
   return {elements, calls};
 }
@@ -34,9 +38,10 @@ test('scanner displays dedicated schema and rejects the old macro shape', async 
   for (const valid of [true, false]) {
     const doc = valid ? {method: 'options_flow_scanner_v1', stats: {n_evaluated: 1}, summary: {tier_a: ['NVDA']},
       all_qualifying: [{symbol: 'NVDA', tier: 'TIER_A_BULLISH_FLOW', score: 72, flags: [], metrics: {spot: 123}}]} : {success: true, data: {put_call: {}}};
-    const view = app('options-scanner.html', 'const URL_DATA', {'options-flow-scanner.json': doc});
+    const view = app('options-scanner.html', 'JHOptionObservations.start()', {'options-flow-scanner.json': doc});
     await new Promise(resolve => setImmediate(resolve));
     assert.deepEqual(view.calls, ['options-flow-scanner.json']);
-    assert.match(view.elements.get('content').innerHTML, valid ? /NVDA/ : /Could not load/);
+    if(valid){assert.match(view.elements.get('board').innerHTML,/NVDA/);assert.match(view.elements.get('status').textContent,/unqualified/);}
+    else assert.match(view.elements.get('status').textContent,/unavailable/);
   }
 });

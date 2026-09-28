@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,TextDecoder,atob,Uint8Array,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-option-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-option-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-microcap-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-microcap-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-pead-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-pead-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-revenue-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-revenue-observations.js'),'utf8'),ctx);
@@ -336,4 +337,41 @@ test('concurrent Quality-sector source parses and its text formatter escapes mar
  const html=fs.readFileSync(path.join(root,'quality-sector.html'),'utf8'),scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)];for(const match of scripts)new vm.Script(match[1]);
  const escLine=html.split('\n').find(line=>line.startsWith('function esc(')),context=vm.createContext({});vm.runInContext(escLine,context);assert.equal(context.esc('<img src="x">&'), '&lt;img src=&quot;x&quot;&gt;&amp;');
  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures/pre-quality-sector-escape.html.txt'))).digest('hex'),'c8ee8fbd0349ebf1c97e0429b0c1792573b5e54b4e82ae9b27411f4e00313d3d');
+});
+
+test('Option original viewer verifies exact bytes and hashes before showing retained text',async()=>{
+ const M=require('../jh-option-observations.js'),body=Buffer.from('Date|Symbol\nTEST|<img src=x>\n'),digest=crypto.createHash('sha256').update(body).digest('hex'),ref={key:'data/options-flow-scanner/sources/'+digest+'.txt',sha256:digest,bytes:body.length,format:'txt'};
+ const calls=[],fetcher=async(url,options)=>{calls.push(url);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');return new Response(body);};
+ assert.equal((await M.loadSource(ref,{fetcher})).raw,body.toString());assert.deepEqual(calls,['/'+ref.key+'?exact=1&nogen=1']);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(body.subarray(0,3))}),/byte count/);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(Buffer.alloc(body.length,97))}),/SHA-256/);
+ await assert.rejects(()=>M.loadSource({...ref,key:'private/accounts.json'},{fetcher}),/source identity/);assert.equal(calls.length,1);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response('denied',{status:403})}),/unavailable/);
+ await assert.rejects(()=>M.loadSource(ref,{timeout:5,fetcher:()=>new Promise(()=>{})}),/timed out/);
+});
+
+
+test('option legacy occurrences retain pagination, search, keyboard sorting and failure clearing',async()=>{
+ const M=require('../jh-option-observations.js'),p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99})),summary:{top_25_overall:[{symbol:'T0'}],tier_a:['T0']}};
+ const s=page('options-scanner.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/203 received/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/203 matching/);
+ assert.equal(s.get('original').textContent,JSON.stringify(p));assert.equal(s.calls[0],'/data/options-flow-scanner.json');
+ const h=s.get('board').headers.find(h=>h.dataset.k==='ticker');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('options-scanner.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
+ for(const file of ['intel/index.html','web/intel/index.html']){
+  const html=fs.readFileSync(path.join(root,file),'utf8'),block=html.split('// Options Flow:')[1].split('// Activist')[0],nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'old score'});return nodes.get(id);};let fail=false;
+  const context=vm.createContext({document:{getElementById:get},JHOptionObservations:M,fetchJson:async()=>fail?null:p});
+  const actual='(async()=>{\n// Options Flow:'+block+'\n})()';await vm.runInContext(actual,context);assert.match(get('options-flow').textContent,/203 legacy occurrences/);assert.equal(get('of-fresh').textContent,'RESEARCH');
+  fail=true;await vm.runInContext(actual,context);assert.match(get('options-flow').textContent,/unavailable/);assert.equal(get('of-meta').textContent,'');assert.equal(get('of-fresh').textContent,'UNAVAILABLE');
+ }
+});
+test('option native page exposes every contract, bar, request, daily ratio and FINRA population without granting authority',async()=>{
+ const M=require('../jh-option-observations.js'),digest='a'.repeat(64),ref={key:'data/options-flow-scanner/sources/'+digest+'.json',sha256:digest,bytes:100,format:'json'},a={status:'received',original_ref:ref};
+ const p={measurement_contract:M.CONTRACT,finra_acquisitions:[a],finra_file_coverage:{files:[{observation_date:'2026-09-25',status:'whole_cnms_file_parsed',reported_rows:1}]},request_records:[{ticker:'<img src=x>',acquisitions:{quote:a,contract_pages:[a],bar_requests:[a]},contract_population:{records:[{contract_id:'O:TEST',page_index:0,expiration_date:'2026-11-20',identity_issues:[]}],selected_record_indices:[0]},bar_populations:[{records:[{contract_id:'O:TEST',observation_date:'2026-09-25',reported_volume_contracts:'0',issues:[]}]}],daily_observations:[{observation_date:'2026-09-25',call_volume_contracts:'0',put_volume_contracts:'10',call_put_volume_ratio:'0.000000000000'}],finra_observations:[{acquisition_index:0,observation_date:'2026-09-25',short_volume_shares:'1.125',short_exempt_volume_shares:'0.125',total_volume_shares:'2.25',short_volume_pct:'50.000000000000'}]}]};
+ const s=page('options-scanner.html',async()=>raw(p));await flush();assert.match(s.get('board').innerHTML,/<td>0<\/td>/);assert.match(s.get('board').innerHTML,/&lt;img/);assert.ok(!s.get('board').innerHTML.includes('<img'));
+ for(const mode of ['contracts','daily','requests','flows','files']){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 matching/);assert.match(s.get('board').innerHTML,/Inspect whole original/);}
+ s.get('mode').value='flows';s.get('mode').onchange();assert.match(s.get('board').innerHTML,/1\.125/);assert.match(s.get('board').innerHTML,/0\.125/);
+ const model=M.model(p);for(const k of ['bars','contracts','daily','flows','files','requests'])assert.equal(model[k].length,1);
+ assert.equal(M.compareDecimal({index:0,volume:'9007199254740992'},{index:1,volume:'9007199254740993'},'volume',1),-1);
+ assert.throws(()=>M.model({...p,request_records:[{acquisitions:{}}]}),/Incomplete/);
 });

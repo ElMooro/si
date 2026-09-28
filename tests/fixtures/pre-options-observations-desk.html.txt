@@ -103,7 +103,6 @@ svg text{font-family:var(--font-mono)}
 <div class="foot" id="foot"></div>
 </div>
 
-<script src="/jh-option-observations.js?v=option-observations-v1"></script>
 <script>
 const F=k=>fetch('/data/'+k+'?t='+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
 const N=(v,d=2)=>(v===null||v===undefined||v===''||isNaN(v))?'—':(+v).toLocaleString(undefined,{maximumFractionDigits:d});
@@ -166,10 +165,12 @@ Promise.all([Promise.resolve(null),F('options-gamma.json'),F('options-confluence
  }catch(_e){console.error('opt-section',_e);}
  setFresh('f-unu',oa&&oa.generated_at);
 
- try{
-  document.getElementById('scanstats').textContent=of ? JHOptionObservations.summary(of).message : 'Stored option observations unavailable.';
-  document.getElementById('scan').innerHTML='<a href="/options-scanner.html">Open complete contracts, bars, coverage and original sources</a>';
- }catch(_e){document.getElementById('scanstats').textContent='Option observation contract unavailable';document.getElementById('scan').textContent='';}
+ try{ if(of&&of.all_qualifying){var _sm=of.summary||{};var _aq=of.all_qualifying;
+  document.getElementById('scanstats').innerHTML='<div class="mute" style="font-size:10px;margin-bottom:8px">Universe <b>'+(_sm.n_universe||'—')+'</b> scanned · Tier-A <b class="pos">'+(_sm.n_tier_a||_aq.filter(x=>/TIER_A/.test(x.tier||'')).length)+'</b> · Tier-B <b class="gold">'+(_sm.n_tier_b||_aq.filter(x=>/TIER_B/.test(x.tier||'')).length)+'</b> · FINRA joined <b>'+(_sm.n_finra_tickers||'—')+'</b></div>';
+  document.getElementById('scan').innerHTML='<table><tr><th>Ticker</th><th>Tier</th><th>Score</th><th>Spot</th><th>CPR Δ%</th><th>Call surge</th><th>Flags</th></tr>'+_aq.slice(0,40).map(t=>{var m=t.metrics||{};var ta=/TIER_A/.test(t.tier||'');var flags=(t.flags||[]).slice(0,3).map(f=>'<span class="tag '+(/SQUEEZE|SURG|3X|2X/.test(f)?'co':'')+'">'+f.replace(/_/g,' ')+'</span>').join('');
+   return '<tr><td class="sym">'+t.symbol+'</td><td><span class="tag '+(ta?'pB':'co')+'">'+((t.tier||'').replace('TIER_','T').replace('_BULLISH_FLOW',' bull').replace('_FLOW_BUILDING',' build'))+'</span></td><td class="gold">'+N(t.score,0)+'</td><td class="dim">'+N(m.spot,2)+'</td><td class="'+((m.cpr_change_pct||0)>=0?'pos':'neg')+'">'+N(m.cpr_change_pct,0)+'%</td><td class="'+((m.call_vol_surge||0)>=2?'pos':'dim')+'">'+N(m.call_vol_surge,1)+'×</td><td>'+(flags||'<span class="mute">—</span>')+'</td></tr>';}).join('')+'</table>';
+  } else { document.getElementById('scanstats').innerHTML=''; document.getElementById('scan').innerHTML='<div class="err">scanner feed unavailable</div>'; }
+ }catch(_e){console.error('opt-section',_e);}
  setFresh('f-scan',of&&of.generated_at);
 
  try{ if(dix){const cur=dix.current||{},ma=dix.moving_averages||{},st=dix.statistics||{},dod=dix.day_over_day||{};

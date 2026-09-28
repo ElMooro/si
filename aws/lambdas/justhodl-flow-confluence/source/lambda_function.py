@@ -104,7 +104,9 @@ def lambda_handler(event, context):
         for it in (sa.get(bk) or []):
             if isinstance(it, dict): add(_tk(it), "stealth", 0.5, stealth=True, tag="stealth accumulation")
 
-    of = _read("data/options-flow.json") or _read("data/flow-data.json")
+    scanner_source = _read("data/options-flow-scanner.json")
+    scanner_exclusion = __import__("option_scanner_boundary").context(scanner_source)
+    of = __import__("option_scanner_boundary").guard("data/options-flow-scanner.json", scanner_source)
     of_lists = []
     for bk in ("unusual", "flow", "rows", "items"):
         v = of.get(bk)
@@ -216,6 +218,7 @@ def lambda_handler(event, context):
            "overlays": {"regime_haircut": hair, "regime_state": state or None,
                         "forensic_flagged": len(bad)},
            "note": "New synthesizer — consumable by best-setups/master-ranker so flow confluence counts as one coherent factor."}
+    out["options_scanner_exclusion"] = scanner_exclusion
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     print("[flow-confluence v%s] names=%d multi=%d squeeze=%d accum=%d distrib=%d stealth=%d" % (

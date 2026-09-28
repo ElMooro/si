@@ -123,9 +123,9 @@ SPECS = [
      ["convergence"], "symbol", "score", "SMART_MONEY",
      "shows stealth accumulation on the tape (volume without headlines)",
      40),
-    ("optflow", "Options Flow", "data/options-flow.json",
+    ("optflow", "Options Flow", "data/options-flow-scanner.json",
      ["unusual"], "symbol", "score", "FLOW",
-     "unusual options flow is confirming the cash-equity setup", 40),
+     "current sampled option bars are research-only", 40),
     ("squeeze", "Squeeze Pre-Trigger", "data/squeeze-pretrigger.json",
      ["imminent_setups"], "symbol", "score", "RISK",
      "sits in a short-squeeze pre-trigger (crowding / borrow stress)", 25),
@@ -168,6 +168,8 @@ def harvest(spec):
             Bucket=S3_BUCKET, Key=key)["Body"].read())
     except Exception as e:
         return {}, f"unreadable: {str(e)[:80]}"
+    if key == "data/options-flow-scanner.json":
+        return {}, "research_only_option_observations_no_vote"
     if key == "data/insider-aggregate.json":
         from insider_research import qualified_signal
         if qualified_signal(obj) is None: return {}, "research_only_unqualified_insider_sample"

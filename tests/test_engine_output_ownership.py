@@ -64,23 +64,10 @@ def functions(engine, names):
 
 class OutputOwnershipTests(unittest.TestCase):
     def test_scanner_full_handler_owns_new_key_even_with_legacy_environment(self):
-        store = Store()
-        with patch.dict(os.environ, {"S3_KEY": "data/options-flow.json"}):
-            scope = load("options-flow-scanner", store)
-        handler = scope["lambda_handler"]
-        env = handler.__globals__
-        env["get_universe"] = lambda: ["NVDA"]
-        env["get_finra_short_history"] = lambda **k: {}
-        row = {"symbol": "NVDA", "score": 72, "tier": "TIER_A_BULLISH_FLOW", "flags": ["CPR_SURGING"],
-               "metrics": {"spot": 123, "avg_cpr_recent_5d": 2.5, "cpr_change_pct": 15,
-                           "call_vol_surge": 3, "short_metrics": {"short_pct_change": -4}}}
-        env["evaluate_ticker"] = lambda *a: deepcopy(row)
-        with redirect_stdout(io.StringIO()), patch("urllib.request.urlopen", side_effect=AssertionError("no network")):
-            result = handler({}, None)
-        self.assertEqual(result["statusCode"], 200)
-        self.assertEqual([w["Key"] for w in store.writes], ["data/options-flow-scanner.json"])
-        self.assertEqual(store.doc["all_qualifying"], [row])
-        self.assertEqual(store.doc["summary"]["top_25_overall"][0]["cpr_recent"], 2.5)
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('option_scanner_native_checks', ROOT / 'aws/lambdas/justhodl-options-flow-scanner/tests/run_tests.py')
+        checks = importlib.util.module_from_spec(spec); spec.loader.exec_module(checks)
+        checks.Tests('test_canonical_ownership_under_obsolete_environment').test_canonical_ownership_under_obsolete_environment()
 
     def test_macro_flow_actual_publication_block_never_overwrites_scanner(self):
         tree = ast.parse(source("options-flow").read_text())
@@ -128,7 +115,7 @@ class OutputOwnershipTests(unittest.TestCase):
         exec(compile(ast.Module(body=[block], type_ignores=[]), "ranker-flow", "exec"), env)
         self.assertEqual(env["idx"]["NVDA"]["options_flow"], {"score": 0, "flag": "NEUTRAL", "premium": None})
 
-    def test_options_confluence_distinguishes_scanner_flow_from_volatility_compression(self):
+    def test_options_confluence_excludes_scanner_vote_and_preserves_separate_volatility_input(self):
         tree = ast.parse(source("options-confluence").read_text())
         block = next(n for n in ast.walk(tree) if isinstance(n, ast.For)
                      and isinstance(n.target, ast.Tuple) and ast.unparse(n.target) == "(fk, key)")
@@ -138,17 +125,22 @@ class OutputOwnershipTests(unittest.TestCase):
         env = {"gated": lambda name: (True, None), "_read": docs.get, "_tk": lambda row: row["symbol"],
                "add": lambda *a, **k: calls.append((a, k))}
         exec(compile(ast.Module(body=[block], type_ignores=[]), "confluence-flow", "exec"), env)
-        self.assertEqual(calls[0][0][:2], ("NVDA", "options-flow-scanner"))
-        self.assertNotIn("coiled", calls[0][1])
-        self.assertTrue(calls[1][1]["coiled"])
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][0][:2], ("SPY", "volatility-squeeze"))
+        self.assertTrue(calls[0][1]["coiled"])
 
-    def test_macro_majors_consumer_reads_actual_premium_flow_sentiment(self):
-        tree = ast.parse(source("massive-signals").read_text())
-        nodes = [n for n in ast.walk(tree) if isinstance(n, ast.Assign)
-                 and any(isinstance(t, ast.Name) and t.id in {"flow_rows", "majors"} for t in n.targets)]
-        env = {"of": {"data": {"put_call": {"options_flow": [{"ticker": "NVDA", "sentiment": "BULLISH"}]}}}}
-        exec(compile(ast.Module(body=nodes, type_ignores=[]), "majors-flow", "exec"), env)
-        self.assertEqual(env["majors"], {"NVDA": "BULLISH"})
+    def test_macro_composite_current_reader_cannot_restore_unqualified_premium_sentiment(self):
+        from massive_research_model_v2 import CONTRACT, PERMISSIONS
+        store = Store({'contract': CONTRACT, **PERMISSIONS})
+        scope = load('massive-signals', store)
+        with patch.dict(sys.modules, {'boto3': types.SimpleNamespace(client=lambda *a, **kw: store)}):
+            result = scope['lambda_handler']({'action': 'current_state'}, None)
+        self.assertEqual(result['statusCode'], 200)
+        self.assertFalse(json.loads(result['body'])['calls_eligible'])
+        self.assertEqual(store.writes, [])
+        store.doc['calls_eligible'] = True
+        with self.assertRaises(ValueError):
+            scope['lambda_handler']({'action': 'current_state'}, None)
 
     def test_crypto_full_handler_rebases_on_new_v10_without_losing_prices(self):
         store = Store({"version": "V10", "generated_at": "old-base", "price": 123, "khalid_index": {"score": 10}})
