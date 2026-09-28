@@ -88,7 +88,7 @@ tr:hover td{background:var(--panel2)}
 <div class="container">
   <header>
     <h1>🎯 SQUEEZE COCKPIT</h1>
-    <p class="subtitle">Unified short-squeeze intelligence across five engines. <b>Pre-trigger</b> (mid/large cap, 5-condition score: SI/float &gt;18%, days-to-cover &gt;6, short utilization &gt;80%, FINRA z-score &gt;0.5, catalyst within 30d) sits at the top — the institutional setup map. Beneath: <b>crowded shorts</b> and <b>covering</b> from FINRA bi-monthly SI; <b>live tape pressure</b> from Polygon daily short-volume normalized to 20-day baseline; <b>FINRA market composite</b> across ~11.5k tickers; and <a href="/microcap-float-squeeze.html">Microcap market-flow observations</a> with source coverage; these observations do not establish float or squeeze potential. Squeezes are catalysts for explosive returns when crowded positioning meets a fundamental jolt — and they cut the other way when the thesis breaks.</p>
+    <p class="subtitle">Unified short-squeeze intelligence across five engines. <b>Pre-trigger</b> (mid/large cap, 5-condition score: SI/float &gt;18%, days-to-cover &gt;6, short utilization &gt;80%, FINRA z-score &gt;0.5, catalyst within 30d) sits at the top — the institutional setup map. Beneath: <b>crowded shorts</b> and <b>covering</b> from FINRA bi-monthly SI; <b>live tape pressure</b> from Polygon daily short-volume normalized to 20-day baseline; <b>FINRA market composite</b> across ~11.5k tickers; and <b>microcap float squeezes</b> for the small-cap leaderboard. Squeezes are catalysts for explosive returns when crowded positioning meets a fundamental jolt — and they cut the other way when the thesis breaks.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
       <a href="/signal-board.html">signal board</a>
@@ -149,7 +149,7 @@ tr:hover td{background:var(--panel2)}
   <div class="cardw"><div id="tape"><div class="loading">…</div></div></div>
 
   <!-- MICROCAP LEADERBOARD -->
-  <h2>MICROCAP SOURCE OBSERVATIONS <span class="sub">daily trade flows; float and short interest unverified</span></h2>
+  <h2>MICROCAP FLOAT SQUEEZES <span class="sub">smaller cap, smaller float, larger gap risk</span></h2>
   <div class="cardw"><div id="microcap"><div class="loading">…</div></div></div>
 
   <!-- SECTOR HEAT -->
@@ -160,7 +160,6 @@ tr:hover td{background:var(--panel2)}
   <p class="timestamp" id="ts"></p>
 </div>
 
-<script src="/jh-microcap-observations.js?v=microcap-flows-v2"></script>
 <script>
 const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
 const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).then(p=>["finra-short.json","short-pressure.json"].includes(k)?(window.JHShortVolumeResearch?.decisionView(p)||{}):p).catch(()=>null);
@@ -330,14 +329,27 @@ const stClean=s=>(s||"").replace(/\s+/g,'_');
 
   // ---------- MICROCAP ----------
   const mcEl=document.getElementById("microcap");
-  try {
-    if (!mc) throw Error('Source unavailable');
-    mcEl.textContent=JHMicrocapObservations.summary(mc).message+' ';
-  } catch (error) {
-    mcEl.textContent='Stored market-flow research unavailable. ';
+  const mcRows=mc?.all_qualifying||mc?.summary?.top||[];
+  if(mcRows.length){
+    let h=`<table><thead><tr>
+      <th>Ticker</th><th class="num">Price</th><th class="num">Mcap</th>
+      <th class="num">Float</th><th class="num">SI%</th><th class="num">DTC</th><th class="num">Score</th>
+    </tr></thead><tbody>`;
+    for(const r of mcRows.slice(0,15)){
+      h+=`<tr>
+        <td class="tk">${esc(r.ticker||r.symbol)}</td>
+        <td class="num">${fmtUSD(r.price)}</td>
+        <td class="num">${fmtMcap(r.market_cap||r.mcap_usd)}</td>
+        <td class="num">${fmtMcap(r.float||r.free_float)}</td>
+        <td class="num" style="color:${(r.short_pct_float||r.si_pct_float||0)>=20?'var(--red)':'var(--txt)'}">${fmtPct(r.short_pct_float||r.si_pct_float,1)}</td>
+        <td class="num">${fmtNum(r.days_to_cover,1)}</td>
+        <td class="num" style="color:var(--orange);font-weight:700">${fmtNum(r.squeeze_score||r.composite_score,1)}</td>
+      </tr>`;
+    }
+    mcEl.innerHTML=h+`</tbody></table>`;
+  } else {
+    mcEl.innerHTML=`<div class="empty">No qualifying microcap squeeze candidates today.</div>`;
   }
-  const mcLink=document.createElement('a');
-  mcLink.href='/microcap-float-squeeze.html';mcLink.textContent='Inspect complete observations and source files';mcEl.appendChild(mcLink);
 
   // ---------- SECTOR HEAT ----------
   const secEl=document.getElementById("sectors");

@@ -21,7 +21,7 @@ a{color:var(--cyan);text-decoration:none}
 <div class="foot"><b>Built for:</b> the industry boom/bust read that a single-name table cannot give.<br><b>Data:</b> /data/earnings-quality.json all_ranked; /data/inventory-drawdown.json stock_drawdown_board; /data/capex-pulse.json rows.<br><b>Map:</b> Industrials → XLI, Basic Materials → XLB, Consumer → XRT, Energy → XLE.<br>Related: <a href="/quality-cycle.html">quality-cycle</a>.</div>
 </div>
 <script>
-function esc(s){return String(s==null?"":s).replace(/[&<>"\']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\'":"&#39;"}[c]));}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c];});}
 function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
 function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d);}
 function etfOf(sec){sec=String(sec||"").toLowerCase();if(/industri/.test(sec))return "XLI";if(/material/.test(sec))return "XLB";if(/consumer/.test(sec))return "XRT";if(/energy/.test(sec))return "XLE";return "";}

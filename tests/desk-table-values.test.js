@@ -6,7 +6,7 @@ function page(file,loader){
  let document;
  const get=id=>{
   if(!nodes.has(id)){
-   const n={value:'',headers:[],querySelectorAll(){return this.headers;},addEventListener(k,fn){this['on'+k]=fn;},setAttribute(k,v){this[k]=v;}};
+   const n={value:'',headers:[],querySelectorAll(selector){return selector.startsWith('button')?[]:this.headers;},addEventListener(k,fn){this['on'+k]=fn;},setAttribute(k,v){this[k]=v;}};
    let html='',text='';
    Object.defineProperty(n,'innerHTML',{get:()=>html,set:v=>{html=v;text='';n.headers=[...v.matchAll(/<th\b[^>]*data-k=(?:"([^"]+)"|([^ >]+))[^>]*>/g)].map(m=>({dataset:{k:m[1]||m[2]},ownerDocument:document,setAttribute(k,v){this[k]=v;},focus(){document.activeElement=this;}}));}});
    Object.defineProperty(n,'textContent',{get:()=>text,set:v=>{text=String(v);html='';n.headers=[];}});
@@ -17,6 +17,7 @@ function page(file,loader){
  document={getElementById:get,querySelectorAll:selector=>selector.startsWith('#')?get(selector.slice(1).split(' ')[0]).headers:[...nodes.values()].flatMap(n=>n.headers),activeElement:null};
  const ctx=vm.createContext({console,Date,Number,String,Array,Object,JSON,TextDecoder,atob,Uint8Array,encodeURIComponent,document,JHTableValues:{...api,load:async p=>{calls.push(p);return loader(p);}},setInterval(fn){intervals.add(fn);return fn;},clearInterval(fn){intervals.delete(fn);},addEventListener(k,fn){listeners[k]=fn;}});ctx.window=ctx;
  const html=fs.readFileSync(path.join(root,file),'utf8');
+ if(html.includes('/jh-microcap-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-microcap-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-pead-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-pead-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-revenue-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-revenue-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-eps-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-eps-observations.js'),'utf8'),ctx);
@@ -240,7 +241,7 @@ test('revenue legacy populations, pagination, failures and Intel summary cannot 
  for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('revenue-acceleration.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
  assert.ok(api.PUBLIC_PATHS.test('/data/revenue-acceleration.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/revenue-acceleration/private.json'));
  for(const file of ['intel/index.html','web/intel/index.html']){
-  const html=fs.readFileSync(path.join(root,file),'utf8'),block=html.split('// Revenue statement research:')[1].split('// Microcap Squeeze')[0];
+  const html=fs.readFileSync(path.join(root,file),'utf8'),block=html.split('// Revenue statement research:')[1].split('// Microcap source observations;')[0];
   assert.match(block,/JHTableValues.load\('\/data\/revenue-acceleration.json'\)/);assert.match(block,/JHRevenueObservations.summary/);assert.ok(!block.includes('top_25_overall'));assert.ok(!block.includes('r.score'));assert.match(block,/catch/);assert.match(html,/href="\/revenue-acceleration.html"/);
   const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'old score'});return nodes.get(id);};
   let fail=false;const seen=[];
@@ -288,4 +289,51 @@ test('PEAD legacy occurrences paginate, malformed feeds fail visibly and both In
 test('PEAD original pages are whole and all current tables remain accessible',()=>{
  for(const [name,digest] of [['pre-earnings-pead-observations.html.txt','b9dcf3e8b86f94260c4b2943d77149ee1b13bade12820da9995108792559963c'],['pre-pead-intel-index-observations.html.txt','bd1507bda262824fba5e5b1fd38b042056b5b3cf81f68d358f80ce1cf38903bc'],['pre-pead-web-intel-index-observations.html.txt','bd1507bda262824fba5e5b1fd38b042056b5b3cf81f68d358f80ce1cf38903bc']])assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures',name))).digest('hex'),digest);
  const html=fs.readFileSync(path.join(root,'earnings-pead.html'),'utf8');assert.match(html,/role="region"[^>]+tabindex="0"/);assert.match(html,/<label for="q">/);assert.match(html,/overflow:auto/);
+});
+
+test('Microcap flow shares preserve exact decimals, inclusions, zero volumes and complete source links',async()=>{
+ const M=require('../jh-microcap-observations.js'),digest='a'.repeat(64),ref={key:'data/microcap-float-squeeze/sources/'+digest+'.txt',bytes:100,sha256:digest,format:'txt'};
+ const p={measurement_contract:M.CONTRACT,finra_acquisitions:[{status:'received',original_ref:ref}],finra_file_coverage:{files:[{acquisition_index:0,observation_date:'2026-09-25',reported_rows:13175,matched_rows:1,status:'whole_cnms_file_parsed'}]},request_records:[{ticker:'TEST',acquisitions:[],latest_parsed_finra_date:'2026-09-25',price_evidence:{records:95,averages:{'30':{reported_volume_mean:0},'60':{reported_volume_mean:50}}},finra_observations:[{acquisition_index:0,observation_date:'2026-09-25',short_volume_shares:'1.125',short_exempt_volume_shares:'0.125',total_volume_shares:'2.25',short_volume_pct:'50.000000000000',source_fields:{Market:'Q,N',unknown:'<img src=x>'}}]}]};
+ const s=page('microcap-float-squeeze.html',async()=>raw(p));await flush();let h=s.get('board').innerHTML;
+ assert.equal(s.calls[0],'/data/microcap-float-squeeze.json');assert.match(h,/<td>1\.125<\/td>/);assert.match(h,/0\.125/);assert.match(h,/50\.000000000000/);assert.match(h,/Q,N/);assert.match(h,new RegExp('href="/'+ref.key+'"'));assert.match(h,/&lt;img/);assert.ok(!h.includes('<img'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ s.get('mode').value='requests';s.get('mode').onchange();h=s.get('board').innerHTML;assert.match(h,/<td>0\.00<\/td>/);assert.match(h,/50\.00/);assert.match(s.get('rows').textContent,/1 received requests/);
+ s.get('mode').value='files';s.get('mode').onchange();assert.match(s.get('board').innerHTML,/13175/);assert.match(s.get('rows').textContent,/1 received files/);
+ const header=s.get('board').headers.find(x=>x.dataset.k==='date');header.focus();header.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'date');assert.equal(s.document.activeElement['aria-sort'],'ascending');
+ const all=M.model({...p,request_records:Array.from({length:601},()=>p.request_records[0])});assert.equal(all.flows.length,601);assert.equal(all.requests.length,601);
+ for(const change of [{key:'private/account.json'},{bytes:9000000},{sha256:[digest]},{format:'html'}])assert.throws(()=>M.source({...ref,...change}),/source identity/);
+ assert.ok(M.compareDecimal({index:0,v:'9999999999999999999999999999.1'},{index:1,v:'9999999999999999999999999999.2'},'v',1)<0);
+ assert.ok(M.compareDecimal({index:0,v:null},{index:1,v:'0'},'v',-1)>0);
+ assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);
+});
+
+test('Microcap legacy complete populations paginate, malformed feeds fail and Intel summaries stay unqualified',async()=>{
+ const M=require('../jh-microcap-observations.js'),p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99,tier:'PARABOLIC'})),summary:{top_25_overall:[{symbol:'T0'}],tier_s:['T0']}};
+ const s=page('microcap-float-squeeze.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/203 received/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/203 matching/);
+ for(const loader of [async()=>{throw Error('HTTP 403');},async()=>raw({all_qualifying:{bad:true}})]){const f=page('microcap-float-squeeze.html',loader);await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');}
+ assert.ok(api.PUBLIC_PATHS.test('/data/microcap-float-squeeze.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/microcap-float-squeeze/private.json'));
+ for(const file of ['intel/index.html','web/intel/index.html']){
+  const html=fs.readFileSync(path.join(root,file),'utf8'),block=html.split('// Microcap source observations;')[1].split('// Earnings event research:')[0];assert.ok(!block.includes('top_25_overall'));assert.match(html,/href="\/microcap-float-squeeze.html"/);
+  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'old score'});return nodes.get(id);};let fail=false;
+  const context=vm.createContext({document:{getElementById:get},JHMicrocapObservations:M,JHTableValues:{load:async()=>{if(fail)throw Error('HTTP 403');return{packet:p};}}});
+  const actual='(async()=>{\n// Microcap source observations;'+block+'\n})()';await vm.runInContext(actual,context);assert.match(get('microcap-squeeze').textContent,/203 legacy occurrences/);assert.equal(get('ms-fresh').textContent,'RESEARCH');
+  fail=true;await vm.runInContext(actual,context);assert.match(get('microcap-squeeze').textContent,/unavailable/);assert.equal(get('ms-meta').textContent,'');assert.equal(get('ms-fresh').textContent,'UNAVAILABLE');
+ }
+});
+
+test('Microcap original viewer verifies exact bytes and hashes before showing retained text',async()=>{
+ const M=require('../jh-microcap-observations.js'),body=Buffer.from('Date|Symbol\nTEST|<img src=x>\n'),digest=crypto.createHash('sha256').update(body).digest('hex'),ref={key:'data/microcap-float-squeeze/sources/'+digest+'.txt',sha256:digest,bytes:body.length,format:'txt'};
+ const calls=[],fetcher=async(url,options)=>{calls.push(url);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');return new Response(body);};
+ assert.equal((await M.loadSource(ref,{fetcher})).raw,body.toString());assert.deepEqual(calls,['/'+ref.key+'?exact=1&nogen=1']);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(body.subarray(0,3))}),/byte count/);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(Buffer.alloc(body.length,97))}),/SHA-256/);
+ await assert.rejects(()=>M.loadSource({...ref,key:'private/accounts.json'},{fetcher}),/source identity/);assert.equal(calls.length,1);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response('denied',{status:403})}),/unavailable/);
+ await assert.rejects(()=>M.loadSource(ref,{timeout:5,fetcher:()=>new Promise(()=>{})}),/timed out/);
+});
+
+test('concurrent Quality-sector source parses and its text formatter escapes markup',()=>{
+ const html=fs.readFileSync(path.join(root,'quality-sector.html'),'utf8'),scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)];for(const match of scripts)new vm.Script(match[1]);
+ const escLine=html.split('\n').find(line=>line.startsWith('function esc(')),context=vm.createContext({});vm.runInContext(escLine,context);assert.equal(context.esc('<img src="x">&'), '&lt;img src=&quot;x&quot;&gt;&amp;');
+ assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures/pre-quality-sector-escape.html.txt'))).digest('hex'),'c8ee8fbd0349ebf1c97e0429b0c1792573b5e54b4e82ae9b27411f4e00313d3d');
 });

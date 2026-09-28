@@ -169,10 +169,10 @@ footer a{color:var(--t2)}
 
     <!-- Microcap Float Squeeze -->
     <div class="signal-card">
-      <div class="header"><h3>🔥 Microcap Float Squeeze</h3><span class="badge fresh" id="ms-fresh">FRESH</span></div>
+      <div class="header"><h3>Market-flow observations</h3><span class="badge" id="ms-fresh">RESEARCH</span></div>
       <div class="body" id="microcap-squeeze"><div class="loading">Loading…</div></div>
       <div class="footer">
-        <span>Float exhaustion + short rising + short interest %</span>
+        <a href="/microcap-float-squeeze.html">Complete flows and source coverage</a>
         <span id="ms-meta"></span>
       </div>
     </div>
@@ -262,7 +262,7 @@ footer a{color:var(--t2)}
   JustHodl.AI · Auto-updating institutional intelligence · 24 active Lambdas · 1,809 stocks across 6 cap buckets · Refreshes every 5 min
 </footer>
 
-<script src="/jh-table-values.js?v=earnings-events-v1"></script><script src="/jh-revenue-observations.js?v=revenue-statements-v1"></script><script src="/jh-pead-observations.js?v=earnings-events-v1"></script>
+<script src="/jh-table-values.js?v=earnings-events-v1"></script><script src="/jh-revenue-observations.js?v=revenue-statements-v1"></script><script src="/jh-pead-observations.js?v=earnings-events-v1"></script><script src="/jh-microcap-observations.js?v=microcap-flows-v2"></script>
 <script>
 const BASE = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/';
 
@@ -403,21 +403,17 @@ async function loadAll() {
     document.getElementById('ra-fresh').textContent = 'UNAVAILABLE';
   }
 
-  // Microcap Squeeze
-  const ms = await fetchJson('microcap-float-squeeze.json');
-  if (ms) {
-    const top = (ms.summary && ms.summary.top_25_overall || []).slice(0, 8);
-    document.getElementById('microcap-squeeze').innerHTML = tableHTML(top, [
-      {label:'Sym', cls:'sym', render:r => r.symbol},
-      {label:'Score', cls:'score', cellCls:r =>
-        r.tier === 'TIER_S_PARABOLIC_SETUP'?'tier-s':r.tier === 'TIER_A_SQUEEZE_BREWING'?'tier-a':'tier-b',
-        render:r => fmt(r.score,1)},
-      {label:'Mcap', render:r => fmtMcap(r.market_cap)},
-      {label:'Short%', cls:'amber', render:r => fmt(r.short_pct,0)+'%'},
-      {label:'Δ Short', render:r => fmt(r.short_change,1)+'pp'},
-    ]);
-    document.getElementById('ms-meta').textContent =
-      (ms.stats||{}).n_evaluated + ' evaluated · ' + ageMin(ms.generated_at) + 'm ago';
+  // Microcap source observations; daily flows cannot establish short interest.
+  try {
+    const received = await JHTableValues.load('/data/microcap-float-squeeze.json');
+    const research = JHMicrocapObservations.summary(received.packet);
+    document.getElementById('microcap-squeeze').textContent = research.message;
+    document.getElementById('ms-meta').textContent = 'Generated ' + research.generated_at + '. Original observation dates remain attached to records.';
+    document.getElementById('ms-fresh').textContent = 'RESEARCH';
+  } catch (error) {
+    document.getElementById('microcap-squeeze').textContent = 'Stored market-flow research unavailable. Open source coverage for details.';
+    document.getElementById('ms-meta').textContent = '';
+    document.getElementById('ms-fresh').textContent = 'UNAVAILABLE';
   }
 
   // Earnings event research: complete records do not establish drift.

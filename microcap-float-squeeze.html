@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="jh-primary-engine" content="justhodl-microcap-float-squeeze">
+<title>Market flows and source coverage · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--grn:#34d399;--red:#f87171;--cyan:#38bdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:820px;margin:0 0 14px}
+input{max-width:280px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th:hover{color:var(--fg)}th.on{color:var(--cyan)}
+td.l,th.l{text-align:left}
+.pos{color:var(--grn)}.neg{color:var(--red)}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+#board{max-width:100%;overflow:auto}#board table{min-width:950px}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+<style>button{padding:8px 12px;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}button:disabled{opacity:.5}button:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}#board td{text-align:left;vertical-align:top;max-width:390px;overflow-wrap:anywhere}#board table{min-width:1350px}#status,#coverage{margin:12px 0}#rows{color:var(--fg2)}details{margin:12px 0}</style>
+<style>select{padding:8px;margin:8px 12px 12px 0;background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:5px}select:focus-visible{outline:2px solid var(--cyan)}#board details{margin:0}#board td{min-width:90px;max-width:260px}a{color:var(--cyan)}input{width:100%}</style>
+<style>#board table{min-width:1500px}</style></head><body><main class="wrap">
+<h1>Market flows and source coverage</h1>
+<p class="sub">Daily FINRA short-sale trading flows and reported market-price coverage. Dates, scope, units and complete original source files stay attached to each record.</p>
+<p id="status" role="status">Loading stored research…</p><p id="coverage" class="sub"></p>
+<label for="mode">Research population</label><br><select id="mode"><option value="flows">Matched FINRA flows / legacy occurrences</option><option value="requests">Company request coverage</option><option value="files">FINRA source-file coverage</option></select><br>
+<label for="q">Find a ticker, date or source status</label><br><input id="q" placeholder="Ticker, date or status" autocomplete="off">
+<p id="rows" aria-live="polite"></p><button id="previous" type="button" disabled>Previous 100</button> <button id="next" type="button" disabled>Next 100</button>
+<div id="board" role="region" aria-label="Complete market-flow populations, paginated" tabindex="0">Loading /data/microcap-float-squeeze.json</div>
+<section aria-label="Original source viewer"><h2>Original source viewer</h2><p id="source-status" role="status">Select an original in the table.</p><pre id="source-original" tabindex="0"></pre></section>
+<details><summary>Complete received packet and source-file identities</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<div class="foot"><b>Trading flow:</b> FINRA ShortVolume includes short-exempt trades. Exempt volume is shown as part of that total and is never added twice. Fractional reported shares are retained. CNMS covers reported off-exchange trades, not all market executions.<br>
+<b>Position inventory:</b> daily short-sale volume is not outstanding short interest, covering, days-to-cover or a squeeze probability. No float is inferred from market capitalization divided by price.<br>
+<b>Observation windows:</b> 30/60-row means use provider-reported volume units, distinct dated received records and explicit completeness checks. They are not verified trading-session windows. Zero volume remains zero; missing or invalid windows remain unavailable.<br>
+<b>Source access:</b> each whole original link identifies a retained file by its byte length and SHA-256. These files include unmatched FINRA symbols and every received EOD price row. The packet records failures and unattempted requests. Collection time does not establish an original release vintage.<br>
+<b>Research permission:</b> security continuity, float, borrow availability, price currency, corporate actions and executable returns remain unverified. This page grants no investment tier, independent Calls vote or position-size authority.<br>
+<b>Source definitions:</b> <a href="https://www.finra.org/sites/default/files/2020-12/short-sale-volume-user-guide.pdf">FINRA short-sale-volume specification</a>, <a href="https://syndication.finra.org/content/short-interest-what-it-what-it-not">short interest versus trading volume</a>, and <a href="https://site.financialmodelingprep.com/developer/docs/stable/historical-price-eod-full">FMP EOD prices</a>.</div>
+</main><script src="/jh-table-values.js?v=microcap-flows-v2"></script><script src="/jh-microcap-observations.js?v=microcap-flows-v2"></script>
+<script>JHMicrocapObservations.start();</script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/sidebar.js" defer></script>
+</body></html>

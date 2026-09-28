@@ -358,7 +358,7 @@ def evaluate_ticker(stock, finra_history):
     }
 
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline = started + TIMEOUT_BUDGET_S
     print("[float-sq] starting v1.0")
@@ -458,3 +458,175 @@ def lambda_handler(event=None, context=None):
             "duration_s": out["duration_s"],
         }),
     }
+
+# Complete predecessor is retained above. The source-backed handler below is active.
+from pathlib import Path
+from datetime import datetime,timezone,timedelta
+from urllib.parse import quote_plus
+import hashlib,threading
+import offexchange_measurements as offexchange
+from float_observations import (CONTRACT,strict,clock,number,symbol,envelope,content,original,
+    source_ref,validate_ref,universe,finra_files,price_evidence,dossier)
+
+
+def _float_source_identity():
+    directory=Path(__file__).resolve().parent
+    paths={name:directory/name for name in ('lambda_function.py','float_observations.py')}
+    paths['offexchange_measurements.py']=Path(offexchange.__file__)
+    return {name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} for name,path in paths.items() for raw in [path.read_bytes()]}
+
+
+def _float_object(key,bound):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole declared object required')
+    return raw,obj['ETag']
+
+
+def _float_immutable(key,raw,kind):
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType=kind,CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    back,_=_float_object(key,len(raw))
+    if back!=raw:raise ValueError('Whole immutable readback differs')
+
+
+def _float_archive(raw):
+    key='data/microcap-float-squeeze/history/'+hashlib.sha256(raw).hexdigest()+'.json'
+    _float_immutable(key,raw,'application/json')
+    return {'key':key,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
+class _FloatSources:
+    """One invocation's bounded, exact public provider originals; no private data."""
+    def __init__(self):self.raw={};self.lock=threading.Lock();self.bytes=0
+    def capture(self,raw,endpoint,kind='json'):
+        if len(raw)>8*1024*1024:raise ValueError('Whole provider response exceeds bound')
+        ref=source_ref(raw,kind);a=envelope(raw,endpoint,datetime.now(timezone.utc).isoformat(),kind)
+        with self.lock:
+            if ref['key'] not in self.raw:
+                # A launched four-worker window can retain two 8 MiB responses
+                # per worker beyond the 80 MiB launch threshold (144 MiB total).
+                if self.bytes+len(raw)>160*1024*1024:raise ValueError('Source retention budget exceeded; preserve current publication')
+                _float_immutable(ref['key'],raw,'application/json' if kind=='json' else 'text/plain; charset=utf-8')
+                self.raw[ref['key']]=raw;self.bytes+=len(raw)
+        return a
+
+
+def _float_fetch(ticker,endpoint,sources):
+    if endpoint not in ('quote','historical-price-eod/full'):raise ValueError('Undeclared FMP endpoint')
+    if not ticker or symbol(ticker)!=ticker:return {'endpoint':endpoint,'status':'invalid_symbol_not_requested'}
+    if not FMP_KEY:return {'endpoint':endpoint,'status':'credential_unavailable'}
+    url='https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
+    request=urllib.request.Request(url,headers={'apikey':FMP_KEY,'User-Agent':'JustHodl-Flow-Observations/1.1'})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(request,timeout=10) as response:raw=response.read(8*1024*1024+1)
+    except Exception as exc:return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable','http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+    if len(raw)>8*1024*1024:return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False}
+    if FMP_KEY.encode() in raw:return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
+    # Retention failures propagate: a received response cannot silently disappear.
+    return sources.capture(raw,endpoint)
+
+
+def _float_company(member,sources):
+    ticker=member['ticker'];row=member['raw'];captures=[]
+    cap=row.get('market_cap') or 0;price=row.get('price') or 0
+    if not(cap and price):
+        capture=_float_fetch(ticker,'quote',sources);captures.append(capture);quotes=original(capture,sources.raw)
+        first=quotes[0] if isinstance(quotes,list) and quotes and isinstance(quotes[0],dict) else {}
+        cap=first.get('marketCap');price=first.get('price')
+    else:captures.append({'endpoint':'quote','status':'not_requested_original_universe_gate'})
+    # Preserve only the predecessor's request budget. These nominal thresholds do
+    # not prove USD currency, tradable liquidity, reported float or issuer identity.
+    if number(cap) is None or number(price) is None or not(50_000_000<=cap<5_000_000_000 and price>=1):
+        captures.append({'endpoint':'historical-price-eod/full','status':'not_requested_original_nominal_gate'})
+    else:captures.append(_float_fetch(ticker,'historical-price-eod/full',sources))
+    return captures
+
+
+def _float_finra_day(stamp,sources):
+    url='https://cdn.finra.org/equity/regsho/daily/CNMSshvol'+stamp.strftime('%Y%m%d')+'.txt'
+    request=urllib.request.Request(url,headers={'User-Agent':'JustHodl-Flow-Observations/1.1'})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(request,timeout=10) as response:raw=response.read(8*1024*1024+1)
+    except Exception as exc:a={'endpoint':url,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable','http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+    else:a=sources.capture(raw,url,'txt') if len(raw)<=8*1024*1024 else {'endpoint':url,'status':'response_exceeds_bound','original_retained':False}
+    a['observation_date']=stamp.isoformat();return a
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc);today=checked.date().isoformat()
+    if S3_KEY!='data/microcap-float-squeeze.json':raise ValueError('Declared research output required')
+    if MAX_TICKERS<1 or N_WORKERS<1 or TIMEOUT_BUDGET_S<1:raise ValueError('Original acquisition bounds required')
+    try:previous_raw,etag=_float_object(S3_KEY,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('404','NoSuchKey'):raise
+        previous_raw=None;etag=None
+    previous=strict(previous_raw) if previous_raw is not None else None
+    if previous is not None and not isinstance(previous,dict):raise ValueError('Previous publication malformed')
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous generation clock invalid')
+    sources=_FloatSources();raw,universe_etag=_float_object('data/universe.json',8*1024*1024)
+    capture=sources.capture(raw,'data/universe.json');capture['etag']=universe_etag
+    membership=universe(capture,min(MAX_TICKERS,600),sources.raw);selected=membership['selected']
+    if not selected:raise ValueError('No selected universe; preserve previous publication')
+    def remaining():
+        own=min(TIMEOUT_BUDGET_S,260)-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    finra=[];parsed_dates=0;looked_back=0;stopped=None
+    for back in range(1,45):
+        if parsed_dates>=20:stopped='original_twenty_file_target_reached';break
+        if remaining()<90 or sources.bytes>=48*1024*1024:stopped='runtime_or_source_byte_reserve';break
+        looked_back=back;stamp=checked.date()-timedelta(days=back)
+        if stamp.weekday()>=5:continue
+        a=_float_finra_day(stamp,sources);finra.append(a)
+        if a['status']=='received':
+            try:rows=offexchange.cnms(content(a,sources.raw),stamp.isoformat())
+            except (ValueError,UnicodeError):pass
+            else:parsed_dates+=bool(rows)
+        if a['status']=='rate_limited':stopped='rate_limited_no_retry';break
+    flow=finra_files(finra,sources.raw,selected,today)
+    captures=[[{'endpoint':'historical-price-eod/full','status':'not_attempted_runtime_rate_or_size_limit'}] for _ in selected]
+    workers=max(1,min(N_WORKERS,4))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for offset in range(0,len(selected),workers):
+            if remaining()<60 or sources.bytes>=80*1024*1024:break
+            jobs=[(i,pool.submit(_float_company,selected[i],sources)) for i in range(offset,min(offset+workers,len(selected)))]
+            for i,future in jobs:captures[i]=future.result()
+            if any(a.get('status')=='rate_limited' for i,_ in jobs for a in captures[i]):break
+    if not any(f['status']=='whole_cnms_file_parsed' for f in flow['files']) and not any(a['status']=='received' and isinstance(original(a,sources.raw),list) for group in captures for a in group):
+        raise ValueError('All research sources unavailable; preserve previous publication')
+    records=[]
+    for i,(member,group) in enumerate(zip(selected,captures)):
+        row=dossier(member,group,sources.raw,flow,today);row['request_index']=i;records.append(row)
+    prior_ref=_float_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-microcap-float-squeeze','version':'1.1.0','schema_version':2,'measurement_contract':CONTRACT,
+        'method':'reported_finra_flow_and_market_source_observations','status':'RESEARCH_ONLY','source_files':_float_source_identity(),
+        'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
+        'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,
+        'finra_acquisitions':finra,'finra_file_coverage':{k:v for k,v in flow.items() if k!='by_literal_symbol'},
+        'finra_request_window':{'calendar_days_examined':looked_back,'maximum_calendar_days':44,'target_nonempty_files':20,'nonempty_parsed_files':parsed_dates,'stop_reason':stopped or 'original_lookback_exhausted'},
+        'n_finra_observations':sum(len(r['finra_observations']) for r in records),'n_price_records':sum(r['price_evidence'].get('records') or 0 for r in records),
+        'stats':{'n_universe':len(selected),'n_evaluated':None,'n_filtered_out':None,'n_tier_s':None,'n_tier_a':None,'n_tier_b':None,'n_finra_tickers':None},
+        'summary':{'top_25_overall':[],'tier_s':[]},'all_qualifying':[],
+        'call':None,'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False,'independent_evidence_eligible':False,
+        'private_state_read_or_written':False,'signals_logged':0,'notifications_sent':0,
+        'source_documentation':['https://www.finra.org/sites/default/files/2020-12/short-sale-volume-user-guide.pdf','https://syndication.finra.org/content/short-interest-what-it-what-it-not'],
+        'caveats':['Whole original source bytes are retained under immutable public content identities. No source truncation or rank-list projection is presented as complete evidence.',
+            'FINRA ShortVolume includes exempt trades. It is daily reported trading flow, not outstanding short interest, days-to-cover, covering or a squeeze probability.',
+            'CNMS excludes exchange executions. Literal symbol joins do not prove security continuity, ownership or an independent investment vote.',
+            'Missing files, invalid files, absent symbol rows and zero denominators remain explicit. Neither a weekday request nor a source row proves an exchange session calendar.',
+            'Reported market cap and price do not establish float. No float, borrow rate, revenue floor or dollar-volume qualification is invented.',
+            'Volume means use explicitly dated source rows in provider volume units. Currency, corporate actions, historical membership and executable returns remain unverified.'],
+        'retained_unique_source_bytes':sources.bytes,'duration_s':round(time.monotonic()-started,2)}
+    raw=json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve previous current packet')
+    archive=_float_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=S3_KEY,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(records),'archive':archive})}
