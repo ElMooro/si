@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-09-28T13:12:43.528162+00:00",
+  "reproduction": {
+    "accepted_invalid_type_substitutions": [
+      "permission_zero",
+      "float_row_count",
+      "false_as_zero_scores",
+      "numeric_observation_permission"
+    ],
+    "original_sha256": "5b4f62c532c0ffae02910549783f375f8c81ec1663d20f56a9a3cac34d8d7485",
+    "original_bytes": 4670,
+    "native_invocations": 0,
+    "provider_requests": 0
+  },
+  "original_fixture": "tests/fixtures/pre-buyback-typed-measurement-replay.py.txt",
+  "repair": "Exact typed JSON projection comparison, required projected fields and literal integer population/score counters.",
+  "validation": {
+    "buyback_native": 20,
+    "buyback_acceptance": 4,
+    "deployment_static": 474,
+    "candidate_shell": 12
+  },
+  "scope": "Read-only acceptance verifier and isolated regression tests only. Native Buyback compiler, provider requests, schedule, page and investment permissions unchanged.",
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_reads": 0,
+  "limits": [
+    "Next normal Buyback measurement publication awaits original 13:30 UTC schedule",
+    "Original provider HTTP, first-release filing vintages, full issuer coverage and investment authority remain unqualified"
+  ]
+}

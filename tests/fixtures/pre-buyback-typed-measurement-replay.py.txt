@@ -20,10 +20,6 @@ from sec_atom_model import strict,sha,clock
 FN='justhodl-buyback-engine';KEY='data/buyback-engine.json';BUCKET='justhodl-dashboard-live'
 
 
-def same(left,right):
-    return json.dumps(left,sort_keys=True,ensure_ascii=False,allow_nan=False,separators=(',',':'))==json.dumps(right,sort_keys=True,ensure_ascii=False,allow_nan=False,separators=(',',':'))
-
-
 def compiler():
     p=ROOT/'aws/lambdas'/FN/'source/buyback_measurements.py'
     spec=importlib.util.spec_from_file_location('isolated_buyback_measurements',p)
@@ -45,13 +41,11 @@ def publication(raw):
     for symbol,row in packet['tickers'].items():
         source=row['provider_responses']
         expected=m.dossier(symbol,source['profile'],source['cash_flow'],source['key_metrics'],source['enterprise_values'],row['checked_as_of'])
-        if any(k not in row or not same(row[k],v) for k,v in expected.items()):raise ValueError('Complete published statement projection differs')
+        if any(row.get(k)!=v for k,v in expected.items()):raise ValueError('Complete published statement projection differs')
         if row.get('buyback_score') is not None or row.get('class')!='RESEARCH_ONLY' or row.get('high_conviction_pump') is not False or row.get('auth_pct_mcap') is not None:
             raise ValueError('Source arithmetic was promoted into an event or forecast')
         observations+=len(expected['measurements']['cashflow_observations'])
-    if (type(packet.get('n_scored')) is not int or packet['n_scored']!=0 or
-            type(packet.get('n_research_rows')) is not int or packet['n_research_rows']!=len(packet['tickers']) or
-            packet.get('high_conviction_pumps')!=[]):
+    if packet.get('n_scored')!=0 or packet.get('n_research_rows')!=len(packet['tickers']) or packet.get('high_conviction_pumps')!=[]:
         raise ValueError('Declared research population or forecast exclusion differs')
     result.update(status='published_statement_arithmetic_reproduced',issuer_rows=len(packet['tickers']),
                   cashflow_observations=observations,provider_originals_replayed=False,point_in_time_availability_verified=False)
