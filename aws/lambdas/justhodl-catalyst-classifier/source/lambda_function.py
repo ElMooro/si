@@ -1,4 +1,7 @@
 """
+Active path: deterministic source context, explicit missingness, no model requests
+and no investment classification or sizing authority. Historical design follows.
+
 justhodl-catalyst-classifier
 ═══════════════════════════════
 Every pump has a catalyst. This Lambda identifies and grades the catalyst
@@ -102,7 +105,8 @@ SCHEDULE
 cron(0 14 * * ? *) — daily 14:00 UTC (9 AM ET, after morning brief)
 Catalysts change slowly — once a day is plenty.
 """
-import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
+# The active source-context path has no model client or model-router import.
+# Original deployed LLM helper packages are privately retained by operation 6265.
 import json
 import os
 import re
@@ -119,7 +123,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 S3_BUCKET     = "justhodl-dashboard-live"
 OUTPUT_KEY    = "data/catalysts.json"
 MODEL         = "claude-haiku-4-5-20251001"
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_KEY = ""  # Historical path permanently denied; active path uses no model.
 
 INPUT_KEYS = {
     "positioning":  "data/pump-positioning.json",
@@ -402,7 +406,7 @@ def build_user_prompt(bundles: List[dict]) -> str:
     return "\n".join(parts)
 
 
-def call_anthropic(system: str, user: str, max_tokens: int = 8000) -> str:
+def _legacy_call_anthropic(system: str, user: str, max_tokens: int = 8000) -> str:
     if not ANTHROPIC_KEY:
         raise RuntimeError("ANTHROPIC_API_KEY not set")
     payload = json.dumps({
@@ -480,7 +484,7 @@ def validate_record(record: dict, expected_ticker: str) -> dict:
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[catalysts] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -589,3 +593,124 @@ def _write_error(message: str, **extras) -> dict:
     except Exception: pass
     print(f"[catalysts] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+
+# Active deterministic source context. The full predecessor is preserved separately.
+from pathlib import Path
+from catalyst_context import CONTRACT, PRIVATE, HEAD, MAX_BYTES, MAX_TOTAL, FLAGS, INPUTS
+from catalyst_context import sha, encode, decode, identity, valid_identity, build as build_context_research
+
+
+def call_anthropic(*args, **kwargs):
+    raise RuntimeError('Paid model requests are disabled for catalyst research')
+
+
+def _context_error_code(exc):
+    return str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
+
+
+def _context_clock():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _context_read(key):
+    protected = isinstance(key, str) and re.fullmatch(re.escape(PRIVATE) + r'(?:sources|inputs|outputs|compilers|runs)/[a-f0-9]{64}\.bin', key)
+    if key not in (*INPUTS.values(), HEAD) and not protected:
+        raise ValueError('Only declared context and protected retention paths permitted')
+    obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+    stream = obj['Body']
+    try:
+        raw = stream.read(MAX_BYTES + 1)
+    finally:
+        stream.close()
+    if len(raw) > MAX_BYTES or type(obj.get('ContentLength')) is not int or obj['ContentLength'] != len(raw):
+        raise ValueError('Complete bounded source bytes required')
+    return raw, obj
+
+
+def _context_retain(raw, kind):
+    ref = identity(raw, kind)
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=ref['key'], Body=raw, IfNoneMatch='*',
+            ContentType='application/octet-stream', CacheControl='private, no-store')
+    except Exception as exc:
+        if _context_error_code(exc) not in ('PreconditionFailed', 'ConditionalRequestConflict', '409', '412'):
+            raise
+    retained, _ = _context_read(ref['key'])
+    if retained != raw:
+        raise ValueError('Whole protected original differs')
+    return ref
+
+
+def lambda_handler(event=None, context=None):
+    started = time.monotonic()
+    started_at = _context_clock()
+    try:
+        if INPUT_KEYS != INPUTS:
+            raise ValueError('Original input scope differs')
+        # One conditional publication can replace only the exact head we began with.
+        try:
+            previous, previous_meta = _context_read(HEAD)
+        except Exception as exc:
+            if _context_error_code(exc) not in ('NoSuchKey', '404'):
+                raise
+            previous_ref = None
+            etag = None
+        else:
+            etag = previous_meta.get('ETag')
+            if not isinstance(etag, str) or not etag:
+                raise ValueError('Prior publication identity unavailable')
+            previous_ref = _context_retain(previous, 'outputs')
+        attempts, originals = {}, {}
+        total = 0
+        for name, key in INPUTS.items():
+            if time.monotonic() - started > 230:
+                raise ValueError('Context collection budget exhausted')
+            requested = _context_clock()
+            try:
+                raw, meta = _context_read(key)
+            except Exception:
+                attempts[name] = {'source_key': key, 'status': 'source_read_unavailable',
+                    'requested_at': requested, 'received_at': _context_clock()}
+                continue
+            total += len(raw)
+            if total > MAX_TOTAL:
+                raise ValueError('Whole source scope exceeds retention budget')
+            ref = _context_retain(raw, 'sources')
+            originals[ref['key']] = raw
+            attempts[name] = {'source_key': key, 'status': 'received', 'requested_at': requested,
+                'received_at': _context_clock(), 'original_ref': ref,
+                'content_encoding': str(meta.get('ContentEncoding') or '').strip().lower()}
+        generated = _context_clock()
+        packet = build_context_research(attempts, originals, generated)
+        compiler_refs = {}
+        for filename in ('lambda_function.py', 'catalyst_context.py'):
+            compiler_refs[filename] = _context_retain(Path(__file__).with_name(filename).read_bytes(), 'compilers')
+        inputs = {'contract': CONTRACT, 'acquisition_started_at': started_at,
+            'generated_at': generated, 'attempts': attempts, 'previous_publication': previous_ref,
+            'source_files': compiler_refs, 'stored_source_bytes': total,
+            'limits': {'max_candidates': 15, 'momentum_leaders_window': 10,
+                       'per_source_bytes': MAX_BYTES, 'aggregate_source_bytes': MAX_TOTAL}}
+        input_ref = _context_retain(encode(inputs), 'inputs')
+        packet['replay'] = {'input_ref': input_ref, 'source_files': compiler_refs,
+            'previous_publication': previous_ref, 'originals_public': False}
+        packet['acquisition_started_at'] = started_at
+        body = encode(packet)
+        output_ref = _context_retain(body, 'outputs')
+        if time.monotonic() - started > 250:
+            raise ValueError('Publication budget exhausted')
+        # The existing output key keeps compatibility. No original context is
+        # copied into public history; retained inputs and prior outputs stay private.
+        condition = {'IfMatch': etag} if etag is not None else {'IfNoneMatch': '*'}
+        s3.put_object(Bucket=S3_BUCKET, Key=HEAD, Body=body, ContentType='application/json',
+            CacheControl='max-age=900', **condition)
+        summary = {'status': 'research_only', 'n_research_records': packet['n_research_records'],
+                   'n_classified': 0, 'model_requests': 0, 'notifications_sent': 0,
+                   'retained_output_sha256': output_ref['sha256']}
+        print(json.dumps(summary))
+        return {'statusCode': 200, 'body': json.dumps(summary)}
+    except Exception:
+        # Fixed text avoids leaking source context, signed URLs or credentials.
+        print('Catalyst context publication withheld; previous head preserved')
+        return {'statusCode': 503, 'body': json.dumps({'status': 'unavailable',
+            'previous_publication_preserved': True, 'model_requests': 0, 'notifications_sent': 0})}
