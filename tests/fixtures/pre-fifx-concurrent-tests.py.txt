@@ -3,7 +3,6 @@ from pathlib import Path
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib, io, json, sys, unittest, urllib.error
-import threading, time
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[4]
 SOURCE=Path(__file__).resolve().parents[1]/'source'
@@ -160,79 +159,17 @@ class Tests(unittest.TestCase):
         claim=model.PRIVATE+'requests/'+store.sha(b'native:bounded')+'.json'
         predecessors={'packet':private(),'history':private(b'history')};observed=[]
         def acquire(url,timeout):
-            journal=json.loads(client.objects[claim])
-            observed.append((journal['provider_requests'],
-                sum(v['status']=='attempt_recorded' for v in journal['sources'].values()),timeout))
+            journal=json.loads(client.objects[claim]);observed.append(journal['provider_requests'])
+            self.assertEqual(sum(v['status']=='attempt_recorded' for v in journal['sources'].values()),1)
+            self.assertGreater(timeout,0);self.assertLessEqual(timeout,20)
             raise TimeoutError('provider unavailable')
         with patch.object(store,'previous_state',return_value=(predecessors,model.empty_watermarks())),patch.object(store,'existing_move',side_effect=Missing()),patch.object(acquisition,'acquire',side_effect=acquire),patch.object(store,'retain',return_value={'generated_at':fixture.NOW,'quality':{},'replay':{}}) as retained,patch.object(store,'publish',return_value=True):
             result=store.run(client,'bucket','bounded')
         value=retained.call_args.args[2]
-        self.assertEqual(len(observed),17);self.assertEqual(max(r[0] for r in observed),17)
-        self.assertEqual(result['provider_requests'],17)
-        # Assert outside acquire: provider failures are deliberately caught by
-        # the production loop, which would also catch a test AssertionError.
-        self.assertTrue(all(1<=r[1]<=4 and 0<r[2]<=20 for r in observed))
+        self.assertEqual(observed,list(range(1,18)));self.assertEqual(result['provider_requests'],17)
         self.assertEqual(set(value['sources']),set(store.catalog.SOURCES))
         self.assertTrue(all(v=={'original':None,'receipt':None} for v in value['sources'].values()))
         self.assertEqual(value['acquisition']['sources']['^MOVE']['status'],'bound_source_unavailable')
-        self.assertEqual(value['acquisition']['max_concurrent_requests'],4)
-        self.assertEqual(value['acquisition']['budget_scope'],'admission_deadline')
-
-    def test_slow_sources_do_not_starve_the_rest_of_the_population(self):
-        plan=acquisition.plan(fixture.NOW);started=[];finished={};active=peak=0
-        lock=threading.Lock()
-        def slow(url,timeout):
-            nonlocal active,peak
-            with lock:active+=1;peak=max(peak,active)
-            try:time.sleep(0.5);raise TimeoutError('synthetic slow provider')
-            finally:
-                with lock:active-=1
-        def finish(sid,raw,receipt,status):finished[sid]=status
-        with patch.object(acquisition,'acquire',side_effect=slow):
-            acquisition.collect(plan,started.append,finish,budget=4)
-        # The old sequential loop could admit only six half-second failures
-        # before its one-second reserve. Four workers reach all seventeen.
-        self.assertEqual(set(started),set(plan));self.assertEqual(len(started),17)
-        self.assertEqual(set(finished),set(plan));self.assertEqual(active,0)
-        self.assertEqual(peak,4)
-        self.assertTrue(all(v['status']=='unavailable' for v in finished.values()))
-
-    def test_callbacks_are_serial_and_no_worker_outlives_retention_failure(self):
-        plan=acquisition.plan(fixture.NOW);active=0;lock=threading.Lock();entered=threading.Event()
-        def acquire(url,timeout):
-            nonlocal active
-            with lock:active+=1
-            entered.set();time.sleep(0.02)
-            with lock:active-=1
-            return b'whole',{'http_status':200}
-        def finish(*args):raise RuntimeError('retention failed')
-        with patch.object(acquisition,'acquire',side_effect=acquire),self.assertRaisesRegex(RuntimeError,'retention failed'):
-            acquisition.collect(plan,lambda sid:None,finish)
-        self.assertTrue(entered.is_set());self.assertEqual(active,0)
-
-    def test_durable_admission_failure_never_starts_a_source_request(self):
-        def begin(sid):raise RuntimeError('journal unavailable')
-        with patch.object(acquisition,'acquire') as acquire,self.assertRaises(RuntimeError):
-            acquisition.collect(acquisition.plan(fixture.NOW),begin,lambda *args:None)
-        acquire.assert_not_called()
-
-    def test_result_callbacks_preserve_whole_original_and_each_source_identity(self):
-        plan=acquisition.plan(fixture.NOW);finished={};admitted=set();in_callback=False
-        def begin(sid):
-            nonlocal in_callback
-            self.assertFalse(in_callback);in_callback=True
-            admitted.add(sid);time.sleep(0.001);in_callback=False
-        def request(url,timeout):return url.encode(),{'http_status':503,'source_url':url}
-        def finish(sid,raw,receipt,status):
-            nonlocal in_callback
-            self.assertFalse(in_callback);in_callback=True
-            self.assertIn(sid,admitted);self.assertNotIn(sid,finished)
-            self.assertEqual(raw,plan[sid].encode());self.assertEqual(receipt['source_url'],plan[sid])
-            self.assertEqual(status,{'status':'retained_response','http_status':503})
-            finished[sid]=raw;time.sleep(0.001);in_callback=False
-        with patch.object(acquisition,'acquire',side_effect=request):
-            acquisition.collect(plan,begin,finish)
-        self.assertEqual(set(finished),set(plan))
 
     def test_acquisition_budget_skips_remaining_requests_without_retry(self):
         client=Store();client.objects[store.SOURCE]=b'{}'

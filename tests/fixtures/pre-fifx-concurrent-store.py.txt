@@ -259,18 +259,20 @@ def run(client,bucket,request_id):
             raw=receipt=None;progress['sources']['^MOVE']={'status':'bound_source_unavailable','error_type':type(exc).__name__}
         else:progress['sources']['^MOVE']={'status':'reused_bound_original' if raw is not None else 'source_unavailable'}
         sources['^MOVE']=save(raw,receipt);journal()
-        source_plan=acquisition.plan(now())
-        def begin(sid):
+        source_plan=acquisition.plan(now());deadline=time.monotonic()+100
+        for sid,url in source_plan.items():
+            remaining=deadline-time.monotonic()
+            if remaining<=1:
+                progress['sources'][sid]={'status':'acquisition_budget_exhausted'};sources[sid]=save(None,None);journal();continue
             progress['sources'][sid]={'status':'attempt_recorded'};progress['provider_requests']+=1;journal()
-        def finish(sid,raw,receipt,status):
-            progress['sources'][sid]=status
+            try:raw,receipt=acquisition.acquire(url,timeout=min(20,remaining))
+            except Exception as exc:
+                raw=receipt=None;progress['sources'][sid]={'status':'unavailable','error_type':type(exc).__name__}
+            else:progress['sources'][sid]={'status':'retained_response','http_status':receipt['http_status']}
             sources[sid]=save(raw,receipt);journal()
-        acquisition.collect(source_plan,begin,finish)
         inputs={'contract':'fifx-vol-inputs.v1','generated_at':now(),'macro':macro,'sources':sources,'predecessors':predecessors,
                 'previous_watermarks':previous,'context':context,'acquisition':{'provider_requests':progress['provider_requests'],
-                'request_budget_seconds':100,'budget_scope':'admission_deadline',
-                'max_concurrent_requests':acquisition.MAX_CONCURRENT,
-                'max_socket_timeout_seconds':20,'max_attempts_per_source':1,'sources':progress['sources']}}
+                'request_budget_seconds':100,'max_attempts_per_source':1,'sources':progress['sources']}}
         packet=retain(client,bucket,inputs)
         primary=publish(client,bucket,packet,model.CURRENT)
         history=publish(client,bucket,packet,model.HISTORY) if primary else False

@@ -1,0 +1,351 @@
+{
+  "status": "normal_native_publication_reproduced_but_sources_degraded",
+  "source_commit": "bdfd0c10bcafd6d41e47f59512057c7f928d9b45",
+  "verifier_commit": "0a8ff1bd6f0570e6850ef9f6730a1404f9204351",
+  "operation": 6315,
+  "run": 36487550251,
+  "report_commit": "00cb2905ee3ab2c78ec4128e639020e15c7f8897",
+  "evidence": {
+    "actual_runtime": {
+      "code_sha256": "tB2v9661hv6YbTU2HKNBDAgsX/A5ZmerqL5miRODwgA=",
+      "source_files_checked": 14,
+      "handler_bytes": 1496,
+      "timeout": 900,
+      "memory_mb": 2048,
+      "receipt": {
+        "status": "matched",
+        "commit": "bdfd0c10bcafd6d41e47f59512057c7f928d9b45"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-fifx-vol-daily",
+          "state": "ENABLED",
+          "expression": "cron(20 21 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-fifx-vol-migration",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "downstream_live_head_reads": 0,
+    "expected_commit": "bdfd0c10bcafd6d41e47f59512057c7f928d9b45",
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "status": "complete_native_originals_replayed",
+      "generated_at": "2026-09-28T21:21:57.335781+00:00",
+      "contract": "fifx-vol-research.v1",
+      "version": "2.0.0",
+      "bytes": 31928,
+      "sha256": "aabac40452da9461ea80b7edff11550e71b1e6e53a02bec789e11bef767805af",
+      "quality": {
+        "current_sources": 0,
+        "history_rows": 0,
+        "original_rows": 500,
+        "status": "degraded",
+        "total_sources": 18
+      },
+      "decision": {
+        "meaning": "abstain",
+        "verb": "WAIT"
+      },
+      "acquisition": {
+        "max_attempts_per_source": 1,
+        "provider_requests": 5,
+        "request_budget_seconds": 100,
+        "sources": {
+          "000001.SS": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "DEXJPUS": {
+            "error_type": "TimeoutError",
+            "status": "unavailable"
+          },
+          "DEXUSEU": {
+            "error_type": "TimeoutError",
+            "status": "unavailable"
+          },
+          "DEXUSUK": {
+            "error_type": "TimeoutError",
+            "status": "unavailable"
+          },
+          "DGS10": {
+            "error_type": "TimeoutError",
+            "status": "unavailable"
+          },
+          "DTWEXBGS": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "VIXCLS": {
+            "error_type": "TimeoutError",
+            "status": "unavailable"
+          },
+          "^AXJO": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^BSESN": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^BVSP": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^FCHI": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^FTSE": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^GDAXI": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^HSI": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^KS11": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^MOVE": {
+            "status": "reused_bound_original"
+          },
+          "^N225": {
+            "status": "acquisition_budget_exhausted"
+          },
+          "^VHSI": {
+            "status": "acquisition_budget_exhausted"
+          }
+        }
+      },
+      "series_status": {
+        "000001.SS": "unavailable",
+        "DEXJPUS": "unavailable",
+        "DEXUSEU": "unavailable",
+        "DEXUSUK": "unavailable",
+        "DGS10": "unavailable",
+        "DTWEXBGS": "unavailable",
+        "VIXCLS": "unavailable",
+        "^AXJO": "unavailable",
+        "^BSESN": "unavailable",
+        "^BVSP": "unavailable",
+        "^FCHI": "unavailable",
+        "^FTSE": "unavailable",
+        "^GDAXI": "unavailable",
+        "^HSI": "unavailable",
+        "^KS11": "unavailable",
+        "^MOVE": "identity_mismatch",
+        "^N225": "unavailable",
+        "^VHSI": "unavailable"
+      },
+      "original_replay": {
+        "VIXCLS": {
+          "source_id": "VIXCLS",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "DGS10": {
+          "source_id": "DGS10",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "DEXUSEU": {
+          "source_id": "DEXUSEU",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "DEXJPUS": {
+          "source_id": "DEXJPUS",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "DEXUSUK": {
+          "source_id": "DEXUSUK",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "DTWEXBGS": {
+          "source_id": "DTWEXBGS",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^MOVE": {
+          "source_id": "^MOVE",
+          "original_rows": 500,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "identity_mismatch",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^KS11": {
+          "source_id": "^KS11",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^HSI": {
+          "source_id": "^HSI",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^N225": {
+          "source_id": "^N225",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^GDAXI": {
+          "source_id": "^GDAXI",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^FTSE": {
+          "source_id": "^FTSE",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^FCHI": {
+          "source_id": "^FCHI",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "000001.SS": {
+          "source_id": "000001.SS",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^BSESN": {
+          "source_id": "^BSESN",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^BVSP": {
+          "source_id": "^BVSP",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^AXJO": {
+          "source_id": "^AXJO",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        },
+        "^VHSI": {
+          "source_id": "^VHSI",
+          "original_rows": 0,
+          "history_rows": 0,
+          "independent_scalar_checks": 0,
+          "current_available": false,
+          "status": "unavailable",
+          "forecast_qualified": false,
+          "sizing_qualified": false
+        }
+      },
+      "all_sources_usable": false,
+      "forecast_qualified": false,
+      "sizing_qualified": false
+    },
+    "private_account_reads": 0,
+    "private_journal_reads": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "retained_read_counts": {
+      "objects": 52,
+      "bytes": 8445962
+    },
+    "schedule_changes": 0,
+    "scope": "Exact normal native publication and complete original/compiler/arithmetic reproduction. Source availability is reported separately: successful replay cannot qualify absent sources or identity mismatches. No acquisition retry or forced publication."
+  },
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "remaining": [
+    "Prevent sequential timeouts from starving later source requests",
+    "Recover valid current sources without weakening provider identity checks",
+    "Original-schedule publication acceptance after any native repair"
+  ]
+}
