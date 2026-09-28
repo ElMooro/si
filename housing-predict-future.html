@@ -1,71 +1,67 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Housing Predict Future · JustHodl</title>
+<title>Housing predict future · JustHodl</title>
 <style>
 :root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--cyan:#38bdf8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
 .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
-h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:940px;margin:0 0 14px}
 .chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
-th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase}.r{text-align:right}
+a{color:var(--cyan);text-decoration:none}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 .table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
 </style></head>
 <body>
 <div class="wrap">
-<h1>Housing Predict Future</h1>
-<p class="sub">Your TradingView list of that name. ECONOMICS vendor tags map to a FRED cousin only when that cousin already lives on construction-housing.json. Missing FRED IDs stay blank. No invented lumber, payroll, or delinquency prints.</p>
+<h1>Housing predict future</h1>
+<p class="sub">The 11 symbols on the TradingView list "Housing Predict Future". ECONOMICS:USBP is mapped to FRED PERMIT. ECONOMICS:USCSHPIYY is mapped to CSUSHPISA YoY from the housing packet. Other ECONOMICS and NASDAQ tags are not FRED. FRED IDs with no /data row stay blank.</p>
 <div id="kpis"></div>
-<p class="sub" id="status">Loading construction-housing and the TV list.</p>
+<p class="sub" id="status">Loading construction-housing.json</p>
 <div id="board" class="table-region">Loading.</div>
-<div class="foot"><b>Built for:</b> putting the Housing Predict Future watchlist next to the housing cycle packet without scraping TradingView.<br>
-<b>Data:</b> /data/construction-housing.json series[] (PERMIT, CSUSHPISA, WPUSI012011, HSN1F, MORTGAGE30US). List membership is the 11 symbols from /data/tv-watchlists.json list "Housing Predict Future".<br>
-<b>Map:</b> ECONOMICS:USBP → PERMIT. ECONOMICS:USCSHPIYY → CSUSHPISA YoY. WPUSI012011 is shown only as the nearest live cousin of WPU081 and is labeled as such.<br>
-<b>Blank on purpose:</b> FRED:WPU081, FRED:USCONS, FRED:IPG321S, FRED:DRSFRMACBS, FRED:RPONMBSD, ECONOMICS:USHMI, ECONOMICS:USPHSIYY, NASDAQ:XHGX, NASDAQ:HGX — no published /data row.<br>
-<b>Related:</b> <a href="/construction-housing.html">construction-housing</a>. Research only.</div>
+<div class="foot"><b>Built for:</b> the TV list Housing Predict Future, without inventing lumber, payroll, or delinquency levels.<br>
+<b>Data:</b> /data/construction-housing.json series[] for PERMIT and CSUSHPISA.<br>
+<b>Blank on purpose:</b> WPU081, RPONMBSD, USCONS, IPG321S, DRSFRMACBS, USHMI, USPHSIYY, XHGX, HGX.<br>
+<b>Not:</b> a replacement of construction-housing.html. Research only.</div>
 </div>
 <script>
-function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
-function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
-async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+async function load(p){try{var r=await fetch(p,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 (async function(){
-  var hou=await load("/data/construction-housing.json");
+  var ch=await load("/data/construction-housing.json");
   var by={};
-  ((hou&&hou.series)||[]).forEach(function(s){if(s&&s.series_id)by[s.series_id]=s;});
+  ((ch&&ch.series)||[]).forEach(function(s){if(s&&s.series_id)by[s.series_id]=s;});
   var rows=[
-    {tv:"ECONOMICS:USHMI",role:"NAHB housing market index",map:"",note:"TV vendor tag. No FRED packet."},
-    {tv:"FRED:WPU081",role:"PPI lumber and wood",map:"WPUSI012011",note:"WPU081 itself is not on /data. Cousin WPUSI012011 is PPI residential construction inputs."},
-    {tv:"ECONOMICS:USCSHPIYY",role:"Case-Shiller YoY",map:"CSUSHPISA",note:"Mapped to CSUSHPISA yoy_pct on the housing packet."},
-    {tv:"FRED:RPONMBSD",role:"RRP MBS sold by Fed",map:"",note:"Not the same as RRPONTSYD. No packet row."},
-    {tv:"FRED:USCONS",role:"Construction payroll",map:"",note:"No packet row."},
-    {tv:"FRED:IPG321S",role:"Wood product IP",map:"",note:"No packet row."},
-    {tv:"ECONOMICS:USBP",role:"Building permits",map:"PERMIT",note:"Mapped to PERMIT on the housing packet."},
-    {tv:"NASDAQ:XHGX",role:"PHLX housing index",map:"",note:"No price packet on this desk."},
-    {tv:"NASDAQ:HGX",role:"Housing index",map:"",note:"No price packet on this desk."},
-    {tv:"FRED:DRSFRMACBS",role:"SF mortgage delinquencies",map:"",note:"No packet row."},
-    {tv:"ECONOMICS:USPHSIYY",role:"Pending home sales YoY",map:"",note:"TV vendor tag. No FRED packet."}
+    {tv:"ECONOMICS:USBP",fred:"PERMIT",label:"Building permits (TV USBP)",map:true},
+    {tv:"ECONOMICS:USCSHPIYY",fred:"CSUSHPISA",label:"Case-Shiller YoY (TV USCSHPIYY)",map:true,useYoy:true},
+    {tv:"ECONOMICS:USHMI",fred:"",label:"NAHB Housing Market Index",why:"TV vendor tag, no /data"},
+    {tv:"ECONOMICS:USPHSIYY",fred:"",label:"Pending home sales YoY",why:"TV vendor tag, no /data"},
+    {tv:"FRED:WPU081",fred:"WPU081",label:"PPI lumber and wood (WPU081)",why:"not on housing packet or canary"},
+    {tv:"FRED:RPONMBSD",fred:"RPONMBSD",label:"RPONMBSD",why:"not on /data"},
+    {tv:"FRED:USCONS",fred:"USCONS",label:"Construction payroll (USCONS)",why:"not on /data"},
+    {tv:"FRED:IPG321S",fred:"IPG321S",label:"IP wood products (IPG321S)",why:"not on /data"},
+    {tv:"FRED:DRSFRMACBS",fred:"DRSFRMACBS",label:"SF mortgage delinquency",why:"not on /data"},
+    {tv:"NASDAQ:XHGX",fred:"",label:"PHLX Housing Sector (XHGX)",why:"index, no /data"},
+    {tv:"NASDAQ:HGX",fred:"",label:"PHLX Housing (HGX)",why:"index, no /data"}
   ];
+  var filled=0,end="</tbody></tab"+"le>",h="<table><thead><tr><th>TV symbol</th><th>FRED / map</th><th>Label</th><th class='r'>Level</th><th class='r'>YoY</th><th>As of</th><th>Status</th></tr></thead><tbody>";
   rows.forEach(function(r){
-    var src=r.map&&by[r.map]?by[r.map]:null;
-    r.live_id=src?src.series_id:"";
-    r.latest=src?num(src.latest):null;
-    r.yoy=src?num(src.yoy_pct):null;
-    r.as_of=src?src.as_of||"":"";
-    r.label=src?src.label||"":"";
+    var src=r.fred?by[r.fred]:null,lvl=null,yoy=null,asof="",st=r.why||"unpublished";
+    if(src){
+      lvl=num(src.latest);yoy=num(src.yoy_pct);asof=src.as_of||"";st=r.map?"mapped from housing packet":"housing packet";
+      if(r.useYoy){lvl=yoy;yoy=yoy;}
+      if(lvl!=null)filled++;
+    }
+    h+="<tr><td>"+esc(r.tv)+"</td><td>"+esc(r.fred||"")+"</td><td>"+esc(r.label)+"</td>";
+    h+="<td class='r'>"+esc(lvl==null?"":String(lvl))+"</td><td class='r'>"+esc(yoy==null?"":yoy.toFixed(1)+"%")+"</td>";
+    h+="<td>"+esc(asof)+"</td><td>"+esc(st)+"</td></tr>";
   });
-  var nLive=rows.filter(function(r){return r.latest!=null||r.yoy!=null;}).length;
-  document.getElementById("kpis").innerHTML="<span class=chip>11 TV symbols</span><span class=chip>"+nLive+" with a live FRED cousin</span><span class=chip>"+(11-nLive)+" blank</span>";
-  var h="<table><thead><tr><th>TV symbol</th><th>Role</th><th>Live FRED</th><th class=r>Level</th><th class=r>YoY</th><th>As of</th><th>Note</th></tr></thead><tbody>";
-  rows.forEach(function(r){
-    h+="<tr><td>"+esc(r.tv)+"</td><td>"+esc(r.role)+"</td><td>"+esc(r.live_id)+"</td>";
-    h+="<td class=r>"+esc(r.latest==null?"":r.latest)+"</td><td class=r>"+esc(r.yoy==null?"":r.yoy.toFixed(1)+"%")+"</td>";
-    h+="<td>"+esc(r.as_of)+"</td><td>"+esc(r.note)+"</td></tr>";
-  });
-  document.getElementById("board").innerHTML=h+closeTbl();
-  document.getElementById("status").textContent=nLive+" of 11 have a published cousin. Missing IDs stay blank until fred_housing_cycle emits them.";
+  document.getElementById("board").innerHTML=h+end;
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+filled+" of 11 with a live level</span>";
+  document.getElementById("status").textContent="construction-housing.html remains the cycle page. Missing FRED IDs need the collector allowlist.";
 })();
 </script>
 <script src="/jh-nav-drawer.js" defer></script>
