@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capex DIO RPO triad · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 6px}.sub,.foot{color:var(--fg2);max-width:920px}
+table{width:100%;border-collapse:collapse;min-width:920px}th,td{padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace;text-align:right}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer}th.l,td.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);border-top:1px solid var(--bd);padding-top:14px;line-height:1.65}
+.chip{display:inline-block;margin:0 6px 8px 0;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+input{max-width:280px;padding:8px 10px;margin:10px 0;background:#0f141b;border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+</style></head><body>
+<div class="wrap">
+<h1>Capex · DIO · RPO</h1>
+<p class="sub">One row per ticker with at least two of the three feeds. Missing legs stay blank. Flag text only when all three directions exist. No blended score.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter ticker or sector">
+<div id="board">Loading</div>
+<div class="foot"><b>Built for:</b> whether spend, inventory and the book move together.<br><b>Data:</b> /data/capex-pulse.json; /data/inventory-drawdown.json; /data/backlog.json by_ticker.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c];});}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function fmt(v,d){var n=num(v);return n==null?"":n.toFixed(d);}
+function pct(v){var n=num(v);return n==null?"":((n>0?"+":"")+n.toFixed(1)+"%");}
+function cls(v){var n=num(v);return n==null?"":(n>0?"pos":n<0?"neg":"");}
+function flag(r){if(r.capex_yoy==null||r.dio_chg==null||r.rpo_yoy==null)return "";if(r.capex_yoy>0&&r.dio_chg<0&&r.rpo_yoy>0)return "spend+ book+ inventory-";if(r.capex_yoy<0&&r.dio_chg>0&&r.rpo_yoy<0)return "spend- book- inventory+";return "";}
+async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(r.ok)return r.json();}catch(e){}return null;}
+(async function(){
+  var cx=await load("/data/capex-pulse.json");
+  var inv=await load("/data/inventory-drawdown.json");
+  var bl=await load("/data/backlog.json");
+  var by={};
+  function row(t){t=String(t||"").toUpperCase();if(!t)return null;if(!by[t])by[t]={ticker:t,sector:"",capex:null,capex_yoy:null,dio:null,dio_chg:null,rpo:null,rpo_yoy:null};return by[t];}
+  ((cx&&cx.rows)||[]).forEach(function(r){var x=row(r.ticker);if(!x)return;x.sector=r.sector||x.sector;x.capex=num(r.capex_ttm_b);x.capex_yoy=num(r.yoy_pct);});
+  ((inv&&inv.stock_drawdown_board)||[]).forEach(function(r){var x=row(r.ticker);if(!x)return;x.sector=x.sector||r.sector||"";x.dio=num(r.dio_latest);x.dio_chg=num(r.dio_chg_pct);});
+  var bt=(bl&&bl.by_ticker)||{};
+  Object.keys(bt).forEach(function(t){var v=bt[t]||{},x=row(v.ticker||t);if(!x)return;x.sector=x.sector||v.sector||"";x.rpo=num(v.rpo);x.rpo_yoy=num(v.rpo_yoy);});
+  var rows=Object.keys(by).map(function(k){return by[k];}).filter(function(r){var n=0;if(r.capex!=null||r.capex_yoy!=null)n++;if(r.dio!=null||r.dio_chg!=null)n++;if(r.rpo!=null||r.rpo_yoy!=null)n++;return n>=2;});
+  var SORT={k:"rpo_yoy",dir:-1};
+  function val(r,k){if(k==="ticker"||k==="sector"||k==="flag")return String(r[k]||"");var v=r[k];return v==null||!isFinite(+v)?null:+v;}
+  function paint(){
+    var q=(document.getElementById("q").value||"").toUpperCase();
+    var list=rows.filter(function(r){return !q||(r.ticker+" "+r.sector).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){var av=val(a,SORT.k),bv=val(b,SORT.k);if(av==null&&bv==null)return a.ticker.localeCompare(b.ticker);if(av==null)return 1;if(bv==null)return -1;if(typeof av==="string")return SORT.dir*av.localeCompare(bv);return SORT.dir*((av>bv)-(av<bv));});
+    var h="<table><thead><tr><th class=l data-k=ticker>Ticker</th><th class=l data-k=sector>Sector</th><th data-k=capex>Capex $B</th><th data-k=capex_yoy>Capex YoY</th><th data-k=dio>DIO</th><th data-k=dio_chg>DIO YoY</th><th data-k=rpo>RPO $</th><th data-k=rpo_yoy>RPO YoY</th><th class=l data-k=flag>When all three exist</th></tr></thead><tbody>";
+    list.forEach(function(r){r.flag=flag(r);h+="<tr><td class=l><a href=/ticker.html?symbol="+encodeURIComponent(r.ticker)+">"+esc(r.ticker)+"</a></td><td class=l>"+esc(r.sector)+"</td><td>"+fmt(r.capex,2)+"</td><td class="+cls(r.capex_yoy)+">"+pct(r.capex_yoy)+"</td><td>"+fmt(r.dio,1)+"</td><td class="+cls(r.dio_chg)+">"+pct(r.dio_chg)+"</td><td>"+(r.rpo==null?"":(r.rpo>=1e9?(r.rpo/1e9).toFixed(2)+"B":(r.rpo/1e6).toFixed(1)+"M"))+"</td><td class="+cls(r.rpo_yoy)+">"+pct(r.rpo_yoy)+"</td><td class=l>"+esc(r.flag)+"</td></tr>";});
+    document.getElementById("board").innerHTML=h+"</tbody><\/table>";
+    document.querySelectorAll("#board th[data-k]").forEach(function(el){el.onclick=function(){var k=el.getAttribute("data-k");if(SORT.k===k)SORT.dir=-SORT.dir;else{SORT.k=k;SORT.dir=(k==="ticker"||k==="sector"||k==="flag")?1:-1;}paint();};});
+  }
+  document.getElementById("kpis").innerHTML='<span class="chip">'+rows.length+' names with 2+ legs</span><span class="chip">RPO only when tagged</span>';
+  document.getElementById("q").oninput=paint;paint();
+})();
+</script>
+<script src="/sidebar.js" defer></script>
+</body></html>
