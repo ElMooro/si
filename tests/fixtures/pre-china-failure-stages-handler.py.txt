@@ -665,7 +665,4 @@ def lambda_handler(event, context):
     except Exception as exc:
         # Safe diagnostic only; raw provider/credential URLs never enter logs.
         print('[china-research] retained publication refused:', type(exc).__name__)
-        failure=getattr(exc,'research_failure',None)
-        if isinstance(failure,dict):
-            print('[china-research] failure context:',json.dumps(failure,sort_keys=True))
         return {'statusCode': 503, 'body': 'Research acquisition incomplete; prior publication retained.'}

@@ -362,81 +362,36 @@ def publications(predecessors,pending,review,at,compilers):
     return out
 
 
-def _run(module,event=None,context=None,at=None,opener=None,diagnostic=None):
+def run(module,event=None,context=None,at=None,opener=None):
     if isinstance(event,dict) and ('httpMethod' in event or 'requestContext' in event):return {'statusCode':409,'body':'Stored research; HTTP does not run the producer.'}
     at=at or datetime.now(timezone.utc).isoformat();measurements.clock(at)
-    diagnostic.update(started_at=at,stage='read_predecessors')
     remaining=context.get_remaining_time_in_millis()/1000 if context and hasattr(context,'get_remaining_time_in_millis') else 120
     client=Budget(module.s3,time.monotonic()+min(110,remaining-5));bucket=module.S3_BUCKET
     predecessors={key:get(client,bucket,key) for key in KEYS}
     validate_predecessors(predecessors,at)
-    diagnostic['stage']='retain_predecessors'
     originals={key:{'original':retain(client,bucket,row['raw']),'etag':row['etag']} if row else None for key,row in predecessors.items()}
-    diagnostic['stage']='validate_configuration'
     monthly_code=module.os.environ.get('NBS_TSF_MONTHLY')
     if monthly_code and (not re.fullmatch(r'[A-Za-z0-9_/-]{1,120}',monthly_code) or '..' in monthly_code):raise EvidenceError('Public NBS dataset code required')
     if not module.FRED_KEY:raise EvidenceError('Existing FRED authentication unavailable')
     session=Session(client,bucket,at,predecessors,opener,monthly_code);credentials=(module.FRED_KEY,)
-    diagnostic['stage']='calculate_sources'
-    diagnostic['_session']=session
-    result=calculate(module,session,credentials)
-    diagnostic['stage']='identify_compilers'
-    compilers=compiler_hashes()
-    diagnostic['stage']='project_outputs'
+    result=calculate(module,session,credentials);compilers=compiler_hashes()
     output=publications(predecessors,session.pending,session.review,at,compilers)
-    diagnostic['stage']='retain_native_outputs'
-    native_refs={key:retain(client,bucket,raw) for key,raw in session.pending.items()}
-    diagnostic['stage']='retain_projection_outputs'
-    projection_refs={key:retain(client,bucket,encode(value)) for key,value in output.items()}
-    diagnostic['stage']='retain_plan'
     plan={'contract':CONTRACT,'generated_at':at,'predecessors':originals,'compiler_sha256':compilers,'http_attempts':session.http,
           'native_reads':session.reads,'native_return':result,'credential_presence':[bool(c) for c in credentials],
           'monthly_dataset_code':monthly_code,'legacy_fred_reads':session.fred_reads,'notifications_suppressed':session.notifications_suppressed,
-          'native_outputs':native_refs,
-          'projections':projection_refs,'multiple_head_atomic':False}
+          'native_outputs':{key:retain(client,bucket,raw) for key,raw in session.pending.items()},
+          'projections':{key:retain(client,bucket,encode(value)) for key,value in output.items()},'multiple_head_atomic':False}
     ref=retain(client,bucket,encode(plan));output[HEAD]['publication_context']=publication_context(ref,len(output))
-    diagnostic['stage']='encode_publication'
     raw_output={key:encode(value) for key,value in output.items()}
-    diagnostic['stage']='credential_guard'
     if len(module.FRED_KEY) >= 8 and any(module.FRED_KEY.encode() in raw for raw in raw_output.values()):
         raise EvidenceError('Provider credential echoed in response; public publication refused')
-    diagnostic['stage']='retain_publication'
     for raw in raw_output.values():retain(client,bucket,raw)
     for key in [k for k in KEYS if k!=HEAD and k in raw_output]+[HEAD]:
-        diagnostic['stage']='publish_head' if key==HEAD else 'publish_history' if key==KEYS[1] else 'publish_afre_cache'
         old=predecessors[key];condition={'IfMatch':old['etag']} if old else {'IfNoneMatch':'*'}
         client.put_object(Bucket=bucket,Key=key,Body=raw_output[key],ContentType='application/json',CacheControl='no-store',**condition)
-        diagnostic['publication_key']=key
-        diagnostic['stage']='verify_publication_readback'
         check=get(client,bucket,key)
         if check is None or check['raw']!=raw_output[key]:raise EvidenceError('Published readback differs; foreign writer is never rolled back')
     return {'published':True,'contract':CONTRACT,'provider_attempts':len(session.http),'portfolio_action':'WAIT','multiple_head_atomic':False}
-
-
-SAFE_FAILURE_REASONS = frozenset(('Acquisition/publication runtime budget exhausted', 'Bounded whole original required', 'Byte stream required', 'Complete attempt retention failed', 'Complete body exceeds bound; never truncated', 'Complete conditional object identity required', 'Complete dated native packet required', 'Complete existing China head and history required', 'Complete native execution differs', 'Complete native head and history required', 'Complete native output differs', 'Complete original projection differs', 'Complete response deadline exhausted', 'Complete response population exceeds bound', 'Complete source body differs', 'Complete untransformed observations required', 'Declared NBS dataset required', 'Declared PBoC government source required', 'Declared PBoC proxy required', 'Duplicate JSON key', 'Every predecessor history row must be preserved', 'Exact HTTPS public GET required', 'Exact as-of date required', 'Exact older predecessor required', 'Exact original compiler and publication required', 'Exact protected original identity required', 'Exact source identity differs', 'Existing FRED authentication unavailable', 'Incomplete source body or failed retention', 'Invalid native structured publication', 'Invalid retained dataset code', 'Nonfinite JSON number', 'Object read failed', 'Original history date conflicts', 'Original source integrity failed', 'Provider credential echoed in response; public publication refused', 'Public GET required', 'Public NBS dataset code required', 'Published readback differs; foreign writer is never rolled back', 'Redirect refused', 'Request bound differs', 'Retained readback differs', 'Retained whole body differs', 'Source unavailable; complete original attempt retained', 'Undeclared China series', 'Undeclared legacy series view', 'Undeclared metadata', 'Undeclared native cache read', 'Undeclared provider request', 'Unexpected native cache/public writer', 'Unknown attempt state', 'Unrecorded request', 'Whole original AFRE cache required', 'Whole original history required', 'Whole public packet differs', 'Whole response length differs', 'Whole source acquisition or retention refused'))
-
-def run(module,event=None,context=None,at=None,opener=None):
-    """Attach bounded failure evidence without changing measurements or retrying."""
-    diagnostic={'stage':'validate_event'}
-    try:
-        return _run(module,event,context,at,opener,diagnostic)
-    except Exception as exc:
-        session=diagnostic.pop('_session',None)
-        diagnostic.update(contract='china-publication-failure.v1',exception_class=type(exc).__name__,
-                          reason=str(exc) if str(exc) in SAFE_FAILURE_REASONS else 'Unclassified; raw exception withheld')
-        response=getattr(exc,'response',None)
-        error=response.get('Error') if isinstance(response,dict) else None
-        code=error.get('Code') if isinstance(error,dict) else None
-        if isinstance(code,str) and code in {'AccessDenied','PreconditionFailed','ConditionalRequestConflict','NoSuchKey','SlowDown','RequestTimeout','ServiceUnavailable'}:
-            diagnostic['service_error_code']=code
-        if session is not None:
-            diagnostic['retained_attempts']=len(session.http)
-            diagnostic['staged_outputs']=sorted(key for key in session.pending if key in KEYS)
-            ref=session.http[-1].get('attempt_manifest',{}) if session.http else {}
-            digest=ref.get('sha256')
-            if isinstance(digest,str) and re.fullmatch('[a-f0-9]{64}',digest):diagnostic['last_attempt_sha256']=digest
-        exc.research_failure=diagnostic
-        raise
 
 
 def replay(module,client,bucket,packet):

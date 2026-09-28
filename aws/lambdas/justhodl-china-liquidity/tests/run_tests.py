@@ -61,6 +61,34 @@ def packets(sid):
 
 
 class Tests(unittest.TestCase):
+    def test_failure_stages_bind_retained_attempts_and_never_emit_exception_payloads(self):
+        for name,error,stage in [('compiler_hashes',store.EvidenceError('Whole source acquisition or retention refused'),'identify_compilers'),
+                                 ('publications',RuntimeError('fixture-only-secret source-body-do-not-emit'),'project_outputs')]:
+            with patch.object(store,name,side_effect=error):
+                with self.assertRaises(type(error)) as caught:self.execute()
+            diagnostic=caught.exception.research_failure
+            self.assertEqual(diagnostic['stage'],stage)
+            self.assertGreater(diagnostic['retained_attempts'],0)
+            self.assertEqual(set(diagnostic['staged_outputs']),set(store.KEYS))
+            self.assertRegex(diagnostic['last_attempt_sha256'],r'^[a-f0-9]{64}$')
+            self.assertNotIn('_session',diagnostic)
+            self.assertNotIn('fixture-only-secret',str(diagnostic));self.assertNotIn('source-body-do-not-emit',str(diagnostic))
+            if name=='publications':self.assertEqual(diagnostic['reason'],'Unclassified; raw exception withheld')
+
+    def test_original_store_measurements_and_history_are_unchanged_by_failure_observation(self):
+        raw=(ROOT/'tests/fixtures/pre-china-failure-stages-store.py.txt').read_bytes()
+        self.assertEqual(store.sha(raw),'5921cab4edc391fb0bf0a5145fd418f8cd5f5a58ae51f68b231a11e4e46c7ef2')
+        self.assertEqual(store.sha((ROOT/'tests/fixtures/pre-china-failure-stages-handler.py.txt').read_bytes()),'0c7bf8ec3dddb9feb443d3afaa281a6dfbb4865797e7db1c7ba4165bdc86dc03')
+        old=ModuleType('original_china_store');old.__file__=str(SOURCE/'china_store.py');exec(compile(raw,old.__file__,'exec'),old.__dict__)
+        memory=Memory();self.calls=[];self.module.s3=memory;self.module.FRED_KEY='fixture-only-secret'
+        with patch.object(self.module,'os',SimpleNamespace(environ={})):
+            old.run(self.module,at=AT,opener=self.source)
+        prior=store.strict(memory.data[store.HEAD]);history=memory.data[store.KEYS[1]]
+        current,packet,_=self.execute()
+        prior.pop('publication_context');packet.pop('publication_context')
+        self.assertEqual(packet,prior)
+        self.assertEqual(current.data[store.KEYS[1]],history)
+
     @classmethod
     def setUpClass(cls):
         fake=ModuleType('boto3');fake.client=lambda *a,**kw:None
