@@ -1,0 +1,42 @@
+{
+  "status": "unresolved_original_source_audit",
+  "producer": "justhodl-momentum-leaders",
+  "producer_source": {
+    "bytes": 22274,
+    "sha256": "1883f6d5f10931a5aec873f4f4c485882b2ca7beaca7ab4158fb115972c3b783"
+  },
+  "declared_public_packet": {
+    "key": "data/momentum-leaders.json",
+    "bytes": 77370,
+    "sha256": "3e8c95ad2cc5581840afcc16c2753ca981848a9338df4d84b44396f89d383776",
+    "generated_at": "2026-09-28T02:25:18.561466+00:00",
+    "n_scored": 60,
+    "n_leaders": 27
+  },
+  "configured_source_constants": {
+    "LOOKBACK_DAYS": 90,
+    "MAX_UNIVERSE": 60,
+    "PRICE_ACQUISITION_CALENDAR_DAYS": 290,
+    "workers": 8
+  },
+  "already_repaired": "Momentum Breakout direct vote and stored pre-boundary Convergence membership are excluded by b7db9ef147732700a4817e156eca2d2d53171896. Do not redo this boundary.",
+  "unresolved": [
+    "Fifty available rows suffice for a 52-week label; the 290-calendar-day request cannot prove a full 52-week window.",
+    "Missing SPY history becomes zero and nonmatching dates are ignored.",
+    "Future, duplicated or mismatched issuer rows and boolean prices are not validated before score/tags.",
+    "Zero and missing historical volumes vanish from the denominator; missing gaps become zero counts.",
+    "PRICE_CACHE survives warm invocations with neither expiry nor clearing, including cached errors.",
+    "Missing long-window rank becomes 0.5 and arbitrary weights turn source descriptions into pump confirmation.",
+    "Capped composite-ranked candidate population is not independent evidence or an investable universe.",
+    "Error publication overwrites current data; no whole original provider or byte-bound replay retention.",
+    "Nine direct native consumers and the Pre-Pump page use the legacy scores/tags. All remain independently unqualified."
+  ],
+  "next": "Read-only 6265 actual package/runtime/schedule and complete producer public-packet preservation before source repair.",
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_output_reads": 0,
+  "account_reads": 0,
+  "notifications_sent": 0,
+  "source_changes": false,
+  "forecast_qualification": false
+}

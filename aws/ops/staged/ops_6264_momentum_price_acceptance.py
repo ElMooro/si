@@ -134,10 +134,11 @@ def main():
         subprocess.run([sys.executable,str(ROOT/path)],cwd=ROOT,check=True)
     original=json.loads((ROOT/'docs/audit/2026-09-28/momentum-breakout-original-baseline.json').read_bytes());baselines=original['actual_producers']
     expected=subprocess.check_output(['git','log','-1','--format=%H','--','aws/lambdas/'+FN],cwd=ROOT,text=True).strip()
+    expected_packages={fn:subprocess.check_output(['git','log','-1','--format=%H','--','aws/lambdas/'+fn],cwd=ROOT,text=True).strip() for fn in functions}
     clients={n:boto3.client(n,region_name='us-east-1') for n in ('lambda','s3','events','scheduler')};args=[clients[n] for n in ('lambda','s3','events','scheduler')]
     with report('ops_6264_momentum_price_acceptance') as r:
         before={fn:runtime(*args,fn) for fn in functions};r.kv(actual_packages=before)
-        for fn,count in functions.items():check_runtime(before[fn],baselines[fn],expected,count)
+        for fn,count in functions.items():check_runtime(before[fn],baselines[fn],expected_packages[fn],count)
         settings=producer_settings(clients['lambda'])
         if settings!=original['producer_settings']:raise ValueError('Declared producer settings changed')
         route=fanout(clients);r.kv(fanout_route=route,producer_settings=settings)
@@ -151,7 +152,7 @@ def main():
         sources=read_sources(clients['s3'],p) if p.get('measurement_contract')==compiler().CONTRACT else {}
         result=publication(raw,prior,sources)
         if any(runtime(*args,fn)!=before[fn] for fn in functions) or fanout(clients)!=route or producer_settings(clients['lambda'])!=settings:raise ValueError('Runtime, routing or controls changed during acceptance')
-        r.kv(expected_commit=expected,actual_packages=before,fanout_route=route,producer_settings=settings,native_publication=result,current_archive_verified=archived,
+        r.kv(expected_commit=expected,expected_package_commits=expected_packages,actual_packages=before,fanout_route=route,producer_settings=settings,native_publication=result,current_archive_verified=archived,
              native_invocations=0,provider_requests=0,private_state_reads=0,consumer_output_reads=0,account_reads=0,learning_log_reads=0,
              public_writes=0,history_writes=0,schedule_changes=0,scope='Exact producer and seven consumer packages only; actual router code, selected producer fanout membership and enabled tick payload. Whole declared public producer packet, its own history and exact source blobs only. No consumer output read or predictive qualification.')
 

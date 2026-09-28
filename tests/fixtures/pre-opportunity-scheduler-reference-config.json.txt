@@ -11,8 +11,8 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Boom Board - synthesis engine fusing bagger-engine, earnings-pead, eps-revision-velocity, revenue-acceleration and momentum-breakout into one cross-confirmed opportunity board with thesis + price targets. Output screener/opportunity-screener.json.",
   "schedule": {
-    "scheduler_name": "opportunity-screener-sched",
+    "rule_name": "opportunity-screener-daily",
     "cron": "cron(0 14 * * ? *)",
-    "description": "Preserve the original existing Scheduler binding and payload."
+    "description": "Boom Board opportunity synthesis - daily 14:00 UTC"
   }
 }
