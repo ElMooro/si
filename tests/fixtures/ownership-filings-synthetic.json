@@ -1,0 +1,508 @@
+{
+  "synthetic_only": true,
+  "packet": {
+    "measurement_contract": "ownership-filing-observations.v1",
+    "generated_at": "2026-09-28T01:00:00Z",
+    "call": null,
+    "calls_eligible": false,
+    "forecast_qualified": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "independent_evidence_eligible": false,
+    "private_state_read_or_written": false,
+    "acquisitions": {
+      "mapping": {
+        "status": "received",
+        "endpoint": "https://www.sec.gov/files/company_tickers.json",
+        "requested_at": "2026-09-28T00:00:00Z",
+        "received_at": "2026-09-28T00:00:01Z",
+        "original_ref": {
+          "key": "data/activist-filings/sources/9ace2559c78e42b37b7e1c2934b936d31b3b1cee327e2e0d182e1246a98b3230.json",
+          "bytes": 88,
+          "sha256": "9ace2559c78e42b37b7e1c2934b936d31b3b1cee327e2e0d182e1246a98b3230",
+          "format": "json"
+        },
+        "http_status": 200
+      },
+      "universe": {
+        "status": "received",
+        "endpoint": "data/universe.json",
+        "requested_at": "2026-09-28T00:00:00Z",
+        "received_at": "2026-09-28T00:00:01Z",
+        "original_ref": {
+          "key": "data/activist-filings/sources/2823b2097fd9c76f82c601924c4df4665327c1faa67c961b8aa14819a2fe0b2f.json",
+          "bytes": 57,
+          "sha256": "2823b2097fd9c76f82c601924c4df4665327c1faa67c961b8aa14819a2fe0b2f",
+          "format": "json"
+        },
+        "http_status": 200
+      },
+      "feeds": [
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SC%2013D&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SC%2013D/A&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SC%2013G&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SC%2013G/A&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SCHEDULE%2013D&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/f7c8cdc8d75ce794636fd65bfadebef1205e7a924333d7532454df84e2e73f34.xml",
+            "bytes": 3206,
+            "sha256": "f7c8cdc8d75ce794636fd65bfadebef1205e7a924333d7532454df84e2e73f34",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SCHEDULE%2013D/A&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SCHEDULE%2013G&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        },
+        {
+          "status": "received",
+          "endpoint": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&type=SCHEDULE%2013G/A&output=atom&count=100",
+          "requested_at": "2026-09-28T00:00:00Z",
+          "received_at": "2026-09-28T00:00:01Z",
+          "original_ref": {
+            "key": "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml",
+            "bytes": 55,
+            "sha256": "b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9",
+            "format": "xml"
+          },
+          "http_status": 200
+        }
+      ]
+    },
+    "entry_occurrences": [
+      {
+        "entry_index": 0,
+        "requested_form": "SCHEDULE 13D",
+        "reported_form": "SCHEDULE 13D",
+        "canonical_form": "13D",
+        "accession": "0000000123-26-000001",
+        "name": "<img src=x>",
+        "cik": "0000000123",
+        "role": "Filer",
+        "feed_updated_at": "2026-09-25T17:00:00Z",
+        "filing_accepted_at": null,
+        "filing_url": "https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm",
+        "atom_title": "SCHEDULE 13D - <img src=x> (123) (Filer)",
+        "atom_id": "0000000123-26-000001",
+        "atom_links": [
+          {
+            "href": "https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm"
+          }
+        ],
+        "atom_categories": [
+          {
+            "term": "SCHEDULE 13D"
+          }
+        ],
+        "summaries": [
+          "<ns0:summary xmlns:ns0=\"http://www.w3.org/2005/Atom\">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</ns0:summary>"
+        ],
+        "raw_entry_xml": "<n0:entry xmlns:n0=\"http://www.w3.org/2005/Atom\"><n0:title>SCHEDULE 13D - &lt;img src=x&gt; (123) (Filer)</n0:title><n0:id>0000000123-26-000001</n0:id><n0:link xmlns:n1=\"\" href=\"https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm\"></n0:link><n0:updated>2026-09-25T17:00:00Z</n0:updated><n0:category xmlns:n1=\"\" term=\"SCHEDULE 13D\"></n0:category><n0:summary>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</n0:summary><n0:unknown>retain</n0:unknown></n0:entry>",
+        "issues": [],
+        "identity_eligible_for_grouping": true,
+        "occurrence_index": 0,
+        "feed_index": 4
+      },
+      {
+        "entry_index": 1,
+        "requested_form": "SCHEDULE 13D",
+        "reported_form": "SCHEDULE 13D",
+        "canonical_form": "13D",
+        "accession": "0000000123-26-000001",
+        "name": "Co filer",
+        "cik": "0000000456",
+        "role": "Reporting",
+        "feed_updated_at": "2026-09-25T17:00:00Z",
+        "filing_accepted_at": null,
+        "filing_url": "https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm",
+        "atom_title": "SCHEDULE 13D - Co filer (456) (Reporting)",
+        "atom_id": "0000000123-26-000001",
+        "atom_links": [
+          {
+            "href": "https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm"
+          }
+        ],
+        "atom_categories": [
+          {
+            "term": "SCHEDULE 13D"
+          }
+        ],
+        "summaries": [
+          "<ns0:summary xmlns:ns0=\"http://www.w3.org/2005/Atom\">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</ns0:summary>"
+        ],
+        "raw_entry_xml": "<n0:entry xmlns:n0=\"http://www.w3.org/2005/Atom\"><n0:title>SCHEDULE 13D - Co filer (456) (Reporting)</n0:title><n0:id>0000000123-26-000001</n0:id><n0:link xmlns:n1=\"\" href=\"https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm\"></n0:link><n0:updated>2026-09-25T17:00:00Z</n0:updated><n0:category xmlns:n1=\"\" term=\"SCHEDULE 13D\"></n0:category><n0:summary>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</n0:summary><n0:unknown>retain</n0:unknown></n0:entry>",
+        "issues": [],
+        "identity_eligible_for_grouping": true,
+        "occurrence_index": 1,
+        "feed_index": 4
+      },
+      {
+        "entry_index": 2,
+        "requested_form": "SCHEDULE 13D",
+        "reported_form": "SCHEDULE 13D",
+        "canonical_form": "13D",
+        "accession": "0000000123-26-000001",
+        "name": "Issuer",
+        "cik": "0000000789",
+        "role": "Subject",
+        "feed_updated_at": "2026-09-25T17:00:00Z",
+        "filing_accepted_at": null,
+        "filing_url": "https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm",
+        "atom_title": "SCHEDULE 13D - Issuer (789) (Subject)",
+        "atom_id": "0000000123-26-000001",
+        "atom_links": [
+          {
+            "href": "https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm"
+          }
+        ],
+        "atom_categories": [
+          {
+            "term": "SCHEDULE 13D"
+          }
+        ],
+        "summaries": [
+          "<ns0:summary xmlns:ns0=\"http://www.w3.org/2005/Atom\">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</ns0:summary>"
+        ],
+        "raw_entry_xml": "<n0:entry xmlns:n0=\"http://www.w3.org/2005/Atom\"><n0:title>SCHEDULE 13D - Issuer (789) (Subject)</n0:title><n0:id>0000000123-26-000001</n0:id><n0:link xmlns:n1=\"\" href=\"https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm\"></n0:link><n0:updated>2026-09-25T17:00:00Z</n0:updated><n0:category xmlns:n1=\"\" term=\"SCHEDULE 13D\"></n0:category><n0:summary>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</n0:summary><n0:unknown>retain</n0:unknown></n0:entry>",
+        "issues": [],
+        "identity_eligible_for_grouping": true,
+        "occurrence_index": 2,
+        "feed_index": 4
+      }
+    ],
+    "filing_groups": [
+      {
+        "accession": "0000000123-26-000001",
+        "canonical_form": "13D",
+        "occurrence_indices": [
+          0,
+          1,
+          2
+        ],
+        "parties": [
+          {
+            "role": "Subject",
+            "cik": "0000000789",
+            "names": [
+              "Issuer"
+            ],
+            "occurrence_indices": [
+              2
+            ]
+          },
+          {
+            "role": "Filer",
+            "cik": "0000000123",
+            "names": [
+              "<img src=x>"
+            ],
+            "occurrence_indices": [
+              0
+            ]
+          },
+          {
+            "role": "Reporting",
+            "cik": "0000000456",
+            "names": [
+              "Co filer"
+            ],
+            "occurrence_indices": [
+              1
+            ]
+          }
+        ],
+        "subject_cik": "0000000789",
+        "current_mapping_matches": [
+          {
+            "mapping_index": 0,
+            "source_key": "0",
+            "raw": {
+              "cik_str": 789,
+              "ticker": "TEST.A"
+            },
+            "cik": "0000000789",
+            "ticker": "TEST.A",
+            "mapping_row_valid": true
+          },
+          {
+            "mapping_index": 1,
+            "source_key": "1",
+            "raw": {
+              "cik_str": 789,
+              "ticker": "TEST.B"
+            },
+            "cik": "0000000789",
+            "ticker": "TEST.B",
+            "mapping_row_valid": true
+          }
+        ],
+        "current_ticker_candidates": [
+          "TEST.A",
+          "TEST.B"
+        ],
+        "current_universe_occurrences": [
+          {
+            "source_index": 0,
+            "raw": {
+              "symbol": "TEST.A"
+            },
+            "literal_symbol": "TEST.A"
+          },
+          {
+            "source_index": 1,
+            "raw": {
+              "symbol": "TEST.A"
+            },
+            "literal_symbol": "TEST.A"
+          }
+        ],
+        "identity_issues": [],
+        "role_group_status": "resolved_from_explicit_feed_roles",
+        "reported_beneficial_ownership_shares": null,
+        "reported_beneficial_ownership_percent": null,
+        "activist_intent_verified": false,
+        "independent_reporting_groups_verified": false,
+        "call": null,
+        "calls_eligible": false,
+        "forecast_qualified": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "independent_evidence_eligible": false,
+        "private_state_read_or_written": false
+      }
+    ],
+    "feed_coverage": [
+      {
+        "feed_index": 0,
+        "requested_form": "SC 13D",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 1,
+        "requested_form": "SC 13D/A",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 2,
+        "requested_form": "SC 13G",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 3,
+        "requested_form": "SC 13G/A",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 4,
+        "requested_form": "SCHEDULE 13D",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 3,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 5,
+        "requested_form": "SCHEDULE 13D/A",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 6,
+        "requested_form": "SCHEDULE 13G",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      },
+      {
+        "feed_index": 7,
+        "requested_form": "SCHEDULE 13G/A",
+        "status": "whole_returned_atom_parsed",
+        "returned_entries": 0,
+        "historical_completeness_verified": false,
+        "feed_updated_at": "",
+        "feed_attributes": {},
+        "feed_links": []
+      }
+    ],
+    "mapping_population": {
+      "status": "whole_current_mapping_parsed",
+      "records": [
+        {
+          "source_key": "0",
+          "raw": {
+            "cik_str": 789,
+            "ticker": "TEST.A"
+          },
+          "cik": "0000000789",
+          "ticker": "TEST.A",
+          "mapping_row_valid": true
+        },
+        {
+          "source_key": "1",
+          "raw": {
+            "cik_str": 789,
+            "ticker": "TEST.B"
+          },
+          "cik": "0000000789",
+          "ticker": "TEST.B",
+          "mapping_row_valid": true
+        },
+        {
+          "source_key": "bad",
+          "raw": null,
+          "cik": null,
+          "ticker": null,
+          "mapping_row_valid": false
+        }
+      ],
+      "historical_identity_verified": false
+    },
+    "universe_population": {
+      "status": "whole_current_stocks_array",
+      "occurrences": [
+        {
+          "source_index": 0,
+          "raw": {
+            "symbol": "TEST.A"
+          },
+          "literal_symbol": "TEST.A"
+        },
+        {
+          "source_index": 1,
+          "raw": {
+            "symbol": "TEST.A"
+          },
+          "literal_symbol": "TEST.A"
+        },
+        {
+          "source_index": 2,
+          "raw": null,
+          "literal_symbol": null
+        }
+      ],
+      "historical_membership_verified": false
+    },
+    "quality": {
+      "status": "partial",
+      "ingestion_status": "all_requested_feeds_parsed",
+      "received_entry_occurrences": 3,
+      "distinct_reported_accessions": 1,
+      "unresolved_entry_occurrences": 0,
+      "explicit_role_groups": 1,
+      "feed_snapshot_historical_completeness_verified": false,
+      "original_release_vintages_verified": false,
+      "document_contents_acquired": false,
+      "investment_authority": false
+    }
+  },
+  "sources": {
+    "data/activist-filings/sources/9ace2559c78e42b37b7e1c2934b936d31b3b1cee327e2e0d182e1246a98b3230.json": "{\"0\":{\"cik_str\":789,\"ticker\":\"TEST.A\"},\"1\":{\"cik_str\":789,\"ticker\":\"TEST.B\"},\"bad\":null}",
+    "data/activist-filings/sources/2823b2097fd9c76f82c601924c4df4665327c1faa67c961b8aa14819a2fe0b2f.json": "{\"stocks\":[{\"symbol\":\"TEST.A\"},{\"symbol\":\"TEST.A\"},null]}",
+    "data/activist-filings/sources/b5ed0474dde85cfb22a7cd7b59d89e718db173b8a55bd404ba74ff0df9821ee9.xml": "<a:feed xmlns:a=\"http://www.w3.org/2005/Atom\"></a:feed>",
+    "data/activist-filings/sources/f7c8cdc8d75ce794636fd65bfadebef1205e7a924333d7532454df84e2e73f34.xml": "<a:feed xmlns:a=\"http://www.w3.org/2005/Atom\"><a:entry><a:title>SCHEDULE 13D - &lt;img src=x&gt; (123) (Filer)</a:title><a:id>0000000123-26-000001</a:id><a:link href=\"https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm\"/><a:updated>2026-09-25T17:00:00Z</a:updated><a:category term=\"SCHEDULE 13D\"/><a:summary>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</a:summary><a:unknown>retain</a:unknown></a:entry><a:entry><a:title>SCHEDULE 13D - Co filer (456) (Reporting)</a:title><a:id>0000000123-26-000001</a:id><a:link href=\"https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm\"/><a:updated>2026-09-25T17:00:00Z</a:updated><a:category term=\"SCHEDULE 13D\"/><a:summary>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</a:summary><a:unknown>retain</a:unknown></a:entry><a:entry><a:title>SCHEDULE 13D - Issuer (789) (Subject)</a:title><a:id>0000000123-26-000001</a:id><a:link href=\"https://www.sec.gov/Archives/edgar/data/123/000000012326000001/0000000123-26-000001-index.htm\"/><a:updated>2026-09-25T17:00:00Z</a:updated><a:category term=\"SCHEDULE 13D\"/><a:summary>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</a:summary><a:unknown>retain</a:unknown></a:entry></a:feed>"
+  }
+}

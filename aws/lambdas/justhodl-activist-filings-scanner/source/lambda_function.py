@@ -340,7 +340,7 @@ def score_filing(form_type, filer_tier, in_universe):
 
 # ─── Main ────────────────────────────────────────────────────────────────
 
-def lambda_handler(event=None, context=None):
+def _legacy_lambda_handler(event=None, context=None):
     started = time.time()
     deadline_at = started + TIMEOUT_BUDGET_S
     print("[activist] v3.0 starting")
@@ -600,3 +600,130 @@ def lambda_handler(event=None, context=None):
             "duration_s": out["duration_s"],
         }),
     }
+
+
+# Complete predecessor remains above. Only this source-backed handler is active.
+from pathlib import Path
+from datetime import datetime, timezone
+import sec_atom_model as _atom_identity
+from filing_observations import (CONTRACT, HEAD, FORMS, MAPPING, FLAGS, feed_url,
+    source_ref, validate_ref, content, build, clock, encode, sha, strict)
+
+
+def _activist_source_identity():
+    root=Path(__file__).resolve().parent
+    paths={name:root/name for name in ('lambda_function.py','filing_observations.py')}
+    paths['sec_atom_model.py']=Path(_atom_identity.__file__)
+    return {name:{'bytes':len(raw),'sha256':sha(raw)} for name,path in paths.items() for raw in [path.read_bytes()]}
+
+
+def _activist_object(key,bound):
+    obj=S3.get_object(Bucket=BUCKET,Key=key)
+    try:raw=obj['Body'].read(bound+1)
+    finally:obj['Body'].close()
+    if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):
+        raise ValueError('Whole versioned declared object required')
+    return raw,obj['ETag']
+
+
+def _activist_immutable(key,raw,kind):
+    try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType=kind,CacheControl='public, max-age=31536000, immutable')
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
+    if _activist_object(key,len(raw))[0]!=raw:raise ValueError('Whole immutable readback differs')
+
+
+def _activist_archive(raw):
+    ref={'key':'data/activist-filings/history/'+sha(raw)+'.json','bytes':len(raw),'sha256':sha(raw)}
+    _activist_immutable(ref['key'],raw,'application/json');return ref
+
+
+class _ActivistSources:
+    def __init__(self):self.raw={};self.bytes=0;self.stop=False
+    def capture(self,raw,endpoint,kind,requested_at):
+        ref=source_ref(raw,kind)
+        if ref['key'] not in self.raw:
+            if self.bytes+len(raw)>80*1024*1024:raise ValueError('Source budget exceeded; preserve current')
+            _activist_immutable(ref['key'],raw,'application/json' if kind=='json' else 'application/xml')
+            self.raw[ref['key']]=raw;self.bytes+=len(raw)
+        return {'status':'received','endpoint':endpoint,'requested_at':requested_at,
+            'received_at':datetime.now(timezone.utc).isoformat(),'original_ref':ref}
+
+
+def _activist_fetch(url,sources,remaining,kind):
+    if url not in [MAPPING,*[feed_url(f) for f in FORMS]] or kind!=('json' if url==MAPPING else 'xml'):
+        raise ValueError('Only declared SEC feeds and current mapping allowed')
+    if sources.stop or remaining()<35:return {'endpoint':url,'status':'not_attempted_rate_or_runtime_limit'}
+    requested=datetime.now(timezone.utc).isoformat()
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    try:
+        request=urllib.request.Request(url,headers={'User-Agent':SEC_USER_AGENT,'Accept-Encoding':'identity',
+            'Accept':'application/json' if kind=='json' else 'application/atom+xml'})
+        try:response=urllib.request.build_opener(NoRedirect()).open(request,timeout=15)
+        except urllib.error.HTTPError as exc:response=exc
+        with response:status=response.status;raw=response.read(8*1024*1024+1)
+    except Exception as exc:
+        return {'endpoint':url,'status':'transport_unavailable','requested_at':requested,
+            'received_at':datetime.now(timezone.utc).isoformat(),'error_type':type(exc).__name__}
+    if status in (403,429):sources.stop=True
+    if len(raw)>8*1024*1024:
+        return {'endpoint':url,'status':'response_exceeds_bound','requested_at':requested,
+            'received_at':datetime.now(timezone.utc).isoformat(),'http_status':status,'original_retained':False}
+    out=sources.capture(raw,url,kind,requested);out['http_status']=status;return out
+
+
+def lambda_handler(event=None,context=None):
+    started=time.monotonic();checked=datetime.now(timezone.utc)
+    if S3_KEY!=HEAD or not 1<=DAYS_BACK<=366 or TIMEOUT_BUDGET_S<1:
+        raise ValueError('Fixed output and bounded original observation window required')
+    try:previous_raw,etag=_activist_object(HEAD,64*1024*1024)
+    except Exception as exc:
+        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('404','NoSuchKey'):raise
+        previous_raw=None;etag=None
+    previous=strict(previous_raw) if previous_raw is not None else None
+    if previous is not None and not isinstance(previous,dict):raise ValueError('Malformed previous publication')
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        stamp=clock(previous.get('generated_at'))
+        if stamp is None or stamp>=checked:raise ValueError('Previous publication clock invalid')
+    def remaining():
+        own=min(TIMEOUT_BUDGET_S,260)-(time.monotonic()-started)
+        return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
+    sources=_ActivistSources();requested=datetime.now(timezone.utc).isoformat()
+    try:raw,universe_etag=_activist_object('data/universe.json',8*1024*1024)
+    except Exception as exc:
+        universe_attempt={'endpoint':'data/universe.json','status':'universe_unavailable','error_type':type(exc).__name__}
+    else:
+        universe_attempt=sources.capture(raw,'data/universe.json','json',requested);universe_attempt['etag']=universe_etag
+    acquisitions={'mapping':_activist_fetch(MAPPING,sources,remaining,'json'),'universe':universe_attempt,'feeds':[]}
+    for form in FORMS:
+        # Original cadence is unchanged. Sequential declared SEC requests stay
+        # below its per-client rate ceiling; denied/rate-limited traffic stops.
+        if not sources.stop and remaining()>=35:time.sleep(.2)
+        acquisitions['feeds'].append(_activist_fetch(feed_url(form),sources,remaining,'xml'))
+    finished=datetime.now(timezone.utc).isoformat()
+    measurements=build(acquisitions,sources.raw,finished,DAYS_BACK)
+    prior_ref=_activist_archive(previous_raw) if previous_raw is not None else None
+    packet={'engine':'justhodl-activist-filings-scanner','version':'4.0.0','schema_version':4,
+        'measurement_contract':CONTRACT,'method':'complete_received_ownership_atom_observations',
+        'status':'RESEARCH_ONLY','generated_at':finished,'acquisition_started_at':checked.isoformat(),
+        'window_days':DAYS_BACK,'source_files':_activist_source_identity(),'acquisitions':acquisitions,
+        'previous_publication':prior_ref,'retained_unique_source_bytes':sources.bytes,**measurements,
+        'stats':{'n_filings_total':None,'n_classified_by_tier':None,'n_in_universe':None,
+            'n_unique_tickers':None,'n_multi_activist':None,'n_new_filings':None,'n_new_tier_a':None,'n_new_tier_b':None},
+        'summary':{k:[] for k in ('top_25_overall','tier_a_classified','tier_b_classified','in_universe_filings','multi_activist_setups','new_alerts_this_run')},
+        'all_filings':[],'call':None,**FLAGS,'signals_logged':0,'notifications_sent':0,
+        'duration_s':round(time.monotonic()-started,2),
+        'caveats':['Eight explicitly identified current-feed snapshots retain legacy SC and modern SCHEDULE form queries. A parsed empty response is distinct from a failed or unattempted feed.',
+            'Every returned entry, role, co-filer, summary, original XML and current mapping row is retained. Repeated entries and amendments are not independent investors.',
+            'Atom updated timestamps are not verified EDGAR acceptance or underlying ownership-event timestamps. Current ticker mappings do not establish historical share-class identity.',
+            'Only explicit feed Subject/Filer/Reporting roles may be grouped. Conflicting forms, roles, names, clocks and accession links remain unresolved.',
+            'No filing document contents, ownership amounts, group membership, activist purpose, increase/decrease, first-release vintage, complete historical coverage or investment edge is established.',
+            'Private accession state is neither read nor written. No alert, score, Calls vote, forecast, position size or execution authority is produced.'],
+        'source_documentation':['https://www.sec.gov/Archives/edgar/data/2012383/0002052113-25-002523-index.html',
+            'https://www.sec.gov/Archives/edgar/data/315066/0000315066-25-002060-index.htm']}
+    raw=encode(packet)
+    if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve current')
+    archive=_activist_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
+    S3.put_object(Bucket=BUCKET,Key=HEAD,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
+    return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'entry_occurrences':len(measurements['entry_occurrences']),'archive':archive})}

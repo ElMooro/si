@@ -199,10 +199,10 @@ footer a{color:var(--t2)}
 
     <!-- Activist Filings -->
     <div class="signal-card">
-      <div class="header"><h3>🏛️ Activist Filings</h3><span class="badge fresh" id="af-fresh">FRESH</span></div>
+      <div class="header"><h3>Ownership filing research</h3><span class="badge" id="af-fresh">RESEARCH</span></div>
       <div class="body" id="activist"><div class="loading">Loading…</div></div>
       <div class="footer">
-        <span>SEC 13D/G real-time, 4-tier filer classification</span>
+        <span><a href="/activist-filings.html">Complete ownership entries + feed coverage</a></span>
         <span id="af-meta"></span>
       </div>
     </div>
@@ -264,6 +264,7 @@ footer a{color:var(--t2)}
 
 <script src="/jh-table-values.js?v=earnings-events-v1"></script><script src="/jh-revenue-observations.js?v=revenue-statements-v1"></script><script src="/jh-pead-observations.js?v=earnings-events-v1"></script><script src="/jh-microcap-observations.js?v=microcap-flows-v2"></script>
 <script src="/jh-option-observations.js?v=option-observations-v1"></script>
+<script src="/jh-activist-observations.js?v=ownership-observations-v1"></script>
 <script>
 const BASE = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/';
 
@@ -443,19 +444,18 @@ async function loadAll() {
   }
   document.getElementById('of-fresh').className='badge';
 
-  // Activist
-  const af = await fetchJson('activist-filings.json');
-  if (af) {
-    const top = (af.summary && af.summary.top_25_overall || []).slice(0, 8);
-    document.getElementById('activist').innerHTML = tableHTML(top, [
-      {label:'Tkr', cls:'sym', render:r => r.subject_ticker || '?'},
-      {label:'Score', cls:'score', render:r => fmt(r.score,0)},
-      {label:'Form', render:r => r.form_type||'-'},
-      {label:'Filer', cls:'meta', render:r => (r.filer_name||'').substring(0,30)},
-    ]);
-    document.getElementById('af-meta').textContent =
-      (af.stats||{}).n_filings_total + ' filings · ' + ageMin(af.generated_at) + 'm ago';
+  // Activist source observations; no investment tier or stale preview.
+  try {
+    const af = await fetchJson('activist-filings.json');
+    if (!af) throw Error('Stored packet unavailable');
+    document.getElementById('activist').textContent=JHActivistObservations.summary(af).message;
+    document.getElementById('af-meta').textContent='Generated '+String(af.generated_at||'unavailable');
+    document.getElementById('af-fresh').textContent='RESEARCH';
+  } catch (_e) {
+    document.getElementById('activist').textContent='Stored ownership observations unavailable.';
+    document.getElementById('af-meta').textContent='';document.getElementById('af-fresh').textContent='UNAVAILABLE';
   }
+  document.getElementById('af-fresh').className='badge';
 
   // Theme Rotation
   const tr = await fetchJson('theme-rotation.json');

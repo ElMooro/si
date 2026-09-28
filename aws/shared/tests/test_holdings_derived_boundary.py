@@ -39,6 +39,27 @@ class Storage:
 
 
 class Tests(unittest.TestCase):
+    def test_activist_legacy_tiers_cannot_vote_or_supply_old_percentiles(self):
+        m = load('justhodl-compound-aggregator')
+        db = Storage({'data/activist-filings.json': {'calls_eligible': True,
+            'summary': {'top_25_overall': [{'subject_ticker':'KO','score':999999}, {'subject_ticker':'FALSE','score':999999}]}},
+            'data/nobrainers.json': {'summary': {'top_25_overall': [{'ticker':'KO','score':40}]}},
+            'data/insider-clusters.json': {'clusters': [{'ticker':'KO','score':60}]},
+            'data/compound-history.json': {'days':[{'d':'2026-01-01','score_basis':BASIS,'scores':{'KO':999999}}]}})
+        with patch.object(m,'S3',db), patch.object(m,'emit_alerts',side_effect=AssertionError('No synthetic notifications')):
+            m.lambda_handler({'suppress_alerts':True},None)
+        out=db.writes[m.S3_KEY];row=out['compound'][0]
+        self.assertEqual(out['feed_stats']['activist'],0)
+        self.assertEqual(out['stats']['n_total_names'],1)
+        self.assertEqual(row['compound_score'],150)
+        self.assertNotIn('activist',row['systems'])
+        self.assertNotIn('pctile_90d_self',row)
+        self.assertEqual(out['activist_research_exclusion']['investment_votes'],0)
+        self.assertNotIn('data/activist-filings.json',db.reads)
+        history=db.writes['data/compound-history.json']['days']
+        self.assertEqual(history[0]['scores']['KO'],999999)
+        self.assertEqual(history[-1]['activist_boundary'],'ownership-feed-abstention.v1')
+
     def test_malformed_or_mixed_version_composites_do_not_raise_or_pass(self):
         for packet in (None, [], {}, {'holdings_exclusions': None}, {'holdings_exclusions': []}):
             self.assertFalse(current_basis(packet))

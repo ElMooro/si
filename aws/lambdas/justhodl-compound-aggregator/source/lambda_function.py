@@ -75,6 +75,10 @@ def load_packet(key):
 
 def load_feed(key, path, sym_field):
     """Load a feed and return list of records with normalized keys."""
+    if key == "data/activist-filings.json":
+        # Filing-role observations and legacy name tiers have no calibrated
+        # directional meaning. This boundary also rejects forged permissions.
+        return []
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=key)
         d = json.loads(obj["Body"].read())
@@ -398,7 +402,8 @@ def aggregate():
         )["Body"].read())
     except Exception:
         _h = {"days": []}
-    _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS]
+    _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS
+                       and d.get("activist_boundary") == "ownership-feed-abstention.v1"]
     _prior_vals = [v for day in _qualified_days
                    for v in (day.get("scores") or {}).values()]
     _prior_by = {}
@@ -421,6 +426,7 @@ def aggregate():
     _days = [d for d in _h.get("days") or []
              if d.get("d") != _today][-89:]
     _days.append({"d": _today, "score_basis": BASIS,
+                  "activist_boundary": "ownership-feed-abstention.v1",
                   "scores": {r["symbol"]: r["compound_score"]
                              for r in ranked[:400]}})
     S3.put_object(Bucket=BUCKET,
@@ -432,7 +438,7 @@ def aggregate():
         Bucket=BUCKET, Key="data/prime-convergence.json",
         Body=json.dumps({
             "generated_at": _dt.now(_tz.utc).isoformat(),
-            "note": "Heuristic screen: at least four systems across three declared families. Independence and forward returns are not established; 13F clusters are excluded.",
+            "note": "Heuristic screen: at least four systems across three declared families. Independence and forward returns are not established; 13F clusters and ownership-feed tiers are excluded.",
             "holdings_exclusions": exclusions(holding_inputs),
             "n": len(_prime),
             "rows": [{k: r[k] for k in
@@ -449,6 +455,9 @@ def aggregate():
 
     return {
         "feed_stats": feed_stats,
+        "activist_research_exclusion": {"source": "data/activist-filings.json",
+            "status": "research_only_abstain", "investment_votes": 0, "basis": "ownership-feed-abstention.v1",
+            "reason": "Feed identities, filer names and form types do not establish activist intent or validated forward returns."},
         "holdings_exclusions": exclusions(holding_inputs),
         "presence": presence,
         "multi": multi,
@@ -615,6 +624,7 @@ def lambda_handler(event=None, context=None):
         "duration_s": round(time.time() - started, 2),
         "feed_stats": feed_stats,
         "holdings_exclusions": agg["holdings_exclusions"],
+        "activist_research_exclusion": agg["activist_research_exclusion"],
         "notifications_suppressed": suppress_alerts,
         "score_basis": BASIS,
         "history_comparability": "Percentiles use only snapshots with this score_basis; earlier snapshots are retained but excluded.",
