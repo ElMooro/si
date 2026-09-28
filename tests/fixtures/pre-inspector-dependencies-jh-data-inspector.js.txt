@@ -200,35 +200,7 @@ function selectedContract(manifest,selection){
  const contract=entries[selection.key];if(!contract||!Array.isArray(contract.outputs))throw new Error('Selected output contract is invalid');
  return contract;
 }
-function dependencyView(groups){
- const view=node('details');view.className='jdi-detail';view.append(node('summary','Upstream source references · research lineage'));
- view.append(node('p','Potential inputs for this engine or the page’s primary producers, found in checked-in code. Shared page context is separate. Nested helper calls and dynamic reads may be unresolved; this is not total input coverage or proof of independent evidence. Shared producers and history references do not add investment votes. Links open producer contracts without fetching their data.'));
- if(!Array.isArray(groups)||!groups.length){view.append(node('p','No primary dependency inventory is declared for this view. This does not establish an independent source.'));return view;}
- for(const group of groups){
-  const section=node('details');section.append(node('summary',String(group?.engine||'Unidentified engine')));view.append(section);
-  if(group?.contract!=='source-dependencies.v1'||group.inventory_available!==true||group.calls_eligible!==false||group.sizing_eligible!==false||group.independent_evidence_count!==null||!Number.isInteger(group.withheld_or_dynamic_count)||group.withheld_or_dynamic_count<0||!Array.isArray(group.public_references)||!group.public_references.every(ref=>ref&&typeof ref.key==='string'&&Array.isArray(ref.possible_producers)&&typeof ref.own_output_reference==='boolean'&&ref.runtime_read_verified===false)){
-   section.append(node('p','Dependency inventory unavailable or unqualified. No upstream ownership inferred.'));continue;
-  }
-  section.append(node('p',group.public_references.length+' public key references; '+group.withheld_or_dynamic_count+' private, internal, dynamic or unapproved references withheld. No independent-evidence count is established.'));
-  const body=node('div');body.className='jdi-scroll';const table=node('table');table.className='jdi-table';const head=node('tr');
-  for(const label of ['Referenced key','Possible producer from source','Relationship'])head.append(node('th',label));table.append(head);
-  for(const ref of group.public_references){
-   const row=node('tr');row.append(node('td',ref.key));const producers=node('td');row.append(producers);
-   const owners=Array.isArray(ref.possible_producers)?ref.possible_producers:[];
-   if(!owners.length)producers.append(node('span','Unresolved in the source inventory'));
-   for(const owner of owners){
-    if(typeof owner!=='string'||!/^[A-Za-z0-9_-]+$/.test(owner)){producers.append(node('span','Invalid producer identity'));continue;}
-    const link=node('a',owner);link.href='/engine-data.html?engine='+encodeURIComponent(owner);producers.append(link,node('span',' '));
-   }
-   row.append(node('td',ref.own_output_reference?'Includes this engine’s own output/history':owners.length>1?'Multiple source writers; runtime ownership unresolved':'Potential upstream reference; runtime use unverified'));
-   table.append(row);
-  }
-  if(!group.public_references.length)section.append(node('p','No public key references resolved. External providers and dynamic dependencies may still exist.'));
-  body.append(table);section.append(body);
- }
- return view;
-}
-const api={type,columns,leafPaths,ptr,inspect,collectionView,ownershipRecords,ownershipView,fetchRegistry,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,inspectionSelection,selectedContract,dependencyView};
+const api={type,columns,leafPaths,ptr,inspect,collectionView,ownershipRecords,ownershipView,fetchRegistry,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,inspectionSelection,selectedContract};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 global.JHDataInspector=api;
 if(typeof document==='undefined')return;
@@ -265,7 +237,6 @@ async function install(){
  if(!contract)return;
  const panel=node('details');panel.className='jdi-panel';panel.id='jh-engine-data';panel.dataset.contractVersion=version;
  panel.append(node('summary',(selection.standalone?selection.key+' · ':'')+'Engine data inspector · '+contract.outputs.length+' outputs'));
- if(Object.hasOwn(contract,'dependency_groups'))panel.append(dependencyView(contract.dependency_groups));
  if(selection.standalone&&selection.kind==='page'){
   const returnLink=node('a','Return to '+selection.key);returnLink.href='/'+selection.key;panel.append(returnLink);
   panel.append(node('p','This separate view lists the registered source outputs for '+selection.key+'. It does not observe another tab’s API responses, selected ticker, chart bars or private session. Listing a source does not verify the displayed chart or qualify a forecast.'));

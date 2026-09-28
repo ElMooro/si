@@ -180,23 +180,6 @@ def validated_primary_scopes(role,engines,root,route):
                     if isinstance(target,ast.Name):constants[target.id]=node.value.value
         if set(keys)!={constants.get(name) for name in evidence.get('constants',[])}:raise ValueError('Dedicated output constants drift: '+route)
     return scopes
-def dependency_group(name,engine,writers,internal_keys):
-    """Reference metadata only; never authorize or fetch an upstream artifact."""
-    reads=engine.get('reads')
-    available=isinstance(reads,list) and all(isinstance(key,str) for key in reads)
-    refs=[];withheld=0
-    for key in sorted(set(reads)) if available else []:
-        if key in internal_keys or not public_key(key):
-            withheld+=1;continue
-        owners=sorted(writers.get(key,set()))
-        refs.append({'key':key,'possible_producers':owners,'own_output_reference':name in owners,
-                     'producer_status':'unresolved' if not owners else 'multiple_source_writers' if len(owners)>1 else 'source_bound',
-                     'runtime_read_verified':False})
-    return {'contract':'source-dependencies.v1','engine':name,'inventory_available':available,
-            'public_references':refs,'withheld_or_dynamic_count':withheld,
-            'scope':'Potential inputs from checked-in source. Dynamic references, runtime reads and original-provider ancestry remain unverified.',
-            'independent_evidence_count':None,'calls_eligible':False,'sizing_eligible':False}
-
 def contract(root):
     mirrors,private_keys,private_prefixes=access_rules()
     role_path=root/'config/page-role-overrides.json'
@@ -209,7 +192,6 @@ def contract(root):
         for role in engine.get('output_roles',[]):
             if role.get('role')=='augmentation' and role.get('cas_write_verified') and role.get('base_producer') in writers.get(role.get('key'),set()):augmentations[(role['key'],name)]=role
     internal_roles=internal_output_roles(root,engines);emap={}
-    internal_dependency_keys={key for rows in internal_roles.values() for key in rows}
     for name,e in engines.items():
         allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':{'data/brain-compiler.json':'brain-compiler','data/sizing.json':'sizing','_health/fleet.json':'fleet-health','data/_fleet-monitor.json':'fleet-errors','data/_freshness-monitor.json':'fleet-freshness','data/source-map.json':'source-map','etf-flows/daily.json':'provider-metrics','macro/regime.json':'provider-metrics'}.get(k),'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[])} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
         for output in allowed:
@@ -223,8 +205,7 @@ def contract(root):
         emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
                     'excluded_internal_outputs':list(internal_roles.get(name,{}).values()),
                     'historical_or_dynamic_family_count':sum(pattern not in internal_roles.get(name,{}) for pattern in e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
-                    'runtime_coverage':'unverified_until_opened','ownership_basis':'actual source write arguments',
-                    'dependency_groups':[dependency_group(name,e,writers,internal_dependency_keys)]}
+                    'runtime_coverage':'unverified_until_opened','ownership_basis':'actual source write arguments'}
     add_archive_index_relationships(emap,engines,root)
     pmap={};graphs=scan_pages(root);source_usage=defaultdict(int)
     for graph in graphs.values():
@@ -293,8 +274,7 @@ def contract(root):
                      'unresolved_count':len(unresolved)+sum(emap[e]['unresolved_count'] for e in producers if e not in scopes),'unresolved_references':unresolved,
                      'historical_or_dynamic_family_count':sum(emap[e]['historical_or_dynamic_family_count'] for e in producers if e not in scopes),
                      'association_basis':'exact source references or explicit validated page declarations; shared-script conditional use not inferred as primary ownership',
-                     'runtime_coverage':'unverified_until_opened','missing_script_count':len(graph['missing_scripts']),
-                     'dependency_groups':[emap[name]['dependency_groups'][0] for name in sorted(primary)]}
+                     'runtime_coverage':'unverified_until_opened','missing_script_count':len(graph['missing_scripts'])}
     for route,row in pmap.items():
         row['inspection_entry']={'mode':'standalone','href':'/engine-data.html?page='+route} if route in STANDALONE_INSPECTION_PAGES else {'mode':'embedded'}
     standalone=sum(row['inspection_entry']['mode']=='standalone' for row in pmap.values())

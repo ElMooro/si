@@ -1,6 +1,6 @@
 {
   "checked_at": "2026-09-28T15:47:14.860096+00:00",
-  "status": "local_static_graph_accepted_deploy_pending",
+  "status": "source_tooling_and_live_build_accepted",
   "counts": {
     "duplicate_writers": 15,
     "engines": 893,
@@ -59,5 +59,63 @@
     "Source/provider-family identity, observation ancestry, historical availability and independence remain unqualified.",
     "A cycle in source references is not evidence of a runtime failure.",
     "No AWS data read, source request, schedule change or new investment authority."
-  ]
+  ],
+  "deployment": {
+    "commit": "f3eaae8526642291f0456329b8992d20c1deba8e",
+    "page_runs": [
+      36446345267,
+      36446349432
+    ],
+    "deploy_workflow_runs": [
+      36446345005,
+      36446349525
+    ],
+    "push_checks": "all_runs_green",
+    "native_engine_bytes_changed": false
+  },
+  "large_file_readback": {
+    "checked_at": "2026-09-28T15:50:13.216119+00:00",
+    "commit": "f3eaae8526642291f0456329b8992d20c1deba8e",
+    "path": "docs/audit/dependency-map.json",
+    "bytes": 13700038,
+    "github_blob_sha1": "d2212603766b9f08eccdeac1e9e707bb4df3138c",
+    "sha256": "80478fba9aefcc4df654d7d980403243d437d9fe1fc4b285fcdec61c688c2f71",
+    "whole_remote_bytes_match": true,
+    "scope": "Complete remote GitHub blob read back through read-only API after one native atomic Git push. Not an AWS engine deployment."
+  },
+  "live_assets": {
+    "checked_at": "2026-09-28T15:55:25.136985+00:00",
+    "intended_commit": "f3eaae8526642291f0456329b8992d20c1deba8e",
+    "served_commit": "f3eaae8526642291f0456329b8992d20c1deba8e",
+    "assets": {
+      "bond-desk.html": {
+        "bytes": 22166,
+        "sha256": "1b0203f26095ad0fd64d21448268ba129ff69fe28c4d25015bcf24a2022e586f",
+        "matches_manifest": true
+      },
+      "jh-bond-cohorts.js": {
+        "bytes": 6926,
+        "sha256": "2ceb5b85707cee328052880ecfdf210b53c494d555c393084e3555f00524ac0d",
+        "matches_manifest": true
+      },
+      "jh-bond-credit.js": {
+        "bytes": 5748,
+        "sha256": "ae8eb6da31fed89c63ed7e0423f5ab47696827569fce0c26b65d73b1f65071a4",
+        "matches_manifest": true
+      },
+      "jh-fifx-research.js": {
+        "bytes": 18502,
+        "sha256": "0500225270edb6010a965970d008a6b849009d17a3ac8847aeeb5f679ce60bc2",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Build/page acceptance; no native engine bytes changed."
+  },
+  "live_browser": {
+    "build": "f3eaae8526642291f0456329b8992d20c1deba8e",
+    "url": "https://justhodl.ai/bond-desk.html",
+    "cohort_rows": 33,
+    "credit_disclosures": 4,
+    "whole_packet_characters": 113080
+  }
 }

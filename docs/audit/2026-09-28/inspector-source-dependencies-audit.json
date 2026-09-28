@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-09-28T16:06:15.114772+00:00",
+  "status": "local_preview_accepted_deploy_pending",
+  "registry": {
+    "existing_contracts_unchanged": true,
+    "engines": 893,
+    "pages": 599,
+    "registry_bytes": 4628836,
+    "dependency_groups": 893,
+    "public_reference_rows": 3062,
+    "withheld_reference_rows": 569
+  },
+  "preserved_sources": {
+    "scripts/build_page_data_contracts.py": {
+      "bytes": 30704,
+      "sha256": "091c59d30feca664a19992c99804cdbfd14e9ec9a542e3c0f523bb63ff8af4e3"
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca"
+    }
+  },
+  "validation": {
+    "deployment_static": 482,
+    "candidate_shell": 12,
+    "frontend": 1669,
+    "focused_inspector": 26,
+    "page_graphs": 599,
+    "script_errors": 0
+  },
+  "preview": {
+    "engine": "justhodl-bond-desk",
+    "public_references": 16,
+    "withheld_or_dynamic": 4,
+    "producer_links": 16,
+    "keyboard_opened": true,
+    "desktop_document_width": 1265,
+    "mobile_viewport": 390,
+    "mobile_document_width": 375,
+    "table_scroll_region_width": 278,
+    "followed_producer": "justhodl-term-premium",
+    "destination_output_options": 1
+  },
+  "scope": "Read-only source-reference metadata in the existing inspector; links navigate contracts and never acquire referenced outputs.",
+  "limitations": [
+    "Nested helper and dynamic reads may remain unresolved; the source inventory is not total input coverage.",
+    "The Bond Desk source scanner currently omits its nested current credit/issuer helper reads; normal-packet replay acceptance separately binds them.",
+    "Source references and repeated upstream engines never establish independent evidence, predictive validation or portfolio authority.",
+    "No data access class, observed artifact permission, source field, engine runtime or schedule changed."
+  ]
+}

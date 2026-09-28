@@ -11,6 +11,31 @@ class Element{
 }
 function all(root,fn){return [root,...root.children.flatMap(x=>all(x,fn))].filter(fn);}
 function dom(){global.document={createElement:tag=>new Element(tag)};return new Element('div');}
+
+test('dependency inspection preserves every reference and navigates contracts without fetching data',()=>{
+ dom();let fetched=0;const old=global.fetch;global.fetch=()=>{fetched++;throw Error('Unexpected data read');};
+ try{
+  const group={contract:'source-dependencies.v1',engine:'consumer',inventory_available:true,calls_eligible:false,sizing_eligible:false,independent_evidence_count:null,withheld_or_dynamic_count:3,
+   public_references:Array.from({length:200},(_,i)=>({key:'data/reference-'+i+'.json',possible_producers:i===0?[]:['producer-a','producer-b'],own_output_reference:i===199,runtime_read_verified:false}))};
+  const view=inspector.dependencyView([group]);
+  assert.match(view.textContent,/reference-199/);assert.match(view.textContent,/200 public key references/);assert.match(view.textContent,/3 private, internal, dynamic or unapproved/);
+  assert.match(view.textContent,/own output\/history/);assert.match(view.textContent,/Unresolved in the source inventory/);
+  const links=all(view,n=>n.tagName==='a');assert.equal(links.length,398);
+  assert.ok(links.every(n=>n.href.startsWith('/engine-data.html?engine=')));assert.equal(fetched,0);
+  group.public_references[1].key='<img src=x onerror=alert(1)>';group.public_references[1].possible_producers=['https://evil.invalid'];
+  const hostile=inspector.dependencyView([group]);assert.ok(all(hostile,n=>n.tagName==='a').every(n=>!n.href.includes('evil')));
+  assert.match(hostile.textContent,/Invalid producer identity/);assert.equal(all(hostile,n=>n.tagName==='img').length,0);
+ }finally{global.fetch=old;}
+});
+
+test('missing and malformed dependency declarations cannot imply verified roots or authority',()=>{
+ dom();assert.match(inspector.dependencyView([]).textContent,/does not establish an independent source/);
+ const base={contract:'source-dependencies.v1',engine:'consumer',inventory_available:true,calls_eligible:false,sizing_eligible:false,independent_evidence_count:null,withheld_or_dynamic_count:0,public_references:[]};
+ assert.match(inspector.dependencyView([base]).textContent,/External providers and dynamic dependencies may still exist/);
+ for(const change of [{inventory_available:false},{calls_eligible:0},{sizing_eligible:true},{independent_evidence_count:1},{withheld_or_dynamic_count:-1},{public_references:[null]}]){
+  const view=inspector.dependencyView([{...base,...change}]);assert.match(view.textContent,/Dependency inventory unavailable or unqualified/);assert.equal(all(view,n=>n.tagName==='a').length,0);
+ }
+});
 test('all nested paths retain null, zero, booleans, later-row-only fields and escaped names',()=>{
  const payload={rows:[null,{a:0,b:false,later:{'a/b~c':'full'}}],empty:[]};
  assert.deepEqual(inspector.leafPaths(payload),['/rows/0','/rows/1/a','/rows/1/b','/rows/1/later/a~1b~0c','/empty']);
