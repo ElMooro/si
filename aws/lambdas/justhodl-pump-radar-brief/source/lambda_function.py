@@ -68,7 +68,7 @@ SCHEDULE
 cron(30 13 * * ? *) — daily 13:30 UTC (8:30 AM ET — before US market open,
                                           after all overnight layers run)
 """
-import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
+# Historical provider path is disabled; no model helper is imported.
 import json
 import os
 import re
@@ -85,7 +85,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 S3_BUCKET     = "justhodl-dashboard-live"
 OUTPUT_KEY    = "data/pump-radar-brief.json"
 MODEL         = "claude-haiku-4-5-20251001"
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_KEY = ""  # no model credential is read
 
 INPUT_KEYS = {
     "convergence":   "data/convergence-radar.json",
@@ -677,7 +677,7 @@ def build_user_prompt(payload: dict) -> str:
     return "\n".join(parts)
 
 
-def call_anthropic(system: str, user: str, max_tokens: int = 12000) -> str:
+def _legacy_call_anthropic(system: str, user: str, max_tokens: int = 12000) -> str:
     if not ANTHROPIC_KEY:
         raise RuntimeError("ANTHROPIC_API_KEY not set")
     payload = json.dumps({
@@ -721,7 +721,7 @@ def extract_json(text: str) -> dict:
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[brief] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -855,3 +855,32 @@ def _write_error(message: str, **extras) -> dict:
     except Exception: pass
     print(f"[brief] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+
+# Deterministic evidence brief; preserved synthesis above is never invoked.
+from pathlib import Path
+from botocore.config import Config
+from context_evidence_store import ContextStore
+import context_evidence_store
+from brief_evidence import CONTRACT,PRIVATE,HEAD,INPUTS,build as build_brief_evidence
+
+
+def call_anthropic(*args,**kwargs):
+    raise RuntimeError("Model requests are disabled for this research producer")
+
+
+def lambda_handler(event,context):
+    # Event payloads cannot replace source keys, output, archive or compiler paths.
+    here=Path(__file__).resolve().parent
+    client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=5,read_timeout=15,retries={'max_attempts':0}))
+    try:
+        store=ContextStore(client,S3_BUCKET,HEAD,INPUTS,PRIVATE,CONTRACT,
+            {'lambda_function.py':here/'lambda_function.py','brief_evidence.py':here/'brief_evidence.py',
+             'context_evidence_store.py':Path(context_evidence_store.__file__)})
+        packet,ref=store.publish(build_brief_evidence)
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':CONTRACT,
+            'generated_at':packet['generated_at'],'call':'WAIT','model_requests':0,'output_sha256':ref['sha256']})}
+    except Exception:
+        # Do not publish an error over the prior brief or log original context.
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':True,
+            'model_requests':0,'error':'Complete context acquisition, retention or conditional publication failed'})}

@@ -2209,32 +2209,6 @@ function _legacy_renderMomentumPanel(){
 
 // ─── Master Morning Brief Hero ──────────────────────────────────────
 function renderBriefHero(){
-  const wrap=document.getElementById('brief-hero'),el=document.getElementById('brief-content'),age=document.getElementById('brief-age');
-  wrap.style.display='block';
-  const p=BRIEF,flags=['calls_eligible','ranking_eligible','sizing_eligible','execution_eligible'];
-  const recognized=p&&p.measurement_contract==='pump-brief-evidence.v1'&&p.status==='research_only'&&p.call==='WAIT'&&p.call_semantics==='abstain'&&flags.every(k=>p[k]===false);
-  age.textContent=recognized&&typeof p.generated_at==='string'?'Published '+p.generated_at:'Publication unverified';
-  let html='<div role="status"><strong>Research brief · WAIT / abstain</strong><p>No validated conviction grade, market temperature or position size. WAIT does not recommend holding an existing position.</p></div>';
-  if(!recognized){el.innerHTML=html+'<p>Evidence brief unavailable or legacy synthesis unqualified. A prior grade or trade idea is not a verified recommendation.</p>';return;}
-  html+='<p>Source availability is not independent evidence. A source publication clock does not establish observation freshness.</p>';
-  const inputs={convergence:'convergence-radar',positioning:'pump-positioning',mechanics:'pump-mechanics',analytics:'portfolio-analytics',pairs:'pair-trades',nlp:'pump-earnings-nlp',research:'ticker-research-bundle',synthesis:'ai-website-synthesis',earnings_cal:'earnings-tracker',momentum:'momentum-leaders',catalysts:'catalysts',clusters:'catalyst-clusters',early:'velocity-acceleration'};
-  const labels={source_read_unavailable:'Read unavailable',invalid_json:'Invalid JSON',unrecognized_shape:'Unrecognized shape',source_error:'Source error',received_object_unqualified:'JSON received · unqualified'};
-  const rows=Array.isArray(p.sources)?p.sources:[];
-  html+='<div tabindex="0" role="region" aria-label="Brief source availability" style="max-width:100%;overflow:auto"><table style="width:100%;min-width:700px"><caption>Declared inputs · separate source records, not votes</caption><thead><tr><th scope="col">Source</th><th scope="col">Availability</th><th scope="col">Reported publication</th><th scope="col">Original bytes / SHA-256</th></tr></thead><tbody>';
-  for(const [name,file] of Object.entries(inputs)){
-    const matches=rows.filter(r=>r&&r.source===name&&r.source_key==='data/'+file+'.json');
-    const r=matches.length===1?matches[0]:null;
-    const date=r&&typeof r.source_generated_at==='string'&&/^\d{4}-\d{2}-\d{2}T[\d:.]+(?:Z|[+-]\d{2}:\d{2})$/.test(r.source_generated_at)&&Number.isFinite(Date.parse(r.source_generated_at))?r.source_generated_at:'Unavailable';
-    const ref=r&&r.original_ref;
-    const identity=ref&&Number.isSafeInteger(ref.bytes)&&ref.bytes>=0&&/^[a-f0-9]{64}$/.test(ref.sha256)?ref.bytes+' bytes · '+ref.sha256:'Unavailable';
-    const future=r&&r.source_clock_status==='future'?' · future clock; unqualified':'';
-    html+='<tr><th scope="row">'+esc(name)+'</th><td>'+esc(r?(labels[r.status]||'Unrecognized status'):'Missing or conflicting source')+'</td><td>'+esc(date+future)+'</td><td style="overflow-wrap:anywhere;max-width:280px">'+esc(identity)+'</td></tr>';
-  }
-  html+='</tbody></table></div><p>Complete context originals are retained privately. Shared input roots, observation vintages and performance remain unqualified. No model requests.</p>';
-  el.innerHTML=html;
-}
-
-function _legacy_renderBriefHero(){
   const wrapEl = document.getElementById('brief-hero');
   const el = document.getElementById('brief-content');
   if (!BRIEF || BRIEF.status === "error" || !BRIEF.conviction_grade) {
