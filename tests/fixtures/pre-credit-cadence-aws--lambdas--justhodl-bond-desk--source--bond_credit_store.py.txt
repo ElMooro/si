@@ -7,8 +7,7 @@ rerun every credit response inside the 256 MB Bond Desk Lambda.
 from pathlib import Path
 import hashlib,json,re
 import bond_credit as model,verify_bond_credit as independent
-import credit_collection_clock
-from bond_credit_qualification import QUALIFIED,UPSTREAM,LEGACY_UPSTREAM,LEGACY_REPLAY_COMPILERS
+from bond_credit_qualification import QUALIFIED,UPSTREAM
 
 ROOT=Path(__file__).parent
 PREFIX='data/bond-desk-research/credit/'
@@ -46,14 +45,12 @@ def reader(client,bucket):
     return read
 
 
-def paths():
-    return {**{n:ROOT/n for n in ('bond_credit.py','verify_bond_credit.py','bond_credit_qualification.py','bond_credit_store.py','lambda_function.py')},
-        'credit_collection_clock.py':Path(credit_collection_clock.__file__)}
+def paths():return {n:ROOT/n for n in ('bond_credit.py','verify_bond_credit.py','bond_credit_qualification.py','bond_credit_store.py','lambda_function.py')}
 
 
 def qualified():
     for name,digest in QUALIFIED.items():
-        if sha(paths()[name].read_bytes())!=digest:raise ValueError('Accepted credit arithmetic changed')
+        if sha((ROOT/name).read_bytes())!=digest:raise ValueError('Accepted credit arithmetic changed')
 
 
 def upstream_binding(raw,read):
@@ -61,20 +58,15 @@ def upstream_binding(raw,read):
     if not re.fullmatch(r'data/credit-research/runs/[a-f0-9]{64}\.json',key):raise ValueError('Exact upstream run required')
     manifest_raw=read(key);manifest=strict(manifest_raw)
     if key!='data/credit-research/runs/'+sha(manifest_raw)+'.json' or manifest['contract']!='credit-native-replay.v1':raise ValueError('Upstream manifest differs')
-    matched=None
-    for inventory in (UPSTREAM,LEGACY_UPSTREAM):
-        if manifest['compilers']=={name:{'key':'data/credit-research/compilers/'+digest+'.py','sha256':digest} for name,digest in inventory.items()}:
-            matched=inventory;break
-    if matched is None:raise ValueError('Complete reviewed upstream compiler required')
-    if matched==LEGACY_UPSTREAM and packet.get('version')!='2.0.0':raise ValueError('Legacy compiler cannot assert a new collection policy')
-    for name,digest in matched.items():
+    if set(manifest['compilers'])!=set(UPSTREAM):raise ValueError('Complete reviewed upstream compiler required')
+    for name,digest in UPSTREAM.items():
         c=manifest['compilers'][name]
         if c!={'key':'data/credit-research/compilers/'+digest+'.py','sha256':digest} or sha(read(c['key']))!=digest:raise ValueError('Reviewed upstream compiler differs')
     output=manifest['output'];out_raw=read(output['key'])
     if output['key']!='data/credit-research/outputs/'+output['sha256']+'.json' or len(out_raw)!=output['bytes'] or sha(out_raw)!=output['sha256']:raise ValueError('Whole upstream output differs')
     if ref['output_sha256']!=output['sha256'] or manifest['output_sha256']!=output['sha256'] or manifest['generated_at']!=packet['generated_at']:raise ValueError('Upstream publication differs')
     if encode(strict(out_raw))!=encode({k:v for k,v in packet.items() if k!='replay'}):raise ValueError('Source head differs from retained output')
-    return {'manifest_key':key,'output_sha256':output['sha256'],'reviewed_compilers':matched,
+    return {'manifest_key':key,'output_sha256':output['sha256'],'reviewed_compilers':UPSTREAM,
         'whole_packet_bound':True,'credit_originals_replayed_here':False,
         'scope':'Reviewed upstream original-research publisher and exact retained output; credit arithmetic is replayed here.'}
 
@@ -111,15 +103,9 @@ def replay(packet,read):
     raw=read(key);manifest=strict(raw)
     if key!=PREFIX+'runs/'+sha(raw)+'.json' or manifest['contract']!='bond-credit-replay.v1':raise ValueError('Credit manifest differs')
     own=paths()
-    inventories=({name:sha(path.read_bytes()) for name,path in own.items()},LEGACY_REPLAY_COMPILERS)
-    matched=next((inventory for inventory in inventories if set(manifest['compilers'])==set(inventory)
-                  and all(manifest['compilers'][name].get('sha256')==digest for name,digest in inventory.items())),None)
-    if matched is None:raise ValueError('Complete reviewed credit compiler release required')
-    for name,digest in matched.items():
-        if sha(checked(manifest['compilers'][name],read,'compilers','py'))!=digest:raise ValueError('Retained credit compiler bytes differ')
-    if matched==LEGACY_REPLAY_COMPILERS:
-        source=strict(checked(manifest['input'],read,'inputs'))
-        if source.get('version')!='2.0.0':raise ValueError('Legacy comparison run cannot assert new-policy source')
+    if set(manifest['compilers'])!=set(own):raise ValueError('Complete credit compiler required')
+    for name,path in own.items():
+        if checked(manifest['compilers'][name],read,'compilers','py')!=path.read_bytes():raise ValueError('Use matching credit compiler checkout')
     output,proof=compile_raw(checked(manifest['input'],read,'inputs'),manifest['evaluated_at'],read)
     out_raw=checked(manifest['output'],read,'outputs');proof_raw=checked(manifest['proof'],read,'proofs')
     if encode(output)!=out_raw or encode(proof)!=proof_raw or encode({k:v for k,v in packet.items() if k!='replay'})!=out_raw or ref['output_sha256']!=sha(out_raw):raise ValueError('Credit reconstruction differs')

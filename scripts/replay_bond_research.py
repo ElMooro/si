@@ -13,7 +13,7 @@ import sys
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-bond-desk/source'))
+sys.path[:0] = [str(ROOT / 'aws/lambdas/justhodl-bond-desk/source'), str(ROOT / 'aws/shared')]
 import bond_publication as pub
 import bond_flow_store as flows
 import bond_credit_store as credit

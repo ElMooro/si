@@ -16,7 +16,6 @@ import urllib.request
 import urllib.parse
 import threading
 import dealer_research_context
-import credit_collection_clock
 
 import credit_research_model as model
 
@@ -24,11 +23,7 @@ PREFIX = model.PREFIX
 CURRENT = 'data/credit-stress.json'
 PRIVATE = model.PRIVATE
 MAX = 24*1024*1024
-COMPILERS = (model, sys.modules[__name__], dealer_research_context, credit_collection_clock)
-# One complete retained predecessor closure; never mix individually approved hashes.
-LEGACY_COMPILERS = {'credit_research_model':'d27df11b694328e6c287bdb44e4d431a33d3d3f461f6e05f3db017eaec67b839',
-    'credit_research_store':'ab3f802c58ebedc73b8b1d710ed4ea898d710604844d9b936cf8668d1e453853',
-    'dealer_research_context':'96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f'}
+COMPILERS = (model, sys.modules[__name__], dealer_research_context)
 
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -127,8 +122,6 @@ def collect_dealer(client,bucket):
 
 def compile_output(inputs,read):
     if inputs.get('contract')!='credit-native-inputs.v1': raise ValueError('Unsupported input contract')
-    policy=inputs.get('collection_policy')
-    if 'collection_policy' in inputs and policy!=credit_collection_clock.POLICY:raise ValueError('Unreviewed input collection policy')
     if set(inputs.get('sources',{}))!=set(model.SERIES): raise ValueError('Source inventory differs')
     started=model.stamp(inputs['started_at']);completed=model.stamp(inputs['generated_at'])
     if not 0<=(completed-started).total_seconds()<=240: raise ValueError('Collection interval exceeds bound')
@@ -152,7 +145,6 @@ def compile_output(inputs,read):
             result[kind]={**item,'raw':raw}
         sources[sid]=result
     output=model.compute(sources,inputs['generated_at'])
-    if policy==credit_collection_clock.POLICY:output=credit_collection_clock.candidate(output)
     dealer={};ref=inputs.get('dealer')
     if ref:
         digest=ref.get('sha256','')
@@ -198,16 +190,12 @@ def replay(ref, read):
     raw = read(key); manifest = json.loads(raw)
     if key != PREFIX+'runs/'+model.sha(raw)+'.json' or manifest.get('contract') != 'credit-native-replay.v1':
         raise ValueError('run content identity differs')
-    current={m.__name__:model.sha(Path(m.__file__).read_bytes()) for m in COMPILERS}
-    matched=None
-    for inventory in (current,LEGACY_COMPILERS):
-        expected={name:{'key':PREFIX+'compilers/'+digest+'.py','sha256':digest} for name,digest in inventory.items()}
-        if manifest['compilers']==expected:matched=inventory;break
-    if matched is None:raise ValueError('matching complete reviewed compiler release required')
-    for name,digest in matched.items():
-        if model.sha(read(manifest['compilers'][name]['key']))!=digest:raise ValueError('retained compiler bytes differ')
+    if set(manifest['compilers']) != {m.__name__ for m in COMPILERS}: raise ValueError('compiler inventory differs')
+    for module in COMPILERS:
+        code = Path(module.__file__).read_bytes(); digest = model.sha(code); compiler = manifest['compilers'][module.__name__]
+        if compiler != {'key': PREFIX+'compilers/'+digest+'.py', 'sha256': digest} or read(compiler['key']) != code:
+            raise ValueError('matching reviewed compiler release required')
     inputs = checked(manifest['input'], 'inputs', read)
-    if matched==LEGACY_COMPILERS and 'collection_policy' in inputs:raise ValueError('Legacy compiler cannot assert a new collection policy')
     result = compile_output(inputs, read)
     if (result != checked(manifest['output'], 'outputs', read) or model.sha(model.encoded(result)) != ref.get('output_sha256')
             or manifest['output_sha256'] != ref['output_sha256'] or result['generated_at'] != manifest['generated_at']):
@@ -281,7 +269,6 @@ def run(client, bucket, request_id, execution_id, credential, remaining_seconds=
         sources = collect(client, bucket, credential, model.stamp(started).date().isoformat(), deadline)
         dealer = collect_dealer(client,bucket)
         inputs = {'contract': 'credit-native-inputs.v1', 'started_at': started, 'generated_at': now(),
-            'collection_policy':credit_collection_clock.POLICY,
             'sources': sources, 'dealer': dealer, 'evaluation_date': model.stamp(started).date().isoformat()}
         status['phase'] = 'compile'; status_write(client, bucket, key, status)
         output = compile_output(inputs, reader(client, bucket))

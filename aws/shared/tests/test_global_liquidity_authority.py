@@ -1,5 +1,5 @@
 """Actual downstream consumers must not score unqualified liquidity context."""
-import ast,json,textwrap,time,unittest
+import ast,json,subprocess,textwrap,time,unittest
 from datetime import datetime,timezone
 from pathlib import Path
 import sys
@@ -66,11 +66,27 @@ class Tests(unittest.TestCase):
         scope['lambda_handler']({},None);self.assertEqual(saved['data/wl-fusion.json']['divergences'],[])
 
     def test_liquidity_agent_never_adds_china_money_supply_as_pboc_assets(self):
-        china={'china_m2_usd_bn':999999,'credit_impulse':99}
-        scope=functions('liquidity-agent',{'build_part4'},{'_sfeed':lambda key:china if 'china-' in key else {'components':{'Fed':1,'ECB':2,'BOJ':3}},'get_series_history':lambda *a,**kw:[]})
-        out=scope['build_part4']({})
-        self.assertEqual(out['global_stack_usd_bn'],{});self.assertIsNone(out['global_total_usd_bn'])
-        self.assertEqual(out['china_context']['packet'],china);self.assertFalse(out['china_context']['included_in_three_bank_subtotal'])
+        # The native migration removed build_part4. Exercise the actual retained
+        # context boundary in an isolated module environment, with synthetic S3.
+        code='''
+import sys,json
+sys.path.insert(0,sys.argv[1])
+from test_agent_native import setup,store
+client,inputs=setup();read=store.reader(client,'fixture')
+before=store.compile_output(inputs,read)
+china={'china_m2_usd_bn':999999,'credit_impulse':99,'calls_eligible':True}
+raw=json.dumps(china).encode();key='data/china-liquidity.json'
+inputs['contexts'][key]['original']=store.private_bytes(client,'fixture',raw)
+after=store.compile_output(inputs,read)
+assert after['derived']==before['derived'] and after['series']==before['series']
+assert after['contexts'][key]['independent_votes']==0
+assert after['contexts'][key]['status']=='retained_unqualified_context'
+assert client.objects[inputs['contexts'][key]['original']['key']]==raw
+assert after['contexts'][key]['original']['sha256']==inputs['contexts'][key]['original']['sha256']
+assert 'china_m2_usd_bn' not in json.dumps(after)
+assert after['calls_eligible'] is False and after['sizing_eligible'] is False
+'''
+        subprocess.run([sys.executable,'-c',code,str(ROOT/'aws/lambdas/justhodl-liquidity-agent/tests')],check=True)
 
 
 if __name__=='__main__':unittest.main()

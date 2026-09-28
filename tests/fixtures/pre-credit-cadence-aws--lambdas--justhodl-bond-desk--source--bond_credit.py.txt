@@ -40,8 +40,7 @@ def project(raw,evaluated_at):
     p=json.loads(raw,object_pairs_hook=pairs,parse_constant=invalid);encode(p)
     if p.get('contract')!='credit-native-research.v1' or any(p.get(k) is not False for k in FLAGS):raise ValueError('Explicit native credit research required')
     at=clock(evaluated_at);generated=clock(p['generated_at'])
-    from credit_collection_clock import collection_current
-    fresh=collection_current(p,evaluated_at) and generated<=at<clock(p['freshness']['valid_until'])
+    fresh=0<=(at-generated).total_seconds()<=36*3600 and generated<=at<clock(p['freshness']['valid_until'])
     results={};sources={(r.get('series_id'),r.get('kind')):r for r in p.get('source_evidence',[])}
     if len(sources)!=len(p.get('source_evidence',[])):raise ValueError('Duplicate credit source identity')
     for name,(left,right) in PAIRS.items():

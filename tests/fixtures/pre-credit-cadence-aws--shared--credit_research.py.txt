@@ -2,7 +2,6 @@
 from datetime import date,datetime,timezone
 from decimal import Decimal
 import hashlib,json,math,re
-import credit_collection_clock
 
 CONTRACT='credit-native-research.v1'
 PERMISSIONS={'forecast_qualified':False,'calls_eligible':False,'sizing_eligible':False,'execution_eligible':False}
@@ -14,9 +13,9 @@ def context(packet,at=None):
         if not isinstance(packet,dict) or packet.get('contract')!=CONTRACT or packet.get('call') is not None: return absent
         if any(packet.get(k) is not False for k in PERMISSIONS): return absent
         at=at or datetime.now(timezone.utc)
-        if not isinstance(at,datetime) or at.tzinfo is None:return absent
-        at=at.astimezone(timezone.utc);generated=credit_collection_clock.stamp(packet['generated_at'])
-        if not credit_collection_clock.collection_current(packet,at.isoformat()):return absent
+        generated=datetime.fromisoformat(packet['generated_at'].replace('Z','+00:00'))
+        deadline=datetime.fromisoformat(packet['freshness']['pipeline_check_due_at'].replace('Z','+00:00'))
+        if generated.tzinfo is None or deadline.tzinfo is None or not generated<=at<deadline or (at-generated).total_seconds()>36*3600:return absent
         ref=packet['replay']
         if not re.fullmatch(r'data/credit-research/runs/[a-f0-9]{64}\.json',ref['manifest_key']):return absent
         raw=json.dumps({k:v for k,v in packet.items() if k!='replay'},sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()

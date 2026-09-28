@@ -1,13 +1,13 @@
 from pathlib import Path
 from fractions import Fraction
 import copy,json,sys,unittest
-ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'aws/ops/checks'))
+ROOT=Path(__file__).resolve().parents[1];sys.path[:0]=[str(ROOT/'aws/ops/checks'),str(ROOT/'aws/shared')]
 import bond_credit_candidate as model
 AT='2026-09-26T19:00:00Z'
 
 
 def fixture():
-    p={'contract':'credit-native-research.v1','generated_at':'2026-09-26T15:00:00Z','freshness':{'valid_until':'2026-09-28T03:00:00Z'},'measurements':{},'comparisons':{},'source_evidence':[],**{k:False for k in model.FLAGS}}
+    p={'contract':'credit-native-research.v1','version':'2.0.0','generated_at':'2026-09-26T15:00:00Z','freshness':{'valid_until':'2026-09-28T03:00:00Z','pipeline_check_due_at':'2026-09-28T03:00:00Z'},'measurements':{},'comparisons':{},'source_evidence':[],**{k:False for k in model.FLAGS}}
     for sid in {s for pair in model.PAIRS.values() for s in pair}:
         p['measurements'][sid]={'series_id':sid,'kind':'oas','source_unit':'Percent','unit':'percent','observation_date':'2026-09-25','original_row_index':10,'exact':{'value_pct':'1.25'},'value_pct':1.25,'value_bps':125,'collected_at':p['generated_at'],'source_valid_until':'2026-09-30T00:00:00Z','quality':{'status':'within_age_ceiling'},**{k:False for k in model.FLAGS}}
         for kind in ('definition','observations'):p['source_evidence'].append({'series_id':sid,'kind':kind,'sha256':'a'*64,'key':'audit-private/20260909-originals/credit-research/'+'a'*64+'.bin','bytes':100,'acquired_at':'2026-09-26T14:59:00Z'})

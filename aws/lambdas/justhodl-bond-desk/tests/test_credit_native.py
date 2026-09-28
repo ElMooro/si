@@ -1,7 +1,7 @@
 from pathlib import Path
 import ast,copy,json,sys,unittest
 ROOT=Path(__file__).resolve().parents[4];SRC=Path(__file__).resolve().parents[1]/'source'
-sys.path[:0]=[str(SRC),str(ROOT/'tests'),str(Path(__file__).parent)]
+sys.path[:0]=[str(ROOT/'aws/shared'),str(SRC),str(ROOT/'tests'),str(Path(__file__).parent)]
 import bond_credit_store as store
 import bond_credit as model
 from test_bond_credit_candidate import fixture as candidate_fixture,AT
@@ -12,7 +12,7 @@ def fixture():
     m=Memory();p=candidate_fixture();raw=store.encode(p);digest=store.sha(raw)
     output={'key':'data/credit-research/outputs/'+digest+'.json','sha256':digest,'bytes':len(raw)};m.data[output['key']]=raw;compilers={}
     for name,h in store.UPSTREAM.items():
-        path=ROOT/'aws/shared/dealer_research_context.py' if name=='dealer_research_context' else ROOT/'aws/lambdas/justhodl-credit-stress/source'/(name+'.py')
+        path=ROOT/'aws/shared'/(name+'.py') if name in ('dealer_research_context','credit_collection_clock') else ROOT/'aws/lambdas/justhodl-credit-stress/source'/(name+'.py')
         key='data/credit-research/compilers/'+h+'.py';m.data[key]=path.read_bytes();compilers[name]={'key':key,'sha256':h}
     run={'contract':'credit-native-replay.v1','generated_at':p['generated_at'],'output':output,'output_sha256':digest,'compilers':compilers}
     raw=store.encode(run);key='data/credit-research/runs/'+store.sha(raw)+'.json';m.data[key]=raw

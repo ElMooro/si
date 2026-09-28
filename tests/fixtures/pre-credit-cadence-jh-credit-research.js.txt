@@ -17,30 +17,8 @@
  function collectionState(p,now=Date.now()){
   const generated=clock(p?.generated_at),due=clock(p?.freshness?.pipeline_check_due_at);
   if(!finite(now)||!finite(generated)||!finite(due)||due<=generated)return 'invalid';
-  let limit=Math.min(due,generated+36*3600000);
-  if(Object.prototype.hasOwnProperty.call(p.freshness,'collection_policy')){
-   const expected=collectionPolicy(p.generated_at);
-   if(p.version!=='2.1.0'||!expected||JSON.stringify(stable(expected))!==JSON.stringify(stable(p.freshness.collection_policy))||due!==clock(expected.pipeline_check_due_at))return 'invalid';
-   limit=due;
-  }else if(p.version!=='2.0.0')return 'invalid';
   if(now<generated)return 'future';
-  return now<limit?'within_age_ceiling':'expired';
- }
- function collectionPolicy(generatedAt){
-  const generated=clock(generatedAt);if(!finite(generated))return null;
-  const origin=new Date(generated);origin.setUTCHours(0,0,0,0);
-  for(let offset=0;offset<8;offset++){
-   const day=origin.getTime()+offset*86400000;if([0,6].includes(new Date(day).getUTCDay()))continue;
-   for(const minutes of [1200,1330]){
-    const next=day+minutes*60000;if(next<=generated)continue;
-    const iso=t=>new Date(t).toISOString().replace('.000Z','+00:00');
-    return {contract:'credit-collection-cadence.v1',timezone:'UTC',weekdays:[0,1,2,3,4],collection_times:['20:00','22:10'],
-     next_collection_at:iso(next),completion_allowance_seconds:300,pipeline_check_due_at:iso(next+300000),
-     basis:'Next existing weekday collection opportunity plus the observed 300-second native timeout. Not a provider release or holiday calendar.',
-     provider_release_calendar_verified:false,successful_collection_asserted:false};
-   }
-  }
-  return null;
+  return now<Math.min(due,generated+36*3600000)?'within_age_ceiling':'expired';
  }
  function current(p,now=Date.now()){return collectionState(p,now)==='within_age_ceiling';}
  function rowCurrent(p,m,now=Date.now()){
@@ -77,7 +55,7 @@
   html+='<section><h2>Explore the credit measurements</h2><div class="controls"><label for="credit-unit">Display units</label><select id="credit-unit"><option value="bp">Basis points</option><option value="pct">Source percent / percentage points</option></select></div><div id="credit-measurements"></div></section>';
   html+='<section><h2>Inspect a calculation</h2><label for="credit-series">Series</label><select id="credit-series">'+rows.map(m=>'<option value="'+esc(m.series_id)+'"'+(m.series_id==='BAMLH0A0HYM2'?' selected':'')+'>'+esc(m.meta?.name||m.series_id)+' · '+esc(m.series_id)+'</option>').join('')+'</select><div id="credit-detail"></div></section>';
   html+='<section><h2>Test a position’s spread sensitivity</h2><p>Illustrative inputs. Replace them with a position’s signed market value and measured spread duration. This is an isolated first-order spread shock, not a trade recommendation.</p><div class="scenario-grid"><label>Signed market value (USD)<input id="credit-exposure" type="number" value="1000000" step="1000" min="-1000000000000" max="1000000000000"></label><label>Spread duration (years)<input id="credit-duration" type="number" value="5" step="0.1" min="0" max="100"></label><label>Spread shock (bp)<input id="credit-shock" type="number" value="100" step="10" min="-10000" max="10000"></label></div><div id="credit-scenario" aria-live="polite"></div><p class="muted">Wider spreads usually lower a long position’s price under this approximation. Rate duration, convexity, currency, carry, defaults and liquidity effects are excluded. Large shocks can invalidate the linear approximation.</p><p><a href="/position-sizer.html">Open Portfolio scenarios</a> to examine entered exposures and additional risks.</p></section>';
-  html+='<section class="two"><article><h2>What these measurements mean</h2><p>'+esc(p.definitions?.oas)+'</p><p>'+esc(p.definitions?.effective_yield)+'</p><p>'+esc(p.definitions?.maturity_buckets)+'</p><p>'+esc(p.definitions?.em_corporate_plus)+'</p></article><article><h2>Timing and evidence</h2><p>'+esc(p.freshness?.source_age_rule)+'</p><p>Pipeline check due '+esc(p.freshness?.pipeline_check_due_at)+'. No source release time is invented.</p><p>Recorded deadline rule: '+esc(p.freshness?.collection_policy?.basis||'Legacy collection cap of 36 hours; observation-age ceilings apply separately.')+'</p><p>'+esc(p.definitions?.weekends)+'</p><p>'+esc(p.quality?.independence_note)+'</p></article></section>';
+  html+='<section class="two"><article><h2>What these measurements mean</h2><p>'+esc(p.definitions?.oas)+'</p><p>'+esc(p.definitions?.effective_yield)+'</p><p>'+esc(p.definitions?.maturity_buckets)+'</p><p>'+esc(p.definitions?.em_corporate_plus)+'</p></article><article><h2>Timing and evidence</h2><p>'+esc(p.freshness?.source_age_rule)+'</p><p>Pipeline check due '+esc(p.freshness?.pipeline_check_due_at)+'. No source release time is invented.</p><p>'+esc(p.definitions?.weekends)+'</p><p>'+esc(p.quality?.independence_note)+'</p></article></section>';
   html+='<section><h2>Reproduction and history</h2><p>The authorized AWS runner re-executes the calculations from complete retained FRED definitions and observations before publication. This page verifies the run and exact retained output. Original index responses remain in the protected source archive.</p><p>All 28 source identities remain in the inventory. Statistics show the actual returned window; no five-year or all-time coverage is inferred from a shorter response.</p><p>'+esc(p.definitions?.vintage)+'</p><details><summary>Previous public history</summary><p>The prior history packet remains dated and unchanged. It is not an input to these native calculations and has no native replay or forecasting qualification.</p><p><a href="/data/credit-stress-history.json">Inspect the legacy history packet</a></p></details></section>';
   return html;
  }
@@ -150,6 +128,6 @@
   }catch(e){if(controller===pending){host.innerHTML='<section class="notice" role="alert"><h2>Verified credit research unavailable</h2><p>The current packet or retained output could not be verified. No current reading or scenario has been substituted.</p><button type="button" id="credit-retry">Retry</button></section>';host.querySelector('#credit-retry').onclick=mount;}}
   finally{clearTimeout(timer);}
  }
- const api={render,table,detail,scenario,verifyPacket,current,rowCurrent,comparisonCurrent,collectionState,collectionPolicy,updateCurrentness,watchCurrentness,typed};root.JHCreditResearch=api;if(typeof module!=='undefined')module.exports=api;
+ const api={render,table,detail,scenario,verifyPacket,current,rowCurrent,comparisonCurrent,collectionState,updateCurrentness,watchCurrentness,typed};root.JHCreditResearch=api;if(typeof module!=='undefined')module.exports=api;
  if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',mount);else mount();}
 })(typeof globalThis!=='undefined'?globalThis:this);

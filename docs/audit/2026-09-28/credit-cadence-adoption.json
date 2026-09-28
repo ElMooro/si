@@ -1,0 +1,195 @@
+{
+  "status": "prepared_and_tested_deployment_pending",
+  "originals": {
+    "aws/lambdas/justhodl-credit-stress/source/credit_research_model.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-credit-stress--source--credit_research_model.py.txt",
+      "bytes": 22244,
+      "sha256": "d27df11b694328e6c287bdb44e4d431a33d3d3f461f6e05f3db017eaec67b839"
+    },
+    "aws/lambdas/justhodl-credit-stress/source/credit_research_store.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-credit-stress--source--credit_research_store.py.txt",
+      "bytes": 16811,
+      "sha256": "ab3f802c58ebedc73b8b1d710ed4ea898d710604844d9b936cf8668d1e453853"
+    },
+    "aws/shared/credit_research.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--shared--credit_research.py.txt",
+      "bytes": 6867,
+      "sha256": "3d65d34b553e1ff6266de018e8c4d7dadcf56de3ca69ea31a63f86a349bc867e"
+    },
+    "jh-credit-research.js": {
+      "fixture": "tests/fixtures/pre-credit-cadence-jh-credit-research.js.txt",
+      "bytes": 20064,
+      "sha256": "202cdf0d42e42b7bb1384d15c93fe231d924aacc9d34a206567be50eb17e3b59"
+    },
+    "credit/index.html": {
+      "fixture": "tests/fixtures/pre-credit-cadence-credit--index.html.txt",
+      "bytes": 4203,
+      "sha256": "bfa4977d098e92e50ed67fdf9f068487624c8d6cd5f43b51528b8008447dc875"
+    },
+    "aws/lambdas/justhodl-bond-desk/source/bond_credit.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-bond-desk--source--bond_credit.py.txt",
+      "bytes": 6629,
+      "sha256": "4abe8eee60dfe3d743ccc596c2acc7423d379623fd4c6f3da2e159f21f3faec9"
+    },
+    "aws/lambdas/justhodl-bond-desk/source/verify_bond_credit.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-bond-desk--source--verify_bond_credit.py.txt",
+      "bytes": 2040,
+      "sha256": "c85b6d66a224b058fb7ce3264530c46ed6ae9791734e7a49b1876fa7feee4aed"
+    },
+    "aws/lambdas/justhodl-bond-desk/source/bond_credit_store.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-bond-desk--source--bond_credit_store.py.txt",
+      "bytes": 7049,
+      "sha256": "e7c711555764df117c588064b041d41cfc3f8e5073c89bc12590806cac78bfe5"
+    },
+    "aws/lambdas/justhodl-bond-desk/source/bond_credit_qualification.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-bond-desk--source--bond_credit_qualification.py.txt",
+      "bytes": 557,
+      "sha256": "9681a9436172e947d078950afd2726a1492821817c7b3c7d8649b2f29582d36c"
+    },
+    "aws/lambdas/justhodl-bond-desk/source/lambda_function.py": {
+      "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-bond-desk--source--lambda_function.py.txt",
+      "bytes": 29504,
+      "sha256": "d608acd39164f5161812ccdcb8b5a4b312d02a0d4332f16ae649fdab3557196b"
+    }
+  },
+  "accepted_candidate": {
+    "operation": 6300,
+    "run": 36458397831,
+    "compiler": {
+      "bytes": 4198,
+      "sha256": "2fff74a2ec913299ff08cbb76d06b93b2cc395b2149e4ed3b7281e7fc25f2ba8"
+    },
+    "new_policy_native_logic_ast_matches_candidate": true
+  },
+  "native_producer_changes": {
+    "model_arithmetic_changed": false,
+    "store_emits_version": "2.1.0",
+    "new_inputs_record_collection_policy": true,
+    "new_complete_compiler_count": 4,
+    "legacy_complete_compiler_count": 3,
+    "legacy_expiry_preserved": true,
+    "original_schedules_preserved": true
+  },
+  "affected_functions": [
+    "justhodl-ai-chat",
+    "justhodl-bond-desk",
+    "justhodl-bottleneck-boom",
+    "justhodl-capitulation",
+    "justhodl-credit-composite",
+    "justhodl-credit-stress",
+    "justhodl-cycle-clock",
+    "justhodl-market-extremes",
+    "justhodl-morning-intelligence",
+    "justhodl-vol-radar"
+  ],
+  "consumer_tests": [
+    {
+      "function": "justhodl-ai-chat",
+      "exit_code": 0
+    },
+    {
+      "function": "justhodl-bottleneck-boom",
+      "exit_code": 0
+    },
+    {
+      "function": "justhodl-capitulation",
+      "exit_code": 0
+    },
+    {
+      "function": "justhodl-credit-composite",
+      "exit_code": 0
+    },
+    {
+      "function": "justhodl-cycle-clock",
+      "exit_code": 0,
+      "initial_exit_code": 1,
+      "repair": "Replaced a removed legacy Liquidity Agent function test with actual native retained-context boundary checks."
+    },
+    {
+      "function": "justhodl-market-extremes",
+      "exit_code": 0
+    },
+    {
+      "function": "justhodl-morning-intelligence",
+      "exit_code": 0
+    },
+    {
+      "function": "justhodl-vol-radar",
+      "exit_code": 0
+    }
+  ],
+  "legacy_bond_publication_replay": {
+    "checked_at": "2026-09-28T17:39:15.292273+00:00",
+    "generated_at": "2026-09-28T15:16:06.966947+00:00",
+    "version": "3.2.1",
+    "public_head": {
+      "bytes": 113080,
+      "sha256": "486a31a3e8c3d1016f6510353a60244aceea3631f7741b9ca17586900818b4b0"
+    },
+    "publication": {
+      "manifest_key": "data/bond-desk-research/publications/attempts/0441c83b09f901c23d39bcbac6d090ed4966336de9682fa1e03370640a99fa24.json",
+      "history_rows": 63,
+      "predecessor_history_rows": 62,
+      "previous_dates_unchanged": 62,
+      "snapshot_atomic": false,
+      "original_source_replayed_here": false
+    },
+    "flow_arithmetic": {
+      "contract": "bond-flow-independent-check.v1",
+      "cohorts": 11,
+      "windows_checked": 33,
+      "members_checked": 138,
+      "rational_sums": 66,
+      "complete_windows": 0,
+      "partial_windows": 33,
+      "unavailable_windows": 0,
+      "all_checks_passed": true,
+      "source_packet_sha256": "a4f02ac002dbddc6025bf7e7fb31131568688f12b4710a75ad5f10536d944930",
+      "source_original_replay_required_separately": true,
+      "historical_point_in_time_verified": false,
+      "forecast_qualified": false,
+      "sizing_eligible": false
+    },
+    "credit_arithmetic": {
+      "contract": "bond-credit-rational-check.v1",
+      "comparisons_checked": 0,
+      "unavailable_comparisons": 4,
+      "checks_passed": true,
+      "original_provider_replayed_here": false,
+      "forecast_qualified": false
+    },
+    "component_replay_verified": true,
+    "upstream_originals_replayed_here": false,
+    "other_regions_replayed_here": false,
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "scope": "Whole derived publication and history binding; flow/credit arithmetic and reviewed compiler closure. No forecast, portfolio or upstream-original qualification.",
+    "read_bytes": 2965553
+  },
+  "tests": {
+    "deployment_static": 510,
+    "deployment_shell": 12,
+    "frontend": 1678,
+    "page_graphs": 599,
+    "page_errors": 0,
+    "wired_feeds": 143,
+    "credit_native_tests": 26,
+    "credit_native_consumer_boundaries": 9,
+    "new_cadence_deployment_groups": 7,
+    "cross_language_policy_cases": 8
+  },
+  "preview": {
+    "legacy_current_count": "0 of 28",
+    "withheld_comparisons": 4,
+    "legacy_rule_visible": true,
+    "desktop_width": 1265,
+    "desktop_viewport": 1280
+  },
+  "exact_native_release_verified": false,
+  "normal_new_policy_publication_verified": false,
+  "scope": "Prepared atomic producer/helper/currentness-consumer and compiler-transition batch. Native code receipts and the next unaccelerated publication remain required; no forecast or portfolio authority.",
+  "forecast_qualified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "execution_eligible": false
+}
