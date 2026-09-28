@@ -622,7 +622,6 @@ a:hover{color:var(--violet)}
 <script src="/jh-positioning-observations.js?v=20260928"></script>
 <script src="/jh-volume-observations.js?v=20260928"></script>
 <script src="/jh-theme-cascade-evidence.js?v=20260928"></script>
-<script src="/jh-issuer-classifications.js?v=20260928"></script>
 </head>
 <body>
 <div class="wrap">
@@ -1659,7 +1658,6 @@ function ageStr(iso){
 }
 
 async function load(){
-  THEMES = null;
   EARLY = null;
   renderEarlyDetection();
   try {
@@ -1675,7 +1673,7 @@ async function load(){
       fetch(BRIEF_URL + "?t=" + Date.now()).catch(() => null),
       Promise.resolve(null) /* Ranked Momentum Leaders abstains; source desk retains observations. */,
       fetch(EARLY_URL + "?exact=1&nogen=1&t=" + Date.now()).catch(() => null),
-      fetch(THEMES_URL + "?exact=1&nogen=1&t=" + Date.now()).catch(() => null),
+      fetch(THEMES_URL + "?t=" + Date.now()).catch(() => null),
       fetch(CATALYSTS_URL + "?t=" + Date.now()).catch(() => null),
       fetch(CLUSTERS_URL + "?t=" + Date.now()).catch(() => null),
     ]);
@@ -1716,7 +1714,7 @@ async function load(){
 // ─── EARLY DETECTION — the earliness panel ──────────────────────────
 function renderEarlyDetection(){
   document.getElementById('early-panel').style.display='block';
-  document.getElementById('early-content').innerHTML=JHVolumeObservations.render(EARLY)+JHIssuerClassifications.render(THEMES);
+  document.getElementById('early-content').innerHTML=JHVolumeObservations.render(EARLY);
 }
 
 function _legacy_renderEarlyDetection(){

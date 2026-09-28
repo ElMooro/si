@@ -36,10 +36,10 @@ test('source labels and operand fields cannot inject markup or private context',
 test('current page entrypoint replaces legacy claims and clears data before failed refresh',()=>{
  const html=fs.readFileSync(path.join(__dirname,'../pre-pump-radar.html'),'utf8'),nodes={'early-panel':{style:{}},'early-content':{innerHTML:'Confirmed trade'}};
  const start=html.indexOf('function renderEarlyDetection(){'),end=html.indexOf('function _legacy_renderEarlyDetection(){');
- const scope={EARLY:null,JHVolumeObservations:ui,document:{getElementById:id=>nodes[id]}};
+ const scope={EARLY:null,THEMES:null,JHVolumeObservations:ui,JHIssuerClassifications:require('../jh-issuer-classifications.js'),document:{getElementById:id=>nodes[id]}};
  vm.runInNewContext(html.slice(start,end)+'renderEarlyDetection();',scope);
  assert.equal(nodes['early-panel'].style.display,'block');assert.doesNotMatch(nodes['early-content'].innerHTML,/Confirmed trade/);
- assert.match(html,/async function load\(\)\{\s+EARLY = null;\s+renderEarlyDetection\(\);/);
+ assert.match(html,/async function load\(\)\{\s+THEMES = null;\s+EARLY = null;\s+renderEarlyDetection\(\);/);
  assert.match(html,/fetch\(EARLY_URL \+ "\?exact=1&nogen=1&t="/);assert.match(html,/src="\/jh-volume-observations.js/);
  assert.doesNotMatch(html,/volume acceleration on names already in active themes — 1-3 days/);
 });

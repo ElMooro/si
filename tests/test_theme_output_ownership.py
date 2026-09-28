@@ -29,23 +29,12 @@ class ThemeOutputOwnershipTests(unittest.TestCase):
         self.assertNotIn('themes', full)
 
     def test_classifier_success_and_failure_never_replace_curated_watchlists(self):
-        store = Store()
-        g = load('theme-classifier', store)['lambda_handler'].__globals__
-        tickers = ['A','B','C']
-        g['load_s3_json'] = lambda *a: {'leaders':[{'ticker': t, 'momentum_score':70+i} for i,t in enumerate(tickers)]}
-        g['load_profile_cache'] = lambda: {t:{'industry':'Semiconductors'} for t in tickers}
-        with redirect_stdout(io.StringIO()), patch('urllib.request.urlopen', side_effect=AssertionError('No network')):
-            response = g['lambda_handler']({}, None)
-        self.assertEqual(response['statusCode'], 200)
-        full = deepcopy(store.doc)
-        self.assertEqual(full['producer'], 'justhodl-theme-classifier')
-        self.assertEqual(full['ticker_to_theme']['A'], 'Semiconductors')
-        self.assertEqual(full['themes']['Semiconductors']['n_leaders'], 3)
-        g['load_s3_json'] = lambda *a: None
-        with redirect_stdout(io.StringIO()):
-            response = g['lambda_handler']({}, None)
-        self.assertEqual(response['statusCode'], 500)
-        self.assertTrue(all(w['Key'] == 'data/momentum-themes.json' for w in store.writes))
+        import importlib.util
+        import sys
+        sys.path.insert(0,str(ROOT/'tests/ops'))
+        spec=importlib.util.spec_from_file_location('profile_writer_ownership',ROOT/'tests/ops/test_profile_writer.py')
+        checks=importlib.util.module_from_spec(spec);spec.loader.exec_module(checks)
+        checks.Tests('test_canonical_ownership_under_obsolete_environment').test_canonical_ownership_under_obsolete_environment()
 
     def test_actual_consumer_uses_industry_membership_and_full_momentum_fields(self):
         store = Store()

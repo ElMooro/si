@@ -77,13 +77,13 @@ S3_BUCKET   = "justhodl-dashboard-live"
 MOMENTUM_KEY = "data/momentum-leaders.json"
 PROFILE_CACHE_KEY = "data/_cache/ticker-profiles.json"
 OUTPUT_KEY  = "data/momentum-themes.json"
-FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+FMP_KEY = None  # Resolved only for original-scope profile requests.
 
 MIN_TICKERS_FOR_THEME = 3   # need ≥3 momentum leaders in an industry to call it a theme
 TOP_N_LEADERS          = 30  # how many momentum leaders to classify
 PROFILE_CACHE_TTL_DAYS = 7   # industry classifications change slowly
 
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = None  # Legacy writer is preserved but inactive.
 
 # Human-readable theme aliases for common industries
 THEME_ALIASES = {
@@ -206,7 +206,7 @@ def derive_theme_label(industry: str, tickers: List[str]) -> str:
     return industry
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[themes] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -340,3 +340,157 @@ def _write_error(message: str, **extras) -> dict:
     except Exception: pass
     print(f"[themes] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+
+# Reproducible issuer classifications; no theme, rank or sizing authority.
+from pathlib import Path
+from threading import Event
+from botocore.config import Config
+import urllib.error
+import context_evidence_store
+import managed_secret as managed_secret_module
+import profile_observations as observations
+from context_evidence_store import ContextStore,encode,code,now
+
+
+class _ProfileNoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,req,fp,status,msg,headers,newurl):
+        # Credentials must not follow a vendor redirect to another origin.
+        raise urllib.error.HTTPError(req.full_url,status,'Provider redirect refused',headers,fp)
+
+
+def _profile_request(ticker,started,stop):
+    requested=now();url=observations.endpoint(ticker)
+    attempt={'ticker':ticker,'endpoint':url,'requested_at':requested,'received_at':requested,
+             'status':'not_attempted_stop','http_status':None,'content_encoding':'','network_attempted':False,'acquisition':'provider_request'}
+    if stop.is_set() or not FMP_KEY:return attempt,None
+    if time.monotonic()-started>75:
+        attempt['status']='not_attempted_budget';return attempt,None
+    request=urllib.request.Request(url,headers={'User-Agent':'JustHodl/issuer-classifications','apikey':FMP_KEY,'Accept-Encoding':'identity'})
+    opener=urllib.request.build_opener(_ProfileNoRedirect());response=None
+    try:
+        attempt['network_attempted']=True
+        try:
+            response=opener.open(request,timeout=12);status=response.status
+        except urllib.error.HTTPError as exc:response=exc;status=exc.code
+        attempt['http_status']=int(status)
+        if status in (401,403,429):stop.set()
+        attempt['content_encoding']=str(response.headers.get('Content-Encoding') or '').strip().lower()
+        declared=response.headers.get('Content-Length')
+        if declared is not None and (not declared.isdecimal() or int(declared)>observations.MAX_SOURCE_BYTES):
+            attempt.update(status='source_limit_exceeded',received_at=now());return attempt,None
+        chunks=[];size=0;deadline=min(started+95,time.monotonic()+20)
+        # read1 returns after one buffered/socket read. Bound both the aggregate
+        # bytes and elapsed transfer time; an idle timeout alone permits dribbling.
+        while True:
+            if time.monotonic()>deadline:raise ValueError('Provider transfer budget exhausted')
+            chunk=response.read1(min(65536,observations.MAX_SOURCE_BYTES+1-size))
+            if not chunk:break
+            chunks.append(chunk);size+=len(chunk)
+            if size>observations.MAX_SOURCE_BYTES:
+                attempt.update(status='source_limit_exceeded',received_at=now());return attempt,None
+        raw=b''.join(chunks)
+        if declared is not None and len(raw)!=int(declared):raise ValueError('Whole declared provider body required')
+        attempt.update(status='received' if status==200 else 'http_error',received_at=now())
+        return attempt,raw
+    except Exception:
+        attempt.update(status='transport_unavailable',received_at=now());return attempt,None
+    finally:
+        if response is not None:response.close()
+
+
+def _classifier_read_cache(client):
+    # Original fixed key only. Retain whole legacy cache; never renew its clock.
+    obj=client.get_object(Bucket=S3_BUCKET,Key=observations.CACHE_KEY);stream=obj['Body']
+    try:raw=stream.read(context_evidence_store.MAX_BYTES+1)
+    finally:stream.close()
+    if len(raw)>context_evidence_store.MAX_BYTES or type(obj.get('ContentLength')) is not int or obj['ContentLength']!=len(raw):
+        raise ValueError('Whole original profile cache required')
+    return raw,obj
+
+
+def lambda_handler(event,context):
+    global FMP_KEY
+    started=time.monotonic();started_at=now();stop=Event()
+    try:
+        here=Path(__file__).resolve().parent
+        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=3,read_timeout=8,retries={'max_attempts':0}))
+        paths={'lambda_function.py':here/'lambda_function.py','profile_observations.py':here/'profile_observations.py',
+            'context_evidence_store.py':Path(context_evidence_store.__file__),'managed_secret.py':Path(managed_secret_module.__file__)}
+        store=ContextStore(client,S3_BUCKET,observations.HEAD,observations.INPUTS,observations.PRIVATE,observations.CONTRACT,paths)
+        previous_doc=None;previous=None
+        try:previous,meta=store.read(observations.HEAD)
+        except Exception as exc:
+            if code(exc) not in ('NoSuchKey','404'):raise
+            etag=None;previous_ref=None
+        else:
+            etag=meta.get('ETag')
+            if not isinstance(etag,str) or not etag:raise ValueError('Prior head identity required')
+            previous_ref=store.retain(previous,'outputs')
+            try:previous_doc=observations.strict(previous,str(meta.get('ContentEncoding') or '').strip().lower())
+            except (ValueError,UnicodeError):pass
+        inputs={};sources={};total=0
+        for name,key in observations.ALL_INPUTS.items():
+            if time.monotonic()-started>75:raise ValueError('Context acquisition budget exhausted')
+            requested=now()
+            try:raw,meta=_classifier_read_cache(client) if name=='legacy_profile_cache' else store.read(key)
+            except Exception:
+                inputs[name]={'source_key':key,'status':'source_read_unavailable','requested_at':requested,'received_at':now()};continue
+            received=now();total+=len(raw)
+            if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+            ref=store.retain(raw,'sources');sources[ref['key']]=raw
+            inputs[name]={'source_key':key,'status':'received','requested_at':requested,'received_at':received,
+                'original_ref':ref,'content_encoding':str(meta.get('ContentEncoding') or '').strip().lower()}
+        parent_raw=observations.content(inputs['momentum'],sources)
+        if parent_raw is None:raise ValueError('Research population unavailable')
+        parent=observations.strict(parent_raw,inputs['momentum'].get('content_encoding',''))
+        selected=observations.selection(parent,observations.clock(now()))['selected_tickers']
+        reusable=observations.reusable(previous_doc,observations.clock(now()));outcomes=[None]*len(selected);missing=[]
+        for i,ticker in enumerate(selected):
+            candidate=reusable.get(ticker)
+            if candidate is not None and time.monotonic()-started<=75:
+                try:
+                    ref=candidate['original_ref'];raw,_=store.read(ref['key'])
+                    if len(raw)!=ref['bytes'] or context_evidence_store.sha(raw)!=ref['sha256']:raise ValueError('Cached body identity differs')
+                    if observations.profile(raw,ticker,candidate.get('content_encoding',''))['status']!='reported_classification':raise ValueError('Cached issuer unqualified')
+                except Exception:pass
+                else:
+                    total+=len(raw)
+                    if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+                    sources[ref['key']]=raw;outcomes[i]={**candidate,'network_attempted':False,'acquisition':'retained_profile'};continue
+            missing.append((i,ticker))
+        if missing:
+            FMP_KEY=managed_secret(('FMP_KEY','FMP_API_KEY'),('/justhodl/fmp/api-key',))
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                futures={executor.submit(_profile_request,ticker,started,stop):i for i,ticker in missing}
+                try:
+                    for future in as_completed(futures,timeout=max(1,105-(time.monotonic()-started))):
+                        if time.monotonic()-started>105:raise ValueError('Whole collection budget exhausted')
+                        attempt,raw=future.result();index=futures[future]
+                        if raw is not None:
+                            total+=len(raw)
+                            if total>64*1024*1024:raise ValueError('Whole source aggregate exceeds bound')
+                            ref=store.retain(raw,'sources');sources[ref['key']]=raw;attempt['original_ref']=ref
+                        outcomes[index]=attempt
+                finally:stop.set()
+        generated=now();packet=observations.build(inputs,outcomes,sources,generated,previous_doc)
+        compilers={name:store.retain(Path(path).read_bytes(),'compilers') for name,path in paths.items()}
+        manifest={'contract':observations.CONTRACT,'acquisition_started_at':started_at,'generated_at':generated,
+            'input_attempts':inputs,'profile_attempts':outcomes,'previous_publication':previous_ref,'source_files':compilers,
+            'stored_source_bytes':total,'controls':{'maximum_tickers':30,'active_requests':4,'legacy_cache_writes':0,
+                'per_profile_ttl_seconds':observations.PROFILE_TTL_SECONDS,'per_profile_bytes':observations.MAX_SOURCE_BYTES,
+                'per_context_bytes':context_evidence_store.MAX_BYTES,'aggregate_source_bytes':64*1024*1024,
+                'acquisition_budget_s':75,'collection_budget_s':105,'publication_budget_s':135,'provider_retries':0,'stop_on_http_status':[401,403,429]}}
+        packet['replay']={'input_ref':store.retain(encode(manifest),'inputs'),'source_files':compilers,
+            'previous_publication':previous_ref,'originals_public':False}
+        packet['acquisition_started_at']=started_at;body=encode(packet);ref=store.retain(body,'outputs')
+        if time.monotonic()-started>135:raise ValueError('Publication budget exhausted')
+        condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
+        try:client.put_object(Bucket=S3_BUCKET,Key=observations.HEAD,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
+        except Exception as exc:raise context_evidence_store.PublicationUncertain(observations.HEAD) from exc
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':observations.CONTRACT,
+            'generated_at':generated,'output_sha256':ref['sha256'],'call':'WAIT','model_requests':0,'notifications_sent':0})}
+    except Exception as exc:
+        stop.set();uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
+            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted','preservation_scope':'this_attempt_only',
+            'error':'Whole source acquisition, validation, retention or conditional publication failed','model_requests':0,'notifications_sent':0})}
