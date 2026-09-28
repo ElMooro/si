@@ -10,6 +10,7 @@ SRC=ROOT/'aws/lambdas/justhodl-activist-filings-scanner/source'
 sys.path[:0]=[str(SRC),str(ROOT/'aws/shared')]
 import filing_observations as m
 import sec_atom_model as atom
+from momentum_research_boundary import DIRECT as MOMENTUM_SOURCE
 AT='2026-09-28T01:00:00Z'
 ACC='0000000123-26-000001'
 URL='https://www.sec.gov/Archives/edgar/data/123/000000012326000001/'+ACC+'-index.htm'
@@ -160,7 +161,9 @@ class Tests(unittest.TestCase):
         fn=next(n for n in ast.parse(source.read_bytes()).body if isinstance(n,ast.FunctionDef) and n.name=='load_feed')
         class Denied:
             def get_object(self,**kw):raise AssertionError('Excluded source must not be read or vote')
-        ns={'S3':Denied(),'BUCKET':'fixture','json':json};exec(compile(ast.Module(body=[fn],type_ignores=[]),'<isolated compound boundary>','exec'),ns)
-        self.assertEqual(ns['load_feed'](m.HEAD,'summary.top_25_overall','subject_ticker'),[])
+        ns={'S3':Denied(),'BUCKET':'fixture','json':json,'MOMENTUM_SOURCE':MOMENTUM_SOURCE}
+        exec(compile(ast.Module(body=[fn],type_ignores=[]),'<isolated compound boundary>','exec'),ns)
+        for key in (m.HEAD,MOMENTUM_SOURCE,'data/volatility-squeeze.json'):
+            self.assertEqual(ns['load_feed'](key,'summary.top_25_overall','subject_ticker'),[])
 
 if __name__=='__main__':unittest.main(verbosity=2)
