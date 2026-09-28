@@ -104,7 +104,13 @@ for fn in $DEPLOY_TARGETS; do
   fi
 
   # Check if Lambda exists. If not, create it with defaults / config.json overrides.
+  existing_function=0
   if aws lambda get-function --function-name "$fn" --region "$DEPLOY_AWS_REGION" >/dev/null 2>&1; then
+    existing_function=1
+    if [ -f "$config_file" ]; then
+      python3 scripts/check_existing_schedule.py "$config_file" \
+        "arn:aws:lambda:${DEPLOY_AWS_REGION}:857687956942:function:${fn}" "$DEPLOY_AWS_REGION"
+    fi
     echo "Updating existing Lambda $fn"
     # Freeze all existing scheduled targets on the previous numbered release.
     code_revision_args=()
@@ -274,6 +280,12 @@ for fn in $DEPLOY_TARGETS; do
   # Every opted-in engine uses exactly one pinned, validated promotion.
   if [ "$candidate_managed" -eq 1 ]; then
     bash scripts/deploy_validated_candidate.sh "$fn" "$DEPLOY_AWS_REGION" "$tmp" "$config_file" "$candidate_schema"
+  fi
+
+  # Recheck schedule intent after packaging/promotion and before schedule writes.
+  if [ "$existing_function" -eq 1 ] && [ -f "$config_file" ]; then
+    python3 scripts/check_existing_schedule.py "$config_file" \
+      "arn:aws:lambda:${DEPLOY_AWS_REGION}:857687956942:function:${fn}" "$DEPLOY_AWS_REGION"
   fi
 
   # ── EventBridge schedule (if config.json has .schedule) ──

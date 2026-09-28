@@ -3,6 +3,16 @@
 Push to `main` **is** the deploy. There is no laptop-side AWS step. Everything AWS
 happens on the GitHub Actions runner, which holds the credentials.
 
+Updating an existing Lambda must preserve its scheduled bindings. The deploy
+checks each managed classic rule or Scheduler before changing code, and again
+before writing schedules. A missing/unbound declared rule, changed cadence or
+changed Scheduler operating settings fails instead of creating a second trigger.
+Use the actual existing Scheduler reference when an old config names the wrong
+service. New-function provisioning remains separate; deliberate migrations use a
+reviewed operation with retained rollback evidence. This read-only check does not
+invoke a producer or log target payloads, and is not a substitute for post-deploy
+runtime/schedule acceptance.
+
 ## What runs, by path
 
 | You changed | Workflow | Result |
