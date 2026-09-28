@@ -1,0 +1,87 @@
+{
+  "checked_at": "2026-09-28T13:47:00.313804+00:00",
+  "served_commit": "ae76b79dcfb10c516afac9a630b7b6f38db5256e",
+  "assets": {
+    "buybacks.html": {
+      "bytes": 8688,
+      "sha256": "1108737c6f9f1c34f614ba24effd554f512975fcc298fd51c2989d9e37614855",
+      "matches_manifest": true
+    },
+    "jh-statement-desk.js": {
+      "bytes": 8690,
+      "sha256": "655bb6a8eb2ce5f832574d05d21392982b329e8a12b8fe0160b66eeb00575621",
+      "matches_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5733,
+      "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+      "matches_manifest": true
+    },
+    "config/page-data-contracts.json": {
+      "bytes": 2412544,
+      "sha256": "bcb41587f152faf845a2806cde5987aea9126f3473594c116117ae5b57d70014",
+      "matches_manifest": true
+    }
+  },
+  "unchanged_engine_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "5GLKyqIiUyfFCg7IK+wuhu6sT0wSqkNfkGDauyqsr/k=",
+    "commit": "95fb76319673c491a7863e294b54ca365b591a4b",
+    "deployed_at": "2026-09-28T13:32:27Z",
+    "function": "justhodl-buyback-engine",
+    "run_id": "36429218926",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36429218926",
+    "schema": "release-receipt.v1",
+    "source": {
+      "buyback_measurements.py": {
+        "bytes": 13216,
+        "sha256": "5ed10427bbf624a56fbfd8a1012fa0db00ca925ac25d0c930727098a14b004d1"
+      },
+      "buyback_sources.py": {
+        "bytes": 17483,
+        "sha256": "ce1e3e1000ef3cae79cf6947a0dc1cfc4a1eaba0c2badb1e52e103b9c32a985b"
+      },
+      "buyback_store.py": {
+        "bytes": 3102,
+        "sha256": "a7c975437a13b978f483be1c7580fa0eda0d979e17ecb18d825bab4a311b690f"
+      },
+      "lambda_function.py": {
+        "bytes": 24604,
+        "sha256": "89bbb5822768ee454cb72f1bea8fd19b32729b51d9571fa84169e4ebb6a6fe97"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 872291,
+    "zip_sha256_hex": "e462cacaa2225327c50a0ec82bec2e86eeac4f4c12aa435f9060dabb2aacaff9"
+  },
+  "public_packet": {
+    "version": "1.2.0",
+    "generated_at": "2026-09-28T13:30:42.038407+00:00",
+    "bytes": 3830868,
+    "sha256": "a3c5820a5e37f9b558185cc7a8baf3d3c453e4441c27f628064bc15ebdd3587c",
+    "measurement_contract": "buyback-accounting-measurements.v1"
+  },
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_reads": 0,
+  "new_engine_deployment_claim": false,
+  "page_commit": "ae76b79dcfb10c516afac9a630b7b6f38db5256e",
+  "pages_run": 36430526663,
+  "duplicate_pages_run": {
+    "id": 36430527061,
+    "status": "cancelled",
+    "jobs_started": 0
+  },
+  "verify_push_exit": 1,
+  "verify_push_reason": "One duplicate Pages run cancelled; matching other run deployed successfully. Exact served manifest and four asset hashes verified.",
+  "browser": {
+    "status_records": 124,
+    "AAOI_prior_date": "2025-06-30",
+    "AAOI_current_date": "2026-06-30",
+    "filtered_keyboard_inspection": "AAOI",
+    "whole_original_bytes": 3830868,
+    "console_errors": []
+  }
+}
