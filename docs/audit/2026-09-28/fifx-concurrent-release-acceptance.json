@@ -1,0 +1,155 @@
+{
+  "status": "exact_repaired_native_package_accepted_normal_publication_pending",
+  "source_commit": "3be085cd8e35efe29869483ebb485e8d215ad495",
+  "deploy_run": 36488864863,
+  "operation": 6316,
+  "run": 36489146773,
+  "report_commit": "219820828de6926e27cfd41d5b02795a515af49b",
+  "evidence": {
+    "actual_runtime": {
+      "code_sha256": "zU/OjHmAvfo6UQwz/3mWnOcuk1GXagJ5xXNJlSWHbBw=",
+      "source_files_checked": 14,
+      "handler_bytes": 1496,
+      "timeout": 900,
+      "memory_mb": 2048,
+      "receipt": {
+        "status": "matched",
+        "commit": "3be085cd8e35efe29869483ebb485e8d215ad495"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-fifx-vol-daily",
+          "state": "ENABLED",
+          "expression": "cron(20 21 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-fifx-vol-migration",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "current_publication": {
+      "sha256": "aabac40452da9461ea80b7edff11550e71b1e6e53a02bec789e11bef767805af",
+      "bytes": 31928,
+      "generated_at": "2026-09-28T21:21:57.335781+00:00",
+      "quality": {
+        "current_sources": 0,
+        "history_rows": 0,
+        "original_rows": 500,
+        "status": "degraded",
+        "total_sources": 18
+      },
+      "matches_accepted_predecessor": true
+    },
+    "downstream_live_head_reads": 0,
+    "expected_commit": "3be085cd8e35efe29869483ebb485e8d215ad495",
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "next_original_schedule_utc": "2026-09-29T21:20:00+00:00",
+    "private_account_reads": 0,
+    "private_journal_reads": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "repaired_normal_publication_verified": false,
+    "schedule_changes": 0,
+    "scope": "Actual repaired code and exact release only, with unchanged complete operating settings and original schedule. The current predecessor packet remains historical evidence; source recovery requires the next ordinary native run and complete replay."
+  },
+  "live_page": {
+    "url": "https://justhodl.ai/fifx-vol.html",
+    "http_status": 200,
+    "bytes": 9141,
+    "sha256": "6a89d67d36f0a011a635b3458548503fcf5360dd2cf73826bdf8047ab39f84cc",
+    "expected_source_script_tags_present": true,
+    "scripts": [
+      "/jh-data-inspector.js?v=08acd2d13d574fb8",
+      "/jh-chart-theme.js?v=7e983f03",
+      "/jh-fifx-research.js?v=209168f5",
+      "/jh-nav-drawer.js?v=a6192d24",
+      "/sidebar.js?v=b6cb50e8",
+      "/jh-sections.js?v=75469620",
+      "/jh-right-rail.js?v=8c6a5a3b",
+      "/jh-footer.js?v=677b9e51",
+      "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495"
+    ],
+    "page_changed_in_this_release": false,
+    "browser_behavior_retested": false
+  },
+  "public_release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "zU/OjHmAvfo6UQwz/3mWnOcuk1GXagJ5xXNJlSWHbBw=",
+    "commit": "3be085cd8e35efe29869483ebb485e8d215ad495",
+    "deployed_at": "2026-09-28T21:53:24Z",
+    "function": "justhodl-fifx-vol-migration",
+    "run_id": "36488864863",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36488864863",
+    "schema": "release-receipt.v1",
+    "source": {
+      "fifx_acquire.py": {
+        "bytes": 4747,
+        "sha256": "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec"
+      },
+      "fifx_candidate.py": {
+        "bytes": 8455,
+        "sha256": "c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0"
+      },
+      "fifx_catalog.py": {
+        "bytes": 4744,
+        "sha256": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243"
+      },
+      "fifx_model.py": {
+        "bytes": 6665,
+        "sha256": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f"
+      },
+      "fifx_originals.py": {
+        "bytes": 9034,
+        "sha256": "2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51"
+      },
+      "fifx_qualification.py": {
+        "bytes": 777,
+        "sha256": "6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c"
+      },
+      "fifx_store.py": {
+        "bytes": 17163,
+        "sha256": "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7"
+      },
+      "fifx_timezones.py": {
+        "bytes": 13766,
+        "sha256": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a"
+      },
+      "lambda_function.py": {
+        "bytes": 1496,
+        "sha256": "5247bcdce1011b4cc07adb94ab7cf53bc2ea1b0599fc6923aed4ebb607680359"
+      },
+      "verify_fifx_arithmetic.py": {
+        "bytes": 13054,
+        "sha256": "d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 906586,
+    "zip_sha256_hex": "cd4fce8c7980bdfa3a510c33ff79969ce72e9351976a0279c573499525876c1c"
+  },
+  "tests": {
+    "native_fifx": 22,
+    "deployment_static": 543,
+    "deployment_shell": 12
+  },
+  "source_recovery_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "next_original_schedule_utc": "2026-09-29T21:20:00+00:00",
+  "remaining": [
+    "Accept next original scheduled output with all original/compiler/arithmetic replay",
+    "Address remaining source availability using verified identities without fabricated substitutes",
+    "Continue durable native Genealogy integration and other open platform workstreams"
+  ]
+}
