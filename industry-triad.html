@@ -14,7 +14,7 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase}.r{text-align:right}
 .table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
 </style></head><body><div class="wrap">
 <h1>Capex DIO RPO industry tape</h1>
-<p class="sub">Median capex YoY, DIO change and RPO YoY by GICS sector from three live packets. Shown as three separate medians. No blended cycle score.</p>
+<p class="sub">Median capex YoY, DIO change and RPO YoY by sector from three live packets. Shown as three separate medians. No blended cycle score.</p>
 <div id="kpis"></div>
 <p class="sub" id="status">Loading capex, inventory and backlog.</p>
 <div id="board" class="table-region">Loading.</div>
@@ -23,9 +23,10 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase}.r{text-align:right}
 <b>Blank on purpose:</b> sectors with fewer than 3 numeric values in that packet.<br>
 <b>Not:</b> a trade. Research only.</div></div>
 <script>
-function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
 function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
 function median(a){a=a.filter(function(x){return x!=null&&isFinite(x);}).sort(function(x,y){return x-y;});if(a.length<3)return null;var m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
 async function load(p){try{var r=await fetch(p,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
 (async function(){
   var cap=await load("/data/capex-pulse.json"),inv=await load("/data/inventory-drawdown.json"),bk=await load("/data/backlog.json");
@@ -43,7 +44,7 @@ async function load(p){try{var r=await fetch(p,{cache:"no-store"});if(!r.ok)retu
     h+="<td class='r'>"+r.nD+"</td><td class='r'>"+esc(r.dio==null?"":r.dio.toFixed(1)+"%")+"</td>";
     h+="<td class='r'>"+r.nR+"</td><td class='r'>"+esc(r.rpo==null?"":r.rpo.toFixed(1)+"%")+"</td></tr>";
   });
-  document.getElementById("board").innerHTML=h+"</tbody></table>";
+  document.getElementById("board").innerHTML=h+closeTbl();
   document.getElementById("status").textContent=rows.length+" sectors. Median blank when fewer than 3 values. No blended score.";
 })();
 </script>
