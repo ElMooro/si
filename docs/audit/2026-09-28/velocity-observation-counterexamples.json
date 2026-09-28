@@ -1,0 +1,19 @@
+{
+  "scope": "Seven isolated original arithmetic/source-identity regressions; no native, provider, consumer-output or state read.",
+  "original_bytes": 32545,
+  "original_sha256": "bb0ee22597c318422b07b5dcf21ccbe9b53506144390f742d78fc25cfec93bb4",
+  "reproduced": [
+    "real zero volume excluded from baseline denominator",
+    "zero/missing latest volume borrows prior current ratio",
+    "first recent return is fabricated zero despite available prior close",
+    "duplicate/future dates pass session calculations",
+    "reported baseline truncates actual denominator",
+    "boolean price and volume accepted"
+  ],
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "private_state_reads": 0,
+  "provider_requests": 0,
+  "notifications_sent": 0,
+  "investment_authority": false
+}
