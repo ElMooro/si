@@ -46,7 +46,7 @@
       "value_bps": 201.0
     }
   },
-  "status": "actual_two_weekday_bindings_observed_original_replay_pending",
+  "status": "observed_runtime_and_retained_original_baseline_verified_policy_unchanged",
   "native_receipt_commit": "9cb4a62b116865bbf9695493bcff820c87da9277",
   "declared_schedule": "cron(10 22 ? * MON-FRI *)",
   "production_changes": false,
@@ -101,5 +101,111 @@
     },
     "original_single_binding_assumption_accepted": false,
     "production_changes": false
+  },
+  "observed_baseline": {
+    "operation": 6299,
+    "run": 36456553078,
+    "report_commit": "e77d8cb84",
+    "actual_runtime": {
+      "code_sha256": "s1FMKIb7M5KpzfU1dqn/4O8l3K+B6TshMI5nG7d7OPw=",
+      "source_files_checked": 9,
+      "handler_bytes": 1684,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "9cb4a62b116865bbf9695493bcff820c87da9277"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-credit-stress-cadence",
+          "state": "ENABLED",
+          "expression": "cron(10 22 ? * MON-FRI *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "credit-stress-sched",
+          "state": "ENABLED",
+          "expression": "cron(0 20 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-credit-stress",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "cadence_diagnosis": {
+      "generated_at": "2026-09-25T22:11:08.786018+00:00",
+      "as_of": "2026-09-24",
+      "evaluated_at": "2026-09-28T17:13:35.401771+00:00",
+      "pipeline_check_due_at": "2026-09-27T10:11:08.786018+00:00",
+      "valid_until": "2026-09-27T10:11:08.786018+00:00",
+      "pipeline_due_weekday_utc": 6,
+      "declared_native_weekdays_utc": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "pipeline_deadline_on_unscheduled_day": true,
+      "pipeline_expired_at_evaluation": true,
+      "packet_expired_at_evaluation": true,
+      "collection_age_hours": 67.040727,
+      "measurement_rows": 28,
+      "dated_rows": 28,
+      "rows_within_existing_five_calendar_day_ceiling": 28,
+      "quality_status_at_publication": "fresh",
+      "currentness_not_extended": true,
+      "forecast_qualified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "credential_reads": 0,
+    "expected_commit": "9cb4a62b116865bbf9695493bcff820c87da9277",
+    "history_writes": 0,
+    "native_invocations": 0,
+    "observed_two_binding_inventory_verified": true,
+    "original_single_binding_assumption_accepted": false,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "public_head": {
+      "bytes": 170980,
+      "sha256": "8de1af5728f78bc75cac741f54b42d570bfd66167bdc4be6bc94987c1cd84805"
+    },
+    "public_writes": 0,
+    "retained_original_replay": {
+      "contract": "credit-native-research.v1",
+      "generated_at": "2026-09-25T22:11:08.786018+00:00",
+      "as_of": "2026-09-24",
+      "replayed": true,
+      "quality": {
+        "status": "fresh",
+        "basis": "Strict native response checks and explicit observation-age ceiling; not strategy qualification.",
+        "within_age_ceiling": 28,
+        "reviewed_series": 28,
+        "unavailable_series": [],
+        "release_calendar_verified": false,
+        "provider_families_observed": [
+          "ICE_BofA_indices_via_FRED",
+          "US_Treasury_curve_via_FRED"
+        ],
+        "independence_note": "Rating and maturity subindices share a provider and overlapping constituents; 28 series are not 28 independent votes."
+      },
+      "reviewed_series": 28,
+      "source_originals": 56,
+      "forecast_qualified": false
+    },
+    "schedule_changes": 0,
+    "scope": "Exact observed existing runtime and complete retained-source replay. No extension of expiry or investment authority."
   }
 }

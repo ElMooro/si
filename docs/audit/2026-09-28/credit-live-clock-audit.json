@@ -1,0 +1,60 @@
+{
+  "status": "tested_preview_live_acceptance_pending",
+  "originals": {
+    "jh-credit-research.js": {
+      "fixture": "tests/fixtures/pre-credit-live-clock-jh-credit-research.js.txt",
+      "bytes": 16133,
+      "sha256": "af4605685210754647b2aa69a7de82177a1fe5718fda1549ec659e1d1571dcd1"
+    },
+    "credit/index.html": {
+      "fixture": "tests/fixtures/pre-credit-live-clock-credit-index.html.txt",
+      "bytes": 4204,
+      "sha256": "1219cb700bcd45cac72dabdd8f0ecb04a0a4cdba123b5b08b9c300f413ba090e"
+    }
+  },
+  "changes": [
+    "Comparison current-use labels follow collection and both observation clocks",
+    "Open pages re-evaluate labels every minute and on visibility/page restoration",
+    "Clock updates preserve scenario inputs and selected series/units",
+    "Malformed/future clocks and five-day observation-age overflow remain withheld"
+  ],
+  "validation": {
+    "focused_frontend": 17,
+    "full_frontend": 1674,
+    "deployment_static": 498,
+    "deployment_shell": 12,
+    "page_script_graphs": 599,
+    "source_syntax_errors": 0,
+    "wired_feeds": 143
+  },
+  "preview": {
+    "route": "http://127.0.0.1:8816/credit/index.html",
+    "packet_generated_at": "2026-09-25T22:11:08.786018+00:00",
+    "current_measurements": 0,
+    "all_measurements": 28,
+    "comparison_cards_withheld": 4,
+    "mobile_viewport": 390,
+    "mobile_document": 375,
+    "table_regions": [
+      345,
+      345,
+      345,
+      311,
+      311
+    ],
+    "values_retained": true,
+    "selected_unit": "pct",
+    "selected_series": "BAMLC0A0CM",
+    "illustrative_signed_value": -9876,
+    "spread_duration": 2.5,
+    "spread_shock_bps": 42,
+    "displayed_illustrative_pnl_usd": 103.7
+  },
+  "native_source_changes": false,
+  "schedule_changes": false,
+  "pipeline_expiry_extended": false,
+  "forecast_qualified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "execution_eligible": false
+}
