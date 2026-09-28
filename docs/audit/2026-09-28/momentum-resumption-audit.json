@@ -1,0 +1,87 @@
+{
+  "checked_at": "2026-09-28T12:02:55.817109+00:00",
+  "originals": {
+    "lambda_function.py": {
+      "commit": "b7db9ef147732700a4817e156eca2d2d53171896",
+      "bytes": 23004,
+      "sha256": "7789aa8658a6c91cdabc1e59c81d2c8b642226453f88ca144e862ea6bd9a38e7"
+    },
+    "momentum_observations.py": {
+      "commit": "b7db9ef147732700a4817e156eca2d2d53171896",
+      "bytes": 16785,
+      "sha256": "b40eb4c72e00eb1aceac1b8f47c40824ad2b64b58199ed9a8c35c792970c8fb2"
+    }
+  },
+  "reproduction": {
+    "base_commit": "b7db9ef147732700a4817e156eca2d2d53171896",
+    "actual_isolated_original_runs": [
+      {
+        "visited": [
+          "SPY",
+          "TEST",
+          "SECOND"
+        ],
+        "outcomes": [
+          "received",
+          "received",
+          "not_attempted_runtime_rate_or_size_limit"
+        ]
+      },
+      {
+        "visited": [
+          "SPY",
+          "TEST",
+          "SECOND"
+        ],
+        "outcomes": [
+          "received",
+          "received",
+          "not_attempted_runtime_rate_or_size_limit"
+        ]
+      }
+    ],
+    "defect": "Repeated provider stop restarts the benchmark and first selected names; THIRD never visited.",
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_reads": 0
+  },
+  "repair": "Version 2.1.0 resumes pending selected request occurrences on the original schedule; acquire SPY separately every run. Invalid symbols remain visible and undispatched; ticker duplicate ordinals are operational coordinates, not legal security identity.",
+  "preserved": [
+    "600 configured selected requests; 260-second own budget; four active workers from configured twelve",
+    "Original daily 11:00 UTC fanout and 1024 MB / 300 s runtime",
+    "96 MiB dispatch and 160 MiB retained-source budgets; 8 MiB complete response bound",
+    "Whole originals, current/prior immutable publications and compare-and-swap",
+    "SPY exact-date comparisons, original nominal threshold, observation calculations and research-only permissions"
+  ],
+  "tests": {
+    "native": 23,
+    "new_acceptance": 4,
+    "existing_acceptance": 4,
+    "morning_replay": 4,
+    "frontend": 1653,
+    "deployment_static": 468,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "engine_wiring": 143,
+    "registry": "passed"
+  },
+  "browser_preview": {
+    "selected_requests": 3,
+    "benchmark_requests": 1,
+    "visited_selected": 2,
+    "pending_selected": 1,
+    "received_selected_price_windows": 1,
+    "unattempted_visible": true,
+    "captured_console_errors": 0
+  },
+  "limitations": [
+    "First publication from the resumed compiler awaits the original daily schedule",
+    "All-failed selected windows and benchmark-denied runs preserve head and queue; separate durable failed-run progress remains open",
+    "A completed visit cycle is not simultaneous whole-market coverage",
+    "Currency, corporate actions, first-release vintages, independent evidence and predictive/sizing qualification remain unresolved"
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_state_reads": 0
+}

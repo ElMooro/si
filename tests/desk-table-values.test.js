@@ -635,7 +635,7 @@ test('momentum observations expose matched benchmark sources and every selected 
  const model=M.model(p);assert.equal(model.requests.length,3);assert.equal(model.windows.length,3);assert.equal(model.universe.length,3);assert.equal(model.measurements.length,22);
  const comparison=model.measurements.find(r=>r.pointer.endsWith('/benchmark_comparisons/20'));assert.equal(comparison.value,0);assert.equal(comparison.sources.length,2);
  const s=page('momentum-observations.html',async()=>raw(p));await flush();assert.equal(s.calls[0],'/data/momentum-breakout.json');assert.equal(s.get('original').textContent,JSON.stringify(p));
- for(const [mode,n]of [['measurements',22],['windows',3],['universe',3]]){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(n+' received '+mode));}
+ for(const [mode,n]of [['measurements',22],['windows',3],['universe',3]]){s.get('mode').value=mode;s.get('mode').onchange();assert.match(s.get('rows').textContent,new RegExp(n+' '+(mode==='measurements'?'descriptive measurement':mode==='windows'?'observation window':'source universe')+' occurrences'));}
  assert.match(s.get('board').innerHTML,/&lt;img/);assert.ok(!s.get('board').innerHTML.includes('<img'));
  s.get('mode').value='measurements';s.get('mode').onchange();const head=s.get('board').headers.find(x=>x.dataset.k==='value');head.focus();head.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'value');
  for(const field of ['calls_eligible','sizing_eligible','execution_eligible'])assert.throws(()=>M.model({...p,[field]:true}),/permissions/);
@@ -646,7 +646,7 @@ test('momentum observations expose matched benchmark sources and every selected 
 
 test('momentum legacy population pagination and public-source integrity',async()=>{
  const M=require('../jh-momentum-observations.js'),p={all_qualifying:Array.from({length:201},(_,i)=>({symbol:'T'+i,score:99})),summary:{top_25_overall:[{symbol:'T0'}]}};
- const s=page('momentum-observations.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/202 received/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ const s=page('momentum-observations.html',async()=>raw(p));await flush();assert.match(s.get('rows').textContent,/202 legacy occurrences/);s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
  s.get('q').value='T200';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching/);s.get('q').value='';s.get('q').oninput();assert.match(s.get('rows').textContent,/202 matching/);
  const fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/momentum-price-synthetic.json'),'utf8')),ref=fixture.packet.benchmark.acquisition.original_ref,body=Buffer.from(fixture.sources[ref.key]);
  assert.equal((await M.loadSource(ref,{fetcher:async()=>new Response(body)})).raw,body.toString());
@@ -654,6 +654,20 @@ test('momentum legacy population pagination and public-source integrity',async()
  await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(Buffer.alloc(body.length,97))}),/SHA-256/);
  assert.ok(api.PUBLIC_PATHS.test('/data/momentum-breakout.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/momentum-breakout-state.json'));
  const f=page('momentum-observations.html',async()=>{throw Error('HTTP 403');});await flush();assert.match(f.get('status').textContent,/unavailable/);assert.equal(f.get('board').textContent,'No verified display population');
+});
+
+test('momentum resumes selected requests separately from the SPY benchmark',async()=>{
+ const M=require('../jh-momentum-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/momentum-resumption-synthetic.json'),'utf8'));
+ const first=M.model(f.packet),next=M.model(f.next_packet);assert.deepEqual([first.progress.visited,first.progress.pending],[2,1]);assert.deepEqual([next.progress.visited,next.progress.pending],[1,0]);
+ assert.equal(next.requests.length,4);assert.equal(next.requests[0].name,'not_attempted_runtime_rate_or_size_limit');assert.equal(next.requests[1].name,'not_attempted_runtime_rate_or_size_limit');assert.equal(next.requests[3].ticker,'SPY');assert.equal(next.requests[3].name,'Benchmark received');
+ const s=page('momentum-observations.html',async()=>raw(f.packet));await flush();assert.match(s.get('coverage').textContent,/2 selected request occurrences visited/);assert.match(s.get('coverage').textContent,/1 remain/);assert.match(s.get('coverage').textContent,/SPY benchmark is acquired separately/);assert.match(s.get('coverage').textContent,/not simultaneous whole-market coverage/);assert.match(s.get('rows').textContent,/4 selected and benchmark request occurrences/);assert.doesNotMatch(s.get('rows').textContent,/received requests/);
+});
+
+test('momentum progress rejects false counters, source bytes and benchmark omission',()=>{
+ const M=require('../jh-momentum-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/momentum-resumption-synthetic.json'),'utf8'));
+ for(const edit of [p=>p.acquisition_progress.visited_occurrences=true,p=>p.acquisition_progress.cycle_complete=0,p=>p.acquisition_progress.planned_request_indices=[false,1,2],p=>p.acquisition_progress.planned_request_indices=[0,0],p=>p.acquisition_progress.remaining_occurrence_keys=[],p=>p.acquisition_progress.retained_source_bytes++,p=>p.acquisition_progress.schedule_accelerated=0,p=>delete p.acquisition_progress,p=>{const n=p.benchmark.acquisition.original_ref.bytes;p.acquisition_progress.retained_source_bytes-=n;p.retained_unique_source_bytes-=n;},p=>delete p.benchmark.acquisition.original_ref]){
+  const p=structuredClone(f.packet);edit(p);assert.throws(()=>M.model(p));
+ }
 });
 
 test('momentum compound-page components abstain and retain full original source access',()=>{
