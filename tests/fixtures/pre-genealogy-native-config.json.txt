@@ -3,13 +3,11 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 2048,
-  "timeout": 600,
-  "architectures": [
-    "x86_64"
-  ],
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Retained public signal-registration and membership chronology with complete original replay; no forecast or portfolio authority.",
+  "description": "Signal Genealogy: which signal families lead vs confirm, using cross-correlation lead-lag analysis on the real outcomes ledger.",
   "schedule": {
     "rule_name": "signal-genealogy-daily",
     "cron": "cron(40 6 * * ? *)",

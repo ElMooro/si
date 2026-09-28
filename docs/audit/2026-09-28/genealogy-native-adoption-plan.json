@@ -1,0 +1,36 @@
+{
+  "status": "production_replacement_prepared_awaiting_exact_release_and_original_schedule",
+  "version": "2.0.0",
+  "function": "justhodl-signal-genealogy",
+  "predecessor_handler": "tests/fixtures/pre-genealogy-calendar-audit.py.txt",
+  "predecessor_config": "tests/fixtures/pre-genealogy-native-config.json.txt",
+  "complete_package_sources": 17,
+  "reviewed_compiler_modules": 16,
+  "runtime": {
+    "memory_mb": 2048,
+    "timeout_seconds": 600,
+    "ephemeral_storage_mb": 512,
+    "original_schedule": "cron(40 6 * * ? *)",
+    "next_original_schedule_utc": "2026-09-29T06:40:00+00:00"
+  },
+  "resource_rationale": "The complete isolated runner corpus takes approximately 85 seconds cold and 64 seconds warm. Runner CPU and filesystem timings do not measure native S3 transport or Lambda CPU. Explicit 2048 MB / 600 seconds provide CPU and transport headroom with phase reserves; actual native capacity remains unverified until the original scheduled run.",
+  "resource_references": [
+    "https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/configuration-timeout.html"
+  ],
+  "publication": "data/signal-genealogy-research/current.json",
+  "archive_limits": {
+    "complete_population_entries": 10000,
+    "single_publication_artifact_bytes": 67108864
+  },
+  "limit_behavior": "Exceeded complete-population or runtime budgets fail without advancing the public head; future growth/incremental calculation remains open.",
+  "static_ownership_limitation": "Current JSON is source-bound. Dynamically constructed immutable run/compiler paths remain unresolved in the static manifest; no complete source-ownership claim is made.",
+  "legacy_output_reads": 0,
+  "native_invocations": 0,
+  "schedule_changes": 0,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "page_migrated": false,
+  "normal_publication_verified": false,
+  "native_capacity_verified": false
+}
