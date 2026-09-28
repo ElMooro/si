@@ -1,0 +1,82 @@
+{
+  "verification_commit": "2a3a1b5ab6d8ea90d46a9ef2f6c4aea70fa4d900",
+  "read_only_run": 36431601545,
+  "report_commit": "25f0469e987713ee9a2b63e922289fd2e02b16d6",
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "WCNv0NgyuziaTIk6TZpe0P4NHubUR3Jl0U2qEe5vNT8=",
+      "source_files_checked": 23,
+      "handler_bytes": 1359,
+      "timeout": 120,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "bdfd0c10bcafd6d41e47f59512057c7f928d9b45"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-acm-daily",
+          "state": "ENABLED",
+          "expression": "cron(45 13 ? * MON-FRI *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-term-premium",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "consumer_output_reads": 0,
+    "expected_commit": "bdfd0c10bcafd6d41e47f59512057c7f928d9b45",
+    "history_writes": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "bytes": 31416,
+      "sha256": "7005e5499e13589dd289fd837f333c6802cecdc6db58c1c7a067c5bac83d7a1b",
+      "generated_at": "2026-09-25T13:45:20+00:00",
+      "contract": null,
+      "status": "pending_original_schedule_publication",
+      "original_workbook_replayed": false,
+      "investment_authority": false
+    },
+    "own_acquisition_journal": {
+      "status": "acquisition_attempted",
+      "started_at": "2026-09-28T13:45:15.369949+00:00",
+      "provider_request_attempts": 1,
+      "key": "audit-private/20260909-originals/term-premium-research/requests/13098c191a84e04aaeb1ab00734aba410c525aa93d31ca5e6cfa9c5bf3a17233.json",
+      "bytes": 359,
+      "sha256": "53ca789bc1b3df105c095c8f64c992191b441975f86cf3328440cbf695522a6c",
+      "last_modified": "2026-09-28T13:45:18+00:00"
+    },
+    "predecessor_access": {
+      "protected_paths_checked": 1,
+      "anonymous_origins_checked": 2,
+      "attempt_outcome_counts": {
+        "404": 1,
+        "403": 1
+      },
+      "all_denied": true,
+      "failures": []
+    },
+    "private_state_reads": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedule_changes": 0,
+    "scope": "Exact public Term Premium producer, retained original workbook, own predecessor artifacts and latest own acquisition journal only. No downstream consumers, provider acquisition, model refit or investment qualification."
+  },
+  "live_packet_sha256": "7005e5499e13589dd289fd837f333c6802cecdc6db58c1c7a067c5bac83d7a1b",
+  "live_browser": {
+    "legacy_snapshot_explicit": true,
+    "observation": "2026-09-23",
+    "publication": "2026-09-25T13:45:20+00:00",
+    "new_source_measurements_pending": true,
+    "console_errors": []
+  },
+  "release_verifier": "Exact receipt matches; public data stale; NOT VERIFIED"
+}
