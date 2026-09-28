@@ -1,5 +1,5 @@
 {
-  "status": "tested_preview_live_acceptance_pending",
+  "status": "deployed_and_live_accepted",
   "originals": {
     "jh-credit-research.js": {
       "fixture": "tests/fixtures/pre-credit-live-clock-jh-credit-research.js.txt",
@@ -56,5 +56,38 @@
   "forecast_qualified": false,
   "calls_eligible": false,
   "sizing_eligible": false,
-  "execution_eligible": false
+  "execution_eligible": false,
+  "live_acceptance": {
+    "checked_at": "2026-09-28T17:25:57.963547+00:00",
+    "intended_commit": "9d32af4d1e02bedabc7779adf5c7729845cece84",
+    "served_commit": "9d32af4d1e02bedabc7779adf5c7729845cece84",
+    "assets": {
+      "credit/index.html": {
+        "bytes": 7477,
+        "sha256": "ebf6535d9bd884a20889bbec1bc722f3ee41dcc9577419b4fe680d6383a8cab8",
+        "matches_manifest": true
+      },
+      "jh-credit-research.js": {
+        "bytes": 20064,
+        "sha256": "202cdf0d42e42b7bb1384d15c93fe231d924aacc9d34a206567be50eb17e3b59",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Build/page acceptance; no native engine bytes changed.",
+    "pages_run": 36457430683,
+    "browser": {
+      "route": "https://justhodl.ai/credit/index.html",
+      "count": "0 of 28 measurements pass the current age checks.",
+      "withheld_comparisons": 4,
+      "keyboard_evidence_opened": true,
+      "scenario_usd": 103.7,
+      "units": "pct",
+      "series": "BAMLC0A0CM",
+      "mobile_viewport": 390,
+      "mobile_document": 380,
+      "desktop_viewport": 1280,
+      "desktop_document": 1270,
+      "new_live_console_errors": 0
+    }
+  }
 }
