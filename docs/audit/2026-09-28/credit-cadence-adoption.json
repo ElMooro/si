@@ -743,6 +743,16 @@
       "new_console_errors": 0,
       "trade_status": "WAIT"
     },
-    "transport_note": "Initial exact-query CLI reads timed out without headers. The browser and later no-generator and exact-query HTTPS reads returned the same whole bytes as IAM verification. No transport code was changed."
+    "transport_note": "Initial exact-query CLI reads timed out without headers. The browser and later no-generator and exact-query HTTPS reads returned the same whole bytes as IAM verification. No transport code was changed.",
+    "missing_series_diagnostic": {
+      "publication_generated_at": "2026-09-28T20:02:35.876474+00:00",
+      "input_key": "data/credit-research/inputs/254a58b44f1ef1ea179bc3cbb10268d8bc11b4b02129b0692c0ad7b37d98021c.json",
+      "series_id": "BAMLC0A3CAEY",
+      "request_status": {
+        "definition": "provider_http_502",
+        "observations": "retained_success"
+      },
+      "scope": "Public retained request metadata only. No protected provider body or new provider request."
+    }
   }
 }

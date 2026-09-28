@@ -1,0 +1,52 @@
+{
+  "status": "full_original_timing_output_accepted_native_pipeline_pending",
+  "source_commit": "d0607fc2309643f1bc8854f1c9bee9465cfd9204",
+  "operation": 6311,
+  "run": 36479353765,
+  "report_commit": "9acd5d7f50a4640d4c4cd4f1e55d81c2d564ce46",
+  "evidence": {
+    "actual_aws_writes": 0,
+    "downstream_output_reads": 0,
+    "elapsed_seconds": 15.767,
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "original_bytes": 120357077,
+    "peak_runner_rss_kib": 86476,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "result": {
+      "complete_output_sha256": "a1b1500fa1490c3f671890bbe327b7882ef87855770f1bebfea8e7026a1e3a1d",
+      "output_bytes": 892773,
+      "input_contexts_sha256": "f2f0bc9dc3b70d6c1a959cff15ae949068e1c1f2d9465e9b709a9310bf72ec06",
+      "capture_count": 251,
+      "source_count": 247,
+      "first_observed_groups": 333,
+      "possible_comparisons": 55,
+      "comparison_status_counts": {
+        "a_observed_presence_before_b_bounded_entry": 29,
+        "unresolved_prior_observation_missing": 25,
+        "b_observed_presence_before_a_bounded_entry": 1
+      },
+      "database_bytes": 60923904,
+      "scope": "Complete validated input iterator, disk-backed ordering and full canonical output. Original-body validation and durable incremental caching are separate required boundaries."
+    },
+    "schedule_changes": 0,
+    "scope": "All fixed approved public captures. Temporary SQLite ordering and streaming canonical output reproduce every predecessor value. No native publication, incremental cache, private ledger, account data or portfolio authority.",
+    "whole_predecessor_output_equal": true
+  },
+  "tests": {
+    "focused_groups": 7,
+    "seeded_timeline_cases": 60,
+    "whole_canonical_cases": 12,
+    "large_pair_case": 4950,
+    "stream_observations": 100000,
+    "stream_emitted_intervals": 50000,
+    "pure_fold_traced_allocation_ceiling_bytes": 4194304,
+    "deployment_static": 532,
+    "deployment_shell": 12
+  },
+  "native_deployed": false,
+  "remaining": "Durable incremental validated archive shards, complete pipeline/replay integration, native capacity/deployment and original scheduled publication. Disk-spool timing proof is not full Lambda resource proof.",
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
