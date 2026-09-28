@@ -49,7 +49,7 @@ def prime_source_analysis(codes):
     missing=list(dict.fromkeys(code for code in codes if code not in _JS_CACHE))
     if not missing:return
     result=subprocess.run(['node',str(Path(__file__).with_name('js_source_refs.cjs'))],
-        input=json.dumps(missing),text=True,encoding='utf-8',capture_output=True,check=True)
+        input=json.dumps(missing),text=True,capture_output=True,check=True)
     parsed=json.loads(result.stdout)
     if len(parsed)!=len(missing):raise ValueError('JavaScript ownership parser returned incomplete analysis')
     _JS_CACHE.update(zip(missing,parsed))
@@ -63,10 +63,10 @@ def literal_keys(text):
 from functools import lru_cache
 @lru_cache(maxsize=4096)
 def asset_info(path):
-    return source_analysis(Path(path).read_text(encoding='utf-8'))
+    return source_analysis(Path(path).read_text(errors='replace'))
 
 def page_graph(root,page):
-    root=Path(root).resolve();page=Path(page).resolve();html=HTML();html.feed(page.read_text(encoding='utf-8'))
+    root=Path(root).resolve();page=Path(page).resolve();html=HTML();html.feed(page.read_text(errors='replace'))
     keys=set(r['feed'].lstrip('/') for r in html.wires);sources={};missing=[];direct_keys=set(keys);key_sources={page.relative_to(root).as_posix():set(keys)};parse_errors=[]
     pending=[(page,url) for url in html.scripts]
     for code in html.inline:
@@ -87,12 +87,10 @@ def page_graph(root,page):
     return {'keys':sorted(keys),'direct_keys':sorted(direct_keys),'key_sources':{source:sorted(values) for source,values in key_sources.items()},'primary_engines':html.primary_engines,'scripts':sorted(sources),'missing_scripts':missing,'script_parse_errors':parse_errors,'redirect':html.redirect,'wires':html.wires,'evidence':'static exact-path source reference; runtime consumption unverified'}
 
 def scan_pages(root):
-    # Rebuilds in one process must not reuse an edited asset's old parse tree.
-    asset_info.cache_clear()
     root=Path(root);routes=pages(root);codes=[]
     for page in routes:
-        html=HTML();html.feed(page.read_text(encoding='utf-8'));codes.extend(html.inline)
+        html=HTML();html.feed(page.read_text(errors='replace'));codes.extend(html.inline)
     for path in root.rglob('*.js'):
-        if not any(x in DENY or x.startswith('.') for x in path.relative_to(root).parts[:-1]):codes.append(path.read_text(encoding='utf-8'))
+        if not any(x in DENY or x.startswith('.') for x in path.relative_to(root).parts[:-1]):codes.append(path.read_text(errors='replace'))
     prime_source_analysis(codes)
     return {p.relative_to(root).as_posix():page_graph(root,p) for p in routes}

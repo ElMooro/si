@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-09-28T15:47:14.860096+00:00",
+  "status": "local_static_graph_accepted_deploy_pending",
+  "counts": {
+    "duplicate_writers": 15,
+    "engines": 893,
+    "engines_without_consumer": 34,
+    "engines_without_schedule": 258,
+    "keys": 1951,
+    "orphan_engine_refs": 443,
+    "orphan_page_refs": 106,
+    "pages": 599,
+    "two_cycles": 64,
+    "unused_outputs": 159,
+    "writers": 1415
+  },
+  "input_files": 3492,
+  "input_identity_sha256": "40aa064baba842cd07c4fdb72cbf55a33872e0ed8bb2af62dbcdfa863877d5ff",
+  "graph_artifact": {
+    "bytes": 13700038,
+    "sha256": "80478fba9aefcc4df654d7d980403243d437d9fe1fc4b285fcdec61c688c2f71"
+  },
+  "cyclic_components": 17,
+  "largest_cyclic_component": 64,
+  "source_parse_errors": 0,
+  "calls_example": {
+    "upstream_engine_references": 468,
+    "unresolved_keys": 282,
+    "independent_evidence_count": null,
+    "calls_eligible": false
+  },
+  "tests": {
+    "focused_groups": 8,
+    "deployment_static": 478,
+    "candidate_shell": 12,
+    "frontend": 1667,
+    "public_page_graphs": 599,
+    "source_syntax_errors": 0,
+    "registry_engines": 893,
+    "registry_routes": 599,
+    "wired_feeds": 143,
+    "same_process_asset_revision": true,
+    "utf8_mode_disabled_registry_check": true,
+    "deterministic_check": true
+  },
+  "predecessors": {
+    "build_dependency_map.py": {
+      "bytes": 9103,
+      "sha256": "36ff7a34d447b15a2ad5d6d7663b5257a04c13f7775ae60aa960ac7b0bdb55cc"
+    },
+    "page_sources.py": {
+      "bytes": 6202,
+      "sha256": "ab7b2467b1b78150a50f13ae931476bfc4a4c24c8309d98e775469addd65102c"
+    }
+  },
+  "limitations": [
+    "Static references include potential paths, not proven runtime consumption.",
+    "Dynamic/wildcard/external writers may leave unresolved keys.",
+    "Source/provider-family identity, observation ancestry, historical availability and independence remain unqualified.",
+    "A cycle in source references is not evidence of a runtime failure.",
+    "No AWS data read, source request, schedule change or new investment authority."
+  ]
+}

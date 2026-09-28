@@ -15,6 +15,8 @@ Usage: python3 scripts/build_dependency_map.py [--repo <path>]
 from __future__ import annotations
 
 import argparse
+import ast
+import hashlib
 import json
 import re
 import sys
@@ -29,11 +31,17 @@ SKIP_DIRS = {"node_modules", ".git", "archive", "_partials", "aws", "docs", "tes
 
 
 def engine_manifest(repo: Path):
-    try:
-        m = json.loads((repo / "engine-manifest.json").read_text())
-        return {e["engine"]: sorted(set(e.get("keys") or [])) for e in m.get("engines") or []}
-    except Exception:
-        return {}
+    m = json.loads((repo / "engine-manifest.json").read_text(encoding='utf-8'))
+    rows = m.get('engines')
+    if not isinstance(rows, list) or not rows:
+        raise ValueError('Complete engine ownership inventory required')
+    result = {}
+    for row in rows:
+        name = row['engine']
+        if name in result:
+            raise ValueError('Duplicate engine identity: ' + name)
+        result[name] = row
+    return result
 
 
 def classify_literal(src: str, key: str, own_keys: set) -> str:
@@ -58,32 +66,40 @@ def classify_literal(src: str, key: str, own_keys: set) -> str:
 
 def scan_engines(repo: Path, manifest):
     out = {}
-    for d in sorted((repo / "aws" / "lambdas").iterdir()):
+    for d in sorted((repo / "aws" / "lambdas").iterdir(), key=lambda p: p.name):
         src_dir = d / "source"
         if not src_dir.is_dir():
             continue
         text = ""
-        for f in sorted(src_dir.glob("*.py")):
-            try:
-                text += f.read_text(errors="replace") + "\n"
-            except Exception:
-                pass
-        own = set(manifest.get(d.name, []))
+        for f in sorted(src_dir.rglob("*.py")):
+            text += f.read_text(encoding='utf-8') + "\n"
+        if d.name not in manifest:
+            raise ValueError('Engine missing from ownership inventory: ' + d.name)
+        record = manifest[d.name]
+        own = set(record.get('keys', []))
         keys = set(KEY_RE.findall(text))
         templ = set(FSTR_RE.findall(text))
-        reads, writes = set(), set(own)
+        reads, writes = set(record.get('reads', [])), set(own)
         # Only a bound write argument establishes ownership; nearby mentions never do.
         from gen_engine_manifest import ast_keys
+        parse_errors = []
         for source in sorted(src_dir.rglob("*.py")):
-            _, actual_reads, _ = ast_keys(source.read_text(errors="replace"))
+            code = source.read_text(encoding='utf-8')
+            try:
+                ast.parse(code)
+            except SyntaxError as exc:
+                parse_errors.append({'file': source.relative_to(src_dir).as_posix(), 'line': exc.lineno})
+            _, actual_reads, _ = ast_keys(code)
             reads.update(actual_reads)
         cfg = {}
-        try:
-            cfg = json.loads((d / "config.json").read_text())
-        except Exception:
-            pass
+        if (d / 'config.json').exists():
+            cfg = json.loads((d / "config.json").read_text(encoding='utf-8'))
         sched = cfg.get("schedule") or cfg.get("eventbridge_scheduler") or cfg.get("schedules")
-        out[d.name] = {"reads": sorted(reads), "writes": sorted(writes), "templates": sorted(templ), "schedule": sched, "lines": text.count("\n")}
+        out[d.name] = {"reads": sorted(reads), "writes": sorted(writes), "templates": sorted(templ), "schedule": sched, "lines": text.count("\n"),
+                       'source_parse_errors': parse_errors, 'unresolved_writes': record.get('unresolved_writes', []),
+                       'write_patterns': record.get('key_patterns', []),
+                       'ownership_status': record.get('ownership_status', 'unknown'),
+                       'runtime_consumption_verified': False}
     return out
 
 
@@ -93,11 +109,90 @@ def scan_pages(repo: Path):
 
 
 def fanout_members(repo: Path):
-    try:
-        m = json.loads((repo / "config" / "fanout-manifest.json").read_text())
-        return {member: tick for tick, members in (m.get("ticks") or {}).items() for member in members}
-    except Exception:
+    path = repo / 'config' / 'fanout-manifest.json'
+    if not path.exists():
         return {}
+    m = json.loads(path.read_text(encoding='utf-8'))
+    return {member: tick for tick, members in (m.get("ticks") or {}).items() for member in members}
+
+
+def source_identity(repo, pages):
+    """Bind the full checked-in input population; no live artifact acquisition."""
+    paths = {repo / 'engine-manifest.json', repo / 'scripts/build_dependency_map.py',
+             repo / 'scripts/page_sources.py', repo / 'scripts/gen_engine_manifest.py',
+             repo / 'scripts/js_source_refs.cjs'}
+    for name in ('fanout-manifest.json',):
+        path = repo / 'config' / name
+        if path.exists(): paths.add(path)
+    paths.update(p for p in (repo / 'aws/shared').rglob('*') if p.is_file() and p.suffix in ('.py', '.json'))
+    for directory in sorted((repo / 'aws/lambdas').iterdir()):
+        if not (directory / 'source').is_dir(): continue
+        paths.update(p for p in (directory / 'source').rglob('*') if p.is_file() and p.suffix in ('.py', '.js', '.json'))
+        if (directory / 'config.json').exists(): paths.add(directory / 'config.json')
+    for page, graph in pages.items():
+        paths.add(repo / page)
+        paths.update(repo / p for p in graph['scripts'])
+    items = []
+    for path in sorted(paths, key=lambda p: p.relative_to(repo).as_posix()):
+        raw = path.read_bytes()
+        items.append({'path': path.relative_to(repo).as_posix(), 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
+    raw = json.dumps(items, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    return {'contract': 'checked-in-dependency-inputs.v1', 'sha256': hashlib.sha256(raw).hexdigest(), 'files': items,
+            'scope': 'Checked-in source and supplied ownership inventory, not deployed bytes, provider identity or observed runtime reads.'}
+
+
+def lineage(engines, pages, writers):
+    """Finite graph traversal preserves shared ancestors, cycles and unknowns."""
+    adjacency = {name: set() for name in engines}
+    own_reads = {}
+    for name, record in engines.items():
+        own_reads[name] = sorted(k for k in record['reads'] if name in writers.get(k, []))
+        for key in record['reads']:
+            adjacency[name].update(writer for writer in writers.get(key, []) if writer != name)
+    # Iterative Kosaraju avoids recursion overflow on long source chains.
+    seen, order = set(), []
+    for start in sorted(adjacency):
+        if start in seen: continue
+        stack = [(start, False)]
+        while stack:
+            node, done = stack.pop()
+            if done:
+                order.append(node); continue
+            if node in seen: continue
+            seen.add(node); stack.append((node, True))
+            stack.extend((child, False) for child in sorted(adjacency[node], reverse=True) if child not in seen)
+    reverse = {name: set() for name in engines}
+    for name, dependencies in adjacency.items():
+        for other in dependencies: reverse[other].add(name)
+    seen, components = set(), []
+    for start in reversed(order):
+        if start in seen: continue
+        stack, members = [start], []
+        while stack:
+            node = stack.pop()
+            if node in seen: continue
+            seen.add(node); members.append(node); stack.extend(sorted(reverse[node], reverse=True))
+        if len(members) > 1: components.append(sorted(members))
+    components.sort()
+    rows = {}
+    for page, record in sorted(pages.items()):
+        keys, upstream, todo = set(record['keys']), set(), list(record['keys'])
+        while todo:
+            key = todo.pop()
+            for writer in writers.get(key, []):
+                if writer in upstream: continue
+                upstream.add(writer)
+                for parent in engines[writer]['reads']:
+                    if parent not in keys: keys.add(parent); todo.append(parent)
+        rows[page] = {'referenced_keys': sorted(keys), 'upstream_engines': sorted(upstream),
+                      'unresolved_keys': sorted(k for k in keys if not writers.get(k)),
+                      'ambiguous_writer_keys': sorted(k for k in keys if len(writers.get(k, [])) > 1),
+                      'cycle_components': [i for i, names in enumerate(components) if upstream.intersection(names)],
+                      'independent_evidence_count': None, 'source_families_verified': False,
+                      'calls_eligible': False, 'sizing_eligible': False}
+    return {'contract': 'static-dependency-lineage.v1', 'page_lineage': rows, 'cyclic_engine_components': components,
+            'self_read_keys': {k: v for k, v in own_reads.items() if v},
+            'scope': 'Potential transitive dependencies from code references. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.'}
 
 
 def build(repo: Path):
@@ -137,6 +232,8 @@ def build(repo: Path):
                         if cyc not in cycles:
                             cycles.append(cyc)
     return {
+        'input_identity': source_identity(repo, pages),
+        'lineage': lineage(engines, pages, writers),
         "generated_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
         "note": "REFERENCED BY CODE only (static). Existence/freshness on S3, successful load, display and decision use are separate states.",
         "counts": {"engines": len(engines), "pages": len(pages), "keys": len(all_keys), "writers": len(writers), "unused_outputs": len(unused_outputs),
@@ -145,45 +242,59 @@ def build(repo: Path):
         "engines": engines, "pages": pages, "writers": dict(writers), "engine_readers": dict(engine_readers), "page_readers": dict(page_readers),
         "unused_outputs": unused_outputs, "orphan_page_refs": orphan_page_refs, "orphan_engine_refs": orphan_engine_refs,
         "duplicate_writers": dup_writers, "engines_without_consumer": engines_no_consumer, "engines_without_schedule": engines_no_schedule,
-        "two_cycles": cycles, "fanout_members": fan,
+        "two_cycles": sorted(cycles), "fanout_members": fan,
     }
 
 
 def render_md(m) -> str:
     c = m["counts"]
     L = ["# Fleet dependency map (static, referenced-by-code)", "", "Generated %s by scripts/build_dependency_map.py. %s" % (m["generated_at"][:19], m["note"]), "",
+         'Input inventory SHA-256: `' + m['input_identity']['sha256'] + '`. Every input file is listed in the JSON companion.', '',
+         m['lineage']['scope'], '',
          "| metric | count |", "|---|---|"]
-    for k, v in c.items():
+    for k, v in sorted(c.items()):
         L.append("| %s | %s |" % (k.replace("_", " "), v))
     L += ["", "## Pages referencing keys no engine writes (orphan page references -- missing or obsolete outputs, or written outside aws/lambdas)", ""]
-    for k in m["orphan_page_refs"][:150]:
-        L.append("- `%s` <- %s" % (k, ", ".join(m["page_readers"][k][:6])))
+    for k in m["orphan_page_refs"]:
+        L.append("- `%s` <- %s" % (k, ", ".join(m["page_readers"][k])))
     L += ["", "## Engines reading keys no engine writes (orphan engine references)", ""]
-    for k in m["orphan_engine_refs"][:150]:
-        L.append("- `%s` <- %s" % (k, ", ".join(m["engine_readers"][k][:6])))
+    for k in m["orphan_engine_refs"]:
+        L.append("- `%s` <- %s" % (k, ", ".join(m["engine_readers"][k])))
     L += ["", "## Keys with more than one writer (duplicate / conflicting definitions)", ""]
-    for k, v in sorted(m["duplicate_writers"].items())[:120]:
+    for k, v in sorted(m["duplicate_writers"].items()):
         L.append("- `%s` <- %s" % (k, ", ".join(sorted(set(v)))))
     L += ["", "## Engines whose every output is unreferenced by any page or engine (%d)" % c["engines_without_consumer"], "",
-          ", ".join(m["engines_without_consumer"][:400]), "",
+          ", ".join(m["engines_without_consumer"]), "",
           "## Engines that write outputs but have no schedule in config.json and are not fan-out members (%d)" % c["engines_without_schedule"], "",
-          ", ".join(m["engines_without_schedule"][:400]), "",
+          ", ".join(m["engines_without_schedule"]), "",
           "## Two-engine read/write cycles (%d)" % c["two_cycles"], ""]
-    for a, b in m["two_cycles"][:60]:
+    for a, b in m["two_cycles"]:
         L.append("- %s <-> %s" % (a, b))
+    L += ['', '## Complete cyclic engine components', '']
+    for names in m['lineage']['cyclic_engine_components']:
+        L.append('- ' + ', '.join(names))
+    L += ['', 'The JSON companion contains every page\'s complete reachable engine/key population, unresolved paths, ambiguous writers and cycle-component references. Shared producers or copied packets are not independent provider evidence. No new decision or sizing authority is inferred.']
     return "\n".join(L) + "\n"
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default=str(Path(__file__).resolve().parents[1]))
+    ap.add_argument('--check', action='store_true', help='Reject stale source identities, graph results or incomplete Markdown')
     a = ap.parse_args()
-    repo = Path(a.repo)
+    repo = Path(a.repo).resolve()
     m = build(repo)
     out = repo / "docs" / "audit"
-    out.mkdir(parents=True, exist_ok=True)
-    (out / "dependency-map.json").write_text(json.dumps(m, indent=1, sort_keys=True))
-    (out / "dependency-map.md").write_text(render_md(m))
+    if a.check:
+        old = json.loads((out / 'dependency-map.json').read_text(encoding='utf-8'))
+        old_clock = old.get('generated_at')
+        current = {**m, 'generated_at': old_clock}
+        if json.dumps(current, sort_keys=True) != json.dumps(old, sort_keys=True) or (out / 'dependency-map.md').read_text(encoding='utf-8') != render_md(old):
+            raise SystemExit('Dependency map stale: rebuild from the complete current source inventory')
+    else:
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "dependency-map.json").write_text(json.dumps(m, indent=1, sort_keys=True) + '\n', encoding='utf-8', newline='\n')
+        (out / "dependency-map.md").write_text(render_md(m), encoding='utf-8', newline='\n')
     print(json.dumps(m["counts"], indent=1))
 
 
