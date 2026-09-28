@@ -108,7 +108,7 @@ def freshness_seconds(iso_str: Optional[str]) -> Optional[int]:
         return None
 
 
-def lambda_handler(event, context):
+def _legacy_lambda_handler(event, context):
     t0 = time.time()
     print(f"[summary] start {datetime.now(timezone.utc).isoformat()}")
 
@@ -277,3 +277,58 @@ def lambda_handler(event, context):
         "n_suggested":    len(suggested),
         "conviction":     summary["conviction"],
     })}
+
+
+# Source evidence only; the preserved predecessor above is never invoked.
+from pathlib import Path
+from botocore.config import Config
+from context_evidence_store import ContextStore,MAX_BYTES,encode,code
+import context_evidence_store
+from summary_evidence import CONTRACT,PRIVATE,HEAD,INPUTS,ALIASES,build as build_summary_evidence
+
+
+def _publish_summary_alias(client,store,key,body,started):
+    # Keep both existing compatibility names; each key has its own conditional
+    # write, whole previous/current retention and read-back. No cross-key atomicity.
+    if key not in ALIASES:raise ValueError('Undeclared summary alias')
+    if time.monotonic()-started>45:raise ValueError('Alias retention budget exhausted')
+    try:obj=client.get_object(Bucket=S3_BUCKET,Key=key)
+    except Exception as exc:
+        if code(exc) not in ('NoSuchKey','404'):raise
+        etag=None
+    else:
+        stream=obj['Body']
+        try:prior=stream.read(MAX_BYTES+1)
+        finally:stream.close()
+        etag=obj.get('ETag')
+        if len(prior)>MAX_BYTES or type(obj.get('ContentLength')) is not int or obj['ContentLength']!=len(prior) or not isinstance(etag,str) or not etag:
+            raise ValueError('Complete prior alias required')
+        if time.monotonic()-started>45:raise ValueError('Prior alias retention budget exhausted')
+        store.retain(prior,'outputs')
+    raw=gzip.compress(body,mtime=0) if key.endswith('.gz') else body
+    if time.monotonic()-started>45:raise ValueError('Current alias retention budget exhausted')
+    store.retain(raw,'outputs')
+    condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
+    encoding={'ContentEncoding':'gzip'} if key.endswith('.gz') else {}
+    if time.monotonic()-started>50:raise ValueError('Alias publication budget exhausted')
+    client.put_object(Bucket=S3_BUCKET,Key=key,Body=raw,ContentType='application/json',CacheControl='max-age=300',**encoding,**condition)
+
+
+def lambda_handler(event,context):
+    started=time.monotonic();primary_written=False;aliases=[]
+    try:
+        here=Path(__file__).resolve().parent
+        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))
+        store=ContextStore(client,S3_BUCKET,HEAD,INPUTS,PRIVATE,CONTRACT,
+            {'lambda_function.py':here/'lambda_function.py','summary_evidence.py':here/'summary_evidence.py',
+             'context_evidence_store.py':Path(context_evidence_store.__file__)},acquisition_budget_s=30,publication_budget_s=40)
+        packet,ref=store.publish(build_summary_evidence);primary_written=True;body=encode(packet)
+        for key in ALIASES:
+            if time.monotonic()-started>45:raise ValueError('Original sixty-second runtime budget exhausted')
+            _publish_summary_alias(client,store,key,body,started);aliases.append(key)
+        return {'statusCode':200,'body':json.dumps({'status':'research_only','call':'WAIT','measurement_contract':CONTRACT,
+            'output_sha256':ref['sha256'],'compatibility_outputs_published':aliases,'atomic_across_keys':False})}
+    except Exception:
+        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_primary_preserved':not primary_written,
+            'compatibility_outputs_published':aliases,'atomic_across_keys':False,'model_requests':0,
+            'error':'Complete retention or conditional publication failed; inspect each output contract separately'})}

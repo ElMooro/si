@@ -157,7 +157,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(mem.writes,[])
     def test_summary_consumer_remains_type_compatible_but_its_position_fallback_is_not_qualified(self):
         a,s=capture();brief=m.build(a,s,AT);raw={'brief':brief,'positioning':{'aggressive_basket':{'positions':[{'ticker':'SYN_A','position_pct':99}]}}}
-        outputs={};tree=ast.parse((ROOT/'aws/lambdas/justhodl-prepump-summary/source/lambda_function.py').read_bytes())
+        outputs={};tree=ast.parse((ROOT/'tests/fixtures/pre-prepump-summary-evidence.py.txt').read_bytes())
         node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
         scope={'time':time,'datetime':datetime,'timezone':timezone,'INPUTS':{k:k for k in ('brief','positioning','catalysts','clusters','early')},'json':json,
             'load_s3_json':lambda key:raw.get(key),'freshness_seconds':lambda _:None,'S3_BUCKET':'synthetic',

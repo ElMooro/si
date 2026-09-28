@@ -1002,30 +1002,30 @@ table.tbl tr:last-child td{border-bottom: none}
 
     <!-- ═══ PRE-PUMP RADAR hero card — the catalyst-aware pump-hunter desk ═══ -->
     <section class="card col-12" id="prePumpHero" style="border-left:3px solid #ef4444;background:linear-gradient(135deg,rgba(239,68,68,.05),rgba(167,139,250,.04) 50%,rgba(0,212,255,.03))">
-      <div class="card-head" style="flex-wrap:wrap;gap:12px">
+      <div class="card-head">
         <div>
-          <div class="card-title">PRE-PUMP DESK <span style="color:#ef4444;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(239,68,68,.15);padding:2px 8px;border-radius:3px;margin-left:6px">RESEARCH</span></div>
-          <div class="card-subtitle" id="ppSub">Evidence availability; portfolio recommendations remain unqualified.</div>
+          <div class="card-title">🔥 PRE-PUMP RADAR <span style="color:#ef4444;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(239,68,68,.15);padding:2px 8px;border-radius:3px;margin-left:6px">LIVE</span></div>
+          <div class="card-subtitle" id="ppSub">Catalyst-aware pump-hunter desk · loading…</div>
         </div>
-        <a href="/pre-pump-radar.html" class="card-action" style="color:#ef4444;white-space:nowrap">OPEN DESK →</a>
+        <a href="/pre-pump-radar.html" class="card-action" style="color:#ef4444">OPEN DESK →</a>
       </div>
-      <div id="prePumpBody" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:16px;align-items:start">
+      <div id="prePumpBody" style="display:grid;grid-template-columns:1.2fr 1.2fr 2fr 1.4fr;gap:16px;align-items:start">
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Decision status</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Conviction</div>
           <div id="ppConviction" style="font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
-          <div id="ppTemperature" style="font-size:12px;color:var(--muted);margin-top:2px">No position instruction</div>
+          <div id="ppTemperature" style="font-size:12px;color:var(--muted);margin-top:2px">temp —</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Evidence status</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">A-grade Catalysts</div>
           <div id="ppAGrade" style="font-size:28px;font-weight:600;color:#26ffaf">—</div>
-          <div id="ppPumpConf" style="font-size:12px;color:var(--muted);margin-top:2px">Input independence unqualified</div>
+          <div id="ppPumpConf" style="font-size:12px;color:var(--muted);margin-top:2px">pump confirmed —</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Research access</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Top Picks</div>
           <div id="ppPicks" style="font-size:12px;line-height:1.65;color:var(--text)">loading…</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Limitations</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Catalyst Clusters</div>
           <div id="ppClusters" style="font-size:12px;line-height:1.55;color:var(--text)">—</div>
           <div id="ppEarly" style="font-size:11px;line-height:1.5;color:var(--muted);margin-top:4px">—</div>
         </div>
@@ -2764,32 +2764,6 @@ async function loadPrePumpRadar(){
 }
 
 function renderPrePumpRadar(){
-  const s=STATE.data.ppSummary;
-  const flags=['calls_eligible','ranking_eligible','sizing_eligible','execution_eligible'];
-  const known=s&&s.measurement_contract==='prepump-summary-evidence.v1'&&s.status==='research_only'&&s.call==='WAIT'&&s.call_semantics==='abstain'&&flags.every(k=>s[k]===false);
-  const text={ppConviction:'WAIT',ppTemperature:'Abstain; no position instruction',ppAGrade:'Unqualified',
-    ppPumpConf:'Availability is not independent evidence',ppClusters:'No validated catalyst grade, market temperature or position size.',
-    ppEarly:'WAIT does not recommend holding an existing position.',
-    ppSub:known?'Redacted source summary; observation freshness and predictive performance remain unqualified.':'Source summary unavailable or legacy output unqualified. No trade recommendation.'};
-  for(const [id,value] of Object.entries(text)){
-    const el=document.getElementById(id);if(el){el.textContent=value;el.removeAttribute('title');}
-  }
-  const grade=document.getElementById('ppAGrade');if(grade){grade.style.fontSize='18px';grade.style.color='var(--muted)';}
-  const conviction=document.getElementById('ppConviction');if(conviction)conviction.style.color='var(--text)';
-  const picks=document.getElementById('ppPicks');if(picks)picks.innerHTML='<a href="/leader-observations.html">Inspect dated price observations and original sources</a>';
-  if(known){
-    const declared={brief:'pump-radar-brief',positioning:'pump-positioning',catalysts:'catalysts',clusters:'catalyst-clusters',early:'velocity-acceleration'};
-    const sources=Array.isArray(s.sources)?s.sources:[];
-    let received=0;
-    for(const [name,key] of Object.entries(declared)){
-      const rows=sources.filter(r=>r&&r.source===name&&r.source_key==='data/'+key+'.json');
-      if(rows.length===1&&rows[0].status==='received_object_unqualified')received++;
-    }
-    const el=document.getElementById('ppPumpConf');if(el)el.textContent=received+' / 5 declared inputs contain JSON objects; not votes';
-  }
-}
-
-function _legacy_renderPrePumpRadar(){
   // Reads single slim summary file (data/pump-radar-summary.json) built
   // by justhodl-prepump-summary Lambda — ~3 KB raw, ~700B over the wire.
   const s = STATE.data.ppSummary;

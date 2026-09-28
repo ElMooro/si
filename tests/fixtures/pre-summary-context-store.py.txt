@@ -66,15 +66,12 @@ def validate_ref(ref,prefix,kind):
 
 
 class ContextStore:
-    def __init__(self,client,bucket,head,inputs,prefix,contract,compiler_paths,acquisition_budget_s=230,publication_budget_s=250):
+    def __init__(self,client,bucket,head,inputs,prefix,contract,compiler_paths):
         if not isinstance(inputs,dict) or not inputs or len(set(inputs.values()))!=len(inputs):raise ValueError('Unique declared inputs required')
         if any(not isinstance(k,str) or not re.fullmatch(r'data/[a-z0-9-]+\.json',k) for k in (*inputs.values(),head)):raise ValueError('Literal declared context keys required')
         identity(b'',prefix,'sources')
         if not isinstance(compiler_paths,dict) or not compiler_paths or any(not re.fullmatch(r'[a-z0-9_]+\.py',name) for name in compiler_paths):raise ValueError('Named local compiler files required')
-        if (type(acquisition_budget_s) is not int or type(publication_budget_s) is not int or
-            not 1<=acquisition_budget_s<publication_budget_s<=250):raise ValueError('Bounded acquisition and publication budgets required')
         self.client=client;self.bucket=bucket;self.head=head;self.inputs=dict(inputs);self.prefix=prefix;self.contract=contract;self.compilers=dict(compiler_paths)
-        self.acquisition_budget_s=acquisition_budget_s;self.publication_budget_s=publication_budget_s
     def read(self,key):
         retained=isinstance(key,str) and re.fullmatch(re.escape(self.prefix)+r'(?:sources|inputs|outputs|compilers)/[a-f0-9]{64}\.bin',key)
         if key not in (*self.inputs.values(),self.head) and not retained:raise ValueError('Undeclared context key')
@@ -102,7 +99,7 @@ class ContextStore:
             previous_ref=self.retain(previous,'outputs')
         attempts={};sources={};total=0
         for name,key in self.inputs.items():
-            if time.monotonic()-started>self.acquisition_budget_s:raise ValueError('Context acquisition budget exhausted')
+            if time.monotonic()-started>230:raise ValueError('Context acquisition budget exhausted')
             requested=now()
             try:raw,meta=self.read(key)
             except Exception:
@@ -117,11 +114,10 @@ class ContextStore:
         compilers={name:self.retain(Path(path).read_bytes(),'compilers') for name,path in self.compilers.items()}
         manifest={'contract':self.contract,'acquisition_started_at':started_at,'generated_at':generated,'attempts':attempts,
             'previous_publication':previous_ref,'source_files':compilers,'stored_source_bytes':total,
-            'limits':{'per_source_bytes':MAX_BYTES,'aggregate_source_bytes':MAX_TOTAL,
-                      'acquisition_budget_s':self.acquisition_budget_s,'publication_budget_s':self.publication_budget_s}}
+            'limits':{'per_source_bytes':MAX_BYTES,'aggregate_source_bytes':MAX_TOTAL}}
         packet['replay']={'input_ref':self.retain(encode(manifest),'inputs'),'source_files':compilers,'previous_publication':previous_ref,'originals_public':False}
         packet['acquisition_started_at']=started_at;body=encode(packet);ref=self.retain(body,'outputs')
-        if time.monotonic()-started>self.publication_budget_s:raise ValueError('Context publication budget exhausted')
+        if time.monotonic()-started>250:raise ValueError('Context publication budget exhausted')
         condition={'IfMatch':etag} if etag is not None else {'IfNoneMatch':'*'}
         self.client.put_object(Bucket=self.bucket,Key=self.head,Body=body,ContentType='application/json',CacheControl='max-age=600',**condition)
         return packet,ref
