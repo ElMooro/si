@@ -1,0 +1,191 @@
+{
+  "checked_at": "2026-09-28T14:04:47.547009+00:00",
+  "diagnostic_commit": "6461c0936489ef0488ab1284815a440f676d251b",
+  "diagnostic_run": 36432242216,
+  "report_commit": "83cd4a052b735eef99c5732535497f72cd0fb3cf",
+  "diagnostic": {
+    "account_reads": 0,
+    "acquired_original": {
+      "original": {
+        "bytes": 10150912,
+        "key": "audit-private/20260909-originals/term-premium-research/0875a289a00e593b0fdfc6cd6d67b8059779719bb671275f8af69d7ef888a9ac.bin",
+        "sha256": "0875a289a00e593b0fdfc6cd6d67b8059779719bb671275f8af69d7ef888a9ac"
+      },
+      "whole_original_hash_verified": true
+    },
+    "actual_runtime": {
+      "code_sha256": "WCNv0NgyuziaTIk6TZpe0P4NHubUR3Jl0U2qEe5vNT8=",
+      "source_files_checked": 23,
+      "handler_bytes": 1359,
+      "timeout": 120,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "bdfd0c10bcafd6d41e47f59512057c7f928d9b45"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-acm-daily",
+          "state": "ENABLED",
+          "expression": "cron(45 13 ? * MON-FRI *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-term-premium",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "consumer_reads": 0,
+    "native_invocations": 0,
+    "own_acquisition_journal": {
+      "status": "acquisition_attempted",
+      "started_at": "2026-09-28T13:45:15.369949+00:00",
+      "provider_request_attempts": 1,
+      "key": "audit-private/20260909-originals/term-premium-research/requests/13098c191a84e04aaeb1ab00734aba410c525aa93d31ca5e6cfa9c5bf3a17233.json",
+      "bytes": 359,
+      "sha256": "53ca789bc1b3df105c095c8f64c992191b441975f86cf3328440cbf695522a6c",
+      "last_modified": "2026-09-28T13:45:18+00:00"
+    },
+    "privacy": {
+      "protected_paths_checked": 2,
+      "anonymous_origins_checked": 4,
+      "attempt_outcome_counts": {
+        "404": 2,
+        "403": 2
+      },
+      "all_denied": true,
+      "failures": []
+    },
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedule_changes": 0,
+    "scope": "Only this public producer package, its latest own acquisition journal/original, and system REPORT records in its ten-minute scheduled execution window. No application log bodies or consumer outputs.",
+    "system_reports": [
+      {
+        "request_id": "840eef48-29fa-4f2a-b45b-cd10924ec698",
+        "timestamp_ms": 1790603234916,
+        "duration_ms": 120000.0,
+        "billed_duration_ms": 120376.0,
+        "memory_mb": 512.0,
+        "max_memory_mb": 271.0,
+        "status": "timeout"
+      },
+      {
+        "request_id": "840eef48-29fa-4f2a-b45b-cd10924ec698",
+        "timestamp_ms": 1790603302771,
+        "duration_ms": 730.16,
+        "billed_duration_ms": 731.0,
+        "memory_mb": 512.0,
+        "max_memory_mb": 104.0
+      },
+      {
+        "request_id": "840eef48-29fa-4f2a-b45b-cd10924ec698",
+        "timestamp_ms": 1790603416090,
+        "duration_ms": 158.09,
+        "billed_duration_ms": 159.0,
+        "memory_mb": 512.0,
+        "max_memory_mb": 105.0
+      }
+    ]
+  },
+  "repair": {
+    "memory_mb": {
+      "before": 512,
+      "after": 1024
+    },
+    "timeout_s": {
+      "before": 120,
+      "after": 300
+    },
+    "stage_journal": true,
+    "cadence_changed": false,
+    "arithmetic_changed": false,
+    "provider_scope_changed": false,
+    "full_original_validation_retained": true
+  },
+  "reasoning": "System report confirms a 120-second timeout with 271 MB peak. Additional memory supplies CPU allocation; the larger execution ceiling and per-stage timing must be verified by the next normal scheduled execution. No particular stage is yet identified as the live bottleneck.",
+  "platform_sources": [
+    "https://docs.aws.amazon.com/lambda/latest/dg/configuration-memory.html",
+    "https://docs.aws.amazon.com/lambda/latest/dg/configuration-timeout.html"
+  ],
+  "tests": {
+    "native": 20,
+    "acceptance": 6,
+    "diagnostic": 2,
+    "deployment_static": 474,
+    "candidate_shell": 12
+  },
+  "whole_workbook_regression": {
+    "purpose": "Offline full-size native path against exact retained workbook, original older qualified source receipt and synthetic predecessor archive. Not a live execution or current-publication acceptance.",
+    "source_bytes": 10150912,
+    "source_sha256": "0875a289a00e593b0fdfc6cd6d67b8059779719bb671275f8af69d7ef888a9ac",
+    "offline_elapsed_s": 27.121,
+    "result": {
+      "published": true,
+      "generated_at": "2026-09-28T13:45:18+00:00",
+      "quality": {
+        "status": "unavailable",
+        "requested_series": 60,
+        "current_series": 0
+      },
+      "replay": {
+        "manifest_key": "data/term-premium-research/runs/c22ff802c7cf520f548e50f43a6e73b5535904f3179437288094e48a9fc8e46e.json",
+        "output_sha256": "58a10455ee5685a1e4950647d27ad2f09a46472b7f5ec29af904a35fe85e45eb"
+      },
+      "current_bytes": 185800,
+      "original_cells": 529170,
+      "provider_requests": 1,
+      "paid_ai_calls": 0,
+      "private_account_reads": 0,
+      "notifications_sent": 0,
+      "portfolio_writes": 0
+    },
+    "stages": [
+      {
+        "elapsed_s": 0.031,
+        "stage": "claimed"
+      },
+      {
+        "elapsed_s": 0.079,
+        "stage": "capture_previous"
+      },
+      {
+        "elapsed_s": 0.062,
+        "stage": "acquire_workbook"
+      },
+      {
+        "elapsed_s": 4.453,
+        "stage": "validate_workbook"
+      },
+      {
+        "elapsed_s": 0.078,
+        "stage": "retain_workbook"
+      },
+      {
+        "elapsed_s": 8.407,
+        "stage": "compile_and_verify"
+      },
+      {
+        "elapsed_s": 13.89,
+        "stage": "retain_and_replay"
+      },
+      {
+        "elapsed_s": 0.094,
+        "stage": "publish_conditionally"
+      }
+    ],
+    "native_aws_invocations": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "current_bytes": 185800,
+    "source_acquired_at": "2026-09-26T04:27:40.304590+00:00"
+  },
+  "native_publication_verified": false,
+  "future_runtime_performance_guaranteed": false
+}

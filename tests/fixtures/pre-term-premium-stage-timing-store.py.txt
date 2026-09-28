@@ -1,7 +1,7 @@
 """Native original workbook retention, reproducible research and conditional head."""
 from datetime import datetime,timezone
 from pathlib import Path
-import hashlib,json,re,time,urllib.request
+import hashlib,json,re,urllib.request
 import term_premium_model as model
 from term_premium_qualification import QUALIFIED
 
@@ -195,26 +195,18 @@ def run(client,bucket,request_id):
     qualified_arithmetic()
     if not isinstance(request_id,str) or not 1<=len(request_id)<=200:raise ValueError('Native request identity required')
     key=PRIVATE+'requests/'+sha(('native:'+request_id).encode())+'.json'
-    started=time.monotonic();phase_started=started
-    progress={'status':'claimed','started_at':now(),'provider_request_attempts':0,'stage':'claimed','stage_timings':[]}
+    progress={'status':'claimed','started_at':now(),'provider_request_attempts':0}
     def journal(claim=False):
         raw=model.encoded(progress);client.put_object(Bucket=bucket,Key=key,Body=raw,ContentType='application/json',CacheControl='no-store',**({'IfNoneMatch':'*'} if claim else {}))
         if bounded(client.get_object(Bucket=bucket,Key=key)['Body'])!=raw:raise ValueError('Native claim readback differs')
-    def stage(name):
-        nonlocal phase_started
-        current=time.monotonic()
-        progress['stage_timings'].append({'stage':progress['stage'],'elapsed_s':round(current-phase_started,3)})
-        phase_started=current;progress.update(stage=name,stage_started_at=now(),elapsed_s=round(current-started,3));journal()
     journal(True)
     try:
-        stage('capture_previous')
         predecessors,previous,fallback=previous_state(client,bucket)
-        progress.update(status='acquisition_attempted',provider_request_attempts=1);stage('acquire_workbook')
+        progress.update(status='acquisition_attempted',provider_request_attempts=1);journal()
         acquisition={'status':'acquired'}
         try:
-            raw,source=acquire();progress['acquired_original']=retain_bytes(client,bucket,raw,'originals',private=True);stage('validate_workbook')
+            raw,source=acquire();progress['acquired_original']=retain_bytes(client,bucket,raw,'originals',private=True);journal()
             model.arithmetic.build(raw,source,now())  # Reject schema/identity drift before admitting a public original.
-            stage('retain_workbook')
             original=retain_bytes(client,bucket,raw,'originals','xls');receipt=retain_bytes(client,bucket,model.encoded(source),'sources')
         except Exception as exc:
             acquisition={'status':'failed','error_type':type(exc).__name__}
@@ -223,15 +215,11 @@ def run(client,bucket,request_id):
             original,receipt=fallback['workbook'],fallback['source']
         inputs={'contract':'term-premium-inputs.v1','generated_at':now(),'workbook':original,'source':receipt,
             'previous_watermarks':previous,'predecessors':predecessors,'acquisition':acquisition}
-        stage('compile_and_verify')
-        output=compile_output(inputs,reader(client,bucket))
-        stage('retain_and_replay')
-        packet=retain(client,bucket,inputs,output)
-        stage('publish_conditionally')
+        output=compile_output(inputs,reader(client,bucket));packet=retain(client,bucket,inputs,output)
         published=publish(client,bucket,packet)
         result={'published':published,'generated_at':packet['generated_at'],'quality':packet['quality'],'replay':packet['replay'],
             'current_bytes':len(model.encoded(packet)),'original_cells':packet['original_arithmetic_checks']['original_cells_including_headers'],
             'provider_requests':1,'paid_ai_calls':0,'private_account_reads':0,'notifications_sent':0,'portfolio_writes':0}
-        progress.update(status='complete',result=result);stage('complete');return result
+        progress.update(status='complete',result=result);journal();return result
     except Exception as exc:
-        progress.update(status='failed',error_type=type(exc).__name__,failed_stage=progress['stage'],elapsed_s=round(time.monotonic()-started,3));journal();raise
+        progress.update(status='failed',error_type=type(exc).__name__);journal();raise

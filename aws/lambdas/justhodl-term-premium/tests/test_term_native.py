@@ -126,6 +126,24 @@ class Tests(unittest.TestCase):
         with patch.object(store,'now',return_value=NOW),patch.object(store,'acquire',side_effect=TimeoutError),self.assertRaises(TimeoutError):
             store.run(self.client,'b','failed-first-event')
         self.assertEqual(self.client.objects[model.CURRENT],old)
+    def test_journal_records_completed_stages_without_extra_source_requests(self):
+        with patch.object(store,'now',return_value=NOW),patch.object(store,'acquire',return_value=(RAW,RECEIPT)) as acquire:
+            store.run(self.client,'b','timed-event')
+        key=store.PRIVATE+'requests/'+store.sha(b'native:timed-event')+'.json'
+        journal=json.loads(self.client.objects[key]);self.assertEqual(acquire.call_count,1)
+        self.assertEqual(journal['status'],'complete');self.assertEqual(journal['stage'],'complete')
+        self.assertEqual([r['stage'] for r in journal['stage_timings']],['claimed','capture_previous','acquire_workbook',
+            'validate_workbook','retain_workbook','compile_and_verify','retain_and_replay','publish_conditionally'])
+        self.assertTrue(all(r['elapsed_s']>=0 for r in journal['stage_timings']))
+        self.assertGreaterEqual(journal['elapsed_s'],0);self.assertEqual(journal['provider_request_attempts'],1)
+    def test_compile_failure_records_stage_and_preserves_public_head(self):
+        old=self.client.objects[model.CURRENT]
+        with patch.object(store,'now',return_value=NOW),patch.object(store,'acquire',return_value=(RAW,RECEIPT)),\
+                patch.object(store,'compile_output',side_effect=ValueError('fixture compilation failure')):
+            with self.assertRaises(ValueError):store.run(self.client,'b','failed-compile')
+        key=store.PRIVATE+'requests/'+store.sha(b'native:failed-compile')+'.json';journal=json.loads(self.client.objects[key])
+        self.assertEqual(journal['status'],'failed');self.assertEqual(journal['failed_stage'],'compile_and_verify')
+        self.assertEqual(self.client.objects[model.CURRENT],old)
     def test_public_reader_never_requests_private_account_or_arbitrary_paths(self):
         self.client.reads=[]
         for key in ('audit-private/x','data/account.json','data/term-premium-research/originals/../secret'):
@@ -140,7 +158,7 @@ class Tests(unittest.TestCase):
             client.assert_not_called()
     def test_runtime_and_conserved_predecessor_remain_exact(self):
         store.qualified_arithmetic();config=json.loads((SOURCE.parent/'config.json').read_bytes())
-        self.assertEqual((config['memory'],config['timeout'],config['architectures']),(512,120,['x86_64']))
+        self.assertEqual((config['memory'],config['timeout'],config['architectures']),(1024,300,['x86_64']))
         sys.path.insert(0,str(ROOT/'scripts'));from normalize_lambda_config import normalize_config
         normalized=normalize_config(config)
         self.assertNotIn('eventbridge_scheduler',normalized);self.assertNotIn('schedule',normalized)

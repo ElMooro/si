@@ -10,6 +10,18 @@ n=importlib.util.module_from_spec(spec);spec.loader.exec_module(n)
 
 
 class Tests(unittest.TestCase):
+    def test_reviewed_compute_reserve_does_not_relax_package_or_schedule_checks(self):
+        from copy import deepcopy
+        original=json.loads(op.BASELINE.read_bytes());actual=deepcopy(original)
+        config=json.loads((ROOT/'aws/lambdas/justhodl-term-premium/config.json').read_bytes())
+        actual.update(memory_mb=config['memory'],timeout=config['timeout'],receipt={'status':'matched','commit':'a'*40})
+        op.check_runtime(actual,'a'*40)
+        for mutate in (lambda r:r.update(timeout=120),lambda r:r.update(memory_mb=512),
+                       lambda r:r.update(source_files_checked=22),lambda r:r['schedules'][0].update(state='DISABLED'),
+                       lambda r:r['receipt'].update(commit='b'*40)):
+            bad=deepcopy(actual);mutate(bad)
+            with self.assertRaises(ValueError):op.check_runtime(bad,'a'*40)
+
     def fixture(self):
         case=n.Tests();case.setUp();self.addCleanup(case.doCleanups)
         return case,case.packet()

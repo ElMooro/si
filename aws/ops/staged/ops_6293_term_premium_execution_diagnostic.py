@@ -36,7 +36,7 @@ def main():
     clients=[boto3.client(n,region_name='us-east-1') for n in ('lambda','s3','events','scheduler')]
     with report('ops_6293_term_premium_execution_diagnostic') as r:
         before=runtime(*clients,FN)
-        if before!=json.loads(accepted.BASELINE.read_bytes()):raise ValueError('Accepted native package/cadence differs')
+        accepted.check_runtime(before,accepted.expected_commit(FN))
         journal,paths=accepted.latest_source_journal(clients[1])
         if not paths:raise ValueError('Own scheduled acquisition journal required')
         raw=store.bounded(clients[1].get_object(Bucket=BUCKET,Key=paths[0])['Body'])

@@ -55,9 +55,17 @@ def latest_source_journal(s3):
     item=max(items,key=lambda row:(row['LastModified'],row['Key']))
     raw=store.bounded(s3.get_object(Bucket=BUCKET,Key=item['Key'])['Body']);journal=store.strict(raw)
     if not isinstance(journal,dict):raise ValueError('Whole own acquisition journal required')
-    result={k:journal[k] for k in ('status','started_at','provider_request_attempts','error_type','acquisition','result') if k in journal}
+    result={k:journal[k] for k in ('status','started_at','provider_request_attempts','error_type','acquisition','result','stage','stage_started_at','stage_timings','elapsed_s','failed_stage') if k in journal}
     result.update(key=item['Key'],bytes=len(raw),sha256=store.sha(raw),last_modified=item['LastModified'].isoformat())
     return result,[item['Key']]
+
+
+def check_runtime(actual,expected):
+    original=json.loads(BASELINE.read_bytes());config=json.loads((ROOT/'aws/lambdas'/FN/'config.json').read_bytes())
+    stable=('function_name','runtime','handler','architectures','role','ephemeral_storage_mb','schedules','source_files_checked')
+    if (any(actual[k]!=original[k] for k in stable) or actual['receipt']!={'status':'matched','commit':expected}
+        or (actual['memory_mb'],actual['timeout'])!=(config['memory'],config['timeout'])):
+        raise ValueError('Exact reviewed package/resources or original cadence differs')
 
 
 def main():
@@ -65,8 +73,7 @@ def main():
     clients=[boto3.client(n,region_name='us-east-1') for n in ('lambda','s3','events','scheduler')]
     with report('ops_6292_term_premium_normal_acceptance') as r:
         expected=expected_commit(FN);before=runtime(*clients,FN)
-        if before!=json.loads(BASELINE.read_bytes()) or before['receipt']!={'status':'matched','commit':expected}:
-            raise ValueError('Accepted complete package or original runtime/cadence differs')
+        check_runtime(before,expected)
         raw=store.bounded(clients[1].get_object(Bucket=BUCKET,Key=model.CURRENT)['Body'])
         result,protected=publication(raw,clients[1]);journal,paths=latest_source_journal(clients[1]);protected.extend(paths)
         privacy=access.summarize([access.check(key) for key in sorted(set(protected))])
