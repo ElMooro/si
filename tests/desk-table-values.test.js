@@ -367,6 +367,24 @@ test('EPS malformed comparisons cannot be recovered by switching tabs or searchi
  }
 });
 
+test('EPS coverage distinguishes received arrays from visits and a capped visit cycle',async()=>{
+ const M=require('../jh-eps-observations.js'),p=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/eps-resumption-synthetic.json'),'utf8')).packet;
+ const m=M.model(p);assert.deepEqual([m.coverage.selected,m.coverage.visited,m.coverage.pending,m.coverage.received],[3,1,2,1]);assert.equal(m.targets[0].change,1);
+ const s=page('eps-velocity.html',async()=>raw(p));await flush();assert.match(s.get('coverage').textContent,/1 of 3 selected request records visited/);assert.match(s.get('coverage').textContent,/2 remain/);assert.match(s.get('coverage').textContent,/not complete data coverage/);
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 received requests/);assert.match(s.get('board').innerHTML,/not_attempted_runtime_rate_or_size_limit/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+});
+
+test('EPS false coverage cannot display a valid-looking population after navigation',async()=>{
+ const M=require('../jh-eps-observations.js'),p=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/eps-resumption-synthetic.json'),'utf8')).packet;
+ for(const edit of [p=>delete p.acquisition_progress,p=>p.acquisition_progress.remaining_symbols=[],p=>p.acquisition_progress.visited_occurrences=2,
+  p=>p.acquisition_progress.planned_request_indices=[0,2,1],p=>p.acquisition_progress.visited_request_indices=[true],p=>p.acquisition_progress.retained_provider_bytes=0,
+  p=>p.request_records[1].acquisitions[0].status='received']){
+  const q=structuredClone(p);edit(q);assert.throws(()=>M.model(q));const s=page('eps-velocity.html',async()=>raw(q));await flush();
+  assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('original').textContent,JSON.stringify(q));
+  for(const mode of ['targets','requests']){s.get('mode').value=mode;s.get('mode').onchange();s.get('q').oninput();assert.equal(s.get('board').textContent,'No verified display population');}
+ }
+});
+
 test('revenue statements retain all periods, zero amounts, units, calculations and request evidence',async()=>{
  const M=require('../jh-revenue-observations.js');const record={ticker:'TEST',acquisitions:[{endpoint:'income-statement',status:'received',original_base64:'WHOLE_BYTES'}],quote_records:[],
  statement_observations:[{source_index:0,raw:{symbol:'TEST',unknown:'<img src=x>'},period_start:'2026-04-01',period_end:'2026-06-30',reported_period:'Q2',reported_currency:'JPY',values:{revenue:0},gross_margin_pct:null,status:'reported_statement_amounts'}],

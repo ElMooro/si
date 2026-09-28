@@ -33,28 +33,10 @@
    return {raw:new TextDecoder('utf-8',{fatal:true}).decode(bytes),...declared};
   })()]);}finally{clearTimeout(timer);controller.abort();if(reader)reader.cancel().catch(()=>{});}
  }
- function coverage(p){
-  const g=p.acquisition_progress;if(g===undefined){if(p.version==='1.3.0')throw Error('Acquisition progress required');return null;}
-  const selected=obj(p.universe_membership).selected_symbols,records=p.request_records;
-  if(!g||g.contract!=='eps-acquisition-progress.v1'||!Array.isArray(selected)||selected.length>500||new Set(selected).size!==selected.length||!selected.every(v=>typeof v==='string'&&/^[A-Z0-9][A-Z0-9.\-]{0,19}$/.test(v))||!Array.isArray(records)||records.length!==selected.length)throw Error('Complete selected acquisition population required');
-  const planned=g.planned_symbols,indices=g.planned_request_indices,visited=g.visited_request_indices,pending=g.remaining_symbols;
-  if(!Array.isArray(planned)||!Array.isArray(indices)||!Array.isArray(visited)||!Array.isArray(pending)||new Set(planned).size!==planned.length||!planned.every(v=>selected.includes(v))||indices.length!==planned.length||!indices.every((n,i)=>Number.isInteger(n)&&selected[n]===planned[i])||visited.length>indices.length||!visited.every((n,i)=>Number.isInteger(n)&&n===indices[i])||JSON.stringify(pending)!==JSON.stringify(planned.slice(visited.length)))throw Error('Exact acquisition progress partition required');
-  if(g.visited_occurrences!==visited.length||g.pending_occurrences!==pending.length||g.cycle_complete!==(pending.length===0)||g.visited_is_not_successful_provider_response!==true||g.request_order_is_rank!==false||g.original_selected_population_order_preserved!==true||g.cycle_scope!=='Existing selected request cap only; not the whole source universe')throw Error('Acquisition coverage counters differ');
-  if(!['planned_window_complete','runtime_reserve','source_byte_budget','provider_rate_limit','provider_authorization_error'].includes(g.stop_reason)||g.stop_reason==='planned_window_complete'&&pending.length)throw Error('Acquisition stop reason differs');
-  let bytes=0,received=0;
-  records.forEach((r,i)=>{if(r.ticker!==selected[i]||r.request_index!==i||!Array.isArray(r.acquisitions)||r.acquisitions[0]?.endpoint!=='quote'||typeof r.acquisitions[0].status!=='string'||(r.acquisitions[0].status!=='not_attempted_runtime_rate_or_size_limit')!==visited.includes(i))throw Error('Acquisition outcomes and progress differ');
-   for(const a of r.acquisitions){const n=a.original_bytes??0;if(!Number.isSafeInteger(n)||n<0)throw Error('Whole original response byte accounting required');bytes+=n;}
-   if(obj(r.source_population_status)['analyst-estimates']==='received_array')received++;
-  });
-  if(bytes!==g.retained_provider_bytes)throw Error('Acquisition response byte accounting differs');
-  return {selected:selected.length,visited:visited.length,pending:pending.length,received,
-   message:visited.length+' of '+selected.length+' selected request records visited this run; '+pending.length+' remain in the current visit cycle. Annual-estimate arrays received: '+received+'. A completed visit cycle is not complete data coverage; the original selected cap still applies. Stop: '+g.stop_reason+'.'};
- }
  function model(p){
   const out={targets:[],ratings:[],requests:[],native:p.measurement_contract===CONTRACT};
   if(out.native){
    if(!Array.isArray(p.request_records))throw Error('Complete request population required');
-   out.coverage=coverage(p);
    p.request_records.forEach((value,requestIndex)=>{
     const r=obj(value);
     for(const k of ['acquisitions','quote_records','estimate_observations','same_target_comparisons','rating_observations'])if(!Array.isArray(r[k]))throw Error('Complete source population required: '+k);
@@ -117,9 +99,8 @@
     'Generated '+(text(p.generated_at)||'unavailable')+'. This is a collection clock, not an estimate target or original release date.';
    $('coverage').textContent=data.native?data.requests.length+' request records, '+data.targets.length+' annual forecast records and '+data.ratings.length+' rating records. Inspect acquisition coverage separately; unattempted and failed requests remain explicit. Original response bytes and full universe membership are in the complete packet.':
     'Every published company and summary occurrence is retained. Legacy scores and forecasts are available in source details; missing acquisition history cannot be reconstructed. The legacy packet does not establish a complete company or analyst population.';
-   if(data.coverage)$('coverage').textContent+=' '+data.coverage.message;
    loaded=true;render();
   }catch(e){loaded=false;data={targets:[],ratings:[],requests:[]};sourceRequest++;$('source-original').textContent='';$('status').textContent='Stored EPS research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
  }
- const api={CONTRACT,model,start,escape,source,loadSource,comparisonSource,coverage};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHEPSObservations=api;
+ const api={CONTRACT,model,start,escape,source,loadSource,comparisonSource};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHEPSObservations=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

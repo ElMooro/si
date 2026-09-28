@@ -1,0 +1,87 @@
+{
+  "baseline_commit": "1a7cccf7501e3313714d26fd5f55edc2b8634139",
+  "checked_at": "2026-09-28T10:44:10.518982+00:00",
+  "originals": {
+    "aws/lambdas/justhodl-eps-revision-velocity/source/lambda_function.py": {
+      "bytes": 31853,
+      "sha256": "ae10002774e9905698e29883fe3c73d96cf298b407098cbbe2eff8abc199ab81"
+    },
+    "aws/lambdas/justhodl-eps-revision-velocity/source/eps_observations.py": {
+      "bytes": 19776,
+      "sha256": "7f7bf2d7cbf5ca8e7c97cd6aba63f4394a4b0fb8405edad4d67db2b32a993f44"
+    },
+    "jh-eps-observations.js": {
+      "bytes": 12292,
+      "sha256": "d0840d6558ad5be16d38a1eed63f5b6ca1e22a907e7644099d77f5c018d792fc"
+    }
+  },
+  "reproduced": "Complete actual 1.2 predecessor visits TEST in three consecutive partial runs, leaving SECOND and THIRD unattempted. Repaired actual writer visits TEST, SECOND, THIRD, TEST without increasing requests per run.",
+  "fixed_visits": [
+    "TEST",
+    "SECOND",
+    "THIRD",
+    "TEST"
+  ],
+  "pending_counts": [
+    2,
+    1,
+    0,
+    2
+  ],
+  "comparison_after_cycle": {
+    "source_index": 0,
+    "prior_source_index": 0,
+    "prior_received_at": "2026-09-27T01:00:01.000005+00:00",
+    "eps_change": 1,
+    "eps_change_pct_positive_base": 50.0,
+    "analyst_count_change": 0,
+    "status": "observed_same_target_consensus_change",
+    "same_analyst_panel_verified": false,
+    "corporate_actions_verified": false
+  },
+  "repair": "Resume remaining selected tickers from the whole prior publication. Reconcile retired/new/reordered membership by original requested ticker; never rank by request order. Keep complete current selected outcomes and all retained prior estimate baselines.",
+  "scope": "A cycle covers only the original selected request cap and includes failed requests. It is not full provider-universe coverage or successful data acquisition.",
+  "unchanged": [
+    "Original provider endpoints and quote/estimate gates",
+    "500 maximum selected requests, 10 workers, 12 MiB source budget, 50-second acquisition reserve",
+    "Original 1024 MB / 300 s runtime and daily 11 UTC fanout",
+    "Authorization/rate-limit stops; no same-run retries",
+    "Retained-source transport, immutable originals/history and conditional publication",
+    "Research-only permissions"
+  ],
+  "failure_semantics": [
+    "All-unavailable provider run preserves the previous public head and does not advance its queue",
+    "Corrupt prior progress fails before provider work",
+    "Whole-publication/archive failures do not claim progress",
+    "Successful visit is distinct from received annual-estimate array"
+  ],
+  "limits": [
+    "Persistent all-unavailable/provider authorization failures do not advance public queue; acquisition-attempt state outside accepted publications remains open",
+    "No increase beyond existing selected cap",
+    "No first-release vintage, fixed analyst panel, corporate-action adjustment, economic prediction or portfolio authority",
+    "Actual normal-publication replay remains pending"
+  ],
+  "tests": {
+    "native": 37,
+    "acceptance": 15,
+    "targeted_frontend": 59,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_state_reads": 0,
+    "frontend": 1649,
+    "deployment_static": 468,
+    "deployment_shell": 12,
+    "page_graphs": 599,
+    "page_syntax_errors": 0,
+    "registry_check": true,
+    "wiring_bindings": 143
+  },
+  "additional_bug": "Pre-ship testing reproduced boolean true accepted as visited count 1 by Python equality. Literal integer counters, integer coordinates and boolean flags now fail closed; malformed prior baseline flags also fail.",
+  "browser": {
+    "environment": "Actual isolated page/script with four-run synthetic writer fixture",
+    "display": "1 of 3 selected requests visited, 2 remaining, 1 received annual array; original selected cap and unsuccessful-visit distinction explicit",
+    "requests": "All 3 selected rows shown; SECOND and THIRD remain unattempted with their older baseline clocks and no current observations",
+    "comparison": "TEST current EPS3, change1 and original EPS2 timestamp after complete intervening visit cycle",
+    "captured_console_errors": 0
+  }
+}

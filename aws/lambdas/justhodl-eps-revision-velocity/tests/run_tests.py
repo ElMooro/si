@@ -11,7 +11,8 @@ import ast,base64,hashlib,json,sys,time,tempfile,unittest,urllib.request,urllib.
 ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-eps-revision-velocity/source';sys.path.insert(0,str(SRC))
 from eps_observations import (CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier,estimates,compare,ratings,
                              estimate_descriptor,validate_estimate_descriptor,estimate_source_envelope,
-                             baseline_catalogue,previous_estimate_baselines,merge_estimate_baselines)
+                             baseline_catalogue,previous_estimate_baselines,merge_estimate_baselines,
+                             acquisition_plan,acquisition_progress,validate_acquisition_progress)
 TODAY='2026-09-27'
 
 
@@ -57,6 +58,7 @@ def native(memory=None,**extra):
            'CONTRACT':CONTRACT,'strict':strict,'clock':clock,'number':number,'symbol':symbol,'envelope':envelope,'original':original,'universe':universe,'dossier':dossier,
            'estimate_descriptor':estimate_descriptor,'validate_estimate_descriptor':validate_estimate_descriptor,'estimate_source_envelope':estimate_source_envelope,
            'previous_estimate_baselines':previous_estimate_baselines,'merge_estimate_baselines':merge_estimate_baselines,
+           'acquisition_plan':acquisition_plan,'acquisition_progress':acquisition_progress,
            'datetime':datetime,'timezone':timezone,'ThreadPoolExecutor':ThreadPoolExecutor,'urllib':urllib,'quote_plus':quote_plus,'hashlib':hashlib,'json':json,'time':time,'Path':Path,'__file__':str(SRC/'lambda_function.py'),**extra}
     tree=ast.parse((SRC/'lambda_function.py').read_bytes());functions=[n for n in tree.body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_eps_') or n.name=='lambda_handler')]
     exec(compile(ast.Module(body=functions,type_ignores=[]),'<isolated active EPS functions>','exec'),scope)
@@ -185,7 +187,7 @@ class Tests(unittest.TestCase):
         ns['_eps_company']=company;ns['lambda_handler']();p=strict(m.data['data/eps-revision-velocity.json'])
         self.assertEqual(len(calls),2);self.assertEqual(len(p['request_records']),4)
         self.assertEqual([r['acquisitions'][0]['status'] for r in p['request_records']],['received','received','not_attempted_runtime_rate_or_size_limit','not_attempted_runtime_rate_or_size_limit'])
-        self.assertEqual(p['version'],'1.2.0');self.assertTrue(p['transport']['stop_after_authorization_error']);self.assertEqual(p['source_imports'],ns['_eps_import_identity']());self.assertTrue(all(b.closed for b in m.bodies))
+        self.assertEqual(p['version'],'1.3.0');self.assertTrue(p['transport']['stop_after_authorization_error']);self.assertEqual(p['source_imports'],ns['_eps_import_identity']());self.assertTrue(all(b.closed for b in m.bodies))
 
     def test_every_s3_body_closes_on_success_bounds_metadata_and_read_failure(self):
         for kind in ('ok','oversize','metadata','read_failure'):
@@ -217,7 +219,8 @@ class Tests(unittest.TestCase):
             def now(cls,tz):
                 cls.value+=timedelta(microseconds=1);return cls.value
         run_context=options.pop('run_context',None)
-        ns=native(memory,N_WORKERS=1,datetime=RunClock,**options);calls=[]
+        limit=options.pop('MAX_TICKERS',1)
+        ns=native(memory,N_WORKERS=1,MAX_TICKERS=limit,datetime=RunClock,**options);calls=[]
         def company(ticker):
             calls.append(ticker);group=[capture([{'symbol':ticker,'marketCap':1e9}],'quote',RunClock.now(timezone.utc).isoformat())]
             if eps is None:group.append({'endpoint':'analyst-estimates','status':'rate_limited'})
@@ -237,7 +240,8 @@ class Tests(unittest.TestCase):
         third,_,_=self.baseline_run(m,3);row=third['request_records'][0];change=row['same_target_comparisons'][0]
         self.assertEqual(change['eps_change'],1);self.assertEqual(change['eps_change_pct_positive_base'],50)
         self.assertEqual(change['prior_received_at'],descriptor['received_at']);self.assertEqual(row['comparison_source']['baseline'],descriptor)
-        self.assertEqual(third['request_records'][1]['acquisitions'][0]['status'],'not_attempted_runtime_rate_or_size_limit')
+        self.assertEqual(len(third['request_records']),1)
+        self.assertTrue(any(r['status']=='outside_original_request_cap' for r in third['universe_membership']['occurrences']))
         self.assertEqual(sum('/history/' in k for k in m.data),4);self.assertEqual(sum('/sources/' in k for k in m.data),2)
         self.assertTrue(all(b.closed for b in m.bodies));self.assertFalse(third['calls_eligible'])
 
@@ -267,6 +271,7 @@ class Tests(unittest.TestCase):
         for mutate in [lambda p:p['estimate_baselines']['entries'][0]['original_ref'].update(key='private/account.json'),
             lambda p:p['estimate_baselines']['entries'][0]['original_ref'].update(bytes=True),
             lambda p:p['estimate_baselines']['entries'][0].update(received_at='2099-01-01T00:00:00Z'),
+            lambda p:p['estimate_baselines'].update(retired_tickers_retained=1),
             lambda p:p['estimate_baselines']['entries'].append(deepcopy(p['estimate_baselines']['entries'][0]))]:
             q=deepcopy(first);mutate(q);m.data['data/eps-revision-velocity.json']=json.dumps(q).encode();m.reads=[];m.writes=[]
             ns=native(m);ns['_eps_company']=lambda *a:self.fail('No provider request after invalid prior reference')
@@ -298,7 +303,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(m.reads,[])
 
     def test_received_empty_array_replaces_baseline_without_fabricating_a_zero_change(self):
-        m=Memory();first,_,_=self.baseline_run(m,2);ns=native(m,N_WORKERS=1)
+        m=Memory();first,_,_=self.baseline_run(m,2);ns=native(m,N_WORKERS=1,MAX_TICKERS=1)
         ns['_eps_company']=lambda ticker:[capture([{'symbol':ticker,'marketCap':1e9}],'quote',datetime.now(timezone.utc).isoformat()),
             capture([],'analyst-estimates',datetime.now(timezone.utc).isoformat()),{'endpoint':'grades','status':'rate_limited'}]
         ns['lambda_handler']();empty=strict(m.data['data/eps-revision-velocity.json']);d=empty['estimate_baselines']['entries'][0]
@@ -363,6 +368,62 @@ class Tests(unittest.TestCase):
             p=strict(before);p['estimate_baselines']['maximum_entries']=1;m.data['data/eps-revision-velocity.json']=json.dumps(p).encode();saved=m.data['data/eps-revision-velocity.json']
             with self.assertRaisesRegex(ValueError,'exceeds declared bound'):self.baseline_run(m,3,SP500_BACKUP=[])
             self.assertEqual(m.data['data/eps-revision-velocity.json'],saved)
+
+    def test_partial_runs_resume_later_selected_tickers_and_retain_full_population(self):
+        m=Memory();calls=[];packets=[]
+        for value in (2,10,20,3):
+            p,_,called=self.baseline_run(m,value,MAX_TICKERS=3);calls+=called;packets.append(p)
+            progress=p['acquisition_progress'];self.assertEqual(validate_acquisition_progress(p['universe_membership']['selected_symbols'],p['request_records'],progress),progress['remaining_symbols'])
+            self.assertEqual([r['ticker'] for r in p['request_records']],['TEST','SECOND','THIRD'])
+        self.assertEqual(calls,['TEST','SECOND','THIRD','TEST'])
+        self.assertEqual([p['acquisition_progress']['visited_request_indices'] for p in packets],[[0],[1],[2],[0]])
+        self.assertEqual(packets[1]['request_records'][0]['estimate_observations'],[])
+        self.assertEqual(packets[2]['acquisition_progress']['remaining_symbols'],[])
+        self.assertTrue(packets[2]['acquisition_progress']['cycle_complete'])
+        self.assertEqual(packets[3]['request_records'][0]['same_target_comparisons'][0]['eps_change'],1)
+        self.assertEqual(packets[3]['request_records'][0]['comparison_source']['baseline']['received_at'],packets[0]['estimate_baselines']['entries'][0]['received_at'])
+        self.assertEqual(len(packets[3]['estimate_baselines']['entries']),3)
+
+    def test_complete_predecessor_repeats_prefix_and_new_writer_bootstraps_its_unattempted_rows(self):
+        original_native=native;tree=ast.parse((ROOT/'tests/fixtures/pre-eps-resumption-lambda_function.py.txt').read_bytes())
+        functions=[n for n in tree.body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_eps_') or n.name=='lambda_handler')]
+        def predecessor(*args,**kw):
+            ns=original_native(*args,**kw);identity=ns['_eps_import_identity'];exec(compile(ast.Module(body=functions,type_ignores=[]),'<complete pre-resumption writer>','exec'),ns);ns['_eps_import_identity']=identity;return ns
+        m=Memory();calls=[]
+        with patch.object(sys.modules[__name__],'native',side_effect=predecessor):
+            for value in (2,3,4):p,_,called=self.baseline_run(m,value,MAX_TICKERS=3);calls+=called
+        self.assertEqual(calls,['TEST','TEST','TEST']);self.assertNotIn('acquisition_progress',p)
+        next_packet,_,called=self.baseline_run(m,10,MAX_TICKERS=3)
+        self.assertEqual(called,['SECOND']);self.assertEqual(next_packet['acquisition_progress']['plan_reason'],'resume_prior_unattempted')
+        self.assertEqual(next_packet['acquisition_progress']['remaining_symbols'],['THIRD'])
+
+    def test_membership_reordering_retirement_and_new_names_do_not_reset_pending_progress(self):
+        m=Memory();first,_,_=self.baseline_run(m,2,MAX_TICKERS=3)
+        m.data['data/universe.json']=b'{"stocks":[{"symbol":"THIRD"},{"symbol":"TEST"},{"symbol":"FOURTH"}]}';m.data['screener/data.json']=b'{"rows":[]}'
+        second,_,called=self.baseline_run(m,4,MAX_TICKERS=3,SP500_BACKUP=[])
+        self.assertEqual(called,['THIRD']);self.assertEqual(second['acquisition_progress']['planned_symbols'],['THIRD','FOURTH'])
+        self.assertEqual(second['acquisition_progress']['planned_request_indices'],[0,2]);self.assertEqual(second['acquisition_progress']['remaining_symbols'],['FOURTH'])
+        self.assertEqual(second['estimate_baselines']['entries'][0],first['estimate_baselines']['entries'][0])
+
+    def test_forged_progress_counters_membership_and_outcomes_fail_before_provider_work(self):
+        m=Memory();first,_,_=self.baseline_run(m,2,MAX_TICKERS=3)
+        edits=[lambda p:p['acquisition_progress']['remaining_symbols'].clear(),lambda p:p['acquisition_progress'].update(visited_request_indices=[True]),
+               lambda p:p['acquisition_progress'].update(visited_occurrences=True),lambda p:p['acquisition_progress'].update(cycle_complete=0),
+               lambda p:p['acquisition_progress'].update(planned_request_indices=[False,1,2]),lambda p:p['acquisition_progress'].update(request_order_is_rank=0),
+               lambda p:p['acquisition_progress'].update(planned_request_indices=[0,2,1]),lambda p:p['acquisition_progress'].update(retained_provider_bytes=0),
+               lambda p:p['acquisition_progress'].update(stop_reason='planned_window_complete'),lambda p:p['request_records'][0].update(ticker='OTHER'),
+               lambda p:p['request_records'][1]['acquisitions'][0].update(status='received')]
+        for edit in edits:
+            q=deepcopy(first);edit(q);m.data['data/eps-revision-velocity.json']=json.dumps(q).encode();before=m.data['data/eps-revision-velocity.json'];m.writes=[]
+            ns=native(m);ns['_eps_company']=lambda *a:self.fail('Provider acquisition after corrupt progress')
+            with self.assertRaises(ValueError):ns['lambda_handler']()
+            self.assertEqual(m.data['data/eps-revision-velocity.json'],before);self.assertEqual(m.writes,[])
+
+    def test_all_failed_run_preserves_prior_head_and_does_not_claim_queue_progress(self):
+        m=Memory();self.baseline_run(m,2,MAX_TICKERS=3);before=m.data['data/eps-revision-velocity.json'];ns=native(m,N_WORKERS=1,MAX_TICKERS=3);calls=[]
+        ns['_eps_company']=lambda ticker:(calls.append(ticker) or [{'endpoint':'quote','status':'rate_limited'}])
+        with self.assertRaisesRegex(ValueError,'All provider populations unavailable'):ns['lambda_handler']()
+        self.assertEqual(calls,['SECOND']);self.assertEqual(m.data['data/eps-revision-velocity.json'],before)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

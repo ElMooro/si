@@ -274,9 +274,7 @@ def previous_estimate_baselines(previous):
     if clock(stamp) is None: raise ValueError('Prior publication clock required for baseline ancestry')
     catalogue = previous.get('estimate_baselines')
     if catalogue is not None:
-        if (not isinstance(catalogue, dict) or catalogue.get('retained_clocks_are_not_refreshed') is not True
-                or catalogue.get('retired_tickers_retained') is not True or type(catalogue.get('maximum_entries')) is not int
-                or catalogue != baseline_catalogue(catalogue.get('entries'))):
+        if not isinstance(catalogue, dict) or catalogue != baseline_catalogue(catalogue.get('entries')):
             raise ValueError('Complete recognized prior baseline catalogue required')
         for entry in catalogue['entries']: validate_estimate_descriptor(entry, stamp)
         return {entry['ticker']: entry for entry in catalogue['entries']}, {}
@@ -314,84 +312,3 @@ def merge_estimate_baselines(previous_entries, records, started_at, published_at
         if prior and received <= clock(prior['received_at']): raise ValueError('New baseline must be later than its retained predecessor')
         merged[ticker] = descriptor
     return baseline_catalogue(list(merged.values()))
-
-
-ACQUISITION_CONTRACT='eps-acquisition-progress.v1'
-UNATTEMPTED='not_attempted_runtime_rate_or_size_limit'
-
-
-def selected_symbols(values):
-    if (not isinstance(values,list) or any(not v or symbol(v)!=v for v in values)
-            or len(values)!=len(set(values)) or len(values)>500):
-        raise ValueError('Complete unique bounded selected ticker population required')
-    return values
-
-
-def _acquisition_plan(selected,planned,reason):
-    selected_symbols(selected);selected_symbols(planned)
-    if not set(planned)<=set(selected):raise ValueError('Planned tickers outside original selected population')
-    if reason not in ('initial_selected_population','resume_prior_unattempted','resume_remaining_selected','previous_cycle_complete_or_retired'):
-        raise ValueError('Recognized acquisition plan reason required')
-    indices={ticker:i for i,ticker in enumerate(selected)}
-    return {'contract':ACQUISITION_CONTRACT,'plan_reason':reason,'planned_symbols':planned,
-            'planned_request_indices':[indices[ticker] for ticker in planned],
-            'identity':'Original selected requested ticker; not legal-security identity',
-            'original_selected_population_order_preserved':True,'request_order_is_rank':False}
-
-
-def acquisition_progress(plan,visited,stop_reason,total_bytes):
-    if (not isinstance(visited,list) or any(type(i) is not int for i in visited)
-            or visited!=plan['planned_request_indices'][:len(visited)] or type(total_bytes) is not int or total_bytes<0
-            or stop_reason not in ('planned_window_complete','runtime_reserve','source_byte_budget','provider_rate_limit','provider_authorization_error')):
-        raise ValueError('Exact attempted prefix and acquisition stop required')
-    remaining=plan['planned_symbols'][len(visited):]
-    if remaining and stop_reason=='planned_window_complete':raise ValueError('Incomplete plan requires its actual stop reason')
-    return {**plan,'visited_request_indices':visited,'remaining_symbols':remaining,'stop_reason':stop_reason,
-            'retained_provider_bytes':total_bytes,'cycle_complete':not remaining,
-            'visited_occurrences':len(visited),'pending_occurrences':len(remaining),
-            'visited_is_not_successful_provider_response':True,'cycle_scope':'Existing selected request cap only; not the whole source universe'}
-
-
-def validate_acquisition_progress(selected,records,progress):
-    selected_symbols(selected)
-    if not isinstance(records,list) or len(records)!=len(selected):raise ValueError('Whole selected request inventory required')
-    outcomes=[]
-    for i,(ticker,row) in enumerate(zip(selected,records)):
-        if not isinstance(row,dict) or row.get('ticker')!=ticker or type(row.get('request_index')) is not int or row['request_index']!=i:
-            raise ValueError('Original selected request coordinates differ')
-        group=row.get('acquisitions')
-        if not isinstance(group,list) or not group or not isinstance(group[0],dict) or group[0].get('endpoint')!='quote' or not isinstance(group[0].get('status'),str):
-            raise ValueError('Original quote request outcome required')
-        outcomes.append(group[0].get('status')!=UNATTEMPTED)
-    if progress is None:return [ticker for ticker,visited in zip(selected,outcomes) if not visited]
-    if not isinstance(progress,dict) or progress.get('contract')!=ACQUISITION_CONTRACT:raise ValueError('Recognized complete acquisition progress required')
-    if (any(type(progress.get(k)) is not int for k in ('visited_occurrences','pending_occurrences','retained_provider_bytes'))
-            or type(progress.get('cycle_complete')) is not bool or progress.get('visited_is_not_successful_provider_response') is not True
-            or progress.get('original_selected_population_order_preserved') is not True or progress.get('request_order_is_rank') is not False
-            or not isinstance(progress.get('planned_request_indices'),list) or any(type(i) is not int for i in progress['planned_request_indices'])):
-        raise ValueError('Literal progress counters, coordinates and flags required')
-    plan=_acquisition_plan(selected,progress.get('planned_symbols'),progress.get('plan_reason'))
-    visited=progress.get('visited_request_indices')
-    expected=acquisition_progress(plan,visited,progress.get('stop_reason'),progress.get('retained_provider_bytes'))
-    if progress!=expected:raise ValueError('Complete acquisition progress partition differs')
-    if [i in set(visited) for i in range(len(selected))]!=outcomes:raise ValueError('Attempted progress and original outcomes differ')
-    total=sum(a.get('original_bytes',0) for row in records for a in row['acquisitions'])
-    if type(total) is not int or total!=progress['retained_provider_bytes']:raise ValueError('Whole provider response byte accounting differs')
-    statuses=[a.get('status') for row in records for a in row['acquisitions']];reason=progress['stop_reason']
-    if (reason=='provider_authorization_error' and 'authorization_unavailable' not in statuses
-            or reason=='provider_rate_limit' and ('rate_limited' not in statuses or 'authorization_unavailable' in statuses)
-            or reason=='source_byte_budget' and total<12*1024*1024):raise ValueError('Acquisition stop conflicts with received outcomes')
-    return progress['remaining_symbols']
-
-
-def acquisition_plan(selected,previous):
-    selected_symbols(selected);pending=selected;reason='initial_selected_population'
-    if isinstance(previous,dict) and previous.get('measurement_contract')==CONTRACT:
-        old=selected_symbols((previous.get('universe_membership') or {}).get('selected_symbols'))
-        progress=previous.get('acquisition_progress')
-        pending=validate_acquisition_progress(old,previous.get('request_records'),progress)
-        old_set=set(old);current_set=set(selected)
-        pending=[ticker for ticker in pending if ticker in current_set]+[ticker for ticker in selected if ticker not in old_set]
-        reason='resume_remaining_selected' if progress is not None else 'resume_prior_unattempted'
-        if not pending:pending=selected;reason='previous_cycle_complete_or_retired'
-    return _acquisition_plan(selected,pending,reason)
