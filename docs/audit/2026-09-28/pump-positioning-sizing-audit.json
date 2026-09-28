@@ -1,0 +1,75 @@
+{
+  "engine": "justhodl-pump-positioning",
+  "audit": "preserved-source-sizing-counterexamples.v1",
+  "checked_at": "2026-09-28T05:34:04.816153+00:00",
+  "source_bytes": 42265,
+  "source_sha256": "76a89965e65008e4c40e72d701cff74f10586f64b9506733bdced964d7de9129",
+  "source_currently_unchanged": true,
+  "whole_actual_package_baseline": "docs/audit/2026-09-28/momentum-leaders-original-baseline.json",
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "private_context_reads": 0,
+  "regression_test": "tests/ops/test_pump_positioning_original.py",
+  "test_groups": 9,
+  "findings": [
+    {
+      "issue": "zero_kelly_positive_allocation",
+      "synthetic_result": {
+        "kelly_fraction": 0,
+        "position_size_pct": 0.5
+      }
+    },
+    {
+      "issue": "missing_volatility_default_size",
+      "synthetic_result": {
+        "vol_target_size_pct": 2
+      }
+    },
+    {
+      "issue": "boolean_prices_and_negative_stops_accepted"
+    },
+    {
+      "issue": "defensive_context_and_false_sizing_eligibility_ignored"
+    },
+    {
+      "issue": "conservative_basket_hardcodes_ten_percent_stop_risk",
+      "synthetic_result": {
+        "actual_stop_percentages": [
+          -2,
+          -40
+        ],
+        "same_reported_portfolio_risk_pct": 0.2
+      }
+    },
+    {
+      "issue": "missing_momentum_and_catalyst_still_size",
+      "synthetic_result": {
+        "default_grade": "B",
+        "allocation_pct": 15,
+        "null_unqualified_catalyst_also_allocates": true
+      }
+    },
+    {
+      "issue": "duplicate_ticker_occurrences_become_multiple_allocations"
+    },
+    {
+      "issue": "past_earnings_treated_as_imminent"
+    },
+    {
+      "issue": "source_original_identity_verified"
+    }
+  ],
+  "required_next": [
+    "Preserve complete selection, provider responses and source coordinates before publishing descriptive calculations.",
+    "Validate issuer, dates, units, finite positive prices and complete calculation windows; missing must remain unavailable.",
+    "Separate observed prices/volatility from explicit hypothetical scenario assumptions.",
+    "Remove uncalibrated score-to-probability, forced-positive Kelly, grade and duplicate-issuer sizing paths.",
+    "Carry abstention through each actual consumer and rendered component; verify exact packages and served assets without reading private consumer outputs."
+  ],
+  "qualification": {
+    "investment_authority": false,
+    "forecast_performance": false,
+    "portfolio_consequences": false
+  },
+  "scope": "Synthetic counterexamples in the complete preserved native. Values are test outcomes, not recommendations. Native is unchanged and remains unqualified."
+}
