@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-09-28T12:31:26.153380+00:00",
+  "commit": "f5cad0364389b90a986f1280fd1cf1338e28c2e7",
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "0X9LBphC9uHx9VUpPWxy+ssnvuhdCGA+9EUDv2yrZLs=",
+    "commit": "f5cad0364389b90a986f1280fd1cf1338e28c2e7",
+    "deployed_at": "2026-09-28T12:29:59Z",
+    "function": "justhodl-backlog",
+    "run_id": "36422106750",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36422106750",
+    "schema": "release-receipt.v1",
+    "source": {
+      "backlog_measurements.py": {
+        "bytes": 10763,
+        "sha256": "279562ea68d391fbd83ad8cd347c1c0111b6ce36087b5c0f7c4c5348d3962d33"
+      },
+      "backlog_store.py": {
+        "bytes": 3070,
+        "sha256": "c0ecd663971f15c861145cb65f8fb3db441bacc22604ec264e6f942737ba7949"
+      },
+      "lambda_function.py": {
+        "bytes": 19605,
+        "sha256": "3c61989d2dddd1ddc8bebb042836bf2cb1600b800386d7e3fbf1cb649272aff5"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 845727,
+    "zip_sha256_hex": "d17f4b069842f6e1f1f555293d6c72facb27bee85d08603ef44503bf6cab64bb"
+  },
+  "public_packet": {
+    "key": "data/backlog.json",
+    "bytes": 5329946,
+    "sha256": "9ec825e81d9696d557bbf4e9a90c50d12c925c78b087906f233a39f7a7a8ab4e",
+    "generated_at": "2026-09-28T11:30:46.257362+00:00",
+    "version": "1.1.0",
+    "contract": "backlog-measurements.v1"
+  },
+  "publication_history_verified": false,
+  "first_new_native_publication": "Pending original September 29 11:30 UTC schedule",
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_reads": 0
+}
