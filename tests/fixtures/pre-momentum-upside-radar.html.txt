@@ -134,8 +134,8 @@ function render(){
      subh('Cyclical 20x — deep-loss turnaround shapes','am')+
      tbl((cb.cyclical_only_book||cb.full_20x_book||[]).slice(0,20),[[r=>TK(r.ticker),'Ticker',null,1],[r=>n1(r.cyclical_20x_score),'20x score',r=>r.cyclical_20x_score>=50?'hi':''],['stage','Stage'],['cap_bucket','Cap'],[r=>r.twenty_x_shape?'✓':'—','20x shape',r=>r.twenty_x_shape?'hi':'']]),
    momentum:
-     subh('Momentum price observations')+
-     '<p>Price and volume descriptions do not establish a validated breakout or investment tier. <a href="/momentum-observations.html">Inspect every request, measurement, benchmark and complete original source</a>.</p>',
+     subh('Momentum breakout — multi-timeframe leaders (TIER A strongest; ⚠ flags parabolic)')+
+     tbl((mbk.all_qualifying||[]).slice(0,40),[[r=>TK(r.symbol),'Ticker',null,1],[r=>r.score,'Score',r=>r.score>=60?'hi':''],['tier','Tier',r=>/A/.test(r.tier||'')?'hi':''],[r=>r.metrics?pct(r.metrics.ret_20d_pct,1):'—','20d',r=>r.metrics&&r.metrics.ret_20d_pct>20?'hi':''],[r=>r.metrics?pct(r.metrics.ret_5d_pct,1):'—','5d'],[r=>r.is_parabolic?'⚠':'—','Parab',r=>r.is_parabolic?'am':'']]),
    pead:
      subh('Post-earnings drift — sustained beats + drift (TIER S strongest)')+
      tbl((pe.all_qualifying||[]).slice(0,40),[[r=>TK(r.symbol),'Ticker',null,1],[r=>r.score,'Score',r=>r.score>=80?'hi':''],['tier','Tier',r=>/S/.test(r.tier||'')?'hi':''],[r=>r.metrics?r.metrics.streak:'—','Beat streak',r=>r.metrics&&r.metrics.streak>=4?'hi':''],[r=>r.metrics?pct(r.metrics.avg_beat_pct,1):'—','Avg beat',()=>'hi'],[r=>r.metrics?n2(r.metrics.beat_acceleration):'—','Accel']]),

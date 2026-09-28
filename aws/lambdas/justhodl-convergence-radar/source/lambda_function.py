@@ -287,8 +287,12 @@ ALL_DOMAINS = {"sentiment", "momentum", "options", "earnings", "valuation",
 # Engine fetching + extraction
 # ═════════════════════════════════════════════════════════════════════
 
+from momentum_research_boundary import BASIS as MOMENTUM_BASIS, DIRECT as MOMENTUM_SOURCE, exclusion as momentum_exclusion, current as momentum_current, guard as momentum_guard, transition_state as momentum_transition_state, transition_abstention as momentum_transition_abstention
+
 def fetch_engine_raw(spec_name: str, spec: dict) -> tuple:
     """Fetch + parse a single engine's data file. Returns (spec_name, items_list, age_h)."""
+    if spec.get("key") == "data/momentum-breakout.json" or spec_name == "momentum-breakout":
+        return spec_name, [], None
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=spec["key"])
         d = __import__("massive_research_context").guard(spec["key"], __import__("retail_research").guard(spec["key"],json.loads(obj["Body"].read())))
@@ -341,6 +345,8 @@ def extract_ticker_signals_from_engine(spec_name: str, spec: dict, items: list) 
         return {}  # Recorded composite research supplies zero qualified votes.
     if __import__("sec_search_research").covered(spec_name) or __import__("sec_search_research").covered(spec.get("key")):
         return {}  # Research remains stored; unverified keywords add no convergence vote.
+    if spec_name == "momentum-breakout" or spec.get("key") == "data/momentum-breakout.json":
+        return {}
     out = {}
     # Handle string-list format (items are just ticker strings, no dict)
     if spec.get("is_string_list"):
@@ -398,7 +404,8 @@ def fetch_all_engines() -> dict:
 
     with ThreadPoolExecutor(max_workers=12) as ex:
         futures = {ex.submit(fetch_engine_raw, name, spec): (name, spec)
-                    for name, spec in ENGINE_EXTRACTORS.items()}
+                    for name, spec in ENGINE_EXTRACTORS.items()
+                    if name != "momentum-breakout" and spec.get("key") != MOMENTUM_SOURCE}
         for fut in as_completed(futures, timeout=90):
             name, spec = futures[fut]
             try:
@@ -901,8 +908,10 @@ def load_prior_state() -> dict:
         return {}
 
 
-def save_state(records: List[dict]) -> None:
+def save_state(records: List[dict], previous=None) -> None:
     state = {
+        "momentum_boundary": MOMENTUM_BASIS,
+        "momentum_preboundary_state": ((previous or {}).get("momentum_preboundary_state") if (previous or {}).get("momentum_boundary") == MOMENTUM_BASIS else previous),
         "snapshot_at": datetime.now(timezone.utc).isoformat(),
         "tickers":     {r["ticker"]: {
             "n_engines":         r["n_engines"],
@@ -1135,13 +1144,20 @@ def lambda_handler(event, context):
 
     # 5. Load state + detect transitions + alert
     prior_state   = load_prior_state()
-    recent_alerts = load_recent_alerts()
-    alert_info    = maybe_alert(records, prior_state, recent_alerts)
+    history_comparable = prior_state.get("momentum_boundary") == MOMENTUM_BASIS
+    if history_comparable:
+        recent_alerts = load_recent_alerts()
+        alert_info = maybe_alert(records, prior_state, recent_alerts)
+    else:
+        alert_info = momentum_transition_abstention(records)
 
     # 5b. NEW: now that alert_info has set prior_n_engines on each record,
     # compute the pump-likelihood (depends on acceleration which depends on prior state)
     pump_candidates = []
     for rec in records:
+        if not history_comparable:
+            rec.update(pump_likelihood=None, pump_category="UNAVAILABLE_COMPARISON", exclude_from_longs=True, pump_components={})
+            continue
         acceleration = rec["n_engines"] - rec.get("prior_n_engines", 0)
         # Need to re-fetch directional data — we stored it in the rec
         dir_score_dict = {
@@ -1159,7 +1175,7 @@ def lambda_handler(event, context):
     pump_candidates.sort(key=lambda r: -r["pump_likelihood"])
 
     # 6. Save current state for next run's acceleration detection
-    save_state(records[:100])  # top 100 to keep state small
+    save_state(records[:100], prior_state)  # top 100 to keep state small
 
     # 7. Build summary + write output
     summary = {
@@ -1237,6 +1253,8 @@ def lambda_handler(event, context):
     }
 
     output = {
+        "momentum_research_exclusion": momentum_exclusion(),
+        "momentum_history_comparable": history_comparable,
         "schema_version":  "2.0",  # bumped — directional + pump-likelihood added
         "generated_at":    datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":     round(time.time() - t0, 2),

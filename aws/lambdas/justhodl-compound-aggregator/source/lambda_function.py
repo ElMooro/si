@@ -67,6 +67,8 @@ FEEDS = {
 
 
 
+from momentum_research_boundary import BASIS as MOMENTUM_BASIS, DIRECT as MOMENTUM_SOURCE, exclusion as momentum_exclusion, current as momentum_current, guard as momentum_guard, transition_state as momentum_transition_state, transition_abstention as momentum_transition_abstention
+
 def _volatility_research_abstention():
     """OHLCV transforms and legacy tiers cannot grant investment authority."""
     return {"source": "data/volatility-squeeze.json", "status": "research_only_abstain",
@@ -77,6 +79,8 @@ def _volatility_research_abstention():
 
 
 def load_packet(key):
+    if key == MOMENTUM_SOURCE:
+        return momentum_exclusion()
     if key == "data/volatility-squeeze.json":
         return _volatility_research_abstention()
     try:
@@ -87,7 +91,7 @@ def load_packet(key):
 
 def load_feed(key, path, sym_field):
     """Load a feed and return list of records with normalized keys."""
-    if key in ("data/activist-filings.json", "data/volatility-squeeze.json"):
+    if key in (MOMENTUM_SOURCE, "data/activist-filings.json", "data/volatility-squeeze.json"):
         # Filing-role observations and legacy name tiers have no calibrated
         # directional meaning. This boundary also rejects forged permissions.
         return []
@@ -416,7 +420,8 @@ def aggregate():
         _h = {"days": []}
     _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS
                        and d.get("activist_boundary") == "ownership-feed-abstention.v1"
-                       and d.get("volatility_boundary") == "price-compression-abstention.v1"]
+                       and d.get("volatility_boundary") == "price-compression-abstention.v1"
+                       and d.get("momentum_boundary") == MOMENTUM_BASIS]
     _prior_vals = [v for day in _qualified_days
                    for v in (day.get("scores") or {}).values()]
     _prior_by = {}
@@ -441,6 +446,7 @@ def aggregate():
     _days.append({"d": _today, "score_basis": BASIS,
                   "activist_boundary": "ownership-feed-abstention.v1",
                   "volatility_boundary": "price-compression-abstention.v1",
+                  "momentum_boundary": MOMENTUM_BASIS,
                   "scores": {r["symbol"]: r["compound_score"]
                              for r in ranked[:400]}})
     S3.put_object(Bucket=BUCKET,
@@ -470,6 +476,7 @@ def aggregate():
     return {
         "feed_stats": feed_stats,
         "volatility_research_exclusion": _volatility_research_abstention(),
+        "momentum_research_exclusion": momentum_exclusion(),
         "activist_research_exclusion": {"source": "data/activist-filings.json",
             "status": "research_only_abstain", "investment_votes": 0, "basis": "ownership-feed-abstention.v1",
             "reason": "Feed identities, filer names and form types do not establish activist intent or validated forward returns."},
@@ -641,6 +648,7 @@ def lambda_handler(event=None, context=None):
         "holdings_exclusions": agg["holdings_exclusions"],
         "activist_research_exclusion": agg["activist_research_exclusion"],
         "volatility_research_exclusion": agg["volatility_research_exclusion"],
+        "momentum_research_exclusion": agg["momentum_research_exclusion"],
         "notifications_suppressed": suppress_alerts,
         "score_basis": BASIS,
         "history_comparability": "Percentiles use only snapshots with this score_basis; earlier snapshots are retained but excluded.",

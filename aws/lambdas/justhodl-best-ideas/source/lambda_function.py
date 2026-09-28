@@ -142,6 +142,8 @@ FAMILY_LABEL = {
 }
 
 
+from momentum_research_boundary import BASIS as MOMENTUM_BASIS, DIRECT as MOMENTUM_SOURCE, exclusion as momentum_exclusion, current as momentum_current, guard as momentum_guard, transition_state as momentum_transition_state, transition_abstention as momentum_transition_abstention
+
 def num(v):
     try:
         f = float(v)
@@ -163,6 +165,8 @@ def dig(obj, path):
 def harvest(spec):
     """Return {SYMBOL: strength 0-1} for one engine."""
     eid, label, key, path, symf, scoref, fam, phrase, cap = spec
+    if key == "data/momentum-breakout.json":
+        return {}, "research_only_momentum_observations_no_vote"
     try:
         obj = json.loads(s3.get_object(
             Bucket=S3_BUCKET, Key=key)["Body"].read())
@@ -173,6 +177,7 @@ def harvest(spec):
     if key == "data/insider-aggregate.json":
         from insider_research import qualified_signal
         if qualified_signal(obj) is None: return {}, "research_only_unqualified_insider_sample"
+    obj = momentum_guard(key, obj)
     lst = dig(obj, path)
     if not isinstance(lst, list) or not lst:
         if isinstance(obj, dict):
@@ -384,6 +389,7 @@ def lambda_handler(event, context):
     titans = [s for s in stack if s["conviction_tier"] == "CONVICTION TITAN"]
     high = [s for s in stack if s["conviction_tier"] == "HIGH CONVICTION"]
     out = {
+        "momentum_research_exclusion": momentum_exclusion(),
         "schema_version": "1.1.1-grok-fusion",
         "method": "cross_engine_factor_confluence",
         "generated_at": now.isoformat(),

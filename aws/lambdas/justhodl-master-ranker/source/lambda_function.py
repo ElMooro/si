@@ -81,6 +81,8 @@ BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 _CENSUS_CACHE = None
 
 
+from momentum_research_boundary import BASIS as MOMENTUM_BASIS, DIRECT as MOMENTUM_SOURCE, exclusion as momentum_exclusion, current as momentum_current, guard as momentum_guard, transition_state as momentum_transition_state, transition_abstention as momentum_transition_abstention
+
 def census_idx(s3_client, bucket):
     global _CENSUS_CACHE
     if _CENSUS_CACHE is not None:
@@ -185,6 +187,9 @@ def fetch_json(key, default=None, max_age_h=None):
     (return default) so stale data never silently contaminates a decision. Every
     load is recorded in _FEED_HEALTH for transparency. Feeds with no max_age_h are
     age-tracked but never auto-excluded (cadence may legitimately be slow)."""
+    if key == MOMENTUM_SOURCE:
+        _FEED_HEALTH.append({"key": key, "used": False, "age_h": None, "stale": None, "exclusion": "momentum_not_forecast_qualified"})
+        return momentum_exclusion()
     if key == "data/volatility-squeeze.json":
         _FEED_HEALTH.append({"key": key, "used": False, "age_h": None, "stale": None, "exclusion": "price_compression_not_forecast_qualified"})
         return _volatility_research_abstention()
@@ -288,7 +293,7 @@ def build_ticker_index():
     # 1. compound — primary spine
     if feeds["compound"]:
         for c in compound_rows(feeds["compound"]):
-            if any(s in c.get("systems", []) for s in ("vol_squeeze", "activist")):
+            if any(s in c.get("systems", []) for s in ("vol_squeeze", "activist", "momentum")):
                 continue  # Stored pre-boundary composite contributions stay excluded.
             sym = c.get("symbol")
             if not sym:

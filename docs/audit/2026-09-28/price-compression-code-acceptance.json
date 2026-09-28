@@ -1,0 +1,271 @@
+{
+  "actual_packages": {
+    "justhodl-volatility-squeeze-hunter": {
+      "code_sha256": "/Q/y5N7tCtlF6QHflPfyrFa7rXxoZvJGvbpA7UBcR/Q=",
+      "source_files_checked": 3,
+      "handler_bytes": 25967,
+      "timeout": 600,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [],
+      "function_name": "justhodl-volatility-squeeze-hunter",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-compound-aggregator": {
+      "code_sha256": "i19pn0ZBmOWL/ApvZYu0+v02Q5nqyc37rO4eXcOPQ9M=",
+      "source_files_checked": 4,
+      "handler_bytes": 29675,
+      "timeout": 120,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "compound-aggregator-daily",
+          "state": "ENABLED",
+          "expression": "cron(15 21 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-compound-aggregator",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-options-confluence": {
+      "code_sha256": "s5nl4X2kMi29TAwWG/gABMcXZyYQ2tED/LA+7FnIJeE=",
+      "source_files_checked": 3,
+      "handler_bytes": 15157,
+      "timeout": 120,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-options-confluence-hourly",
+          "state": "DISABLED",
+          "expression": "cron(20 * * * ? *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "options-confluence-sched",
+          "state": "ENABLED",
+          "expression": "cron(20 * * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-options-confluence",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-master-ranker": {
+      "code_sha256": "2JQxJFJyWzegNzlYejaGR+qjCjfwUIAFcKqHkcCwTu4=",
+      "source_files_checked": 21,
+      "handler_bytes": 82663,
+      "timeout": 900,
+      "memory_mb": 1536,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [],
+      "function_name": "justhodl-master-ranker",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-katlin": {
+      "code_sha256": "kZzQ9G28CWzauCoE9ZC4VgH1Oy+zts1UiXZT1vwLtlU=",
+      "source_files_checked": 14,
+      "handler_bytes": 210426,
+      "timeout": 900,
+      "memory_mb": 8192,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-katlin-daily",
+          "state": "ENABLED",
+          "expression": "cron(10 4 ? * TUE-SAT *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "target_qualifier": "live"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-katlin-backtest-weekly",
+          "state": "ENABLED",
+          "expression": "cron(30 9 ? * SUN *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default",
+          "target_qualifier": "live"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-katlin-permission-refresh",
+          "state": "ENABLED",
+          "expression": "rate(15 minutes)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default",
+          "target_qualifier": "live"
+        }
+      ],
+      "function_name": "justhodl-katlin",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 2048,
+      "active_alias": {
+        "alias": "live",
+        "version": "15",
+        "code_sha256": "kZzQ9G28CWzauCoE9ZC4VgH1Oy+zts1UiXZT1vwLtlU="
+      }
+    },
+    "justhodl-ai-infra-stack": {
+      "code_sha256": "A0kK/mA6V767xR8S9vKLo2Go/Ci9yQSnn6hXgMCiMc4=",
+      "source_files_checked": 3,
+      "handler_bytes": 16234,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "ai-infra-stack-daily",
+          "state": "ENABLED",
+          "expression": "cron(45 13 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-ai-infra-stack",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-theme-second-wave": {
+      "code_sha256": "9NjExPJibgzQ6xsg4uvY5E4osV8ltD+wacu+wn9P99Y=",
+      "source_files_checked": 3,
+      "handler_bytes": 19015,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "theme-second-wave-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 14 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-theme-second-wave",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  },
+  "fanout_route": {
+    "manifest_key": "config/fanout-manifest.json",
+    "sha256": "decdf10e3114fef2919769327ad6c19a7041fb6f33f8b8b6a017a7ed03f086dd",
+    "bytes": 11573,
+    "etag": "\"a8b0d37b4f8e60d26597b7c0fd0f08a5\"",
+    "matching_ticks": [
+      "daily-morn"
+    ],
+    "routes": [
+      {
+        "tick": "daily-morn",
+        "kind": "EventBridge rule",
+        "name": "jhk-tick-daily-morn",
+        "state": "ENABLED",
+        "expression": "cron(0 11 * * ? *)",
+        "timezone": "UTC"
+      }
+    ],
+    "router_code_sha256": "fIYL7j/Di8OpAhWWDKG3dnE9ay6kNjsWbe9tt72okZE=",
+    "router_sources_checked": 2
+  },
+  "producer_settings": {
+    "request_limits": {
+      "N_WORKERS": 12,
+      "MAX_TICKERS": 1500,
+      "TIMEOUT_BUDGET_S": 550
+    },
+    "public_head": "data/volatility-squeeze.json",
+    "bucket": "justhodl-dashboard-live"
+  },
+  "account_reads": 0,
+  "consumer_output_reads": 0,
+  "current_archive_verified": false,
+  "expected_commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b",
+  "history_writes": 0,
+  "learning_log_reads": 0,
+  "native_invocations": 0,
+  "native_publication": {
+    "status": "pending_original_fanout_publication",
+    "bytes": 93917,
+    "sha256": "2b5c62a46f0e20f69d33d5fd3b355a8d3fad172cbfdec8ab8e170c6873a86862",
+    "generated_at": "2026-09-27T11:00:23+00:00",
+    "version": null
+  },
+  "private_state_reads": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Exact producer and six consumer packages only; actual router code, selected producer fanout membership and enabled tick payload. Whole declared public producer packet, its own history and exact source blobs only. No consumer output read or predictive qualification."
+}

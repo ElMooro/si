@@ -41,10 +41,14 @@ OUT_KEY = "screener/opportunity-screener.json"
 
 
 # ───────────────────────── io ─────────────────────────
+from momentum_research_boundary import BASIS as MOMENTUM_BASIS, DIRECT as MOMENTUM_SOURCE, exclusion as momentum_exclusion, current as momentum_current, guard as momentum_guard, transition_state as momentum_transition_state, transition_abstention as momentum_transition_abstention
+
 def read_json(key):
+    if key == MOMENTUM_SOURCE:
+        return momentum_exclusion()
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET,
-                                        Key=key)["Body"].read())
+        return momentum_guard(key, json.loads(s3.get_object(Bucket=S3_BUCKET,
+                                        Key=key)["Body"].read()))
     except Exception:
         return None
 
@@ -480,6 +484,7 @@ def lambda_handler(event, context):
     }
 
     out = {
+        "momentum_research_exclusion": momentum_exclusion(),
         "schema_version": "1.0",
         "method": "multi_engine_opportunity_synthesis",
         "generated_at": now.isoformat(),

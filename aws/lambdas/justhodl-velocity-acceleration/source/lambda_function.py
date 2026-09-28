@@ -141,10 +141,14 @@ PRICE_CACHE: Dict[str, List[dict]] = {}
 # S3 helpers
 # ═════════════════════════════════════════════════════════════════════
 
+from momentum_research_boundary import BASIS as MOMENTUM_BASIS, DIRECT as MOMENTUM_SOURCE, exclusion as momentum_exclusion, current as momentum_current, guard as momentum_guard, transition_state as momentum_transition_state, transition_abstention as momentum_transition_abstention
+
 def load_s3_json(key: str) -> Optional[dict]:
+    if key == MOMENTUM_SOURCE:
+        return momentum_exclusion()
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
+        return momentum_guard(key, json.loads(obj["Body"].read()))
     except Exception as e:
         print(f"[load] {key}: {str(e)[:120]}")
         return None
@@ -377,7 +381,7 @@ def load_confirmer_tickers() -> Dict[str, set]:
 # ═════════════════════════════════════════════════════════════════════
 
 def load_state() -> dict:
-    state = load_s3_json(STATE_KEY) or {}
+    state = momentum_transition_state(load_s3_json(STATE_KEY) or {})
     if "pending" not in state:
         state["pending"] = {}
     return state
@@ -636,6 +640,7 @@ def lambda_handler(event, context):
     ]
 
     output = {
+        "momentum_research_exclusion": momentum_exclusion(),
         "schema_version":   "1.1",  # bumped for emerging/watch tiers
         "generated_at":     datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":      round(time.time() - t0, 2),

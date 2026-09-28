@@ -125,7 +125,6 @@
 <script src="/liquidity-pulse.js" defer></script>
 </head>
 <body>
-<p style="padding:12px"><a href="/momentum-observations.html">Momentum source observations</a> — dated descriptions; no investment vote. Other cross-signal inputs remain independently unqualified.</p>
 
 <div class="container">
   <div class="header">
@@ -213,7 +212,7 @@ async function fetchJSON(url) {
 async function init() {
   // Pull the master JSONs in parallel
   const entries = await Promise.all(
-    Object.entries(URLS).map(async ([k, u]) => [k, k === "momentum" ? {status:"research_only_abstain",investment_votes:0} : await fetchJSON(u)])
+    Object.entries(URLS).map(async ([k, u]) => [k, await fetchJSON(u)])
   );
   DATA = Object.fromEntries(entries);
   // Populate quick picks
