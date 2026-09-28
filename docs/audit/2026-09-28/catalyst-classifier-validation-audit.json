@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-09-28T04:32:13.720272+00:00",
+  "source_bytes": 25993,
+  "source_sha256": "41f8e4dde9bbe1f34182372fcfe4a38de4f7dd6c3b336d6d1c7f3345d812302b",
+  "whole_native_preservation_operation": 6265,
+  "synthetic_counterexamples": [
+    "wrong issuer accepted despite expected ticker",
+    "absent response becomes D / NO_CLEAR_CATALYST / 1M",
+    "unknown grade indistinguishable from reported D",
+    "secondary list accepts truncated string",
+    "non-date suffix accepted",
+    "generated non-string fields crash validator"
+  ],
+  "counterexample_tests": 7,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "source_changed": false,
+  "open_work": [
+    "Replace paid-model classification with bounded deterministic source evidence.",
+    "Do not promote absent/unvalidated judgments into grades, future horizons or position modifiers.",
+    "Preserve all original inputs privately and inspect exact source coordinates without publishing account context.",
+    "Review all consumer contracts and retain original helper drift evidence before any native deployment."
+  ],
+  "claim": "Audit only. No classifier repair or investment qualification is claimed."
+}
