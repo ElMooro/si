@@ -1,0 +1,379 @@
+{
+  "checked_at": "2026-09-28T15:25:16.310763+00:00",
+  "generated_at": "2026-09-28T15:16:06.966947+00:00",
+  "version": "3.2.1",
+  "public_head": {
+    "bytes": 113080,
+    "sha256": "486a31a3e8c3d1016f6510353a60244aceea3631f7741b9ca17586900818b4b0"
+  },
+  "publication": {
+    "manifest_key": "data/bond-desk-research/publications/attempts/0441c83b09f901c23d39bcbac6d090ed4966336de9682fa1e03370640a99fa24.json",
+    "history_rows": 63,
+    "predecessor_history_rows": 62,
+    "previous_dates_unchanged": 62,
+    "snapshot_atomic": false,
+    "original_source_replayed_here": false
+  },
+  "flow_arithmetic": {
+    "contract": "bond-flow-independent-check.v1",
+    "cohorts": 11,
+    "windows_checked": 33,
+    "members_checked": 138,
+    "rational_sums": 66,
+    "complete_windows": 0,
+    "partial_windows": 33,
+    "unavailable_windows": 0,
+    "all_checks_passed": true,
+    "source_packet_sha256": "a4f02ac002dbddc6025bf7e7fb31131568688f12b4710a75ad5f10536d944930",
+    "source_original_replay_required_separately": true,
+    "historical_point_in_time_verified": false,
+    "forecast_qualified": false,
+    "sizing_eligible": false
+  },
+  "credit_arithmetic": {
+    "contract": "bond-credit-rational-check.v1",
+    "comparisons_checked": 0,
+    "unavailable_comparisons": 4,
+    "checks_passed": true,
+    "original_provider_replayed_here": false,
+    "forecast_qualified": false
+  },
+  "component_replay_verified": true,
+  "upstream_originals_replayed_here": false,
+  "other_regions_replayed_here": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "scope": "Whole derived publication and history binding; flow/credit arithmetic and reviewed compiler closure. No forecast, portfolio or upstream-original qualification.",
+  "artifacts": [
+    {
+      "key": "data/bond-desk.json",
+      "bytes": 113080,
+      "sha256": "486a31a3e8c3d1016f6510353a60244aceea3631f7741b9ca17586900818b4b0"
+    },
+    {
+      "key": "data/bond-desk-research/publications/attempts/0441c83b09f901c23d39bcbac6d090ed4966336de9682fa1e03370640a99fa24.json",
+      "bytes": 1306,
+      "sha256": "0441c83b09f901c23d39bcbac6d090ed4966336de9682fa1e03370640a99fa24"
+    },
+    {
+      "key": "data/bond-desk-research/publications/outputs/eaa9ea1807182ed6ccf182380a1985da756ca6ebce28f7efdea4b3513a0fd9dc.json",
+      "bytes": 112732,
+      "sha256": "eaa9ea1807182ed6ccf182380a1985da756ca6ebce28f7efdea4b3513a0fd9dc"
+    },
+    {
+      "key": "data/bond-desk-research/publications/histories/ee1d5614f7cea61f1773345d221793365d514129b330fc93a20370341714a4bb.json",
+      "bytes": 4739,
+      "sha256": "ee1d5614f7cea61f1773345d221793365d514129b330fc93a20370341714a4bb"
+    },
+    {
+      "key": "data/bond-desk-research/publications/predecessors/064af28ec77c42784e0898577e199b48e6a9d726620e00cf85e469e9f9c9eac4.json",
+      "bytes": 17052,
+      "sha256": "064af28ec77c42784e0898577e199b48e6a9d726620e00cf85e469e9f9c9eac4"
+    },
+    {
+      "key": "data/bond-desk-research/publications/predecessors/9e255617607a0fc4e0b91ac25423a45feeeec8cc13b07c3ad0b14c15c8d7849a.json",
+      "bytes": 4679,
+      "sha256": "9e255617607a0fc4e0b91ac25423a45feeeec8cc13b07c3ad0b14c15c8d7849a"
+    },
+    {
+      "key": "data/history/bond-desk.json",
+      "bytes": 4739,
+      "sha256": "ee1d5614f7cea61f1773345d221793365d514129b330fc93a20370341714a4bb"
+    },
+    {
+      "key": "data/bond-desk-research/flows/runs/a567c0e823fa852ccc92d1b09649fd423564e2879bcfea736ddf8b7e0672589b.json",
+      "bytes": 1888,
+      "sha256": "a567c0e823fa852ccc92d1b09649fd423564e2879bcfea736ddf8b7e0672589b"
+    },
+    {
+      "key": "data/bond-desk-research/flows/compilers/3d58999c5e8d52209ddaeba3d7bc420ab70ec824ec68ac4f4d012bdc481ef0ed.py",
+      "bytes": 9164,
+      "sha256": "3d58999c5e8d52209ddaeba3d7bc420ab70ec824ec68ac4f4d012bdc481ef0ed"
+    },
+    {
+      "key": "data/bond-desk-research/flows/compilers/fab00fd2d52877977761655d4a241f2067c752e792f5ec2dcbc0b54ace10d7f1.py",
+      "bytes": 6791,
+      "sha256": "fab00fd2d52877977761655d4a241f2067c752e792f5ec2dcbc0b54ace10d7f1"
+    },
+    {
+      "key": "data/bond-desk-research/flows/compilers/43e65e42a0022566fdb8117fe2e9687aebb8ea356129f7a2d7e65b1c47d69885.py",
+      "bytes": 604,
+      "sha256": "43e65e42a0022566fdb8117fe2e9687aebb8ea356129f7a2d7e65b1c47d69885"
+    },
+    {
+      "key": "data/bond-desk-research/flows/compilers/516b348d7788bceb52f768b904c85927973a46c6017b1354a73fa259e4d44562.py",
+      "bytes": 7787,
+      "sha256": "516b348d7788bceb52f768b904c85927973a46c6017b1354a73fa259e4d44562"
+    },
+    {
+      "key": "data/bond-desk-research/flows/compilers/d608acd39164f5161812ccdcb8b5a4b312d02a0d4332f16ae649fdab3557196b.py",
+      "bytes": 29504,
+      "sha256": "d608acd39164f5161812ccdcb8b5a4b312d02a0d4332f16ae649fdab3557196b"
+    },
+    {
+      "key": "data/bond-desk-research/flows/inputs/a4f02ac002dbddc6025bf7e7fb31131568688f12b4710a75ad5f10536d944930.json",
+      "bytes": 1037751,
+      "sha256": "a4f02ac002dbddc6025bf7e7fb31131568688f12b4710a75ad5f10536d944930"
+    },
+    {
+      "key": "data/etf-research/runs/b8c637c7e7fed38b8bda7d6d93c585891926c25a834595b5dfef9c16b9104aa3.json",
+      "bytes": 1383,
+      "sha256": "b8c637c7e7fed38b8bda7d6d93c585891926c25a834595b5dfef9c16b9104aa3"
+    },
+    {
+      "key": "data/etf-research/compilers/67fbab1a936dadd12da279d63fb87f78e2ce4ce312fd7ac3fe3462ff7ae46614.py",
+      "bytes": 18859,
+      "sha256": "67fbab1a936dadd12da279d63fb87f78e2ce4ce312fd7ac3fe3462ff7ae46614"
+    },
+    {
+      "key": "data/etf-research/compilers/726c2ea25632fe4049cf869edfa51cafd6d12e8470c1ac458b34d984c652205d.py",
+      "bytes": 14805,
+      "sha256": "726c2ea25632fe4049cf869edfa51cafd6d12e8470c1ac458b34d984c652205d"
+    },
+    {
+      "key": "data/etf-research/compilers/7b8da9b7d0a627fd5fd43f96ef77c1ecc3d5064fc8ad937171ac4d5e5b41ad63.py",
+      "bytes": 2958,
+      "sha256": "7b8da9b7d0a627fd5fd43f96ef77c1ecc3d5064fc8ad937171ac4d5e5b41ad63"
+    },
+    {
+      "key": "data/etf-research/compilers/3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976.py",
+      "bytes": 3788,
+      "sha256": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976"
+    },
+    {
+      "key": "data/etf-research/outputs/4b5919c83baf179a065545d7e653cafc0b308fe80e82cfc8d66edd1ff616c403.json",
+      "bytes": 1037547,
+      "sha256": "4b5919c83baf179a065545d7e653cafc0b308fe80e82cfc8d66edd1ff616c403"
+    },
+    {
+      "key": "data/bond-desk-research/flows/outputs/594580ab2406386928fb27d4a68414c9d0480071228585c6b2f3ec57edb43043.json",
+      "bytes": 94567,
+      "sha256": "594580ab2406386928fb27d4a68414c9d0480071228585c6b2f3ec57edb43043"
+    },
+    {
+      "key": "data/bond-desk-research/flows/proofs/c1caf03781c1efeea0f0536e04709956c22ccf24138d3fb446d7d4c20e2292a8.json",
+      "bytes": 444,
+      "sha256": "c1caf03781c1efeea0f0536e04709956c22ccf24138d3fb446d7d4c20e2292a8"
+    },
+    {
+      "key": "data/bond-desk-research/credit/runs/b423df8c21a548619e68accf9b5e652ac4cf170f3191ce58767fb8c7e40c8460.json",
+      "bytes": 1904,
+      "sha256": "b423df8c21a548619e68accf9b5e652ac4cf170f3191ce58767fb8c7e40c8460"
+    },
+    {
+      "key": "data/bond-desk-research/credit/compilers/4abe8eee60dfe3d743ccc596c2acc7423d379623fd4c6f3da2e159f21f3faec9.py",
+      "bytes": 6629,
+      "sha256": "4abe8eee60dfe3d743ccc596c2acc7423d379623fd4c6f3da2e159f21f3faec9"
+    },
+    {
+      "key": "data/bond-desk-research/credit/compilers/c85b6d66a224b058fb7ce3264530c46ed6ae9791734e7a49b1876fa7feee4aed.py",
+      "bytes": 2040,
+      "sha256": "c85b6d66a224b058fb7ce3264530c46ed6ae9791734e7a49b1876fa7feee4aed"
+    },
+    {
+      "key": "data/bond-desk-research/credit/compilers/9681a9436172e947d078950afd2726a1492821817c7b3c7d8649b2f29582d36c.py",
+      "bytes": 557,
+      "sha256": "9681a9436172e947d078950afd2726a1492821817c7b3c7d8649b2f29582d36c"
+    },
+    {
+      "key": "data/bond-desk-research/credit/compilers/e7c711555764df117c588064b041d41cfc3f8e5073c89bc12590806cac78bfe5.py",
+      "bytes": 7049,
+      "sha256": "e7c711555764df117c588064b041d41cfc3f8e5073c89bc12590806cac78bfe5"
+    },
+    {
+      "key": "data/bond-desk-research/credit/compilers/d608acd39164f5161812ccdcb8b5a4b312d02a0d4332f16ae649fdab3557196b.py",
+      "bytes": 29504,
+      "sha256": "d608acd39164f5161812ccdcb8b5a4b312d02a0d4332f16ae649fdab3557196b"
+    },
+    {
+      "key": "data/bond-desk-research/credit/inputs/8de1af5728f78bc75cac741f54b42d570bfd66167bdc4be6bc94987c1cd84805.json",
+      "bytes": 170980,
+      "sha256": "8de1af5728f78bc75cac741f54b42d570bfd66167bdc4be6bc94987c1cd84805"
+    },
+    {
+      "key": "data/credit-research/runs/34b59ea86765976af959e595518878b1a2ae5328ce306f6f65cea236236331ff.json",
+      "bytes": 1416,
+      "sha256": "34b59ea86765976af959e595518878b1a2ae5328ce306f6f65cea236236331ff"
+    },
+    {
+      "key": "data/credit-research/compilers/d27df11b694328e6c287bdb44e4d431a33d3d3f461f6e05f3db017eaec67b839.py",
+      "bytes": 22244,
+      "sha256": "d27df11b694328e6c287bdb44e4d431a33d3d3f461f6e05f3db017eaec67b839"
+    },
+    {
+      "key": "data/credit-research/compilers/ab3f802c58ebedc73b8b1d710ed4ea898d710604844d9b936cf8668d1e453853.py",
+      "bytes": 16811,
+      "sha256": "ab3f802c58ebedc73b8b1d710ed4ea898d710604844d9b936cf8668d1e453853"
+    },
+    {
+      "key": "data/credit-research/compilers/96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f.py",
+      "bytes": 5407,
+      "sha256": "96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f"
+    },
+    {
+      "key": "data/credit-research/outputs/451b8c5329a258cdc3782ea53768a3a03d8ddf4e6770eb0845e7dad401ea7fd8.json",
+      "bytes": 170773,
+      "sha256": "451b8c5329a258cdc3782ea53768a3a03d8ddf4e6770eb0845e7dad401ea7fd8"
+    },
+    {
+      "key": "data/bond-desk-research/credit/outputs/b0d96f990a512296ca15be96874714663e8b30e993a023437a02267533016ce4.json",
+      "bytes": 3888,
+      "sha256": "b0d96f990a512296ca15be96874714663e8b30e993a023437a02267533016ce4"
+    },
+    {
+      "key": "data/bond-desk-research/credit/proofs/1022b80771f93e85f1e3a0957c954d29c0ee5d1e422c828a9281507bf85887b1.json",
+      "bytes": 184,
+      "sha256": "1022b80771f93e85f1e3a0957c954d29c0ee5d1e422c828a9281507bf85887b1"
+    }
+  ],
+  "read_bytes": 2965553,
+  "runtime_acceptance": {
+    "code_sha256": "PexVlQn+VcF/xcuuSVHxDOOsHlh23HgExNcmwp+gUho=",
+    "source_files_checked": 17,
+    "handler_bytes": 29504,
+    "timeout": 180,
+    "memory_mb": 256,
+    "receipt": {
+      "status": "matched",
+      "commit": "2769d4fe863e896da48e433b55ffd774ca3a2683"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-bond-desk-daily",
+        "state": "ENABLED",
+        "expression": "cron(15 15 ? * MON-FRI *)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-bond-desk",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "runtime_report": {
+    "run": 36442369426,
+    "commit": "646bb834a5db0c2a0815e25cf5be2bf050f197c7",
+    "legacy_verifier_note": "The code-only verifier hardcodes normal_new_code_publication_verified=false. This separate current-publication replay supplies the qualified component/history acceptance."
+  },
+  "public_acquisition": {
+    "checked_at": "2026-09-28T15:18:43.665413+00:00",
+    "status": 200,
+    "bytes": 113080,
+    "sha256": "486a31a3e8c3d1016f6510353a60244aceea3631f7741b9ca17586900818b4b0",
+    "generated_at": "2026-09-28T15:16:06.966947+00:00",
+    "version": "3.2.1",
+    "headers": {
+      "Date": "Mon, 28 Sep 2026 15:18:43 GMT",
+      "Age": null,
+      "CF-Cache-Status": null,
+      "Cache-Control": "no-store",
+      "ETag": "\"120f0dc05cdf96df534acace9d2744f0\""
+    },
+    "keys": [
+      "ai_brief",
+      "ai_status",
+      "anxiety_history",
+      "calls_eligible",
+      "chart_ccc_bb",
+      "crisis_analogs",
+      "decision",
+      "engine",
+      "equity_read",
+      "execution_eligible",
+      "generated_at",
+      "hottest_region",
+      "method",
+      "n_regions_live",
+      "other_dm_score",
+      "publication_record",
+      "quality",
+      "regime",
+      "regions",
+      "sizing_eligible",
+      "version",
+      "weights",
+      "world_anxiety",
+      "world_map"
+    ],
+    "flow_keys": [
+      "buckets",
+      "calls_eligible",
+      "credit_appetite_5d_usd",
+      "duration_tilt",
+      "equity_to_bond_5d_usd",
+      "flow_research",
+      "flow_status",
+      "ici_bond_weekly_usd_m",
+      "ici_week",
+      "matched_tickers",
+      "note"
+    ]
+  },
+  "browser": {
+    "url": "https://justhodl.ai/bond-desk.html",
+    "title": "Global Bond Desk \u2014 JustHodl.AI",
+    "observed_at": "2026-09-28T15:27:00Z",
+    "generated_at_display": "2026-09-28 15:16 UTC",
+    "verb": "WAIT \u00b7 ABSTAIN",
+    "cohort_rows": 33,
+    "cohort_disclosures": 33,
+    "credit_disclosures": 4,
+    "credit_reasons": [
+      "source expired or future",
+      "source expired or future",
+      "source expired or future",
+      "source expired or future"
+    ],
+    "keyboard_disclosure": {
+      "summary": "aggregate \u00b7 1 observations \u00b7 every configured fund",
+      "rows": 3,
+      "included": [
+        "AGG"
+      ],
+      "excluded": {
+        "BND": "instrument or currency unverified",
+        "BNDX": "not in source universe"
+      }
+    },
+    "complete_original_packet_characters": 113080,
+    "desktop_document_width": 1270,
+    "mobile": {
+      "viewport": 390,
+      "document": 380,
+      "contained_table_region_width": 344
+    },
+    "current_page_console_errors": [],
+    "historical_tab_console_error_excluded": "An earlier localhost Stage345 preview error predates this navigation and belongs to another page."
+  },
+  "served_assets": {
+    "checked_at": "2026-09-28T15:29:53.533567+00:00",
+    "served_commit": "798c2b4ffb065e409c83fdcbd42a0f7702517d70",
+    "assets": {
+      "bond-desk.html": {
+        "bytes": 22166,
+        "sha256": "db3e95094721d1e08de540795458193764c107402b690a555a948e1622cc39b4",
+        "matches_manifest": true
+      },
+      "jh-bond-cohorts.js": {
+        "bytes": 6926,
+        "sha256": "2ceb5b85707cee328052880ecfdf210b53c494d555c393084e3555f00524ac0d",
+        "matches_manifest": true
+      },
+      "jh-bond-credit.js": {
+        "bytes": 5748,
+        "sha256": "ae8eb6da31fed89c63ed7e0423f5ab47696827569fce0c26b65d73b1f65071a4",
+        "matches_manifest": true
+      },
+      "jh-fifx-research.js": {
+        "bytes": 18502,
+        "sha256": "0500225270edb6010a965970d008a6b849009d17a3ac8847aeeb5f679ce60bc2",
+        "matches_manifest": true
+      }
+    }
+  }
+}
