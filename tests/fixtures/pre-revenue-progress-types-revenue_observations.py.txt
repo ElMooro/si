@@ -227,18 +227,6 @@ def occurrence_keys(selected):
     return out
 
 
-def validate_progress_types(progress):
-    if (not isinstance(progress,dict) or any(type(progress.get(k)) is not int for k in
-            ('visited_occurrences','pending_occurrences','retained_provider_bytes','original_source_byte_budget'))
-            or type(progress.get('cycle_complete')) is not bool
-            or progress.get('visited_is_not_successful_provider_response') is not True
-            or progress.get('original_population_order_preserved') is not True
-            or progress.get('request_order_is_rank') is not False or progress.get('schedule_accelerated') is not False
-            or progress.get('occurrence_identity')!='ticker label and ordinal within selected occurrences; not legal-security identity'
-            or progress.get('plan_reason') not in ('initial_population','resume_prior_unattempted_occurrences','resume_remaining_occurrences','previous_cycle_complete_or_retired')):
-        raise ValueError('Literal acquisition counters, flags and plan meaning required')
-
-
 def acquisition_plan(selected,previous):
     current=occurrence_keys(selected);indices={key:i for i,key in enumerate(current)}
     reason='initial_population';pending=current
@@ -262,7 +250,6 @@ def acquisition_plan(selected,previous):
             reason='resume_prior_unattempted_occurrences'
         else:
             if not isinstance(progress,dict) or progress.get('contract')!='revenue-acquisition-progress.v1':raise ValueError('Recognized progress contract required')
-            validate_progress_types(progress)
             planned=progress.get('planned_occurrence_keys');visited=progress.get('visited_request_indices');pending=progress.get('remaining_occurrence_keys')
             if (not isinstance(planned,list) or not isinstance(visited,list) or not isinstance(pending,list) or
                 any(not isinstance(k,str) for k in planned) or len(set(planned))!=len(planned) or not set(planned)<=old_set or

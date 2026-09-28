@@ -495,7 +495,7 @@ def lambda_handler(event=None,context=None):
     for i,(member,group) in enumerate(zip(selected,captures)):
         row=dossier(member,group,today);row['request_index']=i;records.append(row)
     prior_ref=_pead_archive(previous_raw) if previous_raw is not None else None
-    packet={'engine':'justhodl-earnings-pead','version':'1.2.1','schema_version':2,'measurement_contract':CONTRACT,
+    packet={'engine':'justhodl-earnings-pead','version':'1.2.0','schema_version':2,'measurement_contract':CONTRACT,
         'method':'complete_earnings_events_and_price_source_coverage','status':'RESEARCH_ONLY','source_files':_pead_source_identity(),
         'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
         'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,

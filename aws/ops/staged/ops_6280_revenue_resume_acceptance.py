@@ -14,13 +14,14 @@ FN=original.FN;KEY=original.KEY;BUCKET=original.BUCKET
 def publication(raw,prior_raw=None):
     m=original.compiler();p=m.strict(raw)
     if not isinstance(p,dict):raise ValueError('Whole public packet required')
-    if p.get('measurement_contract')!=m.CONTRACT or p.get('version')=='1.1.0':
+    if p.get('measurement_contract')!=m.CONTRACT or p.get('version') in ('1.1.0','1.2.0'):
         return {'status':'pending_original_fanout_resumed_publication','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),
             'generated_at':p.get('generated_at'),'version':p.get('version'),'new_queue_live_verified':False,'investment_authority':False}
     out=original.publication(raw,prior_raw)
     previous=m.strict(prior_raw) if prior_raw is not None else None
     plan=m.acquisition_plan(p['universe_membership']['selected'],previous);progress=p.get('acquisition_progress')
     if not isinstance(progress,dict):raise ValueError('Resumable acquisition progress required')
+    m.validate_progress_types(progress)
     visited=progress.get('visited_request_indices');total=0
     for i,row in enumerate(p['request_records']):
         group=row['acquisitions']

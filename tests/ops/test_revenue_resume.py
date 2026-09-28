@@ -18,6 +18,21 @@ def prior(members,visited,plan=None,reason='source_byte_budget'):
 
 
 class Tests(unittest.TestCase):
+    def test_complete_predecessor_accepts_boolean_counters_but_repaired_plan_rejects_them(self):
+        raw=(ROOT/'tests/fixtures/pre-revenue-progress-types-revenue_observations.py.txt').read_bytes();old={}
+        exec(compile(raw,'<complete original pure acquisition compiler>','exec'),old)
+        members=selected(['A','B','C']);base=prior(members,[0])
+        edits=[{'visited_occurrences':True},{'pending_occurrences':2.0},{'cycle_complete':0},
+               {'visited_is_not_successful_provider_response':1},{'original_population_order_preserved':1},
+               {'request_order_is_rank':True},{'schedule_accelerated':0},
+               {'original_source_byte_budget':float(base['acquisition_progress']['original_source_byte_budget'])},
+               {'plan_reason':'ranking_from_unreviewed_score'},{'occurrence_identity':'verified legal issuer'}]
+        for fields in edits:
+            changed=deepcopy(base);changed['acquisition_progress'].update(fields)
+            self.assertEqual(old['acquisition_plan'](members,changed)['planned_request_indices'],[1,2],fields)
+            with self.assertRaisesRegex(ValueError,'Literal acquisition'):acquisition_plan(members,changed)
+        self.assertEqual(acquisition_plan(members,base)['planned_request_indices'],[1,2])
+
     def test_complete_deployed_original_and_repeated_first_window_starvation(self):
         raw=(ROOT/'tests/fixtures/pre-revenue-resume-lambda_function.py.txt').read_bytes()
         self.assertEqual(len(raw),27571);self.assertEqual(hashlib.sha256(raw).hexdigest(),'14888da2ce95862fa617ba9b656d5b141b0e8afb28b18852710c979e259e3c03')

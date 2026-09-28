@@ -580,7 +580,7 @@ def lambda_handler(event=None,context=None):
     for i,(member,group) in enumerate(zip(selected,captures)):
         row=dossier(member,group,today);row['request_index']=i;records.append(row)
     prior_ref=_revenue_archive(previous_raw) if previous_raw is not None else None
-    packet={'engine':'justhodl-revenue-acceleration','version':'1.2.1','schema_version':2,'measurement_contract':CONTRACT,
+    packet={'engine':'justhodl-revenue-acceleration','version':'1.2.0','schema_version':2,'measurement_contract':CONTRACT,
         'method':'reported_statements_and_explicit_calendar_quarter_comparisons','status':'RESEARCH_ONLY','source_files':_revenue_source_identity(),
         'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
         'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,

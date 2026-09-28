@@ -1,0 +1,65 @@
+{
+  "engine_commit": "7cfd479f0a73d243c929af50c4ca6b273e8f3878",
+  "served_page_commit": "7cfd479f0a73d243c929af50c4ca6b273e8f3878",
+  "checked_at": "2026-09-28T10:53:19.602965+00:00",
+  "assets": {
+    "eps-velocity.html": {
+      "bytes": 13857,
+      "sha256": "1457564e0a07e06739ed1c795afacd111134cae831ceefb91a97d5a8af150d00",
+      "matches_build_manifest": true
+    },
+    "jh-eps-observations.js": {
+      "bytes": 15446,
+      "sha256": "b7ea7737e55aa9d2fd1b0adb0d74fd264029677064a6d8e7f4c2814d75480693",
+      "matches_build_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5733,
+      "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+      "matches_build_manifest": true
+    }
+  },
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "zSS9LyDTwi5OosGJRMP6O7dbGLVMWBd5bGzYKk5DiRM=",
+    "commit": "7cfd479f0a73d243c929af50c4ca6b273e8f3878",
+    "deployed_at": "2026-09-28T10:50:05Z",
+    "function": "justhodl-eps-revision-velocity",
+    "run_id": "36411935157",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36411935157",
+    "schema": "release-receipt.v1",
+    "source": {
+      "eps_observations.py": {
+        "bytes": 26205,
+        "sha256": "f5f262cc1a34efeb1957f177f417c2ecf846e29e5faa523d69d6ac0df97c4515"
+      },
+      "lambda_function.py": {
+        "bytes": 32380,
+        "sha256": "183ba5653f1edc5f24b3da7cca8f746c8a2609d5266a4baf105c7a52b51dfc06"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 866622,
+    "zip_sha256_hex": "cd24bd2f20d3c22e4ea2c18944c3fa3bb75b18b54c5817796c6cd82a4e438913"
+  },
+  "public_packet": {
+    "bytes": 129794,
+    "sha256": "d750a55d85bc1004a346c2b09a5532b012cc225b7f17af5df14d8b1bb110f54e",
+    "version": null,
+    "generated_at": "2026-09-27T11:00:19+00:00",
+    "current_compiler_publication_verified": false
+  },
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "private_state_reads": 0,
+  "investment_authority": false,
+  "browser": {
+    "legacy_occurrences": 292,
+    "pages": 3,
+    "script_version": "c3450b73",
+    "unsupported_claims_withheld": true,
+    "captured_console_errors": 0
+  }
+}

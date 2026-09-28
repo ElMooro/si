@@ -1,0 +1,80 @@
+{
+  "checked_at": "2026-09-28T10:58:26.907947+00:00",
+  "originals": {
+    "aws/lambdas/justhodl-revenue-acceleration/source/lambda_function.py": {
+      "commit": "84b204d6ff7363c79a5cfee845e60e1cc43b54a0",
+      "bytes": 28003,
+      "sha256": "82b05d22273ea0a002fea024d5d1fd91ff1fb0d3f103228b3e60444eb266a5bd"
+    },
+    "aws/lambdas/justhodl-revenue-acceleration/source/revenue_observations.py": {
+      "commit": "84b204d6ff7363c79a5cfee845e60e1cc43b54a0",
+      "bytes": 19913,
+      "sha256": "18997eea0d1db7b742d58e8c19264c13e5628410f494fe284d91b208beb065e2"
+    },
+    "aws/lambdas/justhodl-earnings-pead/source/lambda_function.py": {
+      "commit": "613dadcbebfa58406f1b0b12b09ce8b0c4021ef9",
+      "bytes": 24049,
+      "sha256": "917a14968512d79c1ffb18f30368e5eacd0e9e9c96ef93ac9ab5bd292f7c02d3"
+    },
+    "aws/lambdas/justhodl-earnings-pead/source/pead_observations.py": {
+      "commit": "613dadcbebfa58406f1b0b12b09ce8b0c4021ef9",
+      "bytes": 19050,
+      "sha256": "d0dc404ee4cbda1eb2e71e5815d418e8ef6d022df9e13d9e02bee4c3796184a3"
+    }
+  },
+  "reproduction": {
+    "case": "Python boolean equality accepted a true visited-occurrence counter in an otherwise whole synthetic publication; not observed in live output.",
+    "results": [
+      {
+        "engine": "justhodl-revenue-acceleration",
+        "isolated_actual_writer": true,
+        "forged_counter": true,
+        "accepted_boolean_counter": true,
+        "next_plan": [
+          1,
+          2
+        ]
+      },
+      {
+        "engine": "justhodl-earnings-pead",
+        "isolated_actual_writer": true,
+        "forged_counter": true,
+        "accepted_boolean_counter": true,
+        "next_plan": [
+          1,
+          2
+        ]
+      }
+    ],
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_state_reads": 0,
+    "changes_to_production": 0
+  },
+  "repair": "Require literal integer counters/budgets, literal boolean flags and recognized plan meaning in both prior acquisition state and current acceptance replay. Reject metadata that Python numeric equality or copied plan fields otherwise accepts.",
+  "versions": {
+    "justhodl-revenue-acceleration": "1.2.1",
+    "justhodl-earnings-pead": "1.2.1"
+  },
+  "unchanged": [
+    "All statement, earnings and price observations and calculations",
+    "Provider acquisition, budgets and gate behavior",
+    "Original selected order, duplicate occurrence identity and resumption",
+    "Immutable whole originals and previous publication history",
+    "Original runtime/schedules and research-only permissions"
+  ],
+  "tests": {
+    "revenue_native": 24,
+    "pead_native": 24,
+    "acceptance": 10,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_state_reads": 0,
+    "deployment_static": 468,
+    "candidate_shell": 12,
+    "page_registry": "passed",
+    "engine_wiring_unchanged": 143,
+    "frontend_unchanged_preceding_run": 1649
+  },
+  "qualification": "Malformed synthetic metadata rejected; no claim that live published counters were booleans. Original first-release, predictive and portfolio qualification remains open."
+}

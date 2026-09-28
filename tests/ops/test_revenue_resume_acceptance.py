@@ -7,6 +7,17 @@ from test_revenue_resume import n
 
 
 class Tests(unittest.TestCase):
+    def test_current_publication_requires_literal_counters_and_flags(self):
+        _,raw,prior=self.packet();base=json.loads(raw)
+        for fields in ({'visited_occurrences':2.0},{'pending_occurrences':True},{'cycle_complete':0},
+                       {'visited_is_not_successful_provider_response':1},{'request_order_is_rank':True},
+                       {'original_population_order_preserved':1},{'schedule_accelerated':0}):
+            changed=deepcopy(base);changed['acquisition_progress'].update(fields)
+            with self.assertRaisesRegex(ValueError,'Literal acquisition'):op.publication(json.dumps(changed).encode(),prior)
+        for version in ('1.1.0','1.2.0'):
+            result=op.publication(json.dumps({'measurement_contract':op.original.compiler().CONTRACT,'version':version}).encode())
+            self.assertFalse(result['new_queue_live_verified']);self.assertFalse(result['investment_authority'])
+
     def packet(self):
         m=n.Memory();ns=n.native(m,N_WORKERS=1);seen=[]
         def company(member):
