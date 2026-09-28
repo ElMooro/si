@@ -1,0 +1,64 @@
+{
+  "engine_commit": "3555e96da37851da57d4d43d8ce878b7f260bfd9",
+  "served_page_commit": "8796e49370a1ed4ff5fbbe1d66164c97729cc7e7",
+  "checked_at": "2026-09-28T09:53:40.960911+00:00",
+  "assets": {
+    "eps-velocity.html": {
+      "bytes": 13330,
+      "sha256": "6db5aa210f77565af541b853be0da9afe9aec3e75af99028a43b99705c88825b",
+      "matches_build_manifest": true
+    },
+    "jh-eps-observations.js": {
+      "bytes": 7240,
+      "sha256": "98ac39eb98c2462c3f437ff4b904cedf658fc24f6f4ec48c200c4614ab395e10",
+      "matches_build_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5733,
+      "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+      "matches_build_manifest": true
+    }
+  },
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "gJA4ANrz7wYF/DtgtOxmXe/VMpp1INNGmyr+manxILI=",
+    "commit": "3555e96da37851da57d4d43d8ce878b7f260bfd9",
+    "deployed_at": "2026-09-28T09:52:20Z",
+    "function": "justhodl-eps-revision-velocity",
+    "run_id": "36406115868",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36406115868",
+    "schema": "release-receipt.v1",
+    "source": {
+      "eps_observations.py": {
+        "bytes": 13101,
+        "sha256": "c74eb7e8b57be1471c61fe2853d4a091d047da8922d0c1215e338ffa043f3fc6"
+      },
+      "lambda_function.py": {
+        "bytes": 27965,
+        "sha256": "c57599011169f27b4492fb0241aed21fcbc0498adbfc1ba9e91d4a76dce69e1d"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 851549,
+    "zip_sha256_hex": "80903800daf3ef0605fc3b60b4ec665defd5329a7520d3469b2afe99a9f120b2"
+  },
+  "public_packet": {
+    "bytes": 129794,
+    "sha256": "d750a55d85bc1004a346c2b09a5532b012cc225b7f17af5df14d8b1bb110f54e",
+    "version": null,
+    "generated_at": "2026-09-27T11:00:19+00:00",
+    "current_compiler_publication_verified": false
+  },
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "private_state_reads": 0,
+  "investment_authority": false,
+  "live_browser": {
+    "legacy_occurrences": 292,
+    "pages": 3,
+    "legacy_claims_explicitly_unverified": true,
+    "console_errors": 0
+  }
+}

@@ -1,0 +1,404 @@
+{
+  "purpose": "Three isolated actual writer runs: 2, failed estimate, 3. No provider or AWS call.",
+  "packet": {
+    "engine": "justhodl-eps-revision-velocity",
+    "version": "1.2.0",
+    "schema_version": 2,
+    "source_files": {
+      "lambda_function.py": {
+        "bytes": 31853,
+        "sha256": "ae10002774e9905698e29883fe3c73d96cf298b407098cbbe2eff8abc199ab81"
+      },
+      "eps_observations.py": {
+        "bytes": 19776,
+        "sha256": "7f7bf2d7cbf5ca8e7c97cd6aba63f4394a4b0fb8405edad4d67db2b32a993f44"
+      }
+    },
+    "source_imports": {
+      "managed_secret.py": {
+        "bytes": 1782,
+        "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+      }
+    },
+    "transport": {
+      "credential_location": "header",
+      "follow_redirects": false,
+      "automatic_retries": false,
+      "timeout_seconds": 10,
+      "max_response_bytes": 262144,
+      "stop_after_authorization_error": true
+    },
+    "measurement_contract": "eps-target-observations.v1",
+    "method": "received_annual_targets_and_same_target_changes",
+    "status": "RESEARCH_ONLY",
+    "generated_at": "2026-09-27T01:00:03.000017+00:00",
+    "acquisition_started_at": "2026-09-27T01:00:03.000012+00:00",
+    "checked_as_of": "2026-09-27",
+    "estimate_baselines": {
+      "contract": "eps-estimate-baselines.v1",
+      "entries": [
+        {
+          "ticker": "TEST",
+          "endpoint": "analyst-estimates",
+          "received_at": "2026-09-27T01:00:03.000016+00:00",
+          "original_ref": {
+            "key": "data/eps-revision-velocity/sources/9e4c967d3ddaa2aa255f4903c0295ef6162508e285a6b529693ad515a8a921fd.json",
+            "sha256": "9e4c967d3ddaa2aa255f4903c0295ef6162508e285a6b529693ad515a8a921fd",
+            "bytes": 199
+          }
+        }
+      ],
+      "identity": "Requested ticker only; issuer, currency, EPS basis and target must still match original records",
+      "meaning": "Last received annual-estimate array; an empty received array replaces the previous candidate",
+      "retained_clocks_are_not_refreshed": true,
+      "retired_tickers_retained": true,
+      "maximum_entries": 100000
+    },
+    "retained_source_io": {
+      "connect_timeout_seconds": 3,
+      "read_timeout_seconds": 5,
+      "total_attempts": 1,
+      "worker_limit": 1,
+      "minimum_remaining_seconds": 25,
+      "source_bytes_limit": 262144
+    },
+    "universe_acquisitions": [
+      {
+        "status": "received",
+        "endpoint": "data/universe.json",
+        "received_at": "2026-09-27T01:00:03.000013+00:00",
+        "original_base64": "eyJzdG9ja3MiOlt7InN5bWJvbCI6IlRFU1QifSx7InN5bWJvbCI6IlRFU1QifSxudWxsLHsic3ltYm9sIjoiU0VDT05EIn1dfQ==",
+        "original_sha256": "f324d3a52a3602a8b57397905ceb9a9a247acf32f3ae9a197f28be06e48f8c0f",
+        "original_bytes": 73,
+        "etag": "f324d3a52a3602a8b57397905ceb9a9a247acf32f3ae9a197f28be06e48f8c0f"
+      },
+      {
+        "status": "received",
+        "endpoint": "screener/data.json",
+        "received_at": "2026-09-27T01:00:03.000014+00:00",
+        "original_base64": "eyJyb3dzIjpbeyJ0aWNrZXIiOiJURVNUIn0seyJ0aWNrZXIiOiJUSElSRCJ9XX0=",
+        "original_sha256": "b4e3463c856cba52a2dc82e7f2bb7f0f35cd6bbe91112f5bfc2f06992ca74db2",
+        "original_bytes": 47,
+        "etag": "b4e3463c856cba52a2dc82e7f2bb7f0f35cd6bbe91112f5bfc2f06992ca74db2"
+      }
+    ],
+    "legacy_static_backup": [
+      "TEST",
+      "BACKUP"
+    ],
+    "universe_membership": {
+      "occurrences": [
+        {
+          "source_key": "data/universe.json",
+          "source_pointer": "/stocks/0",
+          "reported_symbol": "TEST",
+          "request_symbol": "TEST",
+          "request_index": 0,
+          "status": "selected"
+        },
+        {
+          "source_key": "data/universe.json",
+          "source_pointer": "/stocks/1",
+          "reported_symbol": "TEST",
+          "request_symbol": "TEST",
+          "request_index": 0,
+          "status": "selected"
+        },
+        {
+          "source_key": "data/universe.json",
+          "source_pointer": "/stocks/2",
+          "reported_symbol": null,
+          "request_symbol": null,
+          "request_index": null,
+          "status": "invalid_symbol"
+        },
+        {
+          "source_key": "data/universe.json",
+          "source_pointer": "/stocks/3",
+          "reported_symbol": "SECOND",
+          "request_symbol": "SECOND",
+          "request_index": 1,
+          "status": "selected"
+        },
+        {
+          "source_key": "screener/data.json",
+          "source_pointer": "/rows/0",
+          "reported_symbol": "TEST",
+          "request_symbol": "TEST",
+          "request_index": 0,
+          "status": "selected"
+        },
+        {
+          "source_key": "screener/data.json",
+          "source_pointer": "/rows/1",
+          "reported_symbol": "THIRD",
+          "request_symbol": "THIRD",
+          "request_index": null,
+          "status": "outside_original_request_cap"
+        },
+        {
+          "source_key": "legacy_static_backup",
+          "source_pointer": "/0",
+          "reported_symbol": "TEST",
+          "request_symbol": "TEST",
+          "request_index": 0,
+          "status": "selected"
+        },
+        {
+          "source_key": "legacy_static_backup",
+          "source_pointer": "/1",
+          "reported_symbol": "BACKUP",
+          "request_symbol": "BACKUP",
+          "request_index": null,
+          "status": "outside_original_request_cap"
+        }
+      ],
+      "source_populations": [
+        {
+          "key": "data/universe.json",
+          "status": "received_population",
+          "source_field": "stocks",
+          "occurrences": 4
+        },
+        {
+          "key": "screener/data.json",
+          "status": "received_population",
+          "source_field": "rows",
+          "occurrences": 2
+        }
+      ],
+      "distinct_request_symbols": [
+        "TEST",
+        "SECOND",
+        "THIRD",
+        "BACKUP"
+      ],
+      "selected_symbols": [
+        "TEST",
+        "SECOND"
+      ],
+      "request_limit": 2,
+      "historical_index_membership_verified": false
+    },
+    "request_records": [
+      {
+        "ticker": "TEST",
+        "acquisitions": [
+          {
+            "status": "received",
+            "endpoint": "quote",
+            "received_at": "2026-09-27T01:00:03.000015+00:00",
+            "original_base64": "W3sic3ltYm9sIjogIlRFU1QiLCAibWFya2V0Q2FwIjogMTAwMDAwMDAwMC4wfV0=",
+            "original_sha256": "0787508853b54e693174aa8b517fb5ce9f51b9ad6307ce76f730dd0ffff29010",
+            "original_bytes": 47
+          },
+          {
+            "status": "received",
+            "endpoint": "analyst-estimates",
+            "received_at": "2026-09-27T01:00:03.000016+00:00",
+            "original_base64": "W3sic3ltYm9sIjogIlRFU1QiLCAiZGF0ZSI6ICIyMDI3LTEyLTMxIiwgImVwc0F2ZyI6IDMsICJlcHNMb3ciOiAtMTAsICJlcHNIaWdoIjogMjAsICJudW1BbmFseXN0c0VwcyI6IDUsICJyZXBvcnRlZEN1cnJlbmN5IjogIlVTRCIsICJjaWsiOiAiMSIsICJlcHNCYXNpcyI6ICJyZXBvcnRlZF9hZGp1c3RlZCIsICJ1bmtub3duIjogInJldGFpbiJ9XQ==",
+            "original_sha256": "9e4c967d3ddaa2aa255f4903c0295ef6162508e285a6b529693ad515a8a921fd",
+            "original_bytes": 199
+          },
+          {
+            "endpoint": "grades",
+            "status": "rate_limited"
+          }
+        ],
+        "quote_records": [
+          {
+            "symbol": "TEST",
+            "marketCap": 1000000000.0
+          }
+        ],
+        "source_population_status": {
+          "quote": "received_array",
+          "analyst-estimates": "received_array",
+          "grades": "rate_limited"
+        },
+        "estimate_observations": [
+          {
+            "source_index": 0,
+            "raw": {
+              "symbol": "TEST",
+              "date": "2027-12-31",
+              "epsAvg": 3,
+              "epsLow": -10,
+              "epsHigh": 20,
+              "numAnalystsEps": 5,
+              "reportedCurrency": "USD",
+              "cik": "1",
+              "epsBasis": "reported_adjusted",
+              "unknown": "retain"
+            },
+            "ticker": "TEST",
+            "target_period_end": "2027-12-31",
+            "target_status": "current_or_future_target",
+            "requested_period": "annual",
+            "received_at": "2026-09-27T01:00:03.000016+00:00",
+            "values": {
+              "epsAvg": 3,
+              "epsLow": -10,
+              "epsHigh": 20,
+              "revenueAvg": null,
+              "revenueLow": null,
+              "revenueHigh": null,
+              "numAnalystsEps": 5,
+              "numAnalystsRevenue": null
+            },
+            "value_fields": {
+              "epsAvg": [
+                "epsAvg"
+              ],
+              "epsLow": [
+                "epsLow"
+              ],
+              "epsHigh": [
+                "epsHigh"
+              ],
+              "revenueAvg": [],
+              "revenueLow": [],
+              "revenueHigh": [],
+              "numAnalystsEps": [
+                "numAnalystsEps"
+              ],
+              "numAnalystsRevenue": []
+            },
+            "reported_cik": "0000000001",
+            "reported_currency": "USD",
+            "eps_basis": "reported_adjusted",
+            "issues": [],
+            "measurement_status": "reported_forecast_observation",
+            "first_publication_at": null,
+            "provider_documented_update_frequency": "weekly"
+          }
+        ],
+        "same_target_comparisons": [
+          {
+            "source_index": 0,
+            "prior_source_index": 0,
+            "prior_received_at": "2026-09-27T01:00:01.000005+00:00",
+            "eps_change": 1,
+            "eps_change_pct_positive_base": 50.0,
+            "analyst_count_change": 0,
+            "status": "observed_same_target_consensus_change",
+            "same_analyst_panel_verified": false,
+            "corporate_actions_verified": false
+          }
+        ],
+        "rating_observations": [],
+        "source_family": "FMP annual analyst estimates; shared with Estimate Revisions",
+        "independent_evidence_eligible": false,
+        "forecast_qualified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "call": null,
+        "score": null,
+        "revision_velocity_60d": null,
+        "revision_acceleration": null,
+        "ratings_revision_breadth": null,
+        "request_index": 0,
+        "comparison_source": {
+          "status": "received",
+          "baseline": {
+            "ticker": "TEST",
+            "endpoint": "analyst-estimates",
+            "received_at": "2026-09-27T01:00:01.000005+00:00",
+            "original_ref": {
+              "key": "data/eps-revision-velocity/sources/67404df8f022faa664469d5c5c10346c37c36b643e6e6ae194e08d11dd80db02.json",
+              "sha256": "67404df8f022faa664469d5c5c10346c37c36b643e6e6ae194e08d11dd80db02",
+              "bytes": 199
+            }
+          }
+        }
+      },
+      {
+        "ticker": "SECOND",
+        "acquisitions": [
+          {
+            "endpoint": "quote",
+            "status": "not_attempted_runtime_rate_or_size_limit"
+          }
+        ],
+        "quote_records": [],
+        "source_population_status": {
+          "quote": "not_attempted_runtime_rate_or_size_limit"
+        },
+        "estimate_observations": [],
+        "same_target_comparisons": [],
+        "rating_observations": [],
+        "source_family": "FMP annual analyst estimates; shared with Estimate Revisions",
+        "independent_evidence_eligible": false,
+        "forecast_qualified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "call": null,
+        "score": null,
+        "revision_velocity_60d": null,
+        "revision_acceleration": null,
+        "ratings_revision_breadth": null,
+        "request_index": 1,
+        "comparison_source": {
+          "status": "no_retained_baseline",
+          "baseline": null
+        }
+      }
+    ],
+    "acquisition_policy": {
+      "request_limit": 2,
+      "numeric_market_cap_floor": 300000000,
+      "threshold_currency_verified": false,
+      "quote_gate_is_budget_selection_not_valuation": true
+    },
+    "previous_publication": {
+      "key": "data/eps-revision-velocity/history/2e8388d5f4408616d15137ccfacb547ec80599779904791461bf824f319d10d4.json",
+      "sha256": "2e8388d5f4408616d15137ccfacb547ec80599779904791461bf824f319d10d4",
+      "bytes": 8230
+    },
+    "stats": {
+      "n_universe": 2,
+      "n_qualifying": null,
+      "n_tier_a": null,
+      "n_tier_b": null
+    },
+    "n_estimate_observations": 1,
+    "n_rating_observations": 0,
+    "summary": {
+      "top_25_overall": [],
+      "tier_a": [],
+      "tier_b_symbols": []
+    },
+    "all_qualifying": [],
+    "call": null,
+    "calls_eligible": false,
+    "forecast_qualified": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "signals_logged": 0,
+    "notifications_sent": 0,
+    "private_state_read_or_written": false,
+    "independent_evidence_eligible": false,
+    "source_documentation": [
+      "https://site.financialmodelingprep.com/developer/docs/stable/grades",
+      "https://site.financialmodelingprep.com/developer/docs/cycle-times"
+    ],
+    "caveats": [
+      "A different annual forecast target is not a revision or acceleration. Historical target dates remain historical.",
+      "Changes require one identical target/issuer/currency/EPS basis across ordered captured responses. This is prospective received history, not reconstructed first releases.",
+      "Rating actions remain separate records; a rating company name, unchanged sell opinion or future-dated action is not an earnings revision.",
+      "Raw quote units/timing, corporate actions, fixed analyst panels, complete provider history and independent predictive performance remain unverified.",
+      "The static backup is a legacy selection list, not verified present or historical S&P 500 membership.",
+      "Same FMP annual estimates also feed Estimate Revisions; these are not independent votes. No six-month outperformance claim is made."
+    ],
+    "duration_s": 0.0
+  },
+  "sources": {
+    "data/eps-revision-velocity/sources/67404df8f022faa664469d5c5c10346c37c36b643e6e6ae194e08d11dd80db02.json": "[{\"symbol\": \"TEST\", \"date\": \"2027-12-31\", \"epsAvg\": 2, \"epsLow\": -10, \"epsHigh\": 20, \"numAnalystsEps\": 5, \"reportedCurrency\": \"USD\", \"cik\": \"1\", \"epsBasis\": \"reported_adjusted\", \"unknown\": \"retain\"}]",
+    "data/eps-revision-velocity/sources/9e4c967d3ddaa2aa255f4903c0295ef6162508e285a6b529693ad515a8a921fd.json": "[{\"symbol\": \"TEST\", \"date\": \"2027-12-31\", \"epsAvg\": 3, \"epsLow\": -10, \"epsHigh\": 20, \"numAnalystsEps\": 5, \"reportedCurrency\": \"USD\", \"cik\": \"1\", \"epsBasis\": \"reported_adjusted\", \"unknown\": \"retain\"}]"
+  },
+  "private_state_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0
+}

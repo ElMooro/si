@@ -341,6 +341,32 @@ test('EPS legacy complete company and summary occurrences stay unverified, pagin
  assert.ok(api.PUBLIC_PATHS.test('/data/eps-revision-velocity.json'));assert.ok(!api.PUBLIC_PATHS.test('/data/eps-revision-velocity/private.json'));
 });
 
+test('EPS retained comparison exposes the original date and full verified source without refreshing it',async()=>{
+ const M=require('../jh-eps-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/eps-retained-synthetic.json'),'utf8')),p=f.packet;
+ const m=M.model(p),r=m.targets[0],d=p.request_records[0].comparison_source.baseline;
+ assert.equal(r.change,1);assert.equal(r.value,3);assert.equal(r.source.received_at,d.received_at);assert.notEqual(d.received_at,p.generated_at);
+ const s=page('eps-velocity.html',async()=>raw(p));await flush();assert.match(s.get('board').innerHTML,/Inspect complete retained original/);assert.ok(s.get('board').innerHTML.includes(d.received_at));
+ assert.equal(s.get('original').textContent,JSON.stringify(p));s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('board').innerHTML,/not_attempted_runtime_rate_or_size_limit/);
+ const ref=d.original_ref,body=Buffer.from(f.sources[ref.key]),calls=[];
+ const fetcher=async(url,options)=>{calls.push(url);assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');return new Response(body);};
+ assert.equal((await M.loadSource(ref,{fetcher})).raw,body.toString());assert.deepEqual(calls,['/'+ref.key+'?exact=1&nogen=1']);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(body.subarray(0,4))}),/byte count/);
+ await assert.rejects(()=>M.loadSource(ref,{fetcher:async()=>new Response(Buffer.alloc(body.length,97))}),/SHA-256/);
+ await assert.rejects(()=>M.loadSource({...ref,key:'private/account.json'},{fetcher}),/source identity/);assert.equal(calls.length,1);
+ await assert.rejects(()=>M.loadSource(ref,{timeout:5,fetcher:()=>new Promise(()=>{})}),/timed out/);
+});
+
+test('EPS malformed comparisons cannot be recovered by switching tabs or searching',async()=>{
+ const M=require('../jh-eps-observations.js'),p=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/eps-retained-synthetic.json'),'utf8')).packet;
+ for(const edit of [p=>p.request_records[0].same_target_comparisons.push(p.request_records[0].same_target_comparisons[0]),
+  p=>p.request_records[0].comparison_source.baseline.original_ref=null,p=>p.request_records[0].comparison_source.baseline.ticker='OTHER',
+  p=>p.request_records[0].comparison_source.status='not_read_runtime_reserve',p=>p.request_records[0].comparison_source.baseline.received_at='yesterday']){
+  const q=structuredClone(p);edit(q);assert.throws(()=>M.model(q));const s=page('eps-velocity.html',async()=>raw(q));await flush();
+  assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('original').textContent,JSON.stringify(q));
+  for(const mode of ['requests','targets','ratings']){s.get('mode').value=mode;s.get('mode').onchange();s.get('q').oninput();s.get('next').onclick();assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('rows').textContent,'');}
+ }
+});
+
 test('revenue statements retain all periods, zero amounts, units, calculations and request evidence',async()=>{
  const M=require('../jh-revenue-observations.js');const record={ticker:'TEST',acquisitions:[{endpoint:'income-statement',status:'received',original_base64:'WHOLE_BYTES'}],quote_records:[],
  statement_observations:[{source_index:0,raw:{symbol:'TEST',unknown:'<img src=x>'},period_start:'2026-04-01',period_end:'2026-06-30',reported_period:'Q2',reported_currency:'JPY',values:{revenue:0},gross_margin_pct:null,status:'reported_statement_amounts'}],

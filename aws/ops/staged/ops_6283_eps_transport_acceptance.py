@@ -12,7 +12,7 @@ import ops_6250_eps_target_acceptance as original
 FN=original.FN;KEY=original.KEY;BUCKET=original.BUCKET
 
 
-def publication(raw,prior_raw=None):
+def publication(raw,prior_raw=None,read_source=None):
     p=original.compiler().strict(raw)
     if not isinstance(p,dict):raise ValueError('Whole public packet required')
     if p.get('measurement_contract')!=original.compiler().CONTRACT or p.get('version')=='1.1.0':
@@ -24,7 +24,7 @@ def publication(raw,prior_raw=None):
     if p.get('transport')!={'credential_location':'header','follow_redirects':False,'automatic_retries':False,
         'timeout_seconds':10,'max_response_bytes':256*1024,'stop_after_authorization_error':True}:
         raise ValueError('Original transport bounds or authorization stop differ')
-    result=original.publication(raw,prior_raw)
+    result=original.publication(raw,prior_raw,read_source)
     result.update(current_compiler_publication_verified=True,compiler_files=3,investment_authority=False)
     return result
 

@@ -30,7 +30,6 @@ Universe: existing screener data + S&P 500 backup (same as deep-value)
 import io, json, os, time, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
-from botocore.config import Config
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 REGION = "us-east-1"
@@ -44,8 +43,6 @@ TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "240"))
 MIN_VELOCITY_PCT = float(os.environ.get("MIN_VELOCITY_PCT", "5.0"))
 
 S3 = boto3.client("s3", region_name=REGION)
-SOURCE_S3 = boto3.client('s3', region_name=REGION, config=Config(connect_timeout=3, read_timeout=5,
-                          retries={'total_max_attempts':1, 'mode':'standard'}))
 
 
 SP500_BACKUP = [
@@ -422,9 +419,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote_plus
 import hashlib
-from eps_observations import (CONTRACT, strict, clock, number, symbol, envelope, original, universe, dossier,
-                              estimate_descriptor, validate_estimate_descriptor, estimate_source_envelope,
-                              previous_estimate_baselines, merge_estimate_baselines)
+from eps_observations import CONTRACT, strict, clock, number, symbol, envelope, original, universe, dossier
 
 
 def _eps_source_identity():
@@ -509,33 +504,6 @@ def _eps_archive(raw):
     return {'key':key,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
 
 
-def _eps_read_estimate_source(descriptor):
-    validate_estimate_descriptor(descriptor);ref=descriptor['original_ref']
-    obj=SOURCE_S3.get_object(Bucket=BUCKET,Key=ref['key'])
-    try:raw=obj['Body'].read(ref['bytes']+1)
-    finally:obj['Body'].close()
-    if obj.get('ContentLength')!=len(raw):raise ValueError('Whole retained estimate source required')
-    return estimate_source_envelope(descriptor,raw)
-
-
-def _eps_archive_estimate_source(descriptor,acquisition):
-    import base64
-    raw=base64.b64decode(acquisition['original_base64'],validate=True)
-    estimate_source_envelope(descriptor,raw);ref=descriptor['original_ref']
-    try:
-        SOURCE_S3.put_object(Bucket=BUCKET,Key=ref['key'],Body=raw,IfNoneMatch='*',ContentType='application/json',
-                            CacheControl='public, max-age=31536000, immutable')
-    except Exception as exc:
-        if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','PreconditionFailed','ConditionalRequestConflict'):raise
-    back=_eps_read_estimate_source(descriptor)
-    if back['original_base64']!=acquisition['original_base64']:raise ValueError('Complete immutable annual response readback differs')
-
-
-def _eps_comparison_source(descriptor):
-    try:return {'status':'received','baseline':descriptor},_eps_read_estimate_source(descriptor)
-    except Exception as exc:return {'status':'unavailable','baseline':descriptor,'error_type':type(exc).__name__},None
-
-
 def lambda_handler(event=None,context=None):
     started = time.monotonic(); checked = datetime.now(timezone.utc); today = checked.date().isoformat()
     if S3_KEY != 'data/eps-revision-velocity.json': raise ValueError('Declared research output required')
@@ -545,7 +513,6 @@ def lambda_handler(event=None,context=None):
     if previous and previous.get('measurement_contract')==CONTRACT:
         stamp = clock(previous.get('generated_at'))
         if stamp is None or stamp>=checked: raise ValueError('Previous publication time invalid')
-    baselines,bootstrap=previous_estimate_baselines(previous)
     captures = []
     for key in ('data/universe.json','screener/data.json'):
         try:
@@ -569,51 +536,23 @@ def lambda_handler(event=None,context=None):
             if any(a.get('status') in ('rate_limited','authorization_unavailable') for i,_ in jobs for a in acquisitions[i]): break
     if not any(a.get('status')=='received' and isinstance(original(a),list) for group in acquisitions for a in group):
         raise ValueError('All provider populations unavailable; preserve previous publication')
-    # Archive complete old bootstrap and current annual originals, not copied values.
-    sources={}
-    for descriptor in baselines.values():
-        key=descriptor['original_ref']['key']
-        if key in bootstrap:sources[key]=(descriptor,bootstrap[key])
-    for ticker,group in zip(selected,acquisitions):
-        for acquisition in group:
-            if acquisition.get('endpoint')!='analyst-estimates':continue
-            descriptor=estimate_descriptor(ticker,acquisition)
-            if descriptor:sources[descriptor['original_ref']['key']]=(descriptor,acquisition)
-    source_rows=list(sources.values())
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        for offset in range(0,len(source_rows),workers):
-            if remaining()<25:raise ValueError('Complete source archival exceeds original reserve; preserve previous publication')
-            jobs=[pool.submit(_eps_archive_estimate_source,*row) for row in source_rows[offset:offset+workers]]
-            for future in jobs:future.result()
-    prior_sources={};wanted=[]
-    for ticker,group in zip(selected,acquisitions):
-        annual=next((a for a in group if a.get('endpoint')=='analyst-estimates'),None)
-        if annual is not None and estimate_descriptor(ticker,annual) and ticker in baselines:wanted.append(ticker)
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        for offset in range(0,len(wanted),workers):
-            chunk=wanted[offset:offset+workers]
-            if remaining()<25:
-                for ticker in wanted[offset:]:prior_sources[ticker]=({'status':'not_read_runtime_reserve','baseline':baselines[ticker]},None)
-                break
-            jobs=[(ticker,pool.submit(_eps_comparison_source,baselines[ticker])) for ticker in chunk]
-            for ticker,future in jobs:prior_sources[ticker]=future.result()
+    old = {}
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        if not isinstance(previous.get('request_records'),list): raise ValueError('Previous complete request population required')
+        for row in previous['request_records']:
+            if not isinstance(row,dict): raise ValueError('Previous request record malformed')
+            old.setdefault(row.get('ticker'),[]).append(row)
     records = []
     for i,(ticker,group) in enumerate(zip(selected,acquisitions)):
-        evidence,prior=prior_sources.get(ticker,({'status':'not_needed_no_current_estimate' if ticker in baselines else 'no_retained_baseline','baseline':baselines.get(ticker)},None))
-        record = dossier(ticker,group,today,[prior] if prior else None)
-        record.update(request_index=i,comparison_source=evidence);records.append(record)
+        matches = old.get(ticker,[]);prior = matches[0]['acquisitions'] if len(matches)==1 else None
+        record = dossier(ticker,group,today,prior);record['request_index']=i;records.append(record)
     prior_ref = _eps_archive(previous_raw) if previous_raw is not None else None
-    published_at=datetime.now(timezone.utc).isoformat()
-    catalogue=merge_estimate_baselines(baselines,records,checked.isoformat(),published_at)
-    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.2.0','schema_version':2,
+    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.1.1','schema_version':2,
               'source_files':_eps_source_identity(),'source_imports':_eps_import_identity(),
               'transport':{'credential_location':'header','follow_redirects':False,'automatic_retries':False,
                            'timeout_seconds':10,'max_response_bytes':256*1024,'stop_after_authorization_error':True},
               'measurement_contract':CONTRACT,'method':'received_annual_targets_and_same_target_changes','status':'RESEARCH_ONLY',
-              'generated_at':published_at,'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
-              'estimate_baselines':catalogue,
-              'retained_source_io':{'connect_timeout_seconds':3,'read_timeout_seconds':5,'total_attempts':1,
-                                    'worker_limit':workers,'minimum_remaining_seconds':25,'source_bytes_limit':256*1024},
+              'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
               'universe_acquisitions':captures,'legacy_static_backup':SP500_BACKUP,'universe_membership':membership,'request_records':records,
               'acquisition_policy':{'request_limit':membership['request_limit'],'numeric_market_cap_floor':MIN_MCAP,
                                     'threshold_currency_verified':False,'quote_gate_is_budget_selection_not_valuation':True},

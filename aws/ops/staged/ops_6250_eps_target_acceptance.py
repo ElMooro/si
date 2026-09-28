@@ -31,7 +31,30 @@ def read_public_archive(s3,ref):
     return raw
 
 
-def publication(raw,prior_raw=None):
+def comparison_evidence(m,ticker,group,baseline,evidence,read_source):
+    annual=next((a for a in group if a['endpoint']=='analyst-estimates'),None)
+    candidate=m.estimate_descriptor(ticker,annual) if annual is not None else None
+    if baseline is None:
+        if evidence!={'status':'no_retained_baseline','baseline':None}:raise ValueError('Absent baseline status differs')
+        return None
+    if candidate is None:
+        if evidence!={'status':'not_needed_no_current_estimate','baseline':baseline}:raise ValueError('No-current-estimate status differs')
+        return None
+    if not isinstance(evidence,dict) or evidence.get('baseline')!=baseline:raise ValueError('Expected prior descriptor differs')
+    status=evidence.get('status')
+    keys={'status','baseline','error_type'} if status=='unavailable' else {'status','baseline'}
+    if set(evidence)!=keys:raise ValueError('Comparison evidence shape differs')
+    if status=='received':
+        if read_source is None:raise ValueError('Complete retained comparison original required')
+        return [m.estimate_source_envelope(baseline,read_source(baseline))]
+    if status=='unavailable':
+        if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,99}',str(evidence.get('error_type',''))):raise ValueError('Sanitized error type required')
+        return None
+    if status=='not_read_runtime_reserve':return None
+    raise ValueError('Unrecognized retained comparison outcome')
+
+
+def publication(raw,prior_raw=None,read_source=None):
     m=compiler();p=m.strict(raw)
     if not isinstance(p,dict):raise ValueError('Whole packet required')
     out={'status':'pending_original_fanout_publication','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'generated_at':p.get('generated_at'),'version':p.get('version')}
@@ -46,6 +69,8 @@ def publication(raw,prior_raw=None):
     if stamp is None or started is None or stamp<started or m.day(p.get('checked_as_of'))!=started.date():raise ValueError('Publication clocks invalid')
     if p.get('previous_publication')!=(archive_ref(prior_raw) if prior_raw is not None else None):raise ValueError('Whole previous public packet differs')
     previous=m.strict(prior_raw) if prior_raw else {};old={}
+    retained='estimate_baselines' in p
+    baselines,_=m.previous_estimate_baselines(previous) if retained else ({},{})
     if previous.get('measurement_contract')==m.CONTRACT:
         if m.clock(previous.get('generated_at')) is None or m.clock(previous['generated_at'])>=started:raise ValueError('Previous clock invalid')
         for row in previous['request_records']:old.setdefault(row['ticker'],[]).append(row)
@@ -73,10 +98,14 @@ def publication(raw,prior_raw=None):
         if endpoints not in (['quote'],['quote','analyst-estimates'],['quote','analyst-estimates','grades']):raise ValueError('Unexpected provider request scope')
         for a in group:acquisition(a)
         matches=old.get(ticker,[]);prior=matches[0]['acquisitions'] if len(matches)==1 else None
+        if retained:prior=comparison_evidence(m,ticker,group,baselines.get(ticker),row.get('comparison_source'),read_source)
         expected=m.dossier(ticker,group,p['checked_as_of'],prior);expected['request_index']=i
+        if retained:expected['comparison_source']=row['comparison_source']
         if row!=expected:raise ValueError('Full forecast/rating replay differs')
         n_est+=len(row['estimate_observations']);n_rating+=len(row['rating_observations'])
     if p['n_estimate_observations']!=n_est or p['n_rating_observations']!=n_rating or p['stats']!={'n_universe':len(selected),'n_qualifying':None,'n_tier_a':None,'n_tier_b':None}:raise ValueError('Population counts differ')
+    if retained and p['estimate_baselines']!=m.merge_estimate_baselines(baselines,records,p['acquisition_started_at'],p['generated_at']):
+        raise ValueError('Complete retained baseline merge differs')
     out.update(status='published_eps_originals_replayed',universe_occurrences=len(membership['occurrences']),request_occurrences=len(records),estimate_observations=n_est,rating_observations=n_rating,first_release_history_verified=False,independent_evidence=False,investment_authority=False)
     return out
 

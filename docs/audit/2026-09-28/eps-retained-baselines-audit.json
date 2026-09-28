@@ -1,0 +1,88 @@
+{
+  "baseline_commit": "3555e96da37851da57d4d43d8ce878b7f260bfd9",
+  "originals": {
+    "aws/lambdas/justhodl-eps-revision-velocity/source/lambda_function.py": {
+      "bytes": 27965,
+      "sha256": "c57599011169f27b4492fb0241aed21fcbc0498adbfc1ba9e91d4a76dce69e1d"
+    },
+    "aws/lambdas/justhodl-eps-revision-velocity/source/eps_observations.py": {
+      "bytes": 13101,
+      "sha256": "c74eb7e8b57be1471c61fe2853d4a091d047da8922d0c1215e338ffa043f3fc6"
+    },
+    "jh-eps-observations.js": {
+      "bytes": 7240,
+      "sha256": "98ac39eb98c2462c3f437ff4b904cedf658fc24f6f4ec48c200c4614ab395e10"
+    },
+    "eps-velocity.html": {
+      "bytes": 5495,
+      "sha256": "a6797482b6354972609d94ba07c416b6c592cb38d6e6b90c58521ac39dbb9a58"
+    }
+  },
+  "checked_at": "2026-09-28T10:24:47.659277+00:00",
+  "reproduced_defect": "Complete predecessor loses comparable EPS2 history after an intervening rate-limited estimate run; the next EPS3 run returns null although older source remains archived.",
+  "repair": "Immutable complete annual response originals plus typed last-received descriptors; preserve prior receipt clocks through partial/unattempted runs. Compare only matching issuer, currency, basis and annual target; strict owned source hash/size checks. Atomic publication retains complete predecessors.",
+  "source_namespace": "data/eps-revision-velocity/sources/<sha256>.json",
+  "public_boundary": "Existing declared public producer annual response bytes already retained inline; no private or consumer classification changes. Existing exact read-through edge path accepts owned hash paths; exact=1&nogen=1 prevents aliases or native generation.",
+  "registry_limit": "Page contracts use checked-in manifest, while Pages regenerates actual source ownership. Dynamic reference-resolved source families still need complete graph/index integration; this pass verifies exact owned descriptors and bytes directly and does not claim registry completeness.",
+  "limits": {
+    "source_bytes": 262144,
+    "catalogue_entries": 100000,
+    "archive_io_connect_seconds": 3,
+    "archive_io_read_seconds": 5,
+    "archive_io_total_attempts": 1,
+    "max_workers": 10,
+    "archive_comparison_min_remaining_seconds": 25,
+    "head_publish_min_remaining_seconds": 15
+  },
+  "failure_semantics": [
+    "Failed/unattempted annual request retains previous descriptor without current observation",
+    "Empty received array replaces old candidate",
+    "Missing prior bytes withhold comparison and retain expected descriptor/status",
+    "Invalid prior references, new archival failure, full catalogue overflow or conditional head conflict preserve previous public head"
+  ],
+  "unchanged": [
+    "Provider endpoints, quote/estimate gates, request cap and acquisition budget",
+    "Original 1024 MB / 300 s runtime and 11:00 UTC daily fanout",
+    "Complete current original bytes, all selected outcomes and old/new history",
+    "No Calls, sizing, forecast or execution authority"
+  ],
+  "open": [
+    "Resumable EPS collection",
+    "Fixed analyst panels and corporate actions",
+    "First-release history and 60-day velocity",
+    "Native 1.2.0 publication and public new source access until original cadence",
+    "Performance under whole-universe source latency; archive reserve can preserve previous head instead of partial publication",
+    "Historical network-read failures cannot be independently reconstructed"
+  ],
+  "tests": {
+    "native": 32,
+    "acceptance": 12,
+    "frontend_targeted": 57,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_state_reads": 0,
+    "deployment_static": 468,
+    "deployment_shell": 12,
+    "frontend": 1647,
+    "page_graphs": 599,
+    "page_syntax_errors": 0,
+    "registry_check": true,
+    "wiring_bindings": 143
+  },
+  "browser": {
+    "environment": "isolated actual page/script with actual synthetic-writer fixture; localhost 8816",
+    "comparison": "3 current EPS, 1 same-target change, original prior receipt date and EPS2 retained source shown",
+    "verified_source_bytes": 199,
+    "verified_source_sha256": "67404df8f022faa664469d5c5c10346c37c36b643e6e6ae194e08d11dd80db02",
+    "request_coverage": "Received and unattempted selected occurrences shown; changing population clears previous source text",
+    "truncated_source": "Actual browser control rejected two-byte source and left original text empty",
+    "mobile": {
+      "requested_width": 390,
+      "document_client_width": 375,
+      "document_scroll_width": 375,
+      "region_width": 343,
+      "table_width": 1350
+    },
+    "captured_console_errors": 0
+  }
+}

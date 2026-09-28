@@ -30,16 +30,14 @@ td.l,th.l{text-align:left}
 <p id="rows" aria-live="polite"></p><button id="previous" type="button" disabled>Previous 100</button> <button id="next" type="button" disabled>Next 100</button>
 <div id="board" role="region" aria-label="Complete forecast and rating populations, paginated" tabindex="0">Loading /data/eps-revision-velocity.json</div>
 <details><summary>Complete received packet, all source responses and universe membership</summary><pre id="original" tabindex="0">Unavailable</pre></details>
-<section aria-label="Verified retained estimate source"><p id="source-status" role="status">Select a retained original beside a comparison to verify its complete bytes.</p><pre id="source-original" tabindex="0"></pre></section>
 <div class="foot"><b>Different forecast years:</b> a difference between FY1 and FY2 estimates is a target comparison, not a revision over time or an acceleration.<br>
 <b>Observed same-target changes:</b> require matching target, issuer, reported currency and EPS basis in two ordered captures. Original release timing, fixed analyst panels and corporate actions remain unverified.<br>
-<b>Retained comparison history:</b> failed or unattempted requests can retain an earlier annual-estimate source. Its original receipt date stays visible; it is not a fresh observation. A missing retained source withholds the change. Empty received arrays replace the prior comparison candidate.<br>
 <b>Rating actions:</b> provider-reported opinions remain separate from earnings forecasts. A maintained sell rating is not automatically a downgrade, and the grading company's name is not a rating.<br>
 <b>Coverage and independence:</b> incomplete requests and source populations stay visible. The same annual-estimate provider also feeds Estimate Revisions, so the two engines cannot count as independent votes.<br>
 <b>Research limits:</b> no validated return forecast, investment tier or position-size permission. Missing measurements remain unavailable; reported zero remains zero.<br>
 <b>Provider documentation:</b> <a href="https://site.financialmodelingprep.com/developer/docs/stable/grades">rating actions</a> and <a href="https://site.financialmodelingprep.com/developer/docs/cycle-times">update frequencies</a>. Collection frequency does not establish a new estimate vintage.</div>
 </main>
-<script src="/jh-table-values.js?v=eps-targets-v1"></script><script src="/jh-eps-observations.js?v=eps-baselines-v1"></script>
+<script src="/jh-table-values.js?v=eps-targets-v1"></script><script src="/jh-eps-observations.js?v=eps-targets-v1"></script>
 <script>JHEPSObservations.start();</script>
 <aside class="wrap"><p class="sub">Companion market-wide revision breadth is retained below as a separate reported feed. Its vintage, analyst coverage and methodology require independent review; it is not company-level EPS revision evidence or a sizing signal.</p></aside>
 <script src="/jh-wire.js" defer data-feeds="data/revision-breadth.json|justhodl-gap-metrics|REVISION BREADTH · MARKET LEVEL"></script>

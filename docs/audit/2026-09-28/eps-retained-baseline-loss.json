@@ -1,0 +1,66 @@
+{
+  "case": "Three actual isolated writer runs: annual EPS 2, quote received but estimates rate-limited, annual EPS 3. The third run loses the retained comparable baseline because only the immediate previous head is used.",
+  "runs": [
+    {
+      "eps": 2,
+      "observations": 1,
+      "comparison": [
+        {
+          "source_index": 0,
+          "prior_source_index": null,
+          "prior_received_at": null,
+          "eps_change": null,
+          "eps_change_pct_positive_base": null,
+          "analyst_count_change": null,
+          "status": "no_unique_comparable_prior_target",
+          "same_analyst_panel_verified": false,
+          "corporate_actions_verified": false
+        }
+      ],
+      "previous_publication": {
+        "key": "data/eps-revision-velocity/history/d589d3450d4144038e5292f59f8e8bed7268f15be937cdd0a03e324251447ff2.json",
+        "sha256": "d589d3450d4144038e5292f59f8e8bed7268f15be937cdd0a03e324251447ff2",
+        "bytes": 56
+      }
+    },
+    {
+      "eps": null,
+      "observations": 0,
+      "comparison": [],
+      "previous_publication": {
+        "key": "data/eps-revision-velocity/history/43bbfbd72f2d633f61f43bc19078a145e20d81f0e3e05c889125d8214aa0da6f.json",
+        "sha256": "43bbfbd72f2d633f61f43bc19078a145e20d81f0e3e05c889125d8214aa0da6f",
+        "bytes": 8608
+      }
+    },
+    {
+      "eps": 3,
+      "observations": 1,
+      "comparison": [
+        {
+          "source_index": 0,
+          "prior_source_index": null,
+          "prior_received_at": null,
+          "eps_change": null,
+          "eps_change_pct_positive_base": null,
+          "analyst_count_change": null,
+          "status": "no_unique_comparable_prior_target",
+          "same_analyst_panel_verified": false,
+          "corporate_actions_verified": false
+        }
+      ],
+      "previous_publication": {
+        "key": "data/eps-revision-velocity/history/0b21ea15725ca08417d8c91605a6d1450513f9f9d731532ee995f3394248f8c6.json",
+        "sha256": "0b21ea15725ca08417d8c91605a6d1450513f9f9d731532ee995f3394248f8c6",
+        "bytes": 6896
+      }
+    }
+  ],
+  "immutable_history_objects": 4,
+  "expected_descriptive_change": 1,
+  "actual_descriptive_change": null,
+  "provider_requests": 0,
+  "aws_calls": 0,
+  "native_invocations": 0,
+  "private_state_reads": 0
+}
