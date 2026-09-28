@@ -19,7 +19,7 @@ PREFIX = 'data/signal-genealogy-research/'
 CURRENT = PREFIX+'current.json'
 CONTRACT = 'genealogy-streamed-replay.v1'
 MAX = 64*1024*1024
-COMPILERS = ('genealogy_native_publication','genealogy_streamed_pipeline',
+COMPILERS = ('genealogy_native_publication','genealogy_native_runtime','genealogy_streamed_pipeline',
     'genealogy_cache_checkpoint','genealogy_revision_cache','genealogy_spooled_timing',
     'genealogy_source_fold','genealogy_research_model','genealogy_public_archive',
     'genealogy_registration_model','genealogy_capture_timing','prospective_journal',
@@ -186,10 +186,11 @@ def replay(client, ref, directory):
     return {**head,'replay':ref}
 
 
-def publish(client, ref, directory):
+def publish(client, ref, directory, before_publish=None):
     """Construct the head only from complete original replay, then clocked CAS."""
     packet=replay(client,ref,directory);raw=canonical(packet);at=archive.clock(packet['generated_at'])
     for _ in range(4):
+        if before_publish is not None:before_publish()
         try:
             previous,tag=read_current(client)
             old=archive.strict_json(previous)
