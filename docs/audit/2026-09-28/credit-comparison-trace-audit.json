@@ -1,5 +1,5 @@
 {
-  "status": "tested_waiting_for_exact_live_page_acceptance",
+  "status": "live_page_accepted",
   "prepared_at": "2026-09-28T18:15:27.992962+00:00",
   "originals": {
     "jh-credit-research.js": {
@@ -41,5 +41,37 @@
   "forecast_qualified": false,
   "sizing_eligible": false,
   "execution_eligible": false,
-  "exact_live_page_verified": false
+  "exact_live_page_verified": true,
+  "page_run": 36463927395,
+  "live_acceptance": {
+    "checked_at": "2026-09-28T18:21:32.238214+00:00",
+    "intended_commit": "50bc816c12ad5eaff9d81ea49b326ada879c0166",
+    "served_commit": "50bc816c12ad5eaff9d81ea49b326ada879c0166",
+    "assets": {
+      "credit/index.html": {
+        "bytes": 7477,
+        "sha256": "326d82e3b60ee0a65e74cb6ddbc10425094fdd520d4b5775b50347d92915f6fc",
+        "matches_manifest": true
+      },
+      "jh-credit-research.js": {
+        "bytes": 26821,
+        "sha256": "1bb674d98fd2bb76bd1f6f85f7f3bc1f6bac81193b40b5d6b71267929781062b",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Page build acceptance only; native receipts and original replay are separate checks."
+  },
+  "live_browser": {
+    "disclosures": 4,
+    "keyboard_opened": true,
+    "exact_hy_equation_visible": true,
+    "zero_based_row_index": 794,
+    "receipt_references_visible": 4,
+    "expired_comparisons_withheld": 4,
+    "desktop_width": 1270,
+    "desktop_viewport": 1280,
+    "mobile_width": 380,
+    "mobile_viewport": 390,
+    "new_credit_console_errors": 0
+  }
 }

@@ -1,0 +1,72 @@
+{
+  "status": "offline_counterexamples_reproduced_runtime_baseline_pending",
+  "engine": "justhodl-signal-genealogy",
+  "source": {
+    "last_changed_commit": "12e070606bb63051d67d6cbe47754656497dda17",
+    "fixture": "tests/fixtures/pre-genealogy-calendar-audit.py.txt",
+    "bytes": 17498,
+    "sha256": "d2140ca6a4647a6944d07b14ce2e63d6f52a1c8c2928d7fddbf74093c19cd660"
+  },
+  "counterexamples": [
+    {
+      "finding": "Index lag labeled as calendar days",
+      "synthetic_result": "One array position corresponds to three calendar days in an irregular observed-date axis."
+    },
+    {
+      "finding": "Missing benchmark prices become zero returns",
+      "synthetic_result": "A missing current close and a missing previous close each become 0.0; this is not an observed zero return."
+    },
+    {
+      "finding": "Scan truncation is not reported",
+      "synthetic_result": "Two 50,001-record pages return 100,002 rows even though LastEvaluatedKey still points onward. No completion metadata is returned."
+    },
+    {
+      "finding": "Test inventory excludes benchmark lag searches",
+      "synthetic_result": "One qualifying synthetic family produces benchmark lag tests while reported n_hypothesis_tests is zero."
+    },
+    {
+      "finding": "Pair count includes an untested pair",
+      "synthetic_result": "100 synthetic families admit 4,950 possible pairs. Only 3,500 are tested; the report says 3,501 and omits 1,450 untested pairs."
+    },
+    {
+      "finding": "Correlation edge cases lose meaning",
+      "synthetic_result": "Perfect correlation returns t=0 and p=1. Constant input is represented as correlation zero rather than undefined."
+    },
+    {
+      "finding": "Small-sample normal approximation changes a threshold decision",
+      "synthetic_result": "At n=15 and t=2, the legacy normal-tail p is about 0.04550; independent numerical integration of Student t with 13 degrees of freedom gives about 0.06684."
+    },
+    {
+      "finding": "Malformed dates enter the daily axis",
+      "synthetic_result": "not-a-date-and-clock is binned under not-a-date without validation."
+    }
+  ],
+  "statistical_limits": "Even a corrected iid-normal reference test does not establish the assumptions for dependent time-series lag searches. Separate benchmark and pair corrections do not support the page claim of one common family. Correlations and substring sibling matching do not establish causal ancestry or independent evidence.",
+  "primary_references": [
+    {
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html",
+      "supports": "Pearson reference-test assumptions, exact correlation distribution, and undefined constant inputs."
+    },
+    {
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.false_discovery_control.html",
+      "supports": "BH error-control conditions require independent tests or specified positive dependence; arbitrary dependence requires different guarantees."
+    }
+  ],
+  "tests": {
+    "isolated_predecessor_cases": 8,
+    "deployment_static": 513,
+    "deployment_shell": 12,
+    "updated_baseline_guard_focused_groups": 2
+  },
+  "access": {
+    "learning_ledger_reads": 0,
+    "private_account_reads": 0,
+    "derived_output_reads": 0,
+    "provider_requests": 0,
+    "native_invocations": 0
+  },
+  "next": "Read-only operation 6302 checks the actual complete packaged source, receipt and original schedule before any native repair. These counterexamples are synthetic and do not certify or quantify live data failures.",
+  "native_source_changed": false,
+  "forecast_qualified": false,
+  "sizing_eligible": false
+}
