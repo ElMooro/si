@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-09-28T14:46:18.720429+00:00",
+  "reproduced": "Without PYTHONUTF8=1 on Windows, the unchanged Blackswan source caused false Internal family source review drift. Explicit UTF-8 restores the same 893-engine/599-route contract.",
+  "preserved_predecessor": {
+    "path": "tests/fixtures/pre-contract-utf8-builder.py.txt",
+    "bytes": 30452,
+    "sha256": "6fab70fe69a7058f1df0238b93a28666e59f71f5291a09e977794ae157e9baac"
+  },
+  "fix": [
+    "All builder reads and writes explicitly use UTF-8",
+    "Generated writes use LF",
+    "Invalid HTML UTF-8 is rejected rather than silently replaced"
+  ],
+  "validation": {
+    "windows_utf8_mode_disabled_registry_check": "passed",
+    "forced_cp1252_predecessor_failure_and_fixed_identity": "passed",
+    "non_ascii_html_installation_and_idempotence": "passed",
+    "invalid_utf8_source_preserved_and_rejected": "passed",
+    "all_public_html_strict_utf8": 599,
+    "deployment_static": 476,
+    "candidate_shell": 12
+  },
+  "permissions_changed": false,
+  "generated_contract_changed": false,
+  "live_builder_verified": false
+}

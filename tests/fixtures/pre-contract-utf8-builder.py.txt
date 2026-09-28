@@ -67,7 +67,7 @@ def access_rules():
     path=ROOT/'aws/shared/private_artifact.py'
     if not path.exists():return {},set(),()
     mirrors={};aliases={};private=set();prefixes=()
-    for node in ast.parse(path.read_text(encoding='utf-8')).body:
+    for node in ast.parse(path.read_text()).body:
         if not isinstance(node,ast.Assign):continue
         names={t.id for t in node.targets if isinstance(t,ast.Name)}
         if 'MIRRORED_ARTIFACTS' in names:mirrors=ast.literal_eval(node.value)
@@ -98,11 +98,11 @@ def add_archive_index_relationships(emap,engines,root):
     path=root/'aws/lambdas'/publisher/'source/lambda_function.py'
     if not path.exists():return
     registry=None
-    for declaration in ast.parse(path.read_text(encoding='utf-8')).body:
+    for declaration in ast.parse(path.read_text()).body:
         if isinstance(declaration,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='REGISTRY' for t in declaration.targets):registry=ast.literal_eval(declaration.value)
     if not isinstance(registry,(tuple,list)) or publisher not in engines:raise ValueError('Reviewed archive registry missing its source publisher')
     retired_path=root/'config/retired-archive-producers.json'
-    retired=json.loads(retired_path.read_text(encoding='utf-8')) if retired_path.exists() else {}
+    retired=json.loads(retired_path.read_text()) if retired_path.exists() else {}
     for name,pattern in registry:
         key='data/archive-indexes/'+name+'.json'
         owners={engine for engine,value in engines.items() if pattern in value['key_patterns']}
@@ -133,7 +133,7 @@ def internal_output_roles(root,engines):
     path=root/'config/engine-output-roles.json'
     if not path.exists():return {}
     result=defaultdict(dict)
-    doc=json.loads(path.read_text(encoding='utf-8'))
+    doc=json.loads(path.read_text())
     required={(row['engine'],row['key']) for row in doc.get('must_remain_required_or_receive_public_review',[])}
     for row in doc.get('roles',[]):
         name,key=row['engine'],row['key'];engine=engines.get(name);evidence=row.get('evidence',{})
@@ -148,7 +148,7 @@ def internal_output_roles(root,engines):
             # A family exclusion is tied to reviewed function bodies, not its name
             # or a permissive prefix. Changed cache semantics require new review.
             functions=evidence.get('functions',[]);reviewed=[]
-            nodes={node.name:node for node in ast.walk(ast.parse((root/source).read_text(encoding='utf-8'))) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef))}
+            nodes={node.name:node for node in ast.walk(ast.parse((root/source).read_text())) if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef))}
             for function in functions:
                 node=nodes.get(function.get('name'))
                 if node is None or hashlib.sha256(ast.dump(node,include_attributes=False).encode()).hexdigest()!=function.get('ast_sha256'):
@@ -165,7 +165,7 @@ def validated_runtime_outputs(records,engines,graph,root,route):
         engine=engines.get(name)
         known=set(engine.get('key_patterns',[]))|{row['key'] for row in engine.get('other_format_outputs',[])} if engine else set()
         if (not engine or not patterns or not set(patterns)<=known or source not in [route,*graph['scripts']]
-                or 'JHDataInspector.inspect' not in (root/source).read_text(encoding='utf-8') or not record.get('scope')):raise ValueError('Unproven selected-response contract: '+route+' '+str(name))
+                or 'JHDataInspector.inspect' not in (root/source).read_text() or not record.get('scope')):raise ValueError('Unproven selected-response contract: '+route+' '+str(name))
     return records
 
 def validated_primary_scopes(role,engines,root,route):
@@ -174,7 +174,7 @@ def validated_primary_scopes(role,engines,root,route):
         evidence=role.get('primary_scope_evidence',{}).get(name,{})
         source=evidence.get('source','');constants={}
         if name not in engines or not keys or not set(keys)<=set(engines[name]['keys']) or not evidence.get('purpose') or not source.startswith('aws/lambdas/'+name+'/source/') or not (root/source).is_file():raise ValueError('Unproven dedicated output scope: '+route)
-        for node in ast.parse((root/source).read_text(encoding='utf-8')).body:
+        for node in ast.parse((root/source).read_text()).body:
             if isinstance(node,ast.Assign) and isinstance(node.value,ast.Constant) and isinstance(node.value.value,str):
                 for target in node.targets:
                     if isinstance(target,ast.Name):constants[target.id]=node.value.value
@@ -183,8 +183,8 @@ def validated_primary_scopes(role,engines,root,route):
 def contract(root):
     mirrors,private_keys,private_prefixes=access_rules()
     role_path=root/'config/page-role-overrides.json'
-    roles=json.loads(role_path.read_text(encoding='utf-8'))['pages'] if role_path.exists() else {}
-    doc=json.loads((root/'engine-manifest.json').read_text(encoding='utf-8'));engines={e['engine']:e for e in doc['engines']};writers=defaultdict(set)
+    roles=json.loads(role_path.read_text())['pages'] if role_path.exists() else {}
+    doc=json.loads((root/'engine-manifest.json').read_text());engines={e['engine']:e for e in doc['engines']};writers=defaultdict(set)
     for e in engines.values():
         for key in e['keys']:writers[key].add(e['engine'])
     augmentations={}
@@ -231,7 +231,7 @@ def contract(root):
             if key in REPOSITORY_ASSETS:
                 asset=root/key
                 if not asset.is_file():raise ValueError('Reviewed repository asset missing: '+key)
-                json.loads(asset.read_text(encoding='utf-8'))
+                json.loads(asset.read_text())
                 repository_assets.append({'key':key,'role':'repository_configuration_or_asset','purpose':REPOSITORY_ASSETS[key],'sha256':hashlib.sha256(asset.read_bytes()).hexdigest()})
                 continue
             owners=writers.get(key,set())
@@ -251,7 +251,7 @@ def contract(root):
         static_keys=set()
         for static in role.get('static_outputs',[]):
             from gen_engine_manifest import ast_keys
-            source=root/static['source'];key=static['key'];written,_,parsed=ast_keys(source.read_text(encoding='utf-8'))
+            source=root/static['source'];key=static['key'];written,_,parsed=ast_keys(source.read_text())
             if not parsed or key not in written or not public_key(key):raise ValueError('Static output ownership or access invalid: '+route+' '+key)
             outputs.append({'engine':static['engine'],'key':key,'access':'public','inspection_schema':'json-value.v1','ownership_evidence':[{'file':static['source'],'basis':'bound write argument'}]});static_keys.add(key)
         unresolved=[row for row in unresolved if row['key'] not in static_keys]
@@ -303,19 +303,19 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--site');ap.add_argument('--check',action='store_true');a=ap.parse_args()
     doc=contract(ROOT);path=ROOT/'config/page-data-contracts.json'
     if a.check:
-        old=json.loads(path.read_text(encoding='utf-8'))
+        old=json.loads(path.read_text())
         if old!=doc:raise SystemExit('Page data contracts drift: regenerate before deploy')
         print(json.dumps(doc['coverage']));return
-    tmp=path.with_suffix('.json.tmp');tmp.write_text(json.dumps(doc,separators=(',',':')),encoding='utf-8',newline='\n');os.replace(tmp,path)
+    tmp=path.with_suffix('.json.tmp');tmp.write_text(json.dumps(doc,separators=(',',':')));os.replace(tmp,path)
     if a.site:
         site=Path(a.site);(site/'config').mkdir(exist_ok=True);shutil.copyfile(path,site/'config/page-data-contracts.json');shutil.copyfile(ROOT/'jh-data-inspector.js',site/'jh-data-inspector.js')
         for page in pages(site):
             route=page.relative_to(site).as_posix()
-            source=page.read_text(encoding='utf-8')
+            source=page.read_text(errors='replace')
             if route in STANDALONE_INSPECTION_PAGES:
                 require_standalone_link(source,route)
                 continue
             apis=doc['pages'].get(route,{}).get('api_responses',[])
-            page.write_text(install_html(source,apis,doc['pages'].get(route)),encoding='utf-8',newline='\n')
+            page.write_text(install_html(source,apis,doc['pages'].get(route)))
     print(json.dumps(doc['coverage']))
 if __name__=='__main__':main()
