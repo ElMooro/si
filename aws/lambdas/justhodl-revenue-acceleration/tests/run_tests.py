@@ -9,7 +9,7 @@ from unittest.mock import patch
 from urllib.parse import quote_plus
 import ast,base64,hashlib,json,sys,time,unittest,urllib.request,urllib.error
 ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-revenue-acceleration/source';sys.path.insert(0,str(SRC))
-from revenue_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier,statement,comparisons,shift
+from revenue_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier,statement,comparisons,shift,acquisition_plan,acquisition_progress
 TODAY='2026-09-27'
 
 
@@ -61,7 +61,7 @@ class Memory:
 def native(memory=None,**extra):
     scope={'S3':memory or Memory(),'BUCKET':'fixture','S3_KEY':'data/revenue-acceleration.json','FMP_KEY':'synthetic-fixture-secret',
         'N_WORKERS':6,'MAX_TICKERS':3,'TIMEOUT_BUDGET_S':260,'CONTRACT':CONTRACT,'strict':strict,'clock':clock,'number':number,'symbol':symbol,
-        'envelope':envelope,'original':original,'universe':universe,'dossier':dossier,'datetime':datetime,'timezone':timezone,
+        'envelope':envelope,'original':original,'universe':universe,'dossier':dossier,'acquisition_plan':acquisition_plan,'acquisition_progress':acquisition_progress,'datetime':datetime,'timezone':timezone,
         'ThreadPoolExecutor':ThreadPoolExecutor,'urllib':urllib,'quote_plus':quote_plus,'hashlib':hashlib,'json':json,'time':time,
         'Path':Path,'__file__':str(SRC/'lambda_function.py'),**extra}
     tree=ast.parse((SRC/'lambda_function.py').read_bytes());fns=[n for n in tree.body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_revenue_') or n.name=='lambda_handler')]
@@ -187,4 +187,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(m.writes,[])
 
 
-if __name__=='__main__':unittest.main(verbosity=2)
+if __name__=='__main__':
+    sys.path.insert(0,str(ROOT/'tests/ops'))
+    from test_revenue_resume import Tests as ResumeTests
+    unittest.main(verbosity=2)

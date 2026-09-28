@@ -32,34 +32,7 @@
     status:'Legacy '+key+'; growth and tier claims unverified',raw:value,pointer:'/'+key+'/'+i});});
   }return out;
  }
- function coverage(p){
-  if(p.measurement_contract!==CONTRACT)return null;
-  if(!Array.isArray(p.request_records))throw Error('Complete request population required');
-  const rows=p.request_records,counts={selected:rows.length,received:0,unattempted:0,other:0,pending:null,visited:null,stop:null,cycle_complete:null};
-  const statuses=rows.map(r=>{const a=obj(r).acquisitions;if(!Array.isArray(a)||!a.length||obj(a[0]).endpoint!=='income-statement')throw Error('Statement acquisition outcome required');return obj(a[0]).status;});
-  for(const status of statuses){if(status==='received')counts.received++;else if(status==='not_attempted_runtime_rate_or_size_limit')counts.unattempted++;else counts.other++;}
-  if(p.acquisition_progress!==undefined){
-   const a=obj(p.acquisition_progress),members=obj(p.universe_membership).selected;
-   if(a.contract!=='revenue-acquisition-progress.v1'||!Array.isArray(members)||members.length!==rows.length)throw Error('Acquisition progress population differs');
-   const seen=new Map(),keys=members.map((r,i)=>{if(rows[i].request_index!==i||!r||typeof r!=='object'||(r.ticker!==null&&typeof r.ticker!=='string'))throw Error('Acquisition occurrence coordinates differ');const label=r.ticker===null?'!invalid':r.ticker,n=seen.get(label)||0;seen.set(label,n+1);return label+'#'+n;});
-   const planned=a.planned_request_indices,visited=a.visited_request_indices;
-   if(!Array.isArray(planned)||!Array.isArray(visited)||planned.some(i=>!Number.isInteger(i)||i<0||i>=rows.length)||new Set(planned).size!==planned.length||
-    visited.some((i,n)=>!Number.isInteger(i)||i!==planned[n])||visited.length>planned.length||
-    JSON.stringify(a.planned_occurrence_keys)!==JSON.stringify(planned.map(i=>keys[i]))||
-    JSON.stringify(a.remaining_occurrence_keys)!==JSON.stringify(planned.slice(visited.length).map(i=>keys[i]))||
-    a.visited_occurrences!==visited.length||a.pending_occurrences!==planned.length-visited.length||a.cycle_complete!==(planned.length===visited.length)||
-    !['planned_window_complete','source_byte_budget','runtime_reserve','provider_rate_limit'].includes(a.stop_reason)||
-    (a.stop_reason==='planned_window_complete'&&a.pending_occurrences!==0)||a.schedule_accelerated!==false||a.request_order_is_rank!==false)throw Error('Acquisition progress partition differs');
-   const visitedSet=new Set(visited);
-   if(statuses.some((status,i)=>(status==='not_attempted_runtime_rate_or_size_limit')===visitedSet.has(i)))throw Error('Visited acquisition outcomes differ');
-   Object.assign(counts,{pending:a.pending_occurrences,visited:a.visited_occurrences,stop:a.stop_reason,cycle_complete:a.cycle_complete});
-  }return counts;
- }
- function summary(p){const m=model(p),c=coverage(p);return {native:m.native,coverage:c,message:m.native?
-  c.received+' / '+c.selected+' selected request occurrences returned income-statement data in this publication; '+c.unattempted+' not attempted; '+c.other+' other acquisition outcomes. '+m.statements.length+' reported statements. No qualified investment signal.':m.statements.length+' published legacy occurrences. Period comparisons and investment tiers remain unverified.',generated_at:text(p.generated_at)||'unavailable'};}
- function coverageMessage(c){return c?(c.pending===null?'This older publication has no resumable progress record. ':c.pending+' request occurrences remain in this acquisition cycle. '+c.visited+' visited this run; a visit is not necessarily a successful response. Stop reason: '+c.stop.replace(/_/g,' ')+'. ')+
-  'Coverage is partial unless every selected occurrence returned data. Unvisited rows are not refreshed; earlier complete publications remain in immutable history. '+
-  'The next original scheduled run resumes the remaining queue. A full cycle is not simultaneous or current whole-universe coverage.':'Legacy acquisition coverage is unverified. ';}
+ function summary(p){const m=model(p);return {native:m.native,message:m.native?m.requests.length+' request records and '+m.statements.length+' reported statements. No qualified investment signal.':m.statements.length+' published legacy occurrences. Period comparisons and investment tiers remain unverified.',generated_at:text(p.generated_at)||'unavailable'};}
  function start(){
   const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={statements:[],requests:[]},page=0,key='index',direction=1;
   function render(){
@@ -67,7 +40,7 @@
    const rows=all.filter(r=>[r.ticker,r.reported,r.start,r.end,r.period,r.status,r.pointer].join(' ').toLowerCase().includes(query));
    const numbers=['index','revenue','growth','acceleration','gross_margin','ttm'];rows.sort((a,b)=>api.compare(a,b,key,direction,numbers.includes(key)?'number':'text'));
    const pages=Math.max(1,Math.ceil(rows.length/100));page=Math.min(Math.max(page,0),pages-1);const shown=rows.slice(page*100,(page+1)*100);
-   $('rows').textContent=rows.length+' matching / '+all.length+(mode==='requests'?' selected requests':' received '+mode)+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
+   $('rows').textContent=rows.length+' matching / '+all.length+' received '+mode+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
    const cols=mode==='requests'?[['index','Occurrence'],['ticker','Requested ticker'],['revenue','Statement records'],['status','Acquisition outcomes']]:
     [['index','Occurrence'],['ticker','Requested ticker'],['period','Reported period'],['start','Period start'],['end','Period end'],['currency','Reported currency'],['revenue','Revenue amount'],['growth','Annual revenue change %'],['acceleration','Growth change pp'],['gross_margin','Gross margin %'],['ttm','Trailing-year revenue'],['status','Qualification']];
    $('board').innerHTML='<table><thead><tr>'+cols.map(([k,label])=>'<th data-k="'+k+'">'+label+'</th>').join('')+'<th scope="col">Complete source and calculation</th></tr></thead><tbody>'+shown.map(r=>'<tr>'+cols.map(([k])=>'<td>'+esc(k==='index'?r.index+1:numbers.includes(k)?(api.format(r[k],mode==='requests'?0:2)||'Unavailable'):r[k])+'</td>').join('')+'<td><details><summary>Inspect '+esc(r.pointer)+'</summary><pre>'+esc(JSON.stringify(r.raw,null,2))+'</pre></details></td></tr>').join('')+'</tbody></table>';
@@ -77,8 +50,8 @@
   (async()=>{try{
    const received=await api.load('/data/revenue-acceleration.json'),p=received.packet;$('original').textContent=received.raw;data=model(p);const s=summary(p);
    $('status').textContent=s.message+' Generated '+s.generated_at+'. Collection time does not establish filing availability.';
-   $('coverage').textContent=coverageMessage(s.coverage)+' Every published occurrence is retained. Inspect failed and unattempted requests, original statement records and calculation coordinates. Repeated income-statement sources are shared evidence, not independent investment votes.';render();
+   $('coverage').textContent='Every published occurrence is retained. Inspect failed and unattempted requests, original statement records and calculation coordinates. Repeated income-statement sources are shared evidence, not independent investment votes.';render();
   }catch(e){$('status').textContent='Stored revenue research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
  }
- const api={CONTRACT,model,summary,coverage,coverageMessage,start,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHRevenueObservations=api;
+ const api={CONTRACT,model,summary,start,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHRevenueObservations=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

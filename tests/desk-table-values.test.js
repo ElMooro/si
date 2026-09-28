@@ -66,6 +66,32 @@ test('earnings acquisition progress corruption cannot imply complete coverage',a
  assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('next').disabled,true);
 });
 
+function resumedRevenue(){
+ const p=resumedEarnings();p.measurement_contract='revenue-statement-observations.v1';p.acquisition_progress.contract='revenue-acquisition-progress.v1';
+ for(const r of p.request_records){r.acquisitions[0].endpoint='income-statement';r.statement_observations=[];r.period_comparisons=[];r.quote_records=[];delete r.event_observations;delete r.event_differences;delete r.price_coverage;}
+ return p;
+}
+
+test('revenue coverage separates actual statement responses, attempts and deferred occurrences',async()=>{
+ const M=require('../jh-revenue-observations.js'),p=resumedRevenue(),s=page('revenue-acceleration.html',async()=>raw(p));await flush();
+ assert.match(s.get('status').textContent,/1 \/ 3 selected request occurrences returned income-statement data/);
+ assert.match(s.get('status').textContent,/1 not attempted; 1 other acquisition outcomes/);assert.match(s.get('coverage').textContent,/1 request occurrences remain/);
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 selected requests occurrences/);
+ s.get('q').value='not_attempted';s.get('q').oninput();assert.match(s.get('rows').textContent,/1 matching \/ 3/);assert.match(s.get('board').innerHTML,/LATER/);
+ assert.equal(s.get('original').textContent,JSON.stringify(p));const old=structuredClone(p);delete old.acquisition_progress;
+ assert.equal(M.coverage(old).pending,null);assert.match(M.coverageMessage(M.coverage(old)),/older publication/);
+});
+
+test('revenue forged progress withholds coverage while retaining whole original access',async()=>{
+ const M=require('../jh-revenue-observations.js');
+ for(const edit of [p=>p.acquisition_progress.pending_occurrences=0,p=>p.acquisition_progress.visited_request_indices=[false],
+  p=>p.acquisition_progress.planned_request_indices=[0,0,2],p=>p.request_records[2].acquisitions[0].status='received']){
+  const p=resumedRevenue();edit(p);assert.throws(()=>M.coverage(p),/progress|outcomes/);
+ }
+ const p=resumedRevenue();p.acquisition_progress.remaining_occurrence_keys=[];const s=page('revenue-acceleration.html',async()=>raw(p));await flush();
+ assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('original').textContent,JSON.stringify(p));
+});
+
 test('price source desk preserves complete request, measurement, window and universe populations',async()=>{
  const M=require('../jh-price-observations.js'),fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/price-compression-synthetic.json'),'utf8')),p=fixture.packet;
  const model=M.model(p);assert.equal(model.requests.length,2);assert.equal(model.measurements.length,26);assert.equal(model.windows.length,2);assert.equal(model.universe.length,3);
@@ -307,7 +333,7 @@ test('revenue statements retain all periods, zero amounts, units, calculations a
  period_comparisons:[{source_index:0,yoy:{changes:{revenue:{pct_positive_base:-100}}},revenue_growth_acceleration_pp:-20,ttm_revenue:400,status:'explicit_comparable_calendar_quarters'}]};
  const p={measurement_contract:M.CONTRACT,request_records:[record],all_qualifying:[{symbol:'IGNORE'}]};const s=page('revenue-acceleration.html',async()=>raw(p));await flush();let html=s.get('board').innerHTML;
  assert.equal(s.calls[0],'/data/revenue-acceleration.json');assert.match(html,/2026-04-01/);assert.match(html,/JPY/);assert.match(html,/<td>0\.00<\/td>/);assert.match(html,/-100\.00/);assert.match(html,/400\.00/);assert.match(html,/&lt;img/);assert.ok(!html.includes('<img'));assert.ok(!html.includes('IGNORE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
- s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 received requests/);assert.match(s.get('board').innerHTML,/income-statement: received/);assert.ok(!s.get('board').innerHTML.includes('WHOLE_BYTES'));
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 selected requests/);assert.match(s.get('board').innerHTML,/income-statement: received/);assert.ok(!s.get('board').innerHTML.includes('WHOLE_BYTES'));
  const h=s.get('board').headers.find(x=>x.dataset.k==='ticker');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
  const many=M.model({...p,request_records:Array.from({length:501},()=>record)});assert.equal(many.statements.length,501);assert.equal(many.requests.length,501);
  assert.throws(()=>M.model({...p,request_records:null}),/Complete/);assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);

@@ -1,0 +1,21 @@
+{
+  "original_commit": "60a907d02e8ce380f1a5c594fde270461773b2d5",
+  "sources": {
+    "lambda_function.py": {
+      "bytes": 27571,
+      "sha256": "14888da2ce95862fa617ba9b656d5b141b0e8afb28b18852710c979e259e3c03",
+      "fixture": "tests/fixtures/pre-revenue-resume-lambda_function.py.txt"
+    },
+    "revenue_observations.py": {
+      "bytes": 13684,
+      "sha256": "344221af79beaf724dd153005aac8121257ea3d44ca2479877e9cfcd00ccb690",
+      "fixture": "tests/fixtures/pre-revenue-resume-revenue_observations.py.txt"
+    }
+  },
+  "defect": "The deployed bounded loop restarts at occurrence zero after each byte/time/rate stop. Synthetic original regression reproduces repeated first-window visits; no actual partial Revenue publication is claimed.",
+  "original_byte_budget": 16777216,
+  "original_request_cap": 1200,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "private_state_reads": 0
+}
