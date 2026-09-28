@@ -1,0 +1,275 @@
+{
+  "basis": "Python decimal.Decimal; exact subtraction, six-place ROUND_HALF_EVEN with native preservation of tiny nonzero values.",
+  "cases": [
+    {
+      "left": "2.8",
+      "right": "0.79",
+      "left_pct": 2.8,
+      "right_pct": 0.79,
+      "left_bps": 280.0,
+      "right_bps": 79.0,
+      "value_pp": 2.01,
+      "value_bps": 201.0
+    },
+    {
+      "left": "2.8",
+      "right": "0",
+      "left_pct": 2.8,
+      "right_pct": 0.0,
+      "left_bps": 280.0,
+      "right_bps": 0.0,
+      "value_pp": 2.8,
+      "value_bps": 280.0
+    },
+    {
+      "left": "2.8",
+      "right": "-0.000000000001",
+      "left_pct": 2.8,
+      "right_pct": -1e-12,
+      "left_bps": 280.0,
+      "right_bps": -1e-10,
+      "value_pp": 2.8,
+      "value_bps": 280.0
+    },
+    {
+      "left": "0",
+      "right": "0.79",
+      "left_pct": 0.0,
+      "right_pct": 0.79,
+      "left_bps": 0.0,
+      "right_bps": 79.0,
+      "value_pp": -0.79,
+      "value_bps": -79.0
+    },
+    {
+      "left": "0",
+      "right": "0",
+      "left_pct": 0.0,
+      "right_pct": 0.0,
+      "left_bps": 0.0,
+      "right_bps": 0.0,
+      "value_pp": 0.0,
+      "value_bps": 0.0
+    },
+    {
+      "left": "0",
+      "right": "-0.000000000001",
+      "left_pct": 0.0,
+      "right_pct": -1e-12,
+      "left_bps": 0.0,
+      "right_bps": -1e-10,
+      "value_pp": 1e-12,
+      "value_bps": 1e-10
+    },
+    {
+      "left": "-0",
+      "right": "0.79",
+      "left_pct": -0.0,
+      "right_pct": 0.79,
+      "left_bps": -0.0,
+      "right_bps": 79.0,
+      "value_pp": -0.79,
+      "value_bps": -79.0
+    },
+    {
+      "left": "-0",
+      "right": "0",
+      "left_pct": -0.0,
+      "right_pct": 0.0,
+      "left_bps": -0.0,
+      "right_bps": 0.0,
+      "value_pp": -0.0,
+      "value_bps": -0.0
+    },
+    {
+      "left": "-0",
+      "right": "-0.000000000001",
+      "left_pct": -0.0,
+      "right_pct": -1e-12,
+      "left_bps": -0.0,
+      "right_bps": -1e-10,
+      "value_pp": 1e-12,
+      "value_bps": 1e-10
+    },
+    {
+      "left": "-1.25",
+      "right": "0.79",
+      "left_pct": -1.25,
+      "right_pct": 0.79,
+      "left_bps": -125.0,
+      "right_bps": 79.0,
+      "value_pp": -2.04,
+      "value_bps": -204.0
+    },
+    {
+      "left": "-1.25",
+      "right": "0",
+      "left_pct": -1.25,
+      "right_pct": 0.0,
+      "left_bps": -125.0,
+      "right_bps": 0.0,
+      "value_pp": -1.25,
+      "value_bps": -125.0
+    },
+    {
+      "left": "-1.25",
+      "right": "-0.000000000001",
+      "left_pct": -1.25,
+      "right_pct": -1e-12,
+      "left_bps": -125.0,
+      "right_bps": -1e-10,
+      "value_pp": -1.25,
+      "value_bps": -125.0
+    },
+    {
+      "left": "0.000000000001",
+      "right": "0.79",
+      "left_pct": 1e-12,
+      "right_pct": 0.79,
+      "left_bps": 1e-10,
+      "right_bps": 79.0,
+      "value_pp": -0.79,
+      "value_bps": -79.0
+    },
+    {
+      "left": "0.000000000001",
+      "right": "0",
+      "left_pct": 1e-12,
+      "right_pct": 0.0,
+      "left_bps": 1e-10,
+      "right_bps": 0.0,
+      "value_pp": 1e-12,
+      "value_bps": 1e-10
+    },
+    {
+      "left": "0.000000000001",
+      "right": "-0.000000000001",
+      "left_pct": 1e-12,
+      "right_pct": -1e-12,
+      "left_bps": 1e-10,
+      "right_bps": -1e-10,
+      "value_pp": 2e-12,
+      "value_bps": 2e-10
+    },
+    {
+      "left": "0.012345675",
+      "right": "0.79",
+      "left_pct": 0.012346,
+      "right_pct": 0.79,
+      "left_bps": 1.234568,
+      "right_bps": 79.0,
+      "value_pp": -0.777654,
+      "value_bps": -77.765432
+    },
+    {
+      "left": "0.012345675",
+      "right": "0",
+      "left_pct": 0.012346,
+      "right_pct": 0.0,
+      "left_bps": 1.234568,
+      "right_bps": 0.0,
+      "value_pp": 0.012346,
+      "value_bps": 1.234568
+    },
+    {
+      "left": "0.012345675",
+      "right": "-0.000000000001",
+      "left_pct": 0.012346,
+      "right_pct": -1e-12,
+      "left_bps": 1.234568,
+      "right_bps": -1e-10,
+      "value_pp": 0.012346,
+      "value_bps": 1.234568
+    },
+    {
+      "left": "0.012345665",
+      "right": "0.79",
+      "left_pct": 0.012346,
+      "right_pct": 0.79,
+      "left_bps": 1.234566,
+      "right_bps": 79.0,
+      "value_pp": -0.777654,
+      "value_bps": -77.765434
+    },
+    {
+      "left": "0.012345665",
+      "right": "0",
+      "left_pct": 0.012346,
+      "right_pct": 0.0,
+      "left_bps": 1.234566,
+      "right_bps": 0.0,
+      "value_pp": 0.012346,
+      "value_bps": 1.234566
+    },
+    {
+      "left": "0.012345665",
+      "right": "-0.000000000001",
+      "left_pct": 0.012346,
+      "right_pct": -1e-12,
+      "left_bps": 1.234566,
+      "right_bps": -1e-10,
+      "value_pp": 0.012346,
+      "value_bps": 1.234567
+    },
+    {
+      "left": "999.999999999999",
+      "right": "0.79",
+      "left_pct": 1000.0,
+      "right_pct": 0.79,
+      "left_bps": 100000.0,
+      "right_bps": 79.0,
+      "value_pp": 999.21,
+      "value_bps": 99921.0
+    },
+    {
+      "left": "999.999999999999",
+      "right": "0",
+      "left_pct": 1000.0,
+      "right_pct": 0.0,
+      "left_bps": 100000.0,
+      "right_bps": 0.0,
+      "value_pp": 1000.0,
+      "value_bps": 100000.0
+    },
+    {
+      "left": "999.999999999999",
+      "right": "-0.000000000001",
+      "left_pct": 1000.0,
+      "right_pct": -1e-12,
+      "left_bps": 100000.0,
+      "right_bps": -1e-10,
+      "value_pp": 1000.0,
+      "value_bps": 100000.0
+    },
+    {
+      "left": "1.234567890123",
+      "right": "0.79",
+      "left_pct": 1.234568,
+      "right_pct": 0.79,
+      "left_bps": 123.456789,
+      "right_bps": 79.0,
+      "value_pp": 0.444568,
+      "value_bps": 44.456789
+    },
+    {
+      "left": "1.234567890123",
+      "right": "0",
+      "left_pct": 1.234568,
+      "right_pct": 0.0,
+      "left_bps": 123.456789,
+      "right_bps": 0.0,
+      "value_pp": 1.234568,
+      "value_bps": 123.456789
+    },
+    {
+      "left": "1.234567890123",
+      "right": "-0.000000000001",
+      "left_pct": 1.234568,
+      "right_pct": -1e-12,
+      "left_bps": 123.456789,
+      "right_bps": -1e-10,
+      "value_pp": 1.234568,
+      "value_bps": 123.456789
+    }
+  ]
+}

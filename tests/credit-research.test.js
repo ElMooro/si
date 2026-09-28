@@ -46,5 +46,5 @@ test('invalid or out-of-range scenario inputs do not produce an estimate',()=>{
  assert.match(api.scenario(1e6,20,500),/full repricing/);
 });
 test('credit page wires the native renderer and contains no legacy auto-call script',()=>{
- const html=fs.readFileSync(path.join(__dirname,'../credit/index.html'),'utf8');assert.match(html,/id="credit-research"/);assert.match(html,/jh-credit-research.js\?v=20260928-cadence1/);assert.doesNotMatch(html,/echarts|function renderRegime/);
+ const html=fs.readFileSync(path.join(__dirname,'../credit/index.html'),'utf8');assert.match(html,/id="credit-research"/);assert.match(html,/jh-credit-research.js\?v=20260928-trace1/);assert.doesNotMatch(html,/echarts|function renderRegime/);
 });

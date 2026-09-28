@@ -51,7 +51,6 @@
  }
  function comparisonCurrent(p,c,now=Date.now()){
   if(!c||c.current_comparison_available!==true||c.both_latest_dates_match!==true||!finite(c.value_bps))return false;
-  if(comparisonTrace(p,c).status!=='reproduced')return false;
   const left=p.measurements?.[c.left_series_id],right=p.measurements?.[c.right_series_id];
   return rowCurrent(p,left,now)&&rowCurrent(p,right,now)&&left.observation_date===right.observation_date&&
    c.observation_date===left.observation_date&&c.left_latest_date===left.observation_date&&c.right_latest_date===right.observation_date;
@@ -65,66 +64,6 @@
  }
  const comparisonLabel=(p,c,now)=>comparisonCurrent(p,c,now)?'Current use: within age ceiling; both latest dates match.':'Current use: withheld. Any value shown is dated comparison context.';
  function publisher(sid,label){return /^[A-Z0-9_]+$/.test(sid||'')?'<a href="https://fred.stlouisfed.org/series/'+sid+'">'+esc(label||sid)+'</a>':esc(label||sid);}
- // Fixed integer scale matches the native provider's at-most-twelve decimal
- // places. Do not subtract rounded card values or coerce null into zero.
- const DECIMAL_SCALE=1000000000000n;
- function exactDecimal(value){
-  if(typeof value!=='string'||value.length>32||! /^-?\d{1,6}(?:\.\d{1,12})?$/.test(value))return null;
-  const negative=value.startsWith('-'),parts=value.replace(/^-/,'').split('.');
-  const n=BigInt(parts[0])*DECIMAL_SCALE+BigInt((parts[1]||'').padEnd(12,'0'));
-  return negative?-n:n;
- }
- function decimalText(n){
-  const sign=n<0n?'-':'',a=n<0n?-n:n,tail=String(a%DECIMAL_SCALE).padStart(12,'0').replace(/0+$/,'');
-  return sign+String(a/DECIMAL_SCALE)+(tail?'.'+tail:'');
- }
- function nativeShown(n){
-  const a=n<0n?-n:n,unit=1000000n,r=a%unit;let q=a/unit;
-  if(r>unit/2n||(r===unit/2n&&q%2n===1n))q++;
-  // Native Decimal uses half-even at six places, preserving tiny nonzero values.
-  return q===0n&&a!==0n?Number(n)/Number(DECIMAL_SCALE):Number(n<0n?-q:q)/1000000;
- }
- function comparisonTrace(p,c){
-  const out={status:'unavailable',reason:'Matching retained terms are unavailable.',terms:[],equation:null};
-  if(!c||c.unit!=='basis_points'||permissions.some(k=>c[k]!==false))return out;
-  const pairs={bbb_minus_aaa:['BAMLC0A4CBBB','BAMLC0A1CAAA'],ccc_minus_bb:['BAMLH0A3HYC','BAMLH0A1HYBB'],
-   hy_minus_ig:['BAMLH0A0HYM2','BAMLC0A0CM'],em_hy_minus_us_hy:['BAMLEMHBHYCRPIOAS','BAMLH0A0HYM2']};
-  if(pairs[c.id]?.[0]!==c.left_series_id||pairs[c.id]?.[1]!==c.right_series_id)return out;
-  const day=c.observation_date,stamp=typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)?Date.parse(day+'T00:00:00Z'):NaN;
-  if(!finite(stamp)||new Date(stamp).toISOString().slice(0,10)!==day)return out;
-  const inventory=Array.isArray(p?.source_evidence)?p.source_evidence:[];
-  out.terms=['left','right'].map(side=>{
-   const sid=c[side+'_series_id'],m=p?.measurements?.[sid];
-   return {side,series_id:sid,label:m?.meta?.name||sid,date:day,row_index:c[side+'_original_row_index'],value_pct:null,
-    evidence:inventory.filter(e=>e?.series_id===sid).map(e=>({kind:e.kind,sha256:e.sha256,bytes:e.bytes,acquired_at:e.acquired_at}))};
-  });
-  const integers=[];let sourcesComplete=true;
-  for(const side of ['left','right']){
-   const sid=c[side+'_series_id'],m=p?.measurements?.[sid],index=c[side+'_original_row_index'];
-   const evidence=inventory.filter(e=>e?.series_id===sid);
-   if(!m||m.series_id!==sid||m.kind!=='oas'||m.source_unit!=='Percent'||m.unit!=='percent'||permissions.some(k=>m[k]!==false))return out;
-   if(m.observation_date!==day||c[side+'_latest_date']!==day||!Number.isSafeInteger(index)||index<0||m.original_row_index!==index)return out;
-   const n=exactDecimal(m.exact?.value_pct);
-   if(n===null||!finite(m.value_pct)||m.value_pct!==nativeShown(n)||m.value_bps!==nativeShown(n*100n))return out;
-   out.terms[side==='left'?0:1].value_pct=decimalText(n);integers.push(n);
-   sourcesComplete=sourcesComplete&&evidence.length===2&&['definition','observations'].every(kind=>evidence.filter(e=>e.kind===kind).length===1)&&
-    evidence.every(e=>e.provider==='fred'&&/^[a-f0-9]{64}$/.test(e.sha256||'')&&Number.isSafeInteger(e.bytes)&&e.bytes>0&&finite(clock(e.acquired_at))&&clock(e.acquired_at)<=clock(p.generated_at));
-  }
-  const pp=integers[0]-integers[1],bp=pp*100n;
-  out.equation='100 × ('+decimalText(integers[0])+' − '+decimalText(integers[1])+') = '+decimalText(bp)+' bp';
-  if(!finite(c.value_bps)||!finite(c.value_pp)||c.value_bps!==nativeShown(bp)||c.value_pp!==nativeShown(pp)){
-   out.status='mismatch';out.reason='The retained comparison differs from its exact terms.';return out;
-  }
-  if(!sourcesComplete){out.reason='The comparison matches, but its source-reference inventory is incomplete or ambiguous.';return out;}
-  out.status='reproduced';out.reason='Subtraction reproduced from exact terms in this retained packet. This browser has not read the protected provider originals.';return out;
- }
- function traceDetails(p,c){
-  const trace=comparisonTrace(p,c);
-  return '<details class="credit-comparison-trace"><summary>Trace calculation: '+esc(c.label||c.id)+'</summary><p>'+esc(trace.reason)+'</p>'+
-   (trace.equation?'<p><code>'+esc(trace.equation)+'</code></p><p>Terms are source percent; multiplying the percentage-point difference by 100 gives basis points.</p>':'')+
-   trace.terms.map(t=>'<div><h4>'+esc(t.side==='left'?'Left term':'Right term')+' · '+publisher(t.series_id,t.label)+'</h4><p>'+esc(t.series_id)+' · '+esc(t.date)+' · '+(t.value_pct===null?'Exact term unavailable':esc(t.value_pct)+' %')+'</p><p>Provider observation array index (zero-based): '+(Number.isSafeInteger(t.row_index)&&t.row_index>=0?String(t.row_index):'Unavailable')+'</p>'+t.evidence.map(e=>'<p>'+esc(e.kind)+' · '+fmt(e.bytes)+' bytes · acquired '+esc(e.acquired_at)+'<br><code>'+esc(e.sha256)+'</code></p>').join('')+'</div>').join('')+
-   '<p>Rows refer to the retained response vintage, not today’s provider page. A matched equation does not establish currentness, independent evidence or investment permission.</p></details>';
- }
  function render(p,now=Date.now()){
   if(!typed(p))return '<section class="notice" role="alert"><h2>Verified credit research unavailable</h2><p>The native measurement contract could not be established.</p></section>';
   const rows=Object.values(p.measurements),fresh=rows.filter(m=>rowCurrent(p,m,now)).length;
@@ -134,7 +73,7 @@
   html+='<section><h2>Credit snapshot</h2><div class="grid">'+[['BAMLH0A0HYM2','US high yield OAS'],['BAMLC0A0CM','US investment grade OAS'],['BAMLEMCBPIOAS','EM corporate plus OAS'],['T10Y2Y','US Treasury 10y minus 2y']].map(([sid,label])=>{
    const m=p.measurements[sid]||{};return '<article><h3>'+esc(label)+'</h3><p class="value">'+fmt(m.value_bps)+' <small>bp</small></p><p>'+fmt(m.value_pct)+' '+(sid==='T10Y2Y'?'percentage points':'%')+' · '+esc(m.observation_date||'unavailable')+'</p><p class="muted">'+(sid==='BAMLEMCBPIOAS'?'Mixed investment-grade and below-investment-grade corporate/quasi-government debt.':sid==='T10Y2Y'?'Difference between two Treasury yields.':'Provider model-based option-adjusted spread.')+'</p><p>'+publisher(sid,'Source definition')+' · '+'<span data-credit-measurement-status="'+esc(sid)+'">'+(rowCurrent(p,m,now)?'Within age ceiling':'Withheld')+'</span>'+'</p></article>';
   }).join('')+'</div></section>';
-  html+='<section><h2>Compare matched observation dates</h2><div class="grid">'+Object.values(p.comparisons||{}).map(c=>'<article><h3>'+esc(c.label)+'</h3><p class="value">'+fmt(c.value_bps)+' <small>bp</small></p><p>'+esc(c.observation_date||'No matched date')+' · publication status: '+esc(c.status)+'</p><p class="muted" data-credit-comparison-status="'+esc(c.id)+'">'+esc(comparisonLabel(p,c,now))+'</p><p>'+publisher(c.left_series_id,'Left series')+' − '+publisher(c.right_series_id,'right series')+'</p>'+traceDetails(p,c)+'</article>').join('')+'</div><p class="muted">These index differences include changes in rating, maturity, currency and sector composition. They are not pure default premiums or executable spreads.</p></section>';
+  html+='<section><h2>Compare matched observation dates</h2><div class="grid">'+Object.values(p.comparisons||{}).map(c=>'<article><h3>'+esc(c.label)+'</h3><p class="value">'+fmt(c.value_bps)+' <small>bp</small></p><p>'+esc(c.observation_date||'No matched date')+' · publication status: '+esc(c.status)+'</p><p class="muted" data-credit-comparison-status="'+esc(c.id)+'">'+esc(comparisonLabel(p,c,now))+'</p><p>'+publisher(c.left_series_id,'Left series')+' − '+publisher(c.right_series_id,'right series')+'</p></article>').join('')+'</div><p class="muted">These index differences include changes in rating, maturity, currency and sector composition. They are not pure default premiums or executable spreads.</p></section>';
   html+='<section><h2>Explore the credit measurements</h2><div class="controls"><label for="credit-unit">Display units</label><select id="credit-unit"><option value="bp">Basis points</option><option value="pct">Source percent / percentage points</option></select></div><div id="credit-measurements"></div></section>';
   html+='<section><h2>Inspect a calculation</h2><label for="credit-series">Series</label><select id="credit-series">'+rows.map(m=>'<option value="'+esc(m.series_id)+'"'+(m.series_id==='BAMLH0A0HYM2'?' selected':'')+'>'+esc(m.meta?.name||m.series_id)+' · '+esc(m.series_id)+'</option>').join('')+'</select><div id="credit-detail"></div></section>';
   html+='<section><h2>Test a position’s spread sensitivity</h2><p>Illustrative inputs. Replace them with a position’s signed market value and measured spread duration. This is an isolated first-order spread shock, not a trade recommendation.</p><div class="scenario-grid"><label>Signed market value (USD)<input id="credit-exposure" type="number" value="1000000" step="1000" min="-1000000000000" max="1000000000000"></label><label>Spread duration (years)<input id="credit-duration" type="number" value="5" step="0.1" min="0" max="100"></label><label>Spread shock (bp)<input id="credit-shock" type="number" value="100" step="10" min="-10000" max="10000"></label></div><div id="credit-scenario" aria-live="polite"></div><p class="muted">Wider spreads usually lower a long position’s price under this approximation. Rate duration, convexity, currency, carry, defaults and liquidity effects are excluded. Large shocks can invalidate the linear approximation.</p><p><a href="/position-sizer.html">Open Portfolio scenarios</a> to examine entered exposures and additional risks.</p></section>';
@@ -211,6 +150,6 @@
   }catch(e){if(controller===pending){host.innerHTML='<section class="notice" role="alert"><h2>Verified credit research unavailable</h2><p>The current packet or retained output could not be verified. No current reading or scenario has been substituted.</p><button type="button" id="credit-retry">Retry</button></section>';host.querySelector('#credit-retry').onclick=mount;}}
   finally{clearTimeout(timer);}
  }
- const api={render,table,detail,scenario,verifyPacket,current,rowCurrent,comparisonCurrent,comparisonTrace,traceDetails,collectionState,collectionPolicy,updateCurrentness,watchCurrentness,typed};root.JHCreditResearch=api;if(typeof module!=='undefined')module.exports=api;
+ const api={render,table,detail,scenario,verifyPacket,current,rowCurrent,comparisonCurrent,collectionState,collectionPolicy,updateCurrentness,watchCurrentness,typed};root.JHCreditResearch=api;if(typeof module!=='undefined')module.exports=api;
  if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',mount);else mount();}
 })(typeof globalThis!=='undefined'?globalThis:this);
