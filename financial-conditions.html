@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Financial conditions · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase}.r{text-align:right}
+a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Financial conditions</h1>
+<p class="sub">Chicago / St. Louis / Kansas City financial-conditions series from canary-macro. These are the official levels behind the TradingView lists named Financial Conditions, Chicago Financial conditions, and Financial Stress. Unpublished series stay blank. No composite stress score.</p>
+<div id="kpis"></div>
+<p class="sub" id="status">Loading /data/canary-macro.json</p>
+<div id="board" class="table-region">Loading.</div>
+<div class="foot"><b>Built for:</b> TV lists that treat NFCI / ANFCI as the US financial-conditions barometer.<br>
+<b>Data:</b> /data/canary-macro.json NFCI, ANFCI, NFCICREDIT, NFCILEVERAGE, NFCINONFINLEVERAGE, NFCIRISK, STLFSI4, KCFSI.<br>
+<b>Blank on purpose:</b> TED spread, commercial paper, and any series not on canary-macro.<br>
+<b>Not:</b> a replacement of credit-desk. Research only.</div>
+</div>
+<script>
+function esc(s){s=String(s==null?"":s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function mom(row){if(!row)return null;var a=num(row.value),b=num(row.prev);if(a==null||b==null||b===0)return null;return (a-b)/Math.abs(b)*100;}
+async function load(p){try{var r=await fetch(p,{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+(async function(){
+  var p=await load("/data/canary-macro.json");
+  if(!p){document.getElementById("board").textContent="canary-macro unavailable.";return;}
+  var want=[
+    {id:"NFCI",label:"Chicago Fed National Financial Conditions (NFCI)"},
+    {id:"ANFCI",label:"Chicago Fed Adjusted NFCI (ANFCI)"},
+    {id:"NFCICREDIT",label:"NFCI credit subindex"},
+    {id:"NFCILEVERAGE",label:"NFCI leverage subindex"},
+    {id:"NFCINONFINLEVERAGE",label:"NFCI nonfinancial leverage"},
+    {id:"NFCIRISK",label:"NFCI risk subindex"},
+    {id:"STLFSI4",label:"St. Louis Fed Financial Stress (STLFSI4)"},
+    {id:"KCFSI",label:"Kansas City Fed Financial Stress (KCFSI)"}
+  ];
+  var filled=0,end="</tbody></tab"+"le>",h="<table><thead><tr><th>Series</th><th class='r'>Level</th><th class='r'>Chg vs prev</th><th>As of</th><th>Source</th></tr></thead><tbody>";
+  want.forEach(function(s){
+    var row=p[s.id],lvl=row?num(row.value):null,ch=row?mom(row):null;
+    if(lvl!=null)filled++;
+    h+="<tr><td>"+esc(s.label)+"</td><td class='r'>"+esc(lvl==null?"":String(lvl))+"</td><td class='r'>"+esc(ch==null?"":ch.toFixed(2)+"%")+"</td><td>"+esc(row&&row.as_of?row.as_of:"")+"</td><td>"+esc(row?"canary-macro":"unpublished")+"</td></tr>";
+  });
+  document.getElementById("board").innerHTML=h+end;
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+filled+" of "+want.length+" series published</span>";
+  document.getElementById("status").textContent="TV Financial Conditions lists map here. No composite score.";
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
