@@ -22,13 +22,13 @@ import json, os, time, urllib.request
 from datetime import datetime, timezone, timedelta
 
 import boto3
-# Legacy credential resolver is not loaded by the evidence producer.
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-S3 = None  # The active writer creates only its declared context-storage client.
-DDB = None  # Preserved prediction-logging code is never invoked.
+S3 = boto3.client("s3")
+DDB = boto3.client("dynamodb")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-TG_TOKEN = ''  # Legacy notifications disabled.
+TG_TOKEN = managed_secret(('TG_TOKEN', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",))
 TG_CHAT = os.environ.get("TG_CHAT", "8678089260")
 
 BASE_W = {"pump": 1.2, "momentum": 1.0, "squeeze": 1.0, "flow": 1.0, "insider": 0.9}
@@ -92,7 +92,7 @@ def _positioning_candidates_for_scoring(packet):
     return ()
 
 
-def _legacy_lambda_handler(event, context):
+def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     today = now.strftime("%Y-%m-%d")
@@ -268,34 +268,3 @@ def _legacy_lambda_handler(event, context):
                   ContentType="application/json", CacheControl="public, max-age=900")
     print(f"[apex-fusion] n={len(rows)} liftoff={by_tier.get('LIFTOFF', 0)} logged={len(logged)} in {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps({"n": len(rows), "by_tier": by_tier, "logged": len(logged)})}
-
-
-# Deterministic source evidence; no grading, prediction logging or notification.
-from pathlib import Path
-from botocore.config import Config
-from context_evidence_store import ContextStore
-import context_evidence_store
-from apex_evidence import CONTRACT,HEAD,PRIVATE,INPUTS,build as build_apex_evidence
-
-
-def _tg(*args,**kwargs):
-    raise RuntimeError('Notifications disabled for the evidence producer')
-
-
-def lambda_handler(event,context):
-    try:
-        here=Path(__file__).resolve().parent
-        client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=4,retries={'max_attempts':0}))
-        store=ContextStore(client,BUCKET,HEAD,INPUTS,PRIVATE,CONTRACT,
-            {'lambda_function.py':here/'lambda_function.py','apex_evidence.py':here/'apex_evidence.py',
-             'context_evidence_store.py':Path(context_evidence_store.__file__)},acquisition_budget_s=60,publication_budget_s=85)
-        packet,ref=store.publish(build_apex_evidence)
-        return {'statusCode':200,'body':json.dumps({'status':'research_only','measurement_contract':CONTRACT,
-            'generated_at':packet['generated_at'],'output_sha256':ref['sha256'],'call':'WAIT',
-            'model_requests':0,'notifications_sent':0,'prediction_writes':0})}
-    except Exception as exc:
-        uncertain=isinstance(exc,context_evidence_store.PublicationUncertain)
-        return {'statusCode':503,'body':json.dumps({'status':'unavailable','previous_publication_preserved':None if uncertain else True,
-            'publication_status':'acknowledgement_unknown' if uncertain else 'head_write_not_attempted','preservation_scope':'this_attempt_only',
-            'model_requests':0,'notifications_sent':0,'prediction_writes':0,
-            'error':'Complete acquisition, retention or conditional publication failed'})}

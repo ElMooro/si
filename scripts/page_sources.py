@@ -3,7 +3,9 @@ from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import urlsplit, unquote
 import re,json,subprocess
-NON_CONSUMER_ASSETS={'private-artifacts.js','jh-data-inspector.js','auth.js','jh-wire.js'}
+# Apex's pure renderer displays upstream identities from its one received packet;
+# those labels do not declare browser reads of scorecards or private source graphs.
+NON_CONSUMER_ASSETS={'private-artifacts.js','jh-data-inspector.js','auth.js','jh-wire.js','jh-apex-evidence.js'}
 DENY={'aws','.github','scripts','ci','config','cloudflare','ops','docs','supabase','tools-src','chrome-extension','node_modules','vendor','_partials','_site','tests','.git'}
 STRINGS=re.compile(r'//[^\n]*|/\*.*?\*/|(?P<q>[\'"`])(?P<s>(?:\\.|(?! (?P=q)).)*?)(?P=q)',re.S|re.X)
 KEY=re.compile(r'(?<![A-Za-z0-9_./-])/?([a-zA-Z0-9_-]+(?:/[A-Za-z0-9_.-]+)+\.json(?:\.gz)?)(?![A-Za-z0-9_.-])')

@@ -1,6 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Apex Fusion · JustHodl AI</title>
-<meta name="description" content="Learned cross-engine conviction — pump-positioning, momentum, squeeze, options flow and insider clusters fused with scorecard-learned weights.">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apex Evidence · JustHodl</title><meta name="description" content="Retained source identities, publication clocks and explicit research eligibility for the Apex desk.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -40,45 +39,32 @@ tr:hover td{background:var(--bg-2)}
 .bar>div{height:100%;background:linear-gradient(90deg,var(--violet),var(--cyan),var(--green))}
 .chips span{display:inline-block;font-family:var(--mono);font-size:9px;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;margin:1px 2px 1px 0;color:var(--fg-2)}
 .ev{font-size:10.5px;color:var(--fg-3);line-height:1.45;font-family:var(--mono)}
-</style></head><body>
+
+.header{height:auto;min-height:54px;flex-wrap:wrap;padding:12px 22px}.nav{margin-left:0}.evidence-scroll{max-width:100%;overflow:auto}.evidence-scroll table{min-width:850px}.evidence-scroll code{overflow-wrap:anywhere;white-space:normal}.evidence-scroll td:last-child{max-width:270px}.read{font-size:13px}.wrap{min-width:0}th[scope=row]{color:var(--fg-1);font-size:12px;line-height:1.7}.note{font-size:12px}
+</style><script src="/jh-apex-evidence.js?v=20260928"></script></head><body>
 <header class="header">
   <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
   <nav class="nav"><a href="/">Desk</a><a href="/apex.html" class="active">🚀 Apex Fusion</a><a href="/squeeze.html">Squeeze</a><a href="/retail-edges.html">Retail Edges</a><a href="/best-ideas.html">Best Ideas</a><a href="/global-tide.html">Global Tide</a></nav>
 </header>
-<div class="wrap">
-  <div class="hero"><h1>Apex <span class="grad">Fusion</span></h1>
-  <p>Five live engines — pump-positioning, momentum leaders, float squeeze, options flow, insider clusters — fused per ticker with weights learned from the validation scorecard. Every LIFTOFF/IGNITION pick is logged to the closed loop, so the fusion grades itself. Tier-inversion guard fades names from any cascade tier that's validating below 30%.</p></div>
-  <div id="headline" class="headline-bar"><div class="loading">Fusing engines…</div></div>
-  <div id="meta" class="grid" style="margin-bottom:6px"></div>
-  <div class="sec">🎯 CONVICTION BOARD</div>
-  <div class="card" style="padding:6px 6px 2px"><table id="board"><thead><tr><th>TICKER</th><th>APEX</th><th>TIER</th><th>SOURCES</th><th>EVIDENCE</th></tr></thead><tbody><tr><td colspan="5" class="loading">loading…</td></tr></tbody></table></div>
-  <div class="read" id="apex-read"></div>
-  <div class="note">Engine: justhodl-apex-fusion · every 3h · predictions logged to DDB justhodl-signals (source=apex-fusion, horizons 3/7/14/30d) and graded by the existing outcome scorer. Probabilistic conviction, not certainty — sizing rules in pump-positioning still apply.</div>
-</div>
+<main class="wrap">
+<div class="hero"><h1>Apex <span class="grad">Evidence</span></h1><p>Review the source graph before relying on a conclusion. An engine count is not independent evidence, and a score is not a probability.</p></div>
+<div id="headline" class="headline-bar">WAIT / abstain. Investment decisions are withheld.</div>
+<p id="publication" class="read">Source availability is loading.</p><p id="coverage" class="read">Coverage is unavailable.</p>
+<h2 class="sec">Recorded source availability</h2>
+<div class="card evidence-scroll" role="region" tabindex="0" aria-label="Apex source evidence table"><table><thead><tr><th>Declared source</th><th>Acquisition result</th><th>Publication clock</th><th>Whole-payload identity</th></tr></thead><tbody id="evidence-rows"></tbody></table></div>
+<h2 class="sec">What this evidence supports</h2>
+<p class="read">Each identity binds the complete privately retained response. Matching hashes identify duplicate bytes; different hashes do not establish independent economic drivers. Publication clocks describe source generation, not observation freshness or first-publication history.</p>
+<p class="read">Forecasts, promotions, trading inversions and position sizing require validated point-in-time studies, calibration, costs, independent evidence and portfolio assumptions. These inputs have not earned that authority.</p>
+<p class="note">Original source context, compiler files and previous/current publications are retained for replay. This producer writes no predictions or notifications. Other engines and historical learning records require their own validation.</p>
+</main>
 <script>
-const PX="https://justhodl-data-proxy.raafouis.workers.dev";
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-(async function(){
-  const d=await gj('data/apex-fusion.json');
-  if(!d){document.getElementById('headline').innerHTML='Apex Fusion data unavailable.';return;}
-  const bt=d.by_tier||{};const inv=d.tier_inversion||{};
-  document.getElementById('headline').innerHTML=`<b>${bt.LIFTOFF||0} LIFTOFF · ${bt.IGNITION||0} IGNITION · ${bt.SIMMER||0} SIMMER</b> across ${d.n_scored||0} fused names (universe ${d.n_universe||0}).`+(inv.active?` <span style="color:var(--red);font-family:var(--mono);font-size:12px">⚠ TIER-INVERSION GUARD ACTIVE — cascade ALERT_TIER validating at ${inv.alert_tier_hit_pct}% (n=${inv.n_validated}); its names are fade-flagged.</span>`:'')+`<div style="margin-top:6px;font-family:var(--mono);font-size:10px;color:var(--fg-3)">as of ${esc(d.generated_at||'')} · ${d.n_logged_to_ddb||0} predictions logged to closed loop this run</div>`;
-  const W=d.weights_used||{};const ws=d.weight_sources||{};
-  const meta=[`<div class="card"><div class="lbl">Learned Weights</div><div class="sub" style="font-size:11px;color:var(--fg-2)">${Object.entries(W).map(([k,v])=>`${k} <b style="color:var(--fg-0)">${v}</b>${ws[k]?' <span style="color:var(--violet)">←scorecard</span>':''}`).join(' · ')}</div></div>`];
-  meta.push(`<div class="card"><div class="lbl">Closed Loop</div><div class="val" style="font-size:18px">${d.n_logged_to_ddb||0} logged</div><div class="sub">LIFTOFF/IGNITION → DDB · graded at 3/7/14/30d · apex-fusion appears in the scorecard once n≥20</div></div>`);
-  document.getElementById('meta').innerHTML=meta.join('');
-  const rows=(d.top||[]).map(r=>{
-    const comps=Object.entries(r.components||{}).map(([k,v])=>`<span>${k} ${v}</span>`).join('');
-    const ev=Object.values(r.evidence||{}).slice(0,3).map(e=>esc(e)).join('<br>');
-    return `<tr><td><span class="tk">${esc(r.ticker)}</span>${r.price!=null?`<div class="sub">$${r.price}</div>`:''}</td><td><span class="score">${r.apex_score}</span><div class="bar"><div style="width:${Math.min(100,r.apex_score)}%"></div></div></td><td><span class="tier ${esc(r.tier)}">${esc(r.tier)}</span><div class="sub">${r.n_sources} src</div></td><td class="chips">${comps}</td><td class="ev">${ev}</td></tr>`;
-  }).join('');
-  document.querySelector('#board tbody').innerHTML=rows||'<tr><td colspan="5" class="loading">no names scored</td></tr>';
-  document.getElementById('apex-read').textContent=d.read||'';
-})();
+async function loadApexEvidence(){
+  let packet=null;
+  try{const r=await fetch('https://justhodl.ai/data/apex-fusion.json?exact=1&nogen=1',{cache:'no-store'});if(r.ok)packet=await r.json();}catch(e){}
+  if(!packet){try{const r=await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/apex-fusion.json?exact=1&nogen=1',{cache:'no-store'});if(r.ok)packet=await r.json();}catch(e){}}
+  JHApexEvidence.render(document,packet);
+}
+loadApexEvidence();
 </script>
-  <script src="/jh-enhance.js" data-feed="data/apex-fusion.json" data-bars="top:ticker:apex_score" data-title="Apex Fusion — top composite scores" data-sub="multi-engine fusion ranking" ></script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/sidebar.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script>
 </body></html>

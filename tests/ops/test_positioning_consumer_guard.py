@@ -8,7 +8,8 @@ SRC=ROOT/'aws/lambdas/justhodl-apex-fusion/source/lambda_function.py'
 class Tests(unittest.TestCase):
     def test_legacy_and_forged_eligibility_cannot_supply_positioning_scores(self):
         tree=ast.parse(SRC.read_bytes());fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_positioning_candidates_for_scoring')
-        handler=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
+        # Retain the exact Stage 305 exclusion proof in the preserved predecessor.
+        handler=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_legacy_lambda_handler')
         loop=next(n for n in handler.body if isinstance(n,ast.For) and isinstance(n.iter,ast.Call) and isinstance(n.iter.func,ast.Name) and n.iter.func.id==fn.name)
         for packet in (None,{}, {'candidates':[{'ticker':'SYNA','directional_score':100}]},
                        {'ranking_eligible':True,'forecast_qualified':True,'candidates':[{'ticker':'SYNA','convergence_score':100}]},
