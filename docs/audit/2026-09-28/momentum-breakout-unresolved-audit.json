@@ -1,0 +1,65 @@
+{
+  "status": "unresolved_original_source_audit",
+  "native_or_consumer_code_changed": false,
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "provider_requests": 0,
+  "public_packet": {
+    "key": "data/momentum-breakout.json",
+    "bytes": 136708,
+    "sha256": "8a1d6e50c4d1e7074f1da46b5f596a10e37faf072a64e63d116dfbc9178bfc9d",
+    "generated_at": "2026-09-27T11:00:18+00:00",
+    "stats": {
+      "n_universe": 600,
+      "n_evaluated": 323,
+      "n_tier_a": 0,
+      "n_tier_b": 2,
+      "n_parabolic": 1,
+      "n_no_history": 274,
+      "n_no_signal": 3
+    }
+  },
+  "source_files": {
+    "justhodl-momentum-breakout": {
+      "bytes": 12943,
+      "sha256": "cd69689147e8e2c0a697707f17cb32bf7265c304b49e7311cbf63ce5b2cdfdc1"
+    },
+    "justhodl-best-ideas": {
+      "bytes": 19417,
+      "sha256": "ae7e5218b372208db69c22e8d390ea9ccd70646aeabe1189202e74fbc2fcde6e"
+    },
+    "justhodl-convergence-radar": {
+      "bytes": 52085,
+      "sha256": "8fbb2e5bd2b4fd0bea23718b65ccdac6e984037ecab388935547efdf5289396f"
+    },
+    "justhodl-compound-aggregator": {
+      "bytes": 29675,
+      "sha256": "e8d69925199cda71a11acfc23bede69bc39202453b076c74b4d29b2f959a185b"
+    },
+    "justhodl-momentum-leaders": {
+      "bytes": 21843,
+      "sha256": "460089bf12a7bb0c0ec2ca2cfc9388e91c4587c56f36a7509ffc8681546be1f8"
+    },
+    "justhodl-master-ranker": {
+      "bytes": 82663,
+      "sha256": "e14c1f6cf2a270efeec7113132c8f032f8273644dfef87e7a430029945a2f464"
+    },
+    "justhodl-opportunity-screener": {
+      "bytes": 22392,
+      "sha256": "76b49f3c3a27b08611e44f1c2a6d021b7349381906bec867577c210ff512b541"
+    },
+    "justhodl-velocity-acceleration": {
+      "bytes": 32087,
+      "sha256": "d4a7aeefddd2e2e1ec76ea64c6c1d93fc5f3bd3aef881b67f94e985bf85ba504"
+    }
+  },
+  "read_only_baseline_operation": 6263,
+  "findings": [
+    "Benchmark subtraction has no same-date alignment; absent benchmark windows can become zero.",
+    "New-high flags include current close, accept a half-percent tolerance and substitute a 20-observation high for unavailable 60-observation history.",
+    "Latest volume is included in its own baseline; positive-price high-volume sessions do not identify institutional buying or accumulation.",
+    "Future, duplicate, wrong-symbol, boolean and unidentified-currency observations can enter ranked scores. Original responses are truncated and missing volume is zero-filled.",
+    "Source first-release history, corporate actions, exchange calendars, selection completeness and forecasting performance are unverified."
+  ],
+  "next": "Read the complete actual producer and seven consumer preservation report and acquisition settings before related source/page changes. No forced producer invocation."
+}
