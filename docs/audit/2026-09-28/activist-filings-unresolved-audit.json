@@ -1,0 +1,45 @@
+{
+  "engine": "justhodl-activist-filings-scanner",
+  "source_bytes": 24702,
+  "source_sha256": "5dd1456a4f9cc865d9ed9d810312ad729d8e185877a4762d0555523dd598dfe4",
+  "public_packet": {
+    "key": "data/activist-filings.json",
+    "bytes": 505,
+    "sha256": "d28eda6aca6ad0bab22169879940bff8555de15c39900b61a2eabe639ad2d881",
+    "generated_at": "2026-09-27T11:00:27+00:00",
+    "stats": {
+      "n_filings_total": 0,
+      "n_classified_by_tier": 0,
+      "n_in_universe": 0,
+      "n_unique_tickers": 0,
+      "n_multi_activist": 0,
+      "n_new_filings": 0,
+      "n_new_tier_a": 0,
+      "n_new_tier_b": 0
+    }
+  },
+  "baseline_operation": 6259,
+  "status": "original_package_preservation_pending",
+  "unresolved": [
+    "Valid dashed SEC accession raises IndexError because the only capture group is read as group(2).",
+    "Regex-only Atom parser drops namespaced entries and truncates every summary at 500 characters.",
+    "Feed failures become empty arrays, indistinguishable from a successfully empty feed.",
+    "Four original SC 13D/G feed names omit modern SCHEDULE form names; returned query scope needs explicit treatment.",
+    "Last filer/subject overwrites cofilers; missing roles are fabricated from source order.",
+    "Multiple share-class ticker mappings overwrite one another; current mapping is not historical identity.",
+    "Name substring matches, filing forms and universe membership create uncalibrated hot tiers.",
+    "Multiple filings by one reporting party can be labeled multi-activist.",
+    "No explicit observed-feed coverage or accepted-vs-updated clock distinction.",
+    "Original delta state union is truncated after unordered set conversion; no private state read or repair is in this scope.",
+    "Compound aggregator consumes legacy ranked rows without an activist research guard."
+  ],
+  "sources": [
+    "https://www.sec.gov/Archives/edgar/data/2012383/0002052113-25-002523-index.html",
+    "https://www.sec.gov/Archives/edgar/data/315066/0000315066-25-002060-index.htm",
+    "https://www.sec.gov/file/efmvol2-c8"
+  ],
+  "native_invocations": 0,
+  "private_state_reads": 0,
+  "consumer_output_reads": 0,
+  "investment_authority": false
+}
