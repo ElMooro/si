@@ -1,5 +1,5 @@
 {
-  "status": "offline_counterexamples_reproduced_runtime_baseline_pending",
+  "status": "offline_defects_and_actual_package_baseline_verified_native_repair_open",
   "engine": "justhodl-signal-genealogy",
   "source": {
     "last_changed_commit": "12e070606bb63051d67d6cbe47754656497dda17",
@@ -65,8 +65,56 @@
     "provider_requests": 0,
     "native_invocations": 0
   },
-  "next": "Read-only operation 6302 checks the actual complete packaged source, receipt and original schedule before any native repair. These counterexamples are synthetic and do not certify or quantify live data failures.",
+  "next": "Repair the audited calendar/coverage/inference behavior in a separately tested atomic engine/page batch. Actual package bytes match the whole audited predecessor, but no predecessor release receipt exists. A future repair needs its own exact receipt; no baseline output, learning ledger or private account was read.",
   "native_source_changed": false,
   "forecast_qualified": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "runtime_baseline": {
+    "actual_runtime": {
+      "code_sha256": "XKubBNxEC3T8xcdTl69Zb07b4+F+FOOT94jgcGTeyRg=",
+      "source_files_checked": 2,
+      "handler_bytes": 17498,
+      "timeout": 180,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "missing_predecessor_receipt"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "signal-genealogy-daily",
+          "state": "ENABLED",
+          "expression": "cron(40 6 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-signal-genealogy",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "calculation_qualified": false,
+    "code_matches_repository": true,
+    "credential_reads": 0,
+    "downstream_output_reads": 0,
+    "forecast_qualified": false,
+    "history_writes": 0,
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedule_changes": 0,
+    "scope": "Whole packaged-source and receipt baseline only. Synthetic counterexamples do not qualify actual data; no learning ledger, source data or derived report is read.",
+    "sizing_eligible": false,
+    "source_handler_sha256": "d2140ca6a4647a6944d07b14ce2e63d6f52a1c8c2928d7fddbf74093c19cd660"
+  },
+  "operation": 6302,
+  "run": 36465081692,
+  "report_commit": "aec43f58d",
+  "predecessor_release_receipt_available": false
 }
