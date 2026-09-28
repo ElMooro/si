@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-09-28T12:28:52.420017+00:00",
+  "original_source": {
+    "bytes": 19534,
+    "sha256": "75ab1d7d9fa351c81a1f4dddd5d9787a362dd1a565da1905534bd59afe9804be",
+    "fixture": "tests/fixtures/pre-backlog-publication-race.py.txt"
+  },
+  "reproduction": {
+    "base_source_commit": "88608727c3ea97961d76a1fd733dea2db37edbb4",
+    "source_sha256": "75ab1d7d9fa351c81a1f4dddd5d9787a362dd1a565da1905534bd59afe9804be",
+    "actual_isolated_writes": [
+      {
+        "writer": "FIRST",
+        "keys": [
+          "FIRST",
+          "OLD"
+        ],
+        "conditional_write": false
+      },
+      {
+        "writer": "SECOND",
+        "keys": [
+          "OLD",
+          "SECOND"
+        ],
+        "conditional_write": false
+      }
+    ],
+    "final_ledger_keys": [
+      "OLD",
+      "SECOND"
+    ],
+    "defect": "Two original overlapping writers read the same prior ledger. Both unconditionally succeed; the later publication silently loses the other completed issuer.",
+    "provider_requests": 0,
+    "aws_native_invocations": 0,
+    "public_writes": 0,
+    "private_reads": 0
+  },
+  "repair": [
+    "Capture complete current public head bytes and its actual ETag; denied, malformed, truncated or unversioned reads fail",
+    "Write and fully read back immutable prior/current publication archives before replacing the head",
+    "Conditional IfMatch or IfNoneMatch prevents a stale or racing writer from overwriting a completed publication",
+    "Bind output to all three producer source files; retain existing measurement arithmetic, full ledger, request controls and original cadence"
+  ],
+  "tests": {
+    "native": 21,
+    "publication_acceptance": 4,
+    "prior_arithmetic_acceptance": 3,
+    "deployment_static": 468,
+    "candidate_shell": 12,
+    "frontend_unchanged_from_332": 1658
+  },
+  "limits": [
+    "First history-enabled 1.2.0 publication still awaits an original scheduled run",
+    "Version 1.1.0 has no retrospectively claimed immutable archive",
+    "Whole provider HTTP originals and first-release filing vintages remain unverified",
+    "Coverage cache concurrency, abandoned immutable proposal cleanup and whole provider universe remain open",
+    "No model, sizing or execution authority"
+  ],
+  "aws_native_invocations": 0,
+  "provider_requests": 0,
+  "private_reads": 0
+}

@@ -18,7 +18,6 @@ import json, os, time
 import urllib.request
 import urllib.error
 from backlog_measurements import CONTRACT, compile_concept, row_from_concepts, decode
-from backlog_store import load_head as load_public_head, publish as publish_public_head
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
@@ -346,8 +345,7 @@ def lambda_handler(event=None, context=None):
     # actually accumulates, and prune anything not re-verified in 60 days so it
     # cannot go stale silently.
     _now = datetime.now(timezone.utc).isoformat()
-    prior_packet,prior_raw,prior_etag=load_public_head(s3,BUCKET)
-    _prev = prior_packet["by_ticker"] if prior_packet is not None else {}
+    _prev = (read_json(OUT_KEY) or {}).get("by_ticker") or {}
     ledger = {k: qualify_carried(v) for k, v in _prev.items()}
     for _r in results:
         _r["refreshed_at"] = _now
@@ -356,7 +354,7 @@ def lambda_handler(event=None, context=None):
     print(f"[backlog] ledger {len(_prev)} + slice {len(results)} -> {len(ledger)}")
 
     out = {
-        "engine": "backlog", "version": "1.2.0", "measurement_contract": CONTRACT,
+        "engine": "backlog", "version": "1.1.0", "measurement_contract": CONTRACT,
         "call": None, "calls_eligible": False, "forecast_qualified": False, "sizing_eligible": False,
         "quality": {"status": "partial", "provider_originals_replayed": False,
                     "point_in_time_availability_verified": False,
@@ -376,7 +374,8 @@ def lambda_handler(event=None, context=None):
         "ledger_size": len(ledger),
         "slice_this_run": len(results),
     }
-    archive=publish_public_head(s3,BUCKET,out,prior_raw,prior_etag)
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, allow_nan=False).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=3600")
     if not throttled:
         try:
             s3.put_object(Bucket=BUCKET, Key="data/backlog-coverage-cache.json",
@@ -386,4 +385,4 @@ def lambda_handler(event=None, context=None):
     print(f"[backlog] DONE {round(time.time()-t0,1)}s — {len(results)} covered, "
           f"{len(accelerating)} accelerating")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "covered": len(results),
-                                                     "accelerating": len(accelerating),"archive":archive})}
+                                                     "accelerating": len(accelerating)})}

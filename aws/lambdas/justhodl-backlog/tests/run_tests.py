@@ -3,6 +3,9 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import SimpleNamespace
+from io import BytesIO
+from threading import Barrier,Event,Lock,Thread
+import hashlib
 import ast
 import builtins
 import copy
@@ -14,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / 'aws/lambdas/justhodl-backlog/source'
 sys.path.insert(0, str(SOURCE))
 from backlog_measurements import CONTRACT, compile_concept, row_from_concepts, decode
+import backlog_store as store
 
 TAG = 'RevenueRemainingPerformanceObligation'
 EPS = 'EarningsPerShareDiluted'
@@ -35,6 +39,7 @@ def native(**extra):
     tree = ast.parse((SOURCE/'lambda_function.py').read_bytes())
     funcs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and not n.name.startswith('_legacy_')]
     namespace = {'CONTRACT': CONTRACT, 'compile_concept': compile_concept, 'row_from_concepts': row_from_concepts, 'decode': decode,
+                 'load_public_head':store.load_head,'publish_public_head':store.publish,
                  'datetime': datetime, 'timezone': timezone, 'timedelta': timedelta, 'json': json,
                  'ThreadPoolExecutor': ThreadPoolExecutor, 'as_completed': as_completed,
                  'time': SimpleNamespace(time=lambda: 0), 'print': lambda *args: None,
@@ -43,6 +48,28 @@ def native(**extra):
     exec(builtins.compile(ast.Module(body=funcs, type_ignores=[]), '<isolated actual backlog>', 'exec'), namespace)
     namespace.update(extra)
     return namespace
+
+
+class StorageError(Exception):
+    def __init__(self,code):self.response={'Error':{'Code':code}}
+
+
+class Memory:
+    def __init__(self,packet,writes=None):
+        self.raw={store.HEAD:json.dumps(packet).encode()};self.writes=writes if writes is not None else {};self.reads=[];self.puts=[];self.denied=False;self.corrupt=False;self.race=False
+    def get_object(self,**kw):
+        key=kw['Key'];self.reads.append(key)
+        if self.denied:raise StorageError('AccessDenied')
+        if key not in self.raw:raise StorageError('NoSuchKey')
+        raw=self.raw[key]
+        if self.corrupt and key.startswith(store.PREFIX):raw=b'corrupt'
+        return {'Body':BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
+    def put_object(self,**kw):
+        key=kw['Key'];self.puts.append(kw)
+        if kw.get('IfNoneMatch')=='*' and key in self.raw:raise StorageError('PreconditionFailed')
+        if 'IfMatch' in kw and (key not in self.raw or kw['IfMatch']!=hashlib.sha256(self.raw[key]).hexdigest()):raise StorageError('PreconditionFailed')
+        if self.race and key==store.HEAD:raise StorageError('PreconditionFailed')
+        self.raw[key]=kw['Body'];self.writes[key]=json.loads(kw['Body'])
 
 
 class Tests(unittest.TestCase):
@@ -158,7 +185,8 @@ class Tests(unittest.TestCase):
         row=row_from_concepts('TEST','0000000001',{}, {'rpo':c,'deferred':c,'eps':c})
         ns=native(load_cik_map=lambda:{'TEST':'0000000001'},read_json=read,
                   analyze=lambda *a:None if unavailable else copy.deepcopy(row),
-                  s3=SimpleNamespace(put_object=lambda **k:writes.update({k['Key']:json.loads(k['Body'])})))
+                  s3=Memory({'by_ticker':copy.deepcopy(old)},writes))
+        ns['s3'].denied=prior_error
         return ns,writes,old
 
     def test_native_preserves_whole_prior_rows_but_quarantines_legacy_values(self):
@@ -172,8 +200,70 @@ class Tests(unittest.TestCase):
     def test_native_empty_acquisition_and_denied_prior_leave_outputs_untouched(self):
         ns,writes,_=self.handler(unavailable=True);self.assertEqual(ns['lambda_handler']()['statusCode'],503);self.assertEqual(writes,{})
         ns,writes,_=self.handler(prior_error=True)
-        with self.assertRaises(PermissionError):ns['lambda_handler']()
+        with self.assertRaises(StorageError) as error:ns['lambda_handler']()
+        self.assertEqual(error.exception.response['Error']['Code'],'AccessDenied')
         self.assertEqual(writes,{})
+
+
+    def test_whole_prior_current_archives_and_code_identity(self):
+        ns,writes,old=self.handler();db=ns['s3'];prior=db.raw[store.HEAD];ns['lambda_handler']();raw=db.raw[store.HEAD];p=store.decode(raw)
+        self.assertEqual(p['publication_contract'],store.CONTRACT);self.assertEqual(p['source_files'],store.source_identity())
+        self.assertEqual(db.raw[p['previous_publication']['key']],prior);self.assertEqual(db.raw[store.reference(raw)['key']],raw)
+        self.assertEqual(set(p['by_ticker']),{'OLD','TEST'})
+        self.assertEqual(next(x for x in db.puts if x['Key']==store.HEAD)['IfMatch'],hashlib.sha256(prior).hexdigest())
+    def test_archive_corruption_and_conditional_races_preserve_exact_head(self):
+        for flag in ('corrupt','race'):
+            ns,_,_=self.handler();db=ns['s3'];prior=db.raw[store.HEAD];setattr(db,flag,True)
+            with self.assertRaises((ValueError,StorageError)):ns['lambda_handler']()
+            self.assertEqual(db.raw[store.HEAD],prior)
+            self.assertNotIn('data/backlog-coverage-cache.json',[k['Key'] for k in db.puts])
+    def test_missing_and_malformed_head_are_distinct(self):
+        db=Memory({'by_ticker':{}});db.raw={}
+        self.assertEqual(store.load_head(db,'fixture'),(None,None,None))
+        store.publish(db,'fixture',{'by_ticker':{}},None,None)
+        self.assertEqual(next(x for x in db.puts if x['Key']==store.HEAD)['IfNoneMatch'],'*')
+        for raw in (b'[]',b'{"by_ticker":[]}',b'{"by_ticker":{},"by_ticker":{}}'):
+            db.raw[store.HEAD]=raw
+            with self.assertRaises(ValueError):store.load_head(db,'fixture')
+        with self.assertRaises(ValueError):store.whole({'Body':BytesIO(b'{}'),'ContentLength':3})
+        db=Memory({'by_ticker':{}});original=db.get_object;db.get_object=lambda **kw:{**original(**kw),'ETag':None}
+        with self.assertRaises(ValueError):store.load_head(db,'fixture')
+    def test_history_chain_and_create_race_keep_exact_bytes(self):
+        ns,_,_=self.handler();db=ns['s3'];ns['lambda_handler']();first=db.raw[store.HEAD]
+        ns['lambda_handler']();second=store.decode(db.raw[store.HEAD])
+        self.assertEqual(second['previous_publication'],store.reference(first))
+        self.assertEqual(db.raw[second['previous_publication']['key']],first)
+        current=db.raw[store.HEAD]
+        with self.assertRaises(StorageError):store.publish(db,'fixture',{'by_ticker':{}},None,None)
+        self.assertEqual(db.raw[store.HEAD],current)
+    def test_overlapping_actual_writers_cannot_erase_a_completed_issuer(self):
+        ns,_,_=self.handler();db=ns['s3'];prior=db.raw[store.HEAD];barrier=Barrier(2);first_written=Event();lock=Lock();failures=[]
+        original_get=db.get_object;original_put=db.put_object
+        def get(**kw):
+            with lock:result=original_get(**kw)
+            if kw['Key']==store.HEAD:barrier.wait(timeout=5)
+            return result
+        def put(**kw):
+            is_head=kw['Key']==store.HEAD;p=json.loads(kw['Body'])
+            if is_head and 'SECOND' in p['by_ticker']:self.assertTrue(first_written.wait(timeout=5))
+            with lock:result=original_put(**kw)
+            if is_head:first_written.set()
+            return result
+        db.get_object=get;db.put_object=put
+        def run(name):
+            try:
+                local,_,_=self.handler();analyze=local['analyze'];local['SEED']=[name];local['load_cik_map']=lambda:{name:'0000000001'};local['s3']=db
+                def row(*args):
+                    result=analyze(*args);result['ticker']=name;return result
+                local['analyze']=row;local['lambda_handler']()
+            except Exception as exc:failures.append(exc)
+        threads=[Thread(target=run,args=(name,)) for name in ('FIRST','SECOND')]
+        for thread in threads:thread.start()
+        for thread in threads:thread.join(timeout=10);self.assertFalse(thread.is_alive())
+        self.assertEqual(len(failures),1);self.assertIsInstance(failures[0],StorageError)
+        self.assertEqual(set(store.decode(db.raw[store.HEAD])['by_ticker']),{'FIRST','OLD'})
+        self.assertEqual(db.raw[store.reference(prior)['key']],prior)
+        self.assertTrue(all(k==store.HEAD or k.startswith(store.PREFIX) for k in db.reads))
 
 
 if __name__ == '__main__': unittest.main()
