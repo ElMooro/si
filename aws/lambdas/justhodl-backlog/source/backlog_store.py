@@ -53,7 +53,7 @@ def archive(s3,bucket,raw):
 def source_identity():
     parent=Path(__file__).parent
     return {name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
-            for name in ('lambda_function.py','backlog_measurements.py','backlog_store.py')
+            for name in ('lambda_function.py','backlog_measurements.py','backlog_store.py','backlog_sources.py')
             for raw in [(parent/name).read_bytes()]}
 
 

@@ -12,12 +12,15 @@ import copy
 import json
 import sys
 import unittest
+from unittest.mock import patch
+import gzip,zlib,urllib.error
 
 ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / 'aws/lambdas/justhodl-backlog/source'
 sys.path.insert(0, str(SOURCE))
 from backlog_measurements import CONTRACT, compile_concept, row_from_concepts, decode
 import backlog_store as store
+import backlog_sources as sources
 
 TAG = 'RevenueRemainingPerformanceObligation'
 EPS = 'EarningsPerShareDiluted'
@@ -40,6 +43,7 @@ def native(**extra):
     funcs = [n for n in tree.body if isinstance(n, ast.FunctionDef) and not n.name.startswith('_legacy_')]
     namespace = {'CONTRACT': CONTRACT, 'compile_concept': compile_concept, 'row_from_concepts': row_from_concepts, 'decode': decode,
                  'load_public_head':store.load_head,'publish_public_head':store.publish,
+                 'Capture':sources.Capture,'UA':'fixture','FMP_KEY':'fixture-secret',
                  'datetime': datetime, 'timezone': timezone, 'timedelta': timedelta, 'json': json,
                  'ThreadPoolExecutor': ThreadPoolExecutor, 'as_completed': as_completed,
                  'time': SimpleNamespace(time=lambda: 0), 'print': lambda *args: None,
@@ -69,7 +73,34 @@ class Memory:
         if kw.get('IfNoneMatch')=='*' and key in self.raw:raise StorageError('PreconditionFailed')
         if 'IfMatch' in kw and (key not in self.raw or kw['IfMatch']!=hashlib.sha256(self.raw[key]).hexdigest()):raise StorageError('PreconditionFailed')
         if self.race and key==store.HEAD:raise StorageError('PreconditionFailed')
-        self.raw[key]=kw['Body'];self.writes[key]=json.loads(kw['Body'])
+        self.raw[key]=kw['Body'];self.writes[key]=kw['Body'] if key.startswith(sources.PREFIX) else json.loads(kw['Body'])
+
+
+def response(raw, code=200, encoding='', length=None):
+    class Response(BytesIO):
+        pass
+    r=Response(raw);r.code=code;r.headers={'Content-Encoding':encoding,'Content-Length':str(len(raw)) if length is None else length}
+    return r
+
+
+def captured_handler():
+    ns,_,_=Tests().handler();db=ns['s3'];calls=[];originals=[]
+    def opener(req, timeout):
+        url=req.full_url;calls.append(url)
+        if url.endswith('/company_tickers.json'):
+            raw=b'{"0":{"ticker":"TEST","cik_str":1,"title":"Synthetic issuer"}}';code=200;encoding=''
+        elif '/companyconcept/' in url:
+            tag=url.rsplit('/',1)[-1][:-5]
+            raw=json.dumps(payload([observation('2025-12-31',100),observation('2026-03-31',110)]),ensure_ascii=False).encode() if tag==TAG else b'<html>missing concept</html>'
+            code=200 if tag==TAG else 404;encoding='gzip';raw=gzip.compress(raw,mtime=0)
+        else:
+            raw=b'[ {"symbol":"TEST", "unknown_field":"whole original preserved", "revenue":900} ]';code=200;encoding='deflate';raw=zlib.compress(raw)
+        originals.append(raw)
+        return response(raw,code,encoding)
+    # Restore actual acquisition/analysis functions, retaining only isolated storage.
+    actual=native();ns['load_cik_map']=actual['load_cik_map'];ns['analyze']=actual['analyze']
+    ns['Capture']=lambda db,bucket,ua,secret:sources.Capture(db,bucket,ua,secret,opener=opener)
+    return ns,db,calls,originals
 
 
 class Tests(unittest.TestCase):
@@ -183,8 +214,8 @@ class Tests(unittest.TestCase):
             raise AssertionError(key)
         c=compile([observation('2025-12-31',100),observation('2026-03-31',110)])
         row=row_from_concepts('TEST','0000000001',{}, {'rpo':c,'deferred':c,'eps':c})
-        ns=native(load_cik_map=lambda:{'TEST':'0000000001'},read_json=read,
-                  analyze=lambda *a:None if unavailable else copy.deepcopy(row),
+        ns=native(load_cik_map=lambda **kw:{'TEST':'0000000001'},read_json=read,
+                  analyze=lambda *a,**kw:None if unavailable else copy.deepcopy(row),
                   s3=Memory({'by_ticker':copy.deepcopy(old)},writes))
         ns['s3'].denied=prior_error
         return ns,writes,old
@@ -252,9 +283,9 @@ class Tests(unittest.TestCase):
         db.get_object=get;db.put_object=put
         def run(name):
             try:
-                local,_,_=self.handler();analyze=local['analyze'];local['SEED']=[name];local['load_cik_map']=lambda:{name:'0000000001'};local['s3']=db
-                def row(*args):
-                    result=analyze(*args);result['ticker']=name;return result
+                local,_,_=self.handler();analyze=local['analyze'];local['SEED']=[name];local['load_cik_map']=lambda **kw:{name:'0000000001'};local['s3']=db
+                def row(*args,**kwargs):
+                    result=analyze(*args,**kwargs);result['ticker']=name;return result
                 local['analyze']=row;local['lambda_handler']()
             except Exception as exc:failures.append(exc)
         threads=[Thread(target=run,args=(name,)) for name in ('FIRST','SECOND')]
@@ -264,6 +295,109 @@ class Tests(unittest.TestCase):
         self.assertEqual(set(store.decode(db.raw[store.HEAD])['by_ticker']),{'FIRST','OLD'})
         self.assertEqual(db.raw[store.reference(prior)['key']],prior)
         self.assertTrue(all(k==store.HEAD or k.startswith(store.PREFIX) for k in db.reads))
+
+
+    def test_actual_native_originals_replay_same_six_requests_and_whole_bytes(self):
+        ns,db,calls,originals=captured_handler();ns['lambda_handler']();p=json.loads(db.raw[store.HEAD])
+        self.assertEqual(len(calls),6);self.assertEqual(len(p['provider_sources']['attempts']),6)
+        for raw in originals:self.assertEqual(db.raw[sources.reference(raw)['key']],raw)
+        result=sources.replay(p,lambda ref:sources.read_original(db,'fixture',ref))
+        self.assertEqual(result['current_issuers'],1);self.assertEqual(result['current_source_observations'],2)
+        self.assertEqual(result['retained_responses'],6);self.assertFalse(result['selection_context_replayed'])
+        self.assertNotIn('fixture-secret',json.dumps(p));self.assertFalse(p['calls_eligible'])
+        self.assertTrue(any(x['content_encoding']=='gzip' for x in p['provider_sources']['attempts']))
+        self.assertEqual(p['by_ticker']['TEST']['rpo_qoq'],10)
+
+    def test_original_replay_rejects_altered_measurement_binding_population_and_bytes(self):
+        ns,db,_,_=captured_handler();ns['lambda_handler']();p=json.loads(db.raw[store.HEAD])
+        for edit in (lambda p:p['by_ticker']['TEST']['measurements']['rpo'].update(qoq=999),
+                     lambda p:p['by_ticker']['TEST']['measurements']['rpo']['source_attempt'].update(request_index=0),
+                     lambda p:p['provider_sources']['attempts'][0].update(request_index=True),
+                     lambda p:p.update(slice_this_run=2),
+                     lambda p:p['by_ticker']['TEST']['provider_enrichment'].update(income_statement=[])):
+            bad=copy.deepcopy(p);edit(bad)
+            with self.assertRaises(ValueError):sources.replay(bad,lambda ref:sources.read_original(db,'fixture',ref))
+        ref=p['provider_sources']['attempts'][0]['original_ref'];db.raw[ref['key']]=b'{}'
+        with self.assertRaises(ValueError):sources.replay(p,lambda ref:sources.read_original(db,'fixture',ref))
+
+    def test_transport_error_never_stores_credentialed_exception_or_becomes_absence(self):
+        db=Memory({'by_ticker':{}})
+        def fail(*args,**kw):raise urllib.error.URLError('https://provider.invalid/?apikey=fixture-secret')
+        c=sources.Capture(db,'fixture','fixture','fixture-secret',opener=fail)
+        value,attempt=c.acquire('https://data.sec.gov/api/xbrl/companyconcept/CIK1/us-gaap/'+TAG+'.json')
+        self.assertIsNone(value);self.assertEqual(attempt['status'],'transport_error');self.assertNotIn('original_ref',attempt)
+        self.assertNotIn('fixture-secret',json.dumps(c.finish()));self.assertEqual(db.puts,[])
+
+    def test_partial_oversized_and_invalid_responses_are_not_usable_measurements(self):
+        url='https://www.sec.gov/files/company_tickers.json'
+        for raw,encoding,length,status in ((b'{}','','3','incomplete_response'),(b'bad','','3','invalid_response'),
+                                          (b'bad','gzip','3','invalid_response')):
+            db=Memory({'by_ticker':{}});c=sources.Capture(db,'fixture','fixture','',opener=lambda *a,**k:response(raw,200,encoding,length))
+            value,attempt=c.acquire(url);self.assertIsNone(value);self.assertEqual(attempt['status'],status)
+        with patch.object(sources,'WIRE_BOUND',8):
+            c=sources.Capture(db,'fixture','fixture','',opener=lambda *a,**k:response(b'0123456789'))
+            value,attempt=c.acquire(url);self.assertIsNone(value);self.assertEqual(attempt['status'],'response_bound_exceeded');self.assertNotIn('original_ref',attempt)
+
+    def test_secret_echo_and_uncheckable_fmp_body_stop_before_original_publication(self):
+        url='https://financialmodelingprep.com/stable/key-metrics-ttm?symbol=TEST&apikey=fixture-secret'
+        for raw in (b'{"error":"fixture-secret"}',b'{"error":"fixture%2Dsecret"}',
+                    b'{"error":"fixture-\\u0073ecret"}',b'not JSON fixture-\\u0073ecret'):
+            db=Memory({'by_ticker':{}});c=sources.Capture(db,'fixture','fixture','fixture-secret',opener=lambda *a,**k:response(raw))
+            with self.assertRaises(PermissionError):c.acquire(url)
+            with self.assertRaises(ValueError):c.finish()
+            self.assertEqual(db.puts,[])
+
+    def test_source_archive_failure_keeps_head_and_cache_unchanged(self):
+        ns,db,_,_=captured_handler();prior=db.raw[store.HEAD];put=db.put_object
+        def fail(**kw):
+            if kw['Key'].startswith(sources.PREFIX):raise StorageError('AccessDenied')
+            return put(**kw)
+        db.put_object=fail
+        with self.assertRaises(StorageError):ns['lambda_handler']()
+        self.assertEqual(db.raw[store.HEAD],prior);self.assertNotIn('data/backlog-coverage-cache.json',db.raw)
+
+    def test_source_reference_scope_and_compression_bombs_fail_before_reads(self):
+        db=Memory({'by_ticker':{}})
+        for ref in ({'key':'data/private.json','bytes':2,'sha256':'0'*64},
+                    {'key':sources.PREFIX+'0'*64+'.bin','bytes':True,'sha256':'0'*64}):
+            with self.assertRaises(ValueError):sources.read_original(db,'fixture',ref)
+        self.assertEqual(db.reads,[])
+        with patch.object(sources,'DECODED_BOUND',16):
+            for encoding,raw in (('gzip',gzip.compress(b'a'*40)),('deflate',zlib.compress(b'a'*40))):
+                with self.assertRaises(ValueError):sources.expanded(raw,encoding)
+
+    def test_request_endpoint_validation_cannot_expand_provider_scope(self):
+        for url in ('http://www.sec.gov/files/company_tickers.json','https://attacker.invalid/a',
+                    'https://financialmodelingprep.com/stable/key-metrics-ttm?symbol=TEST&symbol=OTHER',
+                    'https://financialmodelingprep.com/stable/income-statement?symbol=TEST&period=annual&limit=6'):
+            with self.assertRaises(ValueError):sources.endpoint(url)
+        self.assertNotIn('apikey',sources.endpoint('https://financialmodelingprep.com/stable/key-metrics-ttm?symbol=TEST&apikey=hidden'))
+
+    def test_concurrent_capture_keeps_every_attempt_and_identical_existing_original(self):
+        db=Memory({'by_ticker':{}});lock=Lock();barrier=Barrier(4);put=db.put_object;get=db.get_object
+        def write(**kw):
+            with lock:return put(**kw)
+        def read(**kw):
+            with lock:return get(**kw)
+        db.put_object=write;db.get_object=read
+        def open_response(*args,**kwargs):barrier.wait(timeout=5);return response(b'{}')
+        c=sources.Capture(db,'fixture','fixture','',opener=open_response)
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            results=list(ex.map(lambda _:c.acquire('https://www.sec.gov/files/company_tickers.json'),range(4)))
+        self.assertEqual([a['request_index'] for a in c.finish()['attempts']],list(range(4)))
+        self.assertTrue(all(value=={} for value,attempt in results));self.assertEqual(db.raw[sources.reference(b'{}')['key']],b'{}')
+
+    def test_failed_worker_source_persistence_prevents_partial_success_publication(self):
+        ns,db,_,_=captured_handler();prior=db.raw[store.HEAD];put=db.put_object;seen=0
+        def write(**kw):
+            nonlocal seen
+            if kw['Key'].startswith(sources.PREFIX):
+                seen+=1
+                if seen==2:raise StorageError('AccessDenied')
+            return put(**kw)
+        db.put_object=write
+        with self.assertRaises(ValueError):ns['lambda_handler']()
+        self.assertEqual(db.raw[store.HEAD],prior);self.assertNotIn('data/backlog-coverage-cache.json',db.raw)
 
 
 if __name__ == '__main__': unittest.main()
