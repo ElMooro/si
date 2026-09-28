@@ -1,0 +1,449 @@
+{
+  "code_commit": "e6d39647ef8ff2686ce9587e7b7e02307ac83294",
+  "read_only_run": 36439203465,
+  "report_commit": "3da599598d31c41d2172a28e802b635a0b39b786",
+  "diagnostic": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "XUw42W5kHHmIPxDUH85YlbQm3AD2vTbY58O2VMWjlbo=",
+      "source_files_checked": 4,
+      "handler_bytes": 31746,
+      "timeout": 120,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "cac0fa83b8df15aefac7419d42dbcf1d08b442b2"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "china-liquidity-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 14 ? * MON-FRI *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-china-liquidity",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "application_log_reads": 0,
+    "consumer_reads": 0,
+    "history_writes": 0,
+    "native_invocations": 0,
+    "own_source_evidence": {
+      "objects_checked": 71,
+      "bytes_checked": 2048137,
+      "attempts": [
+        {
+          "manifest_sha256": "6e5d32b5f23e34c0c7f6d2e6e43ec37084ef15b036ed5a1c4aeb91b367b4d97d",
+          "requested_at": "2026-09-28T14:30:04.103130+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MANMM101CNM189S",
+          "original_bytes": 887,
+          "original_sha256": "e2f282e7635135ef96280dc370b6be60325ee19ea145e6eec2f024bc7f2bd3d4"
+        },
+        {
+          "manifest_sha256": "0da8befa23158e6c16b1918b130c715c35ca3c504dffa3ef4b0a80123b0d7b28",
+          "requested_at": "2026-09-28T14:30:06.353406+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MANMM101CNM189S",
+          "original_bytes": 26020,
+          "original_sha256": "34a09a5aa06306cf203ae7021691a2261e4443a3ac49f84c9ea3e3d140fb324d"
+        },
+        {
+          "manifest_sha256": "f3556dddbb2230a64099d730827a90b5a59c0a68f76c43b4317c352d3b2aab3a",
+          "requested_at": "2026-09-28T14:30:08.700323+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MANMM101CNQ189S",
+          "original_bytes": 889,
+          "original_sha256": "14fb321491df0ca64c1811dc493eec46e41e3581c4d7844f334a403d5d90c7a9"
+        },
+        {
+          "manifest_sha256": "358a90c5b525d21f27a81525541317cd7428193484bdf13a7d8b5926dd361848",
+          "requested_at": "2026-09-28T14:30:11.160735+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MANMM101CNQ189S",
+          "original_bytes": 8858,
+          "original_sha256": "cf5cfeaf46d62a45b3441c6a161bedfa057d7a1ed864b370085eb223acbf0567"
+        },
+        {
+          "manifest_sha256": "2daab6281f1716e0ab89f7bafe4bb999144ee27cc99c6f54b2eb64d6474f6fff",
+          "requested_at": "2026-09-28T14:30:14.963201+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MYAGM2CNM189N",
+          "original_bytes": 864,
+          "original_sha256": "417284ca05ba461ee74cb02db9516ecfee4bc1f89917bb313f790bca9b6c16f1"
+        },
+        {
+          "manifest_sha256": "4a7c262b88a07f18d6c7ca0512cfd69dba86a79fd7b3ec2441890c3dfe9bcdbb",
+          "requested_at": "2026-09-28T14:30:19.114753+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MABMM301CNM189S",
+          "original_bytes": 867,
+          "original_sha256": "6c1f5108d2532697de88e6e3b036425e5cc1c180bc891016b37d82525aab8d85"
+        },
+        {
+          "manifest_sha256": "65acb3f9a04ccefa584e45bb52bc6a58ccb6bac803774f415eebd0007671cd86",
+          "requested_at": "2026-09-28T14:30:16.871627+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MYAGM2CNM189N",
+          "original_bytes": 27228,
+          "original_sha256": "92e081b4ad8e2447e3f15fe214f587d992f8d2dfad92b7637052d62b60269b32"
+        },
+        {
+          "manifest_sha256": "b8b9b54e6646d48f062d404aab2a0e86a323a0fe57f96a71035f8e734a37f017",
+          "requested_at": "2026-09-28T14:30:19.541191+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MABMM301CNM189S",
+          "original_bytes": 26102,
+          "original_sha256": "30ee562d105f9958438ab99504712279a66dce50ded273634c30c485a757f7a5"
+        },
+        {
+          "manifest_sha256": "1c45a3d777e195316d9211bc427fcfa2bf63dce9acc46c5a016eaa37c33fa918",
+          "requested_at": "2026-09-28T14:30:19.955290+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MABMM301CNQ189S",
+          "original_bytes": 869,
+          "original_sha256": "cd246b2780b6ec538a896de432b3fb939ecb3eba9a07c654c9af7caa6eb396ce"
+        },
+        {
+          "manifest_sha256": "12713fbb48f0bde0b78cc7636a9452048684cfb07bee5d94e74854cb76fdeded",
+          "requested_at": "2026-09-28T14:30:22.234545+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "MABMM301CNQ189S",
+          "original_bytes": 8876,
+          "original_sha256": "f155ef39e4ac21f84611aa8c766db060c02ee5ae85df8e463929136973e6f90a"
+        },
+        {
+          "manifest_sha256": "7f82b07ad6b38ee007d3f47647e1cd41fda1e831314347babdb9418c5f448590",
+          "requested_at": "2026-09-28T14:30:24.108839+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "IR3TIB01CNM156N",
+          "original_bytes": 860,
+          "original_sha256": "72b528d4dab5cd06cb04d7c4f9360241437d5082168602ca8165d59f7a637903"
+        },
+        {
+          "manifest_sha256": "ec18b624ff42aff8e05e8b08f17146c8a4da989facc6d14263c8f05debb44e92",
+          "requested_at": "2026-09-28T14:30:24.843838+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "IR3TIB01CNM156N",
+          "original_bytes": 33596,
+          "original_sha256": "133b3ef818d4bd7492366543afa8715bbb52e1fc7d0c20409b409ad7f6c13f04"
+        },
+        {
+          "manifest_sha256": "3975b49963ce48d9532ab658d77b39260dae76b53384ff5892b9f0504de07097",
+          "requested_at": "2026-09-28T14:30:28.511322+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 400,
+          "series_id": "IR3TIB01CNM156S",
+          "original_bytes": 77,
+          "original_sha256": "fd2c44985431657c67f5d743faa3e72bfc3c92e110c5927051068c2ff6f57ca5"
+        },
+        {
+          "manifest_sha256": "44f4d2c437d4f31b9292f23fcbd4ccf65bed14fb0abd3e9404d4540d23515136",
+          "requested_at": "2026-09-28T14:30:27.301353+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 400,
+          "series_id": "IR3TIB01CNM156S",
+          "original_bytes": 77,
+          "original_sha256": "fd2c44985431657c67f5d743faa3e72bfc3c92e110c5927051068c2ff6f57ca5"
+        },
+        {
+          "manifest_sha256": "99627a0a19503ec78f9f1018ecebe44beb7e00b4c6b9c689d4dc9ebd7f64b1b0",
+          "requested_at": "2026-09-28T14:30:29.023456+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "DEXCHUS",
+          "original_bytes": 785,
+          "original_sha256": "f68c826df4c9f62aada09c9b455fd5be69d381f8a82eda6e9819ff3e2348fa41"
+        },
+        {
+          "manifest_sha256": "815c659d641b7a0b3c79d0021e26995b92739e2fd6ca6ddffa834af68eefc0d0",
+          "requested_at": "2026-09-28T14:30:30.962586+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "DEXCHUS",
+          "original_bytes": 1154019,
+          "original_sha256": "87206c88be6144f7caeac85e8979ea1dfe0ac5e967db4aa8db1e8919443b7781"
+        },
+        {
+          "manifest_sha256": "02580c582fc5d05a2c120673bcb9325493eb9f89bacee6ea363b205c1d0943e0",
+          "requested_at": "2026-09-28T14:30:32.683154+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "PCOPPUSDM",
+          "original_bytes": 900,
+          "original_sha256": "41a802d0835583c993f67e5da2351113ce9decb10d1ec700e3c0ff1c0643a736"
+        },
+        {
+          "manifest_sha256": "aecce89c08c4e354312ccb2b6d937c4c535f769b1aa39c46346ebf150e71265f",
+          "requested_at": "2026-09-28T14:30:33.152448+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "PCOPPUSDM",
+          "original_bytes": 57373,
+          "original_sha256": "44b4e41e771af0655ab74b4fcd32069ef3a30ee3080826082c767ad97dd1fb5f"
+        },
+        {
+          "manifest_sha256": "c422cb6d3b86ecb64f71fa8925dd0638ed1101a5813210cd1f19dbd39425894d",
+          "requested_at": "2026-09-28T14:30:33.619501+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "IQ12260",
+          "original_bytes": 630,
+          "original_sha256": "38252bbce0400912a1a75c510cae51a4167cf750ca77c774e38630f49779ae4b"
+        },
+        {
+          "manifest_sha256": "342eb94cd07a437f692477109a1e0738818a48356a10c6ad56ffe28d743b1e8b",
+          "requested_at": "2026-09-28T14:30:35.733095+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 200,
+          "series_id": "IQ12260",
+          "original_bytes": 47677,
+          "original_sha256": "f8f5a7eec9ba2d379c8831e66ff8987c221f916cb62f63b46b8dc0ef8228e5ec"
+        },
+        {
+          "manifest_sha256": "a5798b557ceab59af0d9f8dfe32aea01335ddb24eaea5bc1d09955497fdee245",
+          "requested_at": "2026-09-28T14:30:36.381946+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 400,
+          "series_id": "GOLDAMGBD228NLBM",
+          "original_bytes": 77,
+          "original_sha256": "fd2c44985431657c67f5d743faa3e72bfc3c92e110c5927051068c2ff6f57ca5"
+        },
+        {
+          "manifest_sha256": "6bf81b4883d7529cf6d8d815943a0c6e51dcd38654c6a81f2a2ca093824f641b",
+          "requested_at": "2026-09-28T14:30:36.979321+00:00",
+          "source_host": "api.stlouisfed.org",
+          "status": "http_response",
+          "http_status": 400,
+          "series_id": "GOLDAMGBD228NLBM",
+          "original_bytes": 77,
+          "original_sha256": "fd2c44985431657c67f5d743faa3e72bfc3c92e110c5927051068c2ff6f57ca5"
+        },
+        {
+          "manifest_sha256": "34f695f856a7bfe1cee365b20ca956fa9f9b4e3229513e0e87bce5fb2b1bb281",
+          "requested_at": "2026-09-28T14:30:38.343010+00:00",
+          "source_host": "api.db.nomics.world",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 5985,
+          "original_sha256": "d5b748e2bc2a78f7ace27bad057238580a714a4215271b6678fab975b8413615"
+        },
+        {
+          "manifest_sha256": "016b56763010ca08057116601465b1ca3de71847851d1b7dde0725a1b860c239",
+          "requested_at": "2026-09-28T14:30:39.259820+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 125108,
+          "original_sha256": "3944d8342422ec5e39ba74089ce31f3ebddb180ae69eafb48d55b8ec9380af43"
+        },
+        {
+          "manifest_sha256": "0d398156eef1be6bd490ebfaa6fb6827776298875e6952bdae9e0af277fe7322",
+          "requested_at": "2026-09-28T14:30:41.401374+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 121526,
+          "original_sha256": "9aa0a16d2d1235e6cba834f52ca7f70e7c6c5d99abfda6ff129dc00e170927de"
+        },
+        {
+          "manifest_sha256": "7bca40802e01d9a0168356ccaf8d56f6f4eeb37f9abe80120e5e17fd6fad1b67",
+          "requested_at": "2026-09-28T14:30:42.602193+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 39187,
+          "original_sha256": "c231c987c1b8b086f45631c951f06069bb560bee888641e5670ab9892acf3786"
+        },
+        {
+          "manifest_sha256": "ce075da29a0091bf5f865b88ab965b0fd37fc173a848f400b796ca999e8654ec",
+          "requested_at": "2026-09-28T14:30:47.743312+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 548,
+          "original_sha256": "d465172175d35d493fb1633e237700022bd849fa123164790b168b8318acb090"
+        },
+        {
+          "manifest_sha256": "5b509761d5b35e26b08f83836e9e79c96fd4dd48dd73f288fe0a3f3a8433647a",
+          "requested_at": "2026-09-28T14:30:51.267118+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 146,
+          "original_sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0"
+        },
+        {
+          "manifest_sha256": "df1f8f6aeb303c835fff5999652c9237b38d2ba6c1a7ebf5436e0a09e58f5496",
+          "requested_at": "2026-09-28T14:30:52.405959+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 548,
+          "original_sha256": "d465172175d35d493fb1633e237700022bd849fa123164790b168b8318acb090"
+        },
+        {
+          "manifest_sha256": "849780de41b38bbea52a710b77c79b054ff5b11c54f8d4c3ba243fab73a7abb0",
+          "requested_at": "2026-09-28T14:30:55.075469+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 146,
+          "original_sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0"
+        },
+        {
+          "manifest_sha256": "be861fea161a3df41bf5f6e2cbc63207d9da3f1bc192194f81ba4fbc8057d8b8",
+          "requested_at": "2026-09-28T14:30:56.111552+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 89073,
+          "original_sha256": "6314e36292fec63514dd55ed2a6a6efa3d07ff020c93f690d2505bc28ec99fdb"
+        },
+        {
+          "manifest_sha256": "85053ecd31bf069e3f4fdd624e9a651305ec42bd1990c1cd92f477d19650c4fc",
+          "requested_at": "2026-09-28T14:30:59.737308+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 57168,
+          "original_sha256": "f9f6764c67be424b57e306a488cc103ab0f75503d03a6f7bc4e546778b51b2ce"
+        },
+        {
+          "manifest_sha256": "ed82bd515b9770c6b29b88393396a7be9ce4c39f1d311ef7b13831e1bd6ddb48",
+          "requested_at": "2026-09-28T14:31:02.892396+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 27631,
+          "original_sha256": "3952fda9138d5347905f8c826c73da65823d825b3ae72480624d806dc9d3af42"
+        },
+        {
+          "manifest_sha256": "146a9d39dd6f421ae81f861eda7b83bb76d30526d04881ef9dde67f26bb739b4",
+          "requested_at": "2026-09-28T14:31:06.643429+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 43492,
+          "original_sha256": "1499a2040b357444ad0934f0d3cf0206bad6b3a72a45d66b396f40d35527860d"
+        },
+        {
+          "manifest_sha256": "32be897432356685c3a1d30f7e5515622d2866e501e2fad4724fc53d140d61ee",
+          "requested_at": "2026-09-28T14:31:08.543040+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 548,
+          "original_sha256": "d465172175d35d493fb1633e237700022bd849fa123164790b168b8318acb090"
+        },
+        {
+          "manifest_sha256": "0558ad694a9c6585dad54532ce1f681e921dd402752d7af790ae186b5a57e7ea",
+          "requested_at": "2026-09-28T14:31:11.384326+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 146,
+          "original_sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0"
+        },
+        {
+          "manifest_sha256": "63eabf58a1625daed22e24e04c1d84c15ae232f241008eeb4e56ac9770523fce",
+          "requested_at": "2026-09-28T14:31:13.062703+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 69815,
+          "original_sha256": "6e851fe90260d7a69b54580cb2ffd0261df677cac73a83483881cedb6e1c33c4"
+        },
+        {
+          "manifest_sha256": "235f5b1e53f3937189550edee7c8aa7d5f989d4515e3c2d89a4fa701de87ca0b",
+          "requested_at": "2026-09-28T14:31:16.380889+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 548,
+          "original_sha256": "d465172175d35d493fb1633e237700022bd849fa123164790b168b8318acb090"
+        },
+        {
+          "manifest_sha256": "d7272e5295840f4cd280c5a3066b11df0825f18ffc13d6afd7f2cd36ea6aea86",
+          "requested_at": "2026-09-28T14:31:19.573395+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 404,
+          "original_bytes": 146,
+          "original_sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0"
+        },
+        {
+          "manifest_sha256": "bdba474d2aab6502cf6ed2722ab6cb7b3dcaaed2ba24c9d0d43a66f06a690ede",
+          "requested_at": "2026-09-28T14:31:20.580780+00:00",
+          "source_host": "www.pbc.gov.cn",
+          "status": "http_response",
+          "http_status": 200,
+          "original_bytes": 40450,
+          "original_sha256": "e030bb06dcbac7dc8fea3323e3ce263e8f83abeee8d6abc7ea78ed6482bcd4c0"
+        }
+      ]
+    },
+    "provider_requests": 0,
+    "public_head": {
+      "bytes": 6804,
+      "sha256": "067b7e4bc64652c2c5a5bbc77d697a50fc208192f3479df7404834b67b6bb690",
+      "generated_at": "2026-09-25T14:30:32.880735+00:00",
+      "contract": null
+    },
+    "public_writes": 0,
+    "schedule_changes": 0,
+    "scope": "Only the fixed public producer package, September 28 14:30\u201314:40 UTC system REPORT records and its content-addressed original acquisition evidence. Provider bodies are hash-checked, never emitted. No native invocation or downstream/owner state.",
+    "system_reports": [
+      {
+        "request_id": "13fba277-19da-4a3a-bf25-d955a5504a3d",
+        "timestamp_ms": 1790605881745,
+        "duration_ms": 78577.21,
+        "billed_duration_ms": 79082.0,
+        "memory_mb": 256.0,
+        "max_memory_mb": 113.0
+      }
+    ]
+  },
+  "normal_publication_verified": false
+}
