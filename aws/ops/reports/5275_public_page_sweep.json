@@ -1,19 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "eacc235a3ad3be73587f28c350c39f3eb838cfb4",
-  "observed_at": "2026-09-28T19:46:57.246414+00:00",
+  "observed_at": "2026-09-28T19:55:51.901379+00:00",
   "ok": false,
   "routes_checked": 599,
-  "verified_routes": 597,
+  "verified_routes": 598,
   "failed_routes": [
-    "housing-predict-future.html",
-    "signal-orthogonality.html"
+    "apex.html"
   ],
   "source_equivalent_builds": {
     "eacc235a3ad3be73587f28c350c39f3eb838cfb4": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 596,
+  "embedded_inspection_routes": 597,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -341,13 +340,12 @@
     },
     {
       "route": "apex.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "eacc235a3ad3be73587f28c350c39f3eb838cfb4",
-      "inspector_present": true,
-      "bytes_read": 13808,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "api-docs.html",
@@ -2035,7 +2033,7 @@
       "http_status": 200,
       "build_sha": "eacc235a3ad3be73587f28c350c39f3eb838cfb4",
       "inspector_present": true,
-      "bytes_read": 988978,
+      "bytes_read": 988983,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -3011,12 +3009,13 @@
     },
     {
       "route": "housing-predict-future.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "URLError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "eacc235a3ad3be73587f28c350c39f3eb838cfb4",
+      "inspector_present": true,
+      "bytes_read": 9057,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "housing-tv-extras.html",
@@ -5000,12 +4999,13 @@
     },
     {
       "route": "signal-orthogonality.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "RemoteDisconnected",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "eacc235a3ad3be73587f28c350c39f3eb838cfb4",
+      "inspector_present": true,
+      "bytes_read": 19556,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "signal-replay.html",
@@ -6009,7 +6009,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36473907985,
+  "deployment_run_id": 36475025568,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-28T19:46:57.250365+00:00"
+  "check_finished_at": "2026-09-28T19:55:51.907178+00:00"
 }
