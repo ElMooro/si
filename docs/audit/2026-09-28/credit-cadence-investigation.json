@@ -46,8 +46,16 @@
       "value_bps": 201.0
     }
   },
-  "status": "public_packet_and_source_investigation_runtime_baseline_pending",
+  "status": "strict_runtime_baseline_refused_schedule_mismatch",
   "native_receipt_commit": "9cb4a62b116865bbf9695493bcff820c87da9277",
   "declared_schedule": "cron(10 22 ? * MON-FRI *)",
-  "production_changes": false
+  "production_changes": false,
+  "runtime_preflight": {
+    "operation": 6297,
+    "run": 36454627051,
+    "report_commit": "594fd3da8",
+    "error": "One original weekday 22:10 UTC schedule required",
+    "retained_original_replay_completed": false,
+    "production_changes": false
+  }
 }

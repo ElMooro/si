@@ -39,3 +39,19 @@ def test_credit_observer_has_no_mutation_or_provider_collection_calls():
     calls={n.func.attr for n in ast.walk(tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute)}
     assert not calls&{'invoke','put_object','update_function_code','put_rule','update_schedule','start_execution','run','collect','acquire'}
     assert 'sys.exit(1)' in PATH.read_text(encoding='utf-8')
+
+
+def test_schedule_diagnostic_records_mismatch_without_accepting_the_baseline():
+    path=PATH.with_name('ops_6298_credit_schedule_diagnostic.py');diagnostic=runpy.run_path(str(path))
+    actual={'receipt':{'status':'matched','commit':NS['EXPECTED']},'function_name':NS['FN'],'timeout':300,'memory_mb':512,
+            'schedules':[{'state':'ENABLED','expression':'different actual cron','native_targets':1}]}
+    result=diagnostic['summarize'](actual,NS)
+    assert result['actual_runtime']==actual and result['strict_baseline_matches'] is False
+    assert result['baseline_accepted'] is False and result['retained_originals_replayed'] is False
+    assert result['strict_baseline_refusal']=='One original weekday 22:10 UTC schedule required'
+    actual['receipt']['commit']='0'*40
+    try:diagnostic['summarize'](actual,NS)
+    except ValueError:pass
+    else:raise AssertionError('Different deployed release accepted')
+    calls={n.func.attr for n in ast.walk(ast.parse(path.read_text(encoding='utf-8'))) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute)}
+    assert not calls&{'invoke','put_object','update_function_code','put_rule','update_schedule','start_execution','run','collect','acquire'}
