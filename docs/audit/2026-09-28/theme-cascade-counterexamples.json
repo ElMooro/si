@@ -1,0 +1,25 @@
+{
+  "scope": "Nine isolated original source/calculation counterexamples; no native, provider, consumer-output, recipient or state reads.",
+  "original_bytes": 30515,
+  "original_sha256": "5f551b3b118927355c189ca39c112409b4c3bdbd94d11ca8c64234aa723da338",
+  "reproduced": [
+    "missing portfolio and explicit ineligibility still produce position percentages",
+    "earnings membership mechanically increases position size without return/risk evidence",
+    "same-day earnings omitted while past and boolean days qualify",
+    "missing exposure becomes zero in the original helper; active provider-flow exclusion remains in place",
+    "boolean and negative ranks receive top-five boost",
+    "duplicate ETF ordering changes multiplier",
+    "nonfinite input survives into nonstandard JSON",
+    "genuine zero legacy score becomes the tier default"
+  ],
+  "limitations": [
+    "Helper/legacy-input counterexamples do not assert that excluded flow or repaired Velocity packets currently supply those values.",
+    "Original position-sizing rules have no portfolio or validated forecast authority."
+  ],
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "private_state_reads": 0,
+  "provider_requests": 0,
+  "notifications_sent": 0,
+  "investment_authority": false
+}

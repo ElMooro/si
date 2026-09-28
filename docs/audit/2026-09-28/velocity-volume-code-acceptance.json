@@ -1,0 +1,48 @@
+{
+  "acceptance": {
+    "status": "exact_package_and_original_schedule_verified",
+    "native_output_verified": false,
+    "consumer_decisions_qualified": false,
+    "investment_authority": false
+  },
+  "account_reads": 0,
+  "actual_package": {
+    "code_sha256": "T8wboVW1nwbzjTh5Z0nFceo5JJUknQa6xWMuOSaYAK4=",
+    "source_files_checked": 6,
+    "handler_bytes": 42658,
+    "timeout": 300,
+    "memory_mb": 1024,
+    "receipt": {
+      "status": "matched",
+      "commit": "56dbedef8d805be2a3c7a36b95abb4ca0cab8fa2"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "justhodl-velocity-acceleration-hourly",
+        "state": "ENABLED",
+        "expression": "cron(30 * * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-velocity-acceleration",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "consumer_output_reads": 0,
+  "expected_commit": "56dbedef8d805be2a3c7a36b95abb4ca0cab8fa2",
+  "learning_log_reads": 0,
+  "model_requests": 0,
+  "native_invocations": 0,
+  "private_context_reads": 0,
+  "provider_requests": 0,
+  "public_writes": 0,
+  "schedule_changes": 0,
+  "scope": "Complete Velocity package, original runtime/schedules and synthetic replay; no private or downstream consumer-output qualification."
+}
