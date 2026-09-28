@@ -1,0 +1,212 @@
+{
+  "checked_at": "2026-09-28T10:33:36.310328+00:00",
+  "operation_run": 36410109851,
+  "report_commit": "2a24c853256f3ef647ebbce8ac450ee393e633ad",
+  "public": {
+    "url": "https://justhodl.ai/data/asia-leads.json?exact=1&nogen=1",
+    "bytes": 323228,
+    "sha256": "59db955aa8e613e4db2592bafbe151235aa217cb6ed27df4d1b64a920b568907",
+    "generated_at": "2026-09-28T10:20:15.829236+00:00",
+    "version": "1.4.0",
+    "contract": "asia-leads-research.v1"
+  },
+  "acceptance": {
+    "account_reads": 0,
+    "actual_runtime": {
+      "code_sha256": "xJM8cOmhl7sFzYZJ1+sBNFUZpiX7YNpaNddsatbbFFw=",
+      "source_files_checked": 4,
+      "handler_bytes": 31560,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "96410d9816ac8331d26633e4ff3d04498628c0c2"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-asia-leads-daily",
+          "state": "ENABLED",
+          "expression": "cron(20 10 * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-asia-leads",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "all_denied": true,
+    "anonymous_origins_checked": 4,
+    "attempt_outcome_counts": {
+      "404": 2,
+      "403": 2
+    },
+    "compiler_sha256": {
+      "lambda_function.py": "30b86575003c259c9d7a16cb1f048779c98e308cad5be8a385d1b921098af6f0",
+      "asia_store.py": "3a12c6bf8d5ad85d55f64e2c2584769a20207b70f7b386963b11bed1bf1061a7",
+      "asia_measurements.py": "ea00fe90748c9e576d8535ae102323c01279c077df369a6e299bc0adcf4ad617",
+      "managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+    },
+    "credential_reads": 0,
+    "expected_commit": "96410d9816ac8331d26633e4ff3d04498628c0c2",
+    "failures": [],
+    "history_writes": 0,
+    "native_invocations": 0,
+    "native_publication": {
+      "status": "complete_native_sources_and_calendar_replayed",
+      "bytes": 323228,
+      "sha256": "59db955aa8e613e4db2592bafbe151235aa217cb6ed27df4d1b64a920b568907",
+      "generated_at": "2026-09-28T10:20:15.829236+00:00",
+      "version": "1.4.0",
+      "replay": {
+        "status": "complete_native_sources_and_export_calendars_replayed",
+        "provider_attempts": 21,
+        "complete_native_outputs": 3,
+        "export_observations": 1669,
+        "provider_requests": 0,
+        "public_writes": 0,
+        "original_vintage_verified": false,
+        "forecast_qualified": false
+      },
+      "measurement_states": {
+        "VALEXPTWM052N": {
+          "status": "measured",
+          "unit": "Millions of Dollars",
+          "latest_month": "2026-07",
+          "returned_rows": 835
+        },
+        "XTEXVA01KRM667N": {
+          "status": "measured",
+          "unit": "US dollars, exchange rate converted",
+          "latest_month": "2026-06",
+          "returned_rows": 834
+        }
+      }
+    },
+    "protected_paths_checked": 2,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "schedule_changes": 0,
+    "scope": "Whole acquired sources, all native outputs and exact monthly export-value arithmetic. Legacy news/customs/order extraction, historical vintages, economic leads and portfolio consequences remain unqualified."
+  },
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "xJM8cOmhl7sFzYZJ1+sBNFUZpiX7YNpaNddsatbbFFw=",
+    "commit": "96410d9816ac8331d26633e4ff3d04498628c0c2",
+    "deployed_at": "2026-09-27T12:30:09Z",
+    "function": "justhodl-asia-leads",
+    "run_id": "36319137523",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36319137523",
+    "schema": "release-receipt.v1",
+    "source": {
+      "asia_measurements.py": {
+        "bytes": 6019,
+        "sha256": "ea00fe90748c9e576d8535ae102323c01279c077df369a6e299bc0adcf4ad617"
+      },
+      "asia_store.py": {
+        "bytes": 24646,
+        "sha256": "3a12c6bf8d5ad85d55f64e2c2584769a20207b70f7b386963b11bed1bf1061a7"
+      },
+      "lambda_function.py": {
+        "bytes": 31560,
+        "sha256": "30b86575003c259c9d7a16cb1f048779c98e308cad5be8a385d1b921098af6f0"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 850991,
+    "zip_sha256_hex": "c4933c70e9a197bb05cd8649d7eb01345519a625fb60da5a35d76c6ad6db145c"
+  },
+  "served_page_commit": "1a7cccf7501e3313714d26fd5f55edc2b8634139",
+  "assets": {
+    "config/page-data-contracts.json": {
+      "bytes": 2412669,
+      "sha256": "06b2cb02202c9dde49a302306a9dca2dffe78feb468d01723540ae570a1b46bc",
+      "matches_build_manifest": true
+    },
+    "engine-manifest.json": {
+      "bytes": 1344395,
+      "sha256": "c4eddacbf830feebbe588ce5b4601d79ed31786bcea63664439affbbb013d7ab",
+      "matches_build_manifest": true
+    },
+    "jh-asia-calendar.js": {
+      "bytes": 10805,
+      "sha256": "6df4efda16de5dce702d399f6fe77c1b09503e7a3e56bdac8ecde6f4d8fdc2ad",
+      "matches_build_manifest": true
+    },
+    "jh-business-cycle-review.js": {
+      "bytes": 18142,
+      "sha256": "8584b89c9716cd38094337c9baebe715a9fe52b46f7c548486da9f477328bb50",
+      "matches_build_manifest": true
+    },
+    "jh-china-calendar.js": {
+      "bytes": 13841,
+      "sha256": "57f47d02452bfb9e3212a6686428ccdd557d57d16cfda9b6490ed6733dfd123e",
+      "matches_build_manifest": true
+    },
+    "jh-data-inspector.js": {
+      "bytes": 29423,
+      "sha256": "7d7fbd7fcc6af0312df8b559a9f13071fabacc154cb75789f17ef3df8eecbfca",
+      "matches_build_manifest": true
+    },
+    "jh-freight-review.js": {
+      "bytes": 17369,
+      "sha256": "e031f85e587603aaab1d85a23ca2ee48792453b659941b1821ed57cc02ed9e81",
+      "matches_build_manifest": true
+    },
+    "jh-geo-review.js": {
+      "bytes": 13981,
+      "sha256": "16ae0b0bae95a32f720407e4ae9306e275bd55cbc419e93b2156d32cf248dd2a",
+      "matches_build_manifest": true
+    },
+    "jh-macro-calendar.js": {
+      "bytes": 17541,
+      "sha256": "8dc812afb6f37fcf04009a8d5eb248b725f03d3412c0c96992d245bf4ceeb3ca",
+      "matches_build_manifest": true
+    },
+    "jh-macro-transport.js": {
+      "bytes": 5537,
+      "sha256": "e0558c1bf616bcc641f8512a7d9ae0312f1ef490025d73f5f29495b79c1e573f",
+      "matches_build_manifest": true
+    },
+    "jh-portwatch-review.js": {
+      "bytes": 17680,
+      "sha256": "7179ba654b12ba9e81512729cdb937e017e840f0b4d6bb03fe8c6659e5fcbaa5",
+      "matches_build_manifest": true
+    },
+    "macro-leads.html": {
+      "bytes": 36094,
+      "sha256": "c6b448f617a9c234d14169669b9db503995ea988527b0d1a8139f27663521456",
+      "matches_build_manifest": true
+    }
+  },
+  "browser": {
+    "status": "2 separate export series; 1669 monthly positions; no forecast/sizing permission",
+    "Korea": {
+      "rows": 834,
+      "latest_month": "2026-06",
+      "unit": "US dollars, exchange rate converted"
+    },
+    "Taiwan": {
+      "rows": 835,
+      "latest_month": "2026-07",
+      "unit": "Millions of Dollars",
+      "pagination": [
+        "801\u2013835 of 835",
+        "701\u2013800 of 835"
+      ],
+      "visible_rows_after_previous": 100
+    },
+    "document_width": 1270,
+    "document_scroll_width": 1270,
+    "captured_console_errors": 0
+  },
+  "scope": "Native own-source calendar and public display accepted. Legacy news/customs/orders extraction, first vintages, release-lag interpretation, independent predictive evidence and portfolio consequences remain unqualified."
+}
