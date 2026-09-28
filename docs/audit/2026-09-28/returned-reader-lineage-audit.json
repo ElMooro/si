@@ -1,0 +1,319 @@
+{
+  "checked_at": "2026-09-28T16:40:13.991820+00:00",
+  "status": "local_candidate_accepted_deploy_pending",
+  "scope": "Source tracing and audit metadata; no native engine bytes, AWS data access, schedules, current packet calculations or investment permissions changed.",
+  "bugs_fixed": [
+    "Returned reader closures lost their lexical input binding.",
+    "Delegated engine-local reads were discarded by the shared-writer-only collector.",
+    "Deep captured configurations could collide at the analysis fingerprint bound.",
+    "The complete audit input identity omitted its call-graph helper.",
+    "Source decoding inherited platform encoding and could replace invalid bytes."
+  ],
+  "preserved_predecessors": {
+    "gen_engine_manifest.py": {
+      "bytes": 27376,
+      "sha256": "11eef39a7709d54adda44c21e5a01396017efbbb0313e1da4fe936a67830eb0b"
+    },
+    "source_write_graph.py": {
+      "bytes": 8927,
+      "sha256": "60d9b8eeb96edf11d30ca37b1e3ed95cc31089979b0fc4119c3d080c9db280e6"
+    },
+    "build_dependency_map.py": {
+      "bytes": 16080,
+      "sha256": "e704724c73c95f7638464ea5b8c3a80c6cbeace1d5b47776e77b9d34f92d3f08"
+    }
+  },
+  "manifest_refresh": {
+    "before_generated_at": "2026-09-27T07:55:39.817218+00:00",
+    "after_generated_at": "2026-09-28T16:30:49.496152+00:00",
+    "engines": 893,
+    "changed_engines": 97,
+    "read_reference_count_before": 3631,
+    "read_reference_count_after": 3807
+  },
+  "same_source_predecessor_comparison": {
+    "engines": 53,
+    "non_read_changes": [
+      {
+        "engine": "justhodl-symdir",
+        "fields": [
+          "keys",
+          "n_keys",
+          "reads",
+          "write_evidence"
+        ]
+      }
+    ],
+    "removed_read_references": 0,
+    "review": "Three already-written symbol metadata keys at lambda_function.py lines 568/749/754 bind to the real put_object at line 116. No AWS publication or permission is inferred."
+  },
+  "registry": {
+    "existing_output_access_classes_unchanged": true,
+    "removed_output_references": [],
+    "added_output_references": [
+      [
+        "justhodl-symdir",
+        "data/symdir/fred-untitled.json"
+      ],
+      [
+        "justhodl-symdir",
+        "data/symdir/wb-countries.json"
+      ],
+      [
+        "justhodl-symdir",
+        "data/symdir/wb-indicators.json.gz"
+      ]
+    ],
+    "coverage": {
+      "public_routes": 599,
+      "engines": 893,
+      "routes_with_source_bound_outputs": 583,
+      "primary_valid_contract": 269,
+      "primary_partial": 269,
+      "support_only": 14,
+      "no_association": 5,
+      "not_applicable": 42,
+      "routes_with_api_response_contract": 23,
+      "routes_without_source_bound_outputs": 16,
+      "routes_with_primary_output_access": 536,
+      "routes_with_partial_primary_output_access": 267,
+      "all_routes_receive_inspector": false,
+      "embedded_inspection_routes": 598,
+      "standalone_inspection_routes": 1,
+      "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
+    },
+    "engines": 893,
+    "pages": 599,
+    "public_reference_rows": 3144,
+    "withheld_reference_rows": 663,
+    "bond_dependency_group": {
+      "contract": "source-dependencies.v1",
+      "engine": "justhodl-bond-desk",
+      "inventory_available": true,
+      "public_references": [
+        {
+          "key": "data/auction-crisis.json",
+          "possible_producers": [
+            "justhodl-auction-crisis-detector"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/bond-desk.json",
+          "possible_producers": [
+            "justhodl-bond-desk"
+          ],
+          "own_output_reference": true,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/bond-vol.json",
+          "possible_producers": [
+            "justhodl-bond-vol"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/credit-stress-history.json",
+          "possible_producers": [
+            "justhodl-credit-stress"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/credit-stress.json",
+          "possible_producers": [
+            "justhodl-credit-stress"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/dealer-survey.json",
+          "possible_producers": [
+            "justhodl-nyfed-dealer-survey"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/etf-true-flows.json",
+          "possible_producers": [
+            "justhodl-etf-true-flows"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/euro-fragmentation.json",
+          "possible_producers": [
+            "justhodl-euro-fragmentation"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/eurodollar-plumbing.json",
+          "possible_producers": [
+            "justhodl-eurodollar-plumbing"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/history/bond-crisis-analogs.json",
+          "possible_producers": [
+            "justhodl-bond-desk"
+          ],
+          "own_output_reference": true,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/history/bond-desk.json",
+          "possible_producers": [
+            "justhodl-bond-desk"
+          ],
+          "own_output_reference": true,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/hkma.json",
+          "possible_producers": [
+            "justhodl-hkma-monitor"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/ici-flows.json",
+          "possible_producers": [
+            "justhodl-ici-flows"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/settlement-fails.json",
+          "possible_producers": [
+            "justhodl-settlement-fails"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/systemic-stress.json",
+          "possible_producers": [
+            "justhodl-systemic-stress"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/term-premium.json",
+          "possible_producers": [
+            "justhodl-term-premium"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "data/yen-carry.json",
+          "possible_producers": [
+            "justhodl-yen-carry"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        },
+        {
+          "key": "etf-flows/daily.json",
+          "possible_producers": [
+            "justhodl-etf-fund-flows"
+          ],
+          "own_output_reference": false,
+          "producer_status": "source_bound",
+          "runtime_read_verified": false
+        }
+      ],
+      "withheld_or_dynamic_count": 6,
+      "scope": "Potential inputs from checked-in source. Dynamic references, runtime reads and original-provider ancestry remain unverified.",
+      "independent_evidence_count": null,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    }
+  },
+  "dependency_map": {
+    "counts": {
+      "duplicate_writers": 15,
+      "engines": 893,
+      "engines_without_consumer": 33,
+      "engines_without_schedule": 258,
+      "keys": 2035,
+      "orphan_engine_refs": 524,
+      "orphan_page_refs": 106,
+      "pages": 599,
+      "two_cycles": 65,
+      "unused_outputs": 155,
+      "writers": 1418
+    },
+    "input_files": 3493,
+    "input_identity_sha256": "befe34cb3eaf7c046553111efcd33c852baae80c0b385cb7038acb57a5c1b3ea",
+    "artifact": {
+      "bytes": 15589842,
+      "sha256": "be8f97313d94a8f0c66da0f71b92205570ea837bd99292871d70cbda7b1da68b"
+    },
+    "cyclic_components": 18,
+    "source_parse_errors": 0
+  },
+  "tests": {
+    "returned_reader_groups": 11,
+    "existing_scanner_groups": 44,
+    "utf8_mode_disabled": true,
+    "dependency_lineage_groups": 8,
+    "deployment_static": 493,
+    "candidate_shell": 12,
+    "frontend": 1669,
+    "public_page_graphs": 599,
+    "script_syntax_errors": 0,
+    "wired_feeds": 143,
+    "registry_drift_check": true,
+    "whole_graph_deterministic_check": true
+  },
+  "preview": {
+    "engine": "justhodl-bond-desk",
+    "public_references": 18,
+    "withheld_or_dynamic": 6,
+    "keyboard_opened": true,
+    "new_public_inputs": [
+      "data/credit-stress.json",
+      "data/etf-true-flows.json"
+    ],
+    "output_selected": false
+  },
+  "limitations": [
+    "These are potential code paths, not actual runtime consumption, complete provider coverage or independent economic evidence.",
+    "Arbitrary/stateful/conditional factories and uncertain argument expansion remain unresolved.",
+    "The inventory refresh includes already-shipped source changes since the September 27 checked-in snapshot; they are not new native releases.",
+    "More explicit historical families change 28 static page contracts from valid to partial; no old public output is removed.",
+    "No source qualifies for Calls or sizing from these metadata changes. All ten institutional workstreams remain open."
+  ]
+}

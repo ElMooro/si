@@ -32,7 +32,6 @@ class Scan:
     def __init__(self, code, environment=None, initial_symbols=None, module_graph=None, source_path=None):
         self.tree = ast.parse(code)
         self.module_graph=module_graph
-        self.factory_depth=0
         self.source_path=source_path
         self.environment = environment or {}
         self.executor_names=set()
@@ -53,10 +52,7 @@ class Scan:
         self.visited_write_lines=set();self.called_functions=set();self.other_writes=[]
         self.globals = dict(initial_symbols or {})
         self.containers={t.id:n.value for n in self.tree.body if isinstance(n,ast.Assign) and isinstance(n.value,(ast.List,ast.Tuple,ast.Dict)) for t in n.targets if isinstance(t,ast.Name)}
-        for node in self.tree.body:
-            if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
-                self.globals[node.name]=FunctionBinding(node,self.globals)
-            else:self.assign(node,self.globals)
+        for node in self.tree.body: self.assign(node, self.globals)
 
     def resolve(self, node, env):
         if isinstance(node,ast.Constant): return node.value if isinstance(node.value,str) else None
@@ -124,59 +120,10 @@ class Scan:
                 default=self.resolve(node.args[1],env) if len(node.args)>1 else None
                 if name and normalise(default): self.defaults[name]=default
                 return self.environment.get(name, default)
-            # Recognize only an unconditional local-function factory. This is
-            # lexical AST binding, never execution or a guessed return value.
-            if self.factory_depth < 12:
-                self.factory_depth += 1
-                try:
-                    if self.module_graph:
-                        result=self.module_graph.returned_callable(self,node,env)
-                        if result is not None:return result
-                    binding=self.known_function(node.func.id,env) if isinstance(node.func,ast.Name) else None
-                    if binding is not None:
-                        fn=binding.node if isinstance(binding,FunctionBinding) else binding
-                        lexical=binding.environment if isinstance(binding,FunctionBinding) else self.globals
-                        return self.returned_function(fn,node,self,env,lexical)
-                finally:self.factory_depth -= 1
         if isinstance(node,ast.IfExp):
             a,b=self.resolve(node.body,env),self.resolve(node.orelse,env)
             return a if a==b else None
         return None
-
-    def known_function(self,name,env):
-        if name in env:
-            return env[name] if isinstance(env[name],FunctionBinding) else None
-        local=env.get('__jh_local_functions') or {}
-        return local.get(name,self.functions.get(name))
-
-    def returned_function(self,fn,call,caller,env,lexical):
-        """Bind ``def inner(...): ...; return inner`` without running its body.
-
-        Conditional/stateful factories, decorators, async functions and uncertain
-        argument expansion remain unresolved. Defaults belong to definition scope.
-        """
-        if not isinstance(fn,ast.FunctionDef) or fn.decorator_list:return None
-        body=list(fn.body)
-        if body and isinstance(body[0],ast.Expr) and isinstance(body[0].value,ast.Constant) and isinstance(body[0].value.value,str):body=body[1:]
-        if len(body)!=2 or not isinstance(body[0],ast.FunctionDef) or body[0].decorator_list:return None
-        inner,ret=body
-        if any(isinstance(n,(ast.Nonlocal,ast.Global)) for n in ast.walk(inner)):return None
-        if not isinstance(ret,ast.Return) or not isinstance(ret.value,ast.Name) or ret.value.id!=inner.name:return None
-        args=list(fn.args.posonlyargs)+list(fn.args.args);kwonly=list(fn.args.kwonlyargs)
-        if fn.args.vararg or fn.args.kwarg or len(call.args)>len(args) or any(isinstance(a,ast.Starred) for a in call.args):return None
-        bound=dict(lexical);provided=set();allowed={a.arg for a in args+kwonly}
-        required={a.arg for a in args[:len(args)-len(fn.args.defaults)]}
-        required.update(a.arg for a,d in zip(kwonly,fn.args.kw_defaults) if d is None)
-        for a in args+kwonly:bound[a.arg]=None
-        for a,d in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:bound[a.arg]=self.resolve(d,lexical)
-        for a,d in zip(kwonly,fn.args.kw_defaults):
-            if d is not None:bound[a.arg]=self.resolve(d,lexical)
-        for a,v in zip(args,call.args):bound[a.arg]=caller.resolve(v,env);provided.add(a.arg)
-        for kw in call.keywords:
-            if kw.arg is None or kw.arg not in allowed or kw.arg in provided or kw.arg in {a.arg for a in fn.args.posonlyargs}:return None
-            bound[kw.arg]=caller.resolve(kw.value,env);provided.add(kw.arg)
-        if not required<=provided:return None
-        return FunctionBinding(inner,bound)
 
     def assign_target(self,target,value,env):
         if isinstance(target,ast.Name): env[target.id]=self.resolve(value,env)
@@ -195,8 +142,11 @@ class Scan:
 
     def call(self,node,env,stack):
         if self.module_graph and self.module_graph.call(self,node,env,stack):return
+        local_functions=(env.get('__jh_local_functions') or {})
         def known_function(name):
-            return self.known_function(name,env)
+            if name in local_functions:return local_functions[name]
+            if self.module_graph and name in env:return None
+            return self.functions.get(name)
         # Standard executor callbacks bind the callable's real argument positions.
         if isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id in self.executor_names and node.func.attr in ('submit','map') and node.args and isinstance(node.args[0],ast.Name) and known_function(node.args[0].id):
             callback=node.args[0]
@@ -208,19 +158,17 @@ class Scan:
                     for values in zip(*(arg.elts for arg in iterables)):self.call(ast.Call(func=callback,args=list(values),keywords=[]),env,stack)
                 else:self.call(ast.Call(func=callback,args=[],keywords=[]),env,stack)
             return
-        binding=known_function(node.func.id) if isinstance(node.func,ast.Name) else self.resolve(node.func,env)
-        if isinstance(binding,(FunctionBinding,ast.FunctionDef,ast.AsyncFunctionDef)):
-            name=node.func.id if isinstance(node.func,ast.Name) else binding.node.name;self.called_functions.add(name)
+        if isinstance(node.func,ast.Name) and known_function(node.func.id):
+            name=node.func.id;self.called_functions.add(name)
             if name in stack or len(stack)>12:return
-            fn=binding.node if isinstance(binding,FunctionBinding) else binding; args=list(fn.args.posonlyargs)+list(fn.args.args)
+            binding=known_function(name);fn=binding.node if isinstance(binding,FunctionBinding) else binding; args=list(fn.args.posonlyargs)+list(fn.args.args)
             # A nested function captures its lexical caller values. A module
             # function does not inherit arbitrary locals from its caller.
             bound=dict(binding.environment if isinstance(binding,FunctionBinding) else self.globals)
             for a in args+list(fn.args.kwonlyargs):bound[a.arg]=None
-            lexical=binding.environment if isinstance(binding,FunctionBinding) else self.globals
-            for a,d in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:bound[a.arg]=self.resolve(d,lexical)
+            for a,d in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:bound[a.arg]=self.resolve(d,env)
             for a,d in zip(fn.args.kwonlyargs,fn.args.kw_defaults):
-                if d is not None:bound[a.arg]=self.resolve(d,lexical)
+                if d is not None:bound[a.arg]=self.resolve(d,env)
             for a,v in zip(args,node.args):bound[a.arg]=self.resolve(v,env)
             for kw in node.keywords:
                 if kw.arg:bound[kw.arg]=self.resolve(kw.value,env)
@@ -265,10 +213,7 @@ class Scan:
             if self.module_graph and isinstance(n,(ast.Import,ast.ImportFrom)):
                 env.update(self.module_graph.imports(self.source_path,n));continue
             if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)):
-                if stack:
-                    env[n.name]=FunctionBinding(n,env)
-                    env['__jh_local_functions']={**(env.get('__jh_local_functions') or {}),n.name:env[n.name]}
-                elif not self.module_graph:env[n.name]=FunctionBinding(n,env)
+                if stack:env['__jh_local_functions']={**(env.get('__jh_local_functions') or {}),n.name:FunctionBinding(n,env)}
                 continue
             if isinstance(n,ast.ClassDef):continue
             self.assign(n,env)
@@ -333,13 +278,9 @@ def imported_symbols(source,roots,environment=None,stack=(),cache=None):
     source=source.resolve()
     if cache is None:cache={}
     if source in stack:return {}
-    try:tree=ast.parse(source.read_text(encoding='utf-8'))
+    try:tree=ast.parse(source.read_text(errors='replace'))
     except (OSError,SyntaxError):return {}
     symbols={}
-    def constants_only(value):
-        if isinstance(value,FunctionBinding):return None
-        if isinstance(value,dict):return {k:constants_only(v) for k,v in value.items() if k!='__jh_local_functions'}
-        return value
     def module_values(module,level=0):
         parts=(module or '').split('.') if module else []
         bases=[source.parent] if level else [source.parent,*roots]
@@ -352,7 +293,7 @@ def imported_symbols(source,roots,environment=None,stack=(),cache=None):
                 if resolved in cache:return cache[resolved]
                 if resolved in stack+(source,):return {}
                 try:
-                    values=constants_only(Scan(path.read_text(encoding='utf-8'),environment,imported_symbols(path,roots,environment,stack+(source,),cache)).globals)
+                    values=Scan(path.read_text(errors='replace'),environment,imported_symbols(path,roots,environment,stack+(source,),cache)).globals
                     cache[resolved]=values
                     return values
                 except SyntaxError:return {}
@@ -383,7 +324,7 @@ def build(root=ROOT):
     for d in sorted((root/'aws/lambdas').iterdir()):
         if not d.is_dir() or d.name.startswith('_') or not (d/'source').is_dir():continue
         cfg={}
-        try:cfg=json.loads((d/'config.json').read_text(encoding='utf-8'))
+        try:cfg=json.loads((d/'config.json').read_text())
         except (OSError,ValueError):pass
         env=cfg.get('environment') or {}; env=env.get('Variables',env) if isinstance(env,dict) else {}
         keys,reads,proofs,unresolved,defaults=set(),set(),{},[],{};output_roles=[];other_writes=[]
@@ -400,7 +341,7 @@ def build(root=ROOT):
             rel=str(src.relative_to(d/'source'))
             try:
                 symbols=imported_symbols(src,[d/'source',root/'aws/shared'],env,cache=constant_cache)
-                s=scan_code(src.read_text(encoding='utf-8'),env,str(handler).rsplit('.',1)[-1] if rel==entrypoint else None,symbols);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
+                s=scan_code(src.read_text(errors='replace'),env,str(handler).rsplit('.',1)[-1] if rel==entrypoint else None,symbols);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
                 for key,lines in s.proofs.items():proofs.setdefault(key,[]).extend({'file':rel,'line':line} for line in sorted(lines))
                 for declaration in s.tree.body:
                     if not isinstance(declaration,ast.Assign) or not any(isinstance(t,ast.Name) and t.id=='OUTPUT_OWNERSHIP' for t in declaration.targets) or not isinstance(declaration.value,ast.Dict):continue
@@ -453,6 +394,6 @@ def build(root=ROOT):
 
 def main():
     doc=build();path=ROOT/'engine-manifest.json';tmp=path.with_suffix('.json.tmp')
-    tmp.write_text(json.dumps(doc,separators=(',',':')),encoding='utf-8',newline='\n');os.replace(tmp,path)
+    tmp.write_text(json.dumps(doc,separators=(',',':')));os.replace(tmp,path)
     print(f"[manifest] {len(doc['engines'])} engines; {sum(bool(e['keys']) for e in doc['engines'])} with concrete outputs; unresolved explicitly reported")
 if __name__=='__main__':main()

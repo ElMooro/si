@@ -95,7 +95,7 @@ class Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             files = ['engine-manifest.json','scripts/build_dependency_map.py','scripts/page_sources.py',
-                     'scripts/gen_engine_manifest.py','scripts/js_source_refs.cjs',
+                     'scripts/gen_engine_manifest.py','scripts/source_write_graph.py','scripts/js_source_refs.cjs',
                      'aws/shared/helper.py','aws/lambdas/a/source/lambda_function.py',
                      'aws/lambdas/a/config.json','desk.html','asset.js']
             for name in files:
@@ -104,6 +104,9 @@ class Tests(unittest.TestCase):
             first = graph.source_identity(root,pages)
             self.assertEqual(first,graph.source_identity(root,pages))
             self.assertEqual([v['path'] for v in first['files']],sorted(files))
+            (root/'scripts/source_write_graph.py').write_text('new callable semantics',encoding='utf-8')
+            self.assertNotEqual(first['sha256'],graph.source_identity(root,pages)['sha256'])
+            (root/'scripts/source_write_graph.py').write_text('original',encoding='utf-8')
             (root/'aws/shared/helper.py').write_text('revised',encoding='utf-8')
             self.assertNotEqual(first['sha256'],graph.source_identity(root,pages)['sha256'])
 

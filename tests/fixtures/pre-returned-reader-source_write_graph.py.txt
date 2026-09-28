@@ -2,18 +2,15 @@
 
 This never imports application modules or evaluates their Python. Argument
 values use the existing string/key lattice. Uncalled sibling writers, dynamic
-dispatch, decorators and arbitrary return values are not guessed into ownership.
-Simple unconditional local-function factories preserve lexical arguments.
+dispatch, decorators and return values are not guessed into ownership.
 """
 import ast
 from pathlib import Path
 
 
 class Callable:
-    def __init__(self, scanner, node, environment=None):
+    def __init__(self, scanner, node):
         self.scanner, self.node = scanner, node
-        self.environment = environment
-        self.capture_names=sorted({n.id for n in ast.walk(node) if isinstance(n,ast.Name) and isinstance(n.ctx,ast.Load)}) if environment is not None else ()
 
 
 class SharedWriteGraph:
@@ -28,7 +25,6 @@ class SharedWriteGraph:
         self.constant_cache = {}
         self.proofs, self.reads, self.unresolved = {}, set(), []
         self.trail, self.seen = [], set()
-        self.fingerprint_objects = {}
 
     def relative(self, path):
         return Path(path).resolve().relative_to(self.root).as_posix()
@@ -82,14 +78,6 @@ class SharedWriteGraph:
         self.unresolved.append({'file':self.relative(scanner.source_path),'line':getattr(node,'lineno',0),
                                 'operation':'delegated_call','reason':reason})
 
-    def returned_callable(self,caller,node,env):
-        value=caller.resolve(node.func,env)
-        if not isinstance(value,Callable):return None
-        target=value.scanner
-        lexical=value.environment if value.environment is not None else target.globals
-        binding=target.returned_function(value.node,node,caller,env,lexical)
-        return Callable(target,binding.node,binding.environment) if binding is not None else None
-
     def call(self, caller, node, env, stack):
         if (isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name)
                 and node.func.value.id in caller.executor_names and node.func.attr in ('submit','map')
@@ -113,13 +101,12 @@ class SharedWriteGraph:
         if identity in stack or len(stack)>=self.MAX_DEPTH or self.calls>=self.MAX_CALLS:
             self.issue(caller,node,'shared call graph recursion or analysis bound: '+identity);return True
         args=list(fn.args.posonlyargs)+list(fn.args.args)
-        lexical=value.environment if value.environment is not None else target.globals
-        bound=dict(lexical)
+        bound=dict(target.globals)
         for arg in args+list(fn.args.kwonlyargs):bound[arg.arg]=None
         for arg,default in zip(args[-len(fn.args.defaults):],fn.args.defaults) if fn.args.defaults else []:
-            bound[arg.arg]=target.resolve(default,lexical)
+            bound[arg.arg]=target.resolve(default,target.globals)
         for arg,default in zip(fn.args.kwonlyargs,fn.args.kw_defaults):
-            if default is not None:bound[arg.arg]=target.resolve(default,lexical)
+            if default is not None:bound[arg.arg]=target.resolve(default,target.globals)
         if any(isinstance(passed,ast.Starred) for passed in node.args):
             for arg in args:bound[arg.arg]=None
         else:
@@ -133,18 +120,10 @@ class SharedWriteGraph:
                     for arg in args+list(fn.args.kwonlyargs):bound[arg.arg]=None
         def fingerprint(value,depth=0):
             if isinstance(value,str) or value is None:return value
-            if isinstance(value,Callable) and depth<3:
-                captured=tuple((name,fingerprint(value.environment.get(name),depth+1)) for name in value.capture_names) if value.environment is not None else ()
-                return (self.relative(value.scanner.source_path),value.node.lineno,captured)
+            if isinstance(value,Callable):return (self.relative(value.scanner.source_path),value.node.lineno)
             if isinstance(value,dict) and depth<3:return tuple((key,fingerprint(val,depth+1)) for key,val in sorted(value.items()))
-            if isinstance(value,(Callable,dict)):
-                # Hitting the fingerprint depth bound cannot make distinct
-                # configurations/callbacks equal. Keep a strong reference so a
-                # recycled object id cannot hide a later invocation either.
-                token=self.fingerprint_objects.setdefault(id(value),(value,len(self.fingerprint_objects)))[1]
-                return ('bounded_object',token)
             return None
-        signature=(identity,fn.lineno,tuple((arg.arg,fingerprint(bound.get(arg.arg))) for arg in args+list(fn.args.kwonlyargs)),fingerprint(value))
+        signature=(identity,fn.lineno,tuple((arg.arg,fingerprint(bound.get(arg.arg))) for arg in args+list(fn.args.kwonlyargs)))
         if signature in self.seen:return True
         self.seen.add(signature)
         self.calls += 1
@@ -156,14 +135,12 @@ class SharedWriteGraph:
         target.writes,target.reads,target.proofs,target.unresolved,target.other_writes=set(),set(),{},[],[]
         try:
             target.block(fn.body,bound,stack+(identity,))
-            # Engine-local delegated reads are input evidence too. Restrict only
-            # shared *write ownership* to the shared-module proof contract.
-            self.reads.update(target.reads)
             if target.source_path.is_relative_to(self.root/'aws/shared'):
                 for key,lines in target.proofs.items():
                     for line in sorted(lines):self.proofs.setdefault(key,[]).append({
                         'file':target.source_path.name,'repository_path':self.relative(target.source_path),
                         'line':line,'via':list(self.trail),'basis':'reachable_shared_write_argument'})
+                self.reads.update(target.reads)
                 self.unresolved.extend(dict(row,file=self.relative(target.source_path)) for row in target.unresolved)
         finally:
             target.writes,target.reads,target.proofs,target.unresolved,target.other_writes=previous

@@ -120,7 +120,6 @@ def source_identity(repo, pages):
     """Bind the full checked-in input population; no live artifact acquisition."""
     paths = {repo / 'engine-manifest.json', repo / 'scripts/build_dependency_map.py',
              repo / 'scripts/page_sources.py', repo / 'scripts/gen_engine_manifest.py',
-             repo / 'scripts/source_write_graph.py',
              repo / 'scripts/js_source_refs.cjs'}
     for name in ('fanout-manifest.json',):
         path = repo / 'config' / name

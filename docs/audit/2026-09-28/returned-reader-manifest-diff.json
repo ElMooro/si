@@ -1,0 +1,1233 @@
+{
+  "before_generated_at": "2026-09-27T07:55:39.817218+00:00",
+  "after_generated_at": "2026-09-28T16:30:49.496152+00:00",
+  "engines": 893,
+  "changed_engines": 97,
+  "read_reference_count_before": 3631,
+  "read_reference_count_after": 3807,
+  "changes": [
+    {
+      "engine": "justhodl-aaii-sentiment",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/aaii-research/inputs/*.json",
+        "data/aaii-research/outputs/*.json",
+        "data/aaii-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-activist-filings-scanner",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/activist-filings.json",
+        "data/activist-filings/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/activist-filings/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-activity-nowcast",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/activity-research/inputs/*.json",
+        "data/activity-research/outputs/*.json",
+        "data/activity-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-ai",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/engine-wiring.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-ai-infra-stack",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-air-cargo",
+      "changed_fields": [
+        "configured_handler",
+        "description",
+        "entrypoint_source",
+        "entrypoint_status",
+        "entrypoint_verified",
+        "ownership_status",
+        "reads",
+        "runtime",
+        "shared_writer_analysis",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "air/hkia-cargo-levels.json",
+        "data/air-cargo.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-apex-fusion",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-asia-leads",
+      "changed_fields": [
+        "configured_handler",
+        "description",
+        "entrypoint_source",
+        "entrypoint_status",
+        "entrypoint_verified",
+        "ownership_status",
+        "runtime",
+        "shared_writer_analysis",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-backlog",
+      "changed_fields": [
+        "ownership_status",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-best-ideas",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-bond-desk",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/bond-desk-research/credit/inputs/*.json",
+        "data/bond-desk-research/flows/inputs/*.json",
+        "data/credit-stress.json",
+        "data/etf-true-flows.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-bond-vol",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-buyback-engine",
+      "changed_fields": [
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/buyback-engine.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-capex-pulse",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-capitulation",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/extremes-research/inputs/*.json",
+        "data/extremes-research/outputs/*.json",
+        "data/extremes-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-catalyst-classifier",
+      "changed_fields": [
+        "description",
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/catalysts.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-catalyst-clusters",
+      "changed_fields": [
+        "description",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-cb-injection",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/cb-research/inputs/*.json",
+        "data/cb-research/legacy-unvalidated/*",
+        "data/cb-research/outputs/*.json",
+        "data/cb-research/runs/*.json",
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-china-liquidity",
+      "changed_fields": [
+        "description",
+        "ownership_status",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-compound-aggregator",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-construction-housing",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-convergence-radar",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-credit-stress",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/credit-research/inputs/*.json",
+        "data/credit-research/outputs/*.json",
+        "data/credit-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-crisis-composite",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/*.json",
+        "data/ciss-stress.json",
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-crisis-plumbing",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/eurodollar-plumbing.json",
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-cycle-clock",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/cycle-research/inputs/*.json",
+        "data/cycle-research/outputs/*.json",
+        "data/cycle-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-earnings-pead",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/earnings-pead.json",
+        "data/earnings-pead/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/earnings-pead/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-earnings-quality",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-eps-revision-velocity",
+      "changed_fields": [
+        "key_patterns",
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/eps-revision-velocity.json",
+        "data/eps-revision-velocity/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/eps-revision-velocity/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-estimate-revisions",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/estimate-revisions.json",
+        "data/estimate-revisions/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/estimate-revisions/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-eurodollar-plumbing",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json",
+        "data/usd-funding.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-eurodollar-stress",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/eurodollar-research/inputs/*.json",
+        "data/eurodollar-research/outputs/*.json",
+        "data/eurodollar-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-fedwatch-rate-probability",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/fedwatch-research/inputs/*.json",
+        "data/fedwatch-research/outputs/*.json",
+        "data/fedwatch-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-fifx-vol-migration",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/bond-vol.json",
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-flow-confluence",
+      "changed_fields": [
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/options-flow-scanner.json"
+      ],
+      "removed_reads": [
+        "data/flow-data.json",
+        "data/options-flow.json"
+      ]
+    },
+    {
+      "engine": "justhodl-fomc-reaction",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/fomc-research/inputs/*.json",
+        "data/fomc-research/outputs/*.json",
+        "data/fomc-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-global-liquidity",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/global-liquidity-research/inputs/*.json",
+        "data/global-liquidity-research/legacy-unvalidated/*",
+        "data/global-liquidity-research/outputs/*.json",
+        "data/global-liquidity-research/runs/*.json",
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-global-stress",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/global-sovereign.json",
+        "data/jsi.json",
+        "data/liquidity-flow.json",
+        "data/risk-regime.json",
+        "data/settlement-fails.json",
+        "data/sovereign-stress.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-hiring-velocity",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/hiring-velocity.json",
+        "data/hiring-velocity/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/hiring-velocity/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-hot-money",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/hot-money-research/inputs/*.json",
+        "data/hot-money-research/ledger-versions/*.json",
+        "data/hot-money-research/legacy-unvalidated/*",
+        "data/hot-money-research/outputs/*.json",
+        "data/hot-money-research/runs/*.json",
+        "data/settlement-fails.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-implied-prob",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/implied-research/inputs/*.json",
+        "data/implied-research/outputs/*.json",
+        "data/implied-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-insider-aggregate",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/insider-research/inputs/*.json",
+        "data/insider-research/outputs/*.json",
+        "data/insider-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-inventory-drawdown",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-katlin",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-liquidity-agent",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-liquidity-flow",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json",
+        "data/settlement-fails.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-liquidity-inflection",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/*.json",
+        "data/report-measurements.json",
+        "data/vintage/_index.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-liquidity-pulse",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-liquidity-reversal",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json",
+        "data/settlement-fails.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-macro-leads",
+      "changed_fields": [
+        "description",
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/macro-leads.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-macro-nowcast",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/nowcast-research/inputs/*.json",
+        "data/nowcast-research/outputs/*.json",
+        "data/nowcast-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-market-extremes",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/extremes-research/inputs/*.json",
+        "data/extremes-research/outputs/*.json",
+        "data/extremes-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-market-internals",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/breadth-research/inputs/*.json",
+        "data/breadth-research/outputs/*.json",
+        "data/breadth-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-master-ranker",
+      "changed_fields": [
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-microcap-float-squeeze",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/microcap-float-squeeze.json",
+        "data/microcap-float-squeeze/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/microcap-float-squeeze/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-momentum-breakout",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/momentum-breakout.json",
+        "data/momentum-breakout/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/momentum-breakout/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-momentum-leaders",
+      "changed_fields": [
+        "description",
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/momentum-leaders.json",
+        "data/momentum-leaders/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/momentum-leaders/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-money-flow-state",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/money-volume-research/inputs/*.json",
+        "data/money-volume-research/outputs/*.json",
+        "data/money-volume-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-nyfed-pd",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/history/nyfed-pd-corp.json",
+        "data/history/nyfed-pd.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-official-pulse",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-opportunity-screener",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-options-confluence",
+      "changed_fields": [
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": [
+        "data/flow-data.json",
+        "data/options-flow.json"
+      ]
+    },
+    {
+      "engine": "justhodl-options-flow-scanner",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/options-flow-scanner.json",
+        "data/options-flow-scanner/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/options-flow-scanner/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-page-ai",
+      "changed_fields": [
+        "keys",
+        "n_keys",
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/_cache/page-ai-research-cursor.json",
+        "data/page-ai/*.json"
+      ],
+      "removed_reads": [],
+      "keys": {
+        "added": [
+          "data/_cache/page-ai-research-cursor.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-page-ai-commentary",
+      "changed_fields": [
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/ai-commentary/history/*/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-portwatch",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-prepump-summary",
+      "changed_fields": [
+        "description",
+        "ownership_status",
+        "unresolved_writes"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-pump-mechanics",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-pump-positioning",
+      "changed_fields": [
+        "description",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-pump-radar-brief",
+      "changed_fields": [
+        "description"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-retail-sentiment",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/retail-research/inputs/*.json",
+        "data/retail-research/outputs/*.json",
+        "data/retail-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-revenue-acceleration",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/revenue-acceleration.json",
+        "data/revenue-acceleration/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/revenue-acceleration/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-risk-regime",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/breadth-divergence.json",
+        "data/systemic-stress.json",
+        "data/tail-risk.json",
+        "data/vix-backwardation-trigger.json",
+        "data/vix9d-vix-inversion.json",
+        "data/vol-target-unwind.json",
+        "data/vvix-vov-regime.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-scarcity-radar",
+      "changed_fields": [
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/scarcity-radar.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sec-10kq",
+      "changed_fields": [
+        "ownership_status",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sec-8k",
+      "changed_fields": [
+        "ownership_status",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sec-filings-intel",
+      "changed_fields": [
+        "description",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/sec-filings-intel.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sector-capital-fusion",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/sector-capital-fusion.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sector-flow-state",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/sector-flow-state.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sector-rotation",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/sector-research/inputs/*.json",
+        "data/sector-research/outputs/*.json",
+        "data/sector-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-sector-tilt",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/sector-tilt-research/inputs/*.json",
+        "data/sector-tilt-research/outputs/*.json",
+        "data/sector-tilt-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-symdir",
+      "changed_fields": [
+        "keys",
+        "n_keys",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/finviz-universe.json",
+        "data/index/ecb/flows.json.gz",
+        "data/index/eurostat/flows.json.gz",
+        "data/symbol-aliases.json",
+        "data/symbol-dictionary.json",
+        "data/symbol-map.json",
+        "data/symbology/master.json",
+        "data/tv-symbol-resolver.json",
+        "data/vix-curve-history.json",
+        "data/warm/bis/catalog.json.gz",
+        "data/warm/census-us/catalog.json.gz",
+        "data/warm/ecb/catalog.json.gz",
+        "data/warm/eurostat/catalog.json.gz",
+        "data/warm/imf-full/catalog.json",
+        "data/warm/imf-full/catalog.json.gz",
+        "data/warm/imf-full/manifest.json",
+        "data/warm/imf/catalog.json.gz",
+        "data/warm/oecd/catalog.json.gz",
+        "data/warm/oecd/flow-triplets.json.gz",
+        "data/warm/statcan/cube-catalog.json.gz",
+        "data/warm/worldbank-full/catalog.json.gz",
+        "data/warm/worldbank-full/indicators.json.gz",
+        "data/warm/worldbank/catalog.json.gz"
+      ],
+      "removed_reads": [],
+      "keys": {
+        "added": [
+          "data/symdir/fred-untitled.json",
+          "data/symdir/wb-countries.json",
+          "data/symdir/wb-indicators.json.gz"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-tail-risk",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/tail-research/inputs/*.json",
+        "data/tail-research/outputs/*.json",
+        "data/tail-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-term-premium",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-theme-cascade",
+      "changed_fields": [
+        "description",
+        "keys",
+        "n_keys",
+        "ownership_status",
+        "reads",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": [
+        "data/_alerts/theme-cascade-alerted.json"
+      ],
+      "keys": {
+        "added": [],
+        "removed": [
+          "data/_alerts/theme-cascade-alerted.json"
+        ]
+      }
+    },
+    {
+      "engine": "justhodl-theme-cascade-backtest",
+      "changed_fields": [
+        "description"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-theme-classifier",
+      "changed_fields": [
+        "description",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-theme-second-wave",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-tic-flows",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/foreign-flows.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-trade-nowcast",
+      "changed_fields": [
+        "configured_handler",
+        "description",
+        "entrypoint_source",
+        "entrypoint_status",
+        "entrypoint_verified",
+        "ownership_status",
+        "reads",
+        "runtime",
+        "shared_writer_analysis",
+        "unresolved_writes",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/trade-nowcast.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-us10y-sentinel",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/indicator-bus.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-valuations-agent",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/valuation-research/inputs/*.json",
+        "data/valuation-research/outputs/*.json",
+        "data/valuation-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-velocity-acceleration",
+      "changed_fields": [
+        "description",
+        "write_evidence"
+      ],
+      "added_reads": [],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-vol-surface",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/volatility-research/inputs/*.json",
+        "data/volatility-research/outputs/*.json",
+        "data/volatility-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-volatility-squeeze-hunter",
+      "changed_fields": [
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ],
+      "added_reads": [
+        "data/volatility-squeeze.json",
+        "data/volatility-squeeze/history/*.json"
+      ],
+      "removed_reads": [],
+      "key_patterns": {
+        "added": [
+          "data/volatility-squeeze/history/*.json"
+        ],
+        "removed": []
+      }
+    },
+    {
+      "engine": "justhodl-vrp",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/vrp-research/inputs/*.json",
+        "data/vrp-research/outputs/*.json",
+        "data/vrp-research/runs/*.json"
+      ],
+      "removed_reads": []
+    },
+    {
+      "engine": "justhodl-yield-curve",
+      "changed_fields": [
+        "reads"
+      ],
+      "added_reads": [
+        "data/report-measurements.json"
+      ],
+      "removed_reads": []
+    }
+  ]
+}

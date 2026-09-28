@@ -1,8 +1,8 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-09-28T15:45:18 by scripts/build_dependency_map.py. REFERENCED BY CODE only (static). Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-09-28T16:34:53 by scripts/build_dependency_map.py. REFERENCED BY CODE only (static). Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `40aa064baba842cd07c4fdb72cbf55a33872e0ed8bb2af62dbcdfa863877d5ff`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `befe34cb3eaf7c046553111efcd33c852baae80c0b385cb7038acb57a5c1b3ea`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from code references. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
@@ -10,15 +10,15 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 |---|---|
 | duplicate writers | 15 |
 | engines | 893 |
-| engines without consumer | 34 |
+| engines without consumer | 33 |
 | engines without schedule | 258 |
-| keys | 1951 |
-| orphan engine refs | 443 |
+| keys | 2035 |
+| orphan engine refs | 524 |
 | orphan page refs | 106 |
 | pages | 599 |
-| two cycles | 64 |
-| unused outputs | 159 |
-| writers | 1415 |
+| two cycles | 65 |
+| unused outputs | 155 |
+| writers | 1418 |
 
 ## Pages referencing keys no engine writes (orphan page references -- missing or obsolete outputs, or written outside aws/lambdas)
 
@@ -161,10 +161,10 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `config/schedule-manifest.json` <- justhodl-audit-loop, justhodl-contract-gate, justhodl-feed-catalog, justhodl-schedule-reconciler, justhodl-scheduler
 - `cot/universe-ext.json` <- justhodl-cot-extremes-scanner
 - `data/*` <- justhodl-crypto-confluence, justhodl-earnings-confluence
-- `data/*.json` <- justhodl-audit-loop, justhodl-canary-grid, justhodl-page-ai, justhodl-upside-thesis
+- `data/*.json` <- justhodl-audit-loop, justhodl-canary-grid, justhodl-crisis-composite, justhodl-liquidity-inflection, justhodl-page-ai, justhodl-upside-thesis
 - `data/13f-aggregate.json` <- justhodl-13f-price-divergence
 - `data/13f-state/cik-overrides.json` <- justhodl-13f-positions, justhodl-sec-13f
-- `data/_cache/page-ai-research-cursor.json` <- justhodl-page-ai
+- `data/_alerts/theme-cascade-alerted.json` <- justhodl-pnl-tracker
 - `data/_state/census-econ-oversize-s*.json` <- justhodl-census-us
 - `data/_state/census-econ-s*.json` <- justhodl-census-us
 - `data/_state/census-econ-scope.json` <- justhodl-census-us
@@ -180,8 +180,14 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/_state/t1-*.json` <- justhodl-series-extractor
 - `data/a2a/inbox/*.json` <- justhodl-a2a-bus
 - `data/a2a/threads/*.json` <- justhodl-a2a-bus, justhodl-backend-agent
+- `data/aaii-research/inputs/*.json` <- justhodl-aaii-sentiment
+- `data/aaii-research/outputs/*.json` <- justhodl-aaii-sentiment
+- `data/aaii-research/runs/*.json` <- justhodl-aaii-sentiment
 - `data/aaii.json` <- justhodl-global-flow-desk
 - `data/activist-filings/history/*.json` <- justhodl-activist-filings-scanner
+- `data/activity-research/inputs/*.json` <- justhodl-activity-nowcast
+- `data/activity-research/outputs/*.json` <- justhodl-activity-nowcast
+- `data/activity-research/runs/*.json` <- justhodl-activity-nowcast
 - `data/ai-commentary/*.json` <- justhodl-page-ai-commentary
 - `data/ai-commentary/history/*/*.json` <- justhodl-page-ai-commentary
 - `data/ai/verdict.json` <- justhodl-ai
@@ -198,12 +204,17 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/audit/lambda-graph.json` <- justhodl-provenance-rollup, justhodl-provider-catalog
 - `data/backlog-miner.json` <- justhodl-invest
 - `data/beneish-m-score.json` <- justhodl-quality-on-sale, justhodl-screen-builder
+- `data/bond-desk-research/credit/inputs/*.json` <- justhodl-bond-desk
+- `data/bond-desk-research/flows/inputs/*.json` <- justhodl-bond-desk
 - `data/bond-desk-research/publications/attempts/*.json` <- justhodl-bond-desk
 - `data/bond-desk-research/publications/histories/*.json` <- justhodl-bond-desk
 - `data/bond-desk-research/publications/outputs/*.json` <- justhodl-bond-desk
 - `data/bond-desk-research/publications/predecessors/*.json` <- justhodl-bond-desk
 - `data/bond-regime.json` <- justhodl-correlation-break-trade-router
 - `data/bond-vol-history.json` <- justhodl-bond-vol
+- `data/breadth-research/inputs/*.json` <- justhodl-market-internals
+- `data/breadth-research/outputs/*.json` <- justhodl-market-internals
+- `data/breadth-research/runs/*.json` <- justhodl-market-internals
 - `data/calls-research-proofs/*.json` <- justhodl-calls-research-audit
 - `data/calls-research-runs/*.json` <- justhodl-ai-brief, justhodl-calls-research-audit
 - `data/capital-flow-radar-state.json` <- justhodl-capital-flow-radar, justhodl-etf-fund-flows
@@ -214,16 +225,26 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/cb-injection/measurements/*.json` <- justhodl-cb-injection
 - `data/cb-injection/snapshots/*.json` <- justhodl-cb-injection
 - `data/cb-research/ecb-cache/*.json` <- justhodl-cb-injection
+- `data/cb-research/inputs/*.json` <- justhodl-cb-injection
+- `data/cb-research/legacy-unvalidated/*` <- justhodl-cb-injection
+- `data/cb-research/outputs/*.json` <- justhodl-cb-injection
+- `data/cb-research/runs/*.json` <- justhodl-cb-injection
 - `data/ciss-research/cache/*.json` <- justhodl-ciss-stress
 - `data/ciss-research/commentary/inputs/*.json` <- justhodl-ciss-ai
 - `data/ciss-research/commentary/runs/*.json` <- justhodl-ciss-ai
 - `data/ciss-research/legacy-unvalidated/*.json` <- justhodl-ciss-ai, justhodl-ciss-stress
 - `data/ciss-research/runs/*.json` <- justhodl-ciss-stress
 - `data/conviction/snapshots/*.json` <- justhodl-alpha-compass
+- `data/credit-research/inputs/*.json` <- justhodl-credit-stress
+- `data/credit-research/outputs/*.json` <- justhodl-credit-stress
+- `data/credit-research/runs/*.json` <- justhodl-credit-stress
 - `data/crisis-research/inputs/*.json` <- justhodl-crisis-composite
 - `data/crisis-research/outputs/*.json` <- justhodl-crisis-composite
 - `data/crisis-research/runs/*.json` <- justhodl-crisis-composite
 - `data/crypto-intel.json` <- justhodl-allocator, justhodl-history-snapshotter
+- `data/cycle-research/inputs/*.json` <- justhodl-cycle-clock
+- `data/cycle-research/outputs/*.json` <- justhodl-cycle-clock
+- `data/cycle-research/runs/*.json` <- justhodl-cycle-clock
 - `data/daily-research/inputs/*.json` <- justhodl-daily-report-v3
 - `data/daily-research/legacy-unvalidated/*.json` <- justhodl-daily-report-v3
 - `data/daily-research/runs/*.json` <- justhodl-daily-report-v3
@@ -262,6 +283,7 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/edge-data.json` <- justhodl-ab-test, justhodl-history-snapshotter
 - `data/engine-manifest.json` <- justhodl-ask-desk, justhodl-audit-loop, justhodl-feed-catalog, justhodl-fleet-freshness-monitor, justhodl-strategist
 - `data/engine-registry.json` <- justhodl-brain-compiler
+- `data/engine-wiring.json` <- justhodl-ai
 - `data/eps-revision-velocity/history/*.json` <- justhodl-eps-revision-velocity
 - `data/estimate-revisions/*.json` <- justhodl-opportunity-engine
 - `data/estimate-revisions/history/*.json` <- justhodl-estimate-revisions
@@ -275,19 +297,31 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/etf-research/inputs/*.json` <- justhodl-etf-true-flows
 - `data/etf-research/outputs/*.json` <- justhodl-etf-true-flows
 - `data/etf-research/runs/*.json` <- justhodl-etf-true-flows
+- `data/eurodollar-research/inputs/*.json` <- justhodl-eurodollar-stress
+- `data/eurodollar-research/outputs/*.json` <- justhodl-eurodollar-stress
+- `data/eurodollar-research/runs/*.json` <- justhodl-eurodollar-stress
+- `data/extremes-research/inputs/*.json` <- justhodl-capitulation, justhodl-market-extremes
+- `data/extremes-research/outputs/*.json` <- justhodl-capitulation, justhodl-market-extremes
+- `data/extremes-research/runs/*.json` <- justhodl-capitulation, justhodl-market-extremes
 - `data/factor-ranks.json` <- justhodl-stock-xray
 - `data/fails-research/inputs/*.json` <- justhodl-settlement-fails
 - `data/fails-research/outputs/*.json` <- justhodl-settlement-fails
 - `data/fails-research/runs/*.json` <- justhodl-settlement-fails
 - `data/family-defs.json` <- justhodl-families-feed
+- `data/fedwatch-research/inputs/*.json` <- justhodl-fedwatch-rate-probability
+- `data/fedwatch-research/outputs/*.json` <- justhodl-fedwatch-rate-probability
+- `data/fedwatch-research/runs/*.json` <- justhodl-fedwatch-rate-probability
 - `data/fleet-inventory.json` <- justhodl-indicator-bus
-- `data/flow-data.json` <- justhodl-flow-confluence, justhodl-history-snapshotter, justhodl-options-confluence
+- `data/flow-data.json` <- justhodl-history-snapshotter
 - `data/flow-desk-research/attempts/*.json` <- justhodl-global-flow-desk
 - `data/flow-desk-research/contexts/*.json` <- justhodl-global-flow-desk
 - `data/flow-desk-research/inputs/*.json` <- justhodl-global-flow-desk
 - `data/flow-desk-research/outputs/*.json` <- justhodl-global-flow-desk
 - `data/flow-desk-research/runs/*.json` <- justhodl-global-flow-desk
 - `data/fmp-ratios.json` <- justhodl-alpha-research, justhodl-earnings-tracker, justhodl-flow-lookthrough, justhodl-master-ranker, justhodl-opportunities-research
+- `data/fomc-research/inputs/*.json` <- justhodl-fomc-reaction
+- `data/fomc-research/outputs/*.json` <- justhodl-fomc-reaction
+- `data/fomc-research/runs/*.json` <- justhodl-fomc-reaction
 - `data/foreign-research/attempts/*.json` <- justhodl-foreign-flows
 - `data/foreign-research/inputs/*.json` <- justhodl-foreign-flows
 - `data/foreign-research/outputs/*.json` <- justhodl-foreign-flows
@@ -300,6 +334,10 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/funding-research/runs/*.json` <- justhodl-eurodollar-plumbing
 - `data/gdelt-financial-sentiment.json` <- justhodl-prediction-snapshotter
 - `data/gdelt-sentiment.json` <- justhodl-ai-chat
+- `data/global-liquidity-research/inputs/*.json` <- justhodl-global-liquidity
+- `data/global-liquidity-research/legacy-unvalidated/*` <- justhodl-global-liquidity
+- `data/global-liquidity-research/outputs/*.json` <- justhodl-global-liquidity
+- `data/global-liquidity-research/runs/*.json` <- justhodl-global-liquidity
 - `data/global-stress-research/inputs/*.json` <- justhodl-global-stress
 - `data/global-stress-research/outputs/*.json` <- justhodl-global-stress
 - `data/global-stress-research/runs/*.json` <- justhodl-global-stress
@@ -315,12 +353,25 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/holdings-research/outputs/*.json` <- justhodl-13f-positions
 - `data/holdings-research/probes/*.json` <- justhodl-13f-positions
 - `data/holdings-research/runs/*.json` <- justhodl-13f-positions
+- `data/hot-money-research/inputs/*.json` <- justhodl-hot-money
+- `data/hot-money-research/ledger-versions/*.json` <- justhodl-hot-money
+- `data/hot-money-research/legacy-unvalidated/*` <- justhodl-hot-money
+- `data/hot-money-research/outputs/*.json` <- justhodl-hot-money
+- `data/hot-money-research/runs/*.json` <- justhodl-hot-money
+- `data/implied-research/inputs/*.json` <- justhodl-implied-prob
+- `data/implied-research/outputs/*.json` <- justhodl-implied-prob
+- `data/implied-research/runs/*.json` <- justhodl-implied-prob
 - `data/index/*/flows.json.gz` <- justhodl-series-extractor, justhodl-symdir
 - `data/index/*/t1/*.blocks.json` <- justhodl-symdir
+- `data/index/ecb/flows.json.gz` <- justhodl-symdir
+- `data/index/eurostat/flows.json.gz` <- justhodl-symdir
 - `data/inflection-research/inputs/*.json` <- justhodl-liquidity-inflection
 - `data/inflection-research/legacy-unvalidated/*.json` <- justhodl-liquidity-inflection
 - `data/inflection-research/runs/*.json` <- justhodl-liquidity-inflection
 - `data/insider-buys.json` <- justhodl-ignition
+- `data/insider-research/inputs/*.json` <- justhodl-insider-aggregate
+- `data/insider-research/outputs/*.json` <- justhodl-insider-aggregate
+- `data/insider-research/runs/*.json` <- justhodl-insider-aggregate
 - `data/insider-sell-clusters.json` <- justhodl-accumulation-radar
 - `data/khalid-adaptive/legacy-unvalidated/*.json` <- justhodl-khalid-adaptive
 - `data/khalid-index.json` <- justhodl-engine-trust, justhodl-signal-harvester
@@ -345,8 +396,14 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/misses/*.json` <- justhodl-miss-detector
 - `data/momentum-breakout/history/*.json` <- justhodl-momentum-breakout
 - `data/momentum-leaders/history/*.json` <- justhodl-momentum-leaders
+- `data/money-volume-research/inputs/*.json` <- justhodl-money-flow-state
+- `data/money-volume-research/outputs/*.json` <- justhodl-money-flow-state
+- `data/money-volume-research/runs/*.json` <- justhodl-money-flow-state
 - `data/morning-intel.json` <- justhodl-ab-test, justhodl-history-snapshotter, justhodl-morning-brief-tg, justhodl-whats-changed
 - `data/news-sentiment.json` <- justhodl-narrative-vs-tape
+- `data/nowcast-research/inputs/*.json` <- justhodl-macro-nowcast
+- `data/nowcast-research/outputs/*.json` <- justhodl-macro-nowcast
+- `data/nowcast-research/runs/*.json` <- justhodl-macro-nowcast
 - `data/official-research/attempts/*.json` <- justhodl-official-pulse
 - `data/official-research/inputs/*.json` <- justhodl-official-pulse
 - `data/official-research/outputs/*.json` <- justhodl-official-pulse
@@ -354,7 +411,6 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/ofr-stfm.json` <- justhodl-alert-sentinel, justhodl-credit-composite, justhodl-eurodollar-plumbing, justhodl-liquidity-inflection
 - `data/opex-gamma-pin.json` <- justhodl-forced-selling-bounce
 - `data/options-flow-scanner/history/*.json` <- justhodl-options-flow-scanner
-- `data/options-flow.json` <- justhodl-flow-confluence, justhodl-options-confluence
 - `data/page-ai-manifest.json` <- justhodl-page-ai
 - `data/page-ai/*.json` <- justhodl-page-ai
 - `data/plumbing-research/inputs/*.json` <- justhodl-crisis-plumbing
@@ -392,6 +448,9 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/research-intelligence/inputs/*.json` <- justhodl-intelligence
 - `data/research-intelligence/legacy-unvalidated/*.json` <- justhodl-intelligence
 - `data/research-intelligence/runs/*.json` <- justhodl-intelligence
+- `data/retail-research/inputs/*.json` <- justhodl-retail-sentiment
+- `data/retail-research/outputs/*.json` <- justhodl-retail-sentiment
+- `data/retail-research/runs/*.json` <- justhodl-retail-sentiment
 - `data/revenue-acceleration/history/*.json` <- justhodl-revenue-acceleration
 - `data/reversal-research/inputs/*.json` <- justhodl-liquidity-reversal
 - `data/reversal-research/inventories/*.json` <- justhodl-liquidity-reversal
@@ -404,6 +463,12 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/risk-regime-research/runs/*.json` <- justhodl-risk-regime
 - `data/risk-regime-research/settlement-inputs/*.json` <- justhodl-risk-regime
 - `data/scenario-model/runs/*.json` <- justhodl-position-sizer
+- `data/sector-research/inputs/*.json` <- justhodl-sector-rotation
+- `data/sector-research/outputs/*.json` <- justhodl-sector-rotation
+- `data/sector-research/runs/*.json` <- justhodl-sector-rotation
+- `data/sector-tilt-research/inputs/*.json` <- justhodl-sector-tilt
+- `data/sector-tilt-research/outputs/*.json` <- justhodl-sector-tilt
+- `data/sector-tilt-research/runs/*.json` <- justhodl-sector-tilt
 - `data/sentiment-extreme-composite.json` <- justhodl-forced-selling-bounce
 - `data/signal-suppress.json` <- justhodl-accumulation-radar, justhodl-auction-tail, justhodl-best-setups, justhodl-cannibals, justhodl-congress-alpha, justhodl-deal-scanner, justhodl-distribution-composite, justhodl-equity-ftd, justhodl-inverse-harvester, justhodl-proven-alpha, justhodl-shadow-lab, justhodl-short-book, justhodl-stealth-accumulation, justhodl-stealth-flow
 - `data/smart-money-cluster.json` <- justhodl-13f-price-divergence
@@ -426,7 +491,7 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/stress-research/outputs/*.json` <- justhodl-stress-index
 - `data/stress-research/runs/*.json` <- justhodl-stress-index
 - `data/structural-presignals.json` <- justhodl-global-flow-desk
-- `data/symbol-map.json` <- justhodl-symbol-dictionary, justhodl-thesis-engine, justhodl-wl-engines
+- `data/symbol-map.json` <- justhodl-symbol-dictionary, justhodl-symdir, justhodl-thesis-engine, justhodl-wl-engines
 - `data/symdir/_state/codelists-*-*.json` <- justhodl-symdir
 - `data/symdir/cl/*/*.json` <- justhodl-symdir
 - `data/symdir/cl/ecb/*.json` <- justhodl-symdir
@@ -434,8 +499,9 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/symdir/dsd/*/*.json` <- justhodl-symdir
 - `data/symdir/dsd/ecb/*.json` <- justhodl-symdir
 - `data/symdir/dsd/eurostat/*.json` <- justhodl-symdir
-- `data/symdir/fred-untitled.json` <- justhodl-symdir
-- `data/symdir/wb-countries.json` <- justhodl-symdir
+- `data/tail-research/inputs/*.json` <- justhodl-tail-risk
+- `data/tail-research/outputs/*.json` <- justhodl-tail-risk
+- `data/tail-research/runs/*.json` <- justhodl-tail-risk
 - `data/tenor-research/runs/*.json` <- justhodl-tenor-signal-interpreter
 - `data/tic-research/attempts/*.json` <- justhodl-capital-inflows
 - `data/tic-research/inputs/*.json` <- justhodl-capital-inflows
@@ -446,7 +512,11 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/tic-view/runs/*.json` <- justhodl-tic-flows
 - `data/tradingview.json` <- justhodl-blackswan-watch, justhodl-bottom-signals, justhodl-data-census, justhodl-domain-barometers, justhodl-dxy-predict, justhodl-gov-sources, justhodl-indicator-bus, justhodl-liq-indicators, justhodl-liquidity-reversal, justhodl-macro-attribution, justhodl-macro-predict, justhodl-provider-catalog, justhodl-risk-gate, justhodl-symbol-feed, justhodl-top-signals, justhodl-tradingview, justhodl-tv-workbench
 - `data/treasury-fiscal-replay/runs/*.json` <- justhodl-backfill-orchestrator, justhodl-treasury-fiscal-full
+- `data/tv-symbol-resolver.json` <- justhodl-symdir
 - `data/user-alert-rules.json` <- justhodl-setups-push
+- `data/valuation-research/inputs/*.json` <- justhodl-valuations-agent
+- `data/valuation-research/outputs/*.json` <- justhodl-valuations-agent
+- `data/valuation-research/runs/*.json` <- justhodl-valuations-agent
 - `data/vintage-research/cache/*.json` <- justhodl-vintage-fred
 - `data/vintage-research/collections/*.json` <- justhodl-vintage-fred
 - `data/vintage-research/legacy-unvalidated/*.json` <- justhodl-vintage-fred
@@ -459,7 +529,13 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/vintage/RRPONTSYD.json` <- justhodl-backtest-engine
 - `data/vintage/UNRATE.json` <- justhodl-backtest-engine
 - `data/vintage/WALCL.json` <- justhodl-backtest-engine
+- `data/volatility-research/inputs/*.json` <- justhodl-vol-surface
+- `data/volatility-research/outputs/*.json` <- justhodl-vol-surface
+- `data/volatility-research/runs/*.json` <- justhodl-vol-surface
 - `data/volatility-squeeze/history/*.json` <- justhodl-volatility-squeeze-hunter
+- `data/vrp-research/inputs/*.json` <- justhodl-vrp
+- `data/vrp-research/outputs/*.json` <- justhodl-vrp
+- `data/vrp-research/runs/*.json` <- justhodl-vrp
 - `data/warm/archived-fred/*.json` <- justhodl-symdir, justhodl-tv-notes-ingest
 - `data/warm/backlog/*.json` <- justhodl-backlog-miner
 - `data/warm/blackswan/*.json` <- justhodl-blackswan-watch, justhodl-bottom-signals, justhodl-dxy-predict, justhodl-liq-indicators, justhodl-liquidity-reversal, justhodl-macro-predict, justhodl-top-signals
@@ -477,13 +553,16 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/warm/dol-full/src/*` <- justhodl-dol-full
 - `data/warm/ecb-mmsr/*-on-borrow-turnover.json` <- justhodl-repo
 - `data/warm/edgar-filings/2026/QTR3.json.gz` <- justhodl-cusip-map-rebuild
-- `data/warm/eurostat/catalog.json.gz` <- justhodl-sdmx-walker
+- `data/warm/eurostat/catalog.json.gz` <- justhodl-sdmx-walker, justhodl-symdir
 - `data/warm/fred-scoped/*/*.json` <- justhodl-fred-catalog, justhodl-symdir
 - `data/warm/fred-scoped/EU_Sovereign_Yields/*.json` <- justhodl-repo
 - `data/warm/fred-scoped/FRED_Repo_Complex/*.json` <- justhodl-repo
 - `data/warm/fred-scoped/ICE_BofA_OAS/*.json` <- justhodl-repo
 - `data/warm/icma-sftr/*/*.json` <- justhodl-repo
 - `data/warm/icma-sftr/files/*` <- justhodl-repo
+- `data/warm/imf-full/catalog.json` <- justhodl-symdir
+- `data/warm/imf-full/catalog.json.gz` <- justhodl-symdir
+- `data/warm/imf/catalog.json.gz` <- justhodl-symdir
 - `data/warm/nyfed-markets/pd-splice-map.json` <- justhodl-repo
 - `data/warm/nyfed-markets/pd-spliced/*.json.gz` <- justhodl-repo
 - `data/warm/nyfed-markets/pd/*.json.gz` <- justhodl-nyfed-markets-full
@@ -492,7 +571,7 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/warm/nyfed-research/*/*` <- justhodl-src-mirror
 - `data/warm/nyfed-research/haircuts-series/_index.json` <- justhodl-repo
 - `data/warm/nyfed/*.json.gz` <- justhodl-symdir
-- `data/warm/oecd/catalog.json.gz` <- justhodl-sdmx-walker
+- `data/warm/oecd/catalog.json.gz` <- justhodl-sdmx-walker, justhodl-symdir
 - `data/warm/official-yields/*-tv.json` <- justhodl-bond-warroom
 - `data/warm/official-yields/*.json` <- justhodl-bond-warroom, justhodl-symdir
 - `data/warm/official-yields/ea-all-10y-ecb.json` <- justhodl-bond-warroom
@@ -539,6 +618,8 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `data/warm/tv-bars/universe/*.json.gz` <- justhodl-student-rsi, justhodl-symdir, justhodl-tv-bars
 - `data/warm/us-equities-daily/*.json` <- justhodl-symdir
 - `data/warm/us-equities-daily/*.json.gz` <- justhodl-symdir
+- `data/warm/worldbank-full/indicators.json.gz` <- justhodl-symdir
+- `data/warm/worldbank/catalog.json.gz` <- justhodl-symdir
 - `data/yen-research/inputs/*.json` <- justhodl-yen-carry
 - `data/yen-research/outputs/*.json` <- justhodl-yen-carry
 - `data/yen-research/runs/*.json` <- justhodl-yen-carry
@@ -593,15 +674,15 @@ Potential transitive dependencies from code references. Dynamic paths, external 
 - `learning/improvement_log.json` <- justhodl-morning-intelligence, justhodl-prompt-iterator
 - `learning/prompt_templates.json` <- justhodl-morning-intelligence, justhodl-prompt-iterator
 
-## Engines whose every output is unreferenced by any page or engine (34)
+## Engines whose every output is unreferenced by any page or engine (33)
 
-justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-catalyst-chain, justhodl-causality-scanner, justhodl-cftc-full-datasets, justhodl-coverage-gap-report, justhodl-equity-prewarm, justhodl-eurostat-history, justhodl-eurostat-oecd, justhodl-failure-library, justhodl-fast-filings, justhodl-feedback, justhodl-fiat-peg-monitor, justhodl-finnhub-signals, justhodl-fred-tag-crawler, justhodl-fx-decomposition, justhodl-guardrail-notify, justhodl-kb-matcher, justhodl-ma-target-predictor, justhodl-market-interpreter, justhodl-miss-calibrator, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-powell-pivot, justhodl-public-archive-index, justhodl-schedule-reconciler, justhodl-sector-capital-fusion, justhodl-self-critique, justhodl-shadow-lab, justhodl-tax-plan, justhodl-theme-cascade-backtest, justhodl-upside-thesis, justhodl-wealth-plan, justhodl-weekly-ai-review
+justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-catalyst-chain, justhodl-causality-scanner, justhodl-cftc-full-datasets, justhodl-coverage-gap-report, justhodl-equity-prewarm, justhodl-eurostat-history, justhodl-eurostat-oecd, justhodl-failure-library, justhodl-fast-filings, justhodl-feedback, justhodl-fiat-peg-monitor, justhodl-finnhub-signals, justhodl-fred-tag-crawler, justhodl-fx-decomposition, justhodl-guardrail-notify, justhodl-kb-matcher, justhodl-ma-target-predictor, justhodl-market-interpreter, justhodl-miss-calibrator, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-powell-pivot, justhodl-public-archive-index, justhodl-schedule-reconciler, justhodl-self-critique, justhodl-shadow-lab, justhodl-tax-plan, justhodl-theme-cascade-backtest, justhodl-upside-thesis, justhodl-wealth-plan, justhodl-weekly-ai-review
 
 ## Engines that write outputs but have no schedule in config.json and are not fan-out members (258)
 
 cftc-futures-positioning-agent, ecb-auto-updater, eia-energy-agent, fmp-fundamentals-agent, justhodl-a2a-bus, justhodl-activist-13d, justhodl-ai-brief-router, justhodl-ai-council, justhodl-air-cargo, justhodl-alert-backtester, justhodl-alert-router, justhodl-alert-sentinel, justhodl-alpha-council, justhodl-altseason, justhodl-analyst-actions, justhodl-apac-flows, justhodl-apac-leadlag, justhodl-apex-fusion, justhodl-asia-leads, justhodl-asia-trade-full, justhodl-asset-compass, justhodl-asymmetric-scorer, justhodl-auction-crisis-detector, justhodl-auction-desk, justhodl-audit-loop, justhodl-backend-agent, justhodl-backfill-orchestrator, justhodl-backlog-miner, justhodl-backtest-engine, justhodl-backtest-harness, justhodl-base-rates, justhodl-beaters-grader, justhodl-bis-crossborder, justhodl-bis-gleif, justhodl-blackswan-watch, justhodl-bls-full, justhodl-boe-full, justhodl-boj-full, justhodl-bond-warroom, justhodl-boom-radar, justhodl-boom-stage, justhodl-bottleneck-boom, justhodl-bottleneck-research, justhodl-bottom-signals, justhodl-brief-compiler, justhodl-buyback-scanner, justhodl-calibration-snapshot, justhodl-calibration-snapshotter, justhodl-calibrator, justhodl-calls-research-audit, justhodl-canary-macro, justhodl-catalyst, justhodl-catalyst-chain, justhodl-census-us, justhodl-cftc-full-datasets, justhodl-chain-resumer, justhodl-compound-aggregator, justhodl-confluence-meta, justhodl-contract-gate, justhodl-cot-extremes-scanner, justhodl-cot-feed, justhodl-coverage-gap-report, justhodl-cq-feed, justhodl-crisis-canaries, justhodl-crisis-knowledge-base, justhodl-crypto-enricher, justhodl-crypto-gex, justhodl-crypto-intel, justhodl-cusip-map-rebuild, justhodl-cycle-features, justhodl-daily-report-v3, justhodl-data-census, justhodl-divergence-engine-v2, justhodl-divergence-interpreter, justhodl-dol-full, justhodl-domain-barometers, justhodl-dxy-predict, justhodl-earnings, justhodl-earnings-tracker, justhodl-ecb-deep, justhodl-ecb-full-catalog, justhodl-edgar-full-index, justhodl-edge-engine, justhodl-engine-leaderboard, justhodl-episode-compass, justhodl-equity-ftd, justhodl-equity-research, justhodl-estimate-revisions, justhodl-etf-census, justhodl-etf-flows, justhodl-eurostat-oecd, justhodl-event-study, justhodl-exchange-flows, justhodl-fabrication-weekly, justhodl-families-feed, justhodl-feedback, justhodl-fi-census, justhodl-financial-secretary, justhodl-finra-full, justhodl-finra-short, justhodl-fiscaldata-full, justhodl-fleet-auditor, justhodl-fleet-integrity, justhodl-floor-audit, justhodl-foreign-flows, justhodl-forensic-screen, justhodl-frbddp-full, justhodl-fred-catalog, justhodl-fred-tag-crawler, justhodl-freight-pulse, justhodl-fundamental-census, justhodl-fundamental-graphs, justhodl-gdelt-full, justhodl-gdelt-sentiment, justhodl-geopolitical-risk, justhodl-global-expansion, justhodl-global-flows, justhodl-global-macro, justhodl-global-recession, justhodl-global-tide, justhodl-gov-sources, justhodl-guardrail-notify, justhodl-hist-banker, justhodl-historical-analogs, justhodl-history-snapshotter, justhodl-hot-money, justhodl-house-ptr-extract, justhodl-hyperliquid-perps, justhodl-ignition, justhodl-imf-full, justhodl-index-inclusion, justhodl-indicator-bus, justhodl-industry-boom, justhodl-industry-case, justhodl-insider-buys-enriched, justhodl-insider-cluster-scanner, justhodl-insider-radar, justhodl-insider-trades, justhodl-intelligence, justhodl-intraday-pulse, justhodl-kb-matcher, justhodl-kill-switch, justhodl-labor-leading, justhodl-lambda-inventory, justhodl-liq-indicators, justhodl-liquidity-credit-engine, justhodl-liquidity-flow, justhodl-liquidity-inflection, justhodl-liquidity-pulse, justhodl-liquidity-reversal, justhodl-ma-reversion, justhodl-macro-attribution, justhodl-macro-nowcast, justhodl-macro-predict, justhodl-macro-surprise, justhodl-market-machine, justhodl-market-map, justhodl-market-tape, justhodl-master-ranker, justhodl-meta-labeler, justhodl-methodology-scout, justhodl-morning-intelligence, justhodl-news-sentiment, justhodl-nyfed-dealer-survey, justhodl-oecd-cli, justhodl-ofr-stfm, justhodl-opex-calendar, justhodl-options-confluence, justhodl-options-flow, justhodl-pairs-scanner, justhodl-phase-detector, justhodl-physical-econ, justhodl-pjm-grid, justhodl-playbook-engine, justhodl-plumbing-aggregator, justhodl-plumbing-composite, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-polygon-full, justhodl-portwatch, justhodl-price-redundancy, justhodl-prompt-iterator, justhodl-prospective-evaluator, justhodl-proven-alpha, justhodl-provenance-rollup, justhodl-provider-window-sentinel, justhodl-quantum-desk, justhodl-real-economy-collector, justhodl-redflag-alerter, justhodl-regime-engine, justhodl-repo-monitor, justhodl-research-papers, justhodl-resilience, justhodl-risk-gate, justhodl-rotation-dashboard, justhodl-russell-recon-frontrun, justhodl-rv-iv-scanner, justhodl-schedule-reconciler, justhodl-screener-alerts, justhodl-sdmx-walker, justhodl-sec-10kq, justhodl-sec-8k, justhodl-sec-midas, justhodl-self-critique, justhodl-shadow-lab, justhodl-share-flows, justhodl-short-interest, justhodl-short-pressure, justhodl-signal-logger, justhodl-signal-optimizer, justhodl-sizing-engine, justhodl-smart-wake, justhodl-source-map, justhodl-sp500, justhodl-spx-beaters, justhodl-spx-history, justhodl-spx-ma, justhodl-squeeze-fuel, justhodl-src-mirror, justhodl-stock-buying, justhodl-stock-screener, justhodl-stock-valuations, justhodl-streaming-fanout, justhodl-stress-loadings, justhodl-supabase-keepalive, justhodl-symbol-feed, justhodl-symbol-resolver, justhodl-symbology-master, justhodl-symdir, justhodl-tape-truth, justhodl-te-feed, justhodl-telegram-bot, justhodl-tenor-signal-interpreter, justhodl-tic-full, justhodl-tiingo-news, justhodl-top-signals, justhodl-trade-journal, justhodl-trade-nowcast, justhodl-treasury-fiscal-full, justhodl-treasury-rehypo, justhodl-trend-reversal, justhodl-tv-notes-crawler, justhodl-tv-notes-ingest, justhodl-tv-workbench, justhodl-upside-radar, justhodl-us-cycle, justhodl-usgov-direct, justhodl-vix-backwardation-trigger, justhodl-vol-target-unwind, justhodl-warm-bridge, justhodl-warroom-weights, justhodl-watchlist, justhodl-wealth-plan, justhodl-whales, justhodl-worldbank-full, justhodl-yield-curve, macro-financial-intelligence, treasury-api
 
-## Two-engine read/write cycles (64)
+## Two-engine read/write cycles (65)
 
 - ecb-auto-updater <-> ecb-data-daily-updater
 - justhodl-13f-clone-alpha <-> justhodl-13f-positions
@@ -653,6 +734,7 @@ cftc-futures-positioning-agent, ecb-auto-updater, eia-energy-agent, fmp-fundamen
 - justhodl-etf-global-desk <-> justhodl-flow-lookthrough
 - justhodl-fred-catalog <-> justhodl-import-sentinel
 - justhodl-fundamental-census <-> justhodl-short-book
+- justhodl-global-stress <-> justhodl-stress-index
 - justhodl-grid-queue <-> justhodl-impact-graph
 - justhodl-inventory-drawdown <-> justhodl-scarcity-radar
 - justhodl-liq-indicators <-> justhodl-liquidity-reversal
@@ -680,6 +762,7 @@ cftc-futures-positioning-agent, ecb-auto-updater, eia-energy-agent, fmp-fundamen
 - justhodl-blackswan-watch, justhodl-bottom-signals, justhodl-dxy-predict, justhodl-liq-indicators, justhodl-liquidity-reversal, justhodl-macro-predict, justhodl-top-signals
 - justhodl-bond-regime-detector, justhodl-capital-flow-radar, justhodl-cascade-recalibrator, justhodl-crisis-knowledge-base, justhodl-crypto-intel, justhodl-etf-constituents, justhodl-etf-fund-flows, justhodl-etf-global-desk, justhodl-etf-true-flows, justhodl-financial-secretary, justhodl-flow-lookthrough, justhodl-flows-ai-analysis, justhodl-options-confluence, justhodl-polygon-options-flow, justhodl-prediction-snapshotter, justhodl-sector-rotation, justhodl-self-improvement, justhodl-theme-cascade, justhodl-trade-tickets
 - justhodl-bottom, justhodl-fortress, justhodl-katlin
+- justhodl-carry-surface, justhodl-crisis-composite, justhodl-global-stress, justhodl-liquidity-inflection, justhodl-risk-regime, justhodl-sovereign-stress, justhodl-stress-index
 - justhodl-credit-stress, justhodl-nyfed-pd
 - justhodl-crypto-enricher, justhodl-daily-report-v3, justhodl-liquidity-credit-engine
 - justhodl-crypto-ma200, justhodl-crypto-scorecard

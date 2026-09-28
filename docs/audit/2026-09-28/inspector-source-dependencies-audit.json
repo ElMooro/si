@@ -1,6 +1,6 @@
 {
   "checked_at": "2026-09-28T16:06:15.114772+00:00",
-  "status": "local_preview_accepted_deploy_pending",
+  "status": "code_and_live_page_accepted",
   "registry": {
     "existing_contracts_unchanged": true,
     "engines": 893,
@@ -47,5 +47,54 @@
     "The Bond Desk source scanner currently omits its nested current credit/issuer helper reads; normal-packet replay acceptance separately binds them.",
     "Source references and repeated upstream engines never establish independent evidence, predictive validation or portfolio authority.",
     "No data access class, observed artifact permission, source field, engine runtime or schedule changed."
-  ]
+  ],
+  "live_checked_at": "2026-09-28T16:21:32.883749+00:00",
+  "deployment": {
+    "commit": "8aa3bd350ec0956b0cb21923f2c6abfd79898ead",
+    "pages_run": 36448682737,
+    "deploy_workflow_run": 36448682599,
+    "push_checks": "all_runs_green",
+    "native_engine_bytes_changed": false
+  },
+  "live_assets": {
+    "checked_at": "2026-09-28T16:14:41.835146+00:00",
+    "intended_commit": "8aa3bd350ec0956b0cb21923f2c6abfd79898ead",
+    "served_commit": "8aa3bd350ec0956b0cb21923f2c6abfd79898ead",
+    "assets": {
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "eb3faa5c38efb84c19e0d7fe8c28d608d43a85ffba990fbad0cfc74d7f5e4b8f",
+        "matches_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4654558,
+        "sha256": "2fd655c8a6d23c60c2baccb494b97c234b71d291c235876185a8693ddabbebd6",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Build/page acceptance; no native engine bytes changed."
+  },
+  "live_browser": {
+    "url": "https://justhodl.ai/engine-data.html?engine=justhodl-bond-desk",
+    "keyboard_opened": true,
+    "public_references": 16,
+    "table_header_rows": 1,
+    "producer_links": 16,
+    "withheld_or_dynamic": 4,
+    "output_selected": false,
+    "followed_producer": "justhodl-term-premium",
+    "destination_output_options": 1,
+    "desktop_document_width": 1270,
+    "desktop_viewport": 1280,
+    "mobile_document_width": 380,
+    "mobile_viewport": 390,
+    "table_scroll_region": 288,
+    "table_scroll_width": 403,
+    "live_page_console_errors": 0
+  }
 }
