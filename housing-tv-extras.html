@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Housing TV extras · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--cyan:#38bdf8;--grn:#34d399}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase}.r{text-align:right}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:14px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>Housing indicators from the TV list</h1>
+<p class="sub">Your TradingView Housing list vs what already has a /data row. construction-housing.json already holds the core 10. Extra FRED ids print only when another packet has them. Vendor ECONOMICS: tags stay blank.</p>
+<div id="kpis"></div>
+<div id="have" class="table-region">Loading construction-housing.</div>
+<div id="extra" class="table-region">Loading extras.</div>
+<div class="foot"><b>Built for:</b> showing which housing series on chart-pro can already be painted, without inventing vacancy, listings or delinquencies.<br>
+<b>Already on</b> <a href="/construction-housing.html">construction-housing</a>: PERMIT, HOUST, COMPUTSA, HSN1F, EXHOSLUSM495S, MSACSR, TLRESCONS, MORTGAGE30US, CSUSHPISA, WPUSI012011.<br>
+<b>Extra packet used:</b> /data/warm/real-economy/fred_ttlcons.json when status is OK.<br>
+<b>Needs producer:</b> EVACANTUSQ176N, REALLN, DRSFRMACBS, DRSREACBS, NEWLISCOUUS, HOSMEDUSM052N, HOSINVUSM495N, EXSFHSUSM495S, HSFINVUSM495N, USCONS, WPU081, IPG321S, AUTHNOTST, UNDCONTSA.<br>
+<b>Not FRED:</b> ECONOMICS:USHST / USBP / USCSHPI / USNHS / INDEX:NAHB. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+function pickLatest(pkt){
+  if(!pkt)return {v:null,asof:"",ok:false};
+  if(pkt.latest!=null)return {v:num(pkt.latest),asof:pkt.as_of||pkt.date||pkt.fetched_at||"",ok:pkt.ok!==false};
+  var m=pkt.metrics||{};
+  var keys=Object.keys(m);
+  for(var i=0;i<keys.length;i++){var n=num(m[keys[i]]);if(n!=null)return {v:n,asof:pkt.fetched_at||"",ok:pkt.status==="OK"||pkt.ok!==false};}
+  if(Array.isArray(pkt.series)&&pkt.series.length){var last=pkt.series[pkt.series.length-1]||{};return {v:num(last.value!=null?last.value:last.v),asof:last.date||"",ok:true};}
+  return {v:num(pkt.value),asof:pkt.fetched_at||"",ok:pkt.status==="OK"};
+}
+(async function(){
+  var core=await load("/data/construction-housing.json");
+  var rows=(core&&core.series)||[];
+  document.getElementById("kpis").innerHTML="<span class='chip'>core "+((core&&core.n_resolved)||rows.length)+"/"+((core&&core.n_series)||rows.length)+"</span><span class='chip'>as of "+esc(core&&core.generated_at||"")+"</span>";
+  var h="<table><thead><tr><th>Already on housing desk</th><th>FRED</th><th class='r'>Latest</th><th>As of</th></tr></thead><tbody>";
+  rows.forEach(function(r){h+="<tr><td>"+esc(r.label||r.series_id)+"</td><td>"+esc(r.series_id)+"</td><td class='r'>"+esc(r.ok===false?"":r.latest)+"</td><td>"+esc(r.as_of||"")+"</td></tr>";});
+  document.getElementById("have").innerHTML=h+closeTbl();
+  var want=[
+    {id:"TTLCONS",label:"Total construction spend",path:"/data/warm/real-economy/fred_ttlcons.json"},
+    {id:"EVACANTUSQ176N",label:"Homeowner vacancy",path:""},
+    {id:"REALLN",label:"Real-estate loans",path:""},
+    {id:"DRSFRMACBS",label:"SF mortgage delinquency",path:""},
+    {id:"NEWLISCOUUS",label:"New listings",path:""},
+    {id:"HOSMEDUSM052N",label:"Median new-home price",path:""},
+    {id:"HOSINVUSM495N",label:"New-home inventory",path:""},
+    {id:"USCONS",label:"Construction payrolls",path:""},
+    {id:"WPU081",label:"Lumber PPI",path:""}
+  ];
+  var extras=[];
+  for(var i=0;i<want.length;i++){
+    var w=want[i], row={id:w.id,label:w.label,v:null,asof:"",src:w.path?"packet":"needs producer"};
+    if(w.path){var pkt=await load(w.path);var p=pickLatest(pkt);if(p.ok&&p.v!=null){row.v=p.v;row.asof=p.asof;row.src=w.path;}}
+    extras.push(row);
+  }
+  var h2="<table><thead><tr><th>TV-list extra</th><th>FRED</th><th class='r'>Latest</th><th>Source</th></tr></thead><tbody>";
+  extras.forEach(function(r){h2+="<tr><td>"+esc(r.label)+"</td><td>"+esc(r.id)+"</td><td class='r'>"+esc(r.v==null?"":r.v)+"</td><td>"+esc(r.src)+"</td></tr>";});
+  document.getElementById("extra").innerHTML=h2+closeTbl();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
