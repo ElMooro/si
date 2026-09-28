@@ -1,6 +1,6 @@
 """Native observation/archive regressions; synthetic public provider bytes, no network/AWS."""
 from pathlib import Path
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta,date
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from io import BytesIO
@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import ast,base64,hashlib,json,sys,time,tempfile,unittest,urllib.request,urllib.error,urllib.parse
 ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-estimate-revisions/source';sys.path.insert(0,str(SRC))
-from estimate_observations import CONTRACT,number,strict,day,clock,envelope,original,projection,compare,dossier
+from estimate_observations import CONTRACT,number,strict,day,clock,envelope,original,projection,compare,dossier,calendar_capture,calendar_original,calendar_projection
 NOW=datetime.now(timezone.utc).date().isoformat()
 
 
@@ -47,10 +47,13 @@ class Memory:
 def native(memory=None,**extra):
     scope={'S3':memory or Memory(),'BUCKET':'fixture','OUT_KEY':'data/estimate-revisions.json','FMP_KEY':'fixture-secret-only',
            'HORIZON_DAYS':75,'MIN_IMPORTANCE':2,'FMP_SEED_CAP':280,'CONTRACT':CONTRACT,'strict':strict,'number':number,'day':day,'clock':clock,'envelope':envelope,'dossier':dossier,
+           'calendar_capture':calendar_capture,'calendar_projection':calendar_projection,'_calendar_key':lambda:'calendar-fixture-secret',
            'datetime':datetime,'timezone':timezone,'ThreadPoolExecutor':ThreadPoolExecutor,'hashlib':hashlib,'json':json,'time':time,'urllib':urllib,
-           'fetch_calendar':lambda **kw:[{'ticker':'TEST','date':'2030-01-01','importance':2,'fiscal_period':'Q1'}],**extra}
+           'fetch_calendar':lambda **kw:[{'ticker':'TEST','date':NOW,'importance':2,'fiscal_period':'Q1'}],**extra}
     tree=ast.Module(body=[n for n in ast.parse((SRC/'lambda_function.py').read_bytes()).body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_estimate_') or n.name=='lambda_handler')],type_ignores=[])
     exec(compile(tree,'<actual native observation functions>','exec'),scope)
+    scope['_actual_calendar_fetch']=scope['_estimate_calendar_fetch']
+    scope['_estimate_calendar_fetch']=lambda:calendar_capture(json.dumps({'status':'OK','results':scope['fetch_calendar']()}).encode(),datetime.now(timezone.utc).isoformat(),NOW,(date.fromisoformat(NOW)+timedelta(days=75)).isoformat(),2)
     scope['_estimate_source_identity']=lambda:{p.name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} for p in
         (SRC/'lambda_function.py',SRC/'estimate_observations.py',ROOT/'aws/shared/benzinga.py',ROOT/'aws/shared/managed_secret.py') for raw in [p.read_bytes()]}
     return scope
@@ -90,7 +93,7 @@ class Tests(unittest.TestCase):
             with self.assertRaises((ValueError,UnicodeError)):strict(raw)
         with self.assertRaises(ValueError):acquisition(rows()*7)
     def test_original_byte_budget_declares_unattempted_requests_without_truncating_responses(self):
-        calendar=[{'ticker':'TEST','date':'2030-01-01'} for _ in range(30)]
+        calendar=[{'ticker':'TEST','date':NOW,'importance':2} for _ in range(30)]
         values=rows();values[0]['complete_extra_field']='x'*500000
         a=acquisition(values);n=native(fetch_calendar=lambda **kw:calendar);calls=[]
         n['_estimate_fetch']=lambda symbol:(calls.append(symbol) or a)
@@ -98,26 +101,27 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(calls),10);self.assertEqual(len(p['request_records']),30)
         self.assertEqual(len(p['request_records'][0]['observations'][0]['raw']['complete_extra_field']),500000)
     def test_native_keeps_calendar_and_duplicate_requests_without_scores_private_state_or_notifications(self):
-        memory=Memory();calendar=[{'ticker':'TEST','date':'2030-01-01','fiscal_period':'Q1'},{'ticker':'TEST','date':'2030-04-01','fiscal_period':'Q2'},None]
+        memory=Memory();calendar=[{'ticker':'TEST','date':NOW,'importance':2,'fiscal_period':'Q1'},{'ticker':'TEST','date':NOW,'importance':2,'fiscal_period':'Q2'},None]
         n=native(memory,fetch_calendar=lambda **kw:calendar);n['_estimate_fetch']=lambda symbol:acquisition() if symbol else {'status':'invalid_symbol_not_requested'}
         n['lambda_handler']();p=strict(memory.data['data/estimate-revisions.json'])
-        self.assertEqual(p['calendar_rows'],calendar);self.assertEqual(len(p['request_records']),3);self.assertEqual(p['n_estimate_observations'],2)
+        self.assertEqual(calendar_original(p['calendar_acquisition'])['results'],calendar);self.assertEqual(len(p['request_records']),2);self.assertEqual(p['n_estimate_observations'],2)
+        self.assertEqual(p['calendar_evidence']['excluded'][0]['source_index'],2)
         self.assertEqual(p['direction_map'],{});self.assertEqual(p['top_picks'],[]);self.assertIsNone(p['call']);self.assertFalse(p['private_state_read_or_written'])
         self.assertTrue(all(k=='data/estimate-revisions.json' or k.startswith('data/estimate-revisions/history/') for k in memory.reads+memory.writes))
         self.assertEqual(sum('/history/' in k for k in memory.data),2)
     def test_cap_and_budget_retain_every_unselected_and_unattempted_occurrence(self):
-        calendar=[{'ticker':'TEST','date':'2030-01-01'} for _ in range(300)];n=native(fetch_calendar=lambda **kw:calendar);calls=[]
+        calendar=[{'ticker':'TEST','date':NOW,'importance':2} for _ in range(300)];n=native(fetch_calendar=lambda **kw:calendar);calls=[]
         n['_estimate_fetch']=lambda symbol:(calls.append(symbol) or acquisition())
         times=iter([30000,10000]);n['lambda_handler'](context=SimpleNamespace(get_remaining_time_in_millis=lambda:next(times,10000)))
         p=strict(n['S3'].data['data/estimate-revisions.json']);self.assertEqual(len(calls),10);self.assertEqual(len(p['request_records']),280);self.assertEqual(len(p['not_selected_calendar_indices']),20)
         self.assertEqual(sum(r['acquisition']['status'].startswith('not_attempted') for r in p['request_records']),270)
     def test_rate_limit_stops_remaining_windows_and_never_retries(self):
-        calendar=[{'ticker':'TEST','date':'2030-01-01'} for _ in range(30)];n=native(fetch_calendar=lambda **kw:calendar);calls=[]
+        calendar=[{'ticker':'TEST','date':NOW,'importance':2} for _ in range(30)];n=native(fetch_calendar=lambda **kw:calendar);calls=[]
         def acquire(symbol):
             calls.append(symbol);return {'status':'rate_limited'} if len(calls)==1 else acquisition()
         n['_estimate_fetch']=acquire;n['lambda_handler']();self.assertEqual(len(calls),10)
     def test_failed_calendar_or_all_failed_acquisitions_preserve_original(self):
-        for calendar,status in [([],None),([{'ticker':'TEST'}],'unavailable')]:
+        for calendar,status in [([],None),([{'ticker':'TEST','date':NOW,'importance':2}],'unavailable')]:
             memory=Memory();before=dict(memory.data);n=native(memory,fetch_calendar=lambda **kw:calendar);n['_estimate_fetch']=lambda s:{'status':status}
             with self.assertRaises(ValueError):n['lambda_handler']()
             self.assertEqual(memory.data,before);self.assertEqual(memory.writes,[])
@@ -174,12 +178,12 @@ class Tests(unittest.TestCase):
             self.assertEqual(ns['_estimate_fetch']('BAD?credential=x')['status'],'invalid_symbol_not_requested')
 
     def test_auth_failure_stops_later_windows_and_complete_native_compiler_is_bound(self):
-        calendar=[{'ticker':'TEST','date':'2030-01-01'} for _ in range(30)];ns=native(fetch_calendar=lambda **kw:calendar);calls=[]
+        calendar=[{'ticker':'TEST','date':NOW,'importance':2} for _ in range(30)];ns=native(fetch_calendar=lambda **kw:calendar);calls=[]
         def acquire(symbol):
             calls.append(symbol);return {'status':'authorization_unavailable','http_status':403} if len(calls)==1 else acquisition()
         ns['_estimate_fetch']=acquire;ns['lambda_handler']();p=strict(ns['S3'].data['data/estimate-revisions.json'])
         self.assertEqual(len(calls),10);self.assertEqual(p['source_files'],ns['_estimate_source_identity']());self.assertEqual(len(p['source_files']),4)
-        self.assertEqual(p['version'],'3.2.1');self.assertFalse(p['estimate_transport']['follow_redirects'])
+        self.assertEqual(p['version'],'3.3.0');self.assertFalse(p['estimate_transport']['follow_redirects'])
         self.assertTrue(ns['S3'].bodies);self.assertTrue(all(body.closed for body in ns['S3'].bodies))
 
     def test_compiler_identity_uses_all_four_actual_package_files(self):
@@ -190,6 +194,80 @@ class Tests(unittest.TestCase):
             scope={'Path':Path,'hashlib':hashlib,'__file__':str(folder/'lambda_function.py')};exec(compile(ast.Module(body=[fn],type_ignores=[]),'<package identity>','exec'),scope)
             out=scope['_estimate_source_identity']();self.assertEqual(set(out),set(names))
             for name in names:self.assertEqual(out[name],{'bytes':len(name),'sha256':hashlib.sha256(name.encode()).hexdigest()})
+
+    def test_original_calendar_loses_fields_and_invents_a_session_for_ten_am(self):
+        source=(ROOT/'tests/fixtures/pre-estimate-calendar-benzinga.py.txt').read_bytes()
+        fn=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='fetch_calendar')
+        row={'ticker':'TEST','date':NOW,'time':'10:00:00','importance':2,'currency':'JPY','unknown':'retained only in original'}
+        scope={'date':date,'_get':lambda *a,**k:{'status':'OK','results':[row]}}
+        exec(compile(ast.Module(body=[fn],type_ignores=[]),'<complete original calendar helper>','exec'),scope)
+        old=scope['fetch_calendar']();self.assertEqual(old[0]['session'],'BMO');self.assertNotIn('time',old[0]);self.assertNotIn('unknown',old[0])
+        a=calendar_capture(json.dumps({'status':'OK','results':[row]}).encode(),NOW+'T12:00:00Z',NOW,NOW,2)
+        new=calendar_projection(a)['rows'][0];self.assertEqual(new['time'],'10:00:00');self.assertEqual(new['session'],'—');self.assertEqual(new['reported_currency'],'JPY')
+        self.assertEqual(calendar_original(a)['results'],[row])
+
+    def test_calendar_every_occurrence_exclusion_zero_and_continuation_are_replayable(self):
+        row={'ticker':'TEST','date':NOW,'time':'16:00:00','importance':2,'estimated_eps':0,'actual_eps':0,'currency':'USD','unknown':'whole'}
+        values=[row,deepcopy(row),None,{**row,'importance':0},{**row,'importance':False},{**row,'importance':'2'},
+                {**row,'date':'2000-01-01'},{**row,'date':'not a date'},{**row,'importance':6}]
+        raw=json.dumps({'status':'OK','results':values,'next_url':'https://outside.invalid/unrequested','request_id':'literal'}).encode()
+        a=calendar_capture(raw,NOW+'T12:00:00Z',NOW,NOW,2);p=calendar_projection(a)
+        self.assertEqual(base64.b64decode(a['original_base64']),raw);self.assertEqual(calendar_original(a)['results'],values)
+        self.assertEqual([r['source_index'] for r in p['rows']],[0,1]);self.assertEqual([r['source_index'] for r in p['excluded']],list(range(2,9)))
+        self.assertEqual(p['rows'][0]['estimated_eps'],0);self.assertEqual(p['pagination_status'],'next_page_unrequested');self.assertEqual(p['additional_requests'],0)
+        self.assertFalse(p['provider_universe_complete']);self.assertFalse(p['market_session_qualified'])
+        zero=calendar_capture(json.dumps({'status':'OK','results':[{**row,'importance':0}]}).encode(),NOW+'T12:00:00Z',NOW,NOW,0)
+        self.assertEqual(calendar_projection(zero)['rows'][0]['importance'],0)
+
+    def test_calendar_malformed_incomplete_clock_and_hash_are_rejected(self):
+        valid={'status':'OK','results':[{'ticker':'TEST','date':NOW,'importance':2}]}
+        a=calendar_capture(json.dumps(valid).encode(),NOW+'T12:00:00Z',NOW,NOW,2)
+        for field,value in [('original_bytes',False),('original_sha256','bad'),('received_at',NOW),('requested_limit',True),('sort','importance.desc'),('min_importance',True),('end_date','2000-01-01')]:
+            q=deepcopy(a);q[field]=value
+            with self.assertRaises(ValueError,msg=field):calendar_projection(q)
+        for raw in [b'{"status":"OK","status":"OK","results":[]}',b'{"status":"ERROR","results":[]}',b'{"status":"OK","results":null}',
+                    json.dumps({**valid,'next_url':False}).encode(),json.dumps({**valid,'results':valid['results']*1001}).encode(),b'\xff']:
+            with self.assertRaises((ValueError,UnicodeError)):calendar_capture(raw,NOW+'T12:00:00Z',NOW,NOW,2)
+
+    def test_calendar_actual_transport_is_single_bounded_header_request_and_never_follows_next(self):
+        ns=native();body=json.dumps({'status':'OK','results':[{'ticker':'TEST','date':NOW,'importance':2}],
+             'next_url':'https://outside.invalid/never-request'}).encode();calls=[]
+        def factory(*handlers):
+            self.assertIsNone(handlers[0].redirect_request(None,None,302,'',{},'https://outside.invalid/'))
+            def open(req,timeout):calls.append((req,timeout));return BytesIO(body)
+            return SimpleNamespace(open=open)
+        with patch.object(urllib.request,'build_opener',factory):a=ns['_actual_calendar_fetch']()
+        self.assertEqual(len(calls),1);req,timeout=calls[0];self.assertEqual(timeout,15)
+        url=urllib.parse.urlsplit(req.full_url);self.assertEqual(url.netloc,'api.polygon.io');self.assertEqual(url.path,'/benzinga/v1/earnings')
+        query=urllib.parse.parse_qs(url.query);self.assertEqual(query['sort'],['date.asc']);self.assertEqual(query['limit'],['1000']);self.assertNotIn('apiKey',query)
+        self.assertEqual(req.get_header('Authorization'),'Bearer calendar-fixture-secret');self.assertEqual(calendar_projection(a)['pagination_status'],'next_page_unrequested')
+
+    def test_calendar_errors_echoes_oversize_and_missing_key_cannot_publish_or_retry(self):
+        ns=native();ns['_calendar_key']=lambda:'abc'
+        for body in [b'{"status":"OK","results":[],"echo":"abc"}',b'x'*(8*1024*1024+1)]:
+            with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:BytesIO(body))) as mock:
+                result=ns['_actual_calendar_fetch']();self.assertEqual(mock.call_count,1)
+            self.assertEqual(result['status'],'unavailable');self.assertNotIn('original_base64',result);self.assertNotIn('abc',json.dumps(result))
+        for code in [301,302,401,403,429,500]:
+            err=urllib.error.HTTPError('https://bad/?abc',code,'secret abc',{},None)
+            with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:(_ for _ in ()).throw(err))):result=ns['_actual_calendar_fetch']()
+            self.assertEqual(result['http_status'],code);self.assertNotIn('abc',json.dumps(result))
+            memory=Memory();before=dict(memory.data);writer=native(memory);writer['_estimate_calendar_fetch']=lambda:result
+            writer['_estimate_fetch']=lambda s:self.fail('No estimate call after failed calendar')
+            with self.assertRaises(ValueError):writer['lambda_handler']()
+            self.assertEqual(memory.data,before);self.assertEqual(memory.writes,[])
+        ns['_calendar_key']=lambda:''
+        with patch.object(urllib.request,'build_opener',side_effect=AssertionError('No request without key')):
+            self.assertEqual(ns['_actual_calendar_fetch']()['status'],'credential_unavailable')
+
+    def test_calendar_source_filtering_and_full_bytes_survive_real_writer_and_archives(self):
+        memory=Memory();values=[{'ticker':'TEST','date':NOW,'importance':2,'time':'12:30:00','actual_eps':0},None,
+            {'ticker':'LOW','date':NOW,'importance':1}];ns=native(memory,fetch_calendar=lambda:values)
+        ns['_estimate_fetch']=lambda s:acquisition();ns['lambda_handler']();p=strict(memory.data['data/estimate-revisions.json'])
+        self.assertEqual(calendar_original(p['calendar_acquisition'])['results'],values);self.assertTrue(p['calendar_original_http_retained'])
+        self.assertEqual(p['calendar_rows'],calendar_projection(p['calendar_acquisition'])['rows']);self.assertEqual(len(p['calendar_evidence']['excluded']),2)
+        self.assertEqual(p['calendar_rows'][0]['session'],'—');self.assertEqual(len(p['request_records']),1)
+        self.assertEqual(memory.data['data/estimate-revisions/history/'+hashlib.sha256(memory.data['data/estimate-revisions.json']).hexdigest()+'.json'],memory.data['data/estimate-revisions.json'])
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

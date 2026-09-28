@@ -7,7 +7,6 @@ import math
 from decimal import Decimal
 
 CONTRACT='estimate-observations.v1'
-CALENDAR_CONTRACT='estimate-calendar-source.v1'
 FIELDS=('epsAvg','epsLow','epsHigh','revenueAvg','revenueLow','revenueHigh','numAnalystsEps','numAnalystsRevenue')
 
 
@@ -141,56 +140,3 @@ def dossier(symbol,acquisition,checked_as_of,previous=None):
     old=projection(symbol,previous,checked_as_of) if previous else []
     return {'ticker':symbol,'acquisition':acquisition,'observations':rows,'comparisons':compare(rows,old),
             'calls_eligible':False,'forecast_qualified':False,'sizing_eligible':False,'execution_eligible':False}
-
-
-def calendar_capture(raw,received_at,start_date,end_date,min_importance):
-    """Retain one complete original response, not a claim of a complete universe."""
-    a={'contract':CALENDAR_CONTRACT,'status':'received','received_at':received_at,
-       'endpoint':'https://api.polygon.io/benzinga/v1/earnings','start_date':start_date,'end_date':end_date,
-       'min_importance':min_importance,'requested_limit':1000,'sort':'date.asc',
-       'original_base64':base64.b64encode(raw).decode(),'original_bytes':len(raw),'original_sha256':hashlib.sha256(raw).hexdigest()}
-    calendar_projection(a)
-    return a
-
-
-def calendar_original(a):
-    if not isinstance(a,dict) or a.get('contract')!=CALENDAR_CONTRACT or a.get('status')!='received':
-        raise ValueError('Original received calendar required')
-    if a.get('endpoint')!='https://api.polygon.io/benzinga/v1/earnings' or type(a.get('requested_limit')) is not int or a['requested_limit']!=1000 or a.get('sort')!='date.asc':
-        raise ValueError('Calendar request scope differs')
-    start,end=day(a.get('start_date')),day(a.get('end_date'))
-    if start is None or end is None or end<start or clock(a.get('received_at')) is None:
-        raise ValueError('Calendar dates and receipt clock required')
-    if type(a.get('min_importance')) is not int or not 0<=a['min_importance']<=5:
-        raise ValueError('Literal calendar importance threshold required')
-    raw=base64.b64decode(a['original_base64'],validate=True)
-    if type(a.get('original_bytes')) is not int or len(raw)!=a['original_bytes'] or len(raw)>8*1024*1024 or hashlib.sha256(raw).hexdigest()!=a.get('original_sha256'):
-        raise ValueError('Whole original calendar bytes differ')
-    p=strict(raw)
-    if not isinstance(p,dict) or p.get('status')!='OK' or not isinstance(p.get('results'),list) or len(p['results'])>a['requested_limit']:
-        raise ValueError('Complete bounded calendar response required')
-    if p.get('next_url') is not None and not isinstance(p['next_url'],str):raise ValueError('Invalid calendar continuation declaration')
-    return p
-
-
-def calendar_projection(a):
-    p=calendar_original(a);rows=[];excluded=[];start,end=day(a['start_date']),day(a['end_date'])
-    for index,value in enumerate(p['results']):
-        row=value if isinstance(value,dict) else {};imp=row.get('importance');stamp=day(row.get('date'));reasons=[]
-        if not isinstance(value,dict):reasons.append('malformed_record')
-        if type(imp) is not int or not 0<=imp<=5:reasons.append('importance_unreported_or_invalid')
-        elif imp<a['min_importance']:reasons.append('below_requested_importance')
-        if stamp is None:reasons.append('event_date_unreported_or_invalid')
-        elif not start<=stamp<=end:reasons.append('outside_requested_event_window')
-        if reasons:
-            excluded.append({'source_index':index,'reasons':reasons});continue
-        rows.append({'source_index':index,'ticker':row.get('ticker'),'company':row.get('company_name'),
-            'date':row.get('date'),'session':'—','time':row.get('time'),'session_status':'not_derived_from_provider_clock',
-            'date_status':row.get('date_status'),'estimated_eps':row.get('estimated_eps'),'previous_eps':row.get('previous_eps'),
-            'estimated_revenue':row.get('estimated_revenue'),'importance':imp,'fiscal_period':row.get('fiscal_period'),
-            'fiscal_year':row.get('fiscal_year'),'reported_currency':row.get('currency'),'reported_eps_method':row.get('eps_method'),
-            'provider_last_updated':row.get('last_updated')})
-    return {'rows':rows,'excluded':excluded,'received_occurrences':len(p['results']),
-        'pagination_status':'next_page_unrequested' if p.get('next_url') else 'no_next_page_reported',
-        'provider_universe_complete':False,'additional_requests':0,'market_session_qualified':False,
-        'importance_definition':'Provider subjective event importance; not forecast confidence or investment rank'}

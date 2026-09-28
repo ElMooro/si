@@ -1,0 +1,52 @@
+{
+  "baseline_commit": "fe700da7fcf65da577db35246e7114ae8b02aac6",
+  "complete_package_evidence": "estimate-transport-code-acceptance.json",
+  "originals": {
+    "aws/lambdas/justhodl-estimate-revisions/source/lambda_function.py": {
+      "bytes": 23045,
+      "sha256": "3ba656b02c615c3624f2cd54edcded3229f9b2be46ad615c6860127dcb8f8572",
+      "fixture": "tests/fixtures/pre-estimate-calendar-lambda_function.py.txt"
+    },
+    "aws/lambdas/justhodl-estimate-revisions/source/estimate_observations.py": {
+      "bytes": 7435,
+      "sha256": "61f20f38671183d48c5e34956bf5bc881b8c2140797fa66a65e22d9b4cccb691",
+      "fixture": "tests/fixtures/pre-estimate-calendar-estimate_observations.py.txt"
+    },
+    "aws/shared/benzinga.py": {
+      "bytes": 14099,
+      "sha256": "073b3546da31c8aa6fb5e3416a3687fea4d24ab46e88dceebdc1f844d6ff0731",
+      "fixture": "tests/fixtures/pre-estimate-calendar-benzinga.py.txt"
+    }
+  },
+  "provider_documentation": [
+    "https://massive.com/docs/rest/partners/benzinga/earnings",
+    "https://massive.com/docs/rest/quickstart",
+    "https://www.massive.com/blog/polygon-is-now-massive"
+  ],
+  "checked_at": "2026-09-28T09:40:08.145356+00:00",
+  "reproduced_defects": [
+    "Ten a.m. classified before-market by the original helper",
+    "Original HTTP bytes, unknown fields, currency and literal time discarded by normalization",
+    "Continuation marker not retained in the engine output"
+  ],
+  "repair": "Single original bounded calendar response, explicit filtering and source coordinates, no inferred market session, header credential and no redirects/retries. Same original endpoint, 1000 result limit, 75-day horizon, minimum importance 2, 280 estimate occurrences and original three schedules.",
+  "limitations": [
+    "Unrequested continuation pages",
+    "Provider universe completeness",
+    "First-release history",
+    "Trading-session calendar/timezone qualification",
+    "Partial-run estimate acquisition history continuity",
+    "Forecast and portfolio sizing authority"
+  ],
+  "tests": {
+    "native": 26,
+    "distinct_original_and_new_acceptance": 10,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_state_reads": 0,
+    "deployment_static": 468,
+    "deployment_shell": 12,
+    "registry_check": true,
+    "wiring_bindings": 143
+  }
+}
