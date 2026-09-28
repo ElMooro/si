@@ -1,0 +1,26 @@
+{
+  "original_source": {
+    "bytes": 6551,
+    "sha256": "e5bdd9e2a420aae7c38afa936ada622133d4584be6ee78c0d90cdd0f09b3b405",
+    "fixture": "tests/fixtures/pre-verifier-transient-discovery.py.txt"
+  },
+  "observed_production_commit": "f5cad0364389b90a986f1280fd1cf1338e28c2e7",
+  "observed_malfunction": "After pending workflows were observed, a transient empty discovery list caused the original verifier to return no-runs status and exit 0. Independent run-ID and receipt checks confirmed successful deployments.",
+  "isolated_original_reproduction": {
+    "exit_code": 0,
+    "output": "aaaaaaaaaa Fixture | Synthetic change\n   waiting: 1 run(s) in progress ...\n   no push/dispatch run for this commit (no watched path changed, or GitHub has not registered it yet -- re-run in a minute; --all shows scheduled runs)\n",
+    "github_requests": 0
+  },
+  "repair": "Retain observed run identities, resolve temporarily missing runs by their exact IDs, validate commit/event/run identity, and return inconclusive on unavailable snapshots. Initial empty discovery remains explicit and is not deploy proof.",
+  "validation": {
+    "new_discovery_regressions": 6,
+    "deployment_static": 474,
+    "candidate_shell": 12,
+    "live_backlog_commit_verified": true,
+    "live_deploy_run": 36422106750,
+    "live_acceptance_run": 36422306638
+  },
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "private_reads": 0
+}

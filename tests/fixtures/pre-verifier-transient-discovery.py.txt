@@ -83,23 +83,6 @@ def steps_for(repo: str, run_id: int) -> list[dict]:
     return get(f"/repos/{repo}/actions/runs/{run_id}/jobs?per_page=50").get("jobs", [])
 
 
-def run_snapshot(repo: str, sha: str, observed: dict, everything: bool = False) -> list[dict]:
-    """Discovery can briefly omit known runs. Resolve those by ID before concluding."""
-    current = {}
-    for run in runs_for(repo, sha, everything):
-        if type(run.get("id")) is not int or run["id"] <= 0 or run.get("head_sha") != sha:
-            raise ValueError("Workflow discovery identity differs")
-        current[run["id"]] = run
-    for run_id in observed.keys() - current.keys():
-        run = get(f"/repos/{repo}/actions/runs/{run_id}")
-        if (type(run.get("id")) is not int or run["id"] != run_id or run.get("head_sha") != sha
-                or run.get("event") != observed[run_id].get("event")):
-            raise ValueError("Known workflow identity differs")
-        current[run_id] = run
-    observed.update(current)
-    return list(current.values())
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("sha", nargs="?", help="commit sha (prefix ok inside a checkout)")
@@ -123,13 +106,8 @@ def main(argv=None) -> int:
         print("   note: [skip-deploy] -- deploy-lambdas and pages exit early by design")
 
     deadline = time.time() + args.wait * 60
-    observed = {}
     while True:
-        try:
-            runs = run_snapshot(args.repo, sha, observed, args.all)
-        except (OSError, ValueError, KeyError) as exc:
-            print(f"   workflow verification unavailable: {type(exc).__name__}; observed runs are not cleared")
-            return 2
+        runs = runs_for(args.repo, sha, args.all)
         pending = [r for r in runs if r["status"] != "completed"]
         if not pending or time.time() >= deadline:
             break
