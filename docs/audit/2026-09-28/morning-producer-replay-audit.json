@@ -1,0 +1,40 @@
+{
+  "checked_at": "2026-09-28T11:18:52.713178+00:00",
+  "scope": "Producer-only native replay for Price Compression, Momentum and Activist Filings, whose consumer packages evolved since their original release checks. Consumer qualification remains open.",
+  "producers": [
+    "justhodl-volatility-squeeze-hunter",
+    "justhodl-momentum-breakout",
+    "justhodl-activist-filings-scanner"
+  ],
+  "operation": "ops_6286_morning_producer_replay",
+  "checks": [
+    "Exact complete package/receipt and original runtime",
+    "Original enabled fanout tick and controls",
+    "Whole current and previous producer publication archives",
+    "Every referenced producer-owned original and calculation/coverage replay",
+    "No runtime or schedule drift during acceptance"
+  ],
+  "page_repair": "EPS request pagination says selected request occurrences; failed and unattempted records are no longer called received. Forecast and rating labels identify their separate records.",
+  "tests": {
+    "isolated_native_replay_and_rejection": 4,
+    "frontend": 1649,
+    "deployment_static": 468,
+    "candidate_shell": 12,
+    "public_script_graphs": 599,
+    "engine_wiring_unchanged": 143,
+    "registry": "passed"
+  },
+  "browser_preview": {
+    "selected_requests": 3,
+    "annual_arrays_received": 1,
+    "pending": 2,
+    "unattempted_rows_visible": true,
+    "captured_console_errors": 0
+  },
+  "production_replay_pending": true,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "consumer_reads": 0,
+  "private_state_reads": 0,
+  "investment_authority": false
+}

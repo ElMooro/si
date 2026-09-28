@@ -102,7 +102,7 @@
    const list=all.filter(r=>[r.ticker,r.reported,r.target,r.action,r.status,r.pointer].join(' ').toLowerCase().includes(query));
    const numeric=mode==='ratings'?['index']:['index','value','change'];list.sort((a,b)=>api.compare(a,b,key,direction,numeric.includes(key)?'number':'text'));
    const pages=Math.max(1,Math.ceil(list.length/100));page=Math.min(Math.max(page,0),pages-1);const shown=list.slice(page*100,(page+1)*100);
-   $('rows').textContent=list.length+' matching / '+all.length+' received '+mode+' occurrences. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
+   $('rows').textContent=list.length+' matching / '+all.length+' '+(mode==='requests'?'selected request occurrences':mode==='targets'?'received forecast records':'received rating records')+'. Page '+(page+1)+' of '+pages+'.';$('previous').disabled=page===0;$('next').disabled=page+1===pages;
    const fields=mode==='ratings'?[['target','Rating date'],['value','Previous grade'],['unit','New grade'],['change','Grading company'],['action','Reported action']]:
     mode==='requests'?[['value','Forecast records'],['change','Rating records'],['action','Acquisition outcomes']]:[['target','Annual target end'],['value','Reported EPS estimate'],['unit','Reported currency'],['change','Same-target EPS change'],['action','Target timing']];
    const cols=[['index','Occurrence'],['ticker','Requested ticker'],...fields,['status','Qualification']];
