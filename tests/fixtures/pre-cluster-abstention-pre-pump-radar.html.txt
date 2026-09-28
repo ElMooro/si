@@ -1048,8 +1048,8 @@ a:hover{color:var(--violet)}
   <!-- Catalyst Clusters Panel (post-aggressive, pre-momentum) -->
   <div class="clusters-panel" id="clusters-panel" style="display:none">
     <div class="panel-hdr">
-      <h3>Catalyst cluster research <span class="cluster-pill">REPORTED MEMBERSHIP</span></h3>
-      <div class="sub">Inspect source-reported groupings. Shared drivers, predictive grades and portfolio consequences remain unverified.</div>
+      <h3>🎯 Catalyst Clusters <span class="cluster-pill">SHARED EXPOSURE</span></h3>
+      <div class="sub">3+ names with shared catalyst windows — quality-graded A→D with action recommendations</div>
     </div>
     <div id="clusters-content"></div>
   </div>
@@ -1835,32 +1835,6 @@ function renderEarlyDetection(){
 
 // ─── CATALYST CLUSTERS — the clustering layer ───────────────────────
 function renderClustersPanel(){
-  const wrapEl = document.getElementById('clusters-panel');
-  const el = document.getElementById('clusters-content');
-  wrapEl.style.display = 'block';
-  const rows = Array.isArray(CLUSTERS?.clusters) ? CLUSTERS.clusters : null;
-  const available = CLUSTERS && CLUSTERS.status !== 'error' && rows;
-  let html = '<p class="rationale">Cluster research only. Grades, leaders and portfolio changes are unqualified. WAIT means abstain, not a hold recommendation.</p>';
-  if (!available) {
-    el.innerHTML = html + '<p>Cluster membership unavailable.</p>';
-    return;
-  }
-  html += '<p>' + rows.length + ' source-reported cluster occurrence' + (rows.length === 1 ? '' : 's') + '. Shared membership does not establish independent evidence or portfolio diversification.</p>';
-  rows.forEach(c => {
-    if (!c || typeof c !== 'object' || Array.isArray(c)) return;
-    const members = Array.isArray(c.members) ? c.members : [];
-    const names = members.filter(v => typeof v === 'string' && v);
-    html += '<div class="cluster-card"><div class="ch"><span class="title">' + esc(c.cluster_type || 'Unspecified source grouping') + '</span><span class="scope-pill">' + esc(c.scope || 'Scope unavailable') + '</span><span class="action-pill">Research · abstain</span></div>';
-    html += '<p>' + names.length + ' member occurrences; ' + new Set(names).size + ' distinct reported tickers. No ranked leader.</p><div class="members-row">';
-    names.forEach(t => { html += '<span class="mem">' + esc(t) + '</span>'; });
-    html += '</div>';
-    if (c.start_date && c.end_date) html += '<p>Source-reported date window: ' + esc(c.start_date) + ' → ' + esc(c.end_date) + '. Event dates and shared driver remain unverified.</p>';
-    html += '</div>';
-  });
-  el.innerHTML = html;
-}
-
-function _legacy_renderClustersPanel(){
   const wrapEl = document.getElementById('clusters-panel');
   const el = document.getElementById('clusters-content');
   if (!CLUSTERS || CLUSTERS.status === "error" ||

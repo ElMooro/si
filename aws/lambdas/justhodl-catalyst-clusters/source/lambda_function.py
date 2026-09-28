@@ -1,4 +1,8 @@
 """
+Active contract: descriptive research and explicit abstention. Historical grade
+and sizing methods below remain solely for source audit; the active handler does
+not call them. The original description follows for method provenance.
+
 justhodl-catalyst-clusters
 ══════════════════════════
 Detects time-windowed clusters of catalysts in the aggressive basket and
@@ -96,6 +100,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Set, Tuple
 
 import boto3
+from cluster_evidence import CONTRACT, FLAGS, describe_cluster, abstain, momentum_scores
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -240,7 +245,7 @@ def detect_thematic_clusters(catalysts: List[dict], basket_tickers: Set[str],
 # Cluster quality grading + leader identification
 # ═════════════════════════════════════════════════════════════════════
 
-def grade_cluster(cluster: dict, momentum_map: Dict[str, float]) -> dict:
+def _legacy_grade_cluster(cluster: dict, momentum_map: Dict[str, float]) -> dict:
     """Compute cluster quality grade A→D + identify leader."""
     members = cluster["member_records"]
 
@@ -298,7 +303,7 @@ def grade_cluster(cluster: dict, momentum_map: Dict[str, float]) -> dict:
 # Action recommendation
 # ═════════════════════════════════════════════════════════════════════
 
-def recommend_action(cluster: dict, current_sizes: Dict[str, float],
+def _legacy_recommend_action(cluster: dict, current_sizes: Dict[str, float],
                        macro_regime: str) -> dict:
     """Per-cluster action: BOOST, RE_RANK, TRIM, HEDGE, or CONSIDER_ADD."""
     q_grade = cluster["quality_grade"]
@@ -408,6 +413,15 @@ def recommend_action(cluster: dict, current_sizes: Dict[str, float],
 # Lambda handler
 # ═════════════════════════════════════════════════════════════════════
 
+def grade_cluster(cluster, momentum_map):
+    return describe_cluster(cluster, momentum_map)
+
+
+def recommend_action(cluster, current_sizes, macro_regime):
+    # Preserve the callable contract, but never resize from unqualified groupings.
+    return abstain(cluster)
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[clusters] start {datetime.now(timezone.utc).isoformat()}")
@@ -416,34 +430,39 @@ def lambda_handler(event, context):
     raw = {name: load_s3_json(key) for name, key in INPUT_KEYS.items()}
 
     catalysts_doc = raw.get("catalysts")
-    if not catalysts_doc:
+    if not isinstance(catalysts_doc, dict) or catalysts_doc.get('status') == 'error':
         return _write_error("No catalysts.json — run catalyst-classifier first")
-    catalysts = catalysts_doc.get("catalysts") or []
-    if not catalysts:
-        return _write_error("No catalyst records found")
+    catalysts = catalysts_doc.get("catalysts")
+    if not isinstance(catalysts, list) or any(not isinstance(c, dict) or not isinstance(c.get('ticker'), str) or not c['ticker'] for c in catalysts):
+        return _write_error("Catalyst records unavailable or malformed")
 
     positioning = raw.get("positioning") or {}
-    agg = positioning.get("aggressive_basket") or {}
-    positions = agg.get("positions") or []
-    if not positions:
+    agg = positioning.get("aggressive_basket") if isinstance(positioning, dict) else None
+    positions = agg.get("positions") if isinstance(agg, dict) else None
+    if (isinstance(positioning, dict) and positioning.get('status') == 'error') or not isinstance(positions, list) or not positions or any(not isinstance(p, dict) or not isinstance(p.get('ticker'), str) or not p['ticker'] for p in positions):
         return _write_error("No aggressive basket positions")
 
     basket_tickers: Set[str] = {p["ticker"] for p in positions}
-    current_sizes: Dict[str, float] = {p["ticker"]: p.get("position_pct", 0) for p in positions}
+    if len(basket_tickers) != len(positions):
+        return _write_error("Ambiguous duplicate basket membership")
+    current_sizes: Dict[str, float] = {p["ticker"]: p.get("position_pct") for p in positions}
     print(f"[clusters] basket: {len(basket_tickers)} tickers")
 
     momentum_doc = raw.get("momentum") or {}
-    momentum_map: Dict[str, float] = {}
-    for m in (momentum_doc.get("all_scored") or momentum_doc.get("leaders") or []):
-        if m.get("ticker"):
-            momentum_map[m["ticker"]] = m.get("momentum_score", 50)
+    momentum_map = momentum_scores(momentum_doc)
 
-    macro_regime = ((raw.get("macro") or {}).get("synthesis") or {}).get("global_posture", "NEUTRAL")
+    source_macro = raw.get("macro")
+    synthesis = source_macro.get("synthesis") if isinstance(source_macro, dict) else None
+    reported_macro_regime = synthesis.get("global_posture") if isinstance(synthesis, dict) else None
+    macro_regime = None  # No verified macro action is inferred from the source label.
     print(f"[clusters] macro_regime: {macro_regime}")
 
     # Detect clusters
-    temporal_clusters = detect_temporal_earnings_clusters(catalysts, basket_tickers)
-    thematic_clusters = detect_thematic_clusters(catalysts, basket_tickers, raw.get("themes"))
+    try:
+        temporal_clusters = detect_temporal_earnings_clusters(catalysts, basket_tickers)
+        thematic_clusters = detect_thematic_clusters(catalysts, basket_tickers, raw.get("themes"))
+    except (TypeError, ValueError, KeyError, AttributeError):
+        return _write_error("Cluster source structure malformed")
     print(f"[clusters] temporal_earnings: {len(temporal_clusters)}, thematic: {len(thematic_clusters)}")
 
     all_clusters = temporal_clusters + thematic_clusters
@@ -465,7 +484,7 @@ def lambda_handler(event, context):
     suggested_additions: List[dict] = []   # NEW — names not in basket the system says to add
     hedges: List[dict] = []
 
-    proposed_new_sizes: Dict[str, float] = dict(current_sizes)
+    proposed_new_sizes: Dict[str, float] = {}
 
     for c in all_clusters:
         rec = c["recommendation"]
@@ -503,7 +522,13 @@ def lambda_handler(event, context):
             hedges.append({"cluster_id": c["cluster_id"], "suggestion": rec["hedge_suggest"]})
 
     output = {
-        "schema_version":  "1.0",
+        "schema_version":  "1.1",
+        "measurement_contract": CONTRACT,
+        "status": "research_only",
+        "call": None,
+        **{flag: False for flag in FLAGS},
+        "quality": {"status": "unqualified_research", "reason": "cluster grades and portfolio consequences unvalidated"},
+        "reported_macro_regime": reported_macro_regime,
         "generated_at":    datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":     round(time.time() - t0, 2),
         "macro_regime":    macro_regime,
@@ -520,8 +545,7 @@ def lambda_handler(event, context):
         },
         "current_sizes":      current_sizes,
         "proposed_new_sizes": proposed_new_sizes,
-        "size_deltas": {t: round(proposed_new_sizes.get(t, 0) - current_sizes.get(t, 0), 2)
-                         for t in current_sizes.keys()},
+        "size_deltas": {},
         "config": {
             "min_members_for_cluster":  MIN_MEMBERS_FOR_CLUSTER,
             "earnings_window_days":     EARNINGS_WINDOW_DAYS,
@@ -551,12 +575,6 @@ def lambda_handler(event, context):
 
 
 def _write_error(message: str, **extras) -> dict:
-    payload = {"schema_version": "1.0", "generated_at": datetime.now(timezone.utc).isoformat(),
-                "status": "error", "error": message, **extras}
-    try:
-        s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
-                        Body=json.dumps(payload, default=str, indent=2),
-                        ContentType="application/json", CacheControl="max-age=300")
-    except Exception: pass
+    # Do not overwrite an existing publication on missing/invalid dependencies.
     print(f"[clusters] ERROR: {message}")
     return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
