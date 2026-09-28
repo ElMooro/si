@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TV watchlist tape · JustHodl</title>
+<style>
+:root{--bg:#0a0e14;--fg:#e6edf3;--fg2:#9aa5b1;--fg3:#6b7480;--bd:#1d242e;--card:#0f141b;--cyan:#38bdf8;--grn:#34d399;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 90px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--fg2);font-size:13px;max-width:920px;margin:0 0 14px}
+input{max-width:360px;padding:8px 10px;margin:0 0 12px;background:var(--card);border:1px solid var(--bd);border-radius:7px;color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:920px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);font:12.5px ui-monospace,Menlo,monospace}
+th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-select:none}th.on{color:var(--cyan)}
+.r{text-align:right}.pos{color:var(--grn)}.neg{color:var(--red)}a{color:var(--cyan);text-decoration:none}
+.foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
+.table-region{overflow:auto;border:1px solid var(--bd);border-radius:8px;margin-bottom:14px}
+.chip{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px;color:var(--fg2)}
+</style></head>
+<body>
+<div class="wrap">
+<h1>TV watchlist tape</h1>
+<p class="sub">The live TradingView tracker basket, not the stale 492-list dump. Equal-weight 5d / 21d / 63d only when n_priced > 0. Lists with no US-equity prices stay blank. Not a clone of chart-pro and not a composite score.</p>
+<div id="kpis"></div>
+<input id="q" placeholder="filter list name" autocomplete="off">
+<div id="board" class="table-region">Loading tracker.</div>
+<div id="tops" class="table-region"></div>
+<div class="foot"><b>Built for:</b> seeing which of your TradingView lists are moving versus SPY without inventing TV-only ECONOMICS or COT prints.<br>
+<b>Data:</b> /data/tv-watchlist-tracker.json lists[] (slug, name, n_symbols, n_priced, ret_5d, ret_21d, ret_63d, top[], bottom[]).<br>
+<b>Not used:</b> /data/tv-watchlists.json (stale 18d dump of 492 names). ISM, Census M3 levels, and NO_FREE_SOURCE TV tags stay off this page.<br>
+<b>Related:</b> <a href="/chart-pro.html">chart-pro</a> · <a href="/watchlists.html">watchlists</a> · <a href="/tv-notes.html">tv notes</a>. Research only.</div>
+</div>
+<script>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;");}
+function num(v){if(v==null||v==="")return null;var n=Number(v);return isFinite(n)?n:null;}
+function pct(v){var n=num(v);return n==null?"":n.toFixed(2)+"%";}
+function cls(v){var n=num(v);return n==null?"":(n>0?"pos":(n<0?"neg":""));}
+function closeTbl(){return "</tb"+"ody></ta"+"ble>";}
+function cmp(a,b,k,dir){var av=a[k],bv=b[k];if(av==null||av===""){if(bv==null||bv==="")return String(a.name||"").localeCompare(String(b.name||""));return 1;}if(bv==null||bv==="")return -1;if(typeof av==="number"&&typeof bv==="number")return (av-bv)*dir;return String(av).localeCompare(String(bv))*dir;}
+async function load(p){try{var r=await fetch(p+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+(async function(){
+  var pkt=await load("/data/tv-watchlist-tracker.json");
+  var lists=((pkt&&pkt.lists)||[]).map(function(r){return {slug:r.slug||"",name:r.name||r.slug||"",n:num(r.n_symbols),priced:num(r.n_priced),r5:num(r.ret_5d),r21:num(r.ret_21d),r63:num(r.ret_63d),note:r.note||"",top:r.top||[],bottom:r.bottom||[]};});
+  var nP=lists.filter(function(r){return r.priced>0;}).length;
+  document.getElementById("kpis").innerHTML="<span class='chip'>"+lists.length+" lists</span><span class='chip'>"+nP+" priced</span><span class='chip'>as of "+esc(pkt&&pkt.generated_at||"")+"</span><span class='chip'>status "+esc(pkt&&pkt.status||"")+"</span>";
+  var sort="r21",dir=-1,qEl=document.getElementById("q");
+  function paint(){
+    var q=(qEl.value||"").toUpperCase();
+    var rows=lists.filter(function(r){return !q||(r.name+" "+r.slug).toUpperCase().indexOf(q)>=0;}).slice().sort(function(a,b){return cmp(a,b,sort,dir);});
+    var h="<table><thead><tr>";[["name","List"],["n","Symbols"],["priced","Priced"],["r5","5d"],["r21","21d"],["r63","63d"],["note","Note"]].forEach(function(c){h+="<th class='"+(sort===c[0]?"on":"")+"' data-k='"+c[0]+"'>"+c[1]+(sort===c[0]?(dir>0?" \u2191":" \u2193"):"")+"</th>";});
+    h+="</tr></thead><tbody>";
+    rows.forEach(function(r){
+      var priced=r.priced>0;
+      h+="<tr><td>"+esc(r.name)+"</td><td class='r'>"+esc(r.n==null?"":r.n)+"</td><td class='r'>"+esc(r.priced==null?"":r.priced)+"</td>";
+      h+="<td class='r "+(priced?cls(r.r5):"")+"'>"+esc(priced?pct(r.r5):"")+"</td>";
+      h+="<td class='r "+(priced?cls(r.r21):"")+"'>"+esc(priced?pct(r.r21):"")+"</td>";
+      h+="<td class='r "+(priced?cls(r.r63):"")+"'>"+esc(priced?pct(r.r63):"")+"</td>";
+      h+="<td>"+esc(r.note)+"</td></tr>";
+    });
+    document.getElementById("board").innerHTML=h+closeTbl();
+    document.querySelectorAll("#board th[data-k]").forEach(function(th){th.onclick=function(){var k=th.getAttribute("data-k");if(sort===k)dir=-dir;else{sort=k;dir=(k==="name"||k==="note")?1:-1;}paint();};});
+    var tops=[];
+    lists.forEach(function(r){(r.top||[]).forEach(function(x){if(x&&x.t)tops.push({list:r.name,t:x.t,r21:num(x.r21),side:"top"});});(r.bottom||[]).forEach(function(x){if(x&&x.t)tops.push({list:r.name,t:x.t,r21:num(x.r21),side:"bottom"});});});
+    var h2="<table><thead><tr><th>Side</th><th>List</th><th>Ticker</th><th class='r'>21d</th></tr></thead><tbody>";
+    tops.sort(function(a,b){return cmp(a,b,"r21",-1);}).forEach(function(r){h2+="<tr><td>"+esc(r.side)+"</td><td>"+esc(r.list)+"</td><td><a href='/ticker.html?symbol="+encodeURIComponent(r.t)+"'>"+esc(r.t)+"</a></td><td class='r "+cls(r.r21)+"'>"+esc(pct(r.r21))+"</td></tr>";});
+    document.getElementById("tops").innerHTML=h2+closeTbl();
+  }
+  if(!lists.length)document.getElementById("board").textContent="tv-watchlist-tracker.json missing.";
+  else {qEl.oninput=paint;paint();}
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body></html>
