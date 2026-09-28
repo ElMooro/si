@@ -428,11 +428,6 @@ def _eps_source_identity():
             for name in ('lambda_function.py','eps_observations.py') for raw in [(directory/name).read_bytes()]}
 
 
-def _eps_import_identity():
-    raw=(Path(__file__).resolve().parent/'managed_secret.py').read_bytes()
-    return {'managed_secret.py':{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}}
-
-
 def _eps_fetch(ticker, endpoint):
     if symbol(ticker) != ticker or not ticker:
         return {'endpoint': endpoint, 'status': 'invalid_symbol_not_requested'}
@@ -452,7 +447,7 @@ def _eps_fetch(ticker, endpoint):
             return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
         return envelope(raw, endpoint, datetime.now(timezone.utc).isoformat())
     except Exception as exc:
-        return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'authorization_unavailable' if getattr(exc,'code',None) in (401,403) else 'unavailable',
+        return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
                 'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
 
 
@@ -474,9 +469,7 @@ def _eps_company(ticker):
 
 
 def _eps_object(key, bound):
-    obj = S3.get_object(Bucket=BUCKET, Key=key)
-    try:raw = obj['Body'].read(bound+1)
-    finally:obj['Body'].close()
+    obj = S3.get_object(Bucket=BUCKET, Key=key); raw = obj['Body'].read(bound+1)
     if len(raw)>bound or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):
         raise ValueError('Complete declared source object required')
     return raw,obj['ETag']
@@ -533,7 +526,7 @@ def lambda_handler(event=None,context=None):
             jobs = [(i,pool.submit(_eps_company,selected[i])) for i in range(offset,min(offset+workers,len(selected)))]
             for i,future in jobs:
                 acquisitions[i] = future.result();total_bytes += sum(a.get('original_bytes',0) for a in acquisitions[i])
-            if any(a.get('status') in ('rate_limited','authorization_unavailable') for i,_ in jobs for a in acquisitions[i]): break
+            if any(a.get('status')=='rate_limited' for i,_ in jobs for a in acquisitions[i]): break
     if not any(a.get('status')=='received' and isinstance(original(a),list) for group in acquisitions for a in group):
         raise ValueError('All provider populations unavailable; preserve previous publication')
     old = {}
@@ -547,10 +540,8 @@ def lambda_handler(event=None,context=None):
         matches = old.get(ticker,[]);prior = matches[0]['acquisitions'] if len(matches)==1 else None
         record = dossier(ticker,group,today,prior);record['request_index']=i;records.append(record)
     prior_ref = _eps_archive(previous_raw) if previous_raw is not None else None
-    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.1.1','schema_version':2,
-              'source_files':_eps_source_identity(),'source_imports':_eps_import_identity(),
-              'transport':{'credential_location':'header','follow_redirects':False,'automatic_retries':False,
-                           'timeout_seconds':10,'max_response_bytes':256*1024,'stop_after_authorization_error':True},
+    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.1.0','schema_version':2,
+              'source_files':_eps_source_identity(),
               'measurement_contract':CONTRACT,'method':'received_annual_targets_and_same_target_changes','status':'RESEARCH_ONLY',
               'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
               'universe_acquisitions':captures,'legacy_static_backup':SP500_BACKUP,'universe_membership':membership,'request_records':records,

@@ -1,0 +1,38 @@
+{
+  "baseline_commit": "8aaab77b391ec0e683db9541a37b35826bc655cc",
+  "complete_package_evidence": "../2026-09-27/eps-target-code-acceptance.json",
+  "original_native_bytes": 27354,
+  "original_native_sha256": "f468c8d7a137647e505d84a3a631a4ac9349439ba22a7e22dc98cb1a215f71f7",
+  "fixture": "tests/fixtures/pre-eps-transport-lambda_function.py.txt",
+  "checked_at": "2026-09-28T09:49:29.811299+00:00",
+  "reproduced_defects": [
+    "401/403 reduced to generic unavailable and later windows continue",
+    "S3 bodies not explicitly closed",
+    "Published compiler identity omitted bundled managed_secret.py"
+  ],
+  "repair": "Stop later windows after authorization failure, retain submitted outcomes and every unattempted selected occurrence, close S3 bodies in finally, and bind the exact bundled helper in source_imports.",
+  "unchanged": [
+    "Endpoints and quote/estimate budget gates",
+    "Ten-second response timeout and 256 KiB bound",
+    "Original concurrency, runtime, request cap and daily 11:00 UTC fanout",
+    "All originals and public immutable history",
+    "No Calls or sizing authority"
+  ],
+  "limitations": [
+    "Original native publication pending",
+    "Partial-run acquisition/history continuity",
+    "First-release histories and fixed analyst panels",
+    "Corporate actions and investment validation"
+  ],
+  "tests": {
+    "native": 20,
+    "acceptance": 7,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "private_state_reads": 0,
+    "deployment_static": 468,
+    "deployment_shell": 12,
+    "registry_check": true,
+    "wiring_bindings": 143
+  }
+}

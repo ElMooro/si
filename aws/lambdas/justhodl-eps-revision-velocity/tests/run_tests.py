@@ -7,7 +7,7 @@ from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import quote_plus
-import ast,base64,hashlib,json,sys,time,unittest,urllib.request,urllib.error
+import ast,base64,hashlib,json,sys,time,tempfile,unittest,urllib.request,urllib.error
 ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-eps-revision-velocity/source';sys.path.insert(0,str(SRC))
 from eps_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier,estimates,compare,ratings
 TODAY='2026-09-27'
@@ -32,13 +32,14 @@ class Memory:
         self.data={'data/eps-revision-velocity.json':self.previous,
                    'data/universe.json':b'{"stocks":[{"symbol":"TEST"},{"symbol":"TEST"},null,{"symbol":"SECOND"}]}',
                    'screener/data.json':b'{"rows":[{"ticker":"TEST"},{"ticker":"THIRD"}]}'}
-        self.reads=[];self.writes=[];self.denied=False;self.corrupt=False;self.race=False
+        self.reads=[];self.writes=[];self.bodies=[];self.denied=False;self.corrupt=False;self.race=False
     def get_object(self,**kw):
         key=kw['Key'];self.reads.append(key)
         if self.denied:raise Error('AccessDenied')
         if key not in self.data:raise Error('NoSuchKey')
         raw=b'corrupt' if self.corrupt and '/history/' in key else self.data[key]
-        return {'Body':BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
+        body=BytesIO(raw);self.bodies.append(body)
+        return {'Body':body,'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
     def put_object(self,**kw):
         key=kw['Key'];self.writes.append(key)
         if key=='data/eps-revision-velocity.json' and self.race:raise Error('PreconditionFailed')
@@ -53,7 +54,9 @@ def native(memory=None,**extra):
            'CONTRACT':CONTRACT,'strict':strict,'clock':clock,'number':number,'symbol':symbol,'envelope':envelope,'original':original,'universe':universe,'dossier':dossier,
            'datetime':datetime,'timezone':timezone,'ThreadPoolExecutor':ThreadPoolExecutor,'urllib':urllib,'quote_plus':quote_plus,'hashlib':hashlib,'json':json,'time':time,'Path':Path,'__file__':str(SRC/'lambda_function.py'),**extra}
     tree=ast.parse((SRC/'lambda_function.py').read_bytes());functions=[n for n in tree.body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_eps_') or n.name=='lambda_handler')]
-    exec(compile(ast.Module(body=functions,type_ignores=[]),'<isolated active EPS functions>','exec'),scope);return scope
+    exec(compile(ast.Module(body=functions,type_ignores=[]),'<isolated active EPS functions>','exec'),scope)
+    scope['_eps_import_identity']=lambda:{'managed_secret.py':{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} for raw in [(ROOT/'aws/shared/managed_secret.py').read_bytes()]}
+    return scope
 
 
 class Tests(unittest.TestCase):
@@ -147,6 +150,57 @@ class Tests(unittest.TestCase):
     def test_incompatible_or_future_previous_capture_never_creates_observed_revision(self):
         first=[capture(stamp=TODAY+'T02:00:00Z')];out=dossier('TEST',[capture(forecasts(3))],TODAY,first)
         self.assertIsNone(out['same_target_comparisons'][0]['eps_change'])
+
+    def test_original_auth_error_is_generic_and_later_windows_are_attempted(self):
+        raw=(ROOT/'tests/fixtures/pre-eps-transport-lambda_function.py.txt').read_bytes();tree=ast.parse(raw)
+        m=Memory();ns=native(m,N_WORKERS=1)
+        functions=[n for n in tree.body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_eps_') or n.name=='lambda_handler')]
+        exec(compile(ast.Module(body=functions,type_ignores=[]),'<complete original EPS functions>','exec'),ns)
+        error=urllib.error.HTTPError('https://invalid/?secret',401,'never expose',{},None)
+        with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:(_ for _ in ()).throw(error))):out=ns['_eps_fetch']('TEST','quote')
+        self.assertEqual(out['status'],'unavailable');calls=[]
+        ns['_eps_company']=lambda symbol:(calls.append(symbol) or [out] if symbol=='TEST' else calls.append(symbol) or [capture()])
+        ns['lambda_handler']();self.assertEqual(len(calls),2);self.assertTrue(any(not b.closed for b in m.bodies))
+        for body in m.bodies:body.close()
+
+    def test_authorization_stops_later_windows_and_all_failed_run_keeps_original(self):
+        for code in (401,403):
+            ns=native();error=urllib.error.HTTPError('https://invalid/?secret',code,'never expose',{},None)
+            with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:(_ for _ in ()).throw(error))) as mock:
+                out=ns['_eps_fetch']('TEST','quote');self.assertEqual(mock.call_count,1)
+            self.assertEqual(out['status'],'authorization_unavailable');self.assertNotIn('secret',json.dumps(out));m=Memory();ns=native(m,N_WORKERS=1);calls=[]
+            ns['_eps_company']=lambda ticker:(calls.append(ticker) or [out])
+            with self.assertRaises(ValueError):ns['lambda_handler']()
+            self.assertEqual(len(calls),1);self.assertEqual(m.data['data/eps-revision-velocity.json'],m.previous);self.assertEqual(m.writes,[]);self.assertTrue(all(b.closed for b in m.bodies))
+
+    def test_mixed_first_window_is_preserved_and_remaining_occurrences_are_unattempted(self):
+        m=Memory();ns=native(m,N_WORKERS=2,MAX_TICKERS=4);calls=[]
+        def company(ticker):
+            calls.append(ticker);return [capture([{'symbol':ticker,'marketCap':1e9}],'quote'),{'endpoint':'analyst-estimates','status':'authorization_unavailable','http_status':403}]
+        ns['_eps_company']=company;ns['lambda_handler']();p=strict(m.data['data/eps-revision-velocity.json'])
+        self.assertEqual(len(calls),2);self.assertEqual(len(p['request_records']),4)
+        self.assertEqual([r['acquisitions'][0]['status'] for r in p['request_records']],['received','received','not_attempted_runtime_rate_or_size_limit','not_attempted_runtime_rate_or_size_limit'])
+        self.assertEqual(p['version'],'1.1.1');self.assertTrue(p['transport']['stop_after_authorization_error']);self.assertEqual(p['source_imports'],ns['_eps_import_identity']());self.assertTrue(all(b.closed for b in m.bodies))
+
+    def test_every_s3_body_closes_on_success_bounds_metadata_and_read_failure(self):
+        for kind in ('ok','oversize','metadata','read_failure'):
+            class Body(BytesIO):
+                def read(self,*a):
+                    if kind=='read_failure':raise OSError('synthetic read failure')
+                    return super().read(*a)
+            body=Body(b'whole');obj={'Body':body,'ContentLength':4 if kind=='metadata' else 5,'ETag':'identity'}
+            ns=native(S3=SimpleNamespace(get_object=lambda **k:obj))
+            if kind=='ok':self.assertEqual(ns['_eps_object']('declared',5),(b'whole','identity'))
+            else:
+                with self.assertRaises((ValueError,OSError)):ns['_eps_object']('declared',2 if kind=='oversize' else 5)
+            self.assertTrue(body.closed)
+
+    def test_actual_bundled_import_identity_is_not_a_source_tree_assumption(self):
+        fn=next(n for n in ast.parse((SRC/'lambda_function.py').read_bytes()).body if isinstance(n,ast.FunctionDef) and n.name=='_eps_import_identity')
+        with tempfile.TemporaryDirectory() as td:
+            folder=Path(td);raw=b'complete bundled helper';(folder/'managed_secret.py').write_bytes(raw)
+            ns={'Path':Path,'hashlib':hashlib,'__file__':str(folder/'lambda_function.py')};exec(compile(ast.Module(body=[fn],type_ignores=[]),'<actual import identity>','exec'),ns)
+            self.assertEqual(ns['_eps_import_identity'](),{'managed_secret.py':{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}})
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

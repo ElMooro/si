@@ -1,0 +1,59 @@
+{
+  "engine_commit": "fcf6aa1a6633abb6faace6f2020b44bd9ddc1905",
+  "served_page_commit": "8796e49370a1ed4ff5fbbe1d66164c97729cc7e7",
+  "checked_at": "2026-09-28T09:45:01.365882+00:00",
+  "assets": {
+    "estimate-revisions.html": {
+      "bytes": 17460,
+      "sha256": "eaac329ddf5417b2590bbaf8e049c014a50782a42704e0ef602a0aaeabc3af1f",
+      "matches_build_manifest": true
+    },
+    "jh-estimate-observations.js": {
+      "bytes": 3400,
+      "sha256": "cbf146db19ea1e5803d313a7dfb836833949beab60c9577fe98c1ea3776126a3",
+      "matches_build_manifest": true
+    },
+    "jh-table-values.js": {
+      "bytes": 5733,
+      "sha256": "72bee16487706084c6b81d2cb76b41944a14ad5e9a066e3a1620dc904287f5a5",
+      "matches_build_manifest": true
+    }
+  },
+  "release_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "LnV+KCmIfn2soHpNOob+04PQsNrLxHUpTVgrdagPrvc=",
+    "commit": "fcf6aa1a6633abb6faace6f2020b44bd9ddc1905",
+    "deployed_at": "2026-09-28T09:43:11Z",
+    "function": "justhodl-estimate-revisions",
+    "run_id": "36405179021",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36405179021",
+    "schema": "release-receipt.v1",
+    "source": {
+      "estimate_observations.py": {
+        "bytes": 11457,
+        "sha256": "eb3e53d48e0adbc8503791a5e9631ac38662b40572bac93ea1de5b54749b96df"
+      },
+      "lambda_function.py": {
+        "bytes": 25133,
+        "sha256": "c868e70261d06dd5e85cec060fb4c672f1bb7f46b6a0c5285a66d1f2935ee52c"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 847863,
+    "zip_sha256_hex": "2e757e2829887e7daca07a4d3a86fed383d0b0dacbc475294d582b75a80faef7"
+  },
+  "public_packet": {
+    "bytes": 231172,
+    "sha256": "34b9686fc1bee82daf5991502da68c814550763b488804722d989308d693de51",
+    "version": "3.1.0",
+    "generated_at": "2026-09-27T12:00:35.962613+00:00",
+    "current_compiler_publication_verified": false,
+    "calendar_originals_verified": false
+  },
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "consumer_output_reads": 0,
+  "private_state_reads": 0,
+  "investment_authority": false
+}
