@@ -46,7 +46,7 @@
       "value_bps": 201.0
     }
   },
-  "status": "strict_runtime_baseline_refused_schedule_mismatch",
+  "status": "actual_two_weekday_bindings_observed_original_replay_pending",
   "native_receipt_commit": "9cb4a62b116865bbf9695493bcff820c87da9277",
   "declared_schedule": "cron(10 22 ? * MON-FRI *)",
   "production_changes": false,
@@ -56,6 +56,50 @@
     "report_commit": "594fd3da8",
     "error": "One original weekday 22:10 UTC schedule required",
     "retained_original_replay_completed": false,
+    "production_changes": false
+  },
+  "schedule_diagnostic": {
+    "operation": 6298,
+    "run": 36455552655,
+    "report_commit": "28692d9bc",
+    "actual_runtime": {
+      "code_sha256": "s1FMKIb7M5KpzfU1dqn/4O8l3K+B6TshMI5nG7d7OPw=",
+      "source_files_checked": 9,
+      "handler_bytes": 1684,
+      "timeout": 300,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "9cb4a62b116865bbf9695493bcff820c87da9277"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-credit-stress-cadence",
+          "state": "ENABLED",
+          "expression": "cron(10 22 ? * MON-FRI *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "credit-stress-sched",
+          "state": "ENABLED",
+          "expression": "cron(0 20 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-credit-stress",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "original_single_binding_assumption_accepted": false,
     "production_changes": false
   }
 }

@@ -55,3 +55,26 @@ def test_schedule_diagnostic_records_mismatch_without_accepting_the_baseline():
     else:raise AssertionError('Different deployed release accepted')
     calls={n.func.attr for n in ast.walk(ast.parse(path.read_text(encoding='utf-8'))) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute)}
     assert not calls&{'invoke','put_object','update_function_code','put_rule','update_schedule','start_execution','run','collect','acquire'}
+
+
+def test_observed_credit_inventory_requires_both_exact_existing_bindings():
+    path=PATH.with_name('ops_6299_credit_observed_baseline.py');observer=runpy.run_path(str(path))
+    actual={'receipt':{'status':'matched','commit':NS['EXPECTED']},'function_name':NS['FN'],'timeout':300,'memory_mb':512,
+        'schedules':[{'kind':kind,'name':name,'expression':cron,'timezone':tz,'group':group,'state':'ENABLED','native_targets':1}
+                     for kind,name,cron,tz,group in observer['BINDINGS']]}
+    observer['validate_observed_runtime'](actual)
+    reversed_order=copy.deepcopy(actual);reversed_order['schedules'].reverse();observer['validate_observed_runtime'](reversed_order)
+    bad=[]
+    for field,value in [('name','unexpected'),('expression','cron(0 20 * * ? *)'),('timezone','America/New_York'),
+                        ('group','different'),('state','DISABLED'),('native_targets',2)]:
+        changed=copy.deepcopy(actual);changed['schedules'][1][field]=value;bad.append(changed)
+    for schedules in [actual['schedules'][:1],actual['schedules']*2,[]]:
+        changed=copy.deepcopy(actual);changed['schedules']=schedules;bad.append(changed)
+    changed=copy.deepcopy(actual);changed['receipt']['commit']='0'*40;bad.append(changed)
+    for changed in bad:
+        try:observer['validate_observed_runtime'](changed)
+        except ValueError:pass
+        else:raise AssertionError('Changed observed credit schedule accepted')
+    calls={n.func.attr for n in ast.walk(ast.parse(path.read_text(encoding='utf-8'))) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute)}
+    assert not calls&{'invoke','put_object','update_function_code','put_rule','update_schedule','start_execution','run','collect','acquire'}
+    assert 'sys.exit(1)' in path.read_text(encoding='utf-8')
