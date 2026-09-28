@@ -1,5 +1,5 @@
 {
-  "status": "code_and_page_accepted_waiting_for_original_new_policy_publication",
+  "status": "code_page_and_original_new_policy_publication_accepted_with_partial_source_coverage",
   "originals": {
     "aws/lambdas/justhodl-credit-stress/source/credit_research_model.py": {
       "fixture": "tests/fixtures/pre-credit-cadence-aws--lambdas--justhodl-credit-stress--source--credit_research_model.py.txt",
@@ -559,5 +559,190 @@
     "document_width": 1270,
     "viewport_width": 1280,
     "new_credit_console_errors": 0
+  },
+  "normal_publication_acceptance": {
+    "operation": 6309,
+    "run": 36477141487,
+    "verifier_commit": "457f1eda63f7376e5bda6caeff3b8e75d5a6624d",
+    "report_commit": "75316e531001e9acfa659acedb7d569da9d52590",
+    "evidence": {
+      "actual_runtime": {
+        "code_sha256": "h5PiuI1uYbAhec/t2lbGCPWoc5EmBYp2je7ORPLtFg8=",
+        "source_files_checked": 10,
+        "handler_bytes": 1684,
+        "timeout": 300,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "8f48fc660a266e93b03e42b4a8a8826aa420a36f"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-credit-stress-cadence",
+            "state": "ENABLED",
+            "expression": "cron(10 22 ? * MON-FRI *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "credit-stress-sched",
+            "state": "ENABLED",
+            "expression": "cron(0 20 ? * MON-FRI *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-credit-stress",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "collection_current": true,
+      "downstream_output_reads": 0,
+      "evaluated_at": "2026-09-28T20:09:38.843338+00:00",
+      "expected_commit": "8f48fc660a266e93b03e42b4a8a8826aa420a36f",
+      "freshness": {
+        "collection_policy": {
+          "basis": "Next existing weekday collection opportunity plus the observed 300-second native timeout. Not a provider release or holiday calendar.",
+          "collection_times": [
+            "20:00",
+            "22:10"
+          ],
+          "completion_allowance_seconds": 300,
+          "contract": "credit-collection-cadence.v1",
+          "next_collection_at": "2026-09-28T22:10:00+00:00",
+          "pipeline_check_due_at": "2026-09-28T22:15:00+00:00",
+          "provider_release_calendar_verified": false,
+          "successful_collection_asserted": false,
+          "timezone": "UTC",
+          "weekdays": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "pipeline_check_due_at": "2026-09-28T22:15:00+00:00",
+        "source_age_rule": "Five calendar-day ceiling per observed row; source and collection clocks remain separate. Release deadlines not verified.",
+        "valid_until": "2026-09-28T22:15:00+00:00"
+      },
+      "history_writes": 0,
+      "native_invocations": 0,
+      "new_policy_publication_verified": true,
+      "private_account_reads": 0,
+      "provider_requests": 0,
+      "public_head": {
+        "bytes": 168260,
+        "sha256": "df7fd4d874405fcb8f69315358da4bae2721dc609ec29786d5861365fe044f0f",
+        "generated_at": "2026-09-28T20:02:35.876474+00:00",
+        "version": "2.1.0"
+      },
+      "public_writes": 0,
+      "retained_original_replay": {
+        "contract": "credit-native-research.v1",
+        "generated_at": "2026-09-28T20:02:35.876474+00:00",
+        "as_of": "2026-09-25",
+        "replayed": true,
+        "quality": {
+          "status": "partial",
+          "basis": "Strict native response checks and explicit observation-age ceiling; not strategy qualification.",
+          "within_age_ceiling": 27,
+          "reviewed_series": 28,
+          "unavailable_series": [
+            "BAMLC0A3CAEY"
+          ],
+          "release_calendar_verified": false,
+          "provider_families_observed": [
+            "ICE_BofA_indices_via_FRED",
+            "US_Treasury_curve_via_FRED"
+          ],
+          "independence_note": "Rating and maturity subindices share a provider and overlapping constituents; 28 series are not 28 independent votes."
+        },
+        "reviewed_series": 28,
+        "source_originals": 55,
+        "forecast_qualified": false
+      },
+      "schedule_changes": 0,
+      "scope": "Exact deployed Credit package, unchanged original schedules, and complete retained-original replay of the publication observed after the original 20:00 slot. No producer invocation or investment permission."
+    },
+    "public_https": {
+      "status": 200,
+      "bytes": 168260,
+      "sha256": "df7fd4d874405fcb8f69315358da4bae2721dc609ec29786d5861365fe044f0f",
+      "generated_at": "2026-09-28T20:02:35.876474+00:00",
+      "version": "2.1.0",
+      "source_selection_policy": null,
+      "freshness": {
+        "collection_policy": {
+          "basis": "Next existing weekday collection opportunity plus the observed 300-second native timeout. Not a provider release or holiday calendar.",
+          "collection_times": [
+            "20:00",
+            "22:10"
+          ],
+          "completion_allowance_seconds": 300,
+          "contract": "credit-collection-cadence.v1",
+          "next_collection_at": "2026-09-28T22:10:00+00:00",
+          "pipeline_check_due_at": "2026-09-28T22:15:00+00:00",
+          "provider_release_calendar_verified": false,
+          "successful_collection_asserted": false,
+          "timezone": "UTC",
+          "weekdays": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "pipeline_check_due_at": "2026-09-28T22:15:00+00:00",
+        "source_age_rule": "Five calendar-day ceiling per observed row; source and collection clocks remain separate. Release deadlines not verified.",
+        "valid_until": "2026-09-28T22:15:00+00:00"
+      },
+      "capture": null,
+      "coverage": null
+    },
+    "live_page": {
+      "checked_at": "2026-09-28T20:15:21.000069+00:00",
+      "intended_page_commit": "50bc816c12ad5eaff9d81ea49b326ada879c0166",
+      "served_commit": "eacc235a3ad3be73587f28c350c39f3eb838cfb4",
+      "assets": {
+        "credit/index.html": {
+          "bytes": 7477,
+          "sha256": "fb68d3aadc582ac3a1b0479a02fdf9869ba814c9ca23e2ca861a03c26031e92f",
+          "matches_manifest": true
+        },
+        "jh-credit-research.js": {
+          "bytes": 26821,
+          "sha256": "1bb674d98fd2bb76bd1f6f85f7f3bc1f6bac81193b40b5d6b71267929781062b",
+          "matches_manifest": true
+        }
+      }
+    },
+    "live_browser": {
+      "current_readings": 27,
+      "reviewed_readings": 28,
+      "unavailable_series": "BAMLC0A3CAEY",
+      "withheld_unavailable_row_visible": true,
+      "all_four_comparisons_within_age_ceiling": true,
+      "keyboard_hy_trace_opened": true,
+      "hy_minus_ig_bp": 212,
+      "equation": "100 * (2.93 - 0.81) = 212 bp",
+      "provider_row_index": 792,
+      "receipt_references_visible": 4,
+      "desktop_width": 1270,
+      "desktop_viewport": 1280,
+      "mobile_width": 380,
+      "mobile_viewport": 390,
+      "new_console_errors": 0,
+      "trade_status": "WAIT"
+    },
+    "transport_note": "Initial exact-query CLI reads timed out without headers. The browser and later no-generator and exact-query HTTPS reads returned the same whole bytes as IAM verification. No transport code was changed."
   }
 }

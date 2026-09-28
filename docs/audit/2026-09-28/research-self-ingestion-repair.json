@@ -1,5 +1,5 @@
 {
-  "status": "exact_native_code_and_served_page_verified_next_normal_capture_pending",
+  "status": "code_page_and_original_normal_capture_accepted",
   "finding_source": "genealogy-public-archive-inventory.json",
   "predecessors": {
     "harvester": {
@@ -182,5 +182,174 @@
       }
     },
     "scope": "Page build acceptance only; native receipts and original replay are separate checks."
+  },
+  "normal_capture_acceptance": {
+    "operation": 6310,
+    "run": 36477480331,
+    "verifier_commit": "457f1eda63f7376e5bda6caeff3b8e75d5a6624d",
+    "report_commit": "95192fe246512f11bc715092fef5b308085001b4",
+    "evidence": {
+      "actual_runtimes": {
+        "justhodl-signal-harvester": {
+          "code_sha256": "FX/YqwXDVHox5YXnB4KrktyT2C9OaVXIDXPO1+rXPh8=",
+          "source_files_checked": 13,
+          "handler_bytes": 18649,
+          "timeout": 900,
+          "memory_mb": 1024,
+          "receipt": {
+            "status": "matched",
+            "commit": "f26b0a9ce4a30dac6330ac2eae4d2c9daf1d0705"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge rule",
+              "name": "justhodl-prospective-capture-hourly",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "native_targets": 1
+            },
+            {
+              "kind": "EventBridge rule",
+              "name": "signal-harvester-daily",
+              "state": "ENABLED",
+              "expression": "cron(15 23 * * ? *)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-signal-harvester",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "justhodl-prospective-evaluator": {
+          "code_sha256": "lyL9qdiEPIljlFTKdO3wLO5KCqJvLdH74T4lN71M6mc=",
+          "source_files_checked": 13,
+          "handler_bytes": 11737,
+          "timeout": 300,
+          "memory_mb": 512,
+          "receipt": {
+            "status": "matched",
+            "commit": "f26b0a9ce4a30dac6330ac2eae4d2c9daf1d0705"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge rule",
+              "name": "justhodl-prospective-evaluator-hourly",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-prospective-evaluator",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        }
+      },
+      "current_capture_bytes": 22615,
+      "current_capture_generated_at": "2026-09-28T20:11:22.797896+00:00",
+      "current_capture_sha256": "a058b42ea86cc07601e74e3cbcec70793cb6ba270a58a85bee621a7bcda2bcbf",
+      "downstream_output_reads": 0,
+      "expected_commit": "f26b0a9ce4a30dac6330ac2eae4d2c9daf1d0705",
+      "history_writes": 0,
+      "learning_ledger_reads": 0,
+      "native_invocations": 0,
+      "new_normal_scheduled_capture_verified": true,
+      "private_account_reads": 0,
+      "provider_requests": 0,
+      "public_writes": 0,
+      "schedules_changed": 0,
+      "scope": "Exact two native packages and unchanged operating settings. Only the approved public producer capture is read. Evaluator downstream results are not read; its echo exclusion is tested offline and code verified. This requires the new capture policy; predecessor freshness alone cannot pass. The whole current head must remain unchanged during acceptance.",
+      "source_selection_policy": {
+        "contract": "research-input-selection.v1",
+        "excluded_sources": [
+          "data/prospective-outcomes.json",
+          "data/prospective-research.json"
+        ],
+        "reason": "Collector and evaluator summaries must not generate new forecasts from their own previews or results",
+        "historical_record_policy": "Preserve whole records and measurements; exclude derived-report echoes from new measurement batches",
+        "source_sha256": "8924774e31a65ccfccc273317db1822e9beba791b225323212195a39b2acf9ae"
+      },
+      "verified_capture": {
+        "key": "data/research-forecasts/captures/0236981bb86228e6c494cbf9aa0b98825070093008a3fb050d4a8f9f62f9980e.json",
+        "sha256": "0236981bb86228e6c494cbf9aa0b98825070093008a3fb050d4a8f9f62f9980e",
+        "generated_at": "2026-09-28T20:11:22.797896+00:00",
+        "started_at": "2026-09-28T20:10:06.734700+00:00",
+        "coverage": {
+          "candidate_scan_complete": true,
+          "candidate_sources": 885,
+          "source_read_failures": [],
+          "sources_scanned": 885
+        },
+        "sources_with_observations": 212,
+        "ineligible_sources": 62,
+        "rank_occurrences": 1394,
+        "explicit_occurrences": 92,
+        "record_references": 67,
+        "new_record_references": 0,
+        "identity_policy": {
+          "contract": "research-source-identity.v1",
+          "files": {
+            "instrument_identity.py": "a36f25f9e97d31c30e50c86f5c8b5ca902ae90fe50d4078a4b26fd247d9c54a9",
+            "research_identity.py": "8924774e31a65ccfccc273317db1822e9beba791b225323212195a39b2acf9ae"
+          }
+        },
+        "source_read_policy": {
+          "compression": "identity or one complete gzip member; declared encoding and magic must agree when declared",
+          "contract": "research-source-read.v1",
+          "decoded_byte_limit": 33554432,
+          "reader_sha256": "5da171689574f41573207e12e82dd6abffed92d0a300ce2a3078db6e5ae210f2",
+          "source_hash_basis": "complete_stored_representation",
+          "stored_byte_limit": 33554432
+        },
+        "source_selection_policy": {
+          "contract": "research-input-selection.v1",
+          "excluded_sources": [
+            "data/prospective-outcomes.json",
+            "data/prospective-research.json"
+          ],
+          "historical_record_policy": "Preserve whole records and measurements; exclude derived-report echoes from new measurement batches",
+          "reason": "Collector and evaluator summaries must not generate new forecasts from their own previews or results",
+          "source_sha256": "8924774e31a65ccfccc273317db1822e9beba791b225323212195a39b2acf9ae"
+        }
+      }
+    },
+    "public_https": {
+      "status": 200,
+      "bytes": 22615,
+      "sha256": "a058b42ea86cc07601e74e3cbcec70793cb6ba270a58a85bee621a7bcda2bcbf",
+      "generated_at": "2026-09-28T20:11:22.797896+00:00",
+      "version": null,
+      "source_selection_policy": {
+        "contract": "research-input-selection.v1",
+        "excluded_sources": [
+          "data/prospective-outcomes.json",
+          "data/prospective-research.json"
+        ],
+        "historical_record_policy": "Preserve whole records and measurements; exclude derived-report echoes from new measurement batches",
+        "reason": "Collector and evaluator summaries must not generate new forecasts from their own previews or results",
+        "source_sha256": "8924774e31a65ccfccc273317db1822e9beba791b225323212195a39b2acf9ae"
+      },
+      "freshness": null,
+      "capture": {
+        "key": "data/research-forecasts/captures/0236981bb86228e6c494cbf9aa0b98825070093008a3fb050d4a8f9f62f9980e.json",
+        "sha256": "0236981bb86228e6c494cbf9aa0b98825070093008a3fb050d4a8f9f62f9980e"
+      },
+      "coverage": {
+        "candidate_scan_complete": true,
+        "candidate_sources": 885,
+        "source_read_failures": [],
+        "sources_scanned": 885
+      }
+    },
+    "scope": "Actual repaired harvester publication plus exact harvester/evaluator code and original operating settings. Downstream evaluator results were not read and are not asserted to have completed new measurements."
   }
 }
