@@ -279,16 +279,8 @@ def _legacy_lambda_handler(event=None, context=None):
 
 # Same existing provider scope; full target identities replace heuristic rankings.
 import hashlib
-from pathlib import Path
 import urllib.parse
 from estimate_observations import CONTRACT, strict, number, day, clock, envelope, dossier
-
-
-def _estimate_source_identity():
-    directory=Path(__file__).resolve().parent
-    return {name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
-            for name in ('lambda_function.py','estimate_observations.py','benzinga.py','managed_secret.py')
-            for raw in [(directory/name).read_bytes()]}
 
 
 def _estimate_fetch(symbol):
@@ -296,20 +288,17 @@ def _estimate_fetch(symbol):
     if not isinstance(symbol,str) or not re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}',symbol):
         return {'status':'invalid_symbol_not_requested'}
     if not FMP_KEY:return {'status':'credential_unavailable'}
-    url='https://financialmodelingprep.com/stable/analyst-estimates?symbol='+urllib.parse.quote_plus(symbol)+'&period=annual&limit=6'
-    class NoRedirect(urllib.request.HTTPRedirectHandler):
-        def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+    url='https://financialmodelingprep.com/stable/analyst-estimates?symbol='+urllib.parse.quote_plus(symbol)+'&period=annual&limit=6&apikey='+FMP_KEY
     try:
-        request=urllib.request.Request(url,headers={'User-Agent':'jh-rev/1','apikey':FMP_KEY})
-        with urllib.request.build_opener(NoRedirect()).open(request,timeout=12) as response:raw=response.read(1024*1024+1)
+        request=urllib.request.Request(url,headers={'User-Agent':'jh-rev/1'})
+        with urllib.request.urlopen(request,timeout=12) as response:raw=response.read(1024*1024+1)
         if len(raw)>1024*1024:raise ValueError('Complete response exceeds acquisition bound')
         # Never publish an echoed credential, including an error masquerading as data.
-        if FMP_KEY.encode() in raw:raise ValueError('Credential echo')
+        if len(FMP_KEY)>=8 and FMP_KEY.encode() in raw:raise ValueError('Credential echo')
         return envelope(raw,datetime.now(timezone.utc).isoformat())
     except Exception as exc:
-        code=getattr(exc,'code',None)
-        return {'status':'rate_limited' if code==429 else 'authorization_unavailable' if code in (401,403) else 'unavailable',
-                'http_status':code,'error_type':type(exc).__name__}
+        return {'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
+                'error_type':type(exc).__name__}
 
 
 def _estimate_previous():
@@ -317,8 +306,7 @@ def _estimate_previous():
     except Exception as exc:
         if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) in ('404','NoSuchKey'):return None,None,None
         raise
-    try:raw=obj['Body'].read(32*1024*1024+1)
-    finally:obj['Body'].close()
+    raw=obj['Body'].read(32*1024*1024+1)
     if len(raw)>32*1024*1024 or obj.get('ContentLength')!=len(raw) or not obj.get('ETag'):raise ValueError('Whole previous publication required')
     parsed=strict(raw)
     if not isinstance(parsed,dict):raise ValueError('Previous publication is malformed')
@@ -330,9 +318,7 @@ def _estimate_archive(raw):
     try:S3.put_object(Bucket=BUCKET,Key=key,Body=raw,IfNoneMatch='*',ContentType='application/json',CacheControl='public, max-age=31536000, immutable')
     except Exception as exc:
         if str(getattr(exc,'response',{}).get('Error',{}).get('Code')) not in ('409','412','ConditionalRequestConflict','PreconditionFailed'):raise
-    obj=S3.get_object(Bucket=BUCKET,Key=key)
-    try:back=obj['Body'].read(len(raw)+1)
-    finally:obj['Body'].close()
+    obj=S3.get_object(Bucket=BUCKET,Key=key);back=obj['Body'].read(len(raw)+1)
     if obj.get('ContentLength')!=len(raw) or back!=raw:raise ValueError('Immutable publication readback differs')
     return {'key':key,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
 
@@ -362,7 +348,7 @@ def lambda_handler(event=None,context=None):
                 row=selected[index][1];symbol=row.get('ticker') if isinstance(row,dict) else None
                 jobs.append((index,pool.submit(_estimate_fetch,symbol)))
             for index,future in jobs:acquisitions[index]=future.result()
-            if any(acquisitions[index].get('status') in ('rate_limited','authorization_unavailable') for index,_ in jobs):break
+            if any(acquisitions[index].get('status')=='rate_limited' for index,_ in jobs):break
             if sum(a.get('original_bytes',0) for a in acquisitions)>=4*1024*1024:break
     if not any(a.get('status')=='received' for a in acquisitions):raise ValueError('All estimate acquisitions failed; preserve previous output')
     prior_by_symbol={}
@@ -382,9 +368,8 @@ def lambda_handler(event=None,context=None):
         records.append(record)
     selected_indices={index for index,_ in selected}
     prior_ref=_estimate_archive(previous_raw) if previous_raw is not None else None
-    out={'engine':'justhodl-estimate-revisions','version':'3.2.1','measurement_contract':CONTRACT,'source_files':_estimate_source_identity(),
+    out={'engine':'justhodl-estimate-revisions','version':'3.2.0','measurement_contract':CONTRACT,
          'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,'status':'RESEARCH_ONLY',
-         'estimate_transport':{'credential_location':'header','follow_redirects':False,'automatic_retries':False,'timeout_seconds':12,'max_response_bytes':1024*1024},
          'calendar_rows':calendar,'calendar_original_http_retained':False,
          'calendar_lineage':'existing bundled benzinga.fetch_calendar normalization; event date is not estimate target period',
          'request_records':records,'not_selected_calendar_indices':[i for i in range(len(calendar)) if i not in selected_indices],

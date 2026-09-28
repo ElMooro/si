@@ -1,0 +1,16 @@
+{
+  "original_commit": "72122310b96ca792206104cd73eb0aa0c5652503",
+  "original_native_bytes": 22148,
+  "original_native_sha256": "d6098267b4dda3268000fc00ab76062b223075b0ba78bfc3ac7b56ff464a2c58",
+  "fixture": "tests/fixtures/pre-estimate-transport-lambda_function.py.txt",
+  "scope": "Active FMP estimate transport and compiler identity only. Calendar-original transport/normalization and partial-acquisition history continuity remain unqualified.",
+  "defects": [
+    "Active FMP request places credential in query string and uses the default redirect handler.",
+    "401/403 outcomes do not stop subsequent concurrent windows.",
+    "Credential echo guard skips secrets shorter than eight bytes.",
+    "New public publication does not bind its exact four-file native compiler closure."
+  ],
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "private_state_reads": 0
+}

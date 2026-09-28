@@ -6,7 +6,7 @@ from copy import deepcopy
 from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import patch
-import ast,base64,hashlib,json,sys,time,unittest,urllib.request,urllib.error,urllib.parse
+import ast,base64,hashlib,json,sys,time,tempfile,unittest,urllib.request,urllib.error,urllib.parse
 ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-estimate-revisions/source';sys.path.insert(0,str(SRC))
 from estimate_observations import CONTRACT,number,strict,day,clock,envelope,original,projection,compare,dossier
 NOW=datetime.now(timezone.utc).date().isoformat()
@@ -27,14 +27,15 @@ class Error(Exception):
 
 class Memory:
     def __init__(self,previous=b'{"version":"3.1.0","top_picks":[]}'):
-        self.data={} if previous is None else {'data/estimate-revisions.json':previous};self.reads=[];self.writes=[];self.denied=False;self.race=False;self.corrupt=False
+        self.data={} if previous is None else {'data/estimate-revisions.json':previous};self.reads=[];self.writes=[];self.bodies=[];self.denied=False;self.race=False;self.corrupt=False
     def get_object(self,**kw):
         key=kw['Key'];self.reads.append(key)
         if self.denied:raise Error('AccessDenied')
         if key not in self.data:raise Error('NoSuchKey')
         raw=self.data[key]
         if self.corrupt and '/history/' in key:raw=b'wrong'
-        return {'Body':BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
+        body=BytesIO(raw);self.bodies.append(body)
+        return {'Body':body,'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
     def put_object(self,**kw):
         key=kw['Key'];self.writes.append(key)
         if kw.get('IfNoneMatch')=='*' and key in self.data:raise Error('PreconditionFailed')
@@ -50,6 +51,8 @@ def native(memory=None,**extra):
            'fetch_calendar':lambda **kw:[{'ticker':'TEST','date':'2030-01-01','importance':2,'fiscal_period':'Q1'}],**extra}
     tree=ast.Module(body=[n for n in ast.parse((SRC/'lambda_function.py').read_bytes()).body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_estimate_') or n.name=='lambda_handler')],type_ignores=[])
     exec(compile(tree,'<actual native observation functions>','exec'),scope)
+    scope['_estimate_source_identity']=lambda:{p.name:{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()} for p in
+        (SRC/'lambda_function.py',SRC/'estimate_observations.py',ROOT/'aws/shared/benzinga.py',ROOT/'aws/shared/managed_secret.py') for raw in [p.read_bytes()]}
     return scope
 
 
@@ -130,14 +133,63 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):native(Memory(b'{bad'))['_estimate_previous']()
     def test_native_endpoint_scope_zero_originals_and_error_redaction(self):
         n=native();raw=json.dumps(rows(0)).encode()
-        with patch.object(urllib.request,'urlopen',return_value=BytesIO(raw)) as mock:
+        opener=SimpleNamespace(open=lambda *args,**kw:BytesIO(raw))
+        with patch.object(urllib.request,'build_opener',return_value=opener),patch.object(opener,'open',return_value=BytesIO(raw)) as mock:
             result=n['_estimate_fetch']('TEST')
-        self.assertEqual(original(result)[0]['epsAvg'],0);self.assertEqual(mock.call_count,1);self.assertIn('period=annual&limit=6',mock.call_args.args[0].full_url)
+        self.assertEqual(original(result)[0]['epsAvg'],0);self.assertEqual(mock.call_count,1)
+        request=mock.call_args.args[0];self.assertEqual(request.full_url,'https://financialmodelingprep.com/stable/analyst-estimates?symbol=TEST&period=annual&limit=6')
+        self.assertNotIn(n['FMP_KEY'],request.full_url);self.assertEqual(request.get_header('Apikey'),n['FMP_KEY'])
         error=urllib.error.HTTPError('https://invalid/?secret=DO_NOT_LEAK',429,'secret text',{},None)
-        with patch.object(urllib.request,'urlopen',side_effect=error) as mock:result=n['_estimate_fetch']('TEST')
+        with patch.object(urllib.request,'build_opener',return_value=opener),patch.object(opener,'open',side_effect=error) as mock:result=n['_estimate_fetch']('TEST')
         self.assertEqual(mock.call_count,1);self.assertEqual(result['status'],'rate_limited');self.assertNotIn('secret',json.dumps(result))
-        with patch.object(urllib.request,'urlopen',return_value=BytesIO(b'[{"echo":"fixture-secret-only"}]')):result=n['_estimate_fetch']('TEST')
+        with patch.object(urllib.request,'build_opener',return_value=opener),patch.object(opener,'open',return_value=BytesIO(b'[{"echo":"fixture-secret-only"}]')):result=n['_estimate_fetch']('TEST')
         self.assertEqual(result['status'],'unavailable');self.assertNotIn('original_base64',result)
+
+    def test_preserved_original_exposes_credential_query_and_short_echo_gap(self):
+        raw=(ROOT/'tests/fixtures/pre-estimate-transport-lambda_function.py.txt').read_bytes()
+        audit=json.loads((ROOT/'docs/audit/2026-09-28/estimate-transport-audit.json').read_bytes())
+        self.assertEqual(len(raw),audit['original_native_bytes']);self.assertEqual(hashlib.sha256(raw).hexdigest(),audit['original_native_sha256'])
+        fn=next(x for x in ast.parse(raw).body if isinstance(x,ast.FunctionDef) and x.name=='_estimate_fetch');scope=native(FMP_KEY='abc')
+        exec(compile(ast.Module(body=[fn],type_ignores=[]),'<original FMP transport>','exec'),scope)
+        with patch.object(urllib.request,'urlopen',return_value=BytesIO(b'[{"unknown":"abc"}]')) as mock:out=scope['_estimate_fetch']('TEST')
+        self.assertIn('apikey=abc',mock.call_args.args[0].full_url);self.assertEqual(original(out)[0]['unknown'],'abc')
+
+    def test_redirect_auth_short_echo_size_and_invalid_symbol_never_retry(self):
+        ns=native(FMP_KEY='abc');seen=[]
+        def factory(*handlers):
+            handler=handlers[0]
+            self.assertIsNone(handler.redirect_request(None,None,302,'',{},'https://outside.invalid/collect'))
+            def open(req,timeout):seen.append(req);return BytesIO(b'[{"unknown":"abc"}]')
+            return SimpleNamespace(open=open)
+        with patch.object(urllib.request,'build_opener',factory):out=ns['_estimate_fetch']('TEST')
+        self.assertEqual(len(seen),1);self.assertEqual(out['status'],'unavailable');self.assertNotIn('original_base64',out)
+        for code in (401,403,429):
+            error=urllib.error.HTTPError('redacted',code,'never expose',{},None)
+            with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:(_ for _ in ()).throw(error))) as mock:
+                out=ns['_estimate_fetch']('TEST');self.assertEqual(mock.call_count,1)
+            self.assertEqual(out['http_status'],code);self.assertEqual(out['status'],'rate_limited' if code==429 else 'authorization_unavailable')
+        with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:BytesIO(b'x'*(1024*1024+1)))):
+            self.assertEqual(ns['_estimate_fetch']('TEST')['status'],'unavailable')
+        with patch.object(urllib.request,'build_opener',side_effect=AssertionError('No network setup')):
+            self.assertEqual(ns['_estimate_fetch']('BAD?credential=x')['status'],'invalid_symbol_not_requested')
+
+    def test_auth_failure_stops_later_windows_and_complete_native_compiler_is_bound(self):
+        calendar=[{'ticker':'TEST','date':'2030-01-01'} for _ in range(30)];ns=native(fetch_calendar=lambda **kw:calendar);calls=[]
+        def acquire(symbol):
+            calls.append(symbol);return {'status':'authorization_unavailable','http_status':403} if len(calls)==1 else acquisition()
+        ns['_estimate_fetch']=acquire;ns['lambda_handler']();p=strict(ns['S3'].data['data/estimate-revisions.json'])
+        self.assertEqual(len(calls),10);self.assertEqual(p['source_files'],ns['_estimate_source_identity']());self.assertEqual(len(p['source_files']),4)
+        self.assertEqual(p['version'],'3.2.1');self.assertFalse(p['estimate_transport']['follow_redirects'])
+        self.assertTrue(ns['S3'].bodies);self.assertTrue(all(body.closed for body in ns['S3'].bodies))
+
+    def test_compiler_identity_uses_all_four_actual_package_files(self):
+        fn=next(n for n in ast.parse((SRC/'lambda_function.py').read_bytes()).body if isinstance(n,ast.FunctionDef) and n.name=='_estimate_source_identity')
+        with tempfile.TemporaryDirectory() as td:
+            folder=Path(td);names=('lambda_function.py','estimate_observations.py','benzinga.py','managed_secret.py')
+            for name in names:(folder/name).write_bytes(name.encode())
+            scope={'Path':Path,'hashlib':hashlib,'__file__':str(folder/'lambda_function.py')};exec(compile(ast.Module(body=[fn],type_ignores=[]),'<package identity>','exec'),scope)
+            out=scope['_estimate_source_identity']();self.assertEqual(set(out),set(names))
+            for name in names:self.assertEqual(out[name],{'bytes':len(name),'sha256':hashlib.sha256(name.encode()).hexdigest()})
 
 
 if __name__=='__main__':unittest.main(verbosity=2)
