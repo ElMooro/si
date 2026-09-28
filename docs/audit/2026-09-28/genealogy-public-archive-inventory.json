@@ -1,0 +1,50 @@
+{
+  "status": "complete_metadata_inventory_verified_content_reconciliation_pending",
+  "operation": 6303,
+  "run": 36467705600,
+  "commit": "9ad3a919e368c737694aac7a29d5477a68e8b5dc",
+  "report_commit": "2d6337790",
+  "report": "aws/ops/reports/latest/ops_6303_public_research_archive_inventory.md",
+  "inventories": {
+    "data/research-forecasts/captures/": {
+      "prefix": "data/research-forecasts/captures/",
+      "cutoff": "2026-09-28T18:48:09.350067+00:00",
+      "listing_pages": 1,
+      "objects_at_cutoff": 251,
+      "objects_after_cutoff": 0,
+      "total_bytes": 120357077,
+      "largest_object_bytes": 515007,
+      "earliest_storage_time": "2026-09-18T19:10:00+00:00",
+      "latest_storage_time": "2026-09-28T18:11:22+00:00",
+      "inventory_sha256": "be88c4246fb155165ae7c8a778cc734d1552060d987d0b910e0937f14d61e0cd",
+      "listing_complete": true,
+      "record_bodies_verified": false,
+      "registration_clocks_verified": false,
+      "scope": "Complete listed metadata at a fixed cutoff. Storage timestamps are not signal firing times; content and registration clocks require separate verification."
+    },
+    "data/research-forecasts/records/": {
+      "prefix": "data/research-forecasts/records/",
+      "cutoff": "2026-09-28T18:48:09.350067+00:00",
+      "listing_pages": 4,
+      "objects_at_cutoff": 3305,
+      "objects_after_cutoff": 0,
+      "total_bytes": 9414957,
+      "largest_object_bytes": 2857,
+      "earliest_storage_time": "2026-09-18T19:09:41+00:00",
+      "latest_storage_time": "2026-09-28T18:11:02+00:00",
+      "inventory_sha256": "98f21bcc0afe16801b06648c02c15c08c77a01f0c1ef7a4401e4b694083552f2",
+      "listing_complete": true,
+      "record_bodies_verified": false,
+      "registration_clocks_verified": false,
+      "scope": "Complete listed metadata at a fixed cutoff. Storage timestamps are not signal firing times; content and registration clocks require separate verification."
+    }
+  },
+  "candidate_operation": 6304,
+  "synthetic_regression_groups": 7,
+  "deployment_static": 517,
+  "deployment_shell": 12,
+  "scope": "Complete fixed-cutoff metadata. No record body, registration clock, chronology or forecast is qualified by metadata alone.",
+  "native_source_changed": false,
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
