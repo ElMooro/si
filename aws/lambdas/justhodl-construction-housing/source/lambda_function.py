@@ -1,28 +1,9 @@
 """
 justhodl-construction-housing — Housing & Construction Cycle Engine
 
-═══════════════════════════════════════════════════════════════════════
-WHY THIS EXISTS
-───────────────
-The platform had no read on the US housing & construction cycle — a
-gap given both its macro mandate and the owner's home-builder licence.
-This engine pulls the canonical housing-cycle series from FRED (free,
-already a core provider) and fuses them into one decisive read:
-
-  • Building permits  — the LEADING indicator (authorised, not yet built)
-  • Housing starts / completions — the activity pipeline
-  • New + existing home sales — demand
-  • Months' supply — inventory tightness / slack
-  • 30Y mortgage rate — the affordability lever
-  • Case-Shiller — price momentum
-  • Residential construction spending — dollar activity
-  • PPI residential-construction inputs — builder input-cost inflation
-
-It classifies the cycle (EXPANSION / RECOVERY / SLOWING / CONTRACTION)
-from permits, starts, sales, supply and the rate trend.
-
-OUTPUT: data/construction-housing.json   SCHEDULE: daily 11:00 UTC
-═══════════════════════════════════════════════════════════════════════
+Adds the FRED ids from the TradingView Housing / Housing Predict Future
+lists that were missing from the first allowlist. ECONOMICS: and NASDAQ:
+tags are not FRED and stay off this collector.
 """
 import json
 import os
@@ -44,7 +25,7 @@ FRED_KEY = managed_secret(('FRED_KEY', 'FRED_API_KEY'), ("/justhodl/fred/api-key
 
 s3 = boto3.client("s3", region_name="us-east-1")
 
-# (series_id, label, unit, role) — role drives the cycle scoring
+# (series_id, label, unit, role) — role drives the cycle scoring for the original 10
 SERIES = [
     ("PERMIT",        "Building Permits",                "K units SAAR", "leading"),
     ("HOUST",         "Housing Starts",                  "K units SAAR", "activity"),
@@ -56,6 +37,20 @@ SERIES = [
     ("MORTGAGE30US",  "30Y Fixed Mortgage Rate",         "%",            "rate"),
     ("CSUSHPISA",     "Case-Shiller Home Price Index",   "index",        "price"),
     ("WPUSI012011",   "PPI: Residential Constr. Inputs", "index",        "cost"),
+    ("WPU081",        "PPI: Lumber and Wood",            "index",        "cost"),
+    ("IPG321S",       "IP: Wood Products",               "index",        "cost"),
+    ("USCONS",        "Construction Payrolls",           "thousands",    "labor"),
+    ("DRSFRMACBS",    "SF Mortgage Delinquency Rate",    "%",            "credit"),
+    ("DRSREACBS",     "RE Loan Delinquency Rate",        "%",            "credit"),
+    ("RPONMBSD",      "Overnight Repo: MBS",             "$B",           "plumbing"),
+    ("EVACANTUSQ176N","Homeowner Vacancy Rate",          "%",            "supply"),
+    ("HOSINVUSM495N", "New Home Inventory",              "thousands",    "supply"),
+    ("HOSMEDUSM052N", "Median New Home Price",           "$",            "price"),
+    ("NEWLISCOUUS",   "New Listings Count",              "count",        "demand"),
+    ("EXSFHSUSM495S", "Existing SF Home Sales",          "units SAAR",   "demand"),
+    ("HSFINVUSM495N", "Existing Home Inventory",         "thousands",    "supply"),
+    ("REALLN",        "Real Estate Loans at Banks",      "$B",           "credit"),
+    ("TTLCONS",       "Total Construction Spend",        "$M SAAR",      "activity"),
 ]
 
 
@@ -116,7 +111,7 @@ def analyse(series_id, label, unit, role):
 
 
 def classify(rows):
-    """Score the housing cycle from the fused series."""
+    """Score the housing cycle from the original fused series only."""
     by = {r["series_id"]: r for r in rows if r.get("ok")}
     score, signals = 0, []
 
@@ -158,6 +153,12 @@ def classify(rows):
     cost = by.get("WPUSI012011", {}).get("yoy_pct")
     if cost is not None:
         signals.append(f"Builder input costs {cost:+}% YoY")
+    lumber = by.get("WPU081", {}).get("yoy_pct")
+    if lumber is not None:
+        signals.append(f"Lumber PPI {lumber:+}% YoY")
+    dq = by.get("DRSFRMACBS", {}).get("latest")
+    if dq is not None:
+        signals.append(f"SF mortgage delinquency {dq}%")
 
     if score >= 3:
         regime, color = "EXPANSION", "green"
@@ -200,7 +201,9 @@ def lambda_handler(event, context):
         "n_series": len(rows),
         "note": ("US housing & construction cycle from FRED monthly series. "
                  "Permits lead starts by ~1-2 months; months' supply and the "
-                 "mortgage rate gate the cycle. A macro read, not advice."),
+                 "mortgage rate gate the cycle. Extra FRED ids from the TV "
+                 "Housing / Housing Predict Future lists are included when "
+                 "FRED returns them. A macro read, not advice."),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                   Body=json.dumps(out, default=str).encode("utf-8"),
