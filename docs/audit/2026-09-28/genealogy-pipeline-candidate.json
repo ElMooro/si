@@ -1,0 +1,67 @@
+{
+  "status": "fixed_original_population_and_frozen_replay_accepted_native_adoption_pending",
+  "source_commit": "3183a76de906d496cb80b2532eb84cf5c0f9eab5",
+  "operation": 6308,
+  "run": 36476527174,
+  "evidence": {
+    "actual_aws_writes": 0,
+    "comparison_status_counts": {
+      "a_observed_presence_before_b_bounded_entry": 29,
+      "b_observed_presence_before_a_bounded_entry": 1,
+      "unresolved_prior_observation_missing": 25
+    },
+    "compiler_hashes": {
+      "genealogy_research_store": "ffba62dbe5e8863d99493957302b2d32ab1c4b82c52971aed4e03e8478fda158",
+      "genealogy_research_model": "9d8070e3f1a463b396c89c974942ffecaecc900f5a533ece6112c0bd872634de",
+      "genealogy_public_archive": "ce511751bac9e3e6d9258b00c9e368b6ad40cf71f135f5cc1968070508835b46",
+      "genealogy_registration_model": "9040854ce48b81aa9ef5d5233321174e39ca152ac44517d04bb9896bb36558d3",
+      "genealogy_capture_timing": "ad4cb15c57870d99c3771acd3306bb9c8fa49893612f0c82d49b1512a232b8b1",
+      "prospective_journal": "3e9d94774ee05c0ded937203aaea1853a05dd4ba960253b93013996a3eaf8736",
+      "research_identity": "8924774e31a65ccfccc273317db1822e9beba791b225323212195a39b2acf9ae",
+      "instrument_identity": "a36f25f9e97d31c30e50c86f5c8b5ca902ae90fe50d4078a4b26fd247d9c54a9",
+      "private_artifact": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+      "managed_secret": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+    },
+    "complete_candidate_seconds": 74.568,
+    "complete_input_sha256": "aa2f9c68d0f3fd9a9e5da65ef465bc2648f61c21b6e258df1e045c3ee313fe9f",
+    "complete_output_sha256": "6b37529b9ca7d1b04c85fbbf4a3bfe973a50a103de2024e04b9003cd6ddf823f",
+    "contract": "signal-genealogy-research.v2",
+    "coverage": {
+      "captures": 251,
+      "complete_capture_scans": 46,
+      "partial_capture_scans": 205,
+      "registered_records": 3305,
+      "retained_records": 1286,
+      "excluded_records": 2019,
+      "ineligible_source_snapshots": 15096,
+      "identity_partial_source_snapshots": 1010,
+      "first_observed_groups": 333,
+      "possible_comparisons": 55
+    },
+    "cutoff": "2026-09-28T18:48:09.350067+00:00",
+    "downstream_output_reads": 0,
+    "exclusion_counts": {
+      "crypto_source_not_supported_by_equity_measurement_protocol": 27,
+      "derived_research_summary_is_not_an_original_forecast": 1992
+    },
+    "fake_retained_artifact_count": 13,
+    "forecast_qualified": false,
+    "head_bytes": 30362,
+    "input_bytes": 27587539,
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "original_collection_seconds": 66.331,
+    "output_bytes": 8268319,
+    "peak_runner_rss_kib": 359264,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0,
+    "scope": "Complete fixed original public-journal population, compile and in-memory retention/replay. Runner resource measurements are not native Lambda capacity proof. No actual public publication, account data, price request or private learning ledger.",
+    "whole_replay_equal": true
+  },
+  "capacity_limit": "Runner peak RSS and elapsed time are not native Lambda capacity proof. Full-history inputs grow with the archive. Incremental retained validation and bounded compilation are required before treating this as a sustainable native pipeline.",
+  "native_deployed": false,
+  "public_head_published": false,
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
