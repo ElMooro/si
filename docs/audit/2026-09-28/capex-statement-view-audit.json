@@ -1,0 +1,60 @@
+{
+  "checked_at": "2026-09-28T20:58:07.613174+00:00",
+  "status": "tested_preview_production_pending",
+  "predecessor": {
+    "bytes": 8600,
+    "sha256": "0d1523d2dd4f6dd5d80dddd4c6c5d420dc6d9c5dc99811348ae376c94b5b2af3"
+  },
+  "source_packet": {
+    "status": "published_accounting_projections_reproduced",
+    "bytes": 4436673,
+    "sha256": "3039b8a37b5781e96b181e1f71d9aeb2eb40c7c6105bcf9588183fe51ff08eee",
+    "generated_at": "2026-09-28T20:41:03+00:00",
+    "version": "1.2.0",
+    "issuer_rows": 159,
+    "observations": 1267,
+    "provider_originals_replayed": false,
+    "original_sec_filings_replayed": false,
+    "point_in_time_availability_verified": false
+  },
+  "changes": [
+    "All issuer occurrences retain original rows indices, including duplicates",
+    "All individual provider rows expose signs, currencies, dates and source coordinates",
+    "Fiscal and calendar year tags remain separate; missing starts and unsupported annual totals stay unavailable",
+    "Producer issues are attached only to a unique matching original row",
+    "Selected parsed issuer opens lazily and is independent of annual-table filtering"
+  ],
+  "validation": {
+    "frontend": 1691,
+    "deployment_static": 534,
+    "candidate_shell": 12,
+    "native_capex": 24,
+    "page_graphs": 599,
+    "registry_check": true,
+    "page_contract_check": true
+  },
+  "preview": {
+    "whole_real_packet": true,
+    "issuers": 159,
+    "statements": 1267,
+    "aapl_rows": 8,
+    "aapl_first_signed_amount": -2455000000,
+    "currency": "USD",
+    "end": "2026-06-27",
+    "fiscal_year": "2026",
+    "start": null,
+    "desktop_width": 1265,
+    "desktop_viewport": 1280,
+    "mobile_width": 375,
+    "mobile_viewport": 390,
+    "mobile_region_width": 294,
+    "keyboard_disclosure": true,
+    "annual_filter_preserves_statement_selection": true,
+    "console_errors": [],
+    "initial_preview_issue": "Preview reused cached helper; refreshed with the helper content hash. Production build fingerprints the asset."
+  },
+  "engine_calculations_changed": false,
+  "new_provider_requests": 0,
+  "native_invocations": 0,
+  "investment_authority": false
+}

@@ -21,23 +21,12 @@ th{font-size:10px;color:var(--fg3);text-transform:uppercase;cursor:pointer;user-
 input{width:100%;max-width:360px}label{display:block;margin-bottom:6px;color:var(--fg2)}
 .table-region{overflow:auto;max-width:100%;border:1px solid var(--bd);border-radius:8px}table{min-width:850px}
 :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto}#kpis{overflow-wrap:anywhere}
-.statement-panel{margin:20px 0 28px;padding:16px;border:1px solid var(--bd);border-radius:8px;background:var(--card)}h2{font-size:17px;margin:0 0 8px}.statement-panel select{width:100%;max-width:420px;padding:9px;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:6px}.statement-scroll{overflow:auto;max-width:100%;max-height:480px}.statement-scroll td{vertical-align:top;text-align:left}.statement-scroll th{cursor:default}.statement-panel summary{cursor:pointer}#capex-statement-status{margin-top:12px}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Capex pulse</h1>
 <p class="sub">Reported capital expenditure with its currency, calendar window and calculation status. Unverified legacy values are labelled below. A blank cell is unavailable, not zero. Click or press Enter on a header to sort; unavailable values stay last.</p>
 <div class="kpis" id="kpis"></div>
-<section class="statement-panel" aria-labelledby="capex-statement-heading">
-<h2 id="capex-statement-heading">Individual reported statements</h2>
-<p class="sub">Inspect reported capital expenditure even when an annual window cannot be established. Missing start dates remain unavailable; no quarter lengths or annual growth are inferred.</p>
-<label for="capex-statement-issuer">Issuer statement record</label>
-<select id="capex-statement-issuer" disabled><option value="">Loading issuer records</option></select>
-<p class="sub" id="capex-statement-status" role="status">Loading statement population.</p>
-<div id="capex-statements"></div>
-<details id="capex-statement-record" hidden><summary>Selected parsed issuer and source rows</summary><pre id="capex-statement-original" tabindex="0">Choose an issuer.</pre></details>
-</section>
-<h2>Annual window calculations</h2>
 <label for="q">Filter ticker or sector</label>
 <input id="q" placeholder="filter ticker or sector" autocomplete="off">
 <div id="board" class="table-region" role="region" aria-label="Capital expenditure records, scroll horizontally for every column" tabindex="0"><div class="loading">Loading /data/capex-pulse.json</div></div>
@@ -49,7 +38,6 @@ input{width:100%;max-width:360px}label{display:block;margin-bottom:6px;color:var
 <b>² Annual change:</b> requires two complete adjacent calendar-year windows for the same issuer and currency. A source tag alone is not verified growth. Original SEC statements and first-release vintages remain unverified. Market-cap intensity and forecast rankings are withheld.</div>
 </div>
 <script src="/jh-table-values.js"></script>
-<script src="/jh-capex-observations.js"></script>
 <script>
 var V=JHTableValues;
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -88,8 +76,7 @@ function paint(){
 (async function(){
   var d;
   try{var received=await V.load("/data/capex-pulse.json");document.getElementById("original").textContent=received.raw;d=received.packet;}
-  catch(e){document.getElementById("original").textContent=typeof e.original_text==="string"?e.original_text:"Unavailable";document.getElementById("board").textContent="Publication unavailable: "+e.message;document.getElementById('capex-statement-status').textContent='Statement publication unavailable: '+e.message;return;}
-  JHCapexObservations.mount(d);
+  catch(e){document.getElementById("original").textContent=typeof e.original_text==="string"?e.original_text:"Unavailable";document.getElementById("board").textContent="Publication unavailable: "+e.message;return;}
   if(!Array.isArray(d.rows)){document.getElementById("board").textContent="Received rows population is missing or malformed; see the complete original.";return;}
   PACK=d;ROWS=d.rows.filter(function(row){return row&&typeof row==="object"&&!Array.isArray(row);}).map(function(row){var w=row.current_window||{};return Object.assign({},row,{window_start:w.start_date,window_end:w.end_date,measurement_status:w.status||'Legacy measurement unverified'});});MALFORMED=d.rows.length-ROWS.length;
   var m=d.market||{},h=d.hyperscalers||{};

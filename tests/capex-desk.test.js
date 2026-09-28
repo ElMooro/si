@@ -4,7 +4,7 @@ const source=fs.readFileSync(path.join(root,'capex-pulse.html'),'utf8');
 async function render(packet,error){
  const nodes=new Map(),calls=[];
  const get=id=>{if(!nodes.has(id))nodes.set(id,{value:'',innerHTML:'',textContent:''});return nodes.get(id);};
- const raw=JSON.stringify(packet),context=vm.createContext({console,document:{getElementById:get,querySelectorAll:()=>[]},encodeURIComponent,JHTableValues:{...V,load:async p=>{calls.push(p);if(error)throw error;return{packet,raw};}}});
+ const document={getElementById:get,querySelectorAll:()=>[]},raw=JSON.stringify(packet),context=vm.createContext({console,document,encodeURIComponent,JHCapexObservations:{mount:p=>require('../jh-capex-observations.js').mount(p,document)},JHTableValues:{...V,load:async p=>{calls.push(p);if(error)throw error;return{packet,raw};}}});
  for(const m of source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))vm.runInContext(m[1],context);
  for(let i=0;i<3;i++)await new Promise(r=>setImmediate(r));return{get,calls,context,raw};
 }
