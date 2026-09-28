@@ -36,6 +36,81 @@ function page(file,loader,scripts={}){
 }
 const raw=p=>({packet:p,raw:JSON.stringify(p)});
 
+function accountingStatements(){
+ const observation={source_row:0,date:'2026-06-27',start_date:null,identity:{currency:'JPY',period:'Q3',fiscal_year:'2026',cik:'123',filing_date:'2026-07-31',accepted_at:'2026-07-31 06:01:02'},issues:['explicit_quarter_duration_missing'],duration_verified:false,
+  values:{netIncome:0,revenue:700,grossProfit:null},original:{unmapped:'<img src=x onerror=alert(1)>',precise:'9007199254740993'}};
+ const row={ticker:'REPEAT',name:'Issuer <one>',status:'accounting_alignment_unavailable',amounts:{},measurements:{},statement_observations:{income:[observation],cash_flow:[{...observation,values:{operatingCashFlow:0,netCashProvidedByOperatingActivities:false,capitalExpenditure:-25}}],balance_sheet:[{...observation,issues:[],values:{totalAssets:9007199254740992,netReceivables:13}}]},unknown:{retained:true}};
+ return {measurement_contract:'earnings-accounting-measurements.v1',generated_at:'2026-09-28T14:18:41Z',as_of:'old publication',issuer_rows:[row,null,{...structuredClone(row),name:'Issuer two',statement_observations:{income:[{...structuredClone(observation),values:{netIncome:23,revenue:71,grossProfit:7}}],cash_flow:[],balance_sheet:[]}}]};
+}
+
+test('both accounting desks expose reported statements without manufacturing annual amounts',async()=>{
+ for(const file of ['earnings-quality.html','cash-profitability.html']){
+  const p=accountingStatements(),s=page(file,async()=>raw(p));await flush();
+  assert.deepEqual(s.calls,['/data/earnings-quality.json']);assert.match(s.get('statement-status').textContent,/2 selectable issuer occurrences; 1 malformed/);
+  assert.match(s.get('statement-issuer').innerHTML,/issuer_rows\[0\]/);assert.match(s.get('statement-issuer').innerHTML,/issuer_rows\[2\]/);
+  assert.equal(s.get('statement-record').hidden,true);assert.equal(s.get('statements').innerHTML,'');
+  s.get('statement-issuer').value='0';s.get('statement-issuer').onchange();
+  const html=s.get('statements').innerHTML;assert.match(html,/JPY/);assert.match(html,/2026-06-27/);assert.match(html,/2026-07-31 06:01:02/);
+  assert.match(html,/Duration unverified; annual aggregation unavailable/);assert.match(html,/Instant balance/);assert.match(html,/Not required for instant/);
+  assert.match(html,/<td>0<\/td>/);assert.match(html,/<td>-25<\/td>/);assert.match(html,/Unavailable<\/td><td>13<\/td>/);assert.ok(!html.includes('9007199254740992'));
+  assert.match(html,/\/issuer_rows\/0\/statement_observations\/income\/0/);assert.match(html,/\/issuer_rows\/0\/acquisitions\/income\/response\/0/);
+  assert.match(html,/explicit_quarter_duration_missing/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+  assert.ok(!s.get('board').innerHTML.includes('<td>700'));assert.ok((s.get('board').innerHTML+s.get('kpis').textContent).includes(p.generated_at));
+  assert.ok(!s.get('statement-original').textContent.includes('unmapped'));s.get('statement-record').open=true;s.get('statement-record').ontoggle();
+  assert.deepEqual(JSON.parse(s.get('statement-original').textContent),p.issuer_rows[0]);assert.ok(!html.includes('<img'));
+ }
+});
+
+test('selected duplicate issuer stays bound through annual filtering, sorting and issuer changes',async()=>{
+ for(const file of ['earnings-quality.html','cash-profitability.html']){
+  const p=accountingStatements(),s=page(file,async()=>raw(p));await flush();
+  s.get('statement-issuer').value='2';s.get('statement-issuer').onchange();const before=s.get('statements').innerHTML;
+  assert.match(before,/Issuer two/);assert.match(before,/\/issuer_rows\/2\/statement_observations\/income\/0/);
+  s.get('q').value='NOT_FOUND';s.get('q').oninput();assert.equal(s.get('statements').innerHTML,before);
+  s.get('q').value='';s.get('q').oninput();s.get('board').headers[0].onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.get('statements').innerHTML,before);
+  s.get('statement-record').open=true;s.get('statement-record').ontoggle();assert.deepEqual(JSON.parse(s.get('statement-original').textContent),p.issuer_rows[2]);
+  s.get('statement-issuer').value='0';s.get('statement-issuer').onchange();assert.equal(s.get('statement-record').open,false);assert.ok(!s.get('statement-original').textContent.includes('Issuer two'));
+  s.get('statement-record').open=true;s.get('statement-record').ontoggle();assert.deepEqual(JSON.parse(s.get('statement-original').textContent),p.issuer_rows[0]);
+  s.get('statement-issuer').value='01';s.get('statement-issuer').onchange();assert.equal(s.get('statement-record').hidden,true);assert.equal(s.get('statements').innerHTML,'');
+ }
+});
+
+test('statement drilldown retains malformed, unknown and hostile observations without discarding the issuer',async()=>{
+ const p=accountingStatements();p.issuer_rows[0].statement_observations.income.push(false,{values:{netIncome:true},source_row:false,issues:[{unexpected:'<svg onload=alert(1)>'}]});
+ p.issuer_rows[0].statement_observations.cash_flow={malformed:true};p.issuer_rows[0].statement_observations.other=[{unknown:'kept'}];
+ const s=page('earnings-quality.html',async()=>raw(p));await flush();s.get('statement-issuer').value='0';s.get('statement-issuer').onchange();
+ const html=s.get('statements').innerHTML;assert.match(html,/3 received observation occurrences/);assert.match(html,/Malformed observation at \/issuer_rows\/0\/statement_observations\/income\/1/);
+ assert.match(html,/Population unavailable or malformed at \/issuer_rows\/0\/statement_observations\/cash_flow/);assert.match(html,/provider response coordinate unavailable/);
+ assert.match(html,/&lt;svg/);assert.ok(!html.includes('<svg'));assert.match(html,/Issue list unavailable|unexpected/);
+ s.get('statement-record').open=true;s.get('statement-record').ontoggle();assert.deepEqual(JSON.parse(s.get('statement-original').textContent),p.issuer_rows[0]);
+ assert.equal(s.get('original').textContent,JSON.stringify(p));
+});
+
+test('legacy and malformed accounting packets cannot masquerade as individual statements',async()=>{
+ for(const p of [{all_ranked:[{ticker:'OLD',quality_score:99}]},{measurement_contract:'earnings-accounting-measurements.v1',issuer_rows:{}},{measurement_contract:'earnings-accounting-measurements.v1',issuer_rows:[]}]){
+  const s=page('cash-profitability.html',async()=>raw(p));await flush();assert.equal(s.get('statement-issuer').disabled,true);assert.equal(s.get('statement-record').hidden,true);
+  assert.ok(!s.get('statements').innerHTML.includes('<table>'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ }
+});
+
+test('accounting statement failures clear the loading message without another request',async()=>{
+ for(const file of ['earnings-quality.html','cash-profitability.html']){
+  const s=page(file,async()=>{throw Error('HTTP 403');});await flush();
+  assert.equal(s.get('statement-status').textContent,'Statement observations unavailable: HTTP 403');assert.equal(s.get('board').textContent,'HTTP 403');
+  assert.deepEqual(s.calls,['/data/earnings-quality.json']);
+ }
+});
+
+test('complete original accounting pages reproduce the missing statement drilldown',async()=>{
+ const expected={'earnings-quality.html':'1aff9f97ecb28f483686fdb02b0aeb97a41ffb1274878d7daa1a8bf73e6d8a53','cash-profitability.html':'c7f4828f1a2e0610ded1fa25b90be02bc0fa3b6525a433d0568d68a741636294','jh-earnings-observations.js':'c806f50b1ef82400e1fc259f4cce80b8b0bc5100de8530036280de233dbd8f5c'};
+ for(const [file,hash]of Object.entries(expected))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'tests/fixtures/pre-statement-drilldown-'+file+'.txt'))).digest('hex'),hash);
+ for(const file of ['earnings-quality.html','cash-profitability.html']){
+  const old=page('tests/fixtures/pre-statement-drilldown-'+file+'.txt',async()=>raw(accountingStatements()));await flush();
+  assert.ok(!old.html.includes('id="statement-issuer"'));assert.ok(!old.get('board').innerHTML.includes('700'));
+  const current=fs.readFileSync(path.join(root,file),'utf8');assert.match(current,/label for="statement-issuer"/);assert.match(current,/Exact received JSON/);assert.match(current,/role="region"/);
+ }
+});
+
 test('Backlog exposes the whole actual issuer, concept, period and source populations',async()=>{
  const M=require('../jh-backlog-observations.js'),f=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/backlog-measurements-synthetic.json'),'utf8')),p=f.packet,m=M.model(p);
  assert.equal(m.issuers.length,2);assert.equal(m.measurements.filter(r=>r.family==='Legacy').length,1);

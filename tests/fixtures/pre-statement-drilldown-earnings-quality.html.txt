@@ -14,27 +14,11 @@ td.l,th.l{text-align:left}
 .pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 #board{max-width:100%;overflow:auto}#board table{min-width:1300px}#board td{white-space:nowrap}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
-
-#statement-evidence{margin:20px 0 26px;padding:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);min-width:0}h2{font-size:18px;margin:12px 0 8px}h3{font-size:15px;margin:22px 0 5px}
-#statement-issuer{max-width:100%;width:540px;padding:10px;margin:8px 0 12px;border:1px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--fg)}
-.statement-scroll{max-width:100%;overflow:auto;margin-bottom:16px}.statement-scroll table{min-width:1300px}.statement-scroll th,.statement-scroll td{text-align:left;white-space:nowrap}.statement-scroll th{cursor:default;color:var(--fg2)}
-select:focus-visible,summary:focus-visible,.statement-scroll:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}#statement-status{color:var(--fg2)}#statement-record{margin-top:18px}#statements>.sub{overflow-wrap:anywhere}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Earnings quality</h1>
 <p class="sub">Inspect reported accounting amounts, cash conversion and dated statement comparisons. Period-end and average-assets formulas remain distinct. Legacy scores are unverified; no fraud finding, return forecast or portfolio allocation follows from this table.</p>
-<section id="statement-evidence" aria-labelledby="statement-heading">
-<h2 id="statement-heading">Individual statement observations</h2>
-<p class="sub">Inspect provider-reported values even when an annual comparison is unavailable. Missing explicit quarter starts prevent annual aggregation; a recent publication does not make an old statement current. Values below do not establish a quality rank or investment call.</p>
-<p id="statement-status" role="status">Waiting for the published packet.</p>
-<label for="statement-issuer">Issuer and source occurrence</label><br>
-<select id="statement-issuer" disabled><option value="">Choose an issuer occurrence</option></select>
-<div id="statements">Choose an issuer to inspect its statements.</div>
-<details id="statement-record" hidden><summary>Inspect selected parsed issuer, including all received fields</summary><p class="sub">This is a parsed view. Exact received JSON, including numeric spelling and precision, is preserved in the complete packet below. Values outside the browser’s safe numeric range are unavailable in the tables.</p><pre id="statement-original" tabindex="0"></pre></details>
-</section>
-<h2>Annual comparisons</h2>
-<p class="sub">An unavailable comparison means the producer could not establish comparable statement windows. Inspect individual statements above; missing annual amounts are not zero.</p>
 <input id="q" aria-label="Filter ticker or company" placeholder="filter ticker" autocomplete="off">
 <div id="board" role="region" aria-label="Reported earnings quality rows" tabindex="0">Loading /data/earnings-quality.json</div>
 <details><summary>Complete received earnings-quality packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
@@ -54,9 +38,8 @@ function cmp(a,b,k,dir){
 }
 (async function(){
   var d=null, SORT="ticker", DIR=1;
-  try{var received=await JHTableValues.load("/data/earnings-quality.json");d=received.packet;document.getElementById("original").textContent=received.raw;}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("statement-status").textContent="Statement observations unavailable: "+e.message;document.getElementById("board").textContent=e.message;return;}
+  try{var received=await JHTableValues.load("/data/earnings-quality.json");d=received.packet;document.getElementById("original").textContent=received.raw;}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
   var rows=JHEarningsObservations.rows(d);
-  JHEarningsObservations.mount(d);
   if(!Array.isArray(rows)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
   var malformed=rows.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
   rows=rows.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);});
@@ -79,7 +62,7 @@ function cmp(a,b,k,dir){
       h+="<td>"+n(x.quality_score,1)+"</td>";
       cols.slice(7).forEach(function(c){h+="<td>"+(c[2]==="l"?esc(typeof x[c[0]]==="string"?x[c[0]]:""):n(x[c[0]],2))+"</td>";});h+="</tr>";
     });
-    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" received rows. "+malformed+" malformed rows retained in the original packet. Producer publication "+esc(d.generated_at||d.as_of||"unavailable")+"; underlying period freshness is unverified. Click headers or press Enter/Space to sort.</p>";
+    document.getElementById("board").innerHTML=h+"</tbody></table><p class=sub>"+list.length+" of "+rows.length+" received rows. "+malformed+" malformed rows retained in the original packet. Producer publication "+esc(d.as_of||"unavailable")+"; underlying period freshness is unverified. Click headers or press Enter/Space to sort.</p>";
     JHTableValues.bindSort(document.querySelectorAll("#board th[data-k]"),SORT,DIR,function(k){if(SORT===k)DIR=-DIR;else{SORT=k;DIR=k==="ticker"||k==="name"?1:-1;}paint();});
   }
   if(!rows.length){document.getElementById("board").textContent="Received population has no displayable rows. Malformed rows: "+malformed+". Inspect the complete packet.";return;}

@@ -15,27 +15,11 @@ th{cursor:pointer;user-select:none;color:var(--fg3);font-size:10px;text-transfor
 .foot{margin-top:22px;color:var(--fg3);font-size:12px;line-height:1.65;border-top:1px solid var(--bd);padding-top:14px}
 input{background:#0a0e14;border:1px solid var(--bd);color:var(--fg);padding:7px 10px;border-radius:8px;margin:8px 0}
 #board{max-width:100%;overflow:auto}#board table{min-width:1300px}#board td{white-space:nowrap}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto}th:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
-
-#statement-evidence{margin:20px 0 26px;padding:16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);min-width:0}h2{font-size:18px;margin:12px 0 8px}h3{font-size:15px;margin:22px 0 5px}
-#statement-issuer{max-width:100%;width:540px;padding:10px;margin:8px 0 12px;border:1px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--fg)}
-.statement-scroll{max-width:100%;overflow:auto;margin-bottom:16px}.statement-scroll table{min-width:1300px}.statement-scroll th,.statement-scroll td{text-align:left;white-space:nowrap}.statement-scroll th{cursor:default;color:var(--fg2)}
-select:focus-visible,summary:focus-visible,.statement-scroll:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}#statement-status{color:var(--fg2)}#statement-record{margin-top:18px}#statements>.sub{overflow-wrap:anywhere}
 </style></head><body>
 <div class="wrap">
 <h1>Cash <span>profitability</span></h1>
 <p class="sub">Inspect reported net income, operating cash flow and derived free cash flow in their received currency and explicit statement window. Missing values stay blank. These measurements do not establish earnings quality, a return forecast or position size.</p>
 <div id="kpis"></div>
-<section id="statement-evidence" aria-labelledby="statement-heading">
-<h2 id="statement-heading">Individual statement observations</h2>
-<p class="sub">Inspect provider-reported values even when an annual comparison is unavailable. Missing explicit quarter starts prevent annual aggregation; a recent publication does not make an old statement current. Values below do not establish a quality rank or investment call.</p>
-<p id="statement-status" role="status">Waiting for the published packet.</p>
-<label for="statement-issuer">Issuer and source occurrence</label><br>
-<select id="statement-issuer" disabled><option value="">Choose an issuer occurrence</option></select>
-<div id="statements">Choose an issuer to inspect its statements.</div>
-<details id="statement-record" hidden><summary>Inspect selected parsed issuer, including all received fields</summary><p class="sub">This is a parsed view. Exact received JSON, including numeric spelling and precision, is preserved in the complete packet below. Values outside the browser’s safe numeric range are unavailable in the tables.</p><pre id="statement-original" tabindex="0"></pre></details>
-</section>
-<h2>Annual comparisons</h2>
-<p class="sub">An unavailable comparison means the producer could not establish comparable statement windows. Inspect individual statements above; missing annual amounts are not zero.</p>
 <input id="q" aria-label="Filter ticker or company" placeholder="filter ticker">
 <div id="board" role="region" aria-label="Reported cash profitability rows" tabindex="0">Loading earnings-quality…</div>
 <details><summary>Complete received earnings-quality packet</summary><pre id="original" tabindex="0">Unavailable</pre></details>
@@ -56,15 +40,14 @@ select:focus-visible,summary:focus-visible,.statement-scroll:focus-visible{outli
     return JHTableValues.compare(a,b,k,dir,["ticker","reported_currency","window_start","window_end","measurement_status","source_record"].includes(k)?"text":"number");
   }
   var received;
-  try{received=await JHTableValues.load("/data/earnings-quality.json");}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("statement-status").textContent="Statement observations unavailable: "+e.message;document.getElementById("board").textContent=e.message;return;}
+  try{received=await JHTableValues.load("/data/earnings-quality.json");}catch(e){if(typeof e.original_text==='string')document.getElementById('original').textContent=e.original_text;document.getElementById("board").textContent=e.message;return;}
   document.getElementById("original").textContent=received.raw;
   var d=received.packet,source=JHEarningsObservations.rows(d);
-  JHEarningsObservations.mount(d);
   if(!Array.isArray(source)){document.getElementById("board").textContent="Published population is malformed; inspect the original packet.";return;}
   var malformed=source.filter(function(x){return !x||typeof x!=="object"||Array.isArray(x);}).length;
   var rows=source.filter(function(x){return x&&typeof x==="object"&&!Array.isArray(x);}).map(function(x){return Object.assign({},x,{ticker:x.ticker,name:x.name,sloan:x.sloan_accruals_pct_assets,cash_conv:x.cash_conversion_ratio,dsri:x.dsri_beneish,quality_score:x.quality_score});});
   var SORT="ticker", DIR=1;
-  document.getElementById("kpis").textContent=rows.length+" received rows; "+malformed+" malformed rows retained in the original packet. Producer publication "+(d.generated_at||d.as_of||"unavailable")+". Source-period freshness is unverified.";
+  document.getElementById("kpis").textContent=rows.length+" received rows; "+malformed+" malformed rows retained in the original packet. Producer publication "+(d.as_of||"unavailable")+". Source-period freshness is unverified.";
   var cols=[["ticker","Ticker","l"],["sloan","End-assets gap %",""],["cash_conv","Cash conv",""],["dsri","DSRI",""],["quality_score","Legacy score (unverified)",""]];
   cols=cols.concat([["reported_currency","Currency","l"],["reported_net_income","Reported NI",""],["reported_ocf","Reported OCF",""],["reported_fcf","Derived FCF",""],["average_assets_gap_pct","Average-assets gap %",""],["window_start","Window start","l"],["window_end","Window end","l"],["measurement_status","Measurement status","l"],["source_record","Source record","l"]]);
   function paint(){

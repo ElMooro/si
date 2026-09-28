@@ -1,0 +1,65 @@
+{
+  "checked_at": "2026-09-28T14:37:37.329388+00:00",
+  "purpose": "Expose retained individual statement observations separately from unavailable annual comparisons",
+  "predecessors": {
+    "earnings-quality.html": {
+      "bytes": 6868,
+      "sha256": "1aff9f97ecb28f483686fdb02b0aeb97a41ffb1274878d7daa1a8bf73e6d8a53"
+    },
+    "cash-profitability.html": {
+      "bytes": 6647,
+      "sha256": "c7f4828f1a2e0610ded1fa25b90be02bc0fa3b6525a433d0568d68a741636294"
+    },
+    "jh-earnings-observations.js": {
+      "bytes": 1665,
+      "sha256": "c806f50b1ef82400e1fc259f4cce80b8b0bc5100de8530036280de233dbd8f5c"
+    }
+  },
+  "source_publication": {
+    "generated_at": "2026-09-28T14:18:41.606344+00:00",
+    "bytes": 9802530,
+    "sha256": "c2a27e7d8d2c7b6454f583a6321bfbb573e9c89ad4e197da240ad812bc45e563",
+    "issuer_occurrences": 120,
+    "statement_observations": 2880,
+    "aligned_annual_issuers": 0
+  },
+  "changes": [
+    "Per-occurrence issuer selector preserves duplicate tickers and original coordinates",
+    "Income, cash flow and instant balances retain reported values, currencies, dates, issues and acquisition response row coordinates",
+    "Whole selected parsed issuer opens lazily; exact complete received JSON remains accessible",
+    "Unsafe, null and boolean amounts stay unavailable; annual aggregation is not inferred from fiscal-quarter labels",
+    "Annual sorting and filtering cannot silently change the selected issuer evidence"
+  ],
+  "validation": {
+    "frontend": 1667,
+    "deployment_static": 474,
+    "candidate_shell": 12,
+    "native_earnings_groups": 19,
+    "page_graphs": 599,
+    "registry_engines": 893,
+    "registry_routes": 599,
+    "wired_feeds": 143
+  },
+  "preview": {
+    "source": "Complete real normal public publication, locally served",
+    "all_120_issuers": true,
+    "AAPL_statements": [
+      8,
+      8,
+      8
+    ],
+    "keyboard_issuer_selection_and_disclosure": true,
+    "separate_annual_filter": true,
+    "narrow_viewport": 390,
+    "document_width": 375,
+    "statement_region_width": 309,
+    "whole_packet_characters": 9802530,
+    "initial_preview_issue": "Cached predecessor helper lacked mount; preview asset version corrected. Production build fingerprints scripts.",
+    "current_page_console_errors": []
+  },
+  "new_provider_requests": 0,
+  "native_invocations": 0,
+  "engine_measurement_changes": false,
+  "investment_authority": false,
+  "production_verified": false
+}
