@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-09-28T14:12:00.916489+00:00",
+  "failed_acceptance_run": 36433480006,
+  "failure_report_commit": "45939b16492480d1d26b0d55303332a3a357777d",
+  "reproduced_failure": "Native handler used current UTC date; fixture asserted the September 27 daily archive, causing KeyError after midnight.",
+  "repair": "Pin the native store clock in fixture setup while preserving the complete handler, source, authority and history assertions.",
+  "native_source_changed": false,
+  "expected_release_policy": "Workflow redeploys a function when its tests change, so existing full function-path commit resolution remains appropriate.",
+  "validation": {
+    "native_research_groups": 13,
+    "historical_privacy_eurodollar_and_signal_board_checks": "passed",
+    "deployment_static": 474,
+    "candidate_shell": 12
+  },
+  "public_packet": {
+    "bytes": 4241,
+    "sha256": "54baf9b0b707f465744c3e68630cbfa0538a77808c7fe8f51e99f22760b9c5ce",
+    "contract": "commentary-research.v1",
+    "generated_at": "2026-09-28T14:00:49.263539+00:00",
+    "source_coverage": {
+      "complete_for_declared_inputs": true,
+      "complete_json": 4,
+      "declared": 4,
+      "unreviewed_not_read": 0,
+      "valid_publication_clocks": 2
+    }
+  },
+  "stored_input_replay_verified": false
+}

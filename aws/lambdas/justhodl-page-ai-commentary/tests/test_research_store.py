@@ -3,6 +3,7 @@ from pathlib import Path
 from io import BytesIO
 from copy import deepcopy
 from types import ModuleType,SimpleNamespace
+from datetime import datetime,timezone
 from unittest.mock import patch
 import ast,importlib.util,json,sys,unittest
 ROOT=Path(__file__).resolve().parents[4];SOURCE=Path(__file__).resolve().parents[1]/'source'
@@ -44,6 +45,14 @@ def native(client):
 
 
 class Tests(unittest.TestCase):
+    def setUp(self):
+        class FixtureClock(datetime):
+            @classmethod
+            def now(cls,tz=None):
+                fixed=datetime(2026,9,27,10,tzinfo=timezone.utc)
+                return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
+        clock=patch.object(store,'datetime',FixtureClock);clock.start();self.addCleanup(clock.stop)
+
     def fixture(self):
         self.at='2026-09-27T10:00:00+00:00';self.page='13f';self.head='data/ai-commentary/13f.json';self.archive='data/ai-commentary/history/13f/2026-09-27.json'
         self.old=store.encode({'page':self.page,'generated_at':'2026-09-26T14:00:00Z','commentary':{'headline':'OLD EXPLICITLY SYNTHETIC'},'unknown':[None,0,False]})
