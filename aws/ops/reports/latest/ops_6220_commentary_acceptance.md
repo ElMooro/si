@@ -1,27 +1,14 @@
 
-**Status:** failure  
-**Duration:** 6.6s  
-**Finished:** 2026-09-28T14:07:02+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/staged/ops_6220_commentary_acceptance.py", line 24, in main
-    subprocess.run([sys.executable,str(ROOT/'aws/lambdas'/FN/'tests/run_tests.py')],cwd=ROOT,check=True)
-  File "/opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/subprocess.py", line 571, in run
-    raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command '['/opt/hostedtoolcache/Python/3.12.14/x64/bin/python3', '/home/runner/work/si/si/aws/lambdas/justhodl-page-ai-commentary/tests/run_tests.py']' returned non-zero exit status 1.
-
-```
+**Status:** success  
+**Duration:** 6.3s  
+**Finished:** 2026-09-28T14:15:58+00:00  
 
 ## Data
 
-| actual_runtime_before_validation |
-|---|
-| {'code_sha256': 'Xlff+Uam4o5VSty3QVyEoZKm4txNJNBEjG1Nl75Zrxc=', 'source_files_checked': 15, 'handler_bytes': 20270, 'timeout': 300, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': 'ec93564b571c4b13d79bd1e721dcdeab0061efd9'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-page-ai-commentary-daily', 'state': 'ENABLED', 'expression': 'cron(0 14 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-page-ai-commentary', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} |
+| account_reads | actual_runtime | actual_runtime_before_validation | all_denied | anonymous_origins_checked | archive_writes | attempt_outcome_counts | compiler_sha256 | expected_commit | failures | learning_log_reads | model_requests | native_invocations | native_publication | protected_paths_checked | provider_requests | public_writes | schedule_changes | scope |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  | {'code_sha256': 'X63zECk3ucb9J2/9RbFIPmbrllUZE1lei+MiKnkCQRQ=', 'source_files_checked': 15, 'handler_bytes': 20270, 'timeout': 300, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': '978039b868998f0b5ed414d66a56da0fc17bea1c'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-page-ai-commentary-daily', 'state': 'ENABLED', 'expression': 'cron(0 14 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-page-ai-commentary', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| 0 | {'code_sha256': 'X63zECk3ucb9J2/9RbFIPmbrllUZE1lei+MiKnkCQRQ=', 'source_files_checked': 15, 'handler_bytes': 20270, 'timeout': 300, 'memory_mb': 512, 'receipt': {'status': 'matched', 'commit': '978039b868998f0b5ed414d66a56da0fc17bea1c'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-page-ai-commentary-daily', 'state': 'ENABLED', 'expression': 'cron(0 14 ? * MON-FRI *)', 'native_targets': 1}], 'function_name': 'justhodl-page-ai-commentary', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512} |  | True | 4 | 0 | {'404': 2, '403': 2} | {'lambda_function.py': '6c01f73d1b666981e477734d71b624b7b55e17221efecb3f6aadb0599fc3603c', 'commentary_store.py': '044953953abead4b2e24d147ce1dcc6acc3e5acc9eb824e0b7caa9cef2a82cef', 'commentary-sources.json': '9a5f9c1a4bda1fa77adcca96d09ebbe0fe09cfbb387651688c38c2ca55b959ef'} | 978039b868998f0b5ed414d66a56da0fc17bea1c | [] | 0 | 0 | 0 | {'status': 'complete_stored_inputs_and_inventory_replayed', 'generated_at': '2026-09-28T14:00:49.263539+00:00', 'bytes': 4241, 'sha256': '54baf9b0b707f465744c3e68630cbfa0538a77808c7fe8f51e99f22760b9c5ce', 'page': '13f', 'replay': {'status': 'matched', 'whole_input_bodies': 4, 'declared_inputs': 4, 'projection_sha256': '13dd5d62d450de7ad91103245615fd0eadb2c211238ca332389797b1826af9bf', 'model_api_calls': 0}, 'source_coverage': {'complete_for_declared_inputs': True, 'complete_json': 4, 'declared': 4, 'unreviewed_not_read': 0, 'valid_publication_clocks': 2}} | 2 | 0 | 0 | 0 | Six public commentary inventories only. Original weekday 14:00 schedule retained. No model, observation-definition, forecast or portfolio qualification. Four excluded pages/history remain untouched; daily archive/head publication remains non-atomic. |
 
 ## Log
 
