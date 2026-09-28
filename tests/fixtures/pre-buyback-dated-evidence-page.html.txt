@@ -14,14 +14,14 @@ td.l,th.l{text-align:left}.pos{color:var(--grn)}.neg{color:var(--red)}
 .foot{margin-top:22px;font-size:12px;color:var(--fg3);line-height:1.6;border-top:1px solid var(--bd);padding-top:14px}
 
 input{width:100%;max-width:360px}label{display:block;margin-bottom:6px;color:var(--fg2)}
-.table-region{overflow:auto;max-width:100%;border:1px solid var(--bd);border-radius:8px}table{min-width:1850px}td details{min-width:220px;max-width:440px;margin:0}td pre{max-height:360px}summary{cursor:pointer}
+.table-region{overflow:auto;max-width:100%;border:1px solid var(--bd);border-radius:8px}table{min-width:1250px}
 th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-index:1;min-width:82px}th:first-child{z-index:2}
 :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}details{margin:18px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto}#status{overflow-wrap:anywhere}a{color:var(--cyan)}
 </style></head>
 <body>
 <div class="wrap">
 <h1>Buyback accounting research</h1>
-<p class="sub">Every issuer record received from the buyback engine, with reported amounts, currency, period boundaries and calculation status. Share comparisons show their own prior/current dates. Use Inspect beside an issuer to read its complete evidence. Blank means unavailable. Historical cash flows do not establish buying today or predict a return. Sort with a header or its Enter/Space key.</p>
+<p class="sub">Every issuer record received from the buyback engine, with reported amounts, currency, period boundaries and calculation status. Blank means unavailable. Historical cash flows do not establish buying today or predict a return. Sort with a header or its Enter/Space key.</p>
 <label for="q">Filter ticker, name, sector or source record</label>
 <input id="q" placeholder="filter ticker" autocomplete="off">
 <p id="status" class="sub" role="status"></p>
@@ -30,7 +30,7 @@ th:first-child,td:first-child{position:sticky;left:0;background:var(--card);z-in
 <div class="foot"><b>Research scope:</b> Every received ticker record is shown. No pump setup, score, current execution or authorization event is inferred. The original publication includes all source responses and diagnostic observations when supplied.<br>
 <b>1. Reported amounts:</b> Legacy packets may mix currencies, use fewer than four rows or omit duration evidence. New accounting research requires four contiguous, explicitly dated calendar quarters in one currency and one reported issuer. Missing source start dates leave annual sums unavailable. Ratios also require matching market-cap date and currency. Provider-normalized rows are not verified original SEC filings.<br>
 <b>2. Share comparison:</b> Positive reduction means fewer reported shares between the supplied endpoints. New accounting research requires an exact calendar-year pair. Splits and corporate actions are not adjusted, so the result does not prove dilution or execution.<br>
-<b>Inspect:</b> Open an issuer’s Inspect control for its full source responses, source row indices, units, comparison endpoints and missing-input reasons. Every unknown field also remains in the complete original publication. Legacy measurements are not verified by this page.</div>
+<b>Inspect:</b> Source row indices, periods, units, missing-input reasons and every unknown field remain in the complete original publication. Legacy measurements are not verified by this page.</div>
 </div>
 <script src="/jh-table-values.js"></script>
 <script src="/jh-statement-desk.js"></script>

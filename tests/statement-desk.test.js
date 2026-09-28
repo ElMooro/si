@@ -62,3 +62,30 @@ test('buyback page retains its complete original and binds the descriptive ticke
  assert.equal(raw.length,14188);assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'1e99c155b08c2949243c35a65ee4bf9edabfed3e99b6bc829b1a74a90db6797e');
  const html=fs.readFileSync(path.join(root,'buybacks.html'),'utf8');assert.match(html,/mode:"buyback"/);assert.match(html,/<label for="q">/);assert.match(html,/role="region"[^>]*tabindex="0"/);assert.match(html,/Complete original publication/);assert.ok(!html.includes('sc=r.buyback_score||0'));
 });
+
+test('buyback share dates come from their own endpoints and sort unavailable-last',()=>{
+ const row={record:{generated_at:'2026-09-28',measurements:{cashflow_window:{end_date:'2026-06-30'},reported_shares:{current:{date:'2026-03-31'},prior:{date:'2025-03-31'},status:'exact_provider_calendar_year_pair'}}}};
+ assert.equal(D.cell(row,'share_current_date','date'),'2026-03-31');assert.equal(D.cell(row,'share_prior_date','date'),'2025-03-31');
+ assert.equal(D.cell({record:{generated_at:'2026-09-28'}},'share_current_date','date'),'');
+ const invalid={record:{measurements:{reported_shares:{current:{date:'2026-02-30'}}}}};
+ assert.equal(D.cell(invalid,'share_current_date','date'),'');
+ for(const direction of [-1,1])assert.equal([invalid,row].sort((a,b)=>D.compare(a,b,'share_current_date',direction,'date'))[0],row);
+});
+
+test('buyback evidence opens the whole selected issuer after filtering without extra reads',async()=>{
+ const packet={generated_at:'2026-09-28T13:30:42Z',tickers:{A:{symbol:'A',unknown:'<img src=x>',provider_responses:{cash_flow:[{val:0},null]}},B:{symbol:'B',unknown:42}}};
+ const s=await render(packet,'buyback'),board=s.get('board');assert.match(s.get('status').textContent,/2 issuer records.*2026-09-28/);
+ assert.match(board.innerHTML,/data-source-row="0"/);assert.ok(!board.innerHTML.includes('provider_responses'));
+ const pre={textContent:''},detail={dataset:{sourceRow:'0'},querySelector:()=>pre};board.contains=d=>d===detail;
+ board.onclick({target:{closest:()=>detail}});assert.deepEqual(JSON.parse(pre.textContent),packet.tickers.A);
+ pre.textContent='existing selected text';board.onclick({target:{closest:()=>detail}});assert.equal(pre.textContent,'existing selected text');
+ s.get('q').value='B';s.get('q').oninput();pre.textContent='';board.onclick({target:{closest:()=>detail}});assert.deepEqual(JSON.parse(pre.textContent),packet.tickers.B);
+ detail.dataset.sourceRow='-1';pre.textContent='';board.onclick({target:{closest:()=>detail}});assert.equal(pre.textContent,'');
+ assert.equal(s.get('original').textContent,JSON.stringify(packet));assert.equal(s.calls.length,1);
+});
+
+test('other statement desks retain their original column and interaction scope',async()=>{
+ const d=await render({dilution_offset_warnings:[{symbol:'A'}]},'dilution');
+ assert.ok(!d.get('board').innerHTML.includes('data-source-row'));assert.equal(d.get('board').onclick,undefined);
+ assert.ok(!D.COLUMNS.dilution.some(c=>c[0]==='share_current_date'));
+});
