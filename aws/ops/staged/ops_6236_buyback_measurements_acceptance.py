@@ -65,7 +65,7 @@ def main():
     clients={n:boto3.client(n,region_name='us-east-1') for n in ('lambda','s3','events','scheduler')}
     args=[clients[n] for n in ('lambda','s3','events','scheduler')]
     with report('ops_6236_buyback_measurements_acceptance') as r:
-        before=runtime(*args,FN);check_runtime(before,original,expected,4)
+        before=runtime(*args,FN);check_runtime(before,original,expected,6)
         obj=clients['s3'].get_object(Bucket=BUCKET,Key=KEY);raw=bounded(obj['Body'])
         if obj.get('ContentLength')!=len(raw):raise ValueError('Whole published statement packet required')
         publication_result=publication(raw)

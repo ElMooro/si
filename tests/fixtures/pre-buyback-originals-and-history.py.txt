@@ -38,8 +38,6 @@ buyback-scanner). Research, not investment advice.
 import json, os, time, datetime, urllib.request
 
 from buyback_measurements import CONTRACT, dossier, number, decode
-from buyback_sources import Capture
-from buyback_store import load_head, publish
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -88,16 +86,9 @@ def _read(key, default=None):
         raise
 
 
-def fmp(path, retries=2, capture=None):
+def fmp(path, retries=2):
     sep = "&" if "?" in path else "?"
     url = f"https://financialmodelingprep.com/stable/{path}{sep}apikey={FMP_KEY}"
-    if capture is not None:
-        attempts=[]
-        for a in range(retries):
-            value,attempt=capture.acquire(url,t=18);attempts.append(attempt)
-            if attempt['status']=='received':return value,attempts
-            if a<retries-1:time.sleep(0.4)
-        return None,attempts
     for a in range(retries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/1.0"})
@@ -266,24 +257,19 @@ def _legacy_classify_and_score(d, auth_pct, insider):
     return score, klass, high_conviction_pump, cheap
 
 
-def analyze_ticker(t, capture=None):
+def analyze_ticker(t):
     if t in EXCLUDE_TICKERS: return {"_excluded": "denylist"}
-    attempts={}
-    def request(name,path):
-        if capture is None:return fmp(path)
-        value,records=fmp(path,capture=capture);attempts[name]=records;return value
-    profile = request('profile',f"profile?symbol={t}")
+    profile = fmp(f"profile?symbol={t}")
     first = profile[0] if isinstance(profile, list) and profile else {}
     excluded = is_excluded_profile(first)
-    if excluded: return {"_excluded": excluded, "profile_response": profile, "provider_attempts": attempts}
-    cash = request('cash_flow',f"cash-flow-statement?symbol={t}&period=quarter&limit=5")
+    if excluded: return {"_excluded": excluded, "profile_response": profile}
+    cash = fmp(f"cash-flow-statement?symbol={t}&period=quarter&limit=5")
     if not isinstance(cash, list) or not cash: return None
-    # Preserve the preceding acquisition plan for one-row responses.
-    metrics = request('key_metrics',f"key-metrics?symbol={t}&period=quarter&limit=1") if len(cash) >= 2 else None
-    shares = request('enterprise_values',f"enterprise-values?symbol={t}&period=quarter&limit=5") if len(cash) >= 2 else None
-    result=dossier(t, profile, cash, metrics, shares, datetime.datetime.now(datetime.timezone.utc).date().isoformat())
-    if capture is not None:result['provider_attempts']=attempts
-    return result
+    # A one-row response remains inspectable without making calls that the
+    # preceding acquisition plan did not make for such a response.
+    metrics = fmp(f"key-metrics?symbol={t}&period=quarter&limit=1") if len(cash) >= 2 else None
+    shares = fmp(f"enterprise-values?symbol={t}&period=quarter&limit=5") if len(cash) >= 2 else None
+    return dossier(t, profile, cash, metrics, shares, datetime.datetime.now(datetime.timezone.utc).date().isoformat())
 
 
 def classify_and_score(d, auth_pct, insider):
@@ -293,9 +279,6 @@ def classify_and_score(d, auth_pct, insider):
 
 
 def lambda_handler(event=None, context=None):
-    _,prior_raw,prior_etag=load_head(s3,S3_BUCKET)
-    capture=Capture(s3,S3_BUCKET,"JustHodl/1.0",FMP_KEY)
-    calendar_sources=[]
     # ---- universe: scanner authorizations (catalyst) + attention-confluence universe ----
     scanner = _read("data/buyback-scanner.json")
     auths = {}
@@ -334,9 +317,8 @@ def lambda_handler(event=None, context=None):
     to = _today + _dt.timedelta(days=45)
     while cur <= to:
         nxt = min(cur + _dt.timedelta(days=6), to)
-        path="earnings-calendar?from=%s&to=%s&limit=3000" % (cur.isoformat(), nxt.isoformat())
-        j,attempts=fmp(path,capture=capture)
-        calendar_sources.append({'from':cur.isoformat(),'to':nxt.isoformat(),'attempts':attempts})
+        j = fmp("earnings-calendar?from=%s&to=%s&limit=3000"
+                % (cur.isoformat(), nxt.isoformat()))
         for r in j if isinstance(j, list) else []:
             tt = up(r.get("symbol"))
             dd = r.get("date")
@@ -369,11 +351,11 @@ def lambda_handler(event=None, context=None):
     n_fmp_ok = 0
     excluded = []
     for i, t in enumerate(universe):
-        d = analyze_ticker(t,capture=capture)
+        d = analyze_ticker(t)
         if i % 30 == 0:
             time.sleep(0.25)
         if isinstance(d, dict) and d.get("_excluded"):
-            excluded.append({"ticker": t, "reason": d["_excluded"], "profile_response": d.get("profile_response"), "provider_attempts": d.get("provider_attempts")})
+            excluded.append({"ticker": t, "reason": d["_excluded"], "profile_response": d.get("profile_response")})
             continue
         if not d:
             continue
@@ -418,7 +400,6 @@ def lambda_handler(event=None, context=None):
 
     # Preserve every source symbol. Matching company labels do not establish
     # a share-class relationship or authorize dropping a board occurrence.
-    provider_sources=capture.finish()
     if not tickers:
         return {"ok": False, "kept_prior": True, "reason": "no_received_statement_rows"}
 
@@ -431,11 +412,10 @@ def lambda_handler(event=None, context=None):
         return r[:n]
 
     out = {
-        "provider_sources": provider_sources, "calendar_sources": calendar_sources,
         "capital_structure_context": capital["research_context"],
         "input_eligibility": {"share_flows_pe_and_insider_join": False},
         "calls_eligible": False, "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False,
-        "engine": "buyback-engine", "version": "1.3.0", "measurement_contract": CONTRACT,
+        "engine": "buyback-engine", "version": "1.2.0", "measurement_contract": CONTRACT,
         "call": None, "quality": {"status": "partial", "provider_originals_replayed": False,
         "point_in_time_availability_verified": False},
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -478,8 +458,9 @@ def lambda_handler(event=None, context=None):
                     "for splits or corporate actions. Debt issuance alongside repurchases does not prove funding. "
                     "Historical repurchases do not establish buying today; earnings blackout is a calendar proxy."),
     }
-    archive=publish(s3,S3_BUCKET,out,prior_raw,prior_etag)
-    return {"ok": True, "archive": archive, "n_scored": 0, "n_research_rows": len(tickers), "n_fmp": n_fmp_ok,
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out, allow_nan=False).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=600")
+    return {"ok": True, "n_scored": 0, "n_research_rows": len(tickers), "n_fmp": n_fmp_ok,
             "pumps": len(out["high_conviction_pumps"]), "counts": out["counts"]}
 
 

@@ -6,10 +6,15 @@ import datetime
 import json
 import sys
 import unittest
+from io import BytesIO
+import hashlib,urllib.error,urllib.parse
+from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[4];SOURCE=ROOT/'aws/lambdas/justhodl-buyback-engine/source'
 sys.path[:0]=[str(SOURCE),str(ROOT/'aws/shared')]
 from buyback_measurements import CONTRACT,dossier,number,decode
+import buyback_store as store
+import buyback_sources as capture_sources
 
 
 def sources():
@@ -32,8 +37,55 @@ def native(**extra):
     tree=ast.parse((SOURCE/'lambda_function.py').read_bytes())
     nodes=[n for n in tree.body if isinstance(n,ast.FunctionDef) and not n.name.startswith('_legacy_')]
     ns={'CONTRACT':CONTRACT,'dossier':dossier,'number':number,'decode':decode,'datetime':datetime,'json':json,'EXCLUDE_TICKERS':set(),
-        'S3_BUCKET':'fixture-only','OUT_KEY':'data/buyback-engine.json','time':SimpleNamespace(sleep=lambda seconds:None)}
+        'S3_BUCKET':'fixture-only','OUT_KEY':'data/buyback-engine.json','time':SimpleNamespace(sleep=lambda seconds:None),
+        'FMP_KEY':'fixture-secret','Capture':capture_sources.Capture,'load_head':store.load_head,'publish':store.publish}
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'<isolated actual buyback>','exec'),ns);ns.update(extra);return ns
+
+
+
+class StorageError(Exception):
+    def __init__(self,code):self.response={'Error':{'Code':code}}
+
+
+class Memory:
+    def __init__(self,writes=None):
+        self.raw={store.HEAD:b'{"version":"1.1.0", "tickers":{"OLD":{"symbol":"OLD","unknown":123}}}'}
+        self.writes=writes if writes is not None else {};self.puts=[];self.reads=[]
+    def get_object(self,**kw):
+        key=kw['Key'];self.reads.append(key)
+        if key not in self.raw:raise StorageError('NoSuchKey')
+        raw=self.raw[key];return {'Body':BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
+    def put_object(self,**kw):
+        key=kw['Key'];self.puts.append(kw)
+        if kw.get('IfNoneMatch')=='*' and key in self.raw:raise StorageError('PreconditionFailed')
+        if 'IfMatch' in kw and (key not in self.raw or kw['IfMatch']!=hashlib.sha256(self.raw[key]).hexdigest()):raise StorageError('PreconditionFailed')
+        self.raw[key]=kw['Body'];self.writes[key]=kw['Body'] if key.startswith(capture_sources.PREFIX) else json.loads(kw['Body'])
+
+
+def captured_handler(*,one_row=False,retry=False,unavailable=False,excluded=False):
+    ns,writes,scanner=MeasurementTests().handler();db=ns['s3'];calls=[];bodies=[];waits=[];data=sources()
+    if one_row:data[1]=data[1][:1]
+    def opener(req,timeout):
+        url=urllib.parse.urlsplit(req.full_url);name=url.path.split('/')[-1];calls.append(req.full_url)
+        assert timeout==18
+        if retry and name=='profile' and sum('/profile?' in u for u in calls)==1:
+            raise urllib.error.URLError('synthetic unavailable credentialed URL is not published')
+        if name=='earnings-calendar':
+            query=dict(urllib.parse.parse_qsl(url.query));value=[{'symbol':'TEST','date':query['from'],'unknown':123}]
+        elif excluded and name=='profile' and dict(urllib.parse.parse_qsl(url.query)).get('symbol')=='FUND':
+            value=[{'symbol':'FUND','isFund':True,'whole_profile':'retained'}]
+        elif unavailable:value=None
+        else:value=data[{'profile':0,'cash-flow-statement':1,'key-metrics':2,'enterprise-values':3}[name]]
+        raw=(json.dumps(value,ensure_ascii=False,indent=1)+'\n').encode();bodies.append(raw)
+        class Response(BytesIO):pass
+        result=Response(raw);result.code=200;result.headers={'Content-Length':str(len(raw))};return result
+    # Recompile actual functions together so injected capture and helpers share a namespace.
+    ns=native(_read=ns['_read'],s3=db,time=SimpleNamespace(sleep=waits.append))
+    if excluded:
+        original_read=ns['_read']
+        ns['_read']=lambda key,default=None:({'tickers':{'FUND':{}}} if key=='data/attention-confluence.json' else original_read(key,default))
+    ns['Capture']=lambda db,bucket,ua,key:capture_sources.Capture(db,bucket,ua,key,opener=opener)
+    return ns,db,calls,bodies,waits
 
 
 class MeasurementTests(unittest.TestCase):
@@ -127,13 +179,15 @@ class MeasurementTests(unittest.TestCase):
         def read(key,default=None):
             return {'data/buyback-scanner.json':scanner,'data/attention-confluence.json':{'tickers':{'TEST':{}}},
                     'data/earnings-blackout.json':{},'data/share-flows.json':{}}[key]
-        def fmp(path):
+        def original_fmp(path):
             if path.startswith('earnings-calendar?'):return []
             if unavailable:return None
             for prefix,index in [('profile?',0),('cash-flow-statement?',1),('key-metrics?',2),('enterprise-values?',3)]:
                 if path.startswith(prefix):return deepcopy(data[index])
             raise AssertionError(path)
-        ns=native(_read=read,fmp=fmp,s3=SimpleNamespace(put_object=lambda **k:writes.update({k['Key']:json.loads(k['Body'])})))
+        def fmp(path,capture=None):
+            value=original_fmp(path);return (value,[]) if capture is not None else value
+        ns=native(_read=read,fmp=fmp,s3=Memory(writes))
         return ns,writes,scanner
 
     def test_actual_handler_preserves_records_and_abstains_without_null_comparison_crashes(self):
@@ -147,6 +201,94 @@ class MeasurementTests(unittest.TestCase):
     def test_total_acquisition_failure_preserves_previous_output(self):
         ns,writes,_=self.handler(unavailable=True);result=ns['lambda_handler']()
         self.assertTrue(result['kept_prior']);self.assertEqual(writes,{})
+
+
+    def test_native_whole_originals_prior_current_history_and_offline_replay(self):
+        ns,db,calls,bodies,waits=captured_handler();prior=db.raw[store.HEAD];ns['lambda_handler']();raw=db.raw[store.HEAD];p=json.loads(raw)
+        self.assertEqual(len(calls),11);self.assertEqual(waits,[0.25])
+        self.assertEqual(db.raw[p['previous_publication']['key']],prior)
+        self.assertEqual(db.raw[store.reference(raw)['key']],raw);self.assertEqual(p['source_files'],store.source_identity())
+        for body in bodies:self.assertEqual(db.raw[capture_sources.reference(body)['key']],body)
+        replay=capture_sources.replay(p,lambda ref:capture_sources.read_original(db,'fixture',ref))
+        self.assertEqual(replay['retained_responses'],11);self.assertEqual(replay['current_issuers'],1)
+        self.assertEqual(replay['cashflow_observations'],4);self.assertEqual(replay['calendar_windows'],7)
+        self.assertFalse(replay['selection_context_replayed']);self.assertNotIn('fixture-secret',json.dumps(p))
+        self.assertEqual(p['tickers']['TEST']['gross_repurchases_ttm'],400)
+
+    def test_one_statement_keeps_original_nine_requests_without_synthetic_ttm(self):
+        ns,db,calls,_,_=captured_handler(one_row=True);ns['lambda_handler']();p=json.loads(db.raw[store.HEAD])
+        self.assertEqual(len(calls),9);self.assertIsNone(p['tickers']['TEST']['gross_repurchases_ttm'])
+        self.assertEqual(capture_sources.replay(p,lambda ref:capture_sources.read_original(db,'fixture',ref))['cashflow_observations'],1)
+
+    def test_existing_retry_count_and_delay_are_preserved_and_replayed(self):
+        ns,db,calls,_,waits=captured_handler(retry=True);ns['lambda_handler']();p=json.loads(db.raw[store.HEAD])
+        self.assertEqual(len(calls),12);self.assertEqual(waits,[0.4,0.25])
+        result=capture_sources.replay(p,lambda ref:capture_sources.read_original(db,'fixture',ref))
+        self.assertEqual(result['request_attempts'],12);self.assertEqual(result['retained_responses'],11)
+        self.assertFalse(result['whole_provider_http_replay_verified']);self.assertTrue(result['retained_http_responses_replayed'])
+
+    def test_original_replay_rejects_type_byte_binding_calendar_and_projection_tampering(self):
+        ns,db,_,_,_=captured_handler();ns['lambda_handler']();original=json.loads(db.raw[store.HEAD])
+        for change in (lambda p:p['tickers']['TEST'].update(calls_eligible=0),lambda p:p['tickers']['TEST'].update(gross_repurchases_ttm=999),
+                       lambda p:p['calendar_sources'].pop(),lambda p:p['tickers']['TEST'].update(in_blackout=1),
+                       lambda p:p['provider_sources']['attempts'][0].update(request_index=True),
+                       lambda p:p['tickers']['TEST']['provider_attempts']['profile'][0].update(request_index=0)):
+            p=deepcopy(original);change(p)
+            with self.assertRaises(ValueError):capture_sources.replay(p,lambda ref:capture_sources.read_original(db,'fixture',ref))
+        ref=original['provider_sources']['attempts'][0]['original_ref'];db.raw[ref['key']]=b'{}'
+        with self.assertRaises(ValueError):capture_sources.replay(original,lambda ref:capture_sources.read_original(db,'fixture',ref))
+
+    def test_racing_publisher_cannot_overwrite_newer_whole_head(self):
+        ns,db,_,_,_=captured_handler();original_publish=ns['publish'];newer=b'{"tickers":{"NEWER":{"symbol":"NEWER"}}}'
+        def race(*args):db.raw[store.HEAD]=newer;return original_publish(*args)
+        ns['publish']=race
+        with self.assertRaises(StorageError):ns['lambda_handler']()
+        self.assertEqual(db.raw[store.HEAD],newer)
+
+    def test_archive_write_or_readback_failure_keeps_accepted_publication(self):
+        for corrupt in (False,True):
+            ns,db,_,_,_=captured_handler();prior=db.raw[store.HEAD];put=db.put_object
+            def write(**kw):
+                if kw['Key'].startswith(capture_sources.PREFIX):
+                    if not corrupt:raise StorageError('AccessDenied')
+                    kw=dict(kw,Body=b'{}')
+                return put(**kw)
+            db.put_object=write
+            with self.assertRaises((StorageError,ValueError)):ns['lambda_handler']()
+            self.assertEqual(db.raw[store.HEAD],prior)
+
+    def test_malformed_or_denied_head_fails_before_provider_requests(self):
+        for raw in (b'[]',b'{"tickers":[]}',b'{"tickers":{},"tickers":{}}'):
+            ns,db,calls,_,_=captured_handler();db.raw[store.HEAD]=raw
+            with self.assertRaises(ValueError):ns['lambda_handler']()
+            self.assertEqual(calls,[]);self.assertEqual(db.puts,[])
+        ns,db,calls,_,_=captured_handler()
+        def denied(**kwargs):raise StorageError('AccessDenied')
+        db.get_object=denied
+        with self.assertRaises(StorageError):ns['lambda_handler']()
+        self.assertEqual(calls,[]);self.assertEqual(db.puts,[])
+
+    def test_source_scope_credentials_and_expanded_bounds_are_checked(self):
+        for url in ('https://evil.invalid/a','https://financialmodelingprep.com/evil/profile?symbol=TEST',
+                    'https://financialmodelingprep.com/stable/earnings-calendar?from=2026-01-01&to=2026-02-01&limit=3000'):
+            with self.assertRaises(ValueError):capture_sources.endpoint(url)
+        db=Memory();raw=b'{"error":"fixture-\\u0073ecret"}'
+        class Response(BytesIO):pass
+        def echo(*args,**kwargs):
+            value=Response(raw);value.code=200;value.headers={};return value
+        c=capture_sources.Capture(db,'fixture','fixture','fixture-secret',opener=echo)
+        with self.assertRaises(PermissionError):c.acquire('https://financialmodelingprep.com/stable/profile?symbol=TEST&apikey=fixture-secret')
+        self.assertEqual(db.puts,[])
+        with patch.object(capture_sources,'DECODED_BOUND',8):
+            with self.assertRaises(ValueError):capture_sources.expanded(b'123456789','identity')
+
+    def test_excluded_provider_profile_keeps_its_exact_original_and_count(self):
+        ns,db,calls,_,_=captured_handler(excluded=True);ns['lambda_handler']();p=json.loads(db.raw[store.HEAD])
+        self.assertEqual(len(calls),12);self.assertEqual(p['n_excluded'],1)
+        self.assertEqual(p['excluded'][0]['profile_response'][0]['whole_profile'],'retained')
+        self.assertEqual(capture_sources.replay(p,lambda ref:capture_sources.read_original(db,'fixture',ref))['retained_responses'],12)
+        p['excluded'][0]['provider_attempts']=None
+        with self.assertRaises(ValueError):capture_sources.replay(p,lambda ref:capture_sources.read_original(db,'fixture',ref))
 
 
 if __name__=='__main__':unittest.main()

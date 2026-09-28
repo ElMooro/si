@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-09-28T13:31:21.005100+00:00",
+  "original_source": {
+    "bytes": 23575,
+    "sha256": "7a8ad9cad4d5cd38aeedf604b0771ce7c055d554c3dd126c7af199b3c2aa13d0",
+    "fixture": "tests/fixtures/pre-buyback-originals-and-history.py.txt"
+  },
+  "repair": [
+    "Retain whole credential-checked provider wire bytes and aware acquisition clocks for existing calendar/profile/statement requests",
+    "Bind statement dossiers, calendar proxy fields and provider-based exclusions to exact original response/retry chains",
+    "Keep existing request population, 18-second timeout, two attempts, 0.4-second retry delay and ordinary loop pacing",
+    "Read the versioned public head before acquisition; archive/read back exact prior and proposed publications; conditionally replace the head",
+    "Protect incomplete, failed, malformed or racing publications without exposing upstream selection/context packets"
+  ],
+  "validation": {
+    "native": 29,
+    "new_originals_acceptance": 4,
+    "published_arithmetic_acceptance": 4,
+    "deployment_static": 474,
+    "candidate_shell": 12
+  },
+  "isolated_actual_native": {
+    "full_dossier_requests": 11,
+    "one_statement_requests": 9,
+    "transport_failure_requests": 12,
+    "retry_delay_s": 0.4,
+    "full_current_issuers": 1,
+    "cashflow_observations": 4,
+    "calendar_windows": 7,
+    "gross_repurchases": 400,
+    "actual_network_requests": 0
+  },
+  "unchanged": {
+    "memory_mb": 512,
+    "timeout_s": 600,
+    "schedule": "cron(30 13 * * ? *)",
+    "provider_scope": "Original FMP profile, quarterly cash-flow/key-metrics/enterprise-values and seven earnings-calendar windows",
+    "measurement_compiler_sha256": "5ed10427bbf624a56fbfd8a1012fa0db00ca925ac25d0c930727098a14b004d1"
+  },
+  "limits": [
+    "First source-enabled 1.3.0 normal publication remains pending",
+    "Private/downstream selection and context packets are not captured or replayed",
+    "SEC filing vintages, provider universe completeness, 52/53-week alignment, corporate actions and investment authority remain unqualified",
+    "Credential or evidence-storage failure stops publication rather than retrying an unsafe evidence write",
+    "Immutable abandoned proposal cleanup and live storage overhead remain open"
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "consumer_reads": 0,
+  "private_reads": 0
+}
