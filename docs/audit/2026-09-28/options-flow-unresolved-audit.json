@@ -1,0 +1,82 @@
+{
+  "function": "justhodl-options-flow-scanner",
+  "checked_at": "2026-09-28T00:30:51.409399+00:00",
+  "original_source": {
+    "bytes": 17232,
+    "sha256": "e5f75781e53c644863a8be172a89980f1056cb89683b824bb06b8fce1b2d1d33",
+    "fixture": "tests/fixtures/pre-options-flow-observations.py.txt"
+  },
+  "public_packet": {
+    "key": "data/options-flow-scanner.json",
+    "bytes": 7591,
+    "sha256": "05cdf126588e024d517a56bd3bbe451819747fa528eeb8e4caca5aadbda043f9",
+    "generated_at": "2026-09-27T22:00:31+00:00",
+    "stats": {
+      "n_universe": 150,
+      "n_evaluated": 10,
+      "n_no_data": 0,
+      "n_tier_a": 1,
+      "n_tier_b": 5,
+      "n_finra_tickers": 13175
+    }
+  },
+  "defects_reproduced": [
+    "Contract reference pagination is discarded and the declared 14-90-day expiration bounds are not implemented.",
+    "Synthetic future-dated bars for options on a different underlying earn a 70-point bullish tier when the recent put population is missing.",
+    "FINRA daily short-sale percentage declines become SHORTS_COVERING and raise that unsupported score to 85.",
+    "Duplicate contracts double-count the same bars and missing put sessions become zero; ratios use an invented denominator floor of one.",
+    "Three source rows populate both recent and older windows, labeled five-day, creating a misleading zero change.",
+    "A wrong-issuer JPY quote with boolean price becomes spot 1. Denied contract responses become an indistinguishable empty chain.",
+    "FINRA wrong-date records, ratios over 100 percent and duplicate symbols survive the original parser."
+  ],
+  "further_unverified": [
+    "Whole contract and bar populations, pagination and provider coverage",
+    "Historical contract membership and expiration/deliverable identity",
+    "Session calendar and common observation windows",
+    "Trade direction, opening or closing activity, spread legs, premium notional, open interest and implied volatility",
+    "First-release source timing, independent input ancestry and out-of-sample performance",
+    "Native runtime, deployment and actual daily-eve fanout route"
+  ],
+  "primary_sources": [
+    "https://massive.com/docs/rest/options",
+    "https://www.finra.org/sites/default/files/2020-12/short-sale-volume-user-guide.pdf",
+    "https://syndication.finra.org/content/short-interest-what-it-what-it-not"
+  ],
+  "native_modified": false,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "private_output_reads": 0,
+  "account_reads": 0,
+  "schedule_changes": 0,
+  "institutional_qualification": false,
+  "consumer_source_baselines": {
+    "justhodl-best-ideas": {
+      "bytes": 19309,
+      "sha256": "48c041f688796c194d965fe93dcdf25183cdb7694e5a38d6d03bbde7d49b35e0",
+      "fixture": "tests/fixtures/pre-options-flow-consumer-best-ideas.py.txt",
+      "native_modified": false,
+      "consumer_output_read": false
+    },
+    "justhodl-flow-confluence": {
+      "bytes": 11754,
+      "sha256": "765149695ce6a970a4846260016efcb44d5c2e65db70fb1ef8644d113b2bc6cc",
+      "fixture": "tests/fixtures/pre-options-flow-consumer-flow-confluence.py.txt",
+      "native_modified": false,
+      "consumer_output_read": false
+    },
+    "justhodl-options-confluence": {
+      "bytes": 14086,
+      "sha256": "3c93837656a220ebefad01353f7b9d1511b3bbb057fd5878894cf8036df366a5",
+      "fixture": "tests/fixtures/pre-options-flow-consumer-options-confluence.py.txt",
+      "native_modified": false,
+      "consumer_output_read": false
+    }
+  },
+  "existing_ownership_test": {
+    "scanner_output_isolation": "passed",
+    "global_consumer_schema_contract": "failed before changes",
+    "reason": "Three active consumers still reference obsolete data/options-flow.json",
+    "test_weakened": false,
+    "resolution": "Preserve actual consumer packages before a guarded canonical-source migration; never grant rank authority merely by replacing the path."
+  }
+}
