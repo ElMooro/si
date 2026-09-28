@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
 const root=path.join(__dirname,'..'),api=require('../jh-table-values.js');
 const flush=async()=>{for(let i=0;i<3;i++)await new Promise(r=>setImmediate(r));};
-function page(file,loader){
+function page(file,loader,scripts={}){
  const nodes=new Map(),calls=[],intervals=new Set(),listeners={};
  let document;
  const get=id=>{
@@ -23,8 +23,8 @@ function page(file,loader){
  if(html.includes('/jh-activist-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-activist-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-option-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-option-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-microcap-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-microcap-observations.js'),'utf8'),ctx);
- if(html.includes('/jh-pead-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-pead-observations.js'),'utf8'),ctx);
- if(html.includes('/jh-revenue-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-revenue-observations.js'),'utf8'),ctx);
+ if(html.includes('/jh-pead-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,scripts.pead||'jh-pead-observations.js'),'utf8'),ctx);
+ if(html.includes('/jh-revenue-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,scripts.revenue||'jh-revenue-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-eps-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-eps-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-hiring-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-hiring-observations.js'),'utf8'),ctx);
  if(html.includes('/jh-scarcity-observations.js'))vm.runInContext(fs.readFileSync(path.join(root,'jh-scarcity-observations.js'),'utf8'),ctx);
@@ -50,7 +50,7 @@ test('earnings desk distinguishes returned data, visits and unattempted occurren
  assert.match(s.get('status').textContent,/1 not attempted; 1 other acquisition outcomes/);
  assert.match(s.get('coverage').textContent,/1 request occurrences remain/);assert.match(s.get('coverage').textContent,/not simultaneous/);
  s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 selected requests occurrences/);
- assert.match(s.get('board').innerHTML,/LATER/);assert.equal(s.get('original').textContent,JSON.stringify(p));
+ assert.match(s.get('board').innerHTML,/LATER/);s.get('packet-details').open=true;s.get('packet-details').ontoggle();assert.equal(s.get('original').textContent,JSON.stringify(p));
  const old=structuredClone(p);delete old.acquisition_progress;const c=M.coverage(old);
  assert.equal(c.received,1);assert.equal(c.unattempted,1);assert.equal(c.pending,null);assert.match(M.coverageMessage(c),/older publication has no resumable progress/);
 });
@@ -64,6 +64,7 @@ test('earnings acquisition progress corruption cannot imply complete coverage',a
  }
  const p=resumedEarnings();p.acquisition_progress.pending_occurrences=0;const s=page('earnings-pead.html',async()=>raw(p));await flush();
  assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('next').disabled,true);
+ for(const mode of ['requests','prices','events']){s.get('mode').value=mode;s.get('mode').onchange();s.get('q').oninput();s.get('next').onclick();assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('rows').textContent,'');}
 });
 
 function resumedRevenue(){
@@ -71,6 +72,18 @@ function resumedRevenue(){
  for(const r of p.request_records){r.acquisitions[0].endpoint='income-statement';r.statement_observations=[];r.period_comparisons=[];r.quote_records=[];delete r.event_observations;delete r.event_differences;delete r.price_coverage;}
  return p;
 }
+
+test('complete predecessors reproduce the validation bypass repaired on both desks',async()=>{
+ for(const [file,p,scripts]of [
+  ['earnings-pead.html',resumedEarnings(),{pead:'tests/fixtures/pre-pead-lazy-jh-pead-observations.js.txt'}],
+  ['revenue-acceleration.html',resumedRevenue(),{revenue:'tests/fixtures/pre-revenue-validation-jh-revenue-observations.js.txt'}]]){
+  p.acquisition_progress.pending_occurrences=0;
+  const old=page(file,async()=>raw(p),scripts);await flush();assert.match(old.get('status').textContent,/unavailable/);
+  old.get('mode').value='requests';old.get('mode').onchange();assert.match(old.get('board').innerHTML,/LATER/);
+  const fixed=page(file,async()=>raw(p));await flush();fixed.get('mode').value='requests';fixed.get('mode').onchange();
+  assert.equal(fixed.get('board').textContent,'No verified display population');assert.equal(fixed.get('next').disabled,true);
+ }
+});
 
 test('revenue coverage separates actual statement responses, attempts and deferred occurrences',async()=>{
  const M=require('../jh-revenue-observations.js'),p=resumedRevenue(),s=page('revenue-acceleration.html',async()=>raw(p));await flush();
@@ -90,6 +103,7 @@ test('revenue forged progress withholds coverage while retaining whole original 
  }
  const p=resumedRevenue();p.acquisition_progress.remaining_occurrence_keys=[];const s=page('revenue-acceleration.html',async()=>raw(p));await flush();
  assert.match(s.get('status').textContent,/unavailable/);assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('original').textContent,JSON.stringify(p));
+ for(const mode of ['requests','statements']){s.get('mode').value=mode;s.get('mode').onchange();s.get('q').oninput();s.get('next').onclick();assert.equal(s.get('board').textContent,'No verified display population');assert.equal(s.get('rows').textContent,'');}
 });
 
 test('price source desk preserves complete request, measurement, window and universe populations',async()=>{
@@ -366,13 +380,56 @@ test('PEAD retains typed event amounts, full price responses, source coordinates
  event_observations:[{source_index:0,raw:{symbol:'TEST',unknown:'<img src=x>'},announcement_date:'2026-08-01',fiscal_period_end:'2026-06-30',reported_period:'Q2',reported_fiscal_year:'2026',reported_currency:'JPY',reported_eps_basis:'diluted_gaap',fields:{eps_actual:{value:0},eps_estimate:{value:1},revenue_actual:{value:200},revenue_estimate:{value:100}},status:'reported_event_values'}],
  event_differences:[{source_index:0,differences:{eps:{actual_minus_reported_estimate:-1,status:'descriptive_current_record_difference'},revenue:{actual_minus_reported_estimate:100,status:'descriptive_current_record_difference'}}}]};
  const p={measurement_contract:M.CONTRACT,request_records:[record],all_qualifying:[{symbol:'IGNORE'}]},s=page('earnings-pead.html',async()=>raw(p));await flush();let h=s.get('board').innerHTML;
- assert.equal(s.calls[0],'/data/earnings-pead.json');assert.match(h,/2026-08-01/);assert.match(h,/JPY/);assert.match(h,/<td>0\.00<\/td>/);assert.match(h,/-1\.00/);assert.match(h,/200\.00/);assert.match(h,/&lt;img/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('IGNORE'));assert.equal(s.get('original').textContent,JSON.stringify(p));
+ assert.equal(s.calls[0],'/data/earnings-pead.json');assert.match(h,/2026-08-01/);assert.match(h,/JPY/);assert.match(h,/<td>0\.00<\/td>/);assert.match(h,/-1\.00/);assert.match(h,/200\.00/);assert.match(h,/&lt;img/);assert.ok(!h.includes('<img'));assert.ok(!h.includes('IGNORE'));s.get('packet-details').open=true;s.get('packet-details').ontoggle();assert.equal(s.get('original').textContent,JSON.stringify(p));
  s.get('mode').value='prices';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 received prices/);h=s.get('board').innerHTML;assert.match(h,/0\.00/);assert.match(h,/Unavailable/);assert.match(h,/original_base64/);assert.ok(!h.includes('<img'));
  s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/1 selected requests/);assert.match(s.get('board').innerHTML,/historical-price-eod\/full: received/);assert.ok(!s.get('board').innerHTML.includes(body.toString('base64')));
  const header=s.get('board').headers.find(x=>x.dataset.k==='ticker');header.focus();header.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'ticker');
  const many=M.model({...p,request_records:Array.from({length:501},()=>record)});assert.equal(many.events.length,501);assert.equal(many.prices.length,1503);
  assert.throws(()=>M.model({...p,request_records:null}),/Complete/);assert.throws(()=>M.model({...p,request_records:[{}]}),/Complete/);
  const bad=structuredClone(p);bad.request_records[0].acquisitions[1].original_bytes=1;assert.throws(()=>M.model(bad),/byte count/);
+});
+
+function earningsWithPrices(){
+ const p=resumedEarnings();
+ for(let i=0;i<2;i++){
+  const body=Buffer.from(JSON.stringify(Array.from({length:101},(_,n)=>({symbol:'PRICE'+i,date:'2026-08-01',close:n,volume:0,unknown:'<img src=x>'}))));
+  p.request_records[i].acquisitions.push({endpoint:'historical-price-eod/full',status:'received',original_base64:body.toString('base64'),original_bytes:body.length});
+ }
+ return p;
+}
+
+test('PEAD price sources decode only on demand, once, with full pagination and keyboard sorting',async()=>{
+ const p=earningsWithPrices(),s=page('earnings-pead.html',async()=>raw(p));let decodes=0;s.ctx.atob=x=>{decodes++;return atob(x);};await flush();
+ assert.equal(decodes,0);assert.match(s.get('original').textContent,/Open this section/);
+ s.get('mode').value='requests';s.get('mode').onchange();assert.equal(decodes,0);
+ s.get('mode').value='prices';s.get('mode').onchange();assert.equal(decodes,2);assert.match(s.get('rows').textContent,/202 received prices/);
+ s.get('next').onclick();s.get('next').onclick();assert.match(s.get('rows').textContent,/Page 3 of 3/);
+ s.get('q').value='PRICE1';s.get('q').oninput();assert.match(s.get('rows').textContent,/101 matching \/ 202/);
+ const h=s.get('board').headers.find(x=>x.dataset.k==='close');h.focus();h.onkeydown({key:'Enter',preventDefault(){}});assert.equal(s.document.activeElement.dataset.k,'close');
+ s.get('q').value='';s.get('q').oninput();s.get('mode').value='events';s.get('mode').onchange();s.get('mode').value='prices';s.get('mode').onchange();assert.equal(decodes,2);
+ assert.equal(s.calls.length,1);assert.ok(!s.get('board').innerHTML.includes('<img'));
+});
+
+test('PEAD failed price decoding exposes no partial population and keeps valid other views',async()=>{
+ const p=earningsWithPrices();p.request_records[1].acquisitions[1].original_bytes++;
+ const s=page('earnings-pead.html',async()=>raw(p));let decodes=0;s.ctx.atob=x=>{decodes++;return atob(x);};await flush();assert.equal(decodes,0);
+ s.get('mode').value='prices';s.get('mode').onchange();assert.match(s.get('board').textContent,/Original price byte count differs/);assert.equal(s.get('rows').textContent,'No verified price population');assert.equal(decodes,2);
+ s.get('q').oninput();assert.equal(decodes,2);assert.equal(s.get('next').disabled,true);
+ s.get('mode').value='requests';s.get('mode').onchange();assert.match(s.get('rows').textContent,/3 selected requests/);assert.match(s.get('board').innerHTML,/LATER/);
+ s.get('mode').value='prices';s.get('mode').onchange();assert.equal(decodes,2);assert.equal(s.get('board').innerHTML,'');
+ s.get('packet-details').open=true;s.get('packet-details').ontoggle();assert.equal(s.get('original').textContent,JSON.stringify(p));
+});
+
+test('PEAD complete originals stay exact across closed, opened, reopened and failed parsing states',async()=>{
+ const p=resumedEarnings(),received={packet:p,raw:'\n'+JSON.stringify(p,null,2)+'\n'};
+ for(const initiallyOpen of [false,true]){
+  const s=page('earnings-pead.html',async()=>received),d=s.get('packet-details');d.open=initiallyOpen;await flush();
+  if(initiallyOpen)assert.equal(s.get('original').textContent,received.raw);else assert.match(s.get('original').textContent,/Open this section/);
+  for(const open of [true,false,true]){d.open=open;d.ontoggle();if(open)assert.equal(s.get('original').textContent,received.raw);else assert.match(s.get('original').textContent,/Open this section/);}
+ }
+ const original='{"whole malformed source":',s=page('earnings-pead.html',async()=>{throw Object.assign(Error('Malformed JSON'),{original_text:original});});await flush();
+ assert.match(s.get('status').textContent,/Malformed JSON/);s.get('packet-details').open=true;s.get('packet-details').ontoggle();assert.equal(s.get('original').textContent,original);
+ s.get('mode').value='prices';s.get('mode').onchange();assert.equal(s.get('board').textContent,'No verified display population');
 });
 
 test('PEAD legacy occurrences paginate, malformed feeds fail visibly and both Intel cards clear stale content',async()=>{

@@ -1,0 +1,59 @@
+{
+  "originals": {
+    "earnings-pead.html": {
+      "bytes": 5296,
+      "sha256": "e1e56b30d404b6ec2429dbd9fdc91026339b5aec0a7b6bea0ec8407269a8d75c",
+      "fixture": "tests/fixtures/pre-pead-lazy-earnings-pead.html.txt"
+    },
+    "jh-pead-observations.js": {
+      "bytes": 12606,
+      "sha256": "8436bca6e30a7446f54237b83cd7592a85865cac6c37f5f538592ad600041251",
+      "fixture": "tests/fixtures/pre-pead-lazy-jh-pead-observations.js.txt"
+    },
+    "jh-revenue-observations.js": {
+      "bytes": 10603,
+      "sha256": "0766a404395f66babada0282160e606213c6e7995fb38813b4bf76113c2d262a",
+      "fixture": "tests/fixtures/pre-revenue-validation-jh-revenue-observations.js.txt"
+    }
+  },
+  "public_packet_bytes": 26344274,
+  "public_packet_sha256": "c20adda3b2dacc836d8c95d11dd98dc26fe0043ba0c03b4befa2824b091bc5e2",
+  "single_local_node_benchmark": {
+    "json_parse_ms": 57.887,
+    "full_model_ms": 1064.4713,
+    "events_only_model_ms": 4.9211,
+    "events": 3927,
+    "prices": 37645,
+    "requests": 1500
+  },
+  "scope": "One read-only local benchmark of the complete retained public packet; not a browser, mobile or network latency claim.",
+  "defect": "Initial earnings view eagerly decodes every price source and inserts the complete 26 MB original into a collapsed DOM node.",
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "private_state_reads": 0,
+  "preview": {
+    "retained_public_events": 3927,
+    "prices": 37645,
+    "price_page_count": 377,
+    "price_page_2_rows": 100,
+    "closed_original_chars": 67,
+    "open_original_chars": 26344192,
+    "closed_again_chars": 67,
+    "viewport_requested": 390,
+    "document_width": 375,
+    "document_scroll_width": 375,
+    "table_width": 1900,
+    "table_region_width": 343,
+    "console_errors": 0,
+    "limitation": "Explicit expansion of the complete 26 MB original caused one browser-control timeout; inspection subsequently confirmed the complete text and closing restored responsiveness. Large-packet download/parse and explicit full-source layout costs remain."
+  },
+  "validation": {
+    "frontend_tests": 1645,
+    "deployment_static": 468,
+    "deployment_shell": 12,
+    "public_page_graphs": 599,
+    "wiring_bindings": 143,
+    "registry_drift": false,
+    "old_predecessor_bypass_reproduced": true
+  }
+}

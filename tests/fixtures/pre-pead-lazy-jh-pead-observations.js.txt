@@ -72,22 +72,9 @@
   'Coverage is partial unless every selected occurrence returned data. Unvisited rows are not refreshed; earlier complete publications remain in immutable history. '+
   'The next original scheduled run resumes the remaining queue. A full cycle is not simultaneous or current whole-universe coverage.':'Legacy acquisition coverage is unverified. ';}
  function start(){
-  const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={events:[],prices:[],requests:[]},packet=null,loaded=false,pricesReady=false,priceError=null,page=0,key='index',direction=1;
-  function keepOriginal(raw){
-   const node=$('original'),details=$('packet-details')||node.closest?.('details');
-   if(!details){node.textContent=raw;return;}
-   const show=()=>{node.textContent=details.open?raw:'Complete received packet retained. Open this section to inspect it.';};
-   details.ontoggle=show;show();
-  }
+  const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={events:[],prices:[],requests:[]},page=0,key='index',direction=1;
   function render(){
-   if(!loaded){$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;return;}
-   const mode=$('mode').value||'events';
-   if(mode==='prices'&&packet&&!pricesReady&&!priceError){
-    try{const projected=model(packet,true);data.prices=projected.prices;pricesReady=true;}
-    catch(error){data.prices=[];priceError=error.message;}
-   }
-   if(mode==='prices'&&priceError){$('board').textContent='Stored price records unavailable: '+priceError;$('rows').textContent='No verified price population';$('previous').disabled=true;$('next').disabled=true;return;}
-   const all=data[mode]||[],query=$('q').value.trim().toLowerCase();
+   const mode=$('mode').value||'events',all=data[mode]||[],query=$('q').value.trim().toLowerCase();
    const rows=all.filter(r=>[r.ticker,r.reported,r.date,r.end,r.period,r.status,r.pointer].join(' ').toLowerCase().includes(query));
    const numbers=['index','actual','estimate','difference','revenue_actual','revenue_estimate','revenue_difference','close','volume'];rows.sort((a,b)=>api.compare(a,b,key,direction,numbers.includes(key)?'number':'text'));
    const pages=Math.max(1,Math.ceil(rows.length/100));page=Math.min(Math.max(page,0),pages-1);const shown=rows.slice(page*100,(page+1)*100);
@@ -100,10 +87,10 @@
   }
   $('q').oninput=()=>{page=0;render();};$('mode').onchange=()=>{page=0;key='index';direction=1;render();};$('previous').onclick=()=>{page--;render();};$('next').onclick=()=>{page++;render();};
   (async()=>{try{
-   const received=await api.load('/data/earnings-pead.json'),p=received.packet;keepOriginal(received.raw);const projected=model(p,false),s=summary(p);data=projected;packet=p;loaded=true;
+   const received=await api.load('/data/earnings-pead.json'),p=received.packet;$('original').textContent=received.raw;data=model(p);const s=summary(p);
    $('status').textContent=s.message+' Generated '+s.generated_at+'. Collection time does not establish the original announcement or consensus vintage.';
    $('coverage').textContent=coverageMessage(s.coverage)+' Every published occurrence is retained. Inspect complete earnings and price records, duplicate or future events, and failed or unattempted requests. Current-record differences do not establish an executable post-earnings return.';render();
-  }catch(e){$('status').textContent='Stored earnings research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)keepOriginal(e.original_text);}})();
+  }catch(e){$('status').textContent='Stored earnings research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
  }
  const api={CONTRACT,model,summary,coverage,coverageMessage,start,escape:esc};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.JHPEADObservations=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

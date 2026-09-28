@@ -25,7 +25,7 @@ td.l,th.l{text-align:left}
 <label for="q">Find a ticker, period or source status</label><br><input id="q" placeholder="Ticker, date or status" autocomplete="off">
 <p id="rows" aria-live="polite"></p><button id="previous" type="button" disabled>Previous 100</button> <button id="next" type="button" disabled>Next 100</button>
 <div id="board" role="region" aria-label="Complete earnings and price populations, paginated" tabindex="0">Loading /data/earnings-pead.json</div>
-<details id="packet-details"><summary>Complete received packet, all source responses and universe membership</summary><pre id="original" tabindex="0">Unavailable</pre></details>
+<details><summary>Complete received packet, all source responses and universe membership</summary><pre id="original" tabindex="0">Unavailable</pre></details>
 <div class="foot"><b>Reported values:</b> actual and estimated amounts describe the received provider record. Zero remains zero. Unknown currencies and EPS bases remain unreported.<br>
 <b>Current difference:</b> subtraction requires a unique completed fiscal event and explicit issuer, currency and comparable EPS basis. This is not a verified preannouncement earnings surprise. Zero estimates exclude percentage calculations; negative estimates use the absolute estimate denominator in the full details.<br>
 <b>Announcement timing:</b> a calendar date is not a release timestamp. Future events, duplicates, absent periods and later revisions cannot create a consecutive beat streak.<br>

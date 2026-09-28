@@ -61,9 +61,8 @@
   'Coverage is partial unless every selected occurrence returned data. Unvisited rows are not refreshed; earlier complete publications remain in immutable history. '+
   'The next original scheduled run resumes the remaining queue. A full cycle is not simultaneous or current whole-universe coverage.':'Legacy acquisition coverage is unverified. ';}
  function start(){
-  const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={statements:[],requests:[]},loaded=false,page=0,key='index',direction=1;
+  const api=root.JHTableValues,$=id=>root.document.getElementById(id);let data={statements:[],requests:[]},page=0,key='index',direction=1;
   function render(){
-   if(!loaded){$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;return;}
    const mode=$('mode').value||'statements',all=data[mode]||[],query=$('q').value.trim().toLowerCase();
    const rows=all.filter(r=>[r.ticker,r.reported,r.start,r.end,r.period,r.status,r.pointer].join(' ').toLowerCase().includes(query));
    const numbers=['index','revenue','growth','acceleration','gross_margin','ttm'];rows.sort((a,b)=>api.compare(a,b,key,direction,numbers.includes(key)?'number':'text'));
@@ -76,7 +75,7 @@
   }
   $('q').oninput=()=>{page=0;render();};$('mode').onchange=()=>{page=0;key='index';direction=1;render();};$('previous').onclick=()=>{page--;render();};$('next').onclick=()=>{page++;render();};
   (async()=>{try{
-   const received=await api.load('/data/revenue-acceleration.json'),p=received.packet;$('original').textContent=received.raw;const projected=model(p),s=summary(p);data=projected;loaded=true;
+   const received=await api.load('/data/revenue-acceleration.json'),p=received.packet;$('original').textContent=received.raw;data=model(p);const s=summary(p);
    $('status').textContent=s.message+' Generated '+s.generated_at+'. Collection time does not establish filing availability.';
    $('coverage').textContent=coverageMessage(s.coverage)+' Every published occurrence is retained. Inspect failed and unattempted requests, original statement records and calculation coordinates. Repeated income-statement sources are shared evidence, not independent investment votes.';render();
   }catch(e){$('status').textContent='Stored revenue research unavailable: '+e.message;$('board').textContent='No verified display population';$('rows').textContent='';$('previous').disabled=true;$('next').disabled=true;if(e.original_text!==undefined)$('original').textContent=e.original_text;}})();
