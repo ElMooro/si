@@ -1,0 +1,676 @@
+{
+  "stage": 416,
+  "status": "source_and_isolated_regressions_accepted_deployment_pending",
+  "checked_at": "2026-09-29T14:09:17.395613+00:00",
+  "baseline_commit": "d44a542507f3633b36a695145b7c4c83775bf0c9",
+  "sources": {
+    "aws/lambdas/justhodl-auction-desk/source/lambda_function.py": {
+      "bytes": 65536,
+      "sha256": "4363e58de6ad36b52d3705afe9cf55217532a9e57f0bc3bccd9c34ac5c714759"
+    },
+    "auctions.html": {
+      "bytes": 92401,
+      "sha256": "3470ad90244c83becc9d46749fd47c32d17c7dac877e55ba0f82a77722c228a7"
+    },
+    "aws/shared/auction_delivery.py": {
+      "bytes": 11760,
+      "sha256": "55e7be463f1d1b1e25e78d89c2c7ade627b77afe06ab8eb30e0031d8d99923d8"
+    },
+    "aws/shared/auction_delivery_store.py": {
+      "bytes": 5307,
+      "sha256": "c15652f536b042e2ebeb7edd2f7edece1c22cf64e5b462f9379823c303da9416"
+    },
+    "auction-desk-delivery.js": {
+      "bytes": 12911,
+      "sha256": "3e2c1b52d32b775c4046a1c9b05ea9736700a02075fe34c6f19c5bd0fffde5ad"
+    },
+    "scripts/replay_auction_delivery.py": {
+      "bytes": 1826,
+      "sha256": "0f0647ac05f8b2147efc58950953afd515504cb512e3c6d76b75d46f655b0da2"
+    },
+    "tests/fixtures/auction-delivery.json": {
+      "bytes": 1550589,
+      "sha256": "7b6a7f807dfd0160017bb141945df70b81679480b0ebc0c88b9e5dc2010a32ab"
+    }
+  },
+  "predecessor": "auction-desk-delivery-predecessor.json",
+  "reproduced": "auction-desk-delivery-reproduced.json",
+  "improvements": [
+    "The complete legacy public packet remains. A canonical complete gzip snapshot, operation chunks and whole calculation sections are retained under content hashes before the smaller view pointer is published. Every original field and row occurrence remains recoverable.",
+    "Conditional immutable writes and exact byte readback precede conditional pointer replacement. Missing and corrupt pointers, denied reads, interrupted writes, conflicting same-clock packets, older publications and concurrent writers fail without replacing the previous view.",
+    "A compact separate view keeps measurement summaries, permissions, dates and explicit deferred-evidence references. Source, manifest, inventory, row index and projection must agree. Offline replay rebuilds the complete bundle with reviewed current code; archived code is never executed.",
+    "The browser bounds fetch and streamed response bodies, checks byte sizes and SHA-256, validates identity and permissions, and follows only bound owned evidence paths. Checksum failure cannot render detail; a bounded legacy fallback rejects error-shaped JSON and projections without a manifest.",
+    "The page renders a detached complete desk and companion calendar before swapping them. Transport, late renderer and listener failures preserve the previous dated snapshot. Stale responses cannot repaint a newer request. An explicit retry control reports failure rather than inventing an empty desk.",
+    "Full buyback, participation and aggregate inputs load only when requested. Details are escaped, keyboard accessible, retryable and bound to the displayed snapshot. Complete packet download remains available. Mobile metrics retain two columns without document overflow.",
+    "Mutable pointer and legacy fallback requests use the existing proxy exact/nogen route; arbitrary timestamp cache busters are ignored by the proxy. No worker change, generation request, producer invocation or cadence change is introduced."
+  ],
+  "tests": {
+    "native_and_desk": 271,
+    "delivery_native": 14,
+    "frontend": 1833,
+    "delivery_frontend": 19,
+    "deployment_static": 682,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "synthetic_capacity": {
+    "scope": "Full reviewed Python handler with synthetic cached histories and provider/storage mocks; no AWS invocation, network latency or native runtime certification",
+    "checked_at": "2026-09-29T14:07:29.112086+00:00",
+    "historical_source_rows": 22470,
+    "participation_bank_rows": 2520,
+    "buyback_operations": 333,
+    "price_assets": 14,
+    "observations_per_asset": 11228,
+    "seconds_with_tracemalloc": 145.035,
+    "peak_tracemalloc_bytes": 575312104,
+    "packet_bytes": 39556818,
+    "packet_gzip_bytes_for_comparison_only": 3592612,
+    "writes": [
+      {
+        "key": "data/warm/treasury-auctions/history.json.gz",
+        "bytes": 26313
+      },
+      {
+        "key": "data/warm/treasury-auctions/buybacks.json",
+        "bytes": 944249
+      },
+      {
+        "key": "data/warm/treasury-auctions/history-full.json.gz",
+        "bytes": 193584
+      },
+      {
+        "key": "data/warm/treasury-auctions/composite-history.json",
+        "bytes": 12680181
+      },
+      {
+        "key": "data/warm/treasury-auctions/daily/2026-09-28.json",
+        "bytes": 209273
+      },
+      {
+        "key": "data/auction-desk.json",
+        "bytes": 39556818
+      },
+      {
+        "key": "data/auction-desk-delivery/snapshots/6e0aa32ce66a0f224f34fca97f4140af3aee89bd47e25b2c61135e6f16543a3d.json.gz",
+        "bytes": 3644764
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/abee532b2f2852a8921ef52e6af9aa338e8805cc89e8be5601fd5302829c80c9.json",
+        "bytes": 366344
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/0cc7575b43a195e42676919f95ff22af9b5aa980b332e7bd59427651b76c2f94.json",
+        "bytes": 366790
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/b7cfbad5a9001971b40bea9bf55027d325012c0e40c53b0950225d685daefea7.json",
+        "bytes": 366930
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/4bad8e1c621c08d0b7a7078f70dd6eaf2769cd93132a95e2d4115b9107786a90.json",
+        "bytes": 366358
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/8801ba1852d46237ef1c515036bc462b14445499a796199c08f5e70b33640299.json",
+        "bytes": 365236
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/d9efc0a084cdada3da002e38caeacadc68882a7abc5a197c612fe5451bb6f37b.json",
+        "bytes": 364852
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/0e29c4658b466dced14d01b957a8f6e23eac821a5881b11b869eae6305fbeae5.json",
+        "bytes": 365841
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/ff4ec435050d30542b60794b83da8e8a671f9b6d03e15bf9b8f74877273172af.json",
+        "bytes": 366783
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/ad9708c421219ca758491638ab0751e4c1c8640498c5bc4a0302135473b60db8.json",
+        "bytes": 981479
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/ed5b41bf7994f9bae2734bf6e5e2aa1e0797a2c1509362556b0be70e23741958.json",
+        "bytes": 914960
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/c1f0a7e3b9fe055d0cb11304fe4fb6c08718fb5170fe725f57797cca5ab2b904.json",
+        "bytes": 852553
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/51c52f9a48319506356865839c5314766dc8cf7def7082347a884ec85d208e83.json",
+        "bytes": 789956
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/5d986b12ea8e5d8f343376bcfe621a1cc09101fbea85d0d9d4f6468b587d375e.json",
+        "bytes": 727663
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/2752207cc3d363edff7cc93548f91acf0b1a6c236710741ead84550f002275ba.json",
+        "bytes": 664947
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/759c8490b471a5b4281949bb6bf5485b16c11f593dfaef51f9c6dd3e096b9b38.json",
+        "bytes": 602527
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/8b6f924430095f4cddba4d3e0758dcd321f08640f42e7225d3a3325a3633b222.json",
+        "bytes": 539934
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/da61ce7ed7516e3bc32bc743f7e541f57f87907d8378dcfd2302b2f96774f80f.json",
+        "bytes": 477523
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/baa2359dae3a9dbe4dd690c2c4840c32edf3874500be633871208b1133bc9fd7.json",
+        "bytes": 415047
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/b377fbb3d40c5309dc74ecf2cda72b8259cddcd24d8171ff4f648f72f65a376c.json",
+        "bytes": 352526
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/eee9136403358170c06583948e090aff41a330c3e67fd6b6442e6393ddfb5d6d.json",
+        "bytes": 289937
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/c74e151750416ef85676b3825f89de88526215d33885fe44ac2f6dd7fd1d086d.json",
+        "bytes": 227514
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/ec37e5e43d8cc9bd60c6c27f51aefe890e70f5ed5cf27facd918a28d7fbdcc0b.json",
+        "bytes": 59643
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/392a863465fed1a8849a7cbfc2af0c8924f095cd1926cbf67200d8fa51a3c61f.json",
+        "bytes": 163227
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/3b9d42391370ee7eb90645391dc18e6ccb94461f57c02dca644547a8c89b3407.json",
+        "bytes": 12680259
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/6a0ad87256b97039ec4712060fec87dae7a0857f7fab71311e129b5732715d8b.json",
+        "bytes": 15342768
+      },
+      {
+        "key": "data/auction-desk-delivery/views/868f8218df278dd9d287d6cfef09db2b8f17ab3fa89cc9dc3bcf16069d0331ea.json",
+        "bytes": 2360175
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/83d29b69b3dee9ae1bc300a54073d8ed515f0e190a82035a875d7cfd343b5f02.json",
+        "bytes": 6473
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "bytes": 722
+      }
+    ],
+    "delivery": {
+      "contract": "auction-desk-delivery.v1",
+      "view_key": "data/auction-desk-view.json",
+      "artifacts": 28,
+      "source_bytes": 39551512,
+      "view_bytes": 2360175,
+      "generated_at": "2026-09-29T13:00:00+00:00"
+    },
+    "composite_points": 1654,
+    "reaction_event_days": 465,
+    "source_sha256": {
+      "aws/lambdas/justhodl-auction-desk/source/lambda_function.py": "4363e58de6ad36b52d3705afe9cf55217532a9e57f0bc3bccd9c34ac5c714759",
+      "aws/shared/auction_delivery.py": "55e7be463f1d1b1e25e78d89c2c7ade627b77afe06ab8eb30e0031d8d99923d8",
+      "aws/shared/auction_delivery_store.py": "c15652f536b042e2ebeb7edd2f7edece1c22cf64e5b462f9379823c303da9416"
+    },
+    "native_timeout_seconds": 300,
+    "native_memory_mb": 1024,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "limitations": [
+      "Synthetic population and local CPU do not establish native publication completeness or performance.",
+      "The byte-exact synthetic object store retains all writes in process memory; production S3 overhead and latency are not modeled.",
+      "Source buffers prepared before tracing are excluded from peak allocation; process RSS and AWS overhead remain separate."
+    ]
+  },
+  "browser": {
+    "scope": "Production page and delivery library with embedded synthetic native fixtures; all real connections blocked by CSP",
+    "cases": [
+      {
+        "name": "missing",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "2 of 2 supplied dated operations shown (latest 40). 1 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 2 of 2 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      },
+      {
+        "name": "future",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "1 of 1 supplied dated operations shown (latest 40). 0 unavailable results remain gaps. 1 future and 0 undated operations excluded from this chart. Table shows 2 of 2 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      },
+      {
+        "name": "duplicates",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "2 of 2 supplied dated operations shown (latest 40). 2 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 2 of 2 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      },
+      {
+        "name": "empty",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "0 of 0 supplied dated operations shown (latest 40). 0 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 0 of 0 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      },
+      {
+        "name": "legacy",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "1 of 1 supplied dated operations shown (latest 40). 1 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 1 of 1 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      },
+      {
+        "name": "hostile",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "1 of 1 supplied dated operations shown (latest 40). 0 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 1 of 1 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      },
+      {
+        "name": "sample_45",
+        "status": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+        "sample": "40 of 45 supplied dated operations shown (latest 40). 0 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 14 of 45 retained operations. Source population coverage is unverified.",
+        "injected_elements": 0
+      }
+    ],
+    "failures": [
+      {
+        "mode": "all_error",
+        "whole_snapshot_preserved": true,
+        "status": "Refresh failed. Keeping the complete snapshot from 2026-09-29T12:00:00+00:00. Desk publication unavailable: Research-only delivery contract required; Not a Treasury desk packet",
+        "refresh_enabled": true
+      },
+      {
+        "mode": "render_fault",
+        "whole_snapshot_preserved": true,
+        "status": "Refresh failed. Keeping the complete snapshot from 2026-09-29T12:00:00+00:00. Synthetic late renderer failure"
+      }
+    ],
+    "keyboard_inputs": {
+      "denominator_usd_par": 10000000000,
+      "formula": "100 * accepted par / maximum par; positive denominator required",
+      "numerator_usd_par": 0,
+      "value_pct": 0
+    },
+    "slow_body": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+    "evidence_failure": "Inputs unavailable: Delivery HTTP 503",
+    "evidence_retry": "Complete retained inputs for 2026-09-29T12:00:00+00:00. Byte integrity does not certify the original provider or grant trading authority.",
+    "aggregate": "Complete retained inputs for 2026-09-29T12:00:00+00:00. Byte integrity does not certify the original provider or grant trading authority.",
+    "participation": {
+      "subtitle": "$0M accepted \u00b7 demand score 0.00 \u00b7 compared with the last 4 10-Year note auctions",
+      "contract": "auction-participation-inputs.v1"
+    },
+    "focus_return": "TEST00001|2026-09-29",
+    "mobile": {
+      "metric_columns": "122px 122px",
+      "scrollWidth": 360,
+      "viewport": 375,
+      "width": 360
+    },
+    "console_errors": [],
+    "requests": [
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/71d604c36e56bbe59516c80d9db8f9fd18c1c3ff86eb1bd6f69142ef2d48fd43.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/72afb01bb94ed2dddcee7325f13887b5cb4ab207a1f8fa02f4e07038e1ff8db5.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/78057c1b190dc61a8cc222756e800c0becd4ed6b549e936fc1480df3e232e5e7.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "all_error"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "all_error"
+      },
+      {
+        "key": "data/auction-desk.json",
+        "case": "measured_zero",
+        "mode": "all_error"
+      },
+      {
+        "key": "data/auction-desk.json",
+        "case": "measured_zero",
+        "mode": "all_error"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "render_fault"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/71d604c36e56bbe59516c80d9db8f9fd18c1c3ff86eb1bd6f69142ef2d48fd43.json",
+        "case": "measured_zero",
+        "mode": "render_fault"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/72afb01bb94ed2dddcee7325f13887b5cb4ab207a1f8fa02f4e07038e1ff8db5.json",
+        "case": "measured_zero",
+        "mode": "render_fault"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "slow_body"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "slow_body"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/71d604c36e56bbe59516c80d9db8f9fd18c1c3ff86eb1bd6f69142ef2d48fd43.json",
+        "case": "measured_zero",
+        "mode": "slow_body"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/72afb01bb94ed2dddcee7325f13887b5cb4ab207a1f8fa02f4e07038e1ff8db5.json",
+        "case": "measured_zero",
+        "mode": "slow_body"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "evidence_error"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/71d604c36e56bbe59516c80d9db8f9fd18c1c3ff86eb1bd6f69142ef2d48fd43.json",
+        "case": "measured_zero",
+        "mode": "evidence_error"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/72afb01bb94ed2dddcee7325f13887b5cb4ab207a1f8fa02f4e07038e1ff8db5.json",
+        "case": "measured_zero",
+        "mode": "evidence_error"
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/78057c1b190dc61a8cc222756e800c0becd4ed6b549e936fc1480df3e232e5e7.json",
+        "case": "measured_zero",
+        "mode": "evidence_error"
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/78057c1b190dc61a8cc222756e800c0becd4ed6b549e936fc1480df3e232e5e7.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/f0cd089f3b2b6e02b48a4bf6069085164bd017662596da5a11db25cdf0e350a7.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "missing",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/b617ef53c11cae22ed44c41483cf0ff7bee67da8a1f1c1d4f38eaf93c763fbab.json",
+        "case": "missing",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/76d0a6128d6141d3cbea4fce1c174bab49fda7c46c3c780dad909dbc6b1da725.json",
+        "case": "missing",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "future",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/a6bf61a60bffd562823b233f67d8231bde18d8457ad408f83964a5c0ccea2516.json",
+        "case": "future",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/56ecbc05558048134ac6b8af636fc2d6733034b1f4a8e5b995681eb6ee07a818.json",
+        "case": "future",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "duplicates",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/ad64ff09872d318de434c710272c5254d53226a6bba70b426b8d6b27454fad5f.json",
+        "case": "duplicates",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/3e91619a39a86658c5c29a4edac3e260d1c4e977ac5ea241b3c32bb39a2cb14a.json",
+        "case": "duplicates",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "empty",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/bedf72ced7d53eb02767b6ca4f81f249216dec8daa170a8aa9afe9e7e271615e.json",
+        "case": "empty",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/270f627a54e832a89ce74063ba1c61a4adf78dea0cba06f4d8eb4f54ff3edfdf.json",
+        "case": "empty",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "legacy",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/cc4d94723b04fe7e2458295d4d0d171b14801a20a17040a5d0c8bf61198bdb2e.json",
+        "case": "legacy",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/0c34167ff9db07e18add95df7d64a774164447f88dd90ff3023e059455de72c5.json",
+        "case": "legacy",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "hostile",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/4a430975f545c5f9efeb1c7c88fb63120134793c8001dbde87a933fe242aeec1.json",
+        "case": "hostile",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/78874d742c4dfae93c7bb8930e16eb4b627653ffc078305ea3a3d510034f32a5.json",
+        "case": "hostile",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "sample_45",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/f3d75d23a8239bb15c36f20df2d05deea8edc96f425ad4c35859bf6687759cd0.json",
+        "case": "sample_45",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/7c07d411be403a6bc33dc251cfcf9008809f94117007f24dd65126849346b277.json",
+        "case": "sample_45",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "grade",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/e5100734bd0a9b01f15b1141eb659b4d7bee8703f8fa49411711cc39d9ad8ca0.json",
+        "case": "grade",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/347e224ff06dd781467f41d94c40045a2736f3b6a9a50dfcf18c4ace8ad2c780.json",
+        "case": "grade",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/2ce71e46bde96075e839d8929e07bbfffebf8adcd4efbea7248e2ece42a64f47.json",
+        "case": "grade",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/71d604c36e56bbe59516c80d9db8f9fd18c1c3ff86eb1bd6f69142ef2d48fd43.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/views/72afb01bb94ed2dddcee7325f13887b5cb4ab207a1f8fa02f4e07038e1ff8db5.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/78057c1b190dc61a8cc222756e800c0becd4ed6b549e936fc1480df3e232e5e7.json",
+        "case": "measured_zero",
+        "mode": "normal"
+      }
+    ],
+    "legacy_fallback": "Snapshot 2026-09-29T12:00:00+00:00. Complete legacy packet; delivery manifest unavailable.",
+    "keyboard_scroll": {
+      "active": "Buyback calculation inputs",
+      "scroll": 280
+    },
+    "checked_at": "2026-09-29T14:00:29.166Z",
+    "final_refresh": "Snapshot 2026-09-29T12:00:00+00:00. Compact view verified against its retained manifest; complete inputs load on request.",
+    "final_console_errors": []
+  },
+  "source_graph": {
+    "changed_fields": {
+      "justhodl-auction-desk": [
+        "keys",
+        "n_keys",
+        "key_patterns",
+        "reads",
+        "write_evidence"
+      ]
+    },
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [
+      "data/auction-desk-view.json"
+    ],
+    "added_patterns": [
+      "data/auction-desk-delivery/manifests/*.json",
+      "data/auction-desk-delivery/rows/*.json",
+      "data/auction-desk-delivery/sections/*.json",
+      "data/auction-desk-delivery/snapshots/*.json.gz",
+      "data/auction-desk-delivery/views/*.json"
+    ],
+    "added_reads": [
+      "data/auction-desk-view.json"
+    ],
+    "unresolved_writes": [],
+    "shared_closure": [
+      "auction_buybacks.py",
+      "auction_delivery.py",
+      "auction_delivery_store.py",
+      "auction_issuance.py",
+      "auction_participation.py",
+      "auction_reactions.py",
+      "auction_scoring.py",
+      "auction_weighting.py",
+      "treasury_instruments.py"
+    ],
+    "engine_closures": {
+      "justhodl-auction-crisis-detector": [
+        "_fred_shim.py",
+        "auction_benchmarks.py",
+        "auction_calendar.py",
+        "auction_calendar_store.py",
+        "auction_concerns.py",
+        "auction_cross_observations.py",
+        "auction_forward.py",
+        "auction_fred_originals.py",
+        "auction_fred_store.py",
+        "auction_issuance.py",
+        "auction_original_store.py",
+        "auction_originals.py",
+        "auction_reference_catalog.py",
+        "auction_scoring.py",
+        "auction_weighting.py",
+        "evidence_store.py",
+        "funding_research_catalog.py",
+        "managed_secret.py",
+        "pd_fails_context.py",
+        "treasury_instruments.py"
+      ],
+      "justhodl-auction-desk": [
+        "auction_buybacks.py",
+        "auction_delivery.py",
+        "auction_delivery_store.py",
+        "auction_issuance.py",
+        "auction_participation.py",
+        "auction_reactions.py",
+        "auction_scoring.py",
+        "auction_weighting.py",
+        "treasury_instruments.py"
+      ]
+    }
+  },
+  "permissions": {
+    "calls_eligible": false,
+    "forecast_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false
+  },
+  "limits": {
+    "complete_packet_uncompressed_bytes": 134217728,
+    "initial_view_bytes": 4194304,
+    "operation_chunk_bytes": 8388608,
+    "request_body_deadline_seconds": 12,
+    "evidence_cache_artifacts": 6
+  },
+  "limitations": [
+    "All ten platform workstreams remain open. Delivery identity does not establish provider originality, population completeness, first-publication vintages, forecast validity or portfolio permission.",
+    "Ordinary native JSON publication and actual AWS performance remain unverified. Native resources and original schedules are unchanged; no accelerated invocation is allowed.",
+    "The capacity experiment uses synthetic complete histories, a local profiler and an in-memory byte-exact object store. Its timing and peak allocations are not native AWS performance or memory certification.",
+    "The complete snapshot preserves the existing packet and its disclosed upstream/display population limits; it does not reconstruct inputs or earlier revisions that were never captured.",
+    "The compact view has an explicit size limit and fails instead of truncating evidence if it is exceeded. Cross-asset historical price display remains withheld pending original-response lineage.",
+    "Replay requires the reviewed compiler whose bytes match the retained manifest. A changed compiler cannot silently certify an older projection."
+  ],
+  "native_invocations": 0,
+  "extra_provider_requests": 0,
+  "current_consumer_reads": 0,
+  "private_reads": 0,
+  "schedule_changes": 0
+}

@@ -4,6 +4,7 @@ from contextlib import redirect_stdout
 from copy import deepcopy
 from datetime import datetime, timezone
 import gzip
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -17,6 +18,12 @@ LAMBDAS = ROOT / "aws/lambdas"
 BASE = "data/auction-crisis.json"
 
 
+class StorageError(Exception):
+    def __init__(self, code):
+        self.response = {'Error': {'Code': code}}
+        super().__init__(code)
+
+
 class Store:
     def __init__(self, docs=None):
         self.docs = deepcopy(docs or {})
@@ -27,18 +34,23 @@ class Store:
         key = kwargs["Key"]
         self.reads.append(key)
         if key not in self.docs:
-            raise KeyError(key)
+            raise StorageError('NoSuchKey')
         body = self.docs[key] if isinstance(self.docs[key],bytes) else json.dumps(self.docs[key]).encode()
         if key.endswith(".gz") and not isinstance(self.docs[key],bytes):
             body = gzip.compress(body)
-        return {"Body": io.BytesIO(body), "LastModified": datetime.now(timezone.utc), "ETag": '"fixture"'}
+        return {"Body": io.BytesIO(body), "LastModified": datetime.now(timezone.utc), "ETag": '"'+hashlib.sha256(body).hexdigest()+'"'}
 
     def put_object(self, **kwargs):
+        key = kwargs['Key']
+        if kwargs.get('IfNoneMatch') == '*' and key in self.docs:
+            raise StorageError('PreconditionFailed')
+        if 'IfMatch' in kwargs and (key not in self.docs or self.get_object(Key=key)['ETag'] != kwargs['IfMatch']):
+            raise StorageError('PreconditionFailed')
         self.writes.append(kwargs["Key"])
         body = kwargs["Body"]
         if kwargs.get("ContentEncoding") == "gzip":
             body = gzip.decompress(body)
-        self.docs[kwargs["Key"]] = body if kwargs.get("ContentType") in ('text/plain','application/gzip') else json.loads(body)
+        self.docs[kwargs["Key"]] = body if (key == 'data/auction-desk-view.json' or key.startswith('data/auction-desk-delivery/') or kwargs.get("ContentType") in ('text/plain','application/gzip')) else json.loads(body)
         return {"ETag": '"fixture-new"'}
 
 
@@ -153,7 +165,13 @@ def test_desk_actual_handler_uses_pure_scoring_and_never_overwrites_detector():
     assert BASE in store.reads and store.docs[BASE] == base
     assert BASE not in store.writes
     assert not any(key.startswith("data/archive/auction-crisis/") for key in store.writes)
-    assert all(key == "data/auction-desk.json" or key.startswith("data/warm/treasury-auctions/") for key in store.writes)
+    import re
+    assert all(key in ("data/auction-desk.json", "data/auction-desk-view.json") or key.startswith("data/warm/treasury-auctions/") or
+               re.fullmatch(r'data/auction-desk-delivery/(snapshots|rows|sections|views|manifests)/[a-f0-9]{64}\.json(?:\.gz)?', key) for key in store.writes)
+    import auction_delivery
+    locator = json.loads(store.docs[auction_delivery.CURRENT])
+    retained, view = auction_delivery.replay(locator, store.docs.__getitem__)
+    assert retained == store.docs['data/auction-desk.json'] and view['decision']['sizing_eligible'] is False
     desk = store.docs["data/auction-desk.json"]
     assert desk["engine"] == "justhodl-auction-desk" and desk["auctions"][0]["cusip"] == auction()["cusip"]
     assert desk["composite_history"]["series"]

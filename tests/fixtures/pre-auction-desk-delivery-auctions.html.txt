@@ -349,12 +349,6 @@
 </style>
 
 <div class="gx-overlay" id="gx-overlay" role="dialog" aria-modal="true" aria-labelledby="gx-title"><div class="gx"><button class="close" id="gx-close" type="button" aria-label="Close">×</button><h3 id="gx-title"></h3><div class="sub" id="gx-sub"></div><div id="gx-body"></div></div></div>
-<div class="desk-delivery-controls" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 12px">
-  <button type="button" id="desk-refresh">Refresh desk</button>
-  <span id="desk-delivery-status" role="status" aria-live="polite" style="overflow-wrap:anywhere">Loading dated research snapshot…</span>
-  <a id="desk-complete-packet" href="https://justhodl-data-proxy.raafouis.workers.dev/data/auction-desk.json" target="_blank" rel="noopener">Download complete packet</a>
-</div>
-<div id="auction-desk-shell" hidden>
 <div class="desk-banner" id="desk-banner">
   <div class="desk-kicker"><span>Auction desk · day verdict</span><span class="fresh" id="desk-fresh">loading data/auction-desk.json…</span></div>
   <div class="desk-headline" id="desk-headline">Loading today's operations…</div>
@@ -416,22 +410,16 @@
   </div>
 </section>
 
-</div><!-- auction-desk-shell: one dated snapshot, committed after all sections render -->
-
 <h2 style="font-size:14px;color:var(--fg-3);letter-spacing:.12em;text-transform:uppercase;margin:26px 0 12px">Crisis lens — the detector composite</h2>
 
 <section id="tenor-research" style="margin:20px 0"><div id="tenor-signals-panel"></div></section>
 <script src="/tenor-signals.js" defer></script>
 
-<script src="/auction-desk-delivery.js"></script>
 <script>
 (function () {
   const FEED = "https://justhodl-data-proxy.raafouis.workers.dev/data/auction-desk.json";
   const FEED_S3 = "https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-desk.json";
-  let renderRoot = null;
-  const $ = id => renderRoot ? renderRoot.querySelector('#'+id) : document.getElementById(id);
-  let deliveryClient = null, loadGeneration = 0;
-  const client = () => deliveryClient || (deliveryClient = window.JHAuctionDelivery.createClient());
+  const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const bn = x => x == null ? "—" : (Math.abs(x) >= 1e9 ? "$" + (x / 1e9).toFixed(x >= 1e11 ? 0 : 1) + "B" : "$" + (x / 1e6).toFixed(0) + "M");
   const pct = (x, d = 0) => x == null ? "—" : x.toFixed(d) + "%";
@@ -451,7 +439,7 @@
     return (full || compact) && ['A','B','C','D','F'].includes(a.grade) ? a.grade : 'n/a';
   }
   function participationScore(a) {
-    return participationGrade(a) !== 'n/a' ? a.grading_inputs?.score ?? (a.delivery_contract === 'auction-desk-delivery.v1' ? a.grading_score : null) : null;
+    return participationGrade(a) !== 'n/a' && a.grading_inputs ? a.grading_inputs.score : null;
   }
 
   function renderBanner(D) {
@@ -520,25 +508,18 @@
     "Allotted at high": "Proration of bids at the stop: the share of bids at the highest accepted yield that was allotted. This is not the fraction of the whole auction sold and does not establish an auction failure.",
   };
 
-  const buybackComplete = b => buybackTrace(b)?.contract === "auction-buyback-inputs.v1" && buybackTrace(b).status === "complete";
-  const buybackTrace = b => b?.measurement_inputs || (b?.delivery_contract === 'auction-desk-delivery.v1' ? b.measurement_summary : null);
+  const buybackComplete = b => b?.measurement_inputs?.contract === "auction-buyback-inputs.v1" && b.measurement_inputs.status === "complete";
   function buybackMetric(b, key) {
-    const t = b?.normalization_inputs, compact = b?.delivery_contract === 'auction-desk-delivery.v1';
-    const f = t?.fields?.[key] || (compact ? b.normalized_metric_summary?.[key] : null);
-    return (t?.contract === "auction-buyback-inputs.v1" || compact) && f?.status === "complete" && f.value === b[key] && Number.isFinite(b[key]) ? b[key] : null;
+    const t = b?.normalization_inputs, f = t?.fields?.[key];
+    return t?.contract === "auction-buyback-inputs.v1" && f?.status === "complete" && f.value === b[key] && Number.isFinite(b[key]) ? b[key] : null;
   }
-  function deferredEvidence(label, id, region) {
-    return `<details class="grade-inputs" data-desk-evidence="${esc(id)}"><summary>${esc(label)}</summary><p role="status" data-evidence-status>Expand to load the complete retained inputs for this snapshot.</p><button type="button" data-evidence-retry hidden>Retry evidence</button><pre tabindex="0" role="region" aria-label="${esc(region)}" hidden></pre></details>`;
-  }
-  const evidenceId = b => b.delivery_detail.artifact.sha256 + ':' + b.delivery_detail.index;
   function buybackDisclosure(b) {
-    if (b.delivery_contract === 'auction-desk-delivery.v1') return deferredEvidence('Inspect buyback fields and calculation inputs',evidenceId(b),'Buyback calculation inputs');
     const inputs = b.measurement_inputs || {status: "unavailable", reason: "Legacy packet lacks retained buyback field mappings"};
     return `<details class="grade-inputs"><summary>Inspect buyback fields and calculation inputs</summary><pre tabindex="0" role="region" aria-label="Buyback calculation inputs">${esc(JSON.stringify(inputs, null, 2))}</pre></details>`;
   }
   function buybackCard(b) {
     const secs = (b.securities || []).slice(0, 40), complete = buybackComplete(b), rank = complete ? b.size_pctile : null;
-    const prior = buybackTrace(b)?.size_comparison;
+    const prior = b.measurement_inputs?.size_comparison;
     return `<div class="op-card buyback">
       <div class="op-head"><span class="t">Treasury buyback</span><span class="s">${esc(b.maturity_bucket || "Unknown bucket")} · ${esc(b.operation_type || "Unknown type")} · settles ${esc(b.settlement_date || "Unknown")}</span></div>
       <div class="desk-tags">${(complete ? b.tags || [] : ["MEASUREMENT UNAVAILABLE"]).map(t => `<span class="desk-tag">${esc(t)}</span>`).join("")}</div>
@@ -564,7 +545,7 @@
   }
 
   function renderBuybacks(D) {
-    const B = D.buybacks || {}, P = B.program || {}, A = P.aggregate_inputs || P.aggregate_summary || {}, ops = (B.operations || []).slice();
+    const B = D.buybacks || {}, P = B.program || {}, A = P.aggregate_inputs || {}, ops = (B.operations || []).slice();
     const current = A.contract === "auction-buyback-inputs.v1";
     const amount = key => current && A.windows?.[key]?.status === "complete_supplied_operations" ? A.windows[key].value_usd_par : null;
     $("bb-stats").innerHTML = [
@@ -596,7 +577,7 @@
       const complete=buybackComplete(o);
       return `<tr><td class="tk">${esc(o.operation_date || "Unknown")}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(buybackMetric(o,"max_par"))}</td><td class="r">${bn(buybackMetric(o,"offered"))}</td><td class="r"><b>${bn(buybackMetric(o,"accepted"))}</b></td><td class="r">${pct(complete ? o.fill_pct : null,1)}</td><td class="r">${complete && Number.isFinite(o.coverage) ? o.coverage.toFixed(2)+"x" : "—"}</td><td>${complete ? esc((o.tags || []).join(" · ") || "Measured") : "Unavailable / future"}</td></tr>`;
     }).join("") || '<tr><td colspan="9" class="flat">No retained buyback operations; totals unavailable.</td></tr>';
-    $("bb-inputs").innerHTML=P.delivery_detail ? deferredEvidence("Inspect aggregate inputs and coverage","program","Buyback aggregate inputs") : `<details class="grade-inputs"><summary>Inspect aggregate inputs and coverage</summary><pre tabindex="0" role="region" aria-label="Buyback aggregate inputs">${esc(JSON.stringify(current ? A : {status:"unavailable",reason:"Legacy aggregate lacks retained calculation inputs"},null,2))}</pre></details>`;
+    $("bb-inputs").innerHTML=`<details class="grade-inputs"><summary>Inspect aggregate inputs and coverage</summary><pre tabindex="0" role="region" aria-label="Buyback aggregate inputs">${esc(JSON.stringify(current ? A : {status:"unavailable",reason:"Legacy aggregate lacks retained calculation inputs"},null,2))}</pre></details>`;
   }
 
   function securityLabel(a) {
@@ -608,7 +589,7 @@
     const rows = (C.auctions || []).map(a => `<tr class="cal-row"><td class="tk">${fmtDate(a.auction_date)}</td><td>${esc(a.term)} ${esc(securityLabel(a))}${a.reopening ? '<span class="rx">REOPEN</span>' : ""}</td><td class="r">${bn(a.offering)}</td><td>${esc(a.issue_date || "")}</td></tr>`);
     (C.buybacks || []).forEach(b => rows.push(`<tr class="cal-row"><td class="tk">${fmtDate(b.operation_date)}</td><td>Buyback · ${esc(b.maturity_bucket || "")}</td><td class="r">${bn(b.max_par)}</td><td>${esc(b.settlement_date || "")}</td></tr>`));
     $("cal-table").innerHTML = rows.join("") || `<tr><td colspan="4" class="flat">Nothing announced yet.</td></tr>`;
-
+    if(typeof window.renderTriggers==='function') window.renderTriggers(D);
   }
 
   function renderDays(D) {
@@ -683,42 +664,7 @@
     $("gx-close").focus();
   }
   function wireExplainer(D) {
-    document.querySelectorAll("#auction-desk-shell [data-gx]").forEach(el => { el.onclick = async e => {
-      e.stopPropagation(); if (el.dataset.pending) return;
-      const row = findAuction(D,el.dataset.gx); if (!row) return;
-      el.dataset.pending = '1'; el.setAttribute('aria-busy','true');
-      try {
-        if (row.delivery_detail) $("desk-delivery-status").textContent = "Loading complete participation inputs for the displayed snapshot…";
-        const full = row.delivery_detail ? await client().detail(D,row) : row;
-        if (window.__AUCTION_DESK !== D || !el.isConnected) return;
-        openGradeExplainer(full); gradeReturnFocus = el;
-        $("desk-delivery-status").textContent = "Complete participation inputs loaded for " + D.generated_at;
-      } catch (error) {
-        if (window.__AUCTION_DESK === D) $("desk-delivery-status").textContent = "Participation inputs unavailable. Select the grade to retry. " + error.message;
-      } finally { delete el.dataset.pending; el.removeAttribute('aria-busy'); }
-    }; });
-  }
-  function wireEvidence(D) {
-    document.querySelectorAll('#auction-desk-shell [data-desk-evidence]').forEach(el => {
-      let busy = false, done = false;
-      const status = el.querySelector('[data-evidence-status]'), retry = el.querySelector('[data-evidence-retry]'), pre = el.querySelector('pre');
-      const loadInputs = async () => {
-        if (!el.open || busy || done) return;
-        busy = true; retry.hidden = true; status.textContent = 'Loading complete retained inputs…';
-        try {
-          const id = el.dataset.deskEvidence;
-          const row = id === 'program' ? null : [...D.buybacks.operations,...D.today.buybacks].find(b => b.delivery_detail && evidenceId(b) === id);
-          if (id !== 'program' && !row) throw Error('Operation is not in the displayed snapshot');
-          const inputs = id === 'program' ? (await client().program(D)).aggregate_inputs : (await client().detail(D,row)).measurement_inputs;
-          if (window.__AUCTION_DESK !== D || !el.isConnected) return;
-          pre.textContent = JSON.stringify(inputs || {status:'unavailable',reason:'Retained calculation contract absent'},null,2);
-          pre.hidden = false; status.textContent = 'Complete retained inputs for ' + D.generated_at + '. Byte integrity does not certify the original provider or grant trading authority.'; done = true;
-        } catch (error) {
-          if (window.__AUCTION_DESK === D && el.isConnected) {status.textContent = 'Inputs unavailable: ' + error.message; retry.hidden = false;}
-        } finally {busy = false;}
-      };
-      el.ontoggle = loadInputs; retry.onclick = loadInputs;
-    });
+    document.querySelectorAll("[data-gx]").forEach(el => el.addEventListener("click", e => { e.stopPropagation(); const a = findAuction(D, el.dataset.gx); if (a) openGradeExplainer(a); }));
   }
   document.addEventListener("DOMContentLoaded", () => {
     const ov = $("gx-overlay");
@@ -737,39 +683,16 @@
     });
   });
 
-  function commitSnapshot(D) {
-    const old = document.getElementById('auction-desk-shell'), draft = old.cloneNode(true), previousFilter = tapeFilter;
-    const trigger = document.getElementById('triggers'), triggerDraft = trigger?.cloneNode(true);
-    try {
-      renderRoot = draft;
-      renderBanner(D); renderReactions(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
-      if (triggerDraft && typeof window.renderTriggers === 'function') window.renderTriggers(D,triggerDraft);
-      renderRoot = null; draft.hidden = false; old.replaceWith(draft);
-      if (triggerDraft) trigger.replaceWith(triggerDraft);
-      try {wireExplainer(D); wireEvidence(D);} catch (error) {draft.replaceWith(old); if (triggerDraft) triggerDraft.replaceWith(trigger); throw error;}
-      window.__AUCTION_DESK = D;
-      $("gx-overlay").classList.remove('open');
-    } catch (error) {tapeFilter = previousFilter; throw error;}
-    finally {renderRoot = null;}
-  }
   async function load() {
-    const generation = ++loadGeneration, button = $("desk-refresh"), status = $("desk-delivery-status");
-    button.disabled = true; status.textContent = 'Loading dated research snapshot…';
-    try {
-      const D = await client().load();
-      if (generation !== loadGeneration) return;
-      commitSnapshot(D);
-      const source = client().source(D), link = $("desk-complete-packet");
-      link.href = source?.url || FEED;
-      link.textContent = source ? 'Download complete retained packet (.json.gz)' : 'Download complete packet';
-      link.title = source ? 'Uncompressed bytes: ' + source.bytes + '; SHA-256: ' + source.sha256 : 'Complete legacy packet; delivery manifest unavailable';
-      status.textContent = 'Snapshot ' + D.generated_at + (source ? '. Compact view verified against its retained manifest; complete inputs load on request.' : '. Complete legacy packet; delivery manifest unavailable.');
-    } catch (error) {
-      if (generation !== loadGeneration) return;
-      status.textContent = (window.__AUCTION_DESK ? 'Refresh failed. Keeping the complete snapshot from ' + window.__AUCTION_DESK.generated_at + '. ' : 'Desk snapshot unavailable. ') + error.message;
-    } finally {if (generation === loadGeneration) button.disabled = false;}
+    let D = null;
+    for (const u of [FEED, FEED_S3]) {
+      try { const r = await fetch(u + "?t=" + Math.floor(Date.now() / 60000)); if (r.ok) { D = await r.json(); break; } } catch (e) {}
+    }
+    if (!D) { $("desk-headline").textContent = "Auction desk feed unavailable — the engine has not published yet."; return; }
+    window.__AUCTION_DESK = D;
+    renderBanner(D); renderReactions(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
+    wireExplainer(D);
   }
-  document.addEventListener("DOMContentLoaded", () => {$("desk-refresh").addEventListener('click',load);});
   document.addEventListener("DOMContentLoaded", load);
 })();
 </script>
@@ -1167,11 +1090,11 @@ function renderForward() {
 }
 
 // Triggers
-function renderTriggers(D, target = document.getElementById("triggers")) {
+function renderTriggers(D) {
   const rows = (D?.calendar?.auctions || []).filter(a=>/^\d{4}-\d{2}-\d{2}$/.test(a.auction_date || ""));
   const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
   const selected=rows.filter(a=>a.auction_date>=today).sort((a,b)=>a.auction_date.localeCompare(b.auction_date)).slice(0,10);
-  target.innerHTML = selected.length ? selected.map(a=>`<div class="trigger-row"><div class="when">${escapeAuction(a.auction_date)}</div><div class="what">${escapeAuction(a.term)} · ${escapeAuction(a.instrument_kind || a.type || 'unverified instrument')}</div><div class="watch">Compare the published stop, bid-to-cover and bidder awards within the same security/reopening cohort. True when-issued tail requires a contemporaneous when-issued quote; no allocation follows automatically.</div></div>`).join('') : 'No current announced calendar is loaded. Consult the source-backed calendar above; there is no static-date fallback.';
+  document.getElementById("triggers").innerHTML = selected.length ? selected.map(a=>`<div class="trigger-row"><div class="when">${escapeAuction(a.auction_date)}</div><div class="what">${escapeAuction(a.term)} · ${escapeAuction(a.instrument_kind || a.type || 'unverified instrument')}</div><div class="watch">Compare the published stop, bid-to-cover and bidder awards within the same security/reopening cohort. True when-issued tail requires a contemporaneous when-issued quote; no allocation follows automatically.</div></div>`).join('') : 'No current announced calendar is loaded. Consult the source-backed calendar above; there is no static-date fallback.';
 }
 
 // Plain-English market impact

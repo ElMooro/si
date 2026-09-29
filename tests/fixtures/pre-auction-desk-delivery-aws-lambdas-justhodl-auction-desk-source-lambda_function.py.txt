@@ -34,7 +34,6 @@ Outputs:
 """
 import gzip
 import auction_buybacks
-import auction_delivery_store
 import auction_participation
 import auction_reactions
 from auction_weighting import weighted_summary
@@ -60,7 +59,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.3"
+VERSION = "1.5.2"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -1024,9 +1023,5 @@ def lambda_handler(event, ctx):
             "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }
     _put_json(OUT_KEY, out)
-    # Keep the complete existing packet. Retain and read back all immutable
-    # delivery evidence before conditionally replacing the smaller page pointer.
-    # Failure leaves its previous dated view intact and fails this publication.
-    delivery = auction_delivery_store.publish(s3, BUCKET, out)
     return {"ok": True, "elapsed_s": out["elapsed_s"], "newest_auction": out["freshness"]["newest_auction"], "newest_buyback": out["freshness"]["newest_buyback"],
-            "today": latest_day, "headline": (verdicts.get(latest_day) or {}).get("headline"), "notes": out["notes"], "ai": bool(ai), "delivery": delivery}
+            "today": latest_day, "headline": (verdicts.get(latest_day) or {}).get("headline"), "notes": out["notes"], "ai": bool(ai)}
