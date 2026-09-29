@@ -1,0 +1,182 @@
+{
+  "stage": 428,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T18:50:05.073194+00:00",
+  "baseline_commit": "6f86d65e3f18463d4a3767bd7d2f39fb59012598",
+  "reproduction": {
+    "scope": "Reviewed current liquidity helper, real botocore StreamingBody and synthetic bytes only. No network, archived-code execution, actual current/private/derived packet or provider reads.",
+    "source": "aws/shared/liquidity_flow_store.py",
+    "source_sha256": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+    "sdk_declared_bytes": 100,
+    "sdk_delivered_bytes": 2,
+    "sdk_prefix_accepted": true,
+    "sdk_source_closed": true,
+    "fragmented_expected_bytes": 17,
+    "fragmented_received_bytes": 2,
+    "whole_fragmented_body_returned": false,
+    "native_invocations": 0
+  },
+  "before_tests": {
+    "tests": 15,
+    "failures": 7,
+    "errors": 6,
+    "source_unchanged": true
+  },
+  "predecessor": "liquidity-transport-native-predecessor.json",
+  "improvements": [
+    "Bounded storage reads drain through EOF so SDK ContentLength verification runs. Short reads are joined; byte types, the unchanged 32 MiB limit and closure are enforced on every path.",
+    "Compressed and decompressed original-source bodies each obey the limit. Every gzip member and trailer must arrive; corrupt or truncated input cannot be retained as complete research.",
+    "Failed original or predecessor transfer preserves existing public output. Incomplete optional FR2004 context stays unavailable rather than becoming a retained partial snapshot. Incomplete immutable readback cannot claim success.",
+    "The exact reviewed storage predecessor remains replayable with the current compiler after its whole archived bytes match. A fixed pair of prior Calls/store hashes is compatible only when every other compiler, all frozen inputs and the entire reproduced output match. The replay result labels this compatibility explicitly; no archived code executes."
+  ],
+  "sources": {
+    "aws/lambdas/justhodl-liquidity-flow/source/liquidity_flow_store.py": {
+      "bytes": 14083,
+      "sha256": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e"
+    },
+    "aws/shared/liquidity_flow_store.py": {
+      "bytes": 14083,
+      "sha256": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e"
+    },
+    "aws/shared/calls_research_replay.py": {
+      "bytes": 16754,
+      "sha256": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd"
+    },
+    "tests/liquidity_transport_tests.py": {
+      "bytes": 12332,
+      "sha256": "eea0b726baabe82c4a4d1c5dd5b59006fd7de8758a70cb16c3a48bb6723c5f4a"
+    },
+    "aws/lambdas/justhodl-liquidity-flow/tests/run_tests.py": {
+      "bytes": 275,
+      "sha256": "68da8f5519a1fea430c8f4faed5e8eb9f894e89656c2bb000714ccfca140c20b"
+    },
+    "aws/lambdas/justhodl-ai-brief/tests/run_tests.py": {
+      "bytes": 1703,
+      "sha256": "a50b59159901edd7a98640e273485cfe8fc836214c612b618d536a9c831a718c"
+    }
+  },
+  "tests": {
+    "native_suites": [
+      {
+        "suite": "justhodl-liquidity-flow",
+        "unittest_cases": 35,
+        "passed": true,
+        "summary": [
+          "test_reviewed_store_predecessor_reproduces_without_executing_archived_code (__main__.Compatibility.test_reviewed_store_predecessor_reproduces_without_executing_archived_code) ... ok",
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 20 tests in 16.272s",
+          "",
+          "OK"
+        ]
+      },
+      {
+        "suite": "justhodl-ai-brief",
+        "unittest_cases": 45,
+        "passed": true,
+        "summary": [
+          "[ai-brief] Calls status=ERROR reason=generation_failed n=1",
+          "[ai-brief] SKIP_TELEGRAM=1, skipping Telegram digest",
+          "Calls integrity tests passed: 18",
+          "Free brief checks passed: real evidence, zero/null, scope isolation, privacy whitelist, WAIT, no paid provider path",
+          "Calls public research replay tests passed: 8",
+          "ai-brief: actual narrative projection preserves date, units, evidence, null forecast and no sizing authority"
+        ]
+      },
+      {
+        "suite": "justhodl-calls-research-audit",
+        "unittest_cases": 0,
+        "passed": true,
+        "summary": [
+          "Independent Calls audit passed: valid replay, append-only proof, bundle/current/history/authority tampering"
+        ]
+      },
+      {
+        "suite": "justhodl-prospective-evaluator",
+        "unittest_cases": 7,
+        "passed": true,
+        "summary": [
+          "ok test_market_probe_archives_prices_without_creating_a_forecast_or_measurement",
+          "ok test_new_forecasts_remain_pending_without_quote_requests_or_fake_results",
+          "ok test_preexisting_crypto_equity_collision_is_excluded_without_rewriting_records_or_results",
+          "ok test_private_evidence_path_is_rejected_before_a_read",
+          "ok test_request_budget_advances_only_fully_checked_forecasts_without_starvation",
+          "Evaluator tests passed: 10"
+        ]
+      },
+      {
+        "suite": "justhodl-signal-harvester",
+        "unittest_cases": 15,
+        "passed": true,
+        "summary": [
+          "ok test_release_preserves_existing_schedule_bindings",
+          "ok test_source_selection_policy_is_retained_in_both_whole_capture_and_summary",
+          "ok test_unsupported_projection_reports_gap_without_losing_other_sources",
+          "ok test_whole_predecessor_self_ingests_its_summary_but_repair_excludes_before_read",
+          "ok test_wrong_provider_symbol_and_nonfinite_price_are_unavailable",
+          "Harvester integrity tests passed: 11"
+        ]
+      }
+    ],
+    "distinct_new_cases": 20,
+    "transport_cases": 15,
+    "compiler_compatibility_cases": 5,
+    "deployment_static": 705,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "frontend_last_pass_unchanged": 1871
+  },
+  "helper_capacity": {
+    "scope": "Local complete-body helper only, real botocore StreamingBody with synthetic in-memory bytes; not whole-engine AWS performance",
+    "bytes": 33554432,
+    "sha256": "05f052c8f6da8ee5228ec291820b559c4be183773b9e97a6b82e30dacff85dd3",
+    "elapsed_seconds": 0.024692799983313307,
+    "traced_peak_bytes": 67170977,
+    "configured_memory_mb_unchanged": 256,
+    "provider_requests": 0,
+    "native_invocations": 0
+  },
+  "reviewed_change_scope": {
+    "scope": "Read-only AST comparison of inert predecessor bytes and reviewed current code. No archived code execution. This bounds changed syntax; current-code exact replay tests remain required.",
+    "sources": {
+      "liquidity_flow_store.py": {
+        "prior_sha256": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+        "new_sha256": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e",
+        "changed_nodes_reviewed": [
+          "REVIEWED_STORAGE_REVISIONS",
+          "bounded"
+        ],
+        "all_other_syntax_identical": true
+      },
+      "calls_research_replay.py": {
+        "prior_sha256": "dfec155b8a6be0e6c7064e5d5bb5e926059d91770923166b1096a2d2bee40c7d",
+        "new_sha256": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+        "changed_nodes_reviewed": [
+          "REVIEWED_TRANSPORT_REVISIONS",
+          "compiler_match",
+          "replay"
+        ],
+        "all_other_syntax_identical": true
+      }
+    },
+    "native_shared_twin_identical": true
+  },
+  "pre_ship_correction": "Full deployment gate caught the native bundled storage twin still on old bytes; synchronized the full native/shared sources without weakening the equality gate, then reran all suites.",
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0,
+    "resource_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native/static deployment acceptance remains pending.",
+    "Normal scheduled publication remains separate and unverified.",
+    "Storage integrity and exact replay do not establish first-release availability, economic causality, predictive edge or allocation authority.",
+    "Other Calls publication/readback and audit-reader gaps remain separate, unmodified findings. A failed readback after a write is an unverified outcome, not proof of rollback.",
+    "The synthetic 32 MiB helper measurement does not qualify full-engine AWS resource requirements."
+  ]
+}

@@ -62,6 +62,24 @@ def compiler_identity():
                       for name in CODE_FILES}}
 
 
+# Exact reviewed predecessor pair retained in tests/fixtures/pre-liquidity-transport-*.py.txt.
+# Only transport/replay compatibility changes; all other compiler bytes, frozen
+# inputs and reproduced output must still match. No archived code is executed.
+REVIEWED_TRANSPORT_REVISIONS = ({
+    "calls_research_replay.py": "dfec155b8a6be0e6c7064e5d5bb5e926059d91770923166b1096a2d2bee40c7d",
+    "liquidity_flow_store.py": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+},)
+
+
+def compiler_match(recorded):
+    current=compiler_identity()
+    if recorded==current:return "exact"
+    for revision in REVIEWED_TRANSPORT_REVISIONS:
+        expected={**current,"files":{**current["files"],**revision}}
+        if recorded==expected:return "reviewed_storage_transport_revision"
+    raise ValueError("compiler version differs; no reviewed compatibility for these source hashes")
+
+
 def _get(doc, path):
     for part in path.split("."):
         if not isinstance(doc, dict): return None
@@ -203,8 +221,7 @@ def replay(bundle,read_original=None):
     if not isinstance(payload, dict): raise ValueError("research run payload absent")
     if digest(payload) != bundle.get("payload_sha256") or bundle.get("run_id") != "calls-research-"+bundle["payload_sha256"]:
         raise ValueError("research run content hash mismatch")
-    if payload.get("compiler") != compiler_identity():
-        raise ValueError("compiler version differs; use the source hashes recorded in this run")
+    match = compiler_match(payload.get("compiler"))
     inputs = payload.get("inputs")
     if not isinstance(inputs, dict) or set(inputs) != set(FIELDS): raise ValueError("incomplete input manifest")
     for key, row in inputs.items():
@@ -214,7 +231,7 @@ def replay(bundle,read_original=None):
             raise ValueError("input projection identity, whitelist or hash mismatch")
     output = compile_frozen(inputs, payload["generated_at"],read_original)
     if canonical(output) != canonical(payload.get("output")): raise ValueError("reproduced brief differs")
-    return {"status": "reproduced", "run_id": bundle["run_id"], "output_sha256": digest(output),
+    return {"status": "reproduced", "compiler_match": match, "run_id": bundle["run_id"], "output_sha256": digest(output),
             "inputs": len(inputs), "evidence_fields": len(output["evidence"]), "call_verb": output["call_verb"],
             "sizing_eligible": False, "scope": payload["scope"]}
 

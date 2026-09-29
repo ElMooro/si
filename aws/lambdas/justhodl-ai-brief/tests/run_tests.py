@@ -30,3 +30,7 @@ if __name__ == '__main__':
     from calls_period_replay_tests import CallsPeriods
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(CallsPeriods))
     if not result.wasSuccessful():raise SystemExit(1)
+
+if __name__ == '__main__':
+    from liquidity_transport_tests import run as run_liquidity_transport
+    run_liquidity_transport()

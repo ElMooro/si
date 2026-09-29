@@ -1,6 +1,6 @@
 {
   "stage": 428,
-  "status": "read_only_runtime_preflight_prepared",
+  "status": "read_only_predecessor_baseline_accepted",
   "baseline_commit": "53703f253779e712087450ee183d833d237fcd77",
   "operation": "aws/ops/staged/ops_6348_liquidity_transport_runtime_acceptance.py",
   "scope": "Five existing packages and exact release receipts/resources/full native schedule bindings only. No producer invocation, current/private/history data, provider access or AWS mutation.",
@@ -49,5 +49,8 @@
     ],
     "source_sha256": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533"
   },
-  "pending": "Complete bounded reader repair and explicitly reviewed historical compiler compatibility. Native source unchanged in this preflight."
+  "pending": "Complete bounded reader repair and explicitly reviewed historical compiler compatibility. Native source unchanged in this preflight.",
+  "baseline_run": 36612594337,
+  "baseline_report": "aws/ops/reports/latest/ops_6348_liquidity_transport_runtime_acceptance.md",
+  "baseline_report_commit": "6f86d65e3f18463d4a3767bd7d2f39fb59012598"
 }

@@ -18,7 +18,10 @@ sha = lambda raw: hashlib.sha256(raw).hexdigest()
 
 
 # Reviewed storage-only predecessor in release 80fecaa5; never execute archived code.
-REVIEWED_STORAGE_REVISIONS=frozenset({'2897e2d75ec708ac49188d37af645f5ae920ac5de0608db2bbc3dd5afbecc3a6'})
+# Stage 428 also reviews the preceding complete source: only bounded transport
+# and this compatibility list changed; arithmetic/output compilers remain exact.
+REVIEWED_STORAGE_REVISIONS=frozenset({'2897e2d75ec708ac49188d37af645f5ae920ac5de0608db2bbc3dd5afbecc3a6',
+    '4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533'})
 
 
 def strict(raw):
@@ -39,10 +42,18 @@ def same_json(left,right):
 
 
 def bounded(stream):
-    try: raw = stream.read(MAX+1)
-    finally: stream.close()
-    if len(raw) > MAX: raise ValueError('Complete artifact exceeds bound')
-    return raw
+    chunks=[];size=0
+    try:
+        while True:
+            chunk=stream.read(min(64*1024,MAX+1-size))
+            if not isinstance(chunk,bytes):raise ValueError('Complete artifact byte stream required')
+            if not chunk:break  # Reach EOF so the SDK validates ContentLength.
+            size+=len(chunk)
+            if size>MAX:raise ValueError('Complete artifact exceeds bound')
+            chunks.append(chunk)
+        return b''.join(chunks)
+    finally:stream.close()
+
 
 
 def error(exc): return str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
