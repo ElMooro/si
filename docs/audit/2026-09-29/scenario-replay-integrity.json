@@ -1,6 +1,6 @@
 {
   "stage": 437,
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_assets_and_isolated_browser_accepted",
   "checked_at": "2026-09-29T22:21:19.117017+00:00",
   "baseline_commit": "20b8080d9bdee6ec268a23a3929574633f758ccb",
   "predecessor": "scenario-replay-predecessor.json",
@@ -83,8 +83,128 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact static deployment remains pending. Native publication and operating-system download delivery are separately unverified.",
+    "Nineteen complete static assets match the intended source-bound build, including exact model/SRI identity. Native publication and operating-system download delivery remain separately unverified.",
     "Exact scenario replay proves consequences only under explicit synthetic/user assumptions, not forecast skill, investment suitability, position identity, permitted leverage or execution authority.",
     "Whole-fleet source completeness, point-in-time history, predictive qualification and supported portfolio decision authority remain open. All ten workstreams remain open."
-  ]
+  ],
+  "source_commit": "1a246d92e14a1c1881a7b720c27ecb26a29a3f58",
+  "pages_run": 36639101430,
+  "page_gate_run": 36639101554,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T22:27:14.294070+00:00",
+    "intended_commit": "1a246d92e14a1c1881a7b720c27ecb26a29a3f58",
+    "served_commit": "1a246d92e14a1c1881a7b720c27ecb26a29a3f58",
+    "assets": {
+      "position-sizer.html": {
+        "bytes": 11624,
+        "sha256": "dae9ac95287834e87d0ac05bde4e81dfd1b8846a5965fb4e0893aab943974186",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14762,
+        "sha256": "31ae69dacfc55a75cea1fec0e29c613046e0ad6980c9b0ab02659cbafc568ff3",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "f9886b699c2a0b7880bd0d5317196741c12a1abdfb20d2cb77668ce417a8d8a9",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "03c297accb54b18824ebc543140019809583031e257309d553797a3d96ae996b",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "d5f1a4e6326e66c7aedbc9c24812e2cd4d0394f1cb6ec692194ffe663424cd3f",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 8962,
+        "sha256": "9475f41ed492d912a9f6d2cbbcac12a58e9c7d76a5176bc9095a1746647b5b0c",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10042,
+        "sha256": "1acf3a39eb6734757746220ab097ee945bb1c3d2590e7c6a6409c186bbfed4cd",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 7052,
+        "sha256": "6d8f91f9eb011f40afedb081e0be38143eec1593ff01ff08ae0ee72f4c54e608",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3067214,
+        "sha256": "9f2284ef99754aea0c06d790a6c6f841e3bcb79076fdf657c5b32e0d84190200",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7665701,
+        "sha256": "b197d9ec571bb11e3e7d712d74425c078a6933baba19fc8279489d6bb19bfa4b",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 15
 }
