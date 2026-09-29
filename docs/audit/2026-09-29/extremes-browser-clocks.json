@@ -1,6 +1,6 @@
 {
   "stage": 427,
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_deployment_and_isolated_browser_accepted",
   "checked_at": "2026-09-29T18:12:48.223239+00:00",
   "baseline_commit": "2aa5e060558f1702ec75d818a92da4588453069c",
   "reproductions": {
@@ -129,10 +129,48 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact static deployment remains pending.",
+    "Both pages, the complete renderer and both source registries exactly match the intended source-bound build; ordinary scheduled data publication is separate and unverified.",
     "Local age labels update on a sixty-second timer and visibility/page-return events; this is not an execution-grade clock service.",
     "QA uses controlled clock/lifecycle events and synthetic proof-shaped packets; normal scheduled data publication is separate and unverified.",
     "The JSON/date checks do not establish source-provider accuracy, first-release historical availability, forecast validation or portfolio authority.",
     "Dynamic current-writer source provenance remains unproven."
-  ]
+  ],
+  "source_commit": "44e830e074b9286c258c663078c74ba66625b4ad",
+  "pages_run": 36610467426,
+  "page_gate_run": 36610467396,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T18:19:56.373326+00:00",
+    "intended_commit": "44e830e074b9286c258c663078c74ba66625b4ad",
+    "served_commit": "44e830e074b9286c258c663078c74ba66625b4ad",
+    "assets": {
+      "market-extremes.html": {
+        "bytes": 5924,
+        "sha256": "de342b9757b5495dd305bebdf72d0d17f5669fa922d566176d6d8c4ff47d805a",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 5383,
+        "sha256": "4cc5efc26928f5ac3d544c6224c83dadaa2f8e207e2320b004236881785e26b9",
+        "matches_manifest": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3066292,
+        "sha256": "bcc1b98349c4c5fe00d200fb98c2956e9e9ce34629fe8d8769eb90f002fd1021",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7655340,
+        "sha256": "c9fa73ffc7b96cfa44128452b2c05c322e6752906c4cf230faf32fc83115128a",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing script and generated registries only. No execution or current/private packet requests."
+  },
+  "atomic_batch_files": 12
 }
