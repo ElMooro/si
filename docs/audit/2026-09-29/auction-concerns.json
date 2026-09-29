@@ -1,0 +1,206 @@
+{
+  "status": "source_and_isolated_browser_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T09:49:30.900776+00:00",
+  "baseline_commit": "6dbbc0991f389b2ede7697588aaaf4bbc5165a59",
+  "complete_predecessors": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+      "fixture": "tests/fixtures/pre-auction-concerns-aws-lambdas-justhodl-auction-crisis-detector-source-auction_crisis_v2.py.txt",
+      "bytes": 43553,
+      "sha256": "8341312efda2e6b9f88acf84d0171b22f4398551fabeca7bb88a9d7c37306b8e"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-concerns-auction-crisis.js.txt",
+      "bytes": 45760,
+      "sha256": "70d141d4903274c1ab96b0fbe047196cb154a9ddd93dd1f26348dab97c3a0a81"
+    },
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-concerns-auction-crisis.html.txt",
+      "bytes": 50566,
+      "sha256": "62f3c22fc620f03945b32e1c04a4c35af98806090618810c589c931c34efe870"
+    }
+  ],
+  "actual_predecessor_reproductions": "docs/audit/2026-09-29/auction-concerns-reproduced.json",
+  "native_predecessor": "docs/audit/2026-09-29/auction-concerns-predecessor.json",
+  "runtime_acceptance_operation": "6338",
+  "native_publication_verified": false,
+  "sources": {
+    "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": {
+      "bytes": 38471,
+      "sha256": "2f0bd5cd8443b357f06271689a92593ff95c22df44d95d081c0419d188bd88cd"
+    },
+    "auction-crisis.js": {
+      "bytes": 48155,
+      "sha256": "cc49f3540b44013c9cbaa4ed1789a83d81b4637c5eab9363cad60d727b2dd08c"
+    },
+    "auction-crisis.html": {
+      "bytes": 50866,
+      "sha256": "bab0d53220988753050b7a68756c2b38d62d182f5232495ec452164a416e56e8"
+    },
+    "aws/shared/auction_concerns.py": {
+      "bytes": 16044,
+      "sha256": "e32344e27b5d9e6ea906c8229505fb196b0734c09ed3889b31295636466b4686"
+    },
+    "tests/fixtures/auction-concerns.json": {
+      "bytes": 289944,
+      "sha256": "3318a2cea0b50b16f9d12eaca5a1b852e64474975c0f11579780bfab4db30cf2"
+    }
+  },
+  "source_dependency_delta": {
+    "changed_fields": {},
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [],
+    "added_reads": [],
+    "unresolved_writes": [
+      {
+        "file": "aws/shared/auction_fred_store.py",
+        "line": 134,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/auction_fred_store.py",
+        "line": 43,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/auction_original_store.py",
+        "line": 39,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/evidence_store.py",
+        "line": 46,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      }
+    ],
+    "shared_closure": [
+      "_fred_shim.py",
+      "auction_benchmarks.py",
+      "auction_calendar.py",
+      "auction_calendar_store.py",
+      "auction_concerns.py",
+      "auction_cross_observations.py",
+      "auction_forward.py",
+      "auction_fred_originals.py",
+      "auction_fred_store.py",
+      "auction_original_store.py",
+      "auction_originals.py",
+      "auction_weighting.py",
+      "evidence_store.py",
+      "funding_research_catalog.py",
+      "managed_secret.py",
+      "pd_fails_context.py",
+      "treasury_instruments.py"
+    ]
+  },
+  "changes": [
+    "A pure dated compiler replaces the native legacy concern calculation while preserving all four public keys, including the deprecated failed-auction alias. The existing participation/supply coefficients and caps remain explicit; all probabilities, calibrated horizons and forecast/Calls/sizing/execution authority remain unavailable.",
+    "Momentum requires the exact current date and the date seven calendar days earlier, never the seventh available row. Missing, duplicate, future and invalid dates cannot be substituted. Both endpoints are independently recomputed from every supplied scored-auction observation and accepted-amount weight in their inclusive fourteen-day windows. A plausible self-consistent history cannot validate its own arithmetic.",
+    "Coupon participation flags use all supplied recent verified nominal-coupon and TIPS observations rather than the first twenty rows. Bills/FRNs and out-of-window observations are explicitly excluded; missing or duplicate identities and incomplete dimensions cannot become false. The greater-than-three-year nominal-coupon mean is recomputed with complete known weights and must match the reported tenor count, date and value. Known zero weight remains zero; an all-zero denominator is unavailable.",
+    "The historical-anchor-dependent concern is withheld because existing anchors use a different simplified feature mapping and lack verified comparable instrument/source inputs. The reported candidate remains inspectable with its date/regime/similarity; an arbitrary ranking or zero-similarity label cannot add twenty-five points. Threshold distance remains descriptive context, not a replacement forecast.",
+    "Supply context must match the existing dated pure cross-source compiler on the complete retained parsed input frames. A changed value, stale calculation date, legacy shape or missing measurement cannot become calm. No provider request or source cadence is added.",
+    "Every concern records missing-input reasons, dated source windows, observations, selection coverage and formula terms. The page requires the new dated contract before showing a score, displays readable missing/zero/Boolean states and provides keyboard-operable expandable full-input inspection. Source text remains escaped; malformed/stale/future publications and permission promotion withhold scores. Higher-contrast input labels remain within the existing page design."
+  ],
+  "tests": {
+    "new_pure_and_native_concern_cases": 19,
+    "new_frontend_cases": 7,
+    "auction_native_regressions": 157,
+    "settlement_context": "passed",
+    "frontend": 1786,
+    "deployment_static": 655,
+    "candidate_shell": 12,
+    "page_graphs": 599,
+    "page_contracts": "passed",
+    "page_wiring": "143 wires across 36 pages"
+  },
+  "browser_acceptance": {
+    "synthetic_only": true,
+    "actual_production_scripts": true,
+    "external_requests": 0,
+    "console_errors": [],
+    "cases": {
+      "complete": [
+        "45/100",
+        "unavailable",
+        "60/100"
+      ],
+      "zero": [
+        "5/100",
+        "unavailable",
+        "60/100"
+      ],
+      "missing": [
+        "unavailable",
+        "unavailable",
+        "unavailable"
+      ],
+      "sparse": [
+        "unavailable",
+        "unavailable",
+        "unavailable"
+      ],
+      "invalid": [
+        "unavailable",
+        "unavailable",
+        "unavailable"
+      ],
+      "unqualified_anchor": [
+        "45/100",
+        "unavailable",
+        "60/100"
+      ]
+    },
+    "complete_inspector_leaf_paths": [
+      168,
+      114,
+      153
+    ],
+    "keyboard_disclosure": {
+      "focused_tag": "SUMMARY",
+      "open_after_enter": true
+    },
+    "expanded_momentum_trace": {
+      "start_date": "2026-09-22",
+      "end_date": "2026-09-29",
+      "elapsed_calendar_days": 7,
+      "endpoint_windows": 2
+    },
+    "desktop": {
+      "document_width": 1265,
+      "viewport_client_width": 1265
+    },
+    "mobile": {
+      "requested_width": 375,
+      "requested_height": 812,
+      "document_width": 360,
+      "viewport_client_width": 360,
+      "expanded_disclosure_document_width": 360
+    },
+    "screenshots": {
+      "stage409-desktop.png": {
+        "sha256": "791525ec1443041103ce59874ccfdd556fd02b7c4e786f436a798e2b55a536d0"
+      },
+      "stage409-mobile.png": {
+        "sha256": "ab05e977d353e1f48c18269e360639b8dcd6e95f1b2a446b158deb6327e0cb85"
+      }
+    }
+  },
+  "limitations": [
+    "These are fixed, uncalibrated legacy concern formulas on supplied scored-auction observations. The score inputs, historical baselines, instrument pooling and complete provider-population eligibility remain separate model-validation work.",
+    "Daily composite history is reconstructed using the current source vintage. Its arithmetic does not establish what was known on a historical date, a prospective forecast or a portfolio consequence.",
+    "The legacy historical analog display and its source catalog remain separate outstanding work. Withholding its amplification does not repair or qualify that comparison itself.",
+    "Input traces and pure synthetic reproduction are not a new immutable whole-model/original-provider replay archive. Existing Treasury/FRED originals remain separate, with their prior limitations.",
+    "The original 13:05 UTC and 19:50 UTC schedules, resources and seventeen FRED queries remain unchanged. Ordinary native publication still requires separate acceptance; no producer invocation, private/learning-ledger/downstream read or paid AI request is made.",
+    "All ten platform acceptance workstreams remain open, including provider definitions, historical vintages, independent validation, peak capacity and supported portfolio consequences."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "execution_eligible": false
+}

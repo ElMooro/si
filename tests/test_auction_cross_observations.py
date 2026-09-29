@@ -186,16 +186,20 @@ def test_native_bad_transport_json_and_secrets_in_errors_cannot_escape_into_a_pa
 
 
 def test_supply_heuristic_cannot_convert_unavailable_cross_context_to_calm():
-    m=engine();current={'current':{'composite':10},'series':[]};scored=[{'indicator_scores':{}}]
+    m=engine();values=json.loads((ROOT/'tests/fixtures/auction-concerns.json').read_bytes())['cases']['complete']['inputs']
+    class FixedConcernDate(datetime):
+        @classmethod
+        def now(cls,tz=None):return datetime(2026,9,29,tzinfo=timezone.utc)
+    m.datetime=FixedConcernDate
     good=model.build(fixture(),TODAY)
-    out=m.compute_tail_risk(scored,current,{}, {},good)['p_supply_volatility_30d']
+    out=m.compute_tail_risk(*values[:4],good)['p_supply_volatility_30d']
     assert out['heuristic_score'] is not None and out['probability'] is None and out['drivers']['repo_observation_date']=='2026-09-29'
     for change in ('missing_repo','missing_usd','legacy'):
         data=deepcopy(good)
         if change=='missing_repo':data['repo_stress']['measurement_status']='unavailable'
         elif change=='missing_usd':data['dollar_strength']['change_30d_target_pct']=None
         else:data.pop('measurement_contract')
-        out=m.compute_tail_risk(scored,current,{}, {},data)['p_supply_volatility_30d']
+        out=m.compute_tail_risk(*values[:4],data)['p_supply_volatility_30d']
         assert out['heuristic_score'] is None and out['status']=='unavailable'
 
 

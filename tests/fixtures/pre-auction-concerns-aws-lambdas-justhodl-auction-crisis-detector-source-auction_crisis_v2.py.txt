@@ -49,7 +49,6 @@ import time
 from auction_weighting import weighted_summary
 import auction_benchmarks
 import auction_forward
-import auction_concerns
 import auction_cross_observations
 import auction_fred_originals
 from copy import deepcopy
@@ -608,9 +607,102 @@ def compute_tail_risk(scored_auctions: List[dict],
                        tenor_decomp: Dict[str, dict],
                        analog_match: dict,
                        cross_signals: dict) -> dict:
-    """Dated complete-input legacy concern arithmetic; no model qualification."""
-    return auction_concerns.calculate(scored_auctions, composite_history, tenor_decomp,
-                                      analog_match, cross_signals, datetime.now(timezone.utc).date())
+    """Uncalibrated 0-100 concern scores, never estimated event probabilities.
+
+    Historical horizons remain in legacy field names for compatibility; no
+    out-of-sample probability calibration supports those time-window claims.
+    """
+    # Current state inputs
+    current_composite = composite_history.get("current", {}).get("composite") or 0
+    series = composite_history.get("series", [])
+
+    # Momentum: 7-day change in composite
+    momentum = 0
+    valid = [s for s in series if s.get("composite") is not None]
+    if len(valid) >= 7:
+        momentum = valid[-1]["composite"] - valid[-7]["composite"]
+
+    # P(failed auction) — drivers:
+    #   - PD share % at recent coupons (high = dealers stuck)
+    #   - Indirect collapse signal active
+    #   - Tail_stress active
+    #   - Coupons_gt_3y composite
+    coupons_long_stress = (tenor_decomp.get("coupons_gt_3y", {}).get("composite") or 0)
+    pd_concern = any(
+        (a.get("indicator_scores") or {}).get("pd_absorption", 0) >= 70
+        for a in scored_auctions[:20]
+    )
+    indirect_concern = any(
+        (a.get("indicator_scores") or {}).get("indirect_collapse", 0) >= 70
+        for a in scored_auctions[:20]
+    )
+    p_failed = min(85, 5 + coupons_long_stress * 0.5 +
+                       (20 if pd_concern else 0) +
+                       (15 if indirect_concern else 0) +
+                       max(0, momentum) * 0.5)
+
+    # P(regime escalation) — drivers:
+    #   - Current composite proximity to next threshold
+    #   - Positive momentum
+    #   - Top analog regime
+    distance_to_next_threshold = 0
+    if current_composite < 25: distance_to_next_threshold = 25 - current_composite
+    elif current_composite < 50: distance_to_next_threshold = 50 - current_composite
+    elif current_composite < 75: distance_to_next_threshold = 75 - current_composite
+
+    top_analog_regime = ""
+    if analog_match.get("top_matches"):
+        top_analog_regime = analog_match["top_matches"][0].get("regime") or ""
+    analog_amplifier = 25 if top_analog_regime in ("GFC_PEAK", "COVID_CRASH") else 0
+
+    p_escalation = min(80, 8 + (max(0, momentum) * 1.2) +
+                            (25 if distance_to_next_threshold < 8 else
+                             10 if distance_to_next_threshold < 15 else 5) +
+                            analog_amplifier)
+
+    # P(supply volatility) — drivers:
+    #   - SOFR-IORB stress
+    #   - DXY momentum
+    #   - Composite history max
+    repo_stress = cross_signals.get("repo_stress", {})
+    repo_regime = repo_stress.get("legacy_threshold_band")
+    repo_amp = {"CALM": 0, "WATCH": 15, "ELEVATED": 30, "ACUTE": 45}.get(repo_regime, 0)
+
+    dollar = cross_signals.get("dollar_strength", {})
+    dollar_value = auction_benchmarks.number(dollar.get("change_30d_target_pct"))
+    dollar_amp = min(20, abs(dollar_value) * 4) if dollar_value is not None else 0
+    cross_available = (cross_signals.get('measurement_contract') == auction_cross_observations.CONTRACT
+                       and repo_stress.get('measurement_status') == 'complete'
+                       and dollar.get('measurement_status') == 'complete'
+                       and auction_benchmarks.number(repo_stress.get('spread_bp')) is not None
+                       and repo_regime in ('CALM','WATCH','ELEVATED','ACUTE') and dollar_value is not None)
+
+    p_supply_vol = min(75, 10 + repo_amp + dollar_amp + max(0, momentum) * 0.4)
+
+    measured = bool(scored_auctions) and composite_history.get("current", {}).get("composite") is not None
+    def concern(score, drivers, note, available=measured):
+        return {"probability": None, "heuristic_score": round(score, 1) if available else None,
+                "unit": "score_0_100", "calibrated": False, "forecast_horizon_days": None,
+                "status": "available" if available else "unavailable", "drivers": drivers,
+                "interpretation": note + " Uncalibrated concern score; no event probability or validated horizon."}
+    soft = concern(p_failed, {"coupons_long_stress": round(coupons_long_stress, 1),
+                             "pd_concern": pd_concern, "indirect_concern": indirect_concern,
+                             "momentum": round(momentum, 1)},
+                   "Auction participation and tenor stress. AAH is marginal-bid proration, not dealer absorption.")
+    return {
+        "p_soft_demand_30d": soft,
+        "p_failed_auction_30d": dict(soft, deprecated=True, alias_of="p_soft_demand_30d"),
+        "p_regime_escalation_14d": concern(p_escalation,
+            {"current_composite": round(current_composite, 1), "momentum_7d": round(momentum, 1),
+             "distance_to_next_threshold": round(distance_to_next_threshold, 1), "top_analog_regime": top_analog_regime},
+            "Proximity to heuristic regime thresholds and composite momentum."),
+        "p_supply_volatility_30d": concern(p_supply_vol,
+            {"repo_stress": repo_regime, "repo_observation_date": repo_stress.get('observation_date'),
+             "dollar_change_30d": dollar.get("change_30d_pct"), "dollar_target_change_pct": dollar_value,
+             "dollar_comparison": dollar.get('comparison'), "momentum": round(momentum, 1)},
+            "Dated funding and dollar context in a fixed legacy supply-concern formula; not demonstrated volatility causation.",
+            available=measured and cross_available),
+    }
 
 
 # ═════════════════════════════════════════════════════════════════════

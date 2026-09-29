@@ -12,6 +12,12 @@ from pd_fails_context_tests import run as pd_checks
 pd_checks()
 from auction_quality import stamp_quality
 from datetime import datetime, timezone
+import json
+FIXTURE=json.loads((SOURCE.parents[3]/'tests/fixtures/auction-concerns.json').read_bytes())
+class FixedConcernDate(datetime):
+    @classmethod
+    def now(cls,tz=None):return datetime(2026,9,29,tzinfo=timezone.utc)
+def concern_inputs():return json.loads(json.dumps(FIXTURE['cases']['complete']['inputs']))
 with patch.dict(sys.modules, {"managed_secret": types.SimpleNamespace(managed_secret=lambda *a, **k: "TEST_ONLY")}):
     spec=importlib.util.spec_from_file_location("auction_v2_test",SOURCE/"auction_crisis_v2.py")
     engine=importlib.util.module_from_spec(spec)
@@ -23,21 +29,20 @@ def test_heuristics_are_not_probabilities_and_legacy_alias_survives():
     import json
     frames=json.loads((SOURCE.parents[3]/'tests/fixtures/auction-cross-observations.json').read_bytes())['cases']['valid']['source_frames']
     cross=build(frames,datetime(2026,9,29,tzinfo=timezone.utc).date())
-    out=engine.compute_tail_risk([{"indicator_scores": {"pd_absorption":80}}],
-        {"current":{"composite":30}, "series":[]}, {"coupons_gt_3y":{"composite":40}}, {},
-        cross)
-    for row in out.values():
+    values=concern_inputs();values[-1]=cross
+    with patch.object(engine,'datetime',FixedConcernDate):out=engine.compute_tail_risk(*values)
+    for key,row in out.items():
         assert row["probability"] is None and row["calibrated"] is False
         assert row["forecast_horizon_days"] is None and row["unit"] == "score_0_100"
-        assert 0 <= row["heuristic_score"] <= 100
+        if key=='p_regime_escalation_14d':assert row['heuristic_score'] is None
+        else:assert 0 <= row["heuristic_score"] <= 100
     assert out["p_soft_demand_30d"]["heuristic_score"] == 45
     assert out["p_failed_auction_30d"]["alias_of"] == "p_soft_demand_30d"
 
 
 def test_undated_legacy_cross_values_cannot_reactivate_supply_concern():
-    out=engine.compute_tail_risk([{"indicator_scores": {"pd_absorption":80}}],
-        {"current":{"composite":30}, "series":[]}, {"coupons_gt_3y":{"composite":40}}, {},
-        {"repo_stress":{"regime":"WATCH"}, "dollar_strength":{"change_30d_pct":1}})
+    values=concern_inputs();values[-1]={"repo_stress":{"regime":"WATCH"}, "dollar_strength":{"change_30d_pct":1}}
+    with patch.object(engine,'datetime',FixedConcernDate):out=engine.compute_tail_risk(*values)
     assert out['p_supply_volatility_30d']['heuristic_score'] is None
     assert out['p_supply_volatility_30d']['status']=='unavailable'
     assert out['p_soft_demand_30d']['heuristic_score']==45

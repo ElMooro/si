@@ -269,8 +269,8 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 .tail-card .bar{height:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));border-radius:5px;transition:width .5s ease}
 .tail-card .pct{font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--fg-1);line-height:1}
 .tail-card .pct .unit{font-size:14px;color:var(--fg-3);font-weight:400}
-.tail-card .interp{font-size:12px;color:var(--fg-2);margin-top:8px;line-height:1.5}
-.tail-card .drivers{font-family:var(--font-mono);font-size:11px;color:var(--fg-2);margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.tail-card .interp{font-size:11.5px;color:var(--fg-3);margin-top:8px;line-height:1.4}
+.tail-card .drivers{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-top:6px;display:flex;flex-wrap:wrap;gap:8px}
 .tail-card .drivers span{padding:2px 6px;background:var(--bg-sunken);border-radius:3px;border:1px solid var(--border)}
 
 .tail-ai-card{background:rgba(167,139,250,0.04);border:1px solid var(--violet-dim);border-left:3px solid var(--violet);border-radius:6px;padding:16px 20px;margin-bottom:20px;font-size:13px;line-height:1.6;color:var(--fg-1)}
@@ -382,7 +382,6 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 footer{border-top:1px solid var(--border);margin-top:50px;padding:20px;text-align:center;color:var(--fg-3);font-family:var(--font-mono);font-size:11px;letter-spacing:.5px}
 footer a{color:var(--fg-2);margin:0 6px}
 footer a:hover{color:var(--cyan)}
-.concern-missing,.concern-trace{overflow-wrap:anywhere}.concern-trace{min-width:0;margin-top:12px}.concern-trace .jdi-table{max-width:100%}.concern-trace>summary{cursor:pointer;color:var(--cyan);padding:8px 0}.concern-trace>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 </style>
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
@@ -412,7 +411,7 @@ footer a:hover{color:var(--cyan)}
 <main class="container">
   <div class="page-hdr">
     <h1>TREASURY AUCTION OBSERVATIONS <span class="ai-tag">RESEARCH</span></h1>
-    <p>Dated Treasury auction observations and uncalibrated legacy heuristics. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with heuristic stress scores · cosine-similarity historical analog matching · dated context from five FRED series · 30-day composite trajectory · complete-input concern arithmetic · named regime triggers · Source context and explicit missing-data states. No forecast or position-size authority is established.</p>
+    <p>Dated Treasury auction observations and uncalibrated legacy heuristics. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with heuristic stress scores · cosine-similarity historical analog matching · dated context from five FRED series · 30-day composite trajectory · 3 descriptive concern scores · named regime triggers · Source context and explicit missing-data states. No forecast or position-size authority is established.</p>
     <div class="meta-row">
       <span>Data schedules: 13:05 / 19:50 UTC</span>
       <span>Research view: descriptive observations</span>
@@ -674,7 +673,7 @@ footer a:hover{color:var(--cyan)}
 
 <script src="/jh-auction-originals.js?v=20260929" defer></script>
 <script src="/jh-auction-fred-evidence.js?v=20260929-fred-v1" defer></script>
-<script src="/auction-crisis.js?t=20260929-dated-concerns" defer></script>
+<script src="/auction-crisis.js?t=20260929-fred-evidence" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

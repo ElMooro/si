@@ -561,51 +561,27 @@ function renderPostIssuePerformance() {
 function renderTailRiskDataOnly() {
   const tr = DATA.tail_risk || {};
   const cards = [
-    {key: 'p_soft_demand_30d', label: 'Auction Participation', fallback: 'p_failed_auction_30d'},
-    {key: 'p_regime_escalation_14d', label: 'Regime Thresholds'},
-    {key: 'p_supply_volatility_30d', label: 'Supply Context'},
+    {key: 'p_soft_demand_30d',        label: 'Auction Participation', fallback: 'p_failed_auction_30d'},   // ops 5617 rename; old key until the detector republishes
+    {key: 'p_regime_escalation_14d',  label: 'Regime Thresholds'},
+    {key: 'p_supply_volatility_30d',  label: 'Supply Context'},
   ];
-  const validClock=typeof DATA.generated_at==='string' && /T.*(?:Z|\+00:00)$/.test(DATA.generated_at);
-  const at=validClock?Date.parse(DATA.generated_at):NaN;
-  const fresh=Number.isFinite(at)&&new Date(at).toISOString().slice(0,10)===DATA.generated_at.slice(0,10)&&at<=Date.now()+300000&&Date.now()-at<=48*3600000;
-  const labels={coupons_long_stress:'Long coupon score',pd_concern:'Dealer threshold met',indirect_concern:'Indirect threshold met',
-    momentum:'Seven-day score change',momentum_7d:'Seven-day score change',current_composite:'Current composite',
-    distance_to_next_threshold:'Distance to next threshold',top_analog_regime:'Historical comparison',repo_stress:'Funding band',
-    repo_observation_date:'Funding observed',dollar_change_30d:'Dollar change over exactly 30 days',
-    dollar_target_change_pct:'Dollar target-window change',dollar_comparison:'Dollar comparison dates'};
-  let html='';const inspections=[];
+  let html = '';
   for (const c of cards) {
-    const v=tr[c.key] || (c.fallback?tr[c.fallback]:undefined);
+    const v = tr[c.key] || (c.fallback ? tr[c.fallback] : undefined);
     if (!v) continue;
-    const qualified=fresh&&v.measurement_contract==='auction-concern-inputs.v1'&&
-      v.calculation_as_of===DATA.generated_at.slice(0,10)&&v.status==='available'&&
-      v.probability===null&&v.calibrated===false&&v.forecast_horizon_days===null&&
-      ['source_capture_verified','historical_point_in_time_verified','forecast_eligible','calls_eligible','sizing_eligible','execution_eligible'].every(k=>v[k]===false)&&
-      Array.isArray(v.missing_inputs)&&v.missing_inputs.length===0;
-    const score=qualified?scoreValue(v.heuristic_score):null;
-    const value=vv=>vv===null||vv===undefined?'Unavailable':typeof vv==='boolean'?(vv?'Yes':'No'):
-      typeof vv==='number'?fmt(vv):typeof vv==='object'?'Inspect the dated input trace':String(vv);
-    const drivers=Object.entries(v.drivers||{}).map(([k,vv])=>`<span>${esc(labels[k]||k.replaceAll('_',' '))}: <b>${esc(value(vv))}</b></span>`).join('');
-    const missing=Array.isArray(v.missing_inputs)?v.missing_inputs.filter(x=>typeof x==='string'):[];
-    const message=score!==null?v.interpretation||'Uncalibrated concern arithmetic.':
-      !fresh?'Concern score unavailable: publication is stale or undated.':
-      v.measurement_contract!=='auction-concern-inputs.v1'?'Dated complete-input concern calculation unavailable.':
-      v.interpretation||'Concern score unavailable; required inputs are incomplete.';
-    html+=`<div class="tail-card">
+    const score = scoreValue(v.heuristic_score);
+    const drivers = Object.entries(v.drivers || {})
+      .map(([k, vv]) => `<span>${esc(k)}=<b>${typeof vv === 'number' ? fmt(vv) : esc(String(vv))}</b></span>`)
+      .join('');
+    html += `<div class="tail-card">
       <div class="nm">${esc(c.label)}</div>
-      <div class="bar-wrap"><div class="bar" style="width:${score??0}%"></div></div>
-      <div class="pct">${score===null?'—':score.toFixed(0)}<span class="unit">/100</span></div>
-      <div class="interp">${esc(message)}</div>
-      ${missing.length?`<p class="concern-missing">Required input checks: ${missing.map(reason=>esc(reason.replaceAll('_',' '))).join('; ')}.</p>`:''}
-      <div class="drivers">${drivers}</div><details class="concern-trace"><summary>Inspect inputs and arithmetic</summary><div id="concern-trace-${c.key}"></div></details>
+      <div class="bar-wrap"><div class="bar" style="width:${score ?? 0}%"></div></div>
+      <div class="pct">${score === null ? "—" : score.toFixed(0)}<span class="unit">/100</span></div>
+      <div class="interp">${esc(score === null ? 'Concern score unavailable. Event probabilities are not calibrated.' : v.interpretation || '')}</div>
+      <div class="drivers">${drivers}</div>
     </div>`;
-    inspections.push([c.key,v]);
   }
-  $('tail-grid').innerHTML=html;
-  for(const [key,v] of inspections){
-    const root=$('concern-trace-'+key);
-    if(root&&globalThis.JHDataInspector?.inspect)globalThis.JHDataInspector.inspect(root,v,'Complete concern inputs and arithmetic');
-  }
+  $('tail-grid').innerHTML = html;
 }
 
 function renderTriggers() {

@@ -1,0 +1,205 @@
+{
+  "baseline_commit": "2b3eef3458e6fb3ec91d5e0da873cdcb56bf95b3",
+  "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+  "source_sha256": "8341312efda2e6b9f88acf84d0171b22f4398551fabeca7bb88a9d7c37306b8e",
+  "synthetic_only": true,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "cases": [
+    {
+      "case": "missing_tenor_and_momentum_become_zero",
+      "result": {
+        "probability": null,
+        "heuristic_score": 5.0,
+        "unit": "score_0_100",
+        "calibrated": false,
+        "forecast_horizon_days": null,
+        "status": "available",
+        "drivers": {
+          "coupons_long_stress": 0,
+          "pd_concern": false,
+          "indirect_concern": false,
+          "momentum": 0
+        },
+        "interpretation": "Auction participation and tenor stress. AAH is marginal-bid proration, not dealer absorption. Uncalibrated concern score; no event probability or validated horizon."
+      }
+    },
+    {
+      "case": "eight_daily_rows_labeled_seven_days_compare_only_six_days",
+      "history": {
+        "current": {
+          "date": "2026-09-29",
+          "composite": 17
+        },
+        "series": [
+          {
+            "date": "2026-09-22",
+            "composite": 10
+          },
+          {
+            "date": "2026-09-23",
+            "composite": 11
+          },
+          {
+            "date": "2026-09-24",
+            "composite": 12
+          },
+          {
+            "date": "2026-09-25",
+            "composite": 13
+          },
+          {
+            "date": "2026-09-26",
+            "composite": 14
+          },
+          {
+            "date": "2026-09-27",
+            "composite": 15
+          },
+          {
+            "date": "2026-09-28",
+            "composite": 16
+          },
+          {
+            "date": "2026-09-29",
+            "composite": 17
+          }
+        ]
+      },
+      "reported_momentum": 6,
+      "exact_calendar_seven_day_difference": 7
+    },
+    {
+      "case": "missing_seven_day_comparison_uses_28_day_change",
+      "history": {
+        "current": {
+          "date": "2026-09-29",
+          "composite": 7
+        },
+        "series": [
+          {
+            "date": "2026-09-01",
+            "composite": 1
+          },
+          {
+            "date": "2026-09-05",
+            "composite": 2
+          },
+          {
+            "date": "2026-09-10",
+            "composite": 3
+          },
+          {
+            "date": "2026-09-15",
+            "composite": 4
+          },
+          {
+            "date": "2026-09-20",
+            "composite": 5
+          },
+          {
+            "date": "2026-09-25",
+            "composite": 6
+          },
+          {
+            "date": "2026-09-29",
+            "composite": 7
+          }
+        ]
+      },
+      "reported_momentum": 6,
+      "exact_calendar_comparison_available": false
+    },
+    {
+      "case": "explicit_unavailable_current_crashes",
+      "exception": "AttributeError",
+      "message": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "case": "zero_similarity_anchor_still_adds_25_concern_points",
+      "analog": {
+        "current_vector": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0
+        ],
+        "vector_labels": [
+          "zero_rate_floor",
+          "btc_extreme",
+          "tail_stress",
+          "pd_absorption",
+          "indirect_collapse",
+          "issuance_anomaly"
+        ],
+        "top_matches": [
+          {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "similarity": 0.0,
+            "anchor_vec": [
+              100.0,
+              0.0,
+              0.0,
+              70.0,
+              30.0,
+              0.0
+            ],
+            "anchor_metrics": {
+              "btc": 2.45,
+              "low_rate": 0,
+              "aah": 83.72,
+              "pd_share_pct": 46.7,
+              "indirect_share_pct": 51.1
+            },
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_happened_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          }
+        ],
+        "all_matches": [
+          {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "similarity": 0.0,
+            "anchor_vec": [
+              100.0,
+              0.0,
+              0.0,
+              70.0,
+              30.0,
+              0.0
+            ],
+            "anchor_metrics": {
+              "btc": 2.45,
+              "low_rate": 0,
+              "aah": 83.72,
+              "pd_share_pct": 46.7,
+              "indirect_share_pct": 51.1
+            },
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_happened_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          }
+        ]
+      },
+      "result": {
+        "probability": null,
+        "heuristic_score": 38.0,
+        "unit": "score_0_100",
+        "calibrated": false,
+        "forecast_horizon_days": null,
+        "status": "available",
+        "drivers": {
+          "current_composite": 0,
+          "momentum_7d": 0,
+          "distance_to_next_threshold": 25,
+          "top_analog_regime": "GFC_PEAK"
+        },
+        "interpretation": "Proximity to heuristic regime thresholds and composite momentum. Uncalibrated concern score; no event probability or validated horizon."
+      }
+    }
+  ]
+}
