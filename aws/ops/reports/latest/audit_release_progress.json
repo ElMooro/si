@@ -1,14 +1,14 @@
 {
-  "observed_at": "2026-09-29T14:13:09.415556+00:00",
+  "observed_at": "2026-09-29T14:13:34.267882+00:00",
   "runs": [
     {
       "id": 36580555865,
       "path": ".github/workflows/pages.yml",
       "head_sha": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-09-29T14:09:39Z",
-      "updated_at": "2026-09-29T14:12:51Z",
+      "updated_at": "2026-09-29T14:13:04Z",
       "jobs": [
         {
           "id": 109447293722,
@@ -247,10 +247,10 @@
         {
           "id": 109448650558,
           "name": "deploy",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-09-29T14:12:50Z",
-          "completed_at": null,
+          "completed_at": "2026-09-29T14:13:02Z",
           "steps": [
             {
               "number": 1,
@@ -279,20 +279,37 @@
             {
               "number": 4,
               "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-09-29T14:12:59Z",
-              "completed_at": null
+              "completed_at": "2026-09-29T14:12:59Z"
             },
             {
               "number": 5,
               "name": "Fail this run when Pages was not deployed",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-09-29T14:12:59Z",
+              "completed_at": "2026-09-29T14:12:59Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-09-29T14:12:59Z",
+              "completed_at": "2026-09-29T14:12:59Z"
             }
           ]
+        },
+        {
+          "id": 109448781882,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-09-29T14:13:03Z",
+          "completed_at": "2026-09-29T14:13:02Z",
+          "steps": []
         }
       ]
     },
