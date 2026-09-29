@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 439 portfolio risk source/browser acceptance: all ten workstreams remain open. The risk page now rejects impossible clocks, missing sample metadata, inconsistent NAV claims and malformed quality fields while preserving all four genuine synthetic native outputs and measured zero. Snapshot failure metadata and correlation recovery are repaired, and scenario navigation reaches the existing portfolio page. Focused 16, frontend 1,937, native model ten plus ten private handler checks, deployment 726/twelve shell, 599 source graphs and 143 wires pass. Isolated desktop/mobile and failure/recovery checks pass. Exact static deployment is pending; actual account/source verification, snapshot/risk generation binding and complete transport acceptance remain unverified.
+September 29, after Stage 439 exact static/browser acceptance: all ten workstreams remain open. Source ac8d3ebd187a2c63338a03606afdcfe5ddc3973d is served across twenty-one complete static assets, including the corrected portfolio page and scenario navigation. All four synthetic native risk outputs, missing/zero distinctions, quality/NAV/date rejection and failure/recovery behavior pass. Focused sixteen, frontend 1,937, native model ten plus ten private-handler checks, deployment 726/twelve shell, 599 source graphs and 143 wires pass. Independent account/source verification remains open. The next reproduced defects are older loads overwriting newer results, duplicate NAV accepted by JSON parsing and risk results displayed beside a different snapshot.
 
 ### Retained Stage 371 checkpoint
 
@@ -6110,3 +6110,14 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Engine/schema/no-authority identity, typed sample/date/quality/capital metadata and account/holdings measurements are validated without coercion. The page labels positive reconciled NAV as model-reported and explains that metadata validation does not independently verify inputs or accounts. No-NAV holdings research, genuine measured zero and incomplete native results remain supported.
 - Missing snapshot counts and timestamps stay unavailable; failed loads clear previous metadata. Correlations recover from single-instrument to multi-instrument results. The scenario Portfolio risk link now uses the existing portfolio/index.html route. Responsive header/metric layout and scrolling tables pass at 360 pixels.
 - Twelve new regressions, focused sixteen, frontend 1,937, native model ten plus ten private-handler checks, deployment 726/twelve shell, 599 graphs and 143 companion wires pass. Isolated original-page tests cover all four complete synthetic native outputs, invalid NAV, failed load and keyboard recovery; no console errors or document overflow. No actual/private/current portfolio read, native invocation, provider request, access change or investment authority change occurred. Static acceptance is pending; complete transport and snapshot/risk generation binding remain separate work. Evidence: `docs/audit/2026-09-29/risk-browser-integrity.json`.
+
+
+### Stage 439 exact static/browser acceptance
+
+- Source `ac8d3ebd187a2c63338a03606afdcfe5ddc3973d` passed Pages 36643161278 and page gate 36643161178. Twenty-one complete assets match the source-bound build at 2026-09-29T23:09:38.149007+00:00; the risk helper uses its correct build content hash, and the unchanged scenario model SRI remains valid. Browser desktop/mobile, invalid metadata, absent NAV, measured zero, failed load and keyboard recovery passed with synthetic inputs only.
+- No authenticated/private/current account read, native invocation, provider probe, access or native runtime change occurred. Metadata validity does not establish input identity or source qualification. Evidence: `docs/audit/2026-09-29/risk-browser-integrity.json`.
+
+### Next source task: portfolio snapshot and risk coherence
+
+- Current-code synthetic tests reproduce an earlier delayed load overwriting a later successful load, a complete native one-holding risk result shown beside an empty snapshot, and duplicate NAV accepted by plain JSON parsing. Four complete source predecessors are frozen before repair. No live/private/account data or archived code was used.
+- Risk needs an explicit complete snapshot binding and safe browser loading before displayed portfolio consequences can be attributed to the displayed holdings. Evidence: `docs/audit/2026-09-29/portfolio-coherence-source-gap.json`.

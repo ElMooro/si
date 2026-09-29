@@ -1,0 +1,39 @@
+{
+  "scope": "Current reviewed source with complete synthetic native risk fixture and invented snapshots only. No live/private/account read, network, native invocation or archived-code execution.",
+  "sources": [
+    {
+      "source": "portfolio/index.html",
+      "local_file": "stage440-predecessor-portfolio-index.html.txt",
+      "bytes": 26358,
+      "sha256": "f9591bee24633c03d8592f4deda450545576beb611da3db6cfb85ff66da65aa2"
+    },
+    {
+      "source": "jh-portfolio-risk-contract.js",
+      "local_file": "stage440-predecessor-jh-portfolio-risk-contract.js.txt",
+      "bytes": 5048,
+      "sha256": "f675fefc75292d3f1d516d8adb075eeb0cb830e14caf108bb154bc019ead68aa"
+    },
+    {
+      "source": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+      "local_file": "stage440-predecessor-aws-lambdas-justhodl-portfolio-risk-source-lambda_function.py.txt",
+      "bytes": 11155,
+      "sha256": "861442f9be2bd0b7010e3005a3ce6bd77efeb7e09923136dec668a109697081c"
+    },
+    {
+      "source": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "local_file": "stage440-predecessor-aws-lambdas-justhodl-portfolio-risk-source-portfolio_risk_model.py.txt",
+      "bytes": 18724,
+      "sha256": "e8314f68c6d259929076f2e71dca3b4a486c85620f52022f5a55e70cdb933540"
+    }
+  ],
+  "findings": {
+    "older_request_overwrites_later_success": {
+      "new_value": "$2,000",
+      "overwritten_value": "$1,000"
+    },
+    "risk_from_one_position_displayed_beside_empty_snapshot": "$9.31",
+    "duplicate_nav_last_key_accepted": true,
+    "source_has_no_response_deadline_or_generation_guard": true
+  },
+  "status": "source_gaps_reproduced_not_repaired"
+}

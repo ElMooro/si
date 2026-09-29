@@ -1,6 +1,6 @@
 {
   "stage": 439,
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_assets_and_isolated_browser_accepted",
   "checked_at": "2026-09-29T23:03:41.263124+00:00",
   "baseline_commit": "fef773072e96c7d55f2916821eb9d06d8028e8fd",
   "predecessor": "risk-browser-predecessor.json",
@@ -64,8 +64,140 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact static deployment is pending. No authenticated account session or actual portfolio is inspected.",
+    "Twenty-one complete static assets match the intended commit-bound build; the content-stamped risk helper and scenario model SRI match reviewed sources. No authenticated account session or actual portfolio is inspected.",
     "The checks validate supplied model metadata, not the identity or completeness of the account book, market sources, NAV reconciliation or risk forecast skill. Snapshot/risk generation binding and complete transport validation remain separate work.",
     "All ten platform workstreams remain open; this repair grants no Calls, sizing or execution authority."
-  ]
+  ],
+  "source_commit": "ac8d3ebd187a2c63338a03606afdcfe5ddc3973d",
+  "pages_run": 36643161278,
+  "page_gate_run": 36643161178,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T23:09:38.149007+00:00",
+    "intended_commit": "ac8d3ebd187a2c63338a03606afdcfe5ddc3973d",
+    "served_commit": "ac8d3ebd187a2c63338a03606afdcfe5ddc3973d",
+    "assets": {
+      "portfolio/index.html": {
+        "bytes": 32687,
+        "sha256": "e6e118c48f0ca040258d9be0aefb738e95b889f6c470274a4719104d57b07075",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11625,
+        "sha256": "92acd9b12b950c8eea5837b47011aac332fd33a2d5e2903094adf77c8033341d",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14762,
+        "sha256": "85c2b9a0a0f2978623dc3171b312b15b885130469bf77d89417cae4b84d0f6ea",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "c4e056502389a565f3b8b91e8b2f208f9a092afb9f372d5d6fe6c2d222d58b65",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "69a165b07989fad25b40d1097a5b37fe922e469ce12d7bdff04204759a3d9dd6",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "e81f6c05971d15e878acdf28489159a06bee3eacca7152dab2b13292bc9a349f",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 8962,
+        "sha256": "47796fb7620adf2888968e6e6ba8c1357e60793b573012149ed3799cce89db8f",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10042,
+        "sha256": "70053dbd53340f56d99f4e8f907c5024efa5376aa84b7312a3219302c37e1e56",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 5048,
+        "sha256": "f675fefc75292d3f1d516d8adb075eeb0cb830e14caf108bb154bc019ead68aa",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 7052,
+        "sha256": "6d8f91f9eb011f40afedb081e0be38143eec1593ff01ff08ae0ee72f4c54e608",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3067214,
+        "sha256": "a110e358a3b7d34482059a701025b7d0ec1476276ce949142718731ca822f734",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7665701,
+        "sha256": "2fa93d84325e781ee6e4e29f77d2c3e36f0594fae8b5cb26664362f2ea4900c8",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 13
 }
