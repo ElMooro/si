@@ -1,5 +1,5 @@
 {
-  "status": "source_and_browser_checked_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T05:55:27.054227+00:00",
   "baseline_commit": "87a19c7d70feba35d106a422d652be7b72e23ce5",
   "complete_predecessors": [
@@ -63,7 +63,7 @@
     "Post-issue target dates are calendar issue+1/+5/+30. First available endpoints must be within five calendar days of target and no later than the calculation cutoff.",
     "Only verified nominal coupon auction yields may enter post-issue nominal benchmark comparisons. Bill discount, TIPS, FRN and unknown quotes are withheld.",
     "Upcoming records preserve official instrument flags, complete compound terms, original provider fields and explicit zero offering amounts. Three-year coupons remain in the legacy 2y\u20133y bucket.",
-    "Warm Lambda entry clears the yield cache; cache identity includes date and lookback. Both native comparisons share the complete ninety-day eleven-series request set.",
+    "Warm Lambda entry clears the yield cache; cache identity includes date and lookback. Both native comparisons share the eleven-series request set with a limit of ninety observations per series.",
     "The page requires typed dated arithmetic before displaying values. Actual endpoint dates and observation intervals are visible. Invalid comparison labels clear with the numbers."
   ],
   "tests": {
@@ -154,5 +154,103 @@
     "Legacy forward heuristics, selected historical analogs and issuance overlays remain unqualified. No predictive or sizing permission is added."
   ],
   "calls_eligible": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "source_commit": "16576c3d38fad64449b41a4635d842e5b945bc89",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-crisis-detector": {
+        "code_sha256": "HfeWHY4TG968NUmxFwB1Lgl/jcaPciwN3QbaFQWhnmI=",
+        "source_files_checked": 12,
+        "handler_bytes": 41774,
+        "timeout": 240,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "16576c3d38fad64449b41a4635d842e5b945bc89"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-active",
+            "state": "ENABLED",
+            "expression": "cron(50 19 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-backstop",
+            "state": "ENABLED",
+            "expression": "cron(5 13 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-auction-crisis-detector",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "16576c3d38fad64449b41a4635d842e5b945bc89",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36528756788,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6332_auction_benchmarks_runtime_acceptance.md",
+  "native_acceptance_report_commit": "301ca0d24843605b216dd75891e194d5268a55cd",
+  "lambda_run": 36528488550,
+  "pages_run": 36528488534,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T06:03:37.677365+00:00",
+    "intended_commit": "16576c3d38fad64449b41a4635d842e5b945bc89",
+    "served_commit": "16576c3d38fad64449b41a4635d842e5b945bc89",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 58490,
+        "sha256": "2e91381797fbffaee469b4a2e885e09d4d46843f4cfeb9b8cb6fb2066837b0a9",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 37221,
+        "sha256": "578894fc0ba6ccb0b2f0fe9fbd7cac639be155d6caf2ab4e2e2ae39fe2c8c7eb",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "d4f18ab41c8431fe4f06015dbe95fd3302ed83e7b50dc7c7bfc7a0de1f2a24ba"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353392,
+        "sha256": "305d265255af082260d4291dcab85cae63ef4fc1e04ec132967e4a1cd221e14e",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "e386bbaaba3707227072e705c96c3f3b5de177fd4e2a808ba29e297209b0e3bf",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  },
+  "clarifications": [
+    "The legacy FRED adapter names its argument days but sends it as limit, not observation_start. The native shared request is bounded at ninety observations per series, not a proven ninety-calendar-day acquisition. Calculated comparisons still expose and validate their actual dates.",
+    "The benchmark cache is reset on invocation entry. The separately vendored HTTP shim retains its original cache/retry behavior; HTTP acquisition clocks and original FRED replay remain unverified."
+  ]
 }

@@ -46,7 +46,6 @@ under new top-level keys.
 import json
 from auction_weighting import weighted_summary
 import auction_benchmarks
-import auction_forward
 import math
 import os
 import urllib.parse
@@ -226,14 +225,122 @@ def fetch_upcoming_auctions(days_ahead: int = 30) -> List[dict]:
 
 def predict_auction_stress(upcoming: dict, tenor_decomp: Dict[str, dict],
                             recent_history: List[dict]) -> dict:
-    """Complete-input legacy heuristic; no forecast confidence or missing imputation."""
-    return auction_forward.calculate(upcoming, tenor_decomp, recent_history,
-                                      datetime.now(timezone.utc).date())
+    """Forecast a stress score (0-100) for an upcoming auction.
+
+    Model inputs:
+      - tenor's current rolling stress (own bucket)
+      - cross-tenor stress (mean across all buckets — contagion)
+      - offering size vs trailing-avg same-tenor (supply shock)
+      - days_ahead (closer = more predictive)
+      - special TIPS/FRN handling (less common, different baselines)
+
+    Returns:
+      {
+        "forecast_score":     0-100,
+        "forecast_label":     CALM | WATCH | ELEVATED | ACUTE,
+        "confidence":         LOW | MEDIUM | HIGH,
+        "components":         {breakdown of contributors},
+        "narrative":          plain-English explanation,
+      }
+    """
+    tenor = upcoming.get("tenor_bucket", "coupons_gt_3y")
+    tenor_data = tenor_decomp.get(tenor, {})
+    own_composite = tenor_data.get("composite") or 0
+
+    # Cross-tenor average (contagion proxy)
+    all_composites = [v.get("composite") for v in tenor_decomp.values()
+                        if v.get("composite") is not None]
+    cross_composite = sum(all_composites) / len(all_composites) if all_composites else 0
+
+    # Same-tenor recent history (size relative to baseline)
+    same_tenor_recent = [a for a in recent_history if a.get("tenor_bucket") == tenor
+                            and a.get("accepted_billions")]
+    if same_tenor_recent:
+        avg_size = sum(a["accepted_billions"] for a in same_tenor_recent) / len(same_tenor_recent)
+    else:
+        avg_size = 0
+
+    offering = upcoming.get("offering_amount_billions") or avg_size
+    size_shock = ((offering - avg_size) / avg_size * 100) if avg_size > 0 else 0
+    size_shock_score = 0
+    if size_shock > 30:
+        size_shock_score = 50
+    elif size_shock > 15:
+        size_shock_score = 25
+    elif size_shock > 0:
+        size_shock_score = 10
+
+    # Time decay: forecasts beyond 14 days are less reliable
+    days_ahead = upcoming.get("days_ahead", 0)
+    if days_ahead <= 3:
+        confidence = "HIGH"
+        time_factor = 1.0
+    elif days_ahead <= 10:
+        confidence = "MEDIUM"
+        time_factor = 0.85
+    elif days_ahead <= 21:
+        confidence = "MEDIUM"
+        time_factor = 0.7
+    else:
+        confidence = "LOW"
+        time_factor = 0.55
+
+    # Combine: 50% own-tenor + 25% cross-tenor + 25% size shock
+    raw_forecast = (0.5 * own_composite + 0.25 * cross_composite + 0.25 * size_shock_score)
+    forecast = min(100, max(0, raw_forecast * time_factor))
+
+    if forecast >= 70:
+        label = "ACUTE"
+    elif forecast >= 45:
+        label = "ELEVATED"
+    elif forecast >= 22:
+        label = "WATCH"
+    else:
+        label = "CALM"
+
+    # Narrative
+    narrative_parts = []
+    if own_composite > 40:
+        narrative_parts.append(
+            f"This tenor ({TENOR_LABELS.get(tenor, tenor)}) is already showing "
+            f"composite {own_composite:.0f} from {tenor_data.get('n_auctions', 0)} "
+            f"recent auctions."
+        )
+    if cross_composite > 35:
+        narrative_parts.append(
+            f"Cross-tenor contagion is elevated (mean composite {cross_composite:.0f})."
+        )
+    if size_shock_score >= 25:
+        narrative_parts.append(
+            f"Offering size ${offering:.0f}B vs trailing avg ${avg_size:.0f}B "
+            f"= {size_shock:+.0f}% supply shock."
+        )
+    if not narrative_parts:
+        narrative_parts.append("No material stress signals in inputs. Expected normal clearing.")
+    if days_ahead > 14:
+        narrative_parts.append(
+            f"Forecast confidence reduced — {days_ahead} days ahead "
+            f"= signal-to-noise diluted."
+        )
+
+    return {
+        "forecast_score":  round(forecast, 1),
+        "forecast_label":  label,
+        "confidence":      confidence,
+        "components": {
+            "own_tenor_stress":    round(own_composite, 1),
+            "cross_tenor_contagion": round(cross_composite, 1),
+            "size_shock_pct":      round(size_shock, 1),
+            "size_shock_score":    round(size_shock_score, 1),
+            "time_decay_factor":   round(time_factor, 2),
+        },
+        "narrative":       " ".join(narrative_parts),
+    }
 
 
 def build_forward_calendar(upcoming: List[dict], tenor_decomp: Dict[str, dict],
                             recent_history: List[dict]) -> List[dict]:
-    """Attach a dated, explicitly unvalidated heuristic, retaining every calendar row."""
+    """For each upcoming auction, attach a forecast."""
     out = []
     for u in upcoming:
         forecast = predict_auction_stress(u, tenor_decomp, recent_history)
@@ -473,7 +580,7 @@ def _fred_get_latest(series_id: str, limit: int = 5) -> Optional[float]:
 
 
 def _fred_get_history(series_id: str, days: int = 30) -> List[Tuple[str, float]]:
-    """Get up to N observations; legacy `days` is the API row limit, not calendar days."""
+    """Get the last N days of values for a FRED series. Returns [(date, value), ...]."""
     url = (
         "https://api.stlouisfed.org/fred/series/observations"
         f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
@@ -929,7 +1036,7 @@ def reset_yield_cache():
 
 
 def fetch_cmt_yield_history(days: int = 90) -> Dict[str, Dict[str, float]]:
-    """Reuse only the same date and observation-limit request within this invocation."""
+    """Reuse only an identical dated lookback within this native invocation."""
     key = (datetime.now(timezone.utc).date().isoformat(), days)
     if key not in _yield_cache:
         _yield_cache[key] = {series: {d: v for d, v in _fred_get_history(series, days=days) if d}
@@ -967,7 +1074,7 @@ def _yield_on_or_after(series_data: Dict[str, float], target_date) -> Optional[T
 
 def compute_preauction_concession(upcoming_auctions: List[dict]) -> List[dict]:
     """Actual dated benchmark observation intervals; no security-demand inference."""
-    # Share the native 90-observation request bound: eleven series, not two batches.
+    # Share the full native post-issue window: eleven series requests, not two batches.
     return auction_benchmarks.preauction(upcoming_auctions, fetch_cmt_yield_history(days=90),
                                          datetime.now(timezone.utc).date())
 

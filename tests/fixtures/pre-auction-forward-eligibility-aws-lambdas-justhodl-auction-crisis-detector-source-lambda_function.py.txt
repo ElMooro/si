@@ -553,10 +553,8 @@ def lambda_handler(event, context):
 
     # Compute metrics + scores for each auction
     scored_auctions = []
-    measured_auctions = []
     for r in raw:
         m = compute_record_metrics(r)
-        measured_auctions.append(m)  # Size context must retain unscored/missing-BTC observations.
         if m["btc"] is None:
             continue  # skip incomplete records
         s = score_indicators(m, fed_rate)
@@ -669,7 +667,7 @@ def lambda_handler(event, context):
     # 2. Forward calendar
     try:
         upcoming_raw = fetch_upcoming_auctions(days_ahead=30)
-        forward_calendar = build_forward_calendar(upcoming_raw, tenor_decomp, measured_auctions)
+        forward_calendar = build_forward_calendar(upcoming_raw, tenor_decomp, scored_auctions)
     except Exception as e:
         print(f"[v2] forward_calendar error: {e}")
         forward_calendar = []

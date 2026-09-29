@@ -1,0 +1,141 @@
+{
+  "status": "source_and_actual_page_checked_native_deployment_pending",
+  "checked_at": "2026-09-29T06:12:24.654189+00:00",
+  "baseline_commit": "16576c3d38fad64449b41a4635d842e5b945bc89",
+  "complete_predecessors": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-auction-forward-eligibility-aws-lambdas-justhodl-auction-crisis-detector-source-lambda_function.py.txt",
+      "bytes": 41774,
+      "sha256": "2fbccab14041a20d0eb517161a20ba168b1b45706307165a727d33ce71ee2eef"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+      "fixture": "tests/fixtures/pre-auction-forward-eligibility-aws-lambdas-justhodl-auction-crisis-detector-source-auction_crisis_v2.py.txt",
+      "bytes": 47054,
+      "sha256": "7c89694d3ff36b9a54b80efa93376ac878e5876a4b59e700a5210c99f45be9d2"
+    }
+  ],
+  "native_predecessor": "docs/audit/2026-09-29/auction-forward-predecessor.json",
+  "sources": {
+    "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py": {
+      "bytes": 41902,
+      "sha256": "c262d409c9f3923387732c30576fc69c9e877e7ccd953ef9658e34aec7a2e7b9"
+    },
+    "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": {
+      "bytes": 43223,
+      "sha256": "72f8d118b9a4c308361e7fde035ed162013cf926bfa79851f94dbd2ff843e960"
+    },
+    "aws/shared/auction_forward.py": {
+      "bytes": 7034,
+      "sha256": "ea822f0d2fd568f7edb73dd597b04ee8cdee33f1c5adb0655ef4ace56e8aa7a4"
+    }
+  },
+  "reproduced_original_defects": {
+    "no_inputs": {
+      "forecast_score": 0,
+      "forecast_label": "CALM",
+      "confidence": "HIGH",
+      "components": {
+        "own_tenor_stress": 0,
+        "cross_tenor_contagion": 0,
+        "size_shock_pct": 0,
+        "size_shock_score": 0,
+        "time_decay_factor": 1.0
+      },
+      "narrative": "No material stress signals in inputs. Expected normal clearing."
+    },
+    "zero_offering": {
+      "forecast_score": 0,
+      "forecast_label": "CALM",
+      "confidence": "HIGH",
+      "components": {
+        "own_tenor_stress": 0,
+        "cross_tenor_contagion": 0.0,
+        "size_shock_pct": 0.0,
+        "size_shock_score": 0,
+        "time_decay_factor": 1.0
+      },
+      "narrative": "No material stress signals in inputs. Expected normal clearing."
+    },
+    "scope": "Actual current checked-in function on isolated synthetic inputs; no source or consumer requests."
+  },
+  "repairs": [
+    "Missing own score, incomplete populated tenor coverage, unknown identity, missing size baseline, absent offering or invalid date withholds the legacy score.",
+    "Every reviewed tenor bucket remains in the coverage description. Genuine empty buckets and measured zero scores remain distinct from missing data.",
+    "A zero offering compares as minus 100 percent of a positive baseline; absent offerings never borrow the mean.",
+    "Size context receives every direct auction measurement, including missing-BTC rows omitted from legacy scoring. It uses all comparable kind/complete approximate term observations in the inclusive dated window.",
+    "Missing comparable amounts invalidate the mean, zero amounts contribute zero, future/old rows are excluded with explicit counts, and every included member remains inspectable.",
+    "Fixed legacy arithmetic survives for complete inputs. Confidence is always UNVALIDATED; expected clearing, demonstrated contagion, forecasts and portfolio permission are not inferred."
+  ],
+  "tests": {
+    "forward_regressions": 16,
+    "benchmark_regressions": 15,
+    "existing_observation_regressions": 20,
+    "originals_regressions": 16,
+    "native_detector": 4,
+    "frontend": 1745,
+    "deployment_static": 635,
+    "candidate_shell": 12,
+    "page_script_graphs": 599,
+    "syntax_errors": 0,
+    "page_contracts_check": "passed"
+  },
+  "browser": {
+    "scope": "Actual page/renderer with actual pure forward-compiler outputs on synthetic inputs; external network blocked.",
+    "missing_offering": "\u2014",
+    "missing_score": "\u2014 [UNAVAILABLE]",
+    "missing_reason": "offering_amount",
+    "explicit_zero_offering": "$0B",
+    "complete_zero_heuristic": "0.0 [CALM]",
+    "confidence_display": "Unvalidated",
+    "missing_to_complete_recovery": true,
+    "console_errors": 0,
+    "console_warnings": 0
+  },
+  "source_dependency_delta": {
+    "changed_fields": {
+      "justhodl-auction-crisis-detector": [
+        "write_evidence"
+      ]
+    },
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [],
+    "added_reads": [],
+    "unresolved_writes": [
+      {
+        "file": "aws/shared/auction_original_store.py",
+        "line": 39,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/evidence_store.py",
+        "line": 46,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      }
+    ],
+    "shared_closure": [
+      "_fred_shim.py",
+      "auction_benchmarks.py",
+      "auction_forward.py",
+      "auction_original_store.py",
+      "auction_originals.py",
+      "auction_weighting.py",
+      "evidence_store.py",
+      "managed_secret.py",
+      "pd_fails_context.py",
+      "treasury_instruments.py"
+    ]
+  },
+  "runtime_acceptance_operation": "6333",
+  "native_publication_verified": false,
+  "limitations": [
+    "The complete-input number is an uncalibrated legacy heuristic, not a probability, demonstrated contagion or expected clearing result.",
+    "Current source vintages, reopening strata, provider original-response integration, independent validation and portfolio consequences remain unverified."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
