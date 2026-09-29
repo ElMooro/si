@@ -59,7 +59,7 @@ test('mounted renderer verifies exact content and clears old badge on failed ref
  let mode='valid',calls=[];
  const mounted=mount(async url=>{calls.push(url);if(url.includes('proofs'))return new Response(JSON.stringify(fixture.proof));return new Response(mode==='bad'?'{"x":1,"x":2}':fixture.raw);});
  await until(()=>mounted.text().includes('Replay verified for these exact brief bytes'));
- assert.equal(mounted.timers.length,1);assert.equal(calls.length,2);assert.match(mounted.text(),/0 eligible votes/);
+ assert.equal(mounted.timers.length,2);assert.equal(calls.length,2);assert.match(mounted.text(),/0 eligible votes/);
  mode='bad';await mounted.timers[0]();await until(()=>mounted.text().includes('Public brief unavailable'));
  assert.doesNotMatch(mounted.text(),/Replay verified/);assert.equal(calls.length,3);
  mode='valid';await mounted.timers[0]();await until(()=>mounted.text().includes('Replay verified for these exact brief bytes'));assert.equal(calls.length,5);

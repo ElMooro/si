@@ -36,8 +36,9 @@
 
   function state(doc, now = Date.now()) {
     if (!doc || !['warehouse_deterministic_v1','warehouse_deterministic_v2'].includes(doc.generation_method) || typeof doc.brief_md !== 'string' || doc.brief_md.trim().length < 120 || doc.call_verb !== 'WAIT' || doc.sizing_eligible !== false) return {valid:false};
-    const age = now - Date.parse(doc.generated_at);
-    return {valid:true, overdue:!Number.isFinite(age) || age < -300000 || age > 4.5 * 3600000,
+    const generated = clock(doc.generated_at), age = generated === null ? NaN : now - generated;
+    const clockStatus = !Number.isFinite(age) ? 'invalid' : age < -300000 ? 'future' : age > 4.5 * 3600000 ? 'overdue' : 'current';
+    return {valid:true, overdue:clockStatus !== 'current', clockStatus,
       rows:Array.isArray(doc.evidence) ? doc.evidence : [],
       inventory:doc.evidence_inventory || {}, generated:doc.generated_at};
   }
@@ -74,9 +75,14 @@
     const el = (tag, text, parent = box) => { const n = document.createElement(tag); n.textContent = text; parent.appendChild(n); return n; };
     el('h2', 'Evidence behind this brief');
     const view = state(doc, now);
-    if (!view.valid) { el('p', 'Public brief unavailable. WAIT — no new allocation guidance.'); return; }
-    const status = el('p', (view.overdue ? 'Overdue · ' : '') + 'WAIT · Research only · ' + view.generated);
-    status.setAttribute('role', 'status');
+    if (!view.valid) { el('p', 'Public brief unavailable. WAIT — no new allocation guidance.'); return () => {}; }
+    const status = el('p', ''); status.setAttribute('role', 'status');
+    const updateAge = (at = Date.now()) => {
+      const current = state(doc, at), prefix = {invalid:'Clock unavailable · ',future:'Future clock · ',overdue:'Overdue · ',current:''}[current.clockStatus];
+      status.textContent = prefix + 'WAIT · Research only · ' + view.generated;
+    };
+    updateAge(now);
+    el('p', 'Measurements and source-quality assessments below describe this brief at publication. Replaying it does not refresh its observations.');
     el('p', 'The brief records observations. It does not authorize a position change or override your existing risk controls.');
     const groups = Array.isArray(view.inventory.root_groups) ? view.inventory.root_groups : [];
     el('p', view.rows.length + ' measurements · ' + groups.length + ' mapped source roots · 0 eligible votes. Shared roots do not establish statistical independence.');
@@ -94,7 +100,7 @@
     scroll.setAttribute('role', 'region'); scroll.setAttribute('aria-label', 'Brief evidence table');
     const table = el('table', '', scroll); table.style.width = '100%'; table.style.minWidth = '760px';
     const header = el('tr', '', el('thead', '', table));
-    for (const label of ['Measurement / source', 'Value and unit', 'Observed', 'Quality', 'Shared roots']) {
+    for (const label of ['Measurement / source', 'Value and unit', 'Observed', 'Quality at publication', 'Shared roots']) {
       const th = el('th', label, header); th.setAttribute('scope', 'col');
     }
     const body = el('tbody', '', table);
@@ -118,7 +124,7 @@
       if(originals.status!=='verified')el('p','Original-source replay unavailable. Reported liquidity is unqualified for current research use.',panel);
       else {
         el('p','WALCL − WTREGEN − RRPONTSYD · USD billions. Retained originals reconstructed for this brief; the independent run check is shown above.',panel);
-        el('p',originals.current_use?.eligible===true?'Current descriptive use passes the declared source clocks. No allocation permission.':'Historical reconstruction only; current use is withheld.',panel);
+        el('p',originals.current_use?.eligible===true?'At brief publication, descriptive use passed the declared source clocks. No allocation permission.':'Historical reconstruction only; current use is withheld.',panel);
         for(const sid of ['WALCL','WTREGEN','RRPONTSYD']) {
           const source=originals.sources?.[sid],component=originals.latest_reconstructed?.components?.[sid];
           const observation=originals.observations?.[component?.observation_id];
@@ -144,7 +150,7 @@
           el('h4',scope.label || id,panel);
           const values=scope.reported?.exact_usd_bn || {};
           el('p','Observed '+(scope.reported?.as_of || 'unavailable')+' · FTD '+(values.ftd ?? 'unavailable')+' + FTR '+(values.ftr ?? 'unavailable')+' = gross '+(values.gross ?? 'unavailable')+' USD billions.',panel);
-          el('p',scope.current_use?.eligible===true?'Current descriptive use passes original-source clocks. No allocation permission.':'Historical report only; current research use is withheld.',panel);
+          el('p',scope.current_use?.eligible===true?'At brief publication, descriptive use passed original-source clocks. No allocation permission.':'Historical report only; current research use is withheld.',panel);
         }
         el('p','Treasury including TIPS contains the Treasury excluding TIPS headline. Never add these scopes or treat them as separate evidence. Two-sided cumulative fails are not unique defaults, losses or capital flows.',panel);
         for(const observation of Object.values(fails.observations || {})) {
@@ -169,7 +175,7 @@
       else {
         panel.style.overflowWrap='anywhere';
         el('p','Complete retained ECB histories: '+String(ciss.coverage?.original_series ?? 'unknown')+' series and '+String(ciss.coverage?.original_rows ?? 'unknown')+' source rows. Values are dimensionless index points, not crisis probabilities.',panel);
-        el('p',ciss.current_headline_research_eligible===true?'All seven headline and contribution legs pass their source clocks and same-date arithmetic. Descriptive use only.':'Historical reconstruction only; current CISS research use is withheld.',panel);
+        el('p',ciss.current_headline_research_eligible===true?'At brief publication, all seven headline and contribution legs passed their source clocks and same-date arithmetic. Descriptive use only.':'Historical reconstruction only; current CISS research use is withheld.',panel);
         const proof=ciss.independent_arithmetic || {},counts=proof.headline_panel || {};
         el('p','Historical contribution sums: '+String(counts.matched ?? 'unknown')+' matched, '+String(counts.mismatch ?? 'unknown')+' mismatched, '+String(counts.unavailable ?? 'unknown')+' unavailable. Incomplete component panels are never filled with zero.',panel);
         const labels={SS_CIN:'Composite index',SS_BMN:'Bond-market contribution',SS_EMN:'Equity-market contribution',SS_FIN:'Financial-intermediary contribution',SS_FXN:'Foreign-exchange contribution',SS_MMN:'Money-market contribution',SS_CON:'Correlation contribution'};
@@ -200,7 +206,7 @@
         panel.style.overflowWrap='anywhere';
         const coverage=tic.coverage || {},proof=tic.independent_arithmetic || {};
         el('p','Complete Treasury archive: '+String(coverage.archive_series_retained ?? 'unknown')+' series retained; '+String(coverage.core_series ?? 'unknown')+' core series and '+String(coverage.original_core_rows ?? 'unknown')+' original rows checked. Other series remain unqualified.',panel);
-        el('p',tic.current_use?.eligible===true?'Current descriptive use passes native source clocks and calendar checks. No allocation permission.':'Historical reconstruction only; current TIC research use is withheld.',panel);
+        el('p',tic.current_use?.eligible===true?'At brief publication, descriptive use passed native source clocks and calendar checks. No allocation permission.':'Historical reconstruction only; current TIC research use is withheld.',panel);
         el('p','Independent arithmetic: '+String(proof.windows ?? 'unknown')+' windows and '+String(proof.reconciliations ?? 'unknown')+' component reconciliations checked. '+String(proof.incomplete_windows ?? 'unknown')+' incomplete historical windows remain unavailable.',panel);
         const net=tic.net_cross_border_definition || {},holders=tic.reported_holder_splits || {};
         el('p','Net cross-border long-term flow = foreign net purchases of U.S. securities minus U.S. net purchases of foreign securities, over the same twelve months: '+String(net.value ?? 'unavailable')+' USD billions.',panel);
@@ -233,22 +239,23 @@
       const n = el(line.startsWith('## ') ? 'h3' : 'p', line.replace(/^## /, '').replace(/^\*\*|\*\*$/g, ''), prose);
       n.style.overflowWrap = 'anywhere';
     }
+    return updateAge;
   }
   const api = {state, bundlePath, originalPath, proofMatches, readJSON, render};
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (!root.document) return;
-  const document = root.document, main = document.querySelector('main'); if (!main) return;
+  const document = root.document, main = document.querySelector('main'); if (!main || document.getElementById('public-market-brief')) return;
   const box = document.createElement('section'); box.id = 'public-market-brief'; box.className = 'card section';
   box.style.cssText = 'margin:24px 0;padding:20px;line-height:1.65';
   const kpis = document.getElementById('kpi-row'); main.insertBefore(box, kpis ? kpis.nextSibling : null);
   box.textContent = 'Loading the public research brief…';
-  let refreshing = false;
+  let refreshing = false, updateAge = () => {};
   async function refresh() {
     if (refreshing) return;
     refreshing = true;
     try {
       const response = await fetch('/data/ai-brief-public.json', {cache:'no-store', redirect:'error', signal:AbortSignal.timeout(15000)});
-      const packet = await readJSON(response), doc = packet.doc; render(document, box, doc, Date.now());
+      const packet = await readJSON(response), doc = packet.doc; updateAge = render(document, box, doc, Date.now());
       const ref = doc.research_replay, badge = document.getElementById('calls-replay-proof');
       if (!badge || !bundlePath(ref)) return;
       try {
@@ -257,8 +264,22 @@
         const matched = await proofMatches(proof, packet.raw);
         badge.textContent = matched ? ' · Replay verified for these exact brief bytes · ' + proof.generated_at : ' · Replay not verified for this displayed brief';
       } catch (_) { /* The retained record remains useful; verification stays pending. */ }
-    } catch (_) { render(document, box, null, Date.now()); }
+    } catch (_) { updateAge = render(document, box, null, Date.now()); }
     finally { refreshing = false; }
   }
-  refresh(); setInterval(() => { if (document.visibilityState !== 'hidden') refresh(); }, 300000);
+  let networkTimer = null, ageTimer = null;
+  function startTimers() {
+    if (networkTimer !== null) return;
+    networkTimer = setInterval(() => { if (document.visibilityState !== 'hidden') refresh(); }, 300000);
+    ageTimer = setInterval(() => updateAge(), 60000);
+  }
+  function stopTimers() {
+    if (networkTimer !== null) clearInterval(networkTimer);
+    if (ageTimer !== null) clearInterval(ageTimer);
+    networkTimer = ageTimer = null;
+  }
+  document.addEventListener?.('visibilitychange', () => updateAge());
+  root.addEventListener?.('pagehide', stopTimers);
+  root.addEventListener?.('pageshow', () => { updateAge(); startTimers(); });
+  refresh(); startTimers();
 })(typeof globalThis === 'object' ? globalThis : this);

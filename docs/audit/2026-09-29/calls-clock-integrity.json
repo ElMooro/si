@@ -1,0 +1,66 @@
+{
+  "stage": 431,
+  "status": "source_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T19:55:30.566452+00:00",
+  "baseline_commit": "c0674ab0825dcf83fa3b3ed742c5ec31f8d51b89",
+  "predecessor": "calls-clock-predecessor.json",
+  "improvements": [
+    "Publication age requires a real Gregorian date and timezone-aware clock. Invalid, future and overdue clocks have distinct honest labels without renewing the original timestamp.",
+    "A local one-minute age timer and immediate visibility/pageshow checks update only the age label. No additional data request, DOM replacement, proof invalidation or collapsed disclosure is needed.",
+    "The existing five-minute visible-page network cadence remains; pagehide clears both timers and repeated pageshow/script execution cannot duplicate them.",
+    "Source-quality and native eligibility descriptions explicitly refer to the brief publication. Historical replay validity remains distinct from present descriptive-use freshness."
+  ],
+  "source_sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+  "source_bytes": 25766,
+  "tests": {
+    "new_cases": 8,
+    "frontend": 1891,
+    "deployment_static": 708,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_qa": {
+    "scope": "Current renderer with unchanged synthetic native byte-bound proof, controlled clock/lifecycle, isolated localhost and CSP blocking external requests.",
+    "source_sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+    "age_without_refetch": true,
+    "resume_updates_immediately": true,
+    "expanded_disclosure_preserved": true,
+    "historical_proof_still_valid": true,
+    "requests_through_clock_and_lifecycle_actions": 2,
+    "timer_counts": {
+      "active": 2,
+      "hidden_page": 0,
+      "restored": 2
+    },
+    "mobile": {
+      "width": 360,
+      "document_width": 345
+    },
+    "desktop_width": 1280,
+    "console_errors_and_warnings": [],
+    "screenshots": {
+      "stage431-expired.png": {
+        "sha256": "a6223a8ae43a93694d601c5d75b273672a28cadd4322073c03ed131e22a53fa5"
+      },
+      "stage431-mobile.png": {
+        "sha256": "67ca80a3ddcf84139a4f87b51982c0e94d4ee83c02380ea6c1fe51bae19b81cd"
+      }
+    }
+  },
+  "native_source_unchanged": true,
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact served-asset deployment is pending.",
+    "The Stage 430 auditor is already exactly accepted at d4f57981a42729ab535fe173db476b8598f161a9. Ordinary compatible proof/publication remains separately unverified.",
+    "Local clock labels do not validate historical vintages, source acquisition, forecasting value or position sizing. All ten workstreams remain open."
+  ]
+}

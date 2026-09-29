@@ -16,7 +16,7 @@ test('actual CISS compiler exposes seven originals, all 28 comparison baselines 
   assert.equal(links.filter(n=>n.href.includes('/ciss-research/runs/')).length,1);
   assert.equal(texts.filter(t=>t.includes(' · source row (zero-based) ')).length,7);
   assert.equal(texts.filter(t=>t.includes(' index points; target ')).length,28);
-  assert.ok(texts.some(t=>t.includes('All seven headline and contribution legs pass')));
+  assert.ok(texts.some(t=>t.includes('At brief publication, all seven headline and contribution legs passed')));
   assert.ok(texts.some(t=>t.includes('1 matched, 1 mismatched, 0 unavailable')));
   assert.ok(texts.some(t=>t.includes('not count as seven independent votes')));
   assert.ok(texts.some(t=>t.includes('Correlation contribution')));

@@ -1,0 +1,24 @@
+{
+  "source": "jh-public-brief.js",
+  "bytes": 24443,
+  "sha256": "b3b5b9db67995b41fc8d0e6cff9ed72d40facce4533829e0c8bddd75d297e7f7",
+  "fixture": "tests/fixtures/pre-calls-clock-client.js.txt",
+  "reproduction": {
+    "scope": "Current renderer only, isolated synthetic response and controlled clock; no network or protected packet read",
+    "source_sha256": "b3b5b9db67995b41fc8d0e6cff9ed72d40facce4533829e0c8bddd75d297e7f7",
+    "invalid_calendar": {
+      "input": "2026-02-30T17:00:00Z",
+      "valid": true,
+      "overdue": false
+    },
+    "suspended_tab": {
+      "before": "WAIT \u00b7 Research only \u00b7 2026-09-18T17:00:00+00:00",
+      "after": "WAIT \u00b7 Research only \u00b7 2026-09-18T17:00:00+00:00",
+      "computed_overdue": true,
+      "network_requests": 2,
+      "timer_intervals": [
+        300000
+      ]
+    }
+  }
+}
