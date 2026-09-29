@@ -1,0 +1,20 @@
+{
+  "base": "94f483df0d7c2d292240819c65fe0af7841e1dd9",
+  "checked_at": "2026-09-29T15:43:00.437085+00:00",
+  "fixture": {
+    "source": "aws/lambdas/justhodl-auction-desk/source/lambda_function.py",
+    "fixture": "tests/fixtures/pre-auction-http-ingestion-lambda_function.py.txt",
+    "bytes": 67723,
+    "sha256": "f3111c7733a519349d4591022e0d2f8305528f17b16e31cdced1051a7b83bdb6"
+  },
+  "reproduced": {
+    "baseline": "a494e4d852398ab287e0840a80c7e73382384fc0",
+    "requests": 3,
+    "partial_rows_returned_as_success": 3,
+    "declared_total_rows": 4,
+    "error_shaped_fd_returned_as_success": [],
+    "error_shaped_td_returned_as_success": [],
+    "synthetic_only": true,
+    "network_calls": 0
+  }
+}

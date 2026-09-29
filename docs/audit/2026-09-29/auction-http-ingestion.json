@@ -1,0 +1,334 @@
+{
+  "stage": 420,
+  "status": "source_and_isolated_regressions_accepted_deployment_pending",
+  "checked_at": "2026-09-29T15:52:26.800530+00:00",
+  "baseline_commit": "94f483df0d7c2d292240819c65fe0af7841e1dd9",
+  "sources": {
+    "aws/lambdas/justhodl-auction-desk/source/lambda_function.py": {
+      "bytes": 70422,
+      "sha256": "280500d39c9b3cc0d9d94e43f46f61835af475ddf282c0c644149745a1be087f"
+    },
+    "tests/test_auction_http_ingestion.py": {
+      "bytes": 9246,
+      "sha256": "ca4cf4a9f4cb374c9d81e5c64990c963bd8411a20d02059c259419a0cb3c2eef"
+    }
+  },
+  "predecessor": "auction-http-ingestion-predecessor.json",
+  "reproduced": {
+    "baseline": "a494e4d852398ab287e0840a80c7e73382384fc0",
+    "requests": 3,
+    "partial_rows_returned_as_success": 3,
+    "declared_total_rows": 4,
+    "error_shaped_fd_returned_as_success": [],
+    "error_shaped_td_returned_as_success": [],
+    "synthetic_only": true,
+    "network_calls": 0
+  },
+  "improvements": [
+    "The reviewed predecessor returned three pages as success despite metadata declaring four, and accepted error-shaped FiscalData and TreasuryDirect documents as empty arrays. All reproductions used synthetic responses without a provider request.",
+    "All FiscalData callers now require a complete bounded and internally consistent page set, regardless of whether a proof collector was supplied. Row counts, requested page sizes, page totals, optional page counts and row object shapes are checked before returning any result.",
+    "A later-page failure cannot emit partial proof or replace buyback operation rows. The handler preserves retained operations and records separate acquisition failures; no acquired subset is returned as a successful population.",
+    "TreasuryDirect accepts explicit arrays of row objects, including empty arrays, and rejects error objects and malformed rows. Unknown fields, measured zeros, nulls and duplicate source occurrences are retained unchanged.",
+    "HTTP bodies are read to EOF through short reads with a complete 128 MiB bound. Declared Content-Length is checked, including valid-JSON prefixes with missing trailing bytes. Ambiguous duplicate length/transfer headers and non-200 responses are rejected; all body streams close.",
+    "Duplicate JSON keys and nonfinite numeric values, including exponent overflow, are rejected at acquisition. Literal source strings remain unchanged. This strict HTTP rule does not erase retained legacy cache diagnostics.",
+    "The full source-reference registry is rebuilt for changed native line numbers. Existing source requests, reads, output ownership, resources and schedules remain unchanged."
+  ],
+  "tests": {
+    "native_and_desk": 297,
+    "http_ingestion": 11,
+    "deployment_static": 687,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "frontend_assets_unchanged_from_accepted_stage417": 1844
+  },
+  "synthetic_capacity": {
+    "scope": "Full reviewed Python handler with synthetic cached histories and provider/storage mocks; no AWS invocation, network latency or native runtime certification",
+    "checked_at": "2026-09-29T15:45:39.450276+00:00",
+    "historical_source_rows": 22470,
+    "participation_bank_rows": 2520,
+    "buyback_operations": 333,
+    "price_assets": 14,
+    "observations_per_asset": 11228,
+    "seconds_without_tracemalloc": 22.62,
+    "peak_tracemalloc_bytes": null,
+    "packet_bytes": 40112631,
+    "packet_gzip_bytes_for_comparison_only": 3695964,
+    "writes": [
+      {
+        "key": "data/warm/treasury-auctions/history.json.gz",
+        "bytes": 26314
+      },
+      {
+        "key": "data/warm/treasury-auctions/buybacks.json",
+        "bytes": 944249
+      },
+      {
+        "key": "data/warm/treasury-auctions/history-full.json.gz",
+        "bytes": 193585
+      },
+      {
+        "key": "data/warm/treasury-auctions/composite-history.json",
+        "bytes": 12680181
+      },
+      {
+        "key": "data/warm/treasury-auctions/daily/2026-09-28.json",
+        "bytes": 209273
+      },
+      {
+        "key": "data/auction-desk.json",
+        "bytes": 40112631
+      },
+      {
+        "key": "data/auction-desk-delivery/snapshots/20e4e052fe9a82bd821df77ffdb78de8ef77e249d55361777e8e3f3a7c25daf8.json.gz",
+        "bytes": 3745088
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/abee532b2f2852a8921ef52e6af9aa338e8805cc89e8be5601fd5302829c80c9.json",
+        "bytes": 366344
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/0cc7575b43a195e42676919f95ff22af9b5aa980b332e7bd59427651b76c2f94.json",
+        "bytes": 366790
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/b7cfbad5a9001971b40bea9bf55027d325012c0e40c53b0950225d685daefea7.json",
+        "bytes": 366930
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/4bad8e1c621c08d0b7a7078f70dd6eaf2769cd93132a95e2d4115b9107786a90.json",
+        "bytes": 366358
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/8801ba1852d46237ef1c515036bc462b14445499a796199c08f5e70b33640299.json",
+        "bytes": 365236
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/d9efc0a084cdada3da002e38caeacadc68882a7abc5a197c612fe5451bb6f37b.json",
+        "bytes": 364852
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/0e29c4658b466dced14d01b957a8f6e23eac821a5881b11b869eae6305fbeae5.json",
+        "bytes": 365841
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/ff4ec435050d30542b60794b83da8e8a671f9b6d03e15bf9b8f74877273172af.json",
+        "bytes": 366783
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/3ede343e62cabbc8ac9284babfd107843c43935017e2a67f21fe0220ad69f2a2.json",
+        "bytes": 1023220
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/fceda84d91433ac633f002cd55d4ad02efe55af2ecc78e8bc6c2d1e02644d67d.json",
+        "bytes": 956684
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/5d555153c84a038152f742df6c4be67675185542a99299d8f50c68688aae26ac.json",
+        "bytes": 894277
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/f6aecac6ab7b25605484037ade85fca6f6631c82ff17e9f1b84d4fb991f2bbdc.json",
+        "bytes": 831680
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/4d223141d30e096a41aefac1fdd3876e7de187365003f35aada0bfc59f5ec77e.json",
+        "bytes": 769400
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/779632c8b56790a50eab02b97d6692d212008d27d58c8480c136eda8bc029f0c.json",
+        "bytes": 706675
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/6a41c333d3355dd61a91a23cda3bf9c06438888ad9cfc75b69cadbe7b06d8508.json",
+        "bytes": 644251
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/84eff921fd8fbc8bb1c28ef925c5a8819cd6cd355a6c9387111ef16418ef5f96.json",
+        "bytes": 581658
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/91dd467e30fc2ecc446813cf9d084560df00e57e76aabc198920cea4a88c176a.json",
+        "bytes": 519247
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/2a667e33c4ae8798a9076d5e327ed298bf9e30998a5a2cbae633948c3a942e7e.json",
+        "bytes": 456788
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/f947a1c8d4bc6577027816bd67cc7d35ebbc812f2d1a999c7794ed5e9bfdf2d4.json",
+        "bytes": 394250
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/1d71bd03a01f19c7e89c16f2e081e6e084ca145db54986873477589fbd8a4201.json",
+        "bytes": 331661
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/4838e1f5a792ad7d312c3e82c3336b7fbafb356177cbbf6aff65155371cc4433.json",
+        "bytes": 269238
+      },
+      {
+        "key": "data/auction-desk-delivery/rows/cf832bbf71873d8d78e249bea6bfb09c2beb86fcd2f13e7f3279b400c7ef37b0.json",
+        "bytes": 72994
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/392a863465fed1a8849a7cbfc2af0c8924f095cd1926cbf67200d8fa51a3c61f.json",
+        "bytes": 163227
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/3b9d42391370ee7eb90645391dc18e6ccb94461f57c02dca644547a8c89b3407.json",
+        "bytes": 12680259
+      },
+      {
+        "key": "data/auction-desk-delivery/sections/6a0ad87256b97039ec4712060fec87dae7a0857f7fab71311e129b5732715d8b.json",
+        "bytes": 15342768
+      },
+      {
+        "key": "data/auction-desk-delivery/views/92e69609c337ce3b70a3353938fa6c91949f76e637a9ac6a3822ee199b6b3d7c.json",
+        "bytes": 2916013
+      },
+      {
+        "key": "data/auction-desk-delivery/manifests/62424d1d89505fc80c07b5d4da6b45785478a43296001932044c54bc631d87be.json",
+        "bytes": 6474
+      },
+      {
+        "key": "data/auction-desk-view.json",
+        "bytes": 722
+      }
+    ],
+    "delivery": {
+      "contract": "auction-desk-delivery.v1",
+      "view_key": "data/auction-desk-view.json",
+      "artifacts": 28,
+      "source_bytes": 40107325,
+      "view_bytes": 2916013,
+      "generated_at": "2026-09-29T13:00:00+00:00"
+    },
+    "composite_points": 1654,
+    "reaction_event_days": 465,
+    "uses_real_cache_reader_with_synthetic_s3_bodies": true,
+    "synthetic_cache_reads": [
+      "data/warm/treasury-auctions/history.json.gz",
+      "data/warm/treasury-auctions/buybacks.json",
+      "data/warm/treasury-par/curve.json.gz",
+      "data/warm/treasury-auctions/assets.json.gz",
+      "data/warm/treasury-auctions/history-full.json.gz",
+      "data/auction-crisis.json",
+      "data/warm/treasury-auctions/daily/2026-09-28.json",
+      "data/auction-desk-view.json",
+      "data/auction-desk-delivery/snapshots/20e4e052fe9a82bd821df77ffdb78de8ef77e249d55361777e8e3f3a7c25daf8.json.gz",
+      "data/auction-desk-delivery/rows/abee532b2f2852a8921ef52e6af9aa338e8805cc89e8be5601fd5302829c80c9.json",
+      "data/auction-desk-delivery/rows/0cc7575b43a195e42676919f95ff22af9b5aa980b332e7bd59427651b76c2f94.json",
+      "data/auction-desk-delivery/rows/b7cfbad5a9001971b40bea9bf55027d325012c0e40c53b0950225d685daefea7.json",
+      "data/auction-desk-delivery/rows/4bad8e1c621c08d0b7a7078f70dd6eaf2769cd93132a95e2d4115b9107786a90.json",
+      "data/auction-desk-delivery/rows/8801ba1852d46237ef1c515036bc462b14445499a796199c08f5e70b33640299.json",
+      "data/auction-desk-delivery/rows/d9efc0a084cdada3da002e38caeacadc68882a7abc5a197c612fe5451bb6f37b.json",
+      "data/auction-desk-delivery/rows/0e29c4658b466dced14d01b957a8f6e23eac821a5881b11b869eae6305fbeae5.json",
+      "data/auction-desk-delivery/rows/ff4ec435050d30542b60794b83da8e8a671f9b6d03e15bf9b8f74877273172af.json",
+      "data/auction-desk-delivery/rows/3ede343e62cabbc8ac9284babfd107843c43935017e2a67f21fe0220ad69f2a2.json",
+      "data/auction-desk-delivery/rows/fceda84d91433ac633f002cd55d4ad02efe55af2ecc78e8bc6c2d1e02644d67d.json",
+      "data/auction-desk-delivery/rows/5d555153c84a038152f742df6c4be67675185542a99299d8f50c68688aae26ac.json",
+      "data/auction-desk-delivery/rows/f6aecac6ab7b25605484037ade85fca6f6631c82ff17e9f1b84d4fb991f2bbdc.json",
+      "data/auction-desk-delivery/rows/4d223141d30e096a41aefac1fdd3876e7de187365003f35aada0bfc59f5ec77e.json",
+      "data/auction-desk-delivery/rows/779632c8b56790a50eab02b97d6692d212008d27d58c8480c136eda8bc029f0c.json",
+      "data/auction-desk-delivery/rows/6a41c333d3355dd61a91a23cda3bf9c06438888ad9cfc75b69cadbe7b06d8508.json",
+      "data/auction-desk-delivery/rows/84eff921fd8fbc8bb1c28ef925c5a8819cd6cd355a6c9387111ef16418ef5f96.json",
+      "data/auction-desk-delivery/rows/91dd467e30fc2ecc446813cf9d084560df00e57e76aabc198920cea4a88c176a.json",
+      "data/auction-desk-delivery/rows/2a667e33c4ae8798a9076d5e327ed298bf9e30998a5a2cbae633948c3a942e7e.json",
+      "data/auction-desk-delivery/rows/f947a1c8d4bc6577027816bd67cc7d35ebbc812f2d1a999c7794ed5e9bfdf2d4.json",
+      "data/auction-desk-delivery/rows/1d71bd03a01f19c7e89c16f2e081e6e084ca145db54986873477589fbd8a4201.json",
+      "data/auction-desk-delivery/rows/4838e1f5a792ad7d312c3e82c3336b7fbafb356177cbbf6aff65155371cc4433.json",
+      "data/auction-desk-delivery/rows/cf832bbf71873d8d78e249bea6bfb09c2beb86fcd2f13e7f3279b400c7ef37b0.json",
+      "data/auction-desk-delivery/sections/392a863465fed1a8849a7cbfc2af0c8924f095cd1926cbf67200d8fa51a3c61f.json",
+      "data/auction-desk-delivery/sections/3b9d42391370ee7eb90645391dc18e6ccb94461f57c02dca644547a8c89b3407.json",
+      "data/auction-desk-delivery/sections/6a0ad87256b97039ec4712060fec87dae7a0857f7fab71311e129b5732715d8b.json",
+      "data/auction-desk-delivery/views/92e69609c337ce3b70a3353938fa6c91949f76e637a9ac6a3822ee199b6b3d7c.json",
+      "data/auction-desk-delivery/manifests/62424d1d89505fc80c07b5d4da6b45785478a43296001932044c54bc631d87be.json"
+    ],
+    "source_sha256": {
+      "aws/lambdas/justhodl-auction-desk/source/lambda_function.py": "280500d39c9b3cc0d9d94e43f46f61835af475ddf282c0c644149745a1be087f",
+      "aws/shared/auction_buybacks.py": "c2e888dcbe646505eef2f474d3943dfa89e123beadb3dc8afa00884d2ed905a0",
+      "aws/shared/auction_delivery.py": "55e7be463f1d1b1e25e78d89c2c7ade627b77afe06ab8eb30e0031d8d99923d8",
+      "aws/shared/auction_delivery_store.py": "c15652f536b042e2ebeb7edd2f7edece1c22cf64e5b462f9379823c303da9416"
+    },
+    "native_timeout_seconds": 300,
+    "native_memory_mb": 1024,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "limitations": [
+      "Synthetic population and local CPU do not establish native publication completeness or performance.",
+      "The byte-exact synthetic object store retains all writes in process memory; production S3 overhead and latency are not modeled.",
+      "Allocation tracing is disabled; process RSS, native AWS overhead and network latency are not measured."
+    ]
+  },
+  "source_ownership": {
+    "changed_fields": {
+      "justhodl-auction-desk": [
+        "write_evidence"
+      ]
+    },
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [],
+    "added_reads": [],
+    "unresolved_writes": [],
+    "shared_closure": [
+      "auction_buybacks.py",
+      "auction_delivery.py",
+      "auction_delivery_store.py",
+      "auction_issuance.py",
+      "auction_participation.py",
+      "auction_reactions.py",
+      "auction_scoring.py",
+      "auction_weighting.py",
+      "treasury_instruments.py"
+    ],
+    "engine_closures": {
+      "justhodl-auction-crisis-detector": [
+        "_fred_shim.py",
+        "auction_benchmarks.py",
+        "auction_calendar.py",
+        "auction_calendar_store.py",
+        "auction_concerns.py",
+        "auction_cross_observations.py",
+        "auction_forward.py",
+        "auction_fred_originals.py",
+        "auction_fred_store.py",
+        "auction_issuance.py",
+        "auction_original_store.py",
+        "auction_originals.py",
+        "auction_reference_catalog.py",
+        "auction_scoring.py",
+        "auction_weighting.py",
+        "evidence_store.py",
+        "funding_research_catalog.py",
+        "managed_secret.py",
+        "pd_fails_context.py",
+        "treasury_instruments.py"
+      ],
+      "justhodl-auction-desk": [
+        "auction_buybacks.py",
+        "auction_delivery.py",
+        "auction_delivery_store.py",
+        "auction_issuance.py",
+        "auction_participation.py",
+        "auction_reactions.py",
+        "auction_scoring.py",
+        "auction_weighting.py",
+        "treasury_instruments.py"
+      ]
+    }
+  },
+  "remaining_limits": [
+    "Synthetic HTTP, cached histories and storage validate fault semantics, not current provider schemas or live publication. No real bank, current/private packet or provider data was read or changed by verification.",
+    "The large capacity case mocks provider methods and exercises the actual cache reader; separate HTTP stream tests validate bounded transport. Untraced local runtime does not certify AWS latency or memory.",
+    "Pagination consistency is not original-response retention, independent population reconciliation, observation availability or a historical point-in-time proof. Provider request/response capture remains open.",
+    "Ordinary native publication, concurrent-writer guarantees, independent predictive validation and supported portfolio consequences remain open. No call or sizing eligibility was added.",
+    "Actual in-app browser completion of the existing legacy download remains unverified; accepted Stage 417 byte-binding and lifecycle tests remain valid."
+  ],
+  "native_invocations": 0,
+  "extra_provider_requests": 0,
+  "current_consumer_reads": 0,
+  "private_reads": 0,
+  "schedule_changes": 0
+}

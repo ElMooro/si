@@ -61,7 +61,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.7"
+VERSION = "1.5.6"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -73,7 +73,6 @@ ASSETS_KEY = "data/warm/treasury-auctions/assets.json.gz"
 COMPOSITE_KEY = "data/warm/treasury-auctions/composite-history.json"
 REACT_KEY = "data/warm/treasury-auctions/reactions.json"
 MAX_CACHE_BYTES = 128 * 1024 * 1024
-MAX_HTTP_BYTES = 128 * 1024 * 1024
 PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 FULL_FIELDS = ("cusip", "security_type", "security_term", "auction_date", "issue_date", "maturity_date", "high_rate", "high_yield",
                "high_discnt_rate", "high_investment_rate", "low_rate", "low_yield", "low_discnt_rate", "median_rate", "median_yield",
@@ -109,53 +108,20 @@ def _iso():
 def _get_json(url, timeout=30):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json", "Cache-Control": "no-cache"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        if getattr(r, 'status', 200) != 200:
-            raise ValueError('HTTP JSON request did not return status 200')
-        headers = getattr(r, 'headers', None) or {}
-        declared = headers.get('Content-Length')
-        if declared is not None:
-            lengths = headers.get_all('Content-Length') if hasattr(headers, 'get_all') else [declared]
-            if len(lengths) != 1 or headers.get('Transfer-Encoding'):
-                raise ValueError('HTTP response has ambiguous body length')
-            declared = declared.strip() if isinstance(declared, str) else ''
-            if not declared or not declared.isascii() or not declared.isdecimal():
-                raise ValueError('HTTP response has invalid body length')
-            declared = int(declared)
-            if declared > MAX_HTTP_BYTES:
-                raise ValueError('HTTP response exceeds its complete-byte limit')
-        raw = _read_bytes(r, MAX_HTTP_BYTES, 'HTTP response')
-        if declared is not None and len(raw) != declared:
-            raise ValueError('HTTP response body length does not match received bytes')
-        return json.loads(raw, object_pairs_hook=_cache_object,
-                          parse_constant=_invalid_http_number, parse_float=_http_float)
-
-
-def _invalid_http_number(value):
-    raise ValueError('HTTP JSON contains a nonfinite number')
-
-
-def _http_float(value):
-    result = float(value)
-    if not math.isfinite(result):
-        return _invalid_http_number(value)
-    return result
+        return json.loads(r.read())
 
 
 def _cache_bytes(stream):
-    return _read_bytes(stream, MAX_CACHE_BYTES, 'Cached input')
-
-
-def _read_bytes(stream, limit, label):
-    """Consume the complete bounded response, including short-read streams."""
+    """Consume the complete bounded object, including short-read streams."""
     chunks, length = [], 0
     try:
         while True:
-            chunk = stream.read(min(65536, limit + 1 - length))
+            chunk = stream.read(min(65536, MAX_CACHE_BYTES + 1 - length))
             if not chunk:
                 return b''.join(chunks)
             length += len(chunk)
-            if length > limit:
-                raise ValueError(label + ' exceeds its complete-byte limit')
+            if length > MAX_CACHE_BYTES:
+                raise ValueError('Cached input exceeds its complete-byte limit')
             chunks.append(chunk)
     finally:
         stream.close()
@@ -165,7 +131,7 @@ def _cache_object(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise ValueError('Duplicate JSON field')
+            raise ValueError('Duplicate cached JSON field')
         result[key] = value
     return result
 
@@ -273,51 +239,35 @@ def norm_fd(r):
 def fetch_td(path, days=None):
     url = TD + path + "?format=json" + ("&days=%d" % days if days else "")
     rows = _get_json(url)
-    if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
-        raise ValueError('TreasuryDirect response must be a complete row array')
-    return rows
+    return rows if isinstance(rows, list) else []
 
 
 def fetch_fd(dataset, params, max_pages=40, proof_out=None):
-    # Every caller must receive all declared pages. Optional proof collection is
-    # not permission to silently accept an error response or a truncated set.
-    if type(max_pages) is not int or max_pages < 1:
-        raise ValueError('FiscalData page limit must be a positive integer')
-    size = params.get('page[size]', 1000)
-    if type(size) is not int or size < 1:
-        raise ValueError('FiscalData page size must be a positive integer')
     out, page, expected = [], 1, None
     while page <= max_pages:
         q = dict(params)
-        q['page[number]'] = page
-        q.setdefault('page[size]', size)
-        q.setdefault('format', 'json')
-        url = FD + dataset + '?' + urllib.parse.urlencode(q, safe=':,-[]')
+        q["page[number]"] = page
+        q.setdefault("page[size]", 1000)
+        q.setdefault("format", "json")
+        url = FD + dataset + "?" + urllib.parse.urlencode(q, safe=":,-[]")
         body = _get_json(url)
-        if not isinstance(body, dict) or not isinstance(body.get('data'), list) or not isinstance(body.get('meta'), dict):
-            raise ValueError('FiscalData response is missing its row array or pagination metadata')
-        data, meta = body['data'], body['meta']
-        total, pages = meta.get('total-count'), meta.get('total-pages')
-        if type(total) is not int or type(pages) is not int or total < 0 or not 1 <= pages <= max_pages:
-            raise ValueError('FiscalData requires complete bounded pagination metadata')
-        if pages != max(1, (total + size - 1) // size):
-            raise ValueError('FiscalData page count does not match the requested page size')
-        if expected is None:
-            expected = (total, pages)
-        if expected != (total, pages):
-            raise ValueError('FiscalData pagination changed during acquisition')
-        wanted = min(size, total - (page - 1) * size)
-        if len(data) != wanted or any(not isinstance(row, dict) for row in data):
-            raise ValueError('FiscalData page is incomplete or contains malformed rows')
-        if 'count' in meta and (type(meta['count']) is not int or meta['count'] != len(data)):
-            raise ValueError('FiscalData reported page count does not match received rows')
+        data = body.get("data") or []
+        if proof_out is not None:
+            meta = body.get('meta') or {}
+            total, pages = meta.get('total-count'), meta.get('total-pages')
+            if type(total) is not int or type(pages) is not int or total < 0 or not 1 <= pages <= max_pages or not isinstance(body.get('data'), list):
+                raise ValueError('Full auction capture requires complete bounded pagination metadata')
+            if expected is None:
+                expected = (total, pages)
+            if expected != (total, pages) or (not data and total != 0):
+                raise ValueError('Full auction pagination changed or ended early')
         out.extend(data)
-        if page == pages:
+        if page >= int((body.get("meta") or {}).get("total-pages") or 1) or not data:
             break
         page += 1
-    if expected is None or len(out) != expected[0] or page != expected[1]:
-        raise ValueError('FiscalData pagination incomplete')
     if proof_out is not None:
+        if expected is None or len(out) != expected[0] or page != expected[1]:
+            raise ValueError('Full auction pagination incomplete')
         proof_out.append({'rows': len(out), 'pages': expected[1], 'complete': True})
     return out
 
