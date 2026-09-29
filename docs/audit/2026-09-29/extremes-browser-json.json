@@ -1,6 +1,6 @@
 {
   "stage": 426,
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_deployment_and_isolated_browser_accepted",
   "checked_at": "2026-09-29T17:54:15.157474+00:00",
   "baseline_commit": "07722dabfbba58b48a78352aac1255b93163df53",
   "reproduction": {
@@ -77,11 +77,16 @@
       }
     },
     "screenshot": {
-      "path": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage426-mobile-unavailable.png",
+      "path": "stage426-mobile-unavailable.png",
       "sha256": "87c714ea4fc24feb8484af9ee704bb25cbf605a35cfcf8aabd2f16807e10f87a"
     },
     "native_invocations": 0,
-    "live_packet_reads": 0
+    "live_packet_reads": 0,
+    "desktop_screenshot": {
+      "local_artifact": "stage426-unavailable.png",
+      "sha256": "a00e5fd6706f160d34ea17cd619f8748b5adb14ec9c6b2e91301a26aa56587b8",
+      "scope": "Isolated synthetic malformed-clock state, with network disabled"
+    }
   },
   "boundaries": {
     "native_changes": 0,
@@ -93,8 +98,47 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact static deployment acceptance remains pending.",
+    "Five static assets exactly match the intended source-bound build; ordinary live data publication remains separate and unverified.",
     "The isolated fixture is not a live market-data observation or a qualification of actual current publications.",
     "Dynamic current-writer source provenance, schema/clock validation, original-provider vintages, predictive validation and portfolio authority remain separate work."
-  ]
+  ],
+  "source_commit": "2337bea9baea208cbe03eba7a351018b7b9cfeca",
+  "pages_run": 36608253561,
+  "page_gate_run": 36608253553,
+  "audit_run": 36608440420,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T18:03:48.264622+00:00",
+    "intended_commit": "2337bea9baea208cbe03eba7a351018b7b9cfeca",
+    "served_commit": "2337bea9baea208cbe03eba7a351018b7b9cfeca",
+    "assets": {
+      "market-extremes.html": {
+        "bytes": 5924,
+        "sha256": "8dead3b9786777c059ab8472fdfab1997421ebea6d2c8edc71a38e993f3b4ab8",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 5383,
+        "sha256": "f2e8e35441a9d1fa4a758fc87e2c62b5ee7561b11c23a0117614f4c9a264b1f4",
+        "matches_manifest": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 14300,
+        "sha256": "b68938b1e276dc19a70cd2f99302bbf1e53310b0f6030b5d807194aad46c6aaf",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3066292,
+        "sha256": "895ad08362a64bbb44f6263f0980ad48ba8920d5e4e3c2c114e1cc26b9f183ea",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7655340,
+        "sha256": "587b0c02cce0b555abcd326b94e7dbd4356409cd5652533db869720fa86d2919",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing script and generated registries only. No execution or current/private packet requests."
+  },
+  "atomic_batch_files": 11
 }
