@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import boto3
 from calls_contract import timestamp
 from calls_research_replay import canonical, replay, publish_current
-from calls_original_reader import reader as original_reader
+from calls_liquidity_binding import reader as original_reader
 
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 s3 = boto3.client('s3', region_name='us-east-1')

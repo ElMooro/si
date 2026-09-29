@@ -1,0 +1,615 @@
+{
+  "status": "tested_native_integration_deployment_pending",
+  "offline_proof": {
+    "status": "actual_calls_compiler_replays_both_complete_retained_source_families",
+    "checked_at": "2026-09-29T02:02:14.306163+00:00",
+    "compile_cutoff": "2026-09-26T21:30:39.782533+00:00",
+    "source_publications": {
+      "data/liquidity-flow.json": "2026-09-26T16:44:11.237996+00:00",
+      "data/settlement-fails.json": "2026-09-26T21:30:39.782533+00:00"
+    },
+    "run_id": "calls-research-b40fef4d72f4727ac0cd7a4f57615b8d1e352f0d7eba855f9ce302718020a065",
+    "bundle_sha256": "e8c945962a6da1718848715e9ab9b285b4c4aa7e056250d876003085f4b1ab41",
+    "bundle_bytes": 336514,
+    "compiler": {
+      "method": "warehouse_deterministic_v2",
+      "source_hash_basis": "UTF-8 source with LF newlines",
+      "files": {
+        "calls_research_replay.py": "27fa837eb8b3375a9995186bf47c49fd17c11213114991e18aaaac6b85059ac5",
+        "calls_free_brief.py": "845f13927314aef338c9c9267df60f542060a6aa9a72ae9c8b5ff06017ea6a49",
+        "pd_fails_context.py": "fae6d16962c2759b1ba9b51c21761dfdc16d7307db153edbc7136fa2561f9e5a",
+        "calls_liquidity_binding.py": "4ee8db95b662bfaa7c43e5c84576334839586e1ccb6121a882fb1b9e4821ca3b",
+        "calls_liquidity_originals.py": "5106120c4f68d83b79d1b1e69ae75b3feeaa3492de6d3932319c0385aca5de71",
+        "liquidity_flow_store.py": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+        "liquidity_flow_model.py": "f439e072a41911fce399c6ef34c5224464488cb9a45b298ae693d63e4e36ea23",
+        "liquidity_flow_arithmetic.py": "5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856",
+        "verify_liquidity_arithmetic.py": "3b926aecbca8120b40b49eba38cfeb4c3d0b2a8d5a7ec2dc00c5b48a92e9d76d",
+        "canonical_fred_replay.py": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+        "report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+        "research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+        "evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+        "calls_fails_binding.py": "5475c23b9d55a95e4b404d36cfb206ff364f6cdbf36966c043ad7ccd36b2ff1c",
+        "calls_fails_originals.py": "481a354306bc3c9e1772e47b6108d2cdf471a2e9c4735548557cb9d80f707a6e",
+        "calls_original_reader.py": "57f030a8958c0cdb373ea4874c7adab540cfd7dc7fc554a0b70633bdf755643f",
+        "fails_store.py": "08b638b32213e185e098b0a7ffac564942d51d152f9b067196f349c6c025c5cf",
+        "fails_research.py": "0eb9bc4c83f397fd4d42d5cb9eb357dea7a71ffe2eb280ae4582de4221c47825",
+        "fails_native.py": "63abf9d324413557664c905815d86f8672011ffde663276ae81c17984dbb762c",
+        "verify_fails_arithmetic.py": "88b87685f8d6296862b6d0352efd050170b131dea40343a5fe1610d7cf568500"
+      }
+    },
+    "coverage": {
+      "liquidity_flow": {
+        "original_rows": 7366,
+        "calendar_dates": 180,
+        "comparison_windows": 4,
+        "distinct_selected_observations": 183,
+        "retained_artifacts": 20,
+        "retained_uncompressed_bytes": 10667167
+      },
+      "settlement_fails": {
+        "original_series": 12,
+        "original_rows": 8436,
+        "scopes": 8,
+        "scope_history_rows": 5624,
+        "retained_artifacts": 14,
+        "retained_uncompressed_bytes": 8455112
+      }
+    },
+    "independent_arithmetic": {
+      "liquidity_flow": {
+        "original_rows_checked": 7366,
+        "calendar_dates_checked": 180,
+        "comparison_windows_checked": 4,
+        "exact_rational_comparisons": 776,
+        "unavailable_legs_preserved": 11,
+        "production_compiler_imported": false,
+        "forecast_qualified": false,
+        "sizing_qualified": false
+      },
+      "settlement_fails": {
+        "original_series": 12,
+        "original_rows_checked": 8436,
+        "scopes_checked": 9,
+        "scope_history_rows_checked": 6327,
+        "integer_sums_checked": 18981,
+        "incomplete_scope_rows_preserved": 0,
+        "production_compiler_imported": false,
+        "statistics_independently_verified": false,
+        "forecast_qualified": false,
+        "sizing_qualified": false
+      }
+    },
+    "original_artifacts_read_locally": 34,
+    "original_uncompressed_bytes": 19122279,
+    "expired_current_use_withheld": true,
+    "complete_offline_cli_reproduced": true,
+    "elapsed_seconds": 20.547,
+    "network_requests": 0,
+    "private_reads": 0,
+    "native_invocations": 0,
+    "current_consumer_reads": 0,
+    "native_publication_verified": false,
+    "native_runtime_capacity_verified": false,
+    "calls_eligible": false,
+    "sizing_eligible": false
+  },
+  "complete_offline_run_artifact": "docs/audit/2026-09-29/calls-fails-frozen-offline-run.json",
+  "original_candidate_proof": {
+    "status": "complete_prior_public_fr2004_packet_and_originals_replayed",
+    "checked_at": "2026-09-29T01:46:03.688637+00:00",
+    "packet_bytes": 3084107,
+    "packet_sha256": "ea146d8c6d3ab467847798ee6fcfdaf693b08d4d81b63be2a1f8ed8390db53c0",
+    "original_publication_at": "2026-09-26T21:30:39.782533+00:00",
+    "source_replay": {
+      "manifest_key": "data/fails-research/runs/b0fe0dfc52df32ce59d1f81f718c9b5c21909220f91189ab04033d0359d205e9.json",
+      "output_sha256": "e8e76e951e0a2ae5e200b2affbf2dae5ce2a464c1c1809fa8de598143a752bb8"
+    },
+    "coverage": {
+      "original_series": 12,
+      "original_rows": 8436,
+      "scopes": 8,
+      "scope_history_rows": 5624,
+      "retained_artifacts": 14,
+      "retained_uncompressed_bytes": 8455112
+    },
+    "independent_arithmetic": {
+      "original_series": 12,
+      "original_rows_checked": 8436,
+      "scopes_checked": 9,
+      "scope_history_rows_checked": 6327,
+      "integer_sums_checked": 18981,
+      "incomplete_scope_rows_preserved": 0,
+      "production_compiler_imported": false,
+      "statistics_independently_verified": false,
+      "forecast_qualified": false,
+      "sizing_qualified": false
+    },
+    "overlap": {
+      "headline_scope": "ust_ex_tips",
+      "treasury_scope": "treasury_incl_tips",
+      "shared_series": [
+        "PDFTD-USTET",
+        "PDFTR-USTET"
+      ],
+      "additional_treasury_series": [
+        "PDFTD-UST",
+        "PDFTR-UST"
+      ],
+      "independent_evidence_count": null,
+      "note": "Headline is contained in Treasury including TIPS. FTD and FTR are two-sided gross; repeated claims may occur on both sides and across reporting days."
+    },
+    "at_publication_scopes": {
+      "ust_ex_tips": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "tips": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "corporate": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "agency_mbs": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "agency_debt": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "other_mbs": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "treasury_incl_tips": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      },
+      "all_asset": {
+        "eligible": true,
+        "issues": [],
+        "quality": {
+          "status": "fresh",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": []
+        }
+      }
+    },
+    "current_clock_scopes": {
+      "ust_ex_tips": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "tips": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "corporate": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "agency_mbs": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "agency_debt": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "other_mbs": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "treasury_incl_tips": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      },
+      "all_asset": {
+        "eligible": false,
+        "issues": [
+          "native_packet:publication_age",
+          "acquisition_older_than_36h"
+        ],
+        "quality": {
+          "status": "stale",
+          "observation_date": "2026-09-16",
+          "publication_date": null,
+          "acquired_at": "2026-09-26T21:30:39.056835+00:00",
+          "frequency": "weekly",
+          "period_measure": "cumulative_reported_fails",
+          "freshness_basis": "original_acquisition_and_normal_release_policy",
+          "next_expected_publication_date": "2026-10-01T20:15:00+00:00",
+          "actual_publication_time_verified": false,
+          "holiday_adjustment_verified": false,
+          "max_acquisition_age_hours": 36,
+          "normal_release_grace_hours": 24,
+          "missing": [
+            "acquisition_older_than_36h"
+          ]
+        }
+      }
+    },
+    "output_bytes": 7750819,
+    "output_sha256": "50286626cf27a0d930fc5bb24ca4abc0249f81a46203687092800e8b167af9e4",
+    "elapsed_seconds": 7.063,
+    "public_immutable_artifact_requests": 14,
+    "current_key_requests": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "aws_writes": 0,
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "publication_eligible": false,
+    "scope": "Complete already-retained September 26 public producer packet and approved immutable source archives. Candidate only; current Calls integration, native capacity and publication are not claimed."
+  },
+  "complete_predecessors": [
+    {
+      "source": "aws/shared/calls_research_replay.py",
+      "fixture": "tests/fixtures/pre-calls-fails-binding-aws-shared-calls_research_replay.py.txt",
+      "bytes": 12841,
+      "sha256": "ea4dbf1458b2cf9e5bc1a4e4c17579ff59938322ae91eb5331ddbbd5ea794558"
+    },
+    {
+      "source": "aws/shared/calls_free_brief.py",
+      "fixture": "tests/fixtures/pre-calls-fails-binding-aws-shared-calls_free_brief.py.txt",
+      "bytes": 13117,
+      "sha256": "2f123fd574b5d0ef514b5575e9b0d0231bd33a615781b64efab784573504a85a"
+    },
+    {
+      "source": "aws/lambdas/justhodl-ai-brief/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-calls-fails-binding-aws-lambdas-justhodl-ai-brief-source-lambda_function.py.txt",
+      "bytes": 34681,
+      "sha256": "66c5973e90287c9d529f3ce72531c0eb6b7c8435a3cff6640ddd550c59291d15"
+    },
+    {
+      "source": "aws/lambdas/justhodl-calls-research-audit/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-calls-fails-binding-aws-lambdas-justhodl-calls-research-audit-source-lambda_function.py.txt",
+      "bytes": 5609,
+      "sha256": "e04aa9b283f496fbea25d75f83525dbea1fffa9f7534ff505ef14c3579a3cc4b"
+    },
+    {
+      "source": "jh-public-brief.js",
+      "fixture": "tests/fixtures/pre-calls-fails-binding-jh-public-brief.js.txt",
+      "bytes": 8906,
+      "sha256": "ba67b6607fad695099c58fac5213842927070a50680100cab51d86b7bf95f43c"
+    },
+    {
+      "source": "scripts/replay_calls_research.py",
+      "fixture": "tests/fixtures/pre-calls-fails-binding-scripts-replay_calls_research.py.txt",
+      "bytes": 2506,
+      "sha256": "dd6568e6054eb45d92f57fe96b5b4daed2204defcfb52ddd3234a5303b8e52e7"
+    }
+  ],
+  "source_graph_changes": [
+    {
+      "engine": "justhodl-ai-brief",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "writes_unchanged": true
+    },
+    {
+      "engine": "justhodl-calls-research-audit",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "writes_unchanged": true
+    },
+    {
+      "engine": "justhodl-prospective-evaluator",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "writes_unchanged": true
+    },
+    {
+      "engine": "justhodl-signal-harvester",
+      "changed_fields": [
+        "write_evidence"
+      ],
+      "writes_unchanged": true
+    }
+  ],
+  "validation": {
+    "original_lineage_regressions": 9,
+    "actual_binding_regressions": 10,
+    "deployment_static": 574,
+    "candidate_shell": 12,
+    "frontend": 1706,
+    "native_importers": [
+      "justhodl-ai-brief",
+      "justhodl-calls-research-audit",
+      "justhodl-settlement-fails",
+      "justhodl-signal-harvester",
+      "justhodl-prospective-evaluator"
+    ],
+    "morning_consumer_suite": true,
+    "page_syntax_graphs": 599,
+    "engine_wiring_check": true,
+    "page_contract_check": true
+  },
+  "browser": {
+    "scope": "Isolated actual Calls output compiled from both already-retained September 26 source families at an expired cutoff. No current consumer or original link requests.",
+    "desktop_width": 1280,
+    "desktop_document_width": 1265,
+    "mobile_width": 390,
+    "mobile_document_width": 375,
+    "fails_original_links": 8,
+    "fails_complete_history_links": 1,
+    "linked_latest_rows": 4,
+    "keyboard_disclosure_passed": true,
+    "zero_based_row_positions_explicit": true,
+    "expired_current_use_withheld": true,
+    "console_errors": []
+  },
+  "runtime_acceptance_operation": "aws/ops/staged/ops_6326_calls_fails_runtime_acceptance.py",
+  "native_publication_verified": false,
+  "native_runtime_capacity_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "limitations": [
+    "Full original and arithmetic replay qualifies descriptive measurement lineage, not statistical independence, historical publication availability or a forecast.",
+    "Calls exposes two overlapping scopes and exact latest row identities, with complete immutable source history links. All source rows and scope histories are replayed before this projection.",
+    "FR2004 normal weekly release policy and 36-hour original acquisition/publication ceiling do not certify actual release times or holiday calendars.",
+    "Both source families have been tested together offline. The next original Calls publication is still required for native publication and capacity acceptance.",
+    "No private/current-consumer/recipient reads, manual native invocations, schedule changes, paid APIs or messages were performed."
+  ]
+}

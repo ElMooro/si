@@ -10,7 +10,7 @@ import sys
 import unittest
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[4]
-sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'scripts'),str(Path(__file__).resolve().parents[1]/'source')]
+sys.path[:0]=[str(Path(__file__).resolve().parents[1]/'source'),str(ROOT/'aws/shared'),str(ROOT/'scripts')]
 import fails_native as n
 import fails_research as m
 import fails_store as s

@@ -17,7 +17,6 @@ import re
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'aws/shared'))
 from calls_research_replay import replay
 from calls_liquidity_binding import lineage
-from calls_original_reader import ImmutableReader
 
 
 def original_reader(directory=None):
@@ -33,7 +32,7 @@ def original_reader(directory=None):
             raw=lineage.store.bounded(urllib.request.urlopen(request,timeout=45))
         if key.endswith('.gz'):raw=lineage.store.bounded(gzip.GzipFile(fileobj=io.BytesIO(raw)))
         return raw
-    return ImmutableReader(read)
+    return lineage.ImmutableReader(read)
 
 
 def main():

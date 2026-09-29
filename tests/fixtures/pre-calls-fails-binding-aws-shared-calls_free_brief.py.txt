@@ -50,7 +50,7 @@ def publication_clock(value,now):
                 'max_source_age_seconds':MAX_PUBLICATION_AGE_SECONDS}
 
 
-def build(load, generated_at, liquidity_originals=None, fails_originals=None):
+def build(load, generated_at, liquidity_originals=None):
     now = datetime.fromisoformat(generated_at.replace('Z','+00:00'))
     if now.tzinfo is None:raise ValueError('brief requires timezone-aware generation time')
     now=now.astimezone(timezone.utc)
@@ -101,25 +101,6 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None):
                 row['original_packet_canonical_sha256']=liquidity_originals['canonical_packet_sha256']
                 row['original_calculation_id']=liquidity_originals['latest_reconstructed']['calculation_id']
                 row['original_current_use_issues']=liquidity_originals['current_use']['issues']
-        if key=='data/settlement-fails.json' and fails_originals is not None:
-            verified=fails_originals.get('status')=='verified'
-            scope_id='treasury_incl_tips' if field.startswith('treasury.') else 'ust_ex_tips'
-            scope=fails_originals.get('scopes',{}).get(scope_id,{})
-            eligible=verified and scope.get('current_use',{}).get('eligible') is True
-            status=row['quality_status']='unavailable' if value is None else 'fresh' if eligible else 'stale' if verified else 'unverified'
-            row.update(original_source_evidence_verified=verified,current_original_research_eligible=eligible,
-                original_scope_id=scope_id,max_observation_age_days=None,
-                freshness_basis='Complete FR2004 original replay, exact scope arithmetic, original acquisition and normal weekly release ceiling. Actual publication timing and holidays remain unverified.' if verified else 'FR2004 original-source replay unavailable; reported values remain unqualified.')
-            if verified:
-                row['original_packet_canonical_sha256']=fails_originals['canonical_packet_sha256']
-                row['max_source_age_seconds']=36*3600
-                age_seconds=row['source_age_seconds']
-                row['source_clock_status']='future' if age_seconds is not None and age_seconds<0 else 'within_age_ceiling' if age_seconds is not None and age_seconds<=36*3600 else 'stale'
-                row['original_calculation_id']=scope['latest_calculation']['calculation_id']
-                row['original_current_use_issues']=scope['current_use']['issues']
-                side='PDFTD-' if field.endswith('ftd_bn') else 'PDFTR-' if field.endswith('ftr_bn') else None
-                row['original_observation_ids']=[identity for series,identity in scope['latest_calculation']['original_observations'].items()
-                    if identity is not None and (side is None or series.startswith(side))]
         if note: row['note']=note
         rows.append(row)
         if status!='fresh': missing.append(row['series_id'])
@@ -181,14 +162,14 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None):
         '- Composites may reuse the same series. Six settlement fields all share FR2004; they do not become six independent votes.',
         '', '## DATA LIMITATIONS',
         '- '+str(len(missing))+' fields are stale, incomplete or unverified. Missing observation dates are shown explicitly; publication time is never substituted.',
-        '- Source publication must also be dated and not future. Liquidity and typed-only inputs use a 26-hour collector ceiling; original-bound FR2004 uses its 36-hour acquisition/publication ceiling and normal weekly release policy. Collector age alone does not verify provider release timing.',
+        '- Source publication must also be dated, not future, and within 26 hours. For fields without retained-original lineage, this collector ceiling alone does not verify provider acquisition or its release calendar.',
         '- No allocation model or out-of-sample edge is validated here. All fields are monitor-only, even when fresh. No target exposure, probability or position size is inferred.',
         '', '## WATCH CONDITIONS',
         '- Reassess when the named source observations change, their dates advance, or upstream quality deteriorates.',
         '- Any future allocation change requires eligible independent evidence, a validated model and a separately enforced risk limit.',
         '', '## DECISION STATUS', '**DECISIVE CALL: WAIT**',
         'Abstain from new allocation guidance. WAIT does not mean sell existing positions or override independent risk controls.']
-    result={'version':'3.3','generated_at':generated_at,'generation_method':METHOD,
+    result={'version':'3.2','generated_at':generated_at,'generation_method':METHOD,
         'model':None,'paid_api_calls':0,'brief_md':'\n'.join(lines)+'\n',
         'evidence':rows,'coverage':{'fields':len(rows),'available':len(available),'fresh':len(fresh),'eligible_votes':0},
         'quality':{'status':'partial' if missing else 'fresh','missing':missing},
