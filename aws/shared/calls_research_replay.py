@@ -63,7 +63,7 @@ def compiler_identity():
 
 
 # Exact reviewed source sets retained in tests/fixtures/pre-liquidity-transport-*,
-# pre-calls-publication-* and pre-calls-cache-*. Only transport, publication and
+# pre-calls-publication-*, pre-calls-cache-* and pre-calls-storage-*; transport, publication and
 # invocation-local cache concurrency changed; economic calculations are unchanged.
 # All other compiler bytes, frozen
 # inputs and reproduced output must still match. No archived code is executed.
@@ -78,6 +78,10 @@ REVIEWED_TRANSPORT_REVISIONS = ({
 },{
     "calls_research_replay.py": "96140866488a49ae90b444b97a569b57e1e63fead53941f3b4339d33a1dc7406",
     "calls_original_reader.py": "7470b5bb9890f2438cee3a7cee2658595347770df79835e15415c7db9f543bae",
+    "liquidity_flow_store.py": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e",
+},{
+    "calls_research_replay.py": "e6fee8d9ec3261fdaa137264aa662f4492fe5461f4289fe757e70aff0308100b",
+    "calls_original_reader.py": "a07c4786cb93de554ca3122070b4c34573ab949e56ceac328e3d1982e64c7887",
     "liquidity_flow_store.py": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e",
 },)
 
@@ -247,6 +251,25 @@ def replay(bundle,read_original=None):
             "sizing_eligible": False, "scope": payload["scope"]}
 
 
+def _stored_bytes(response):
+    """Consume complete stored bytes and close the body on every exit path."""
+    body = response["Body"]
+    try:
+        chunks = []
+        while True:
+            chunk = body.read(65536)
+            if not isinstance(chunk, bytes): raise ValueError("Stored response must contain bytes")
+            if not chunk: break  # Let the SDK perform its EOF length validation.
+            chunks.append(chunk)
+        raw = b"".join(chunks)
+        length = response.get("ContentLength")
+        if length is not None and (type(length) is not int or length < 0 or length != len(raw)):
+            raise ValueError("Stored response length mismatch")
+        return raw
+    finally:
+        body.close()
+
+
 def persist(client, bucket, bundle,read_original=None):
     replay(bundle,read_original)
     key = PREFIX + bundle["payload_sha256"] + ".json"
@@ -257,7 +280,7 @@ def persist(client, bucket, bundle,read_original=None):
     except Exception as exc:
         code = str(getattr(exc, "response", {}).get("Error", {}).get("Code", ""))
         if code not in ("PreconditionFailed", "412", "ConditionalRequestConflict", "409"): raise
-        old = client.get_object(Bucket=bucket, Key=key)["Body"].read()
+        old = _stored_bytes(client.get_object(Bucket=bucket, Key=key))
         if old != body: raise ValueError("immutable public research-run conflict") from exc
     return {"contract_version": CONTRACT, "run_id": bundle["run_id"], "bundle_key": key,
             "bundle_sha256": hashlib.sha256(body).hexdigest(),
@@ -275,9 +298,7 @@ def publish_current(client, bucket, key, document):
     for _ in range(5):
         try:
             obj = client.get_object(Bucket=bucket, Key=key)
-            response = obj["Body"]
-            try: previous = liquidity_binding.lineage.store.strict(response.read())
-            finally: response.close()
+            previous = liquidity_binding.lineage.store.strict(_stored_bytes(obj).decode("utf-8"))
             if not isinstance(previous, dict): raise ValueError("stored current brief requires a JSON object")
             old_at = timestamp(previous.get("generated_at"))
             if old_at and old_at > at: return {"published": False, "reason": "newer_current_present"}

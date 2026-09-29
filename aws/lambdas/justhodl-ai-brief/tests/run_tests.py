@@ -40,3 +40,6 @@ if __name__ == '__main__':
     run_calls_publication()
     from calls_cache_tests import run as run_calls_cache
     run_calls_cache()
+
+import calls_storage_tests
+calls_storage_tests.run()

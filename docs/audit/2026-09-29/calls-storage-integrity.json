@@ -1,0 +1,163 @@
+{
+  "stage": 433,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T20:38:21.586558+00:00",
+  "baseline_commit": "1bb0607bf802382ddc29bcd62f89e524d3b7e77d",
+  "predecessor": "calls-storage-predecessor.json",
+  "improvements": [
+    "Immutable-record conflicts consume all returned bytes through EOF, validate declared length, compare exact canonical stored bytes and close the response on success and every error path.",
+    "Current publication uses the same complete-byte reader before strict UTF-8 JSON parsing and conditional publication. Ambiguous JSON and conflicting clocks retain the earlier guards.",
+    "No history truncation or arbitrary artifact cap is introduced. Identical retries still avoid rewriting storage; a newer current publication remains protected.",
+    "Four exact retained compiler source sets replay using reviewed current code; unknown/mixed revisions and changed conclusions fail. Archived code is not executed."
+  ],
+  "source": {
+    "path": "aws/shared/calls_research_replay.py",
+    "sha256": "54b938001d9a34d39193840589ddbecefdfb2bc837fffd783aefa79f2bbfcc4b",
+    "bytes": 19100
+  },
+  "source_scope": {
+    "scope": "AST comparison of complete inert predecessor and reviewed current source. No archived code executed.",
+    "changed_existing_nodes": [
+      "REVIEWED_TRANSPORT_REVISIONS",
+      "persist",
+      "publish_current"
+    ],
+    "added_helpers": [
+      "_stored_bytes"
+    ],
+    "economic_calculations_and_source_bindings_unchanged": true
+  },
+  "importer_closure": {
+    "scope": "Read-only static current source package-closure analysis. No handlers, network, providers, native functions or archived code executed.",
+    "scanned_source_directories": 893,
+    "affected": [
+      {
+        "function": "justhodl-ai-brief",
+        "shared_members": 36,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-calls-research-audit",
+        "shared_members": 32,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-prospective-evaluator",
+        "shared_members": 39,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-signal-harvester",
+        "shared_members": 40,
+        "direct_calls_replay": true
+      }
+    ],
+    "source_sha256": "54b938001d9a34d39193840589ddbecefdfb2bc837fffd783aefa79f2bbfcc4b"
+  },
+  "after_reproduction": {
+    "scope": "Current compiler and controlled synthetic storage only. No native, provider, private or current packets accessed.",
+    "source_sha256": "54b938001d9a34d39193840589ddbecefdfb2bc837fffd783aefa79f2bbfcc4b",
+    "immutable_conflicts": [
+      {
+        "case": "identical",
+        "outcome": "retained",
+        "response_closed": true,
+        "write_attempts": 1
+      },
+      {
+        "case": "changed",
+        "outcome": "ValueError",
+        "response_closed": true,
+        "write_attempts": 1
+      },
+      {
+        "case": "declared_length_mismatch",
+        "outcome": "ValueError",
+        "response_closed": true,
+        "write_attempts": 1
+      }
+    ],
+    "current_length_mismatch": {
+      "outcome": "ValueError",
+      "write_attempts": 0,
+      "response_closed": true
+    }
+  },
+  "tests": {
+    "new_cases": 15,
+    "native_suites": [
+      {
+        "suite": "justhodl-ai-brief",
+        "unittest_cases": 85,
+        "passed": true,
+        "summary": [
+          "[ai-brief] Calls status=ERROR reason=generation_failed n=1",
+          "[ai-brief] SKIP_TELEGRAM=1, skipping Telegram digest",
+          "Calls integrity tests passed: 18",
+          "Free brief checks passed: real evidence, zero/null, scope isolation, privacy whitelist, WAIT, no paid provider path",
+          "Calls public research replay tests passed: 8",
+          "ai-brief: actual narrative projection preserves date, units, evidence, null forecast and no sizing authority"
+        ]
+      },
+      {
+        "suite": "justhodl-calls-research-audit",
+        "unittest_cases": 57,
+        "passed": true,
+        "summary": [
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 15 tests in 0.238s",
+          "",
+          "OK",
+          "Independent Calls audit passed: valid replay, append-only proof, bundle/current/history/authority tampering"
+        ]
+      },
+      {
+        "suite": "justhodl-prospective-evaluator",
+        "unittest_cases": 7,
+        "passed": true,
+        "summary": [
+          "ok test_market_probe_archives_prices_without_creating_a_forecast_or_measurement",
+          "ok test_new_forecasts_remain_pending_without_quote_requests_or_fake_results",
+          "ok test_preexisting_crypto_equity_collision_is_excluded_without_rewriting_records_or_results",
+          "ok test_private_evidence_path_is_rejected_before_a_read",
+          "ok test_request_budget_advances_only_fully_checked_forecasts_without_starvation",
+          "Evaluator tests passed: 10"
+        ]
+      },
+      {
+        "suite": "justhodl-signal-harvester",
+        "unittest_cases": 15,
+        "passed": true,
+        "summary": [
+          "ok test_release_preserves_existing_schedule_bindings",
+          "ok test_source_selection_policy_is_retained_in_both_whole_capture_and_summary",
+          "ok test_unsupported_projection_reports_gap_without_losing_other_sources",
+          "ok test_whole_predecessor_self_ingests_its_summary_but_repair_excludes_before_read",
+          "ok test_wrong_provider_symbol_and_nonfinite_price_are_unavailable",
+          "Harvester integrity tests passed: 11"
+        ]
+      }
+    ],
+    "frontend": 1891,
+    "deployment_static": 708,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "reviewed_retained_versions": 4
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native packages and served static assets remain pending. Normal scheduled publication is separately unverified.",
+    "Complete-byte and response-lifecycle correctness does not qualify aggregate history size, peak memory, execution deadlines or a live scheduled run.",
+    "Economic calculations, source permissions and portfolio authority are unchanged. Historical vintages, independent evidence, model validation and supported portfolio consequences remain open. All ten workstreams remain open."
+  ]
+}
