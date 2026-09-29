@@ -28,6 +28,7 @@ class SharedWriteGraph:
         self.modules, self.loading, self.calls = {}, set(), 0
         self.constant_cache = {}
         self.proofs, self.reads, self.unresolved = {}, set(), []
+        self.entrypoint_proofs = {}
         self.trail, self.seen = [], set()
         self.fingerprint_objects = {}
 
@@ -148,6 +149,12 @@ class SharedWriteGraph:
             # Engine-local delegated reads are input evidence too. Restrict only
             # shared *write ownership* to the shared-module proof contract.
             self.reads.update(target.reads)
+            # Keep the established shared-module API, and separately retain
+            # every local/shared write reached through this exact call binding.
+            for key,lines in target.proofs.items():
+                for line in sorted(lines):self.entrypoint_proofs.setdefault(key,[]).append({
+                    'file':target.source_path.name,'repository_path':self.relative(target.source_path),
+                    'line':line,'via':list(self.trail),'basis':'reachable_source_write_argument'})
             if target.source_path.is_relative_to(self.root/'aws/shared'):
                 for key,lines in target.proofs.items():
                     for line in sorted(lines):self.proofs.setdefault(key,[]).append({
@@ -168,4 +175,5 @@ class SharedWriteGraph:
             node._external_root=True
             node.lineno=target.node.lineno
             self.call(scan,node,{function:target},())
-        return {'keys':set(self.proofs),'reads':self.reads,'proofs':self.proofs,'unresolved':self.unresolved}
+        return {'keys':set(self.proofs),'reads':self.reads,'proofs':self.proofs,'unresolved':self.unresolved,
+                'entrypoint_proofs':self.entrypoint_proofs,'entrypoint_callable_resolved':isinstance(target,Callable)}

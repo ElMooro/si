@@ -298,6 +298,8 @@ class Scan:
                 for h in getattr(n,'handlers',[]):self.block(h.body,dict(env),stack)
                 self.block(getattr(n,'orelse',[]),dict(env),stack);self.block(getattr(n,'finalbody',[]),dict(env),stack)
             else:self.expr(n,env,stack)
+            if self.module_graph and isinstance(n,(ast.Return,ast.Raise,ast.Break,ast.Continue)):
+                break  # Later statements in this block cannot be called.
 
     def run(self,entrypoint=None):
         self.block(self.tree.body,dict(self.globals),())
@@ -429,24 +431,54 @@ def build(root=ROOT):
                 if any(isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name=='lambda_handler' for n in candidate.body):
                     analysis_entrypoint='lambda_function.py';analysis_function='lambda_handler';analysis_basis='conventional_source_handler_runtime_unverified'
             except SyntaxError:pass
+        reachable={};entrypoint_callable_resolved=False
         if analysis_entrypoint:
             graph=SharedWriteGraph(root,d/'source',env,Scan,imported_symbols)
             delegated=graph.analyze(d/'source'/analysis_entrypoint,analysis_function)
             keys.update(delegated['keys']);reads.update(delegated['reads'])
             for key,rows in delegated['proofs'].items():proofs.setdefault(key,[]).extend(dict(row,entrypoint_basis=analysis_basis) for row in rows)
             unresolved.extend(delegated['unresolved'])
+            reachable={key:[dict(row,entrypoint_basis=analysis_basis) for row in rows]
+                       for key,rows in delegated['entrypoint_proofs'].items()}
+            entrypoint_callable_resolved=delegated['entrypoint_callable_resolved']
+        # Preserve the full candidate inventory for compatibility and review.
+        # An uncalled sibling or unused legacy file cannot certify active ownership.
+        reachability={}
+        for key in sorted(keys|set(reachable)):
+            active=reachable.get(key,[])
+            sites={(row['repository_path'],row['line']) for row in active}
+            rows=[]
+            for row in proofs.get(key,[]):
+                path=row.get('repository_path') or (d/'source'/row['file']).relative_to(root).as_posix()
+                if (path,row['line']) not in sites:
+                    rows.append({**row,'entrypoint_reachability':'unproven',
+                                 'basis':'Static write candidate; configured-handler reachability is unproven.'})
+            # Active call-chain records subsume the same candidate file/line.
+            # Reference those records by index instead of duplicating every chain.
+            active_start=len(rows)
+            rows.extend({**row,'entrypoint_reachability':'reachable_in_source',
+                         'basis':'Write argument traced through analyzed source calls; runtime publication remains unverified.'}
+                        for row in active)
+            proofs[key]=rows
+            reachability[key]={'status':'reachable_in_source' if active else 'unproven',
+                               'evidence_indexes':list(range(active_start,len(rows))),'runtime_verified':False}
+            if not active:unresolved.append({'key':key,'operation':'entrypoint_ownership',
+                'reason':'candidate write has no proven path from analyzed source handler; unused, dynamic and import-time paths are not inferred'})
+        keys.update(reachable)
+        if not entrypoint_callable_resolved:unresolved.append({'file':analysis_entrypoint or 'config.json',
+            'operation':'entrypoint_ownership','reason':'source handler callable not resolved; candidate writes do not certify active ownership'})
         # Resolve parameter-only reports only when that exact write site has a concrete or family binding.
         proven={(x['file'],x['line']) for values in proofs.values() for x in values}
         unresolved=[json.loads(t) for t in sorted({json.dumps(x,sort_keys=True) for x in unresolved})]  # A resolved invocation must not hide another unresolved invocation at the same write site.
         exact=sorted(k for k in keys if '*' not in k);patterns=sorted(k for k in keys if '*' in k)
         engines.append({'engine':d.name,'keys':exact,'n_keys':len(exact),'key_patterns':patterns,
-                        'reads':sorted(reads),'other_format_outputs':other_writes,'output_roles':output_roles,'method':'ast-call-binding-v4','write_evidence':proofs,
-                        'shared_writer_analysis':{'source':analysis_entrypoint,'function':analysis_function if analysis_entrypoint else None,'basis':analysis_basis if analysis_entrypoint else None,'scope':'reachable checked-in functions; unknown return values and dynamic dispatch not inferred'},
+                        'reads':sorted(reads),'other_format_outputs':other_writes,'output_roles':output_roles,'method':'ast-candidate-and-entrypoint-v5','write_evidence':proofs,'output_reachability':reachability,
+                        'shared_writer_analysis':{'source':analysis_entrypoint,'function':analysis_function if analysis_entrypoint else None,'basis':analysis_basis if analysis_entrypoint else None,'callable_resolved':entrypoint_callable_resolved,'scope':'checked-in callable paths only; module initialization, unknown returns and dynamic dispatch not inferred'},
                         'unresolved_writes':unresolved,'environment_key_defaults':defaults,
                         'ownership_status':'incomplete' if unresolved else 'source_bound',
-                        'deployment_overrides_verified':False,'configured_handler':handler,'runtime':runtime,'entrypoint_source':entrypoint,'entrypoint_verified':bool(entrypoint),'entrypoint_status':'CONFIGURED_SOURCE_PRESENT' if entrypoint else 'CONFIGURED_SOURCE_MISSING' if handler else 'DEPLOYMENT_CONFIG_NOT_RECORDED','analysis_scope':'Python source writes; API response bodies and unsupported runtimes require separate contracts','description':str(cfg.get('description') or '')[:140]})
+                        'deployment_overrides_verified':False,'configured_handler':handler,'runtime':runtime,'entrypoint_source':entrypoint,'entrypoint_verified':bool(entrypoint),'entrypoint_status':'CONFIGURED_SOURCE_PRESENT' if entrypoint else 'CONFIGURED_SOURCE_MISSING' if handler else 'DEPLOYMENT_CONFIG_NOT_RECORDED','analysis_scope':'Complete candidate Python write inventory with separate handler-call reachability; candidates are not active ownership proof. API bodies and unsupported runtimes require separate contracts','description':str(cfg.get('description') or '')[:140]})
     return {'schema_version':'engine-manifest.v3','generated_at':datetime.now(timezone.utc).isoformat(),
-            'source':'scripts/gen_engine_manifest.py; source-bound outputs, separate families and unresolved writes; runtime not certified',
+            'source':'scripts/gen_engine_manifest.py; candidate outputs retained separately from handler-call reachability; runtime not certified',
             'n_engines':len(engines),'engines':engines}
 
 def main():

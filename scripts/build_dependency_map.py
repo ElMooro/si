@@ -99,6 +99,7 @@ def scan_engines(repo: Path, manifest):
                        'source_parse_errors': parse_errors, 'unresolved_writes': record.get('unresolved_writes', []),
                        'write_patterns': record.get('key_patterns', []),
                        'ownership_status': record.get('ownership_status', 'unknown'),
+                       'output_reachability': {key:{'status':value['status'],'runtime_verified':False} for key,value in record.get('output_reachability',{}).items()},
                        'runtime_consumption_verified': False}
     return out
 
@@ -188,12 +189,13 @@ def lineage(engines, pages, writers):
         rows[page] = {'referenced_keys': sorted(keys), 'upstream_engines': sorted(upstream),
                       'unresolved_keys': sorted(k for k in keys if not writers.get(k)),
                       'ambiguous_writer_keys': sorted(k for k in keys if len(writers.get(k, [])) > 1),
+                      'unproven_writer_keys': sorted(k for k in keys if any(engines[e].get('output_reachability',{}).get(k,{}).get('status')!='reachable_in_source' for e in writers.get(k,[]))),
                       'cycle_components': [i for i, names in enumerate(components) if upstream.intersection(names)],
                       'independent_evidence_count': None, 'source_families_verified': False,
                       'calls_eligible': False, 'sizing_eligible': False}
     return {'contract': 'static-dependency-lineage.v1', 'page_lineage': rows, 'cyclic_engine_components': components,
             'self_read_keys': {k: v for k, v in own_reads.items() if v},
-            'scope': 'Potential transitive dependencies from code references. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.'}
+            'scope': 'Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.'}
 
 
 def build(repo: Path):
@@ -236,7 +238,7 @@ def build(repo: Path):
         'input_identity': source_identity(repo, pages),
         'lineage': lineage(engines, pages, writers),
         "generated_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
-        "note": "REFERENCED BY CODE only (static). Existence/freshness on S3, successful load, display and decision use are separate states.",
+        "note": "CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.",
         "counts": {"engines": len(engines), "pages": len(pages), "keys": len(all_keys), "writers": len(writers), "unused_outputs": len(unused_outputs),
                    "orphan_page_refs": len(orphan_page_refs), "orphan_engine_refs": len(orphan_engine_refs), "duplicate_writers": len(dup_writers),
                    "engines_without_consumer": len(engines_no_consumer), "engines_without_schedule": len(engines_no_schedule), "two_cycles": len(cycles)},

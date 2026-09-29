@@ -1,6 +1,6 @@
 """Returned source readers must keep their lexical key binding without execution."""
 from pathlib import Path
-import hashlib, runpy, sys, tempfile
+import ast, hashlib, sys, tempfile
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts'))
@@ -110,10 +110,10 @@ def test_whole_predecessor_scanners_remain_byte_identical():
         assert hashlib.sha256((ROOT/'tests/fixtures'/('pre-returned-reader-'+name+'.txt')).read_bytes()).hexdigest()==digest
 
 
-def test_preserved_predecessor_reproduces_the_missing_input():
-    before=runpy.run_path(str(ROOT/'tests/fixtures/pre-returned-reader-gen_engine_manifest.py.txt'))
+def test_current_returned_reader_repair_and_preserved_predecessor_structure():
+    before=ast.parse((ROOT/'tests/fixtures/pre-returned-reader-gen_engine_manifest.py.txt').read_text(encoding='utf-8'))
+    assert not any(isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name=='returned_function' for n in ast.walk(before))
     code=FACTORY+"def lambda_handler(event,context):\n read=reader(client)\n read('head.json')"
-    assert before['ast_keys'](code)==([],[],True)
     assert ast_keys(code)==([],['data/default/head.json'],True)
 
 

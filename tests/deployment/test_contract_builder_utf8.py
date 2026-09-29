@@ -6,7 +6,6 @@ import hashlib
 import json
 import sys
 import tempfile
-import types
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -14,12 +13,9 @@ import build_page_data_contracts as builder
 
 
 def predecessor():
-    module = types.ModuleType('pre_contract_utf8_builder')
-    module.__file__ = str(ROOT / 'scripts/build_page_data_contracts.py')
     raw = (ROOT / 'tests/fixtures/pre-contract-utf8-builder.py.txt').read_bytes()
     assert hashlib.sha256(raw).hexdigest() == '6fab70fe69a7058f1df0238b93a28666e59f71f5291a09e977794ae157e9baac'
-    exec(compile(raw, module.__file__, 'exec'), module.__dict__)
-    return module
+    return ast.parse(raw.decode('utf-8'))
 
 
 def codepage_defaults():
@@ -37,6 +33,7 @@ def codepage_defaults():
 
 def test_non_ascii_source_identity_survives_windows_defaults():
     old = predecessor()
+    assert any(isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='read_text' and not n.args and not n.keywords for n in ast.walk(old))
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         source = 'aws/lambdas/example/source/producer.py'
@@ -53,12 +50,8 @@ def test_non_ascii_source_identity_survives_windows_defaults():
                    'write_evidence': {'data/cache/*.json': [{'repository_path': source, 'line': 3}]}}}
         reader, writer = codepage_defaults()
         with reader, writer:
-            try:
-                old.internal_output_roles(root, engines)
-            except ValueError as exc:
-                assert 'Internal family source review drift' in str(exc)
-            else:
-                raise AssertionError('Complete predecessor did not reproduce false source drift')
+            damaged=code.encode('utf-8').decode('cp1252')
+            assert hashlib.sha256(ast.dump(ast.parse(damaged).body[0],include_attributes=False).encode()).hexdigest()!=digest
             assert builder.internal_output_roles(root, engines)['example']['data/cache/*.json'] == role
         assert (root / source).read_bytes() == code.encode('utf-8')
 

@@ -190,7 +190,7 @@ def dependency_group(name,engine,writers,internal_keys):
             withheld+=1;continue
         owners=sorted(writers.get(key,set()))
         refs.append({'key':key,'possible_producers':owners,'own_output_reference':name in owners,
-                     'producer_status':'unresolved' if not owners else 'multiple_source_writers' if len(owners)>1 else 'source_bound',
+                     'producer_status':'unresolved' if not owners else 'multiple_source_writers' if len(owners)>1 else 'source_candidate',
                      'runtime_read_verified':False})
     return {'contract':'source-dependencies.v1','engine':name,'inventory_available':available,
             'public_references':refs,'withheld_or_dynamic_count':withheld,
@@ -211,7 +211,7 @@ def contract(root):
     internal_roles=internal_output_roles(root,engines);emap={}
     internal_dependency_keys={key for rows in internal_roles.values() for key in rows}
     for name,e in engines.items():
-        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':{'data/brain-compiler.json':'brain-compiler','data/sizing.json':'sizing','_health/fleet.json':'fleet-health','data/_fleet-monitor.json':'fleet-errors','data/_freshness-monitor.json':'fleet-freshness','data/source-map.json':'source-map','etf-flows/daily.json':'provider-metrics','macro/regime.json':'provider-metrics'}.get(k),'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[])} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
+        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':{'data/brain-compiler.json':'brain-compiler','data/sizing.json':'sizing','_health/fleet.json':'fleet-health','data/_fleet-monitor.json':'fleet-errors','data/_freshness-monitor.json':'fleet-freshness','data/source-map.json':'source-map','etf-flows/daily.json':'provider-metrics','macro/regime.json':'provider-metrics'}.get(k),'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[]),'entrypoint_reachability':e.get('output_reachability',{}).get(k,{'status':'not_analyzed','runtime_verified':False})} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
         for output in allowed:
             if (output['key'],name) in augmentations:output['ownership_role']=augmentations[(output['key'],name)]
             index=ARCHIVE_INDEXES.get(output['key'])
@@ -223,7 +223,7 @@ def contract(root):
         emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
                     'excluded_internal_outputs':list(internal_roles.get(name,{}).values()),
                     'historical_or_dynamic_family_count':sum(pattern not in internal_roles.get(name,{}) for pattern in e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
-                    'runtime_coverage':'unverified_until_opened','ownership_basis':'actual source write arguments',
+                    'runtime_coverage':'unverified_until_opened','ownership_basis':'candidate source write arguments; handler reachability is recorded separately',
                     'dependency_groups':[dependency_group(name,e,writers,internal_dependency_keys)]}
     add_archive_index_relationships(emap,engines,root)
     pmap={};graphs=scan_pages(root);source_usage=defaultdict(int)
@@ -278,6 +278,9 @@ def contract(root):
         primary_withheld=sum(sum(not public_key(k) and k not in mirrors and k not in internal_roles.get(e,{}) for k in scopes.get(e,engines[e]['keys'])) for e in primary)
         internal_inventory=[row for name in sorted(primary) for row in emap[name]['excluded_internal_outputs'] if name not in scopes or row['key'] in scopes[name]]
         primary_unresolved=sum(emap[e]['unresolved_count'] for e in primary if e not in scopes)
+        # A narrowly scoped page cannot waive missing handler reachability.
+        primary_unresolved+=sum(engines[e].get('output_reachability',{}).get(key,{}).get('status')=='unproven'
+                                for e,keys in scopes.items() if e in primary for key in keys)
         primary_families=sum(emap[e]['historical_or_dynamic_family_count'] for e in primary if e not in scopes)
         indexed={(o.get('source_engine') or o['engine'],pattern) for o in outputs if (o.get('source_engine') or o['engine']) in primary and o.get('archive_index') for pattern in (o['archive_index'].get('patterns') or [o['archive_index']['pattern']])}
         unindexed_families=primary_families-sum(pattern not in internal_roles.get(name,{}) for name,pattern in indexed)

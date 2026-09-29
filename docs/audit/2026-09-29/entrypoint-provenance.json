@@ -1,0 +1,180 @@
+{
+  "stage": 423,
+  "status": "source_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T16:51:04.281327+00:00",
+  "baseline_commit": "35bb4459c6358190f9b34d12d3bb9610946bc1a6",
+  "predecessor": "entrypoint-provenance-predecessor.json",
+  "reproduction": {
+    "scope": "Static AST analysis of isolated synthetic files; neither handler is executed",
+    "root": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\test-tmp\\stage423-provenance-czvmdbs5",
+    "configured_handler": "lambda_function.lambda_handler",
+    "active_handler_has_no_writes": true,
+    "reported_keys": [
+      "data/never-called.json"
+    ],
+    "write_evidence": {
+      "data/never-called.json": [
+        {
+          "file": "legacy.py",
+          "line": 2
+        }
+      ]
+    },
+    "ownership_status": "source_bound",
+    "provider_requests": 0,
+    "current_packet_reads": 0,
+    "native_invocations": 0,
+    "generator_sha256": "c77ad6a5963cd2f187e9ffe50d995c388b8ab53285152d2f4dd6cfa179d9e7f8"
+  },
+  "improvements": [
+    "Preserves the whole candidate write inventory separately from analyzed handler-call reachability; unused legacy modules and uncalled siblings cannot certify active ownership.",
+    "Records exact configured or explicitly unverified conventional handler paths through local and shared functions; unknown/dynamic/import-time paths remain unproven. Unconditional return/raise/break/continue end the analyzed block.",
+    "Page output scopes cannot hide an unproven handler binding. The existing inspector shows the uncertainty and full source locations without querying a packet.",
+    "The dependency graph keeps uncertain edges explicitly and still denies independent-evidence or sizing claims. Candidate paths and fields are retained.",
+    "Complete call-chain records are stored once with checked indexes, avoiding duplicate evidence bloat.",
+    "Three historical regression tests now inspect retained predecessor bytes/AST as data and execute only current reviewed implementations."
+  ],
+  "sources": {
+    "scripts/gen_engine_manifest.py": {
+      "bytes": 34021,
+      "sha256": "19fdbbc8ceea287e2062fedf896aed81afca8fa2f1b90d090225c0b0b5713ad6"
+    },
+    "scripts/source_write_graph.py": {
+      "bytes": 10758,
+      "sha256": "b300b2759ebfdb9b4a19c3d851292e2a8e8b76c4119363446d0fc304cb42b6d9"
+    },
+    "scripts/build_page_data_contracts.py": {
+      "bytes": 32613,
+      "sha256": "90cd03eb426e5767049f2bb1825e68667552ad846cab07ec6365be647e868ae6"
+    },
+    "scripts/build_dependency_map.py": {
+      "bytes": 16629,
+      "sha256": "76285347f31410e1f38cc351766fb76aab0b9601c2f46a0beae13f0050129475"
+    },
+    "tests/deployment/test_entrypoint_provenance.py": {
+      "bytes": 8080,
+      "sha256": "68766e933c4c2963f34e637a3da47f94e495dce04dae6ca3f9a7e726a6056089"
+    },
+    "tests/entrypoint-provenance.test.js": {
+      "bytes": 1416,
+      "sha256": "a377b7b79d731c97ca5f7a7ddc31a8ffbb9d7a990da65ea8d5253202cd438f14"
+    },
+    "tests/deployment/test_contract_builder_utf8.py": {
+      "bytes": 4433,
+      "sha256": "9bcd4a7f3896a3319a5e3ab87524d3626286270393c6293acad35e1763e1da1d"
+    },
+    "tests/deployment/test_returned_readers.py": {
+      "bytes": 7267,
+      "sha256": "0de765be86b3d2a14bfdb22d12e11f4dab078700fe9fa02e988ef9c50cd702bf"
+    },
+    "tests/deployment/test_credit_native_cadence.py": {
+      "bytes": 11866,
+      "sha256": "4d37217d6688dd3b45d4af7bdef3f1f4d85007ac3972ee14756a5d4492ee5c13"
+    }
+  },
+  "fleet_comparison": {
+    "engines": 893,
+    "added_bindings": [
+      {
+        "engine": "justhodl-tradingview",
+        "key": "data/tradingview.json"
+      }
+    ],
+    "lost_bindings": [],
+    "ownership_status_changes": 14,
+    "reachability_counts": {
+      "reachable_in_source": 1789,
+      "unproven": 230
+    },
+    "manifest_bytes": 3066292,
+    "extremes": {
+      "justhodl-market-extremes": {
+        "keys": [
+          "data/market-extremes-history.json",
+          "data/market-extremes.json"
+        ],
+        "reachability": {
+          "data/extremes-research/inputs/*.json": "reachable_in_source",
+          "data/extremes-research/outputs/*.json": "reachable_in_source",
+          "data/extremes-research/runs/*.json": "reachable_in_source",
+          "data/market-extremes-history.json": "unproven",
+          "data/market-extremes.json": "unproven"
+        },
+        "ownership_status": "incomplete"
+      },
+      "justhodl-capitulation": {
+        "keys": [
+          "data/capitulation-history.json",
+          "data/capitulation.json"
+        ],
+        "reachability": {
+          "data/capitulation-history.json": "unproven",
+          "data/capitulation.json": "unproven",
+          "data/extremes-research/inputs/*.json": "reachable_in_source",
+          "data/extremes-research/outputs/*.json": "reachable_in_source",
+          "data/extremes-research/runs/*.json": "reachable_in_source"
+        },
+        "ownership_status": "incomplete"
+      }
+    }
+  },
+  "page_coverage_changes": [
+    {
+      "page": "apex.html",
+      "before": "PRIMARY_VALID_CONTRACT",
+      "after": "PRIMARY_PARTIAL"
+    },
+    {
+      "page": "sector-flow.html",
+      "before": "PRIMARY_VALID_CONTRACT",
+      "after": "PRIMARY_PARTIAL"
+    },
+    {
+      "page": "sizing/index.html",
+      "before": "PRIMARY_VALID_CONTRACT",
+      "after": "PRIMARY_PARTIAL"
+    }
+  ],
+  "coverage": {
+    "public_routes": 599,
+    "engines": 893,
+    "routes_with_source_bound_outputs": 583,
+    "primary_valid_contract": 265,
+    "primary_partial": 273,
+    "support_only": 14,
+    "no_association": 5,
+    "not_applicable": 42,
+    "routes_with_api_response_contract": 23,
+    "routes_without_source_bound_outputs": 16,
+    "routes_with_primary_output_access": 536,
+    "routes_with_partial_primary_output_access": 271,
+    "all_routes_receive_inspector": false,
+    "embedded_inspection_routes": 598,
+    "standalone_inspection_routes": 1,
+    "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
+  },
+  "added_binding_review": "data/tradingview.json already names the public catalog in native source. The configured handler public_fred_refresh branch binds OUT_KEY through fred_level_io.refresh_public to publish. Only the static association is added; no packet was requested, source modified, private archive exposed or producer invoked.",
+  "tests": {
+    "deployment_static": 699,
+    "candidate_shell": 12,
+    "frontend": 1855,
+    "focused_provenance": 11,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "native_deployment_required": false,
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "A static possible call path is not proof of a deployed runtime, executed branch, successful publication, provider semantics or investment validity.",
+    "Import-time side effects, dynamic dispatch, unknown return values and unsupported runtimes remain unproven.",
+    "The active current writers for Market Extremes and Capitulation remain unresolved; adding primary-page tags cannot replace that missing proof.",
+    "All ten platform workstreams remain open."
+  ]
+}

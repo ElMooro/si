@@ -130,9 +130,14 @@ def test_acceptance_imports_production_clock_instead_of_same_named_candidate():
     before=ast.parse((ROOT/'tests/fixtures/pre-credit-cadence-acceptance.py.txt').read_text(encoding='utf-8'))
     before_main=next(n for n in before.body if isinstance(n,ast.FunctionDef) and n.name=='main')
     before_assignment=next(n for n in before_main.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Subscript))
-    state={'ROOT':ROOT,'sys':SimpleNamespace(path=[])}
-    exec(compile(ast.Module(body=[before_assignment],type_ignores=[]),'whole predecessor import assignment','exec'),state)
-    predecessor=importlib.machinery.PathFinder.find_spec('credit_collection_clock',state['sys'].path)
+    # Inspect the retained assignment as data; execute only the current repair.
+    value=before_assignment.value
+    assert isinstance(value,ast.ListComp) and len(value.generators)==1
+    loop=value.generators[0]
+    assert isinstance(loop.target,ast.Name) and loop.target.id=='p' and not loop.ifs
+    assert ast.unparse(value.elt)=='str(ROOT / p)'
+    suffixes=[str(ROOT/path) for path in ast.literal_eval(loop.iter)]
+    predecessor=importlib.machinery.PathFinder.find_spec('credit_collection_clock',suffixes)
     assert Path(predecessor.origin).resolve()==(ROOT/'aws/ops/checks/credit_collection_clock.py').resolve()
     assert hashlib.sha256(Path(spec.origin).read_bytes()).digest()!=hashlib.sha256(Path(predecessor.origin).read_bytes()).digest()
 
