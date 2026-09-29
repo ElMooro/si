@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 434 source acceptance: all ten workstreams remain open. Capitulation and Market Extremes now have explicit publisher identities and source-proven current output access in their primary page contracts. Cross-engine publication fails before storage. Partial history/family and runtime qualifications remain visible. Twenty-two new cases, native suites 110/98, 1,894 frontend tests, 720 deployment/twelve shell checks, 599 page graphs and 143 wires pass. Isolated desktop/mobile inspection exposes all synthetic fields. Exact deployment remains pending; normal publication, historical vintages, model validation and supported portfolio consequences remain open.
+September 29, after Stage 434 exact native/static acceptance: all ten workstreams remain open. Explicit Extremes routing 006d75a9dadd858be56af142a4f12cf140a6f310 is accepted across both native packages/29 source members and twelve static assets, including both embedded primary contracts. Cross-engine publication is rejected before storage; legacy history and dynamic families remain partial. Twenty-two new cases, native suites 110/98, 1,894 frontend tests, 720 deployment/twelve shell checks and 599 page graphs pass. Full resources/schedules equal the frozen baseline. Normal publication, historical vintages, model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -6025,3 +6025,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - The source analyzer resolves a narrow pure string return only after proving raise-only guards do not fire. Unknown arguments, mutations, arbitrary calls, invalid bindings and ambiguous guards remain unresolved. Both page declarations match the actual renderer. Their current packets now have native source traces; legacy history and dynamic families remain partial and unproven rather than receiving artificial completeness.
 - Twenty-two new cases, both native suites (110/98), frontend 1,894, deployment 720/twelve shell, 599 page graphs and 143 wires pass. Isolated real-page QA exposes 423 Capitulation and 385 Market Extremes synthetic leaf paths, keyboard disclosure works, and both 360-pixel layouts fit without document overflow. Six complete inert predecessor fixtures preserve a genuine pre-edit run; replay executes reviewed current code only.
 - Exact deployment of the two native packages and served pages is pending. No acceptance invocation, current/private packet read, provider probe, schedule/resource or portfolio authority change occurred. Evidence: `docs/audit/2026-09-29/extremes-primary-routing.json`.
+
+
+### Stage 434 exact native and static acceptance
+
+- Source `006d75a9dadd858be56af142a4f12cf140a6f310` passed Lambda 36631894618, Pages 36631894670 and receipt-only operation 6347 / 36632449471. Both exact release receipts and all 29 complete native/shared source members match the intended commit. Full runtime resources and sorted schedule bindings equal the frozen Stage 425 baseline.
+- Twelve whole static assets match the source-bound build at 2026-09-29T21:18:01.305921+00:00. Both pages' embedded primary contracts exactly match the committed source registry and show source-reachable current outputs with partial history/family qualification. Native tests 110/98, frontend 1,894, deployment 720/twelve shell, 599 page graphs and 143 wires pass. The complete 26-file native Git batch landed atomically.
+- No acceptance invocation, current/private/downstream packet read, provider probe, resource/cadence or portfolio change occurred. Source and runtime acceptance do not establish predictive performance or normal publication. Evidence: `docs/audit/2026-09-29/extremes-primary-routing.json`.
