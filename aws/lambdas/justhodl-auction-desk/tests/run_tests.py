@@ -11,13 +11,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / 'aws/shared'))
+import auction_buybacks
 import auction_participation
 import auction_reactions
 from treasury_instruments import instrument_fields, comparable_cohort, nominal_par_eligible
 
 SRC = HERE.parent / 'source/lambda_function.py'
 tree = ast.parse(SRC.read_text(encoding='utf-8'))
-env = dict(auction_reactions=auction_reactions,auction_participation=auction_participation, bisect=bisect, json=json, math=math, statistics=statistics, datetime=datetime,
+env = dict(auction_buybacks=auction_buybacks,auction_reactions=auction_reactions,auction_participation=auction_participation, bisect=bisect, json=json, math=math, statistics=statistics, datetime=datetime,
            timedelta=timedelta, timezone=timezone, instrument_fields=instrument_fields,
            comparable_cohort=comparable_cohort, nominal_par_eligible=nominal_par_eligible,
            _PAR_DATES={}, TERM_TENOR={'10-Year': '10Y', '9-Year 10-Month': '10Y'})
@@ -87,7 +88,8 @@ def test_prior_close_gap_is_preserved_but_never_votes():
 
 
 def test_buyback_par_is_not_cash_or_an_easing_trade():
-    op = dict(max_par=12.5e9, offered=25e9, accepted=12.5e9, maturity_bucket='10-20 years', operation_date='2026-09-17')
+    op = auction_buybacks.normalize(dict(max_par_amt=12.5e9, par_amt_offered=25e9, par_amt_accepted=12.5e9,
+        maturity_bucket='10-20 years', operation_date='2026-09-17', operation_type='Liquidity support', security_type='Nominal'))
     b = env['analyze_buyback'](op, [op])
     assert b['fill_pct'] == 100 and b['liquidity_signal'] == 'strong'
     assert b['cash_settlement_usd'] is None and b['monetary_easing_inferred'] is False

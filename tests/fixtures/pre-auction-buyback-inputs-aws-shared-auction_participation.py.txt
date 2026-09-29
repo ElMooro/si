@@ -6,8 +6,6 @@ current-vintage histories do not prove original-source or predictive validity.
 from datetime import date
 import math
 import statistics
-from auction_reactions import safe
-import auction_buybacks
 
 CONTRACT = 'auction-participation-inputs.v1'
 WEIGHTS = {'btc': 1.0, 'indirect': .8, 'pd': -.8}
@@ -56,9 +54,9 @@ def shares(row):
         denominator = None
     else:
         status = 'complete'
-    trace = {'status': status, 'accepted_bidder_amounts_usd': safe(inputs),
-             'reported_competitive_accepted_usd': safe(row.get('competitive_accepted')),
-             'reported_total_accepted_usd': safe(row.get('total_accepted')),
+    trace = {'status': status, 'accepted_bidder_amounts_usd': inputs,
+             'reported_competitive_accepted_usd': row.get('competitive_accepted'),
+             'reported_total_accepted_usd': row.get('total_accepted'),
              'denominator_usd': denominator,
              'denominator_basis': 'sum of all three observed nonnegative accepted bidder categories; never substitute gross issuance',
              'missing_or_invalid': problems}
@@ -90,7 +88,7 @@ def standardize(value, history):
         except (ValueError, OverflowError):
             reason = 'nonfinite_aggregate'
     return {'status': 'complete' if reason is None else 'unavailable', 'reason': reason,
-            'current': safe(value), 'history': safe(list(history)), 'n': len(values), 'missing_history_indices': missing,
+            'current': value, 'history': list(history), 'n': len(values), 'missing_history_indices': missing,
             'mean': mean if number(mean) is not None else None,
             'population_standard_deviation': sigma if number(sigma) is not None else None,
             'z': round(result, 2) if result is not None else None,
@@ -128,7 +126,7 @@ def grade(current, prior):
                        'instrument_kind': row.get('instrument_kind'), 'instrument_contract': row.get('instrument_contract'),
                        'instrument_classification_status': row.get('instrument_classification_status'),
                        'term': row.get('term'), 'reopening': row.get('reopening'),
-                       'btc': btc, 'btc_original': safe(row.get('btc')),
+                       'btc': btc, 'btc_original': row.get('btc'),
                        'indirect': values['indirect_pct'], 'pd': values['pd_pct'],
                        'bidder_share_inputs': values['bidder_share_inputs']})
     traces = {key: standardize(inputs[0][key], [row[key] for row in inputs[1:]]) for key in WEIGHTS}
@@ -171,9 +169,7 @@ def classify(auctions, buybacks):
             problems.append({'auction_index': index, 'reason': 'unavailable_grade'})
     for index, row in enumerate(buybacks):
         accepted, maximum = number(row.get('accepted')), number(row.get('max_par'))
-        if (not auction_buybacks.measurement_complete(row) or
-            sum(auction_buybacks.identity(other) == auction_buybacks.identity(row) for other in buybacks) != 1 or
-            accepted is None or maximum is None or accepted < 0 or maximum <= 0 or accepted > maximum):
+        if accepted is None or maximum is None or accepted < 0 or maximum <= 0 or accepted > maximum:
             problems.append({'buyback_index': index, 'reason': 'missing_or_invalid_fill_inputs'})
         elif maximum >= 5e9 and accepted / maximum >= .9:
             if 'buyback_strong' not in classes:

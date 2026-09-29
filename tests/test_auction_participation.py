@@ -12,6 +12,8 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'aws/shared'))
 import auction_participation as model
+import auction_buybacks
+import json
 support=runpy.run_path(str(ROOT/'tests/deployment/test_auction_output_ownership.py'))
 
 
@@ -100,13 +102,18 @@ def test_declared_frn_does_not_enter_bill_class_and_bill_grade_is_not_a_coupon_i
 
 
 def test_buyback_category_is_recomputed_and_cannot_bypass_an_incomplete_day():
-    buy={'accepted':9e9,'max_par':10e9,'liquidity_signal':'light'}
+    raw={'operation_date':'2026-09-28','operation_type':'Liquidity support','security_type':'Nominal','maturity_bucket':'7-10 years',
+         'par_amt_accepted':9e9,'max_par_amt':10e9}
+    op=auction_buybacks.normalize(raw);buy=auction_buybacks.analyze(op,[op],'2026-09-29')
+    buy['liquidity_signal']='light'
+    assert model.classify([], [{'accepted':9e9,'max_par':10e9}])['cohort_classes']==['unclassified']
     assert model.classify([], [buy])['cohort_classes']==['buyback_strong']
     out=model.classify([row(instrument_kind='UNKNOWN')],[buy])
     assert 'buyback_strong' in out['classes'] and out['cohort_classes']==['unclassified']
     for accepted in (None,True,-1,11e9):
         assert model.classify([], [{**buy,'accepted':accepted}])['cohort_classes']==['unclassified']
-    assert model.classify([], [{'accepted':0,'max_par':1e9}])['cohort_classes']==['buyback_other']
+    zero=auction_buybacks.normalize({**raw,'par_amt_accepted':0})
+    assert model.classify([], [auction_buybacks.analyze(zero,[zero],'2026-09-29')])['cohort_classes']==['buyback_other']
 
 
 def test_actual_analyzer_retains_missing_btc_and_same_day_does_not_shorten_prior_twelve():
@@ -149,6 +156,15 @@ def test_complete_grade_is_still_not_source_verification_forecast_or_sizing():
     trace=model.grade(row(),history())
     assert trace['status']=='complete'
     assert all(trace[key] is False for key in model.FLAGS)
+
+
+def test_nonfinite_legacy_evidence_is_retained_as_diagnostic_and_numeric_output_unavailable():
+    scope=support['load']('auction-desk',support['Store']())
+    out=scope['analyze_auction'](row(btc=float('nan'),pd=float('inf')),history(),{})
+    assert out['btc'] is None and out['pd'] is None and out['grade']=='n/a'
+    assert out['grading_inputs']['current']['btc_original']=={'invalid_numeric':'nan'}
+    assert out['invalid_numeric_inputs']['pd']=={'invalid_numeric':'inf'}
+    json.dumps(out,allow_nan=False)
 
 
 if __name__=='__main__':

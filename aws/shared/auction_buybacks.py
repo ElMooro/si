@@ -1,0 +1,279 @@
+"""Explicit Treasury buyback field selection and descriptive input arithmetic.
+
+Field-name/unit conventions are declared here. They do not certify provider
+definitions, full acquisition coverage, cash settlement or a monetary impulse.
+"""
+from decimal import Decimal, InvalidOperation
+from fractions import Fraction
+import hashlib
+import json
+import math
+import re
+
+from auction_reactions import day, safe
+
+CONTRACT = 'auction-buyback-inputs.v1'
+METRICS = ('max_par', 'offered', 'accepted', 'n_issues_eligible', 'n_issues_accepted')
+FLAGS = {key: False for key in ('original_source_verified', 'population_coverage_verified',
+                               'historical_point_in_time_verified', 'cash_settlement_verified',
+                               'forecast_eligible', 'calls_eligible', 'sizing_eligible', 'execution_eligible')}
+
+
+def numeric(value, count=False):
+    if type(value) not in (int, float, str):
+        return None
+    text = str(value).strip()
+    if ',' in text:
+        if not re.fullmatch(r'[+]?\d{1,3}(?:,\d{3})+(?:\.\d+)?', text):
+            return None
+        text = text.replace(',', '')
+    if not re.fullmatch(r'[+]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[+]?\.\d+(?:[eE][+-]?\d+)?', text):
+        return None
+    try:
+        result = Decimal(text)
+        if not result.is_finite() or result < 0 or not math.isfinite(float(result)) or (result != 0 and float(result) == 0):
+            return None
+        if count and (result != result.to_integral_value() or result > 2**53-1):
+            return None
+        return int(result) if count else float(result)
+    except (InvalidOperation, ValueError, OverflowError):
+        return None
+
+
+def field_matches(name, metric):
+    """Par amounts cannot borrow counts, percentages, prices or other units."""
+    tokens = set(re.split(r'[^a-z0-9]+', name.lower()))
+    if metric.startswith('n_issues_'):
+        return {'issues', metric.removeprefix('n_issues_')} <= tokens and bool(tokens & {'nbr','number','num','n','count'}) and not tokens & {'par','amt','amount','pct','percentage'}
+    if tokens & {'nbr','number','num','n','count','issues','pct','percentage','price','rate'}:
+        return False
+    if 'par' not in tokens or not tokens & {'amt','amount'}:
+        return False
+    return bool(tokens & {'max','maximum'}) if metric == 'max_par' else metric in tokens
+
+
+def select_field(raw, metric):
+    candidates = []
+    for name, value in raw.items():
+        if type(name) is str and field_matches(name, metric):
+            parsed = numeric(value, metric.startswith('n_issues_'))
+            candidates.append({'field': name, 'raw': safe(value), 'value': parsed})
+    values = [item['value'] for item in candidates]
+    status = ('missing_field' if not values else 'invalid_field_value' if any(value is None for value in values) else
+              'conflicting_fields' if len(set(values)) != 1 else 'complete')
+    return {'status': status, 'unit': 'issue_count' if metric.startswith('n_issues_') else 'usd_par',
+            'candidates': candidates, 'value': values[0] if status == 'complete' else None,
+            'selection_rule': 'Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback'}
+
+
+def normalize(raw):
+    if not isinstance(raw, dict):
+        raise ValueError('A complete buyback source row is required')
+    fields = {metric: select_field(raw, metric) for metric in METRICS}
+    result = {metric: fields[metric]['value'] for metric in METRICS}
+    result.update({key: raw.get(key) for key in ('operation_type','security_type','maturity_bucket','results_pdf','results_xml')})
+    result.update(operation_date=day(raw.get('operation_date')), settlement_date=day(raw.get('settlement_date')),
+                  start_time_est=raw.get('operation_start_time_est'), close_time_est=raw.get('operation_close_time_est'),
+                  raw_fields=list(raw), normalization_inputs={'contract': CONTRACT, 'source_fields': safe(raw), 'fields': fields,
+                  'unit_definition': 'Declared legacy FiscalData par-dollar and issue-count field convention; original definition capture remains unverified', **FLAGS})
+    result['operation_identity'] = identity(result)
+    return result
+
+
+def identity(op):
+    fields = {key: op.get(key) for key in ('operation_date','operation_type','security_type','maturity_bucket','start_time_est','close_time_est')}
+    return hashlib.sha256(json.dumps(safe(fields), sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+
+
+def source_status(op, metric):
+    trace = op.get('normalization_inputs') or {}
+    field = (trace.get('fields') or {}).get(metric) or {}
+    raw = trace.get('source_fields')
+    rebuilt = select_field(raw, metric) if isinstance(raw, dict) else {}
+    return (trace.get('contract') == CONTRACT and field == rebuilt and field.get('status') == 'complete' and
+            field.get('value') == op.get(metric) and numeric(op.get(metric), metric.startswith('n_issues_')) is not None)
+
+
+def merge_operations(previous, acquired, retired=None):
+    """Replace exact operation identities, retaining superseded rows as evidence.
+
+    A response with duplicate identities keeps every occurrence. Unmatched legacy
+    rows remain active and unverified; an acquisition never certifies coverage.
+    """
+    current = dict(previous)
+    history = dict(retired or {})
+    replacements = {}
+    for row in acquired:
+        op = normalize(row)
+        replacements.setdefault(identity(op), []).append(op)
+    for key, op in list(current.items()):
+        if identity(op) in replacements:
+            digest = hashlib.sha256(json.dumps(safe(op), sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+            candidates = replacements[identity(op)]
+            if op not in candidates:
+                history[digest] = safe(op)
+            del current[key]
+    for operation_id, occurrences in replacements.items():
+        for ordinal, op in enumerate(occurrences, 1):
+            current[operation_id+':'+str(ordinal)] = op
+    return current, history
+
+
+def cohort(op):
+    values = tuple(op.get(key) for key in ('operation_type','security_type','maturity_bucket'))
+    return values if all(type(value) is str and value.strip() for value in values) else None
+
+
+def measurement_complete(op):
+    trace = op.get('measurement_inputs') or {}
+    fill = trace.get('fill') or {}
+    return (trace.get('contract') == CONTRACT and trace.get('status') == 'complete' and
+            trace.get('operation_identity') == identity(op) and
+            fill.get('numerator_usd_par') == op.get('accepted') and fill.get('denominator_usd_par') == op.get('max_par') and
+            source_status(op, 'accepted') and source_status(op, 'max_par'))
+
+
+def accepted_total(operations):
+    if not operations or len({identity(row) for row in operations}) != len(operations) or not all(measurement_complete(row) for row in operations):
+        return None
+    try:
+        value = float(sum((Fraction(str(row['accepted'])) for row in operations), Fraction(0)))
+        return value if math.isfinite(value) else None
+    except OverflowError:
+        return None
+
+
+def measurement_problems(op, as_of):
+    values = {metric: numeric(op.get(metric), metric.startswith('n_issues_')) for metric in METRICS}
+    problems = []
+    observed = day(op.get('operation_date'))
+    if observed is None:
+        problems.append('unknown_operation_date')
+    elif day(as_of) is not None and observed > as_of:
+        problems.append('future_operation')
+    if day(as_of) is None:
+        problems.append('invalid_calculation_date')
+    if cohort(op) is None:
+        problems.append('unverified_operation_identity')
+    for metric in ('max_par','accepted'):
+        if not source_status(op, metric):
+            problems.append('missing_or_unverified_'+metric)
+    maximum, accepted, offered = values['max_par'], values['accepted'], values['offered']
+    if maximum is not None and accepted is not None and accepted > maximum:
+        problems.append('accepted_exceeds_maximum')
+    if accepted is not None and offered is not None and accepted > offered:
+        problems.append('accepted_exceeds_offered')
+    if values['n_issues_accepted'] is not None and values['n_issues_eligible'] is not None and values['n_issues_accepted'] > values['n_issues_eligible']:
+        problems.append('accepted_issue_count_exceeds_eligible')
+    return problems
+
+
+def analyze(op, program, as_of):
+    """Keep all supplied operations; do not infer easing or forced duration bids."""
+    values = {metric: numeric(op.get(metric), metric.startswith('n_issues_')) for metric in METRICS}
+    result = {**op, **values}
+    observed = day(op.get('operation_date'))
+    maximum, accepted, offered = values['max_par'], values['accepted'], values['offered']
+    problems = measurement_problems(op, as_of)
+    if sum(identity(row) == identity(op) for row in program) > 1:
+        problems.append('duplicate_operation_identity')
+    valid = not problems
+    fill = float(Fraction(str(accepted))*100/Fraction(str(maximum))) if valid and maximum else None
+    try:
+        coverage = float(Fraction(str(offered))/Fraction(str(accepted))) if valid and accepted and source_status(op,'offered') else None
+    except OverflowError:
+        coverage = None
+    if coverage is not None and not math.isfinite(coverage):
+        coverage = None
+    matched = cohort(op)
+    prior = [row for row in program if matched is not None and cohort(row)==matched and day(row.get('operation_date')) and observed and row['operation_date'] < observed]
+    prior.sort(key=lambda row:(row['operation_date'], identity(row), json.dumps(safe(row), sort_keys=True, separators=(',', ':'))))
+    prior_inputs = [{'operation_identity':identity(row), 'operation_date':row['operation_date'], 'accepted':numeric(row.get('accepted')),
+                     'source_mapping_complete':source_status(row,'accepted'), 'measurement_problems':measurement_problems(row,as_of)} for row in prior]
+    rank_unique = len({row['operation_identity'] for row in prior_inputs}) == len(prior_inputs)
+    rank_valid = bool(prior) and valid and rank_unique and all(row['accepted'] is not None and row['source_mapping_complete'] and not row['measurement_problems'] for row in prior_inputs)
+    rank = round(100 * (sum(row['accepted'] < accepted for row in prior_inputs) + .5*sum(row['accepted'] == accepted for row in prior_inputs)) / len(prior_inputs), 1) if rank_valid else None
+    size = ('strong' if valid and maximum and maximum >= 5e9 and Fraction(str(accepted))/Fraction(str(maximum)) >= Fraction(9,10) else
+            'moderate' if valid and accepted >= 2e9 else 'light' if valid else 'unavailable')
+    tags = []
+    if not valid:
+        tags.append('MEASUREMENT UNAVAILABLE')
+    if valid and maximum >= 10e9:
+        tags.append('LARGE OPERATION')
+    if valid and maximum and accepted == maximum:
+        tags.append('MAX FILL')
+    if size == 'strong':
+        tags += ['TGA-CASH-OUT SIGNAL','TGA CASH-OUT; NOT AN EASING CALL']
+    trace = {'contract': CONTRACT, 'status':'complete' if valid else 'unavailable', 'problems':problems,
+             'as_of':as_of, 'operation_identity':identity(op), 'input':safe(op),
+             'fill':{'numerator_usd_par':accepted,'denominator_usd_par':maximum,'value_pct':round(fill,1) if fill is not None else None,
+                     'formula':'100 * accepted par / maximum par; positive denominator required'},
+             'coverage':{'offered_usd_par':offered,'accepted_usd_par':accepted,'value':round(coverage,2) if coverage is not None else None},
+             'size_comparison':{'cohort':list(matched) if matched else None,'prior':prior_inputs,'n':len(prior_inputs),'value_pct':rank,
+                                'duplicate_identity':not rank_unique,
+                                'formula':'100 * (strictly smaller + half equal) / every supplied strictly earlier matched operation; no future or same-day operations'}, **FLAGS}
+    result.update(fill_pct=trace['fill']['value_pct'], coverage=trace['coverage']['value'], size_pctile=rank,
+                  liquidity_signal=size,tags=tags,measurement_inputs=trace,
+                  cash_settlement_usd=None,monetary_easing_inferred=False,call=None)
+    return result
+
+
+def program_summary(operations, as_of, fiscal_start, last4w):
+    """Complete dated aggregate inputs; unknown results never become zero totals."""
+    if any(day(value) is None for value in (as_of,fiscal_start,last4w)):
+        raise ValueError('Strict aggregate window dates required')
+    undated = [row for row in operations if day(row.get('operation_date')) is None]
+    future = [row for row in operations if day(row.get('operation_date')) and row['operation_date'] > as_of]
+    past = [row for row in operations if day(row.get('operation_date')) and row['operation_date'] <= as_of]
+    def window(rows):
+        inputs = [{'operation_identity':identity(row),'operation_date':row.get('operation_date'),
+                   'accepted_usd_par':numeric(row.get('accepted')),'mapping_complete':source_status(row,'accepted'),
+                   'measurement_complete':measurement_complete(row)} for row in rows]
+        duplicate_count = len(inputs) - len({row['operation_identity'] for row in inputs})
+        complete = bool(inputs) and not undated and not duplicate_count and all(row['accepted_usd_par'] is not None and row['mapping_complete'] and row['measurement_complete'] for row in inputs)
+        known = sum((Fraction(str(row['accepted_usd_par'])) for row in inputs if row['accepted_usd_par'] is not None), Fraction(0))
+        try:
+            subtotal = float(known)
+            if not math.isfinite(subtotal):subtotal=None;complete=False
+        except OverflowError:
+            subtotal=None;complete=False
+        return {'status':'complete_supplied_operations' if complete else 'unavailable', 'value_usd_par':subtotal if complete else None,
+                'known_subtotal_usd_par':subtotal,'observed_operations':len(inputs),'inputs':inputs,
+                'unknown_date_count':len(undated), 'duplicate_identity_count':duplicate_count, 'empty_population_is_zero':False}
+    windows={'program':window(past),'fiscal_year':window([row for row in past if row['operation_date']>=fiscal_start]),
+             'last_4w':window([row for row in past if row['operation_date']>=last4w])}
+    fills=[row.get('fill_pct') for row in past]
+    average=None
+    if windows['program']['status'] == 'complete_supplied_operations' and all(numeric(value) is not None for value in fills):
+        average=round(float(sum((Fraction(str(value)) for value in fills),Fraction(0))/len(fills)),1)
+    buckets={}
+    for label in sorted({str(row.get('maturity_bucket') or 'unverified') for row in past}):
+        buckets[label]=window([row for row in past if str(row.get('maturity_bucket') or 'unverified')==label])
+    return {'n_ops':len(past),'since':min((row['operation_date'] for row in past),default=None),
+            'total_accepted':windows['program']['value_usd_par'],'fy_accepted':windows['fiscal_year']['value_usd_par'],
+            'last_4w_accepted':windows['last_4w']['value_usd_par'],'fy_start':fiscal_start,'avg_fill_pct':average,
+            'by_bucket':{key:value['value_usd_par'] for key,value in buckets.items()},
+            'aggregate_inputs':{'contract':CONTRACT,'as_of':as_of,'fiscal_start':fiscal_start,'last4w_start':last4w,
+                                'windows':windows,'by_bucket':buckets,'supplied_operations':len(operations),
+                                'future_operations':len(future),'unknown_date_operations':len(undated),**FLAGS}}
+
+
+def replay(document):
+    """Rebuild saved supplied arithmetic with this reviewed compiler, offline."""
+    packet = document.get('buybacks', document)
+    operations, reported = packet['operations'], packet['program']
+    dates = reported['aggregate_inputs']
+    originals = [row['measurement_inputs']['input'] for row in operations]
+    for row in originals:
+        trace = row.get('normalization_inputs') or {}
+        if trace.get('contract') == CONTRACT and normalize(trace['source_fields']) != row:
+            raise ValueError('Saved normalization does not match retained source fields')
+    rebuilt = [analyze(row, originals, dates['as_of']) for row in originals]
+    for expected, actual in zip(rebuilt, operations):
+        for key, value in expected.items():
+            if actual.get(key) != value:
+                raise ValueError('Buyback replay mismatch: '+key)
+    summary = program_summary(rebuilt, dates['as_of'], dates['fiscal_start'], dates['last4w_start'])
+    if summary != reported:
+        raise ValueError('Buyback aggregate replay mismatch')
+    return {'status':'identical_supplied_arithmetic','operations':len(operations),'contract':CONTRACT, **FLAGS}

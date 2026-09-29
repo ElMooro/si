@@ -11,8 +11,8 @@ Sources (all public, no keys):
   * TreasuryDirect TA_WS securities/announced + upcoming -- the forward calendar.
   * FiscalData accounting/od/auctions_query -- deep history (bank backfill).
   * FiscalData accounting/od/buybacks_operations + buybacks_security_details --
-    supplied Treasury buyback operations (max par, offered, accepted, bucket,
-    type) and date-matched security samples; full coverage is unverified.
+    every Treasury debt buyback operation (max par, offered, accepted, bucket,
+    type) and the CUSIPs bought.
   * data/warm/treasury-par/curve.json.gz (the fleet's Treasury par-curve bank) --
     prior-close par yield of the matching tenor, for the tail proxy.
 
@@ -21,7 +21,7 @@ Analysis (deterministic, every number shown comes from the sources above):
     reopening cohorts. Prior-close nominal par gaps are context only, excluded
     from the score; TIPS, FRNs and unknown instruments have no nominal gap.
   * per buyback: fill vs maximum, offered/accepted coverage, size percentile
-    against strictly earlier comparable operations; large high-fill operations are flagged
+    within the program, program pace; large max-fill operations are flagged
     as a TGA cash-out (ops 5618 buyback wording), not an easing or duration-bid call.
   * per day: descriptive headline and deterministic explanation from computed
     facts, with no paid AI and no inferred portfolio allocation.
@@ -33,7 +33,6 @@ Outputs:
   data/warm/treasury-auctions/daily/{date}.json   day archive (incl. AI note)
 """
 import gzip
-import auction_buybacks
 import auction_participation
 import auction_reactions
 from auction_weighting import weighted_summary
@@ -59,7 +58,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.2"
+VERSION = "1.5.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -349,10 +348,6 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
                     "observation_date": r.get("auction_date"), "scope": "historical_measurement_validity_not_current_freshness",
                     "cohort_size": len(prior), "cohort_basis": "instrument_kind + remaining term + reopening",
                     "wi_quote_available": False, "call": None, "sizing_eligible": False}
-    invalid = {key: value for key, value in a.items() if isinstance(value, float) and not math.isfinite(value)}
-    if invalid:
-        a["invalid_numeric_inputs"] = auction_reactions.safe(invalid)
-        a.update({key: None for key in invalid})
     a["explain"] = explain_auction(a)
     a["verdict"] = auction_verdict(a)
     return a
@@ -444,21 +439,64 @@ def implication_for_auction(a):
             "call": None, "sizing_eligible": False}
 
 
-def analyze_buyback(op, program, as_of=None):
-    b = auction_buybacks.analyze(op, program, as_of or _now().date().isoformat())
-    complete = auction_buybacks.measurement_complete(b)
-    b["verdict"] = (
-        "Reported accepted par is %s of a %s maximum (%s%% fill). " % (fmt_bn(b['accepted']), fmt_bn(b['max_par']), b['fill_pct'])
-        if complete else "Buyback measurements are unavailable: %s. " % ", ".join(b['measurement_inputs']['problems']))
-    b["verdict"] += "Accepted par is not cash settlement. Net reserve, duration and risk-asset effects require prices, settlement timing and offsetting issuance/funding."
-    b["implication"] = {"liquidity": "Cash settlement and financing offsets are unmeasured",
-                        "rates": "Net duration effect requires security detail and offsetting issuance",
-                        "risk": "not inferred from buyback fill", "tone": "neutral"}
+def analyze_buyback(op, program):
+    """op: canonical buyback op. program: all ops (for percentiles/pace)."""
+    b = dict(op)
+    mx, off, acc = op.get("max_par"), op.get("offered"), op.get("accepted")
+    b["fill_pct"] = round(100.0 * acc / mx, 1) if (acc is not None and mx) else None
+    b["coverage"] = round(off / acc, 2) if (off is not None and acc) else None
+    accs = sorted(x["accepted"] for x in program if x.get("accepted") is not None)
+    b["size_pctile"] = round(100.0 * sum(1 for x in accs if x <= acc) / len(accs)) if (acc is not None and accs) else None
+    tags = []
+    if mx and mx >= 10e9:
+        tags.append("LARGE OPERATION")
+    if b["fill_pct"] is not None and b["fill_pct"] >= 99:
+        tags.append("MAX FILL")
+    if b["coverage"] is not None and b["coverage"] >= 2:
+        tags.append("HEAVY OFFERS %.1fx" % b["coverage"])
+    liq = "strong" if (b["fill_pct"] or 0) >= 90 and (mx or 0) >= 5e9 else "moderate" if (acc or 0) >= 2e9 else "light"
+    b["liquidity_signal"] = liq
+    if liq == "strong":
+        tags.append("TGA-CASH-OUT SIGNAL")
+        tags.append("TGA CASH-OUT; NOT AN EASING CALL")
+    b["tags"] = tags
+    what = "Treasury bought back %s of %s (%s bucket%s)" % (
+        fmt_bn(acc), (op.get("security_type") or "coupons").lower(),
+        op.get("maturity_bucket") or "off-the-run", (", " + op["operation_type"].lower()) if op.get("operation_type") else "")
+    why = ("Accepted par is %s of a %s maximum (%s%% fill). Settlement uses Treasury cash; accepted par is not the cash settlement amount. "
+           "Net reserve, duration and risk-asset effects depend on prices, settlement timing and offsetting issuance/funding and are not measured by fill alone."
+           % (fmt_bn(acc), fmt_bn(mx), b["fill_pct"]))
+    b["verdict"] = what + ". " + why
+    b["implication"] = {
+        "liquidity": "%s accepted par; cash settlement and financing offsets are not measured here" % fmt_bn(acc),
+        "rates": "securities removed in the %s bucket; net duration effect requires offsetting issuance" % (op.get("maturity_bucket") or "target"),
+        "risk": "not inferred from buyback fill", "tone": "neutral",
+    }
+    b["cash_settlement_usd"] = None
+    b["monetary_easing_inferred"] = False
+    b["call"] = None
     return b
 
 
 def norm_buyback(r):
-    return auction_buybacks.normalize(r)
+    """FiscalData buybacks_operations row -> canonical op (field names discovered by suffix)."""
+    def pick(*cands):
+        for k in r:
+            lk = k.lower()
+            if all(c in lk for c in cands):
+                return _f(r.get(k))
+        return None
+    return {
+        "operation_date": _d(r.get("operation_date")), "settlement_date": _d(r.get("settlement_date")),
+        "start_time_est": r.get("operation_start_time_est"), "close_time_est": r.get("operation_close_time_est"),
+        "operation_type": r.get("operation_type"), "security_type": r.get("security_type"), "maturity_bucket": r.get("maturity_bucket"),
+        "max_par": pick("max", "par") or pick("maximum"),
+        "offered": pick("offered", "par") or pick("offered"),
+        "accepted": pick("accepted", "par") or pick("accepted"),
+        "n_issues_eligible": pick("nbr_issues", "eligible") or pick("issues", "eligible"),
+        "n_issues_accepted": pick("nbr_issues", "accepted") or pick("issues", "accepted"),
+        "results_pdf": r.get("results_pdf"), "results_xml": r.get("results_xml"), "raw_fields": sorted(r.keys())[:40],
+    }
 
 
 def day_verdict(date, auctions, buybacks):
@@ -479,7 +517,7 @@ def day_verdict(date, auctions, buybacks):
             return None
     known_bills, known_coupons = total(bills, 'total_accepted'), total(coupons, 'total_accepted')
     tot_bills, tot_coupons = (None, None) if unknown else (known_bills, known_coupons)
-    buy_total = auction_buybacks.accepted_total(buybacks)
+    buy_total = total(buybacks, 'accepted')
     tags, bullets, headline_parts = [], [], []
     if buybacks:
         tags.append('BUYBACK')
@@ -792,7 +830,7 @@ def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6, as_of=None):
                 moves[sym] = {"same_day": None, "d1": None, "partial": [], "pending": True}
         v = verdicts.get(d) or {}
         board.append({"date": d, "classes": cls, "labels": [CLASS_LABEL.get(c, c) for c in cls], "headline": v.get("headline"), "risk_assets": v.get("risk_assets"),
-                      "grades": [a["grade"] for a in ops["auctions"]], "buyback_accepted": auction_buybacks.accepted_total(ops["buybacks"]), "moves": moves})
+                      "grades": [a["grade"] for a in ops["auctions"]], "buyback_accepted": sum(b.get("accepted") or 0 for b in ops["buybacks"]), "moves": moves})
     return board
 
 
@@ -838,11 +876,12 @@ def lambda_handler(event, ctx):
     # 2) buybacks
     buy = _s3_json(BUY_KEY) or {"operations": {}}
     ops = buy.get("operations") or {}
-    retired = buy.get("superseded_operations") or {}
     try:
-        acquired = fetch_fd("buybacks_operations", {"sort": "-operation_date"})
-        ops, retired = auction_buybacks.merge_operations(ops, acquired, retired)
-        notes.append("buybacks %d retained operations; source population coverage unverified" % len(ops))
+        for r in fetch_fd("buybacks_operations", {"sort": "-operation_date"}):
+            op = norm_buyback(r)
+            if op["operation_date"]:
+                ops["%s|%s" % (op["operation_date"], op.get("maturity_bucket") or "")] = op
+        notes.append("buybacks %d operations" % len(ops))
     except Exception as e:
         notes.append("buybacks failed: %s" % str(e)[:120])
     details = []
@@ -851,8 +890,7 @@ def lambda_handler(event, ctx):
         details = fetch_fd("buybacks_security_details", {"filter": "operation_date:gte:%s" % since, "sort": "-operation_date", "page[size]": 500}, max_pages=3)
     except Exception as e:
         notes.append("buyback details failed: %s" % str(e)[:120])
-    buy.update({"version": VERSION, "operations": ops, "superseded_operations": retired, "as_of": _iso(), "n": len(ops),
-                "normalization_contract": auction_buybacks.CONTRACT, "population_coverage_verified": False})
+    buy.update({"version": VERSION, "operations": ops, "as_of": _iso(), "n": len(ops)})
     _put_json(BUY_KEY, buy)
 
     # 3) calendar
@@ -876,19 +914,18 @@ def lambda_handler(event, ctx):
     cutoff = (_now() - timedelta(days=400)).date().isoformat()
     analyzed = [a for a in analyzed_all if a["auction_date"] >= cutoff]
     analyzed.sort(key=lambda a: (a["auction_date"], a["term"]), reverse=True)
-    program = list(ops.values())
-    program.sort(key=lambda o: o.get("operation_date") or "")
-    bb_analyzed = [analyze_buyback(op, program, today) for op in program]
-    bb_analyzed.sort(key=lambda b: b.get("operation_date") or "", reverse=True)
+    program = [op for op in ops.values() if op.get("accepted") is not None]
+    program.sort(key=lambda o: o["operation_date"])
+    bb_analyzed = [analyze_buyback(op, program) for op in program]
+    bb_analyzed.sort(key=lambda b: b["operation_date"], reverse=True)
     term_by_cusip = {}
     for r in records.values():
         if r.get("cusip") and r.get("term"):
             term_by_cusip.setdefault(r["cusip"], "%s %s" % (r["term"], r["type"]))
-    detail_candidates = [b for b in bb_analyzed if auction_reactions.day(b.get("operation_date")) and b["operation_date"] <= today]
-    for b in detail_candidates[:12]:
+    for b in bb_analyzed[:12]:
         secs = []
         for d in details:
-            if _d(d.get("operation_date")) != b["operation_date"]:
+            if _d(d.get("operation_date")) != b["operation_date"] or not _f(d.get("par_amt_accepted")):
                 continue
             mat = _d(d.get("maturity_date"))
             ttm = None
@@ -902,17 +939,13 @@ def lambda_handler(event, ctx):
                          "orig_term": term_by_cusip.get(d.get("cusip_nbr"))})
         secs.sort(key=lambda x: x.get("ttm_years") or 0)
         b["securities"] = secs[:80]
-        b["securities_sample"] = {"matched_date_rows": len(secs), "published_rows": len(secs[:80]), "operation_limit": 12, "row_limit": 80,
-                                  "join_basis": "operation date only; same-day operation identity not verified", "operation_join_verified": False,
-                                  "acquisition_window_days": 45, "max_pages": 3, "page_size": 500, "source_population_complete": False}
 
     # day buckets: the full analysed history feeds the reaction model; the desk shows the last 30 operation days
     days_all = {}
     for a in analyzed_all:
         days_all.setdefault(a["auction_date"], {"auctions": [], "buybacks": []})["auctions"].append(a)
     for b in bb_analyzed:
-        if auction_reactions.day(b.get("operation_date")) and b["operation_date"] <= today:
-            days_all.setdefault(b["operation_date"], {"auctions": [], "buybacks": []})["buybacks"].append(b)
+        days_all.setdefault(b["operation_date"], {"auctions": [], "buybacks": []})["buybacks"].append(b)
     days = {d: v for d, v in days_all.items() if d >= cutoff}
     day_list = sorted(days, reverse=True)[:30]
     verdicts = {d: day_verdict(d, days[d]["auctions"], days[d]["buybacks"]) for d in day_list}
@@ -950,7 +983,17 @@ def lambda_handler(event, ctx):
     # program stats
     fy_start = ("%d-10-01" % (_now().year - 1)) if _now().month < 10 else ("%d-10-01" % _now().year)
     last4w = (_now() - timedelta(days=28)).date().isoformat()
-    program_stats = auction_buybacks.program_summary(bb_analyzed, today, fy_start, last4w)
+    program_stats = {
+        "n_ops": len(program), "since": program[0]["operation_date"] if program else None,
+        "total_accepted": sum(o["accepted"] for o in program),
+        "fy_accepted": sum(o["accepted"] for o in program if o["operation_date"] >= fy_start), "fy_start": fy_start,
+        "last_4w_accepted": sum(o["accepted"] for o in program if o["operation_date"] >= last4w),
+        "avg_fill_pct": round(statistics.fmean([b["fill_pct"] for b in bb_analyzed if b.get("fill_pct") is not None]), 1) if bb_analyzed else None,
+        "by_bucket": {},
+    }
+    for o in program:
+        k = o.get("maturity_bucket") or "n/a"
+        program_stats["by_bucket"][k] = program_stats["by_bucket"].get(k, 0) + o["accepted"]
 
     # per-term trailing stats (for charts)
     by_term = {}
@@ -984,7 +1027,7 @@ def lambda_handler(event, ctx):
         "sources": {"same_day": "treasurydirect.gov TA_WS securities/auctioned", "history": "api.fiscaldata.treasury.gov auctions_query",
                     "buybacks": "api.fiscaldata.treasury.gov buybacks_operations + buybacks_security_details",
                     "calendar": "treasurydirect.gov TA_WS securities/upcoming + announced", "par_curve": "home.treasury.gov daily par yield curve (fleet bank)"},
-        "freshness": {"newest_auction": analyzed[0]["auction_date"] if analyzed else None, "newest_buyback": max((b["operation_date"] for b in bb_analyzed if auction_reactions.day(b.get("operation_date")) and b["operation_date"] <= today), default=None),
+        "freshness": {"newest_auction": analyzed[0]["auction_date"] if analyzed else None, "newest_buyback": bb_analyzed[0]["operation_date"] if bb_analyzed else None,
                       "par_curve_last": max(par_rows) if par_rows else None, "td_rows": len(td_rows), "bank_records": len(records)},
         "today": {"date": latest_day, "verdict": verdicts.get(latest_day), "auctions": days[latest_day]["auctions"] if latest_day else [],
                   "buybacks": days[latest_day]["buybacks"] if latest_day else [], "ai_note": ai,
@@ -995,10 +1038,8 @@ def lambda_handler(event, ctx):
                                "recent_400d_rows": len(analyzed), "page_sample_rows": len(analyzed[:200]),
                                "page_sample_rule": "latest 200 rows of the last 400 days; full historical inputs remain in the source bank",
                                "btc_filter_applied": False, "historical_population_coverage_verified": False},
-        "buybacks": {"operations": bb_analyzed, "program": program_stats, "contract": auction_buybacks.CONTRACT,
-                     "population_coverage_verified": False, "superseded_rows_retained_in_bank": len(retired),
-                     "securities_sample": {"operation_limit": 12, "row_limit_per_operation": 80, "source_population_complete": False}},
-        "calendar": {"auctions": calendar_auctions[:40], "buybacks": [dict(b, securities=None) for b in bb_analyzed if auction_reactions.day(b.get("operation_date")) and b["operation_date"] > today][:10]},
+        "buybacks": {"operations": bb_analyzed, "program": program_stats},
+        "calendar": {"auctions": calendar_auctions[:40], "buybacks": [dict(b, securities=None) for b in bb_analyzed if b["operation_date"] > today][:10]},
         "by_term": by_term,
         "chart_cohort_contract":"treasury-comparable-chart.v1","chart_cohorts":chart_cohorts(analyzed),
         "composite_history": composite,
@@ -1019,7 +1060,7 @@ def lambda_handler(event, ctx):
         "methodology": {
             "tail_proxy": "legacy tail_bp aliases prior_close_concession_bp for verified nominal coupons/bills only. TIPS/FRN/unknown comparisons are null. This context is excluded from demand scoring; wi_tail_bp is unavailable",
             "z_scores": "vs the trailing 12 auctions of the same verified instrument kind, remaining term and reopening status", "grade": "complete three-feature mean: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer); same full supplied 4-to-12-row comparable cohort, positive variance required, no partial-feature renormalization. Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
-            "buyback_signal": "Par-dollar fields are separate from issue counts; missing or conflicting fields remain unavailable. Strong requires complete supplied mapping, accepted >= 90% of maximum and maximum >= $5B. Size percentile is a descriptive midrank against strictly earlier operations of the same type, security and bucket; whole program coverage is unverified. This is not monetary easing. Accepted par differs from cash settlement; financing offsets and net effects are unmeasured",
+            "buyback_signal": "strong is an operation-size/fill category (accepted >= 90% of maximum and maximum >= $5B), not monetary easing. Accepted par differs from cash settlement; financing offsets and net effects are unmeasured",
             "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }
     _put_json(OUT_KEY, out)

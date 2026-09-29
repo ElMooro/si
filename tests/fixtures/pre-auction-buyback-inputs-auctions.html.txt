@@ -269,7 +269,6 @@
   .op-grade.C { color:var(--amber); border-color:rgba(245,158,11,.5); background:var(--amber-soft); }
   .op-grade.D, .op-grade.F { color:var(--red); border-color:rgba(239,68,68,.6); background:var(--red-soft); }
   .op-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:10px 0; }
-  @media(max-width:600px){ .op-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   .op-m { background:var(--bg-sunken); border-radius:6px; padding:7px 9px; }
   .op-m .l { font-size:9.5px; color:var(--fg-3); text-transform:uppercase; letter-spacing:.08em; }
   .op-m .v { font-size:14px; font-weight:700; color:var(--fg-1); font-variant-numeric:tabular-nums; }
@@ -380,10 +379,8 @@
     <div class="head"><h3>Treasury buybacks — accepted par and operation fill</h3><span class="right">Settlement dates as reported · accepted par is not cash paid</span></div>
     <div class="body">
       <div class="desk-stats" id="bb-stats"></div>
-      <p class="desk-src" id="bb-sample"></p>
-      <svg class="desk-chart" id="bb-chart" viewBox="0 0 720 190" preserveAspectRatio="none" role="img" aria-label="Buyback accepted par for the displayed operation sample; unavailable results shown as gaps"></svg>
+      <svg class="desk-chart" id="bb-chart" viewBox="0 0 720 190" preserveAspectRatio="none" role="img" aria-label="Buyback accepted par per operation with cumulative program total"></svg>
       <div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Operation</th><th>Bucket</th><th>Type</th><th class="r">Max</th><th class="r">Offered</th><th class="r">Accepted</th><th class="r">Fill</th><th class="r">Cover</th><th>Signal</th></tr></thead><tbody id="bb-table"></tbody></table></div>
-      <div id="bb-inputs"></div>
     </div>
   </section>
   <section class="box" style="margin:0">
@@ -508,31 +505,20 @@
     "Allotted at high": "Proration of bids at the stop: the share of bids at the highest accepted yield that was allotted. This is not the fraction of the whole auction sold and does not establish an auction failure.",
   };
 
-  const buybackComplete = b => b?.measurement_inputs?.contract === "auction-buyback-inputs.v1" && b.measurement_inputs.status === "complete";
-  function buybackMetric(b, key) {
-    const t = b?.normalization_inputs, f = t?.fields?.[key];
-    return t?.contract === "auction-buyback-inputs.v1" && f?.status === "complete" && f.value === b[key] && Number.isFinite(b[key]) ? b[key] : null;
-  }
-  function buybackDisclosure(b) {
-    const inputs = b.measurement_inputs || {status: "unavailable", reason: "Legacy packet lacks retained buyback field mappings"};
-    return `<details class="grade-inputs"><summary>Inspect buyback fields and calculation inputs</summary><pre tabindex="0" role="region" aria-label="Buyback calculation inputs">${esc(JSON.stringify(inputs, null, 2))}</pre></details>`;
-  }
   function buybackCard(b) {
-    const secs = (b.securities || []).slice(0, 40), complete = buybackComplete(b), rank = complete ? b.size_pctile : null;
-    const prior = b.measurement_inputs?.size_comparison;
-    return `<div class="op-card buyback">
-      <div class="op-head"><span class="t">Treasury buyback</span><span class="s">${esc(b.maturity_bucket || "Unknown bucket")} · ${esc(b.operation_type || "Unknown type")} · settles ${esc(b.settlement_date || "Unknown")}</span></div>
-      <div class="desk-tags">${(complete ? b.tags || [] : ["MEASUREMENT UNAVAILABLE"]).map(t => `<span class="desk-tag">${esc(t)}</span>`).join("")}</div>
+    const secs = (b.securities || []).slice(0, 40);
+    return `<div class="op-card buyback ${toneOf(b.implication && b.implication.tone)}">
+      <div class="op-head"><span class="t">Treasury buyback</span><span class="s">${esc(b.maturity_bucket || "")} · ${esc(b.operation_type || "")} · settles ${esc(b.settlement_date || "")}</span></div>
+      <div class="desk-tags">${(b.tags || []).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("")}</div>
       <div class="op-metrics">
-        <div class="op-m"><div class="l">Maximum par</div><div class="v">${bn(buybackMetric(b,"max_par"))}</div></div>
-        <div class="op-m"><div class="l">Offered par</div><div class="v">${bn(buybackMetric(b,"offered"))}</div><div class="z">${complete && Number.isFinite(b.coverage) ? b.coverage.toFixed(2) + "x accepted" : "Coverage unavailable"}</div></div>
-        <div class="op-m"><div class="l">Accepted par</div><div class="v">${bn(buybackMetric(b,"accepted"))}</div><div class="z">${complete && Number.isFinite(b.fill_pct) ? b.fill_pct.toFixed(1) + "% of max" : "Fill unavailable"}</div></div>
-        <div class="op-m"><div class="l">Prior sample rank</div><div class="v">${Number.isFinite(rank) ? "p" + rank : "—"}</div><div class="z">${esc(prior?.n ?? 0)} strictly earlier comparable operations · ${esc(buybackMetric(b,"n_issues_accepted") ?? "Unknown")} accepted issues</div></div>
+        <div class="op-m"><div class="l">Maximum</div><div class="v">${bn(b.max_par)}</div></div>
+        <div class="op-m"><div class="l">Offered</div><div class="v">${bn(b.offered)}</div><div class="z">${b.coverage != null ? b.coverage.toFixed(2) + "x accepted" : ""}</div></div>
+        <div class="op-m"><div class="l">Accepted</div><div class="v">${bn(b.accepted)}</div><div class="z">${b.fill_pct != null ? b.fill_pct.toFixed(0) + "% of max" : ""}</div></div>
+        <div class="op-m"><div class="l">Size rank</div><div class="v">${b.size_pctile == null ? "—" : "p" + b.size_pctile}</div><div class="z">${b.n_issues_accepted != null ? b.n_issues_accepted + " CUSIPs" : ""}</div></div>
       </div>
-      <div class="op-verdict">${esc(b.verdict || "Retained source mapping is unavailable; no measured fill classification.")}</div>
-      <div class="op-imp">Accepted par is distinct from cash paid. Cash settlement, financing offsets and net duration effects are unmeasured. No trading or sizing permission.</div>
-      ${buybackDisclosure(b)}
-      ${secs.length ? `<details class="op-secs"><summary>${secs.length} security rows shown of ${esc(b.securities_sample?.matched_date_rows ?? "unknown")} date matches; operation identity unverified</summary><p class="desk-src">Latest 12 dated operations; at most 80 published rows per operation, 40 displayed. Acquisition: 45 days, up to three pages of 500. Date matching does not establish which same-day operation bought a security.</p><div class="op-secs-table" tabindex="0" role="region" aria-label="Sample of date-matched securities"><table><thead><tr><th>CUSIP</th><th>Left to maturity</th><th>Original</th><th class="r">Coupon</th><th>Matures</th><th class="r">Par accepted</th><th class="r">Avg price</th></tr></thead><tbody>${secs.map(s => `<tr><td>${esc(s.cusip)}</td><td class="tk">${esc(s.ttm_label || "—")}</td><td>${esc(s.orig_term || "—")}</td><td class="r">${num(s.coupon, 3)}</td><td>${esc(s.maturity)}</td><td class="r">${bn(s.par_accepted)}</td><td class="r">${num(s.price, 3)}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
+      <div class="op-verdict">${esc(b.verdict)}</div>
+      ${b.implication ? `<div class="op-imp">Liquidity: <b class="${toneOf(b.implication.tone)}">${esc(b.implication.liquidity)}</b> · Rates: <b>${esc(b.implication.rates)}</b> · Risk assets: <b class="${toneOf(b.implication.tone)}">${esc(b.implication.risk)}</b></div>` : ""}
+      ${secs.length ? `<details class="op-secs"><summary>${secs.length} securities bought — sorted by time left to maturity</summary><div class="op-secs-table" tabindex="0" role="region" aria-label="All bought securities, scroll horizontally for every column"><table><thead><tr><th>CUSIP</th><th>Left to maturity</th><th>Original</th><th class="r">Coupon</th><th>Matures</th><th class="r">Par accepted</th><th class="r">Avg price</th></tr></thead><tbody>${secs.map(s => `<tr><td>${esc(s.cusip)}</td><td class="tk">${esc(s.ttm_label || "—")}</td><td>${esc(s.orig_term || "—")}</td><td class="r">${num(s.coupon, 3)}</td><td>${esc(s.maturity)}</td><td class="r">${bn(s.par_accepted)}</td><td class="r">${num(s.price, 3)}</td></tr>`).join("")}</tbody></table></div></details>` : ""}
     </div>`;
   }
 
@@ -545,39 +531,31 @@
   }
 
   function renderBuybacks(D) {
-    const B = D.buybacks || {}, P = B.program || {}, A = P.aggregate_inputs || {}, ops = (B.operations || []).slice();
-    const current = A.contract === "auction-buyback-inputs.v1";
-    const amount = key => current && A.windows?.[key]?.status === "complete_supplied_operations" ? A.windows[key].value_usd_par : null;
+    const B = D.buybacks || {}, P = B.program || {}, ops = (B.operations || []).slice();
     $("bb-stats").innerHTML = [
-      ["Supplied history total", bn(amount("program")), `${P.n_ops ?? "Unknown"} dated ops since ${P.since || "—"}; full program coverage unverified`],
-      ["Fiscal year supplied", bn(amount("fiscal_year")), `from ${P.fy_start || "—"} through ${A.as_of || "—"}`],
-      ["Recent supplied par", bn(amount("last_4w")), `${A.last4w_start || "—"} through ${A.as_of || "—"}, both dates included`],
-      ["Mean operation fill", pct(current ? P.avg_fill_pct : null, 1), "equal weight; withheld for incomplete operations"],
+      ["Program total", bn(P.total_accepted), `${P.n_ops || 0} ops since ${P.since || "—"}`],
+      ["This fiscal year", bn(P.fy_accepted), `from ${P.fy_start || "—"}`],
+      ["Last 4 weeks", bn(P.last_4w_accepted), "accepted par"],
+      ["Average fill", pct(P.avg_fill_pct, 0), "accepted / maximum"],
     ].map(([l, v, n]) => `<div class="desk-stat"><div class="l">${l}</div><div class="v">${v}</div><div class="n">${esc(n)}</div></div>`).join("");
-    const dated = ops.filter(o => typeof o.operation_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.operation_date) && current && o.operation_date <= A.as_of)
-      .sort((a,b) => a.operation_date.localeCompare(b.operation_date));
-    const rows = dated.slice(-40), unavailable = rows.filter(r => !buybackComplete(r)).length;
-    $("bb-sample").textContent = `${rows.length} of ${dated.length} supplied dated operations shown (latest 40). ${unavailable} unavailable results remain gaps. ${A.future_operations ?? "Unknown"} future and ${A.unknown_date_operations ?? "unknown"} undated operations excluded from this chart. Table shows ${Math.min(ops.length,14)} of ${ops.length} retained operations. Source population coverage is unverified.`;
-    const svg = $("bb-chart"); svg.innerHTML = "";
+    const rows = ops.filter(o => o.accepted != null).sort((a, b) => a.operation_date < b.operation_date ? -1 : 1).slice(-40);
+    const svg = $("bb-chart");
     if (rows.length) {
-      const W=720,H=190,padL=44,padR=20,padT=24,padB=26, bw=(W-padL-padR)/rows.length;
-      const values=rows.map(r => buybackComplete(r) ? buybackMetric(r,"accepted") : null);
-      const max=Math.max(1,...values.filter(Number.isFinite)), y=v => padT+(H-padT-padB)*(1-v/max);
-      const bars=rows.map((r,i) => {
-        const value=values[i],x=padL+i*bw+bw/2;
-        if (!Number.isFinite(value)) return `<text x="${x.toFixed(1)}" y="${H-padB-3}" fill="#d69c44" text-anchor="middle" font-size="12">×<title>${esc(r.operation_date)}: unavailable</title></text>`;
-        const title=`${r.operation_date} ${r.maturity_bucket || ""}: ${bn(value)} accepted par`;
-        return value === 0 ? `<circle cx="${x.toFixed(1)}" cy="${H-padB}" r="3" fill="#a78bfa"><title>${esc(title)}; measured zero</title></circle>` : `<rect x="${(padL+i*bw+1).toFixed(1)}" y="${y(value).toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${(H-padB-y(value)).toFixed(1)}" fill="#a78bfa"><title>${esc(title)}</title></rect>`;
-      }).join("");
-      const ticks=(values.some(v => Number.isFinite(v) && v>0) ? [0,.5,1] : values.some(Number.isFinite) ? [0] : []).map(f => `<text x="${padL-6}" y="${(y(f*max)+4).toFixed(1)}" font-size="9" fill="#6b7a92" text-anchor="end">${bn(f*max)}</text>`).join("");
-      const labels=[...new Set([0,Math.floor(rows.length/2),rows.length-1])].map(i => `<text x="${(padL+i*bw+bw/2).toFixed(1)}" y="${H-8}" font-size="9" fill="#6b7a92" text-anchor="middle">${esc(rows[i].operation_date)}</text>`).join("");
-      svg.innerHTML=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="rgba(120,145,180,.3)"/>${bars}${ticks}${labels}<text x="${padL}" y="14" font-size="10" fill="#6b7a92">Accepted par per operation · dot = zero · × = unavailable</text>`;
-    } else svg.innerHTML='<text x="24" y="90" fill="#6b7a92">No dated, current-contract operations to plot.</text>';
-    $("bb-table").innerHTML=ops.slice(0,14).map(o => {
-      const complete=buybackComplete(o);
-      return `<tr><td class="tk">${esc(o.operation_date || "Unknown")}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(buybackMetric(o,"max_par"))}</td><td class="r">${bn(buybackMetric(o,"offered"))}</td><td class="r"><b>${bn(buybackMetric(o,"accepted"))}</b></td><td class="r">${pct(complete ? o.fill_pct : null,1)}</td><td class="r">${complete && Number.isFinite(o.coverage) ? o.coverage.toFixed(2)+"x" : "—"}</td><td>${complete ? esc((o.tags || []).join(" · ") || "Measured") : "Unavailable / future"}</td></tr>`;
-    }).join("") || '<tr><td colspan="9" class="flat">No retained buyback operations; totals unavailable.</td></tr>';
-    $("bb-inputs").innerHTML=`<details class="grade-inputs"><summary>Inspect aggregate inputs and coverage</summary><pre tabindex="0" role="region" aria-label="Buyback aggregate inputs">${esc(JSON.stringify(current ? A : {status:"unavailable",reason:"Legacy aggregate lacks retained calculation inputs"},null,2))}</pre></details>`;
+      const W = 720, H = 190, padL = 44, padR = 44, padT = 12, padB = 26;
+      const maxAcc = Math.max(...rows.map(r => r.accepted)) || 1;
+      let cum = 0; const cums = rows.map(r => (cum += r.accepted));
+      const maxCum = cums[cums.length - 1] || 1;
+      const bw = (W - padL - padR) / rows.length;
+      const y1 = v => padT + (H - padT - padB) * (1 - v / maxAcc);
+      const y2 = v => padT + (H - padT - padB) * (1 - v / maxCum);
+      const bars = rows.map((r, i) => `<rect x="${(padL + i * bw + 1).toFixed(1)}" y="${y1(r.accepted).toFixed(1)}" width="${Math.max(2, bw - 2).toFixed(1)}" height="${(H - padB - y1(r.accepted)).toFixed(1)}" fill="${r.liquidity_signal === "strong" ? "#22c55e" : "#a78bfa"}" opacity="${i === rows.length - 1 ? 1 : .75}"><title>${r.operation_date} ${esc(r.maturity_bucket || "")}: ${bn(r.accepted)} of ${bn(r.max_par)} (${r.fill_pct != null ? r.fill_pct.toFixed(0) : "—"}% fill)</title></rect>`).join("");
+      const line = cums.map((c, i) => `${i ? "L" : "M"}${(padL + i * bw + bw / 2).toFixed(1)},${y2(c).toFixed(1)}`).join(" ");
+      const ticks = [0, .5, 1].map(f => `<text x="${padL - 6}" y="${(y1(f * maxAcc) + 4).toFixed(1)}" font-size="9" fill="#6b7a92" text-anchor="end">${bn(f * maxAcc)}</text>`).join("")
+        + [0, .5, 1].map(f => `<text x="${W - padR + 6}" y="${(y2(f * maxCum) + 4).toFixed(1)}" font-size="9" fill="#a78bfa">${bn(f * maxCum)}</text>`).join("");
+      const xl = [0, Math.floor(rows.length / 2), rows.length - 1].map(i => `<text x="${(padL + i * bw + bw / 2).toFixed(1)}" y="${H - 8}" font-size="9" fill="#6b7a92" text-anchor="middle">${rows[i].operation_date}</text>`).join("");
+      svg.innerHTML = `<line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="rgba(120,145,180,.3)"/>${bars}<path d="${line}" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="3 3"/>${ticks}${xl}<text x="${padL}" y="${padT}" font-size="9" fill="#6b7a92">accepted par per operation (bars) · program cumulative (dashed)</text>`;
+    }
+    $("bb-table").innerHTML = ops.slice(0, 14).map(o => `<tr><td class="tk">${esc(o.operation_date)}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(o.max_par)}</td><td class="r">${bn(o.offered)}</td><td class="r"><b>${bn(o.accepted)}</b></td><td class="r">${pct(o.fill_pct, 0)}</td><td class="r">${o.coverage != null ? o.coverage.toFixed(2) + "x" : "—"}</td><td>${(o.tags || []).filter(t => /EASY|INJECTION|MAX/.test(t)).map(t => `<span class="pill" style="background:var(--green-soft);color:var(--green);margin-right:4px">${esc(t)}</span>`).join("") || "<span class=\"flat\">routine</span>"}</td></tr>`).join("") || `<tr><td colspan="9" class="flat">No buyback operations in the feed.</td></tr>`;
   }
 
   function securityLabel(a) {
@@ -593,7 +571,7 @@
   }
 
   function renderDays(D) {
-    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline)}</td><td>${(v.tags || []).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted != null ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
+    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline)}</td><td>${(v.tags || []).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
   }
 
   let tapeFilter = "All";
