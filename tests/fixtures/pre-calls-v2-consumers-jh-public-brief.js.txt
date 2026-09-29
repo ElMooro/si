@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   function state(doc, now = Date.now()) {
-    if (!doc || !['warehouse_deterministic_v1','warehouse_deterministic_v2'].includes(doc.generation_method) || typeof doc.brief_md !== 'string' || doc.brief_md.trim().length < 120 || doc.call_verb !== 'WAIT' || doc.sizing_eligible !== false) return {valid:false};
+    if (!doc || doc.generation_method !== 'warehouse_deterministic_v1' || typeof doc.brief_md !== 'string' || doc.brief_md.trim().length < 120 || doc.call_verb !== 'WAIT' || doc.sizing_eligible !== false) return {valid:false};
     const age = now - Date.parse(doc.generated_at);
     return {valid:true, overdue:!Number.isFinite(age) || age < -300000 || age > 4.5 * 3600000,
       rows:Array.isArray(doc.evidence) ? doc.evidence : [],

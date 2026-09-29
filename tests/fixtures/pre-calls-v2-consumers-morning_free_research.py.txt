@@ -23,7 +23,7 @@ def build(load,at=None):
         stamp=datetime.fromisoformat(generated.replace('Z','+00:00'))
         now=at or datetime.now(timezone.utc)
         if stamp.tzinfo is None or now.tzinfo is None or not 0 <= (now-stamp).total_seconds() <= MAX_AGE_H*3600:return UNAVAILABLE
-        if (p.get('generation_method') not in ('warehouse_deterministic_v1','warehouse_deterministic_v2') or p.get('visibility')!='public_projection'
+        if (p.get('generation_method')!='warehouse_deterministic_v1' or p.get('visibility')!='public_projection'
                 or type(p.get('paid_api_calls')) is not int or p['paid_api_calls']!=0 or p.get('model') is not None
                 or p.get('decision_eligible') is not False or p.get('sizing_eligible') is not False
                 or p.get('call_verb')!='WAIT' or type(p.get('coverage',{}).get('eligible_votes')) is not int

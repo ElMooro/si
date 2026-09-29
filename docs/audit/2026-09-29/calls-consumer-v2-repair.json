@@ -1,0 +1,73 @@
+{
+  "status": "tested_consumer_repair_deployment_pending",
+  "producer_commit": "9eaa57ec4ef20a4f951693223d7ea7c36dd41260",
+  "problem": "The producer method changed to warehouse_deterministic_v2 but four consumers accepted only v1.",
+  "repair": "Accept precisely v1 and v2 together. Preserve all research-only and no-paid-model guards. Never conceal ERROR/INVALID as WAIT.",
+  "complete_predecessors": [
+    {
+      "source": "jh-public-brief.js",
+      "fixture": "tests/fixtures/pre-calls-v2-consumers-jh-public-brief.js.txt",
+      "bytes": 6665,
+      "sha256": "aff13382297b76c2f35699f06e5a980bb2d0f2f3ae748912237e5a84ccad1fc3"
+    },
+    {
+      "source": "brief.html",
+      "fixture": "tests/fixtures/pre-calls-v2-consumers-brief.html.txt",
+      "bytes": 22195,
+      "sha256": "96e6390b6868c8341f3a807e1c8cf77a88860a97245ced1d0d82e4d84355facd"
+    },
+    {
+      "source": "calls-page.js",
+      "fixture": "tests/fixtures/pre-calls-v2-consumers-calls-page.js.txt",
+      "bytes": 13513,
+      "sha256": "e0fcec59970431db463ab7d9a02f2a6847619da449f50746ed70e46d93a558b6"
+    },
+    {
+      "source": "aws/shared/morning_free_research.py",
+      "fixture": "tests/fixtures/pre-calls-v2-consumers-morning_free_research.py.txt",
+      "bytes": 4983,
+      "sha256": "8bfbcb08202c4b9470332c4a0dc0aeacd60e1b12e18ecc0e6a68255e07a0f04e"
+    }
+  ],
+  "validation": {
+    "actual_frozen_producer_boundary": true,
+    "frontend": 1702,
+    "deployment_static": 567,
+    "candidate_shell": 12,
+    "morning_native_suite": true,
+    "page_syntax_graphs": 599,
+    "engine_wiring_check": true,
+    "page_data_contract_check": true
+  },
+  "browser": {
+    "scope": "Isolated synthetic original-source inputs through actual frozen compiler. Current consumer packets not requested.",
+    "calls": {
+      "desktop_viewport": 1280,
+      "mobile_viewport": 390,
+      "mobile_document_width": 375,
+      "measurement_rows": 12,
+      "call": "WAIT",
+      "disclosure_keyboard_access": true,
+      "console_errors": []
+    },
+    "brief": {
+      "desktop_viewport": 1280,
+      "mobile_viewport": 390,
+      "before_mobile_document_width": 424,
+      "after_mobile_document_width": 375,
+      "complete_list_items": 23,
+      "status": "updated \u00b7 WAIT",
+      "refresh_passed": true,
+      "console_errors": []
+    }
+  },
+  "acceptance_operation": "aws/ops/staged/ops_6324_morning_brief_contract_acceptance.py",
+  "native_invocations": 0,
+  "current_consumer_reads": 0,
+  "messages_sent": 0,
+  "sizing_eligible": false,
+  "limitations": [
+    "Live exact-commit code and page acceptance follows this push.",
+    "Offline consumer compatibility does not establish actual scheduled publication, message delivery or forecasting qualification."
+  ]
+}
