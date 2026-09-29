@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "f8312af2798309dfe8769f2393ad46c0a7da26f8",
-  "observed_at": "2026-09-29T17:21:33.963923+00:00",
-  "ok": true,
+  "observed_at": "2026-09-29T17:25:56.766652+00:00",
+  "ok": false,
   "routes_checked": 599,
-  "verified_routes": 599,
-  "failed_routes": [],
+  "verified_routes": 598,
+  "failed_routes": [
+    "anomaly/index.html"
+  ],
   "source_equivalent_builds": {
     "f8312af2798309dfe8769f2393ad46c0a7da26f8": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 597,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -318,13 +320,12 @@
     },
     {
       "route": "anomaly/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "f8312af2798309dfe8769f2393ad46c0a7da26f8",
-      "inspector_present": true,
-      "bytes_read": 28868,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "apac.html",
@@ -6008,7 +6009,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36603599821,
+  "deployment_run_id": 36603676083,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-29T17:21:33.972040+00:00"
+  "check_finished_at": "2026-09-29T17:25:56.774706+00:00"
 }
