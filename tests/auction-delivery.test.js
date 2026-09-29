@@ -101,3 +101,18 @@ test('a cached artifact cannot bypass a changed byte reference',async()=>{
   row.delivery_detail.artifact={...row.delivery_detail.artifact,bytes:row.delivery_detail.artifact.bytes-1};
   await assert.rejects(h.client.detail(view,row),/Cached evidence reference differs/);
 });
+test('rollout preserves a complete legacy packet larger than the compact-view cap',async()=>{
+  const legacy=copy(fixture.packet);legacy.retained_extra_inputs='x'.repeat(4*1024*1024);
+  const h=harness(null,{legacy,fetch:(url,key)=>key==='data/auction-desk-view.json'?new Response('not yet published',{status:404}):null});
+  const result=await h.client.load();assert.deepEqual(result,legacy);
+  assert.ok(Buffer.byteLength(JSON.stringify(result))>4*1024*1024);
+  assert.ok(h.calls.every(url=>/\?exact=1&nogen=1$/.test(url)));
+  assert.equal(h.client.source(result),null);
+});
+test('legacy fallback retains a finite complete-packet byte bound and separate body deadline',async()=>{
+  const tooLarge=harness(null,{fetch:(url,key)=>key==='data/auction-desk-view.json'?new Response('missing',{status:404}):new Response('{}',{headers:{'content-length':String(128*1024*1024+1)}})});
+  await assert.rejects(tooLarge.client.load(),/byte limit/);
+  let canceled=0;
+  const client=api.createClient({crypto:crypto.webcrypto,timeout:1000,legacyTimeout:10,fetch:async url=>String(url).includes('auction-desk-view.json')?new Response('missing',{status:404}):new Response(new ReadableStream({pull:()=>new Promise(()=>{}),cancel:()=>{canceled++;}}))});
+  await assert.rejects(client.load(),/deadline exceeded/);assert.equal(canceled,2);
+});

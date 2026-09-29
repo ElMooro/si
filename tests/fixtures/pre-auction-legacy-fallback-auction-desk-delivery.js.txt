@@ -75,12 +75,11 @@
   function createClient(options = {}) {
     const fetcher = options.fetch || globalThis.fetch.bind(globalThis), crypto = options.crypto || globalThis.crypto;
     const timeout = options.timeout || 12000;
-    const legacyTimeout = options.legacyTimeout || options.timeout || 30000;
     const contexts = new WeakMap(), cache = new Map();
-    async function get(origin,key,limit,mutable=false,deadline=timeout) {
+    async function get(origin,key,limit,mutable=false) {
       // The proxy intentionally ignores arbitrary cache-busting parameters.
       // Its existing exact read route bypasses mutable cache and cold generation.
-      return bytes(origin+key+(mutable ? '?exact=1&nogen=1' : ''),limit,{fetch:fetcher,timeout:deadline,mutable});
+      return bytes(origin+key+(mutable ? '?exact=1&nogen=1' : ''),limit,{fetch:fetcher,timeout,mutable});
     }
     async function artifact(origin,ref,category) {
       reference(ref,category);
@@ -129,13 +128,11 @@
           return view;
         } catch (error) {problems.push(error.message);}
       }
-      // A code deploy precedes the next ordinary compact publication. Preserve
-      // the existing complete packet during that transition, under the complete
-      // packet bound and a separate deadline. Do not apply the compact-view cap
-      // to the large legacy packet or silently truncate its retained inputs.
+      // Older complete packets remain usable only within the initial byte bound.
+      // This path neither downloads a huge packet nor invents an empty snapshot.
       for (const origin of ORIGINS) {
         try {
-          const view = packet(parse(await get(origin,'data/auction-desk.json',MAX,true,legacyTimeout)));
+          const view = packet(parse(await get(origin,'data/auction-desk.json',INITIAL,true)));
           if (view.delivery) throw Error('A projection requires its bound manifest');
           return view;
         } catch (error) {problems.push(error.message);}

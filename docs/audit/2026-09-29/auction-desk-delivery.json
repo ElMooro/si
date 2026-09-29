@@ -658,7 +658,9 @@
     "initial_view_bytes": 4194304,
     "operation_chunk_bytes": 8388608,
     "request_body_deadline_seconds": 12,
-    "evidence_cache_artifacts": 6
+    "evidence_cache_artifacts": 6,
+    "legacy_packet_bytes": 134217728,
+    "legacy_request_body_deadline_seconds": 30
   },
   "limitations": [
     "All ten platform workstreams remain open. Delivery identity does not establish provider originality, population completeness, first-publication vintages, forecast validity or portfolio permission.",
@@ -799,5 +801,45 @@
     "exact_native_source_members_by_function": {
       "justhodl-auction-desk": 12
     }
+  },
+  "rollout_compatibility": {
+    "status": "source_and_isolated_tests_accepted_static_deploy_pending",
+    "checked_at": "2026-09-29T14:24:27.978855+00:00",
+    "predecessor": {
+      "base": "0ad0873fea312b01a040307348e766c9a81adf36",
+      "source": "auction-desk-delivery.js",
+      "fixture": "tests/fixtures/pre-auction-legacy-fallback-auction-desk-delivery.js.txt",
+      "bytes": 12911,
+      "sha256": "3e2c1b52d32b775c4046a1c9b05ea9736700a02075fe34c6f19c5bd0fffde5ad",
+      "reproduction": {
+        "scope": "Reviewed current loader, synthetic complete legacy packet and missing compact pointer; no network",
+        "legacy_bytes": 4862036,
+        "error": "Desk publication unavailable: Delivery HTTP 404; Response exceeds its byte limit",
+        "loaded": false
+      }
+    },
+    "browser": {
+      "status": "Snapshot 2026-09-29T12:00:00+00:00. Complete legacy packet; delivery manifest unavailable.",
+      "headline": "$0.0B buyback accepted par",
+      "sample": "2 of 2 supplied dated operations shown (latest 40). 0 unavailable results remain gaps. 0 future and 0 undated operations excluded from this chart. Table shows 2 of 2 retained operations. Source population coverage is unverified.",
+      "download": "https://justhodl-data-proxy.raafouis.workers.dev/data/auction-desk.json",
+      "errors": []
+    },
+    "fix": "When both compact pointers are unavailable, retain the complete legacy fallback under the full 128 MiB packet bound and 30-second fetch/body deadline. The compact initial view stays limited to 4 MiB and 12 seconds. No producer is invoked or rescheduled to complete rollout.",
+    "tests": {
+      "frontend": 1835,
+      "delivery_frontend": 21,
+      "deployment_static": 682,
+      "candidate_shell": 12,
+      "native_desk": 15,
+      "public_page_graphs": 599,
+      "companion_wires": 143
+    },
+    "source_sha256": "b5c1f75bb422c6094bec01990457381b6ef1771f03985fe79b836072015d04df",
+    "native_source_unchanged_from": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "limitations": [
+      "A legacy fallback can still be large and has no delivery manifest; its state is explicitly labeled. Its download route remains the mutable full-packet route, not an immutable artifact.",
+      "Ordinary native publication remains unverified. The smaller compact view is used automatically once a valid bound publication exists."
+    ]
   }
 }
