@@ -1,0 +1,93 @@
+{
+  "status": "original_schedule_native_publication_and_complete_retained_replay_accepted",
+  "checked_at": "2026-09-29T06:55:01.138574+00:00",
+  "source_commit": "46f241c0b3895304039196ea03bed38d8efad778",
+  "operation": 6322,
+  "run": 36533235224,
+  "report": "aws/ops/reports/latest/ops_6322_genealogy_normal_publication_acceptance.md",
+  "report_commit": "5ef51f8d09c776eefabc948c85a571ed66e33dda",
+  "native_evidence": {
+    "actual_runtime": {
+      "code_sha256": "3YqVuEhIXd5H17acR/T3apSiOuvrzzENd50OoRS7dqA=",
+      "source_files_checked": 17,
+      "handler_bytes": 1779,
+      "timeout": 600,
+      "memory_mb": 2048,
+      "receipt": {
+        "status": "matched",
+        "commit": "46f241c0b3895304039196ea03bed38d8efad778"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "signal-genealogy-daily",
+          "state": "ENABLED",
+          "expression": "cron(40 6 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-signal-genealogy",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "46f241c0b3895304039196ea03bed38d8efad778",
+    "calls_eligible": false,
+    "comparison_status_counts": {
+      "a_observed_presence_before_b_bounded_entry": 29,
+      "b_observed_presence_before_a_bounded_entry": 1,
+      "unresolved_prior_observation_missing": 25
+    },
+    "complete_native_storage_replay_verified": true,
+    "coverage": {
+      "captures": 264,
+      "complete_capture_scans": 59,
+      "excluded_records": 2027,
+      "first_observed_groups": 345,
+      "identity_partial_source_snapshots": 1060,
+      "ineligible_source_snapshots": 15765,
+      "partial_capture_scans": 205,
+      "possible_comparisons": 55,
+      "registered_records": 3380,
+      "retained_records": 1353
+    },
+    "downstream_output_reads": 0,
+    "future_archive_growth_qualified": false,
+    "history_writes": 0,
+    "learning_ledger_reads": 0,
+    "native_invocations": 0,
+    "original_engine_replay_verified": false,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "publication": {
+      "bytes": 30364,
+      "sha256": "2e383c60f3b861b1c42a191737ae3a858fb3974bdc80f93600c7a1a525f92f56",
+      "cutoff": "2026-09-29T06:40:43.867597+00:00",
+      "storage_last_modified": "2026-09-29T06:43:24+00:00",
+      "publication_elapsed_upper_bound_s": 160.132403
+    },
+    "retained_public_keys_read": 279,
+    "schedule_changes": 0,
+    "scope": "Exact original-cadence native package and whole new public research head reproduce from all typed retained originals and reviewed compiler bytes. Publication fits its reviewed 600-second window. Peak native resource measurements, future archive growth, original model replay, independence and investment qualification are not inferred.",
+    "sizing_eligible": false,
+    "status": "complete_normal_publication_retained_originals_and_calculation_replayed"
+  },
+  "public_http": {
+    "checked_at": "2026-09-29T06:53:40.252319+00:00",
+    "path": "data/signal-genealogy-research/current.json",
+    "bytes": 30364,
+    "sha256": "2e383c60f3b861b1c42a191737ae3a858fb3974bdc80f93600c7a1a525f92f56",
+    "generated_at": "2026-09-29T06:40:43.867597+00:00",
+    "matches_complete_native_replay": true,
+    "scope": "Approved new public Genealogy research head only; no legacy/private/downstream packet reads."
+  },
+  "limitations": [
+    "The 205 partial capture scans and 25 unresolved comparisons remain explicit. Retained-data replay does not resolve them.",
+    "No original upstream model replay, independent evidence count, forecasting/sizing qualification, peak native resource measurement or future archive-growth capacity is inferred."
+  ]
+}
