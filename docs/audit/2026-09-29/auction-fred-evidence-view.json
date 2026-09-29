@@ -1,5 +1,5 @@
 {
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_assets_and_isolated_browser_accepted_normal_native_publication_pending",
   "checked_at": "2026-09-29T09:18:21.668713+00:00",
   "baseline_commit": "e2fcf8e453b0e24be1ad514e5ddbc4cc6ee264be",
   "complete_predecessors": [
@@ -141,5 +141,63 @@
   ],
   "calls_eligible": false,
   "sizing_eligible": false,
-  "execution_eligible": false
+  "execution_eligible": false,
+  "source_commit": "2b3eef3458e6fb3ec91d5e0da873cdcb56bf95b3",
+  "pages_run": 36548314544,
+  "page_gate_run": 36548314624,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T09:25:05.772873+00:00",
+    "intended_commit": "2b3eef3458e6fb3ec91d5e0da873cdcb56bf95b3",
+    "served_commit": "2b3eef3458e6fb3ec91d5e0da873cdcb56bf95b3",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 59972,
+        "sha256": "3fa4bad230309f4caac8feb23bf193aaac29a5a1842760a9d821581836a432fe",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 45761,
+        "sha256": "4b89ef278bd54b71e63c28ec3caf2e939f033dc457c6c423d351c352c3c4ef43",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "70d141d4903274c1ab96b0fbe047196cb154a9ddd93dd1f26348dab97c3a0a81"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "jh-auction-fred-evidence.js": {
+        "bytes": 18490,
+        "sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353625,
+        "sha256": "503ce04d7a9ea5c91436e7b9bdd43c68aba98e645c7009fefd11078e13ed84a1",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692855,
+        "sha256": "d7f1b1884256c29cf134a78ae4f9673c446aba2b21484651cd77917f1258b114",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request.",
+    "fred_viewer_cache_version": "f1352494"
+  },
+  "large_file_native_git_batch": {
+    "source_html_bytes": 50566,
+    "source_renderer_bytes": 45760,
+    "synthetic_full_fixture_bytes": 244129,
+    "atomic_changed_files": 9,
+    "target_stubs": false
+  }
 }
