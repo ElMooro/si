@@ -1,0 +1,92 @@
+{
+  "status": "source_only_gap_reproduced_not_repaired",
+  "checked_at": "2026-09-29T20:42:45.429392+00:00",
+  "source_commit": "76aa253e439b99a32f87a50ba8197d704f539714",
+  "scope": "Static repository source and generated contract metadata only. No handler execution, current/private/derived packet reads, provider requests or native invocations.",
+  "findings": [
+    {
+      "page": "capitulation.html",
+      "engine": "justhodl-capitulation",
+      "current_key": "data/capitulation.json",
+      "coverage_class": "NO_ASSOCIATION",
+      "primary_output_status": "NO_PRIMARY_OUTPUT_ACCESS_CONTRACT",
+      "primary_producers": [],
+      "dedicated_renderer": "jh-extremes-research.js",
+      "dynamic_engine_attribute": "capitulation",
+      "current_write_reachability": {
+        "status": "unproven",
+        "evidence_indexes": [],
+        "runtime_verified": false
+      },
+      "current_write_candidates": [
+        {
+          "file": "legacy_capitulation.py",
+          "line": 239,
+          "entrypoint_reachability": "unproven",
+          "basis": "Static write candidate; configured-handler reachability is unproven."
+        }
+      ]
+    },
+    {
+      "page": "market-extremes.html",
+      "engine": "justhodl-market-extremes",
+      "current_key": "data/market-extremes.json",
+      "coverage_class": "NO_ASSOCIATION",
+      "primary_output_status": "NO_PRIMARY_OUTPUT_ACCESS_CONTRACT",
+      "primary_producers": [],
+      "dedicated_renderer": "jh-extremes-research.js",
+      "dynamic_engine_attribute": "market-extremes",
+      "current_write_reachability": {
+        "status": "unproven",
+        "evidence_indexes": [],
+        "runtime_verified": false
+      },
+      "current_write_candidates": [
+        {
+          "file": "legacy_market_extremes.py",
+          "line": 345,
+          "entrypoint_reachability": "unproven",
+          "basis": "Static write candidate; configured-handler reachability is unproven."
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "scripts/gen_engine_manifest.py": "19fdbbc8ceea287e2062fedf896aed81afca8fa2f1b90d090225c0b0b5713ad6",
+    "scripts/source_write_graph.py": "b300b2759ebfdb9b4a19c3d851292e2a8e8b76c4119363446d0fc304cb42b6d9",
+    "scripts/page_sources.py": "a7eef206da72a497e331a915e15aeae825fa8b547d698e4962cd7617153259fb",
+    "scripts/js_source_refs.cjs": "e7fd05b5ddd288de153f9058520951045ed9ee3a88ecb810bac1b5ad6a9fe5ae",
+    "scripts/build_page_data_contracts.py": "90cd03eb426e5767049f2bb1825e68667552ad846cab07ec6365be647e868ae6",
+    "capitulation.html": "cbd69ff1f3414813b3500b3e3e9b1b88dfcbbe05197a2fda548457d59f756bd2",
+    "market-extremes.html": "940610a909b8348dc4f30fc6629650882a9e0a34c2acc91d55b0d9e3215c537e",
+    "jh-extremes-research.js": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+    "aws/shared/extremes_native_store.py": "f3d3fdd0943d0e78d049c0dc3b4fcd51d3c8162d46bd26e9d64795620aafc09d",
+    "aws/lambdas/justhodl-capitulation/source/lambda_function.py": "999b48139c0a0e92b0a85563875df86738b3407aaf8de4314e6a9a8630e441e2",
+    "aws/lambdas/justhodl-market-extremes/source/lambda_function.py": "78074cfe0f047f63198c620bf87cd0bd91d43e2b48387bc2843d7a591a1fa620"
+  },
+  "interpretation": "The dedicated pages exist, but dynamic consumer paths and current-writer reachability are not connected by the present static contract analysis. NO_ASSOCIATION is a static-analysis result, not proof of a live feed failure.",
+  "next_work": [
+    "Conservatively trace the native current(engine) key-return helper from the actual source entrypoint, with rejection cases for mutation, shadowing and unsupported returns.",
+    "Bind actual page-to-renderer packet access using inspectable source evidence or an explicit consumed declaration. Do not substitute a hand-entered ownership assertion.",
+    "Regenerate complete contracts and retain partial/unverified output, history-family and runtime status where proof is still absent. Verify affected source graph and served static assets."
+  ],
+  "isolated_key_reproduction": {
+    "scope": "Current static analyzer and isolated temporary synthetic source files. The module-level exception is never executed; no native/provider/data access.",
+    "handler_source": "import writer\ndef lambda_handler(event,context):\n writer.run(client,\"market-extremes\")\n",
+    "writer_source": "raise RuntimeError(\"Application code must never execute\")\ndef current(engine):\n    if engine not in (\"capitulation\",\"market-extremes\"):raise ValueError(\"Reviewed engine required\")\n    return \"data/\"+engine+\".json\"\ndef run(client,engine):\n    client.put_object(Key=current(engine),Body=b\"{}\")\n",
+    "observed_keys": [],
+    "unresolved": [
+      {
+        "line": 6,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key",
+        "file": "aws/shared/writer.py"
+      }
+    ],
+    "source_sha256": {
+      "scripts/gen_engine_manifest.py": "19fdbbc8ceea287e2062fedf896aed81afca8fa2f1b90d090225c0b0b5713ad6",
+      "scripts/source_write_graph.py": "b300b2759ebfdb9b4a19c3d851292e2a8e8b76c4119363446d0fc304cb42b6d9",
+      "scripts/source_call_binding.py": "b8025362dbddd424c1f9c8e526bcd51b53833f5fab62d1ef1678def0e619b40d"
+    }
+  }
+}

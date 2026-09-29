@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 433 source acceptance: all ten workstreams remain open. Calls immutable retries and current publication now require complete response bytes, declared-length agreement and closed bodies; current JSON must be strict UTF-8. Conditional identity, same-clock/no-write retries and newer-publication protection remain. Fifteen new cases, all four native suites, 1,891 frontend tests, 708 deployment/twelve shell checks, 599 page graphs and 143 wires pass. Four exact retained compiler sets replay with current code. Exact native/static deployment is pending. Normal publication, whole-engine/history capacity, vintages, model validation and supported portfolio consequences remain open.
+September 29, after Stage 433 exact native/static acceptance: all ten workstreams remain open. Calls complete-storage response repair 76aa253e439b99a32f87a50ba8197d704f539714 is exactly deployed across four functions/151 source members and nine static assets. Immutable retries close bodies and reject incomplete transfers; current publication requires complete strict UTF-8 JSON and retains conditional/no-write protections. Fifteen new cases, all four native suites, 1,891 frontend tests, 708 deployment/twelve shell checks and 599 page graphs pass. Four exact retained compiler sets reproduce with current code. Full resources/schedules equal the preceding baseline. Normal publication, whole-engine/history capacity, historical vintages, model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -6004,3 +6004,16 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - A shared internal reader consumes complete chunks through EOF, lets the SDK validate transfer length, verifies provided ContentLength and closes the body in finally. Immutable comparison remains byte-exact. Current publication requires strict UTF-8 JSON after complete transport, then retains the existing same-clock, identity and conditional-update rules. There is no new cap or truncation.
 - Fifteen new tests cover all supported conflict codes, partial/chunked responses, SDK incomplete transfers, invalid metadata, nonbyte/error bodies, UTF-8/BOM/surrogates, large complete objects, identical retries and exact historical compatibility. All four importer suites, frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 wires pass. Four frozen compiler sets replay under current code; archived code is never executed.
 - The four-function/151-member release is pending exact native/static acceptance. No private/current packet reads, native invocation, provider probe, resource/cadence or portfolio authority change occurred. Whole-engine capacity and normal publication remain separate. Evidence: `docs/audit/2026-09-29/calls-storage-integrity.json`.
+
+
+### Stage 433 exact native and static acceptance
+
+- Source `76aa253e439b99a32f87a50ba8197d704f539714` passed Lambda 36627800022, Pages 36627800061 and receipt-only operation 6323 / 36628533164. All four exact release receipts and 151 complete native/shared members match the intended commit. Full resource settings and all sorted schedule bindings equal the frozen Stage 432 baseline.
+- Nine whole static assets match the source-bound build at 2026-09-29T20:44:52.545021+00:00. Fifteen new cases, all four native suites, frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 wires pass. Four exact historical compiler sets reproduce through current code; archived code is never executed. The complete related batch landed atomically through native Git.
+- No native invocation, current/private/downstream packet read, provider probe, resource/cadence or portfolio change occurred. Complete storage-response validation establishes neither predictive performance nor whole-engine/history capacity. Normal publication remains separately unverified. Evidence: `docs/audit/2026-09-29/calls-storage-integrity.json`.
+
+
+### Next source task: explicit Extremes primary packet trace
+
+- Static inspection of the current source-generated contract reproduces `NO_ASSOCIATION` / `NO_PRIMARY_OUTPUT_ACCESS_CONTRACT` for Capitulation and Market Extremes. Both dedicated pages use the reviewed renderer through their `data-extremes-engine` attributes. Their current output keys are still associated with unproven legacy write candidates; the actual native `current(engine)` key helper is not bound into that trace. This is an analysis gap, not an observed live outage.
+- The next repair must prove the pure source key-return path and the real page access rather than asserting ownership manually. Existing partial history-family/runtime qualifications must remain explicit. The earlier duplicate-key and browser-clock fixes are already shipped and must not be repeated. No current/private packet was read. Evidence and complete source hashes: `docs/audit/2026-09-29/extremes-primary-contract-gap.json`.
