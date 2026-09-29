@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 420 source acceptance: all ten workstreams remain open. Synthetic responses reproduced partial FiscalData pagination and error-shaped Treasury responses being accepted as success. Every FiscalData caller now requires a complete consistent page set, TreasuryDirect rejects malformed response shapes, and HTTP acquisition consumes bounded complete bodies with strict length and JSON validation. Failed requests preserve operation rows and expose failure notes. All 297 native/desk, 687 deployment, twelve shell and 599 page-graph checks pass. Full-size synthetic delivery retains all inputs; provider response capture, current native publication, concurrent writers and model/portfolio qualification remain open. Exact deployment/static acceptance is pending. The accepted snapshot-bound UI and exact par-fill classifications remain intact.
+September 29, after Stage 420 deployment acceptance: all ten workstreams remain open. Exact code and static assets are accepted at 6e2496ce859fbb117c8a4db6296f44fd8af33bf7. Every FiscalData caller now requires a complete consistent page set, TreasuryDirect error shapes are rejected, and HTTP reads are bounded with strict length and JSON validation. Failed acquisitions preserve retained operation rows and expose failure notes. Exact par-fill classifications and the accepted snapshot-bound page remain intact. All 297 native/desk, 1844 frontend, 687 deployment, twelve shell and 599 page-graph checks pass. Read-only operation 6346 verifies all twelve native source members and four original schedule bindings; five static files match the source-bound build. Full synthetic delivery remains within bounds. Actual file completion in the in-app browser and normal native publication remain unverified. Original vintages, population completeness, independent model validation and supported portfolio consequences remain open. No native invocation, private/current packet read, extra provider request or schedule/resource change occurred.
 
 ### Retained Stage 371 checkpoint
 
@@ -5810,3 +5810,11 @@ Only explicit missing objects can initialize empty banks. Access failures, inter
 ### Stage 420: reject incomplete and ambiguous Treasury acquisition
 
 Complete pagination now applies to every caller. Failed, changed or truncated response sets cannot be returned as successful empty/partial data. TreasuryDirect validates complete row arrays. HTTP reads are bounded through EOF, validate declared length, close streams, and reject duplicate keys or nonfinite numbers. Whole valid fields and repeated source occurrences survive. Actual-handler regression retains the previous operation rows and reports separate source failures. Evidence: `docs/audit/2026-09-29/auction-http-ingestion.json`. Provider originals, independent population validation, ordinary publication and supported portfolio consequences remain open.
+
+
+### Stage 420 exact deployment acceptance
+
+- Source `6e2496ce859fbb117c8a4db6296f44fd8af33bf7` passed Lambda 36593519984, Pages 36593520060 and receipt-only runtime operation 6346 / 36593931207. All twelve deployed source members and the exact receipt match; original resources and all four schedules remain unchanged.
+- At 2026-09-29T15:58:17.589135+00:00, all five static assets match the exact commit-bound build. Native Git shipped the complete 9-file batch, including full large source/page files.
+- Incomplete pages, metadata drift, invalid empty responses, interrupted/oversized HTTP bodies, wrong declared lengths, duplicate JSON keys and nonfinite numbers are rejected. The full synthetic handler retains complete inputs. Existing cache reads, output ownership and UI behavior remain intact.
+- Normal engine publication and actual download completion through the in-app browser remain unverified. Provider originals, historical availability, complete populations, predictive qualification and portfolio sizing are not certified. All ten platform workstreams remain open. Evidence: `docs/audit/2026-09-29/auction-http-ingestion.json`.
