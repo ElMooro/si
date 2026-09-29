@@ -1,5 +1,5 @@
 {
-  "status": "source_and_isolated_browser_accepted_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T10:39:47.827104+00:00",
   "baseline_commit": "97ab9f641a2c691ca1f426c5342874e127926d35",
   "complete_predecessors": [
@@ -197,9 +197,126 @@
     "This change deliberately withholds unsupported comparison. It does not create a calibrated historical-analog model, validate a reference cohort, establish out-of-sample forecasting skill or authorize portfolio sizing.",
     "Legacy threshold baselines and issuance overlay remain separate unqualified work. The complete current score-input fixes and explicit weighted-window withholding from Stage410 remain unchanged.",
     "Full source-model immutable replay, historical vintages, independent validation, peak capacity and supported portfolio consequences remain open. All ten platform acceptance workstreams remain open.",
-    "Ordinary publication still awaits original schedules. No new provider request, native invocation, current/private/learning-ledger/downstream read, paid API, cadence or resource change is introduced."
+    "Ordinary publication still awaits original schedules. No new provider request, native invocation, current/private/learning-ledger/downstream read, paid API, cadence or resource change is introduced.",
+    "The empty-source native refresh preserves prior auxiliary context under an unavailable quality state. The page rejects that state; explicit regeneration/clearing of the retained historical catalog in this branch remains a follow-up hardening case."
   ],
   "calls_eligible": false,
   "sizing_eligible": false,
-  "execution_eligible": false
+  "execution_eligible": false,
+  "source_commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-crisis-detector": {
+        "code_sha256": "uIjN7CYAI2KW34NOK2WOPP9CK6dvoNTn89n8Q+g00LM=",
+        "source_files_checked": 22,
+        "handler_bytes": 43541,
+        "timeout": 240,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-active",
+            "state": "ENABLED",
+            "expression": "cron(50 19 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-backstop",
+            "state": "ENABLED",
+            "expression": "cron(5 13 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-auction-crisis-detector",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36557357308,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6340_auction_reference_catalog_runtime_acceptance.md",
+  "native_acceptance_report_commit": "30d69e397297a6fa0f067c1609538940040ceace",
+  "lambda_run": 36556951685,
+  "pages_run": 36556951686,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T10:45:28.187444+00:00",
+    "intended_commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b",
+    "served_commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 61676,
+        "sha256": "7f17579d8ea8d19d2a42cf3481a12c51442fa227e4e6754d72a234c847cb1573",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 50407,
+        "sha256": "bd968b5d1e7018f057b18a5c3f021a4ace5e293dee3861398c284bcd575e4ea8",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "b3a172d594e19297f8a821a03b158e481693324f331befb27a648d61141b262f"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "jh-auction-fred-evidence.js": {
+        "bytes": 18490,
+        "sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353625,
+        "sha256": "268ca4898a52a313736dd6345ce04c786979845735f3f38f875eed2d75a07069",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692855,
+        "sha256": "a501287fef4154ca0c41ea65888d5a3af8e022abd5a1fa133a5bbc33eb7fe88a",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request.",
+    "fred_viewer_cache_version": "f1352494"
+  },
+  "large_file_native_git_batch": {
+    "atomic_changed_files": 21,
+    "source_sizes": {
+      "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": 38010,
+      "auction-crisis.js": 50406,
+      "auction-crisis.html": 52270,
+      "aws/shared/auction_reference_catalog.py": 4294,
+      "tests/fixtures/auction-reference-catalog.json": 129940
+    },
+    "exact_native_source_members_by_function": {
+      "justhodl-auction-crisis-detector": 22
+    }
+  }
 }
