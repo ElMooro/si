@@ -47,7 +47,6 @@ import json
 from auction_weighting import weighted_summary
 import auction_benchmarks
 import auction_forward
-import auction_cross_observations
 import auction_calendar
 import math
 import os
@@ -459,40 +458,92 @@ def _fred_get_history(series_id: str, days: int = 30) -> List[Tuple[str, float]]
     return []
 
 
-def _fred_cross_source(series_id, limit):
-    """Same existing request; keep every parsed row and do not strip its date.
-
-    The vendored HTTP shim is unchanged. Its cache/acquisition provenance is
-    unknown, so adapter_read_at must never be treated as provider acquisition.
-    """
-    if auction_cross_observations.LIMITS.get(series_id) != limit:
-        raise ValueError('Reviewed cross-series request required')
-    frame = {'series_id':series_id, 'requested_limit':limit, 'read_status':'unavailable',
-             'response':None, 'adapter_read_at':None, 'http_acquisition_time_verified':False}
-    url = (
-        "https://api.stlouisfed.org/fred/series/observations"
-        f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
-        f"&limit={limit}&sort_order=desc"
-    )
-    try:
-        with urllib.request.urlopen(url, timeout=10) as response:
-            raw = response.read(2*1024*1024+1)
-            if response.status != 200 or len(raw) > 2*1024*1024:
-                raise ValueError('Incomplete or oversized adapter response')
-        value = auction_calendar.strict_json(raw)
-        json.dumps(value, allow_nan=False)
-        frame.update(read_status='received', response=value,
-                     adapter_read_at=datetime.now(timezone.utc).isoformat())
-    except Exception:
-        # Fixed diagnostic avoids serializing credential-bearing request URLs.
-        frame['error'] = 'adapter_response_unavailable_or_invalid'
-    return frame
-
-
 def compute_cross_signals() -> dict:
-    """Dated arithmetic for the same five FRED requests; no corroboration claim."""
-    frames = {sid:_fred_cross_source(sid, limit) for sid,limit in auction_cross_observations.LIMITS.items()}
-    return auction_cross_observations.build(frames, datetime.now(timezone.utc).date())
+    """Pull 4 corroborating signals from FRED.
+
+    Signals:
+      - SOFR - IORB:    repo collateral squeeze proxy
+                        IORB = interest on reserve balances (Fed admin rate)
+                        SOFR > IORB by >5bp = repo stress
+      - DXY (DTWEXBGS): USD trade-weighted strength
+                        Rising USD = indirect participation may weaken
+      - 10y - 2y curve: slope (T10Y2Y series)
+                        Inversion is recession signal
+      - 5y5y BE infl:  forward inflation expectations
+                        Spike = inflation regime change, may stress auctions
+    """
+    out = {}
+
+    # SOFR vs IORB (effective fed funds upper bound)
+    sofr = _fred_get_latest("SOFR")
+    iorb = _fred_get_latest("IORB")
+    if sofr is not None and iorb is not None:
+        spread_bp = (sofr - iorb) * 100
+        if spread_bp > 8:
+            stress = "ACUTE"
+        elif spread_bp > 4:
+            stress = "ELEVATED"
+        elif spread_bp > 1:
+            stress = "WATCH"
+        else:
+            stress = "CALM"
+        out["repo_stress"] = {
+            "sofr_pct":   round(sofr, 4),
+            "iorb_pct":   round(iorb, 4),
+            "spread_bp":  round(spread_bp, 2),
+            "regime":     stress,
+            "interpretation": (
+                f"SOFR {sofr:.3f}% vs IORB {iorb:.3f}% = "
+                f"{spread_bp:+.1f}bp. "
+                f"{'Collateral squeeze' if spread_bp > 4 else 'Normal repo conditions'}."
+            ),
+        }
+    else:
+        out["repo_stress"] = {"err": "data unavailable"}
+
+    # DXY proxy via DTWEXBGS
+    dxy_hist = _fred_get_history("DTWEXBGS", days=60)
+    if dxy_hist:
+        dxy_now = dxy_hist[0][1]
+        dxy_30d_ago = dxy_hist[min(20, len(dxy_hist)-1)][1] if len(dxy_hist) > 1 else dxy_now
+        change_30d = ((dxy_now - dxy_30d_ago) / dxy_30d_ago * 100) if dxy_30d_ago > 0 else 0
+        out["dollar_strength"] = {
+            "level":         round(dxy_now, 2),
+            "change_30d_pct": round(change_30d, 2),
+            "regime":        "STRENGTHENING" if change_30d > 1.5 else "WEAKENING" if change_30d < -1.5 else "STABLE",
+            "interpretation": (
+                f"Trade-weighted USD at {dxy_now:.1f}, {change_30d:+.1f}% in 30d. "
+                f"{'Strong USD pressures foreign bid' if change_30d > 1.5 else 'Soft USD supportive of indirect participation'}."
+            ),
+        }
+    else:
+        out["dollar_strength"] = {"err": "data unavailable"}
+
+    # 10y - 2y curve
+    curve = _fred_get_latest("T10Y2Y")
+    if curve is not None:
+        out["curve_slope"] = {
+            "spread_bp": round(curve * 100, 1),
+            "regime":    "INVERTED" if curve < 0 else "FLAT" if curve < 0.5 else "NORMAL",
+            "interpretation": (
+                f"10y-2y at {curve*100:+.0f}bp. "
+                f"{'Inverted curve — recession signal' if curve < 0 else 'Curve positive'}."
+            ),
+        }
+
+    # 5y5y forward inflation BE
+    be_5y5y = _fred_get_latest("T5YIFR")
+    if be_5y5y is not None:
+        out["inflation_expectations"] = {
+            "rate_pct":   round(be_5y5y, 2),
+            "regime":     "ANCHORED" if 2.0 <= be_5y5y <= 2.5 else "UNANCHORED",
+            "interpretation": (
+                f"5y5y forward BE inflation {be_5y5y:.2f}%. "
+                f"{'Above Fed target' if be_5y5y > 2.5 else 'Below Fed target' if be_5y5y < 2.0 else 'Anchored at target'}."
+            ),
+        }
+
+    return out
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -629,17 +680,12 @@ def compute_tail_risk(scored_auctions: List[dict],
     #   - DXY momentum
     #   - Composite history max
     repo_stress = cross_signals.get("repo_stress", {})
-    repo_regime = repo_stress.get("legacy_threshold_band")
+    repo_regime = repo_stress.get("regime", "CALM")
     repo_amp = {"CALM": 0, "WATCH": 15, "ELEVATED": 30, "ACUTE": 45}.get(repo_regime, 0)
 
     dollar = cross_signals.get("dollar_strength", {})
-    dollar_value = auction_benchmarks.number(dollar.get("change_30d_target_pct"))
-    dollar_amp = min(20, abs(dollar_value) * 4) if dollar_value is not None else 0
-    cross_available = (cross_signals.get('measurement_contract') == auction_cross_observations.CONTRACT
-                       and repo_stress.get('measurement_status') == 'complete'
-                       and dollar.get('measurement_status') == 'complete'
-                       and auction_benchmarks.number(repo_stress.get('spread_bp')) is not None
-                       and repo_regime in ('CALM','WATCH','ELEVATED','ACUTE') and dollar_value is not None)
+    dollar_change = abs(dollar.get("change_30d_pct", 0) or 0)
+    dollar_amp = min(20, dollar_change * 4)
 
     p_supply_vol = min(75, 10 + repo_amp + dollar_amp + max(0, momentum) * 0.4)
 
@@ -661,11 +707,9 @@ def compute_tail_risk(scored_auctions: List[dict],
              "distance_to_next_threshold": round(distance_to_next_threshold, 1), "top_analog_regime": top_analog_regime},
             "Proximity to heuristic regime thresholds and composite momentum."),
         "p_supply_volatility_30d": concern(p_supply_vol,
-            {"repo_stress": repo_regime, "repo_observation_date": repo_stress.get('observation_date'),
-             "dollar_change_30d": dollar.get("change_30d_pct"), "dollar_target_change_pct": dollar_value,
-             "dollar_comparison": dollar.get('comparison'), "momentum": round(momentum, 1)},
-            "Dated funding and dollar context in a fixed legacy supply-concern formula; not demonstrated volatility causation.",
-            available=measured and cross_available),
+            {"repo_stress": repo_stress.get("regime"), "dollar_change_30d": dollar.get("change_30d_pct"),
+             "momentum": round(momentum, 1)}, "Funding and dollar context for supply-related volatility.",
+            available=measured and bool(repo_stress) and dollar.get("change_30d_pct") is not None),
     }
 
 

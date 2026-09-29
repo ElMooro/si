@@ -19,28 +19,15 @@ with patch.dict(sys.modules, {"managed_secret": types.SimpleNamespace(managed_se
 
 
 def test_heuristics_are_not_probabilities_and_legacy_alias_survives():
-    from auction_cross_observations import build
-    import json
-    frames=json.loads((SOURCE.parents[3]/'tests/fixtures/auction-cross-observations.json').read_bytes())['cases']['valid']['source_frames']
-    cross=build(frames,datetime(2026,9,29,tzinfo=timezone.utc).date())
     out=engine.compute_tail_risk([{"indicator_scores": {"pd_absorption":80}}],
         {"current":{"composite":30}, "series":[]}, {"coupons_gt_3y":{"composite":40}}, {},
-        cross)
+        {"repo_stress":{"regime":"WATCH"}, "dollar_strength":{"change_30d_pct":1}})
     for row in out.values():
         assert row["probability"] is None and row["calibrated"] is False
         assert row["forecast_horizon_days"] is None and row["unit"] == "score_0_100"
         assert 0 <= row["heuristic_score"] <= 100
     assert out["p_soft_demand_30d"]["heuristic_score"] == 45
     assert out["p_failed_auction_30d"]["alias_of"] == "p_soft_demand_30d"
-
-
-def test_undated_legacy_cross_values_cannot_reactivate_supply_concern():
-    out=engine.compute_tail_risk([{"indicator_scores": {"pd_absorption":80}}],
-        {"current":{"composite":30}, "series":[]}, {"coupons_gt_3y":{"composite":40}}, {},
-        {"repo_stress":{"regime":"WATCH"}, "dollar_strength":{"change_30d_pct":1}})
-    assert out['p_supply_volatility_30d']['heuristic_score'] is None
-    assert out['p_supply_volatility_30d']['status']=='unavailable'
-    assert out['p_soft_demand_30d']['heuristic_score']==45
 
 
 def test_missing_inputs_do_not_become_low_event_risk():

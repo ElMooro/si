@@ -1,0 +1,235 @@
+{
+  "status": "source_and_isolated_browser_checked_native_deployment_pending",
+  "checked_at": "2026-09-29T07:29:37.773864+00:00",
+  "baseline_commit": "a2dce0cc882b13b25ac8a41224a275d876886909",
+  "complete_predecessors": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+      "fixture": "tests/fixtures/pre-auction-cross-dates-aws-lambdas-justhodl-auction-crisis-detector-source-auction_crisis_v2.py.txt",
+      "bytes": 42554,
+      "sha256": "8033f235326c46c86db77704d8972c39b815781c2d3ccaa66f188684608d193c"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-cross-dates-auction-crisis.js.txt",
+      "bytes": 40719,
+      "sha256": "1bf4f9b64e62a3dfafa6bd4ce0e2417fd34a95f91db01adf8cd50e2d9cb76d68"
+    },
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-cross-dates-auction-crisis.html.txt",
+      "bytes": 49379,
+      "sha256": "9040ccefe3474dd7005fd6e6d46cad97d28c3fc784e563cd66e68b291f1ea3ca"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/tests/run_tests.py",
+      "fixture": "tests/fixtures/pre-auction-cross-dates-aws-lambdas-justhodl-auction-crisis-detector-tests-run_tests.py.txt",
+      "bytes": 4631,
+      "sha256": "4f89700e1e358d1361eae25f86d51439b0b6784335f253e8f4c996e1a83e94fe"
+    }
+  ],
+  "native_predecessor": "docs/audit/2026-09-29/auction-cross-predecessor.json",
+  "sources": {
+    "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": {
+      "bytes": 41575,
+      "sha256": "618f8b40a55047e5d134d3db14614bfb8ed215919b3e2d4e57b8c8b18fa66e7d"
+    },
+    "auction-crisis.js": {
+      "bytes": 45206,
+      "sha256": "282f9f24fa0b2b752d5ab2fe5238ec524bd2c5d842857e1fc69ee8c3c749578f"
+    },
+    "auction-crisis.html": {
+      "bytes": 49444,
+      "sha256": "f49c0e9713efcdaa2d17a6092e46680c14453d291073cf4770f06efaed2f1ddd"
+    },
+    "aws/lambdas/justhodl-auction-crisis-detector/tests/run_tests.py": {
+      "bytes": 5362,
+      "sha256": "5f269af7befb7ea738f9132911386c6e55992d87e4c436e2ff92f1e9eecc894c"
+    },
+    "aws/shared/auction_cross_observations.py": {
+      "bytes": 9820,
+      "sha256": "09a155a15bbaea230ab228db5a920b0377e17213f271e4803568d7f2dca9208e"
+    }
+  },
+  "reproduced_predecessor": {
+    "source_commit": "4e16b595bb5bc8d1577a1c27bba764d479220d50",
+    "scope": "Actual reviewed source on synthetic inputs; no provider or current consumer reads.",
+    "inputs": {
+      "SOFR": [
+        {
+          "date": "2026-09-20",
+          "value": "5.0"
+        }
+      ],
+      "IORB": [
+        {
+          "date": "2026-09-29",
+          "value": "4.9"
+        }
+      ],
+      "DTWEXBGS": [
+        {
+          "date": "2026-09-29",
+          "value": "100"
+        }
+      ],
+      "T10Y2Y": [
+        {
+          "date": "2026-09-29",
+          "value": "0"
+        }
+      ],
+      "T5YIFR": [
+        {
+          "date": "2026-09-29",
+          "value": "2.6"
+        }
+      ]
+    },
+    "result": {
+      "repo_stress": {
+        "sofr_pct": 5.0,
+        "iorb_pct": 4.9,
+        "spread_bp": 10.0,
+        "regime": "ACUTE",
+        "interpretation": "SOFR 5.000% vs IORB 4.900% = +10.0bp. Collateral squeeze."
+      },
+      "dollar_strength": {
+        "level": 100.0,
+        "change_30d_pct": 0.0,
+        "regime": "STABLE",
+        "interpretation": "Trade-weighted USD at 100.0, +0.0% in 30d. Soft USD supportive of indirect participation."
+      },
+      "curve_slope": {
+        "spread_bp": 0.0,
+        "regime": "FLAT",
+        "interpretation": "10y-2y at +0bp. Curve positive."
+      },
+      "inflation_expectations": {
+        "rate_pct": 2.6,
+        "regime": "UNANCHORED",
+        "interpretation": "5y5y forward BE inflation 2.60%. Above Fed target."
+      }
+    },
+    "synthetic_request_series": [
+      "SOFR",
+      "IORB",
+      "DTWEXBGS",
+      "T10Y2Y",
+      "T5YIFR"
+    ]
+  },
+  "repairs": [
+    "The same five existing FRED requests preserve complete parsed responses, all supplied row positions and their observation dates; malformed/oversized/nonfinite frames become unavailable without credential-bearing errors.",
+    "SOFR minus IORB uses the latest common observation date without forward fill. Missing latest observations/common pairs, duplicate/future dates and over-age observations withhold the measurement. Each source latest date remains distinct.",
+    "The dollar comparison uses an explicit 30-calendar-day target, the nearest supplied prior observation within seven days, and the actual observed interval. The legacy thirty-day key remains null unless the interval is exactly thirty days. A single observation cannot create a zero change.",
+    "Real zero remains numeric; invalid negative index levels, zero denominators, boolean values and arithmetic overflow cannot acquire measurement authority. Fixed legacy repo bands use the same rounded basis-point value to avoid float-boundary drift.",
+    "Funding distress, investor-motive and anchored/unanchored claims are removed from these contextual measurements. The existing internal supply-concern heuristic abstains when the dated rate or dollar inputs are unavailable. Existing output names and deprecated auction alias remain present.",
+    "The page independently checks selected dates, raw row positions, units, arithmetic and explicit permissions against retained parsed source responses. It shows actual dates and withholds stale/corrupt values; verified dollar levels can remain when only their change is unavailable."
+  ],
+  "tests": {
+    "cross_regressions": 18,
+    "calendar_regressions": 15,
+    "forward_regressions": 16,
+    "benchmark_regressions": 15,
+    "observation_regressions": 20,
+    "originals_regressions": 16,
+    "native_detector": 5,
+    "frontend": 1762,
+    "deployment_static": 643,
+    "candidate_shell": 12,
+    "page_script_graphs": 599,
+    "page_contracts_check": "passed",
+    "wiring_pages": 36,
+    "wiring_feeds": 143
+  },
+  "browser": {
+    "scope": "Actual page and reviewed compiler outputs from synthetic frames; external network blocked.",
+    "cases": [
+      "valid",
+      "mismatched dates",
+      "latest common date",
+      "explicit zeros",
+      "single dollar observation",
+      "bounded thirty-two-day interval",
+      "stale clearing",
+      "recovery"
+    ],
+    "console_errors": 0,
+    "console_warnings": 0,
+    "mobile_document_client_width": 375,
+    "mobile_document_scroll_width": 375,
+    "mobile_card_widths": [
+      325,
+      325,
+      325,
+      325
+    ],
+    "mobile_card_scroll_widths": [
+      325,
+      325,
+      325,
+      325
+    ]
+  },
+  "source_dependency_delta": {
+    "changed_fields": {},
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [],
+    "added_reads": [],
+    "unresolved_writes": [
+      {
+        "file": "aws/shared/auction_original_store.py",
+        "line": 39,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/evidence_store.py",
+        "line": 46,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      }
+    ],
+    "shared_closure": [
+      "_fred_shim.py",
+      "auction_benchmarks.py",
+      "auction_calendar.py",
+      "auction_calendar_store.py",
+      "auction_cross_observations.py",
+      "auction_forward.py",
+      "auction_original_store.py",
+      "auction_originals.py",
+      "auction_weighting.py",
+      "evidence_store.py",
+      "funding_research_catalog.py",
+      "managed_secret.py",
+      "pd_fails_context.py",
+      "treasury_instruments.py"
+    ]
+  },
+  "runtime_acceptance_operation": "6335",
+  "native_publication_verified": false,
+  "limitations": [
+    "Only parsed adapter responses are retained. Original HTTP bytes, original acquisition/cache age, definitions, release-calendar completeness and first-release vintages remain unverified.",
+    "The unchanged vendored FRED shim can return an older cached body and reads its upstream body before the adapter size check. This change neither certifies that cache nor adds provider requests.",
+    "Conservative observation-age limits are not verified provider release schedules. Context measurements are not independent evidence votes or validated forecasts.",
+    "The remaining historical analog, composite-history, issuance and legacy model calculations still need separate qualification. Ordinary source publication, full-model replay, independent validation and portfolio consequences remain open."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "execution_eligible": false,
+  "atomic_batch_file_count": 20,
+  "preserved_concurrent_main_commit": "f769540f7e1a768b0d7afc5e41fb966afe24dd41",
+  "generated_contract_delta": {
+    "pages": [
+      "index.html",
+      "workspace.html"
+    ],
+    "fields": [
+      "repository_assets"
+    ],
+    "basis": "Updated exact engine inventory and concurrent navigation registry hashes; no access or data-producer changes."
+  }
+}
