@@ -128,13 +128,13 @@ class Native(unittest.TestCase):
         with self.assertRaises(ValueError):store.replay(p['replay'],store.reader(s,'b'))
     def test_newer_current_wins_and_same_clock_conflict_refused(self):
         s,i,p=packet();key=store.current('capitulation');old={**p,'generated_at':'2026-09-21T18:20:00+00:00'};s.objects[key]=model.encoded(old)
-        self.assertFalse(store.publish(s,'b',p));self.assertEqual(json.loads(s.objects[key]),old)
+        self.assertFalse(store.publish(s,'b',p['engine'],p));self.assertEqual(json.loads(s.objects[key]),old)
         s.objects[key]=model.encoded({**p,'unexpected':True})
-        with self.assertRaises(ValueError):store.publish(s,'b',p)
+        with self.assertRaises(ValueError):store.publish(s,'b',p['engine'],p)
     def test_success_archives_full_predecessor_and_does_not_touch_history(self):
         s,i,p=packet();old=b'{"generated_at":"2026-09-19T12:00:00Z","signal":"STRONG_BUY","nested":{"all":"retained"}}'
         s.objects[store.current('capitulation')]=old;hist='data/capitulation-history.json';s.objects[hist]=b'whole-history'
-        self.assertTrue(store.publish(s,'b',p));self.assertEqual(s.objects[model.PRIVATE+model.sha(old)+'.bin'],old);self.assertEqual(s.objects[hist],b'whole-history')
+        self.assertTrue(store.publish(s,'b',p['engine'],p));self.assertEqual(s.objects[model.PRIVATE+model.sha(old)+'.bin'],old);self.assertEqual(s.objects[hist],b'whole-history')
     def test_request_is_idempotent_and_cannot_publish_twice(self):
         s,i=fixture()
         with patch.object(store,'now',return_value=STAMP):

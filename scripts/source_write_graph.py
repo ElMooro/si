@@ -84,6 +84,13 @@ class SharedWriteGraph:
         self.unresolved.append({'file':self.relative(scanner.source_path),'line':getattr(node,'lineno',0),
                                 'operation':'delegated_call','reason':reason})
 
+    def returned_string(self,caller,node,env):
+        value=caller.resolve(node.func,env)
+        if not isinstance(value,Callable):return None
+        target=value.scanner
+        lexical=value.environment if value.environment is not None else target.globals
+        return target.returned_string(value.node,node,caller,env,lexical)
+
     def returned_callable(self,caller,node,env):
         value=caller.resolve(node.func,env)
         if not isinstance(value,Callable):return None

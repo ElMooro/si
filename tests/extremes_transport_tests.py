@@ -63,7 +63,7 @@ class Transport(unittest.TestCase):
                 raw=s.objects[key];return {'Body':StreamingBody(io.BytesIO(raw),len(raw)+98),'ETag':store.model.sha(raw)}
             return get(**request)
         with patch.object(s,'get_object',side_effect=read):
-            with self.assertRaises(IncompleteReadError):store.publish(s,'synthetic',p)
+            with self.assertRaises(IncompleteReadError):store.publish(s,'synthetic',p['engine'],p)
         self.assertEqual(s.objects,before);self.assertEqual(len(s.writes),writes)
     def test_failed_capture_only_records_failed_request_and_keeps_public_current(self):
         s,_=fixture();key=store.current('capitulation');s.objects[key]=b'{"existing":true}';before=s.objects[key];get=s.get_object

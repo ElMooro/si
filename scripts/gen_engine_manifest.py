@@ -131,12 +131,16 @@ class Scan:
                 self.factory_depth += 1
                 try:
                     if self.module_graph:
+                        result=self.module_graph.returned_string(self,node,env)
+                        if isinstance(result,str):return result
                         result=self.module_graph.returned_callable(self,node,env)
                         if result is not None:return result
                     binding=self.known_function(node.func.id,env) if isinstance(node.func,ast.Name) else None
                     if binding is not None:
                         fn=binding.node if isinstance(binding,FunctionBinding) else binding
                         lexical=binding.environment if isinstance(binding,FunctionBinding) else self.globals
+                        result=self.returned_string(fn,node,self,env,lexical)
+                        if isinstance(result,str):return result
                         return self.returned_function(fn,node,self,env,lexical)
                 finally:self.factory_depth -= 1
         if isinstance(node,ast.IfExp):
@@ -149,6 +153,63 @@ class Scan:
             return env[name] if isinstance(env[name],FunctionBinding) else None
         local=env.get('__jh_local_functions') or {}
         return local.get(name,self.functions.get(name))
+
+    def returned_string(self,fn,call,caller,env,lexical):
+        """Resolve a pure string return after provably passed raise-only guards.
+
+        No application execution, arbitrary calls, assignments, branch returns,
+        decorators, unknown key values or guessed guard outcomes are accepted.
+        """
+        if not isinstance(fn,ast.FunctionDef) or fn.decorator_list or fn.args.vararg or fn.args.kwarg:return None
+        body=list(fn.body)
+        if body and isinstance(body[0],ast.Expr) and isinstance(body[0].value,ast.Constant) and isinstance(body[0].value.value,str):body=body[1:]
+        if not body or not isinstance(body[-1],ast.Return):return None
+        for guard in body[:-1]:
+            if not isinstance(guard,ast.If) or guard.orelse or len(guard.body)!=1 or not isinstance(guard.body[0],ast.Raise):return None
+        if any(isinstance(a,ast.Starred) for a in call.args) or any(k.arg is None for k in call.keywords):return None
+        bound,invalid=bind_call(fn,call,lambda n:caller.resolve(n,env),lambda n:self.resolve(n,lexical),lexical)
+        if invalid:return None
+        def string(node):
+            if isinstance(node,ast.Constant):return node.value if isinstance(node.value,str) else None
+            if isinstance(node,(ast.Name,ast.Attribute)):
+                value=self.resolve(node,bound);return value if isinstance(value,str) else None
+            if isinstance(node,ast.BinOp) and isinstance(node.op,ast.Add):
+                left,right=string(node.left),string(node.right)
+                return left+right if left is not None and right is not None else None
+            if isinstance(node,ast.JoinedStr):
+                values=[]
+                for item in node.values:
+                    if isinstance(item,ast.FormattedValue):
+                        if item.conversion!=-1 or item.format_spec is not None:return None
+                        value=string(item.value)
+                    else:value=string(item)
+                    if value is None:return None
+                    values.append(value)
+                return ''.join(values)
+            return None
+        for guard in body[:-1]:
+            test=guard.test
+            if not isinstance(test,ast.Compare) or len(test.ops)!=1:return None
+            left=string(test.left);right=test.comparators[0];op=test.ops[0]
+            if left is None:return None
+            if isinstance(op,(ast.In,ast.NotIn)):
+                if isinstance(right,(ast.Tuple,ast.List,ast.Set)):
+                    values=[string(n) for n in right.elts]
+                    if any(v is None for v in values):return None
+                elif isinstance(right,(ast.Name,ast.Attribute)):
+                    values=self.resolve(right,bound)
+                    if not isinstance(values,dict) or any(not isinstance(k,str) for k in values):return None
+                else:return None
+                raises=left in values
+                if isinstance(op,ast.NotIn):raises=not raises
+            elif isinstance(op,(ast.Eq,ast.NotEq)):
+                value=string(right)
+                if value is None:return None
+                raises=left==value
+                if isinstance(op,ast.NotEq):raises=not raises
+            else:return None
+            if raises:return None
+        return string(body[-1].value)
 
     def returned_function(self,fn,call,caller,env,lexical):
         """Bind ``def inner(...): ...; return inner`` without running its body.

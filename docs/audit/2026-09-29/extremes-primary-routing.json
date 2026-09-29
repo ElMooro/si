@@ -1,0 +1,182 @@
+{
+  "stage": 434,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T21:13:53.454781+00:00",
+  "baseline_commit": "f51a52213e07ef0a06bb4341670212367e9266a5",
+  "predecessor": "extremes-routing-predecessor.json",
+  "before_evidence": "extremes-primary-contract-gap.json",
+  "improvements": [
+    "The native caller explicitly supplies the reviewed engine identity to publication. A missing or cross-engine output identity is rejected before destination storage access.",
+    "Static analysis resolves only pure string-return helpers whose raise-only guards can be proven passed. It rejects unknown, mutable, recursive and arbitrary-call paths without executing application code.",
+    "Both dedicated pages declare the primary engine already used by their renderer. Generated source contracts now trace the actual current write path and expose its complete packet inspection.",
+    "Legacy history candidates and unresolved dynamic families remain partial and runtime-unverified. Source ownership does not authorize a model, investment call or position size.",
+    "A genuine pre-edit synthetic retained run reproduces with current reviewed code and exact predecessor storage bytes. No archived code is executed."
+  ],
+  "source": {
+    "path": "aws/shared/extremes_native_store.py",
+    "sha256": "5f188f32e99e9677f05a919531d260f98b6a60e29ab3a37621b065b07a862e44"
+  },
+  "source_scope": {
+    "scope": "Static AST comparison only; no archived code executed.",
+    "native_changed_functions": [
+      "replay",
+      "publish",
+      "run"
+    ],
+    "added": [
+      "REVIEWED_STORAGE_REVISIONS"
+    ],
+    "all_calculation_and_original_input_functions_unchanged": true
+  },
+  "importer_closure": {
+    "scope": "Read-only static current source package-closure analysis. No handlers, network, providers, native functions or archived code executed.",
+    "scanned_source_directories": 893,
+    "affected": [
+      {
+        "function": "justhodl-capitulation",
+        "shared_members": 13,
+        "direct_extremes_store": true
+      },
+      {
+        "function": "justhodl-market-extremes",
+        "shared_members": 12,
+        "direct_extremes_store": true
+      }
+    ],
+    "source_sha256": "5f188f32e99e9677f05a919531d260f98b6a60e29ab3a37621b065b07a862e44"
+  },
+  "page_contracts": {
+    "capitulation.html": {
+      "primary_producers": [
+        "justhodl-capitulation"
+      ],
+      "coverage_class": "PRIMARY_PARTIAL",
+      "primary_output_status": "PARTIAL_PRIMARY_OUTPUT_ACCESS",
+      "primary_unresolved_write_count": 3,
+      "primary_unindexed_family_count": 3,
+      "runtime_coverage": "unverified_until_opened",
+      "current_packet_source_trace": {
+        "status": "reachable_in_source",
+        "evidence_indexes": [
+          1
+        ],
+        "runtime_verified": false
+      }
+    },
+    "market-extremes.html": {
+      "primary_producers": [
+        "justhodl-market-extremes"
+      ],
+      "coverage_class": "PRIMARY_PARTIAL",
+      "primary_output_status": "PARTIAL_PRIMARY_OUTPUT_ACCESS",
+      "primary_unresolved_write_count": 3,
+      "primary_unindexed_family_count": 3,
+      "runtime_coverage": "unverified_until_opened",
+      "current_packet_source_trace": {
+        "status": "reachable_in_source",
+        "evidence_indexes": [
+          1
+        ],
+        "runtime_verified": false
+      }
+    }
+  },
+  "generated_counts_before": {
+    "duplicate_writers": 15,
+    "engines": 893,
+    "engines_without_consumer": 33,
+    "engines_without_schedule": 259,
+    "keys": 2042,
+    "orphan_engine_refs": 528,
+    "orphan_page_refs": 105,
+    "pages": 599,
+    "two_cycles": 66,
+    "unused_outputs": 155,
+    "writers": 1421
+  },
+  "generated_counts_after": {
+    "duplicate_writers": 15,
+    "engines": 893,
+    "engines_without_consumer": 33,
+    "engines_without_schedule": 259,
+    "keys": 2042,
+    "orphan_engine_refs": 528,
+    "orphan_page_refs": 105,
+    "pages": 599,
+    "two_cycles": 66,
+    "unused_outputs": 155,
+    "writers": 1421
+  },
+  "contract_counts": {
+    "public_routes": 599,
+    "engines": 893,
+    "routes_with_source_bound_outputs": 585,
+    "primary_valid_contract": 265,
+    "primary_partial": 275,
+    "support_only": 14,
+    "no_association": 3,
+    "not_applicable": 42,
+    "routes_with_api_response_contract": 23,
+    "routes_without_source_bound_outputs": 14,
+    "routes_with_primary_output_access": 538,
+    "routes_with_partial_primary_output_access": 273,
+    "all_routes_receive_inspector": false,
+    "embedded_inspection_routes": 598,
+    "standalone_inspection_routes": 1,
+    "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
+  },
+  "tests": {
+    "new_cases": 22,
+    "new_deployment_cases": 12,
+    "new_native_cases": 7,
+    "new_frontend_cases": 3,
+    "native_suites": [
+      {
+        "suite": "justhodl-capitulation",
+        "unittest_cases": 110,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-market-extremes",
+        "unittest_cases": 98,
+        "passed": true
+      }
+    ],
+    "frontend": 1894,
+    "deployment_static": 720,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "isolated_browser_qa": {
+    "scope": "Real page, renderer and inspector with synthetic current/run/output fixtures; production and external navigation blocked; no production packet requests.",
+    "capitulation_inspected_leaf_paths": 423,
+    "market_extremes_inspected_leaf_paths": 385,
+    "mocked_requests_per_page": 4,
+    "desktop_viewport": 1280,
+    "desktop_document_width": 1265,
+    "mobile_viewport": 360,
+    "mobile_document_width": 345,
+    "keyboard_disclosure_passed": true,
+    "console_errors": 0,
+    "screenshots": [
+      "stage434-capitulation-mobile.png",
+      "stage434-market-desktop.png",
+      "stage434-market-mobile.png"
+    ]
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Both exact native packages, resources/schedules and served static assets remain pending. Normal scheduled publication is separately unverified.",
+    "Primary access remains partial: each page has three unresolved writes and three unindexed families. The legacy history writer remains unproven.",
+    "Economic calculations and portfolio authority are unchanged. Original-source coverage, historical vintages, independent evidence, model validation and supported portfolio consequences remain open. All ten workstreams remain open."
+  ]
+}

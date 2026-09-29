@@ -5,6 +5,9 @@ import json,math,re,sys,time
 import extremes_native_model as model
 PREFIX=model.PREFIX;PRIVATE=model.PRIVATE;MAX=12*1024*1024;TOTAL=48*1024*1024
 COMPILERS=(model,sys.modules[__name__],*model.COMPANIONS)
+# Exact pre-routing source is retained as inert test evidence. Calculation code
+# is unchanged; old stored code is hash-checked, never executed.
+REVIEWED_STORAGE_REVISIONS=frozenset({'f3d3fdd0943d0e78d049c0dc3b4fcd51d3c8162d46bd26e9d64795620aafc09d'})
 
 def strict_json(raw):
     """Preserve JSON types; reject conflicting keys and non-finite numbers."""
@@ -139,6 +142,10 @@ def replay(ref,read):
     if set(m['compilers'])!={c.__name__ for c in COMPILERS}:raise ValueError('Compiler inventory differs')
     for c in COMPILERS:
         code=Path(c.__file__).read_bytes();digest=model.sha(code);refc=m['compilers'][c.__name__]
+        if c.__name__==__name__ and isinstance(refc,dict) and refc.get('sha256') in REVIEWED_STORAGE_REVISIONS:
+            previous=refc['sha256']
+            if refc!={'key':PREFIX+'compilers/'+previous+'.py','sha256':previous} or model.sha(read(refc['key']))!=previous:raise ValueError('Matching reviewed compiler release required')
+            continue
         if refc!={'key':PREFIX+'compilers/'+digest+'.py','sha256':digest} or read(refc['key'])!=code:raise ValueError('Matching reviewed compiler release required')
     out=compile_output(checked(m['input'],'inputs',read),read)
     if out!=checked(m['output'],'outputs',read) or model.sha(model.encoded(out))!=ref['output_sha256'] or m['output_sha256']!=ref['output_sha256'] or out['generated_at']!=m['generated_at']:raise ValueError('Synthesis replay differs')
@@ -155,8 +162,10 @@ def retain(client,bucket,inputs,output):
     ref={'manifest_key':key,'output_sha256':refs['output']['sha256']}
     if replay(ref,reader(client,bucket))!=output:raise ValueError('Retained replay differs')
     return ref
-def publish(client,bucket,packet):
-    key=current(packet['engine']);at=model.clock(packet['generated_at'])
+def publish(client,bucket,engine,packet):
+    key=current(engine)
+    if not isinstance(packet,dict) or packet.get('engine')!=engine:raise ValueError('Publication engine identity differs')
+    at=model.clock(packet['generated_at'])
     for _ in range(4):
         try:
             obj=client.get_object(Bucket=bucket,Key=key);raw=bounded(obj['Body']);old=strict_json(raw)
@@ -191,7 +200,7 @@ def run(client,bucket,engine,request_id,execution_id,remaining_seconds=60):
         inputs={'contract':'extremes-native-inputs.v1','engine':engine,'started_at':start,'generated_at':now(),'sources':sources}
         status['phase']='compile';write(status);output=compile_output(inputs,reader(client,bucket))
         status['phase']='retained_replay';write(status);ref=retain(client,bucket,inputs,output)
-        status['phase']='publish';write(status);published=publish(client,bucket,{**output,'replay':ref})
+        status['phase']='publish';write(status);published=publish(client,bucket,engine,{**output,'replay':ref})
         result={**status,'status':'complete','phase':'complete','completed_at':now(),'published':published,'generated_at':output['generated_at'],'quality':output['quality'],'replay':ref,
             'provider_requests':0,'private_account_reads':0,'paid_ai_calls':0,'notifications_sent':0,'portfolio_writes':0}
         write(result);return result

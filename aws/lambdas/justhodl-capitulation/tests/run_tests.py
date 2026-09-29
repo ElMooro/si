@@ -44,3 +44,6 @@ if __name__=='__main__':
 if __name__=='__main__':
     from extremes_json_tests import run as run_extremes_json
     run_extremes_json()
+
+import extremes_routing_tests
+extremes_routing_tests.run()

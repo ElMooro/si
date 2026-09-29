@@ -95,13 +95,13 @@ class StrictJSON(unittest.TestCase):
         with self.assertRaises(ValueError):store.replay(ref,store.reader(s,'synthetic'))
     def test_current_predecessor_ambiguity_preserves_whole_object_and_no_write(self):
         s,_,p=packet();key=store.current('capitulation');raw=duplicate(store.model.encoded(p));s.objects[key]=raw;before=dict(s.objects);writes=len(s.writes)
-        with self.assertRaises(ValueError):store.publish(s,'synthetic',p)
+        with self.assertRaises(ValueError):store.publish(s,'synthetic',p['engine'],p)
         self.assertEqual(s.objects,before);self.assertEqual(len(s.writes),writes)
     def test_ambiguous_publication_readback_is_never_success(self):
         s,_,p=packet();read=store.reader(s,'synthetic');key=store.current('capitulation')
         def altered(k):return duplicate(read(k)) if k==key else read(k)
         with patch.object(store,'reader',return_value=altered):
-            with self.assertRaises(ValueError):store.publish(s,'synthetic',p)
+            with self.assertRaises(ValueError):store.publish(s,'synthetic',p['engine'],p)
         self.assertEqual(s.objects[key],store.model.encoded(p))
     def test_ambiguous_existing_request_never_becomes_complete_or_republishes(self):
         s=Storage();key=store.request_key('capitulation','same');raw=b'{"status":"failed","status":"complete"}';s.objects[key]=raw
