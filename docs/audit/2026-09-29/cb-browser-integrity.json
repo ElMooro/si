@@ -1,0 +1,83 @@
+{
+  "stage": 436,
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T22:04:19.089047+00:00",
+  "baseline_commit": "fae034a52971010ef696354c934faafe7f5881d7",
+  "predecessor": "cb-browser-predecessor.json",
+  "improvements": [
+    "Observation dates must be exact Gregorian days and timestamps must contain a valid timezone. Numeric primitives alone are measurements; blank strings, arrays and booleans cannot become zero or inflate usable counts.",
+    "Current pointers and immutable snapshots use fatal UTF-8 decoding and strict JSON with duplicate decoded keys, nonfinite numbers and invalid Unicode rejected. Every current field must agree with the full immutable output.",
+    "Complete bounded response reading has a 12-second application deadline covering both headers and body. Cancellation, late responses, missing readers, malformed chunks and oversized bodies fail without displaying a prefix.",
+    "Empty or repeated pinned-run parameters cannot silently select current data. Snapshot identities, byte lengths, hashes, aware clocks and descriptive/no-sizing contract are checked.",
+    "The complete genuine pre-change native synthetic packet is retained by both current and pinned paths without dropping fields. Existing horizons, settlement scopes, no-sizing meaning and local refresh cadence are preserved."
+  ],
+  "tests": {
+    "new_browser_cases": 16,
+    "focused_browser_cases": 22,
+    "frontend": 1910,
+    "native_suites": [
+      {
+        "suite": "justhodl-cb-injection",
+        "unittest_cases": 39,
+        "passed": true
+      }
+    ],
+    "deployment_static": 723,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_acceptance": {
+    "scope": "Isolated local preview with CSP denying connections and synthetic in-memory responses only; no production browser navigation.",
+    "current_reads": 3,
+    "pinned_reads": 2,
+    "invalid_reads": 1,
+    "timeout_reads": 1,
+    "native_usable": "13/13",
+    "ecb_usable": "3/3",
+    "negative_snb_rate": -0.045,
+    "missing_snb_balance_sheet": "unavailable",
+    "horizons": "Calendar six-month selection checked; absent baselines remain unavailable.",
+    "evidence": "Keyboard-opened Fed source disclosure shows original WALCL row and USD-million to USD-billion conversion.",
+    "desktop": {
+      "viewport": 1280,
+      "document": 1265,
+      "overflow": false
+    },
+    "mobile": {
+      "viewport": 360,
+      "document": 345,
+      "overflow": false
+    },
+    "duplicate_pointer": "Visible Duplicate JSON key failure with zero measurement cards.",
+    "stalled_request": "Visible Research request timed out failure with zero measurement cards.",
+    "console_errors": 0,
+    "screenshots": [
+      "stage436-cb-desktop.png",
+      "stage436-cb-mobile.png",
+      "stage436-cb-rejected.png",
+      "stage436-cb-timeout.png"
+    ],
+    "final_validity_fix": "Current-source preview checked again after the usable-count fix; normal synthetic values and counts remain unchanged."
+  },
+  "unchanged_native_release": {
+    "commit": "28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3",
+    "evidence": "cb-transport-integrity.json",
+    "native_code_changed": false,
+    "calculation_compilers_changed": false
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "live_current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact static deployment is pending. Normal scheduled native publication remains separately unverified.",
+    "Browser hash identity and complete transport do not establish original-provider completeness, economic truth, model edge or portfolio suitability.",
+    "Synthetic rates and data used for preview are explicitly synthetic and are not live measurements. All ten workstreams remain open."
+  ]
+}

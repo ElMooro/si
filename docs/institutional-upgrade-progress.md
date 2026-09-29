@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 435 exact native/static acceptance: all ten workstreams remain open. CB complete-response transport 28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3 is accepted across the actual eleven-member package and fifteen whole static assets. All six calculation compilers, runtime resources and complete schedule remain unchanged. Fourteen new transport cases, three restricted-operation cases, native 39, frontend 1,894, deployment 723/twelve shell and 599 page graphs pass. The genuine predecessor replay reproduces with current code. Separate CB browser date/JSON/deadline gaps are reproduced for repair next. Normal publication, historical vintages, model validation and supported portfolio consequences remain open.
+September 29, after Stage 436 source and isolated browser acceptance: all ten workstreams remain open. The Central Bank Injection page now validates exact dates, numeric measurements, strict JSON/UTF-8, complete snapshot identity and whole current-pointer equality. Fetch/body deadlines fail visibly, and empty/repeated pinned identifiers cannot silently select latest data. Sixteen new browser cases, focused 22, frontend 1,910, unchanged native 39, deployment 723/twelve shell, 599 page graphs and 143 wires pass. Desktop/mobile, keyboard evidence, current/pinned, malformed and stalled synthetic cases pass. Exact static deployment remains pending. Native code, calculations, resources and schedule are unchanged; normal publication and wider model/portfolio qualification remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -6052,3 +6052,11 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 - Isolated current-source helpers accept February 30 as a fresh observation and accept a hash-matching snapshot containing duplicate call keys. The current and immutable response readers also lack an application-level fetch/body deadline. These are source and synthetic findings, not observed production incidents. The three complete current page sources are frozen before repair.
 - Repair date/JSON identity and response lifecycle without changing the engine calculations, original-source scope, existing calendar horizons or no-sizing contract. Evidence: `docs/audit/2026-09-29/cb-browser-source-gap.json`.
+
+
+### Stage 436 Central Bank Injection browser integrity
+
+- Current-source synthetic reproductions accepted February 30 as fresh, coerced empty arrays into zero and allowed duplicate JSON identities despite matching content hashes. Complete original HTML and both scripts are preserved inertly before repair.
+- Exact Gregorian/timezone checks, numeric-only measurements, strict UTF-8/JSON and whole immutable/current equality now reject ambiguous evidence. Twelve-second fetch/body deadlines and cancellation cleanup handle stalled or incomplete delivery without accepting a prefix. Empty/repeated snapshot parameters fail visibly.
+- Sixteen new cases and the full frontend 1,910 pass; unchanged native 39 and deployment 723/twelve shell pass. The complete genuine synthetic native bundle deep-equals both browser loading paths. Desktop and 360-pixel mobile layouts, keyboard evidence, six-month comparisons, signed rates, missing values, duplicate JSON and stalled loads pass in an isolated preview with no external connections.
+- This batch changes page sources only, plus tests and source-bound documentation. No native producer invocation, live/current/private packet access, provider probe, native calculation/resource/schedule or portfolio authority change occurred. Static deployment remains pending. Evidence: `docs/audit/2026-09-29/cb-browser-integrity.json`.

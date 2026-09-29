@@ -1,0 +1,86 @@
+{
+  "sources": [
+    {
+      "source": "jh-cb-research.js",
+      "local_file": "stage436-predecessor-jh-cb-research.js.txt",
+      "bytes": 10229,
+      "sha256": "0bfb0a2d0785362991655b3d25083680dfd130266b89ed54f53c371d57b62cc9",
+      "fixture": "tests/fixtures/pre-cb-browser-jh-cb-research.js.txt"
+    },
+    {
+      "source": "jh-cb-page.js",
+      "local_file": "stage436-predecessor-jh-cb-page.js.txt",
+      "bytes": 1504,
+      "sha256": "3e01255b95dcf231158cbfadc07e5c3a7825d709946b5e0c2069cca81e2e9618",
+      "fixture": "tests/fixtures/pre-cb-browser-jh-cb-page.js.txt"
+    },
+    {
+      "source": "cb-injection.html",
+      "local_file": "stage436-predecessor-cb-injection.html.txt",
+      "bytes": 6303,
+      "sha256": "9e55a768846c79256be5d2064091833cb344d010e3fbe66ede026681c3c9eed3",
+      "fixture": "tests/fixtures/pre-cb-browser-cb-injection.html.txt"
+    }
+  ],
+  "reproduction": {
+    "scope": "Current-source pure browser helpers with synthetic values and in-memory Response objects. No live packets, network, browser production navigation or archived code execution.",
+    "source_sha256": {
+      "jh-cb-research.js": "0bfb0a2d0785362991655b3d25083680dfd130266b89ed54f53c371d57b62cc9",
+      "jh-cb-page.js": "3e01255b95dcf231158cbfadc07e5c3a7825d709946b5e0c2069cca81e2e9618",
+      "cb-injection.html": "9e55a768846c79256be5d2064091833cb344d010e3fbe66ede026681c3c9eed3"
+    },
+    "invalid_february_date_accepted_as_fresh": true,
+    "duplicate_call_field_accepted": true,
+    "synthetic_response_count": 2,
+    "source_findings": [
+      "Current and immutable reads have no application-level fetch/body deadline.",
+      "Snapshot JSON uses permissive decoding and duplicate-key parsing.",
+      "Current freshness parses dates with Date.parse rather than exact Gregorian validation."
+    ],
+    "status": "source_and_synthetic_gaps_reproduced_not_repaired"
+  },
+  "source_commit": "fae034a52971010ef696354c934faafe7f5881d7",
+  "numeric_reproduction": {
+    "scope": "Current source formatter with synthetic JSON-compatible values only; no packet reads.",
+    "samples": [
+      {
+        "input": [],
+        "formatted": "0"
+      },
+      {
+        "input": [
+          5
+        ],
+        "formatted": "5"
+      },
+      {
+        "input": {},
+        "formatted": "Unavailable"
+      },
+      {
+        "input": " ",
+        "formatted": "0"
+      },
+      {
+        "input": true,
+        "formatted": "Unavailable"
+      },
+      {
+        "input": false,
+        "formatted": "Unavailable"
+      },
+      {
+        "input": null,
+        "formatted": "Unavailable"
+      },
+      {
+        "input": 0,
+        "formatted": "0"
+      },
+      {
+        "input": -0.045,
+        "formatted": "-0.045"
+      }
+    ]
+  }
+}
