@@ -1,0 +1,112 @@
+{
+  "base": "a349877419da2ee88b0282786bf5f993782ca652",
+  "started_at": "2026-09-29T14:38:46.507712+00:00",
+  "fixtures": [
+    {
+      "source": "aws/shared/auction_buybacks.py",
+      "fixture": "tests/fixtures/pre-auction-fill-semantics-aws-shared-auction_buybacks.py.txt",
+      "bytes": 16834,
+      "sha256": "b13ec9b3799b10f2c2ad512ee1d6a4e6623d62e6cf5a32f2ab049926de7a4edc"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-desk/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-auction-fill-semantics-aws-lambdas-justhodl-auction-desk-source-lambda_function.py.txt",
+      "bytes": 65536,
+      "sha256": "4363e58de6ad36b52d3705afe9cf55217532a9e57f0bc3bccd9c34ac5c714759"
+    },
+    {
+      "source": "auction-desk-delivery.js",
+      "fixture": "tests/fixtures/pre-auction-fill-semantics-auction-desk-delivery.js.txt",
+      "bytes": 13180,
+      "sha256": "b5c1f75bb422c6094bec01990457381b6ef1771f03985fe79b836072015d04df"
+    },
+    {
+      "source": "auctions.html",
+      "fixture": "tests/fixtures/pre-auction-fill-semantics-auctions.html.txt",
+      "bytes": 92401,
+      "sha256": "3470ad90244c83becc9d46749fd47c32d17c7dac877e55ba0f82a77722c228a7"
+    }
+  ],
+  "actual_runtimes": {
+    "justhodl-auction-desk": {
+      "code_sha256": "ZRp5H0+sudSaP0wsl4YL6o1yBaD9v/jsdHMrbmGGpaU=",
+      "source_files_checked": 12,
+      "handler_bytes": 65536,
+      "timeout": 300,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-results",
+          "state": "ENABLED",
+          "expression": "cron(40 13 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-late",
+          "state": "ENABLED",
+          "expression": "cron(35 16 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-buyback",
+          "state": "ENABLED",
+          "expression": "cron(10 12 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-morning",
+          "state": "ENABLED",
+          "expression": "cron(15 9 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-auction-desk",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  },
+  "reproduced": {
+    "accepted_usd_par": 4500000000.0,
+    "maximum_usd_par": 5000000000.0,
+    "fill_pct": 90.0,
+    "operation_tags": [
+      "TGA-CASH-OUT SIGNAL",
+      "TGA CASH-OUT; NOT AN EASING CALL"
+    ],
+    "day_tags": [
+      "BUYBACK",
+      "TGA-CASH-OUT SIGNAL",
+      "TGA CASH-OUT; NOT AN EASING CALL"
+    ],
+    "cash_settlement_usd": null,
+    "cash_settlement_verified": false,
+    "legacy_source_download": "Current client returns no bound source for a loaded legacy packet; page uses mutable FEED"
+  },
+  "verification_boundary": {
+    "synthetic_only": true,
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "provider_requests": 0
+  }
+}

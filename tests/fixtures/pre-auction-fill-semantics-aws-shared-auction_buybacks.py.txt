@@ -13,8 +13,6 @@ import re
 from auction_reactions import day, safe
 
 CONTRACT = 'auction-buyback-inputs.v1'
-FILL_CONTRACT = 'auction-buyback-fill.v1'
-FILL_FIELDS = ('fill_classification', 'liquidity_signal_semantics', 'cash_effect')
 METRICS = ('max_par', 'offered', 'accepted', 'n_issues_eligible', 'n_issues_accepted')
 FLAGS = {key: False for key in ('original_source_verified', 'population_coverage_verified',
                                'historical_point_in_time_verified', 'cash_settlement_verified',
@@ -205,19 +203,7 @@ def analyze(op, program, as_of):
     if valid and maximum and accepted == maximum:
         tags.append('MAX FILL')
     if size == 'strong':
-        tags.append('LARGE HIGH-FILL BUYBACK')
-    fill_class = {'strong':'large_high_fill', 'moderate':'accepted_par_at_least_2bn',
-                  'light':'other_valid_operation', 'unavailable':'unavailable'}[size]
-    classification = {'contract':FILL_CONTRACT, 'value':fill_class, 'status':'complete' if valid else 'unavailable',
-                      'accepted_usd_par':accepted, 'maximum_usd_par':maximum,
-                      'rule':'In order: complete operation with maximum par >= USD 5bn and exact accepted/maximum >= 9/10; otherwise accepted par >= USD 2bn; otherwise other valid operation. Incomplete operations are unavailable.',
-                      'role':'Descriptive operation size and fill only; thresholds are not calibrated investment signals', **FLAGS}
-    cash_effect = {'status':'unmeasured', 'reported_settlement_date':op.get('settlement_date'),
-                   'cash_settlement_usd':None, 'net_reserve_change_usd':None, 'duration_removed_dv01_usd':None,
-                   'required_inputs':['security-level accepted par, settlement prices and accrued interest',
-                                      'verified actual settlement and financing offsets',
-                                      'security-level duration for interest-rate exposure'],
-                   'portfolio_consequence':'Monitor the operation; these par-fill inputs do not establish cash, reserve, duration or return effects', **FLAGS}
+        tags += ['TGA-CASH-OUT SIGNAL','TGA CASH-OUT; NOT AN EASING CALL']
     trace = {'contract': CONTRACT, 'status':'complete' if valid else 'unavailable', 'problems':problems,
              'as_of':as_of, 'operation_identity':identity(op), 'input':safe(op),
              'fill':{'numerator_usd_par':accepted,'denominator_usd_par':maximum,'value_pct':round(fill,1) if fill is not None else None,
@@ -228,10 +214,6 @@ def analyze(op, program, as_of):
                                 'formula':'100 * (strictly smaller + half equal) / every supplied strictly earlier matched operation; no future or same-day operations'}, **FLAGS}
     result.update(fill_pct=trace['fill']['value_pct'], coverage=trace['coverage']['value'], size_pctile=rank,
                   liquidity_signal=size,tags=tags,measurement_inputs=trace,
-                  fill_classification=classification,
-                  liquidity_signal_semantics={'deprecated':True, 'alias_for':'fill_classification',
-                    'meaning':'Legacy strong/moderate/light labels describe par size and fill, not liquidity or expected asset returns'},
-                  cash_effect=cash_effect,
                   cash_settlement_usd=None,monetary_easing_inferred=False,call=None)
     return result
 
@@ -287,23 +269,11 @@ def replay(document):
         if trace.get('contract') == CONTRACT and normalize(trace['source_fields']) != row:
             raise ValueError('Saved normalization does not match retained source fields')
     rebuilt = [analyze(row, originals, dates['as_of']) for row in originals]
-    legacy_rows = 0
     for expected, actual in zip(rebuilt, operations):
-        # Replay older supplied arithmetic without executing an archived compiler
-        # or endorsing its unsupported cash-language labels. Partial new metadata
-        # remains a mismatch, not a reason to take the compatibility branch.
-        if not any(key in actual for key in FILL_FIELDS):
-            legacy_rows += 1
-            expected = {key:value for key,value in expected.items() if key not in FILL_FIELDS}
-            if expected['liquidity_signal'] == 'strong':
-                expected['tags'] = [tag for tag in expected['tags'] if tag != 'LARGE HIGH-FILL BUYBACK'] + [
-                    'TGA-CASH-OUT SIGNAL','TGA CASH-OUT; NOT AN EASING CALL']
         for key, value in expected.items():
             if actual.get(key) != value:
                 raise ValueError('Buyback replay mismatch: '+key)
     summary = program_summary(rebuilt, dates['as_of'], dates['fiscal_start'], dates['last4w_start'])
     if summary != reported:
         raise ValueError('Buyback aggregate replay mismatch')
-    return {'status':'identical_supplied_arithmetic','operations':len(operations),'contract':CONTRACT,
-            'legacy_classification_rows':legacy_rows,
-            'legacy_cash_labels_qualified':False, **FLAGS}
+    return {'status':'identical_supplied_arithmetic','operations':len(operations),'contract':CONTRACT, **FLAGS}

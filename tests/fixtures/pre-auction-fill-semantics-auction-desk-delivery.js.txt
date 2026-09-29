@@ -77,11 +77,6 @@
     const timeout = options.timeout || 12000;
     const legacyTimeout = options.legacyTimeout || options.timeout || 30000;
     const contexts = new WeakMap(), cache = new Map();
-    const urls = options.URL || globalThis.URL, BlobType = options.Blob || globalThis.Blob;
-    async function digest(raw) {
-      if (!crypto?.subtle) throw Error('Evidence checksum verification unavailable');
-      return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw))).map(x=>x.toString(16).padStart(2,'0')).join('');
-    }
     async function get(origin,key,limit,mutable=false,deadline=timeout) {
       // The proxy intentionally ignores arbitrary cache-busting parameters.
       // Its existing exact read route bypasses mutable cache and cold generation.
@@ -98,7 +93,8 @@
       }
       const raw = await get(origin,ref.key,ref.bytes);
       if (raw.byteLength !== ref.bytes) throw Error('Evidence length differs');
-      const hash = await digest(raw);
+      if (!crypto?.subtle) throw Error('Evidence checksum verification unavailable');
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw))).map(x=>x.toString(16).padStart(2,'0')).join('');
       if (hash !== ref.sha256) throw Error('Evidence checksum differs');
       const doc = parse(raw);
       // Bound the cache to avoid accumulating old 8 MB comparison populations.
@@ -139,14 +135,8 @@
       // to the large legacy packet or silently truncate its retained inputs.
       for (const origin of ORIGINS) {
         try {
-          const raw = await get(origin,'data/auction-desk.json',MAX,true,legacyTimeout);
-          const view = packet(parse(raw));
+          const view = packet(parse(await get(origin,'data/auction-desk.json',MAX,true,legacyTimeout)));
           if (view.delivery) throw Error('A projection requires its bound manifest');
-          // Retain the received bytes, including whitespace and key order. A
-          // later click must not refetch a mutable packet from another run.
-          const hash = crypto?.subtle ? await digest(raw) : null;
-          const blob = typeof BlobType === 'function' ? new BlobType([raw],{type:'application/json'}) : null;
-          contexts.set(view,{origin,legacy:{blob,sha256:hash,bytes:raw.byteLength},url:null});
           return view;
         } catch (error) {problems.push(error.message);}
       }
@@ -155,7 +145,7 @@
     async function detail(view,row) {
       if (!row.delivery_detail) return row;
       const ctx = contexts.get(view), bound = row.delivery_detail;
-      if (!ctx?.manifest || ![...view.auctions,...view.today.auctions,...view.buybacks.operations,...view.today.buybacks].includes(row)) throw Error('Detail is not part of the displayed snapshot');
+      if (!ctx || ![...view.auctions,...view.today.auctions,...view.buybacks.operations,...view.today.buybacks].includes(row)) throw Error('Detail is not part of the displayed snapshot');
       const doc = await artifact(ctx.origin,bound.artifact,'rows');
       if (doc.contract !== CONTRACT || doc.kind !== bound.kind || !Array.isArray(doc.rows) || !object(doc.rows[bound.index])) throw Error('Invalid retained operation');
       const full = doc.rows[bound.index];
@@ -176,7 +166,7 @@
     }
     async function program(view) {
       const ctx = contexts.get(view);
-      if (!ctx?.manifest) return view.buybacks.program;
+      if (!ctx) return view.buybacks.program;
       const doc = await artifact(ctx.origin,ctx.manifest.sections.buyback_program,'sections');
       if (doc.contract !== CONTRACT || doc.section !== 'buyback_program' || !object(doc.value)) throw Error('Invalid retained program');
       const projected = Object.fromEntries(Object.entries(doc.value).filter(([k])=>k!=='aggregate_inputs'));
@@ -189,19 +179,9 @@
     }
     function source(view) {
       const ctx = contexts.get(view);
-      if (ctx?.manifest) return {url:ctx.origin+ctx.manifest.source_packet.key,bytes:ctx.manifest.source_packet.bytes,
-        sha256:ctx.manifest.source_packet.sha256,encoding:'gzip',integrity_basis:'retained_manifest',download:'auction-desk-'+ctx.manifest.source_packet.sha256+'.json.gz'};
-      if (!ctx?.legacy?.blob || !ctx.legacy.sha256 || typeof urls?.createObjectURL !== 'function' || typeof urls?.revokeObjectURL !== 'function') return null;
-      if (!ctx.url) ctx.url = urls.createObjectURL(ctx.legacy.blob);
-      return {url:ctx.url,bytes:ctx.legacy.bytes,sha256:ctx.legacy.sha256,encoding:'json',
-        integrity_basis:'received_legacy_bytes',download:'auction-desk-'+ctx.legacy.sha256+'.json'};
+      return ctx ? {url:ctx.origin+ctx.manifest.source_packet.key,bytes:ctx.manifest.source_packet.bytes,sha256:ctx.manifest.source_packet.sha256} : null;
     }
-    function release(view) {
-      const ctx = contexts.get(view);
-      if (ctx?.url) urls.revokeObjectURL(ctx.url);
-      contexts.delete(view);
-    }
-    return {load,detail,program,source,release};
+    return {load,detail,program,source};
   }
   return {CONTRACT,FLAGS,reference,packet,bytes,createClient};
 });

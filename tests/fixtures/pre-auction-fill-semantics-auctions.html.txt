@@ -220,7 +220,7 @@
 <div class="container">
 
 <header class="top">
-  <h1>🏛️ Treasury Auctions <span class="sub">— results, comparable participation and buyback measurements</span></h1>
+  <h1>🏛️ Treasury Auctions <span class="sub">— same-day results, buybacks, graded demand &amp; what it means for liquidity and risk assets</span></h1>
   <nav class="crumbs">
     <a href="/">Desk</a>
     <a href="/auctions.html" class="active">Auctions</a>
@@ -352,7 +352,7 @@
 <div class="desk-delivery-controls" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 12px">
   <button type="button" id="desk-refresh">Refresh desk</button>
   <span id="desk-delivery-status" role="status" aria-live="polite" style="overflow-wrap:anywhere">Loading dated research snapshot…</span>
-  <a id="desk-complete-packet" hidden target="_blank" rel="noopener">Download complete packet</a>
+  <a id="desk-complete-packet" href="https://justhodl-data-proxy.raafouis.workers.dev/data/auction-desk.json" target="_blank" rel="noopener">Download complete packet</a>
 </div>
 <div id="auction-desk-shell" hidden>
 <div class="desk-banner" id="desk-banner">
@@ -388,7 +388,7 @@
       <div class="desk-stats" id="bb-stats"></div>
       <p class="desk-src" id="bb-sample"></p>
       <svg class="desk-chart" id="bb-chart" viewBox="0 0 720 190" preserveAspectRatio="none" role="img" aria-label="Buyback accepted par for the displayed operation sample; unavailable results shown as gaps"></svg>
-      <div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Operation</th><th>Bucket</th><th>Type</th><th class="r">Max</th><th class="r">Offered</th><th class="r">Accepted</th><th class="r">Fill</th><th class="r">Cover</th><th>Operation description</th></tr></thead><tbody id="bb-table"></tbody></table></div>
+      <div style="overflow-x:auto;margin-top:10px"><table><thead><tr><th>Operation</th><th>Bucket</th><th>Type</th><th class="r">Max</th><th class="r">Offered</th><th class="r">Accepted</th><th class="r">Fill</th><th class="r">Cover</th><th>Signal</th></tr></thead><tbody id="bb-table"></tbody></table></div>
       <div id="bb-inputs"></div>
     </div>
   </section>
@@ -469,7 +469,7 @@
     b.className = "desk-banner " + (v.risk_assets === "bullish" ? "bullish" : v.risk_assets === "bearish" ? "bearish" : v.risk_assets === "mixed" ? "mixed" : "");
     $("desk-fresh").textContent = `${fmtDate(v.date)} · engine ran ${ago(D.generated_at)} · newest auction ${D.freshness.newest_auction || "—"} · newest buyback ${D.freshness.newest_buyback || "—"}`;
     $("desk-headline").textContent = v.headline;
-    $("desk-tags").innerHTML = measurementTags(v.tags).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("");
+    $("desk-tags").innerHTML = (v.tags || []).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("");
     const liq = v.liquidity, rates = v.rates, risk = v.risk_assets;
     $("desk-implications").innerHTML = [
       ["Treasury cash context", liq === "cash_management_context" ? "Buyback accepted par observed; settlement and financing offsets require separate measurement" : "Net liquidity effect not established", ""],
@@ -533,21 +533,15 @@
   const evidenceId = b => b.delivery_detail.artifact.sha256 + ':' + b.delivery_detail.index;
   function buybackDisclosure(b) {
     if (b.delivery_contract === 'auction-desk-delivery.v1') return deferredEvidence('Inspect buyback fields and calculation inputs',evidenceId(b),'Buyback calculation inputs');
-    const inputs = b;
+    const inputs = b.measurement_inputs || {status: "unavailable", reason: "Legacy packet lacks retained buyback field mappings"};
     return `<details class="grade-inputs"><summary>Inspect buyback fields and calculation inputs</summary><pre tabindex="0" role="region" aria-label="Buyback calculation inputs">${esc(JSON.stringify(inputs, null, 2))}</pre></details>`;
-  }
-  function measurementTags(tags) {
-    // Old ordinary packets remain valid arithmetic during rollout. Their
-    // unsupported cash-language tags must not become current cash evidence.
-    return [...new Set((Array.isArray(tags) ? tags : []).map(tag =>
-      ['TGA-CASH-OUT SIGNAL','TGA CASH-OUT; NOT AN EASING CALL'].includes(tag) ? 'CASH EFFECT UNMEASURED' : tag))];
   }
   function buybackCard(b) {
     const secs = (b.securities || []).slice(0, 40), complete = buybackComplete(b), rank = complete ? b.size_pctile : null;
     const prior = buybackTrace(b)?.size_comparison;
     return `<div class="op-card buyback">
       <div class="op-head"><span class="t">Treasury buyback</span><span class="s">${esc(b.maturity_bucket || "Unknown bucket")} · ${esc(b.operation_type || "Unknown type")} · settles ${esc(b.settlement_date || "Unknown")}</span></div>
-      <div class="desk-tags">${(complete ? measurementTags(b.tags) : ["MEASUREMENT UNAVAILABLE"]).map(t => `<span class="desk-tag">${esc(t)}</span>`).join("")}</div>
+      <div class="desk-tags">${(complete ? b.tags || [] : ["MEASUREMENT UNAVAILABLE"]).map(t => `<span class="desk-tag">${esc(t)}</span>`).join("")}</div>
       <div class="op-metrics">
         <div class="op-m"><div class="l">Maximum par</div><div class="v">${bn(buybackMetric(b,"max_par"))}</div></div>
         <div class="op-m"><div class="l">Offered par</div><div class="v">${bn(buybackMetric(b,"offered"))}</div><div class="z">${complete && Number.isFinite(b.coverage) ? b.coverage.toFixed(2) + "x accepted" : "Coverage unavailable"}</div></div>
@@ -600,7 +594,7 @@
     } else svg.innerHTML='<text x="24" y="90" fill="#6b7a92">No dated, current-contract operations to plot.</text>';
     $("bb-table").innerHTML=ops.slice(0,14).map(o => {
       const complete=buybackComplete(o);
-      return `<tr><td class="tk">${esc(o.operation_date || "Unknown")}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(buybackMetric(o,"max_par"))}</td><td class="r">${bn(buybackMetric(o,"offered"))}</td><td class="r"><b>${bn(buybackMetric(o,"accepted"))}</b></td><td class="r">${pct(complete ? o.fill_pct : null,1)}</td><td class="r">${complete && Number.isFinite(o.coverage) ? o.coverage.toFixed(2)+"x" : "—"}</td><td>${complete ? esc(measurementTags(o.tags).join(" · ") || "Measured") : "Unavailable / future"}</td></tr>`;
+      return `<tr><td class="tk">${esc(o.operation_date || "Unknown")}</td><td>${esc(o.maturity_bucket || "—")}</td><td>${esc(o.operation_type || "—")}</td><td class="r">${bn(buybackMetric(o,"max_par"))}</td><td class="r">${bn(buybackMetric(o,"offered"))}</td><td class="r"><b>${bn(buybackMetric(o,"accepted"))}</b></td><td class="r">${pct(complete ? o.fill_pct : null,1)}</td><td class="r">${complete && Number.isFinite(o.coverage) ? o.coverage.toFixed(2)+"x" : "—"}</td><td>${complete ? esc((o.tags || []).join(" · ") || "Measured") : "Unavailable / future"}</td></tr>`;
     }).join("") || '<tr><td colspan="9" class="flat">No retained buyback operations; totals unavailable.</td></tr>';
     $("bb-inputs").innerHTML=P.delivery_detail ? deferredEvidence("Inspect aggregate inputs and coverage","program","Buyback aggregate inputs") : `<details class="grade-inputs"><summary>Inspect aggregate inputs and coverage</summary><pre tabindex="0" role="region" aria-label="Buyback aggregate inputs">${esc(JSON.stringify(current ? A : {status:"unavailable",reason:"Legacy aggregate lacks retained calculation inputs"},null,2))}</pre></details>`;
   }
@@ -618,7 +612,7 @@
   }
 
   function renderDays(D) {
-    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline)}</td><td>${measurementTags(v.tags).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted != null ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
+    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline)}</td><td>${(v.tags || []).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted != null ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
   }
 
   let tapeFilter = "All";
@@ -648,7 +642,7 @@
         <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="4" y1="${y(avg).toFixed(1)}" x2="${W - 4}" y2="${y(avg).toFixed(1)}" stroke="#6b7a92" stroke-dasharray="3 3"/><path d="${path}" fill="none" stroke="#06b6d4" stroke-width="1.6"/>${pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.btc).toFixed(1)}" r="1.8" fill="${p.grade === "A" || p.grade === "B" ? "#22c55e" : p.grade === "D" || p.grade === "F" ? "#ef4444" : "#6b7a92"}"><title>${p.d} · BTC ${p.btc.toFixed(2)} · grade ${p.grade}${p.prior_close_concession_bp != null ? " · prior-close context " + p.prior_close_concession_bp.toFixed(1) + "bp" : ""}</title></circle>`).join("")}</svg></div>`;
     }).join("");
     const m = D.methodology || {};
-    $("desk-method").innerHTML = `<b>How the grades are made.</b> ${esc(m.z_scores || "")}. Grade: ${esc(m.grade || "")}. Prior-close context: ${esc(m.tail_proxy || "")}. Buyback size and fill: ${esc(m.buyback_signal || "")}. <span class="desk-src">Sources: ${Object.values(D.sources || {}).map(esc).join(" · ")}. Engine <b>justhodl-auction-desk v${esc(D.version)}</b>, ran ${ago(D.generated_at)}.</span>`;
+    $("desk-method").innerHTML = `<b>How the grades are made.</b> ${esc(m.z_scores || "")}. Grade: ${esc(m.grade || "")}. Prior-close context: ${esc(m.tail_proxy || "")}. Buyback signal: ${esc(m.buyback_signal || "")}. <span class="desk-src">Sources: ${Object.values(D.sources || {}).map(esc).join(" · ")}. Engine <b>justhodl-auction-desk v${esc(D.version)}</b>, ran ${ago(D.generated_at)}.</span>`;
   }
 
   function renderReactions(D) {
@@ -715,7 +709,7 @@
           const id = el.dataset.deskEvidence;
           const row = id === 'program' ? null : [...D.buybacks.operations,...D.today.buybacks].find(b => b.delivery_detail && evidenceId(b) === id);
           if (id !== 'program' && !row) throw Error('Operation is not in the displayed snapshot');
-          const inputs = id === 'program' ? (await client().program(D)).aggregate_inputs : await client().detail(D,row);
+          const inputs = id === 'program' ? (await client().program(D)).aggregate_inputs : (await client().detail(D,row)).measurement_inputs;
           if (window.__AUCTION_DESK !== D || !el.isConnected) return;
           pre.textContent = JSON.stringify(inputs || {status:'unavailable',reason:'Retained calculation contract absent'},null,2);
           pre.hidden = false; status.textContent = 'Complete retained inputs for ' + D.generated_at + '. Byte integrity does not certify the original provider or grant trading authority.'; done = true;
@@ -746,43 +740,31 @@
   function commitSnapshot(D) {
     const old = document.getElementById('auction-desk-shell'), draft = old.cloneNode(true), previousFilter = tapeFilter;
     const trigger = document.getElementById('triggers'), triggerDraft = trigger?.cloneNode(true);
-    const source = client().source(D), link = document.getElementById('desk-complete-packet');
-    const previousLink = Object.fromEntries(['href','hidden','download','textContent','title'].map(key => [key,link[key]]));
     try {
       renderRoot = draft;
       renderBanner(D); renderReactions(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
       if (triggerDraft && typeof window.renderTriggers === 'function') window.renderTriggers(D,triggerDraft);
       renderRoot = null; draft.hidden = false; old.replaceWith(draft);
       if (triggerDraft) trigger.replaceWith(triggerDraft);
-      try {
-        wireExplainer(D); wireEvidence(D);
-        link.hidden = !source; link.href = source?.url || ''; link.download = source?.download || '';
-        link.textContent = source?.encoding === 'gzip' ? 'Download complete retained packet (.json.gz)' : 'Download this exact packet (.json)';
-        link.title = source ? (source.encoding === 'gzip' ? 'Uncompressed' : 'Received') + ' bytes: ' + source.bytes + '; SHA-256: ' + source.sha256 + '; not original-provider verification' : 'Exact download unavailable in this browser';
-        $("gx-overlay").classList.remove('open');
-      } catch (error) {
-        draft.replaceWith(old); if (triggerDraft) triggerDraft.replaceWith(trigger);
-        Object.assign(link,previousLink); throw error;
-      }
+      try {wireExplainer(D); wireEvidence(D);} catch (error) {draft.replaceWith(old); if (triggerDraft) triggerDraft.replaceWith(trigger); throw error;}
       window.__AUCTION_DESK = D;
-      return source;
+      $("gx-overlay").classList.remove('open');
     } catch (error) {tapeFilter = previousFilter; throw error;}
     finally {renderRoot = null;}
   }
   async function load() {
     const generation = ++loadGeneration, button = $("desk-refresh"), status = $("desk-delivery-status");
     button.disabled = true; status.textContent = 'Loading dated research snapshot…';
-    let D;
     try {
-      D = await client().load();
-      if (generation !== loadGeneration) {if (D !== window.__AUCTION_DESK) client().release(D); return;}
-      const previous = window.__AUCTION_DESK, source = commitSnapshot(D);
-      if (previous && previous !== D) client().release(previous);
-      const note = source?.integrity_basis === 'retained_manifest' ? '. Compact view verified against its retained manifest; complete inputs load on request.' :
-        source ? '. Complete legacy packet; exact received bytes retained for download. Original-provider and manifest verification unavailable.' : '. Complete legacy packet; exact download unavailable in this browser.';
-      status.textContent = 'Snapshot ' + D.generated_at + note;
+      const D = await client().load();
+      if (generation !== loadGeneration) return;
+      commitSnapshot(D);
+      const source = client().source(D), link = $("desk-complete-packet");
+      link.href = source?.url || FEED;
+      link.textContent = source ? 'Download complete retained packet (.json.gz)' : 'Download complete packet';
+      link.title = source ? 'Uncompressed bytes: ' + source.bytes + '; SHA-256: ' + source.sha256 : 'Complete legacy packet; delivery manifest unavailable';
+      status.textContent = 'Snapshot ' + D.generated_at + (source ? '. Compact view verified against its retained manifest; complete inputs load on request.' : '. Complete legacy packet; delivery manifest unavailable.');
     } catch (error) {
-      if (D && D !== window.__AUCTION_DESK) client().release(D);
       if (generation !== loadGeneration) return;
       status.textContent = (window.__AUCTION_DESK ? 'Refresh failed. Keeping the complete snapshot from ' + window.__AUCTION_DESK.generated_at + '. ' : 'Desk snapshot unavailable. ') + error.message;
     } finally {if (generation === loadGeneration) button.disabled = false;}

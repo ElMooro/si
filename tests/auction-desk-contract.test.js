@@ -13,14 +13,17 @@ test('Treasury banner shows measurement eligibility and deterministic note', () 
   const end = html.indexOf('  function takeBar(a) {', start);
   assert.ok(start > 0 && end > start);
   const scope = {$, esc, fmtDate: x=>x, ago: ()=> 'now', toneOf: ()=>'', tagClass: ()=>''};
-  vm.runInNewContext(html.slice(start, end), scope);
+  const tags = html.slice(html.indexOf('  function measurementTags(tags) {'),html.indexOf('  function buybackCard(b) {'));
+  vm.runInNewContext(tags + html.slice(start, end), scope);
   scope.renderBanner({generated_at:new Date().toISOString(), freshness:{newest_auction:'2026-09-17'},
     today:{verdict:{date:'2026-09-17', headline:'Observed operations', risk_assets:'neutral',
-      liquidity:'cash_management_context', rates:'stronger participation', tags:[], bullets:[]},
+      liquidity:'cash_management_context', rates:'stronger participation', tags:['TGA-CASH-OUT SIGNAL'], bullets:[]},
       ai_note:{generation_method:'deterministic_treasury_v1', what_happened:'<unsafe>', what_it_means:'Context', watch_next:'Settlement'}}});
   assert.match($('desk-implications').innerHTML, /Measurement only/);
   assert.match($('desk-implications').innerHTML, /financing offsets/);
   assert.doesNotMatch($('desk-implications').innerHTML, /BULLISH|EASY/);
+  assert.match($('desk-tags').innerHTML,/CASH EFFECT UNMEASURED/);
+  assert.doesNotMatch($('desk-tags').innerHTML,/TGA.CASH.OUT/);
   assert.match($('desk-ai').innerHTML, /no paid AI/);
   assert.doesNotMatch($('desk-ai').innerHTML, /<unsafe>/);
   scope.renderBanner({generated_at:'2000-01-01T00:00:00Z',today:{verdict:{headline:'Old call'}}});

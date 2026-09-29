@@ -60,7 +60,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.4"
+VERSION = "1.5.3"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -485,7 +485,7 @@ def day_verdict(date, auctions, buybacks):
     if buybacks:
         tags.append('BUYBACK')
         if 'buyback_strong' in classification['classes']:
-            tags.append('LARGE HIGH-FILL BUYBACK')
+            tags += ['TGA-CASH-OUT SIGNAL', 'TGA CASH-OUT; NOT AN EASING CALL']
         bullets.append('Buyback: %s accepted par. Cash settlement, financing offsets and net market effects are separate measurements.' % fmt_bn(buy_total))
         headline_parts.append('%s buyback accepted par' % fmt_bn(buy_total))
     participation = ('stronger participation' if 'coupon_strong' in classes else

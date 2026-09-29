@@ -34,6 +34,45 @@ test('initial load is compact and every requested operation reconstructs the exa
   assert.match(h.client.source(view).url,/snapshots\/[a-f0-9]{64}\.json\.gz$/);
   assert.equal(view.delivery.sizing_eligible,false);assert.equal(view.reactions.supplied_input_replay_available,false);
 });
+
+test('legacy download preserves exact received UTF-8 whitespace and order without another request',async()=>{
+  const packet=copy(fixture.packet);packet.extra='é 零';
+  const raw='\n  '+JSON.stringify(packet,null,2)+'\n\t',calls=[],created=[],revoked=[];
+  const client=api.createClient({crypto:crypto.webcrypto,URL:{createObjectURL:blob=>{created.push(blob);return 'blob:synthetic';},revokeObjectURL:url=>revoked.push(url)},
+    fetch:async url=>{calls.push(url);return new URL(url).pathname.endsWith('/auction-desk.json')?new Response(raw):new Response('missing',{status:404});}});
+  const view=await client.load(),source=client.source(view),n=calls.length;
+  assert.equal(source.sha256,crypto.createHash('sha256').update(raw).digest('hex'));
+  assert.equal(source.bytes,Buffer.byteLength(raw));assert.equal(source.encoding,'json');
+  assert.equal(source.integrity_basis,'received_legacy_bytes');assert.equal(await created[0].text(),raw);
+  assert.deepEqual(client.source(view),source);assert.equal(created.length,1);assert.equal(calls.length,n);
+  assert.deepEqual(await client.program(view),packet.buybacks.program);
+  assert.equal(client.source(copy(view)),null);
+  client.release(view);client.release(view);
+  assert.deepEqual(revoked,['blob:synthetic']);assert.equal(client.source(view),null);
+});
+
+test('missing object URL support never substitutes a mutable legacy download',async()=>{
+  const client=api.createClient({crypto:crypto.webcrypto,URL:{},fetch:async url=>new URL(url).pathname.endsWith('/auction-desk.json')?
+    new Response(JSON.stringify(fixture.packet)):new Response('missing',{status:404})});
+  const view=await client.load();assert.deepEqual(view,fixture.packet);assert.equal(client.source(view),null);client.release(view);
+});
+
+test('legacy byte retention cannot authorize an unmanifested operation detail request',async()=>{
+  const legacy=copy(fixture.packet);legacy.buybacks.operations[0].delivery_detail={kind:'buyback',index:0,artifact:{key:'unbound'}};
+  const h=harness(null,{legacy,fetch:(url,key)=>key==='data/auction-desk-view.json'?new Response('missing',{status:404}):null});
+  const view=await h.client.load(),requests=h.calls.length;
+  await assert.rejects(h.client.detail(view,view.buybacks.operations[0]),/displayed snapshot/);
+  assert.equal(h.calls.length,requests);h.client.release(view);
+});
+
+test('releasing an abandoned legacy response cannot revoke another displayed snapshot',async()=>{
+  let count=0;const revoked=[];
+  const client=api.createClient({crypto:crypto.webcrypto,URL:{createObjectURL:()=>`blob:${++count}`,revokeObjectURL:url=>revoked.push(url)},
+    fetch:async url=>new URL(url).pathname.endsWith('/auction-desk.json')?new Response(JSON.stringify(fixture.packet)):new Response('missing',{status:404})});
+  const first=await client.load(),a=client.source(first),next=await client.load(),b=client.source(next);
+  client.release(next);assert.deepEqual(revoked,[b.url]);assert.equal(client.source(first).url,a.url);
+  client.release(first);assert.deepEqual(revoked,[b.url,a.url]);
+});
 test('deadline covers a response body that never settles even when abort is ignored',async()=>{
   let canceled=false;
   const stuck=()=>new Response(new ReadableStream({pull:()=>new Promise(()=>{}),cancel:()=>{canceled=true;}}));
@@ -107,7 +146,7 @@ test('rollout preserves a complete legacy packet larger than the compact-view ca
   const result=await h.client.load();assert.deepEqual(result,legacy);
   assert.ok(Buffer.byteLength(JSON.stringify(result))>4*1024*1024);
   assert.ok(h.calls.every(url=>/\?exact=1&nogen=1$/.test(url)));
-  assert.equal(h.client.source(result),null);
+  const source=h.client.source(result);assert.equal(source.integrity_basis,'received_legacy_bytes');h.client.release(result);
 });
 test('legacy fallback retains a finite complete-packet byte bound and separate body deadline',async()=>{
   const tooLarge=harness(null,{fetch:(url,key)=>key==='data/auction-desk-view.json'?new Response('missing',{status:404}):new Response('{}',{headers:{'content-length':String(128*1024*1024+1)}})});

@@ -1,0 +1,1149 @@
+{
+  "engine": "justhodl-auction-desk",
+  "version": "1.5.4",
+  "participation_contract": "auction-participation-inputs.v1",
+  "generated_at": "2026-09-29T12:00:00+00:00",
+  "elapsed_s": 0.0,
+  "notes": [
+    "backfill 0 records since 2023-09-25",
+    "buybacks 1 retained operations; source population coverage unverified"
+  ],
+  "sources": {
+    "same_day": "treasurydirect.gov TA_WS securities/auctioned",
+    "history": "api.fiscaldata.treasury.gov auctions_query",
+    "buybacks": "api.fiscaldata.treasury.gov buybacks_operations + buybacks_security_details",
+    "calendar": "treasurydirect.gov TA_WS securities/upcoming + announced",
+    "par_curve": "home.treasury.gov daily par yield curve (fleet bank)"
+  },
+  "freshness": {
+    "newest_auction": null,
+    "newest_buyback": "2026-09-28",
+    "par_curve_last": null,
+    "td_rows": 0,
+    "bank_records": 0
+  },
+  "today": {
+    "date": "2026-09-28",
+    "verdict": {
+      "date": "2026-09-28",
+      "headline": "$4.5B buyback accepted par",
+      "tags": [
+        "BUYBACK",
+        "LARGE HIGH-FILL BUYBACK"
+      ],
+      "risk_assets": "neutral",
+      "liquidity": "cash_management_context",
+      "rates": "not inferred",
+      "call": null,
+      "sizing_eligible": false,
+      "risk_inference": "not_established_by_auction_or_buyback_metrics",
+      "bullets": [
+        "Buyback: $4.5B accepted par. Cash settlement, financing offsets and net market effects are separate measurements."
+      ],
+      "n_auctions": 0,
+      "n_buybacks": 1,
+      "buyback_accepted": 4500000000.0,
+      "bills_accepted": 0.0,
+      "coupons_accepted": 0.0,
+      "known_bills_accepted": 0.0,
+      "known_coupons_accepted": 0.0,
+      "unknown_instrument_count": 0,
+      "classification_inputs": {
+        "contract": "auction-participation-inputs.v1",
+        "status": "complete",
+        "classes": [
+          "buyback_strong"
+        ],
+        "cohort_classes": [
+          "buyback_strong"
+        ],
+        "problems": [],
+        "auction_count": 0,
+        "coupon_count": 0,
+        "bill_count": 0,
+        "buyback_count": 1,
+        "classification_rule": "All supplied operations retained; complete comparable grades and buyback fill inputs required.",
+        "source_capture_verified": false,
+        "historical_point_in_time_verified": false,
+        "forecast_eligible": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    },
+    "auctions": [],
+    "buybacks": [
+      {
+        "max_par": 5000000000.0,
+        "offered": 6000000000.0,
+        "accepted": 4500000000.0,
+        "n_issues_eligible": 10,
+        "n_issues_accepted": 5,
+        "operation_type": "Liquidity support",
+        "security_type": "Nominal coupon",
+        "maturity_bucket": "7-10 years",
+        "results_pdf": null,
+        "results_xml": null,
+        "operation_date": "2026-09-28",
+        "settlement_date": null,
+        "start_time_est": null,
+        "close_time_est": null,
+        "raw_fields": [
+          "operation_date",
+          "settlement_date",
+          "operation_type",
+          "security_type",
+          "maturity_bucket",
+          "max_par_amt",
+          "par_amt_offered",
+          "par_amt_accepted",
+          "nbr_issues_eligible",
+          "nbr_issues_accepted"
+        ],
+        "normalization_inputs": {
+          "contract": "auction-buyback-inputs.v1",
+          "source_fields": {
+            "operation_date": "2026-09-28",
+            "settlement_date": null,
+            "operation_type": "Liquidity support",
+            "security_type": "Nominal coupon",
+            "maturity_bucket": "7-10 years",
+            "max_par_amt": "5000000000",
+            "par_amt_offered": "6000000000",
+            "par_amt_accepted": "4500000000",
+            "nbr_issues_eligible": "10",
+            "nbr_issues_accepted": "5"
+          },
+          "fields": {
+            "max_par": {
+              "status": "complete",
+              "unit": "usd_par",
+              "candidates": [
+                {
+                  "field": "max_par_amt",
+                  "raw": "5000000000",
+                  "value": 5000000000.0
+                }
+              ],
+              "value": 5000000000.0,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "offered": {
+              "status": "complete",
+              "unit": "usd_par",
+              "candidates": [
+                {
+                  "field": "par_amt_offered",
+                  "raw": "6000000000",
+                  "value": 6000000000.0
+                }
+              ],
+              "value": 6000000000.0,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "accepted": {
+              "status": "complete",
+              "unit": "usd_par",
+              "candidates": [
+                {
+                  "field": "par_amt_accepted",
+                  "raw": "4500000000",
+                  "value": 4500000000.0
+                }
+              ],
+              "value": 4500000000.0,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "n_issues_eligible": {
+              "status": "complete",
+              "unit": "issue_count",
+              "candidates": [
+                {
+                  "field": "nbr_issues_eligible",
+                  "raw": "10",
+                  "value": 10
+                }
+              ],
+              "value": 10,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "n_issues_accepted": {
+              "status": "complete",
+              "unit": "issue_count",
+              "candidates": [
+                {
+                  "field": "nbr_issues_accepted",
+                  "raw": "5",
+                  "value": 5
+                }
+              ],
+              "value": 5,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            }
+          },
+          "unit_definition": "Declared legacy FiscalData par-dollar and issue-count field convention; original definition capture remains unverified",
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+        "fill_pct": 90.0,
+        "coverage": 1.33,
+        "size_pctile": null,
+        "liquidity_signal": "strong",
+        "tags": [
+          "LARGE HIGH-FILL BUYBACK"
+        ],
+        "measurement_inputs": {
+          "contract": "auction-buyback-inputs.v1",
+          "status": "complete",
+          "problems": [],
+          "as_of": "2026-09-29",
+          "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+          "input": {
+            "max_par": 5000000000.0,
+            "offered": 6000000000.0,
+            "accepted": 4500000000.0,
+            "n_issues_eligible": 10,
+            "n_issues_accepted": 5,
+            "operation_type": "Liquidity support",
+            "security_type": "Nominal coupon",
+            "maturity_bucket": "7-10 years",
+            "results_pdf": null,
+            "results_xml": null,
+            "operation_date": "2026-09-28",
+            "settlement_date": null,
+            "start_time_est": null,
+            "close_time_est": null,
+            "raw_fields": [
+              "operation_date",
+              "settlement_date",
+              "operation_type",
+              "security_type",
+              "maturity_bucket",
+              "max_par_amt",
+              "par_amt_offered",
+              "par_amt_accepted",
+              "nbr_issues_eligible",
+              "nbr_issues_accepted"
+            ],
+            "normalization_inputs": {
+              "contract": "auction-buyback-inputs.v1",
+              "source_fields": {
+                "operation_date": "2026-09-28",
+                "settlement_date": null,
+                "operation_type": "Liquidity support",
+                "security_type": "Nominal coupon",
+                "maturity_bucket": "7-10 years",
+                "max_par_amt": "5000000000",
+                "par_amt_offered": "6000000000",
+                "par_amt_accepted": "4500000000",
+                "nbr_issues_eligible": "10",
+                "nbr_issues_accepted": "5"
+              },
+              "fields": {
+                "max_par": {
+                  "status": "complete",
+                  "unit": "usd_par",
+                  "candidates": [
+                    {
+                      "field": "max_par_amt",
+                      "raw": "5000000000",
+                      "value": 5000000000.0
+                    }
+                  ],
+                  "value": 5000000000.0,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "offered": {
+                  "status": "complete",
+                  "unit": "usd_par",
+                  "candidates": [
+                    {
+                      "field": "par_amt_offered",
+                      "raw": "6000000000",
+                      "value": 6000000000.0
+                    }
+                  ],
+                  "value": 6000000000.0,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "accepted": {
+                  "status": "complete",
+                  "unit": "usd_par",
+                  "candidates": [
+                    {
+                      "field": "par_amt_accepted",
+                      "raw": "4500000000",
+                      "value": 4500000000.0
+                    }
+                  ],
+                  "value": 4500000000.0,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "n_issues_eligible": {
+                  "status": "complete",
+                  "unit": "issue_count",
+                  "candidates": [
+                    {
+                      "field": "nbr_issues_eligible",
+                      "raw": "10",
+                      "value": 10
+                    }
+                  ],
+                  "value": 10,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "n_issues_accepted": {
+                  "status": "complete",
+                  "unit": "issue_count",
+                  "candidates": [
+                    {
+                      "field": "nbr_issues_accepted",
+                      "raw": "5",
+                      "value": 5
+                    }
+                  ],
+                  "value": 5,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                }
+              },
+              "unit_definition": "Declared legacy FiscalData par-dollar and issue-count field convention; original definition capture remains unverified",
+              "original_source_verified": false,
+              "population_coverage_verified": false,
+              "historical_point_in_time_verified": false,
+              "cash_settlement_verified": false,
+              "forecast_eligible": false,
+              "calls_eligible": false,
+              "sizing_eligible": false,
+              "execution_eligible": false
+            },
+            "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4"
+          },
+          "fill": {
+            "numerator_usd_par": 4500000000.0,
+            "denominator_usd_par": 5000000000.0,
+            "value_pct": 90.0,
+            "formula": "100 * accepted par / maximum par; positive denominator required"
+          },
+          "coverage": {
+            "offered_usd_par": 6000000000.0,
+            "accepted_usd_par": 4500000000.0,
+            "value": 1.33
+          },
+          "size_comparison": {
+            "cohort": [
+              "Liquidity support",
+              "Nominal coupon",
+              "7-10 years"
+            ],
+            "prior": [],
+            "n": 0,
+            "value_pct": null,
+            "duplicate_identity": false,
+            "formula": "100 * (strictly smaller + half equal) / every supplied strictly earlier matched operation; no future or same-day operations"
+          },
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "fill_classification": {
+          "contract": "auction-buyback-fill.v1",
+          "value": "large_high_fill",
+          "status": "complete",
+          "accepted_usd_par": 4500000000.0,
+          "maximum_usd_par": 5000000000.0,
+          "rule": "In order: complete operation with maximum par >= USD 5bn and exact accepted/maximum >= 9/10; otherwise accepted par >= USD 2bn; otherwise other valid operation. Incomplete operations are unavailable.",
+          "role": "Descriptive operation size and fill only; thresholds are not calibrated investment signals",
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "liquidity_signal_semantics": {
+          "deprecated": true,
+          "alias_for": "fill_classification",
+          "meaning": "Legacy strong/moderate/light labels describe par size and fill, not liquidity or expected asset returns"
+        },
+        "cash_effect": {
+          "status": "unmeasured",
+          "reported_settlement_date": null,
+          "cash_settlement_usd": null,
+          "net_reserve_change_usd": null,
+          "duration_removed_dv01_usd": null,
+          "required_inputs": [
+            "security-level accepted par, settlement prices and accrued interest",
+            "verified actual settlement and financing offsets",
+            "security-level duration for interest-rate exposure"
+          ],
+          "portfolio_consequence": "Monitor the operation; these par-fill inputs do not establish cash, reserve, duration or return effects",
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "cash_settlement_usd": null,
+        "monetary_easing_inferred": false,
+        "call": null,
+        "verdict": "Reported accepted par is $4.5B of a $5.0B maximum (90.0% fill). Accepted par is not cash settlement. Net reserve, duration and risk-asset effects require prices, settlement timing and offsetting issuance/funding.",
+        "implication": {
+          "liquidity": "Cash settlement and financing offsets are unmeasured",
+          "rates": "Net duration effect requires security detail and offsetting issuance",
+          "risk": "not inferred from buyback fill",
+          "tone": "neutral"
+        },
+        "securities": [],
+        "securities_sample": {
+          "matched_date_rows": 0,
+          "published_rows": 0,
+          "operation_limit": 12,
+          "row_limit": 80,
+          "join_basis": "operation date only; same-day operation identity not verified",
+          "operation_join_verified": false,
+          "acquisition_window_days": 45,
+          "max_pages": 3,
+          "page_size": 500,
+          "source_population_complete": false
+        }
+      }
+    ],
+    "ai_note": {
+      "what_happened": "$4.5B buyback accepted par",
+      "what_it_means": "Participation grades compare matched auction cohorts. Prior-close par gaps are context, not when-issued tails. Buyback accepted par does not establish cash settlement, net duration removal or monetary easing.",
+      "watch_next": "Verify subsequent market prices, settlement dates and offsetting issuance. Historical conditional returns do not authorize portfolio sizing.",
+      "model": null,
+      "generation_method": "deterministic_treasury_v1",
+      "paid_api_calls": 0,
+      "generated_at": "2026-09-29T12:00:00+00:00",
+      "evidence_date": "2026-09-28",
+      "call": null,
+      "sizing_eligible": false
+    },
+    "implications": {}
+  },
+  "recent_days": [
+    {
+      "date": "2026-09-28",
+      "headline": "$4.5B buyback accepted par",
+      "tags": [
+        "BUYBACK",
+        "LARGE HIGH-FILL BUYBACK"
+      ],
+      "risk_assets": "neutral",
+      "liquidity": "cash_management_context",
+      "rates": "not inferred",
+      "call": null,
+      "sizing_eligible": false,
+      "risk_inference": "not_established_by_auction_or_buyback_metrics",
+      "bullets": [
+        "Buyback: $4.5B accepted par. Cash settlement, financing offsets and net market effects are separate measurements."
+      ],
+      "n_auctions": 0,
+      "n_buybacks": 1,
+      "buyback_accepted": 4500000000.0,
+      "bills_accepted": 0.0,
+      "coupons_accepted": 0.0,
+      "known_bills_accepted": 0.0,
+      "known_coupons_accepted": 0.0,
+      "unknown_instrument_count": 0,
+      "classification_inputs": {
+        "contract": "auction-participation-inputs.v1",
+        "status": "complete",
+        "classes": [
+          "buyback_strong"
+        ],
+        "cohort_classes": [
+          "buyback_strong"
+        ],
+        "problems": [],
+        "auction_count": 0,
+        "coupon_count": 0,
+        "bill_count": 0,
+        "buyback_count": 1,
+        "classification_rule": "All supplied operations retained; complete comparable grades and buyback fill inputs required.",
+        "source_capture_verified": false,
+        "historical_point_in_time_verified": false,
+        "forecast_eligible": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    }
+  ],
+  "auctions": [],
+  "auction_population": {
+    "bank_rows": 0,
+    "analyzed_settled_rows": 0,
+    "recent_400d_rows": 0,
+    "page_sample_rows": 0,
+    "page_sample_rule": "latest 200 rows of the last 400 days; full historical inputs remain in the source bank",
+    "btc_filter_applied": false,
+    "historical_population_coverage_verified": false
+  },
+  "buybacks": {
+    "operations": [
+      {
+        "max_par": 5000000000.0,
+        "offered": 6000000000.0,
+        "accepted": 4500000000.0,
+        "n_issues_eligible": 10,
+        "n_issues_accepted": 5,
+        "operation_type": "Liquidity support",
+        "security_type": "Nominal coupon",
+        "maturity_bucket": "7-10 years",
+        "results_pdf": null,
+        "results_xml": null,
+        "operation_date": "2026-09-28",
+        "settlement_date": null,
+        "start_time_est": null,
+        "close_time_est": null,
+        "raw_fields": [
+          "operation_date",
+          "settlement_date",
+          "operation_type",
+          "security_type",
+          "maturity_bucket",
+          "max_par_amt",
+          "par_amt_offered",
+          "par_amt_accepted",
+          "nbr_issues_eligible",
+          "nbr_issues_accepted"
+        ],
+        "normalization_inputs": {
+          "contract": "auction-buyback-inputs.v1",
+          "source_fields": {
+            "operation_date": "2026-09-28",
+            "settlement_date": null,
+            "operation_type": "Liquidity support",
+            "security_type": "Nominal coupon",
+            "maturity_bucket": "7-10 years",
+            "max_par_amt": "5000000000",
+            "par_amt_offered": "6000000000",
+            "par_amt_accepted": "4500000000",
+            "nbr_issues_eligible": "10",
+            "nbr_issues_accepted": "5"
+          },
+          "fields": {
+            "max_par": {
+              "status": "complete",
+              "unit": "usd_par",
+              "candidates": [
+                {
+                  "field": "max_par_amt",
+                  "raw": "5000000000",
+                  "value": 5000000000.0
+                }
+              ],
+              "value": 5000000000.0,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "offered": {
+              "status": "complete",
+              "unit": "usd_par",
+              "candidates": [
+                {
+                  "field": "par_amt_offered",
+                  "raw": "6000000000",
+                  "value": 6000000000.0
+                }
+              ],
+              "value": 6000000000.0,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "accepted": {
+              "status": "complete",
+              "unit": "usd_par",
+              "candidates": [
+                {
+                  "field": "par_amt_accepted",
+                  "raw": "4500000000",
+                  "value": 4500000000.0
+                }
+              ],
+              "value": 4500000000.0,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "n_issues_eligible": {
+              "status": "complete",
+              "unit": "issue_count",
+              "candidates": [
+                {
+                  "field": "nbr_issues_eligible",
+                  "raw": "10",
+                  "value": 10
+                }
+              ],
+              "value": 10,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            },
+            "n_issues_accepted": {
+              "status": "complete",
+              "unit": "issue_count",
+              "candidates": [
+                {
+                  "field": "nbr_issues_accepted",
+                  "raw": "5",
+                  "value": 5
+                }
+              ],
+              "value": 5,
+              "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+            }
+          },
+          "unit_definition": "Declared legacy FiscalData par-dollar and issue-count field convention; original definition capture remains unverified",
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+        "fill_pct": 90.0,
+        "coverage": 1.33,
+        "size_pctile": null,
+        "liquidity_signal": "strong",
+        "tags": [
+          "LARGE HIGH-FILL BUYBACK"
+        ],
+        "measurement_inputs": {
+          "contract": "auction-buyback-inputs.v1",
+          "status": "complete",
+          "problems": [],
+          "as_of": "2026-09-29",
+          "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+          "input": {
+            "max_par": 5000000000.0,
+            "offered": 6000000000.0,
+            "accepted": 4500000000.0,
+            "n_issues_eligible": 10,
+            "n_issues_accepted": 5,
+            "operation_type": "Liquidity support",
+            "security_type": "Nominal coupon",
+            "maturity_bucket": "7-10 years",
+            "results_pdf": null,
+            "results_xml": null,
+            "operation_date": "2026-09-28",
+            "settlement_date": null,
+            "start_time_est": null,
+            "close_time_est": null,
+            "raw_fields": [
+              "operation_date",
+              "settlement_date",
+              "operation_type",
+              "security_type",
+              "maturity_bucket",
+              "max_par_amt",
+              "par_amt_offered",
+              "par_amt_accepted",
+              "nbr_issues_eligible",
+              "nbr_issues_accepted"
+            ],
+            "normalization_inputs": {
+              "contract": "auction-buyback-inputs.v1",
+              "source_fields": {
+                "operation_date": "2026-09-28",
+                "settlement_date": null,
+                "operation_type": "Liquidity support",
+                "security_type": "Nominal coupon",
+                "maturity_bucket": "7-10 years",
+                "max_par_amt": "5000000000",
+                "par_amt_offered": "6000000000",
+                "par_amt_accepted": "4500000000",
+                "nbr_issues_eligible": "10",
+                "nbr_issues_accepted": "5"
+              },
+              "fields": {
+                "max_par": {
+                  "status": "complete",
+                  "unit": "usd_par",
+                  "candidates": [
+                    {
+                      "field": "max_par_amt",
+                      "raw": "5000000000",
+                      "value": 5000000000.0
+                    }
+                  ],
+                  "value": 5000000000.0,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "offered": {
+                  "status": "complete",
+                  "unit": "usd_par",
+                  "candidates": [
+                    {
+                      "field": "par_amt_offered",
+                      "raw": "6000000000",
+                      "value": 6000000000.0
+                    }
+                  ],
+                  "value": 6000000000.0,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "accepted": {
+                  "status": "complete",
+                  "unit": "usd_par",
+                  "candidates": [
+                    {
+                      "field": "par_amt_accepted",
+                      "raw": "4500000000",
+                      "value": 4500000000.0
+                    }
+                  ],
+                  "value": 4500000000.0,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "n_issues_eligible": {
+                  "status": "complete",
+                  "unit": "issue_count",
+                  "candidates": [
+                    {
+                      "field": "nbr_issues_eligible",
+                      "raw": "10",
+                      "value": 10
+                    }
+                  ],
+                  "value": 10,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                },
+                "n_issues_accepted": {
+                  "status": "complete",
+                  "unit": "issue_count",
+                  "candidates": [
+                    {
+                      "field": "nbr_issues_accepted",
+                      "raw": "5",
+                      "value": 5
+                    }
+                  ],
+                  "value": 5,
+                  "selection_rule": "Every matching unit-specific field must be valid and agree; a measured zero never triggers fallback"
+                }
+              },
+              "unit_definition": "Declared legacy FiscalData par-dollar and issue-count field convention; original definition capture remains unverified",
+              "original_source_verified": false,
+              "population_coverage_verified": false,
+              "historical_point_in_time_verified": false,
+              "cash_settlement_verified": false,
+              "forecast_eligible": false,
+              "calls_eligible": false,
+              "sizing_eligible": false,
+              "execution_eligible": false
+            },
+            "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4"
+          },
+          "fill": {
+            "numerator_usd_par": 4500000000.0,
+            "denominator_usd_par": 5000000000.0,
+            "value_pct": 90.0,
+            "formula": "100 * accepted par / maximum par; positive denominator required"
+          },
+          "coverage": {
+            "offered_usd_par": 6000000000.0,
+            "accepted_usd_par": 4500000000.0,
+            "value": 1.33
+          },
+          "size_comparison": {
+            "cohort": [
+              "Liquidity support",
+              "Nominal coupon",
+              "7-10 years"
+            ],
+            "prior": [],
+            "n": 0,
+            "value_pct": null,
+            "duplicate_identity": false,
+            "formula": "100 * (strictly smaller + half equal) / every supplied strictly earlier matched operation; no future or same-day operations"
+          },
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "fill_classification": {
+          "contract": "auction-buyback-fill.v1",
+          "value": "large_high_fill",
+          "status": "complete",
+          "accepted_usd_par": 4500000000.0,
+          "maximum_usd_par": 5000000000.0,
+          "rule": "In order: complete operation with maximum par >= USD 5bn and exact accepted/maximum >= 9/10; otherwise accepted par >= USD 2bn; otherwise other valid operation. Incomplete operations are unavailable.",
+          "role": "Descriptive operation size and fill only; thresholds are not calibrated investment signals",
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "liquidity_signal_semantics": {
+          "deprecated": true,
+          "alias_for": "fill_classification",
+          "meaning": "Legacy strong/moderate/light labels describe par size and fill, not liquidity or expected asset returns"
+        },
+        "cash_effect": {
+          "status": "unmeasured",
+          "reported_settlement_date": null,
+          "cash_settlement_usd": null,
+          "net_reserve_change_usd": null,
+          "duration_removed_dv01_usd": null,
+          "required_inputs": [
+            "security-level accepted par, settlement prices and accrued interest",
+            "verified actual settlement and financing offsets",
+            "security-level duration for interest-rate exposure"
+          ],
+          "portfolio_consequence": "Monitor the operation; these par-fill inputs do not establish cash, reserve, duration or return effects",
+          "original_source_verified": false,
+          "population_coverage_verified": false,
+          "historical_point_in_time_verified": false,
+          "cash_settlement_verified": false,
+          "forecast_eligible": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "execution_eligible": false
+        },
+        "cash_settlement_usd": null,
+        "monetary_easing_inferred": false,
+        "call": null,
+        "verdict": "Reported accepted par is $4.5B of a $5.0B maximum (90.0% fill). Accepted par is not cash settlement. Net reserve, duration and risk-asset effects require prices, settlement timing and offsetting issuance/funding.",
+        "implication": {
+          "liquidity": "Cash settlement and financing offsets are unmeasured",
+          "rates": "Net duration effect requires security detail and offsetting issuance",
+          "risk": "not inferred from buyback fill",
+          "tone": "neutral"
+        },
+        "securities": [],
+        "securities_sample": {
+          "matched_date_rows": 0,
+          "published_rows": 0,
+          "operation_limit": 12,
+          "row_limit": 80,
+          "join_basis": "operation date only; same-day operation identity not verified",
+          "operation_join_verified": false,
+          "acquisition_window_days": 45,
+          "max_pages": 3,
+          "page_size": 500,
+          "source_population_complete": false
+        }
+      }
+    ],
+    "program": {
+      "n_ops": 1,
+      "since": "2026-09-28",
+      "total_accepted": 4500000000.0,
+      "fy_accepted": 4500000000.0,
+      "last_4w_accepted": 4500000000.0,
+      "fy_start": "2025-10-01",
+      "avg_fill_pct": 90.0,
+      "by_bucket": {
+        "7-10 years": 4500000000.0
+      },
+      "aggregate_inputs": {
+        "contract": "auction-buyback-inputs.v1",
+        "as_of": "2026-09-29",
+        "fiscal_start": "2025-10-01",
+        "last4w_start": "2026-09-01",
+        "windows": {
+          "program": {
+            "status": "complete_supplied_operations",
+            "value_usd_par": 4500000000.0,
+            "known_subtotal_usd_par": 4500000000.0,
+            "observed_operations": 1,
+            "inputs": [
+              {
+                "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+                "operation_date": "2026-09-28",
+                "accepted_usd_par": 4500000000.0,
+                "mapping_complete": true,
+                "measurement_complete": true
+              }
+            ],
+            "unknown_date_count": 0,
+            "duplicate_identity_count": 0,
+            "empty_population_is_zero": false
+          },
+          "fiscal_year": {
+            "status": "complete_supplied_operations",
+            "value_usd_par": 4500000000.0,
+            "known_subtotal_usd_par": 4500000000.0,
+            "observed_operations": 1,
+            "inputs": [
+              {
+                "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+                "operation_date": "2026-09-28",
+                "accepted_usd_par": 4500000000.0,
+                "mapping_complete": true,
+                "measurement_complete": true
+              }
+            ],
+            "unknown_date_count": 0,
+            "duplicate_identity_count": 0,
+            "empty_population_is_zero": false
+          },
+          "last_4w": {
+            "status": "complete_supplied_operations",
+            "value_usd_par": 4500000000.0,
+            "known_subtotal_usd_par": 4500000000.0,
+            "observed_operations": 1,
+            "inputs": [
+              {
+                "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+                "operation_date": "2026-09-28",
+                "accepted_usd_par": 4500000000.0,
+                "mapping_complete": true,
+                "measurement_complete": true
+              }
+            ],
+            "unknown_date_count": 0,
+            "duplicate_identity_count": 0,
+            "empty_population_is_zero": false
+          }
+        },
+        "by_bucket": {
+          "7-10 years": {
+            "status": "complete_supplied_operations",
+            "value_usd_par": 4500000000.0,
+            "known_subtotal_usd_par": 4500000000.0,
+            "observed_operations": 1,
+            "inputs": [
+              {
+                "operation_identity": "21eeac65ac4e180981333dac5afff24c91c34a75d48b0bfee3382d8ee104e7c4",
+                "operation_date": "2026-09-28",
+                "accepted_usd_par": 4500000000.0,
+                "mapping_complete": true,
+                "measurement_complete": true
+              }
+            ],
+            "unknown_date_count": 0,
+            "duplicate_identity_count": 0,
+            "empty_population_is_zero": false
+          }
+        },
+        "supplied_operations": 1,
+        "future_operations": 0,
+        "unknown_date_operations": 0,
+        "original_source_verified": false,
+        "population_coverage_verified": false,
+        "historical_point_in_time_verified": false,
+        "cash_settlement_verified": false,
+        "forecast_eligible": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    },
+    "contract": "auction-buyback-inputs.v1",
+    "population_coverage_verified": false,
+    "superseded_rows_retained_in_bank": 0,
+    "securities_sample": {
+      "operation_limit": 12,
+      "row_limit_per_operation": 80,
+      "source_population_complete": false
+    }
+  },
+  "calendar": {
+    "auctions": [],
+    "buybacks": []
+  },
+  "by_term": {},
+  "chart_cohort_contract": "treasury-comparable-chart.v1",
+  "chart_cohorts": {},
+  "composite_history": {
+    "series": [],
+    "note": "scoring module unavailable",
+    "bank": {
+      "as_of": null,
+      "population_coverage": [],
+      "coverage_note": null,
+      "first": null,
+      "last": null,
+      "n": null,
+      "error": null
+    }
+  },
+  "reactions": {
+    "prediction": [],
+    "today_classes": [
+      "buyback_strong"
+    ],
+    "class_labels": {
+      "buyback_strong": "large high-fill buyback day",
+      "coupon_strong": "non-bill participation grade A/B",
+      "coupon_weak": "non-bill participation grade D/F",
+      "coupon_mixed": "mixed non-bill participation grades",
+      "bills_only": "bills only",
+      "none": "no operations",
+      "unclassified": "incomplete or unverified operation group",
+      "buyback_other": "other measured buyback day"
+    },
+    "scoreboard": [
+      {
+        "date": "2026-09-28",
+        "classes": [
+          "buyback_strong"
+        ],
+        "labels": [
+          "large high-fill buyback day"
+        ],
+        "headline": "$4.5B buyback accepted par",
+        "risk_assets": "neutral",
+        "grades": [],
+        "buyback_accepted": 4500000000.0,
+        "moves": {}
+      }
+    ],
+    "stats": {},
+    "baseline": {},
+    "n_events": {},
+    "classification_contract": "auction-participation-inputs.v1",
+    "comparison_inputs": {
+      "contract": "auction-reaction-inputs.v1",
+      "as_of": "2026-09-29",
+      "event_cutoff_exclusive": "2026-09-28",
+      "events": [
+        {
+          "date": "2026-09-28",
+          "classes": [
+            "buyback_strong"
+          ],
+          "classification_inputs": {
+            "contract": "auction-participation-inputs.v1",
+            "status": "complete",
+            "classes": [
+              "buyback_strong"
+            ],
+            "cohort_classes": [
+              "buyback_strong"
+            ],
+            "problems": [],
+            "auction_count": 0,
+            "coupon_count": 0,
+            "bill_count": 0,
+            "buyback_count": 1,
+            "classification_rule": "All supplied operations retained; complete comparable grades and buyback fill inputs required.",
+            "source_capture_verified": false,
+            "historical_point_in_time_verified": false,
+            "forecast_eligible": false,
+            "calls_eligible": false,
+            "sizing_eligible": false,
+            "execution_eligible": false
+          }
+        }
+      ],
+      "frames": {},
+      "class_labels": {
+        "buyback_strong": "large high-fill buyback day",
+        "coupon_strong": "non-bill participation grade A/B",
+        "coupon_weak": "non-bill participation grade D/F",
+        "coupon_mixed": "mixed non-bill participation grades",
+        "bills_only": "bills only",
+        "none": "no operations",
+        "unclassified": "incomplete or unverified operation group",
+        "buyback_other": "other measured buyback day"
+      },
+      "horizons": [
+        [
+          "same_day",
+          0
+        ],
+        [
+          "d1",
+          1
+        ],
+        [
+          "d5",
+          5
+        ],
+        [
+          "d20",
+          20
+        ]
+      ],
+      "coverage": {},
+      "unit": "summary percentages; per-event arithmetic in decimal returns",
+      "method": "All supplied events and price rows retained. Same-day uses prior close; forward horizons count unique supplied observations. Partial UTC-date endpoints excluded from distributions.",
+      "original_source_verified": false,
+      "price_definition_verified": false,
+      "session_calendar_verified": false,
+      "historical_point_in_time_verified": false,
+      "forecast_eligible": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "execution_eligible": false
+    },
+    "return_input_contract": "auction-reaction-inputs.v1",
+    "classification_inputs": {
+      "2026-09-28": {
+        "contract": "auction-participation-inputs.v1",
+        "status": "complete",
+        "classes": [
+          "buyback_strong"
+        ],
+        "cohort_classes": [
+          "buyback_strong"
+        ],
+        "problems": [],
+        "auction_count": 0,
+        "coupon_count": 0,
+        "bill_count": 0,
+        "buyback_count": 1,
+        "classification_rule": "All supplied operations retained; complete comparable grades and buyback fill inputs required.",
+        "source_capture_verified": false,
+        "historical_point_in_time_verified": false,
+        "forecast_eligible": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    },
+    "note": "0 assets, 0 graded auction days",
+    "horizons": "same_day = prior close to auction-day close, not an auction-release response; d1/d5/d20 = observed bars after the auction day in each asset series; crypto trades 7 days",
+    "contract": "treasury-reaction-research.v1",
+    "partial_windows_excluded_from_distributions": true,
+    "price_lineage_verified": false,
+    "original_response_replay_available": false,
+    "supplied_input_replay_available": true,
+    "same_day_clock": "PRIOR_CLOSE_TO_AUCTION_DAY_CLOSE",
+    "validation_scope": "DESCRIPTIVE_HISTORY_UNVERIFIED_PRICE_LINEAGE",
+    "decision_eligible": false,
+    "sizing_eligible": false
+  },
+  "decision": {
+    "role": "measurement",
+    "call": null,
+    "sizing_eligible": false,
+    "reason": "Participation grades and historical conditional returns are descriptive, not a validated action model"
+  },
+  "methodology": {
+    "tail_proxy": "legacy tail_bp aliases prior_close_concession_bp for verified nominal coupons/bills only. TIPS/FRN/unknown comparisons are null. This context is excluded from demand scoring; wi_tail_bp is unavailable",
+    "z_scores": "vs the trailing 12 auctions of the same verified instrument kind, remaining term and reopening status",
+    "grade": "complete three-feature mean: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer); same full supplied 4-to-12-row comparable cohort, positive variance required, no partial-feature renormalization. Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
+    "buyback_signal": "Par-dollar fields are separate from issue counts; missing or conflicting fields remain unavailable. Strong requires complete supplied mapping, accepted >= 90% of maximum and maximum >= $5B. Size percentile is a descriptive midrank against strictly earlier operations of the same type, security and bucket; whole program coverage is unverified. This is not monetary easing. Accepted par differs from cash settlement; financing offsets and net effects are unmeasured",
+    "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"
+  }
+}

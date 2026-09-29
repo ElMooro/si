@@ -38,3 +38,13 @@ test('hostile source fields remain escaped in cards charts tables and evidence',
  assert.doesNotMatch(output,/<img|<script/);assert.match(output,/&lt;img/);
  assert.match(output,/role="region"/);assert.match(output,/tabindex="0"/);
 });
+
+test('older buyback cash-language tags render as unmeasured without altering retained fields',()=>{
+ const c=context(),packet=require('./fixtures/auction-buyback-pre-fill-classification.json'),copy=structuredClone(packet);
+ c.scope.renderBuybacks(packet);const card=c.scope.buybackCard(packet.today.buybacks[0]);
+ const output=card.split('<details class="grade-inputs"')[0]+c.get('bb-table').innerHTML;
+ assert.match(output,/CASH EFFECT UNMEASURED/);assert.doesNotMatch(output,/TGA.CASH.OUT|EASING CALL/);
+ assert.deepEqual(packet,copy);
+ assert.match(card,/TGA-CASH-OUT SIGNAL/); // Complete raw evidence remains inspectable.
+ assert.deepEqual(Array.from(c.scope.measurementTags(['TGA-CASH-OUT SIGNAL','TGA CASH-OUT; NOT AN EASING CALL','MAX FILL'])),['CASH EFFECT UNMEASURED','MAX FILL']);
+});

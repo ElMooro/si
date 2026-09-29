@@ -209,6 +209,57 @@ def test_original_source_mapping_rejects_tampered_trace_and_duplicate_average():
     assert summary['avg_fill_pct'] is None
 
 
+def test_fill_classification_is_exact_descriptive_par_arithmetic_not_cash():
+    for accepted, maximum, expected in [('4499999999','5000000000','accepted_par_at_least_2bn'),
+                                      ('4500000000','5000000000','large_high_fill'),
+                                      ('1999999999','5000000000','other_valid_operation'),
+                                      ('2000000000','5000000000','accepted_par_at_least_2bn'),
+                                      ('0','0','other_valid_operation')]:
+        row=analyzed([raw(max_par_amt=maximum,par_amt_accepted=accepted,par_amt_offered='6000000000',settlement_date=None)])[0]
+        trace=row['fill_classification'];cash=row['cash_effect']
+        assert trace['contract']==model.FILL_CONTRACT and trace['value']==expected
+        assert trace['accepted_usd_par']==float(accepted) and trace['maximum_usd_par']==float(maximum)
+        assert all(trace[key] is False and cash[key] is False for key in model.FLAGS)
+        assert cash['status']=='unmeasured' and cash['reported_settlement_date'] is None
+        assert cash['cash_settlement_usd'] is cash['net_reserve_change_usd'] is cash['duration_removed_dv01_usd'] is None
+        assert row['liquidity_signal_semantics']['deprecated'] is True
+        assert not any('TGA' in tag or 'EASING' in tag for tag in row['tags'])
+
+
+def test_actual_handler_keeps_high_fill_separate_from_cash_and_day_verdict():
+    packet,_=native_packet([raw(max_par_amt='5000000000',par_amt_accepted='4500000000',par_amt_offered='6000000000',settlement_date=None)])
+    assert packet['buybacks']['operations'][0]['fill_classification']['value']=='large_high_fill'
+    assert packet['today']['verdict']['tags']==['BUYBACK','LARGE HIGH-FILL BUYBACK']
+    assert packet['today']['verdict']['risk_assets']=='neutral'
+    assert model.replay(packet)['legacy_classification_rows']==0
+    assert packet['decision']['sizing_eligible'] is False and packet['decision']['call'] is None
+
+
+def test_legacy_replay_preserves_arithmetic_without_qualifying_old_cash_labels():
+    packet=json.loads((ROOT/'tests/fixtures/auction-buyback-pre-fill-classification.json').read_bytes())
+    result=model.replay(packet)
+    assert result['legacy_classification_rows']==1 and result['legacy_cash_labels_qualified'] is False
+    for mutate in (lambda p:p['buybacks']['operations'][0].update(fill_classification={}),
+                   lambda p:p['buybacks']['operations'][0]['tags'].append('EASING'),
+                   lambda p:p['buybacks']['operations'][0].update(liquidity_signal='light')):
+        bad=deepcopy(packet);mutate(bad)
+        try:model.replay(bad)
+        except ValueError:pass
+        else:raise AssertionError('Altered legacy semantics accepted')
+
+
+def test_current_classification_and_cash_metadata_are_replay_bound():
+    ops=analyzed([raw()]);packet={'operations':ops,'program':model.program_summary(ops,'2026-09-29','2025-10-01','2026-09-01')}
+    for mutate in (lambda p:p['operations'][0]['fill_classification'].update(value='large_high_fill'),
+                   lambda p:p['operations'][0]['cash_effect'].update(cash_settlement_usd=900),
+                   lambda p:p['operations'][0].pop('cash_effect'),
+                   lambda p:p['operations'][0]['liquidity_signal_semantics'].update(deprecated=False)):
+        bad=deepcopy(packet);mutate(bad)
+        try:model.replay(bad)
+        except ValueError:pass
+        else:raise AssertionError('Altered fill or cash metadata accepted')
+
+
 if __name__=='__main__':
     tests=[fn for name,fn in list(globals().items()) if name.startswith('test_')]
     for test in tests:test()
