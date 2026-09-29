@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 419 source acceptance: all ten workstreams remain open. A synthetic denied read reproduced historical-bank erasure in the actual desk handler. Missing-object initialization is now separate from failed reads; corrupt, oversized and malformed caches cannot replace retained history. Primary failures preserve previous public output, while secondary failures preserve their banks and expose unavailable research. All 286 native/desk, 686 deployment, twelve shell and 599 page-graph checks pass. A full-size synthetic run exercises the actual bounded cache reader without network or native invocation. The accepted Stage 417 UI and Stage 418 exact classification remain intact. Exact deployment/static acceptance is pending. Ordinary publication, original source/vintage capture, concurrent-writer guarantees, independent validation and supported portfolio consequences remain open.
+September 29, after Stage 419 deployment acceptance: all ten workstreams remain open. Exact code and static assets are accepted at a494e4d852398ab287e0840a80c7e73382384fc0. Failed cache reads no longer erase retained histories. Complete bounded reads and explicit missing-object initialization preserve banks and public snapshots; secondary failures expose unavailable research. Exact par-fill classifications and the accepted snapshot-bound page remain intact. All 286 native/desk, 1844 frontend, 686 deployment, twelve shell and 599 page-graph checks pass. Read-only operation 6346 verifies all twelve native source members and four original schedule bindings; five static files match the source-bound build. Full synthetic delivery remains within bounds. Actual file completion in the in-app browser and normal native publication remain unverified. Original vintages, population completeness, independent model validation and supported portfolio consequences remain open. No native invocation, private/current packet read, extra provider request or schedule/resource change occurred.
 
 ### Retained Stage 371 checkpoint
 
@@ -5797,3 +5797,11 @@ A reproduced synthetic decimal boundary returned 0.9 under floating-point divisi
 ### Stage 419: preserve retained history when cache reads fail
 
 Only explicit missing objects can initialize empty banks. Access failures, interrupted or corrupt bodies, oversized compressed/inflated objects and invalid bank shapes fail without rewriting unread history. Complete short-read consumption and stream closure are tested. Valid empty mappings and legacy diagnostics remain compatible. Full-handler tests preserve banks/public snapshots or mark dependent secondary research unavailable. Evidence: `docs/audit/2026-09-29/auction-cache-read.json`. Exact code/static acceptance, normal publication and the wider institutional objective remain separate.
+
+
+### Stage 419 exact deployment acceptance
+
+- Source `a494e4d852398ab287e0840a80c7e73382384fc0` passed Lambda 36591449270, Pages 36591449368 and receipt-only runtime operation 6346 / 36591796020. All twelve deployed source members and the exact receipt match; original resources and all four schedules remain unchanged.
+- At 2026-09-29T15:42:11.815796+00:00, all five static assets match the exact commit-bound build. Native Git shipped the complete 9-file batch, including full large source/page files.
+- Denied, corrupt, interrupted, oversized, duplicate-field and malformed-bank regressions pass. The full synthetic handler uses the actual bounded reader and retains complete inputs. Existing cache reads, output ownership and UI behavior remain intact.
+- Normal engine publication and actual download completion through the in-app browser remain unverified. Provider originals, historical availability, complete populations, predictive qualification and portfolio sizing are not certified. All ten platform workstreams remain open. Evidence: `docs/audit/2026-09-29/auction-cache-read.json`.
