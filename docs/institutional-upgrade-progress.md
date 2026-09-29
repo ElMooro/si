@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 423 exact static acceptance: all ten workstreams remain open. Source 940a5b08bf5005e454384aff8c16b09445f2bd09 and six served static assets match. Across 893 engines, the source registry separates 1789 analyzed call-path bindings from 230 unproven candidates without deleting existing references. Page scopes and dependency lineage retain uncertainty. All 699 deployment, twelve shell, 1855 frontend, 599 page-graph and 143 companion-wire checks pass. The complete 20-file native Git batch, including a 36587086-byte graph, is verified on main. Native engine code is unchanged. Original-provider evidence, historical availability, ordinary publication, independent model validation and supported portfolio consequences remain open. The next confirmed native issue is incomplete S3 body acceptance in the shared Extremes reader.
+September 29, after Stage 424 source acceptance: all ten workstreams remain open. Fleet source provenance and large native Git delivery are exactly accepted through Stage 423. Read-only operation 6347 confirms the two existing research packages, all 29 source members and unchanged resources/schedules. The shared Extremes reader now drains complete bounded bodies before parsing, rejects incomplete SDK transfers and preserves the last publication on failure. All ten new transport cases, both engine suites, 702 deployment, twelve shell and 599 page-graph checks pass. Native and static deployment acceptance for this reader repair are pending. Original-provider evidence, historical availability, normal publication, model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5865,3 +5865,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - The actual current shared research reader accepts a two-byte JSON body from a synthetic botocore StreamingBody declaring 100 bytes, because its one read does not reach the SDK's end-of-stream length check. No live packet was requested.
 - New operation 6347 is restricted to the exact releases, code packages, resource settings and full schedule bindings of Market Extremes/Capitulation. It records a stable predecessor baseline before the native read-loop change and supports exact-commit acceptance afterward. The older operation 5938 is not used because it reads protected snapshots and invokes producers.
 - This preflight batch changes no engine code, cadence, inputs or portfolio permissions. Its baseline run and native repair remain pending. All ten workstreams remain open.
+
+
+### Stage 424 complete native research-body reads
+
+- A real botocore StreamingBody around synthetic two-byte JSON declared 100 bytes. The old one-read helper accepted it; nine of ten new end-to-end transport tests failed against that current source. The replacement drains through EOF and enforces the existing 12 MiB complete-body bound before parsing or storage. No prefix is treated as a complete object.
+- Ten transport tests now pass, including actual collector, public-reader, immutable readback and publisher paths. Failed transfers preserve the preceding public object and produce a failed request rather than a fresh replacement. Both engine suites and all 702 deployment/twelve shell checks pass; 599 page graphs and 143 wires remain valid.
+- The original native packages, 29 source members, 256 MB/60-second resources and both schedules were captured by read-only operation 6347 / 36602408352 before the change. A local 12 MiB helper test is evidence for this byte reader only, not whole-engine AWS performance. Code, receipt and static deployment checks remain pending. All ten workstreams stay open. Evidence: `docs/audit/2026-09-29/extremes-native-transport.json`.

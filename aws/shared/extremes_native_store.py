@@ -11,10 +11,17 @@ def current(engine):
     if engine not in model.INPUTS:raise ValueError('Reviewed engine required')
     return 'data/'+engine+'.json'
 def bounded(stream):
-    try:raw=stream.read(MAX+1)
+    chunks=[];size=0
+    try:
+        while True:
+            chunk=stream.read(min(64*1024,MAX+1-size))
+            if not isinstance(chunk,bytes):raise ValueError('Research byte stream required')
+            if not chunk:break  # Drain to EOF so the SDK verifies ContentLength.
+            size+=len(chunk)
+            if size>MAX:raise ValueError('Research byte bound exceeded')
+            chunks.append(chunk)
+        return b''.join(chunks)
     finally:stream.close()
-    if len(raw)>MAX:raise ValueError('Research byte bound exceeded')
-    return raw
 def error_code(exc):return str(getattr(exc,'response',{}).get('Error',{}).get('Code',''))
 def missing(exc):return error_code(exc) in ('404','NoSuchKey')
 def conflict(exc):return error_code(exc) in ('409','412','PreconditionFailed','ConditionalRequestConflict')
