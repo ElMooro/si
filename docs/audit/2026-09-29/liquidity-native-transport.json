@@ -1,6 +1,6 @@
 {
   "stage": 428,
-  "status": "source_accepted_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T18:50:05.073194+00:00",
   "baseline_commit": "6f86d65e3f18463d4a3767bd7d2f39fb59012598",
   "reproduction": {
@@ -173,10 +173,244 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact native/static deployment acceptance remains pending.",
+    "Native packages and nine static assets are exactly accepted; normal scheduled data publication is separate and unverified.",
     "Normal scheduled publication remains separate and unverified.",
     "Storage integrity and exact replay do not establish first-release availability, economic causality, predictive edge or allocation authority.",
     "Other Calls publication/readback and audit-reader gaps remain separate, unmodified findings. A failed readback after a write is an unverified outcome, not proof of rollback.",
     "The synthetic 32 MiB helper measurement does not qualify full-engine AWS resource requirements."
-  ]
+  ],
+  "source_commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-ai-brief": {
+        "code_sha256": "Vkau18uy8yz3WAbs7SrVnafxlWc3EK/bAcX6UW9/jPY=",
+        "source_files_checked": 37,
+        "handler_bytes": 34679,
+        "timeout": 300,
+        "memory_mb": 1536,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-ai-brief-4h",
+            "state": "ENABLED",
+            "expression": "cron(5 0,4,8,12,16,20 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-ai-brief",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-calls-research-audit": {
+        "code_sha256": "6VS5Li5svNE++Av3SeQrxVDtvhFceAcZftrNkKa6MSw=",
+        "source_files_checked": 33,
+        "handler_bytes": 5627,
+        "timeout": 300,
+        "memory_mb": 1536,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-calls-research-audit-15m",
+            "state": "ENABLED",
+            "expression": "rate(15 minutes)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-calls-research-audit",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-liquidity-flow": {
+        "code_sha256": "3YO6RJ6YxWKATkWNIYazFwquu1iPfTYUP+XCW8pb1R0=",
+        "source_files_checked": 9,
+        "handler_bytes": 571,
+        "timeout": 120,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-liquidity-flow-cadence",
+            "state": "ENABLED",
+            "expression": "cron(5 22 ? * MON-FRI *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-liquidity-flow-daily",
+            "state": "ENABLED",
+            "expression": "rate(1 day)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-liquidity-flow",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-prospective-evaluator": {
+        "code_sha256": "VUE606IhrXgPfcXLB08K0WNdJgv/GHvj5awV1+tQNSg=",
+        "source_files_checked": 40,
+        "handler_bytes": 11737,
+        "timeout": 300,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-prospective-evaluator-hourly",
+            "state": "ENABLED",
+            "expression": "rate(1 hour)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-prospective-evaluator",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-signal-harvester": {
+        "code_sha256": "oCBg+Z/0uMOy7VxoWAJdcaFZaJCfZzq83NGks/fOyYI=",
+        "source_files_checked": 41,
+        "handler_bytes": 18649,
+        "timeout": 900,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-prospective-capture-hourly",
+            "state": "ENABLED",
+            "expression": "rate(1 hour)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "signal-harvester-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 23 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-signal-harvester",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36615685756,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6348_liquidity_transport_runtime_acceptance.md",
+  "native_acceptance_report_commit": "b04b4f77936d05e665359b0cb88619d1926113a9",
+  "lambda_run": 36614918250,
+  "pages_run": 36614918193,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T18:56:54.207710+00:00",
+    "intended_commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78",
+    "served_commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78",
+    "assets": {
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "72069db5531894ac095903bf14b653535f978e154c927ed33da0efff5efb3d4a",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "3aba19e0dca5c78ef111b1f8eb9c45b13982a080f2409b00d92a5f7cbbd4c686",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "ed88ce390dbbfa3507a353950d2bb50f0bfea87ec73dc6e91ec6df9dcc64b5ac",
+        "matches_manifest": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 19987,
+        "sha256": "09cb9afc8a546aed2ecb0da31d86c5b0304865db9b184df07633e9c25ec79a54",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3066292,
+        "sha256": "c07bac3cb4fb1898aa14e24b47cc362a291730ad5d35e92496ed8c716aee25f8",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7655340,
+        "sha256": "6d58f3a274d6a646baa4ff9f54b60b7d4ccdd4cccefef93a4a9b1d8a4d52dddc",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 17
 }
