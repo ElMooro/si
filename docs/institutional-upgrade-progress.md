@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 418 deployment acceptance: all ten workstreams remain open. Exact native source e2bf564dbca14af77fb9e714fb14587268845e57 now uses one rational par-fill boundary for operation and day classifications. The synthetic floating-point discrepancy is fixed through the complete handler and historical cohort. All twelve native source members, the receipt and original resources/four schedules are verified by read-only 6346. The accepted Stage 417 page remains at 02fa39e985c12f61011253913040c771929d2ac0, with corrected cash labels, full evidence inspection and snapshot-bound legacy downloads. Final checks pass: 277 native/desk, 685 deployment and twelve shell; unchanged frontend assets retain their 1844-test and 599-page acceptance. Exact file completion in the in-app browser, ordinary native publication, original vintages, population completeness, independent predictive validation and supported portfolio consequences remain open. No native invocation, current/private packet read, extra provider request or schedule/resource change occurred.
+September 29, after Stage 419 source acceptance: all ten workstreams remain open. A synthetic denied read reproduced historical-bank erasure in the actual desk handler. Missing-object initialization is now separate from failed reads; corrupt, oversized and malformed caches cannot replace retained history. Primary failures preserve previous public output, while secondary failures preserve their banks and expose unavailable research. All 286 native/desk, 686 deployment, twelve shell and 599 page-graph checks pass. A full-size synthetic run exercises the actual bounded cache reader without network or native invocation. The accepted Stage 417 UI and Stage 418 exact classification remain intact. Exact deployment/static acceptance is pending. Ordinary publication, original source/vintage capture, concurrent-writer guarantees, independent validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5792,3 +5792,8 @@ A reproduced synthetic decimal boundary returned 0.9 under floating-point divisi
 - The full 65 KB engine and related helpers/tests landed together through native Git. No static asset changed in this logic-only follow-up; Stage 417's five served-file hashes and isolated browser evidence remain the applicable page acceptance.
 - Operation labels, day tags and reaction cohorts agree at exact/below/above fill boundaries. The retained synthetic predecessor demonstrates the previous discrepancy without claiming it occurred in a real Treasury observation.
 - Ordinary publication and original-source/point-in-time/predictive/portfolio qualification remain open. Evidence: `docs/audit/2026-09-29/auction-fill-boundary.json`.
+
+
+### Stage 419: preserve retained history when cache reads fail
+
+Only explicit missing objects can initialize empty banks. Access failures, interrupted or corrupt bodies, oversized compressed/inflated objects and invalid bank shapes fail without rewriting unread history. Complete short-read consumption and stream closure are tested. Valid empty mappings and legacy diagnostics remain compatible. Full-handler tests preserve banks/public snapshots or mark dependent secondary research unavailable. Evidence: `docs/audit/2026-09-29/auction-cache-read.json`. Exact code/static acceptance, normal publication and the wider institutional objective remain separate.

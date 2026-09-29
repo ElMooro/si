@@ -21,8 +21,8 @@ Analysis (deterministic, every number shown comes from the sources above):
     reopening cohorts. Prior-close nominal par gaps are context only, excluded
     from the score; TIPS, FRNs and unknown instruments have no nominal gap.
   * per buyback: fill vs maximum, offered/accepted coverage, size percentile
-    against strictly earlier comparable operations; large high-fill labels describe
-    par amounts only. Cash, reserve and duration effects remain unmeasured.
+    against strictly earlier comparable operations; large high-fill operations are flagged
+    as a TGA cash-out (ops 5618 buyback wording), not an easing or duration-bid call.
   * per day: descriptive headline and deterministic explanation from computed
     facts, with no paid AI and no inferred portfolio allocation.
 
@@ -33,7 +33,6 @@ Outputs:
   data/warm/treasury-auctions/daily/{date}.json   day archive (incl. AI note)
 """
 import gzip
-import io
 import auction_buybacks
 import auction_delivery_store
 import auction_participation
@@ -61,7 +60,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.6"
+VERSION = "1.5.5"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -72,7 +71,6 @@ FULL_KEY = "data/warm/treasury-auctions/history-full.json.gz"     # raw FiscalDa
 ASSETS_KEY = "data/warm/treasury-auctions/assets.json.gz"
 COMPOSITE_KEY = "data/warm/treasury-auctions/composite-history.json"
 REACT_KEY = "data/warm/treasury-auctions/reactions.json"
-MAX_CACHE_BYTES = 128 * 1024 * 1024
 PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 FULL_FIELDS = ("cusip", "security_type", "security_term", "auction_date", "issue_date", "maturity_date", "high_rate", "high_yield",
                "high_discnt_rate", "high_investment_rate", "low_rate", "low_yield", "low_discnt_rate", "median_rate", "median_yield",
@@ -111,60 +109,14 @@ def _get_json(url, timeout=30):
         return json.loads(r.read())
 
 
-def _cache_bytes(stream):
-    """Consume the complete bounded object, including short-read streams."""
-    chunks, length = [], 0
-    try:
-        while True:
-            chunk = stream.read(min(65536, MAX_CACHE_BYTES + 1 - length))
-            if not chunk:
-                return b''.join(chunks)
-            length += len(chunk)
-            if length > MAX_CACHE_BYTES:
-                raise ValueError('Cached input exceeds its complete-byte limit')
-            chunks.append(chunk)
-    finally:
-        stream.close()
-
-
-def _cache_object(pairs):
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError('Duplicate cached JSON field')
-        result[key] = value
-    return result
-
-
 def _s3_json(key, default=None):
     try:
-        response = s3.get_object(Bucket=BUCKET, Key=key)
-    except Exception as exc:
-        # A denied, interrupted or corrupt read is not an absent bank. Let the
-        # caller fail or mark the dependent section unavailable, preserving the
-        # unread bytes rather than overwriting retained history with defaults.
-        failure = getattr(exc, 'response', None)
-        error = failure.get('Error') if isinstance(failure, dict) else None
-        code = str(error.get('Code', '')) if isinstance(error, dict) else ''
-        if code in ('NoSuchKey', '404'):
-            return default
-        raise
-    raw = _cache_bytes(response['Body'])
-    if key.endswith('.gz'):
-        raw = _cache_bytes(gzip.GzipFile(fileobj=io.BytesIO(raw)))
-    doc = json.loads(raw, object_pairs_hook=_cache_object)
-    if not isinstance(doc, dict):
-        raise ValueError('Cached input must be a complete JSON object')
-    fields = {HIST_KEY:'records', BUY_KEY:'operations', FULL_KEY:'rows', ASSETS_KEY:'series', PAR_KEY:'rows'}
-    field = fields.get(key)
-    if field and not isinstance(doc.get(field), dict):
-        raise ValueError('Cached bank is missing its record mapping: ' + field)
-    if key in (HIST_KEY, BUY_KEY, FULL_KEY, ASSETS_KEY) and any(not isinstance(row, dict) for row in doc[field].values()):
-        raise ValueError('Cached bank contains a malformed record')
-    if key == BUY_KEY and 'superseded_operations' in doc and (not isinstance(doc['superseded_operations'], dict) or
-            any(not isinstance(row, dict) for row in doc['superseded_operations'].values())):
-        raise ValueError('Cached retired buyback evidence is malformed')
-    return doc
+        raw = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+        if key.endswith(".gz"):
+            raw = gzip.decompress(raw)
+        return json.loads(raw)
+    except Exception:
+        return default
 
 
 def _put_json(key, obj, gz=False):
