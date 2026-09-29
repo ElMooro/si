@@ -8,13 +8,12 @@ from threading import Lock
 import calls_liquidity_originals as liquidity
 import calls_fails_originals as fails
 import calls_ciss_originals as ciss
-import calls_tic_originals as tic
 
 
 def allowed(key):
     return isinstance(key, str) and (
         liquidity.store.allowed(key) and key not in (liquidity.store.SOURCE, liquidity.store.SETTLEMENT, liquidity.store.model.CURRENT)
-        or any(re.fullmatch(pattern, key) for pattern in fails.IMMUTABLE+ciss.IMMUTABLE+tic.IMMUTABLE))
+        or any(re.fullmatch(pattern, key) for pattern in fails.IMMUTABLE+ciss.IMMUTABLE))
 
 
 class ImmutableReader:
@@ -47,14 +46,14 @@ class ImmutableReader:
         finally:
             with self.lock: del self.pending[key]
 
-    def verified_snapshot(self, identity, build):
+    def ciss_snapshot(self, identity, build):
         """Reuse immutable verified bytes only inside this reader's invocation.
 
         Freshness is deliberately absent from this cache. The binding reevaluates
         original clocks for every requested decision time. No cache is persisted.
         """
         if not isinstance(identity, str) or not re.fullmatch('[a-f0-9]{64}', identity):
-            raise ValueError('Exact original snapshot identity required')
+            raise ValueError('Exact CISS snapshot identity required')
         saved = self._verified.get(identity)
         if saved is None:
             if len(self._verified) >= 8: raise ValueError('Verified snapshot count exceeds bound')
@@ -66,9 +65,6 @@ class ImmutableReader:
         if not isinstance(saved, tuple) or len(saved) != 2 or not isinstance(saved[1], bytes) or hashlib.sha256(saved[1]).hexdigest() != saved[0]:
             raise ValueError('Invocation-local verified snapshot differs')
         return saved[1]
-
-    def ciss_snapshot(self, identity, build):
-        return self.verified_snapshot(identity, build)
 
 
 def reader(client, bucket):

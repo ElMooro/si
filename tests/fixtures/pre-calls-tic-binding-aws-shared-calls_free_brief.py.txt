@@ -50,7 +50,7 @@ def publication_clock(value,now):
                 'max_source_age_seconds':MAX_PUBLICATION_AGE_SECONDS}
 
 
-def build(load, generated_at, liquidity_originals=None, fails_originals=None, ciss_originals=None, tic_originals=None):
+def build(load, generated_at, liquidity_originals=None, fails_originals=None, ciss_originals=None):
     now = datetime.fromisoformat(generated_at.replace('Z','+00:00'))
     if now.tzinfo is None:raise ValueError('brief requires timezone-aware generation time')
     now=now.astimezone(timezone.utc)
@@ -135,19 +135,6 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None, ci
                 row['original_observation_ids']=[view['latest_occurrence'] for view in ciss_originals['series'].values()]
                 row['original_current_use_issues']=sorted({issue for view in ciss_originals['series'].values() for issue in view['current_use']['issues']})
                 row['original_reconciliation_status']=ciss_originals['independent_arithmetic']['latest_reconciliation']
-        if key=='data/capital-inflows.json' and tic_originals is not None:
-            verified=tic_originals.get('status')=='verified'
-            eligible=verified and tic_originals.get('current_use',{}).get('eligible') is True
-            status=row['quality_status']='unavailable' if value is None else 'fresh' if eligible else 'stale' if verified else 'unverified'
-            row.update(original_source_evidence_verified=verified,current_original_research_eligible=eligible,
-                max_observation_age_days=None,
-                freshness_basis='Complete native CSLT and FRED distribution replay, independent integer transaction arithmetic, original acquisition clocks and nominal release-calendar checks. Initial publication availability remains unverified.' if verified else 'TIC original-source replay unavailable; reported transactions remain unqualified.')
-            if verified:
-                window=tic_originals['windows']['total']
-                row['original_packet_canonical_sha256']=tic_originals['canonical_packet_sha256']
-                row['original_calculation_id']=window['calculation_id']
-                row['original_observation_ids']=[identity for identity in window['original_observations'].values() if identity is not None]
-                row['original_current_use_issues']=tic_originals['current_use']['issues']
         if note: row['note']=note
         rows.append(row)
         if status!='fresh': missing.append(row['series_id'])
@@ -210,14 +197,14 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None, ci
         '- Composites may reuse the same series. Six settlement fields all share FR2004; they do not become six independent votes.',
         '', '## DATA LIMITATIONS',
         '- '+str(len(missing))+' fields are stale, incomplete or unverified. Missing observation dates are shown explicitly; publication time is never substituted.',
-        '- Source publication must also be dated and not future. Liquidity, TIC and typed-only inputs use a 26-hour collector ceiling; original-bound FR2004 uses 36 hours and CISS uses 72 hours. Each original-source family also checks its own observations and release policy. Collector age alone does not verify provider release timing.',
+        '- Source publication must also be dated and not future. Liquidity and typed-only inputs use a 26-hour collector ceiling; original-bound FR2004 uses its 36-hour acquisition/publication ceiling and normal weekly release policy. Collector age alone does not verify provider release timing.',
         '- No allocation model or out-of-sample edge is validated here. All fields are monitor-only, even when fresh. No target exposure, probability or position size is inferred.',
         '', '## WATCH CONDITIONS',
         '- Reassess when the named source observations change, their dates advance, or upstream quality deteriorates.',
         '- Any future allocation change requires eligible independent evidence, a validated model and a separately enforced risk limit.',
         '', '## DECISION STATUS', '**DECISIVE CALL: WAIT**',
         'Abstain from new allocation guidance. WAIT does not mean sell existing positions or override independent risk controls.']
-    result={'version':'3.5','generated_at':generated_at,'generation_method':METHOD,
+    result={'version':'3.4','generated_at':generated_at,'generation_method':METHOD,
         'model':None,'paid_api_calls':0,'brief_md':'\n'.join(lines)+'\n',
         'evidence':rows,'coverage':{'fields':len(rows),'available':len(available),'fresh':len(fresh),'eligible_votes':0},
         'quality':{'status':'partial' if missing else 'fresh','missing':missing},

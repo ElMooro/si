@@ -57,7 +57,7 @@ def verify_current(client, bucket, now=None):
             'brief_sha256': expected_brief_hash, 'publication_age_hours': age,
             'publication_overdue': age is None or age < -5/60 or age > 4.5,
             'compiler': bundle['payload']['compiler'], 'private_account_data_read': False,
-            'meaning': 'Reproduces public research and its history binding. Included liquidity, FR2004, ECB and TIC originals are replayed only when the frozen run records successful capture; other source families, forecasts and portfolio sizing remain unvalidated.'}
+            'meaning': 'Reproduces public research and its history binding. Included liquidity, FR2004 and ECB originals are replayed only when the frozen run records successful capture; other source families, forecasts and portfolio sizing remain unvalidated.'}
 
 
 def lambda_handler(event, context):

@@ -16,7 +16,7 @@
   }
   function sourcePath(source) { return /^data\/[a-z0-9-]+\.json$/.test(source || '') ? '/' + source : null; }
   function originalPath(ref, provider='fred') {
-    if(!['fred','fr2004','ecb','tic'].includes(provider))return null;
+    if(!['fred','fr2004','ecb'].includes(provider))return null;
     return ref && typeof ref.sha256 === 'string' && /^[a-f0-9]{64}$/.test(ref.sha256) &&
       typeof ref.key === 'string' && new RegExp('^data/evidence/'+provider+'/[a-f0-9]{64}/'+ref.sha256+'\\.bin\\.gz$').test(ref.key) ? '/'+ref.key : null;
   }
@@ -145,41 +145,6 @@
           const link=el('a','Open complete source manifest and all retained histories',panel);link.href='/'+manifest;link.style.display='block';
         }
         el('p','The composite and its six contributions share one ECB measurement system. They do not count as seven independent votes. These are current retrieved vintages; historical publication availability, distribution statistics and forecasting value remain unqualified.',panel);
-      }
-    }
-    const tic=doc.original_source_lineage?.tic;
-    if(tic) {
-      const panel=el('details','',details);el('summary','Treasury capital flows: transactions, holders and original months',panel);
-      if(tic.status!=='verified')el('p','TIC original replay unavailable. Reported transactions remain unqualified for current research use.',panel);
-      else {
-        panel.style.overflowWrap='anywhere';
-        const coverage=tic.coverage || {},proof=tic.independent_arithmetic || {};
-        el('p','Complete Treasury archive: '+String(coverage.archive_series_retained ?? 'unknown')+' series retained; '+String(coverage.core_series ?? 'unknown')+' core series and '+String(coverage.original_core_rows ?? 'unknown')+' original rows checked. Other series remain unqualified.',panel);
-        el('p',tic.current_use?.eligible===true?'Current descriptive use passes native source clocks and calendar checks. No allocation permission.':'Historical reconstruction only; current TIC research use is withheld.',panel);
-        el('p','Independent arithmetic: '+String(proof.windows ?? 'unknown')+' windows and '+String(proof.reconciliations ?? 'unknown')+' component reconciliations checked. '+String(proof.incomplete_windows ?? 'unknown')+' incomplete historical windows remain unavailable.',panel);
-        const net=tic.net_cross_border_definition || {},holders=tic.reported_holder_splits || {};
-        el('p','Net cross-border long-term flow = foreign net purchases of U.S. securities minus U.S. net purchases of foreign securities, over the same twelve months: '+String(net.value ?? 'unavailable')+' USD billions.',panel);
-        el('p','Foreign holder split, twelve months: official '+String(holders.official?.sum_12m ?? 'unavailable')+'; private '+String(holders.private?.sum_12m ?? 'unavailable')+' USD billions. All twelve monthly holder decompositions reconciled: '+(holders.rolling_twelve_months_reconciled===true?'yes':'no')+'.',panel);
-        const labels={total:'Foreign purchases: all U.S. long-term securities',treasuries:'Long-term Treasuries',agency_bonds:'Agency bonds',corporate_bonds:'Corporate bonds',equities:'Equities',short_treasury:'Short-term Treasuries',us_abroad:'U.S. purchases of foreign long-term securities',official:'Foreign official holders',private:'Foreign private holders',total_prior_nonoverlapping_12m:'Previous non-overlapping twelve months'};
-        for(const role of Object.keys(labels)) {
-          const window=tic.windows?.[role];if(!window)continue;
-          const detail=el('details','',panel);el('summary',labels[role]+' · '+String(window.total_usd_bn_decimal ?? 'unavailable')+' USD billions',detail);
-          el('p','Exact window: '+String(window.months?.[0] || 'unavailable')+' to '+String(window.months?.at(-1) || 'unavailable')+'. Missing months: '+(window.missing_months?.join(', ') || 'none')+'.',detail);
-          for(const month of window.months || []) {
-            const point=tic.observations?.[window.original_observations?.[month]];
-            el('p',month+' · native value '+String(point?.reported_native_value ?? 'missing')+' USD millions · archive series index '+String(point?.original_series_index ?? 'unavailable')+' · original row '+String(point?.original_row ?? 'unavailable')+' (zero-based).',detail);
-          }
-        }
-        const bulk=tic.original_sources?.bulk,href=originalPath(bulk?.evidence,'tic');
-        el('p','Original archive acquired '+String(bulk?.acquired_at || 'unavailable')+'. Nominal release-calendar dates are not verified initial publication times.',panel);
-        if(href){const link=el('a','Inspect complete original Treasury archive',panel);link.href=href;link.style.display='block';}
-        const full=tic.complete_source_output_key,manifest=tic.source_replay?.manifest_key;
-        for(const [key,kind,label] of [[full,'outputs','Inspect complete native output and history shards'],[manifest,'runs','Inspect source manifest, compiler pins and FRED comparisons']]) {
-          if(typeof key==='string' && new RegExp('^data/tic-research/'+kind+'/[a-f0-9]{64}\\.json$').test(key)) {
-            const link=el('a',label,panel);link.href='/'+key;link.style.display='block';
-          }
-        }
-        el('p','The asset classes, holder groups and total overlap. Never add them as separate flows. FRED redistributes CSLT and supplies no additional independent economic observation. These transactions are not valuation changes, investable cash or a forecast; current retrieved vintages do not establish historical information availability.',panel);
       }
     }
     const prose = el('details', ''); el('summary', 'Read the brief, disagreements and limitations', prose);

@@ -140,7 +140,7 @@ class FailsBinding(unittest.TestCase):
         for name in ('fails_native.py','fails_research.py','fails_store.py'):
             self.assertEqual((ROOT/'aws/shared'/name).read_bytes(),(ROOT/'aws/lambdas/justhodl-settlement-fails/source'/name).read_bytes())
         self.assertEqual((ROOT/'aws/shared/verify_fails_arithmetic.py').read_bytes(),(ROOT/'scripts/verify_fails_arithmetic.py').read_bytes())
-        files=calls.compiler_identity()['files'];self.assertEqual(len(files),31)
+        files=calls.compiler_identity()['files'];self.assertEqual(len(files),25)
         self.assertTrue({'calls_fails_binding.py','calls_fails_originals.py','calls_original_reader.py','fails_native.py',
             'fails_research.py','fails_store.py','verify_fails_arithmetic.py'} <= set(files))
 

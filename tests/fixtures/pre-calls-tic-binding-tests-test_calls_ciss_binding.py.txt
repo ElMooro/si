@@ -147,7 +147,7 @@ class CissBinding(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'snapshot exceeds bound'):reader.ciss_snapshot('a'*64,lambda:b'')
 
     def test_compiler_closure_and_independent_checker_copy_are_exact(self):
-        files=calls.compiler_identity()['files'];self.assertEqual(len(files),31)
+        files=calls.compiler_identity()['files'];self.assertEqual(len(files),25)
         self.assertTrue({'calls_ciss_binding.py','calls_ciss_originals.py','ciss_original_replay.py','ciss_source_model.py','verify_ciss_arithmetic.py'}<=set(files))
         self.assertEqual((ROOT/'scripts/verify_ciss_arithmetic.py').read_bytes(),(ROOT/'aws/shared/verify_ciss_arithmetic.py').read_bytes())
 
