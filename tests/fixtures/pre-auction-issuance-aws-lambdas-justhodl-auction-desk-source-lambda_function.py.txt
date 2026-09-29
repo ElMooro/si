@@ -34,7 +34,6 @@ Outputs:
 """
 import gzip
 from auction_weighting import weighted_summary
-from auction_issuance import IssuanceLedger, apply_overlay, day as issuance_day
 from auction_scoring import score_auction
 import json
 import math
@@ -190,8 +189,8 @@ def fetch_td(path, days=None):
     return rows if isinstance(rows, list) else []
 
 
-def fetch_fd(dataset, params, max_pages=40, proof_out=None):
-    out, page, expected = [], 1, None
+def fetch_fd(dataset, params, max_pages=40):
+    out, page = [], 1
     while page <= max_pages:
         q = dict(params)
         q["page[number]"] = page
@@ -200,23 +199,10 @@ def fetch_fd(dataset, params, max_pages=40, proof_out=None):
         url = FD + dataset + "?" + urllib.parse.urlencode(q, safe=":,-[]")
         body = _get_json(url)
         data = body.get("data") or []
-        if proof_out is not None:
-            meta = body.get('meta') or {}
-            total, pages = meta.get('total-count'), meta.get('total-pages')
-            if type(total) is not int or type(pages) is not int or total < 0 or not 1 <= pages <= max_pages or not isinstance(body.get('data'), list):
-                raise ValueError('Full auction capture requires complete bounded pagination metadata')
-            if expected is None:
-                expected = (total, pages)
-            if expected != (total, pages) or (not data and total != 0):
-                raise ValueError('Full auction pagination changed or ended early')
         out.extend(data)
         if page >= int((body.get("meta") or {}).get("total-pages") or 1) or not data:
             break
         page += 1
-    if proof_out is not None:
-        if expected is None or len(out) != expected[0] or page != expected[1]:
-            raise ValueError('Full auction pagination incomplete')
-        proof_out.append({'rows': len(out), 'pages': expected[1], 'complete': True})
     return out
 
 
@@ -585,43 +571,11 @@ def load_full_bank(force=False):
     else:
         rows, start = {}, "1996-01-01"
     try:
-        proof = []
-        acquired = fetch_fd("auctions_query", {"filter": "auction_date:gte:%s" % start, "sort": "-auction_date"}, max_pages=60, proof_out=proof)
-        finish = _now().date().isoformat()
-        updates = {}
-        for r in acquired:
-            observed = issuance_day(r.get('auction_date')) if isinstance(r, dict) else None
-            cusip = r.get('cusip') if isinstance(r, dict) else None
-            if observed is None or not start <= observed.isoformat() <= finish or type(cusip) is not str or not cusip.strip():
-                raise ValueError('Full auction capture has invalid identity or date')
-            key = '%s|%s' % (observed.isoformat(), cusip)
-            if key in updates:
-                raise ValueError('Full auction capture has duplicate identity')
-            updates[key] = dict(r)  # retain missing BTC/amount and every supplied field
-        if len(proof) != 1 or proof[0].get('complete') is not True:
-            raise ValueError('Full auction capture completion proof unavailable')
-        missing_previous = [key for key, value in rows.items()
-                            if start <= str(value.get('auction_date') or '') <= finish and key not in updates]
-        if missing_previous:
-            raise ValueError('Complete capture omitted previously banked identities; preserve prior bank for review')
-        rows = {**rows, **updates}
-        coverage = list(doc.get('population_coverage') or []) if not force else []
-        coverage.append({'start': start, 'end': finish})
-        # Merge adjacent ranges to bound growth without claiming anything about
-        # the older, historically BTC-filtered part of the existing bank.
-        merged = []
-        for span in sorted(coverage, key=lambda value: value['start']):
-            if not issuance_day(span.get('start')) or not issuance_day(span.get('end')) or span['start'] > span['end']:
-                raise ValueError('Invalid retained population coverage')
-            if merged and issuance_day(span['start']) <= issuance_day(merged[-1]['end']) + timedelta(days=1):
-                merged[-1]['end'] = max(merged[-1]['end'], span['end'])
-            else:
-                merged.append(dict(span))
-        doc = {**doc, "version": VERSION, "rows": rows, "as_of": _iso(), "n": len(rows),
-               "first": min(rows)[:10] if rows else None, "last": max(rows)[:10] if rows else None,
-               "population_coverage": merged, "last_capture": proof[0],
-               "coverage_note": "Only listed date ranges have complete pagination and no BTC filter. Older bank coverage is unverified; current vintage, not historical point-in-time evidence."}
-        doc.pop('error', None)
+        for r in fetch_fd("auctions_query", {"filter": "auction_date:gte:%s" % start, "sort": "-auction_date"}, max_pages=60):
+            if not r.get("cusip") or not r.get("auction_date") or _f(r.get("bid_to_cover_ratio")) is None:
+                continue
+            rows["%s|%s" % (r["auction_date"][:10], r["cusip"])] = {k: r.get(k) for k in FULL_FIELDS if r.get(k) not in (None, "", "null")}
+        doc = {"version": VERSION, "rows": rows, "as_of": _iso(), "n": len(rows), "first": min(rows)[:10] if rows else None, "last": max(rows)[:10] if rows else None}
         _put_json(FULL_KEY, doc, gz=True)
     except Exception as e:
         doc.setdefault("rows", rows)
@@ -642,12 +596,11 @@ def fetch_fred_daily(series, obs=12000):
         return {}
 
 
-def build_composite_history(full_rows, ff_by_date, live_point=None, population_coverage=()):
+def build_composite_history(full_rows, ff_by_date, live_point=None):
     """Detector-faithful composite (0.7*max + 0.3*avg per auction, size-weighted over a 14-day window,
-    + up to 13.5 points of complete dated bill-issuance overlay), sampled weekly from 1996 and daily for the last 60 days."""
+    + up to 15 points of bill-issuance overlay), sampled weekly from 1996 and daily for the last 60 days."""
     if not crisis_scoring or not full_rows:
         return {"series": [], "note": "scoring module unavailable"}
-    ledger = IssuanceLedger([full_rows[key] for key in sorted(full_rows)], _now().date().isoformat(), population_coverage)
     scored = []
     ff_dates = sorted(ff_by_date)
     for key in sorted(full_rows):
@@ -659,7 +612,7 @@ def build_composite_history(full_rows, ff_by_date, live_point=None, population_c
         ff_date = ff_dates[i] if i >= 0 else None
         ff = ff_by_date[ff_date] if ff_date and 0 <= (datetime.fromisoformat(d).date() - datetime.fromisoformat(ff_date).date()).days <= 5 else None
         scored_row = score_auction(m, crisis_scoring.score_indicators(m, ff), ff)
-        scored.append((d, scored_row['composite_score'], m.get("accepted_billions")))
+        scored.append((d, scored_row['composite_score'], m.get("accepted_billions"), "BILL" in str(r.get("security_type", "")).upper(), _f(r.get("total_accepted")) or 0.0))
     scored.sort(key=lambda row: row[0])
     dates = [x[0] for x in scored]
     today = _now().date()
@@ -681,16 +634,29 @@ def build_composite_history(full_rows, ff_by_date, live_point=None, population_c
         if not win:
             continue
         weighting = weighted_summary([{'composite_score':w[1],'accepted_billions':w[2]} for w in win])
-        comparison = ledger.calculate(hi)
-        calculation = apply_overlay(weighting['composite'], comparison)
-        series.append({"date": hi, "composite": calculation['composite'], "n": len(win), "weighting_quality": weighting,
-                       "base_composite": weighting['composite'], "issuance": comparison, "composite_calculation": calculation})
+        comp = weighting['composite']
+        # issuance overlay: bills 4w average per auction day vs trailing 1y
+        a1 = bisect.bisect_left(dates, (D - timedelta(days=365)).isoformat())
+        a4 = bisect.bisect_left(dates, (D - timedelta(days=28)).isoformat())
+        by_day_1y, by_day_4w = {}, {}
+        for w in scored[a1:b]:
+            if w[3] and w[4]:
+                by_day_1y[w[0]] = by_day_1y.get(w[0], 0) + w[4]
+        for w in scored[a4:b]:
+            if w[3] and w[4]:
+                by_day_4w[w[0]] = by_day_4w.get(w[0], 0) + w[4]
+        if comp is not None and by_day_1y and by_day_4w:
+            avg4 = sum(by_day_4w.values()) / len(by_day_4w)
+            avg1 = sum(by_day_1y.values()) / len(by_day_1y)
+            pct = (avg4 - avg1) / avg1 * 100 if avg1 else 0
+            iss = 90 if pct > 50 else 60 if pct > 30 else 30 if pct > 15 else 0
+            comp = min(100, comp + iss * 0.15)
+        series.append({"date": hi, "composite": round(comp, 1) if comp is not None else None, "n": len(win), "weighting_quality":weighting})
     return {"series": series, "sampled": "weekly to T-60d, daily after", "first": series[0]["date"] if series else None,
             "last": series[-1]["date"] if series else None, "n_auctions_scored": sum(row[1] is not None for row in scored),
             "n_auctions_retained": len(scored), "score_contract": "auction-score-inputs.v1",
-            "issuance_ledger": ledger.document, "issuance_contract": "auction-issuance-inputs.v1",
             "detector_context": live_point, "detector_context_used_in_history": False,
-            "method": "complete applicable features per auction; rounded detector score, all retained accepted-size weights over 14d, +0-13.5 complete dated legacy issuance overlay",
+            "method": "complete applicable features per auction; rounded detector score, all retained accepted-size weights over 14d, +0-15 legacy issuance overlay",
             "history_basis": "current source vintage; not a point-in-time backtest; missing or unsupported positive-weight observations withhold a window",
             "calls_eligible": False, "sizing_eligible": False}
 
@@ -1020,8 +986,8 @@ def lambda_handler(event, ctx):
             live = {"date": today, "composite": ac.get("composite_score"), "n": ac.get("n_recent_auctions_14d")}
         except Exception:
             pass
-        composite = build_composite_history(full.get("rows") or {}, fetch_fred_daily("DFF"), live, population_coverage=full.get("population_coverage") or [])
-        composite["bank"] = {"as_of": full.get("as_of"), "population_coverage": full.get("population_coverage") or [], "coverage_note": full.get("coverage_note"), "first": full.get("first"), "last": full.get("last"), "n": full.get("n"), "error": full.get("error")}
+        composite = build_composite_history(full.get("rows") or {}, fetch_fred_daily("DFF"), live)
+        composite["bank"] = {"first": full.get("first"), "last": full.get("last"), "n": full.get("n"), "error": full.get("error")}
         _put_json(COMPOSITE_KEY, composite)
     except Exception as e:
         composite = {"series": [], "error": str(e)[:160]}

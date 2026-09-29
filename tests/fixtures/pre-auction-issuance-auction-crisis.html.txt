@@ -301,7 +301,7 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 .triggers-ai-card strong{color:var(--cyan)}
 
 /* ─── 6 indicators (existing) ─── */
-.indicator-grid{display:grid;align-items:start;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
+.indicator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:16px}
 .indicator-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative}
 .indicator-card.fired{border-color:var(--amber);background:linear-gradient(135deg,rgba(255,177,61,.04),var(--bg-raised))}
 .indicator-card.fired-acute{border-color:var(--red);background:linear-gradient(135deg,rgba(255,92,122,.06),var(--bg-raised))}
@@ -393,7 +393,6 @@ footer a:hover{color:var(--cyan)}
 .reference-inputs summary:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
 .reference-inputs > div { max-height:400px; overflow:auto; }
 .hist-card p { font-size:12px; line-height:1.6; color:var(--fg2); }
-.issuance-inputs {margin-top:10px;min-width:0;} .issuance-inputs summary {cursor:pointer;} .issuance-inputs pre {max-height:320px;overflow:auto;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;}
 </style>
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
@@ -423,7 +422,7 @@ footer a:hover{color:var(--cyan)}
 <main class="container">
   <div class="page-hdr">
     <h1>TREASURY AUCTION OBSERVATIONS <span class="ai-tag">RESEARCH</span></h1>
-    <p>Dated Treasury auction observations with traceable calculation inputs: bidder participation, tenor breakdowns, overlapping bill-supply windows, forward calendar, FRED context and a 30-day trajectory. Historical references remain an unverified catalog; similarity rankings and verified historical outcomes are unavailable. Legacy thresholds are descriptive and have no validated forecast or position-size authority.</p>
+    <p>Dated Treasury auction observations and uncalibrated legacy heuristics. 6 quantified pattern signatures from 9 historical auction PDFs (2008 GFC, 2020 COVID, 2021 complacency, 2024 normal) PLUS tenor decomposition · forward calendar with heuristic stress scores · cosine-similarity historical analog matching · dated context from five FRED series · 30-day composite trajectory · complete-input concern arithmetic · named regime triggers · Source context and explicit missing-data states. No forecast or position-size authority is established.</p>
     <div class="meta-row">
       <span>Data schedules: 13:05 / 19:50 UTC</span>
       <span>Research view: descriptive observations</span>
@@ -511,7 +510,6 @@ footer a:hover{color:var(--cyan)}
   <!-- 30-day composite trajectory chart -->
   <div class="section-hdr">
     <h3>30-Day Composite Trajectory</h3>
-    <p class="footer-note" id="composite-series-basis">Complete dated auction and supply inputs required.</p>
     <div class="sub">Daily rolling 14-day composite · with regime changeover markers</div>
   </div>
   <div class="chart-card">
@@ -664,7 +662,7 @@ footer a:hover{color:var(--cyan)}
     <p><strong>Historical analog matching.</strong> The legacy entries lack verified original security observations, comparable feature definitions and dated outcome series. Similarity and ranking are withheld. Every declared field and narrative remains inspectable as unverified source input.</p>
     <p><strong>Concern scores.</strong> Uncalibrated 0–100 heuristics for auction participation, regime thresholds and supply context. These are not event probabilities; the legacy horizons have not been validated.</p>
     <p><strong>Separate commentary input.</strong> The legacy commentary packet remains available for inspection. Its narrative, predictions and investment instructions are withheld from this view because complete source replay and predictive validation are not established. This page makes no AI API calls.</p>
-    <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Every required feature must be observed for an auction score. Missing weights or incomplete positive-weight scores withhold the window; explicit zero amount contributes zero. All acquired observations, including FRNs without a comparable score baseline, remain in the population. High-minus-median dispersion is separate from a when-issued tail, which remains unavailable without an actual WI quote. The overlapping 28/365-day bill-supply comparison adds 0–13.5 points only with complete dated input coverage. Missing amounts or an unknown population withhold the combined score; measured-zero auction days remain in the denominator. This is not YoY growth, net supply or liquidity injection.</p>
+    <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Every required feature must be observed for an auction score. Missing weights or incomplete positive-weight scores withhold the window; explicit zero amount contributes zero. All acquired observations, including FRNs without a comparable score baseline, remain in the population. High-minus-median dispersion is separate from a when-issued tail, which remains unavailable without an actual WI quote. Issuance-explosion adds up to 15 points overlay.</p>
   </div>
 
   <footer>
@@ -687,7 +685,7 @@ footer a:hover{color:var(--cyan)}
 
 <script src="/jh-auction-originals.js?v=20260929" defer></script>
 <script src="/jh-auction-fred-evidence.js?v=20260929-fred-v1" defer></script>
-<script src="/auction-crisis.js?t=20260929-issuance-inputs" defer></script>
+<script src="/auction-crisis.js?t=20260929-reference-catalog" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

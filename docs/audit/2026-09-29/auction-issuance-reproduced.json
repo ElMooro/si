@@ -1,0 +1,155 @@
+{
+  "baseline_commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b",
+  "source_sha256": "65113c343448ae1732405954df9a8825b0f6566560b0804e35d1bc9a6695cbcf",
+  "synthetic_only": true,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "cases": [
+    {
+      "case": "missing_baseline_amount_is_silently_omitted",
+      "rows": [
+        {
+          "auction_date": "2026-09-29",
+          "security_type": "Bill",
+          "security_term": "4-Week",
+          "cusip": "TEST00001",
+          "inflation_index_security": "No",
+          "floating_rate": "No",
+          "bid_to_cover_ratio": "2.4",
+          "high_yield": "4",
+          "median_yield": "3.98",
+          "low_yield": "3.9",
+          "allocation_pctage": "70",
+          "primary_dealer_accepted": "2",
+          "direct_bidder_accepted": "1",
+          "indirect_bidder_accepted": "7",
+          "total_accepted": "100"
+        },
+        {
+          "auction_date": "2026-07-31",
+          "security_type": "Bill",
+          "security_term": "4-Week",
+          "cusip": "TEST00001",
+          "inflation_index_security": "No",
+          "floating_rate": "No",
+          "bid_to_cover_ratio": "2.4",
+          "high_yield": "4",
+          "median_yield": "3.98",
+          "low_yield": "3.9",
+          "allocation_pctage": "70",
+          "primary_dealer_accepted": "2",
+          "direct_bidder_accepted": "1",
+          "indirect_bidder_accepted": "7",
+          "total_accepted": "20"
+        },
+        {
+          "auction_date": "2026-07-30",
+          "security_type": "Bill",
+          "security_term": "4-Week",
+          "cusip": "TEST00001",
+          "inflation_index_security": "No",
+          "floating_rate": "No",
+          "bid_to_cover_ratio": "2.4",
+          "high_yield": "4",
+          "median_yield": "3.98",
+          "low_yield": "3.9",
+          "allocation_pctage": "70",
+          "primary_dealer_accepted": "2",
+          "direct_bidder_accepted": "1",
+          "indirect_bidder_accepted": "7",
+          "total_accepted": null
+        }
+      ],
+      "actual": {
+        "score": 90,
+        "pct_above_baseline": 66.7
+      },
+      "complete_alternate_if_unknown_were_900": {
+        "score": 0,
+        "pct_above_baseline": -70.6
+      }
+    },
+    {
+      "case": "measured_zero_auction_day_removed_from_denominator",
+      "rows": [
+        {
+          "auction_date": "2026-09-29",
+          "security_type": "Bill",
+          "security_term": "4-Week",
+          "cusip": "TEST00001",
+          "inflation_index_security": "No",
+          "floating_rate": "No",
+          "bid_to_cover_ratio": "2.4",
+          "high_yield": "4",
+          "median_yield": "3.98",
+          "low_yield": "3.9",
+          "allocation_pctage": "70",
+          "primary_dealer_accepted": "2",
+          "direct_bidder_accepted": "1",
+          "indirect_bidder_accepted": "7",
+          "total_accepted": "0"
+        },
+        {
+          "auction_date": "2026-09-28",
+          "security_type": "Bill",
+          "security_term": "4-Week",
+          "cusip": "TEST00001",
+          "inflation_index_security": "No",
+          "floating_rate": "No",
+          "bid_to_cover_ratio": "2.4",
+          "high_yield": "4",
+          "median_yield": "3.98",
+          "low_yield": "3.9",
+          "allocation_pctage": "70",
+          "primary_dealer_accepted": "2",
+          "direct_bidder_accepted": "1",
+          "indirect_bidder_accepted": "7",
+          "total_accepted": "10"
+        },
+        {
+          "auction_date": "2026-07-31",
+          "security_type": "Bill",
+          "security_term": "4-Week",
+          "cusip": "TEST00001",
+          "inflation_index_security": "No",
+          "floating_rate": "No",
+          "bid_to_cover_ratio": "2.4",
+          "high_yield": "4",
+          "median_yield": "3.98",
+          "low_yield": "3.9",
+          "allocation_pctage": "70",
+          "primary_dealer_accepted": "2",
+          "direct_bidder_accepted": "1",
+          "indirect_bidder_accepted": "7",
+          "total_accepted": "100"
+        }
+      ],
+      "actual": {
+        "score": 0,
+        "pct_above_baseline": -81.8
+      },
+      "all_three_days_including_measured_zero_pct": -86.4
+    },
+    {
+      "case": "future_row_changes_both_windows_in_pure_calculation",
+      "actual_without_future": {
+        "score": 90,
+        "pct_above_baseline": 66.7
+      },
+      "actual_with_future": {
+        "score": 60,
+        "pct_above_baseline": 47.3
+      },
+      "native_fetch_note": "Current validated acquisition rejects future dates; pure supplied-input calculation lacks that boundary."
+    },
+    {
+      "case": "raw_bill_substring_overrides_structured_instrument_identity",
+      "instrument_kind": "FRN",
+      "tenor_bucket": "frn",
+      "actual_issuance_result": {
+        "score": 0,
+        "pct_above_baseline": 0.0
+      }
+    }
+  ]
+}

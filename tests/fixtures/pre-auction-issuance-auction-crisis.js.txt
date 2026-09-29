@@ -138,7 +138,7 @@ function renderHero() {
   const regime = score !== null && regimes.includes(DATA.regime) ? DATA.regime : 'UNAVAILABLE';
   $('composite-score').textContent = fmt(score);
   $('regime-text').textContent = regime.replace(/_/g, ' ');
-  $('regime-desc').textContent = score === null ? (DATA.composite_calculation?.issuance_status === 'unavailable' ? 'Supply comparison unavailable. Base auction score: ' + fmt(scoreValue(DATA.base_composite_score)) + '. Missing supply context is not zero.' : weightingNote(DATA.weighting_quality)) :
+  $('regime-desc').textContent = score === null ? weightingNote(DATA.weighting_quality) :
     'Descriptive legacy heuristic. This score has no validated forecast or position-size authority.';
   $('n-recent').textContent = Number.isSafeInteger(DATA.n_recent_auctions_14d) && DATA.n_recent_auctions_14d >= 0 ? DATA.n_recent_auctions_14d : '—';
   const policy = globalThis.JHAuctionFredEvidence?.policyContext?.(DATA.fred_source, DATA.generated_at, DATA.fed_funds_rate);
@@ -263,9 +263,7 @@ function renderCrossSignals() {
 
 function renderCompositeChart() {
   const hist = DATA.composite_history || {};
-  const combined = hist.issuance_contract === 'auction-issuance-inputs.v1';
-  const series = Array.isArray(hist.series) ? hist.series.map(row => combined ? {...row, composite: row?.with_issuance_composite} : row) : [];
-  if ($('composite-series-basis')) $('composite-series-basis').textContent = combined ? 'Base auction score + dated supply adjustment; missing inputs break the line.' : 'Legacy base auction score only; supply adjustment is not represented.';
+  const series = Array.isArray(hist.series) ? hist.series : [];
   if (series.length === 0) { $('composite-chart').innerHTML = ''; return; }
 
   const W = 1000, H = 260, M = {top: 20, right: 20, bottom: 30, left: 40};
@@ -310,7 +308,7 @@ function renderCompositeChart() {
     } else svg += `<circle cx="${group[0].x}" cy="${group[0].y}" r="3" fill="var(--cyan)"/>`;
   }
   // Change-point markers
-  const cps = (combined ? hist.with_issuance_change_points : hist.change_points) || [];
+  const cps = hist.change_points || [];
   for (const cp of cps) {
     const idx = series.findIndex(s => s.date === cp.date);
     if (idx < 0 || scoreValue(series[idx].composite) === null) continue;
@@ -624,36 +622,12 @@ const INDICATOR_DEFS = {
   tail_stress:       {name: 'Allotted-At-High Proration', short: 'Marginal-bid allocation percentage; not dealer share or a yield tail', historical: '2024-10-09 AAH 99.31% on 10y'},
   pd_absorption:     {name: 'Primary Dealer Share',     short: 'Dealer share above a fixed 35% coupon threshold; not evidence of dealer distress', historical: '2008-09-18 PD 69% (extreme)'},
   indirect_collapse: {name: 'Indirect Bidder Share',   short: 'Indirect bidders include domestic and foreign investors; this is not a foreign-flow measure', historical: '2008-09-18 ind 29% (vs 60-78% normal)'},
-  issuance_anomaly:  {name: 'Bill Issuance Comparison',  short: 'Average accepted amount per auction day across overlapping windows; not net liquidity injection', historical: 'Fixed legacy thresholds; predictive validation unavailable'},
+  issuance_anomaly:  {name: 'Bill Issuance Comparison',  short: 'Average accepted amount per auction day across overlapping windows; not net liquidity injection', historical: '2020-Mar bills surge'},
 };
-
-function issuanceEvidence() {
-  const value = DATA.issuance_anomaly, today = new Date().toISOString().slice(0,10);
-  const flags = ['calls_eligible','sizing_eligible','forecast_eligible','execution_eligible','historical_point_in_time_verified'];
-  if (!value || value.contract !== 'auction-issuance-inputs.v1' || value.calculation_as_of !== today ||
-      !['complete','unavailable','not_applicable'].includes(value.status) || flags.some(key => value[key] !== false) ||
-      !/^[a-f0-9]{64}$/.test(value.ledger_id || '') || value.ledger?.ledger_id !== value.ledger_id ||
-      !Array.isArray(value.ledger.rows) || value.ledger.row_count !== value.ledger.rows.length) return null;
-  for (const [key, days] of [['recent',28],['baseline',365]]) {
-    const window = value[key], end = crossDay(window?.end), start = crossDay(window?.start);
-    if (end === null || start === null || window.end !== today || end-start !== days*86400000 ||
-        window.ledger_id !== value.ledger_id || window.inclusive !== true || window.lookback_days !== days ||
-        !Number.isSafeInteger(window.auction_days) || window.auction_days < 0 ||
-        !Array.isArray(window.problems) || !Array.isArray(window.source_slice) || window.source_slice.length !== 2 ||
-        !window.source_slice.every(Number.isSafeInteger) || window.source_slice[0] < 0 ||
-        window.source_slice[1] < window.source_slice[0] || window.source_slice[1] > value.ledger.rows.length) return null;
-    if (value.status !== 'unavailable' && (window.status !== 'complete' || window.problems.length || window.population_coverage_verified !== true)) return null;
-  }
-  if (value.status === 'complete' && (measured(value.pct_above_baseline) === null || ![0,30,60,90].includes(value.score))) return null;
-  if (value.status === 'not_applicable' && (value.score !== 0 || value.baseline.counts?.bill !== 0)) return null;
-  if (value.status === 'unavailable' && (value.score !== null || value.pct_above_baseline !== null)) return null;
-  return value;
-}
 
 function renderIndicators() {
   const agg = DATA.indicator_aggregate_14d || {};
-  const evidence = issuanceEvidence();
-  const issuance = evidence || {};
+  const issuance = DATA.issuance_anomaly || {};
   let html = '';
   for (const [key, def] of Object.entries(INDICATOR_DEFS)) {
     let v = agg[key];
@@ -666,15 +640,13 @@ function renderIndicators() {
     if (key === 'issuance_anomaly') {
       const pct = measured(issuance.pct_above_baseline);
       const score = scoreValue(issuance.score);
-      if (score !== null) { pillCls = 'calm'; pillText = issuance.status === 'not_applicable' ? 'NOT APPLICABLE' : 'OBSERVED'; }
+      if (score !== null) { pillCls = 'calm'; pillText = 'OBSERVED'; }
       statValue = pct != null ? `<div>${pct > 0 ? '+' : ''}${pct.toFixed(1)}%</div>` : '<div>—</div>';
-      if (score >= 60) { pillCls = 'acute'; pillText = 'SCORE ' + score; cardCls = 'fired-acute'; maxScore = score; }
-      else if (score >= 30) { pillCls = 'fired'; pillText = 'SCORE ' + score; cardCls = 'fired'; maxScore = score; }
+      if (score >= 60) { pillCls = 'acute'; pillText = 'ACUTE'; cardCls = 'fired-acute'; maxScore = score; }
+      else if (score >= 30) { pillCls = 'fired'; pillText = 'FIRED'; cardCls = 'fired'; maxScore = score; }
       html += `<div class="indicator-card ${cardCls}" data-signal="${key}">
         <div class="name">${esc(def.name)}<span class="pill ${pillCls}">${pillText}</span></div>
-        <div class="stats"><div class="label">Overlapping 28/365-day lookbacks · not YoY</div>${statValue}</div>
-        <div class="desc">${evidence ? ['recent','baseline'].map(key => { const w=evidence[key]; return `${esc(w.start)}–${esc(w.end)} inclusive: ${esc(measured(w.sum_usd_bn) !== null && w.sum_usd_bn > 0 && w.sum_usd_bn < .001 ? '<0.001' : fmt(measured(w.sum_usd_bn),3))} USD bn / ${w.auction_days} bill auction days`; }).join('<br>') : 'Dated complete input ledger unavailable.'}</div>
-        ${evidence ? `<details class="issuance-inputs"><summary>Inspect dates, amounts, exclusions and calculation</summary><pre>${esc(JSON.stringify(evidence,null,2))}</pre></details>` : ''}
+        <div class="stats"><div class="label">4w vs 1y baseline</div>${statValue}</div>
         <div class="desc">${esc(def.short)}<br/><em>${esc(def.historical)}</em></div>
         <div class="ai-take" id="ai-take-${key}" style="display:none"></div>
       </div>`;

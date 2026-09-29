@@ -149,7 +149,9 @@ def test_desk_matches_complete_detector_rounding_and_missing_dated_policy():
     scope = support['load']('auction-desk', support['Store']())
     row = raw(bid_to_cover_ratio='2.0'); day = row['auction_date']
     out = scope['build_composite_history']({'a': row}, {day: 4.25})
-    assert out['series'][-1]['composite'] == score(row)['composite_score']
+    assert out['series'][-1]['base_composite'] == score(row)['composite_score']
+    assert out['series'][-1]['composite'] is None
+    assert 'unverified_population_coverage' in out['series'][-1]['issuance']['reasons']
     bill = raw(security_type='Bill', security_term='4-Week', low_discnt_rate='4')
     old = (datetime.now(timezone.utc).date() - timedelta(days=6)).isoformat()
     for rates in ({}, {old: 4.25}):

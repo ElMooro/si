@@ -45,7 +45,6 @@ descriptive measurements and unvalidated heuristics into the output JSON.
 import json
 import hashlib
 import time
-from auction_issuance import apply_overlay
 from auction_weighting import weighted_summary
 from auction_scoring import numeric
 import auction_benchmarks
@@ -510,7 +509,7 @@ def compute_cross_signals() -> dict:
 # 5. COMPOSITE HISTORY (30-day trend)
 # ═════════════════════════════════════════════════════════════════════
 
-def build_composite_history(scored_auctions: List[dict], days: int = 30, issuance_ledger=None) -> List[dict]:
+def build_composite_history(scored_auctions: List[dict], days: int = 30) -> List[dict]:
     """Roll the same algorithm forward day-by-day to build a 30-day timeline
     of the composite score.
 
@@ -554,16 +553,6 @@ def build_composite_history(scored_auctions: List[dict], days: int = 30, issuanc
             "n_auctions": len(window),
         })
 
-    # Preserve the legacy base series for concern arithmetic; expose the complete
-    # current/history score under a distinct field instead of changing its meaning.
-    if issuance_ledger is not None:
-        for point in series:
-            comparison = issuance_ledger.calculate(point['date'])
-            calculation = apply_overlay((point.get('weighting_quality') or {}).get('composite'), comparison)
-            value = calculation['composite']
-            point.update(with_issuance_composite=value, issuance=comparison, composite_calculation=calculation,
-                         with_issuance_regime=None if value is None else 'ACUTE_STRESS' if value >= 75 else 'ELEVATED' if value >= 50 else 'WATCH' if value >= 25 else 'CALM')
-
     # Detect regime change points
     change_points = []
     for i in range(1, len(series)):
@@ -577,10 +566,6 @@ def build_composite_history(scored_auctions: List[dict], days: int = 30, issuanc
     return {
         "series":         series,
         "change_points":  change_points,
-        "with_issuance_change_points": [{"date": b['date'], "from": a['with_issuance_regime'], "to": b['with_issuance_regime']}
-            for a, b in zip(series, series[1:]) if a.get('with_issuance_regime') and b.get('with_issuance_regime') and a['with_issuance_regime'] != b['with_issuance_regime']],
-        "series_basis": "base auction composite; with_issuance_composite adds the dated complete supply comparison",
-        "issuance_contract": "auction-issuance-inputs.v1" if issuance_ledger is not None else None,
         "current":        series[-1] if series else None,
         "min_composite":  min((s["composite"] for s in series if s["composite"] is not None), default=None),
         "max_composite":  max((s["composite"] for s in series if s["composite"] is not None), default=None),
@@ -611,8 +596,7 @@ def build_triggers(scored_auctions: List[dict],
     """Produce a list of named triggers that would flip the regime,
     with current values and distance-to-trigger."""
 
-    point = composite_history.get("current") or {}
-    current = numeric(point.get("with_issuance_composite") if "with_issuance_composite" in point else point.get("composite"))
+    current = numeric((composite_history.get("current") or {}).get("composite"))
     if current is None or not 0 <= current <= 100:
         return []
 

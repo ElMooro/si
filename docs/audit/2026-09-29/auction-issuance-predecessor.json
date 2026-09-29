@@ -1,0 +1,130 @@
+{
+  "base": "d560364f154aad31197f62e3641f1190a2d3dc0a",
+  "started_at": "2026-09-29T10:59:03.216600+00:00",
+  "fixtures": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-auction-issuance-aws-lambdas-justhodl-auction-crisis-detector-source-lambda_function.py.txt",
+      "bytes": 43541,
+      "sha256": "65113c343448ae1732405954df9a8825b0f6566560b0804e35d1bc9a6695cbcf"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+      "fixture": "tests/fixtures/pre-auction-issuance-aws-lambdas-justhodl-auction-crisis-detector-source-auction_crisis_v2.py.txt",
+      "bytes": 38010,
+      "sha256": "59d018c1fe79c41226d83ea09fe9cd5ef1c331718f81d393bc33de3a9e45349a"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-desk/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-auction-issuance-aws-lambdas-justhodl-auction-desk-source-lambda_function.py.txt",
+      "bytes": 63439,
+      "sha256": "323e26b4332bbadeebf4c312c14aee4183d92c38577e3b1f8b70ef03fb8ebfc1"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-issuance-auction-crisis.js.txt",
+      "bytes": 50406,
+      "sha256": "b3a172d594e19297f8a821a03b158e481693324f331befb27a648d61141b262f"
+    },
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-issuance-auction-crisis.html.txt",
+      "bytes": 52270,
+      "sha256": "477ed1d5cf729ed1cf9b2c02733ce95726a359079cce98f9c2368a100234e2f9"
+    }
+  ],
+  "actual_runtimes": {
+    "justhodl-auction-crisis-detector": {
+      "code_sha256": "uIjN7CYAI2KW34NOK2WOPP9CK6dvoNTn89n8Q+g00LM=",
+      "source_files_checked": 22,
+      "handler_bytes": 43541,
+      "timeout": 240,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "3cc8aeb6d6b850565a27f2ce800ba3f5d24c609b"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-auction-crisis-active",
+          "state": "ENABLED",
+          "expression": "cron(50 19 * * ? *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-auction-crisis-backstop",
+          "state": "ENABLED",
+          "expression": "cron(5 13 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-auction-crisis-detector",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "justhodl-auction-desk": {
+      "code_sha256": "Mr4DEtTYBXEtNYlcXfKg1X3bcZ+l4o2gIMaTMuSqGgo=",
+      "source_files_checked": 6,
+      "handler_bytes": 63439,
+      "timeout": 300,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "64e2e65d452460882001c3cba6ba1e78de9e1530"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-results",
+          "state": "ENABLED",
+          "expression": "cron(40 13 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-late",
+          "state": "ENABLED",
+          "expression": "cron(35 16 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-buyback",
+          "state": "ENABLED",
+          "expression": "cron(10 12 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-auction-desk-morning",
+          "state": "ENABLED",
+          "expression": "cron(15 9 ? * MON-FRI *)",
+          "timezone": "America/New_York",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-auction-desk",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  }
+}

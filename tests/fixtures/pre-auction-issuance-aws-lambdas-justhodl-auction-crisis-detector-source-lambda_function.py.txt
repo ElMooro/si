@@ -52,7 +52,6 @@ on bonds.html.
 import json
 from auction_quality import stamp_quality
 from auction_weighting import weighted_summary
-from auction_issuance import IssuanceLedger, apply_overlay
 from auction_scoring import score_auction, aggregate_indicators
 from auction_original_store import retain as retain_auction_originals
 from auction_calendar_store import retain as retain_calendar_originals
@@ -449,11 +448,59 @@ def get_fed_funds_rate():
     return fetch_fed_funds_rate()
 
 
-def detect_issuance_explosion(records, ledger=None):
-    """Compatibility adapter; exact dated comparison, no additional acquisition."""
-    today = datetime.now(timezone.utc).date().isoformat()
-    ledger = ledger or IssuanceLedger(records, today)
-    return ledger.calculate(today, include_ledger=True)
+def detect_issuance_explosion(records):
+    """Pattern 6: 4-week bill issuance vs. trailing 1Y average.
+    
+    Returns score 0-100.
+    """
+    if not records:
+        return None
+    bills = [r for r in records if "BILL" in (r.get("security_type") or "").upper()]
+    if not bills:
+        return None
+    today = datetime.now(timezone.utc).date()
+    cutoff_4w = today - timedelta(days=28)
+    cutoff_1y = today - timedelta(days=365)
+
+    total_4w = 0
+    total_1y = 0
+    days_1y = 0
+    days_4w = 0
+    seen_dates_4w = set()
+    seen_dates_1y = set()
+
+    for r in bills:
+        d_str = r.get("auction_date")
+        accepted = parse_float(r.get("total_accepted"))
+        if not d_str or not accepted:
+            continue
+        try:
+            d = datetime.strptime(d_str[:10], "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if d >= cutoff_4w:
+            total_4w += accepted
+            seen_dates_4w.add(d)
+        if d >= cutoff_1y:
+            total_1y += accepted
+            seen_dates_1y.add(d)
+
+    if not seen_dates_1y or not seen_dates_4w:
+        return None
+
+    avg_4w_amount = total_4w / max(1, len(seen_dates_4w))
+    avg_1y_amount = total_1y / max(1, len(seen_dates_1y))
+    if avg_1y_amount == 0:
+        return None
+    pct_above_baseline = (avg_4w_amount - avg_1y_amount) / avg_1y_amount * 100
+
+    if pct_above_baseline > 50:
+        return {"score": 90, "pct_above_baseline": round(pct_above_baseline, 1)}
+    if pct_above_baseline > 30:
+        return {"score": 60, "pct_above_baseline": round(pct_above_baseline, 1)}
+    if pct_above_baseline > 15:
+        return {"score": 30, "pct_above_baseline": round(pct_above_baseline, 1)}
+    return {"score": 0, "pct_above_baseline": round(pct_above_baseline, 1)}
 
 
 def lambda_handler(event, context):
@@ -462,7 +509,7 @@ def lambda_handler(event, context):
     reset_fred_sources()
     print(f"[auction-crisis] start {datetime.now(timezone.utc).isoformat()}")
 
-    # Existing complete 400-day acquisition covers the overlapping issuance windows
+    # Pull last 90 days of auctions to give us a window for issuance analysis
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=400)  # +1y for issuance baseline
 
@@ -472,8 +519,6 @@ def lambda_handler(event, context):
     verify_auction_measurements(raw, compute_record_metrics)
     auction_originals = retain_auction_originals(s3, S3_BUCKET, original_pages, start.isoformat(), end.isoformat())
     print(f"[auction-crisis] fetched {len(raw)} auction records")
-
-    issuance_ledger = IssuanceLedger(raw, end.isoformat(), [{'start': start.isoformat(), 'end': end.isoformat()}])
 
     if not raw:
         try:
@@ -492,13 +537,6 @@ def lambda_handler(event, context):
         })
         for key,default in {'freshness':{},'tail_risk':{},'tenor_decomposition':{},'composite_history':{},'forward_calendar':[]}.items():
             body.setdefault(key,default)
-        body["historical_analog"] = find_historical_analogs([], CRISIS_REFERENCE, issuance_score=None, top_n=3)
-        body["issuance_anomaly"] = issuance_ledger.calculate(end.isoformat(), include_ledger=True)
-        body["base_composite_score"] = None
-        body["weighting_quality"] = weighted_summary([])
-        body["triggers"] = []
-        body["composite_calculation"] = apply_overlay(None, body["issuance_anomaly"])
-        body["composite_history"] = {"series": [], "current": None, "change_points": []}
         body["auction_originals"] = auction_originals
         stamp_quality(body)
         body["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)
@@ -532,14 +570,15 @@ def lambda_handler(event, context):
     weighting = weighted_summary(recent)
     recent_composite = weighting['composite']
 
-    issuance = detect_issuance_explosion(raw, issuance_ledger)
-    composite_calculation = apply_overlay(recent_composite, issuance)
-    recent_composite = composite_calculation['composite']
+    issuance = detect_issuance_explosion(raw)
+    if recent_composite is not None and issuance and issuance.get("score"):
+        # Issuance explosion adds 0-15 points to composite
+        recent_composite = min(100, recent_composite + issuance["score"] * 0.15)
 
     # Regime classification
     if recent_composite is None:
         regime = "UNAVAILABLE"
-        interp = "Size-weighted auction heuristic unavailable: complete applicable features, accepted-size weights and dated supply comparison are required; incomplete and unsupported observations remain in the window."
+        interp = "Size-weighted auction heuristic unavailable: complete applicable features and positive accepted-size weights are required; incomplete and unsupported observations remain in the window."
     elif recent_composite >= 75:
         regime = "ACUTE_STRESS"
         interp = "Several auction observations exceed fixed historical heuristic thresholds. This uncalibrated score does not establish a crisis or an investment action."
@@ -650,7 +689,7 @@ def lambda_handler(event, context):
 
     # 5. Composite history (30-day trend)
     try:
-        composite_history = build_composite_history(scored_auctions, days=30, issuance_ledger=issuance_ledger)
+        composite_history = build_composite_history(scored_auctions, days=30)
     except Exception as e:
         print(f"[v2] composite_history error: {e}")
         composite_history = {"series": [], "change_points": [], "current": None}
@@ -700,8 +739,6 @@ def lambda_handler(event, context):
         "regime": regime,
         "composite_score": round(recent_composite, 1) if recent_composite is not None else None,
         "weighting_quality": weighting,
-        "base_composite_score": weighting["composite"],
-        "composite_calculation": composite_calculation,
         "interpretation": interp,
         "n_recent_auctions_14d": len(recent),
         "issuance_anomaly": issuance,

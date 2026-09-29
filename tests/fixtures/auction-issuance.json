@@ -1,0 +1,1188 @@
+{
+  "synthetic_only": true,
+  "cases": {
+    "complete": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "complete",
+      "reasons": [],
+      "score": 90,
+      "pct_above_baseline": 66.7,
+      "pct_exact": {
+        "numerator": "200",
+        "denominator": "3"
+      },
+      "ledger_id": "a613f91a34df83a5af1ee04a74e56cacccce476e091989a5386c80b5228f00b6",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "a613f91a34df83a5af1ee04a74e56cacccce476e091989a5386c80b5228f00b6",
+        "source_slice": [
+          1,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 1,
+        "counts": {
+          "bill": 1,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 1,
+        "known_sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 1e-07
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "a613f91a34df83a5af1ee04a74e56cacccce476e091989a5386c80b5228f00b6",
+        "source_slice": [
+          0,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 2,
+        "counts": {
+          "bill": 2,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 2,
+        "known_sum_usd": {
+          "numerator": "120",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "120",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1.2e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "60",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 6e-08
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [
+          {
+            "start": "2025-08-25",
+            "end": "2026-09-29"
+          }
+        ],
+        "rows": [
+          {
+            "source_ordinal": 1,
+            "source_fields": {
+              "auction_date": "2026-07-31",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "20"
+            },
+            "date": "2026-07-31",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "a613f91a34df83a5af1ee04a74e56cacccce476e091989a5386c80b5228f00b6",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 2,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    },
+    "zero": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "complete",
+      "reasons": [],
+      "score": 0,
+      "pct_above_baseline": 0.0,
+      "pct_exact": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "ledger_id": "0e32d7e7029a69463d1673829bb0693e4de95a1baf63dfa66e75c9e5b42fd6f5",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "0e32d7e7029a69463d1673829bb0693e4de95a1baf63dfa66e75c9e5b42fd6f5",
+        "source_slice": [
+          1,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 1,
+        "counts": {
+          "bill": 1,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 1,
+        "known_sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 1e-07
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "0e32d7e7029a69463d1673829bb0693e4de95a1baf63dfa66e75c9e5b42fd6f5",
+        "source_slice": [
+          0,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 2,
+        "counts": {
+          "bill": 2,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 2,
+        "known_sum_usd": {
+          "numerator": "200",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "200",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 2e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 1e-07
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [
+          {
+            "start": "2025-08-25",
+            "end": "2026-09-29"
+          }
+        ],
+        "rows": [
+          {
+            "source_ordinal": 1,
+            "source_fields": {
+              "auction_date": "2026-07-31",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-07-31",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "0e32d7e7029a69463d1673829bb0693e4de95a1baf63dfa66e75c9e5b42fd6f5",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 2,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    },
+    "missing": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "unavailable",
+      "reasons": [
+        "missing_amount"
+      ],
+      "score": null,
+      "pct_above_baseline": null,
+      "pct_exact": null,
+      "ledger_id": "6a0090a6ec1d482045bb4bdf076c03b255176f9171b5764a214682fc233cfd0f",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "6a0090a6ec1d482045bb4bdf076c03b255176f9171b5764a214682fc233cfd0f",
+        "source_slice": [
+          1,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 1,
+        "counts": {
+          "bill": 1,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 1,
+        "known_sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 1e-07
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "6a0090a6ec1d482045bb4bdf076c03b255176f9171b5764a214682fc233cfd0f",
+        "source_slice": [
+          0,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "unavailable",
+        "problems": [
+          "missing_amount"
+        ],
+        "population_coverage_verified": true,
+        "rows": 2,
+        "counts": {
+          "bill": 2,
+          "unknown": 0,
+          "missing_amount": 1,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 2,
+        "known_sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd": null,
+        "sum_usd_bn": null,
+        "average_per_auction_day_usd": null,
+        "average_per_auction_day_usd_bn": null
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [
+          {
+            "start": "2025-08-25",
+            "end": "2026-09-29"
+          }
+        ],
+        "rows": [
+          {
+            "source_ordinal": 1,
+            "source_fields": {
+              "auction_date": "2026-07-31",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": null
+            },
+            "date": "2026-07-31",
+            "instrument_kind": "BILL",
+            "amount_status": "missing_or_invalid",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "6a0090a6ec1d482045bb4bdf076c03b255176f9171b5764a214682fc233cfd0f",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 2,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    },
+    "zero_day": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "complete",
+      "reasons": [],
+      "score": 0,
+      "pct_above_baseline": -86.4,
+      "pct_exact": {
+        "numerator": "-950",
+        "denominator": "11"
+      },
+      "ledger_id": "dcc8749a5146b3b57e1979c1dd87ab3f7db6a79e185ddfa5c8e4547adbf111ef",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "dcc8749a5146b3b57e1979c1dd87ab3f7db6a79e185ddfa5c8e4547adbf111ef",
+        "source_slice": [
+          1,
+          3
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 2,
+        "counts": {
+          "bill": 2,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 2,
+        "known_sum_usd": {
+          "numerator": "10",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "10",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1e-08,
+        "average_per_auction_day_usd": {
+          "numerator": "5",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 5e-09
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "dcc8749a5146b3b57e1979c1dd87ab3f7db6a79e185ddfa5c8e4547adbf111ef",
+        "source_slice": [
+          0,
+          3
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 3,
+        "counts": {
+          "bill": 3,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 3,
+        "known_sum_usd": {
+          "numerator": "110",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "110",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1.1e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "110",
+          "denominator": "3"
+        },
+        "average_per_auction_day_usd_bn": 3.6666666666666664e-08
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [
+          {
+            "start": "2025-08-25",
+            "end": "2026-09-29"
+          }
+        ],
+        "rows": [
+          {
+            "source_ordinal": 2,
+            "source_fields": {
+              "auction_date": "2026-07-31",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-07-31",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 1,
+            "source_fields": {
+              "auction_date": "2026-09-28",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "10"
+            },
+            "date": "2026-09-28",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "0"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "dcc8749a5146b3b57e1979c1dd87ab3f7db6a79e185ddfa5c8e4547adbf111ef",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 3,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    },
+    "unknown_coverage": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "unavailable",
+      "reasons": [
+        "unverified_population_coverage"
+      ],
+      "score": null,
+      "pct_above_baseline": null,
+      "pct_exact": null,
+      "ledger_id": "6a1147c3682ce93e15db65cda8d199b7ed7b24812fa8867a957e09ae3058ba2a",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "6a1147c3682ce93e15db65cda8d199b7ed7b24812fa8867a957e09ae3058ba2a",
+        "source_slice": [
+          1,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "unavailable",
+        "problems": [
+          "unverified_population_coverage"
+        ],
+        "population_coverage_verified": false,
+        "rows": 1,
+        "counts": {
+          "bill": 1,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 1,
+        "known_sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd": null,
+        "sum_usd_bn": null,
+        "average_per_auction_day_usd": null,
+        "average_per_auction_day_usd_bn": null
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "6a1147c3682ce93e15db65cda8d199b7ed7b24812fa8867a957e09ae3058ba2a",
+        "source_slice": [
+          0,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "unavailable",
+        "problems": [
+          "unverified_population_coverage"
+        ],
+        "population_coverage_verified": false,
+        "rows": 2,
+        "counts": {
+          "bill": 2,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 2,
+        "known_sum_usd": {
+          "numerator": "120",
+          "denominator": "1"
+        },
+        "sum_usd": null,
+        "sum_usd_bn": null,
+        "average_per_auction_day_usd": null,
+        "average_per_auction_day_usd_bn": null
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [],
+        "rows": [
+          {
+            "source_ordinal": 1,
+            "source_fields": {
+              "auction_date": "2026-07-31",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "20"
+            },
+            "date": "2026-07-31",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "6a1147c3682ce93e15db65cda8d199b7ed7b24812fa8867a957e09ae3058ba2a",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 2,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    },
+    "not_applicable": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "not_applicable",
+      "reasons": [],
+      "score": 0,
+      "pct_above_baseline": null,
+      "pct_exact": null,
+      "ledger_id": "7533a98b67a7e9df4c702d94a061d756a9e6c3341f9d32a96f8f05eb5daf02ff",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "7533a98b67a7e9df4c702d94a061d756a9e6c3341f9d32a96f8f05eb5daf02ff",
+        "source_slice": [
+          0,
+          1
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 1,
+        "counts": {
+          "bill": 0,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 0,
+        "known_sum_usd": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 0.0,
+        "average_per_auction_day_usd": null,
+        "average_per_auction_day_usd_bn": null
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "7533a98b67a7e9df4c702d94a061d756a9e6c3341f9d32a96f8f05eb5daf02ff",
+        "source_slice": [
+          0,
+          1
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 1,
+        "counts": {
+          "bill": 0,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 0,
+        "known_sum_usd": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 0.0,
+        "average_per_auction_day_usd": null,
+        "average_per_auction_day_usd_bn": null
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [
+          {
+            "start": "2025-08-25",
+            "end": "2026-09-29"
+          }
+        ],
+        "rows": [
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Note",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "NOMINAL_COUPON",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "7533a98b67a7e9df4c702d94a061d756a9e6c3341f9d32a96f8f05eb5daf02ff",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 1,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    },
+    "hostile": {
+      "contract": "auction-issuance-inputs.v1",
+      "calculation_as_of": "2026-09-29",
+      "status": "complete",
+      "reasons": [],
+      "score": 90,
+      "pct_above_baseline": 66.7,
+      "pct_exact": {
+        "numerator": "200",
+        "denominator": "3"
+      },
+      "ledger_id": "b4fd62da9b4282f29a29342ee4230927c161f8c7695a3eb4d3737dc44a2007b6",
+      "recent": {
+        "start": "2026-09-01",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 28,
+        "calendar_dates": 29,
+        "ledger_id": "b4fd62da9b4282f29a29342ee4230927c161f8c7695a3eb4d3737dc44a2007b6",
+        "source_slice": [
+          1,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 1,
+        "counts": {
+          "bill": 1,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 1,
+        "known_sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "100",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 1e-07
+      },
+      "baseline": {
+        "start": "2025-09-29",
+        "end": "2026-09-29",
+        "inclusive": true,
+        "lookback_days": 365,
+        "calendar_dates": 366,
+        "ledger_id": "b4fd62da9b4282f29a29342ee4230927c161f8c7695a3eb4d3737dc44a2007b6",
+        "source_slice": [
+          0,
+          2
+        ],
+        "source_slice_rule": "zero-based [start,end) in the single retained ledger; includes explicitly excluded non-bills",
+        "status": "complete",
+        "problems": [],
+        "population_coverage_verified": true,
+        "rows": 2,
+        "counts": {
+          "bill": 2,
+          "unknown": 0,
+          "missing_amount": 0,
+          "invalid_identity": 0,
+          "duplicate": 0
+        },
+        "auction_days": 2,
+        "known_sum_usd": {
+          "numerator": "120",
+          "denominator": "1"
+        },
+        "sum_usd": {
+          "numerator": "120",
+          "denominator": "1"
+        },
+        "sum_usd_bn": 1.2e-07,
+        "average_per_auction_day_usd": {
+          "numerator": "60",
+          "denominator": "1"
+        },
+        "average_per_auction_day_usd_bn": 6e-08
+      },
+      "unit": "usd",
+      "denominator": "distinct bill auction dates, including measured-zero days",
+      "formula": "(recent mean accepted amount per bill auction day / overlapping baseline mean - 1) * 100",
+      "thresholds": [
+        {
+          "strictly_above_pct": 50,
+          "score": 90
+        },
+        {
+          "strictly_above_pct": 30,
+          "score": 60
+        },
+        {
+          "strictly_above_pct": 15,
+          "score": 30
+        },
+        {
+          "otherwise_score": 0
+        }
+      ],
+      "overlay_coefficient": 0.15,
+      "maximum_overlay_points": 13.5,
+      "validation": "unqualified_legacy_supply_heuristic",
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false,
+      "ledger": {
+        "contract": "auction-issuance-inputs.v1",
+        "as_of": "2026-09-29",
+        "coverage": [
+          {
+            "start": "2025-08-25",
+            "end": "2026-09-29"
+          }
+        ],
+        "rows": [
+          {
+            "source_ordinal": 1,
+            "source_fields": {
+              "auction_date": "2026-07-31",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "4-Week",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "20"
+            },
+            "date": "2026-07-31",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          },
+          {
+            "source_ordinal": 0,
+            "source_fields": {
+              "auction_date": "2026-09-29",
+              "cusip": "TEST12345",
+              "security_type": "Bill",
+              "security_term": "<script>alert(1)</script>",
+              "inflation_index_security": "No",
+              "floating_rate": "No",
+              "total_accepted": "100"
+            },
+            "date": "2026-09-29",
+            "instrument_kind": "BILL",
+            "amount_status": "observed",
+            "duplicate_identity": false
+          }
+        ],
+        "ledger_id": "b4fd62da9b4282f29a29342ee4230927c161f8c7695a3eb4d3737dc44a2007b6",
+        "identity": "sha256 of canonical contract/as_of/coverage/rows; integrity only",
+        "row_count": 2,
+        "invalid_date_count": 0,
+        "basis": "current source vintage; exact fields consumed by the comparison, not a point-in-time backtest",
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "forecast_eligible": false,
+        "execution_eligible": false,
+        "historical_point_in_time_verified": false
+      }
+    }
+  }
+}
