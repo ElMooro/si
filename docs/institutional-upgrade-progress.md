@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 432 source acceptance: all ten workstreams remain open. Calls snapshot caching now coalesces concurrent builders, admits at most eight pending/cached identities and atomically enforces its existing 64 MiB stored-byte limit. Eleven new cases and all four importer suites pass; all three retained compiler versions replay with current code. Frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 wires pass. Exact four-function deployment and static acceptance remain pending. Normal publication, whole-engine capacity, generic storage readback, vintages, model validation and supported portfolio consequences remain open.
+September 29, after Stage 432 exact native/static acceptance: all ten workstreams remain open. Calls snapshot concurrency repair a19a220de4453643ad354e247636db7e0ceba0d6 is exactly deployed across four functions/151 source members and nine static assets. Requests share one builder, pending work counts against eight snapshots and stored bytes stay within 64 MiB. All three retained compiler versions replay with current code; eleven new cases, all four native suites, 1,891 frontend tests, 708 deployment/twelve shell checks and 599 page graphs pass. Full resource/schedule evidence matches the frozen baseline. Normal publication, whole-engine capacity, generic storage readback, vintages, model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5989,3 +5989,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Requests now join one per-identity future, count pending admission, validate complete bytes and atomically charge/cache storage after hashing. Failure releases reservations for retry; recursive construction fails explicitly. Builders remain outside the reader lock. This establishes committed cache bounds, not transient-builder or whole-Lambda capacity.
 - Three exact reviewed compiler sets include pinned original-reader hashes and reproduce through current code; arbitrary mixed revisions and changed output still fail. No archived predecessor is executed. Original transport, allowlist, economic definitions and portfolio permissions are unchanged.
 - Eleven new tests, all four native importer suites, 1,891 frontend tests, 708 deployment/twelve shell checks, 599 page graphs and 143 wires pass. The closure is four functions and 151 complete native/shared members. Exact native/static deployment is pending; evidence: `docs/audit/2026-09-29/calls-cache-integrity.json`. Normal publication and all ten platform workstreams remain open.
+
+
+### Stage 432 exact native and static acceptance
+
+- Source `a19a220de4453643ad354e247636db7e0ceba0d6` passed Lambda 36625903248, Pages 36625903162 and receipt-only operation 6323 / 36626571592. All four release receipts equal the intended commit; all 151 native/shared members match the actual installed packages. Complete resource settings and schedule bindings equal the frozen Stage 429/430 baseline.
+- Nine whole static assets match the source-bound build at 2026-09-29T20:28:18.635647+00:00. Eleven new cases, all four native suites, frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 wires pass. Three exact older compiler sets reproduce with reviewed current code; stored code is not executed.
+- No native invocation, current/private/downstream packet read, provider probe, cadence/resource or portfolio change occurred. Cache admission/storage integrity does not establish peak transient memory, whole-engine deadlines, source vintages or sizing authority. Ordinary production remains separately unverified. Evidence: `docs/audit/2026-09-29/calls-cache-integrity.json`.
