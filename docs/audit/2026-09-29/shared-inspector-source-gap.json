@@ -1,0 +1,18 @@
+{
+  "scope": "Current reviewed shared inspector and synthetic in-memory Responses only. No network, current/private/account packet, provider or archived-code execution.",
+  "source": {
+    "path": "jh-data-inspector.js",
+    "local_file": "stage441-predecessor-jh-data-inspector.js.txt",
+    "bytes": 32695,
+    "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2"
+  },
+  "findings": {
+    "plain_duplicate_identity_last_key_accepted": true,
+    "gzip_duplicate_identity_last_key_accepted": true,
+    "overflow_number_exposed_as_infinity": true,
+    "escaped_lone_surrogate_accepted": true,
+    "stalled_body_has_no_deadline": true,
+    "artifact_source_reads_and_gzip_expansion_are_unbounded": true
+  },
+  "status": "source_gaps_reproduced_not_repaired"
+}
