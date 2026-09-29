@@ -1,0 +1,528 @@
+{
+  "status": "tested_native_integration_deployment_pending",
+  "offline_proof": {
+    "status": "actual_calls_compiler_replays_three_complete_retained_source_families",
+    "checked_at": "2026-09-29T02:46:57.925948+00:00",
+    "compile_cutoff": "2026-09-26T21:30:39.782533+00:00",
+    "expiry_sensitivity_cutoff": "2026-09-29T22:30:39.782533+00:00",
+    "source_publications": {
+      "data/liquidity-flow.json": "2026-09-26T16:44:11.237996+00:00",
+      "data/settlement-fails.json": "2026-09-26T21:30:39.782533+00:00",
+      "data/ciss-stress.json": "2026-09-26T07:11:44.104768+00:00"
+    },
+    "run_id": "calls-research-cd86e66fdd1238217dc8818aab6ae02eedcbbf58b48eecf17dd2e91bda2f77c7",
+    "bundle_sha256": "14248e3724708f8d2e00230b445817352d8c6031c19878bb967d6ed07459f4f6",
+    "bundle_bytes": 400368,
+    "compiler": {
+      "method": "warehouse_deterministic_v2",
+      "source_hash_basis": "UTF-8 source with LF newlines",
+      "files": {
+        "calls_research_replay.py": "d43654ba4de5282ed412787334bfc10aa0d44d4f22d7ed4ce6038e8f211447d4",
+        "calls_free_brief.py": "a4138eb023bddb2fc2cbf4801c772e3e7c9e203e79a36970db95aa587e595d53",
+        "pd_fails_context.py": "fae6d16962c2759b1ba9b51c21761dfdc16d7307db153edbc7136fa2561f9e5a",
+        "calls_liquidity_binding.py": "4ee8db95b662bfaa7c43e5c84576334839586e1ccb6121a882fb1b9e4821ca3b",
+        "calls_liquidity_originals.py": "5106120c4f68d83b79d1b1e69ae75b3feeaa3492de6d3932319c0385aca5de71",
+        "liquidity_flow_store.py": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+        "liquidity_flow_model.py": "f439e072a41911fce399c6ef34c5224464488cb9a45b298ae693d63e4e36ea23",
+        "liquidity_flow_arithmetic.py": "5ac6ad37f28589c9a898e3a06d4526e2e23168370e713a874dc2b7dd0c622856",
+        "verify_liquidity_arithmetic.py": "3b926aecbca8120b40b49eba38cfeb4c3d0b2a8d5a7ec2dc00c5b48a92e9d76d",
+        "canonical_fred_replay.py": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+        "report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+        "research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+        "evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+        "calls_fails_binding.py": "5475c23b9d55a95e4b404d36cfb206ff364f6cdbf36966c043ad7ccd36b2ff1c",
+        "calls_fails_originals.py": "481a354306bc3c9e1772e47b6108d2cdf471a2e9c4735548557cb9d80f707a6e",
+        "calls_original_reader.py": "cbd11c1f1223bf62eafab2e469f6824ef4cac83fc81e190488f6832da5646adc",
+        "fails_store.py": "08b638b32213e185e098b0a7ffac564942d51d152f9b067196f349c6c025c5cf",
+        "fails_research.py": "0eb9bc4c83f397fd4d42d5cb9eb357dea7a71ffe2eb280ae4582de4221c47825",
+        "fails_native.py": "63abf9d324413557664c905815d86f8672011ffde663276ae81c17984dbb762c",
+        "verify_fails_arithmetic.py": "88b87685f8d6296862b6d0352efd050170b131dea40343a5fe1610d7cf568500",
+        "calls_ciss_binding.py": "c9b88438e5bfbeb1e31c63b8a7a962e3bf4871e33da7b7a642b26f03ad63ee29",
+        "calls_ciss_originals.py": "28b508e9bb1e1f67b090658b260202aa5df3d51ac2de1a6a6f48c677bb38ad9e",
+        "ciss_original_replay.py": "6a367cc27733833cb271c4ec75c7ab1d5d77403076999d3a554efb8cdb80d3a9",
+        "ciss_source_model.py": "aceaa814189bc72fc914e4cd4ae7a895cb2e4aeb376b0519fb17fdc4de01313c",
+        "verify_ciss_arithmetic.py": "ff53bc9d6fdee739230bc867bb18247059b20766f2ac43a5f6a6e8c77823bfb3"
+      }
+    },
+    "coverage": {
+      "liquidity_flow": {
+        "original_rows": 7366,
+        "calendar_dates": 180,
+        "comparison_windows": 4,
+        "distinct_selected_observations": 183,
+        "retained_artifacts": 20,
+        "retained_uncompressed_bytes": 10667167
+      },
+      "settlement_fails": {
+        "original_series": 12,
+        "original_rows": 8436,
+        "scopes": 8,
+        "scope_history_rows": 5624,
+        "retained_artifacts": 14,
+        "retained_uncompressed_bytes": 8455112
+      },
+      "ciss": {
+        "original_rows": 324407,
+        "original_series": 88,
+        "retained_artifacts": 92,
+        "retained_uncompressed_bytes": 87490501,
+        "selected_original_occurrences": 35
+      }
+    },
+    "independent_arithmetic": {
+      "liquidity_flow": {
+        "original_rows_checked": 7366,
+        "calendar_dates_checked": 180,
+        "comparison_windows_checked": 4,
+        "exact_rational_comparisons": 776,
+        "unavailable_legs_preserved": 11,
+        "production_compiler_imported": false,
+        "forecast_qualified": false,
+        "sizing_qualified": false
+      },
+      "settlement_fails": {
+        "original_series": 12,
+        "original_rows_checked": 8436,
+        "scopes_checked": 9,
+        "scope_history_rows_checked": 6327,
+        "integer_sums_checked": 18981,
+        "incomplete_scope_rows_preserved": 0,
+        "production_compiler_imported": false,
+        "statistics_independently_verified": false,
+        "forecast_qualified": false,
+        "sizing_qualified": false
+      },
+      "ciss": {
+        "annual_comparison_aliases_checked": 88,
+        "calendar_comparisons_checked": 352,
+        "chart_points_checked": 89684,
+        "contract": "ciss-independent-arithmetic.v1",
+        "headline_panel": {
+          "matched": 7235,
+          "mismatch": 0,
+          "unavailable": 4964
+        },
+        "headline_panel_periods_checked": 12199,
+        "historical_point_in_time_verified": false,
+        "latest_reconciliation": "matched",
+        "original_discovery_rows_checked": 88,
+        "original_history_rows_checked": 324407,
+        "predictive_edge_verified": false,
+        "selected_series": {
+          "CISS.D.U2.Z0Z.4F.EC.SS_BMN.CON": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 6973,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": 0.030209140058555253
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 7211,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": 0.028184206826257586
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 7229,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": 0.01357480062180161
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 7168,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": 0.017597456372039785
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 7234,
+            "reported_decimal": "0.04094943841927783",
+            "source_quality": "fresh",
+            "source_rows": 7235,
+            "status": "A"
+          },
+          "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 11937,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": -0.016519509079800827
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 12175,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": 0.007751553574185255
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 12193,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": -0.004829465630261573
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 12132,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": 0.017423079013562104
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 12198,
+            "reported_decimal": "0.022548852794852033",
+            "source_quality": "fresh",
+            "source_rows": 12199,
+            "status": "A"
+          },
+          "CISS.D.U2.Z0Z.4F.EC.SS_CON.CON": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 6973,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": -0.07518959012479796
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 7211,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": -0.06501171108826512
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 7229,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": -0.03175261320615383
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 7168,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": -0.02503714900597825
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 7234,
+            "reported_decimal": "-0.09264871297417676",
+            "source_quality": "fresh",
+            "source_rows": 7235,
+            "status": "A"
+          },
+          "CISS.D.U2.Z0Z.4F.EC.SS_EMN.CON": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 6973,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": 0.011206451339860597
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 7211,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": 0.016134831330681873
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 7229,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": 0.003122209705792026
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 7168,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": 0.009528643615990548
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 7234,
+            "reported_decimal": "0.022987252784499836",
+            "source_quality": "fresh",
+            "source_rows": 7235,
+            "status": "A"
+          },
+          "CISS.D.U2.Z0Z.4F.EC.SS_FIN.CON": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 6973,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": 0.007832057107026226
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 7211,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": 0.01422214082354138
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 7229,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": 0.009861416827632754
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 7168,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": 0.004847899587334615
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 7234,
+            "reported_decimal": "0.02519967146186147",
+            "source_quality": "fresh",
+            "source_rows": 7235,
+            "status": "A"
+          },
+          "CISS.D.U2.Z0Z.4F.EC.SS_FXN.CON": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 6973,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": -0.0005368005005497714
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 7211,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": 0.003594664487955962
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 7229,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": -0.002499820773239167
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 7168,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": 0.001662780547691685
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 7234,
+            "reported_decimal": "0.006719948306837393",
+            "source_quality": "fresh",
+            "source_rows": 7235,
+            "status": "A"
+          },
+          "CISS.D.U2.Z0Z.4F.EC.SS_MMN.CON": {
+            "comparisons": {
+              "12m": {
+                "baseline_period": "2025-09-24",
+                "baseline_source_row": 6973,
+                "target_date": "2025-09-24",
+                "unit": "index_points",
+                "value": 0.009959233040104862
+              },
+              "1m": {
+                "baseline_period": "2026-08-24",
+                "baseline_source_row": 7211,
+                "target_date": "2026-08-24",
+                "unit": "index_points",
+                "value": 0.010627421194013593
+              },
+              "1w": {
+                "baseline_period": "2026-09-17",
+                "baseline_source_row": 7229,
+                "target_date": "2026-09-17",
+                "unit": "index_points",
+                "value": 0.00286454119390505
+              },
+              "3m": {
+                "baseline_period": "2026-06-24",
+                "baseline_source_row": 7168,
+                "target_date": "2026-06-24",
+                "unit": "index_points",
+                "value": 0.008823447896483743
+              }
+            },
+            "latest_period": "2026-09-24",
+            "original_row": 7234,
+            "reported_decimal": "0.019341254796552288",
+            "source_quality": "fresh",
+            "source_rows": 7235,
+            "status": "A"
+          }
+        },
+        "series_checked": 88,
+        "statistics_independently_verified": false
+      }
+    },
+    "original_artifacts_read_locally": 126,
+    "original_uncompressed_bytes": 106612780,
+    "invocation_snapshot_bytes": 4674550,
+    "expired_current_use_withheld": true,
+    "complete_offline_cli_reproduced": true,
+    "prepare_seconds": 30.625,
+    "prepare_plus_cached_replay_seconds": 35.437,
+    "elapsed_including_cli_seconds": 71.609,
+    "windows_process_peak_working_set_bytes": 331132928,
+    "network_requests": 0,
+    "private_reads": 0,
+    "native_invocations": 0,
+    "current_consumer_reads": 0,
+    "native_publication_verified": false,
+    "native_runtime_capacity_verified": false,
+    "calls_eligible": false,
+    "sizing_eligible": false
+  },
+  "complete_offline_run_artifact": "docs/audit/2026-09-29/calls-ciss-frozen-offline-run.json",
+  "complete_predecessors": [
+    {
+      "source": "aws/shared/calls_research_replay.py",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-aws-shared-calls_research_replay.py.txt",
+      "sha256": "27fa837eb8b3375a9995186bf47c49fd17c11213114991e18aaaac6b85059ac5",
+      "bytes": 13944
+    },
+    {
+      "source": "aws/shared/calls_free_brief.py",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-aws-shared-calls_free_brief.py.txt",
+      "sha256": "845f13927314aef338c9c9267df60f542060a6aa9a72ae9c8b5ff06017ea6a49",
+      "bytes": 15171
+    },
+    {
+      "source": "aws/shared/calls_original_reader.py",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-aws-shared-calls_original_reader.py.txt",
+      "sha256": "57f030a8958c0cdb373ea4874c7adab540cfd7dc7fc554a0b70633bdf755643f",
+      "bytes": 1728
+    },
+    {
+      "source": "jh-public-brief.js",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-jh-public-brief.js.txt",
+      "sha256": "74be73d1dbb1f9ba3ab50ba9f980b29ce3da88f8d7ddb6700dfebfcadec0d235",
+      "bytes": 11895
+    },
+    {
+      "source": "aws/lambdas/justhodl-ai-brief/config.json",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-aws-lambdas-justhodl-ai-brief-config.json.txt",
+      "bytes": 110,
+      "sha256": "2e2629a04a6f9ba5a657bdb8c0a4c3ba65853b16a37f49ff051ef52926cbb8a6"
+    },
+    {
+      "source": "aws/lambdas/justhodl-calls-research-audit/config.json",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-aws-lambdas-justhodl-calls-research-audit-config.json.txt",
+      "bytes": 480,
+      "sha256": "ff480507a6ef99d3bbf8c6fb52a603733bd65013381e46b319ca25815a1c2351"
+    },
+    {
+      "source": "aws/lambdas/justhodl-calls-research-audit/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-calls-ciss-binding-aws-lambdas-justhodl-calls-research-audit-source-lambda_function.py.txt",
+      "bytes": 5607,
+      "sha256": "798711070a930adb306f2b836065cf2c4eb87b83755024baceb75ce6d35a1498"
+    }
+  ],
+  "source_graph_changes": {
+    "changed_fields": {
+      "justhodl-ai-brief": [
+        "write_evidence"
+      ],
+      "justhodl-calls-research-audit": [
+        "write_evidence"
+      ],
+      "justhodl-prospective-evaluator": [
+        "write_evidence"
+      ],
+      "justhodl-signal-harvester": [
+        "write_evidence"
+      ]
+    },
+    "all_input_output_keys_unchanged": true
+  },
+  "stage392_push": {
+    "commit": "3766a222bc0c047154e98c92056a8b8a8f510699",
+    "lambda_workflow": 36513322950,
+    "pages_workflow": 36513323046,
+    "all_green": true,
+    "new_native_publication_claimed": false
+  },
+  "validation": {
+    "ciss_lineage_regressions": 13,
+    "actual_binding_regressions": 11,
+    "deployment_static": 578,
+    "candidate_shell": 12,
+    "frontend": 1708,
+    "native_importers": [
+      "justhodl-ai-brief",
+      "justhodl-calls-research-audit",
+      "justhodl-signal-harvester",
+      "justhodl-prospective-evaluator"
+    ],
+    "unchanged_native_source_suites": [
+      "justhodl-ciss-stress",
+      "justhodl-settlement-fails"
+    ],
+    "morning_consumer_cases": 13,
+    "page_syntax_graphs": 599,
+    "engine_wiring_check": true,
+    "page_contract_check": true
+  },
+  "browser": {
+    "scope": "Isolated Calls compiled from three retained September 26 source families at a hypothetical expired cutoff; no live current-consumer page or original links requested.",
+    "desktop_width": 1280,
+    "desktop_document_width": 1265,
+    "mobile_width": 390,
+    "mobile_document_width": 375,
+    "ecb_original_links": 7,
+    "complete_manifest_links": 1,
+    "latest_source_rows": 7,
+    "dated_comparison_baselines": 28,
+    "keyboard_disclosure_passed": true,
+    "console_errors": [],
+    "temporary_viewport_reset": true
+  },
+  "runtime_budget": {
+    "justhodl-ai-brief": {
+      "memory_mb": 1024,
+      "timeout_seconds": 300
+    },
+    "justhodl-calls-research-audit": {
+      "memory_mb": 1024,
+      "timeout_seconds": 300
+    },
+    "original_schedules_preserved": true
+  },
+  "runtime_acceptance_operation": "aws/ops/staged/ops_6327_calls_ciss_runtime_acceptance.py",
+  "native_publication_verified": false,
+  "native_runtime_capacity_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "limitations": [
+    "Invocation-local reuse binds immutable originals and all reviewed CISS compilers; it is not an externally supplied or durable verification cache.",
+    "Every decision cutoff reevaluates every required original clock. Reusing source bytes never renews stale eligibility. A fresh invocation reconstructs the originals again.",
+    "The independent checker covers measurement rows, calendars, chart coordinates and sums. Distribution statistics, historical publication availability and forecasts remain unqualified.",
+    "Windows process memory and local elapsed time do not certify AWS runtime capacity. Ordinary scheduled native publication is still required.",
+    "No private/current-consumer/recipient reads, manual native invocations, schedule changes, paid APIs or messages were performed."
+  ]
+}

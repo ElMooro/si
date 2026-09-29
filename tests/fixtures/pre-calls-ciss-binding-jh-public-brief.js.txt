@@ -16,7 +16,7 @@
   }
   function sourcePath(source) { return /^data\/[a-z0-9-]+\.json$/.test(source || '') ? '/' + source : null; }
   function originalPath(ref, provider='fred') {
-    if(!['fred','fr2004','ecb'].includes(provider))return null;
+    if(!['fred','fr2004'].includes(provider))return null;
     return ref && typeof ref.sha256 === 'string' && /^[a-f0-9]{64}$/.test(ref.sha256) &&
       typeof ref.key === 'string' && new RegExp('^data/evidence/'+provider+'/[a-f0-9]{64}/'+ref.sha256+'\\.bin\\.gz$').test(ref.key) ? '/'+ref.key : null;
   }
@@ -115,36 +115,6 @@
           const link=el('a','Inspect complete source histories and all six asset classes',panel);link.href='/'+full;link.style.display='block';
         }
         el('p','This panel shows the two Calls scopes. Complete source histories remain in the immutable output above; all were replayed. Shared rows are not independent events or a validated forecast.',panel);
-      }
-    }
-    const ciss=doc.original_source_lineage?.ciss;
-    if(ciss) {
-      const panel=el('details','',details);el('summary','CISS: original ECB rows and contribution reconciliation',panel);
-      if(ciss.status!=='verified')el('p','ECB original replay unavailable. Reported CISS remains unqualified for current research use.',panel);
-      else {
-        panel.style.overflowWrap='anywhere';
-        el('p','Complete retained ECB histories: '+String(ciss.coverage?.original_series ?? 'unknown')+' series and '+String(ciss.coverage?.original_rows ?? 'unknown')+' source rows. Values are dimensionless index points, not crisis probabilities.',panel);
-        el('p',ciss.current_headline_research_eligible===true?'All seven headline and contribution legs pass their source clocks and same-date arithmetic. Descriptive use only.':'Historical reconstruction only; current CISS research use is withheld.',panel);
-        const proof=ciss.independent_arithmetic || {},counts=proof.headline_panel || {};
-        el('p','Historical contribution sums: '+String(counts.matched ?? 'unknown')+' matched, '+String(counts.mismatch ?? 'unknown')+' mismatched, '+String(counts.unavailable ?? 'unknown')+' unavailable. Incomplete component panels are never filled with zero.',panel);
-        const labels={SS_CIN:'Composite index',SS_BMN:'Bond-market contribution',SS_EMN:'Equity-market contribution',SS_FIN:'Financial-intermediary contribution',SS_FXN:'Foreign-exchange contribution',SS_MMN:'Money-market contribution',SS_CON:'Correlation contribution'};
-        for(const [key,series] of Object.entries(ciss.series || {})) {
-          const point=ciss.observations?.[series.latest_occurrence],source=ciss.original_sources?.[key];
-          el('h4',labels[key.split('.')[6]] || 'ECB series',panel);
-          el('small',key,panel);
-          el('p','Observed '+String(point?.observation_period || 'unavailable')+' · original value '+String(point?.reported_decimal ?? 'missing')+' · status '+String(point?.observation_status || 'unknown')+' · source row (zero-based) '+String(point?.original_row ?? 'unavailable')+'. Acquired '+String(source?.acquired_at || 'unavailable')+'.',panel);
-          const href=originalPath(source,'ecb');
-          if(href){const link=el('a','Inspect original ECB '+(labels[key.split('.')[6]] || key),panel);link.href=href;link.style.display='block';}
-          const comparisons=el('details','',panel);el('summary','Inspect dated changes and baseline rows',comparisons);
-          for(const [window,change] of Object.entries(series.comparisons || {})) {
-            el('p',window+': '+String(change.value ?? 'unavailable')+' index points; target '+String(change.target_date || 'unavailable')+'; baseline '+String(change.baseline_period || 'unavailable')+'; original row (zero-based) '+String(change.baseline_source_row ?? 'unavailable')+'.',comparisons);
-          }
-        }
-        const manifest=ciss.source_replay?.manifest_key;
-        if(typeof manifest==='string' && /^data\/ciss-research\/runs\/[a-f0-9]{64}\.json$/.test(manifest)) {
-          const link=el('a','Open complete source manifest and all retained histories',panel);link.href='/'+manifest;link.style.display='block';
-        }
-        el('p','The composite and its six contributions share one ECB measurement system. They do not count as seven independent votes. These are current retrieved vintages; historical publication availability, distribution statistics and forecasting value remain unqualified.',panel);
       }
     }
     const prose = el('details', ''); el('summary', 'Read the brief, disagreements and limitations', prose);

@@ -1,7 +1,7 @@
 """Immutable, replayable public Calls research runs.
 
 Only typed, explicitly selected market fields may enter this public archive.
-Most inputs remain typed compiler projections. Liquidity, settlement fails and CISS
+Most inputs remain typed compiler projections. Liquidity and settlement fails
 may additionally bind complete retained originals. Private account snapshots are excluded; stored
 code is never executed.
 """
@@ -16,7 +16,6 @@ from pathlib import Path
 from calls_free_brief import build, METHOD
 import calls_liquidity_binding as liquidity_binding
 import calls_fails_binding as fails_binding
-import calls_ciss_binding as ciss_binding
 from calls_original_reader import ImmutableReader
 
 CONTRACT = "calls-research-run.v1"
@@ -26,8 +25,7 @@ CODE_FILES = ("calls_research_replay.py", "calls_free_brief.py", "pd_fails_conte
     "liquidity_flow_model.py", "liquidity_flow_arithmetic.py", "verify_liquidity_arithmetic.py",
     "canonical_fred_replay.py", "report_observations.py", "research_brief_model.py", "evidence_store.py",
     "calls_fails_binding.py", "calls_fails_originals.py", "calls_original_reader.py", "fails_store.py",
-    "fails_research.py", "fails_native.py", "verify_fails_arithmetic.py",
-    "calls_ciss_binding.py", "calls_ciss_originals.py", "ciss_original_replay.py", "ciss_source_model.py", "verify_ciss_arithmetic.py")
+    "fails_research.py", "fails_native.py", "verify_fails_arithmetic.py")
 COMMON = {"generated_at": "date", "quality.status": "quality", "quality.observation_date": "date"}
 FIELDS = {
     "data/liquidity-flow.json": {**COMMON, "current.net_liquidity_b": "number", "as_of": "date",
@@ -133,24 +131,16 @@ def compile_frozen(inputs, at, read_original=None):
         fails_originals,packet=fails_binding.resolve(fails,read_original,at)
         if packet is not None and canonical(project(fails_binding.KEY,packet))!=canonical(inputs[fails_binding.KEY]['projection']):
             raise ValueError('Original FR2004 packet and frozen projection differ')
-    ciss_originals=None
-    ciss=inputs[ciss_binding.KEY].get('original_binding')
-    if ciss is not None:
-        ciss_originals,packet=ciss_binding.resolve(ciss,read_original,at)
-        if packet is not None and canonical(project(ciss_binding.KEY,packet))!=canonical(inputs[ciss_binding.KEY]['projection']):
-            raise ValueError('Original CISS packet and frozen projection differ')
-    output = build(lambda key: copy.deepcopy(inputs[key]["projection"]), at,liquidity_originals=originals,
-                   fails_originals=fails_originals,ciss_originals=ciss_originals)
+    output = build(lambda key: copy.deepcopy(inputs[key]["projection"]), at,liquidity_originals=originals,fails_originals=fails_originals)
     if originals is not None:output['original_source_lineage']={'liquidity_flow':originals}
     if fails_originals is not None:output.setdefault('original_source_lineage',{})['settlement_fails']=fails_originals
-    if ciss_originals is not None:output.setdefault('original_source_lineage',{})['ciss']=ciss_originals
     output["evidence_inventory"] = evidence_inventory(output, inputs)
     return output
 
 
 def prepare(load, generated_at=None, read_original=None):
     inputs = {}
-    liquidity_document=None;fails_document=None;ciss_document=None
+    liquidity_document=None;fails_document=None
     for key in FIELDS:
         try:
             doc = load(key)
@@ -160,19 +150,16 @@ def prepare(load, generated_at=None, read_original=None):
         selected = project(key, doc)
         if key==liquidity_binding.KEY:liquidity_document=doc
         if key==fails_binding.KEY:fails_document=doc
-        if key==ciss_binding.KEY:ciss_document=doc
         inputs[key] = {"source": key, "status": status, "projection": selected, "sha256": digest(selected),
                        "basis": "typed_public_compiler_input_projection; not_complete_source_packet"}
     # In production the cutoff follows collection, so subsequently read inputs
     # are not assigned to an earlier decision clock. Explicit clocks are for replay fixtures.
     if read_original is not None:
-        if not isinstance(read_original,ImmutableReader):read_original=ImmutableReader(read_original)
+        read_original=ImmutableReader(read_original)
         inputs[liquidity_binding.KEY]['original_binding']=liquidity_binding.capture(
             liquidity_document,read_original,generated_at or datetime.now(timezone.utc).isoformat())
         inputs[fails_binding.KEY]['original_binding']=fails_binding.capture(
             fails_document,read_original,generated_at or datetime.now(timezone.utc).isoformat())
-        inputs[ciss_binding.KEY]['original_binding']=ciss_binding.capture(
-            ciss_document,read_original,generated_at or datetime.now(timezone.utc).isoformat())
     generated_at = generated_at or datetime.now(timezone.utc).isoformat()
     at = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
     if at.tzinfo is None: raise ValueError("replay requires timezone-aware decision time")
@@ -196,7 +183,7 @@ def replay(bundle,read_original=None):
     inputs = payload.get("inputs")
     if not isinstance(inputs, dict) or set(inputs) != set(FIELDS): raise ValueError("incomplete input manifest")
     for key, row in inputs.items():
-        if 'original_binding' in row and key not in (liquidity_binding.KEY,fails_binding.KEY,ciss_binding.KEY):raise ValueError('Original binding belongs to a reviewed source only')
+        if 'original_binding' in row and key not in (liquidity_binding.KEY,fails_binding.KEY):raise ValueError('Original binding belongs to a reviewed source only')
         selected = row.get("projection")
         if row.get("source") != key or project(key, selected) != selected or digest(selected) != row.get("sha256"):
             raise ValueError("input projection identity, whitelist or hash mismatch")

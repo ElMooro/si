@@ -136,11 +136,11 @@ class FailsBinding(unittest.TestCase):
                 (root/self.packet['replay']['manifest_key']).write_bytes(b'{}')
                 with self.assertRaises(ValueError):calls.replay(self.bundle,original_reader(root))
 
-    def test_twenty_compiler_files_and_native_copies_are_exact(self):
+    def test_twenty_five_compiler_files_and_native_copies_are_exact(self):
         for name in ('fails_native.py','fails_research.py','fails_store.py'):
             self.assertEqual((ROOT/'aws/shared'/name).read_bytes(),(ROOT/'aws/lambdas/justhodl-settlement-fails/source'/name).read_bytes())
         self.assertEqual((ROOT/'aws/shared/verify_fails_arithmetic.py').read_bytes(),(ROOT/'scripts/verify_fails_arithmetic.py').read_bytes())
-        files=calls.compiler_identity()['files'];self.assertEqual(len(files),20)
+        files=calls.compiler_identity()['files'];self.assertEqual(len(files),25)
         self.assertTrue({'calls_fails_binding.py','calls_fails_originals.py','calls_original_reader.py','fails_native.py',
             'fails_research.py','fails_store.py','verify_fails_arithmetic.py'} <= set(files))
 

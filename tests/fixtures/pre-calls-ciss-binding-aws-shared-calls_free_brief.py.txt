@@ -50,7 +50,7 @@ def publication_clock(value,now):
                 'max_source_age_seconds':MAX_PUBLICATION_AGE_SECONDS}
 
 
-def build(load, generated_at, liquidity_originals=None, fails_originals=None, ciss_originals=None):
+def build(load, generated_at, liquidity_originals=None, fails_originals=None):
     now = datetime.fromisoformat(generated_at.replace('Z','+00:00'))
     if now.tzinfo is None:raise ValueError('brief requires timezone-aware generation time')
     now=now.astimezone(timezone.utc)
@@ -120,21 +120,6 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None, ci
                 side='PDFTD-' if field.endswith('ftd_bn') else 'PDFTR-' if field.endswith('ftr_bn') else None
                 row['original_observation_ids']=[identity for series,identity in scope['latest_calculation']['original_observations'].items()
                     if identity is not None and (side is None or series.startswith(side))]
-        if key=='data/ciss-stress.json' and ciss_originals is not None:
-            verified=ciss_originals.get('status')=='verified'
-            eligible=verified and ciss_originals.get('current_headline_research_eligible') is True
-            status=row['quality_status']='unavailable' if value is None else 'fresh' if eligible else 'stale' if verified else 'unverified'
-            row.update(original_source_evidence_verified=verified,current_original_research_eligible=eligible,
-                max_observation_age_days=14,frequency='daily',
-                freshness_basis='Complete ECB originals, independent calendar and contribution arithmetic, and every required original acquisition clock; descriptive context only.' if verified else 'ECB original-source replay unavailable; reported CISS remains unqualified.')
-            if verified:
-                row['original_packet_canonical_sha256']=ciss_originals['canonical_packet_sha256']
-                row['max_source_age_seconds']=72*3600
-                age_seconds=row['source_age_seconds']
-                row['source_clock_status']='future' if age_seconds is not None and age_seconds<0 else 'within_age_ceiling' if age_seconds is not None and age_seconds<=72*3600 else 'stale'
-                row['original_observation_ids']=[view['latest_occurrence'] for view in ciss_originals['series'].values()]
-                row['original_current_use_issues']=sorted({issue for view in ciss_originals['series'].values() for issue in view['current_use']['issues']})
-                row['original_reconciliation_status']=ciss_originals['independent_arithmetic']['latest_reconciliation']
         if note: row['note']=note
         rows.append(row)
         if status!='fresh': missing.append(row['series_id'])
@@ -164,8 +149,7 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None, ci
             add(row,settlement_key,keyfield,'usd_bn',['FR2004'],scope['as_of'],'weekly',
                 'Treasury including TIPS' if scope['scope_id']=='treasury_incl_tips' else 'Treasury excluding TIPS; overlaps the including-TIPS scope')
     key='data/ciss-stress.json';ciss=read(key)
-    add(ciss,key,'ea_composite','index_0_1',['ECB:CISS'],ciss.get('ea_composite_date'),
-        note='ECB daily composite and six reported contributions share one measurement system. Index points are not crisis probability; no independent votes or portfolio size.')
+    add(ciss,key,'ea_composite','index_0_1',['ECB:CISS'],ciss.get('ea_composite_date'))
     key='data/capital-inflows.json';tic=read(key)
     add(tic,key,'headline.foreign_net_into_us_lt_12mo_b','usd_bn',['US_TREASURY:TIC'],tic.get('data_asof'),'monthly',
         'Rolling twelve-month securities transactions, not valuation changes or a forecast of asset buying.')
@@ -204,7 +188,7 @@ def build(load, generated_at, liquidity_originals=None, fails_originals=None, ci
         '- Any future allocation change requires eligible independent evidence, a validated model and a separately enforced risk limit.',
         '', '## DECISION STATUS', '**DECISIVE CALL: WAIT**',
         'Abstain from new allocation guidance. WAIT does not mean sell existing positions or override independent risk controls.']
-    result={'version':'3.4','generated_at':generated_at,'generation_method':METHOD,
+    result={'version':'3.3','generated_at':generated_at,'generation_method':METHOD,
         'model':None,'paid_api_calls':0,'brief_md':'\n'.join(lines)+'\n',
         'evidence':rows,'coverage':{'fields':len(rows),'available':len(available),'fresh':len(fresh),'eligible_votes':0},
         'quality':{'status':'partial' if missing else 'fresh','missing':missing},

@@ -96,7 +96,7 @@ class OriginalBinding(unittest.TestCase):
         for name in ('liquidity_flow_store.py','liquidity_flow_model.py','liquidity_flow_arithmetic.py'):
             self.assertEqual((ROOT/'aws/shared'/name).read_bytes(),(ROOT/'aws/lambdas/justhodl-liquidity-flow/source'/name).read_bytes())
         self.assertEqual((ROOT/'aws/shared/verify_liquidity_arithmetic.py').read_bytes(),(ROOT/'scripts/verify_liquidity_arithmetic.py').read_bytes())
-        files=calls.compiler_identity()['files'];self.assertEqual(len(files),20)
+        files=calls.compiler_identity()['files'];self.assertEqual(len(files),25)
         for name in ('calls_liquidity_binding.py','calls_liquidity_originals.py','canonical_fred_replay.py','liquidity_flow_store.py'):
             self.assertIn(name,files)
 
