@@ -47,7 +47,6 @@ import json
 import hashlib
 import time
 from auction_weighting import weighted_summary
-from auction_scoring import numeric
 import auction_benchmarks
 import auction_forward
 import auction_concerns
@@ -130,13 +129,12 @@ def compute_tenor_decomposition(scored_auctions: List[dict],
         weighting = weighted_summary(bucket)
         weighted = weighting['composite']
 
-        known_scores = [numeric(a.get("composite_score")) for a in bucket]
-        max_comp = max(known_scores) if all(value is not None for value in known_scores) else None
+        max_comp = max(a.get("composite_score", 0) for a in bucket)
 
         signal_fires: Dict[str, int] = {}
         for a in bucket:
             for sig, sc in (a.get("indicator_scores") or {}).items():
-                if numeric(sc) is not None and sc >= 50:
+                if sc >= 50:
                     signal_fires[sig] = signal_fires.get(sig, 0) + 1
         dom_sig = max(signal_fires, key=signal_fires.get) if signal_fires else None
 
@@ -144,7 +142,7 @@ def compute_tenor_decomposition(scored_auctions: List[dict],
             "n_auctions":      len(bucket),
             "composite":       round(weighted, 1) if weighted is not None else None,
             "weighting_quality": weighting,
-            "max_composite":   round(max_comp, 1) if max_comp is not None else None,
+            "max_composite":   round(max_comp, 1),
             "latest_date":     max(a.get("auction_date") for a in bucket if a.get("auction_date")),
             "dominant_signal": dom_sig,
             "label":           TENOR_LABELS[tenor],
@@ -292,22 +290,22 @@ def build_indicator_vector(scored_auctions: List[dict], window_days: int = 14) -
                 if a.get("auction_date") and cutoff <= _parse_date(a["auction_date"]) <= today]
 
     if not recent:
-        return [None] * 6
+        return [0.0] * 6
 
     signal_keys = ["zero_rate_floor", "btc_extreme", "tail_stress",
                     "pd_absorption", "indirect_collapse"]
     vector = []
     for key in signal_keys:
-        # Inapplicable or missing is not a measured zero. Unscorable rows
-        # cannot disappear into an apparently complete historical comparison.
-        values = [numeric((a.get("indicator_scores") or {}).get(key)) for a in recent
-                  if key in (a.get("indicator_scores") or {})]
-        invalid_population = any((a.get('score_quality') or {}).get('status') in
-                                 ('missing_inputs', 'unsupported_instrument') for a in recent)
-        vector.append(max(values) if values and all(v is not None for v in values) and not invalid_population else None)
+        # Max score for this signal across recent auctions
+        max_score = 0.0
+        for a in recent:
+            v = (a.get("indicator_scores") or {}).get(key)
+            if v is not None and v > max_score:
+                max_score = float(v)
+        vector.append(max_score)
 
-    vector.append(None)  # issuance is supplied by the caller, never imputed
-
+    # Slot 5 = issuance anomaly (passed in separately as global)
+    vector.append(0.0)  # placeholder; orchestrator will fill in
     return vector
 
 
@@ -383,22 +381,21 @@ def cosine_similarity(a: List[float], b: List[float]) -> float:
 
 def find_historical_analogs(scored_auctions: List[dict],
                               crisis_reference: List[dict],
-                              issuance_score: float = None,
+                              issuance_score: float = 0.0,
                               top_n: int = 3) -> List[dict]:
     """Find top-N historical crisis analogs to current posture."""
     current_vec = build_indicator_vector(scored_auctions, window_days=14)
-    current_vec[5] = numeric(issuance_score)
-    complete_vector = all(numeric(value) is not None and 0 <= value <= 100 for value in current_vec)
+    current_vec[5] = issuance_score  # fill in issuance dimension
 
     matches = []
     for anchor in crisis_reference:
         a_vec = anchor_vector(anchor)
-        sim = cosine_similarity(current_vec, a_vec) if complete_vector else None
+        sim = cosine_similarity(current_vec, a_vec)
         outcome = ANALOG_OUTCOMES.get(anchor.get("date"), {})
         matches.append({
             "date":         anchor.get("date"),
             "regime":       anchor.get("regime"),
-            "similarity":   round(sim, 4) if sim is not None else None,
+            "similarity":   round(sim, 4),
             "anchor_vec":   [round(x, 1) for x in a_vec],
             "anchor_metrics": {
                 "btc":             anchor.get("btc"),
@@ -412,16 +409,13 @@ def find_historical_analogs(scored_auctions: List[dict],
             "duration":     outcome.get("duration", ""),
         })
 
-    if complete_vector:
-        matches.sort(key=lambda x: x["similarity"], reverse=True)
+    matches.sort(key=lambda x: x["similarity"], reverse=True)
 
     return {
-        "current_vector":   [round(x, 1) if x is not None else None for x in current_vec],
-        "status": "unqualified_legacy_comparison" if complete_vector else "incomplete_current_features",
-        "calls_eligible": False, "sizing_eligible": False,
+        "current_vector":   [round(x, 1) for x in current_vec],
         "vector_labels":    ["zero_rate_floor", "btc_extreme", "tail_stress",
                               "pd_absorption", "indirect_collapse", "issuance_anomaly"],
-        "top_matches":      matches[:top_n] if complete_vector else [],
+        "top_matches":      matches[:top_n],
         "all_matches":      matches,
     }
 
@@ -629,9 +623,7 @@ def build_triggers(scored_auctions: List[dict],
     """Produce a list of named triggers that would flip the regime,
     with current values and distance-to-trigger."""
 
-    current = numeric((composite_history.get("current") or {}).get("composite"))
-    if current is None or not 0 <= current <= 100:
-        return []
+    current = composite_history.get("current", {}).get("composite") or 0
 
     triggers = []
 
@@ -679,10 +671,8 @@ def build_triggers(scored_auctions: List[dict],
         ("zero_rate_floor",   70, "Compare the bill discount-rate observation with the dated policy-rate context. This threshold alone does not establish a liquidity crisis."),
     ]:
         agg = indicator_aggregate.get(sig_name, {})
-        n_fired = agg.get("n_at_or_above_70")
-        max_score = numeric(agg.get("max_score"))
-        if agg.get("status") != "complete" or max_score is None or type(n_fired) is not int or n_fired < 0:
-            continue
+        n_fired = agg.get("n_fired", 0)
+        max_score = agg.get("max_score", 0)
         triggers.append({
             "name":      f"{sig_name.replace('_', ' ').title()} fires next auction",
             "condition": f"{sig_name} score ≥ {threshold} on any new auction",

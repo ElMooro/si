@@ -383,12 +383,6 @@ footer{border-top:1px solid var(--border);margin-top:50px;padding:20px;text-alig
 footer a{color:var(--fg-2);margin:0 6px}
 footer a:hover{color:var(--cyan)}
 .concern-missing,.concern-trace{overflow-wrap:anywhere}.concern-trace{min-width:0;margin-top:12px}.concern-trace .jdi-table{max-width:100%}.concern-trace>summary{cursor:pointer;color:var(--cyan);padding:8px 0}.concern-trace>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-.auction-score-trace { min-width: 150px; max-width: 340px; text-align:left; }
-.auction-score-trace summary { cursor:pointer; color:var(--fg2); }
-.auction-score-trace summary:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
-.auction-score-trace pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; max-height:280px; overflow:auto; }
-#auctions-tbl td { vertical-align:top; }
-.auction-population-note { color:var(--fg2); font-size:12px; line-height:1.6; margin:0 0 14px; }
 </style>
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
@@ -625,10 +619,9 @@ footer a:hover{color:var(--cyan)}
 
   <!-- Recent auctions table -->
   <div class="section-hdr">
-    <h3>Acquired Auction Observations</h3>
-    <div class="sub" id="auction-population-count">Loading retained population…</div>
+    <h3>Recent Auctions · Last 10</h3>
+    <div class="sub">Named quote bases; high–median dispersion is separate from an unavailable WI tail</div>
   </div>
-  <p class="auction-population-note">Incomplete and unsupported auctions remain visible. Every required feature must be observed before an auction receives a score; missing positive-weight scores withhold the weighted window. Fixed legacy thresholds are uncalibrated. High–median dispersion is separate from an unavailable WI tail.</p>
   <div class="auctions-table" role="region" aria-label="Auction observations" tabindex="0">
     <table id="auctions-tbl"></table>
   </div>
@@ -636,7 +629,7 @@ footer a:hover{color:var(--cyan)}
   <!-- Historical reference -->
   <div class="section-hdr">
     <h3>Historical Reference</h3>
-    <div class="sub">10 historical comparison auctions; not a calibration sample</div>
+    <div class="sub">9 historical comparison auctions; not a calibration sample</div>
   </div>
   <div id="hist-grid" class="hist-grid"></div>
 
@@ -655,10 +648,10 @@ footer a:hover{color:var(--cyan)}
     <p><strong>6. Bill issuance explosion.</strong> The legacy overlay compares average bill amounts per auction day over overlapping windows. It is not a net liquidity injection or a validated stress predictor; the methodology still requires revision.</p>
     <p><strong>Tenor decomposition.</strong> Per-bucket (bills_lt_90d, bills_gte_90d, coupons_lt_3y, coupons_gt_3y, tips, frn) composite + rank + dominant signal. Identifies WHERE stress concentrates.</p>
     <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Uncalibrated per-auction score = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
-    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 10 legacy reference auctions. Top match + "what happened next" provides historical context, not a validated forward forecast.</p>
+    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 9 anchor crises. Top match + "what happened next" provides historical context, not a validated forward forecast.</p>
     <p><strong>Concern scores.</strong> Uncalibrated 0–100 heuristics for auction participation, regime thresholds and supply context. These are not event probabilities; the legacy horizons have not been validated.</p>
     <p><strong>Separate commentary input.</strong> The legacy commentary packet remains available for inspection. Its narrative, predictions and investment instructions are withheld from this view because complete source replay and predictive validation are not established. This page makes no AI API calls.</p>
-    <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Every required feature must be observed for an auction score. Missing weights or incomplete positive-weight scores withhold the window; explicit zero amount contributes zero. All acquired observations, including FRNs without a comparable score baseline, remain in the population. High-minus-median dispersion is separate from a when-issued tail, which remains unavailable without an actual WI quote. Issuance-explosion adds up to 15 points overlay.</p>
+    <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Missing weights withhold the result; explicit zero contributes zero. High-minus-median dispersion is separate from a when-issued tail, which remains unavailable without an actual WI quote. Issuance-explosion adds up to 15 points overlay.</p>
   </div>
 
   <footer>
@@ -681,7 +674,7 @@ footer a:hover{color:var(--cyan)}
 
 <script src="/jh-auction-originals.js?v=20260929" defer></script>
 <script src="/jh-auction-fred-evidence.js?v=20260929-fred-v1" defer></script>
-<script src="/auction-crisis.js?t=20260929-score-completeness" defer></script>
+<script src="/auction-crisis.js?t=20260929-dated-concerns" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

@@ -34,7 +34,6 @@ Outputs:
 """
 import gzip
 from auction_weighting import weighted_summary
-from auction_scoring import score_auction
 import json
 import math
 import os
@@ -606,14 +605,20 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
     for key in sorted(full_rows):
         r = full_rows[key]
         d = r.get("auction_date", "")[:10]
-        # A malformed original may not silently shrink the historical population.
-        m = crisis_scoring.compute_record_metrics(r)
+        try:
+            m = crisis_scoring.compute_record_metrics(r)
+        except Exception:
+            continue
+        if m.get("btc") is None:
+            continue
         i = bisect.bisect_right(ff_dates, d) - 1
-        ff_date = ff_dates[i] if i >= 0 else None
-        ff = ff_by_date[ff_date] if ff_date and 0 <= (datetime.fromisoformat(d).date() - datetime.fromisoformat(ff_date).date()).days <= 5 else None
-        scored_row = score_auction(m, crisis_scoring.score_indicators(m, ff), ff)
-        scored.append((d, scored_row['composite_score'], m.get("accepted_billions"), "BILL" in str(r.get("security_type", "")).upper(), _f(r.get("total_accepted")) or 0.0))
-    scored.sort(key=lambda row: row[0])
+        ff = ff_by_date[ff_dates[i]] if i >= 0 else 0.0
+        sc = crisis_scoring.score_indicators(m, ff)
+        if not sc:
+            continue
+        mx, av = max(sc.values()), sum(sc.values()) / len(sc)
+        scored.append((d, 0.7 * mx + 0.3 * av, m.get("accepted_billions"), "BILL" in str(r.get("security_type", "")).upper(), _f(r.get("total_accepted")) or 0.0))
+    scored.sort()
     dates = [x[0] for x in scored]
     today = _now().date()
     first = datetime.fromisoformat(min(dates)).date() if dates else today
@@ -652,14 +657,12 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
             iss = 90 if pct > 50 else 60 if pct > 30 else 30 if pct > 15 else 0
             comp = min(100, comp + iss * 0.15)
         series.append({"date": hi, "composite": round(comp, 1) if comp is not None else None, "n": len(win), "weighting_quality":weighting})
+    if live_point and live_point.get("date") and live_point.get("composite") is not None:
+        series = [p for p in series if p["date"] != live_point["date"]]
+        series.append({"date": live_point["date"], "composite": round(float(live_point["composite"]), 1), "n": live_point.get("n") or 0, "live": True})
+        series.sort(key=lambda p: p["date"])
     return {"series": series, "sampled": "weekly to T-60d, daily after", "first": series[0]["date"] if series else None,
-            "last": series[-1]["date"] if series else None, "n_auctions_scored": sum(row[1] is not None for row in scored),
-            "n_auctions_retained": len(scored), "score_contract": "auction-score-inputs.v1",
-            "detector_context": live_point, "detector_context_used_in_history": False,
-            "method": "complete applicable features per auction; rounded detector score, all retained accepted-size weights over 14d, +0-15 legacy issuance overlay",
-            "history_basis": "current source vintage; not a point-in-time backtest; missing or unsupported positive-weight observations withhold a window",
-            "calls_eligible": False, "sizing_eligible": False}
-
+            "last": series[-1]["date"] if series else None, "n_auctions_scored": len(scored), "method": "detector composite: 0.7*max+0.3*avg per auction, size-weighted 14d window, +0-15 issuance overlay"}
 
 
 # ─────────────────────────── cross-asset reactions ───────────────────

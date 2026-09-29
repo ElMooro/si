@@ -52,7 +52,6 @@ on bonds.html.
 import json
 from auction_quality import stamp_quality
 from auction_weighting import weighted_summary
-from auction_scoring import score_auction, aggregate_indicators
 from auction_original_store import retain as retain_auction_originals
 from auction_calendar_store import retain as retain_calendar_originals
 from auction_fred_store import retain as retain_fred_originals
@@ -532,8 +531,6 @@ def lambda_handler(event, context):
             "status": "no_data",
             "message": "No auction records returned from fiscaldata API",
             "recent_auctions": [],
-            "auction_observations": [],
-            "auction_population": {"supplied": 0, "retained": 0, "complete_scores": 0, "row_omissions": 0, "contract": "auction-score-inputs.v1"},
         })
         for key,default in {'freshness':{},'tail_risk':{},'tenor_decomposition':{},'composite_history':{},'forward_calendar':[]}.items():
             body.setdefault(key,default)
@@ -553,7 +550,23 @@ def lambda_handler(event, context):
     for r in raw:
         m = compute_record_metrics(r)
         measured_auctions.append(m)  # Size context must retain unscored/missing-BTC observations.
-        scored_auctions.append(score_auction(m, score_indicators(m, fed_rate), fed_rate))
+        if m["btc"] is None:
+            continue  # skip incomplete records
+        s = score_indicators(m, fed_rate)
+        if not s:
+            continue
+        # Composite for THIS auction = max-of-indicators (most-stressed wins)
+        max_score = max(s.values()) if s else 0
+        avg_score = sum(s.values()) / len(s) if s else 0
+        # Use 70% max + 30% avg — emphasis on the worst signal
+        composite = 0.7 * max_score + 0.3 * avg_score
+        scored_auctions.append({
+            **m,
+            "indicator_scores": s,
+            "max_indicator_score": round(max_score, 1),
+            "avg_indicator_score": round(avg_score, 1),
+            "composite_score": round(composite, 1),
+        })
 
     # Sort by date descending
     scored_auctions.sort(key=lambda x: x.get("auction_date") or "", reverse=True)
@@ -563,7 +576,7 @@ def lambda_handler(event, context):
     recent_cutoff = today - timedelta(days=14)
     recent = [a for a in scored_auctions
               if a.get("auction_date") and
-              recent_cutoff <= datetime.strptime(a["auction_date"][:10], "%Y-%m-%d").date() <= today]
+              datetime.strptime(a["auction_date"][:10], "%Y-%m-%d").date() >= recent_cutoff]
 
     # Composite system-wide score: 14d average of per-auction composites,
     # weighted by accepted size. Then add the issuance-explosion overlay.
@@ -578,7 +591,7 @@ def lambda_handler(event, context):
     # Regime classification
     if recent_composite is None:
         regime = "UNAVAILABLE"
-        interp = "Size-weighted auction heuristic unavailable: complete applicable features and positive accepted-size weights are required; incomplete and unsupported observations remain in the window."
+        interp = "Size-weighted auction heuristic unavailable: complete positive accepted-size weights are required."
     elif recent_composite >= 75:
         regime = "ACUTE_STRESS"
         interp = "Several auction observations exceed fixed historical heuristic thresholds. This uncalibrated score does not establish a crisis or an investment action."
@@ -671,7 +684,7 @@ def lambda_handler(event, context):
 
     # 3. Historical analog matching
     try:
-        issuance_score_for_analog = issuance.get("score") if issuance else None
+        issuance_score_for_analog = (issuance.get("score") if issuance else 0) or 0
         historical_analog = find_historical_analogs(
             scored_auctions, CRISIS_REFERENCE,
             issuance_score=issuance_score_for_analog, top_n=3,
@@ -759,11 +772,6 @@ def lambda_handler(event, context):
 
         # Last 10 auctions with scores
         "recent_auctions": scored_auctions[:10],
-        "auction_observations": scored_auctions,
-        "auction_population": {"supplied": len(raw), "retained": len(scored_auctions),
-            "complete_scores": sum(a["score_quality"]["status"] == "complete" for a in scored_auctions),
-            "contract": "auction-score-inputs.v1", "row_omissions": 0,
-            "note": "Full acquired population; the legacy recent_auctions field remains the ten most recent rows. Unsupported or incomplete positive-weight observations withhold the weighted score."},
 
         # Aggregate indicator counts: how many of last 14d auctions fired each pattern
         "indicator_aggregate_14d": indicator_aggregate,
@@ -878,5 +886,17 @@ def lambda_handler(event, context):
 
 
 def _aggregate_indicators(recent):
-    """Complete feature coverage with distinct 50- and 70-point counts."""
-    return aggregate_indicators(recent)
+    """Count how many recent auctions fired each indicator at score >= 50."""
+    out = {}
+    for a in recent:
+        for name, score in a.get("indicator_scores", {}).items():
+            if score >= 50:
+                out.setdefault(name, {"n_fired": 0, "max_score": 0, "auctions": []})
+                out[name]["n_fired"] += 1
+                out[name]["max_score"] = max(out[name]["max_score"], score)
+                out[name]["auctions"].append({
+                    "date": a.get("auction_date"),
+                    "term": a.get("security_term"),
+                    "score": score,
+                })
+    return out
