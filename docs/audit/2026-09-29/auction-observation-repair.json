@@ -1,5 +1,5 @@
 {
-  "status": "tested_source_repairs_native_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T04:15:07.636270+00:00",
   "baseline_commit": "f54a7e24e797994cb9706a38c77cf9348d8eef42",
   "native_predecessor": "docs/audit/2026-09-29/auction-native-predecessor.json",
@@ -136,5 +136,153 @@
     "The new dispersion field still needs the full original-evidence page integration; legacy consumer keys remain present and unavailable WI measurements remain null.",
     "Native package/resources/schedule acceptance and ordinary publication are separate. The original detector cadences remain 13:05 and 19:50 UTC; the four desk Scheduler bindings remain unchanged.",
     "All ten institutional acceptance workstreams remain open."
-  ]
+  ],
+  "source_commit": "164ed1073b3bcadc6d8860b144ce9ee8d8c9d351",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-crisis-detector": {
+        "code_sha256": "80NUJ8B8gLAvkmrtqrNji4z/m04tCPTjTJKX7rIDyug=",
+        "source_files_checked": 8,
+        "handler_bytes": 40427,
+        "timeout": 240,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "164ed1073b3bcadc6d8860b144ce9ee8d8c9d351"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-active",
+            "state": "ENABLED",
+            "expression": "cron(50 19 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-backstop",
+            "state": "ENABLED",
+            "expression": "cron(5 13 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-auction-crisis-detector",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-auction-desk": {
+        "code_sha256": "feTE3bDLTKb4X5QckG+j4nArODK5+0TY0Mq77yu6xTw=",
+        "source_files_checked": 5,
+        "handler_bytes": 63204,
+        "timeout": 300,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "164ed1073b3bcadc6d8860b144ce9ee8d8c9d351"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-results",
+            "state": "ENABLED",
+            "expression": "cron(40 13 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-late",
+            "state": "ENABLED",
+            "expression": "cron(35 16 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-buyback",
+            "state": "ENABLED",
+            "expression": "cron(10 12 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-morning",
+            "state": "ENABLED",
+            "expression": "cron(15 9 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-auction-desk",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "164ed1073b3bcadc6d8860b144ce9ee8d8c9d351",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36521126404,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6330_auction_observation_runtime_acceptance.md",
+  "native_acceptance_report_commit": "c8e79cf2431c9c7b3dd174a12a6e2766a8f1bce0",
+  "pages_run": 36520799952,
+  "lambda_run": 36520799965,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T04:21:18.812415+00:00",
+    "intended_commit": "164ed1073b3bcadc6d8860b144ce9ee8d8c9d351",
+    "served_commit": "164ed1073b3bcadc6d8860b144ce9ee8d8c9d351",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 56534,
+        "sha256": "23703a90f8e75f1132fb2bb44e8c115ae698c37f07c5a183c16b6a2bb7d2cbcd",
+        "matches_manifest": true
+      },
+      "auctions.html": {
+        "bytes": 90490,
+        "sha256": "7185a104ce4c22d71d24d2643b71df92757c37281d2467825aa035ab59e79c3d",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 33071,
+        "sha256": "97bfca52b87603203dfd8f4e98b0e5f0db8b7235ec629d34d8d0b1a04bb8230b",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "5fd60a58abefcdd1692002768dee085dec32c96aae16908000f349a1e6e1120a"
+      },
+      "engine-manifest.json": {
+        "bytes": 1351531,
+        "sha256": "84d377e0c659314972c43c7684eab55047368ce5545957816a177022765962e2",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "c8b6cdbb26c964a09d95ddbdc28b671c001026250baa2039f73b3bf5253b4ab8",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }

@@ -1,0 +1,81 @@
+{
+  "status": "browser_and_source_checked_deployment_pending",
+  "checked_at": "2026-09-29T04:44:36.991461+00:00",
+  "baseline_commit": "c8e79cf2431c9c7b3dd174a12a6e2766a8f1bce0",
+  "complete_predecessors": [
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-page-missingness-auction-crisis.js.txt",
+      "bytes": 33070,
+      "sha256": "5fd60a58abefcdd1692002768dee085dec32c96aae16908000f349a1e6e1120a"
+    },
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-page-missingness-auction-crisis.html.txt",
+      "bytes": 47370,
+      "sha256": "1e3d2c5f600a0ffee80f880d6ca6d5ebad13a8b44bab4153208e0beccc00f613"
+    }
+  ],
+  "source_members": {
+    "auction-crisis.html": {
+      "bytes": 48704,
+      "sha256": "12b5ec9b08492c8c89bfac399d8ffafd088bbd5fc08d3d6a3414a4e6e57d3fb1"
+    },
+    "auction-crisis.js": {
+      "bytes": 33254,
+      "sha256": "d4831ce7731aba522e7dcc4f3b46c878db054e73e8e950adfca165a4577c105d"
+    }
+  },
+  "repairs": [
+    "Missing/invalid scores remain unavailable; genuine zero is preserved. Missing weights have a specific explanation.",
+    "Stale responses clear previous measurements and analog matches; fresh responses clear the error banner.",
+    "Historical lines and filled areas break across missing observations; one-point charts remain finite.",
+    "No automatic commentary request or unvalidated investment instruction. The separate companion remains inspectable.",
+    "Named economic quote bases; WI tails unavailable without a same-security quote; bill discount rates/TIPS/FRNs excluded from nominal benchmark comparisons.",
+    "Indicator labels distinguish indirect bidders from foreign flows, issuance per auction day from net liquidity, and heuristics from validated performance.",
+    "Provider values escaped/formatted before tenor/anchor/trigger markup; missing numeric values not coerced to zero.",
+    "Neutral unavailable styling; mobile overflow repaired; keyboard-focusable scroll regions preserve every table column."
+  ],
+  "tests": {
+    "targeted_regressions": 16,
+    "frontend": 1726,
+    "deployment_static": 608,
+    "candidate_shell": 12,
+    "page_script_graphs": 599,
+    "syntax_errors": 0,
+    "wiring_missing": 0,
+    "wiring_stale": 0,
+    "page_contracts_check": "passed"
+  },
+  "browser": {
+    "scope": "Isolated exact HTML/CSS and renderer with explicit synthetic fixtures. Other site addons removed; CSP blocks external fetches. No live engine or consumer packet read.",
+    "desktop_viewport": [
+      1280,
+      900
+    ],
+    "desktop_document_width": 1265,
+    "desktop_client_width": 1265,
+    "mobile_viewport": [
+      390,
+      844
+    ],
+    "mobile_document_width": 375,
+    "mobile_client_width": 375,
+    "keyboard_table_scroll_px": 40,
+    "table_client_width": 327,
+    "table_scroll_width": 585,
+    "missing_score": "—",
+    "zero_score": "0.0",
+    "stale_score": "—",
+    "stale_rows": 0,
+    "fresh_recovery_error_display": "none",
+    "chart_disconnected_segments": 2,
+    "console_errors_or_warnings": 0,
+    "external_requests": 0,
+    "viewport_reset": true
+  },
+  "limitations": [
+    "No native measurement publication, provider completeness, original-source replay, predictive edge, historical point-in-time validity or portfolio authority is claimed.",
+    "Legacy FRED clocks, forward-calendar identities, fixed historical heuristic thresholds and selected analogs still require engine repair."
+  ]
+}
