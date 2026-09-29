@@ -36,7 +36,7 @@ async function load() {
     DATA = await dRes.json();
     const published=Date.parse(DATA.generated_at);
     if (DATA.quality?.status !== 'fresh' || !Number.isFinite(published) || published>Date.now()+300000 || Date.now()-published>48*3600000) {
-      showError('Current auction measurements unavailable or stale. Scores and calls are withheld.', DATA);
+      showError('Current auction measurements unavailable or stale. Scores and calls are withheld.');
       return;
     }
   } catch (e) {
@@ -51,11 +51,8 @@ async function load() {
   renderResearchContext();
 }
 
-function showError(msg, source = null) {
-  // Source inspection has its own byte/clock/contract gates. An unavailable
-  // legacy score must not hide a complete capture, including an empty window.
-  // Preserve only these references; no rejected heuristic field is rendered.
-  DATA = source ? {generated_at:source.generated_at, auction_originals:source.auction_originals} : {};
+function showError(msg) {
+  DATA = {};
   renderAllDataSections();
   renderResearchContext();
   const b = $('errorBanner');

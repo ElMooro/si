@@ -1,5 +1,5 @@
 {
-  "status": "browser_and_source_checked_deployment_pending",
+  "status": "source_browser_and_exact_served_assets_accepted",
   "checked_at": "2026-09-29T05:28:33.003549+00:00",
   "baseline_commit": "71b9a6959f3d4a72b1a6da9646829ddc58e59292",
   "complete_predecessors": [
@@ -87,5 +87,47 @@
     "Browser byte integrity is not independent provider replay or validation of legacy heuristics, forecasts or sizing."
   ],
   "calls_eligible": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "source_commit": "d2f20c73845d130599902bac31d3103e03194095",
+  "pages_run": 36526344356,
+  "page_gate_run": 36526344337,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T05:34:22.739243+00:00",
+    "intended_commit": "d2f20c73845d130599902bac31d3103e03194095",
+    "served_commit": "d2f20c73845d130599902bac31d3103e03194095",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 58406,
+        "sha256": "fcc72a402cc58db06fb6cb68a973a75fdc365fce86df1a1475fb1e8c221e3d76",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 33532,
+        "sha256": "ba5f9209bf82be65152f74caf2121e4fc024fbeaecb9818e7e15d25806502b3a",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "8dfdeb31af6a8772a22b3fb54318e938821539453231c50b7b93402e97cd8f86"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353392,
+        "sha256": "5eaea6f643d85b2c186dc2118c27fde05f071dd087697455b4b88e3d2245af23",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "0a0bef108576b6e7ca84e61ffe0fcd2242c36158b21f3081907b6612d86a209c",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }

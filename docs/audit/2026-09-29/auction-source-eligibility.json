@@ -1,0 +1,42 @@
+{
+  "status": "source_browser_checked_deployment_pending",
+  "checked_at": "2026-09-29T05:35:25.521454+00:00",
+  "baseline_commit": "d2f20c73845d130599902bac31d3103e03194095",
+  "complete_predecessors": [
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-source-eligibility-auction-crisis.html.txt",
+      "bytes": 49127,
+      "sha256": "c9c20f7b1ecd3fe52843af24fad4e46fa76247e2977b6ddbfaf6a310034a3abf"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-source-eligibility-auction-crisis.js.txt",
+      "bytes": 33531,
+      "sha256": "8dfdeb31af6a8772a22b3fb54318e938821539453231c50b7b93402e97cd8f86"
+    }
+  ],
+  "repairs": [
+    "Retain only the original-source reference and publication clock when a heuristic packet is rejected. All heuristic measurements stay cleared.",
+    "A complete empty window or valid unscored observations can still be inspected through the existing independent byte/clock/coverage gates.",
+    "Transport failures clear source references; stale publication clocks do not acquire inspection eligibility."
+  ],
+  "tests": {
+    "new_regressions": 4,
+    "targeted_regressions": 31,
+    "frontend": 1741,
+    "deployment_static": 627,
+    "candidate_shell": 12
+  },
+  "browser": {
+    "scope": "Isolated exact source page/components with synthetic inputs and blocked external network.",
+    "unscored_observations_inspected": 52,
+    "heuristic_unavailable_banner": true,
+    "verified_artifact_visible": true,
+    "no_new_portfolio_authority": true
+  },
+  "native_source_changed": false,
+  "native_publication_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
