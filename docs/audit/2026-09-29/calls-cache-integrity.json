@@ -1,0 +1,163 @@
+{
+  "stage": 432,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T20:22:16.986175+00:00",
+  "baseline_commit": "6c8cf66e9999d5db1eea6fa96b32ec9c1054fdb9",
+  "predecessor": "calls-cache-predecessor.json",
+  "improvements": [
+    "Concurrent requests for one verified snapshot identity join one builder and share the exact immutable bytes or the same failure. Cache storage is charged once.",
+    "Pending builders count against the existing eight-snapshot admission limit. Hashing occurs outside the lock; the existing 64 MiB committed-cache budget and insertion are checked atomically.",
+    "Failed or cancelled builders release their reservations for retry. Recursive same-identity construction fails explicitly; original reads and other-identity construction do not hold the cache lock.",
+    "Three exact retained compiler source sets replay with reviewed current code. Reader hashes are pinned in each source set; mixed or unknown revisions and modified output are rejected. No archived code is executed."
+  ],
+  "sources": {
+    "aws/shared/calls_original_reader.py": {
+      "sha256": "a07c4786cb93de554ca3122070b4c34573ab949e56ceac328e3d1982e64c7887",
+      "bytes": 4993
+    },
+    "aws/shared/calls_research_replay.py": {
+      "sha256": "e6fee8d9ec3261fdaa137264aa662f4492fe5461f4289fe757e70aff0308100b",
+      "bytes": 18109
+    }
+  },
+  "source_scope": {
+    "scope": "AST analysis only; no archived code executed",
+    "replay_changed_nodes": [
+      "REVIEWED_TRANSPORT_REVISIONS"
+    ],
+    "reader_changed_methods": [
+      "__init__",
+      "verified_snapshot"
+    ],
+    "reader_new_import": "threading.get_ident",
+    "original_reader_transport_and_allowlist_unchanged": true
+  },
+  "after_reproduction": {
+    "scope": "Current helper, controlled two-thread synthetic builders, no transport/private/native/provider access",
+    "source_sha256": "a07c4786cb93de554ca3122070b4c34573ab949e56ceac328e3d1982e64c7887",
+    "duplicate_builder_entered": false,
+    "same_identity_returned_different_bytes": false,
+    "cached_snapshots": 1,
+    "recorded_cache_bytes": 22,
+    "actual_cache_bytes": 22
+  },
+  "after_capacity_reproduction": {
+    "scope": "Current helper; controlled synthetic builders only, no transport/private/native/provider access",
+    "source_sha256": "a07c4786cb93de554ca3122070b4c34573ab949e56ceac328e3d1982e64c7887",
+    "concurrent_count": {
+      "builders_entered": 8,
+      "accepted": 8,
+      "cached_snapshots": 8,
+      "declared_snapshot_limit": 8
+    },
+    "concurrent_bytes": {
+      "accepted": 1,
+      "recorded_cache_bytes": 41943040,
+      "declared_byte_limit": 67108864
+    }
+  },
+  "importer_closure": {
+    "scope": "Read-only static current source package-closure analysis. No handlers, network, providers, native functions or archived code executed.",
+    "scanned_source_directories": 893,
+    "affected": [
+      {
+        "function": "justhodl-ai-brief",
+        "shared_members": 36,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-calls-research-audit",
+        "shared_members": 32,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-prospective-evaluator",
+        "shared_members": 39,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-signal-harvester",
+        "shared_members": 40,
+        "direct_calls_replay": true
+      }
+    ],
+    "source_sha256": "e6fee8d9ec3261fdaa137264aa662f4492fe5461f4289fe757e70aff0308100b"
+  },
+  "tests": {
+    "new_cases": 11,
+    "native_suites": [
+      {
+        "suite": "justhodl-ai-brief",
+        "unittest_cases": 70,
+        "passed": true,
+        "summary": [
+          "[ai-brief] Calls status=ERROR reason=generation_failed n=1",
+          "[ai-brief] SKIP_TELEGRAM=1, skipping Telegram digest",
+          "Calls integrity tests passed: 18",
+          "Free brief checks passed: real evidence, zero/null, scope isolation, privacy whitelist, WAIT, no paid provider path",
+          "Calls public research replay tests passed: 8",
+          "ai-brief: actual narrative projection preserves date, units, evidence, null forecast and no sizing authority"
+        ]
+      },
+      {
+        "suite": "justhodl-calls-research-audit",
+        "unittest_cases": 42,
+        "passed": true,
+        "summary": [
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 11 tests in 0.070s",
+          "",
+          "OK",
+          "Independent Calls audit passed: valid replay, append-only proof, bundle/current/history/authority tampering"
+        ]
+      },
+      {
+        "suite": "justhodl-prospective-evaluator",
+        "unittest_cases": 7,
+        "passed": true,
+        "summary": [
+          "ok test_market_probe_archives_prices_without_creating_a_forecast_or_measurement",
+          "ok test_new_forecasts_remain_pending_without_quote_requests_or_fake_results",
+          "ok test_preexisting_crypto_equity_collision_is_excluded_without_rewriting_records_or_results",
+          "ok test_private_evidence_path_is_rejected_before_a_read",
+          "ok test_request_budget_advances_only_fully_checked_forecasts_without_starvation",
+          "Evaluator tests passed: 10"
+        ]
+      },
+      {
+        "suite": "justhodl-signal-harvester",
+        "unittest_cases": 15,
+        "passed": true,
+        "summary": [
+          "ok test_release_preserves_existing_schedule_bindings",
+          "ok test_source_selection_policy_is_retained_in_both_whole_capture_and_summary",
+          "ok test_unsupported_projection_reports_gap_without_losing_other_sources",
+          "ok test_whole_predecessor_self_ingests_its_summary_but_repair_excludes_before_read",
+          "ok test_wrong_provider_symbol_and_nonfinite_price_are_unavailable",
+          "Harvester integrity tests passed: 11"
+        ]
+      }
+    ],
+    "frontend": 1891,
+    "deployment_static": 708,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "reviewed_retained_versions": 3
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native packages and served static assets are pending. Normal scheduled publication remains separately unverified.",
+    "This establishes the existing committed cache limits, not a whole-engine peak-memory or deadline qualification. Concurrent builders can retain transient memory outside the cache.",
+    "Economic calculations, original reader transport/allowlist and decision permissions are unchanged. Generic storage readback, historical vintages, model validation and supported portfolio consequences remain open. All ten workstreams remain open."
+  ]
+}

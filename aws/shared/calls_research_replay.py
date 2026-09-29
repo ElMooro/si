@@ -62,14 +62,22 @@ def compiler_identity():
                       for name in CODE_FILES}}
 
 
-# Exact reviewed predecessor pair retained in tests/fixtures/pre-liquidity-transport-*.py.txt.
-# Only storage/replay compatibility changes; all other compiler bytes, frozen
+# Exact reviewed source sets retained in tests/fixtures/pre-liquidity-transport-*,
+# pre-calls-publication-* and pre-calls-cache-*. Only transport, publication and
+# invocation-local cache concurrency changed; economic calculations are unchanged.
+# All other compiler bytes, frozen
 # inputs and reproduced output must still match. No archived code is executed.
 REVIEWED_TRANSPORT_REVISIONS = ({
     "calls_research_replay.py": "dfec155b8a6be0e6c7064e5d5bb5e926059d91770923166b1096a2d2bee40c7d",
+    "calls_original_reader.py": "7470b5bb9890f2438cee3a7cee2658595347770df79835e15415c7db9f543bae",
     "liquidity_flow_store.py": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
 },{
     "calls_research_replay.py": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+    "calls_original_reader.py": "7470b5bb9890f2438cee3a7cee2658595347770df79835e15415c7db9f543bae",
+    "liquidity_flow_store.py": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e",
+},{
+    "calls_research_replay.py": "96140866488a49ae90b444b97a569b57e1e63fead53941f3b4339d33a1dc7406",
+    "calls_original_reader.py": "7470b5bb9890f2438cee3a7cee2658595347770df79835e15415c7db9f543bae",
     "liquidity_flow_store.py": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e",
 },)
 

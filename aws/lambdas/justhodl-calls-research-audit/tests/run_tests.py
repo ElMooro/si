@@ -67,3 +67,5 @@ if __name__ == '__main__':
     sys.path.insert(0,str(ROOT.parents[2]/'tests'))
     from calls_publication_tests import run as run_calls_publication
     run_calls_publication()
+    from calls_cache_tests import run as run_calls_cache
+    run_calls_cache()

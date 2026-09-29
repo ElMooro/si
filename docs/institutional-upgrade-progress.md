@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 431 exact static acceptance: all ten workstreams remain open. Calls exact byte-bound audit/browser d4f57981a remains accepted, and local clock/lifecycle presentation bf23cd9721191f766f6fb9c6d1b7951d2abd3622 is now accepted against nine served assets. Eight new cases, 1,891 frontend tests, 708 deployment/twelve shell checks and 599 page graphs pass. Isolated desktop/mobile checks preserve evidence and historical replay while marking old briefs overdue without new requests. Native source/resources/cadence are unchanged. A controlled concurrency reproduction found duplicate snapshot builders and double-counted cache bytes; generic capacity/readback, normal publication, vintages, model validation and supported portfolio consequences also remain open.
+September 29, after Stage 432 source acceptance: all ten workstreams remain open. Calls snapshot caching now coalesces concurrent builders, admits at most eight pending/cached identities and atomically enforces its existing 64 MiB stored-byte limit. Eleven new cases and all four importer suites pass; all three retained compiler versions replay with current code. Frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 wires pass. Exact four-function deployment and static acceptance remain pending. Normal publication, whole-engine capacity, generic storage readback, vintages, model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5981,3 +5981,11 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 - Source `bf23cd9721191f766f6fb9c6d1b7951d2abd3622` passed Pages 36622691013; nine whole served assets match the commit-bound build at 2026-09-29T20:03:04.234950+00:00. The eleven-file related batch landed together through native Git. Native source and the prior exact audit package d4f57981a were not changed by this page release.
 - Eight new cases, frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 companion wires pass. Isolated desktop/mobile aging and lifecycle actions kept exactly two synthetic responses, retained expanded evidence and correctly separated an overdue brief from its valid historical replay. No actual current/private packet, provider or native invocation was used. Normal publication remains separately unverified. Evidence: `docs/audit/2026-09-29/calls-clock-integrity.json`.
+
+
+### Stage 432 concurrent Calls snapshot cache integrity
+
+- Controlled current-source tests reproduced duplicate builders returning different bytes for one identity and charging 48 bytes for 22 stored bytes; nine admitted snapshots against an eight-entry limit; and 80 MiB accepted against a 64 MiB cache budget. Full pre-edit source and a genuine pre-edit synthetic bundle are preserved inertly.
+- Requests now join one per-identity future, count pending admission, validate complete bytes and atomically charge/cache storage after hashing. Failure releases reservations for retry; recursive construction fails explicitly. Builders remain outside the reader lock. This establishes committed cache bounds, not transient-builder or whole-Lambda capacity.
+- Three exact reviewed compiler sets include pinned original-reader hashes and reproduce through current code; arbitrary mixed revisions and changed output still fail. No archived predecessor is executed. Original transport, allowlist, economic definitions and portfolio permissions are unchanged.
+- Eleven new tests, all four native importer suites, 1,891 frontend tests, 708 deployment/twelve shell checks, 599 page graphs and 143 wires pass. The closure is four functions and 151 complete native/shared members. Exact native/static deployment is pending; evidence: `docs/audit/2026-09-29/calls-cache-integrity.json`. Normal publication and all ten platform workstreams remain open.

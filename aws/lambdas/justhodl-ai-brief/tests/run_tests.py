@@ -38,3 +38,5 @@ if __name__ == '__main__':
 if __name__ == '__main__':
     from calls_publication_tests import run as run_calls_publication
     run_calls_publication()
+    from calls_cache_tests import run as run_calls_cache
+    run_calls_cache()
