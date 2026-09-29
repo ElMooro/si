@@ -61,6 +61,9 @@ assert json.loads(store.objects['data/calls-research-audit.json'])['status'] == 
 print('Independent Calls audit passed: valid replay, append-only proof, bundle/current/history/authority tampering')
 
 if __name__ == '__main__':
+    sys.path.insert(0,str(ROOT/'tests'))
+    from integrity_tests import run as run_integrity
+    run_integrity(setup)
     sys.path.insert(0,str(ROOT.parents[2]/'tests'))
     from calls_publication_tests import run as run_calls_publication
     run_calls_publication()

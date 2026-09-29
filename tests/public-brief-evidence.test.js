@@ -22,10 +22,6 @@ test('Renderer preserves zero, dates, field identities and escaped text',()=>{
  assert.ok(texts.some(t=>t.includes('0 eligible votes')));
  assert.ok(!nodes.some(n=>n.tag==='img'||Object.hasOwn(n,'innerHTML')));
 });
-test('Only a matching independent proof receives a verified label',()=>{
- const proof={...ref,status:'reproduced'};
- assert.equal(view.proofMatches(proof,ref),true);
- assert.equal(view.proofMatches({...proof,run_id:'other'},ref),false);
- assert.equal(view.proofMatches({...proof,status:'failed'},ref),false);
- assert.equal(view.proofMatches({...proof,bundle_sha256:'c'.repeat(64)},ref),false);
+test('A legacy proof without displayed-byte identity remains unverified',async()=>{
+ assert.equal(await view.proofMatches({...ref,status:'reproduced'},new TextEncoder().encode(JSON.stringify(packet())).buffer,now),false);
 });

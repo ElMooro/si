@@ -14,6 +14,19 @@ const OWNER_UID = "11111111-2222-4333-8444-555555555555";
 const OTHER_UID = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 const ADMIN = "svc_token_for_tests_0123456789";
 
+test('Calls public brief and proof preserve complete origin bytes for digest binding',async()=>{
+  const {env}=fresh(),w=await worker(),calls=[];
+  const raw=new TextEncoder().encode(' {"number":1.0,"text":"☃ \\u2603","false":false,"null":null}\n');
+  globalThis.caches={default:{async match(){return null;},async put(){}}};
+  globalThis.fetch=async(url,options)=>{calls.push({url:String(url),options});return new Response(raw,{headers:{'Content-Type':'application/json'}});};
+  for(const key of ['data/ai-brief-public.json','data/calls-research-proofs/'+'a'.repeat(64)+'.json']){
+    const response=await w.fetch(req('/'+key),env,{waitUntil(){}});
+    assert.equal(response.status,200);assert.deepEqual(new Uint8Array(await response.arrayBuffer()),raw);
+    assert.ok(calls.at(-1).url.endsWith('/'+key));
+  }
+  assert.equal(calls.length,2,'Only the two mocked origin reads');
+});
+
 function kvStore(seed) {
   const m = new Map(Object.entries(seed || {}));
   return {

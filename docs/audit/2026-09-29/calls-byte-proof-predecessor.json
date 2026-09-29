@@ -1,0 +1,58 @@
+{
+  "sources": {
+    "aws/lambdas/justhodl-calls-research-audit/source/lambda_function.py": {
+      "bytes": 5627,
+      "sha256": "6d6f1cb317b41377eda9709b97e58a0a41bcfd7399479a98aa626634adadf77f",
+      "fixture": "tests/fixtures/pre-calls-byte-proof-audit.py.txt"
+    },
+    "jh-public-brief.js": {
+      "bytes": 19987,
+      "sha256": "09cb9afc8a546aed2ecb0da31d86c5b0304865db9b184df07633e9c25ec79a54",
+      "fixture": "tests/fixtures/pre-calls-byte-proof-client.js.txt"
+    }
+  },
+  "native_acceptance": {
+    "code_sha256": "DQxC9eNfUIG9+a7L/tKobpQ0wJpx0yhf51CXHoK40D0=",
+    "source_files_checked": 33,
+    "handler_bytes": 5627,
+    "timeout": 300,
+    "memory_mb": 1536,
+    "receipt": {
+      "status": "matched",
+      "commit": "4522af3c867fe917947566026b1883fd4583e649"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-calls-research-audit-15m",
+        "state": "ENABLED",
+        "expression": "rate(15 minutes)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-calls-research-audit",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "reproductions": {
+    "audit": {
+      "scope": "Current auditor code and existing isolated synthetic fixtures only. No network, provider, native invocation, actual current/private/derived packet or archived-code execution.",
+      "source_sha256": "6d6f1cb317b41377eda9709b97e58a0a41bcfd7399479a98aa626634adadf77f",
+      "duplicate_generated_at_status": "reproduced",
+      "publication_overdue": false,
+      "open_bodies_after_verification": 3
+    },
+    "browser": {
+      "scope": "Current exported browser functions and synthetic in-memory objects only; no DOM mount, network or actual packet.",
+      "source_sha256": "09cb9afc8a546aed2ecb0da31d86c5b0304865db9b184df07633e9c25ec79a54",
+      "modified_display_passes_state": true,
+      "reference_only_proof_passes_for_modified_display": true,
+      "observation": "proofMatches receives only the run reference, so cannot compare the displayed brief/evidence with the attested output. This is a synthetic proof-binding reproduction, not a live packet claim."
+    }
+  }
+}

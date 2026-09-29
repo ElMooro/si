@@ -1,6 +1,39 @@
 /* Public research evidence; private account state never enters this renderer. */
 (function (root) {
   'use strict';
+ function day(s){if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s)||s.startsWith('0000-'))return null;const n=Date.parse(s+'T00:00:00Z');return Number.isFinite(n)&&new Date(n).toISOString().slice(0,10)===s?n:null;}
+ function clock(s){if(typeof s!=='string')return null;const m=/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/.exec(s);
+  if(!m||day(m[1])===null||Number(m[2])>23||Number(m[3])>59||Number(m[4])>59||(m[5]!=='Z'&&(Number(m[7])>23||Number(m[8])>59)))return null;const n=Date.parse(s);return Number.isFinite(n)?n:null;
+ }
+
+ async function sha(raw){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');}
+ function strictJSON(source){
+  // Reject duplicate identities and overflow rather than accepting the last key.
+  let i=0;const number=/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+  function ws(){while(/[\x20\t\r\n]/.test(source[i]||'x'))i++;}
+  function string(){const start=i++;for(;i<source.length;i++){if(source[i]==='\\'){i++;continue;}if(source[i]==='"'){const text=JSON.parse(source.slice(start,++i));for(let n=0;n<text.length;n++){const c=text.charCodeAt(n);if(c>=0xD800&&c<=0xDBFF){const next=text.charCodeAt(++n);if(!(next>=0xDC00&&next<=0xDFFF))throw Error('Invalid Unicode scalar');}else if(c>=0xDC00&&c<=0xDFFF)throw Error('Invalid Unicode scalar');}return text;}}throw Error('Incomplete JSON string');}
+  function value(depth){
+   if(depth>128)throw Error('JSON nesting exceeds bound');ws();const c=source[i];
+   if(c==='"')return string();
+   if(c==='{'||c==='['){const object=c==='{',out=object?{}:[],seen=new Set(),end=object?'}':']';i++;ws();if(source[i]===end){i++;return out;}
+    for(;;){ws();let key;if(object){if(source[i]!=='"')throw Error('JSON key required');key=string();if(seen.has(key))throw Error('Duplicate JSON key');seen.add(key);ws();if(source[i++]!==':')throw Error('JSON colon required');}
+     const item=value(depth+1);if(object)Object.defineProperty(out,key,{value:item,enumerable:true,writable:true,configurable:true});else out.push(item);
+     ws();if(source[i]===end){i++;return out;}if(source[i++]!==',')throw Error('Incomplete JSON structure');}
+   }
+   for(const [token,v]of [['true',true],['false',false],['null',null]])if(source.startsWith(token,i)){i+=token.length;return v;}
+   number.lastIndex=i;const m=number.exec(source);if(!m)throw Error('Invalid JSON value');i=number.lastIndex;const n=Number(m[0]);if(!Number.isFinite(n))throw Error('Nonfinite JSON number');return n;
+  }
+  const out=value(0);ws();if(i!==source.length)throw Error('Trailing JSON content');return out;
+ }
+
+  async function readJSON(response) {
+    if (!response.ok) { try { await response.body?.cancel(); } catch (_) {} throw Error('Research response unavailable'); }
+    const raw = await response.arrayBuffer();
+    const doc = strictJSON(new TextDecoder('utf-8', {fatal:true, ignoreBOM:true}).decode(raw));
+    if (!doc || Array.isArray(doc) || typeof doc !== 'object') throw Error('Research object required');
+    return {raw, doc};
+  }
+
   function state(doc, now = Date.now()) {
     if (!doc || !['warehouse_deterministic_v1','warehouse_deterministic_v2'].includes(doc.generation_method) || typeof doc.brief_md !== 'string' || doc.brief_md.trim().length < 120 || doc.call_verb !== 'WAIT' || doc.sizing_eligible !== false) return {valid:false};
     const age = now - Date.parse(doc.generated_at);
@@ -20,9 +53,21 @@
     return ref && typeof ref.sha256 === 'string' && /^[a-f0-9]{64}$/.test(ref.sha256) &&
       typeof ref.key === 'string' && new RegExp('^data/evidence/'+provider+'/[a-f0-9]{64}/'+ref.sha256+'\\.bin\\.gz$').test(ref.key) ? '/'+ref.key : null;
   }
-  function proofMatches(proof, ref) {
-    return !!(proof && ref && proof.status === 'reproduced' && proof.run_id === ref.run_id &&
-      proof.payload_sha256 === ref.payload_sha256 && proof.bundle_sha256 === ref.bundle_sha256);
+  async function proofMatches(proof, raw, now = Date.now()) {
+    try {
+      const doc = strictJSON(new TextDecoder('utf-8', {fatal:true, ignoreBOM:true}).decode(raw));
+      const ref = doc?.research_replay, binding = proof?.public_object, audited = clock(proof?.generated_at), published = clock(doc?.generated_at);
+      return !!(state(doc, now).valid && bundlePath(ref) &&
+        proof?.schema_version === 'calls-research-replay-proof.v1' && proof.status === 'reproduced' &&
+        proof.call_verb === 'WAIT' && proof.sizing_eligible === false && proof.decision_eligible === false && proof.private_account_data_read === false &&
+        proof.run_id === ref.run_id && proof.payload_sha256 === ref.payload_sha256 && proof.bundle_sha256 === ref.bundle_sha256 &&
+        typeof doc.snapshot_id === 'string' && doc.snapshot_id.length > 0 && proof.snapshot_id === doc.snapshot_id &&
+        proof.publication_generated_at === doc.generated_at && audited !== null && published !== null &&
+        Number.isFinite(now) && audited <= now + 300000 && audited >= published - 300000 &&
+        binding?.key === 'data/ai-brief-public.json' && Number.isSafeInteger(binding.bytes) && binding.bytes === raw.byteLength &&
+        /^[a-f0-9]{64}$/.test(binding.sha256 || '') && binding.sha256 === await sha(raw) &&
+        proof.brief_sha256 === await sha(new TextEncoder().encode(doc.brief_md)));
+    } catch (_) { return false; }
   }
   function render(document, box, doc, now) {
     box.replaceChildren();
@@ -189,7 +234,7 @@
       n.style.overflowWrap = 'anywhere';
     }
   }
-  const api = {state, bundlePath, originalPath, proofMatches, render};
+  const api = {state, bundlePath, originalPath, proofMatches, readJSON, render};
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (!root.document) return;
   const document = root.document, main = document.querySelector('main'); if (!main) return;
@@ -197,20 +242,23 @@
   box.style.cssText = 'margin:24px 0;padding:20px;line-height:1.65';
   const kpis = document.getElementById('kpi-row'); main.insertBefore(box, kpis ? kpis.nextSibling : null);
   box.textContent = 'Loading the public research brief…';
+  let refreshing = false;
   async function refresh() {
+    if (refreshing) return;
+    refreshing = true;
     try {
-      const response = await fetch('/data/ai-brief-public.json', {cache:'no-store', signal:AbortSignal.timeout(15000)});
-      if (!response.ok) throw new Error('Brief unavailable');
-      const doc = await response.json(); render(document, box, doc, Date.now());
+      const response = await fetch('/data/ai-brief-public.json', {cache:'no-store', redirect:'error', signal:AbortSignal.timeout(15000)});
+      const packet = await readJSON(response), doc = packet.doc; render(document, box, doc, Date.now());
       const ref = doc.research_replay, badge = document.getElementById('calls-replay-proof');
       if (!badge || !bundlePath(ref)) return;
       try {
-        const response = await fetch('/data/calls-research-proofs/' + ref.payload_sha256 + '.json', {cache:'no-store', signal:AbortSignal.timeout(10000)});
-        if (!response.ok) return;
-        const proof = await response.json();
-        badge.textContent = proofMatches(proof, ref) ? ' · Replay verified ' + proof.generated_at : ' · Replay check failed or does not match this run';
+        const response = await fetch('/data/calls-research-proofs/' + ref.payload_sha256 + '.json', {cache:'no-store', redirect:'error', signal:AbortSignal.timeout(10000)});
+        const proof = (await readJSON(response)).doc;
+        const matched = await proofMatches(proof, packet.raw);
+        badge.textContent = matched ? ' · Replay verified for these exact brief bytes · ' + proof.generated_at : ' · Replay not verified for this displayed brief';
       } catch (_) { /* The retained record remains useful; verification stays pending. */ }
     } catch (_) { render(document, box, null, Date.now()); }
+    finally { refreshing = false; }
   }
   refresh(); setInterval(() => { if (document.visibilityState !== 'hidden') refresh(); }, 300000);
 })(typeof globalThis === 'object' ? globalThis : this);

@@ -1,0 +1,136 @@
+{
+  "stage": 430,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T19:40:53.766590+00:00",
+  "baseline_commit": "8260b79942b2fede1a685c23528ac50b0f8c9cdf",
+  "predecessor": "calls-byte-proof-predecessor.json",
+  "improvements": [
+    "Auditor reads complete bytes through EOF, validates declared lengths, closes every response and strictly rejects duplicate decoded keys, numeric overflow/nonfinite constants, invalid Unicode, scalars and malformed structures.",
+    "Public field inventory and all output values must match the retained compiler output; only bound decision metadata may be added. Missing null fields, unrecorded lineage, duplicate snapshot matches and mismatched decision explanations fail.",
+    "Add-only public_object key, SHA-256 and byte length bind successful proofs to the precise public object audited. Existing raw bundle hash, full current-source replay, history binding and research-only authority remain enforced.",
+    "Browser strict-parses complete public/proof responses and verifies raw-byte digest/length, run, payload, bundle, snapshot, brief hash, publication/audit clocks and no-allocation flags. No Python/JavaScript canonicalization approximation.",
+    "Legacy proofs remain unverified until normal scheduled production creates matching proof. Failed refresh removes earlier evidence; overlapping refreshes are skipped. Historical replay and current-use freshness stay distinct."
+  ],
+  "source_scope": {
+    "affected_functions": [
+      "justhodl-calls-research-audit"
+    ],
+    "shared_compiler_sources_changed": false,
+    "archived_code_executed": false,
+    "worker_source_changed": false,
+    "proxy_byte_preservation": "Existing worker executed with two synthetic origin bodies; complete bytes equal; no live provider or packet requested."
+  },
+  "sources": {
+    "aws/lambdas/justhodl-calls-research-audit/source/lambda_function.py": {
+      "bytes": 7905,
+      "sha256": "f5e2d2bd9e5b0ad28475ed471429bed5e6b1348d3c40f3937be01dfc6aeca9d9"
+    },
+    "aws/lambdas/justhodl-calls-research-audit/tests/run_tests.py": {
+      "bytes": 3574,
+      "sha256": "460774a3d5eea70e56cccad823e8bf70993fad45012b56e29770723d1d5cb88c"
+    },
+    "aws/lambdas/justhodl-calls-research-audit/tests/integrity_tests.py": {
+      "bytes": 7027,
+      "sha256": "62de8c63a3c3dbefd212525692219ee9261cd415d97efad2bdb4a7c2fd4f5a7d"
+    },
+    "aws/ops/staged/ops_6349_calls_byte_proof_runtime_acceptance.py": {
+      "bytes": 4133,
+      "sha256": "7a272df5f74a12b1ba0937c3a2a5dd1b523b253545bd2c843489a97433f0ce22"
+    },
+    "tests/deployment/test_calls_byte_proof_runtime.py": {
+      "bytes": 3104,
+      "sha256": "219503e97a2f713b9acfe1443d0824c0aa62c7c2a2706335ec92ed1f9ac1b336"
+    },
+    "jh-public-brief.js": {
+      "bytes": 24443,
+      "sha256": "b3b5b9db67995b41fc8d0e6cff9ed72d40facce4533829e0c8bddd75d297e7f7"
+    },
+    "calls.html": {
+      "bytes": 14307,
+      "sha256": "6cf66692d45ae1c2c346dd6bd6bf30502ddde8bc6195a8becef7c51159c5b100"
+    },
+    "tests/calls-byte-proof.test.js": {
+      "bytes": 7699,
+      "sha256": "0903ac5479a42936ae75dcb4ecad204406dfc556843154b9613019e11dbdab7c"
+    },
+    "tests/public-brief-evidence.test.js": {
+      "bytes": 2414,
+      "sha256": "7a5123687613dc513d80768864d06875a2202813982dac3f6a9c5390ad6dc617"
+    },
+    "tests/worker-data-proxy.test.js": {
+      "bytes": 60066,
+      "sha256": "272c9a0cafb55446cc5e678c3733893e879e35455f565274b2216ea64b48612d"
+    },
+    "tests/fixtures/calls-byte-proof.json": {
+      "bytes": 32315,
+      "sha256": "a4c9181fa081c8f63cc892531d713e777c4906ba915b888d35ec6fb585e46979"
+    }
+  },
+  "tests": {
+    "native_suites": [
+      {
+        "suite": "justhodl-calls-research-audit",
+        "unittest_cases": 31,
+        "passed": true,
+        "summary": [
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 14 tests in 0.027s",
+          "",
+          "OK",
+          "Independent Calls audit passed: valid replay, append-only proof, bundle/current/history/authority tampering"
+        ]
+      }
+    ],
+    "distinct_new_native_cases": 17,
+    "new_browser_cases": 11,
+    "new_worker_case": 1,
+    "new_runtime_guard_cases": 3,
+    "frontend": 1883,
+    "deployment_static": 708,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_qa": {
+    "scope": "Current renderer and actual native-produced synthetic proof on isolated localhost with CSP blocking all external access. No live packet or native invocation.",
+    "source_sha256": "b3b5b9db67995b41fc8d0e6cff9ed72d40facce4533829e0c8bddd75d297e7f7",
+    "valid_exact_bytes_verified": true,
+    "modified_brief_unverified": true,
+    "ambiguous_json_clears_panel": true,
+    "http_failure_clears_panel": true,
+    "recovery_verifies_again": true,
+    "mobile": {
+      "width": 360,
+      "document_width": 345,
+      "table_region_width": 223,
+      "keyboard_disclosure_open": true,
+      "focus_preserved": true
+    },
+    "desktop_width": 1280,
+    "console_errors_and_warnings": [],
+    "screenshots": {
+      "stage430-proof.png": {
+        "sha256": "1baa33a5118361f16649292479b397c9e612c15eb1ed384fcf96f4ee9e1127a7"
+      },
+      "stage430-mobile.png": {
+        "sha256": "a672eb099e8f645ae6cc7f74b14073055703d407b8f3f56d7f4bd9882affa915"
+      }
+    }
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native and served static deployment acceptance is pending.",
+    "Normal scheduled publication and compatible live proof creation remain separate and unverified.",
+    "Full history is preserved; general object-size/resource capacity and current publication readback remain separate work.",
+    "Original publication vintages, predictive validity, economic causality and portfolio sizing remain unqualified. All ten workstreams remain open."
+  ]
+}
