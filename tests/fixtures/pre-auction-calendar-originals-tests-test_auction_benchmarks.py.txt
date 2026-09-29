@@ -135,8 +135,7 @@ def test_actual_upcoming_adapter_preserves_all_provider_flags_and_zero_offering(
            'floatingRate':'No','offeringAmount':0,'cusip':'TEST00001'},
           {'auctionDate':today,'securityType':'Note','securityTerm':'2-Year','tips':'No',
            'floatingRate':'Yes','offeringAmount':None,'cusip':'TEST00002'}]
-    response=io.BytesIO(json.dumps(rows).encode());response.status=200;response.geturl=lambda:m.TREASURY_UPCOMING_URL
-    with patch.object(m.urllib.request,'urlopen',return_value=response):
+    with patch.object(m.urllib.request,'urlopen',return_value=io.BytesIO(json.dumps(rows).encode())):
         out=m.fetch_upcoming_auctions()
     assert len(out)==2 and out[0]['offering_amount_billions']==0
     assert out[0]['tenor_bucket']=='coupons_lt_3y' and out[1]['instrument_kind']=='FRN'

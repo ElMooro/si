@@ -47,7 +47,6 @@ import json
 from auction_weighting import weighted_summary
 import auction_benchmarks
 import auction_forward
-import auction_calendar
 import math
 import os
 import urllib.parse
@@ -161,32 +160,68 @@ def compute_tenor_decomposition(scored_auctions: List[dict],
 TREASURY_UPCOMING_URL = "https://www.treasurydirect.gov/TA_WS/securities/upcoming?format=json"
 
 
-def fetch_upcoming_auctions(days_ahead: int = 30, source_out=None) -> List[dict]:
-    """One bounded native request; failure raises, complete empty is an array.
+def fetch_upcoming_auctions(days_ahead: int = 30) -> List[dict]:
+    """Fetch upcoming Treasury auctions from TreasuryDirect API.
 
-    The optional journal receives the whole response only after validation.
-    No additional request, cache fallback or partial-body publication is used.
+    Returns list of {auction_date, issue_date, security_type, security_term,
+                      offering_amount, cusip, tenor_bucket}.
+
+    Returns [] on failure — gracefully degrades.
     """
-    started = datetime.now(timezone.utc).isoformat()
-    req = urllib.request.Request(TREASURY_UPCOMING_URL, headers={
-        "User-Agent": "justhodl-auction-crisis-detector/2.0", "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=20) as response:
-        raw = response.read(auction_calendar.MAX_BYTES+1)
-        status = response.status
-        final_url = response.geturl()
-        declared_length = getattr(response, 'headers', {}).get('Content-Length')
-        if declared_length is not None:
-            if not isinstance(declared_length, str) or not declared_length.strip().isascii() or not declared_length.strip().isdigit() or len(declared_length.strip()) > 10:
-                raise ValueError('Invalid calendar Content-Length')
-            declared_length = int(declared_length.strip())
-    acquired = datetime.now(timezone.utc).isoformat()
-    frame = {'request_url':TREASURY_UPCOMING_URL, 'response_url':final_url,
-             'http_status':status, 'started_at':started, 'acquired_at':acquired,
-             'content_length':declared_length, 'raw':raw}
-    output = auction_calendar.build(frame, auction_calendar.clock(acquired).date().isoformat(), days_ahead, acquired)
-    if source_out is not None:
-        source_out.append(frame)
-    return output['selected_auctions']
+    try:
+        req = urllib.request.Request(TREASURY_UPCOMING_URL, headers={
+            "User-Agent": "justhodl-auction-crisis-detector/2.0",
+            "Accept": "application/json",
+        })
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.loads(r.read())
+    except Exception as e:
+        print(f"[upcoming] fetch error: {e}")
+        return []
+
+    if not isinstance(data, list):
+        return []
+
+    today = datetime.now(timezone.utc).date()
+    cutoff = today + timedelta(days=days_ahead)
+    out = []
+
+    for rec in data:
+        auc_date = rec.get("auctionDate") or rec.get("auction_date")
+        if not auc_date:
+            continue
+        try:
+            d = datetime.strptime(auc_date[:10], "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if d < today or d > cutoff:
+            continue
+
+        sec_type = rec.get("securityType") or rec.get("security_type") or ""
+        sec_term = rec.get("securityTerm") or rec.get("security_term") or ""
+        offering = auction_benchmarks.number(rec['offeringAmount'] if 'offeringAmount' in rec else rec.get('offering_amount'))
+        if offering is not None and offering < 0: offering = None
+
+        identity = auction_benchmarks.calendar_identity(rec)
+        tenor = identity['tenor_bucket']
+
+        out.append({
+            "auction_date":   auc_date[:10],
+            "issue_date":     (rec.get("issueDate") or rec.get("issue_date") or "")[:10],
+            "security_type":  sec_type,
+            "security_term":  sec_term,
+            "offering_amount_billions": (offering / 1e9) if offering is not None else None,
+            "cusip":          rec.get("cusip"),
+            "tenor_bucket":   tenor,
+            "days_ahead":     (d - today).days,
+            **identity,
+            "provider_record": rec,
+            "source_capture_verified": False,
+        })
+
+    # Sort by auction date
+    out.sort(key=lambda x: x.get("auction_date") or "")
+    return out
 
 
 def predict_auction_stress(upcoming: dict, tenor_decomp: Dict[str, dict],

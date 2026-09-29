@@ -204,13 +204,7 @@ def native_setup():
     support = runpy.run_path(str(ROOT/'tests/deployment/test_auction_output_ownership.py'))
     client = Memory();scope = support['load']('auction-crisis-detector', client)
     handler = scope['lambda_handler'];env = handler.__globals__
-    def empty_calendar(*args, source_out=None, **kwargs):
-        import auction_calendar
-        now=datetime.now(timezone.utc).isoformat()
-        source_out.append({'request_url':auction_calendar.URL,'response_url':auction_calendar.URL,
-                           'http_status':200,'started_at':now,'acquired_at':now,'raw':b'[]'})
-        return []
-    env.update(get_fed_funds_rate=lambda: 4.25, fetch_upcoming_auctions=empty_calendar,
+    env.update(get_fed_funds_rate=lambda: 4.25, fetch_upcoming_auctions=lambda *a, **k: [],
                compute_cross_signals=lambda: {}, compute_preauction_concession=lambda rows: rows,
                compute_postissue_performance=lambda rows, **kw: rows, load_pd_fails=lambda *a: {})
     return client, handler

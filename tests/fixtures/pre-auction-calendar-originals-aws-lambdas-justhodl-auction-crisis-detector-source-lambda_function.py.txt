@@ -53,8 +53,6 @@ import json
 from auction_quality import stamp_quality
 from auction_weighting import weighted_summary
 from auction_original_store import retain as retain_auction_originals
-from auction_calendar_store import retain as retain_calendar_originals
-from auction_calendar import unavailable as calendar_unavailable
 from auction_originals import assert_native as verify_auction_measurements
 from pd_fails_context import load as load_pd_fails
 import math
@@ -668,27 +666,12 @@ def lambda_handler(event, context):
         print(f"[v2] tenor_decomp error: {e}")
         tenor_decomp = {}
 
-    # 2. Forward calendar: complete source replay precedes any heuristic.
-    calendar_source = calendar_unavailable('acquisition_failed')
-    forward_calendar_status = {'status':'unavailable', 'reason':'acquisition_failed'}
-    calendar_stage = 'acquisition_failed'
+    # 2. Forward calendar
     try:
-        calendar_frames = []
-        upcoming_raw = fetch_upcoming_auctions(days_ahead=30, source_out=calendar_frames)
-        if len(calendar_frames) != 1:
-            raise ValueError('One complete calendar response is required')
-        calendar_stage = 'retention_or_replay_failed'
-        calendar_source, retained_upcoming = retain_calendar_originals(s3, S3_BUCKET, calendar_frames[0])
-        if upcoming_raw != retained_upcoming:
-            raise ValueError('Native calendar selection differs from retained replay')
-        calendar_stage = 'heuristic_calculation_failed'
-        forward_calendar = build_forward_calendar(retained_upcoming, tenor_decomp, measured_auctions)
-        forward_calendar_status = {'status':calendar_source['status'], 'reason':None}
-    except Exception:
-        print('[v2] forward_calendar unavailable:', calendar_stage)
-        if calendar_stage != 'heuristic_calculation_failed':
-            calendar_source = calendar_unavailable(calendar_stage)
-        forward_calendar_status = {'status':'unavailable', 'reason':calendar_stage}
+        upcoming_raw = fetch_upcoming_auctions(days_ahead=30)
+        forward_calendar = build_forward_calendar(upcoming_raw, tenor_decomp, measured_auctions)
+    except Exception as e:
+        print(f"[v2] forward_calendar error: {e}")
         forward_calendar = []
 
     # 3. Historical analog matching
@@ -853,8 +836,6 @@ def lambda_handler(event, context):
                               "recent_auctions.*.bidder_denominator_usd": "usd",
                               "recent_auctions.*.accepted_billions": "usd_bn"}
     report["auction_originals"] = auction_originals
-    report["calendar_source"] = calendar_source
-    report["forward_calendar_status"] = forward_calendar_status
     stamp_quality(report)
     # chatgpt-pd-context-v1: settlement context never changes auction scores.
     report["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)

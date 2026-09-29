@@ -1,0 +1,153 @@
+{
+  "status": "source_and_isolated_browser_checked_native_deployment_pending",
+  "checked_at": "2026-09-29T06:42:56.300314+00:00",
+  "baseline_commit": "623b0042af875dd424acc305159c228cfb9a60da",
+  "complete_predecessors": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-auction-calendar-originals-aws-lambdas-justhodl-auction-crisis-detector-source-lambda_function.py.txt",
+      "bytes": 41902,
+      "sha256": "c262d409c9f3923387732c30576fc69c9e877e7ccd953ef9658e34aec7a2e7b9"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+      "fixture": "tests/fixtures/pre-auction-calendar-originals-aws-lambdas-justhodl-auction-crisis-detector-source-auction_crisis_v2.py.txt",
+      "bytes": 43223,
+      "sha256": "72f8d118b9a4c308361e7fde035ed162013cf926bfa79851f94dbd2ff843e960"
+    },
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-calendar-originals-auction-crisis.html.txt",
+      "bytes": 49211,
+      "sha256": "23ee7e4777e1dd849f223e2eb241a263036774e1574110fe40b188aee58faef3"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-calendar-originals-auction-crisis.js.txt",
+      "bytes": 37220,
+      "sha256": "d4f18ab41c8431fe4f06015dbe95fd3302ed83e7b50dc7c7bfc7a0de1f2a24ba"
+    },
+    {
+      "source": "tests/test_auction_originals.py",
+      "fixture": "tests/fixtures/pre-auction-calendar-originals-tests-test_auction_originals.py.txt",
+      "bytes": 15111,
+      "sha256": "8b26333b0f1b20b5693d5fe2ce35cfd80d14f3fe7c04d71b7169d7897890daea"
+    },
+    {
+      "source": "tests/test_auction_benchmarks.py",
+      "fixture": "tests/fixtures/pre-auction-calendar-originals-tests-test_auction_benchmarks.py.txt",
+      "bytes": 9782,
+      "sha256": "9a6558acf8159983527ecc7e648657f46936c18a2a818d7ea2e6d008fdea3c1a"
+    }
+  ],
+  "native_predecessor": "docs/audit/2026-09-29/auction-calendar-predecessor.json",
+  "sources": {
+    "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py": {
+      "bytes": 43225,
+      "sha256": "ec05883eda2c916ec5569ef3e2943a5f1296073fa590341a5c7774a554fe0b29"
+    },
+    "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": {
+      "bytes": 42554,
+      "sha256": "8033f235326c46c86db77704d8972c39b815781c2d3ccaa66f188684608d193c"
+    },
+    "auction-crisis.html": {
+      "bytes": 49379,
+      "sha256": "9040ccefe3474dd7005fd6e6d46cad97d28c3fc784e563cd66e68b291f1ea3ca"
+    },
+    "auction-crisis.js": {
+      "bytes": 40719,
+      "sha256": "1bf4f9b64e62a3dfafa6bd4ce0e2417fd34a95f91db01adf8cd50e2d9cb76d68"
+    },
+    "aws/shared/auction_calendar.py": {
+      "bytes": 7406,
+      "sha256": "3509f205047439a7ae9bcf3ffe93706107a17f8f17001c70407c611b53a25b43"
+    },
+    "aws/shared/auction_calendar_store.py": {
+      "bytes": 6190,
+      "sha256": "c5848b9a95d2f15626507afbb1874faf83c529eccdca3cc3c221baffe7a93eb2"
+    }
+  },
+  "defect": "The predecessor returned [] for both fetch/schema failures and a complete empty response; the page claimed no upcoming auctions in both states.",
+  "repairs": [
+    "One original TreasuryDirect request retains its complete bounded body, request/final URL, status, declared Content-Length and acquisition clocks; incomplete declared bodies and failures raise rather than masquerade as empty.",
+    "Pure selection retains every received occurrence, including duplicate, outside-window, invalid-date and non-record entries. Missing amounts remain null, zero remains zero and conflicting aliases are explicit gaps.",
+    "A typed immutable run freezes all seven local compiler files, the exact source receipt and complete measurement output. Every byte is read back and the entire output is replayed before the native pointer can be published.",
+    "Acquisition, retention/replay and heuristic failures have separate non-sensitive status codes; a calculation failure cannot clear valid source evidence or leave stale calendar rows.",
+    "The page distinguishes unavailable, partial and complete empty response states. Coverage, dated selection and typed evidence links survive heuristic rejection but clear on stale publication or transport failure."
+  ],
+  "tests": {
+    "calendar_regressions": 15,
+    "forward_regressions": 16,
+    "benchmark_regressions": 15,
+    "observation_regressions": 20,
+    "originals_regressions": 16,
+    "native_detector": 4,
+    "frontend": 1750,
+    "deployment_static": 639,
+    "candidate_shell": 12,
+    "page_script_graphs": 599,
+    "page_contracts_check": "passed"
+  },
+  "browser": {
+    "scope": "Actual page with synthetic source frames run through the actual pure compiler and immutable replay store; external network disabled.",
+    "complete_empty_vs_partial_vs_failed": "distinct correct messages",
+    "stale_links_removed": true,
+    "recovery": true,
+    "mobile_document_client_width": 375,
+    "mobile_document_scroll_width": 375,
+    "table_client_width": 327,
+    "table_scroll_width": 725,
+    "keyboard_scroll_left_after_right": 40,
+    "console_errors": 0,
+    "console_warnings": 0,
+    "full_native_population_test": "53 original rows retained; 52 selected rows reach the actual handler; one invalid row is explicitly excluded."
+  },
+  "source_dependency_delta": {
+    "changed_fields": {
+      "justhodl-auction-crisis-detector": [
+        "write_evidence"
+      ]
+    },
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [],
+    "added_reads": [],
+    "unresolved_writes": [
+      {
+        "file": "aws/shared/auction_original_store.py",
+        "line": 39,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/evidence_store.py",
+        "line": 46,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      }
+    ],
+    "shared_closure": [
+      "_fred_shim.py",
+      "auction_benchmarks.py",
+      "auction_calendar.py",
+      "auction_calendar_store.py",
+      "auction_forward.py",
+      "auction_original_store.py",
+      "auction_originals.py",
+      "auction_weighting.py",
+      "evidence_store.py",
+      "managed_secret.py",
+      "pd_fails_context.py",
+      "treasury_instruments.py"
+    ]
+  },
+  "runtime_acceptance_operation": "6334",
+  "native_publication_verified": false,
+  "limitations": [
+    "Retaining the complete received response does not prove the provider listed the complete auction universe.",
+    "Current acquisition capture is not historical first-release availability, independently signed provider provenance, or storage Object Lock.",
+    "The legacy heuristic, original FRED capture, independent validation and portfolio consequences remain unqualified."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false
+}

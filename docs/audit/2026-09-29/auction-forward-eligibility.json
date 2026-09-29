@@ -1,5 +1,5 @@
 {
-  "status": "source_and_actual_page_checked_native_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T06:12:24.654189+00:00",
   "baseline_commit": "16576c3d38fad64449b41a4635d842e5b945bc89",
   "complete_predecessors": [
@@ -137,5 +137,99 @@
     "Current source vintages, reopening strata, provider original-response integration, independent validation and portfolio consequences remain unverified."
   ],
   "calls_eligible": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "source_commit": "0e4ad391fde50b7adbfccccb09632647369c3e3f",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-crisis-detector": {
+        "code_sha256": "YRaJBAZ0ohKzQP+a/Im6RvNxoNbm9G95VsJJr68Y5wY=",
+        "source_files_checked": 13,
+        "handler_bytes": 41902,
+        "timeout": 240,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "0e4ad391fde50b7adbfccccb09632647369c3e3f"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-active",
+            "state": "ENABLED",
+            "expression": "cron(50 19 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-backstop",
+            "state": "ENABLED",
+            "expression": "cron(5 13 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-auction-crisis-detector",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "0e4ad391fde50b7adbfccccb09632647369c3e3f",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36530444163,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6333_auction_forward_runtime_acceptance.md",
+  "native_acceptance_report_commit": "623b0042af875dd424acc305159c228cfb9a60da",
+  "lambda_run": 36529895482,
+  "pages_run": 36529895484,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T06:18:58.965919+00:00",
+    "intended_commit": "0e4ad391fde50b7adbfccccb09632647369c3e3f",
+    "served_commit": "0e4ad391fde50b7adbfccccb09632647369c3e3f",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 58490,
+        "sha256": "8e5377b27389d4edf76e550ebfdd01fa3944b679c7354f859ef3de55fc068baa",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 37221,
+        "sha256": "578894fc0ba6ccb0b2f0fe9fbd7cac639be155d6caf2ab4e2e2ae39fe2c8c7eb",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "d4f18ab41c8431fe4f06015dbe95fd3302ed83e7b50dc7c7bfc7a0de1f2a24ba"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353392,
+        "sha256": "cee4342e57f07a7892ad7f38f12e5abd21f30c6c3e96a35963f553e2fcc15210",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "17a4665ea91b3163650fbf7e732fab51d33862cea04fea16dc69ca95e6bbddce",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }

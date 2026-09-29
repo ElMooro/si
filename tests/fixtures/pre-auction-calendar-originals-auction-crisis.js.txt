@@ -89,8 +89,7 @@ function showError(msg, source = null) {
   // Source inspection has its own byte/clock/contract gates. An unavailable
   // legacy score must not hide a complete capture, including an empty window.
   // Preserve only these references; no rejected heuristic field is rendered.
-  DATA = source ? {generated_at:source.generated_at, auction_originals:source.auction_originals,
-    calendar_source:source.calendar_source, forward_calendar_status:source.forward_calendar_status} : {};
+  DATA = source ? {generated_at:source.generated_at, auction_originals:source.auction_originals} : {};
   renderAllDataSections();
   renderResearchContext();
   const b = $('errorBanner');
@@ -334,48 +333,10 @@ function renderAnalogDataOnly() {
   $('analog-others').innerHTML = oh;
 }
 
-function calendarEvidence() {
-  const source=DATA?.calendar_source, c=source?.coverage, w=source?.request_window;
-  const unavailable={message:'Calendar source evidence unavailable. An empty display does not mean no auctions are scheduled.',empty:false};
-  if(source?.contract!=='treasury-upcoming-replay.v1'||!['complete','partial'].includes(source.status)||
-     source.original_bytes_replayed!==true||source.selection_replayed!==true||!c||!w)return unavailable;
-  const at=value=>typeof value==='string'&&/T.*(?:Z|[+-]\d\d:\d\d)$/.test(value)?Date.parse(value):NaN;
-  const published=at(DATA.generated_at),captured=at(source.generated_at);
-  if(!Number.isFinite(published)||!Number.isFinite(captured)||captured>published||published-captured>900000||
-     published>Date.now()+300000||Date.now()-published>48*3600000)return unavailable;
-  for(const name of ['historical_point_in_time_verified','provider_universe_complete','forecast_eligible','calls_eligible','sizing_eligible','execution_eligible'])
-    if(source[name]!==false)return unavailable;
-  for(const name of ['records_received','selected','outside_window','invalid_records','selected_with_field_issues','duplicate_occurrences'])
-    if(!Number.isInteger(c[name])||c[name]<0||c[name]>5000)return unavailable;
-  if(c.records_received!==c.selected+c.outside_window+c.invalid_records||c.selected_with_field_issues>c.selected||
-     c.duplicate_occurrences>c.records_received||c.response_complete!==true||c.all_occurrences_retained!==true||
-     c.selection_complete!==(c.invalid_records===0)||c.provider_universe_complete!==false||
-     source.status!==(c.invalid_records?'partial':'complete'))return unavailable;
-  if(w.days_ahead!==30||w.start!==new Date(captured).toISOString().slice(0,10)||
-     w.end!==new Date(Date.parse(w.start+'T00:00:00Z')+30*86400000).toISOString().slice(0,10))return unavailable;
-  for(const [name,kind] of [['manifest','runs'],['measurements','measurements']]){
-    const ref=source[name];
-    if(!ref||!Number.isInteger(ref.bytes)||ref.bytes<=0||ref.bytes>32*1024*1024||
-       typeof ref.sha256!=='string'||!(/^[a-f0-9]{64}$/).test(ref.sha256)||
-       ref.key!==`data/auction-calendar-originals/${kind}/${ref.sha256}.json`)return unavailable;
-  }
-  const empty=c.selected===0&&c.invalid_records===0&&DATA.forward_calendar_status?.status==='complete';
-  return {empty,source,message:`Producer replay retained ${c.records_received} records: ${c.selected} in the ${w.start}–${w.end} window, ${c.outside_window} outside it, ${c.invalid_records} without a usable date/record. ${c.selected_with_field_issues} selected records have field gaps. ${c.duplicate_occurrences} duplicate occurrences are retained. Provider-universe completeness and forecasts remain unverified.`};
-}
-
-function calendarEmptyMessage() {
-  return calendarEvidence().empty?'The retained Treasury response lists no auctions in this dated window.':'Upcoming calendar unavailable or incomplete; no empty-calendar conclusion is supported.';
-}
-
 function renderForwardTable() {
-  const evidence=calendarEvidence(),sourceNode=$('forward-source-status');
-  if(sourceNode){
-    sourceNode.innerHTML=esc(evidence.message)+(evidence.source?
-      ` <a href="/${esc(evidence.source.measurements.key)}" target="_blank" rel="noopener">All retained calendar records (JSON)</a> · <a href="/${esc(evidence.source.manifest.key)}" target="_blank" rel="noopener">Replay manifest</a>`:'');
-  }
   const cal = DATA.forward_calendar || [];
   if (cal.length === 0) {
-    $('forward-tbody').innerHTML = `<tr><td colspan="10" style="color:var(--fg-3);text-align:center;padding:16px">${esc(calendarEmptyMessage())}</td></tr>`;
+    $('forward-tbody').innerHTML = '<tr><td colspan="10" style="color:var(--fg-3);text-align:center;padding:16px">No upcoming auctions in window</td></tr>';
     return;
   }
   // Already sorted by auction_date asc
@@ -422,7 +383,7 @@ function renderConcessionCallout() {
   const callout = $('concession-callout');
   if (!callout) return;
   if (!cal.length) {
-    callout.innerHTML = `<div class="concession-empty">${esc(calendarEmptyMessage())}</div>`;
+    callout.innerHTML = '<div class="concession-empty">No upcoming auctions to evaluate</div>';
     return;
   }
 
