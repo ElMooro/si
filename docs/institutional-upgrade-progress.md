@@ -5858,3 +5858,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Native Git atomically shipped all 20 files. A fresh remote fetch confirms the 36,587,086-byte dependency-map blob matches the intended commit. This proves large-file Git delivery, independently of the connector's write limit.
 - The inspector's extra source check initially assumed recoloring. Reviewing the build order showed that this client is copied after that pass; its actual bytes equal raw source exactly. No production correction was needed.
 - No native source/resource/schedule change, producer invocation, provider call or current/private data read occurred. Static reachability is not runtime, publication or model validation. The active exact current writers for Market Extremes/Capitulation and the newly reproduced incomplete-S3-read bug remain next work. All ten workstreams stay open.
+
+
+### Stage 424 research transport preflight
+
+- The actual current shared research reader accepts a two-byte JSON body from a synthetic botocore StreamingBody declaring 100 bytes, because its one read does not reach the SDK's end-of-stream length check. No live packet was requested.
+- New operation 6347 is restricted to the exact releases, code packages, resource settings and full schedule bindings of Market Extremes/Capitulation. It records a stable predecessor baseline before the native read-loop change and supports exact-commit acceptance afterward. The older operation 5938 is not used because it reads protected snapshots and invokes producers.
+- This preflight batch changes no engine code, cadence, inputs or portfolio permissions. Its baseline run and native repair remain pending. All ten workstreams remain open.

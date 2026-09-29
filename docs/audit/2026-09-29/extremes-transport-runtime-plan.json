@@ -1,0 +1,22 @@
+{
+  "stage": 424,
+  "status": "read_only_runtime_preflight_prepared",
+  "baseline_commit": "68193dfb2674714bbcac79d263e43a46157803eb",
+  "reproduced": {
+    "source": "aws/shared/extremes_native_store.py",
+    "source_sha256": "ee85897b3f503c7e10138b9f7516d48aee0cb08468ed61f773c98ef2b9833ce9",
+    "scope": "Reviewed current bounded function plus real botocore StreamingBody around synthetic in-memory bytes; no network or archived source execution",
+    "declared_bytes": 100,
+    "received_bytes": 2,
+    "accepted_json": {},
+    "result": "incomplete_transfer_accepted",
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "provider_requests": 0
+  },
+  "operation": "aws/ops/staged/ops_6347_extremes_transport_runtime_acceptance.py",
+  "scope": "Two existing research functions only: exact package/receipt, resources and complete schedule bindings. No invocation, current/history/private packet, provider call or AWS mutation.",
+  "future_repair": "Drain complete bounded S3 response bodies before parsing, with closure and preservation on failure. Native source is unchanged in this preflight batch.",
+  "source_sha256": "ee85897b3f503c7e10138b9f7516d48aee0cb08468ed61f773c98ef2b9833ce9",
+  "source_matches_reproduction": true
+}
