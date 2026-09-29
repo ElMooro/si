@@ -526,8 +526,8 @@ footer a:hover{color:var(--cyan)}
 
   <!-- Pre-auction concession call-out (high-conviction signals) -->
   <div class="section-hdr">
-    <h3>Benchmark Yield Changes Before Auctions</h3>
-    <div class="sub">One and five available observation intervals · actual dates shown · no same-security WI quote</div>
+    <h3>Pre-Auction Concession Signals</h3>
+    <div class="sub">Benchmark yield changes vs 5d ago · descriptive context, not a positioning instruction</div>
   </div>
   <div id="concession-callout" class="concession-callout"></div>
 
@@ -546,7 +546,7 @@ footer a:hover{color:var(--cyan)}
       <th class="size-cell">Offering ($B)</th>
       <th>Heuristic</th>
       <th>Validation</th>
-      <th>5-observation change</th>
+      <th>5d Concession</th>
       <th>Regime</th>
       <th>Driver</th>
     </tr></thead>
@@ -557,7 +557,7 @@ footer a:hover{color:var(--cyan)}
   <!-- Post-issue performance -->
   <div class="section-hdr">
     <h3>Post-Issue Benchmark Yield Changes</h3>
-    <div class="sub">Targets: issue +1 / +5 / +30 calendar days · first available endpoint within five days · actual dates shown · not security returns</div>
+    <div class="sub">1d / 5d / 30d benchmark yield changes vs nominal auction yield · not security returns</div>
   </div>
   <div id="postissue-section" class="table-scroll" role="region" aria-label="Post-issue benchmark comparisons" tabindex="0"></div>
 
@@ -660,7 +660,7 @@ footer a:hover{color:var(--cyan)}
 </main>
 
 <script src="/jh-auction-originals.js?v=20260929" defer></script>
-<script src="/auction-crisis.js?t=20260929-benchmark-observations" defer></script>
+<script src="/auction-crisis.js?t=20260929-source-eligibility" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

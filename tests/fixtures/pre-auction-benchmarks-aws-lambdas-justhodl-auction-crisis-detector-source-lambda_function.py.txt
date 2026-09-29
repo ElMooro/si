@@ -82,7 +82,6 @@ from auction_crisis_v2 import (
     build_triggers,
     compute_preauction_concession,
     compute_postissue_performance,
-    reset_yield_cache,
 )
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -512,7 +511,6 @@ def detect_issuance_explosion(records):
 
 def lambda_handler(event, context):
     t0 = time.time()
-    reset_yield_cache()
     print(f"[auction-crisis] start {datetime.now(timezone.utc).isoformat()}")
 
     # Pull last 90 days of auctions to give us a window for issuance analysis

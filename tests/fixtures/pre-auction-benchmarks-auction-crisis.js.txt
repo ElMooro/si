@@ -14,40 +14,6 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&l
 const measured = v => typeof v === 'number' && Number.isFinite(v) ? v : null;
 const scoreValue = v => measured(v) !== null && v >= 0 && v <= 100 ? v : null;
 const fmt = (v, d=1) => measured(v) === null ? '—' : v.toFixed(d);
-function benchmarkValue(row, scope, horizon) {
-  const packet = row[scope+'_measurement'], trace = packet?.comparisons?.[String(horizon)];
-  const value = measured(row[scope+'_'+horizon+'d_bp']);
-  const date = s => {
-    if(typeof s!=='string'||!/^\d{4}-\d\d-\d\d$/.test(s))return null;
-    const t=Date.parse(s+'T00:00:00Z');
-    return Number.isFinite(t)&&new Date(t).toISOString().slice(0,10)===s?t:null;
-  };
-  if(!['concession','postissue'].includes(scope)||row.instrument_contract!=='treasury-instrument.v1'||
-     row.instrument_classification_status!=='verified'||!(['NOMINAL_COUPON',...(scope==='concession'?['BILL']:[])].includes(row.instrument_kind))||
-     packet?.contract!=='auction-benchmark-observations.v1'||trace?.status!=='complete'||value===null||
-     measured(trace.change_bp)!==value||packet.series_id!==row[scope+'_series']||
-     !['DGS1MO','DGS3MO','DGS6MO','DGS1','DGS2','DGS3','DGS5','DGS7','DGS10','DGS20','DGS30'].includes(packet.series_id))return null;
-  const start=date(scope==='concession'?trace.start_date:trace.target_date);
-  const end=date(scope==='concession'?trace.end_date:trace.observation_date);
-  const today=date(new Date().toISOString().slice(0,10));
-  if(start===null||end===null||end<start||end>today)return null;
-  let expected;
-  if(scope==='concession') {
-    if(![1,5].includes(horizon)||trace.observation_steps!==horizon||today-end>5*86400000||
-       end-start>(horizon===1?5:14)*86400000||end!==date(row.concession_today_date)||
-       measured(trace.start_yield_pct)===null||measured(trace.end_yield_pct)===null)return null;
-    expected=(trace.end_yield_pct-trace.start_yield_pct)*100;
-  } else {
-    const issued=date(row.issue_date),auctioned=date(row.auction_date);
-    if(![1,5,30].includes(horizon)||issued===null||auctioned===null||auctioned>issued||
-       trace.issue_date!==row.issue_date||trace.auction_date!==row.auction_date||row.quote_basis!=='nominal_yield_pct'||
-       start-issued!==horizon*86400000||end-start>5*86400000||
-       measured(trace.auction_yield_pct)===null||measured(trace.benchmark_yield_pct)===null||
-       trace.auction_yield_pct!==measured(row.high_rate))return null;
-    expected=(trace.auction_yield_pct-trace.benchmark_yield_pct)*100;
-  }
-  return Number.isFinite(expected)&&Math.abs(expected-value)<=0.050000001?value:null;
-}
 const stressClass = (s) => s == null ? 'stress-no-data' : s >= 50 ? 'stress-2' : s >= 25 ? 'stress-1' : 'stress-0';
 const ageFromIso = (iso) => {
   if (typeof iso !== 'string') return '—';
@@ -346,8 +312,8 @@ function renderForwardTable() {
     const drv = (fc.narrative || '').slice(0, 70) + (fc.narrative && fc.narrative.length > 70 ? '…' : '');
 
     // v2.1 concession fields
-    const c5 = benchmarkValue(f,'concession',5);
-    const cRegime = c5 === null ? 'UNAVAILABLE' : f.concession_regime || '';
+    const c5 = measured(f.concession_5d_bp);
+    const cRegime = f.concession_regime || '';
     let cClass = 'concession-na', cDisplay = '—';
     if (c5 != null) {
       cDisplay = (c5 >= 0 ? '+' : '') + c5.toFixed(1) + 'bp';
@@ -357,15 +323,15 @@ function renderForwardTable() {
       else if (cRegime === 'RALLY')        cClass = 'concession-rally';
       else                                  cClass = 'concession-flat';
     }
-    const cTooltip = esc(c5 === null ? 'A complete dated benchmark comparison is unavailable.' : f.concession_interpretation || '');
+    const cTooltip = esc(f.concession_interpretation || '');
 
     html += `<tr>
       <td class="date-cell">${esc(f.auction_date)}</td>
       <td>${fmt(f.days_ahead, 0)}d</td>
-      <td class="term-cell">${esc(f.instrument_classification_status==='verified' ? ({NOMINAL_COUPON:'Nominal coupon',BILL:'Bill',TIPS:'TIPS',FRN:'FRN'}[f.instrument_kind]||'Unverified') : String(f.security_type||'Unknown')+' (unverified)')}</td>
+      <td class="term-cell">${esc(f.security_type)}</td>
       <td>${esc(f.security_term)}</td>
       <td class="size-cell">${measured(f.offering_amount_billions) !== null ? '$' + fmt(f.offering_amount_billions, 0) + 'B' : '—'}</td>
-      <td class="score-cell ${scoreValue(fc.forecast_score) === null ? 'UNAVAILABLE' : esc(fc.forecast_label || '')}">${scoreValue(fc.forecast_score) !== null ? fmt(fc.forecast_score) : '—'} <span style="font-size:9.5px;color:var(--fg-3);font-weight:400">[${scoreValue(fc.forecast_score) === null ? 'UNAVAILABLE' : esc(fc.forecast_label || 'UNAVAILABLE')}]</span></td>
+      <td class="score-cell ${esc(fc.forecast_label || '')}">${scoreValue(fc.forecast_score) !== null ? fmt(fc.forecast_score) : '—'} <span style="font-size:9.5px;color:var(--fg-3);font-weight:400">[${esc(fc.forecast_label || '?')}]</span></td>
       <td class="conf-cell ${esc(fc.confidence || '')}">Unvalidated</td>
       <td class="${cClass}" title="${cTooltip}">${cDisplay}</td>
       <td style="font-size:9.5px;color:var(--fg-3)">${esc(cRegime.replace(/_/g,' '))}</td>
@@ -390,7 +356,7 @@ function renderConcessionCallout() {
   // Show entries with material moves (>= 2bp either direction) OR
   // any long coupons (>= 5y) even at flat — those are always diagnostic.
   const interesting = cal.filter(f => {
-    const c5 = benchmarkValue(f,'concession',5);
+    const c5 = measured(f.concession_5d_bp);
     if (c5 == null) return false;
     if (Math.abs(c5) >= 2) return true;
     const t = (f.security_term || '').toUpperCase();
@@ -413,8 +379,8 @@ function renderConcessionCallout() {
 
   let html = '';
   for (const f of interesting) {
-    const c5 = benchmarkValue(f,'concession',5);
-    const c1 = benchmarkValue(f,'concession',1);
+    const c5 = measured(f.concession_5d_bp);
+    const c1 = measured(f.concession_1d_bp);
     const regime = f.concession_regime || 'NO_DATA';
     const bpClass = c5 > 0 ? 'pos' : c5 < 0 ? 'neg' : 'flat';
     const sign = c5 > 0 ? '+' : '';
@@ -424,11 +390,10 @@ function renderConcessionCallout() {
         <div class="regime-pill">${esc(regime.replace(/_/g, ' '))}</div>
       </div>
       <div class="bp-row">
-        <div class="bp5 ${bpClass}">${sign}${c5 != null ? c5.toFixed(1) : '—'}<span style="font-size:13px;color:var(--fg-3);font-weight:400;margin-left:4px">bp / 5 observations</span></div>
-        <div class="bp1">1 observation: <b>${c1 != null ? (c1 >= 0 ? '+' : '') + c1.toFixed(1) + 'bp' : '—'}</b></div>
+        <div class="bp5 ${bpClass}">${sign}${c5 != null ? c5.toFixed(1) : '—'}<span style="font-size:13px;color:var(--fg-3);font-weight:400;margin-left:4px">bp / 5d</span></div>
+        <div class="bp1">1d: <b>${c1 != null ? (c1 >= 0 ? '+' : '') + c1.toFixed(1) + 'bp' : '—'}</b></div>
       </div>
-      <div class="meta">FRED series: <b>${esc(f.concession_series || '—')}</b> · latest benchmark <b>${measured(f.concession_today_yield) !== null ? fmt(f.concession_today_yield, 3) + '%' : '—'}</b> on ${esc(f.concession_today_date || '—')} · offering <b>${measured(f.offering_amount_billions) !== null ? '$' + fmt(f.offering_amount_billions, 0) + 'B' : '—'}</b></div>
-      <div class="meta">5-observation comparison: ${esc(f.concession_measurement?.comparisons?.['5']?.start_date || '—')} → ${esc(f.concession_today_date || '—')}. 1-observation start: ${esc(f.concession_measurement?.comparisons?.['1']?.start_date || '—')}.</div>
+      <div class="meta">FRED series: <b>${esc(f.concession_series || '—')}</b> · today's yield <b>${measured(f.concession_today_yield) !== null ? fmt(f.concession_today_yield, 3) + '%' : '—'}</b> · offering <b>${measured(f.offering_amount_billions) !== null ? '$' + fmt(f.offering_amount_billions, 0) + 'B' : '—'}</b></div>
       <div class="interp">${esc(f.concession_interpretation || '')}</div>
     </div>`;
   }
@@ -438,8 +403,7 @@ function renderConcessionCallout() {
 function renderPostIssuePerformance() {
   const auctions = (DATA.recent_auctions || []).filter(a => a.postissue_classification &&
     a.instrument_contract === 'treasury-instrument.v1' && a.instrument_classification_status === 'verified' &&
-    a.instrument_kind === 'NOMINAL_COUPON' && a.quote_basis === 'nominal_yield_pct' &&
-    a.postissue_measurement?.contract === 'auction-benchmark-observations.v1');
+    a.instrument_kind === 'NOMINAL_COUPON' && a.quote_basis === 'nominal_yield_pct');
   const el = $('postissue-section');
   if (!el) return;
   if (!auctions.length) {
@@ -450,24 +414,21 @@ function renderPostIssuePerformance() {
     <thead><tr>
       <th>Issue Date</th><th>Tenor</th><th>Term</th>
       <th class="num">High%</th>
-      <th class="num">+1 calendar day</th><th class="num">+5 calendar days</th><th class="num">+30 calendar days</th>
+      <th class="num">1d Δbp</th><th class="num">5d Δbp</th><th class="num">30d Δbp</th>
       <th>Validation</th>
     </tr></thead><tbody>`;
   for (const a of auctions) {
     const cls = a.postissue_classification || 'PENDING';
     const delta = v => measured(v) === null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(1);
     const cellCls = v => measured(v) === null ? '' : (v >= 0 ? 'pi-positive' : 'pi-negative');
-    const cells = [1,5,30].map(horizon => {
-      const value=benchmarkValue(a,'postissue',horizon);
-      const trace=a.postissue_measurement.comparisons?.[String(horizon)];
-      return `<td class="num ${cellCls(value)}">${delta(value)}<div style="font-size:9px;color:var(--fg-3)">${esc(value===null?'Endpoint unavailable':trace.observation_date)}</div></td>`;
-    }).join('');
     html += `<tr>
       <td>${esc((a.issue_date || '').slice(0,10))}</td>
       <td>${esc(a.security_type)}</td>
       <td>${esc(a.security_term)}</td>
       <td class="num">${measured(a.high_rate) !== null ? fmt(a.high_rate, 3) : '—'}</td>
-      ${cells}
+      <td class="num ${cellCls(a.postissue_1d_bp)}">${delta(a.postissue_1d_bp)}</td>
+      <td class="num ${cellCls(a.postissue_5d_bp)}">${delta(a.postissue_5d_bp)}</td>
+      <td class="num ${cellCls(a.postissue_30d_bp)}">${delta(a.postissue_30d_bp)}</td>
       <td>Descriptive only</td>
     </tr>`;
   }

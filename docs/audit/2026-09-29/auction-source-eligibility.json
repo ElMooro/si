@@ -1,5 +1,5 @@
 {
-  "status": "source_browser_checked_deployment_pending",
+  "status": "source_browser_and_exact_served_assets_accepted",
   "checked_at": "2026-09-29T05:35:25.521454+00:00",
   "baseline_commit": "d2f20c73845d130599902bac31d3103e03194095",
   "complete_predecessors": [
@@ -38,5 +38,47 @@
   "native_source_changed": false,
   "native_publication_verified": false,
   "calls_eligible": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "source_commit": "87a19c7d70feba35d106a422d652be7b72e23ce5",
+  "pages_run": 36526886065,
+  "page_gate_run": 36526886043,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T05:47:47.429020+00:00",
+    "intended_commit": "87a19c7d70feba35d106a422d652be7b72e23ce5",
+    "served_commit": "87a19c7d70feba35d106a422d652be7b72e23ce5",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 58415,
+        "sha256": "02a4bb9187b1fcc83849c996ea02265b692f5002608018e8d382e0b3b38177ff",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 33877,
+        "sha256": "e5f079a61dfde36ad459bdcba65d0a5b2682541c938976fa9bb3532ba9c21fbe",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "ea681576013d6fa60ee3861f04ac6e813f4279f7880bb63c2f8669156f2a84bb"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353392,
+        "sha256": "b791d9a72cec85f62f3321827a1534dde8b414a69a47592fb20a8af254bfdc18",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "bff1960aea16bc43bfec10b5f0983321fb02c7033b1dd93a883dcb333aef7c39",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }

@@ -119,11 +119,7 @@ test('bill discount rates TIPS FRN and unverified rows do not get nominal benchm
 test('nominal comparisons preserve measured zero without implying investment performance',()=>{
   const {env,get}=page({recent_auctions:[{instrument_kind:'NOMINAL_COUPON',instrument_contract:'treasury-instrument.v1',
     instrument_classification_status:'verified',quote_basis:'nominal_yield_pct',high_rate:4.2,
-    auction_date:'2026-09-17',issue_date:'2026-09-18',postissue_series:'DGS10',
-    postissue_classification:'DESCRIPTIVE_ONLY',postissue_1d_bp:0,postissue_5d_bp:null,
-    postissue_measurement:{contract:'auction-benchmark-observations.v1',series_id:'DGS10',comparisons:{'1':{
-      status:'complete',change_bp:0,target_date:'2026-09-19',observation_date:'2026-09-21',
-      auction_date:'2026-09-17',issue_date:'2026-09-18',auction_yield_pct:4.2,benchmark_yield_pct:4.2}}}}]});
+    postissue_classification:'STRONG',postissue_1d_bp:0,postissue_5d_bp:null}]});
   env.renderPostIssuePerformance();const html=get('postissue-section').innerHTML;
   assert.match(html,/>4\.200</);assert.match(html,/>\+0\.0</);assert.match(html,/Descriptive only/);
   assert.doesNotMatch(html,/>STRONG</);
@@ -153,56 +149,4 @@ test('tenor and analog values cannot inject markup and absent analogs clear old 
   assert.doesNotMatch(get('tenor-grid').innerHTML,/<img>/);assert.doesNotMatch(get('analog-top').innerHTML,/<img>/);
   assert.match(get('analog-others').innerHTML,/— similar/);assert.doesNotMatch(get('analog-others').innerHTML,/0% similar/);
   set({});env.renderAnalogDataOnly();assert.equal(get('analog-others').innerHTML,'');
-});
-
-function benchmarkFixture() {
-  return {instrument_kind:'NOMINAL_COUPON',instrument_contract:'treasury-instrument.v1',instrument_classification_status:'verified',
-    quote_basis:'nominal_yield_pct',security_type:'Note',security_term:'10-Year',auction_date:'2026-09-30',days_ahead:1,
-    concession_series:'DGS10',concession_today_date:'2026-09-29',concession_today_yield:4.06,concession_1d_bp:1,concession_5d_bp:5,
-    concession_regime:'HEAVY_CONCESSION',concession_measurement:{contract:'auction-benchmark-observations.v1',series_id:'DGS10',comparisons:{
-      '1':{status:'complete',observation_steps:1,start_date:'2026-09-28',end_date:'2026-09-29',start_yield_pct:4.05,end_yield_pct:4.06,change_bp:1},
-      '5':{status:'complete',observation_steps:5,start_date:'2026-09-22',end_date:'2026-09-29',start_yield_pct:4.01,end_yield_pct:4.06,change_bp:5}}}};
-}
-function benchmarkPage(packet={}) {
-  const p=page(packet);const fixed=Date.parse('2026-09-29T18:00:00Z');
-  p.env.Date=class extends Date {constructor(value){super(value===undefined?fixed:value);}static now(){return fixed;}};
-  return p;
-}
-test('legacy undated benchmark values are withheld instead of presented as dated comparisons',()=>{
-  const item=benchmarkFixture();delete item.concession_measurement;
-  const {env,get}=benchmarkPage({forward_calendar:[item]});env.renderForwardTable();env.renderConcessionCallout();
-  assert.doesNotMatch(get('forward-tbody').innerHTML,/\+5\.0bp/);
-  assert.doesNotMatch(get('forward-tbody').innerHTML,/HEAVY CONCESSION/);
-  assert.match(get('forward-tbody').innerHTML,/UNAVAILABLE/);
-  assert.match(get('concession-callout').innerHTML,/No eligible observations/);
-  assert.equal(env.benchmarkValue(item,'concession',5),null);
-});
-test('benchmark page shows actual observation dates and the correct interval labels',()=>{
-  const {env,get}=benchmarkPage({forward_calendar:[benchmarkFixture()]});env.renderConcessionCallout();env.renderForwardTable();
-  assert.match(get('concession-callout').innerHTML,/5 observations/);
-  assert.match(get('concession-callout').innerHTML,/2026-09-22 → 2026-09-29/);
-  assert.match(get('concession-callout').innerHTML,/1-observation start: 2026-09-28/);
-  assert.match(get('forward-tbody').innerHTML,/Nominal coupon/);
-  assert.doesNotMatch(get('concession-callout').innerHTML,/today's yield|bp \/ 5d/);
-});
-test('wrong quote kind stale future and arithmetically inconsistent benchmark traces are rejected',()=>{
-  const {env}=benchmarkPage();assert.equal(env.benchmarkValue(benchmarkFixture(),'concession',5),5);
-  for(const kind of ['TIPS','FRN','UNKNOWN'])assert.equal(env.benchmarkValue({...benchmarkFixture(),instrument_kind:kind},'concession',5),null);
-  for(const change of [{end_date:'2026-09-30'},{start_date:'2026-08-01'},{start_yield_pct:0},{change_bp:4},{observation_steps:1},{end_yield_pct:true}]){
-    const item=benchmarkFixture();Object.assign(item.concession_measurement.comparisons['5'],change);
-    assert.equal(env.benchmarkValue(item,'concession',5),null);
-  }
-  const old=benchmarkFixture();old.concession_today_date='2026-09-20';old.concession_measurement.comparisons['5'].end_date='2026-09-20';
-  assert.equal(env.benchmarkValue(old,'concession',5),null);
-});
-test('postissue target dates bounded endpoints and original quote are checked before display',()=>{
-  const {env}=benchmarkPage();const item={...benchmarkFixture(),auction_date:'2026-09-17',issue_date:'2026-09-18',high_rate:4.2,
-    postissue_series:'DGS10',postissue_1d_bp:20,postissue_measurement:{contract:'auction-benchmark-observations.v1',series_id:'DGS10',comparisons:{
-      '1':{status:'complete',target_date:'2026-09-19',observation_date:'2026-09-21',auction_date:'2026-09-17',issue_date:'2026-09-18',
-        auction_yield_pct:4.2,benchmark_yield_pct:4,change_bp:20}}}};
-  assert.equal(env.benchmarkValue(item,'postissue',1),20);
-  for(const change of [{observation_date:'2026-09-29'},{target_date:'2026-09-20'},{auction_yield_pct:4.3},{issue_date:'2026-09-17'}]){
-    const copy=structuredClone(item);Object.assign(copy.postissue_measurement.comparisons['1'],change);
-    assert.equal(env.benchmarkValue(copy,'postissue',1),null);
-  }
 });
