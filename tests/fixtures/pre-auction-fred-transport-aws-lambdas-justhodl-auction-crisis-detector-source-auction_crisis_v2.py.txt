@@ -18,12 +18,12 @@ Adds 7 NEW analytical layers on top of the existing 6-indicator engine:
        anchor preceded historically.
 
   4. CROSS-SIGNALS FROM FRED
-       Dated context from five reported FRED series; no independent
-       corroboration, funding-crisis or investor-motive inference:
-         - Same-date SOFR - IORB
-         - Broad trade-weighted dollar index and dated target comparison
+       Pulls 4 corroborating signals from FRED to triangulate auction
+       stress with broader rates/liquidity context:
+         - SOFR - IORB (repo collateral squeeze)
+         - DXY (USD strength = indirect participation proxy)
          - 10Y - 2Y curve slope
-         - Reported forward inflation compensation
+         - 5Y5Y forward inflation breakeven
 
   5. COMPOSITE HISTORY
        30-day rolling time series of the composite score so the page
@@ -31,21 +31,19 @@ Adds 7 NEW analytical layers on top of the existing 6-indicator engine:
 
   6. TAIL RISK CONCERN SCORES
        Uncalibrated model produces 3 concern scores (legacy names retained):
-         - Soft-demand concern (deprecated failed-auction alias retained)
-         - Regime-threshold concern from legacy momentum/proximity
-         - Supply concern from dated rates and dollar context
+         - P(failed auction in next 30d) — from PD share trend + indirect
+         - P(regime change to ELEVATED+ in 14d) — momentum + threshold proximity
+         - P(volatility spike from Treasury supply) — calendar size + stress
 
   7. ACTIONABLE TRIGGERS
        Specific named thresholds that would flip the regime, with current
        distance-to-trigger and historical precedent ("last hit on…")
 
-This module includes FRED/Treasury HTTP acquisition and legacy caches.
-The orchestrator in lambda_function.py retains source evidence and merges
-descriptive measurements and unvalidated heuristics into the output JSON.
+Each function is pure (no S3, no Lambda env). The orchestrator in
+lambda_function.py calls these and merges results into the output JSON
+under new top-level keys.
 """
 import json
-import hashlib
-import time
 from auction_weighting import weighted_summary
 import auction_benchmarks
 import auction_forward
@@ -464,9 +462,8 @@ def _fred_get_history(series_id: str, days: int = 30) -> List[Tuple[str, float]]
 def _fred_cross_source(series_id, limit):
     """Same existing request; keep every parsed row and do not strip its date.
 
-    The auction-local shim preserves bounded transport acquisition metadata.
-    Adapter read time remains distinct from acquisition, and immutable original
-    HTTP retention and first-release publication timing remain unverified.
+    The vendored HTTP shim is unchanged. Its cache/acquisition provenance is
+    unknown, so adapter_read_at must never be treated as provider acquisition.
     """
     if auction_cross_observations.LIMITS.get(series_id) != limit:
         raise ValueError('Reviewed cross-series request required')
@@ -482,44 +479,13 @@ def _fred_cross_source(series_id, limit):
             raw = response.read(2*1024*1024+1)
             if response.status != 200 or len(raw) > 2*1024*1024:
                 raise ValueError('Incomplete or oversized adapter response')
-            transport = getattr(response, 'jh_fred_transport', None)
-        if transport is not None:
-            expected_keys = {'contract','source_url','request_started_at','response_received_at','response_status',
-                             'declared_content_length','body_bytes','body_sha256','cache_status','cache_age_seconds','cache_ttl_seconds'}
-            public_url = 'https://api.stlouisfed.org/fred/series/observations?' + urllib.parse.urlencode([
-                ('series_id',series_id),('file_type','json'),('limit',limit),('sort_order','desc')])
-            # Match the adapter's clock source/conversion; mixed OS clock
-            # resolutions can otherwise invent a future acquisition by 1 us.
-            now = datetime.fromtimestamp(time.time(), timezone.utc)
-            if (not isinstance(transport,dict) or set(transport)!=expected_keys or transport['contract']!='auction-fred-transport.v1'
-                or transport['source_url']!=public_url or type(transport['response_status']) is not int or transport['response_status']!=200
-                or type(transport['body_bytes']) is not int or transport['body_bytes']!=len(raw)
-                or transport['body_sha256']!=hashlib.sha256(raw).hexdigest()
-                or transport['cache_status'] not in ('network','fresh_cache') or type(transport['cache_ttl_seconds']) is not int or transport['cache_ttl_seconds']!=1800
-                or type(transport['cache_age_seconds']) not in (int,float) or not 0<=transport['cache_age_seconds']<1800):
-                raise ValueError('Transport metadata differs from exact source body')
-            declared = transport['declared_content_length']
-            if declared is not None and (type(declared) is not int or declared!=len(raw)):
-                raise ValueError('Transport declared length differs from body')
-            received = auction_calendar.clock(transport['response_received_at'])
-            if not auction_calendar.clock(transport['request_started_at'])<=received<=now or not 0<=(now-received).total_seconds()<1800:
-                raise ValueError('Transport acquisition clock unavailable or expired')
-            if abs((now-received).total_seconds()-transport['cache_age_seconds'])>5:
-                raise ValueError('Transport cache age differs from acquisition clock')
-            frame['adapter_transport'] = dict(transport)
         value = auction_calendar.strict_json(raw)
         json.dumps(value, allow_nan=False)
         frame.update(read_status='received', response=value,
-                     adapter_read_at=datetime.fromtimestamp(time.time(), timezone.utc).isoformat())
-    except Exception as exc:
+                     adapter_read_at=datetime.now(timezone.utc).isoformat())
+    except Exception:
         # Fixed diagnostic avoids serializing credential-bearing request URLs.
         frame['error'] = 'adapter_response_unavailable_or_invalid'
-        if str(exc) in {'fred_refresh_failed_expired_cache_withheld','fred_request_attempts_exhausted',
-                        'fred_nonretryable_request_failure','fred_non_success_or_partial_response',
-                        'fred_incomplete_declared_body','fred_body_size_invalid','fred_response_identity_changed',
-                        'fred_invalid_json_body','fred_observation_array_missing','fred_acquisition_clock_reversed',
-                        'fred_invalid_content_length','fred_unsupported_content_encoding'}:
-            frame['transport_error'] = str(exc)
     return frame
 
 
