@@ -63,7 +63,7 @@ def test_no_auction_data_keeps_settlement_context_and_cannot_reactivate_scores()
     writes={}
     client=types.SimpleNamespace(get_object=lambda **kw:{'Body':io.BytesIO(json.dumps(pd if kw['Key']=='data/settlement-fails.json' else old).encode())},
         put_object=lambda **kw:writes.update({kw['Key']:json.loads(kw['Body'])}))
-    with patch.object(m,'s3',client),patch.object(m,'fetch_fiscal_auctions',return_value=[]),patch.object(m,'retain_auction_originals',return_value={'fixture_only':True}):
+    with patch.object(m,'s3',client),patch.object(m,'fetch_fiscal_auctions',return_value=[]):
         m.lambda_handler({'suppress_alerts':True},None)
     doc=writes[m.S3_KEY]
     assert doc['pd_settlement_fails']['combined_bn']==2

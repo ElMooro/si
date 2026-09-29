@@ -1,0 +1,125 @@
+{
+  "status": "tested_original_source_capture_native_deployment_pending",
+  "checked_at": "2026-09-29T05:07:53.820226+00:00",
+  "baseline_commit": "d62c12f0bd9e9cf05f1d5284f7b89cc1512a7f9c",
+  "complete_predecessors": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-auction-originals-aws-lambdas-justhodl-auction-crisis-detector-source-lambda_function.py.txt",
+      "bytes": 40427,
+      "sha256": "ec0f9b2828ed76a7625a4a59bb9c034c2efece057734896915577d57c43813f8"
+    },
+    {
+      "source": "tests/deployment/test_auction_output_ownership.py",
+      "fixture": "tests/fixtures/pre-auction-originals-tests-deployment-test_auction_output_ownership.py.txt",
+      "bytes": 14605,
+      "sha256": "47d51566911f4556113c9f82f0c9326c214e613eb92b8e5e5a8655f5967e4567"
+    },
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/tests/run_tests.py",
+      "fixture": "tests/fixtures/pre-auction-originals-aws-lambdas-justhodl-auction-crisis-detector-tests-run_tests.py.txt",
+      "bytes": 4553,
+      "sha256": "c014de3b8250497c82dcbe67e02db9fcc73f658e263ebbd4879dedbdc9e7c6a7"
+    },
+    {
+      "source": "tests/test_auction_observations.py",
+      "fixture": "tests/fixtures/pre-auction-originals-tests-test_auction_observations.py.txt",
+      "bytes": 14583,
+      "sha256": "a9d747e9f37084500dac761966410a61b02ad9a6326deea9d384e7ccf126740c"
+    }
+  ],
+  "native_predecessor": "docs/audit/2026-09-29/auction-originals-predecessor.json",
+  "sources": {
+    "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py": {
+      "bytes": 41727,
+      "sha256": "5b902f58caec256197a6bf49f8f27bd82d24c5c89c3eabce5ff4e2e8dc64032b"
+    },
+    "aws/shared/auction_originals.py": {
+      "bytes": 11956,
+      "sha256": "c5fa631c67fc89bdc73d7197a54b144837739809ce7523d50a22d7354dff956a"
+    },
+    "aws/shared/auction_original_store.py": {
+      "bytes": 7818,
+      "sha256": "6b7da82cd6c6ad3be2246d3d1f9d2857ae2ebcf276620bc66160e35abbce9148"
+    },
+    "scripts/replay_auction_originals.py": {
+      "bytes": 2199,
+      "sha256": "4c5005d35d261870939ec931a76996422c16aff6aa694a1d73de458dcf53c144"
+    }
+  },
+  "source_dependency_delta": {
+    "changed_fields": {
+      "justhodl-auction-crisis-detector": [
+        "key_patterns",
+        "reads",
+        "write_evidence",
+        "unresolved_writes",
+        "ownership_status"
+      ]
+    },
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [
+      "data/auction-observation-originals/measurements/*.json",
+      "data/auction-observation-originals/runs/*.json"
+    ],
+    "added_reads": [
+      "data/auction-observation-originals/measurements/*.json",
+      "data/auction-observation-originals/runs/*.json"
+    ],
+    "unresolved_writes": [
+      {
+        "file": "aws/shared/auction_original_store.py",
+        "line": 39,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/evidence_store.py",
+        "line": 46,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      }
+    ],
+    "shared_closure": [
+      "_fred_shim.py",
+      "auction_original_store.py",
+      "auction_originals.py",
+      "auction_weighting.py",
+      "evidence_store.py",
+      "managed_secret.py",
+      "pd_fails_context.py",
+      "treasury_instruments.py"
+    ]
+  },
+  "scope": [
+    "Exact complete Treasury FiscalData response bodies with request URL, HTTP status, acquisition clock, row/page identity and immutable content-addressed receipts.",
+    "All acquired observations retained, including missing BTC, FRNs and other rows not selected by the legacy scorer. Complete empty windows stay explicitly empty.",
+    "Independent Decimal direct-measurement arithmetic checked against native calculations before persistence; no legacy score validation claimed.",
+    "Four exact reviewed compiler sources, whole measurement packet, typed manifest and every raw page are stored and read back. Replay succeeds before the report can publish its source pointer.",
+    "Offline CLI consumes retained files only. No archived code execution, provider request, private/current-consumer read or native invocation.",
+    "Storage/acquisition/parse/replay failure prevents replacing the public report. Existing output fields, scopes, cadence, resources and no-paid-AI policy remain intact."
+  ],
+  "validation": {
+    "originals_regressions": 16,
+    "existing_observation_regressions": 20,
+    "native_detector": 4,
+    "native_desk": 15,
+    "deployment_static": 627,
+    "candidate_shell": 12,
+    "frontend": 1726,
+    "maximum_synthetic_page_set": 30,
+    "maximum_synthetic_rows": 6000,
+    "native_cloud_capacity_verified": false
+  },
+  "limitations": [
+    "The legacy score, FRED inputs, forward calendar, analogs and portfolio consequences remain unqualified.",
+    "Complete pagination is not proof that the provider exposes an atomic snapshot. Current acquisition vintages do not establish historical first availability.",
+    "Application-level conditional writes and content identity are not S3 Object Lock or an externally signed timestamp.",
+    "No ordinary native publication or real provider response has yet been accepted for this new contract."
+  ],
+  "runtime_acceptance_operation": "6331",
+  "native_publication_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false
+}

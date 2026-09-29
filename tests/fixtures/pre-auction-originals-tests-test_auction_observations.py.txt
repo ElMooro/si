@@ -114,9 +114,7 @@ def test_vendored_scoring_matches_full_functions_and_declarations():
 
 
 def page(rows,total=2,pages=2,**changes):
-    response=io.BytesIO(json.dumps({'data':rows,'meta':{'total-pages':pages,'total-count':total},**changes}).encode())
-    response.status=200
-    return response
+    return io.BytesIO(json.dumps({'data':rows,'meta':{'total-pages':pages,'total-count':total},**changes}).encode())
 
 
 def acquire(responses,size=1):

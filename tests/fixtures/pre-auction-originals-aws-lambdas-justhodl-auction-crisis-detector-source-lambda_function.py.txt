@@ -52,8 +52,6 @@ on bonds.html.
 import json
 from auction_quality import stamp_quality
 from auction_weighting import weighted_summary
-from auction_original_store import retain as retain_auction_originals
-from auction_originals import assert_native as verify_auction_measurements
 from pd_fails_context import load as load_pd_fails
 import math
 import os
@@ -136,21 +134,19 @@ CRISIS_REFERENCE = [
 ]
 
 
-def fetch_fiscal_auctions(start_date, end_date, page_size=200, pages_out=None):
+def fetch_fiscal_auctions(start_date, end_date, page_size=200):
     """Require a complete, consistent bounded page set before returning any rows.
 
     A transport/schema/pagination failure raises before the handler can publish.
-    Exact successful response bytes/clocks are returned for immutable capture.
-    The journal is exposed only after the complete page set passes every gate.
+    This completeness gate does not yet establish immutable original capture.
     """
-    from datetime import date, datetime, timezone
-    from auction_originals import strict_json
+    from datetime import date
     if type(page_size) is not int or not 1 <= page_size <= 200:
         raise ValueError('Invalid auction page size')
     start, end = date.fromisoformat(start_date), date.fromisoformat(end_date)
     if end < start or (end-start).days > 400:
         raise ValueError('Invalid auction acquisition window')
-    all_records, seen, original_pages = [], set(), []
+    all_records, seen = [], set()
     expected_pages = expected_count = None
     for page in range(1,31):
         params={'filter':f'auction_date:gte:{start_date},auction_date:lte:{end_date}',
@@ -160,15 +156,10 @@ def fetch_fiscal_auctions(start_date, end_date, page_size=200, pages_out=None):
             'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'})
         try:
             with urllib.request.urlopen(req,timeout=20) as response:
-                status=response.status
                 raw=response.read(4*1024*1024+1)
-                acquired_at=datetime.now(timezone.utc).isoformat()
-            if status != 200:
-                raise ValueError("Successful HTTP response required")
             if len(raw)>4*1024*1024:
                 raise ValueError('Page exceeds byte bound')
-            body=strict_json(raw)
-            original_pages.append({"request_url":req.full_url,"http_status":status,"acquired_at":acquired_at,"raw":raw})
+            body=json.loads(raw)
             if not isinstance(body,dict) or not isinstance(body.get('data'),list) or not isinstance(body.get('meta'),dict):
                 raise ValueError('Page schema missing')
             counts=[]
@@ -203,10 +194,6 @@ def fetch_fiscal_auctions(start_date, end_date, page_size=200, pages_out=None):
             if page==pages:
                 if len(all_records)!=count:
                     raise ValueError('Incomplete auction record set')
-                if pages_out is not None:
-                    if not isinstance(pages_out,list) or pages_out:
-                        raise ValueError("Empty acquisition journal required")
-                    pages_out.extend(original_pages)
                 return all_records
         except Exception as exc:
             raise RuntimeError(f'Auction acquisition incomplete at page {page}; previous publication preserved ({type(exc).__name__})') from exc
@@ -517,11 +504,7 @@ def lambda_handler(event, context):
     end = datetime.now(timezone.utc).date()
     start = end - timedelta(days=400)  # +1y for issuance baseline
 
-    original_pages = []
-    raw = fetch_fiscal_auctions(start.isoformat(), end.isoformat(), pages_out=original_pages)
-    # All rows, including unscored/unknown instruments, get independent Decimal checks.
-    verify_auction_measurements(raw, compute_record_metrics)
-    auction_originals = retain_auction_originals(s3, S3_BUCKET, original_pages, start.isoformat(), end.isoformat())
+    raw = fetch_fiscal_auctions(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
     print(f"[auction-crisis] fetched {len(raw)} auction records")
 
     if not raw:
@@ -539,7 +522,6 @@ def lambda_handler(event, context):
         })
         for key,default in {'freshness':{},'tail_risk':{},'tenor_decomposition':{},'composite_history':{},'forward_calendar':[]}.items():
             body.setdefault(key,default)
-        body["auction_originals"] = auction_originals
         stamp_quality(body)
         body["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)
         s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY, Body=json.dumps(body, indent=2),
@@ -831,7 +813,6 @@ def lambda_handler(event, context):
                               "recent_auctions.*.high_minus_median_bp": "bp",
                               "recent_auctions.*.bidder_denominator_usd": "usd",
                               "recent_auctions.*.accepted_billions": "usd_bn"}
-    report["auction_originals"] = auction_originals
     stamp_quality(report)
     # chatgpt-pd-context-v1: settlement context never changes auction scores.
     report["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)

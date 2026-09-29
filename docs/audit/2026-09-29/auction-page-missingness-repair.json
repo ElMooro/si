@@ -1,5 +1,5 @@
 {
-  "status": "browser_and_source_checked_deployment_pending",
+  "status": "source_browser_and_exact_served_assets_accepted",
   "checked_at": "2026-09-29T04:44:36.991461+00:00",
   "baseline_commit": "c8e79cf2431c9c7b3dd174a12a6e2766a8f1bce0",
   "complete_predecessors": [
@@ -77,5 +77,28 @@
   "limitations": [
     "No native measurement publication, provider completeness, original-source replay, predictive edge, historical point-in-time validity or portfolio authority is claimed.",
     "Legacy FRED clocks, forward-calendar identities, fixed historical heuristic thresholds and selected analogs still require engine repair."
-  ]
+  ],
+  "source_commit": "d62c12f0bd9e9cf05f1d5284f7b89cc1512a7f9c",
+  "pages_run": 36523073839,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T04:55:24.239122+00:00",
+    "intended_commit": "d62c12f0bd9e9cf05f1d5284f7b89cc1512a7f9c",
+    "served_commit": "d62c12f0bd9e9cf05f1d5284f7b89cc1512a7f9c",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 57983,
+        "sha256": "232f3949a3d516d26c8dac1edbccde3b7297006e37c94f8c0469f311a9c0928f",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 33255,
+        "sha256": "369bd2ec6ba410110cc08246da3449d46fd72314b0eabc9f910bfd5a9a2cd3db",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "d4831ce7731aba522e7dcc4f3b46c878db054e73e8e950adfca165a4577c105d"
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }

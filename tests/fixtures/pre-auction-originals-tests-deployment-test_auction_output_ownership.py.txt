@@ -77,8 +77,7 @@ def detector_fixture():
     scope = load("auction-crisis-detector", store)
     handler = scope["lambda_handler"]
     env = handler.__globals__
-    env.update({"retain_auction_originals": lambda *a, **kw: {"fixture_only": True},
-                "fetch_fiscal_auctions": lambda *a, **kw: [auction()], "get_fed_funds_rate": lambda: 4.25,
+    env.update({"fetch_fiscal_auctions": lambda *a, **kw: [auction()], "get_fed_funds_rate": lambda: 4.25,
                 "fetch_upcoming_auctions": lambda *a, **kw: [], "compute_cross_signals": lambda: {},
                 "compute_preauction_concession": lambda rows: rows,
                 "compute_postissue_performance": lambda rows, **kw: rows})
