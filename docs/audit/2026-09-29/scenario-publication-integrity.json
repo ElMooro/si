@@ -1,0 +1,82 @@
+{
+  "stage": 438,
+  "status": "source_accepted_exact_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T22:42:37.884518+00:00",
+  "baseline_commit": "7e71f2d5b0dc7496bf414df62e55271f97197949",
+  "predecessor": "scenario-publication-predecessor.json",
+  "native_predecessor": "scenario-publication-native-predecessor.json",
+  "source_findings": "scenario-publication-source-gap.json",
+  "improvements": [
+    "Stored artifacts are consumed through EOF under the existing four MiB bound, with typed declared ContentLength validation and closure on every exit. Short chunks and incomplete SDK transfers cannot become evidence.",
+    "Strict UTF-8/JSON rejects duplicate keys, malformed Unicode, nonfinite values and excessive nesting. Artifact paths, content hashes and byte counts are exact, with booleans/floats excluded from integer lengths.",
+    "Publication and retained predecessor clocks require valid full timezone-aware dates. A compiler migration cannot replace a newer model publication with an earlier clock.",
+    "Every preceding current packet is compared in full with its retained deterministic replay before unchanged return or compiler migration. Unknown compilers, forged fields and mismatched retained bytes fail before writes.",
+    "Current reviewed code reproduces the exact approved predecessor compiler generation from inert source bytes. The arithmetic model, native handler, output builder, no-authority permissions and established conditional publication remain unchanged."
+  ],
+  "source_scope": {
+    "scope": "Full current-source AST comparison; stored predecessor source is never executed.",
+    "unchanged_functions": [
+      "encoded",
+      "digest",
+      "reference",
+      "immutable",
+      "sources",
+      "build"
+    ],
+    "changed_functions": [
+      "read",
+      "verified",
+      "replay",
+      "run"
+    ],
+    "new_functions": [
+      "checked_reference",
+      "clock",
+      "decoded",
+      "preceding_identity"
+    ],
+    "source_sha256": "ad18014c75530c98b87964aa44e535afd0a8c92b496749524a131f08deacbbf6",
+    "model_sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+    "native_handler_unchanged": true
+  },
+  "tests": {
+    "new_native_cases": 17,
+    "new_receipt_only_operation_cases": 3,
+    "native_suites": [
+      {
+        "suite": "justhodl-position-sizer",
+        "unittest_cases": 24,
+        "passed": true
+      }
+    ],
+    "frontend": 1925,
+    "deployment_static": 726,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "baseline": {
+    "run": 36640155204,
+    "native_source_members": 3,
+    "memory_mb": 256,
+    "timeout_seconds": 60,
+    "schedule": "rate(6 hours)",
+    "name": "justhodl-position-sizer-6h",
+    "receipt_commit": "cf99a7bfc308a750ac3b5722b9f84ae9d6b8b447"
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "live_current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0,
+    "model_arithmetic_changes": 0
+  },
+  "limitations": [
+    "Exact native and static deployment remain pending. Normal scheduled publication is separately unverified.",
+    "The approved predecessor is retained as unqualified legacy allocation evidence. No private historical body is read for replay acceptance and no old allocation obtains authority.",
+    "Complete response, typed identity and reproducible model availability do not establish forecast skill, permitted exposure or investment suitability. All ten workstreams remain open."
+  ]
+}

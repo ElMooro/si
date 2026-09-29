@@ -1,0 +1,46 @@
+{
+  "actual_runtime": {
+    "code_sha256": "UOdO4qBsqvzYsz5tZKe49R7DKIC7iAsr6lTe1OhM+1o=",
+    "source_files_checked": 3,
+    "handler_bytes": 639,
+    "timeout": 60,
+    "memory_mb": 256,
+    "receipt": {
+      "status": "matched",
+      "commit": "cf99a7bfc308a750ac3b5722b9f84ae9d6b8b447"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-position-sizer-6h",
+        "state": "ENABLED",
+        "expression": "rate(6 hours)",
+        "native_targets": 1
+      }
+    ],
+    "function_name": "justhodl-position-sizer",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "expected_commit": null,
+  "phase": "predecessor_baseline",
+  "all_original_resources_and_schedules_preserved": null,
+  "archive_history_reads": 0,
+  "current_packet_reads": 0,
+  "exact_native_package_verified": true,
+  "native_invocations": 0,
+  "native_publication_verified": false,
+  "original_resources_and_bindings_recorded": true,
+  "private_reads": 0,
+  "provider_requests": 0,
+  "schedule_changes": 0,
+  "baseline_run": 36640155204,
+  "baseline_source_commit": "d20bf72d3325090631dac492a9f96b7ba7cc5c58",
+  "report": "aws/ops/reports/latest/ops_6351_scenario_publication_runtime_acceptance.md",
+  "report_commit": "7e71f2d5b0dc7496bf414df62e55271f97197949"
+}

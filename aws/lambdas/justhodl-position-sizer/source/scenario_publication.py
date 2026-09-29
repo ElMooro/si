@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import hashlib
 import json
+import math
 import re
 
 CONTRACT = 'portfolio-scenario-availability.v1'
@@ -25,12 +26,60 @@ def reference(key, raw):
     return {'key': key, 'sha256': digest(raw), 'bytes': len(raw)}
 
 
+def decoded(raw):
+    if not isinstance(raw, bytes) or len(raw) > LIMIT: raise ValueError('Complete JSON bytes required')
+    def pairs(rows):
+        result = {}
+        for key, value in rows:
+            if key in result: raise ValueError('Duplicate JSON key')
+            result[key] = value
+        return result
+    def number(text):
+        value = float(text)
+        if not math.isfinite(value): raise ValueError('Nonfinite JSON number')
+        return value
+    def constant(text): raise ValueError('Nonfinite JSON constant')
+    def unicode(value, depth=0):
+        if depth > 128: raise ValueError('JSON nesting exceeds bound')
+        if isinstance(value, str): value.encode('utf-8')
+        elif isinstance(value, dict):
+            for key, child in value.items(): unicode(key, depth+1); unicode(child, depth+1)
+        elif isinstance(value, list):
+            for child in value: unicode(child, depth+1)
+    try:
+        result = json.loads(raw.decode('utf-8'), object_pairs_hook=pairs, parse_float=number, parse_constant=constant)
+        unicode(result)
+        return result
+    except (UnicodeError, RecursionError) as exc: raise ValueError('Invalid JSON encoding or nesting') from exc
+
+
+def clock(value):
+    if not isinstance(value, str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})', value):
+        raise ValueError('Exact timezone-aware publication clock required')
+    parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    if not value.endswith('Z') and (int(value[-5:-3]) > 23 or int(value[-2:]) > 59):
+        raise ValueError('Invalid publication timezone offset')
+    if parsed.utcoffset() is None: raise ValueError('Publication timezone required')
+    return parsed.astimezone(timezone.utc)
+
+
 def read(client, bucket, key):
-    obj = client.get_object(Bucket=bucket, Key=key)
-    try: raw = obj['Body'].read(LIMIT+1)
-    finally: obj['Body'].close()
-    if len(raw) > LIMIT: raise ValueError('Complete artifact exceeds bound')
-    return raw, obj.get('ETag')
+    obj = client.get_object(Bucket=bucket, Key=key); body = obj['Body']
+    try:
+        length = obj.get('ContentLength')
+        if length is not None and (type(length) is not int or length < 0 or length > LIMIT):
+            raise ValueError('Invalid or oversized declared artifact length')
+        chunks, total = [], 0
+        while True:
+            chunk = body.read(min(65536, LIMIT+1-total))
+            if not isinstance(chunk, bytes): raise ValueError('Artifact stream did not return bytes')
+            if not chunk: break
+            total += len(chunk)
+            if total > LIMIT: raise ValueError('Complete artifact exceeds bound')
+            chunks.append(chunk)
+        if length is not None and total != length: raise ValueError('Incomplete declared artifact transfer')
+        return b''.join(chunks), obj.get('ETag')
+    finally: body.close()
 
 
 def immutable(client, bucket, key, raw):
@@ -73,41 +122,87 @@ def build(at, refs, preceding):
         'private_account_reads': 0, 'paid_ai_calls': 0, 'notifications_sent': 0, 'portfolio_writes': 0}
 
 
-def verified(ref, reader, folder, suffix='.json'):
-    if not isinstance(ref, dict) or set(ref) != {'key','sha256','bytes'}: raise ValueError('Artifact reference differs')
-    if not re.fullmatch(re.escape(PREFIX+folder+'/')+r'[a-f0-9]{64}'+re.escape(suffix), ref['key']): raise ValueError('Artifact path differs')
+# Exact inert predecessor compiler identities; replay never executes stored code.
+APPROVED_PREDECESSOR = {
+    "lambda_function.py": {
+        "bytes": 639,
+        "key": "data/scenario-model/models/5ffa4e991572f0eb49cd326312b7dd17ca6b2bcebe75dab50dee369c669f67f9.py",
+        "sha256": "5ffa4e991572f0eb49cd326312b7dd17ca6b2bcebe75dab50dee369c669f67f9"
+    },
+    "scenario_model.js": {
+        "bytes": 7387,
+        "key": "data/scenario-model/models/b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512.js",
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512"
+    },
+    "scenario_publication.py": {
+        "bytes": 7171,
+        "key": "data/scenario-model/models/09221024588b75b8c48bc4d5774b817600171803aceb49aea38d6f6420a8b324.py",
+        "sha256": "09221024588b75b8c48bc4d5774b817600171803aceb49aea38d6f6420a8b324"
+    }
+}
+
+
+def checked_reference(ref, reader, folder, suffix='.json'):
+    if not isinstance(ref, dict) or set(ref) != {'key', 'sha256', 'bytes'}: raise ValueError('Artifact reference differs')
+    if type(ref['bytes']) is not int or not 0 < ref['bytes'] <= LIMIT: raise ValueError('Exact artifact byte count required')
+    if not isinstance(ref['sha256'], str) or not re.fullmatch(r'[a-f0-9]{64}', ref['sha256']): raise ValueError('Artifact hash differs')
+    if ref['key'] != PREFIX+folder+'/'+ref['sha256']+suffix: raise ValueError('Artifact path differs')
     raw = reader(ref['key'])
-    if reference(ref['key'],raw) != ref: raise ValueError('Artifact bytes differ')
-    return json.loads(raw)
+    if not isinstance(raw, bytes) or len(raw) != ref['bytes'] or digest(raw) != ref['sha256']: raise ValueError('Artifact bytes differ')
+    return raw
+
+
+def verified(ref, reader, folder, suffix='.json'):
+    return decoded(checked_reference(ref, reader, folder, suffix))
+
+
+def preceding_identity(value):
+    if not isinstance(value, dict) or set(value) != {'sha256','bytes','generated_at','qualification','retention'}:
+        raise ValueError('Whole predecessor identity differs')
+    if type(value['bytes']) is not int or not 0 < value['bytes'] <= LIMIT or not isinstance(value['sha256'], str) or not re.fullmatch(r'[a-f0-9]{64}',value['sha256']):
+        raise ValueError('Whole predecessor byte identity differs')
+    if value['qualification'] != 'unqualified_legacy_allocation' or value['retention'] != 'private_audit_copy':
+        raise ValueError('Unqualified predecessor scope differs')
+    if value['generated_at'] is not None: clock(value['generated_at'])
 
 
 def replay(manifest, reader):
-    refs, artifacts = sources()
-    if manifest.get('contract') != 'portfolio-scenario-publication-replay.v1' or manifest.get('compilers') != refs:
-        raise ValueError('Reviewed model or compiler differs')
-    for key, raw in artifacts.items():
-        if reader(key) != raw: raise ValueError('Retained model source differs')
+    if not isinstance(manifest, dict) or set(manifest) != {'contract','generated_at','compilers','whole_preceding_product','output'} or manifest['contract'] != 'portfolio-scenario-publication-replay.v1':
+        raise ValueError('Publication replay contract differs')
+    clock(manifest['generated_at']); preceding_identity(manifest['whole_preceding_product'])
+    current, artifacts = sources(); refs = manifest['compilers']
+    # Current reviewed Python rebuilds both reviewed source generations. The
+    # arithmetic and output contract are unchanged; stored Python is only bytes.
+    if refs not in (current, APPROVED_PREDECESSOR): raise ValueError('Reviewed model or compiler differs')
+    for name in FILES:
+        raw = checked_reference(refs[name], reader, 'models', Path(name).suffix)
+        if refs == current and artifacts[refs[name]['key']] != raw: raise ValueError('Retained model source differs')
     output = build(manifest['generated_at'], refs, manifest['whole_preceding_product'])
-    if verified(manifest['output'],reader,'outputs') != output: raise ValueError('Complete publication replay differs')
+    stored = verified(manifest['output'], reader, 'outputs')
+    if encoded(stored) != encoded(output): raise ValueError('Complete publication replay differs')
     return output
 
 
 def run(client, bucket, at=None):
-    at = at or datetime.now(timezone.utc).isoformat()
-    before, etag = read(client,bucket,CURRENT); old = json.loads(before)
-    if not etag: raise ValueError('Conditional publication requires preceding ETag')
+    at = datetime.now(timezone.utc).isoformat() if at is None else at
+    candidate_clock = clock(at)
+    before, etag = read(client,bucket,CURRENT); old = decoded(before)
+    if not isinstance(old, dict): raise ValueError('Current publication must be an object')
+    if not isinstance(etag, str) or not etag: raise ValueError('Conditional publication requires preceding ETag')
     refs, artifacts = sources()
     reader = lambda key: read(client,bucket,key)[0]
     if old.get('contract') == CONTRACT:
         previous = verified(old['replay'],reader,'runs')
+        if encoded(replay(previous,reader)) != encoded({k:v for k,v in old.items() if k != 'replay'}): raise ValueError('Current packet differs from retained output')
         if old.get('compilers') == refs:
-            if replay(previous,reader) != {k:v for k,v in old.items() if k != 'replay'}: raise ValueError('Current packet differs from retained output')
             return {'published': False, 'reason': 'reviewed_model_unchanged', 'replay': old['replay']}
+        if candidate_clock < clock(old['generated_at']): raise ValueError('Cannot replace a newer publication with an earlier clock')
         preceding = old['whole_preceding_product']
     else:
         if old.get('engine') != 'position-sizer' or old.get('version') != '1.1': raise ValueError('Review unrecognized predecessor before cutover')
         preceding = {'sha256': digest(before), 'bytes': len(before), 'generated_at': old.get('generated_at'),
                      'qualification': 'unqualified_legacy_allocation', 'retention': 'private_audit_copy'}
+    preceding_identity(preceding)
     # Preserve the complete preceding product before replacing the mutable pointer.
     immutable(client,bucket,PRIVATE+digest(before)+'.bin',before)
     output = build(at,refs,preceding); output_raw = encoded(output)
