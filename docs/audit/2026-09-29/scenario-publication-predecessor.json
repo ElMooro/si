@@ -1,0 +1,49 @@
+{
+  "source_commit": "1a246d92e14a1c1881a7b720c27ecb26a29a3f58",
+  "checked_at": "2026-09-29T22:23:46.279858+00:00",
+  "scope": "Genuine current-code in-memory synthetic native publication. No cloud calls or live/private/provider data; retained source bytes are inert.",
+  "source": {
+    "path": "aws/lambdas/justhodl-position-sizer/source/scenario_publication.py",
+    "local_file": "stage438-predecessor-publication.py.txt",
+    "bytes": 7171,
+    "sha256": "09221024588b75b8c48bc4d5774b817600171803aceb49aea38d6f6420a8b324",
+    "fixture": "tests/fixtures/pre-scenario-publication-publication.py.txt"
+  },
+  "bundle": {
+    "local_file": "stage438-predecessor-native.json",
+    "bytes": 32928,
+    "sha256": "5ad3e135cba9f90069f38b02f0b3363dbf15964f5af83cae2d865ff95ae7e608",
+    "objects": 7,
+    "fixture": "tests/fixtures/pre-scenario-publication-native.json"
+  },
+  "compilers": {
+    "lambda_function.py": {
+      "bytes": 639,
+      "key": "data/scenario-model/models/5ffa4e991572f0eb49cd326312b7dd17ca6b2bcebe75dab50dee369c669f67f9.py",
+      "sha256": "5ffa4e991572f0eb49cd326312b7dd17ca6b2bcebe75dab50dee369c669f67f9"
+    },
+    "scenario_model.js": {
+      "bytes": 7387,
+      "key": "data/scenario-model/models/b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512.js",
+      "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512"
+    },
+    "scenario_publication.py": {
+      "bytes": 7171,
+      "key": "data/scenario-model/models/09221024588b75b8c48bc4d5774b817600171803aceb49aea38d6f6420a8b324.py",
+      "sha256": "09221024588b75b8c48bc4d5774b817600171803aceb49aea38d6f6420a8b324"
+    }
+  },
+  "before": {
+    "short_chunk_bytes": 3,
+    "short_chunk_expected": 26,
+    "short_chunk_closed": true,
+    "incomplete_sdk_transfer_accepted_bytes": 15,
+    "declared_bytes": 99,
+    "sdk_closed": true,
+    "float_reference_length_accepted": true,
+    "duplicate_current_call_accepted": true,
+    "unreviewed_compiler_current_migrated_without_replay": true,
+    "invalid_february_date_published": true
+  },
+  "status": "synthetic_source_gaps_reproduced_native_unmodified"
+}
