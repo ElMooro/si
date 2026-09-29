@@ -323,16 +323,11 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 .auctions-table{overflow-x:auto;margin-bottom:20px}
 .table-scroll{max-width:100%;overflow-x:auto;margin-bottom:20px}
 .table-scroll:focus-visible,.auctions-table:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-#auction-originals{max-width:none;margin:20px 0}
-#auction-originals .jdi-controls{flex-wrap:wrap}
-#auction-originals a{overflow-wrap:anywhere}
-#auction-originals p{margin:10px 0;line-height:1.5}
 @media (max-width:600px){
   .section-hdr{flex-wrap:wrap}
   .section-hdr .badge{margin-left:0}
   .forward-pred-grid,.trigger-grid,.concession-callout,.cross-strip,.tail-grid{grid-template-columns:minmax(0,1fr)}
   .hero-grid>*{min-width:0}
-  .decisive-call{flex-direction:column;align-items:flex-start}
 }
 .auctions-table table{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--bg-raised);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
 .auctions-table th{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:10px 8px;text-align:left;background:var(--bg-sunken);border-bottom:1px solid var(--border)}
@@ -449,8 +444,6 @@ footer a:hover{color:var(--cyan)}
       </div>
     </div>
   </div>
-
-  <section id="auction-originals" class="jdi-panel" aria-label="Treasury source evidence"></section>
 
   <!-- AI Decisive Call -->
   <div id="decisive-call" class="decisive-call UNAVAILABLE">
@@ -659,8 +652,7 @@ footer a:hover{color:var(--cyan)}
 
 </main>
 
-<script src="/jh-auction-originals.js?v=20260929" defer></script>
-<script src="/auction-crisis.js?t=20260929-originals" defer></script>
+<script src="/auction-crisis.js?t=20260929-observations" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

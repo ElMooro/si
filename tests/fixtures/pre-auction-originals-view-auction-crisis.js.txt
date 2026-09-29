@@ -593,9 +593,6 @@ function renderHistoricalReference() {
 // Source commentary remains inspectable, but is not a verified investment instruction.
 // No LLM or commentary fetch is triggered by this page.
 function renderResearchContext() {
-  const originals = $('auction-originals');
-  if (globalThis.JHAuctionOriginals) globalThis.JHAuctionOriginals.render(originals, DATA.auction_originals, DATA.generated_at);
-  else if (originals) originals.textContent = 'Source evidence viewer unavailable. Refresh this page.';
   $('ai-exec-title').textContent = 'Measurement and validation status';
   $('ai-exec-body').textContent = 'Treasury observations and legacy heuristic thresholds are descriptive. Full original-source replay and predictive validation remain incomplete.';
   $('ai-updated').textContent = ageFromIso(DATA.generated_at);

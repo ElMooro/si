@@ -1,0 +1,91 @@
+{
+  "status": "browser_and_source_checked_deployment_pending",
+  "checked_at": "2026-09-29T05:28:33.003549+00:00",
+  "baseline_commit": "71b9a6959f3d4a72b1a6da9646829ddc58e59292",
+  "complete_predecessors": [
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-originals-view-auction-crisis.html.txt",
+      "bytes": 48704,
+      "sha256": "12b5ec9b08492c8c89bfac399d8ffafd088bbd5fc08d3d6a3414a4e6e57d3fb1"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-originals-view-auction-crisis.js.txt",
+      "bytes": 33254,
+      "sha256": "d4831ce7731aba522e7dcc4f3b46c878db054e73e8e950adfca165a4577c105d"
+    }
+  ],
+  "source_members": {
+    "auction-crisis.html": {
+      "bytes": 49127,
+      "sha256": "c9c20f7b1ecd3fe52843af24fad4e46fa76247e2977b6ddbfaf6a310034a3abf"
+    },
+    "auction-crisis.js": {
+      "bytes": 33531,
+      "sha256": "8dfdeb31af6a8772a22b3fb54318e938821539453231c50b7b93402e97cd8f86"
+    },
+    "jh-auction-originals.js": {
+      "bytes": 7616,
+      "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+    }
+  },
+  "repairs": [
+    "On-demand inspection of the complete direct-measurement artifact; no automatic archive fetch.",
+    "Strict content-addressed namespace, typed clocks, coverage, length and SHA-256 checks before rendering.",
+    "Real shared inspector exposes every field and row with pagination and exact-path search. Missing values and decimal zero remain distinct.",
+    "Corrupt artifacts clear old rows. Source replacement aborts pending requests and blocks late repaint.",
+    "Source capture/replay claims remain separate from historical availability, forecast and portfolio qualification.",
+    "Responsive controls and vertically stacked mobile decision context. Manifest and complete JSON remain directly inspectable."
+  ],
+  "tests": {
+    "new_regressions": 11,
+    "targeted_regressions": 27,
+    "frontend": 1737,
+    "deployment_static": 627,
+    "candidate_shell": 12,
+    "page_script_graphs": 599,
+    "syntax_errors": 0,
+    "wiring_missing": 0,
+    "wiring_stale": 0,
+    "page_contracts_check": "passed"
+  },
+  "browser": {
+    "scope": "Isolated exact HTML/CSS, page renderer, evidence component and real shared inspector, with synthetic sources. Other site addons removed; CSP blocks external fetches. No live engine or consumer packet read.",
+    "desktop_viewport": [
+      1280,
+      900
+    ],
+    "desktop_document_width": 1265,
+    "desktop_client_width": 1265,
+    "mobile_viewport": [
+      390,
+      844
+    ],
+    "mobile_document_width": 375,
+    "mobile_client_width": 375,
+    "complete_rows": 52,
+    "last_page_rows": [
+      "ROW50",
+      "ROW51"
+    ],
+    "leaf_paths": 429,
+    "searched_missing_value": null,
+    "searched_explicit_decimal_zero": "0",
+    "artifact_requests_before_click": 0,
+    "altered_artifact_rejected": true,
+    "old_rows_cleared_on_corruption": true,
+    "stale_clears_evidence": true,
+    "fresh_recovery": true,
+    "console_errors": 0,
+    "console_warnings": 0,
+    "external_requests": 0,
+    "viewport_reset": true
+  },
+  "limitations": [
+    "The first ordinary native original-source publication remains pending its original schedule.",
+    "Browser byte integrity is not independent provider replay or validation of legacy heuristics, forecasts or sizing."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
