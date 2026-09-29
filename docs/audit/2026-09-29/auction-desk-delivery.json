@@ -1,6 +1,6 @@
 {
   "stage": 416,
-  "status": "source_and_isolated_regressions_accepted_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T14:09:17.395613+00:00",
   "baseline_commit": "d44a542507f3633b36a695145b7c4c83775bf0c9",
   "sources": {
@@ -672,5 +672,132 @@
   "extra_provider_requests": 0,
   "current_consumer_reads": 0,
   "private_reads": 0,
-  "schedule_changes": 0
+  "schedule_changes": 0,
+  "source_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-desk": {
+        "code_sha256": "ZRp5H0+sudSaP0wsl4YL6o1yBaD9v/jsdHMrbmGGpaU=",
+        "source_files_checked": 12,
+        "handler_bytes": 65536,
+        "timeout": 300,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-results",
+            "state": "ENABLED",
+            "expression": "cron(40 13 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-late",
+            "state": "ENABLED",
+            "expression": "cron(35 16 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-buyback",
+            "state": "ENABLED",
+            "expression": "cron(10 12 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-auction-desk-morning",
+            "state": "ENABLED",
+            "expression": "cron(15 9 ? * MON-FRI *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-auction-desk",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36581068279,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6345_auction_desk_delivery_runtime_acceptance.md",
+  "native_acceptance_report_commit": "5b89b9456e8f510fca29b6b89af9a71a5df28986",
+  "lambda_run": 36580555826,
+  "pages_run": 36580555865,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T14:13:43.651481+00:00",
+    "intended_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "served_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "assets": {
+      "auctions.html": {
+        "bytes": 103738,
+        "sha256": "c50800eb8f1b0da3958bd8b15cec8459614646698eb1c24f489f1c4858878a36",
+        "matches_manifest": true
+      },
+      "auction-desk-delivery.js": {
+        "bytes": 12911,
+        "sha256": "3e2c1b52d32b775c4046a1c9b05ea9736700a02075fe34c6f19c5bd0fffde5ad",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "tenor-signals.js": {
+        "bytes": 5822,
+        "sha256": "fe3607c125a1b60d19fedeec41da92b80c7c060df3f7a90b89b6650fa90a0f32",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1357779,
+        "sha256": "7774559dcf7709348df7068360eed703dc25ccd883fd9aa96a89fac3205b6d81",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4694610,
+        "sha256": "453def500fe43dde51938456f06d7fc8e93bdcc3e6863d0844975df1ef34228d",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing script and generated registries only. No execution or current/private packet requests."
+  },
+  "large_file_native_git_batch": {
+    "atomic_changed_files": 20,
+    "source_sizes": {
+      "aws/lambdas/justhodl-auction-desk/source/lambda_function.py": 65536,
+      "auctions.html": 92401,
+      "aws/shared/auction_delivery.py": 11760,
+      "aws/shared/auction_delivery_store.py": 5307,
+      "auction-desk-delivery.js": 12911,
+      "scripts/replay_auction_delivery.py": 1826,
+      "tests/fixtures/auction-delivery.json": 1550589
+    },
+    "exact_native_source_members_by_function": {
+      "justhodl-auction-desk": 12
+    }
+  }
 }
