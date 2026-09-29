@@ -1,6 +1,6 @@
 {
   "stage": 416,
-  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
+  "status": "exact_native_and_current_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T14:09:17.395613+00:00",
   "baseline_commit": "d44a542507f3633b36a695145b7c4c83775bf0c9",
   "sources": {
@@ -753,18 +753,18 @@
   "lambda_run": 36580555826,
   "pages_run": 36580555865,
   "static_acceptance": {
-    "checked_at": "2026-09-29T14:13:43.651481+00:00",
-    "intended_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
-    "served_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "checked_at": "2026-09-29T14:30:51.617230+00:00",
+    "intended_commit": "42fcc983c2c7b3035ec0fea549d8526b7c459ae9",
+    "served_commit": "42fcc983c2c7b3035ec0fea549d8526b7c459ae9",
     "assets": {
       "auctions.html": {
         "bytes": 103738,
-        "sha256": "c50800eb8f1b0da3958bd8b15cec8459614646698eb1c24f489f1c4858878a36",
+        "sha256": "d6f20ec18511870306fe94784a2024582fcc50198399aeb2fb3e59d1b277c9c9",
         "matches_manifest": true
       },
       "auction-desk-delivery.js": {
-        "bytes": 12911,
-        "sha256": "3e2c1b52d32b775c4046a1c9b05ea9736700a02075fe34c6f19c5bd0fffde5ad",
+        "bytes": 13180,
+        "sha256": "b5c1f75bb422c6094bec01990457381b6ef1771f03985fe79b836072015d04df",
         "matches_manifest": true,
         "matches_source_after_declared_palette_transform": true
       },
@@ -776,12 +776,12 @@
       },
       "engine-manifest.json": {
         "bytes": 1357779,
-        "sha256": "7774559dcf7709348df7068360eed703dc25ccd883fd9aa96a89fac3205b6d81",
+        "sha256": "6010002e58a0475fe6cfd1a4bab4be5f1894ef427e1975c0e7845c35aa37fe61",
         "matches_manifest": true
       },
       "config/page-data-contracts.json": {
         "bytes": 4694610,
-        "sha256": "453def500fe43dde51938456f06d7fc8e93bdcc3e6863d0844975df1ef34228d",
+        "sha256": "6d5b35d1d0b7e91939190e5208857b62b6428b222347667b2f7b3843e0d77dca",
         "matches_manifest": true
       }
     },
@@ -803,7 +803,7 @@
     }
   },
   "rollout_compatibility": {
-    "status": "source_and_isolated_tests_accepted_static_deploy_pending",
+    "status": "exact_static_assets_accepted_normal_publication_pending",
     "checked_at": "2026-09-29T14:24:27.978855+00:00",
     "predecessor": {
       "base": "0ad0873fea312b01a040307348e766c9a81adf36",
@@ -840,6 +840,79 @@
     "limitations": [
       "A legacy fallback can still be large and has no delivery manifest; its state is explicitly labeled. Its download route remains the mutable full-packet route, not an immutable artifact.",
       "Ordinary native publication remains unverified. The smaller compact view is used automatically once a valid bound publication exists."
-    ]
-  }
+    ],
+    "source_commit": "42fcc983c2c7b3035ec0fea549d8526b7c459ae9",
+    "pages_run": 36582454984,
+    "static_acceptance": {
+      "checked_at": "2026-09-29T14:30:51.617230+00:00",
+      "intended_commit": "42fcc983c2c7b3035ec0fea549d8526b7c459ae9",
+      "served_commit": "42fcc983c2c7b3035ec0fea549d8526b7c459ae9",
+      "assets": {
+        "auctions.html": {
+          "bytes": 103738,
+          "sha256": "d6f20ec18511870306fe94784a2024582fcc50198399aeb2fb3e59d1b277c9c9",
+          "matches_manifest": true
+        },
+        "auction-desk-delivery.js": {
+          "bytes": 13180,
+          "sha256": "b5c1f75bb422c6094bec01990457381b6ef1771f03985fe79b836072015d04df",
+          "matches_manifest": true,
+          "matches_source_after_declared_palette_transform": true
+        },
+        "tenor-signals.js": {
+          "bytes": 5822,
+          "sha256": "fe3607c125a1b60d19fedeec41da92b80c7c060df3f7a90b89b6650fa90a0f32",
+          "matches_manifest": true,
+          "matches_source_after_declared_palette_transform": true
+        },
+        "engine-manifest.json": {
+          "bytes": 1357779,
+          "sha256": "6010002e58a0475fe6cfd1a4bab4be5f1894ef427e1975c0e7845c35aa37fe61",
+          "matches_manifest": true
+        },
+        "config/page-data-contracts.json": {
+          "bytes": 4694610,
+          "sha256": "6d5b35d1d0b7e91939190e5208857b62b6428b222347667b2f7b3843e0d77dca",
+          "matches_manifest": true
+        }
+      },
+      "scope": "Whole static HTML, existing script and generated registries only. No execution or current/private packet requests."
+    }
+  },
+  "initial_static_acceptance": {
+    "checked_at": "2026-09-29T14:13:43.651481+00:00",
+    "intended_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "served_commit": "5e98c4f5810c5f4f3fbe012c621e907279f2ea21",
+    "assets": {
+      "auctions.html": {
+        "bytes": 103738,
+        "sha256": "c50800eb8f1b0da3958bd8b15cec8459614646698eb1c24f489f1c4858878a36",
+        "matches_manifest": true
+      },
+      "auction-desk-delivery.js": {
+        "bytes": 12911,
+        "sha256": "3e2c1b52d32b775c4046a1c9b05ea9736700a02075fe34c6f19c5bd0fffde5ad",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "tenor-signals.js": {
+        "bytes": 5822,
+        "sha256": "fe3607c125a1b60d19fedeec41da92b80c7c060df3f7a90b89b6650fa90a0f32",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1357779,
+        "sha256": "7774559dcf7709348df7068360eed703dc25ccd883fd9aa96a89fac3205b6d81",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4694610,
+        "sha256": "453def500fe43dde51938456f06d7fc8e93bdcc3e6863d0844975df1ef34228d",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing script and generated registries only. No execution or current/private packet requests."
+  },
+  "static_source_commit": "42fcc983c2c7b3035ec0fea549d8526b7c459ae9"
 }
