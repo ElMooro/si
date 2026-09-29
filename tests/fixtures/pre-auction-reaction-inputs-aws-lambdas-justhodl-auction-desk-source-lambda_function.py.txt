@@ -34,7 +34,6 @@ Outputs:
 """
 import gzip
 import auction_participation
-import auction_reactions
 from auction_weighting import weighted_summary
 from auction_issuance import IssuanceLedger, apply_overlay, day as issuance_day
 from auction_scoring import score_auction
@@ -58,7 +57,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.1"
+VERSION = "1.5.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -693,51 +692,58 @@ def build_composite_history(full_rows, ff_by_date, live_point=None, population_c
 # ─────────────────────────── cross-asset reactions ───────────────────
 def load_assets(force=False):
     doc = _s3_json(ASSETS_KEY) or {}
-    fresh = doc.get("as_of") and (_now() - timedelta(hours=3) < Date_parse(doc["as_of"]) <= _now())   # the 16:35 ET run must see the day's closes
+    fresh = doc.get("as_of") and (Date_parse(doc["as_of"]) > _now() - timedelta(hours=3))   # the 16:35 ET run must see the day's closes
     if fresh and not force and doc.get("series"):
         return doc
     series = dict(doc.get("series") or {})
-    attempts = {}
     for sym, name, cls in ASSETS:
         try:
             body = _get_json("%s/yf-ohlc?symbol=%s&range=max&interval=1d" % (PROXY, urllib.parse.quote(sym)), timeout=40)
-            bars = body.get("bars")
-            retained = auction_reactions.retain_bars(bars)
-            attempts[sym] = {"attempted_at": _iso(), "status": "received" if isinstance(bars,list) and bars else "empty_or_invalid_response",
-                             "received_rows": len(bars) if isinstance(bars,list) else None,
-                             "retained_previous_frame": not (isinstance(bars,list) and bars)}
-            if isinstance(bars, list) and bars:
-                series[sym] = {"name": name, "class": cls, **retained,
-                               "reaction_input_contract": auction_reactions.CONTRACT,
-                               "acquired_at": _iso(), "requested_symbol": sym,
-                               "response_symbol": body.get("symbol"), "response_count": body.get("count"),
-                               "response_source": body.get("source"),
-                               "requested_range": "max", "requested_interval": "1d",
-                               "date_basis": "UTC date of observed epoch seconds or timezone-aware timestamp; literal dates preserved",
-                               "original_source_verified": False, "price_definition_verified": False,
-                               "source": "existing fleet proxy response; upstream original and adjustments unverified"}
+            bars = body.get("bars") or []
+            dates, closes = [], []
+            for b in bars:
+                t = b.get("time")
+                c = _f(b.get("close"))
+                if t is None or c is None:
+                    continue
+                d = datetime.fromtimestamp(int(t), tz=timezone.utc).date().isoformat() if isinstance(t, (int, float)) else str(t)[:10]
+                if d >= "1995-01-01":
+                    dates.append(d)
+                    closes.append(c)
+            if len(dates) > 100:
+                series[sym] = {"name": name, "class": cls, "dates": dates, "closes": closes}
         except Exception as e:
-            attempts[sym] = {"attempted_at": _iso(), "status": "request_failed", "retained_previous_frame": sym in series}
             print("[auction-desk] asset %s failed: %s" % (sym, str(e)[:80]))
-        if sym in series:
-            series[sym] = {**series[sym], "latest_acquisition_attempt": attempts[sym]}
-    doc = {"version": VERSION, "as_of": _iso(), "series": series, "acquisition_attempts": attempts}
+    doc = {"version": VERSION, "as_of": _iso(), "series": series}
     _put_json(ASSETS_KEY, doc, gz=True)
     return doc
 
 
 def Date_parse(iso):
     try:
-        parsed = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-        return parsed if parsed.tzinfo is not None else _now() - timedelta(days=9)
+        return datetime.fromisoformat(iso.replace("Z", "+00:00"))
     except Exception:
         return _now() - timedelta(days=9)
 
 
-def fwd_returns(ser, day, as_of=None):
-    """Strict supplied-frame arithmetic; same-day and observed-bar endpoints retained."""
-    frame = ser if isinstance(ser, auction_reactions.PriceFrame) else auction_reactions.PriceFrame(ser, as_of or _now().date().isoformat())
-    return frame.returns(day)
+def fwd_returns(ser, day):
+    """same-day (auction-day close vs prior close), +1/+5/+20 trading days after the auction day.
+    Requires a bar ON the auction day (a stale series must not borrow the previous close); bars dated
+    today (UTC) are in progress and flagged partial."""
+    dates, closes = ser["dates"], ser["closes"]
+    i = bisect.bisect_left(dates, day)
+    if i >= len(dates) or dates[i] != day or i < 1:
+        return None
+    today_utc = _now().date().isoformat()
+    out = {"same_day": (closes[i] / closes[i - 1] - 1) if closes[i - 1] else None, "partial": []}
+    if dates[i] >= today_utc:
+        out["partial"].append("same_day")
+    for label, n in HORIZONS[1:]:
+        j = i + n
+        out[label] = (closes[j] / closes[i] - 1) if j < len(closes) and closes[i] else None
+        if j < len(closes) and dates[j] >= today_utc:
+            out["partial"].append(label)
+    return out
 
 
 def day_class(auctions, buybacks):
@@ -748,17 +754,38 @@ CLASS_LABEL = {"buyback_strong": "large high-fill buyback day", "coupon_strong":
                "coupon_weak": "non-bill participation grade D/F", "coupon_mixed": "mixed non-bill participation grades", "bills_only": "bills only", "none": "no operations", "unclassified": "incomplete or unverified operation group", "buyback_other": "other measured buyback day"}
 
 
-def build_reactions(day_ops, assets, today_key, as_of=None):
-    """Every supplied event group and complete price frame is retained for replay."""
+def build_reactions(day_ops, assets, today_key):
+    """day_ops: {date: {"auctions": [...analyzed], "buybacks": [...analyzed]}} over the analysed history.
+    Returns conditional forward-return stats per class x asset x horizon, today's prediction, and the realised scoreboard."""
     events = []
-    for d, ops in sorted(day_ops.items()):
-        classification = auction_participation.classify(ops["auctions"], ops["buybacks"])
-        events.append({"date": d, "classes": classification["cohort_classes"], "classification_inputs": classification})
-    return auction_reactions.compile_reactions(events, assets, today_key, as_of or _now().date().isoformat(), CLASS_LABEL)
+    for d, ops in day_ops.items():
+        if d >= today_key:
+            continue
+        for c in day_class(ops["auctions"], ops["buybacks"]):
+            events.append((d, c))
+    stats = {}
+    base = {}
+    for sym, ser in assets.items():
+        # unconditional baseline: every auction day
+        rets = [fwd_returns(ser, d) for d in day_ops if d < today_key]
+        rets = [r for r in rets if r]
+        base[sym] = {h: _dist([r[h] for r in rets if r.get(h) is not None and h not in r.get('partial',[])]) for h, _ in HORIZONS}
+        for cls in set(c for _, c in events):
+            days = [d for d, c in events if c == cls]
+            rr = [fwd_returns(ser, d) for d in days]
+            rr = [r for r in rr if r]
+            stats.setdefault(cls, {})[sym] = {h: _dist([r[h] for r in rr if r.get(h) is not None and h not in r.get('partial',[])]) for h, _ in HORIZONS}
+    return {"stats": stats, "baseline": base, "n_events": {c: sum(1 for _, x in events if x == c) for c in set(c for _, c in events)},
+            "classes": CLASS_LABEL, "horizons": [h for h, _ in HORIZONS]}
 
 
 def _dist(xs):
-    return auction_reactions.distribution(xs)
+    xs = [x for x in xs if isinstance(x,(int,float)) and not isinstance(x,bool) and math.isfinite(x)]
+    if len(xs) < 3:
+        return {"n": len(xs), "median": None, "mean": None, "hit": None}
+    xs_sorted = sorted(xs)
+    med = xs_sorted[len(xs) // 2] if len(xs) % 2 else (xs_sorted[len(xs) // 2 - 1] + xs_sorted[len(xs) // 2]) / 2
+    return {"n": len(xs), "median": round(med * 100, 2), "mean": round(sum(xs) / len(xs) * 100, 2), "hit": round(100.0 * sum(1 for x in xs if x > 0) / len(xs))}
 
 
 def predict_today(classes, reactions, assets):
@@ -811,21 +838,20 @@ def chart_cohorts(auctions):
     return groups
 
 
-def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6, as_of=None):
+def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6):
     board = []
-    frames = {sym: auction_reactions.PriceFrame(ser, as_of or _now().date().isoformat(), sym) for sym, ser in assets.items()}
     for d in day_list[:n + 1]:
         ops = day_ops.get(d) or {"auctions": [], "buybacks": []}
         cls = day_class(ops["auctions"], ops["buybacks"])
         moves = {}
         for sym in ("SPY", "QQQ", "TLT", "HYG", "BTC-USD", "GLD", "SLV", "VNQ"):
-            ser = frames.get(sym)
+            ser = assets.get(sym)
             if not ser:
                 continue
             r = fwd_returns(ser, d)
             if r:
                 moves[sym] = {"same_day": round(r["same_day"] * 100, 2) if r.get("same_day") is not None else None, "d1": round(r["d1"] * 100, 2) if r.get("d1") is not None else None,
-                              "partial": r.get("partial") or [], "calculation_inputs": r["calculation_inputs"]}
+                              "partial": r.get("partial") or []}
             else:
                 moves[sym] = {"same_day": None, "d1": None, "partial": [], "pending": True}
         v = verdicts.get(d) or {}
@@ -955,10 +981,10 @@ def lambda_handler(event, ctx):
     reactions, prediction, scoreboard, assets_note = None, [], [], ""
     try:
         assets = (load_assets(force=bool(event.get("assets"))) or {}).get("series") or {}
-        reactions = build_reactions(days_all, assets, latest_day or today, as_of=today)
+        reactions = build_reactions(days_all, assets, latest_day or today)
         today_classes = day_class(days[latest_day]["auctions"], days[latest_day]["buybacks"]) if latest_day else ["none"]
         prediction = predict_today(today_classes, reactions, assets)
-        scoreboard = realised_scoreboard(days_all, assets, day_list, verdicts, as_of=today)
+        scoreboard = realised_scoreboard(days_all, assets, day_list, verdicts)
         assets_note = "%d assets, %d graded auction days" % (len(assets), len([d for d in days_all if d < (latest_day or today)]))
     except Exception as e:
         assets_note = "reactions failed: %s" % str(e)[:140]
@@ -1046,13 +1072,10 @@ def lambda_handler(event, ctx):
         "reactions": {"prediction": prediction, "today_classes": today_classes, "class_labels": CLASS_LABEL, "scoreboard": scoreboard,
                       "stats": (reactions or {}).get("stats"), "baseline": (reactions or {}).get("baseline"), "n_events": (reactions or {}).get("n_events"),
                       "classification_contract": auction_participation.CONTRACT,
-                      "comparison_inputs": (reactions or {}).get("comparison_inputs"),
-                      "return_input_contract": auction_reactions.CONTRACT,
                       "classification_inputs": {d: auction_participation.classify(v["auctions"],v["buybacks"]) for d,v in days_all.items()},
                       "note": assets_note, "horizons": "same_day = prior close to auction-day close, not an auction-release response; d1/d5/d20 = observed bars after the auction day in each asset series; crypto trades 7 days",
                       "contract":"treasury-reaction-research.v1","partial_windows_excluded_from_distributions":True,
                       "price_lineage_verified":False,"original_response_replay_available":False,
-                      "supplied_input_replay_available": reactions is not None,
                       "same_day_clock":"PRIOR_CLOSE_TO_AUCTION_DAY_CLOSE",
                       "validation_scope":"DESCRIPTIVE_HISTORY_UNVERIFIED_PRICE_LINEAGE","decision_eligible":False,"sizing_eligible":False},
         "decision": {"role": "measurement", "call": None, "sizing_eligible": False,

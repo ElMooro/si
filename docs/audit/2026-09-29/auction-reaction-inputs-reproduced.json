@@ -1,0 +1,27 @@
+{
+  "scope": "Reviewed current checkout and isolated synthetic inputs only",
+  "source_commit": "99c36116a368559c02e1c833637a277a83e8a8e4",
+  "checked_at": "2026-09-29T12:00:13.321695+00:00",
+  "cases": {
+    "duplicate_date": {
+      "result_repr": "{'same_day': 0.010000000000000009, 'partial': [], 'd1': 1.0, 'd5': None, 'd20': None}"
+    },
+    "short_dates": {
+      "error": "IndexError",
+      "message": "list index out of range"
+    },
+    "negative_price": {
+      "result_repr": "{'same_day': -1.1, 'partial': [], 'd1': -3.0, 'd5': None, 'd20': None}"
+    },
+    "boolean_price": {
+      "result_repr": "{'same_day': 100.0, 'partial': [], 'd1': 0.00990099009900991, 'd5': None, 'd20': None}"
+    },
+    "nan_price": {
+      "result_repr": "{'same_day': nan, 'partial': [], 'd1': nan, 'd5': None, 'd20': None}"
+    },
+    "first_observation": {
+      "result_repr": "None"
+    }
+  },
+  "network_requests": 0
+}

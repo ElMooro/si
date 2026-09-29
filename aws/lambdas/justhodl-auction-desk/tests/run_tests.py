@@ -12,11 +12,12 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / 'aws/shared'))
 import auction_participation
+import auction_reactions
 from treasury_instruments import instrument_fields, comparable_cohort, nominal_par_eligible
 
 SRC = HERE.parent / 'source/lambda_function.py'
 tree = ast.parse(SRC.read_text(encoding='utf-8'))
-env = dict(auction_participation=auction_participation, bisect=bisect, json=json, math=math, statistics=statistics, datetime=datetime,
+env = dict(auction_reactions=auction_reactions,auction_participation=auction_participation, bisect=bisect, json=json, math=math, statistics=statistics, datetime=datetime,
            timedelta=timedelta, timezone=timezone, instrument_fields=instrument_fields,
            comparable_cohort=comparable_cohort, nominal_par_eligible=nominal_par_eligible,
            _PAR_DATES={}, TERM_TENOR={'10-Year': '10Y', '9-Year 10-Month': '10Y'})
@@ -135,14 +136,14 @@ def test_chart_cohorts_keep_tips_nominals_and_reopening_status_separate():
 
 
 def test_partial_endpoints_and_nonfinite_values_cannot_enter_conditional_stats():
-    original=env['fwd_returns']
-    env['fwd_returns']=lambda ser,d:{'same_day':.01,'d1':.02,'partial':['d1'] if d=='2026-09-15' else []}
+    original=env['_now']
+    env['_now']=lambda:datetime(2026,9,18,tzinfo=timezone.utc)
     try:
         ops={d:{'auctions':[{'type':'Bill','term':'4-Week','reopening':False,'instrument_kind':'BILL','instrument_contract':'treasury-instrument.v1','instrument_classification_status':'verified'}],'buybacks':[]} for d in ('2026-09-15','2026-09-16','2026-09-17')}
-        result=env['build_reactions'](ops,{'SPY':{}},'2026-09-18')
+        result=env['build_reactions'](ops,{'SPY':{'dates':['2026-09-14','2026-09-15','2026-09-16','2026-09-17','2026-09-18'],'closes':[100,101,102,103,104]}},'2026-09-18')
         assert result['baseline']['SPY']['d1']['n']==2 and result['stats']['bills_only']['SPY']['d1']['n']==2
         assert env['_dist']([.01,.02,float('nan'),float('inf'),True])['n']==2
-    finally:env['fwd_returns']=original
+    finally:env['_now']=original
 
 
 def test_conditional_history_cannot_grant_confidence_or_impute_missing_baseline():
