@@ -192,26 +192,17 @@ class Tests(unittest.TestCase):
         self.assertEqual(scope['out'],{})
 
     def test_actual_cross_asset_synthesis_preserves_context_without_authority(self):
-        # The active handler now uses the complete recorded composition compiler.
-        # Exercise that boundary, not an assignment in its removed predecessor.
-        spec=importlib.util.spec_from_file_location('tic_flow_state_fixture',ROOT/'tests/test_flow_state_model.py')
-        fixture_module=importlib.util.module_from_spec(spec);spec.loader.exec_module(fixture_module)
-        inputs,blobs,docs=fixture_module.fixture();model=fixture_module.m
-        ci=docs['data/capital-inflows.json'];out=model.compile_output(inputs,blobs.__getitem__)
-        result=out['foreign_flows'];self.assertEqual(result['regime'],'MONITOR_ONLY')
-        self.assertEqual(result['source_regime'],ci['regime'])
-        for field in ('by_asset_class','holder_splits','quality','replay'):
-            self.assertEqual(result[field],ci[field])
-        self.assertEqual(result['observation_date'],ci['data_asof'])
-        self.assertTrue(all(result[key] is False and out[key] is False for key in model.FLAGS))
-        self.assertEqual(out['independent_investment_votes'],0)
-        for flag in ('calls_eligible','sizing_eligible','execution_eligible','forecast_qualified'):
-            changed=copy.deepcopy(ci);changed[flag]=True;raw=model.encoded(changed)
-            key=model.PRIVATE+model.sha(raw)+'.bin';blobs[key]=raw
-            trial=copy.deepcopy(inputs)
-            trial['captures']['data/capital-inflows.json']['original']={'key':key,'sha256':model.sha(raw),'bytes':len(raw)}
-            with self.subTest(flag=flag),self.assertRaises(ValueError):
-                model.compile_output(trial,blobs.__getitem__)
+        import ast
+        source=(ROOT/'aws/lambdas/justhodl-cross-asset-flow-state/source/lambda_function.py').read_text(encoding='utf-8')
+        handler=next(v for v in ast.parse(source).body if isinstance(v,ast.FunctionDef) and v.name=='lambda_handler')
+        assignment=next(v for v in handler.body if isinstance(v,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='foreign' for t in v.targets))
+        ci={'regime':'SUDDEN_STOP','calls_eligible':True,'sizing_eligible':True,'data_asof':'2026-07-01',
+            'generated_at':AT,'by_asset_class':{'treasuries':{'latest_month_b':0}},'quality':{'status':'fresh'},'replay':{'manifest_key':'fixture'}}
+        scope={'ci':ci};exec(compile(ast.Module(body=[assignment],type_ignores=[]),'actual_cross_asset_tic_boundary','exec'),scope)
+        result=scope['foreign'];self.assertEqual(result['regime'],'MONITOR_ONLY');self.assertEqual(result['source_regime'],'SUDDEN_STOP')
+        self.assertFalse(result['calls_eligible']);self.assertFalse(result['sizing_eligible'])
+        self.assertEqual(result['by_asset_class'],ci['by_asset_class']);self.assertEqual(result['quality'],ci['quality'])
+        self.assertEqual(result['replay'],ci['replay']);self.assertEqual(result['observation_date'],ci['data_asof'])
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

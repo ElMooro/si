@@ -1,0 +1,112 @@
+{
+  "status": "complete_retained_original_candidate_accepted_not_natively_integrated",
+  "retained_source_proof": {
+    "status": "complete_tic_candidate_and_independent_arithmetic_passed",
+    "checked_at": "2026-09-29T03:18:17.600130+00:00",
+    "packet_sha256": "1f9699188cf64f869051da4dcef7a2d8f0cfe8119ed1c82ed52580f5ee909ef0",
+    "source_replay": {
+      "manifest_key": "data/tic-research/runs/592f5b67cf5a162200844ff7e62dd92e4a4556c7d0711368367d4e566418b43d.json",
+      "output_sha256": "c809ad8d16bf96e970ebcff76861fae932602f31af474955759d41c9d6420ab2"
+    },
+    "source_generated_at": "2026-09-26T14:06:28.126234+00:00",
+    "candidate_output_sha256": "ba1be2744731ebc3a4f8bd920a9d407f55b07e4abd223f7400084e7b327bef28",
+    "candidate_output_bytes": 120578,
+    "coverage": {
+      "archive_series_retained": 4260,
+      "core_series": 9,
+      "original_core_rows": 4381,
+      "retained_artifacts": 48,
+      "retained_uncompressed_bytes": 12425942,
+      "selected_original_occurrences": 120,
+      "complete_history_shards": 20
+    },
+    "independent_arithmetic": {
+      "contract": "tic-independent-arithmetic.v1",
+      "archive_series_retained": 4260,
+      "core_series_checked": 9,
+      "other_series_unqualified": 4251,
+      "native_rows": 4381,
+      "windows": 4530,
+      "incomplete_windows": 209,
+      "reconciliations": 998,
+      "unreconciled": 0,
+      "incomplete_reconciliations": 0,
+      "all_core_native_rows_checked": true,
+      "all_rolling_and_reconciliation_periods_checked": 499,
+      "fred_parity_independently_verified": false,
+      "release_calendar_independently_verified": false,
+      "historical_point_in_time_verified": false,
+      "predictive_edge_verified": false
+    },
+    "local_complete_candidate_seconds": 2.891,
+    "expiry_sensitivity_cutoff": "2026-09-27T17:06:28.126234+00:00",
+    "expired_current_use_withheld": true,
+    "historical_original_coordinates_unchanged": true,
+    "network_requests": 0,
+    "native_invocations": 0,
+    "private_reads": 0,
+    "current_consumer_reads": 0,
+    "calls_integrated": false,
+    "native_capacity_verified": false
+  },
+  "independent_arithmetic_proof": {
+    "checked_at": "2026-09-29T03:18:11.169804+00:00",
+    "independent_arithmetic": {
+      "contract": "tic-independent-arithmetic.v1",
+      "archive_series_retained": 4260,
+      "core_series_checked": 9,
+      "other_series_unqualified": 4251,
+      "native_rows": 4381,
+      "windows": 4530,
+      "incomplete_windows": 209,
+      "reconciliations": 998,
+      "unreconciled": 0,
+      "incomplete_reconciliations": 0,
+      "all_core_native_rows_checked": true,
+      "all_rolling_and_reconciliation_periods_checked": 499,
+      "fred_parity_independently_verified": false,
+      "release_calendar_independently_verified": false,
+      "historical_point_in_time_verified": false,
+      "predictive_edge_verified": false
+    },
+    "checker_sha256": "0d49b61676a0330016b857c5caed27198a07e2034cb4eeba60414de7c661a0ac",
+    "source_replay": {
+      "manifest_key": "data/tic-research/runs/592f5b67cf5a162200844ff7e62dd92e4a4556c7d0711368367d4e566418b43d.json",
+      "output_sha256": "c809ad8d16bf96e970ebcff76861fae932602f31af474955759d41c9d6420ab2"
+    },
+    "local_parse_and_check_seconds": 0.969,
+    "original_member_sha256": "1192aac2685115c13a08487c4e4390fb159b6a0a8958e4289e85b2dd63cdc4df",
+    "network_requests": 0,
+    "native_invocations": 0,
+    "current_consumer_reads": 0,
+    "private_reads": 0,
+    "native_capacity_verified": false
+  },
+  "candidate_output_artifact": "docs/audit/2026-09-29/calls-tic-original-candidate-output.json",
+  "validation": {
+    "candidate_regression_groups": 12,
+    "native_tic_regressions": 21,
+    "current_cross_asset_regressions": 37,
+    "deployment_static": 579,
+    "candidate_shell": 12
+  },
+  "compiler_sources": {
+    "scripts/verify_tic_arithmetic.py": "0d49b61676a0330016b857c5caed27198a07e2034cb4eeba60414de7c661a0ac",
+    "aws/ops/checks/calls_tic_lineage.py": "830073c90aefaf0b6da46dc47a8713128cb97d704bf8d4e91c076c32ffc04a4a"
+  },
+  "complete_predecessor": {
+    "source": "aws/lambdas/justhodl-capital-inflows/tests/test_originals.py",
+    "fixture": "tests/fixtures/pre-calls-tic-lineage-capital-inflows-test-originals.py.txt",
+    "bytes": 15784,
+    "sha256": "0b3cf52aa855dd6428acc14bdc4707ad83492bd7d244b579aee8a874d77c147a"
+  },
+  "limitations": [
+    "This stage changes validation tooling and a stale test, not native producer code or a page. No new native publication is claimed.",
+    "All 4260 native series remain in the complete archive; only nine core transaction series qualify here. Retaining the other 4251 series does not validate them.",
+    "All 4381 core rows, 4530 windows and 998 component reconciliations are independently checked; 209 early incomplete windows remain unavailable.",
+    "FRED distribution parity and the release calendar are replayed by the native compiler, not independently certified by the arithmetic checker. Neither retrieval dates nor nominal calendar dates establish historical publication availability.",
+    "Local time and process memory do not establish native AWS capacity. This candidate has no Calls, forecast, sizing, execution or publication authority.",
+    "No private or current-consumer read, provider acquisition, manual native invocation, schedule change, paid API or message occurred.",
+    "All ten platform workstreams remain open. Next: bounded original-source integration into Calls and ordinary scheduled execution acceptance."
+  ]
+}
