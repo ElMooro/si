@@ -389,10 +389,6 @@ footer a:hover{color:var(--cyan)}
 .auction-score-trace pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; max-height:280px; overflow:auto; }
 #auctions-tbl td { vertical-align:top; }
 .auction-population-note { color:var(--fg2); font-size:12px; line-height:1.6; margin:0 0 14px; }
-.reference-inputs summary { cursor:pointer; color:var(--fg2); font-size:12px; }
-.reference-inputs summary:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
-.reference-inputs > div { max-height:400px; overflow:auto; }
-.hist-card p { font-size:12px; line-height:1.6; color:var(--fg2); }
 </style>
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
@@ -526,8 +522,8 @@ footer a:hover{color:var(--cyan)}
 
   <!-- Historical analog -->
   <div class="section-hdr">
-    <h3>Historical Comparison Eligibility</h3>
-    <div class="sub">Comparable original observations and dated outcomes are required</div>
+    <h3>Historical Analog Match</h3>
+    <div class="sub">Cosine similarity of current 6D crisis vector vs 9 anchor crises</div>
     <div class="badge ai">Research context</div>
   </div>
   <div class="analog-card" id="analog-card">
@@ -640,7 +636,7 @@ footer a:hover{color:var(--cyan)}
   <!-- Historical reference -->
   <div class="section-hdr">
     <h3>Historical Reference</h3>
-    <div class="sub">Legacy declarations in source order · unverified security identities and outcomes</div>
+    <div class="sub">10 historical comparison auctions; not a calibration sample</div>
   </div>
   <div id="hist-grid" class="hist-grid"></div>
 
@@ -659,7 +655,7 @@ footer a:hover{color:var(--cyan)}
     <p><strong>6. Bill issuance explosion.</strong> The legacy overlay compares average bill amounts per auction day over overlapping windows. It is not a net liquidity injection or a validated stress predictor; the methodology still requires revision.</p>
     <p><strong>Tenor decomposition.</strong> Per-bucket (bills_lt_90d, bills_gte_90d, coupons_lt_3y, coupons_gt_3y, tips, frn) composite + rank + dominant signal. Identifies WHERE stress concentrates.</p>
     <p><strong>Forward calendar.</strong> Next 30 days pulled from TreasuryDirect. Uncalibrated per-auction score = 50% own-tenor stress + 25% cross-tenor contagion + 25% size shock, scaled by time-decay (1.0 ≤3d, 0.55 21-30d).</p>
-    <p><strong>Historical analog matching.</strong> The legacy entries lack verified original security observations, comparable feature definitions and dated outcome series. Similarity and ranking are withheld. Every declared field and narrative remains inspectable as unverified source input.</p>
+    <p><strong>Historical analog matching.</strong> Current crisis vector (6D: zero_rate, btc, tail, pd, indirect, issuance) cosine-similarity vs each of 10 legacy reference auctions. Top match + "what happened next" provides historical context, not a validated forward forecast.</p>
     <p><strong>Concern scores.</strong> Uncalibrated 0–100 heuristics for auction participation, regime thresholds and supply context. These are not event probabilities; the legacy horizons have not been validated.</p>
     <p><strong>Separate commentary input.</strong> The legacy commentary packet remains available for inspection. Its narrative, predictions and investment instructions are withheld from this view because complete source replay and predictive validation are not established. This page makes no AI API calls.</p>
     <p class="footer-note">Composite formula: 70% × max-indicator + 30% × avg-indicator, weighted by accepted size over trailing 14 days. Every required feature must be observed for an auction score. Missing weights or incomplete positive-weight scores withhold the window; explicit zero amount contributes zero. All acquired observations, including FRNs without a comparable score baseline, remain in the population. High-minus-median dispersion is separate from a when-issued tail, which remains unavailable without an actual WI quote. Issuance-explosion adds up to 15 points overlay.</p>
@@ -685,7 +681,7 @@ footer a:hover{color:var(--cyan)}
 
 <script src="/jh-auction-originals.js?v=20260929" defer></script>
 <script src="/jh-auction-fred-evidence.js?v=20260929-fred-v1" defer></script>
-<script src="/auction-crisis.js?t=20260929-reference-catalog" defer></script>
+<script src="/auction-crisis.js?t=20260929-score-completeness" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

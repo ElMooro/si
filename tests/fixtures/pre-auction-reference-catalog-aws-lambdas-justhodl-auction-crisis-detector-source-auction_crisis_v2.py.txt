@@ -12,9 +12,10 @@ Adds 7 NEW analytical layers on top of the existing 6-indicator engine:
        state + cross-tenor patterns + size vs trailing avg
 
   3. HISTORICAL ANALOG MATCHING
-       Preserve every legacy reference and narrative as unverified input.
-       No similarity or ranking is available without comparable original
-       security observations, feature definitions and dated outcome series.
+       Convert current indicator vector to a 6D point in crisis-space,
+       compute cosine similarity with each of the 9 anchor crises.
+       Returns top-3 matches with similarity scores (0-1) and what each
+       anchor preceded historically.
 
   4. CROSS-SIGNALS FROM FRED
        Dated context from five reported FRED series; no independent
@@ -50,7 +51,6 @@ from auction_scoring import numeric
 import auction_benchmarks
 import auction_forward
 import auction_concerns
-import auction_reference_catalog
 import auction_cross_observations
 import auction_fred_originals
 from copy import deepcopy
@@ -312,10 +312,11 @@ def build_indicator_vector(scored_auctions: List[dict], window_days: int = 14) -
 
 
 def anchor_vector(anchor: dict) -> List[float]:
-    """Preserved legacy mapping; not used by the native reference catalog.
+    """Derive an equivalent 6D vector for a historical anchor crisis.
 
-    This mapping is incompatible with the actual instrument-specific primitive.
-    Its implicit zeroes and mixed quote bases do not define comparable evidence.
+    Uses the simple historical-references (CRISIS_REFERENCE) which only
+    contain the directly-observed metrics. We map those to indicator-equivalent
+    severity using the same logic as score_indicators (simplified).
     """
     btc = anchor.get("btc")
     low_rate = anchor.get("low_rate")
@@ -384,13 +385,45 @@ def find_historical_analogs(scored_auctions: List[dict],
                               crisis_reference: List[dict],
                               issuance_score: float = None,
                               top_n: int = 3) -> List[dict]:
-    """Retain every legacy entry; unverified anchors cannot supply a ranking."""
+    """Find top-N historical crisis analogs to current posture."""
     current_vec = build_indicator_vector(scored_auctions, window_days=14)
     current_vec[5] = numeric(issuance_score)
-    out = auction_reference_catalog.build(crisis_reference, ANALOG_OUTCOMES,
-                                         current_vec, datetime.now(timezone.utc).date())
-    out['legacy_requested_top_n'] = top_n  # compatibility only; never grants a ranking
-    return out
+    complete_vector = all(numeric(value) is not None and 0 <= value <= 100 for value in current_vec)
+
+    matches = []
+    for anchor in crisis_reference:
+        a_vec = anchor_vector(anchor)
+        sim = cosine_similarity(current_vec, a_vec) if complete_vector else None
+        outcome = ANALOG_OUTCOMES.get(anchor.get("date"), {})
+        matches.append({
+            "date":         anchor.get("date"),
+            "regime":       anchor.get("regime"),
+            "similarity":   round(sim, 4) if sim is not None else None,
+            "anchor_vec":   [round(x, 1) for x in a_vec],
+            "anchor_metrics": {
+                "btc":             anchor.get("btc"),
+                "low_rate":        anchor.get("low_rate"),
+                "aah":             anchor.get("aah"),
+                "pd_share_pct":    anchor.get("pd_share_pct"),
+                "indirect_share_pct": anchor.get("indirect_share_pct"),
+            },
+            "context":      outcome.get("context", ""),
+            "what_happened_next": outcome.get("what_next", ""),
+            "duration":     outcome.get("duration", ""),
+        })
+
+    if complete_vector:
+        matches.sort(key=lambda x: x["similarity"], reverse=True)
+
+    return {
+        "current_vector":   [round(x, 1) if x is not None else None for x in current_vec],
+        "status": "unqualified_legacy_comparison" if complete_vector else "incomplete_current_features",
+        "calls_eligible": False, "sizing_eligible": False,
+        "vector_labels":    ["zero_rate_floor", "btc_extreme", "tail_stress",
+                              "pd_absorption", "indirect_collapse", "issuance_anomaly"],
+        "top_matches":      matches[:top_n] if complete_vector else [],
+        "all_matches":      matches,
+    }
 
 
 # ═════════════════════════════════════════════════════════════════════

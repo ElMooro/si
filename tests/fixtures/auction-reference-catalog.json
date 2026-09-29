@@ -1,0 +1,3611 @@
+{
+  "synthetic_only": true,
+  "calculation_as_of": "2026-09-29",
+  "compiler": "aws/shared/auction_reference_catalog.py",
+  "cases": {
+    "complete_zero": {
+      "contract": "auction-reference-catalog.v1",
+      "status": "unverified_legacy_catalog",
+      "calculation_as_of": "2026-09-29",
+      "reference_count": 10,
+      "current_vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "vector_labels": [
+        "zero_rate_floor",
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse",
+        "issuance_anomaly"
+      ],
+      "current_vector_status": "complete_unqualified",
+      "current_feature_unit": "score_0_100",
+      "top_matches": [],
+      "all_matches": [
+        {
+          "entry_id": "legacy-reference-001",
+          "occurrence": 1,
+          "date": "2008-09-17",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_narrative": {
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-002",
+          "occurrence": 2,
+          "date": "2008-09-18",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_reference": {
+            "date": "2008-09-18",
+            "regime": "GFC_PEAK",
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_narrative": {
+            "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+            "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+            "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-003",
+          "occurrence": 3,
+          "date": "2008-09-23",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-23",
+            "regime": "GFC_PEAK",
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_narrative": {
+            "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+            "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+            "duration": "Bill stress lasted ~4 months."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-004",
+          "occurrence": 4,
+          "date": "2008-10-08",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_reference": {
+            "date": "2008-10-08",
+            "regime": "GFC_PEAK",
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_narrative": {
+            "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+            "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+            "duration": "Real yield distortion persisted into 2010."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-005",
+          "occurrence": 5,
+          "date": "2020-03-11",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_reference": {
+            "date": "2020-03-11",
+            "regime": "COVID_CRASH",
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_narrative": {
+            "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+            "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+            "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-006",
+          "occurrence": 6,
+          "date": "2020-03-19",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_reference": {
+            "date": "2020-03-19",
+            "regime": "COVID_CRASH",
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_narrative": {
+            "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+            "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+            "duration": "Acute for 3 weeks, then explosive recovery."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-007",
+          "occurrence": 7,
+          "date": "2020-03-26",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_BAZOOKA",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_reference": {
+            "date": "2020-03-26",
+            "regime": "COVID_BAZOOKA",
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_narrative": {
+            "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+            "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+            "duration": "Stampede pattern lasted ~6 weeks."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-008",
+          "occurrence": 8,
+          "date": "2021-10-21",
+          "date_status": "valid_declared_date",
+          "regime": "COMPLACENCY",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_reference": {
+            "date": "2021-10-21",
+            "regime": "COMPLACENCY",
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_narrative": {
+            "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+            "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+            "duration": "Inflation regime + tightening cycle began Jan 2022."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-009",
+          "occurrence": 9,
+          "date": "2024-04-10",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_reference": {
+            "date": "2024-04-10",
+            "regime": "NORMAL",
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_narrative": {
+            "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+            "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+            "duration": "Multi-quarter normal regime."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-010",
+          "occurrence": 10,
+          "date": "2024-10-09",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_reference": {
+            "date": "2024-10-09",
+            "regime": "NORMAL",
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_narrative": {
+            "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+            "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+            "duration": "Normal regime persisted."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        }
+      ],
+      "ranking_eligible": false,
+      "similarity_metric": null,
+      "missing_verification": [
+        "original_source_unverified",
+        "security_identity_unverified",
+        "quote_basis_unverified",
+        "policy_context_unverified",
+        "feature_mapping_incomparable",
+        "issuance_context_missing",
+        "outcome_series_unverified",
+        "independent_validation_unavailable"
+      ],
+      "interpretation": "Historical similarity is unavailable. These are legacy declarations without verified original security observations, comparable features or dated outcome measurements. Catalog order is source order, never a stress ranking.",
+      "legacy_narratives": {
+        "2008-09-17": {
+          "context": "Day after Lehman bankruptcy. Money markets seized.",
+          "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+          "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+        },
+        "2008-09-18": {
+          "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+          "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+          "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+        },
+        "2008-09-23": {
+          "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+          "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+          "duration": "Bill stress lasted ~4 months."
+        },
+        "2008-10-08": {
+          "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+          "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+          "duration": "Real yield distortion persisted into 2010."
+        },
+        "2020-03-11": {
+          "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+          "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+          "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+        },
+        "2020-03-19": {
+          "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+          "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+          "duration": "Acute for 3 weeks, then explosive recovery."
+        },
+        "2020-03-26": {
+          "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+          "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+          "duration": "Stampede pattern lasted ~6 weeks."
+        },
+        "2021-10-21": {
+          "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+          "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+          "duration": "Inflation regime + tightening cycle began Jan 2022."
+        },
+        "2024-04-10": {
+          "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+          "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+          "duration": "Multi-quarter normal regime."
+        },
+        "2024-10-09": {
+          "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+          "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+          "duration": "Normal regime persisted."
+        }
+      },
+      "source_capture_verified": false,
+      "instrument_comparability_verified": false,
+      "outcome_measurement_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false
+    },
+    "complete_nonzero": {
+      "contract": "auction-reference-catalog.v1",
+      "status": "unverified_legacy_catalog",
+      "calculation_as_of": "2026-09-29",
+      "reference_count": 10,
+      "current_vector": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "vector_labels": [
+        "zero_rate_floor",
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse",
+        "issuance_anomaly"
+      ],
+      "current_vector_status": "complete_unqualified",
+      "current_feature_unit": "score_0_100",
+      "top_matches": [],
+      "all_matches": [
+        {
+          "entry_id": "legacy-reference-001",
+          "occurrence": 1,
+          "date": "2008-09-17",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_narrative": {
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-002",
+          "occurrence": 2,
+          "date": "2008-09-18",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_reference": {
+            "date": "2008-09-18",
+            "regime": "GFC_PEAK",
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_narrative": {
+            "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+            "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+            "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-003",
+          "occurrence": 3,
+          "date": "2008-09-23",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-23",
+            "regime": "GFC_PEAK",
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_narrative": {
+            "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+            "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+            "duration": "Bill stress lasted ~4 months."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-004",
+          "occurrence": 4,
+          "date": "2008-10-08",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_reference": {
+            "date": "2008-10-08",
+            "regime": "GFC_PEAK",
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_narrative": {
+            "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+            "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+            "duration": "Real yield distortion persisted into 2010."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-005",
+          "occurrence": 5,
+          "date": "2020-03-11",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_reference": {
+            "date": "2020-03-11",
+            "regime": "COVID_CRASH",
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_narrative": {
+            "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+            "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+            "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-006",
+          "occurrence": 6,
+          "date": "2020-03-19",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_reference": {
+            "date": "2020-03-19",
+            "regime": "COVID_CRASH",
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_narrative": {
+            "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+            "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+            "duration": "Acute for 3 weeks, then explosive recovery."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-007",
+          "occurrence": 7,
+          "date": "2020-03-26",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_BAZOOKA",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_reference": {
+            "date": "2020-03-26",
+            "regime": "COVID_BAZOOKA",
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_narrative": {
+            "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+            "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+            "duration": "Stampede pattern lasted ~6 weeks."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-008",
+          "occurrence": 8,
+          "date": "2021-10-21",
+          "date_status": "valid_declared_date",
+          "regime": "COMPLACENCY",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_reference": {
+            "date": "2021-10-21",
+            "regime": "COMPLACENCY",
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_narrative": {
+            "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+            "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+            "duration": "Inflation regime + tightening cycle began Jan 2022."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-009",
+          "occurrence": 9,
+          "date": "2024-04-10",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_reference": {
+            "date": "2024-04-10",
+            "regime": "NORMAL",
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_narrative": {
+            "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+            "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+            "duration": "Multi-quarter normal regime."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-010",
+          "occurrence": 10,
+          "date": "2024-10-09",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_reference": {
+            "date": "2024-10-09",
+            "regime": "NORMAL",
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_narrative": {
+            "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+            "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+            "duration": "Normal regime persisted."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        }
+      ],
+      "ranking_eligible": false,
+      "similarity_metric": null,
+      "missing_verification": [
+        "original_source_unverified",
+        "security_identity_unverified",
+        "quote_basis_unverified",
+        "policy_context_unverified",
+        "feature_mapping_incomparable",
+        "issuance_context_missing",
+        "outcome_series_unverified",
+        "independent_validation_unavailable"
+      ],
+      "interpretation": "Historical similarity is unavailable. These are legacy declarations without verified original security observations, comparable features or dated outcome measurements. Catalog order is source order, never a stress ranking.",
+      "legacy_narratives": {
+        "2008-09-17": {
+          "context": "Day after Lehman bankruptcy. Money markets seized.",
+          "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+          "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+        },
+        "2008-09-18": {
+          "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+          "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+          "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+        },
+        "2008-09-23": {
+          "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+          "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+          "duration": "Bill stress lasted ~4 months."
+        },
+        "2008-10-08": {
+          "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+          "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+          "duration": "Real yield distortion persisted into 2010."
+        },
+        "2020-03-11": {
+          "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+          "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+          "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+        },
+        "2020-03-19": {
+          "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+          "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+          "duration": "Acute for 3 weeks, then explosive recovery."
+        },
+        "2020-03-26": {
+          "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+          "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+          "duration": "Stampede pattern lasted ~6 weeks."
+        },
+        "2021-10-21": {
+          "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+          "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+          "duration": "Inflation regime + tightening cycle began Jan 2022."
+        },
+        "2024-04-10": {
+          "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+          "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+          "duration": "Multi-quarter normal regime."
+        },
+        "2024-10-09": {
+          "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+          "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+          "duration": "Normal regime persisted."
+        }
+      },
+      "source_capture_verified": false,
+      "instrument_comparability_verified": false,
+      "outcome_measurement_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false
+    },
+    "missing": {
+      "contract": "auction-reference-catalog.v1",
+      "status": "unverified_legacy_catalog",
+      "calculation_as_of": "2026-09-29",
+      "reference_count": 10,
+      "current_vector": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "vector_labels": [
+        "zero_rate_floor",
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse",
+        "issuance_anomaly"
+      ],
+      "current_vector_status": "incomplete",
+      "current_feature_unit": "score_0_100",
+      "top_matches": [],
+      "all_matches": [
+        {
+          "entry_id": "legacy-reference-001",
+          "occurrence": 1,
+          "date": "2008-09-17",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_narrative": {
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-002",
+          "occurrence": 2,
+          "date": "2008-09-18",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_reference": {
+            "date": "2008-09-18",
+            "regime": "GFC_PEAK",
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_narrative": {
+            "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+            "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+            "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-003",
+          "occurrence": 3,
+          "date": "2008-09-23",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-23",
+            "regime": "GFC_PEAK",
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_narrative": {
+            "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+            "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+            "duration": "Bill stress lasted ~4 months."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-004",
+          "occurrence": 4,
+          "date": "2008-10-08",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_reference": {
+            "date": "2008-10-08",
+            "regime": "GFC_PEAK",
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_narrative": {
+            "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+            "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+            "duration": "Real yield distortion persisted into 2010."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-005",
+          "occurrence": 5,
+          "date": "2020-03-11",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_reference": {
+            "date": "2020-03-11",
+            "regime": "COVID_CRASH",
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_narrative": {
+            "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+            "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+            "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-006",
+          "occurrence": 6,
+          "date": "2020-03-19",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_reference": {
+            "date": "2020-03-19",
+            "regime": "COVID_CRASH",
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_narrative": {
+            "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+            "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+            "duration": "Acute for 3 weeks, then explosive recovery."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-007",
+          "occurrence": 7,
+          "date": "2020-03-26",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_BAZOOKA",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_reference": {
+            "date": "2020-03-26",
+            "regime": "COVID_BAZOOKA",
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_narrative": {
+            "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+            "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+            "duration": "Stampede pattern lasted ~6 weeks."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-008",
+          "occurrence": 8,
+          "date": "2021-10-21",
+          "date_status": "valid_declared_date",
+          "regime": "COMPLACENCY",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_reference": {
+            "date": "2021-10-21",
+            "regime": "COMPLACENCY",
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_narrative": {
+            "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+            "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+            "duration": "Inflation regime + tightening cycle began Jan 2022."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-009",
+          "occurrence": 9,
+          "date": "2024-04-10",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_reference": {
+            "date": "2024-04-10",
+            "regime": "NORMAL",
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_narrative": {
+            "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+            "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+            "duration": "Multi-quarter normal regime."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-010",
+          "occurrence": 10,
+          "date": "2024-10-09",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_reference": {
+            "date": "2024-10-09",
+            "regime": "NORMAL",
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_narrative": {
+            "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+            "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+            "duration": "Normal regime persisted."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        }
+      ],
+      "ranking_eligible": false,
+      "similarity_metric": null,
+      "missing_verification": [
+        "original_source_unverified",
+        "security_identity_unverified",
+        "quote_basis_unverified",
+        "policy_context_unverified",
+        "feature_mapping_incomparable",
+        "issuance_context_missing",
+        "outcome_series_unverified",
+        "independent_validation_unavailable"
+      ],
+      "interpretation": "Historical similarity is unavailable. These are legacy declarations without verified original security observations, comparable features or dated outcome measurements. Catalog order is source order, never a stress ranking.",
+      "legacy_narratives": {
+        "2008-09-17": {
+          "context": "Day after Lehman bankruptcy. Money markets seized.",
+          "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+          "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+        },
+        "2008-09-18": {
+          "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+          "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+          "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+        },
+        "2008-09-23": {
+          "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+          "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+          "duration": "Bill stress lasted ~4 months."
+        },
+        "2008-10-08": {
+          "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+          "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+          "duration": "Real yield distortion persisted into 2010."
+        },
+        "2020-03-11": {
+          "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+          "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+          "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+        },
+        "2020-03-19": {
+          "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+          "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+          "duration": "Acute for 3 weeks, then explosive recovery."
+        },
+        "2020-03-26": {
+          "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+          "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+          "duration": "Stampede pattern lasted ~6 weeks."
+        },
+        "2021-10-21": {
+          "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+          "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+          "duration": "Inflation regime + tightening cycle began Jan 2022."
+        },
+        "2024-04-10": {
+          "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+          "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+          "duration": "Multi-quarter normal regime."
+        },
+        "2024-10-09": {
+          "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+          "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+          "duration": "Normal regime persisted."
+        }
+      },
+      "source_capture_verified": false,
+      "instrument_comparability_verified": false,
+      "outcome_measurement_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false
+    },
+    "empty": {
+      "contract": "auction-reference-catalog.v1",
+      "status": "empty",
+      "calculation_as_of": "2026-09-29",
+      "reference_count": 0,
+      "current_vector": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "vector_labels": [
+        "zero_rate_floor",
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse",
+        "issuance_anomaly"
+      ],
+      "current_vector_status": "incomplete",
+      "current_feature_unit": "score_0_100",
+      "top_matches": [],
+      "all_matches": [],
+      "ranking_eligible": false,
+      "similarity_metric": null,
+      "missing_verification": [
+        "original_source_unverified",
+        "security_identity_unverified",
+        "quote_basis_unverified",
+        "policy_context_unverified",
+        "feature_mapping_incomparable",
+        "issuance_context_missing",
+        "outcome_series_unverified",
+        "independent_validation_unavailable"
+      ],
+      "interpretation": "Historical similarity is unavailable. These are legacy declarations without verified original security observations, comparable features or dated outcome measurements. Catalog order is source order, never a stress ranking.",
+      "legacy_narratives": {},
+      "source_capture_verified": false,
+      "instrument_comparability_verified": false,
+      "outcome_measurement_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false
+    },
+    "duplicate": {
+      "contract": "auction-reference-catalog.v1",
+      "status": "unverified_legacy_catalog",
+      "calculation_as_of": "2026-09-29",
+      "reference_count": 11,
+      "current_vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "vector_labels": [
+        "zero_rate_floor",
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse",
+        "issuance_anomaly"
+      ],
+      "current_vector_status": "complete_unqualified",
+      "current_feature_unit": "score_0_100",
+      "top_matches": [],
+      "all_matches": [
+        {
+          "entry_id": "legacy-reference-001",
+          "occurrence": 1,
+          "date": "2008-09-17",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_narrative": {
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-002",
+          "occurrence": 2,
+          "date": "2008-09-17",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-17",
+            "regime": "GFC_PEAK",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_narrative": {
+            "context": "Day after Lehman bankruptcy. Money markets seized.",
+            "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+            "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-003",
+          "occurrence": 3,
+          "date": "2008-09-18",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_reference": {
+            "date": "2008-09-18",
+            "regime": "GFC_PEAK",
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_narrative": {
+            "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+            "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+            "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-004",
+          "occurrence": 4,
+          "date": "2008-09-23",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-23",
+            "regime": "GFC_PEAK",
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_narrative": {
+            "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+            "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+            "duration": "Bill stress lasted ~4 months."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-005",
+          "occurrence": 5,
+          "date": "2008-10-08",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_reference": {
+            "date": "2008-10-08",
+            "regime": "GFC_PEAK",
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_narrative": {
+            "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+            "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+            "duration": "Real yield distortion persisted into 2010."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-006",
+          "occurrence": 6,
+          "date": "2020-03-11",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_reference": {
+            "date": "2020-03-11",
+            "regime": "COVID_CRASH",
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_narrative": {
+            "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+            "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+            "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-007",
+          "occurrence": 7,
+          "date": "2020-03-19",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_reference": {
+            "date": "2020-03-19",
+            "regime": "COVID_CRASH",
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_narrative": {
+            "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+            "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+            "duration": "Acute for 3 weeks, then explosive recovery."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-008",
+          "occurrence": 8,
+          "date": "2020-03-26",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_BAZOOKA",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_reference": {
+            "date": "2020-03-26",
+            "regime": "COVID_BAZOOKA",
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_narrative": {
+            "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+            "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+            "duration": "Stampede pattern lasted ~6 weeks."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-009",
+          "occurrence": 9,
+          "date": "2021-10-21",
+          "date_status": "valid_declared_date",
+          "regime": "COMPLACENCY",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_reference": {
+            "date": "2021-10-21",
+            "regime": "COMPLACENCY",
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_narrative": {
+            "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+            "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+            "duration": "Inflation regime + tightening cycle began Jan 2022."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-010",
+          "occurrence": 10,
+          "date": "2024-04-10",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_reference": {
+            "date": "2024-04-10",
+            "regime": "NORMAL",
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_narrative": {
+            "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+            "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+            "duration": "Multi-quarter normal regime."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-011",
+          "occurrence": 11,
+          "date": "2024-10-09",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_reference": {
+            "date": "2024-10-09",
+            "regime": "NORMAL",
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_narrative": {
+            "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+            "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+            "duration": "Normal regime persisted."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        }
+      ],
+      "ranking_eligible": false,
+      "similarity_metric": null,
+      "missing_verification": [
+        "original_source_unverified",
+        "security_identity_unverified",
+        "quote_basis_unverified",
+        "policy_context_unverified",
+        "feature_mapping_incomparable",
+        "issuance_context_missing",
+        "outcome_series_unverified",
+        "independent_validation_unavailable"
+      ],
+      "interpretation": "Historical similarity is unavailable. These are legacy declarations without verified original security observations, comparable features or dated outcome measurements. Catalog order is source order, never a stress ranking.",
+      "legacy_narratives": {
+        "2008-09-17": {
+          "context": "Day after Lehman bankruptcy. Money markets seized.",
+          "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+          "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+        },
+        "2008-09-18": {
+          "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+          "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+          "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+        },
+        "2008-09-23": {
+          "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+          "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+          "duration": "Bill stress lasted ~4 months."
+        },
+        "2008-10-08": {
+          "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+          "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+          "duration": "Real yield distortion persisted into 2010."
+        },
+        "2020-03-11": {
+          "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+          "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+          "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+        },
+        "2020-03-19": {
+          "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+          "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+          "duration": "Acute for 3 weeks, then explosive recovery."
+        },
+        "2020-03-26": {
+          "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+          "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+          "duration": "Stampede pattern lasted ~6 weeks."
+        },
+        "2021-10-21": {
+          "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+          "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+          "duration": "Inflation regime + tightening cycle began Jan 2022."
+        },
+        "2024-04-10": {
+          "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+          "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+          "duration": "Multi-quarter normal regime."
+        },
+        "2024-10-09": {
+          "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+          "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+          "duration": "Normal regime persisted."
+        }
+      },
+      "source_capture_verified": false,
+      "instrument_comparability_verified": false,
+      "outcome_measurement_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false
+    },
+    "invalid": {
+      "contract": "auction-reference-catalog.v1",
+      "status": "unverified_legacy_catalog",
+      "calculation_as_of": "2026-09-29",
+      "reference_count": 10,
+      "current_vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "vector_labels": [
+        "zero_rate_floor",
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse",
+        "issuance_anomaly"
+      ],
+      "current_vector_status": "complete_unqualified",
+      "current_feature_unit": "score_0_100",
+      "top_matches": [],
+      "all_matches": [
+        {
+          "entry_id": "legacy-reference-001",
+          "occurrence": 1,
+          "date": "<img src=x>",
+          "date_status": "invalid_declared_date",
+          "regime": "<script>alert(1)</script>",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_reference": {
+            "date": "<img src=x>",
+            "regime": "<script>alert(1)</script>",
+            "btc": 2.45,
+            "low_rate": 0.0,
+            "aah": 83.72,
+            "pd_share_pct": 46.7,
+            "indirect_share_pct": 51.1
+          },
+          "legacy_narrative": {},
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-002",
+          "occurrence": 2,
+          "date": "2008-09-18",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_reference": {
+            "date": "2008-09-18",
+            "regime": "GFC_PEAK",
+            "btc": 2.16,
+            "low_rate": 0.0,
+            "aah": 76.68,
+            "pd_share_pct": 69.0,
+            "indirect_share_pct": 29.3
+          },
+          "legacy_narrative": {
+            "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+            "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+            "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-003",
+          "occurrence": 3,
+          "date": "2008-09-23",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_reference": {
+            "date": "2008-09-23",
+            "regime": "GFC_PEAK",
+            "btc": 2.86,
+            "low_rate": 0.0,
+            "aah": 6.92,
+            "pd_share_pct": 52.1,
+            "indirect_share_pct": 47.1
+          },
+          "legacy_narrative": {
+            "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+            "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+            "duration": "Bill stress lasted ~4 months."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-004",
+          "occurrence": 4,
+          "date": "2008-10-08",
+          "date_status": "valid_declared_date",
+          "regime": "GFC_PEAK",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_reference": {
+            "date": "2008-10-08",
+            "regime": "GFC_PEAK",
+            "btc": 2.22,
+            "low_rate": 2.359,
+            "aah": 73.9,
+            "pd_share_pct": 52.4,
+            "indirect_share_pct": 47.5
+          },
+          "legacy_narrative": {
+            "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+            "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+            "duration": "Real yield distortion persisted into 2010."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-005",
+          "occurrence": 5,
+          "date": "2020-03-11",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_reference": {
+            "date": "2020-03-11",
+            "regime": "COVID_CRASH",
+            "btc": 2.36,
+            "low_rate": 0.08,
+            "aah": 74.94,
+            "pd_share_pct": 29.8,
+            "indirect_share_pct": 61.0
+          },
+          "legacy_narrative": {
+            "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+            "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+            "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-006",
+          "occurrence": 6,
+          "date": "2020-03-19",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_CRASH",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_reference": {
+            "date": "2020-03-19",
+            "regime": "COVID_CRASH",
+            "btc": 2.91,
+            "low_rate": 0.0,
+            "aah": 53.83,
+            "pd_share_pct": 41.8,
+            "indirect_share_pct": 46.4
+          },
+          "legacy_narrative": {
+            "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+            "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+            "duration": "Acute for 3 weeks, then explosive recovery."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-007",
+          "occurrence": 7,
+          "date": "2020-03-26",
+          "date_status": "valid_declared_date",
+          "regime": "COVID_BAZOOKA",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_reference": {
+            "date": "2020-03-26",
+            "regime": "COVID_BAZOOKA",
+            "btc": 4.74,
+            "low_rate": 0.0,
+            "aah": 28.74,
+            "pd_share_pct": 44.3,
+            "indirect_share_pct": 51.3
+          },
+          "legacy_narrative": {
+            "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+            "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+            "duration": "Stampede pattern lasted ~6 weeks."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-008",
+          "occurrence": 8,
+          "date": "2021-10-21",
+          "date_status": "valid_declared_date",
+          "regime": "COMPLACENCY",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_reference": {
+            "date": "2021-10-21",
+            "regime": "COMPLACENCY",
+            "btc": 3.52,
+            "low_rate": 0.02,
+            "aah": 79.47,
+            "pd_share_pct": 42.1,
+            "indirect_share_pct": 53.0
+          },
+          "legacy_narrative": {
+            "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+            "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+            "duration": "Inflation regime + tightening cycle began Jan 2022."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-009",
+          "occurrence": 9,
+          "date": "2024-04-10",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_reference": {
+            "date": "2024-04-10",
+            "regime": "NORMAL",
+            "btc": 2.34,
+            "low_rate": 4.4,
+            "aah": 54.1,
+            "pd_share_pct": 24.0,
+            "indirect_share_pct": 61.8
+          },
+          "legacy_narrative": {
+            "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+            "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+            "duration": "Multi-quarter normal regime."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        },
+        {
+          "entry_id": "legacy-reference-010",
+          "occurrence": 10,
+          "date": "2024-10-09",
+          "date_status": "valid_declared_date",
+          "regime": "NORMAL",
+          "status": "unverified_legacy_entry",
+          "similarity": null,
+          "rank": null,
+          "anchor_vec": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "anchor_metrics": {
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_reference": {
+            "date": "2024-10-09",
+            "regime": "NORMAL",
+            "btc": 2.48,
+            "low_rate": 2.88,
+            "aah": 99.31,
+            "pd_share_pct": 13.9,
+            "indirect_share_pct": 77.6
+          },
+          "legacy_narrative": {
+            "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+            "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+            "duration": "Normal regime persisted."
+          },
+          "context": null,
+          "what_happened_next": null,
+          "duration": null,
+          "missing_verification": [
+            "original_source_unverified",
+            "security_identity_unverified",
+            "quote_basis_unverified",
+            "policy_context_unverified",
+            "feature_mapping_incomparable",
+            "issuance_context_missing",
+            "outcome_series_unverified",
+            "independent_validation_unavailable"
+          ],
+          "source_capture_verified": false,
+          "instrument_comparability_verified": false,
+          "outcome_measurement_verified": false,
+          "calls_eligible": false,
+          "sizing_eligible": false,
+          "forecast_eligible": false,
+          "execution_eligible": false,
+          "historical_point_in_time_verified": false
+        }
+      ],
+      "ranking_eligible": false,
+      "similarity_metric": null,
+      "missing_verification": [
+        "original_source_unverified",
+        "security_identity_unverified",
+        "quote_basis_unverified",
+        "policy_context_unverified",
+        "feature_mapping_incomparable",
+        "issuance_context_missing",
+        "outcome_series_unverified",
+        "independent_validation_unavailable"
+      ],
+      "interpretation": "Historical similarity is unavailable. These are legacy declarations without verified original security observations, comparable features or dated outcome measurements. Catalog order is source order, never a stress ranking.",
+      "legacy_narratives": {
+        "2008-09-17": {
+          "context": "Day after Lehman bankruptcy. Money markets seized.",
+          "what_next": "AIG bailout next day. TARP voted down 9/29. S&P -45% over next 6 months. 2y yield collapsed -100bp in 2 weeks.",
+          "duration": "Crisis acute for 8-10 weeks. Full resolution into Q1 2009."
+        },
+        "2008-09-18": {
+          "context": "Same week \u2014 Reserve Primary Fund broke the buck. Bill auction tail extreme.",
+          "what_next": "Same arc \u2014 Lehman aftermath. Indirect bidders collapsed to 29%.",
+          "duration": "Multi-quarter crisis. Federal funds rate to zero by Dec."
+        },
+        "2008-09-23": {
+          "context": "Bill auction with AAH=6.92 \u2014 extreme low-end clustering.",
+          "what_next": "Continued through Oct 8. TIPS auction also stressed.",
+          "duration": "Bill stress lasted ~4 months."
+        },
+        "2008-10-08": {
+          "context": "TIPS auction at the height of Q4 2008 crisis. Real yields elevated.",
+          "what_next": "S&P bottom in March 2009. 5y TIPS yields normalized over Q1-Q2 2009.",
+          "duration": "Real yield distortion persisted into 2010."
+        },
+        "2020-03-11": {
+          "context": "Day WHO declared pandemic. Pre-Fed bazooka. Risk-off cascade beginning.",
+          "what_next": "Mar 15 Fed cut to zero + QE. Mar 23 unlimited QE announced. S&P +75% by Sep 2020.",
+          "duration": "Acute panic 3-4 weeks. Full risk-on regime by August."
+        },
+        "2020-03-19": {
+          "context": "Peak COVID panic. AAH=53.83, indirect collapse to 46%. Funding stress acute.",
+          "what_next": "Mar 23 unlimited QE + Main Street Lending. Lowest stock price 3 days later.",
+          "duration": "Acute for 3 weeks, then explosive recovery."
+        },
+        "2020-03-26": {
+          "context": "First post-bazooka auction. BTC=4.74 = MASSIVE demand for safe assets at zero.",
+          "what_next": "Demand for Treasuries continued through April. Equity recovery began.",
+          "duration": "Stampede pattern lasted ~6 weeks."
+        },
+        "2021-10-21": {
+          "context": "Late-cycle complacency. Crypto top imminent (Nov 8). BTC=3.52 (modestly elevated).",
+          "what_next": "Crypto peak Nov 8. S&P peak Jan 2022. -25% drawdown into Oct 2022.",
+          "duration": "Inflation regime + tightening cycle began Jan 2022."
+        },
+        "2024-04-10": {
+          "context": "Normal market. Sticky inflation backdrop. Healthy auction.",
+          "what_next": "Continued normalization. Rate-cut hopes deferred to Sep.",
+          "duration": "Multi-quarter normal regime."
+        },
+        "2024-10-09": {
+          "context": "Historical comparison: 99.31% of bids at the high yield were allotted. AAH is proration, not a yield tail or dealer share.",
+          "what_next": "Continued normalization. Fed cut 50bp in Sep had been absorbed.",
+          "duration": "Normal regime persisted."
+        }
+      },
+      "source_capture_verified": false,
+      "instrument_comparability_verified": false,
+      "outcome_measurement_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "forecast_eligible": false,
+      "execution_eligible": false,
+      "historical_point_in_time_verified": false
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "baseline_commit": "64e2e65d452460882001c3cba6ba1e78de9e1530",
+  "source_sha256": "6b0d75f5799cb571910b4ef3d17959c71989975325f4a855a39f9a17375435b2",
+  "synthetic_only": true,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "cases": [
+    {
+      "case": "nominal_btc_2_1",
+      "actual_native_features": {
+        "btc_extreme": 40.0,
+        "tail_stress": 0.0,
+        "pd_absorption": 0.0,
+        "indirect_collapse": 0.0
+      },
+      "legacy_anchor_vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "required_features": [
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse"
+      ]
+    },
+    {
+      "case": "nominal_proration_20",
+      "actual_native_features": {
+        "btc_extreme": 0.0,
+        "tail_stress": 70.0,
+        "pd_absorption": 0.0,
+        "indirect_collapse": 0.0
+      },
+      "legacy_anchor_vector": [
+        0.0,
+        0.0,
+        50.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "required_features": [
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption",
+        "indirect_collapse"
+      ]
+    },
+    {
+      "case": "short_bill_low_rate_at_zero_policy",
+      "actual_native_features": {
+        "btc_extreme": 0.0,
+        "tail_stress": 0.0,
+        "pd_absorption": 0.0
+      },
+      "legacy_anchor_vector": [
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "required_features": [
+        "btc_extreme",
+        "tail_stress",
+        "pd_absorption"
+      ]
+    },
+    {
+      "case": "fully_measured_zero_current_vector_still_ranks_first_catalog_row",
+      "current_vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "top": {
+        "date": "2008-09-17",
+        "regime": "GFC_PEAK",
+        "similarity": 0.0
+      }
+    },
+    {
+      "case": "catalog_missing_instrument_identity_and_original_evidence",
+      "entries": 10,
+      "entries_with_cusip": 0,
+      "entries_with_quote_basis": 0,
+      "entries_with_original_ref": 0
+    }
+  ]
+}

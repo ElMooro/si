@@ -335,34 +335,47 @@ function renderCompositeChart() {
   $('composite-chart').innerHTML = svg;
 }
 
-function referenceCatalog() {
-  const catalog = DATA.historical_analog;
-  const flags = ['calls_eligible','sizing_eligible','forecast_eligible','execution_eligible','historical_point_in_time_verified',
-    'source_capture_verified','instrument_comparability_verified','outcome_measurement_verified'];
-  const today = new Date().toISOString().slice(0,10);
-  if (!catalog || catalog.contract !== 'auction-reference-catalog.v1' ||
-      !['unverified_legacy_catalog','empty'].includes(catalog.status) || catalog.calculation_as_of !== today ||
-      catalog.ranking_eligible !== false || catalog.similarity_metric !== null ||
-      flags.some(key => catalog[key] !== false) || !Array.isArray(catalog.top_matches) || catalog.top_matches.length ||
-      !Array.isArray(catalog.all_matches) || !Number.isSafeInteger(catalog.reference_count) ||
-      catalog.reference_count !== catalog.all_matches.length || !Array.isArray(catalog.missing_verification) ||
-      !catalog.missing_verification.length) return null;
-  for (const [index, row] of catalog.all_matches.entries()) {
-    if (!row || row.status !== 'unverified_legacy_entry' || row.occurrence !== index+1 ||
-        row.entry_id !== 'legacy-reference-'+String(index+1).padStart(3,'0') ||
-        row.similarity !== null || row.rank !== null || flags.some(key => row[key] !== false) ||
-        !row.legacy_reference || typeof row.legacy_reference !== 'object' || Array.isArray(row.legacy_reference) ||
-        !Array.isArray(row.missing_verification) || !row.missing_verification.length) return null;
-  }
-  return catalog;
-}
-
 function renderAnalogDataOnly() {
-  const catalog = referenceCatalog();
-  $('analog-top').innerHTML = `<div class="info"><h4>Historical similarity unavailable</h4>
-    <p>${catalog ? `${catalog.reference_count} legacy reference occurrences are retained below in source order. Their security identity, original source, quote basis and feature mapping are not verified.` : 'A current complete reference catalog is unavailable. Older similarity rankings are withheld.'}</p>
-    <p>Historical narrative is not a measured outcome or an investment forecast. No match, probability or position size is supported.</p></div>`;
-  $('analog-others').innerHTML = '';
+  const ha = DATA.historical_analog || {};
+  const top = (ha.top_matches || [])[0];
+  if (!top) {
+    $('analog-top').innerHTML = '<div style="color:var(--fg-3);padding:10px">No historical analog match available</div>';
+    $('analog-others').innerHTML = '';
+    return;
+  }
+  const sim = measured(top.similarity);
+  const simPct = sim !== null && sim >= 0 && sim <= 1 ? Math.round(sim * 100)+'%' : '—';
+  $('analog-top').innerHTML = `
+    <div class="similarity-circle"><div class="big">${simPct}</div><div class="sub">SIMILARITY</div></div>
+    <div class="info">
+      <div>
+        <span class="anchor-date">${esc(top.date)}</span>
+        <span class="anchor-regime">${esc(top.regime || '?')}</span>
+      </div>
+      <div class="anchor-context">${esc(top.context || '')}</div>
+      <div class="anchor-next"><strong>What happened next:</strong> ${esc(top.what_happened_next || '')} <em style="color:var(--fg-3)">(${esc(top.duration || '')})</em></div>
+    </div>
+    <div style="text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);max-width:160px">
+      <div style="margin-bottom:4px">Anchor metrics:</div>
+      <div>BTC: ${fmt(top.anchor_metrics?.btc, 2)}</div>
+      <div>AAH: ${fmt(top.anchor_metrics?.aah)}%</div>
+      <div>PD: ${fmt(top.anchor_metrics?.pd_share_pct)}%</div>
+      <div>Ind: ${fmt(top.anchor_metrics?.indirect_share_pct)}%</div>
+    </div>
+  `;
+
+  // Other matches (top 2-3)
+  const others = (ha.top_matches || []).slice(1, 4);
+  let oh = '';
+  for (const m of others) {
+    oh += `<div class="om">
+      <div class="d">${esc(m.date)}</div>
+      <div class="r">${esc(m.regime || '?')}</div>
+      <div class="s">${measured(m.similarity) !== null && m.similarity >= 0 && m.similarity <= 1 ? Math.round(m.similarity * 100) + '%' : '—'} similar</div>
+      <div class="nxt">${esc(((m.what_happened_next || '').slice(0, 140)) + (m.what_happened_next && m.what_happened_next.length > 140 ? '…' : ''))}</div>
+    </div>`;
+  }
+  $('analog-others').innerHTML = oh;
 }
 
 function calendarEvidence() {
@@ -713,30 +726,27 @@ function renderAuctionsTable() {
 }
 
 function renderHistoricalReference() {
-  const catalog = referenceCatalog();
-  if (!catalog) {
-    $('hist-grid').innerHTML = '<p>Verified catalog structure unavailable. Legacy declarations remain in the source packet; no reference measurements are qualified.</p>';
-    return;
+  const refs = DATA.historical_reference || [];
+  let html = '';
+  for (const h of refs) {
+    html += `<div class="hist-card">
+      <div class="date">${esc(h.date)}</div>
+      <div class="regime ${esc(h.regime)}">${esc((h.regime || '').replace(/_/g, ' '))}</div>
+      <div class="metrics">
+        BTC: <b>${fmt(h.btc, 2)}</b><br>
+        Low rate: <b>${fmt(h.low_rate, 3)}%</b><br>
+        AAH: <b>${fmt(h.aah, 2)}%</b><br>
+        PD: <b>${fmt(h.pd_share_pct, 1)}%</b><br>
+        Indirect: <b>${fmt(h.indirect_share_pct, 1)}%</b>
+      </div>
+    </div>`;
   }
-  $('hist-grid').innerHTML = catalog.all_matches.map(row => {
-    const legacy = row.legacy_reference;
-    const declarations = [ ['BTC',legacy.btc], ['Low quote (basis unverified)',legacy.low_rate],
-      ['AAH declaration',legacy.aah], ['Dealer-share declaration',legacy.pd_share_pct],
-      ['Indirect-share declaration',legacy.indirect_share_pct] ];
-    return `<article class="hist-card">
-      <div class="date">${esc(typeof row.date === 'string' ? row.date : 'Date unavailable')} · entry ${row.occurrence}</div>
-      <div class="regime">UNVERIFIED LEGACY INPUT</div>
-      <p>Declared context: ${esc(typeof row.regime === 'string' ? row.regime.replace(/_/g,' ') : 'Unavailable')}. This label is not a current classification.</p>
-      <div class="metrics">${declarations.map(([label,value]) => `${esc(label)}: <b>${measured(value) !== null ? esc(value) : '—'}</b>`).join('<br>')}</div>
-      <p>Original security observations and dated outcomes are unverified. Entry order is not a ranking.</p>
-      <details class="reference-inputs"><summary>Inspect all retained declarations</summary><div id="reference-input-${row.occurrence}"></div></details>
-    </article>`;
-  }).join('') || '<p>The supplied reference catalog is explicitly empty.</p>';
-  if (typeof JHDataInspector !== 'undefined' && typeof JHDataInspector.inspect === 'function') {
-    for (const row of catalog.all_matches) JHDataInspector.inspect($('reference-input-'+row.occurrence), row, 'Unverified legacy entry · complete source fields');
-  }
+  $('hist-grid').innerHTML = html;
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Source commentary remains inspectable, but is not a verified investment instruction.
+// No LLM or commentary fetch is triggered by this page.
 function renderResearchContext() {
   const originals = $('auction-originals');
   if (globalThis.JHAuctionOriginals) globalThis.JHAuctionOriginals.render(originals, DATA.auction_originals, DATA.generated_at);
@@ -751,7 +761,7 @@ function renderResearchContext() {
   $('ai-regime').textContent = 'Research only';
   $('decisive-text').textContent = 'WAIT / no portfolio action from this engine. Missing size withholds the weighted score; a valid score alone does not establish a trade.';
   $('what-changed').textContent = 'No change attribution is published without a replayed comparison snapshot. Inspect the dated observations below.';
-  $('analog-ai').innerHTML = '<div class="lbl">Historical anchor context</div><div>Similarity and ranking are withheld. Retained declarations and narratives are unverified source inputs, not measured historical outcomes.</div>';
+  $('analog-ai').innerHTML = '<div class="lbl">Historical anchor context</div><div>Similarity to selected anchors does not establish a future market outcome.</div>';
   $('tail-ai-text').textContent = 'Concern scores are uncalibrated. Event probabilities and forecast horizons are unavailable.';
   $('triggers-ai-text').textContent = 'These thresholds describe a heuristic. Their portfolio consequences have not been validated.';
   $('ai-forward-grid').innerHTML = `<p>Forecast commentary is withheld pending a replayable source snapshot and validation.</p><p><a href="${esc(AI_URL)}" target="_blank" rel="noopener noreferrer">Inspect the separate, unverified commentary packet</a></p>`;

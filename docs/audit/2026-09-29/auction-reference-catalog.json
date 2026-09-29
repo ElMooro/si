@@ -1,0 +1,205 @@
+{
+  "status": "source_and_isolated_browser_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T10:39:47.827104+00:00",
+  "baseline_commit": "97ab9f641a2c691ca1f426c5342874e127926d35",
+  "complete_predecessors": [
+    {
+      "source": "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py",
+      "fixture": "tests/fixtures/pre-auction-reference-catalog-aws-lambdas-justhodl-auction-crisis-detector-source-auction_crisis_v2.py.txt",
+      "bytes": 39540,
+      "sha256": "6b0d75f5799cb571910b4ef3d17959c71989975325f4a855a39f9a17375435b2"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-reference-catalog-auction-crisis.js.txt",
+      "bytes": 49365,
+      "sha256": "2d90b352d573a2e411caf0358b8d52eaf7b0af719510df1517c69c4ff6e24402"
+    },
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-reference-catalog-auction-crisis.html.txt",
+      "bytes": 51919,
+      "sha256": "e12fcdead8572bd381b6083fa093decd259132c68707bf1ca6856d8ff4dbda8d"
+    }
+  ],
+  "actual_predecessor_reproductions": "docs/audit/2026-09-29/auction-reference-catalog-reproduced.json",
+  "native_predecessor": "docs/audit/2026-09-29/auction-reference-catalog-predecessor.json",
+  "runtime_acceptance_operation": "6340",
+  "native_publication_verified": false,
+  "sources": {
+    "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": {
+      "bytes": 38010,
+      "sha256": "59d018c1fe79c41226d83ea09fe9cd5ef1c331718f81d393bc33de3a9e45349a"
+    },
+    "auction-crisis.js": {
+      "bytes": 50406,
+      "sha256": "b3a172d594e19297f8a821a03b158e481693324f331befb27a648d61141b262f"
+    },
+    "auction-crisis.html": {
+      "bytes": 52270,
+      "sha256": "477ed1d5cf729ed1cf9b2c02733ce95726a359079cce98f9c2368a100234e2f9"
+    },
+    "aws/shared/auction_reference_catalog.py": {
+      "bytes": 4294,
+      "sha256": "7e587e25801dd0537f6921c1b78bdf369174e3a58fa479bfc2e40a1c99cebb82"
+    },
+    "tests/fixtures/auction-reference-catalog.json": {
+      "bytes": 129940,
+      "sha256": "5c25f43ed790296b8b4af1273b597343930f4c0dbb6663de06d78b63a3486dd6"
+    }
+  },
+  "source_dependency_delta": {
+    "changed_fields": {},
+    "existing_inputs_outputs_preserved": true,
+    "added_keys": [],
+    "added_patterns": [],
+    "added_reads": [],
+    "unresolved_writes": [
+      {
+        "file": "aws/shared/auction_fred_store.py",
+        "line": 134,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/auction_fred_store.py",
+        "line": 43,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/auction_original_store.py",
+        "line": 39,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      },
+      {
+        "file": "aws/shared/evidence_store.py",
+        "line": 46,
+        "operation": "put_object",
+        "reason": "dynamic or unresolved key"
+      }
+    ],
+    "shared_closure": [
+      "_fred_shim.py",
+      "auction_benchmarks.py",
+      "auction_calendar.py",
+      "auction_calendar_store.py",
+      "auction_concerns.py",
+      "auction_cross_observations.py",
+      "auction_forward.py",
+      "auction_fred_originals.py",
+      "auction_fred_store.py",
+      "auction_original_store.py",
+      "auction_originals.py",
+      "auction_reference_catalog.py",
+      "auction_scoring.py",
+      "auction_weighting.py",
+      "evidence_store.py",
+      "funding_research_catalog.py",
+      "managed_secret.py",
+      "pd_fails_context.py",
+      "treasury_instruments.py"
+    ],
+    "engine_closures": {
+      "justhodl-auction-crisis-detector": [
+        "_fred_shim.py",
+        "auction_benchmarks.py",
+        "auction_calendar.py",
+        "auction_calendar_store.py",
+        "auction_concerns.py",
+        "auction_cross_observations.py",
+        "auction_forward.py",
+        "auction_fred_originals.py",
+        "auction_fred_store.py",
+        "auction_original_store.py",
+        "auction_originals.py",
+        "auction_reference_catalog.py",
+        "auction_scoring.py",
+        "auction_weighting.py",
+        "evidence_store.py",
+        "funding_research_catalog.py",
+        "managed_secret.py",
+        "pd_fails_context.py",
+        "treasury_instruments.py"
+      ],
+      "justhodl-auction-desk": [
+        "auction_scoring.py",
+        "auction_weighting.py",
+        "treasury_instruments.py"
+      ]
+    }
+  },
+  "changes": [
+    "A pure catalog compiler replaces native historical ranking. All ten legacy references, every extra field and every narrative mapping are retained as explicitly unverified declarations. Occurrence identifiers preserve source order and repeated dates; no deduplication or claim of independent evidence is introduced.",
+    "The old simplified mapping is demonstrably incompatible with actual instrument-specific scores: nominal BTC 2.1 maps to forty currently versus zero historically, nominal AAH twenty maps to seventy versus fifty, and a short-bill low quote at zero policy becomes an inappropriate historical floor score of one hundred. The old native zero vector also ranked the first GFC entry at zero similarity. These are reviewed-code synthetic reproductions, not provider assertions.",
+    "Native top_matches is empty, similarity/rank and qualified anchor-vector/outcome fields are null, and all forecast/Calls/sizing/execution/source-capture/PIT permissions are false. Legacy declarations and narratives remain separately inspectable. Even a complete high or all-zero current vector cannot repair missing reference provenance, security identity, quote basis, dated policy/issuance context or incompatible feature definitions.",
+    "The existing public keys and historical_reference constants are preserved. Both the complete narrative mapping and per-occurrence notes remain available, including unmatched narrative keys. Malformed top-level inputs reject the whole catalog rather than silently drop entries. Self-declared source/permission flags in a legacy record cannot promote its compiled status.",
+    "The page requires a current complete catalog and all explicit no-authority flags. Legacy rankings, fabricated similarities, altered counts/order/occurrence IDs, absent contracts and permission promotion cannot reactivate a comparison. Reference cards show declared values with unverified quote basis and no claimed measured outcomes. Every full entry is inspectable behind keyboard disclosures using the existing complete-field inspector; cached missing inspector methods cannot crash the page."
+  ],
+  "tests": {
+    "new_native_and_pure": 12,
+    "new_frontend": 7,
+    "auction_native_and_desk_regressions": 197,
+    "settlement_context": "passed",
+    "frontend": 1799,
+    "deployment_static": 663,
+    "candidate_shell": 12,
+    "page_graphs": 599,
+    "page_contracts": "passed",
+    "page_wiring": "143 wires across 36 pages"
+  },
+  "browser_acceptance": {
+    "synthetic_only": true,
+    "actual_production_scripts": true,
+    "external_requests": 0,
+    "cases": {
+      "complete_zero": 10,
+      "complete_nonzero": 10,
+      "missing": 10,
+      "duplicate": 11,
+      "empty": 0,
+      "invalid": 10
+    },
+    "all_cases_ranked_matches": 0,
+    "injected_elements": 0,
+    "active_dialog_after_corrected_fixture": false,
+    "console_errors_after_fixture_repair": [],
+    "keyboard": {
+      "focused_tag": "SUMMARY",
+      "expanded_after_enter": true,
+      "first_entry_inspectable_leaf_paths": 48,
+      "root_table_rows": 25
+    },
+    "desktop": {
+      "document_width": 1265,
+      "viewport_client_width": 1265
+    },
+    "mobile": {
+      "requested_width": 375,
+      "requested_height": 812,
+      "document_width": 360,
+      "viewport_client_width": 360,
+      "expanded_disclosure_document_width": 360
+    },
+    "harness_repair": "Initial local QA loader embedded hostile fixture script delimiters verbatim, producing an alert in the isolated tab. Escaped less-than, greater-than and ampersand as Unicode sequences before embedding; asserted hostile literal script absent and six escaped delimiters present. Dismissed the synthetic alerts and reloaded. All six cases then passed without active dialog, injected elements or new console errors. Production renderer escaping tests passed independently.",
+    "screenshots": {
+      "stage411-desktop.png": {
+        "sha256": "f0ecaba7e4e6a7aa803bafffdc30ff8fee08362f63ec28ee7d0b7c17895b820b"
+      },
+      "stage411-mobile.png": {
+        "sha256": "d6a6e12cf2e9012440e39f141eb6d6086789eb79f5123559d37b200b5223a607"
+      }
+    }
+  },
+  "limitations": [
+    "No original historical auction documents or security-specific outcome series were acquired. Catalog integrity and full field preservation do not verify the declarations or repair their date/security/quote definitions.",
+    "This change deliberately withholds unsupported comparison. It does not create a calibrated historical-analog model, validate a reference cohort, establish out-of-sample forecasting skill or authorize portfolio sizing.",
+    "Legacy threshold baselines and issuance overlay remain separate unqualified work. The complete current score-input fixes and explicit weighted-window withholding from Stage410 remain unchanged.",
+    "Full source-model immutable replay, historical vintages, independent validation, peak capacity and supported portfolio consequences remain open. All ten platform acceptance workstreams remain open.",
+    "Ordinary publication still awaits original schedules. No new provider request, native invocation, current/private/learning-ledger/downstream read, paid API, cadence or resource change is introduced."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "execution_eligible": false
+}

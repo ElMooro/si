@@ -132,5 +132,5 @@ test('real auction renderer binds the FRED sidecar and publication clock',()=>{
  scope.JHAuctionFredEvidence.policyContext=api.policyContext;scope.packet.fed_funds_rate=4.25;
  vm.runInContext('renderHero()',scope);assert.equal(get('fed-rate').textContent,'4.25');assert.match(get('fed-rate-date').textContent,/DFF observed/);
  const html=fs.readFileSync(path.join(__dirname,'../auction-crisis.html'),'utf8');assert.ok(html.indexOf('/jh-auction-fred-evidence.js')<html.indexOf('/auction-crisis.js'));assert.match(html,/jaf-table-scroll:focus-visible/);
- assert.match(html,/auction-crisis\.js\?t=20260929-score-completeness/);assert.match(html,/jh-auction-fred-evidence\.js\?v=20260929-fred-v1/);
+ assert.match(html,/auction-crisis\.js\?t=20260929-reference-catalog/);assert.match(html,/jh-auction-fred-evidence\.js\?v=20260929-fred-v1/);
 });

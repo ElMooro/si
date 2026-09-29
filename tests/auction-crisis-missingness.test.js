@@ -151,7 +151,7 @@ test('tenor and analog values cannot inject markup and absent analogs clear old 
     historical_analog:{top_matches:[{anchor_metrics:{btc:'<img>'}},{date:'<img>',similarity:null}]}});
   env.renderTenorDecomposition();env.renderAnalogDataOnly();
   assert.doesNotMatch(get('tenor-grid').innerHTML,/<img>/);assert.doesNotMatch(get('analog-top').innerHTML,/<img>/);
-  assert.match(get('analog-others').innerHTML,/— similar/);assert.doesNotMatch(get('analog-others').innerHTML,/0% similar/);
+  assert.equal(get('analog-others').innerHTML,'');assert.match(get('analog-top').innerHTML,/Older similarity rankings are withheld/);
   set({});env.renderAnalogDataOnly();assert.equal(get('analog-others').innerHTML,'');
 });
 
