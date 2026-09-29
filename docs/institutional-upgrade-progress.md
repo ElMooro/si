@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 431 source acceptance: all ten workstreams remain open. Calls exact byte-bound audit/browser d4f57981a is accepted with all 33 native members and nine static assets. The browser now uses strict publication clocks, updates age locally/on resume, preserves expanded evidence and historical replay, and labels source quality at publication. Eight new cases and 1,891 frontend, 708 deployment/twelve shell checks and 599 page graphs pass; isolated desktop/mobile clock/lifecycle QA passes. Served deployment remains pending. Native source/cadence are unchanged. Normal publication, generic capacity/readback, vintages, model validation and supported portfolio consequences remain open.
+September 29, after Stage 431 exact static acceptance: all ten workstreams remain open. Calls exact byte-bound audit/browser d4f57981a remains accepted, and local clock/lifecycle presentation bf23cd9721191f766f6fb9c6d1b7951d2abd3622 is now accepted against nine served assets. Eight new cases, 1,891 frontend tests, 708 deployment/twelve shell checks and 599 page graphs pass. Isolated desktop/mobile checks preserve evidence and historical replay while marking old briefs overdue without new requests. Native source/resources/cadence are unchanged. A controlled concurrency reproduction found duplicate snapshot builders and double-counted cache bytes; generic capacity/readback, normal publication, vintages, model validation and supported portfolio consequences also remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5975,3 +5975,9 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Publication labels now require strict aware Gregorian clocks. A local timer and visibility/pageshow updates age only, preserving open source evidence, focus and the independent historical replay badge without new requests. Pagehide stops both timers; repeated starts and duplicate scripts cannot multiply them. The existing five-minute data cadence remains.
 - Source quality and native current-use assessments are explicitly dated to brief publication. All four source-family panels retain full observations and links. The old CISS wording assertion was updated to this temporal meaning while preserving all seven original links and 28 baseline checks.
 - Eight new cases, 1,891 frontend tests, 708 deployment/twelve shell checks, 599 page graphs and 143 wires pass. Isolated 360px/1280px QA confirmed two total synthetic requests through local aging and lifecycle events, zero page overflow, preserved disclosures and no console errors. Native code, resources, schedules and portfolio authority are unchanged. Exact static deployment remains pending; evidence: `docs/audit/2026-09-29/calls-clock-integrity.json`.
+
+
+### Stage 431 exact static acceptance
+
+- Source `bf23cd9721191f766f6fb9c6d1b7951d2abd3622` passed Pages 36622691013; nine whole served assets match the commit-bound build at 2026-09-29T20:03:04.234950+00:00. The eleven-file related batch landed together through native Git. Native source and the prior exact audit package d4f57981a were not changed by this page release.
+- Eight new cases, frontend 1,891, deployment 708/twelve shell, 599 page graphs and 143 companion wires pass. Isolated desktop/mobile aging and lifecycle actions kept exactly two synthetic responses, retained expanded evidence and correctly separated an overdue brief from its valid historical replay. No actual current/private packet, provider or native invocation was used. Normal publication remains separately unverified. Evidence: `docs/audit/2026-09-29/calls-clock-integrity.json`.

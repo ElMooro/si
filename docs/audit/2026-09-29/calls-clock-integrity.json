@@ -1,6 +1,6 @@
 {
   "stage": 431,
-  "status": "source_accepted_static_deployment_pending",
+  "status": "exact_static_deployment_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T19:55:30.566452+00:00",
   "baseline_commit": "c0674ab0825dcf83fa3b3ed742c5ec31f8d51b89",
   "predecessor": "calls-clock-predecessor.json",
@@ -59,8 +59,68 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact served-asset deployment is pending.",
+    "Nine whole served HTML/JS/registry assets match the exact source-bound Pages build.",
     "The Stage 430 auditor is already exactly accepted at d4f57981a42729ab535fe173db476b8598f161a9. Ordinary compatible proof/publication remains separately unverified.",
     "Local clock labels do not validate historical vintages, source acquisition, forecasting value or position sizing. All ten workstreams remain open."
-  ]
+  ],
+  "source_commit": "bf23cd9721191f766f6fb9c6d1b7951d2abd3622",
+  "pages_run": 36622691013,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T20:03:04.234950+00:00",
+    "intended_commit": "bf23cd9721191f766f6fb9c6d1b7951d2abd3622",
+    "served_commit": "bf23cd9721191f766f6fb9c6d1b7951d2abd3622",
+    "assets": {
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "952d9a57760b158f5e018887113ee62f688da0220a30e2e2c9df152d110e2b09",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "dc3bb9cdd72019781578819fb0ee0f20c529cc76fc58c3526674e213a54022e4",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "b72fe1dae4f3fd34534163e1038dec5d4e5c68ef6267bcd0aed46fbb9c9d4baa",
+        "matches_manifest": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3066302,
+        "sha256": "fc12b892d41ad6d1e3296671fe9570a09bbf1956e39ccce69874c152c7fc710a",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7655344,
+        "sha256": "b3ef36b6ea7ad9f322780f652f43be4e0c60316422b3208166a14b5be7590c0b",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 11
 }
