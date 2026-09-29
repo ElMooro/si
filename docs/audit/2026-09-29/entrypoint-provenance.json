@@ -1,6 +1,6 @@
 {
   "stage": 423,
-  "status": "source_accepted_static_deployment_pending",
+  "status": "exact_static_assets_accepted",
   "checked_at": "2026-09-29T16:51:04.281327+00:00",
   "baseline_commit": "35bb4459c6358190f9b34d12d3bb9610946bc1a6",
   "predecessor": "entrypoint-provenance-predecessor.json",
@@ -176,5 +176,57 @@
     "Import-time side effects, dynamic dispatch, unknown return values and unsupported runtimes remain unproven.",
     "The active current writers for Market Extremes and Capitulation remain unresolved; adding primary-page tags cannot replace that missing proof.",
     "All ten platform workstreams remain open."
-  ]
+  ],
+  "source_commit": "940a5b08bf5005e454384aff8c16b09445f2bd09",
+  "pages_run": 36600746378,
+  "deployment_gate_run": 36600746399,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T16:57:39.559947+00:00",
+    "intended_commit": "940a5b08bf5005e454384aff8c16b09445f2bd09",
+    "served_commit": "940a5b08bf5005e454384aff8c16b09445f2bd09",
+    "assets": {
+      "market-extremes.html": {
+        "bytes": 5924,
+        "sha256": "6b55439a75a0ae2eabe9e26616f60d819ba90c6079eef0d0bbe4403100926fbe",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 5383,
+        "sha256": "3ee0b2d05fc724993f9e1eef3fcce8030f3d65dab268d76082ef89f32c79a949",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "7c70e6ea5e95044d9c9634d7e6938e3f4970a8355a42185f05338de69c5cb95a",
+        "matches_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_exact_source": true,
+        "build_basis": "build_page_data_contracts.py copies this asset after the palette pass"
+      },
+      "engine-manifest.json": {
+        "bytes": 3066292,
+        "sha256": "c668dfeb5369fe373a4f74d148106103598e9213194839d884890fa207c2a34f",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7655340,
+        "sha256": "0732e48d0479c3ca6f5bf8a52192b3e51d7495ce3eaca497dfc0557cc04924d3",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing inspector and generated source registries only. No code execution, current/private packet or provider request.",
+    "static_provenance_semantics_verified": true
+  },
+  "large_file_native_git_proof": {
+    "atomic_files": 20,
+    "path": "docs/audit/dependency-map.json",
+    "bytes": 36587086,
+    "remote_fetched_blob": "dbeda509d2fbfc1a54b5f64527f6f52af44c129a",
+    "matches_intended_commit": true
+  },
+  "verifier_correction": "The inspector is copied by build_page_data_contracts.py after the palette pass. Its served bytes equal untransformed source exactly; the first palette-based verification assumption was corrected without changing production code."
 }
