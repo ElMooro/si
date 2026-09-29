@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 import boto3
 from calls_contract import timestamp
 from calls_research_replay import canonical, replay, publish_current
-from calls_liquidity_binding import reader as original_reader
 
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 s3 = boto3.client('s3', region_name='us-east-1')
@@ -32,7 +31,7 @@ def verify_current(client, bucket, now=None):
     if hashlib.sha256(raw).hexdigest() != ref.get('bundle_sha256'):
         raise ValueError('retained record bytes differ from the published hash')
     bundle = json.loads(raw)
-    result = replay(bundle,read_original=original_reader(client,bucket))
+    result = replay(bundle)
     if bundle['payload_sha256'] != sha: raise ValueError('retained payload differs from its key')
     output = bundle['payload']['output']
     if any(canonical(public.get(k)) != canonical(value) for k, value in output.items()):
@@ -57,7 +56,7 @@ def verify_current(client, bucket, now=None):
             'brief_sha256': expected_brief_hash, 'publication_age_hours': age,
             'publication_overdue': age is None or age < -5/60 or age > 4.5,
             'compiler': bundle['payload']['compiler'], 'private_account_data_read': False,
-            'meaning': 'Reproduces public research and its history binding. Included liquidity originals are replayed only when the frozen run records successful capture; other original sources, forecasts and portfolio sizing remain unvalidated.'}
+            'meaning': 'Reproduces public research output and its history binding; does not validate original sources, forecasts or portfolio sizing.'}
 
 
 def lambda_handler(event, context):

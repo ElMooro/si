@@ -15,10 +15,6 @@
       /^[a-f0-9]{64}$/.test(ref.bundle_sha256 || '') ? '/' + ref.bundle_key : null;
   }
   function sourcePath(source) { return /^data\/[a-z0-9-]+\.json$/.test(source || '') ? '/' + source : null; }
-  function originalPath(ref) {
-    return ref && typeof ref.sha256 === 'string' && /^[a-f0-9]{64}$/.test(ref.sha256) &&
-      typeof ref.key === 'string' && new RegExp('^data/evidence/fred/[a-f0-9]{64}/'+ref.sha256+'\\.bin\\.gz$').test(ref.key) ? '/'+ref.key : null;
-  }
   function proofMatches(proof, ref) {
     return !!(proof && ref && proof.status === 'reproduced' && proof.run_id === ref.run_id &&
       proof.payload_sha256 === ref.payload_sha256 && proof.bundle_sha256 === ref.bundle_sha256);
@@ -66,27 +62,6 @@
       if (row.note) tr.title = row.note;
     }
     el('p', 'Every measurement is monitor-only. A fresh source alone is insufficient for a decision vote or position size.', details);
-    const originals = doc.original_source_lineage?.liquidity_flow;
-    if (originals) {
-      const panel=el('details','',details);el('summary','Liquidity: original sources and calculation',panel);
-      if(originals.status!=='verified')el('p','Original-source replay unavailable. Reported liquidity is unqualified for current research use.',panel);
-      else {
-        el('p','WALCL − WTREGEN − RRPONTSYD · USD billions. Retained originals reconstructed for this brief; the independent run check is shown above.',panel);
-        el('p',originals.current_use?.eligible===true?'Current descriptive use passes the declared source clocks. No allocation permission.':'Historical reconstruction only; current use is withheld.',panel);
-        for(const sid of ['WALCL','WTREGEN','RRPONTSYD']) {
-          const source=originals.sources?.[sid],component=originals.latest_reconstructed?.components?.[sid];
-          const observation=originals.observations?.[component?.observation_id];
-          if(!source)continue;
-          el('h4',sid+' · '+(sid==='RRPONTSYD'?'Fed reverse-repo operations':'Fed H.4.1'),panel);
-          el('p','Observed '+(observation?.observation_date || 'unavailable')+' · original reported value '+(observation?.reported_native_value ?? 'unavailable')+' '+(observation?.native_unit || '')+'. Acquired '+(source.acquired_at || 'unavailable')+'.',panel);
-          for(const kind of ['definition','observations']) {
-            const ref=source.originals?.[kind],href=originalPath(ref);
-            if(href){const link=el('a','Inspect original '+sid+' '+kind,panel);link.href=href;link.style.display='block';}
-          }
-        }
-        el('p','WALCL and WTREGEN share H.4.1. Repeated observations and shared sources do not become independent votes. Original publication timing and point-in-time history remain unverified; the frozen record retains all calculations.',panel);
-      }
-    }
     const prose = el('details', ''); el('summary', 'Read the brief, disagreements and limitations', prose);
     for (const line of doc.brief_md.split('\n')) {
       if (!line.trim() || line.startsWith('# ')) continue;
@@ -94,7 +69,7 @@
       n.style.overflowWrap = 'anywhere';
     }
   }
-  const api = {state, bundlePath, originalPath, proofMatches, render};
+  const api = {state, bundlePath, proofMatches, render};
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (!root.document) return;
   const document = root.document, main = document.querySelector('main'); if (!main) return;

@@ -1,5 +1,5 @@
 {
-  "status": "tested_consumer_repair_deployment_pending",
+  "status": "exact_native_package_and_live_site_assets_accepted",
   "producer_commit": "9eaa57ec4ef20a4f951693223d7ea7c36dd41260",
   "problem": "The producer method changed to warehouse_deterministic_v2 but four consumers accepted only v1.",
   "repair": "Accept precisely v1 and v2 together. Preserve all research-only and no-paid-model guards. Never conceal ERROR/INVALID as WAIT.",
@@ -67,7 +67,92 @@
   "messages_sent": 0,
   "sizing_eligible": false,
   "limitations": [
-    "Live exact-commit code and page acceptance follows this push.",
-    "Offline consumer compatibility does not establish actual scheduled publication, message delivery or forecasting qualification."
-  ]
+    "Exact native source and live static site bytes are verified. Scheduled publication and delivery are not claimed."
+  ],
+  "source_commit": "def9b766832a4d9873fbb196e0903dbaae328b5f",
+  "deploy_run": 36505697292,
+  "pages_run": 36505697246,
+  "acceptance_run": 36505973456,
+  "report_commit": "273359120",
+  "native_acceptance": {
+    "actual_runtime": {
+      "code_sha256": "LSsqkljjdvDUOV25jPZkX3mw5vpl4a3+8h3xvoVafhM=",
+      "source_files_checked": 26,
+      "handler_bytes": 99109,
+      "timeout": 120,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "def9b766832a4d9873fbb196e0903dbaae328b5f"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-morning-brief-daily",
+          "state": "ENABLED",
+          "expression": "rate(1 day)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-morning-intelligence",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "def9b766832a4d9873fbb196e0903dbaae328b5f",
+    "current_consumer_reads": 0,
+    "exact_package_accepted": true,
+    "learning_ledger_reads": 0,
+    "messages_sent": 0,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_account_reads": 0,
+    "provider_requests": 0,
+    "public_writes": 0,
+    "recipient_reads": 0,
+    "schedule_changes": 0,
+    "scope": "Actual whole ZIP, exact release receipt and stable existing runtime only. No delivery or native publication is claimed."
+  },
+  "live_assets": {
+    "checked_at": "2026-09-29T01:04:12.222027+00:00",
+    "intended_commit": "def9b766832a4d9873fbb196e0903dbaae328b5f",
+    "served_commit": "def9b766832a4d9873fbb196e0903dbaae328b5f",
+    "assets": {
+      "brief.html": {
+        "bytes": 30290,
+        "sha256": "a67d8ce4e110e4c98f9228003173c8bdb9ca300cef1221bc5b0be08a7cc86118",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 23530,
+        "sha256": "e525e7c800f0b1abe8efd0bf5700229cc8d86905c48ac4f135605bd6ab1611cd",
+        "matches_manifest": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 6703,
+        "sha256": "7059e129db7c3055bac13d559612337e7b3625b0ef458ab658c9dfb6b852c2d0",
+        "matches_manifest": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1351406,
+        "sha256": "6f33880d243a3a5b4426b2ee4982dd54730898ea6c3b81ad194d9b8529a90076",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "433b2271bbfc3f0e90b3f153407217a8b3e415f19087e583c177d5620a43eefe",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }

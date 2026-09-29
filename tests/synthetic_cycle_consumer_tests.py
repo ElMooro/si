@@ -155,7 +155,12 @@ class MorningBoundaries(unittest.TestCase):
     def test_complete_canonical_free_brief_and_clock_are_preserved(self):
         p=self.public();reads=[]
         out=morning.build(lambda k:reads.append(k) or p,NOW)
-        self.assertEqual(reads,[morning.PUBLIC_KEY]);self.assertIn(p['brief_md'].rstrip(),out)
+        self.assertEqual(reads,[morning.PUBLIC_KEY])
+        full=p['brief_md'].rstrip()+'\n\nResearch source: https://justhodl.ai/calls.html\nPublication: '+p['generated_at']+'\nNo model API called by Morning Intelligence.'
+        if len(full.encode('utf-16-le'))//2<=4096:self.assertEqual(out,full)
+        else:
+            self.assertIn('complete brief exceeds',out)
+            self.assertIn('No excerpt is substituted for the complete evidence.',out)
         self.assertIn(p['generated_at'],out);self.assertIn('**DECISIVE CALL: WAIT**',out)
         self.assertLessEqual(len(out.encode('utf-16-le'))//2,4096)
 
@@ -197,6 +202,12 @@ class MorningBoundaries(unittest.TestCase):
 
     def test_final_utf16_budget_includes_footer_and_preserves_whole_brief_or_link(self):
         base=self.public()
+        # The real producer can exceed a message budget. Exercise the exact
+        # boundary with a deliberately short, explicit synthetic message, while
+        # the separate producer test above preserves its complete real output.
+        base['brief_md']=('# Source-backed market brief\n\n## DATA TAPE\n'
+            'Synthetic message-size fixture only; no market measurement or forecast.\n'
+            '## DECISION STATUS\n**DECISIVE CALL: WAIT**\nAbstain from new allocation guidance.\n')
         original=morning.build(lambda k:base,NOW)
         room=4096-len(original.encode('utf-16-le'))//2
         self.assertGreater(room,0)

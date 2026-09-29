@@ -726,12 +726,10 @@ def lambda_handler(event=None, context=None):
     # The public compiler never receives the account-specific snapshot above.
     from calls_free_brief import build as build_free_brief, PUBLIC_KEY
     from calls_research_replay import prepare as prepare_replay, persist as persist_replay, publish_current
-    from calls_liquidity_binding import reader as original_reader
-    originals = original_reader(S3, BUCKET)
-    research_run = prepare_replay(load_json, read_original=originals)
+    research_run = prepare_replay(load_json)
     snapshot["collection_started_at"] = snapshot["as_of"]
     snapshot["as_of"] = research_run["payload"]["generated_at"]
-    replay_reference = persist_replay(S3, BUCKET, research_run, read_original=originals)
+    replay_reference = persist_replay(S3, BUCKET, research_run)
     public = dict(research_run["payload"]["output"])
     public["research_replay"] = replay_reference
     out = {**public, "snapshot": snapshot,

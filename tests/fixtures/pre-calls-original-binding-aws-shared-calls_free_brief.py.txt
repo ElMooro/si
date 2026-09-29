@@ -50,7 +50,7 @@ def publication_clock(value,now):
                 'max_source_age_seconds':MAX_PUBLICATION_AGE_SECONDS}
 
 
-def build(load, generated_at, liquidity_originals=None):
+def build(load, generated_at):
     now = datetime.fromisoformat(generated_at.replace('Z','+00:00'))
     if now.tzinfo is None:raise ValueError('brief requires timezone-aware generation time')
     now=now.astimezone(timezone.utc)
@@ -88,19 +88,6 @@ def build(load, generated_at, liquidity_originals=None):
                 else 'incomplete_component_dates' if not complete else 'oldest_date_mismatch')
             if status=='fresh' and row['period_alignment_status']!='complete_oldest_date_matches':
                 status=row['quality_status']='unverified'
-        if key=='data/liquidity-flow.json' and liquidity_originals is not None:
-            verified=liquidity_originals.get('status')=='verified'
-            eligible=verified and liquidity_originals.get('current_use',{}).get('eligible') is True
-            status=row['quality_status']='unavailable' if value is None else 'fresh' if eligible else 'stale' if verified else 'unverified'
-            row['original_source_evidence_verified']=verified
-            row['current_original_research_eligible']=eligible
-            row['max_observation_age_days']=None
-            row['component_max_observation_age_days']={sid:part['max_observation_age_days'] for sid,part in liquidity_originals.get('sources',{}).items()}
-            row['freshness_basis']='Complete original-source replay, individual observation ceilings and original acquisition clocks; current-vintage descriptive research only.' if verified else 'Original-source replay unavailable; reported packet values remain unqualified.'
-            if verified:
-                row['original_packet_canonical_sha256']=liquidity_originals['canonical_packet_sha256']
-                row['original_calculation_id']=liquidity_originals['latest_reconstructed']['calculation_id']
-                row['original_current_use_issues']=liquidity_originals['current_use']['issues']
         if note: row['note']=note
         rows.append(row)
         if status!='fresh': missing.append(row['series_id'])
@@ -116,9 +103,6 @@ def build(load, generated_at, liquidity_originals=None):
             '; RRP daily operation '+str(periods['RRPONTSYD'] or 'unavailable')+
             '. The reported as-of must equal the oldest selected input date; this is not a shared measurement period. '
             'Current-vintage descriptive proxy; not investable cash or an easing signal.')
-    if liquidity_originals is not None:
-        liquidity_note+=(' Complete retained originals and signed arithmetic reproduced; individual source dates and acquisition clocks govern current research use.'
-            if liquidity_originals.get('status')=='verified' else ' Original-source replay unavailable; reported liquidity is unqualified for current research use.')
     add(liq,liq_key,'current.net_liquidity_b','usd_bn',['WALCL','WTREGEN','RRPONTSYD'],
         get(liq,'quality.observation_date') or liq.get('as_of'),note=liquidity_note,periods=periods)
     settlement_key='data/settlement-fails.json';settlement=project(read(settlement_key),now)
@@ -162,14 +146,14 @@ def build(load, generated_at, liquidity_originals=None):
         '- Composites may reuse the same series. Six settlement fields all share FR2004; they do not become six independent votes.',
         '', '## DATA LIMITATIONS',
         '- '+str(len(missing))+' fields are stale, incomplete or unverified. Missing observation dates are shown explicitly; publication time is never substituted.',
-        '- Source publication must also be dated, not future, and within 26 hours. For fields without retained-original lineage, this collector ceiling alone does not verify provider acquisition or its release calendar.',
+        '- Source publication must also be dated, not future, and within 26 hours. This collector age ceiling does not verify original provider acquisition or its release calendar.',
         '- No allocation model or out-of-sample edge is validated here. All fields are monitor-only, even when fresh. No target exposure, probability or position size is inferred.',
         '', '## WATCH CONDITIONS',
         '- Reassess when the named source observations change, their dates advance, or upstream quality deteriorates.',
         '- Any future allocation change requires eligible independent evidence, a validated model and a separately enforced risk limit.',
         '', '## DECISION STATUS', '**DECISIVE CALL: WAIT**',
         'Abstain from new allocation guidance. WAIT does not mean sell existing positions or override independent risk controls.']
-    result={'version':'3.2','generated_at':generated_at,'generation_method':METHOD,
+    result={'version':'3.1','generated_at':generated_at,'generation_method':METHOD,
         'model':None,'paid_api_calls':0,'brief_md':'\n'.join(lines)+'\n',
         'evidence':rows,'coverage':{'fields':len(rows),'available':len(available),'fresh':len(fresh),'eligible_votes':0},
         'quality':{'status':'partial' if missing else 'fresh','missing':missing},
