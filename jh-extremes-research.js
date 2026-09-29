@@ -5,7 +5,11 @@
  const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:6}):'Unavailable';
  const engines=['capitulation','market-extremes'];
  function safe(key){return typeof key==='string'&&/^data\/(?:extremes|crisis|breadth|credit|volatility|eurodollar|insider|aaii|fails|vrp|retail|valuation)-research\/(?:runs|outputs)\/[a-f0-9]{64}\.json$/.test(key);}
- function typed(p){return p?.contract===CONTRACT&&engines.includes(p.engine)&&flags.every(k=>p[k]===false)&&p.call===null&&p.signal===null&&p.capitulation_score===null&&p.cycle_position===null&&p.posture===null&&Array.isArray(p.measurements)&&p.measurements.every(r=>flags.every(k=>r[k]===false)&&typeof r.value==='number'&&Number.isFinite(r.value)&&typeof r.unit==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.observation_date)&&Number.isFinite(Date.parse(r.valid_until)))&&p.quality&&p.eligibility&&p.dependency_graph&&Number.isFinite(Date.parse(p.generated_at))&&Number.isFinite(Date.parse(p.freshness?.pipeline_check_due_at));}
+ function day(s){if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s)||s.startsWith('0000-'))return null;const n=Date.parse(s+'T00:00:00Z');return Number.isFinite(n)&&new Date(n).toISOString().slice(0,10)===s?n:null;}
+ function clock(s){if(typeof s!=='string')return null;const m=/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/.exec(s);
+  if(!m||day(m[1])===null||Number(m[2])>23||Number(m[3])>59||Number(m[4])>59||(m[5]!=='Z'&&(Number(m[7])>23||Number(m[8])>59)))return null;const n=Date.parse(s);return Number.isFinite(n)?n:null;
+ }
+ function typed(p){const at=clock(p?.generated_at),due=clock(p?.freshness?.pipeline_check_due_at);return !!(at!==null&&due!==null&&due>at&&due-at<=26*3600000&&p?.contract===CONTRACT&&engines.includes(p.engine)&&flags.every(k=>p[k]===false)&&p.call===null&&p.signal===null&&p.capitulation_score===null&&p.cycle_position===null&&p.posture===null&&Array.isArray(p.measurements)&&p.measurements.every(r=>r&&flags.every(k=>r[k]===false)&&typeof r.value==='number'&&Number.isFinite(r.value)&&typeof r.unit==='string'&&day(r.observation_date)!==null&&clock(r.valid_until)!==null)&&p.quality&&p.eligibility&&p.dependency_graph);}
  function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v;}
  async function sha(raw){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');}
  function strictJSON(source){
@@ -60,11 +64,14 @@
   const {replay,...body}=p;if(JSON.stringify(stable(body))!==JSON.stringify(stable(out.doc)))throw Error('Current body differs');return p;
  }
  function link(ref,label){return safe(ref?.manifest_key)?'<a href="/'+ref.manifest_key+'">'+esc(label)+'</a>':esc(label)+' · evidence unavailable';}
- function current(p,at){return Date.parse(p.generated_at)<=at&&at<Date.parse(p.freshness.pipeline_check_due_at);}
+ function current(p,at){const generated=clock(p?.generated_at),due=clock(p?.freshness?.pipeline_check_due_at);return Number.isFinite(at)&&generated!==null&&due!==null&&generated<=at&&at<due;}
+ function state(p,at){return (at<clock(p.generated_at)?'Future-dated publication · current use unavailable':current(p,at)?'Dated partial research':'Dated retained research · refresh overdue')+' · WAIT means abstention';}
+ function use(p,until,at){return at<clock(p.generated_at)?'Future-dated context':current(p,at)&&at<clock(until)?'Dated context':'Expired context';}
+ function updateAges(node,p,at=Date.now()){const label=node.querySelector('[data-extremes-state]');if(label)label.textContent=state(p,at);for(const row of node.querySelectorAll('[data-extremes-until]')){const cell=row.querySelector('[data-extremes-use]');if(cell)cell.textContent=use(p,row.dataset.extremesUntil,at);}}
  function render(p,at=Date.now()){
   if(!typed(p))return '<p role="status">Verified native synthesis unavailable. No cycle score or portfolio recommendation.</p>';
-  const active=current(p,at),g=p.dependency_graph,conflicts=[...(g.same_series_date_conflicts||[]),...(g.definition_conflicts||[])];
-  let h='<h2>'+esc(p.engine==='capitulation'?'Capitulation research':'Market extremes research')+'</h2><p class="xr-state">'+(active?'Dated partial research':'Dated retained research · refresh overdue')+' · WAIT means abstention</p>';
+  const g=p.dependency_graph,conflicts=[...(g.same_series_date_conflicts||[]),...(g.definition_conflicts||[])];
+  let h='<h2>'+esc(p.engine==='capitulation'?'Capitulation research':'Market extremes research')+'</h2><p class="xr-state" data-extremes-state>'+esc(state(p,at))+'</p>';
   h+='<p>Compiled '+esc(p.generated_at)+'. Pipeline check due '+esc(p.freshness.pipeline_check_due_at)+'. Each observation has its own date and expiry.</p>';
   h+='<p>No validated market-turn forecast, probability, target allocation or trade instruction. An unavailable input never becomes a neutral score. WAIT does not certify an existing portfolio as safe.</p>';
   h+='<h3>Input eligibility</h3><div class="xr-scroll" role="region" aria-label="Source eligibility" tabindex="0"><table><thead><tr><th>Input</th><th>Research status at compilation</th><th>Observed rows</th><th>Published</th><th>Evidence</th></tr></thead><tbody>';
@@ -75,7 +82,7 @@
   h+='<details><summary>Inspect repeated inputs and provider families</summary><ul>'+g.same_series_date_overlaps.map(c=>'<li>'+esc(c.series_id)+' · '+esc(c.observation_date)+' · '+esc(c.sources.join(', '))+'</li>').join('')+'</ul><ul>'+Object.entries(g.provider_families).map(([name,ids])=>'<li>'+esc(name)+': '+esc(ids.join(', '))+'</li>').join('')+'</ul><p>'+esc(g.note)+'</p></details>';
   if(p.contexts.capitulation?.note)h+='<p>'+esc(p.contexts.capitulation.note)+' '+link(p.contexts.capitulation.upstream_replay,'Capitulation lineage')+'</p>';
   h+='<h3>Dated measurements</h3><p>Values retain their original unit. Percent is not basis points; survey spreads use percentage points. Repeated series stay visible so the source chain can be inspected.</p><div class="xr-scroll" role="region" aria-label="Dated research measurements" tabindex="0"><table><thead><tr><th>Series / source</th><th>Value</th><th>Unit</th><th>Observed</th><th>Current use</th><th>Trace</th></tr></thead><tbody>';
-  for(const r of p.measurements){const usable=active&&at<Date.parse(r.valid_until);h+='<tr><th scope="row">'+esc(r.series_id)+'<br><small>'+esc(r.source_engine)+' · '+esc(r.label)+'</small></th><td>'+fmt(r.value)+'</td><td>'+esc(r.unit)+'</td><td>'+esc(r.observation_date)+'</td><td>'+(usable?'Dated context':'Expired context')+'<br><small>until '+esc(r.valid_until)+'</small></td><td>'+link(r.upstream_replay,'Source run')+'<br><small>'+esc(r.source_path)+'</small></td></tr>';}
+  for(const r of p.measurements){h+='<tr><th scope="row">'+esc(r.series_id)+'<br><small>'+esc(r.source_engine)+' · '+esc(r.label)+'</small></th><td>'+fmt(r.value)+'</td><td>'+esc(r.unit)+'</td><td>'+esc(r.observation_date)+'</td><td data-extremes-until="'+esc(r.valid_until)+'"><span data-extremes-use>'+esc(use(p,r.valid_until,at))+'</span><br><small>until '+esc(r.valid_until)+'</small></td><td>'+link(r.upstream_replay,'Source run')+'<br><small>'+esc(r.source_path)+'</small></td></tr>';}
   h+='</tbody></table></div>';if(!p.measurements.length)h+='<p>No current verified measurements in this retained synthesis.</p>';
   const scopes=p.pd_settlement_fails?.scopes;
   if(scopes){h+='<h3>Settlement fails · separate scopes</h3><ul>';for(const [name,s] of Object.entries(scopes))h+='<li>'+esc(name)+': FTD '+fmt(s.ftd_bn)+' + FTR '+fmt(s.ftr_bn)+' = '+fmt(s.combined_bn)+' USD billion · '+esc(s.as_of)+'</li>';h+='</ul><p>'+esc(p.pd_settlement_fails.note)+'</p>';}
@@ -94,12 +101,21 @@
   form.onsubmit=e=>{e.preventDefault();try{out.textContent='Entered scenario: '+scenario(form.elements.exposure.value,form.elements.shock.value).toLocaleString('en-US',{style:'currency',currency:'USD'})+' price P&L. Signed exposure × entered shock; no forecast probability, financing, FX, dividends, fees or hedge response.';}catch(err){out.textContent=err.message;}};
  }
  async function mount(node){const engine=node.dataset.extremesEngine;if(!engines.includes(engine))return;
-  let controller,sequence=0;
-  async function refresh(){controller?.abort();controller=new AbortController();const seq=++sequence;node.innerHTML='<p role="status">Verifying retained research…</p>';
-   try{const p=(await load('data/'+engine+'.json',root.fetch.bind(root),controller.signal)).doc;await verifyPacket(p,root.fetch.bind(root),controller.signal);if(seq!==sequence)return;if(p.engine!==engine)throw Error('Engine differs');node.innerHTML=render(p);node.querySelector('[data-extremes-refresh]').onclick=refresh;}
-   catch(err){if(seq!==sequence||err.name==='AbortError')return;node.innerHTML='<p role="status">Verified current research unavailable. No cycle score or portfolio recommendation.</p><button type="button" data-extremes-refresh>Retry verification</button>';node.querySelector('[data-extremes-refresh]').onclick=refresh;}
-  }await refresh();
+  let controller,sequence=0,packet=null,timer;
+  function stop(){if(timer!==undefined){root.clearInterval?.(timer);timer=undefined;}}
+  function ages(){if(packet)updateAges(node,packet);}
+  function start(){if(timer===undefined&&root.setInterval)timer=root.setInterval(ages,60000);}
+  function unavailable(){packet=null;stop();node.innerHTML='<p role="status">Verified current research unavailable. No cycle score or portfolio recommendation.</p><button type="button" data-extremes-refresh>Retry verification</button>';node.querySelector('[data-extremes-refresh]').onclick=refresh;}
+  async function refresh(){controller?.abort();controller=new AbortController();const seq=++sequence;packet=null;stop();node.innerHTML='<p role="status">Verifying retained research…</p>';
+   try{const p=(await load('data/'+engine+'.json',root.fetch.bind(root),controller.signal)).doc;await verifyPacket(p,root.fetch.bind(root),controller.signal);if(seq!==sequence)return;if(p.engine!==engine)throw Error('Engine differs');packet=p;node.innerHTML=render(p);node.querySelector('[data-extremes-refresh]').onclick=refresh;start();}
+   catch(err){if(seq!==sequence||err.name==='AbortError')return;unavailable();}
+  }
+  root.addEventListener?.('pagehide',()=>{controller?.abort();sequence++;stop();if(!packet)unavailable();});
+  root.addEventListener?.('pageshow',()=>{ages();if(packet)start();});
+  root.document?.addEventListener?.('visibilitychange',()=>{if(!root.document.hidden)ages();});
+  await refresh();
  }
- const api={typed,render,verifyPacket,scenario,bindScenario,load,current};if(typeof module==='object'&&module.exports)module.exports=api;
+
+ const api={typed,render,verifyPacket,scenario,bindScenario,load,current,day,clock,updateAges};if(typeof module==='object'&&module.exports)module.exports=api;
  root.JHExtremesResearch=api;if(root.document){const start=()=>{root.document.querySelectorAll('[data-extremes-engine]').forEach(mount);bindScenario();};if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',start);else start();}
 })(typeof globalThis==='object'?globalThis:this);

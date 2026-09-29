@@ -1,0 +1,138 @@
+{
+  "stage": 427,
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T18:12:48.223239+00:00",
+  "baseline_commit": "2aa5e060558f1702ec75d818a92da4588453069c",
+  "reproductions": {
+    "clock_validation": {
+      "scope": "Reviewed current browser module and isolated synthetic fixture objects only. No network, provider, archived-code or actual current/private packet reads.",
+      "source_sha256": "b68938b1e276dc19a70cd2f99302bbf1e53310b0f6030b5d807194aad46c6aaf",
+      "cases": [
+        {
+          "case": "impossible_observation_date",
+          "typed_accepted": true,
+          "rendered_dated_measurements": true
+        },
+        {
+          "case": "timezone_free_generation",
+          "typed_accepted": true,
+          "rendered_dated_measurements": true
+        },
+        {
+          "case": "normalized_24_hour_expiry",
+          "typed_accepted": true,
+          "rendered_dated_measurements": true
+        },
+        {
+          "case": "unbounded_wrapper_freshness",
+          "typed_accepted": true,
+          "rendered_dated_measurements": true
+        }
+      ]
+    },
+    "idle_expiry": {
+      "scope": "Reviewed current source in isolated VM with synthetic responses and controlled clock only; no actual browser state, live/private packet, provider or archived-code reads.",
+      "source_sha256": "b68938b1e276dc19a70cd2f99302bbf1e53310b0f6030b5d807194aad46c6aaf",
+      "initially_current": true,
+      "after_expiry_still_claims_current": true,
+      "periodic_age_timers": 0,
+      "synthetic_requests": 3
+    }
+  },
+  "whole_predecessors": {
+    "jh-extremes-research.js": {
+      "fixture": "tests/fixtures/pre-extremes-clock-client.js.txt",
+      "bytes": 14300,
+      "sha256": "b68938b1e276dc19a70cd2f99302bbf1e53310b0f6030b5d807194aad46c6aaf"
+    },
+    "capitulation.html": {
+      "fixture": "tests/fixtures/pre-extremes-clock-capitulation.html.txt",
+      "bytes": 2999,
+      "sha256": "3fd6f3a6227f2290d89669d0ac6e4fcfbcd9e9e21ea4f19e934258d1b88d57b6"
+    },
+    "market-extremes.html": {
+      "fixture": "tests/fixtures/pre-extremes-clock-market-extremes.html.txt",
+      "bytes": 3013,
+      "sha256": "e748bba7e69d97c02134dfea69d18ad737fe158b15177ca83a3762b619bb01b1"
+    }
+  },
+  "predecessor_code_executed": false,
+  "improvements": [
+    "Gregorian observation dates and timezone-aware ISO clocks are required; invalid dates, 24-hour normalization, invalid offsets and unbounded wrapper freshness are withheld. The wrapper deadline must follow publication and fit the existing native consumer 26-hour ceiling.",
+    "A local age timer updates current/future/expired publication and per-row labels without fetching data, changing generated_at or reconstructing evidence tables. Expanded disclosures, focus and scroll state survive clock changes.",
+    "Pagehide aborts pending reads, invalidates delayed completions and clears the single timer. Pageshow and visible-document return update local ages; interrupted verification shows retry. Failed refresh clears the timer and research; successful retry restores one timer."
+  ],
+  "sources": {
+    "jh-extremes-research.js": {
+      "bytes": 16212,
+      "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139"
+    },
+    "capitulation.html": {
+      "bytes": 3001,
+      "sha256": "cbd69ff1f3414813b3500b3e3e9b1b88dfcbbe05197a2fda548457d59f756bd2"
+    },
+    "market-extremes.html": {
+      "bytes": 3015,
+      "sha256": "940610a909b8348dc4f30fc6629650882a9e0a34c2acc91d55b0d9e3215c537e"
+    },
+    "tests/extremes-clock.test.js": {
+      "bytes": 8358,
+      "sha256": "3b02fa2c36f8a277324a56824a9e89f2aade0c61fae70a42a0ee4ca02990a21c"
+    },
+    "tests/extremes-research.test.js": {
+      "bytes": 4842,
+      "sha256": "cea090ed2052aab113f996d2b7f805197311f73b5fe5dc2596749eef4cc93722"
+    }
+  },
+  "tests": {
+    "new_clock_lifecycle_cases": 8,
+    "focused_extremes_cases": 36,
+    "frontend": 1871,
+    "deployment_static": 702,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "isolated_browser_acceptance": {
+    "checked_at": "2026-09-29T18:10:56.296073+00:00",
+    "scope": "Two isolated localhost pages, complete synthetic proof-shaped packets, controlled clock and lifecycle events. CSP blocks network. No actual data publication or native producer used.",
+    "source_sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+    "pages": [
+      "capitulation",
+      "market-extremes"
+    ],
+    "cases": {
+      "one_row_expires_while_wrapper_stays_current": true,
+      "wrapper_expiry_expires_all_rows": true,
+      "future_publication_has_distinct_unavailable_labels": true,
+      "expanded_lineage_preserved": true,
+      "keyboard_control_focus_preserved": true,
+      "lifecycle_hides_zero_timers_returns_one": true,
+      "requests_remain_three_through_all_clock_lifecycle_actions": true,
+      "market_extremes_mobile": {
+        "width": 360,
+        "document_width": 345
+      },
+      "console_errors_and_warnings": []
+    },
+    "screenshot": {
+      "local_artifact": "stage427-expired.png",
+      "sha256": "e2a6ebafae20101c281fb6ae8f95286cfded66cce3bd565830709fbe93853819"
+    }
+  },
+  "boundaries": {
+    "native_source_changes": 0,
+    "native_invocations": 0,
+    "current_or_private_packet_reads": 0,
+    "provider_requests": 0,
+    "cadence_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact static deployment remains pending.",
+    "Local age labels update on a sixty-second timer and visibility/page-return events; this is not an execution-grade clock service.",
+    "QA uses controlled clock/lifecycle events and synthetic proof-shaped packets; normal scheduled data publication is separate and unverified.",
+    "The JSON/date checks do not establish source-provider accuracy, first-release historical availability, forecast validation or portfolio authority.",
+    "Dynamic current-writer source provenance remains unproven."
+  ]
+}
