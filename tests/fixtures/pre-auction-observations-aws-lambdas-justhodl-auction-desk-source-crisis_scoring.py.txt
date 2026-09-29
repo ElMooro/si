@@ -1,8 +1,11 @@
-"""Pure detector-compatible observations and unqualified legacy heuristics.
+"""Pure auction scoring used by the Treasury desk's historical composite.
 
-No network, credential or storage side effects. The parity regression compares
-these complete functions with the detector; economic identity uses the shared
-reviewed Treasury instrument contract.
+The configured auction-desk handler writes its own desk and history artifacts.
+The live detector owns the separate auction-crisis output. This module exposes
+only the detector-compatible metric extraction and scoring functions; importing
+it performs no network, credential, or storage operations.
+
+The parity regression compares this scoring API with the detector source.
 """
 
 NORMAL_2024_BASELINE = {
@@ -31,99 +34,116 @@ NORMAL_2024_BASELINE = {
 
 
 def parse_float(v, default=None):
-    """Finite JSON measurement; a boolean, blank or nonfinite value is unknown."""
-    import math
-    import re
-    if type(v) not in (int, float, str) or isinstance(v, str) and (not v.strip() or len(v)>128):
-        return default
-    if isinstance(v, str) and not re.fullmatch(r'[-+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?', v.strip()):
+    if v in (None, "", "null"):
         return default
     try:
-        value = float(v)
-        return value if math.isfinite(value) else default
-    except (TypeError, ValueError, OverflowError):
+        return float(v)
+    except (TypeError, ValueError):
         return default
 
 
 def classify_tenor_bucket(record):
-    """Legacy bucket keys with explicit economic identity; 3y belongs to 2y-3y."""
-    from treasury_instruments import instrument_fields
-    kind = instrument_fields(record, 'fiscaldata')['instrument_kind']
-    if kind == 'TIPS':
-        return 'tips'
-    if kind == 'FRN':
-        return 'frn'
-    days = parse_term_to_days(record.get('security_term'))
-    if days is None:
-        return 'unknown'
-    if kind == 'BILL':
-        return 'bills_lt_90d' if days < 90 else 'bills_gte_90d'
-    if kind == 'NOMINAL_COUPON':
-        return 'coupons_lt_3y' if days <= 365*3 else 'coupons_gt_3y'
-    return 'unknown'
+    """Returns 'bills_lt_90d', 'bills_gte_90d', 'coupons_lt_3y', 'coupons_gt_3y', 'tips', 'frn'."""
+    sec_type = (record.get("security_type") or "").upper()
+    sec_term = (record.get("security_term") or "").upper()
+    if "TIPS" in sec_type or "TIIN" in sec_type or "TIPS" in sec_term:
+        return "tips"
+    if "FRN" in sec_type or "FRN" in sec_term:
+        return "frn"
+    if "BILL" in sec_type:
+        # parse tenor from term: e.g. "28-DAY", "13-WEEK", "26-WEEK"
+        days = parse_term_to_days(sec_term)
+        if days is None:
+            return "bills_lt_90d"
+        return "bills_lt_90d" if days < 90 else "bills_gte_90d"
+    if "NOTE" in sec_type or "BOND" in sec_type:
+        days = parse_term_to_days(sec_term)
+        if days is None or days >= 365 * 3:
+            return "coupons_gt_3y"
+        return "coupons_lt_3y"
+    return "coupons_gt_3y"
 
 
 def parse_term_to_days(term):
-    """Full term approximation for legacy display buckets, not a maturity date."""
-    import re
-    if not isinstance(term, str) or len(term)>80 or term.lstrip().startswith(('-', '+')):
+    """'28-DAY' → 28, '13-WEEK' → 91, '10-YEAR' → 3650."""
+    if not term:
         return None
-    text = term.upper().replace('-', ' ').strip()
-    matches = list(re.finditer(r'(\d+)\s+(DAY|WEEK|MONTH|YEAR)S?\b', text))
-    if not matches or re.sub(r'(\d+)\s+(DAY|WEEK|MONTH|YEAR)S?\b', '', text).strip():
+    t = term.upper().strip()
+    parts = t.replace("-", " ").split()
+    try:
+        n = int(parts[0])
+    except (ValueError, IndexError):
         return None
-    units = [m.group(2) for m in matches]
-    if len(units)!=len(set(units)):
-        return None
-    days = sum(int(m.group(1))*{'DAY':1,'WEEK':7,'MONTH':30,'YEAR':365}[m.group(2)] for m in matches)
-    return days if 0 < days <= 50*365 else None
+    if "DAY" in t:
+        return n
+    if "WEEK" in t:
+        return n * 7
+    if "YEAR" in t:
+        return n * 365
+    if "MONTH" in t:
+        return n * 30
+    return None
 
 
 def compute_record_metrics(record):
-    """Descriptive auction observations. Never impute missing bidders or a WI quote."""
-    from treasury_instruments import instrument_fields
-    fields = instrument_fields(record, 'fiscaldata')
-    kind = fields['instrument_kind']
-    bucket = classify_tenor_bucket(record)
-    rates = {'BILL':('high_discnt_rate','low_discnt_rate','median_discnt_rate','discount_rate_pct'),
-             'NOMINAL_COUPON':('high_yield','low_yield','median_yield','nominal_yield_pct'),
-             'TIPS':('high_yield','low_yield','median_yield','real_yield_pct'),
-             'FRN':('high_discount_margin','low_discount_margin','median_discount_margin','discount_margin_pct')}
-    names = rates.get(kind)
-    high_rate, low_rate, median_rate = [parse_float(record.get(k)) for k in names[:3]] if names else (None,None,None)
-    btc = parse_float(record.get('bid_to_cover_ratio'))
-    if btc is not None and btc < 0:
-        btc = None
-    aah = parse_float(record.get('allocation_pctage'))
-    if aah is not None and not 0 <= aah <= 100:
-        aah = None
-    bidder_fields = ('primary_dealer_accepted','direct_bidder_accepted','indirect_bidder_accepted')
-    amounts = [parse_float(record.get(k)) for k in bidder_fields]
-    missing = [k for k,v in zip(bidder_fields,amounts) if v is None or v < 0]
-    total = parse_float(sum(amounts)) if not missing else None
-    if total is not None and total < 0:
-        total = None
-    shares = [value/total*100 for value in amounts] if total is not None and total > 0 else [None,None,None]
-    accepted = parse_float(record.get('total_accepted'))
-    if accepted is not None and accepted < 0:
-        accepted = None
-    spread = parse_float((high_rate-median_rate)*100) if high_rate is not None and median_rate is not None else None
+    """Extract the 6 diagnostic metrics from a fiscaldata auction record.
+
+    Field names from API:
+      - bid_to_cover_ratio
+      - high_yield (or high_discnt_rate for bills)
+      - low_yield (or low_discnt_rate)
+      - allocation_pctage  (% allotted at high)
+      - primary_dealer_accepted
+      - direct_bidder_accepted
+      - indirect_bidder_accepted
+      - total_accepted
+    """
+    btc = parse_float(record.get("bid_to_cover_ratio"))
+
+    # Bills use discount rate, coupons use yield
+    high_rate = parse_float(record.get("high_yield"))
+    if high_rate is None:
+        high_rate = parse_float(record.get("high_discnt_rate"))
+    low_rate = parse_float(record.get("low_yield"))
+    if low_rate is None:
+        low_rate = parse_float(record.get("low_discnt_rate"))
+    median_rate = parse_float(record.get("median_yield"))
+    if median_rate is None:
+        median_rate = parse_float(record.get("median_discnt_rate"))
+
+    aah = parse_float(record.get("allocation_pctage"))
+
+    pd = parse_float(record.get("primary_dealer_accepted"), 0) or 0
+    direct = parse_float(record.get("direct_bidder_accepted"), 0) or 0
+    indirect = parse_float(record.get("indirect_bidder_accepted"), 0) or 0
+    total_competitive = pd + direct + indirect
+    pd_share = (pd / total_competitive * 100) if total_competitive > 0 else None
+    indirect_share = (indirect / total_competitive * 100) if total_competitive > 0 else None
+    direct_share = (direct / total_competitive * 100) if total_competitive > 0 else None
+
+    accepted_total = parse_float(record.get("total_accepted"))
+
+    tail_bp = None
+    if high_rate is not None and median_rate is not None:
+        tail_bp = (high_rate - median_rate) * 100  # basis points
+
     return {
-        'auction_date':record.get('auction_date'), 'issue_date':record.get('issue_date'),
-        'security_type':record.get('security_type'), 'security_term':record.get('security_term'), 'cusip':record.get('cusip'),
-        **fields, 'quote_basis':names[3] if names else None, 'tenor_bucket':bucket,
-        'tenor_bucket_basis':'Complete remaining term approximation; legacy coupons_lt_3y includes exactly 3 years.',
-        'high_rate':high_rate,'low_rate':low_rate,'median_rate':median_rate,'allocated_at_high_pct':aah,'btc':btc,
-        'primary_dealer_pct':shares[0],'direct_pct':shares[1],'indirect_pct':shares[2],
-        'bidder_denominator_usd':total,'bidder_denominator_scope':'sum of primary dealer, direct and indirect accepted amounts',
-        'bidder_share_status':'complete' if total is not None and total>0 else 'missing_or_invalid' if missing or total is None else 'zero_denominator',
-        'bidder_missing_fields':missing,
-        'accepted_billions':accepted/1e9 if accepted is not None else None,
-        'high_minus_median_bp':spread,
-        'tail_bp':None,'wi_tail_bp':None,
-        'tail_missing_reason':'No timestamped, same-security when-issued quote is acquired; high-minus-median is within-auction dispersion.',
-        'measurement_contract':'auction-observations.v1',
-        'calls_eligible':False,'sizing_eligible':False,
+        "auction_date": record.get("auction_date"),
+        "issue_date": record.get("issue_date"),
+        "security_type": record.get("security_type"),
+        "security_term": record.get("security_term"),
+        "cusip": record.get("cusip"),
+        "tenor_bucket": classify_tenor_bucket(record),
+        "high_rate": high_rate,
+        "low_rate": low_rate,
+        "median_rate": median_rate,
+        "allocated_at_high_pct": aah,
+        "btc": btc,
+        "primary_dealer_pct": pd_share,
+        "indirect_pct": indirect_share,
+        "direct_pct": direct_share,
+        "tail_bp": tail_bp,
+        "accepted_billions": accepted_total / 1e9 if accepted_total else None,
     }
 
 
@@ -133,8 +153,6 @@ def score_indicators(metrics, fed_funds_rate):
     Returns dict of {indicator_name: score 0-100}.
     """
     bucket = metrics["tenor_bucket"]
-    if bucket in ("unknown", "frn"):
-        return {}  # no comparable reviewed baseline for these observations
     scores = {}
 
     # ── 1. ZERO-RATE BILL FLOOR ──
@@ -166,14 +184,14 @@ def score_indicators(metrics, fed_funds_rate):
                 scores["btc_extreme"] = 70
             elif z >= 1.5:
                 scores["btc_extreme"] = 45
-            elif z <= -2.0:
-                scores["btc_extreme"] = 80  # severe weak-demand heuristic; not an auction failure
             elif z <= -1.5:
-                scores["btc_extreme"] = 50
+                scores["btc_extreme"] = 50  # weak demand also stressful
+            elif z <= -2.0:
+                scores["btc_extreme"] = 80  # failed auction territory
             else:
                 scores["btc_extreme"] = 0
         elif bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
-            # On coupons, LOW BTC = weak bid-to-cover observation
+            # On coupons, LOW BTC = failed auction warning
             base = NORMAL_2024_BASELINE.get("coupons_gt_3y" if bucket == "coupons_gt_3y" else "tips" if bucket == "tips" else "coupons_gt_3y")
             z = (metrics["btc"] - base["btc_mean"]) / base["btc_std"]
             if z <= -2.5:
@@ -199,7 +217,7 @@ def score_indicators(metrics, fed_funds_rate):
                 scores["tail_stress"] = 0
         elif bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
             if aah > 95:
-                scores["tail_stress"] = 75  # high marginal-bid proration; not a dealer-share measure
+                scores["tail_stress"] = 75  # near tail-out, dealers absorbed
             elif aah > 90:
                 scores["tail_stress"] = 50
             elif aah < 30:
@@ -230,11 +248,11 @@ def score_indicators(metrics, fed_funds_rate):
             else:
                 scores["pd_absorption"] = 0
 
-    # ── 5. INDIRECT BIDDER PARTICIPATION ──
+    # ── 5. INDIRECT (FOREIGN) SHARE COLLAPSE ──
     if metrics["indirect_pct"] is not None:
         ind_pct = metrics["indirect_pct"]
         if bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
-            # Indirect bidder participation on coupons; domestic and foreign investors. <50% = exodus pattern (2008-09-18 had 29.3%)
+            # Foreign demand on coupons. <50% = exodus pattern (2008-09-18 had 29.3%)
             if ind_pct < 30:
                 scores["indirect_collapse"] = 100
             elif ind_pct < 50:

@@ -51,7 +51,6 @@ on bonds.html.
 """
 import json
 from auction_quality import stamp_quality
-from auction_weighting import weighted_summary
 from pd_fails_context import load as load_pd_fails
 import math
 import os
@@ -135,170 +134,171 @@ CRISIS_REFERENCE = [
 
 
 def fetch_fiscal_auctions(start_date, end_date, page_size=200):
-    """Require a complete, consistent bounded page set before returning any rows.
+    """Pull auction data from fiscaldata.treasury.gov. Returns list of records.
 
-    A transport/schema/pagination failure raises before the handler can publish.
-    This completeness gate does not yet establish immutable original capture.
+    Always pulls fresh — no caching. The fiscaldata API publishes auction
+    results within ~1-2 hours of auction close. We pull on every Lambda
+    invocation so the dashboard reflects whatever Treasury has published
+    most recently, including same-day auctions.
+
+    URL contract:
+      https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/
+        accounting/od/auctions_query?
+        filter=auction_date:gte:YYYY-MM-DD,auction_date:lte:YYYY-MM-DD&
+        sort=-auction_date&
+        format=json&
+        page[size]=200&
+        page[number]=N
     """
-    from datetime import date
-    if type(page_size) is not int or not 1 <= page_size <= 200:
-        raise ValueError('Invalid auction page size')
-    start, end = date.fromisoformat(start_date), date.fromisoformat(end_date)
-    if end < start or (end-start).days > 400:
-        raise ValueError('Invalid auction acquisition window')
-    all_records, seen = [], set()
-    expected_pages = expected_count = None
-    for page in range(1,31):
-        params={'filter':f'auction_date:gte:{start_date},auction_date:lte:{end_date}',
-                'sort':'-auction_date,cusip','format':'json','page[size]':page_size,'page[number]':page}
-        req=urllib.request.Request(FISCAL_BASE+'?'+urllib.parse.urlencode(params,safe=':,'),headers={
-            'Accept':'application/json','User-Agent':'justhodl-auction-crisis-detector/2.2',
-            'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'})
+    all_records = []
+    page = 1
+    while True:
+        params = {
+            "filter": f"auction_date:gte:{start_date},auction_date:lte:{end_date}",
+            "sort": "-auction_date",  # most recent first
+            "format": "json",
+            "page[size]": page_size,
+            "page[number]": page,
+        }
+        url = FISCAL_BASE + "?" + urllib.parse.urlencode(params, safe=":,")
         try:
-            with urllib.request.urlopen(req,timeout=20) as response:
-                raw=response.read(4*1024*1024+1)
-            if len(raw)>4*1024*1024:
-                raise ValueError('Page exceeds byte bound')
-            body=json.loads(raw)
-            if not isinstance(body,dict) or not isinstance(body.get('data'),list) or not isinstance(body.get('meta'),dict):
-                raise ValueError('Page schema missing')
-            counts=[]
-            for name in ('total-pages','total-count'):
-                value=body['meta'].get(name)
-                if type(value) is str and value.isascii() and value.isdigit() and len(value)<10:
-                    value=int(value)
-                if type(value) is not int or value<0:
-                    raise ValueError('Pagination count invalid: '+name)
-                counts.append(value)
-            pages,count=counts
-            if pages>30 or count>page_size*30 or pages!=max(1,(count+page_size-1)//page_size):
-                raise ValueError('Pagination totals inconsistent or outside bound')
-            if expected_pages is None:
-                expected_pages,expected_count=pages,count
-            if (pages,count)!=(expected_pages,expected_count):
-                raise ValueError('Pagination totals changed during acquisition')
-            records=body['data'];expected_size=min(page_size,count-(page-1)*page_size)
-            if len(records)!=expected_size:
-                raise ValueError('Page count differs from declared complete window')
-            for row in records:
-                if not isinstance(row,dict) or not isinstance(row.get('cusip'),str) or not row['cusip'].strip():
-                    raise ValueError('Auction identity missing')
-                day=row.get('auction_date')
-                if not isinstance(day,str) or date.fromisoformat(day).isoformat()!=day or not start_date<=day<=end_date:
-                    raise ValueError('Auction date outside requested window')
-                identity=(day,row['cusip'])
-                if identity in seen:
-                    raise ValueError('Repeated auction identity within page set')
-                seen.add(identity)
-            all_records.extend(records)
-            if page==pages:
-                if len(all_records)!=count:
-                    raise ValueError('Incomplete auction record set')
-                return all_records
-        except Exception as exc:
-            raise RuntimeError(f'Auction acquisition incomplete at page {page}; previous publication preserved ({type(exc).__name__})') from exc
-    raise RuntimeError('Auction acquisition exceeded page bound; previous publication preserved')
-
-
+            req = urllib.request.Request(url, headers={
+                "Accept": "application/json",
+                "User-Agent": "justhodl-auction-crisis-detector/1.0",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+            })
+            with urllib.request.urlopen(req, timeout=20) as r:
+                body = json.loads(r.read())
+        except Exception as e:
+            print(f"[fiscal] error page {page}: {e}")
+            break
+        data = body.get("data", [])
+        if not data:
+            break
+        all_records.extend(data)
+        meta = body.get("meta", {})
+        total_pages = meta.get("total-pages", 1)
+        if page >= total_pages or len(data) < page_size:
+            break
+        page += 1
+        if page > 30:  # safety
+            break
+    return all_records
 
 
 def parse_float(v, default=None):
-    """Finite JSON measurement; a boolean, blank or nonfinite value is unknown."""
-    import math
-    import re
-    if type(v) not in (int, float, str) or isinstance(v, str) and (not v.strip() or len(v)>128):
-        return default
-    if isinstance(v, str) and not re.fullmatch(r'[-+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?', v.strip()):
+    if v in (None, "", "null"):
         return default
     try:
-        value = float(v)
-        return value if math.isfinite(value) else default
-    except (TypeError, ValueError, OverflowError):
+        return float(v)
+    except (TypeError, ValueError):
         return default
 
 
 def classify_tenor_bucket(record):
-    """Legacy bucket keys with explicit economic identity; 3y belongs to 2y-3y."""
-    from treasury_instruments import instrument_fields
-    kind = instrument_fields(record, 'fiscaldata')['instrument_kind']
-    if kind == 'TIPS':
-        return 'tips'
-    if kind == 'FRN':
-        return 'frn'
-    days = parse_term_to_days(record.get('security_term'))
-    if days is None:
-        return 'unknown'
-    if kind == 'BILL':
-        return 'bills_lt_90d' if days < 90 else 'bills_gte_90d'
-    if kind == 'NOMINAL_COUPON':
-        return 'coupons_lt_3y' if days <= 365*3 else 'coupons_gt_3y'
-    return 'unknown'
+    """Returns 'bills_lt_90d', 'bills_gte_90d', 'coupons_lt_3y', 'coupons_gt_3y', 'tips', 'frn'."""
+    sec_type = (record.get("security_type") or "").upper()
+    sec_term = (record.get("security_term") or "").upper()
+    if "TIPS" in sec_type or "TIIN" in sec_type or "TIPS" in sec_term:
+        return "tips"
+    if "FRN" in sec_type or "FRN" in sec_term:
+        return "frn"
+    if "BILL" in sec_type:
+        # parse tenor from term: e.g. "28-DAY", "13-WEEK", "26-WEEK"
+        days = parse_term_to_days(sec_term)
+        if days is None:
+            return "bills_lt_90d"
+        return "bills_lt_90d" if days < 90 else "bills_gte_90d"
+    if "NOTE" in sec_type or "BOND" in sec_type:
+        days = parse_term_to_days(sec_term)
+        if days is None or days >= 365 * 3:
+            return "coupons_gt_3y"
+        return "coupons_lt_3y"
+    return "coupons_gt_3y"
 
 
 def parse_term_to_days(term):
-    """Full term approximation for legacy display buckets, not a maturity date."""
-    import re
-    if not isinstance(term, str) or len(term)>80 or term.lstrip().startswith(('-', '+')):
+    """'28-DAY' → 28, '13-WEEK' → 91, '10-YEAR' → 3650."""
+    if not term:
         return None
-    text = term.upper().replace('-', ' ').strip()
-    matches = list(re.finditer(r'(\d+)\s+(DAY|WEEK|MONTH|YEAR)S?\b', text))
-    if not matches or re.sub(r'(\d+)\s+(DAY|WEEK|MONTH|YEAR)S?\b', '', text).strip():
+    t = term.upper().strip()
+    parts = t.replace("-", " ").split()
+    try:
+        n = int(parts[0])
+    except (ValueError, IndexError):
         return None
-    units = [m.group(2) for m in matches]
-    if len(units)!=len(set(units)):
-        return None
-    days = sum(int(m.group(1))*{'DAY':1,'WEEK':7,'MONTH':30,'YEAR':365}[m.group(2)] for m in matches)
-    return days if 0 < days <= 50*365 else None
+    if "DAY" in t:
+        return n
+    if "WEEK" in t:
+        return n * 7
+    if "YEAR" in t:
+        return n * 365
+    if "MONTH" in t:
+        return n * 30
+    return None
 
 
 def compute_record_metrics(record):
-    """Descriptive auction observations. Never impute missing bidders or a WI quote."""
-    from treasury_instruments import instrument_fields
-    fields = instrument_fields(record, 'fiscaldata')
-    kind = fields['instrument_kind']
-    bucket = classify_tenor_bucket(record)
-    rates = {'BILL':('high_discnt_rate','low_discnt_rate','median_discnt_rate','discount_rate_pct'),
-             'NOMINAL_COUPON':('high_yield','low_yield','median_yield','nominal_yield_pct'),
-             'TIPS':('high_yield','low_yield','median_yield','real_yield_pct'),
-             'FRN':('high_discount_margin','low_discount_margin','median_discount_margin','discount_margin_pct')}
-    names = rates.get(kind)
-    high_rate, low_rate, median_rate = [parse_float(record.get(k)) for k in names[:3]] if names else (None,None,None)
-    btc = parse_float(record.get('bid_to_cover_ratio'))
-    if btc is not None and btc < 0:
-        btc = None
-    aah = parse_float(record.get('allocation_pctage'))
-    if aah is not None and not 0 <= aah <= 100:
-        aah = None
-    bidder_fields = ('primary_dealer_accepted','direct_bidder_accepted','indirect_bidder_accepted')
-    amounts = [parse_float(record.get(k)) for k in bidder_fields]
-    missing = [k for k,v in zip(bidder_fields,amounts) if v is None or v < 0]
-    total = parse_float(sum(amounts)) if not missing else None
-    if total is not None and total < 0:
-        total = None
-    shares = [value/total*100 for value in amounts] if total is not None and total > 0 else [None,None,None]
-    accepted = parse_float(record.get('total_accepted'))
-    if accepted is not None and accepted < 0:
-        accepted = None
-    spread = parse_float((high_rate-median_rate)*100) if high_rate is not None and median_rate is not None else None
+    """Extract the 6 diagnostic metrics from a fiscaldata auction record.
+
+    Field names from API:
+      - bid_to_cover_ratio
+      - high_yield (or high_discnt_rate for bills)
+      - low_yield (or low_discnt_rate)
+      - allocation_pctage  (% allotted at high)
+      - primary_dealer_accepted
+      - direct_bidder_accepted
+      - indirect_bidder_accepted
+      - total_accepted
+    """
+    btc = parse_float(record.get("bid_to_cover_ratio"))
+
+    # Bills use discount rate, coupons use yield
+    high_rate = parse_float(record.get("high_yield"))
+    if high_rate is None:
+        high_rate = parse_float(record.get("high_discnt_rate"))
+    low_rate = parse_float(record.get("low_yield"))
+    if low_rate is None:
+        low_rate = parse_float(record.get("low_discnt_rate"))
+    median_rate = parse_float(record.get("median_yield"))
+    if median_rate is None:
+        median_rate = parse_float(record.get("median_discnt_rate"))
+
+    aah = parse_float(record.get("allocation_pctage"))
+
+    pd = parse_float(record.get("primary_dealer_accepted"), 0) or 0
+    direct = parse_float(record.get("direct_bidder_accepted"), 0) or 0
+    indirect = parse_float(record.get("indirect_bidder_accepted"), 0) or 0
+    total_competitive = pd + direct + indirect
+    pd_share = (pd / total_competitive * 100) if total_competitive > 0 else None
+    indirect_share = (indirect / total_competitive * 100) if total_competitive > 0 else None
+    direct_share = (direct / total_competitive * 100) if total_competitive > 0 else None
+
+    accepted_total = parse_float(record.get("total_accepted"))
+
+    tail_bp = None
+    if high_rate is not None and median_rate is not None:
+        tail_bp = (high_rate - median_rate) * 100  # basis points
+
     return {
-        'auction_date':record.get('auction_date'), 'issue_date':record.get('issue_date'),
-        'security_type':record.get('security_type'), 'security_term':record.get('security_term'), 'cusip':record.get('cusip'),
-        **fields, 'quote_basis':names[3] if names else None, 'tenor_bucket':bucket,
-        'tenor_bucket_basis':'Complete remaining term approximation; legacy coupons_lt_3y includes exactly 3 years.',
-        'high_rate':high_rate,'low_rate':low_rate,'median_rate':median_rate,'allocated_at_high_pct':aah,'btc':btc,
-        'primary_dealer_pct':shares[0],'direct_pct':shares[1],'indirect_pct':shares[2],
-        'bidder_denominator_usd':total,'bidder_denominator_scope':'sum of primary dealer, direct and indirect accepted amounts',
-        'bidder_share_status':'complete' if total is not None and total>0 else 'missing_or_invalid' if missing or total is None else 'zero_denominator',
-        'bidder_missing_fields':missing,
-        'accepted_billions':accepted/1e9 if accepted is not None else None,
-        'high_minus_median_bp':spread,
-        'tail_bp':None,'wi_tail_bp':None,
-        'tail_missing_reason':'No timestamped, same-security when-issued quote is acquired; high-minus-median is within-auction dispersion.',
-        'measurement_contract':'auction-observations.v1',
-        'calls_eligible':False,'sizing_eligible':False,
+        "auction_date": record.get("auction_date"),
+        "issue_date": record.get("issue_date"),
+        "security_type": record.get("security_type"),
+        "security_term": record.get("security_term"),
+        "cusip": record.get("cusip"),
+        "tenor_bucket": classify_tenor_bucket(record),
+        "high_rate": high_rate,
+        "low_rate": low_rate,
+        "median_rate": median_rate,
+        "allocated_at_high_pct": aah,
+        "btc": btc,
+        "primary_dealer_pct": pd_share,
+        "indirect_pct": indirect_share,
+        "direct_pct": direct_share,
+        "tail_bp": tail_bp,
+        "accepted_billions": accepted_total / 1e9 if accepted_total else None,
     }
-
-
 
 
 def score_indicators(metrics, fed_funds_rate):
@@ -307,8 +307,6 @@ def score_indicators(metrics, fed_funds_rate):
     Returns dict of {indicator_name: score 0-100}.
     """
     bucket = metrics["tenor_bucket"]
-    if bucket in ("unknown", "frn"):
-        return {}  # no comparable reviewed baseline for these observations
     scores = {}
 
     # ── 1. ZERO-RATE BILL FLOOR ──
@@ -340,10 +338,10 @@ def score_indicators(metrics, fed_funds_rate):
                 scores["btc_extreme"] = 70
             elif z >= 1.5:
                 scores["btc_extreme"] = 45
-            elif z <= -2.0:
-                scores["btc_extreme"] = 80  # severe weak-demand heuristic; not an auction failure
             elif z <= -1.5:
-                scores["btc_extreme"] = 50
+                scores["btc_extreme"] = 50  # weak demand also stressful
+            elif z <= -2.0:
+                scores["btc_extreme"] = 80  # failed auction territory
             else:
                 scores["btc_extreme"] = 0
         elif bucket in ("coupons_lt_3y", "coupons_gt_3y", "tips"):
@@ -535,7 +533,7 @@ def lambda_handler(event, context):
     scored_auctions = []
     for r in raw:
         m = compute_record_metrics(r)
-        if m["btc"] is None:
+        if not m["btc"]:
             continue  # skip incomplete records
         s = score_indicators(m, fed_rate)
         if not s:
@@ -565,30 +563,31 @@ def lambda_handler(event, context):
 
     # Composite system-wide score: 14d average of per-auction composites,
     # weighted by accepted size. Then add the issuance-explosion overlay.
-    weighting = weighted_summary(recent)
-    recent_composite = weighting['composite']
+    if recent:
+        total_size = sum(a.get("accepted_billions") or 1 for a in recent)
+        weighted_sum = sum((a["composite_score"] * (a.get("accepted_billions") or 1)) for a in recent)
+        recent_composite = weighted_sum / total_size
+    else:
+        recent_composite = 0
 
     issuance = detect_issuance_explosion(raw)
-    if recent_composite is not None and issuance and issuance.get("score"):
+    if issuance and issuance.get("score"):
         # Issuance explosion adds 0-15 points to composite
         recent_composite = min(100, recent_composite + issuance["score"] * 0.15)
 
     # Regime classification
-    if recent_composite is None:
-        regime = "UNAVAILABLE"
-        interp = "Size-weighted auction heuristic unavailable: complete positive accepted-size weights are required."
-    elif recent_composite >= 75:
+    if recent_composite >= 75:
         regime = "ACUTE_STRESS"
-        interp = "Several auction observations exceed fixed historical heuristic thresholds. This uncalibrated score does not establish a crisis or an investment action."
+        interp = "Multiple auction-stress indicators firing in last 14d. GFC-Lehman-week / COVID-Mar-19 pattern. Immediate action required."
     elif recent_composite >= 50:
         regime = "ELEVATED"
-        interp = "The legacy auction heuristic is elevated against its fixed reference thresholds. Predictive validation is unavailable."
+        interp = "Auction stress indicators warming up. Pre-crisis pattern. Reduce risk now."
     elif recent_composite >= 25:
         regime = "WATCH"
-        interp = "Some auction observations exceed fixed reference thresholds. Review the underlying observations and missing inputs; no trade is implied."
+        interp = "One or two stress indicators flickering. Tighten stops, prepare hedges."
     else:
         regime = "CALM"
-        interp = "The legacy heuristic is below its first threshold. A low score does not establish market safety or predict returns."
+        interp = "Auctions clearing normally. Healthy demand profile, no flight-to-safety pattern."
 
     # Build report
     # Freshness tracking: detect the most-recent auction in the data and
@@ -720,8 +719,7 @@ def lambda_handler(event, context):
         "elapsed_sec": round(time.time() - t0, 2),
         "elapsed_v2_sec": v2_elapsed,
         "regime": regime,
-        "composite_score": round(recent_composite, 1) if recent_composite is not None else None,
-        "weighting_quality": weighting,
+        "composite_score": round(recent_composite, 1),
         "interpretation": interp,
         "n_recent_auctions_14d": len(recent),
         "issuance_anomaly": issuance,
@@ -799,20 +797,9 @@ def lambda_handler(event, context):
         "primary_dealer_pct": "Primary dealer accepted share, separate from allotted-at-high.",
         "tail_risk": "Uncalibrated 0-100 heuristic concern scores. Probability fields are null; no validated forecast horizon.",
     }
-    report["methodology_version"] = "auction-observations.v1"
-    report["measurement_contract"] = "auction-observations.v1"
-    report["metric_definitions"].update({
-        "tail_bp": "Unavailable without a timestamped same-security when-issued quote. This legacy key is retained as null.",
-        "wi_tail_bp": "Unavailable: no when-issued quote acquired.",
-        "high_minus_median_bp": "Within-auction high-minus-median quote dispersion in basis points on one explicitly named quote basis; not a WI tail.",
-        "bidder_denominator_usd": "Sum of all three accepted bidder amounts only when each is present, finite and nonnegative. Zero denominators have no shares.",
-    })
+    report["methodology_version"] = "auction-labels.v2"
     report["field_units"] = {"composite_score": "score_0_100", "tail_risk.*.heuristic_score": "score_0_100",
-                              "recent_auctions.*.metrics.allocated_at_high_pct": "pct",
-                              "recent_auctions.*.allocated_at_high_pct": "pct",
-                              "recent_auctions.*.high_minus_median_bp": "bp",
-                              "recent_auctions.*.bidder_denominator_usd": "usd",
-                              "recent_auctions.*.accepted_billions": "usd_bn"}
+                              "recent_auctions.*.metrics.allocated_at_high_pct": "pct"}
     stamp_quality(report)
     # chatgpt-pd-context-v1: settlement context never changes auction scores.
     report["pd_settlement_fails"] = load_pd_fails(s3, S3_BUCKET)

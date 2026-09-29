@@ -18,14 +18,6 @@ def stamp_quality(report, now=None):
                          'frequency':'daily', 'freshness_basis':'observation', 'status':status,
                          'missing':[] if status=='fresh' else ['current_auction_results']}
     report['call'] = None
-    report.update(calls_eligible=False, sizing_eligible=False, forecast_eligible=False,
-                  execution_eligible=False, source_capture_verified=False,
-                  historical_point_in_time_verified=False,
-                  score_validation={'status':'unqualified_legacy_heuristic',
-                    'independent_calibration_verified':False,
-                    'note':'Dated observations do not validate fixed historical baselines, forward forecasts or investment actions.'})
-    if status == 'fresh' and report.get('composite_score') is None:
-        report['triggers'] = []
     if status != 'fresh':
         report.update(composite_score=None, regime='UNAVAILABLE', interpretation='Current auction observations unavailable; no current stress assessment.')
         for row in (report.get('tail_risk') or {}).values():

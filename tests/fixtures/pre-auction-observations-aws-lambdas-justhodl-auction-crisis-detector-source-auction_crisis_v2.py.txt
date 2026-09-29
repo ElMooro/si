@@ -44,7 +44,6 @@ lambda_function.py calls these and merges results into the output JSON
 under new top-level keys.
 """
 import json
-from auction_weighting import weighted_summary
 import math
 import os
 import urllib.parse
@@ -104,7 +103,7 @@ def compute_tenor_decomposition(scored_auctions: List[dict],
         bucket = [a for a in scored_auctions
                     if a.get("tenor_bucket") == tenor
                     and a.get("auction_date")
-                    and cutoff <= _parse_date(a["auction_date"]) <= today]
+                    and _parse_date(a["auction_date"]) >= cutoff]
         if not bucket:
             out[tenor] = {
                 "n_auctions":      0,
@@ -117,8 +116,9 @@ def compute_tenor_decomposition(scored_auctions: List[dict],
             }
             continue
 
-        weighting = weighted_summary(bucket)
-        weighted = weighting['composite']
+        total_size = sum(a.get("accepted_billions") or 1 for a in bucket)
+        weighted = sum((a.get("composite_score", 0) * (a.get("accepted_billions") or 1))
+                        for a in bucket) / total_size if total_size > 0 else 0
 
         max_comp = max(a.get("composite_score", 0) for a in bucket)
 
@@ -131,8 +131,7 @@ def compute_tenor_decomposition(scored_auctions: List[dict],
 
         out[tenor] = {
             "n_auctions":      len(bucket),
-            "composite":       round(weighted, 1) if weighted is not None else None,
-            "weighting_quality": weighting,
+            "composite":       round(weighted, 1),
             "max_composite":   round(max_comp, 1),
             "latest_date":     max(a.get("auction_date") for a in bucket if a.get("auction_date")),
             "dominant_signal": dom_sig,
@@ -418,7 +417,7 @@ def build_indicator_vector(scored_auctions: List[dict], window_days: int = 14) -
     today = datetime.now(timezone.utc).date()
     cutoff = today - timedelta(days=window_days)
     recent = [a for a in scored_auctions
-                if a.get("auction_date") and cutoff <= _parse_date(a["auction_date"]) <= today]
+                if a.get("auction_date") and _parse_date(a["auction_date"]) >= cutoff]
 
     if not recent:
         return [0.0] * 6
@@ -711,11 +710,10 @@ def build_composite_history(scored_auctions: List[dict], days: int = 30) -> List
             series.append({"date": d.isoformat(), "composite": None,
                             "regime": None, "n_auctions": 0})
             continue
-        weighting = weighted_summary(window)
-        weighted = weighting['composite']
-        if weighted is None:
-            regime = None
-        elif weighted >= 75:
+        total_size = sum(a.get("accepted_billions") or 1 for a in window)
+        weighted = sum((a.get("composite_score", 0) * (a.get("accepted_billions") or 1))
+                        for a in window) / total_size if total_size > 0 else 0
+        if weighted >= 75:
             regime = "ACUTE_STRESS"
         elif weighted >= 50:
             regime = "ELEVATED"
@@ -725,8 +723,7 @@ def build_composite_history(scored_auctions: List[dict], days: int = 30) -> List
             regime = "CALM"
         series.append({
             "date":       d.isoformat(),
-            "composite":  round(weighted, 1) if weighted is not None else None,
-            "weighting_quality": weighting,
+            "composite":  round(weighted, 1),
             "regime":     regime,
             "n_auctions": len(window),
         })
@@ -872,7 +869,7 @@ def build_triggers(scored_auctions: List[dict],
             "current":   round(current, 1),
             "threshold": 25,
             "distance":  round(25 - current, 1),
-            "action":    "Inspect the dated observations behind this uncalibrated threshold; no position adjustment is supported.",
+            "action":    "Tighten stops, prepare 5y-10y hedges (TLT puts, ES options).",
             "urgency":   "monitoring",
         })
 
@@ -884,7 +881,7 @@ def build_triggers(scored_auctions: List[dict],
             "current":   round(current, 1),
             "threshold": 50,
             "distance":  round(50 - current, 1),
-            "action":    "Review bidder participation, instrument comparability and data completeness. This threshold has no validated portfolio consequence.",
+            "action":    "Reduce duration significantly. Add carry to USD. Hedge equity beta.",
             "urgency":   "tactical" if current >= 30 else "monitoring",
         })
 
@@ -896,16 +893,16 @@ def build_triggers(scored_auctions: List[dict],
             "current":   round(current, 1),
             "threshold": 75,
             "distance":  round(75 - current, 1),
-            "action":    "Review the source observations and independent evidence. A high heuristic score is not a verified crisis or execution signal.",
+            "action":    "Full defensive posture. Cash, gold, vol. Trade auction concession aggressively.",
             "urgency":   "strategic",
         })
 
     # 4. Specific indicator triggers
     for sig_name, threshold, action in [
-        ("pd_absorption",     70, "Check the complete accepted-bidder denominator and dealer share. Dealer participation alone does not predict auction failure."),
+        ("pd_absorption",     70, "Dealers absorbing >35% on coupons. Watch for failed auction follow-on."),
         ("indirect_collapse", 70, "Indirect bidder participation declined; this category includes domestic and foreign investors."),
-        ("btc_extreme",       70, "Bid-to-cover differs from a fixed historical reference. This observation alone does not confirm a stress regime."),
-        ("zero_rate_floor",   70, "Compare the bill discount-rate observation with the dated policy-rate context. This threshold alone does not establish a liquidity crisis."),
+        ("btc_extreme",       70, "Demand anomaly — confirms stress regime. Tighten exposure."),
+        ("zero_rate_floor",   70, "Bills at zero — money parking pattern. Liquidity crisis warning."),
     ]:
         agg = indicator_aggregate.get(sig_name, {})
         n_fired = agg.get("n_fired", 0)

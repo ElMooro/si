@@ -66,7 +66,7 @@ def load(engine, store):
 def auction():
     today = datetime.now(timezone.utc).date().isoformat()
     return {"auction_date": today, "issue_date": today, "security_type": "Note", "security_term": "10-Year",
-            "inflation_index_security": "No", "floating_rate": "No", "cusip": "TEST12345", "bid_to_cover_ratio": "2.4", "high_yield": "4.0", "low_yield": "3.9",
+            "cusip": "TEST12345", "bid_to_cover_ratio": "2.4", "high_yield": "4.0", "low_yield": "3.9",
             "median_yield": "3.98", "allocation_pctage": "70", "primary_dealer_accepted": "2000000000",
             "direct_bidder_accepted": "1000000000", "indirect_bidder_accepted": "7000000000",
             "total_accepted": "10000000000"}

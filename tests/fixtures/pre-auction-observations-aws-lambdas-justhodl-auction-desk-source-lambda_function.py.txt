@@ -33,7 +33,6 @@ Outputs:
   data/warm/treasury-auctions/daily/{date}.json   day archive (incl. AI note)
 """
 import gzip
-from auction_weighting import weighted_summary
 import json
 import math
 import os
@@ -609,7 +608,7 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
             m = crisis_scoring.compute_record_metrics(r)
         except Exception:
             continue
-        if m.get("btc") is None:
+        if not m.get("btc"):
             continue
         i = bisect.bisect_right(ff_dates, d) - 1
         ff = ff_by_date[ff_dates[i]] if i >= 0 else 0.0
@@ -617,7 +616,7 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
         if not sc:
             continue
         mx, av = max(sc.values()), sum(sc.values()) / len(sc)
-        scored.append((d, 0.7 * mx + 0.3 * av, m.get("accepted_billions"), "BILL" in str(r.get("security_type", "")).upper(), _f(r.get("total_accepted")) or 0.0))
+        scored.append((d, 0.7 * mx + 0.3 * av, m.get("accepted_billions") or 1.0, "BILL" in str(r.get("security_type", "")).upper(), _f(r.get("total_accepted")) or 0.0))
     scored.sort()
     dates = [x[0] for x in scored]
     today = _now().date()
@@ -638,8 +637,8 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
         win = scored[a:b]
         if not win:
             continue
-        weighting = weighted_summary([{'composite_score':w[1],'accepted_billions':w[2]} for w in win])
-        comp = weighting['composite']
+        tot = sum(w[2] for w in win)
+        comp = sum(w[1] * w[2] for w in win) / tot if tot else 0.0
         # issuance overlay: bills 4w average per auction day vs trailing 1y
         a1 = bisect.bisect_left(dates, (D - timedelta(days=365)).isoformat())
         a4 = bisect.bisect_left(dates, (D - timedelta(days=28)).isoformat())
@@ -650,13 +649,13 @@ def build_composite_history(full_rows, ff_by_date, live_point=None):
         for w in scored[a4:b]:
             if w[3] and w[4]:
                 by_day_4w[w[0]] = by_day_4w.get(w[0], 0) + w[4]
-        if comp is not None and by_day_1y and by_day_4w:
+        if by_day_1y and by_day_4w:
             avg4 = sum(by_day_4w.values()) / len(by_day_4w)
             avg1 = sum(by_day_1y.values()) / len(by_day_1y)
             pct = (avg4 - avg1) / avg1 * 100 if avg1 else 0
             iss = 90 if pct > 50 else 60 if pct > 30 else 30 if pct > 15 else 0
             comp = min(100, comp + iss * 0.15)
-        series.append({"date": hi, "composite": round(comp, 1) if comp is not None else None, "n": len(win), "weighting_quality":weighting})
+        series.append({"date": hi, "composite": round(comp, 1), "n": len(win)})
     if live_point and live_point.get("date") and live_point.get("composite") is not None:
         series = [p for p in series if p["date"] != live_point["date"]]
         series.append({"date": live_point["date"], "composite": round(float(live_point["composite"]), 1), "n": live_point.get("n") or 0, "live": True})
