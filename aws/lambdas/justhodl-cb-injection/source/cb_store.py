@@ -30,18 +30,31 @@ def conflict(exc):return code(exc) in ('412','PreconditionFailed','409','Conditi
 def now():return datetime.now(timezone.utc).isoformat()
 
 
-def bounded(body):
-    try:raw=body.read(MAX_BYTES+1)
+def bounded(body,limit=MAX_BYTES,expected_length=None):
+    """Consume the complete transfer, including the SDK's EOF length check."""
+    try:
+        if type(limit) is not int or limit<0:raise ValueError('invalid response bound')
+        if expected_length is not None and (type(expected_length) is not int or expected_length<0):
+            raise ValueError('invalid declared response length')
+        chunks=[];size=0
+        while True:
+            chunk=body.read(min(65536,limit+1-size))
+            if not isinstance(chunk,bytes):raise ValueError('response must contain bytes')
+            if not chunk:break
+            size+=len(chunk)
+            if size>limit:raise ValueError('public evidence exceeds bound')
+            chunks.append(chunk)
+        if expected_length is not None and size!=expected_length:raise ValueError('declared response length differs')
+        return b''.join(chunks)
     finally:body.close()
-    if len(raw)>MAX_BYTES:raise ValueError('public evidence exceeds bound')
-    return raw
 
 
 def raw_reader(client,bucket):
     def read(key):
         if not isinstance(key,str) or not re.fullmatch(r'data/[A-Za-z0-9_./-]+',key) or '..' in key:
             raise ValueError('public evidence path required')
-        raw=bounded(client.get_object(Bucket=bucket,Key=key)['Body'])
+        obj=client.get_object(Bucket=bucket,Key=key)
+        raw=bounded(obj['Body'],expected_length=obj.get('ContentLength'))
         if key.endswith('.gz'):raw=bounded(gzip.GzipFile(fileobj=io.BytesIO(raw)))
         return raw
     return read
@@ -57,7 +70,8 @@ def immutable(client,bucket,key,raw,kind='application/json'):
 def publish(client,bucket,key,packet):
     for _ in range(4):
         try:
-            obj=client.get_object(Bucket=bucket,Key=key);etag=obj['ETag'];raw=bounded(obj['Body'])
+            obj=client.get_object(Bucket=bucket,Key=key)
+            raw=bounded(obj['Body'],expected_length=obj.get('ContentLength'));etag=obj['ETag']
             try:old=json.loads(raw)
             except (ValueError,UnicodeDecodeError):old={}
             if not isinstance(old,dict):old={}
@@ -97,7 +111,8 @@ def acquire_ecb(client,bucket,name,read):
     url='https://data-api.ecb.europa.eu/service/data/'+cb_native.ECB[name]
     cache_key=PREFIX+'ecb-cache/'+name+'.json';cached=None;etag=None
     try:
-        obj=client.get_object(Bucket=bucket,Key=cache_key);etag=obj['ETag'];cached=json.loads(bounded(obj['Body']))
+        obj=client.get_object(Bucket=bucket,Key=cache_key)
+        raw=bounded(obj['Body'],expected_length=obj.get('ContentLength'));etag=obj['ETag'];cached=json.loads(raw)
     except Exception as exc:
         if not missing(exc):raise
     def retained(descriptor):
@@ -113,13 +128,16 @@ def acquire_ecb(client,bucket,name,read):
         for attempt in range(3):
             try:
                 request=urllib.request.Request(url,headers={'User-Agent':'JustHodl source research','Accept':'text/csv'})
-                with opener.open(request,timeout=25) as response:raw=response.read(4*1024*1024+1)
-                if len(raw)>4*1024*1024:raise ValueError('ECB response exceeds explicit capture bound')
+                with opener.open(request,timeout=25) as response:
+                    declared=response.headers.get('Content-Length')
+                    if declared is not None and (not isinstance(declared,str) or not re.fullmatch(r'[0-9]+',declared.strip())):
+                        raise ValueError('invalid ECB response length')
+                    raw=bounded(response,limit=4*1024*1024,expected_length=int(declared) if declared is not None else None)
                 break
             except urllib.error.HTTPError as exc:
                 if exc.code not in (429,500,502,503,504) or attempt==2:raise
                 time.sleep(2*(attempt+1))
-        stamp=now();receipt=evidence_store.capture(client,bucket,'ecb',url,raw)
+        stamp=now();receipt=evidence_store.capture(client,bucket,'ecb',url,raw,received_at=datetime.fromisoformat(stamp))
         descriptor={'acquired_at':stamp,'evidence':receipt}
         result=retained(descriptor)
         try:client.put_object(Bucket=bucket,Key=cache_key,Body=model.encoded(descriptor),ContentType='application/json',

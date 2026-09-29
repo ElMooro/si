@@ -1,0 +1,77 @@
+{
+  "stage": 435,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T21:38:20.791297+00:00",
+  "baseline_commit": "293f9ff8c88ffd3cf8d22b3d5b0809f7ce11abd9",
+  "predecessor": "cb-transport-predecessor.json",
+  "native_predecessor": "cb-transport-native-predecessor.json",
+  "baseline_run": 36633271439,
+  "improvements": [
+    "Stored and decompressed originals are read in chunks through EOF, preserving the existing 32 MiB bound. The SDK can validate a declared transfer length; explicit ContentLength is also checked when supplied.",
+    "ECB HTTP capture consumes the complete response under the existing 4 MiB limit and validates Content-Length when present. Incomplete and invalid streams are closed and cannot become retained evidence.",
+    "Current and cache responses close before ETag lookup, including missing-ETag failures. Immutable retries compare every stored byte, not a matching prefix.",
+    "ECB evidence capture receives the same completion clock used by acquired_at. Cached fallback retains its existing acquisition time and cannot manufacture freshness.",
+    "All six calculation compilers and every economic formula remain unchanged. The genuine pre-edit synthetic run reproduces under current code without writes or archived-code execution."
+  ],
+  "source_scope": {
+    "scope": "Static complete-source AST comparison; no archived code executed.",
+    "changed_functions": [
+      "bounded",
+      "raw_reader",
+      "publish",
+      "acquire_ecb"
+    ],
+    "all_calculation_compilers_unchanged": true,
+    "source_sha256": "0a0f8d4437493a85a3c7574285be94c34e9db22366af0dc113ffc2ec42860412",
+    "after": {
+      "partial_read": {
+        "expected_bytes": 26,
+        "received_bytes": 26,
+        "closed": true
+      },
+      "sdk_incomplete_transfer": {
+        "accepted": false,
+        "error": "IncompleteReadError",
+        "closed": true
+      }
+    }
+  },
+  "scope": {
+    "function": "justhodl-cb-injection",
+    "actual_native_source_members_before": 11,
+    "timeout_seconds": 240,
+    "memory_mb": 256,
+    "schedule": "cron(0 13 * * ? *)",
+    "importers": "Only its native handler imports the local cb_store module; all six retained calculation compiler hashes remain exact."
+  },
+  "tests": {
+    "new_transport_cases": 14,
+    "new_receipt_only_operation_cases": 3,
+    "native_suites": [
+      {
+        "suite": "justhodl-cb-injection",
+        "unittest_cases": 39,
+        "passed": true
+      }
+    ],
+    "frontend": 1894,
+    "deployment_static": 723,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native and static deployment remains pending. Normal scheduled publication is separately unverified.",
+    "A complete response and declared-length agreement establish transport integrity, not provider completeness, historical availability or economic truth. Existing bounds are preserved and oversized bodies fail rather than truncate.",
+    "Whole-engine time/memory capacity, strict JSON throughout every caller, model validation and supported portfolio consequences remain open. All ten workstreams remain open."
+  ]
+}
