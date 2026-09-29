@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 425 source acceptance: all ten workstreams remain open. Strict JSON validation now spans both Extremes native handlers, source capture and retained replay: ambiguous keys and non-finite numbers are rejected without fabricated observations. Nineteen new regressions pass with both complete engine suites, 702 deployment/twelve shell checks and 599 page graphs. Exact native/static deployment acceptance is pending. Publication-stage failure now records uncertainty rather than claiming rollback. The browser duplicate-key gap is reproduced and next. Normal publication, original-provider evidence, historical availability, independent models and supported portfolio consequences remain open.
+September 29, after Stage 426 source and isolated-browser acceptance: all ten workstreams remain open. Stage425 native strict parsing is exactly verified in both AWS packages and six served static assets, with unchanged resources/schedules. The browser now rejects conflicting keys and non-finite numbers across current and retained run/output reads, clears failed research and recovers through keyboard retry. Both isolated pages, mobile layout, all eight new cases, 1,863 frontend tests, 702 deployment/twelve shell checks and 599 page graphs pass. Exact static deployment acceptance is pending. Normal publication, complete source/schema/time semantics, historical availability, independent models and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5887,3 +5887,18 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - A shared native parser rejects duplicate decoded keys, non-finite constants and exponent overflow. Capture, original replay, upstream proof validation, immutable artifacts, publication and idempotency reads share it. Both HTTP handlers return unavailable instead of silently selecting a duplicate field. Explicit zero, false, null and finite values stay unchanged.
 - Nineteen regressions cover whole-byte retention, nested/escaped duplicates, exact hash identities, withheld replay, bounds, existing request states, both HTTP handlers, valid idempotency and publication failures. Upstream failure preserves the prior object; a write followed by failed readback now reports an unverified outcome without claiming rollback or performing an unsafe restoring write.
 - Both engine suites and all deployment/page gates pass. Code/static deployment remains pending; resources and schedules are unchanged. Browser duplicate acceptance is separately reproduced for the next change. Evidence: `docs/audit/2026-09-29/extremes-native-json.json`.
+
+
+### Stage 425 exact native and static acceptance
+
+- Source `0900c1f81c8d7745e2783adcd01034cbd3d033f0` passed Lambda 36607195327, Pages 36607194966 and receipt-only operation 6347 / 36607716282. Release receipts equal the intended commit, all 29 source members match the actual native packages, and both original schedule/resource configurations remain unchanged.
+- At 2026-09-29T17:51:24.082881+00:00, all six served static assets match that source-bound build. Both engine suites, all nineteen new JSON cases and every deployment/page gate pass. The complete seventeen-file native Git batch landed atomically.
+- No acceptance invocation, current/private/derived packet read, provider request, cadence/resource/portfolio change occurred. Normal publication remains separately unverified. The browser has a separately reproduced duplicate-key gap; no model or sizing permission follows from this code acceptance. Evidence: `docs/audit/2026-09-29/extremes-native-json.json`.
+
+
+### Stage 426 unambiguous browser evidence verification
+
+- Current-code synthetic reproduction passed verifyPacket after a conflicting generated_at was silently discarded by JSON.parse. The whole predecessor client is retained as bytes without execution. Native Stage425 is already exactly deployed and accepted; this stage changes only page verification.
+- Current packets, content-addressed run manifests and retained outputs now share strict parsing. Duplicate decoded keys, non-finite values, invalid JSON and excessive nesting are rejected before evidence is displayed. Complete raw bytes and digest checks remain; explicit null, false, zero and inert prototype-named fields are preserved.
+- Eight new actual-renderer regressions pass, including hash-consistent ambiguous retained artifacts, cleanup, mounted error state and valid retry. Both isolated pages reject three malformed input classes, clear prior research and recover by keyboard. Market Extremes fits a 360-pixel viewport with a 345-pixel document; no console warnings/errors were observed. These are synthetic QA results with network blocked, not live financial observations.
+- All 1,863 frontend tests, 702 deployment/twelve shell checks, 599 page graphs and 143 companion wires pass. Static deployment acceptance remains pending; no native source, schedule, resource or portfolio change occurs. Evidence: `docs/audit/2026-09-29/extremes-browser-json.json`.

@@ -8,6 +8,24 @@
  function typed(p){return p?.contract===CONTRACT&&engines.includes(p.engine)&&flags.every(k=>p[k]===false)&&p.call===null&&p.signal===null&&p.capitulation_score===null&&p.cycle_position===null&&p.posture===null&&Array.isArray(p.measurements)&&p.measurements.every(r=>flags.every(k=>r[k]===false)&&typeof r.value==='number'&&Number.isFinite(r.value)&&typeof r.unit==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.observation_date)&&Number.isFinite(Date.parse(r.valid_until)))&&p.quality&&p.eligibility&&p.dependency_graph&&Number.isFinite(Date.parse(p.generated_at))&&Number.isFinite(Date.parse(p.freshness?.pipeline_check_due_at));}
  function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v;}
  async function sha(raw){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');}
+ function strictJSON(source){
+  // Reject duplicate identities and overflow rather than accepting the last key.
+  let i=0;const number=/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+  function ws(){while(/[\x20\t\r\n]/.test(source[i]||'x'))i++;}
+  function string(){const start=i++;for(;i<source.length;i++){if(source[i]==='\\'){i++;continue;}if(source[i]==='"')return JSON.parse(source.slice(start,++i));}throw Error('Incomplete JSON string');}
+  function value(depth){
+   if(depth>128)throw Error('JSON nesting exceeds bound');ws();const c=source[i];
+   if(c==='"')return string();
+   if(c==='{'||c==='['){const object=c==='{',out=object?{}:[],seen=new Set(),end=object?'}':']';i++;ws();if(source[i]===end){i++;return out;}
+    for(;;){ws();let key;if(object){if(source[i]!=='"')throw Error('JSON key required');key=string();if(seen.has(key))throw Error('Duplicate JSON key');seen.add(key);ws();if(source[i++]!==':')throw Error('JSON colon required');}
+     const item=value(depth+1);if(object)Object.defineProperty(out,key,{value:item,enumerable:true,writable:true,configurable:true});else out.push(item);
+     ws();if(source[i]===end){i++;return out;}if(source[i++]!==',')throw Error('Incomplete JSON structure');}
+   }
+   for(const [token,v]of [['true',true],['false',false],['null',null]])if(source.startsWith(token,i)){i+=token.length;return v;}
+   number.lastIndex=i;const m=number.exec(source);if(!m)throw Error('Invalid JSON value');i=number.lastIndex;const n=Number(m[0]);if(!Number.isFinite(n))throw Error('Nonfinite JSON number');return n;
+  }
+  const out=value(0);ws();if(i!==source.length)throw Error('Trailing JSON content');return out;
+ }
  async function load(key,fetcher,signal,options={}){
   const current=engines.some(e=>key==='data/'+e+'.json');if(!current&&!safe(key))throw Error('Unapproved research path');
   const timeout=options.timeoutMs??12000;if(!Number.isSafeInteger(timeout)||timeout<1||timeout>60000)throw Error('Invalid research deadline');
@@ -27,7 +45,7 @@
     size+=value.byteLength;if(size>4*1024*1024)throw Error('Research response bound');parts.push(value);
    }
    const raw=new Uint8Array(size);let offset=0;for(const part of parts){raw.set(part,offset);offset+=part.byteLength;}
-   return {raw:raw.buffer,doc:JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw))};
+   return {raw:raw.buffer,doc:strictJSON(new TextDecoder('utf-8',{fatal:true}).decode(raw))};
   })()]);}finally{finished=true;clearTimeout(timer);signal?.removeEventListener('abort',onAbort);controller.abort();
    if(reader){try{Promise.resolve(reader.cancel()).catch(()=>{});}catch{}try{reader.releaseLock?.();}catch{}}else{try{Promise.resolve(response?.body?.cancel?.()).catch(()=>{});}catch{}}
   }

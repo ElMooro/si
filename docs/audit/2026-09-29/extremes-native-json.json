@@ -1,6 +1,6 @@
 {
   "stage": 425,
-  "status": "source_accepted_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T17:45:07.228639+00:00",
   "baseline_commit": "9555726093ebed61104da290d6da679509d2be89",
   "reproduction": {
@@ -91,10 +91,131 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact native and static deployment acceptance remain pending.",
+    "Native code and six static assets are exactly accepted; ordinary scheduled data publication remains separate and unverified.",
     "Normal scheduled publication is separate and unverified.",
     "This establishes parser integrity, not upstream economic correctness, original historical availability, model qualification or allocation authority.",
     "The browser has a separately reproduced duplicate-key acceptance gap and is next work.",
     "Dynamic current-writer source binding remains unproven. A publication-stage failure does not certify rollback or absence of a write."
-  ]
+  ],
+  "source_commit": "0900c1f81c8d7745e2783adcd01034cbd3d033f0",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-capitulation": {
+        "code_sha256": "0/EOL/UpceHeVk7qPGg+EEwS5IMYFUWSH8IHS88Z2dA=",
+        "source_files_checked": 15,
+        "handler_bytes": 1712,
+        "timeout": 60,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "0900c1f81c8d7745e2783adcd01034cbd3d033f0"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "capitulation-3h",
+            "state": "ENABLED",
+            "expression": "cron(45 */3 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-capitulation",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-market-extremes": {
+        "code_sha256": "DTK6FOS3TB/4Mur0C/32kzQZUTuzleWCjLbJwIkuFZk=",
+        "source_files_checked": 14,
+        "handler_bytes": 1715,
+        "timeout": 60,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "0900c1f81c8d7745e2783adcd01034cbd3d033f0"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-market-extremes-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 23 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-market-extremes",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "0900c1f81c8d7745e2783adcd01034cbd3d033f0",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36607716282,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6347_extremes_transport_runtime_acceptance.md",
+  "native_acceptance_report_commit": "07722dabfbba58b48a78352aac1255b93163df53",
+  "lambda_run": 36607195327,
+  "pages_run": 36607194966,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T17:51:24.082881+00:00",
+    "intended_commit": "0900c1f81c8d7745e2783adcd01034cbd3d033f0",
+    "served_commit": "0900c1f81c8d7745e2783adcd01034cbd3d033f0",
+    "assets": {
+      "market-extremes.html": {
+        "bytes": 5924,
+        "sha256": "861a248e6c01a810e0ab4b303aa925ca2162dba174458b9e54548a08a05507c0",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 5383,
+        "sha256": "a168dde975d7a5f47d862613272b5c9c7451a8067d49809714a6b42b145d3ace",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "d4b32efb33c07f3b3dfda39458ef2bdeb6dcc2ecbb7af36c862852a583bda461",
+        "matches_manifest": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_exact_source": true,
+        "build_basis": "build_page_data_contracts.py copies this asset after the palette pass"
+      },
+      "engine-manifest.json": {
+        "bytes": 3066292,
+        "sha256": "e40999531b631d47f99fb498da64978b1a9cd03812b8512788dd81feea4b1b4a",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7655340,
+        "sha256": "30b25cfe877b4272d320a32b5c664f99a76e1db127530e702e05a7265cb23dc5",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing inspector and generated source registries only. No code execution, current/private packet or provider request.",
+    "static_provenance_semantics_verified": true
+  },
+  "atomic_batch_files": 17
 }

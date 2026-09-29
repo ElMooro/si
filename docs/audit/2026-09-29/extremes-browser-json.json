@@ -1,0 +1,100 @@
+{
+  "stage": 426,
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T17:54:15.157474+00:00",
+  "baseline_commit": "07722dabfbba58b48a78352aac1255b93163df53",
+  "reproduction": {
+    "scope": "Current browser module with isolated synthetic responses only; no network, archived code, provider or actual current/private packet reads",
+    "source_sha256": "62fec706f5be413917c8672b62f50bd73310a1b0c6a250467989b44abef9bc91",
+    "duplicate_field": "generated_at",
+    "first_clock": "2000-01-01T00:00:00Z",
+    "last_clock": "2026-09-20T18:20:00+00:00",
+    "verification_accepted": true,
+    "bytes_preserved": true
+  },
+  "predecessor": {
+    "path": "tests/fixtures/pre-extremes-json-jh-extremes-research.js.txt",
+    "bytes": 12643,
+    "sha256": "62fec706f5be413917c8672b62f50bd73310a1b0c6a250467989b44abef9bc91",
+    "executed": false
+  },
+  "improvements": [
+    "Current packet and retained run/output parsing reject duplicate decoded keys and numeric overflow before verification can select the last field. Invalid/non-finite JSON is unavailable.",
+    "The strict parser preserves normal JSON types, signed zero, null/false, complete raw response bytes and inert __proto__ properties; nesting is bounded to 128 levels.",
+    "Malformed refreshes clear prior research and expose Retry verification. Keyboard retry with complete valid evidence recovers. Both pages use the same versioned renderer."
+  ],
+  "sources": {
+    "jh-extremes-research.js": {
+      "bytes": 14300,
+      "sha256": "b68938b1e276dc19a70cd2f99302bbf1e53310b0f6030b5d807194aad46c6aaf"
+    },
+    "capitulation.html": {
+      "bytes": 2999,
+      "sha256": "3fd6f3a6227f2290d89669d0ac6e4fcfbcd9e9e21ea4f19e934258d1b88d57b6"
+    },
+    "market-extremes.html": {
+      "bytes": 3013,
+      "sha256": "e748bba7e69d97c02134dfea69d18ad737fe158b15177ca83a3762b619bb01b1"
+    },
+    "tests/extremes-json.test.js": {
+      "bytes": 5035,
+      "sha256": "a7f5969031e81f119b64dd88fe6cb5c850aff8db4cfe455f9058cbbedcec4e54"
+    },
+    "tests/extremes-research.test.js": {
+      "bytes": 4840,
+      "sha256": "4a9fa4b363c658fd0fec8ca668bb7723d302e2c51eee3b2a352c97a5e6da97c3"
+    }
+  },
+  "tests": {
+    "new_browser_regressions": 8,
+    "focused_renderer_transport_and_json": 28,
+    "frontend": 1863,
+    "deployment_static": 702,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "isolated_browser_acceptance": {
+    "checked_at": "2026-09-29T17:48:17.379338+00:00",
+    "scope": "Isolated localhost UI, current candidate renderer and synthetic fixtures only. CSP blocks network connections. No live packets, providers or archived code executed.",
+    "candidate_sha256": "b68938b1e276dc19a70cd2f99302bbf1e53310b0f6030b5d807194aad46c6aaf",
+    "pages": [
+      "capitulation",
+      "market-extremes"
+    ],
+    "cases": {
+      "valid_complete_evidence": true,
+      "conflicting_clocks_unavailable": true,
+      "nested_duplicates_unavailable": true,
+      "nonfinite_numbers_unavailable": true,
+      "keyboard_retry_recovery": true,
+      "failed_refresh_clears_previous_research": true,
+      "no_console_warnings_or_errors": true,
+      "market_extremes_mobile": {
+        "viewport_width": 360,
+        "document_width": 345,
+        "unavailable_and_recovered_view_fit": true
+      }
+    },
+    "screenshot": {
+      "path": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage426-mobile-unavailable.png",
+      "sha256": "87c714ea4fc24feb8484af9ee704bb25cbf605a35cfcf8aabd2f16807e10f87a"
+    },
+    "native_invocations": 0,
+    "live_packet_reads": 0
+  },
+  "boundaries": {
+    "native_changes": 0,
+    "native_invocations": 0,
+    "live_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact static deployment acceptance remains pending.",
+    "The isolated fixture is not a live market-data observation or a qualification of actual current publications.",
+    "Dynamic current-writer source provenance, schema/clock validation, original-provider vintages, predictive validation and portfolio authority remain separate work."
+  ]
+}
