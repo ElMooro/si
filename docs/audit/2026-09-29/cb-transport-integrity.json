@@ -1,6 +1,6 @@
 {
   "stage": 435,
-  "status": "source_accepted_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T21:38:20.791297+00:00",
   "baseline_commit": "293f9ff8c88ffd3cf8d22b3d5b0809f7ce11abd9",
   "predecessor": "cb-transport-predecessor.json",
@@ -70,8 +70,150 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact native and static deployment remains pending. Normal scheduled publication is separately unverified.",
+    "The actual eleven-member native package and fifteen static assets are exactly accepted; normal scheduled publication remains separately unverified.",
     "A complete response and declared-length agreement establish transport integrity, not provider completeness, historical availability or economic truth. Existing bounds are preserved and oversized bodies fail rather than truncate.",
     "Whole-engine time/memory capacity, strict JSON throughout every caller, model validation and supported portfolio consequences remain open. All ten workstreams remain open."
-  ]
+  ],
+  "source_commit": "28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3",
+  "native_acceptance": {
+    "actual_runtime": {
+      "code_sha256": "NtUs6lgJ+z59fhULvaDevcHDYwmV1nTTGGeVpzQlF/E=",
+      "source_files_checked": 11,
+      "handler_bytes": 15053,
+      "timeout": 240,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "cb-injection-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 13 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-cb-injection",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_package_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "full_resource_and_schedule_comparison": "Actual runtime resources and every sorted schedule binding equal the frozen pre-change CB baseline.",
+  "native_acceptance_run": 36635045082,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6350_cb_transport_runtime_acceptance.md",
+  "native_acceptance_report_commit": "05906de181db5c4cbe9a62b05d638039f6ba5d79",
+  "lambda_run": 36634634548,
+  "pages_run": 36634634560,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T21:45:20.022585+00:00",
+    "intended_commit": "28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3",
+    "served_commit": "28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3",
+    "assets": {
+      "cb-injection.html": {
+        "bytes": 14762,
+        "sha256": "9c8cb281b7264cb9c8da84b92f9fb16575db0bdb85095c32fa99641d26568dd8",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "480beebdade6217d3992d18d6ea6538eacf2f5c303c117144fdd8d7a03590845",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "236f5a5ec71ce794efe49eef9a0eae484ff2b5a0c157a14e36722423c388f3cb",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "07175f37baa41d7b0c3291cc402db80d96e1a08bceb8cb3a1b5877ad4537247a",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 8962,
+        "sha256": "5280118a4aa35f05b7c9b6972c14ce77437a2ea43239511520a3bcc53930d5f5",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10042,
+        "sha256": "d42c3e3608719f6deb8048bc188c59d73df2e415bd18621b1e0ca3c7586f75e8",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 10229,
+        "sha256": "0bfb0a2d0785362991655b3d25083680dfd130266b89ed54f53c371d57b62cc9",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1504,
+        "sha256": "3e01255b95dcf231158cbfadc07e5c3a7825d709946b5e0c2069cca81e2e9618",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3067214,
+        "sha256": "ae27bc1addb8aba845bbfb9bebf471b11051c961f422b3baee782fb3693c46fc",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7665701,
+        "sha256": "4a7b82b365c9b987ef5a93a7908fe9340049bd7ebcf532bd408025f70d09fce4",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 10
 }

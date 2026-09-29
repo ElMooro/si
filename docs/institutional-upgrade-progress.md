@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 435 source acceptance: all ten workstreams remain open. Central Bank Injection now consumes complete stored/ECB responses and rejects incomplete declared transfers while preserving existing bounds. All six calculation compilers are unchanged; the genuine predecessor replay reproduces without writes. Fourteen new transport cases, three receipt-only operation cases, native 39, frontend 1,894, deployment 723/twelve shell, 599 page graphs and 143 wires pass. Its eleven-member native package and complete original resources/schedule were recorded before editing. Exact new deployment remains pending; normal publication, history, models and supported portfolio consequences remain open.
+September 29, after Stage 435 exact native/static acceptance: all ten workstreams remain open. CB complete-response transport 28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3 is accepted across the actual eleven-member package and fifteen whole static assets. All six calculation compilers, runtime resources and complete schedule remain unchanged. Fourteen new transport cases, three restricted-operation cases, native 39, frontend 1,894, deployment 723/twelve shell and 599 page graphs pass. The genuine predecessor replay reproduces with current code. Separate CB browser date/JSON/deadline gaps are reproduced for repair next. Normal publication, historical vintages, model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -6040,3 +6040,15 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - The response reader now consumes through EOF, checks typed declared lengths and always closes. Stored/decompressed evidence keeps its 32 MiB limit; direct ECB capture keeps its 4 MiB limit. Incomplete transfers cannot become evidence or advance current publication. Immutable retry checks compare the complete object. Missing ETags no longer leave bodies open. ECB capture shares the response-completion clock with acquisition; fallback preserves its old timestamp.
 - All six calculation compiler hashes are unchanged. Fourteen transport tests and three restricted-operation tests pass; the full native suite passes 39, frontend 1,894, deployment 723/twelve shell, 599 page graphs and 143 wires. A genuine pre-edit run replays using current code only and writes nothing. Both settlement scopes and the unidentifiable injection score retain their prior meanings.
 - Receipt-only operation 6350 recorded the unchanged predecessor's eleven source members, 256 MiB/240-second resources and complete daily 13:00 UTC rule before modification. Exact new deployment is pending; no native invocation, current/private packet read, provider probe, cadence/resource or portfolio authority change occurred. Evidence: `docs/audit/2026-09-29/cb-transport-integrity.json`.
+
+
+### Stage 435 exact native and static acceptance
+
+- Source `28d2c9a5352fac4fb1f209e98e3f2dac9287e6a3` passed Lambda 36634634548, Pages 36634634560 and receipt-only operation 6350 / 36635045082. The exact release receipt and all eleven complete native/shared members match the intended commit. Full runtime resources and all sorted schedule bindings equal the recorded pre-change baseline.
+- Fifteen whole static assets match the source-bound build at 2026-09-29T21:45:20.022585+00:00. Native 39, frontend 1,894, deployment 723/twelve shell, 599 page graphs and 143 wires pass. All six calculation compilers and the genuine historical synthetic output are unchanged. Complete related files landed atomically through native Git, including the earlier 1.5 MB inert fixture; no connector write-size limit applies.
+- No acceptance invocation, current/private/downstream packet read, provider probe, resource/cadence or portfolio change occurred. Normal publication and wider model qualification remain separate. Evidence: `docs/audit/2026-09-29/cb-transport-integrity.json`.
+
+### Next source task: CB browser evidence and timing
+
+- Isolated current-source helpers accept February 30 as a fresh observation and accept a hash-matching snapshot containing duplicate call keys. The current and immutable response readers also lack an application-level fetch/body deadline. These are source and synthetic findings, not observed production incidents. The three complete current page sources are frozen before repair.
+- Repair date/JSON identity and response lifecycle without changing the engine calculations, original-source scope, existing calendar horizons or no-sizing contract. Evidence: `docs/audit/2026-09-29/cb-browser-source-gap.json`.

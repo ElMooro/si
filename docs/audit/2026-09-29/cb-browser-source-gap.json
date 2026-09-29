@@ -1,0 +1,17 @@
+{
+  "scope": "Current-source pure browser helpers with synthetic values and in-memory Response objects. No live packets, network, browser production navigation or archived code execution.",
+  "source_sha256": {
+    "jh-cb-research.js": "0bfb0a2d0785362991655b3d25083680dfd130266b89ed54f53c371d57b62cc9",
+    "jh-cb-page.js": "3e01255b95dcf231158cbfadc07e5c3a7825d709946b5e0c2069cca81e2e9618",
+    "cb-injection.html": "9e55a768846c79256be5d2064091833cb344d010e3fbe66ede026681c3c9eed3"
+  },
+  "invalid_february_date_accepted_as_fresh": true,
+  "duplicate_call_field_accepted": true,
+  "synthetic_response_count": 2,
+  "source_findings": [
+    "Current and immutable reads have no application-level fetch/body deadline.",
+    "Snapshot JSON uses permissive decoding and duplicate-key parsing.",
+    "Current freshness parses dates with Date.parse rather than exact Gregorian validation."
+  ],
+  "status": "source_and_synthetic_gaps_reproduced_not_repaired"
+}
