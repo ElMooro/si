@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 422 source acceptance: all ten workstreams remain open. Treasury cache, HTTP ingestion and concurrent bank-write repairs are exactly code/static accepted through Stage 421. Market Extremes and Capitulation now bound each request and body, reject oversized/corrupt representations and reach the existing retry UI on timeout. All 1854 frontend, 688 deployment, twelve shell and 599 page-graph checks pass. Isolated browser cases verify stall/error recovery, keyboard behavior, mobile fit and unchanged hypothetical scenario arithmetic. Exact static deployment acceptance is pending. Their active-handler source associations require a separate repair; original-provider evidence, ordinary native publication, historical availability, independent model validation and supported portfolio consequences remain open.
+September 29, after Stage 422 static deployment acceptance: all ten workstreams remain open. Treasury cache, HTTP ingestion and concurrent bank-write repairs remain exactly code/static accepted through Stage 421. Market Extremes and Capitulation now bound each request and body, reject oversized/corrupt representations and reach retry on timeout. Source 009d70cf8f7b31d935531f74e99604ca49449421 and all five served static assets match. All 1854 frontend, 688 deployment, twelve shell and 599 page-graph checks pass; 143 companion wires remain intact. Isolated browser cases verify stall/error recovery, keyboard behavior, mobile fit and unchanged hypothetical scenario arithmetic. Native code is unchanged. Active-handler source associations require a separate repair; original-provider evidence, ordinary native publication, historical availability, independent model validation and supported portfolio consequences remain open.
 
 ### Retained Stage 371 checkpoint
 
@@ -5836,3 +5836,10 @@ Four owned histories require complete versioned reads and one-use conditional wr
 ### Stage 422: bounded Market Extremes and Capitulation page requests
 
 A stalled fetch or body can no longer leave verification pending indefinitely. Each request has a complete 4 MiB streaming bound and twelve-second deadline; cancellation disposes late responses and stops further reads. Whole valid bytes still feed the existing retained-artifact hash checks. The retry UI recovers both pages, keyboard Enter works, and mobile content fits. No backend model, provider request or eligibility rule changed. Source association to active handlers, original data and wider qualification remain open. Evidence: `docs/audit/2026-09-29/extremes-transport.json`.
+
+
+### Stage 422 exact static acceptance
+
+- Source `009d70cf8f7b31d935531f74e99604ca49449421` passed Pages 36597438075. At 2026-09-29T16:31:47.207380+00:00, both HTML pages, their complete shared client and both generated registries matched the exact commit-bound build. This page-only batch requires no Lambda deployment.
+- All 1854 frontend, 688 deployment, twelve candidate-shell, 599 page-graph and 143 companion-wire checks passed. Isolated synthetic browser checks cover fetch/body stalls, abort cleanup, oversized/malformed responses, recovery, keyboard retry, mobile layout and local hypothetical scenario arithmetic.
+- Native engine source and the accepted Stage 421 deployment are unchanged. No current/private research packet or provider was queried. Active source provenance, normal native publication, original vintages, independent validation and portfolio qualification remain open. Evidence: `docs/audit/2026-09-29/extremes-transport.json`.

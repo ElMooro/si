@@ -1,6 +1,6 @@
 {
   "stage": 422,
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_assets_accepted",
   "checked_at": "2026-09-29T16:23:58.681692+00:00",
   "baseline_commit": "dc8d7769dd5c79790d5682db9d1ea4b1bb4bafbb",
   "sources": {
@@ -85,5 +85,43 @@
   "provider_requests": 0,
   "current_consumer_reads": 0,
   "private_reads": 0,
-  "native_deployment_required": false
+  "native_deployment_required": false,
+  "source_commit": "009d70cf8f7b31d935531f74e99604ca49449421",
+  "pages_run": 36597438075,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T16:31:47.207380+00:00",
+    "intended_commit": "009d70cf8f7b31d935531f74e99604ca49449421",
+    "served_commit": "009d70cf8f7b31d935531f74e99604ca49449421",
+    "assets": {
+      "market-extremes.html": {
+        "bytes": 5924,
+        "sha256": "31b21580e72fdf3db79242625e327500b52836c9921d969f67653800338a008e",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 5383,
+        "sha256": "5e5f50458057f1eaa2ad87787a0a3504c591f66ad99d1cf05f9c33a955368f75",
+        "matches_manifest": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 12643,
+        "sha256": "62fec706f5be413917c8672b62f50bd73310a1b0c6a250467989b44abef9bc91",
+        "matches_manifest": true,
+        "matches_source_after_declared_palette_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 1357779,
+        "sha256": "e1ceeca8923ababf628fa94d495cf9ea351122a32aa5c8c41e6856b815efbc0b",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4694610,
+        "sha256": "e15e222d1e80ea4fc60a904f3ee5edcad90bcb266a4aeac6a166d0f241e6324d",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing script and generated registries only. No execution or current/private packet requests."
+  },
+  "accepted_auction_backend_commit": "047bc9487825981defd109a3e65f4984f526ce93",
+  "normal_native_publication": "separate_unverified"
 }
