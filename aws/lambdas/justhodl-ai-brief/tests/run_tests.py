@@ -34,3 +34,7 @@ if __name__ == '__main__':
 if __name__ == '__main__':
     from liquidity_transport_tests import run as run_liquidity_transport
     run_liquidity_transport()
+
+if __name__ == '__main__':
+    from calls_publication_tests import run as run_calls_publication
+    run_calls_publication()

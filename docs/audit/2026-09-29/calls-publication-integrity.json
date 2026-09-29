@@ -1,0 +1,169 @@
+{
+  "stage": 429,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T19:11:44.215344+00:00",
+  "baseline_commit": "1bbd159fe751362432c4266c7c9d32ce79c7bad5",
+  "predecessor": "calls-publication-predecessor.json",
+  "reproduction": {
+    "scope": "Current source and in-memory synthetic storage only. No network, native invocation, private/current/derived packet, provider request or archived-code execution.",
+    "source_sha256": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+    "duplicate_clock": {
+      "published": true,
+      "writes": 1,
+      "old_replaced": true,
+      "body_closed": false
+    },
+    "same_clock_conflict": {
+      "published": true,
+      "writes": 1,
+      "old_replaced": true,
+      "body_closed": false
+    }
+  },
+  "before_tests": {
+    "cases": 12,
+    "failures_including_subtests": 18,
+    "errors": 3,
+    "archived_code_executed": false
+  },
+  "importer_closure": {
+    "scope": "Read-only static current source package-closure analysis. No handlers, network, providers, native functions or archived code executed.",
+    "scanned_source_directories": 893,
+    "affected": [
+      {
+        "function": "justhodl-ai-brief",
+        "shared_members": 36,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-calls-research-audit",
+        "shared_members": 32,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-prospective-evaluator",
+        "shared_members": 39,
+        "direct_calls_replay": true
+      },
+      {
+        "function": "justhodl-signal-harvester",
+        "shared_members": 40,
+        "direct_calls_replay": true
+      }
+    ],
+    "source_sha256": "96140866488a49ae90b444b97a569b57e1e63fead53941f3b4339d33a1dc7406"
+  },
+  "improvements": [
+    "Current-object reads reject duplicate decoded keys, nonfinite constants/overflow, invalid Unicode and non-object JSON before publication. Storage responses close after parsing success, parsing/SDK failure, stale-run exit and every retry.",
+    "Canonical candidate bytes are validated before storage access. An identical same-clock retry acknowledges the existing document without rewriting it or renewing metadata. Different same-clock content, including zero/false/null type changes, is rejected.",
+    "Newer objects, conditional create/update, existing undated legacy migration, concurrent newer winners and bounded conflict retries remain supported. Denied reads never reset the object.",
+    "Both exact reviewed predecessor Calls/store pairs remain reproducible with current source and unchanged economics. Every other compiler and reproduced output still must match; archived code is never executed."
+  ],
+  "sources": {
+    "aws/shared/calls_research_replay.py": {
+      "bytes": 17497,
+      "sha256": "96140866488a49ae90b444b97a569b57e1e63fead53941f3b4339d33a1dc7406"
+    },
+    "aws/lambdas/justhodl-ai-brief/tests/run_tests.py": {
+      "bytes": 1828,
+      "sha256": "880fa145723cc1b712dc1802642e4bc74dc0923d69d88a3ef2f72469d7cc17a1"
+    },
+    "aws/lambdas/justhodl-calls-research-audit/tests/run_tests.py": {
+      "bytes": 3455,
+      "sha256": "1e5ed659f7ca7c06af63c257b40e99209c88b5b9b8978f2abb85cf22aea3e304"
+    },
+    "tests/calls_publication_tests.py": {
+      "bytes": 8505,
+      "sha256": "f07911dda885f45f0aeb6e7806839f44a59f9a619dbd995512f2250e68b4ba75"
+    }
+  },
+  "reviewed_change_scope": {
+    "source_sha256": "96140866488a49ae90b444b97a569b57e1e63fead53941f3b4339d33a1dc7406",
+    "prior_sha256": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+    "changed_nodes": [
+      "publish_current",
+      "REVIEWED_TRANSPORT_REVISIONS"
+    ],
+    "all_other_syntax_identical": true,
+    "archived_code_executed": false
+  },
+  "tests": {
+    "native_suites": [
+      {
+        "suite": "justhodl-ai-brief",
+        "unittest_cases": 59,
+        "passed": true,
+        "summary": [
+          "[ai-brief] Calls status=ERROR reason=generation_failed n=1",
+          "[ai-brief] SKIP_TELEGRAM=1, skipping Telegram digest",
+          "Calls integrity tests passed: 18",
+          "Free brief checks passed: real evidence, zero/null, scope isolation, privacy whitelist, WAIT, no paid provider path",
+          "Calls public research replay tests passed: 8",
+          "ai-brief: actual narrative projection preserves date, units, evidence, null forecast and no sizing authority"
+        ]
+      },
+      {
+        "suite": "justhodl-calls-research-audit",
+        "unittest_cases": 14,
+        "passed": true,
+        "summary": [
+          "",
+          "----------------------------------------------------------------------",
+          "Ran 14 tests in 0.035s",
+          "",
+          "OK",
+          "Independent Calls audit passed: valid replay, append-only proof, bundle/current/history/authority tampering"
+        ]
+      },
+      {
+        "suite": "justhodl-prospective-evaluator",
+        "unittest_cases": 7,
+        "passed": true,
+        "summary": [
+          "ok test_market_probe_archives_prices_without_creating_a_forecast_or_measurement",
+          "ok test_new_forecasts_remain_pending_without_quote_requests_or_fake_results",
+          "ok test_preexisting_crypto_equity_collision_is_excluded_without_rewriting_records_or_results",
+          "ok test_private_evidence_path_is_rejected_before_a_read",
+          "ok test_request_budget_advances_only_fully_checked_forecasts_without_starvation",
+          "Evaluator tests passed: 10"
+        ]
+      },
+      {
+        "suite": "justhodl-signal-harvester",
+        "unittest_cases": 15,
+        "passed": true,
+        "summary": [
+          "ok test_release_preserves_existing_schedule_bindings",
+          "ok test_source_selection_policy_is_retained_in_both_whole_capture_and_summary",
+          "ok test_unsupported_projection_reports_gap_without_losing_other_sources",
+          "ok test_whole_predecessor_self_ingests_its_summary_but_repair_excludes_before_read",
+          "ok test_wrong_provider_symbol_and_nonfinite_price_are_unavailable",
+          "Harvester integrity tests passed: 11"
+        ]
+      }
+    ],
+    "distinct_new_cases": 14,
+    "publication_cases": 12,
+    "historical_compatibility_cases": 2,
+    "deployment_static": 705,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "frontend_last_pass_unchanged": 1871
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native and static deployment acceptance remains pending.",
+    "Normal scheduled publication is separate and unverified.",
+    "Generic current reads remain unbounded; a full supported-universe resource contract is required before imposing an artifact-size cap. Publication readback and the independent native audit reader are separate unmodified findings.",
+    "This verifies publication identity and replay, not source first-release timing, economic causality, forecasting performance or allocation authority."
+  ]
+}

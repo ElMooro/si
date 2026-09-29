@@ -1,0 +1,168 @@
+{
+  "stage": 429,
+  "scope": "Whole source/package/receipt/resource/schedule predecessor. Frozen bundle is synthetic and compiled with current code before editing. Archived code is never executed.",
+  "baseline_commit": "1bbd159fe751362432c4266c7c9d32ce79c7bad5",
+  "baseline_source_commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-ai-brief": {
+        "code_sha256": "Vkau18uy8yz3WAbs7SrVnafxlWc3EK/bAcX6UW9/jPY=",
+        "source_files_checked": 37,
+        "handler_bytes": 34679,
+        "timeout": 300,
+        "memory_mb": 1536,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-ai-brief-4h",
+            "state": "ENABLED",
+            "expression": "cron(5 0,4,8,12,16,20 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-ai-brief",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-calls-research-audit": {
+        "code_sha256": "6VS5Li5svNE++Av3SeQrxVDtvhFceAcZftrNkKa6MSw=",
+        "source_files_checked": 33,
+        "handler_bytes": 5627,
+        "timeout": 300,
+        "memory_mb": 1536,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-calls-research-audit-15m",
+            "state": "ENABLED",
+            "expression": "rate(15 minutes)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-calls-research-audit",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-prospective-evaluator": {
+        "code_sha256": "VUE606IhrXgPfcXLB08K0WNdJgv/GHvj5awV1+tQNSg=",
+        "source_files_checked": 40,
+        "handler_bytes": 11737,
+        "timeout": 300,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-prospective-evaluator-hourly",
+            "state": "ENABLED",
+            "expression": "rate(1 hour)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-prospective-evaluator",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-signal-harvester": {
+        "code_sha256": "oCBg+Z/0uMOy7VxoWAJdcaFZaJCfZzq83NGks/fOyYI=",
+        "source_files_checked": 41,
+        "handler_bytes": 18649,
+        "timeout": 900,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-prospective-capture-hourly",
+            "state": "ENABLED",
+            "expression": "rate(1 hour)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "signal-harvester-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 23 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-signal-harvester",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "55b0fd40aa8c2d7d0250913d7ac7d65cbd89fc78",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "predecessor": {
+    "source": "aws/shared/calls_research_replay.py",
+    "fixture": "tests/fixtures/pre-calls-publication-replay.py.txt",
+    "sha256": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+    "bytes": 16754
+  },
+  "synthetic_bundle": {
+    "fixture": "tests/fixtures/pre-calls-publication-bundle.json",
+    "bytes": 26435,
+    "sha256": "d74baeff29dc2abaa318046ca21685ccddcb8bd53260363c5ffe5b2a114aa4f4"
+  },
+  "reproduction": {
+    "scope": "Current source and in-memory synthetic storage only. No network, native invocation, private/current/derived packet, provider request or archived-code execution.",
+    "source_sha256": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+    "duplicate_clock": {
+      "published": true,
+      "writes": 1,
+      "old_replaced": true,
+      "body_closed": false
+    },
+    "same_clock_conflict": {
+      "published": true,
+      "writes": 1,
+      "old_replaced": true,
+      "body_closed": false
+    }
+  }
+}

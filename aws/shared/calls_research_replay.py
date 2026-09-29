@@ -63,11 +63,14 @@ def compiler_identity():
 
 
 # Exact reviewed predecessor pair retained in tests/fixtures/pre-liquidity-transport-*.py.txt.
-# Only transport/replay compatibility changes; all other compiler bytes, frozen
+# Only storage/replay compatibility changes; all other compiler bytes, frozen
 # inputs and reproduced output must still match. No archived code is executed.
 REVIEWED_TRANSPORT_REVISIONS = ({
     "calls_research_replay.py": "dfec155b8a6be0e6c7064e5d5bb5e926059d91770923166b1096a2d2bee40c7d",
     "liquidity_flow_store.py": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+},{
+    "calls_research_replay.py": "00ee43f23fbe2e2649f1323a18ae7d177570e4fdf7fe27bd1b984a56846521fd",
+    "liquidity_flow_store.py": "1961dde33e0e44a73bf5e26fdb011dd0a98494ef92f0aa7d0a738fa7a56ce42e",
 },)
 
 
@@ -255,23 +258,31 @@ def persist(client, bucket, bundle,read_original=None):
 
 
 def publish_current(client, bucket, key, document):
-    """A slower earlier run cannot replace a newer current brief."""
+    """Preserve newer publications and reject conflicting same-clock content."""
     from calls_contract import timestamp
+    if not isinstance(document, dict): raise ValueError("current brief requires a JSON object")
     at = timestamp(document.get("generated_at"))
     if at is None: raise ValueError("current brief requires a dated timestamp")
+    body = canonical(document)
     for _ in range(5):
         try:
             obj = client.get_object(Bucket=bucket, Key=key)
-            previous = json.loads(obj["Body"].read())
+            response = obj["Body"]
+            try: previous = liquidity_binding.lineage.store.strict(response.read())
+            finally: response.close()
+            if not isinstance(previous, dict): raise ValueError("stored current brief requires a JSON object")
             old_at = timestamp(previous.get("generated_at"))
             if old_at and old_at > at: return {"published": False, "reason": "newer_current_present"}
+            if old_at == at:
+                if canonical(previous) != body: raise ValueError("Conflicting same-clock publication")
+                return {"published": True, "reason": "already_current"}
             condition = {"IfMatch": obj["ETag"]}
         except Exception as exc:
             code = str(getattr(exc, "response", {}).get("Error", {}).get("Code", ""))
             if code not in ("NoSuchKey", "404"): raise
             condition = {"IfNoneMatch": "*"}
         try:
-            client.put_object(Bucket=bucket, Key=key, Body=canonical(document),
+            client.put_object(Bucket=bucket, Key=key, Body=body,
                               ContentType="application/json", CacheControl="public, max-age=60", **condition)
             return {"published": True}
         except Exception as exc:
