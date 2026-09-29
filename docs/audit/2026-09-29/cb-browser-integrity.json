@@ -1,6 +1,6 @@
 {
   "stage": 436,
-  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "status": "exact_static_assets_and_isolated_browser_accepted",
   "checked_at": "2026-09-29T22:04:19.089047+00:00",
   "baseline_commit": "fae034a52971010ef696354c934faafe7f5881d7",
   "predecessor": "cb-browser-predecessor.json",
@@ -76,8 +76,104 @@
     "portfolio_writes": 0
   },
   "limitations": [
-    "Exact static deployment is pending. Normal scheduled native publication remains separately unverified.",
+    "Fifteen complete static assets match the intended source-bound build; normal scheduled native publication remains separately unverified.",
     "Browser hash identity and complete transport do not establish original-provider completeness, economic truth, model edge or portfolio suitability.",
     "Synthetic rates and data used for preview are explicitly synthetic and are not live measurements. All ten workstreams remain open."
-  ]
+  ],
+  "source_commit": "b1f8a1ae6f44f35e2703b19512312298b2171e9f",
+  "pages_run": 36637367049,
+  "page_gate_run": 36637366983,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T22:09:08.396415+00:00",
+    "intended_commit": "b1f8a1ae6f44f35e2703b19512312298b2171e9f",
+    "served_commit": "b1f8a1ae6f44f35e2703b19512312298b2171e9f",
+    "assets": {
+      "cb-injection.html": {
+        "bytes": 14762,
+        "sha256": "c99865f34c06419101b3e3cebe3d4382d89be812bb4d656801a81e6c8b1ebe15",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "63e9dc5f015fb9338edf207899cc63158f5d197b00238f01a460d0241e270a30",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "f5037df6de6dfab18f45d71defcdefcb3c0e9429307f1b4bab149c041ab310a8",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "78c1a094ef7c055552d718d4ecc13a498c1fad5aac672cd00f8ac4c7da197a50",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 8962,
+        "sha256": "120e0f24169044d6c203fc4d69034ee591f2796e3f176201d8850d9b9a28e48c",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10042,
+        "sha256": "37ce4ba1150d959c8f5b3707082704c30e4cedbdb4fef647cbb67db77033bc3d",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3067214,
+        "sha256": "78b2f3b365787ec93800ea2dd2b84ea3faf57a0ccd2299a6f6e0a67e40d30939",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7665701,
+        "sha256": "e74857e1c1871aff87d7bbf4f8a57ef72dba5f7950761b60b7841e0a2b45ad2c",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 12
 }
