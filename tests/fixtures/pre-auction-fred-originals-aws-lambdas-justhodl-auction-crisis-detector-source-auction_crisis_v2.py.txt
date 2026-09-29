@@ -50,8 +50,6 @@ from auction_weighting import weighted_summary
 import auction_benchmarks
 import auction_forward
 import auction_cross_observations
-import auction_fred_originals
-from copy import deepcopy
 import auction_calendar
 import math
 import os
@@ -442,54 +440,36 @@ def _fred_get_latest(series_id: str, limit: int = 5) -> Optional[float]:
     return None
 
 
-def _fred_get_history(series_id: str, days: int = 90) -> List[Tuple[str, float]]:
-    """Same existing ninety-observation request; retain exclusions and dates."""
-    frame = _fred_cross_source(series_id, days)
-    measured = auction_fred_originals.observations(frame, series_id, _fred_today())
-    return list(measured['selected_history'].items())
-
-
-_fred_records = {}
-_fred_occurrences = {}
-_fred_calculation_date = None
-
-
-def reset_fred_sources():
-    """Invocation boundary, independent of the transport's acquisition-aware cache."""
-    global _fred_calculation_date
-    _fred_records.clear()
-    _fred_occurrences.clear()
-    _fred_calculation_date = datetime.now(timezone.utc).date()
-
-
-def _fred_today():
-    return _fred_calculation_date or datetime.now(timezone.utc).date()
-
-
-def fetch_fed_funds_rate():
-    frame = _fred_cross_source('DFF', 5)
-    return auction_fred_originals.policy_rate(frame, _fred_today())['value']
-
-
-def retained_fred_inputs(fed_rate, cross_signals):
-    if any(count != 1 for count in _fred_occurrences.values()):
-        raise ValueError('Repeated effective requests need occurrence-level review')
-    histories = {sid: {} for sid in auction_fred_originals.BENCHMARKS}
-    key = (_fred_today().isoformat(), 90)
-    if key in _yield_cache: histories = deepcopy(_yield_cache[key])
-    return deepcopy(_fred_records), _fred_today().isoformat(), {
-        'fed_funds_rate': fed_rate, 'cross_signals': deepcopy(cross_signals), 'benchmark_histories': histories}
+def _fred_get_history(series_id: str, days: int = 30) -> List[Tuple[str, float]]:
+    """Get up to N observations; legacy `days` is the API row limit, not calendar days."""
+    url = (
+        "https://api.stlouisfed.org/fred/series/observations"
+        f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+        f"&limit={days}&sort_order=desc"
+    )
+    try:
+        with urllib.request.urlopen(url, timeout=10) as r:
+            data = json.loads(r.read())
+        out = []
+        for obs in data.get("observations", []):
+            v = obs.get("value")
+            if v not in (".", "", None):
+                out.append((obs.get("date"), float(v)))
+        return out
+    except Exception as e:
+        print(f"[fred-h] {series_id} error: {e}")
+    return []
 
 
 def _fred_cross_source(series_id, limit):
     """Same existing request; keep every parsed row and do not strip its date.
 
     The auction-local shim preserves bounded transport acquisition metadata.
-    Adapter read time remains distinct from acquisition. The handler separately
-    retains and replays the accepted bytes; first-release timing is unverified.
+    Adapter read time remains distinct from acquisition, and immutable original
+    HTTP retention and first-release publication timing remain unverified.
     """
-    if auction_fred_originals.LIMITS.get(series_id) != limit or type(limit) is not int:
-        raise ValueError('Reviewed auction FRED request required')
+    if auction_cross_observations.LIMITS.get(series_id) != limit:
+        raise ValueError('Reviewed cross-series request required')
     frame = {'series_id':series_id, 'requested_limit':limit, 'read_status':'unavailable',
              'response':None, 'adapter_read_at':None, 'http_acquisition_time_verified':False}
     url = (
@@ -503,14 +483,34 @@ def _fred_cross_source(series_id, limit):
             if response.status != 200 or len(raw) > 2*1024*1024:
                 raise ValueError('Incomplete or oversized adapter response')
             transport = getattr(response, 'jh_fred_transport', None)
-        read_at = datetime.fromtimestamp(time.time(), timezone.utc).isoformat()
         if transport is not None:
-            auction_fred_originals.verify_transport(raw, transport, series_id, limit, read_at)
+            expected_keys = {'contract','source_url','request_started_at','response_received_at','response_status',
+                             'declared_content_length','body_bytes','body_sha256','cache_status','cache_age_seconds','cache_ttl_seconds'}
+            public_url = 'https://api.stlouisfed.org/fred/series/observations?' + urllib.parse.urlencode([
+                ('series_id',series_id),('file_type','json'),('limit',limit),('sort_order','desc')])
+            # Match the adapter's clock source/conversion; mixed OS clock
+            # resolutions can otherwise invent a future acquisition by 1 us.
+            now = datetime.fromtimestamp(time.time(), timezone.utc)
+            if (not isinstance(transport,dict) or set(transport)!=expected_keys or transport['contract']!='auction-fred-transport.v1'
+                or transport['source_url']!=public_url or type(transport['response_status']) is not int or transport['response_status']!=200
+                or type(transport['body_bytes']) is not int or transport['body_bytes']!=len(raw)
+                or transport['body_sha256']!=hashlib.sha256(raw).hexdigest()
+                or transport['cache_status'] not in ('network','fresh_cache') or type(transport['cache_ttl_seconds']) is not int or transport['cache_ttl_seconds']!=1800
+                or type(transport['cache_age_seconds']) not in (int,float) or not 0<=transport['cache_age_seconds']<1800):
+                raise ValueError('Transport metadata differs from exact source body')
+            declared = transport['declared_content_length']
+            if declared is not None and (type(declared) is not int or declared!=len(raw)):
+                raise ValueError('Transport declared length differs from body')
+            received = auction_calendar.clock(transport['response_received_at'])
+            if not auction_calendar.clock(transport['request_started_at'])<=received<=now or not 0<=(now-received).total_seconds()<1800:
+                raise ValueError('Transport acquisition clock unavailable or expired')
+            if abs((now-received).total_seconds()-transport['cache_age_seconds'])>5:
+                raise ValueError('Transport cache age differs from acquisition clock')
             frame['adapter_transport'] = dict(transport)
         value = auction_calendar.strict_json(raw)
         json.dumps(value, allow_nan=False)
         frame.update(read_status='received', response=value,
-                     adapter_read_at=read_at)
+                     adapter_read_at=datetime.fromtimestamp(time.time(), timezone.utc).isoformat())
     except Exception as exc:
         # Fixed diagnostic avoids serializing credential-bearing request URLs.
         frame['error'] = 'adapter_response_unavailable_or_invalid'
@@ -520,15 +520,13 @@ def _fred_cross_source(series_id, limit):
                         'fred_invalid_json_body','fred_observation_array_missing','fred_acquisition_clock_reversed',
                         'fred_invalid_content_length','fred_unsupported_content_encoding'}:
             frame['transport_error'] = str(exc)
-    _fred_records[series_id] = {'frame': deepcopy(frame), 'raw': raw if frame['read_status'] == 'received' else None}
-    _fred_occurrences[series_id] = _fred_occurrences.get(series_id, 0) + 1
     return frame
 
 
 def compute_cross_signals() -> dict:
     """Dated arithmetic for the same five FRED requests; no corroboration claim."""
     frames = {sid:_fred_cross_source(sid, limit) for sid,limit in auction_cross_observations.LIMITS.items()}
-    return auction_cross_observations.build(frames, _fred_today())
+    return auction_cross_observations.build(frames, datetime.now(timezone.utc).date())
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -887,7 +885,7 @@ def reset_yield_cache():
 
 def fetch_cmt_yield_history(days: int = 90) -> Dict[str, Dict[str, float]]:
     """Reuse only the same date and observation-limit request within this invocation."""
-    key = (_fred_today().isoformat(), days)
+    key = (datetime.now(timezone.utc).date().isoformat(), days)
     if key not in _yield_cache:
         _yield_cache[key] = {series: {d: v for d, v in _fred_get_history(series, days=days) if d}
                              for _, series in TENOR_TO_FRED}

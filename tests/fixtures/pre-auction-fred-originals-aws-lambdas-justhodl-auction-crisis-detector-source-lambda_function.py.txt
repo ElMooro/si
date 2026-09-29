@@ -54,7 +54,6 @@ from auction_quality import stamp_quality
 from auction_weighting import weighted_summary
 from auction_original_store import retain as retain_auction_originals
 from auction_calendar_store import retain as retain_calendar_originals
-from auction_fred_store import retain as retain_fred_originals
 from auction_calendar import unavailable as calendar_unavailable
 from auction_originals import assert_native as verify_auction_measurements
 from pd_fails_context import load as load_pd_fails
@@ -73,7 +72,7 @@ except Exception:
 
 # v2 expansion module — tenor decomp, forward calendar, analog matching,
 # cross-signals, composite history, tail risk, triggers. Each function is
-# includes source acquisition. See auction_crisis_v2.py for its precise scope.
+# pure (no S3, no env). See auction_crisis_v2.py for full implementation.
 from auction_crisis_v2 import (
     compute_tenor_decomposition,
     fetch_upcoming_auctions,
@@ -86,9 +85,6 @@ from auction_crisis_v2 import (
     compute_preauction_concession,
     compute_postissue_performance,
     reset_yield_cache,
-    reset_fred_sources,
-    fetch_fed_funds_rate,
-    retained_fred_inputs,
 )
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -443,8 +439,22 @@ def score_indicators(metrics, fed_funds_rate):
 
 
 def get_fed_funds_rate():
-    """Latest dated DFF observation; missing/latest invalid does not become zero."""
-    return fetch_fed_funds_rate()
+    """Fetch latest Fed funds effective rate from FRED. Returns float or None."""
+    fred_key = managed_secret(('FRED_API_KEY', 'FRED_KEY'), ("/justhodl/fred/api-key",))
+    url = (
+        "https://api.stlouisfed.org/fred/series/observations"
+        f"?series_id=DFF&api_key={fred_key}&file_type=json&limit=5&sort_order=desc"
+    )
+    try:
+        with urllib.request.urlopen(url, timeout=10) as r:
+            data = json.loads(r.read())
+        for obs in data.get("observations", []):
+            v = obs.get("value")
+            if v not in (".", "", None):
+                return float(v)
+    except Exception as e:
+        print(f"[fred] DFF error: {e}")
+    return None
 
 
 def detect_issuance_explosion(records):
@@ -505,7 +515,6 @@ def detect_issuance_explosion(records):
 def lambda_handler(event, context):
     t0 = time.time()
     reset_yield_cache()
-    reset_fred_sources()
     print(f"[auction-crisis] start {datetime.now(timezone.utc).isoformat()}")
 
     # Pull last 90 days of auctions to give us a window for issuance analysis
@@ -527,7 +536,7 @@ def lambda_handler(event, context):
         body.update({
             "engine": "justhodl-auction-crisis-detector",
             "schema_version": "2.1",
-            "generated_at": datetime.fromtimestamp(time.time(), timezone.utc).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "status": "no_data",
             "message": "No auction records returned from fiscaldata API",
             "recent_auctions": [],
@@ -746,7 +755,7 @@ def lambda_handler(event, context):
     report = {
         "engine": "justhodl-auction-crisis-detector",
         "schema_version": "2.1",  # v2.1: + pre-auction concession + post-issue performance (ops/1100)
-        "generated_at": datetime.fromtimestamp(time.time(), timezone.utc).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_sec": round(time.time() - t0, 2),
         "elapsed_v2_sec": v2_elapsed,
         "regime": regime,
@@ -813,13 +822,13 @@ def lambda_handler(event, context):
             "Crisis pattern signatures extracted from 9 historical auction PDFs "
             "covering 2008-09-17 through 2024-10-09. Each live auction scored 0-100 "
             "against 6 patterns. v2 adds: tenor-level decomposition, 30-day forward "
-            "calendar with unvalidated per-auction heuristics, cosine-similarity matching "
-            "vs 9 historical crisis anchors, dated FRED context (repo, USD, "
+            "calendar with per-auction stress forecasts, cosine-similarity matching "
+            "vs 9 historical crisis anchors, 4 corroborating FRED signals (repo, USD, "
             "curve, inflation), 30-day composite history, 3 forward-looking tail risk "
             "concern scores (uncalibrated, not event probabilities), and named thresholds. v2.1 adds pre-auction "
-            "nominal benchmark changes (five/one observation intervals leading up to "
-            "upcoming auctions) and dated benchmark changes after issue (1d/5d/30d targets) "
-            "with explicit dates and gaps. These are not same-security returns or validated portfolio instructions."
+            "concession tracking (5d/1d yield change in each tenor leading up to "
+            "upcoming auctions) and post-issue performance (1d/5d/30d yield change "
+            "after each recently settled auction, classified STRONG/FIRM/FLAT/SOFT/WEAK)."
         ),
     }
 
@@ -845,18 +854,6 @@ def lambda_handler(event, context):
                               "recent_auctions.*.accepted_billions": "usd_bn"}
     report["auction_originals"] = auction_originals
     report["calendar_source"] = calendar_source
-    # All seventeen existing effective FRED requests; no additional network calls.
-    try:
-        fred_records, fred_day, native_fred = retained_fred_inputs(fed_rate, cross_signals)
-        report['fred_source'] = retain_fred_originals(s3, S3_BUCKET, fred_records, fred_day,
-                                                     report['generated_at'], native_fred)
-    except Exception:
-        report['fred_source'] = {'contract': 'auction-fred-originals.v1', 'status': 'unavailable',
-            'reason': 'complete_original_retention_or_native_replay_failed',
-            'original_bytes_replayed': False, 'native_input_selection_replayed': False,
-            'whole_auction_model_replayed': False, 'historical_point_in_time_verified': False,
-            'source_definition_verified': False, 'forecast_eligible': False, 'calls_eligible': False,
-            'sizing_eligible': False, 'execution_eligible': False}
     report["forward_calendar_status"] = forward_calendar_status
     stamp_quality(report)
     # chatgpt-pd-context-v1: settlement context never changes auction scores.
