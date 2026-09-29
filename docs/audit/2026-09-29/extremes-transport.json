@@ -1,0 +1,89 @@
+{
+  "stage": 422,
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T16:23:58.681692+00:00",
+  "baseline_commit": "dc8d7769dd5c79790d5682db9d1ea4b1bb4bafbb",
+  "sources": {
+    "jh-extremes-research.js": {
+      "bytes": 12643,
+      "sha256": "62fec706f5be413917c8672b62f50bd73310a1b0c6a250467989b44abef9bc91"
+    },
+    "tests/extremes-research.test.js": {
+      "bytes": 4842,
+      "sha256": "792e14548b679b9c91be92a8348313dd1744e7464b7aa97a6f495c11898d3be1"
+    },
+    "tests/extremes-transport.test.js": {
+      "bytes": 4289,
+      "sha256": "1c6b0402daf02cad05739882ddd9e83908232aff567eec46b1572865f01ad945"
+    }
+  },
+  "predecessor": "extremes-transport-predecessor.json",
+  "reproduced": {
+    "scope": "Reviewed current JavaScript with synthetic never-resolving body; no browser or network",
+    "source": "jh-extremes-research.js",
+    "source_sha256": "fdd42591cec138607c20dc0b6fb6cd4307cb6907530f229b39362e7f6101d0c6",
+    "result": "still_pending",
+    "bodyRequested": true,
+    "external_observation_ms": 115,
+    "internal_deadline_present": false,
+    "provider_requests": 0,
+    "current_packet_reads": 0
+  },
+  "improvements": [
+    "The actual predecessor had no request/body deadline; a synthetic never-resolving body remained pending. Both affected pages lacked a path from that state to the existing retry control.",
+    "Every current/retained research request now has a 12-second default request-and-body deadline and complete streaming 4 MiB limit. Oversized data is rejected rather than truncated, before concatenation or interpretation.",
+    "The same cancellation signal binds fetch and body consumption; parent cancellation, late headers and late body completions cannot restart consumption. Readers are cancelled and released; non-success/late bodies are discarded.",
+    "Fatal UTF-8 decoding and JSON parsing reject malformed representations. Whole valid bytes remain available for existing exact retained-run/output hash verification. No observation, source scope or eligibility rule was changed.",
+    "The existing unavailable/retry UI now receives stalled, oversized and corrupt response failures. Restoring transport and pressing Retry re-verifies the complete fixture artifacts. Hypothetical scenario controls remain local and functional."
+  ],
+  "tests": {
+    "frontend": 1854,
+    "focused_transport": 10,
+    "deployment_static": 688,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_qa": {
+    "scope": "Isolated synthetic pages with production source client and fixture retained artifacts; CSP disables network",
+    "both_engine_pages_render": true,
+    "stalled_request_reaches_retry": true,
+    "stalled_body_reaches_retry": true,
+    "body_cancel_observed": true,
+    "oversized_and_invalid_json_reach_retry": true,
+    "recovery_reverifies_retained_artifacts": true,
+    "keyboard_enter_retry": true,
+    "tab_from_retry_focuses_exposure": true,
+    "hypothetical_scenario": {
+      "exposure": 100000,
+      "shock_pct": -10,
+      "pnl": -10000
+    },
+    "mobile": {
+      "viewport_width": 375,
+      "client_width": 360,
+      "scroll_width": 360
+    },
+    "console_errors": [],
+    "qa_only_overflow_repaired": "Long debug JSON in the preview caused overflow; wrapping that QA-only pre restored 360/360. Production main was already 360/360.",
+    "screenshots": {
+      "stage422-timeout.png": {
+        "sha256": "da62faa209584a5d94d4adfb2551f2f0364da15510e89b88e80b29a66e537edd"
+      },
+      "stage422-mobile-retry.png": {
+        "sha256": "860287b9f7057485183beb9248deac90d38a499fdd9b8f165b5879c2580bf9b6"
+      }
+    }
+  },
+  "remaining_limits": [
+    "Browser acceptance uses synthetic packets. Production verification must remain static source/build bytes; no current research or private upstream packet was opened.",
+    "Market Extremes and Capitulation source-association metadata still misses their shared renderer; exact key evidence currently points to legacy modules. Active-writer provenance requires a separate repair before broader engine declarations.",
+    "Existing renderer and refresh presentation remain otherwise unchanged. Request bounds do not validate original provider data, historical availability, model performance or portfolio recommendations.",
+    "The backend release remains the accepted Stage 421 version; ordinary native publication and wider institutional qualification remain separate and open."
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "current_consumer_reads": 0,
+  "private_reads": 0,
+  "native_deployment_required": false
+}

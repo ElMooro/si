@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const api=require('../jh-extremes-research.js');
 const f=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/extremes-native.json'),'utf8')),p=f.packet,at=Date.parse(p.generated_at);
-const fetcher=async key=>{const raw=f.artifacts[key.slice(1)];return {ok:typeof raw==='string',status:typeof raw==='string'?200:404,arrayBuffer:async()=>new TextEncoder().encode(raw).buffer};};
+const fetcher=async key=>{const raw=f.artifacts[key.slice(1)];return new Response(raw,{status:typeof raw==='string'?200:404});};
 test('Python synthesis verifies against exact run and output bytes',async()=>assert.deepEqual(await api.verifyPacket(p,fetcher),p));
 test('edited measurement, wrong engine and external replay paths are rejected',async()=>{
  const x=structuredClone(p);x.measurements[0].value=12345;await assert.rejects(api.verifyPacket(x,fetcher),/Current body differs/);
