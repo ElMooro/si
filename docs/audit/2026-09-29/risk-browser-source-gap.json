@@ -1,0 +1,58 @@
+{
+  "scope": "Current reviewed source and pure synthetic metadata only. No account/holdings data, native invocation, network, downstream packet or archived-code execution.",
+  "sources": [
+    {
+      "source": "jh-portfolio-risk-contract.js",
+      "local_file": "stage439-predecessor-jh-portfolio-risk-contract.js.txt",
+      "bytes": 1380,
+      "sha256": "86da44b9cf64a93a7e341a1a8af92a26963ee008776c060ba70458d8ec705cda"
+    },
+    {
+      "source": "portfolio/index.html",
+      "local_file": "stage439-predecessor-portfolio-index.html.txt",
+      "bytes": 25468,
+      "sha256": "b85edc0cef87d1299988d2e17aa2add3ca7b3be1dd9ce41bddcd7d981858d613"
+    },
+    {
+      "source": "position-sizer.html",
+      "local_file": "stage439-predecessor-position-sizer.html.txt",
+      "bytes": 7554,
+      "sha256": "40f9ef08986cea8ca9d0de27c361bcd86709fad7367ce05b127e663bdbd2bdc9"
+    }
+  ],
+  "findings": {
+    "impossible_generated_date_accepted": true,
+    "missing_sample_count_described_as_zero": true,
+    "null_nav_described_as_reconciled": true,
+    "malformed_quality_metadata_throws": true,
+    "scenario_risk_link_has_no_checked_in_target": true
+  },
+  "status": "source_gaps_reproduced_not_repaired",
+  "static_route_checks": {
+    "checked_at": "2026-09-29T22:43:20.632264+00:00",
+    "scope": "HEAD metadata for two known static HTML routes only. No body, account, current packet or browser execution.",
+    "routes": {
+      "portfolio-risk.html": {
+        "status": 404,
+        "final_url": "https://justhodl.ai/portfolio-risk.html?exact=1&nogen=1",
+        "body_bytes_read": 0
+      },
+      "portfolio/index.html": {
+        "status": 200,
+        "final_url": "https://justhodl.ai/portfolio/index.html?exact=1&nogen=1",
+        "body_bytes_read": 0
+      }
+    }
+  },
+  "native_synthetic_fixture": {
+    "local_file": "stage439-synthetic-risk.json",
+    "bytes": 18390,
+    "sha256": "860bb6ef178196781decc3d8a782e9ba636ec008655d1e9753ad459e06da993c",
+    "cases": [
+      "holdings_without_nav",
+      "measured_zero_risk",
+      "reported_reconciled_nav",
+      "incomplete"
+    ]
+  }
+}

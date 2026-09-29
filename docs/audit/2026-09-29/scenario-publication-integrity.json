@@ -1,6 +1,6 @@
 {
   "stage": 438,
-  "status": "source_accepted_exact_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T22:42:37.884518+00:00",
   "baseline_commit": "7e71f2d5b0dc7496bf414df62e55271f97197949",
   "predecessor": "scenario-publication-predecessor.json",
@@ -75,8 +75,173 @@
     "model_arithmetic_changes": 0
   },
   "limitations": [
-    "Exact native and static deployment remain pending. Normal scheduled publication is separately unverified.",
+    "All three native package members and nineteen complete static assets match the intended source commit. Full runtime resources and the complete schedule equal the frozen predecessor. Normal scheduled publication remains separately unverified.",
     "The approved predecessor is retained as unqualified legacy allocation evidence. No private historical body is read for replay acceptance and no old allocation obtains authority.",
     "Complete response, typed identity and reproducible model availability do not establish forecast skill, permitted exposure or investment suitability. All ten workstreams remain open."
-  ]
+  ],
+  "source_commit": "0b23b3d540be330beaf4b533fc348862df61cd93",
+  "native_acceptance": {
+    "actual_runtime": {
+      "code_sha256": "PvHj9WctOF3Fus0ARFYYwO5TZfQJmSXBFZgeF1YPO9w=",
+      "source_files_checked": 3,
+      "handler_bytes": 639,
+      "timeout": 60,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "0b23b3d540be330beaf4b533fc348862df61cd93"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-position-sizer-6h",
+          "state": "ENABLED",
+          "expression": "rate(6 hours)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-position-sizer",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "0b23b3d540be330beaf4b533fc348862df61cd93",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_package_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36641499754,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6351_scenario_publication_runtime_acceptance.md",
+  "native_acceptance_report_commit": "c5778473502abcc293cb59aa6f6a54d730dc6e14",
+  "lambda_run": 36641187233,
+  "pages_run": 36641187210,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T22:49:31.374543+00:00",
+    "intended_commit": "0b23b3d540be330beaf4b533fc348862df61cd93",
+    "served_commit": "0b23b3d540be330beaf4b533fc348862df61cd93",
+    "assets": {
+      "position-sizer.html": {
+        "bytes": 11624,
+        "sha256": "89a08aea4e4b926e3cdd44aeb22ca02e1a98c9841c89d0eceb9e1f2ec8ef4295",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14762,
+        "sha256": "35828488e47a67055c82473598cf08933b4a5a39c87cb4aee6b61de175b33239",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68188,
+        "sha256": "433711614f9ae40a9635f4418eac86b798d0f34c441ef8cdfb74358be8e6d5ed",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28126,
+        "sha256": "94ad0b0ef68d088b0cb961341bf44ac9ae59a5b0946a45e09b64c194748e6dfa",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3064,
+        "sha256": "524834809409c7a3960990e2d2f20cd39a2b764bea47518f9427585eb3cd5450",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 8962,
+        "sha256": "f95b52dcb24c83b0723bb925891bb37cb1c4e901787c7656729fb0cff1a567d5",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10042,
+        "sha256": "e510d8a10eee13f9176fd682aa1c18074ff4197d0102a7b63f2ce6f3d41656a1",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 7052,
+        "sha256": "6d8f91f9eb011f40afedb081e0be38143eec1593ff01ff08ae0ee72f4c54e608",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 32695,
+        "sha256": "08acd2d13d574fb83491c25c34c04e5152039169dc99fcb1b8c1a628e54096a2",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3067214,
+        "sha256": "02a0d9e47b99e4d8c55225b4f9642d4ff996744d178c5d21db8c76a5320484b5",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7665701,
+        "sha256": "a5ef07d9cadd26ce408ea55d5fc74e3f10b965d347c67f531175f843017b4643",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "atomic_batch_files": 9
 }
