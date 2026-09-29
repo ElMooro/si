@@ -141,9 +141,7 @@ function renderHero() {
   $('regime-desc').textContent = score === null ? weightingNote(DATA.weighting_quality) :
     'Descriptive legacy heuristic. This score has no validated forecast or position-size authority.';
   $('n-recent').textContent = Number.isSafeInteger(DATA.n_recent_auctions_14d) && DATA.n_recent_auctions_14d >= 0 ? DATA.n_recent_auctions_14d : '—';
-  const policy = globalThis.JHAuctionFredEvidence?.policyContext?.(DATA.fred_source, DATA.generated_at, DATA.fed_funds_rate);
-  $('fed-rate').textContent = fmt(policy?.value, 2);
-  if ($('fed-rate-date')) $('fed-rate-date').textContent = policy ? 'DFF observed ' + policy.observation_date : 'Dated DFF trace unavailable';
+  $('fed-rate').textContent = fmt(DATA.fed_funds_rate, 2);
   ['regime-banner', 'score-circle', 'regime-meta', 'decisive-call'].forEach(id => {
     const el = $(id);
     if (el) el.className = el.className.replace(/\b(ACUTE_STRESS|ELEVATED|WATCH|CALM|UNAVAILABLE)\b/g, '').trim() + ' ' + regime;
@@ -721,9 +719,6 @@ function renderResearchContext() {
   const originals = $('auction-originals');
   if (globalThis.JHAuctionOriginals) globalThis.JHAuctionOriginals.render(originals, DATA.auction_originals, DATA.generated_at);
   else if (originals) originals.textContent = 'Source evidence viewer unavailable. Refresh this page.';
-  const fredEvidence = $('auction-fred-evidence');
-  if (globalThis.JHAuctionFredEvidence) globalThis.JHAuctionFredEvidence.render(fredEvidence, DATA.fred_source, DATA.generated_at);
-  else if (fredEvidence) fredEvidence.textContent = 'FRED evidence viewer unavailable. Refresh this page.';
   $('ai-exec-title').textContent = 'Measurement and validation status';
   $('ai-exec-body').textContent = 'Treasury observations and legacy heuristic thresholds are descriptive. Full original-source replay and predictive validation remain incomplete.';
   $('ai-updated').textContent = ageFromIso(DATA.generated_at);

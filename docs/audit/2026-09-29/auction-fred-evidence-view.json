@@ -1,0 +1,145 @@
+{
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T09:18:21.668713+00:00",
+  "baseline_commit": "e2fcf8e453b0e24be1ad514e5ddbc4cc6ee264be",
+  "complete_predecessors": [
+    {
+      "source": "auction-crisis.html",
+      "fixture": "tests/fixtures/pre-auction-fred-view-auction-crisis.html.txt",
+      "bytes": 49444,
+      "sha256": "f49c0e9713efcdaa2d17a6092e46680c14453d291073cf4770f06efaed2f1ddd"
+    },
+    {
+      "source": "auction-crisis.js",
+      "fixture": "tests/fixtures/pre-auction-fred-view-auction-crisis.js.txt",
+      "bytes": 45206,
+      "sha256": "282f9f24fa0b2b752d5ab2fe5238ec524bd2c5d842857e1fc69ee8c3c749578f"
+    }
+  ],
+  "backend_source_commit": "e8407646ca22e5395efcff44e3364e877ae984ed",
+  "backend_acceptance": "docs/audit/2026-09-29/auction-fred-originals.json",
+  "backend_modified": false,
+  "native_publication_verified": false,
+  "sources": {
+    "auction-crisis.html": {
+      "bytes": 50566,
+      "sha256": "62f3c22fc620f03945b32e1c04a4c35af98806090618810c589c931c34efe870"
+    },
+    "auction-crisis.js": {
+      "bytes": 45760,
+      "sha256": "70d141d4903274c1ab96b0fbe047196cb154a9ddd93dd1f26348dab97c3a0a81"
+    },
+    "jh-auction-fred-evidence.js": {
+      "bytes": 18490,
+      "sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae"
+    },
+    "tests/auction-fred-evidence.test.js": {
+      "bytes": 12733,
+      "sha256": "038982cb972c9ed81d595ae5c8dd8b40dccf29e27a8432598ec20edbbe5eb981"
+    },
+    "tests/fixtures/auction-fred-evidence-view.json": {
+      "bytes": 244129,
+      "sha256": "8d8bbd770ca21b488dd7545ad38da2df4616494c8d11ea6a0360f4fefe8f850d"
+    }
+  },
+  "changes": [
+    "The auction page opens the complete FRED source artifact on demand. All seventeen existing requests, received/unavailable/not-requested states, units, full returned and selected row counts, observation ranges, acquisition clocks and warm-cache reuse are visible together.",
+    "Typed content-addressed references reject external/private paths. Bounded response reading, exact length and SHA-256 checks precede parsing. The browser independently checks source coverage, acquisition metadata, row normalization, exclusions, duplicate/future dates, selected histories and row counts. This is input inspection, not a replay of the full auction model.",
+    "The full field inspector retains access to every original parsed response and calculation input. Missing data never becomes zero. Complete capture is separate from measurement availability, and all forecast/Calls/sizing/execution qualification flags must remain false.",
+    "The policy-rate headline now requires a matching finite DFF trace and prints its observation date. Missing, stale, inconsistent or mismatched traces withhold the headline; true zero remains 0.00. A missing or cached older viewer API does not crash the page.",
+    "Failed inspection clears previous content and remains retryable. A changed or stale publication aborts outstanding work and prevents its result from repainting the page. No source artifact is automatically downloaded.",
+    "The responsive table preserves all seventeen rows with a sticky series column, keyboard-focusable horizontal scrolling, visible focus styling and explicit scrolling instructions. Cache versions bind the updated main renderer and source viewer."
+  ],
+  "tests": {
+    "new_frontend": 17,
+    "frontend": 1779,
+    "deployment_static": 651,
+    "candidate_shell": 12,
+    "page_graphs": 599,
+    "auction_native_regressions": 138,
+    "settlement_context": "passed",
+    "page_contracts": "passed",
+    "page_wiring": "143 wires across 36 pages"
+  },
+  "browser_acceptance": {
+    "synthetic_only": true,
+    "actual_production_scripts": true,
+    "external_requests": 0,
+    "console_errors": [],
+    "cases": [
+      {
+        "name": "complete",
+        "accepted": true,
+        "table_rows": 17
+      },
+      {
+        "name": "partial",
+        "accepted": true,
+        "table_rows": 17
+      },
+      {
+        "name": "unavailable",
+        "accepted": true,
+        "table_rows": 17
+      },
+      {
+        "name": "cached",
+        "accepted": true,
+        "table_rows": 17
+      },
+      {
+        "name": "zero",
+        "accepted": true,
+        "table_rows": 17
+      },
+      {
+        "name": "invalid",
+        "accepted": true,
+        "table_rows": 17
+      }
+    ],
+    "complete_inspector_leaf_paths": 1335,
+    "failure_and_retry_recovery": true,
+    "stale_source_clears_prior_evidence": true,
+    "headline_values": [
+      "4.25 with observation date",
+      "0.00 with observation date",
+      "unavailable when trace missing"
+    ],
+    "desktop": {
+      "document_width": 1265,
+      "viewport_client_width": 1265
+    },
+    "mobile": {
+      "requested_width": 375,
+      "requested_height": 812,
+      "document_width": 360,
+      "viewport_client_width": 360,
+      "table_viewport": 276,
+      "table_width": 1000,
+      "rows": 17
+    },
+    "keyboard_horizontal_scroll": {
+      "before": 0,
+      "after": 40,
+      "focused_class": "jaf-table-scroll"
+    },
+    "screenshots": {
+      "stage408-desktop.png": {
+        "sha256": "4ddc915b0749499485526608b5fc3949c9a99c8ddbb96dfb6dc3a54565489cf1"
+      },
+      "stage408-mobile.png": {
+        "sha256": "cbb6d936979aeceb9badef5438298df4e6babf91871b7b8354f787c3649b3f99"
+      }
+    }
+  },
+  "limitations": [
+    "Browser acceptance uses isolated synthetic full artifacts generated by the actual reviewed Python producer. It does not certify live current packets, provider definitions or first-release historical availability.",
+    "The backend is unchanged and already accepted at its separate source commit. Normal publication of its new archive remains pending the original 13:05 UTC schedule; no manual native invocation, extra provider request or cadence change is made.",
+    "The browser checks exact retained measurements and row selections. It does not refetch raw provider bodies or replay the full legacy auction scoring/analog/issuance model.",
+    "Portfolio sizing, forecast edge, independent validation, peak native capacity and the remaining platform workstreams remain open."
+  ],
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "execution_eligible": false
+}

@@ -327,16 +327,6 @@ code{font-family:var(--font-mono);font-size:11.5px;color:var(--cyan);background:
 #auction-originals .jdi-controls{flex-wrap:wrap}
 #auction-originals a{overflow-wrap:anywhere}
 #auction-originals p{margin:10px 0;line-height:1.5}
-#auction-fred-evidence{max-width:none;margin:20px 0;min-width:0}
-#auction-fred-evidence .jdi-controls{flex-wrap:wrap}
-#auction-fred-evidence a{overflow-wrap:anywhere}
-#auction-fred-evidence p{margin:10px 0;line-height:1.5}
-.jaf-table-scroll{max-width:100%;overflow-x:auto;border:1px solid var(--border,#334155);border-radius:6px}
-.jaf-table-scroll:focus-visible{outline:2px solid var(--accent,#38bdf8);outline-offset:3px}
-.jaf-table-scroll table{width:100%;min-width:1000px;border-collapse:collapse;font-size:12px}
-.jaf-table-scroll caption{text-align:left;white-space:normal;padding:10px}
-.jaf-table-scroll th,.jaf-table-scroll td{padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border,#334155)}
-.jaf-table-scroll tbody th,.jaf-table-scroll thead th:first-child{position:sticky;left:0;z-index:1;background:var(--panel,#101820)}
 @media (max-width:600px){
   .section-hdr{flex-wrap:wrap}
   .section-hdr .badge{margin-left:0}
@@ -437,7 +427,7 @@ footer a:hover{color:var(--cyan)}
       </div>
       <div class="regime-stats">
         <div class="stat"><div class="v" id="n-recent">—</div><div class="l">Auctions 14d</div></div>
-        <div class="stat"><div class="v" id="fed-rate">—</div><div class="l">Fed Funds %</div><div class="interp" id="fed-rate-date">Dated DFF trace unavailable</div></div>
+        <div class="stat"><div class="v" id="fed-rate">—</div><div class="l">Fed Funds %</div></div>
       </div>
     </div>
 
@@ -491,10 +481,9 @@ footer a:hover{color:var(--cyan)}
   <!-- Cross-signals strip -->
   <div class="section-hdr">
     <h3>Cross-Signals</h3>
-    <div class="sub">Dated FRED observations · inspect acquisition records below · definitions, historical vintages and model qualification remain unverified</div>
+    <div class="sub">Dated FRED observations · exact comparison dates shown · original acquisition and model qualification remain unverified</div>
   </div>
   <div id="cross-strip" class="cross-strip"></div>
-  <section id="auction-fred-evidence" class="jdi-panel" aria-label="FRED source evidence"></section>
 
   <!-- 30-day composite trajectory chart -->
   <div class="section-hdr">
@@ -672,8 +661,7 @@ footer a:hover{color:var(--cyan)}
 </main>
 
 <script src="/jh-auction-originals.js?v=20260929" defer></script>
-<script src="/jh-auction-fred-evidence.js?v=20260929-fred-v1" defer></script>
-<script src="/auction-crisis.js?t=20260929-fred-evidence" defer></script>
+<script src="/auction-crisis.js?t=20260929-benchmark-observations" defer></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
