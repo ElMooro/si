@@ -1,5 +1,5 @@
 {
-  "status": "source_and_isolated_browser_accepted_native_and_static_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T09:49:30.900776+00:00",
   "baseline_commit": "6dbbc0991f389b2ede7697588aaaf4bbc5165a59",
   "complete_predecessors": [
@@ -202,5 +202,119 @@
   ],
   "calls_eligible": false,
   "sizing_eligible": false,
-  "execution_eligible": false
+  "execution_eligible": false,
+  "source_commit": "cb736cebfff07191c099ca21f5d1c598fef03395",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-crisis-detector": {
+        "code_sha256": "6TBbl7sRRIfF9+qr6VDW+tzYILezzBdR1acnm9OGqlQ=",
+        "source_files_checked": 20,
+        "handler_bytes": 43830,
+        "timeout": 240,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "cb736cebfff07191c099ca21f5d1c598fef03395"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-active",
+            "state": "ENABLED",
+            "expression": "cron(50 19 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-backstop",
+            "state": "ENABLED",
+            "expression": "cron(5 13 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-auction-crisis-detector",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "cb736cebfff07191c099ca21f5d1c598fef03395",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36552014220,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6338_auction_concerns_runtime_acceptance.md",
+  "native_acceptance_report_commit": "e4170cc76e4d76569b8f74ea8c6897bb6e043ccc",
+  "lambda_run": 36551660051,
+  "pages_run": 36551660098,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T09:55:31.781778+00:00",
+    "intended_commit": "cb736cebfff07191c099ca21f5d1c598fef03395",
+    "served_commit": "cb736cebfff07191c099ca21f5d1c598fef03395",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 60272,
+        "sha256": "d1504d29bb1b57c48150cf1ed3fdc58a19f2d208f48bc8ba16680ed21c262585",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 48156,
+        "sha256": "7073fbbce9fe39e087a35c966404d48753dce8d322da33e3ca9cc80b9da6c30f",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "cc49f3540b44013c9cbaa4ed1789a83d81b4637c5eab9363cad60d727b2dd08c"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "jh-auction-fred-evidence.js": {
+        "bytes": 18490,
+        "sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "f78bbf7ca68a282e60229a230aa0d02474fe90ba11e29918116a428e3d5296ae"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353625,
+        "sha256": "877b7ad9950726845b5c6f9c34223ff78a5e637d8b4efbe3af9c45ca4b87ca10",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692855,
+        "sha256": "7b59061ecc9623593e1a1907be0750e3d6a5048dd05bfd33f89e8cb95ebc645a",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request.",
+    "fred_viewer_cache_version": "f1352494"
+  },
+  "large_file_native_git_batch": {
+    "atomic_changed_files": 22,
+    "source_sizes": {
+      "aws/lambdas/justhodl-auction-crisis-detector/source/auction_crisis_v2.py": 38471,
+      "auction-crisis.js": 48155,
+      "auction-crisis.html": 50866,
+      "aws/shared/auction_concerns.py": 16044,
+      "tests/fixtures/auction-concerns.json": 289944
+    },
+    "all_exact_native_source_members_verified": 20
+  }
 }
