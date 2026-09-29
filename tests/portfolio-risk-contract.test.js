@@ -88,7 +88,8 @@ function context(path){
   const html=fs.readFileSync(path,'utf8'), elements=new Map();
   const document={addEventListener(){},getElementById(id){if(!elements.has(id)) elements.set(id,{innerHTML:'',textContent:'',style:{}});return elements.get(id);},querySelector(){return {style:{}};}};
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');
-  const scope=vm.createContext({document,window:{},console,JHPortfolioRisk:contract,Date,setInterval(){},fetch(){return new Promise(()=>{});}});
+  const scope=vm.createContext({document,window:{},console,JHPortfolioRisk:contract,Date,AbortController,
+    JHScenarioIO:{decode(){},readComplete(){return new Promise(()=>{});}},setInterval(){},fetch(){return new Promise(()=>{});}});
   vm.runInContext(scripts,scope);return {scope,elements};
 }
 test('actual portfolio page renders absent NAV as unavailable, not 0% risk',()=>{

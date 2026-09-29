@@ -9,3 +9,4 @@ if __name__ == "__main__":
     run("portfolio-risk")
     import subprocess
     subprocess.run([sys.executable, str(Path(__file__).with_name('test_risk_model.py'))], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_snapshot_binding.py'))], check=True)

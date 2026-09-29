@@ -10,7 +10,7 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
-from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars
+from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars, snapshot_value_identity
 
 S3_BUCKET = "justhodl-dashboard-live"
 SNAPSHOT_KEY = "portfolio/snapshot.json"
@@ -170,6 +170,37 @@ def retain_bundle(bundle):
             'independent_runner_verified': False}
 
 
+def snapshot_document(response):
+    """Read the existing private snapshot completely before any provider work."""
+    body = response['Body']
+    limit, parts, size = 4 * 1024 * 1024, [], 0
+    try:
+        declared = response.get('ContentLength')
+        if declared is not None and (type(declared) is not int or declared < 0 or declared > limit):
+            raise ValueError('Invalid complete snapshot length')
+        while True:
+            part = body.read(min(65536, limit + 1 - size))
+            if not isinstance(part, bytes): raise ValueError('Invalid snapshot body bytes')
+            if not part: break
+            size += len(part)
+            if size > limit: raise ValueError('Complete snapshot exceeds byte bound')
+            parts.append(part)
+        if declared is not None and size != declared: raise ValueError('Incomplete snapshot body')
+    finally:
+        body.close()
+    def pairs(rows):
+        out = {}
+        for key, value in rows:
+            if key in out: raise ValueError('Duplicate snapshot JSON field')
+            out[key] = value
+        return out
+    def constant(_): raise ValueError('Nonfinite snapshot JSON value')
+    document = json.loads(b''.join(parts).decode('utf-8', errors='strict'), object_pairs_hook=pairs, parse_constant=constant)
+    if not isinstance(document, dict): raise ValueError('Invalid private snapshot document')
+    snapshot_value_identity(document)
+    return document
+
+
 def _run_private(event, context):
     if (event or {}).get('validation_only') is True:
         # Exercise the deployed provider adapter and pure math without reading
@@ -190,7 +221,7 @@ def _run_private(event, context):
             'original_response_sha256':packet['_source_evidence']['body_sha256'],
             'sample_count':output['risk_contract']['sample_count'], 'as_of':output['risk_contract']['sample_end'],
             'replay':'reproduced', 'sizing_eligible':False})}
-    snapshot = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY)['Body'].read())
+    snapshot = snapshot_document(s3.get_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY))
     if not isinstance(snapshot, dict):
         raise ValueError('invalid private snapshot')
     symbols = {'SPY'}

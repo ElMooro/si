@@ -152,7 +152,51 @@ def exposure_view(snapshot, now):
     return signed, gross, sectors, sorted(set(errors))
 
 
+def snapshot_value_identity(value):
+    """Hash complete JSON values identically in Python and the browser.
+
+    This is a semantic identity, not a hash of provider/HTTP bytes. Objects sort
+    UTF-8 keys; arrays keep order; finite safe binary64 numbers use big endian.
+    No key, position, zero, null or unknown field is dropped from the identity.
+    """
+    import struct
+    out = bytearray()
+    def put(raw):
+        if len(out) + len(raw) > 32 * 1024 * 1024:
+            raise ValueError('Snapshot identity exceeds complete byte bound')
+        out.extend(raw)
+    def text(raw):
+        data = raw.encode('utf-8', errors='strict')
+        put(b's' + str(len(data)).encode() + b':' + data)
+    def encode(v, depth=0):
+        if depth > 128:
+            raise ValueError('Snapshot identity nesting exceeds bound')
+        if v is None: put(b'n')
+        elif type(v) is bool: put(b't' if v else b'f')
+        elif type(v) in (int, float):
+            if type(v) is int and abs(v) > 9007199254740991:
+                raise ValueError('Snapshot number cannot be represented safely in both runtimes')
+            n = float(v)
+            if not math.isfinite(n) or (n.is_integer() and abs(n) > 9007199254740991):
+                raise ValueError('Snapshot number cannot be represented safely in both runtimes')
+            put(b'd' + struct.pack('>d', 0.0 if n == 0 else n))
+        elif type(v) is str: text(v)
+        elif type(v) is list:
+            put(b'a' + str(len(v)).encode() + b':')
+            for child in v: encode(child, depth + 1)
+        elif type(v) is dict:
+            if any(type(k) is not str for k in v):
+                raise ValueError('Snapshot object keys must be strings')
+            keys = sorted(v, key=lambda k: k.encode('utf-8', errors='strict'))
+            put(b'o' + str(len(keys)).encode() + b':')
+            for key in keys:
+                text(key); encode(v[key], depth + 1)
+        else: raise ValueError('Snapshot identity requires JSON values')
+    encode(value)
+    return {'encoding': 'typed-json-binary64.v1', 'value_sha256': hashlib.sha256(out).hexdigest(), 'encoded_bytes': len(out)}
+
 def build(snapshot, packets, generated_at, scenarios):
+    snapshot_identity = snapshot_value_identity(snapshot)
     now = timestamp(generated_at)
     if now is None:
         raise ValueError('timezone-aware evaluation time required')
@@ -236,6 +280,8 @@ def build(snapshot, packets, generated_at, scenarios):
     annual = daily*math.sqrt(252) if daily is not None else None
     report = {
         'engine': 'justhodl-portfolio-risk', 'schema_version': VERSION, 'generated_at': generated_at,
+        'snapshot_binding': {'contract': 'portfolio-snapshot-value.v1', 'key': 'portfolio/snapshot.json',
+                             'generated_at': snapshot.get('generated_at'), **snapshot_identity},
         'status': 'no_positions' if not snapshot.get('positions') else 'AVAILABLE_HOLDINGS_MODEL' if modeled else 'INCOMPLETE',
         'permissions': {'sizing_eligible': False, 'may_recommend_trades': False, 'reason': 'Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability'},
         'quality': {'status': 'partial' if modeled else 'unavailable', 'reason_codes': sorted(set(errors)), 'data_errors': data_errors},

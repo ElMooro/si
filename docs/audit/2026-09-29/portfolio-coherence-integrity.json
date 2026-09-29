@@ -1,0 +1,120 @@
+{
+  "stage": 440,
+  "status": "source_and_isolated_browser_accepted_native_static_deployment_pending",
+  "checked_at": "2026-09-29T23:38:18.578708+00:00",
+  "baseline_commit": "f1385458ecf79d067064179a080dbde19556334e",
+  "predecessor": "portfolio-coherence-predecessor.json",
+  "native_predecessor": "portfolio-coherence-native-predecessor.json",
+  "source_findings": "portfolio-coherence-source-gap.json",
+  "renderer_findings": {
+    "scope": "Current reviewed page renderer and synthetic text only. Generated HTML strings inspected, no browser execution or network.",
+    "raw_html_from_alpha_score": true,
+    "raw_html_from_tier": true
+  },
+  "native_source_scope": {
+    "portfolio_risk_model": {
+      "added": [
+        "snapshot_value_identity"
+      ],
+      "changed": [
+        "build"
+      ],
+      "unchanged": [
+        "beta",
+        "canonical",
+        "code_identity",
+        "correlation",
+        "digest",
+        "drawdown",
+        "exposure_view",
+        "freeze",
+        "interval_returns",
+        "pair_values",
+        "read_bars",
+        "replay",
+        "rounded"
+      ]
+    },
+    "lambda_function": {
+      "added": [
+        "snapshot_document"
+      ],
+      "changed": [
+        "_run_private"
+      ],
+      "unchanged": [
+        "batch_fetch_bars",
+        "fetch_polygon_bars",
+        "lambda_handler",
+        "load_alert_history",
+        "publish_risk",
+        "retain_bundle",
+        "save_alert_history"
+      ]
+    }
+  },
+  "build_math_ast_unchanged_after_removing_additive_binding": true,
+  "improvements": [
+    "The native model identifies every parsed snapshot value using the documented typed JSON/binary64 SHA-256 contract. The browser must match all fields and the publication identity before showing risk alongside separately acquired holdings. Equivalent object order and numeric spelling match; altered holdings, unknown added fields, array order, type changes or missing bindings do not.",
+    "Private snapshot acquisition reads through EOF within four MiB, checks typed SDK length when provided, closes every body, and rejects duplicate JSON keys, malformed Unicode and unsafe/nonfinite values before provider work.",
+    "Browser inputs use the existing strict complete scenario I/O primitives, a four MiB limit and twelve-second header/body deadline. Generation guards and cancellation stop delayed prior responses from overwriting newer successful or failed loads. Local sixty-second age checks make no requests; the five-minute network cadence remains unchanged.",
+    "Risk with an unverified snapshot stays withheld even if its timestamp later enters the display window. Missing/stale/error states clear earlier values and preserve missing-versus-zero distinctions.",
+    "Typed numeric rendering, escaped source text, whitelisted tier classes and ordinary encoded ticker links replace unsafe raw HTML and inline JavaScript. Alert thresholds require measured values; malformed flags cannot manufacture a VaR breach."
+  ],
+  "tests": {
+    "new_native_cases": 10,
+    "native_model_cases": 20,
+    "private_handler_checks": 10,
+    "new_frontend_cases": 17,
+    "focused_frontend": 33,
+    "frontend": 1954,
+    "cross_runtime_vectors": 17,
+    "deployment_static": 729,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_acceptance": {
+    "scope": "Original page and current reviewed scripts; complete outputs from the current pure native model with wholly synthetic holdings. External connections denied by CSP, no authentication bootstrap or actual account data.",
+    "matching": "AAA complete source snapshot matches native binding; holdings VaR 9.31 USD, 6.36% volatility per gross, beta per gross 1.00; account NAV metrics unavailable.",
+    "mismatch": "Changing quantity 10 to 11 keeps separately received holdings visible but clears risk and reports a snapshot mismatch.",
+    "duplicate": "Duplicate NAV field visibly fails strict decoding and clears prior timestamp and values.",
+    "race": "Delayed older AAA response is released after newer BBB; BBB and measured zero VaR/volatility/beta remain displayed.",
+    "keyboard": "Return activates the response-race control and focuses the AAA ticker link; link has a fixed same-site stock path, noopener/noreferrer and no inline handler. Preview navigation is intentionally denied.",
+    "desktop": {
+      "viewport": 1280,
+      "document": 1265,
+      "overflow": false
+    },
+    "mobile": {
+      "viewport": 360,
+      "document": 345,
+      "overflow": false,
+      "table_scroll_contained": true
+    },
+    "console_errors": 0,
+    "screenshots": [
+      "stage440-risk-race.png",
+      "stage440-risk-mismatch.png",
+      "stage440-risk-keyboard.png",
+      "stage440-risk-mobile.png"
+    ]
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "private_account_reads": 0,
+    "live_current_packet_reads": 0,
+    "provider_probes": 0,
+    "portfolio_writes": 0,
+    "paid_ai_requests": 0,
+    "access_policy_changes": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0
+  },
+  "limitations": [
+    "Exact native and static deployment remain pending. All six predecessor package members, 1024 MiB/300-second resources and both existing hourly :43 bindings were independently recorded by receipt-only operation 6352.",
+    "Normal private publication is unverified and no actual account is inspected. Legacy outputs without a complete binding are withheld until normal publication supplies one.",
+    "A semantic value identity is not an HTTP byte identity, authenticated signature, provider validation, account reconciliation or prediction qualification. Four MiB input limits reject oversize documents rather than truncating them.",
+    "Both original hourly schedule bindings are retained. This change does not repair scheduling duplication, publication ordering or qualification of the native risk assumptions. All ten platform workstreams remain open."
+  ]
+}
