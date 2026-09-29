@@ -1,0 +1,102 @@
+{
+  "status": "reproduced_follow_up_delivery_work_open",
+  "checked_at": "2026-09-29T13:23:30.726683+00:00",
+  "source_commit": "6dbcd06802f14534f72176fe3499c82b9df88fb2",
+  "acceptance_document_commit": "39083be641c77b1ae82c001fe78ee3bf019f3cda",
+  "handler_capacity": {
+    "scope": "Full reviewed Python handler with synthetic cached histories and provider/storage mocks; no AWS invocation, network latency or native runtime certification",
+    "checked_at": "2026-09-29T13:21:11.391028+00:00",
+    "historical_source_rows": 22470,
+    "participation_bank_rows": 2520,
+    "buyback_operations": 333,
+    "price_assets": 14,
+    "observations_per_asset": 11228,
+    "seconds_with_tracemalloc": 73.77,
+    "peak_tracemalloc_bytes": 212863605,
+    "packet_bytes": 39556817,
+    "packet_gzip_bytes_for_comparison_only": 3592610,
+    "writes": [
+      {
+        "key": "data/warm/treasury-auctions/history.json.gz",
+        "bytes": 26314
+      },
+      {
+        "key": "data/warm/treasury-auctions/buybacks.json",
+        "bytes": 944249
+      },
+      {
+        "key": "data/warm/treasury-auctions/history-full.json.gz",
+        "bytes": 193585
+      },
+      {
+        "key": "data/warm/treasury-auctions/composite-history.json",
+        "bytes": 12680181
+      },
+      {
+        "key": "data/warm/treasury-auctions/daily/2026-09-28.json",
+        "bytes": 209273
+      },
+      {
+        "key": "data/auction-desk.json",
+        "bytes": 39556817
+      }
+    ],
+    "composite_points": 1654,
+    "reaction_event_days": 465,
+    "native_timeout_seconds": 300,
+    "native_memory_mb": 1024,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "limitations": [
+      "Synthetic population and local CPU do not establish native publication completeness or performance.",
+      "Source buffers prepared before tracing are excluded from peak allocation; process RSS and AWS overhead remain separate."
+    ]
+  },
+  "page_loader": {
+    "scope": "Reviewed current load function only, isolated synthetic transports/render spies; no network or archived-code execution",
+    "hung_body": {
+      "completed_after_known_never_settling_body": false,
+      "requested_routes": [
+        "/data/auction-desk.json?t=29844789"
+      ]
+    },
+    "error_shaped_success": {
+      "requested_routes": [
+        "/data/auction-desk.json?t=29844789"
+      ],
+      "accepted_packet": {
+        "error": "Synthetic gateway error"
+      }
+    },
+    "rendering_failure": {
+      "steps": [
+        "banner painted"
+      ],
+      "uncaught": "synthetic invalid operations shape",
+      "requested_routes": [
+        "/data/auction-desk.json?t=29844789"
+      ]
+    },
+    "diagnosis": "No transport/body deadline; any truthy successful JSON prevents fallback; rendering exceptions escape after earlier sections repaint"
+  },
+  "reproduction_companions": {
+    "stage416-handler-capacity.py": {
+      "sha256": "a52e344ea76101103a407338322cef2a4e8577ce0b82c662e3ea4973163fadae",
+      "source": "from pathlib import Path\nfrom datetime import date,datetime,timedelta,timezone\nfrom unittest.mock import patch\nfrom contextlib import redirect_stdout\nimport sys,runpy,json,time,tracemalloc,io,hashlib,gzip\nW=Path(__file__).parent;R=W/'si-batch-improvements';sys.path[:0]=[str(R/'aws/shared'),str(W/'python-deps')]\nsupport=runpy.run_path(str(R/'tests/deployment/test_auction_output_ownership.py'))\nparticipation=runpy.run_path(str(R/'tests/test_auction_participation.py'))\nbuybacks=runpy.run_path(str(R/'tests/test_auction_buybacks.py'))\nimport auction_reactions\nclass Sink:\n    def __init__(self):self.writes=[];self.packet=None\n    def put_object(self,**kw):\n        self.writes.append({'key':kw['Key'],'bytes':len(kw['Body'])})\n        if kw['Key']=='data/auction-desk.json':self.packet=kw['Body']\n        return {}\nstore=Sink();scope=support['load']('auction-desk',store);env=scope['lambda_handler'].__globals__\nfull={};records={}\nfor i in range(1605):\n    d=(date(1996,1,1)+timedelta(days=i*7)).isoformat()\n    for j in range(14):\n        k=i%17;cusip=f'T{j:02d}{i:06d}';key=d+'|'+cusip\n        full[key]={**support['auction'](),'cusip':cusip,'auction_date':d,'security_term':f'{j+1}-Year'}\n        if i>=1425:\n            records[key]=participation['row'](d,cusip=cusip,term=f'{j+1}-Year',btc=2+k/10,\n                pd=(10+k/2)*1e8,indirect=(50+k)*1e8,direct=(40-k*1.5)*1e8,total_accepted=11e9,competitive_accepted=10e9)\nprices=auction_reactions.retain_bars([{'time':(date(1996,1,1)+timedelta(days=i)).isoformat(),'close':100+i/100} for i in range(11228)])\nassets={symbol:{**prices,'reaction_input_contract':auction_reactions.CONTRACT,'requested_symbol':symbol,\n                'response_symbol':symbol,'response_count':11228} for symbol,_,_ in scope['ASSETS']}\nbuys=[buybacks['raw']((date(2024,1,1)+timedelta(days=i*3)).isoformat(),par_amt_accepted=(i%9)*1e9,\n         max_par_amt=1e10,par_amt_offered=2e10,maturity_bucket='7-10 years' if i%2 else '1-3 years') for i in range(333)]\ncache={scope['HIST_KEY']:{'records':records},scope['ASSETS_KEY']:{'as_of':'2026-09-29T12:00:00+00:00','series':assets},\n       scope['FULL_KEY']:{'rows':full,'as_of':'2026-09-29T12:00:00+00:00'},scope['PAR_KEY']:{'rows':{}}}\nreads=[]\ndef cached(key,default=None):reads.append(key);return cache.get(key,default)\ndef fiscal(endpoint,params=None,**kw):\n    if endpoint=='buybacks_operations':return buys\n    if endpoint=='auctions_query':\n        start=params['filter'].split(':')[-1]\n        if 'proof_out' in kw:kw['proof_out'].append({'complete':True,'synthetic':True})\n        return [row for row in full.values() if row['auction_date']>=start]\n    return []\nenv.update(_now=lambda:datetime(2026,9,29,13,0,tzinfo=timezone.utc),_s3_json=cached,\n           fetch_fd=fiscal,fetch_td=lambda *a,**kw:[],\n           fetch_fred_daily=lambda *a:{d:4.25 for d in prices['dates']})\ntracemalloc.start();start=time.perf_counter()\nwith patch('urllib.request.urlopen',side_effect=AssertionError('No network')),redirect_stdout(io.StringIO()):\n    result=scope['lambda_handler']({},None)\nseconds=time.perf_counter()-start;_,peak=tracemalloc.get_traced_memory();tracemalloc.stop()\npacket=json.loads(store.packet);assert result['ok'];assert not packet['composite_history'].get('error'),packet['composite_history'].get('error')\nassert packet['reactions']['comparison_inputs'] is not None,packet['reactions']['note']\nreport={'scope':'Full reviewed Python handler with synthetic cached histories and provider/storage mocks; no AWS invocation, network latency or native runtime certification',\n 'checked_at':datetime.now(timezone.utc).isoformat(),'historical_source_rows':len(full),'participation_bank_rows':len(records),\n 'buyback_operations':len(buys),'price_assets':len(assets),'observations_per_asset':11228,\n 'seconds_with_tracemalloc':round(seconds,3),'peak_tracemalloc_bytes':peak,'packet_bytes':len(store.packet),\n 'packet_gzip_bytes_for_comparison_only':len(gzip.compress(store.packet)),'writes':store.writes,\n 'composite_points':len(packet['composite_history']['series']),'reaction_event_days':len(packet['reactions']['comparison_inputs']['events']),\n 'native_timeout_seconds':300,'native_memory_mb':1024,'provider_requests':0,'native_invocations':0,\n 'limitations':['Synthetic population and local CPU do not establish native publication completeness or performance.','Source buffers prepared before tracing are excluded from peak allocation; process RSS and AWS overhead remain separate.']}\n(W/'stage416-handler-capacity.json').write_text(json.dumps(report,indent=2)+'\\n',encoding='utf-8');print(json.dumps(report))\n"
+    },
+    "stage416-reproduce.js": {
+      "sha256": "f18bc72b76bd427d9e761383b449dfc1f1e3ff335b875581c0a52bf32f11141d",
+      "source": "const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');\nconst W=__dirname,R=path.join(W,'si-batch-improvements');\nconst html=fs.readFileSync(path.join(R,'auctions.html'),'utf8');\nconst code=html.slice(html.indexOf('  async function load() {'),html.indexOf('  document.addEventListener(\"DOMContentLoaded\", load);'));\nfunction harness(fetch){\n const calls=[],elements=new Map(),get=id=>{if(!elements.has(id))elements.set(id,{textContent:'',innerHTML:''});return elements.get(id);};\n const scope={fetch:(...args)=>(calls.push(args[0]),fetch(...args)),FEED:'/data/auction-desk.json',FEED_S3:'synthetic-secondary',window:{},$:get,\n renderBanner:()=>{},renderReactions:()=>{},renderOps:()=>{},renderBuybacks:()=>{},renderCalendar:()=>{},renderDays:()=>{},renderTape:()=>{},renderTenors:()=>{},wireExplainer:()=>{}};\n vm.createContext(scope);vm.runInContext(code,scope);return {scope,calls};\n}\n(async()=>{\n const hung=harness(async()=>({ok:true,json:()=>new Promise(()=>{})}));let completed=false;hung.scope.load().then(()=>completed=true);\n await new Promise(r=>setTimeout(r,30));\n const error=harness(async()=>({ok:true,json:async()=>({error:'Synthetic gateway error'})}));await error.scope.load();\n const partial=harness(async()=>({ok:true,json:async()=>({engine:'justhodl-auction-desk',buybacks:{operations:{}}})}));\n const render=[];partial.scope.renderBanner=()=>render.push('banner painted');partial.scope.renderBuybacks=()=>{throw new TypeError('synthetic invalid operations shape');};\n let failure;try{await partial.scope.load();}catch(e){failure=e.message;}\n const report={scope:'Reviewed current load function only, isolated synthetic transports/render spies; no network or archived-code execution',\n  hung_body:{completed_after_known_never_settling_body:completed,requested_routes:hung.calls},\n  error_shaped_success:{requested_routes:error.calls,accepted_packet:error.scope.window.__AUCTION_DESK},\n  rendering_failure:{steps:render,uncaught:failure,requested_routes:partial.calls},\n  diagnosis:'No transport/body deadline; any truthy successful JSON prevents fallback; rendering exceptions escape after earlier sections repaint'};\n fs.writeFileSync(path.join(W,'stage416-loader-reproduced.json'),JSON.stringify(report,null,2)+'\\n');console.log(JSON.stringify(report));\n})();\n"
+    }
+  },
+  "interpretation": [
+    "Full reviewed handler ran with synthetic cached histories and provider/storage mocks. It is not native AWS capacity or scheduled publication proof.",
+    "The 39.6 MB synthetic output is materially larger than needed for the initial visible page. Preserve complete source/calculation inputs while preparing a compact view and on-demand evidence delivery.",
+    "The reviewed current loader has no fetch/body deadline, accepts a truthy error-shaped 200 response and allows renderer failures after earlier sections repaint. These paths remain unmodified in this record.",
+    "The initial benchmark used an incorrect synthetic full-bank key order. That harness error was corrected to the native date|CUSIP convention before the successful result; it is not a production defect."
+  ],
+  "limitations": [
+    "Model qualification, source definitions, original vintages, independent OOS evidence and supported portfolio consequences remain open. All ten workstreams remain open.",
+    "Companion source is retained as audit data. Execute only reviewed current code with isolated mocks; never execute archived predecessor code."
+  ]
+}
