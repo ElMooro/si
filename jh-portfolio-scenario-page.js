@@ -1,9 +1,10 @@
 (function(){
   'use strict';
-  const $=id=>document.getElementById(id), m=window.JHPortfolioScenario;
-  let model=null, result=null, next=1;
+  const $=id=>document.getElementById(id), m=window.JHPortfolioScenario, io=window.JHScenarioIO;
+  if(!m||!io){$('model-status').textContent='Reviewed scenario code is unavailable. Reload this page before calculating or replaying.';return;}
+  let model=null, result=null, next=1, revision=0, pendingImport=null;
   const cell=(tag,value,parent)=>{const e=document.createElement(tag);e.textContent=value;parent.append(e);return e;};
-  function invalidate(){result=null;$('download').disabled=true;$('results').replaceChildren();$('error').textContent='';}
+  function invalidate(){revision++;pendingImport?.abort();pendingImport=null;result=null;$('download').disabled=true;$('results').replaceChildren();$('error').textContent='';}
   function addRow(values={}){
     const row=document.createElement('tr');
     const existing=new Set([...$('positions').children].map(e=>e.dataset.id));
@@ -62,24 +63,33 @@
   };
   $('import').onchange=async()=>{
     const file=$('import').files[0];if(!file)return;
+    invalidate();const generation=revision,controller=new AbortController();pendingImport=controller;
+    $('error').textContent='Reading and verifying scenario…';
     try{
-      if(file.size>4*1024*1024)throw Error('Export exceeds the 4 MB bound');
-      const packet=JSON.parse(await file.text());
-      if(!model||packet.contract!=='portfolio-scenario-export.v1'||packet.model?.sha256!==model.sha256||packet.model?.bytes!==model.bytes||packet.model?.contract!==model.contract)throw Error('Export model differs from this reviewed version. Use the matching reviewed repository version for replay.');
-      const out=m.calculate(packet.input);
-      if(JSON.stringify(out)!==JSON.stringify(packet.output))throw Error('Exported results differ from deterministic replay');
-      fill(packet.input);result={input:packet.input,output:out};show(out);$('error').textContent='Imported and completely recalculated on this device.';
-    }catch(error){invalidate();$('error').textContent=error.message;}
-    $('import').value='';
+      const packet=await io.readFile(file,{signal:controller.signal});
+      if(generation!==revision||controller.signal.aborted)return;
+      if(!model)throw Error('The reviewed model is not verified yet. Local arithmetic remains available.');
+      const out=io.verify(packet,model,m);
+      pendingImport=null;fill(packet.input);result={input:packet.input,output:out};show(out);
+      $('error').textContent='Imported and completely recalculated on this device.';
+      $('import').value='';
+    }catch(error){
+      if(generation!==revision||controller.signal.aborted)return;
+      pendingImport=null;invalidate();$('error').textContent=error.message;$('import').value='';
+    }finally{if(pendingImport===controller)pendingImport=null;}
   };
   addRow();
   (async()=>{
     try{
-      const [r,code]=await Promise.all([fetch('/data/position-sizing.json',{cache:'no-store',credentials:'omit'}),fetch('/jh-portfolio-scenario.js',{cache:'no-store',credentials:'omit'})]);
-      if(!r.ok||!code.ok)throw Error('Public model publication is unavailable');
-      const packet=await r.json(),bytes=await code.arrayBuffer(),sha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
-      if(packet.contract!=='portfolio-scenario-availability.v1'||packet.model_contract!==m.CONTRACT||packet.scenario_model?.sha256!==sha||packet.scenario_model?.bytes!==bytes.byteLength||packet.scenario_model?.key!=='data/scenario-model/models/'+sha+'.js')throw Error('Page and published model versions do not match');
-      model={contract:m.CONTRACT,sha256:sha,bytes:bytes.byteLength};
+      const script=$('scenario-model'),declared={contract:m.CONTRACT,sha256:script.dataset.sha256,bytes:Number(script.dataset.bytes)};
+      io.identity(declared,m);
+      if(String(declared.bytes)!==script.dataset.bytes)throw Error('Page model byte identity is invalid');
+      const fetchBytes=url=>io.readComplete(signal=>fetch(url,{cache:'no-store',credentials:'omit',redirect:'error',signal}));
+      const [publication,bytes]=await Promise.all([fetchBytes('/data/position-sizing.json'),fetchBytes('/jh-portfolio-scenario.js')]);
+      const packet=io.decode(publication),sha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');
+      if(sha!==declared.sha256||bytes.byteLength!==declared.bytes)throw Error('Fetched model differs from the page-bound reviewed source');
+      if(packet.contract!=='portfolio-scenario-availability.v1'||packet.model_contract!==m.CONTRACT||packet.input_contract!==m.INPUT||packet.call!=='WAIT'||!io.same(packet.permissions,{calls_eligible:false,sizing_eligible:false,execution_eligible:false,may_recommend_trades:false})||!io.same(packet.scenario_model,{key:'data/scenario-model/models/'+sha+'.js',sha256:sha,bytes:bytes.byteLength}))throw Error('Page and published model versions or permissions do not match');
+      model=declared;
       $('model-status').textContent='Model published '+packet.generated_at+' · model time, not market data. Source SHA-256 '+sha+'.';
       const link=cell('a','Inspect the retained model source',$('model-status'));link.href='/'+packet.scenario_model.key;link.rel='noopener';
       if(result)$('download').disabled=false;

@@ -1,0 +1,47 @@
+{
+  "sources": [
+    {
+      "source": "jh-portfolio-scenario-page.js",
+      "local_file": "stage437-predecessor-jh-portfolio-scenario-page.js.txt",
+      "bytes": 8524,
+      "sha256": "c68a484818df2270addb90a1d5f68446189352cefe290b26b445af601fdf968e",
+      "fixture": "tests/fixtures/pre-scenario-replay-jh-portfolio-scenario-page.js.txt"
+    },
+    {
+      "source": "jh-portfolio-scenario.js",
+      "local_file": "stage437-predecessor-jh-portfolio-scenario.js.txt",
+      "bytes": 7387,
+      "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+      "fixture": "tests/fixtures/pre-scenario-replay-jh-portfolio-scenario.js.txt"
+    },
+    {
+      "source": "position-sizer.html",
+      "local_file": "stage437-predecessor-position-sizer.html.txt",
+      "bytes": 7278,
+      "sha256": "8ae3eecd8dca461b43d9a2e717da29b35ad833b200d39bd3349034106bbc5371",
+      "fixture": "tests/fixtures/pre-scenario-replay-position-sizer.html.txt"
+    },
+    {
+      "source": "scripts/replay_portfolio_scenario.cjs",
+      "local_file": "stage437-predecessor-scripts-replay_portfolio_scenario.cjs.txt",
+      "bytes": 1513,
+      "sha256": "8cb0d02b16fa567984b0de87f989b09e1dfdad17b8fb223b69a3aecafce894fe",
+      "fixture": "tests/fixtures/pre-scenario-replay-scripts-replay_portfolio_scenario.cjs.txt"
+    }
+  ],
+  "scope": "Reviewed current source with only synthetic assumptions and in-memory responses. No accounts, live data, downloads, network or predecessor-code execution.",
+  "findings": {
+    "cli_accepts_duplicate_nav": true,
+    "browser_accepts_extra_envelope_fields": true,
+    "browser_rejects_equivalent_key_order_cli_accepts": true,
+    "slow_import_overwrites_later_form_edit": true
+  },
+  "synthetic_fetch_count": 2,
+  "model_identity": {
+    "contract": "linear-portfolio-scenario.v1",
+    "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+    "bytes": 7387
+  },
+  "synthetic_export_sha256": "247108303ebd3fb5636bb1a11139cb04fd5e26de4a5bd6e153c13f501c7e43db",
+  "status": "reproduced_not_repaired"
+}

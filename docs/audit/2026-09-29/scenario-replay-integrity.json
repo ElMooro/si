@@ -1,0 +1,90 @@
+{
+  "stage": 437,
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T22:21:19.117017+00:00",
+  "baseline_commit": "20b8080d9bdee6ec268a23a3929574633f758ccb",
+  "predecessor": "scenario-replay-predecessor.json",
+  "source_findings": "scenario-replay-source-gap.json",
+  "improvements": [
+    "Browser and CLI share strict UTF-8/JSON decoding, exact export/model envelope validation and complete deterministic replay. Equivalent object key order is accepted; duplicate decoded keys, extra fields, malformed Unicode and nonfinite numbers are rejected.",
+    "Complete local files are read within the existing four MiB bound. Browser file/publication/source reads have cancellation and a twelve-second header/body deadline; CLI uses one descriptor, reads through EOF and checks pre/post file metadata.",
+    "Form edits, row changes, examples and later imports invalidate pending imports. Delayed or cancelled work cannot replace newer assumptions, restore stale results or clear a later status.",
+    "The page binds the unchanged arithmetic model through subresource integrity and exact SHA-256/length attributes. Fetched code and the descriptive no-authority publication must agree with that reviewed identity before verified export is enabled.",
+    "The complete genuine synthetic predecessor export and actual browser-generated export reproduce every rational output using current reviewed code. The arithmetic model, native publisher and scenario authority are unchanged."
+  ],
+  "tests": {
+    "new_replay_cases": 15,
+    "focused_cases": 26,
+    "frontend": 1925,
+    "native_suites": [
+      {
+        "suite": "justhodl-position-sizer",
+        "unittest_cases": 7,
+        "passed": true
+      }
+    ],
+    "deployment_static": 723,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "model_identity": {
+    "contract": "linear-portfolio-scenario.v1",
+    "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+    "bytes": 7387
+  },
+  "browser_acceptance": {
+    "scope": "Isolated original page and scripts with CSP-denied external connections and synthetic in-memory publication/model responses. Actual local model script passed its SRI binding.",
+    "synthetic_fetch_count": 2,
+    "scenario": "SYNTHETIC retained scenario",
+    "result": {
+      "total_pnl_pct_nav": "-6.100000",
+      "total_pnl": "-6100.00",
+      "ending_nav": "93900.00",
+      "positions": 1
+    },
+    "duplicate_nav": "Visible Duplicate JSON key failure; original assumptions retained, zero result cards, export disabled.",
+    "nav_unavailable": "Percentage impact retained; currency P&L, ending NAV and position currency amounts unavailable.",
+    "keyboard": "Calculate consequences activated with Enter; subsequent file input focus visibly retained.",
+    "desktop": {
+      "viewport": 1280,
+      "document": 1265,
+      "overflow": false
+    },
+    "mobile": {
+      "viewport": 360,
+      "document": 345,
+      "overflow": false,
+      "table_scroll_contained": true
+    },
+    "console_errors": 0,
+    "browser_generated_export": {
+      "bytes": 4269,
+      "sha256": "7176606d40c7c8fd86aeb5b987b3f6fa073f508514c9980239df856424569229",
+      "complete_content_equals_predecessor_export": true,
+      "independent_cli_replay": true
+    },
+    "download_delivery": "Browser automation download event timed out. The actual generated Blob was retained via isolated preview instrumentation and replayed; operating-system file delivery is not claimed.",
+    "screenshots": [
+      "stage437-scenario-desktop.png",
+      "stage437-scenario-mobile.png",
+      "stage437-scenario-rejected.png"
+    ]
+  },
+  "boundaries": {
+    "native_code_changed": false,
+    "model_arithmetic_changed": false,
+    "native_invocations": 0,
+    "live_current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact static deployment remains pending. Native publication and operating-system download delivery are separately unverified.",
+    "Exact scenario replay proves consequences only under explicit synthetic/user assumptions, not forecast skill, investment suitability, position identity, permitted leverage or execution authority.",
+    "Whole-fleet source completeness, point-in-time history, predictive qualification and supported portfolio decision authority remain open. All ten workstreams remain open."
+  ]
+}

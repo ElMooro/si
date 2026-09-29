@@ -1,0 +1,154 @@
+{
+  "contract": "portfolio-scenario-export.v1",
+  "model": {
+    "contract": "linear-portfolio-scenario.v1",
+    "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+    "bytes": 7387
+  },
+  "input": {
+    "contract": "linear-portfolio-scenario-input.v1",
+    "label": "SYNTHETIC retained scenario",
+    "horizon": "One hypothetical day",
+    "base_currency": "USD",
+    "nav": "100000",
+    "cash_rate_pct": "0",
+    "cost_pct_nav": "0.1",
+    "positions": [
+      {
+        "id": "synthetic-a",
+        "label": "Synthetic A",
+        "position_type": "cash_security",
+        "currency": "USD",
+        "weight_pct": "60",
+        "local_price_return_pct": "-10",
+        "fx_return_pct": "0"
+      }
+    ]
+  },
+  "output": {
+    "contract": "linear-portfolio-scenario.v1",
+    "label": "SYNTHETIC retained scenario",
+    "horizon": "One hypothetical day",
+    "base_currency": "USD",
+    "inputs_kind": "explicit_user_assumptions",
+    "missing_input_defaults": false,
+    "permissions": {
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "execution_eligible": false,
+      "may_recommend_trades": false
+    },
+    "scope": "Static signed cash-security exposures, local price and FX shocks, explicit cash/financing rate and aggregate costs for one stated horizon. No trades, forecasts, probabilities, dividends, margin calls or market liquidity are modeled.",
+    "formula": "Base return = (1 + local price return) × (1 + FX return) − 1. Position impact = signed NAV weight × base return. Cash weight = 100% − net position weight. Total impact = position impacts + cash/financing impact − explicit costs.",
+    "nav_status": "USER_ASSUMED_NOT_ACCOUNT_VERIFIED",
+    "gross_weight_pct": {
+      "numerator": "60",
+      "denominator": "1",
+      "decimal": "60.000000"
+    },
+    "net_weight_pct": {
+      "numerator": "60",
+      "denominator": "1",
+      "decimal": "60.000000"
+    },
+    "cash_weight_pct": {
+      "numerator": "40",
+      "denominator": "1",
+      "decimal": "40.000000"
+    },
+    "cash_role": "CASH_ASSUMPTION",
+    "positions": [
+      {
+        "id": "synthetic-a",
+        "label": "Synthetic A",
+        "currency": "USD",
+        "weight_pct": {
+          "numerator": "60",
+          "denominator": "1",
+          "decimal": "60.000000"
+        },
+        "base_price_return_pct": {
+          "numerator": "-10",
+          "denominator": "1",
+          "decimal": "-10.000000"
+        },
+        "pnl_pct_nav": {
+          "numerator": "-6",
+          "denominator": "1",
+          "decimal": "-6.000000"
+        },
+        "starting_value": {
+          "numerator": "60000",
+          "denominator": "1",
+          "decimal": "60000.00"
+        },
+        "pnl": {
+          "numerator": "-6000",
+          "denominator": "1",
+          "decimal": "-6000.00"
+        },
+        "ending_value": {
+          "numerator": "54000",
+          "denominator": "1",
+          "decimal": "54000.00"
+        }
+      }
+    ],
+    "asset_pnl_pct_nav": {
+      "numerator": "-6",
+      "denominator": "1",
+      "decimal": "-6.000000"
+    },
+    "cash_pnl_pct_nav": {
+      "numerator": "0",
+      "denominator": "1",
+      "decimal": "0.000000"
+    },
+    "cost_pct_nav": {
+      "numerator": "1",
+      "denominator": "10",
+      "decimal": "0.100000"
+    },
+    "total_pnl_pct_nav": {
+      "numerator": "-61",
+      "denominator": "10",
+      "decimal": "-6.100000"
+    },
+    "starting_nav": {
+      "numerator": "100000",
+      "denominator": "1",
+      "decimal": "100000.00"
+    },
+    "starting_cash": {
+      "numerator": "40000",
+      "denominator": "1",
+      "decimal": "40000.00"
+    },
+    "cash_pnl": {
+      "numerator": "0",
+      "denominator": "1",
+      "decimal": "0.00"
+    },
+    "costs": {
+      "numerator": "100",
+      "denominator": "1",
+      "decimal": "100.00"
+    },
+    "total_pnl": {
+      "numerator": "-6100",
+      "denominator": "1",
+      "decimal": "-6100.00"
+    },
+    "ending_nav": {
+      "numerator": "93900",
+      "denominator": "1",
+      "decimal": "93900.00"
+    },
+    "displayed_pnl_rounding_adjustment": {
+      "numerator": "0",
+      "denominator": "1",
+      "decimal": "0.00"
+    },
+    "capital_exhausted_under_assumptions": false
+  }
+}
