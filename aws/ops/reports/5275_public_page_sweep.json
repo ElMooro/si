@@ -1,16 +1,19 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "940a5b08bf5005e454384aff8c16b09445f2bd09",
-  "observed_at": "2026-09-29T16:55:46.659967+00:00",
-  "ok": true,
+  "observed_at": "2026-09-29T16:59:49.146609+00:00",
+  "ok": false,
   "routes_checked": 599,
-  "verified_routes": 599,
-  "failed_routes": [],
+  "verified_routes": 597,
+  "failed_routes": [
+    "digest-archive.html",
+    "ecb.html"
+  ],
   "source_equivalent_builds": {
     "940a5b08bf5005e454384aff8c16b09445f2bd09": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 596,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -1708,13 +1711,12 @@
     },
     {
       "route": "digest-archive.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "940a5b08bf5005e454384aff8c16b09445f2bd09",
-      "inspector_present": true,
-      "bytes_read": 18469,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "digest-trends.html",
@@ -1948,13 +1950,12 @@
     },
     {
       "route": "ecb.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "940a5b08bf5005e454384aff8c16b09445f2bd09",
-      "inspector_present": true,
-      "bytes_read": 60949,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "econ-calendar.html",
@@ -2032,7 +2033,7 @@
       "http_status": 200,
       "build_sha": "940a5b08bf5005e454384aff8c16b09445f2bd09",
       "inspector_present": true,
-      "bytes_read": 1040801,
+      "bytes_read": 1040798,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -3342,7 +3343,7 @@
       "http_status": 200,
       "build_sha": "940a5b08bf5005e454384aff8c16b09445f2bd09",
       "inspector_present": true,
-      "bytes_read": 19001,
+      "bytes_read": 19024,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -6008,7 +6009,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36600746378,
+  "deployment_run_id": 36601211917,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-29T16:55:46.669332+00:00"
+  "check_finished_at": "2026-09-29T16:59:49.153891+00:00"
 }
