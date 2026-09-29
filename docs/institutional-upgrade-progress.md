@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 29, after Stage 417 deployment acceptance: all ten workstreams remain open. Exact code and static assets are accepted at 02fa39e985c12f61011253913040c771929d2ac0. Buyback classifications retain par-fill thresholds and explicitly unmeasured cash/reserve/duration effects; legacy semantics and raw evidence remain reproducible. Snapshot-bound legacy downloads preserve received bytes and release replaced URLs without losing failed-refresh evidence. All 275 native/desk, 1844 frontend, 685 deployment, twelve shell and 599 page-graph checks pass. Read-only operation 6346 verifies all twelve native source members and four original schedule bindings; five static files match the source-bound build. Full synthetic delivery remains within bounds. Actual file completion in the in-app browser and normal native publication remain unverified. Original vintages, population completeness, independent model validation and supported portfolio consequences remain open. No native invocation, private/current packet read, extra provider request or schedule/resource change occurred.
+September 29, after Stage 418 deployment acceptance: all ten workstreams remain open. Exact native source e2bf564dbca14af77fb9e714fb14587268845e57 now uses one rational par-fill boundary for operation and day classifications. The synthetic floating-point discrepancy is fixed through the complete handler and historical cohort. All twelve native source members, the receipt and original resources/four schedules are verified by read-only 6346. The accepted Stage 417 page remains at 02fa39e985c12f61011253913040c771929d2ac0, with corrected cash labels, full evidence inspection and snapshot-bound legacy downloads. Final checks pass: 277 native/desk, 685 deployment and twelve shell; unchanged frontend assets retain their 1844-test and 599-page acceptance. Exact file completion in the in-app browser, ordinary native publication, original vintages, population completeness, independent predictive validation and supported portfolio consequences remain open. No native invocation, current/private packet read, extra provider request or schedule/resource change occurred.
 
 ### Retained Stage 371 checkpoint
 
@@ -5784,3 +5784,11 @@ Post-deploy review reproduced a transition failure: a complete 4,862,036-byte le
 ### Stage 418: identical exact fill boundary across operation and day classification
 
 A reproduced synthetic decimal boundary returned 0.9 under floating-point division while remaining strictly below 9/10 for the retained numeric values. One exact predicate now drives both the operation descriptor and whole-day reaction cohort. Display rounding and forged descriptive metadata cannot change membership. All 277 native/desk checks and 685 deployment checks pass. Static page code is unchanged from accepted Stage 417. Exact native deployment acceptance and normal publication remain separate; all ten workstreams remain open. Evidence: `docs/audit/2026-09-29/auction-fill-boundary.json`.
+
+
+### Stage 418 exact deployment acceptance
+
+- Source `e2bf564dbca14af77fb9e714fb14587268845e57` passed Lambda 36588536288 and receipt-only runtime acceptance 6346 / 36589070476. All twelve source members and the intended receipt match. Original runtime resources and four America/New_York schedule bindings remain intact.
+- The full 65 KB engine and related helpers/tests landed together through native Git. No static asset changed in this logic-only follow-up; Stage 417's five served-file hashes and isolated browser evidence remain the applicable page acceptance.
+- Operation labels, day tags and reaction cohorts agree at exact/below/above fill boundaries. The retained synthetic predecessor demonstrates the previous discrepancy without claiming it occurred in a real Treasury observation.
+- Ordinary publication and original-source/point-in-time/predictive/portfolio qualification remain open. Evidence: `docs/audit/2026-09-29/auction-fill-boundary.json`.
