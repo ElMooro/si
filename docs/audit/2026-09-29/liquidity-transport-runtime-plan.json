@@ -1,0 +1,53 @@
+{
+  "stage": 428,
+  "status": "read_only_runtime_preflight_prepared",
+  "baseline_commit": "53703f253779e712087450ee183d833d237fcd77",
+  "operation": "aws/ops/staged/ops_6348_liquidity_transport_runtime_acceptance.py",
+  "scope": "Five existing packages and exact release receipts/resources/full native schedule bindings only. No producer invocation, current/private/history data, provider access or AWS mutation.",
+  "reproduction": {
+    "scope": "Reviewed current liquidity helper, real botocore StreamingBody and synthetic bytes only. No network, archived-code execution, actual current/private/derived packet or provider reads.",
+    "source": "aws/shared/liquidity_flow_store.py",
+    "source_sha256": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533",
+    "sdk_declared_bytes": 100,
+    "sdk_delivered_bytes": 2,
+    "sdk_prefix_accepted": true,
+    "sdk_source_closed": true,
+    "fragmented_expected_bytes": 17,
+    "fragmented_received_bytes": 2,
+    "whole_fragmented_body_returned": false,
+    "native_invocations": 0
+  },
+  "importer_closure": {
+    "scope": "Read-only static current source package-closure analysis. No handlers, network, providers, native functions or archived code executed.",
+    "scanned_source_directories": 893,
+    "affected": [
+      {
+        "function": "justhodl-ai-brief",
+        "shared_members": 36,
+        "direct_liquidity_store": false
+      },
+      {
+        "function": "justhodl-calls-research-audit",
+        "shared_members": 32,
+        "direct_liquidity_store": false
+      },
+      {
+        "function": "justhodl-liquidity-flow",
+        "shared_members": 7,
+        "direct_liquidity_store": true
+      },
+      {
+        "function": "justhodl-prospective-evaluator",
+        "shared_members": 39,
+        "direct_liquidity_store": false
+      },
+      {
+        "function": "justhodl-signal-harvester",
+        "shared_members": 40,
+        "direct_liquidity_store": false
+      }
+    ],
+    "source_sha256": "4e7c99fe5eabdae3380cbdbbb7ecf6d65d25928c21b64c36b373402924336533"
+  },
+  "pending": "Complete bounded reader repair and explicitly reviewed historical compiler compatibility. Native source unchanged in this preflight."
+}
