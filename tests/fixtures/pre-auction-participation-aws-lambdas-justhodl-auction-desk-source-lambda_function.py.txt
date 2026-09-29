@@ -33,7 +33,6 @@ Outputs:
   data/warm/treasury-auctions/daily/{date}.json   day archive (incl. AI note)
 """
 import gzip
-import auction_participation
 from auction_weighting import weighted_summary
 from auction_issuance import IssuanceLedger, apply_overlay, day as issuance_day
 from auction_scoring import score_auction
@@ -57,7 +56,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.0"
+VERSION = "1.4.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -252,28 +251,37 @@ def par_prev_close(par_rows, auction_date, tenor):
 
 # ─────────────────────────── analysis ────────────────────────────────
 def shares(r):
-    return auction_participation.shares(r)
+    tot = r.get("total_accepted") or 0
+    comp = r.get("competitive_accepted") or tot
+    base = comp if comp else tot
+    def pct(x):
+        return round(100.0 * x / base, 1) if (x is not None and base) else None
+    return {"pd_pct": pct(r.get("pd")), "direct_pct": pct(r.get("direct")), "indirect_pct": pct(r.get("indirect"))}
 
 
 def z(value, hist):
-    return auction_participation.standardize(value, hist)['z']
+    vals = [v for v in hist if v is not None]
+    if value is None or len(vals) < 4:
+        return None
+    mu = statistics.fmean(vals)
+    sd = statistics.pstdev(vals)
+    if sd < 1e-9:
+        return 0.0
+    return round((value - mu) / sd, 2)
 
 
 def analyze_bank(bank_sorted, par_rows, today):
     """Grade every settled auction in the bank (O(n): trailing-12 via per-tenor groups)."""
-    groups, group_dates = {}, {}
+    groups = {}
     out = []
     for r in bank_sorted:
-        if r["auction_date"] > today:
+        if r.get("btc") is None or r["auction_date"] > today:
             continue
-        cohort = auction_participation.cohort(r)
+        cohort = comparable_cohort(r)
         g = groups.setdefault(cohort, []) if cohort is not None else []
-        dates = group_dates.setdefault(cohort, []) if cohort is not None else []
-        before = bisect.bisect_left(dates, r['auction_date'])
-        out.append(analyze_auction(r, None, par_rows, prior=g[max(0, before-12):before]))
+        out.append(analyze_auction(r, None, par_rows, prior=g[-12:]))
         if cohort is not None:
             g.append(r)
-            dates.append(r['auction_date'])
     return out
 
 
@@ -288,10 +296,10 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
                  instrument_missing_reason="Legacy row lacks original security classification fields")
     a.update(shares(r))
     if prior is None:
-        cohort = auction_participation.cohort(r)
-        prior = [b for b in (bank_sorted or []) if cohort is not None and auction_participation.cohort(b) == cohort and b["auction_date"] < r["auction_date"]][-12:]
+        cohort = comparable_cohort(r)
+        prior = [b for b in (bank_sorted or []) if cohort is not None and comparable_cohort(b) == cohort and b["auction_date"] < r["auction_date"]][-12:]
     else:
-        prior = [b for b in prior if auction_participation.cohort(r) is not None and auction_participation.cohort(b) == auction_participation.cohort(r) and b["auction_date"] < r["auction_date"]][-12:]
+        prior = [b for b in prior if comparable_cohort(r) is not None and comparable_cohort(b) == comparable_cohort(r) and b["auction_date"] < r["auction_date"]][-12:]
     for b in prior:
         b.update(shares(b))
     par, par_date = par_prev_close(par_rows, r["auction_date"], r.get("tenor")) if nominal_par_eligible(r) else (None, None)
@@ -323,16 +331,20 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
         "pd_pct": round(statistics.fmean([b["pd_pct"] for b in prior if b.get("pd_pct") is not None]), 1) if any(b.get("pd_pct") is not None for b in prior) else None,
         "tail_bp": round(statistics.fmean([t for t in tails if t is not None]), 1) if any(t is not None for t in tails) else None,
     }
-    # Every required feature uses the same complete cohort population.
-    grading = auction_participation.grade(r, prior)
-    a['grading_inputs'] = grading
-    zz = a['z']
-    for key in auction_participation.WEIGHTS:
-        zz[key] = grading['features'][key]['z']
-    for key, metric in (('btc','btc'),('indirect_pct','indirect'),('pd_pct','pd')):
-        a['trailing12'][key] = grading['features'][metric]['mean']
-    score = grading['score']
-    a['demand_score'], a['grade'] = score, grading['grade']
+    # demand score: strong bid-to-cover and indirect demand, weak dealer absorption, no tail
+    zz = a["z"]
+    parts = []
+    if zz["btc"] is not None:
+        parts.append(1.0 * zz["btc"])
+    if zz["indirect"] is not None:
+        parts.append(0.8 * zz["indirect"])
+    if zz["pd"] is not None:
+        parts.append(-0.8 * zz["pd"])
+    # A prior-close par comparison includes market movement and is not an
+    # observed when-issued auction tail. Preserve it as context, never a vote.
+    score = round(sum(parts) / max(len(parts), 1), 2) if parts else None
+    a["demand_score"] = score
+    a["grade"] = ("A" if score >= 1.0 else "B" if score >= 0.4 else "C" if score >= -0.4 else "D" if score >= -1.0 else "F") if score is not None else "n/a"
     a["score_parts"] = [
         {"metric": "Bid-to-cover", "z": zz["btc"], "weight": 1.0, "contribution": round(1.0 * zz["btc"], 2) if zz["btc"] is not None else None,
          "why": "more bids per dollar sold = more demand"},
@@ -343,7 +355,7 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
         {"metric": "Prior-close par gap", "z": zz["tail"], "weight": 0.0, "contribution": None,
          "why": "context only; not a when-issued tail and excluded from the participation score"},
     ]
-    a["quality"] = {"status": "valid" if grading["status"] == "complete" else "partial", "grading_contract": grading["contract"], "missing_features": grading["missing_features"],
+    a["quality"] = {"status": "valid" if comparable_cohort(r) is not None and len(prior) >= 4 and score is not None else "partial",
                     "observation_date": r.get("auction_date"), "scope": "historical_measurement_validity_not_current_freshness",
                     "cohort_size": len(prior), "cohort_basis": "instrument_kind + remaining term + reopening",
                     "wi_quote_available": False, "call": None, "sizing_eligible": False}
@@ -396,7 +408,7 @@ def explain_auction(a):
     z_txt = ", ".join("%s %s" % (p["metric"].lower(), ("%+.1f" % p["z"]) + "σ") for p in a.get("score_parts", []) if p.get("z") is not None)
     if a.get("demand_score") is not None:
         lines.append({"metric": "Grade %s (score %+.2f)" % (a["grade"], a["demand_score"]),
-                      "text": "Compare the last 12 auctions of the same verified instrument kind, remaining term and reopening status. Every current and historical participation input is required. The three weighted standardized contributions use one fixed denominator of three; a missing input or zero-variance baseline withholds the grade. Prior-close gaps are excluded (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F. This descriptive grade is not a calibrated forecast." % z_txt})
+                      "text": "Compare the last 12 auctions of the same verified instrument kind, remaining term and reopening status. The score averages available weighted participation contributions: bid-to-cover and indirects positive, dealers negative. Prior-close gaps are excluded (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F. This descriptive grade is not a calibrated forecast." % z_txt})
     return lines
 
 
@@ -499,59 +511,54 @@ def norm_buyback(r):
 
 
 def day_verdict(date, auctions, buybacks):
-    classification = auction_participation.classify(auctions, buybacks)
-    classes = classification['cohort_classes']
-    known = [(a, auction_participation.cohort(a)) for a in auctions]
-    bills = [a for a, identity in known if identity and identity[0] == 'BILL']
-    coupons = [a for a, identity in known if identity and identity[0] != 'BILL']
-    unknown = len(auctions) - len(bills) - len(coupons)
-    def total(rows, key):
-        values = [auction_participation.number(row.get(key)) for row in rows]
-        if any(value is None or value < 0 for value in values):
-            return None
-        try:
-            value = math.fsum(values)
-            return value if math.isfinite(value) else None
-        except (ValueError, OverflowError):
-            return None
-    known_bills, known_coupons = total(bills, 'total_accepted'), total(coupons, 'total_accepted')
-    tot_bills, tot_coupons = (None, None) if unknown else (known_bills, known_coupons)
-    buy_total = total(buybacks, 'accepted')
-    tags, bullets, headline_parts = [], [], []
-    if buybacks:
-        tags.append('BUYBACK')
-        if 'buyback_strong' in classification['classes']:
-            tags += ['TGA-CASH-OUT SIGNAL', 'TGA CASH-OUT; NOT AN EASING CALL']
-        bullets.append('Buyback: %s accepted par. Cash settlement, financing offsets and net market effects are separate measurements.' % fmt_bn(buy_total))
-        headline_parts.append('%s buyback accepted par' % fmt_bn(buy_total))
-    participation = ('stronger participation' if 'coupon_strong' in classes else
-                     'weaker participation' if 'coupon_weak' in classes else
-                     'mixed participation' if 'coupon_mixed' in classes else 'participation unavailable')
-    if classification['status'] != 'complete':
-        tags.append('PARTICIPATION UNAVAILABLE')
-        bullets.append('The operation group has incomplete grades, unverified instruments or missing fill inputs; no complete-day demand classification is available.')
-    elif coupons:
-        tags.append('DEMAND STRONG' if 'coupon_strong' in classes else 'DEMAND WEAK' if 'coupon_weak' in classes else 'DEMAND MIXED')
+    tags, bullets = [], []
+    coupons = [a for a in auctions if a["type"] in ("Note", "Bond", "TIPS", "FRN")]
+    strong = [a for a in coupons if a["grade"] in ("A", "B")]
+    weak = [a for a in coupons if a["grade"] in ("D", "F")]
+    liq_ops = [b for b in buybacks if b["liquidity_signal"] == "strong"]
+    tot_bills = sum(a.get("total_accepted") or 0 for a in auctions if a["type"] == "Bill")
+    tot_coupons = sum(a.get("total_accepted") or 0 for a in coupons)
+    buy_total = sum(b.get("accepted") or 0 for b in buybacks)
+    risk = "neutral"
+    if liq_ops:
+        tags += ["TGA-CASH-OUT SIGNAL", "TGA CASH-OUT; NOT AN EASING CALL"]
+        for b in liq_ops:
+            bullets.append("Buyback: %s accepted par (%s%% of max, %.1fx offered) in the %s bucket. Cash settlement, financing offsets and net market effects require separate measurements."
+                           % (fmt_bn(b["accepted"]), b["fill_pct"], b["coverage"] or 0, b.get("maturity_bucket") or "target"))
+    elif buybacks:
+        tags.append("BUYBACK")
+        bullets.append("Buyback: %s accepted par; net liquidity and risk effects are not inferred." % fmt_bn(buy_total))
     if coupons:
-        headline_parts.append('%s non-bills: %s' % (fmt_bn(tot_coupons), participation))
+        if weak and not strong:
+            tags += ["DEMAND WEAK"]
+        elif strong and not weak:
+            tags.append("DEMAND STRONG")
+        else:
+            tags.append("DEMAND MIXED")
         for a in coupons:
-            bullets.append('%s (%s): %s' % (a.get('term') or 'unknown term', a.get('grade') or 'n/a', a.get('verdict') or 'Participation inputs unavailable'))
-    if bills:
-        incomplete = any((a.get('grading_inputs') or {}).get('status') != 'complete' for a in bills)
-        grade_note = 'insufficient complete participation inputs' if incomplete else 'complete descriptive participation grades'
-        bullets.append('Bills: %s across %d retained auctions; %s.' % (fmt_bn(tot_bills), len(bills), grade_note))
-        headline_parts.append('%s bills' % fmt_bn(tot_bills))
-    if unknown:
-        headline_parts.append('%d unverified instruments' % unknown)
-    headline = ' · '.join(headline_parts) or 'No operations'
-    return {'date': date, 'headline': headline, 'tags': tags or ['QUIET'], 'risk_assets': 'neutral',
-            'liquidity': 'cash_management_context' if buybacks else 'not_inferred',
-            'rates': participation if coupons or unknown else 'dated bill observations' if bills else 'not inferred',
-            'call': None, 'sizing_eligible': False, 'risk_inference': 'not_established_by_auction_or_buyback_metrics',
-            'bullets': bullets, 'n_auctions': len(auctions), 'n_buybacks': len(buybacks),
-            'buyback_accepted': buy_total, 'bills_accepted': tot_bills, 'coupons_accepted': tot_coupons,
-            'known_bills_accepted': known_bills, 'known_coupons_accepted': known_coupons,
-            'unknown_instrument_count': unknown, 'classification_inputs': classification}
+            bullets.append("%s (%s): %s" % (a["term"], a["grade"], a["verdict"]))
+    if tot_bills:
+        n = sum(1 for a in auctions if a["type"] == "Bill")
+        bills = [a for a in auctions if a["type"] == "Bill"]
+        g = "have insufficient comparable history" if any(a["grade"] == "n/a" for a in bills) else "show average or stronger participation" if all(a["grade"] in ("A", "B", "C") for a in bills) else "show weaker participation"
+        bullets.append("Bills: %s across %d auction%s %s (bid-to-cover %s)." % (
+            fmt_bn(tot_bills), n, "s" if n != 1 else "", g, ", ".join("%.2f" % a["btc"] for a in bills if a.get("btc") is not None)))
+    headline_parts = []
+    if liq_ops:
+        headline_parts.append("%s buyback at max" % fmt_bn(sum(b["accepted"] for b in liq_ops)))
+    elif buybacks:
+        headline_parts.append("%s buyback" % fmt_bn(buy_total))
+    if coupons:
+        headline_parts.append("%s coupons %s" % (fmt_bn(tot_coupons), "stronger participation" if strong and not weak else "weaker participation" if weak and not strong else "mixed"))
+    if tot_bills:
+        headline_parts.append("%s bills" % fmt_bn(tot_bills))
+    headline = (" · ".join(headline_parts) or "no operations") + (" -> %s" % {"bullish": "risk-on supportive", "bearish": "risk-off pressure", "mixed": "mixed", "neutral": "neutral"}[risk])
+    return {"date": date, "headline": headline, "tags": tags or ["QUIET"], "risk_assets": risk,
+            "liquidity": "cash_management_context" if buybacks else "not_inferred",
+            "rates": ("stronger auction participation" if strong and not weak else "weaker auction participation" if weak and not strong else "mixed or insufficient participation evidence") if coupons else "front-end only",
+            "call": None, "sizing_eligible": False, "risk_inference": "not_established_by_auction_or_buyback_metrics",
+            "bullets": bullets, "n_auctions": len(auctions), "n_buybacks": len(buybacks),
+            "buyback_accepted": buy_total, "bills_accepted": tot_bills, "coupons_accepted": tot_coupons}
 
 
 # ─────────────────────────── deterministic note (no paid AI) ────────
@@ -747,11 +754,26 @@ def fwd_returns(ser, day):
 
 
 def day_class(auctions, buybacks):
-    return auction_participation.classify(auctions, buybacks)['cohort_classes']
+    coupons = [a for a in auctions if a["type"] in ("Note", "Bond", "TIPS", "FRN")]
+    strong_bb = any(b.get("liquidity_signal") == "strong" for b in buybacks)
+    cls = []
+    if strong_bb:
+        cls.append("buyback_strong")
+    if coupons:
+        grades = [a["grade"] for a in coupons if a["grade"] in "ABCDF" and a["grade"] != "n/a"]
+        if grades and all(g in ("A", "B") for g in grades):
+            cls.append("coupon_strong")
+        elif grades and any(g in ("D", "F") for g in grades):
+            cls.append("coupon_weak")
+        elif grades:
+            cls.append("coupon_mixed")
+    elif auctions:
+        cls.append("bills_only")
+    return cls or ["none"]
 
 
-CLASS_LABEL = {"buyback_strong": "large high-fill buyback day", "coupon_strong": "non-bill participation grade A/B",
-               "coupon_weak": "non-bill participation grade D/F", "coupon_mixed": "mixed non-bill participation grades", "bills_only": "bills only", "none": "no operations", "unclassified": "incomplete or unverified operation group", "buyback_other": "other measured buyback day"}
+CLASS_LABEL = {"buyback_strong": "large high-fill buyback day", "coupon_strong": "coupon participation grade A/B",
+               "coupon_weak": "coupon participation grade D/F", "coupon_mixed": "coupon participation grade C", "bills_only": "bills only", "none": "no operations"}
 
 
 def build_reactions(day_ops, assets, today_key):
@@ -826,15 +848,13 @@ def chart_cohorts(auctions):
     """Chart only the same declared security kind, remaining term and reopening."""
     groups={}
     for a in auctions:
-        cohort=auction_participation.cohort(a)
+        cohort=comparable_cohort(a)
         if cohort is None:continue
         kind,term,reopening=cohort
         label='%s · %s · %s'%(kind,term,'reopening' if reopening else 'new issue')
         groups.setdefault(label,[]).append({'d':a['auction_date'],'btc':a.get('btc'),'grade':a.get('grade'),
                                            'instrument_kind':kind,'quote_basis':a.get('quote_basis'),
-                                           'reopening':reopening,'prior_close_concession_bp':a.get('tail_bp'),
-                                           'grading_contract':(a.get('grading_inputs') or {}).get('contract'),
-                                           'grading_status':(a.get('grading_inputs') or {}).get('status')})
+                                           'reopening':reopening,'prior_close_concession_bp':a.get('tail_bp')})
     return groups
 
 
@@ -876,8 +896,8 @@ def lambda_handler(event, ctx):
         try:
             for r in fetch_fd("auctions_query", {"filter": "auction_date:gte:%s" % start, "sort": "-auction_date"}):
                 rec = norm_fd(r)
-                # Retain incomplete source rows; future-dated rows do not enter grading.
-                if rec["cusip"] and rec["auction_date"]:
+                # announced-but-not-yet-auctioned rows carry no results: they belong to the calendar, not the bank
+                if rec["cusip"] and rec["auction_date"] and rec.get("btc") is not None:
                     old = records.get(rec_key(rec))
                     if not old:
                         records[rec_key(rec)] = rec
@@ -892,7 +912,7 @@ def lambda_handler(event, ctx):
         td_rows = fetch_td("auctioned", days=int(event.get("days") or 120))
         for r in td_rows:
             rec = norm_td(r)
-            if rec["cusip"] and rec["auction_date"]:
+            if rec["cusip"] and rec["auction_date"] and rec.get("btc") is not None:
                 records[rec_key(rec)] = rec           # same-day TD row wins over the FiscalData copy
     except Exception as e:
         notes.append("treasurydirect auctioned failed: %s" % str(e)[:120])
@@ -1049,7 +1069,7 @@ def lambda_handler(event, ctx):
                              "auctions": days[latest_day]["auctions"], "buybacks": days[latest_day]["buybacks"], "ai_note": ai, "written_at": _iso()})
 
     out = {
-        "engine": "justhodl-auction-desk", "version": VERSION, "participation_contract": auction_participation.CONTRACT, "generated_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "notes": notes + ([calendar_note] if calendar_note else []),
+        "engine": "justhodl-auction-desk", "version": VERSION, "generated_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "notes": notes + ([calendar_note] if calendar_note else []),
         "sources": {"same_day": "treasurydirect.gov TA_WS securities/auctioned", "history": "api.fiscaldata.treasury.gov auctions_query",
                     "buybacks": "api.fiscaldata.treasury.gov buybacks_operations + buybacks_security_details",
                     "calendar": "treasurydirect.gov TA_WS securities/upcoming + announced", "par_curve": "home.treasury.gov daily par yield curve (fleet bank)"},
@@ -1060,10 +1080,6 @@ def lambda_handler(event, ctx):
                   "implications": {a["cusip"]: implication_for_auction(a) for a in (days[latest_day]["auctions"] if latest_day else [])}},
         "recent_days": [verdicts[d] for d in day_list],
         "auctions": analyzed[:200],
-        "auction_population": {"bank_rows": len(records), "analyzed_settled_rows": len(analyzed_all),
-                               "recent_400d_rows": len(analyzed), "page_sample_rows": len(analyzed[:200]),
-                               "page_sample_rule": "latest 200 rows of the last 400 days; full historical inputs remain in the source bank",
-                               "btc_filter_applied": False, "historical_population_coverage_verified": False},
         "buybacks": {"operations": bb_analyzed, "program": program_stats},
         "calendar": {"auctions": calendar_auctions[:40], "buybacks": [dict(b, securities=None) for b in bb_analyzed if b["operation_date"] > today][:10]},
         "by_term": by_term,
@@ -1071,8 +1087,6 @@ def lambda_handler(event, ctx):
         "composite_history": composite,
         "reactions": {"prediction": prediction, "today_classes": today_classes, "class_labels": CLASS_LABEL, "scoreboard": scoreboard,
                       "stats": (reactions or {}).get("stats"), "baseline": (reactions or {}).get("baseline"), "n_events": (reactions or {}).get("n_events"),
-                      "classification_contract": auction_participation.CONTRACT,
-                      "classification_inputs": {d: auction_participation.classify(v["auctions"],v["buybacks"]) for d,v in days_all.items()},
                       "note": assets_note, "horizons": "same_day = prior close to auction-day close, not an auction-release response; d1/d5/d20 = observed bars after the auction day in each asset series; crypto trades 7 days",
                       "contract":"treasury-reaction-research.v1","partial_windows_excluded_from_distributions":True,
                       "price_lineage_verified":False,"original_response_replay_available":False,
@@ -1082,7 +1096,7 @@ def lambda_handler(event, ctx):
                      "reason": "Participation grades and historical conditional returns are descriptive, not a validated action model"},
         "methodology": {
             "tail_proxy": "legacy tail_bp aliases prior_close_concession_bp for verified nominal coupons/bills only. TIPS/FRN/unknown comparisons are null. This context is excluded from demand scoring; wi_tail_bp is unavailable",
-            "z_scores": "vs the trailing 12 auctions of the same verified instrument kind, remaining term and reopening status", "grade": "complete three-feature mean: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer); same full supplied 4-to-12-row comparable cohort, positive variance required, no partial-feature renormalization. Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
+            "z_scores": "vs the trailing 12 auctions of the same verified instrument kind, remaining term and reopening status", "grade": "mean of available weighted contributions: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer). Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
             "buyback_signal": "strong is an operation-size/fill category (accepted >= 90% of maximum and maximum >= $5B), not monetary easing. Accepted par differs from cash settlement; financing offsets and net effects are unmeasured",
             "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }

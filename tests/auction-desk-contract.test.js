@@ -58,7 +58,8 @@ test('Tape distinguishes TIPS and FRN and gives the prior-close gap no direction
   const scope = {$, esc, bn:String, num:String, pct:String, zs:String};
   const label = html.slice(html.indexOf('  function securityLabel(a) {'), html.indexOf('  function renderCalendar(D) {'));
   const tape = html.slice(html.indexOf('  let tapeFilter = "All";'), html.indexOf('  function renderTenors(D) {'));
-  vm.runInNewContext(label+tape,scope);
+  const helpers=html.slice(html.indexOf('  function participationGrade(a) {'),html.indexOf('  function renderBanner(D) {'));
+  vm.runInNewContext(helpers+label+tape,scope);
   scope.renderTape({freshness:{bank_records:2},auctions:[
     {type:'Note',instrument_kind:'TIPS',term:'10-Year',cusip:'tips',tail_bp:null,z:{}},
     {type:'Note',instrument_kind:'FRN',term:'2-Year',cusip:'frn',tail_bp:null,z:{}}

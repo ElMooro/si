@@ -1,0 +1,108 @@
+{
+  "baseline_commit": "b8443bb5c21056af5045cd931641343dbc17de6a",
+  "source_sha256": "5de3dbd94b1d61a43b41fc4227c3e55381a798df72ec702ad3c09aea26e1b9e2",
+  "synthetic_only": true,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "cases": [
+    {
+      "name": "missing_coupon_grade",
+      "input": [
+        {
+          "type": "Note",
+          "grade": "A"
+        },
+        {
+          "type": "Note",
+          "grade": "n/a"
+        }
+      ],
+      "actual": {
+        "value": [
+          "coupon_strong"
+        ]
+      }
+    },
+    {
+      "name": "unknown_instrument",
+      "input": [
+        {
+          "type": "Unknown",
+          "grade": "n/a"
+        }
+      ],
+      "actual": {
+        "value": [
+          "bills_only"
+        ]
+      }
+    },
+    {
+      "name": "structured_frn_raw_bill",
+      "input": [
+        {
+          "type": "Bill",
+          "instrument_kind": "FRN",
+          "instrument_classification_status": "verified",
+          "grade": "n/a"
+        }
+      ],
+      "actual": {
+        "value": [
+          "bills_only"
+        ]
+      }
+    },
+    {
+      "name": "empty_grade",
+      "input": [
+        {
+          "type": "Note",
+          "grade": ""
+        }
+      ],
+      "actual": {
+        "value": [
+          "coupon_mixed"
+        ]
+      }
+    },
+    {
+      "name": "null_grade",
+      "input": [
+        {
+          "type": "Note",
+          "grade": null
+        }
+      ],
+      "actual": {
+        "error_type": "TypeError",
+        "message": "'in <string>' requires string as left operand, not NoneType"
+      }
+    },
+    {
+      "name": "duplicate_price_dates_count_as_next_session",
+      "input": {
+        "dates": [
+          "2026-09-21",
+          "2026-09-22",
+          "2026-09-22",
+          "2026-09-23"
+        ],
+        "closes": [
+          100,
+          101,
+          202,
+          203
+        ]
+      },
+      "actual": {
+        "same_day": 0.010000000000000009,
+        "partial": [],
+        "d1": 1.0,
+        "d5": null,
+        "d20": null
+      }
+    }
+  ]
+}
