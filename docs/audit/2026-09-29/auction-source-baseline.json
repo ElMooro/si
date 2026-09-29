@@ -1,0 +1,64 @@
+{
+  "status": "predecessor_defects_reproduced_offline",
+  "checked_at": "2026-09-29T03:43:46.129699+00:00",
+  "reviewed_commit": "90da85411df95107175a9cc5c5aca6fdfb831b4e",
+  "source": "aws/lambdas/justhodl-auction-crisis-detector/source/lambda_function.py",
+  "source_sha256": "d85ac1e761bb36155f5fd6fd7ea9989849c228edc4c01e04518ebd86ccc8de6a",
+  "script_sha256": "521b61fed300a162297027ca76ccf51d4e04a5fe3200bce246f04f37292910e2",
+  "source_function_lines": {
+    "fetch_fiscal_auctions": 136,
+    "parse_float": 190,
+    "classify_tenor_bucket": 199,
+    "parse_term_to_days": 221,
+    "compute_record_metrics": 242,
+    "score_indicators": 304
+  },
+  "fixture": {
+    "auction_date": "2026-09-17",
+    "security_type": "Note",
+    "security_term": "10-Year",
+    "cusip": "FIXTURE001",
+    "bid_to_cover_ratio": "2.4",
+    "high_yield": "4",
+    "median_yield": "3.98",
+    "low_yield": "3.9",
+    "allocation_pctage": "70",
+    "primary_dealer_accepted": "2",
+    "direct_bidder_accepted": "1",
+    "total_accepted": "0"
+  },
+  "observed": {
+    "missing_indirect_amount_reported_share": 0.0,
+    "dealer_share_with_incomplete_denominator": 66.66666666666666,
+    "explicit_zero_accepted_size": null,
+    "high_minus_median_mislabeled_tail_bp": 2.0000000000000018,
+    "flagged_tips_classification": "coupons_gt_3y",
+    "boolean_measurement": 1.0,
+    "nonfinite_measurement_accepted": true,
+    "bill_bid_to_cover_z_score": -2.5833333333333335,
+    "bill_weak_demand_score": 50,
+    "failed_second_page_returns_nonempty_partial_result": true
+  },
+  "repairs_required": [
+    "Require finite non-boolean source numbers and preserve missing amounts versus explicit zero.",
+    "Use explicit instrument flags and quote basis; do not classify flagged TIPS as nominal coupons.",
+    "Require complete participant denominators before shares; never impute missing bidders or weighting sizes.",
+    "Keep the within-auction high-minus-median spread separate from a stop-versus-when-issued tail.",
+    "Retain all raw pages and pagination evidence, reject incomplete/repeated/inconsistent page sets, and preserve the prior qualified output on acquisition failure.",
+    "Replace the unreachable weak-bill threshold order and qualify or explicitly withhold all fixed-baseline heuristic authority.",
+    "Freeze the evaluation clock, retain every original input, independently verify arithmetic, and update the vendored desk scoring/consumer tests atomically."
+  ],
+  "native_source_or_publication_modified": false,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "current_packet_reads": 0,
+  "private_reads": 0,
+  "runtime_baseline_operation": "aws/ops/staged/ops_6329_auction_source_runtime_baseline.py",
+  "runtime_baseline_status": "prepared_not_dispatched",
+  "validation": {
+    "deployment_static": 585,
+    "candidate_shell": 12,
+    "unchanged_detector_native_tests": 4,
+    "unchanged_desk_native_tests": 15
+  }
+}
