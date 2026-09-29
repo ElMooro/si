@@ -1,0 +1,71 @@
+{
+  "stage": 439,
+  "status": "source_and_isolated_browser_accepted_static_deployment_pending",
+  "checked_at": "2026-09-29T23:03:41.263124+00:00",
+  "baseline_commit": "fef773072e96c7d55f2916821eb9d06d8028e8fd",
+  "predecessor": "risk-browser-predecessor.json",
+  "source_findings": "risk-browser-source-gap.json",
+  "improvements": [
+    "Strict Gregorian timezone-aware publication clocks preserve the existing four-hour display window and five-minute future grace without Date.parse calendar normalization.",
+    "Identified engine, schema and explicit research-only permissions are required. Sample counts, dates, minimum, quality reasons, capital status and typed measurements must agree; missing metadata never becomes measured zero.",
+    "A reconciled label requires positive finite USD NAV, no capital errors and an available holdings model. The UI calls it model-reported and distinguishes metadata validation from independent account/input verification.",
+    "All four genuine synthetic native outputs remain usable: no NAV, measured zero holdings risk, reported reconciled NAV and incomplete inputs. Native calculations and account access policy are unchanged.",
+    "Failed loads clear prior snapshot timestamps, counts and sector summaries; the correlation panel becomes visible again when a later multi-instrument result arrives. Scenario navigation points to the existing portfolio/index.html route."
+  ],
+  "tests": {
+    "new_cases": 12,
+    "focused_cases": 16,
+    "frontend": 1937,
+    "native_model_cases": 10,
+    "private_handler_checks": 10,
+    "deployment_static": 726,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_acceptance": {
+    "scope": "Original portfolio HTML and helper with wholly synthetic in-memory responses, external connections denied by CSP and no authentication bootstrap.",
+    "cases": [
+      "holdings_without_nav",
+      "measured_zero_risk",
+      "reported_reconciled_nav",
+      "incomplete",
+      "invalid_nav",
+      "load_failure",
+      "recovery_after_failure"
+    ],
+    "measured_zero": "Holdings VaR $0, volatility 0.00%, beta per gross 0.00; account VaR remains unavailable without NAV.",
+    "reported_nav": "Synthetic USD NAV 2000; model VaR $9.31 / 0.47%, beta 0.50, annual volatility 3.2%.",
+    "invalid_nav": "Visible reconciliation-status rejection; prior risk cards, alerts and holdings risk summary cleared; separately received snapshot remains visible.",
+    "failure": "Prior timestamp and counts cleared, all risk metrics unavailable; keyboard Enter recovered the incomplete packet.",
+    "desktop": {
+      "viewport": 1280,
+      "overflow": false
+    },
+    "mobile": {
+      "viewport": 360,
+      "document": 345,
+      "overflow": false,
+      "table_scroll_contained": true
+    },
+    "console_errors": 0,
+    "screenshots": [
+      "stage439-risk-desktop.png",
+      "stage439-risk-mobile.png"
+    ]
+  },
+  "boundaries": {
+    "native_code_changed": false,
+    "access_policy_changed": false,
+    "private_reads": 0,
+    "live_current_packet_reads": 0,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact static deployment is pending. No authenticated account session or actual portfolio is inspected.",
+    "The checks validate supplied model metadata, not the identity or completeness of the account book, market sources, NAV reconciliation or risk forecast skill. Snapshot/risk generation binding and complete transport validation remain separate work.",
+    "All ten platform workstreams remain open; this repair grants no Calls, sizing or execution authority."
+  ]
+}

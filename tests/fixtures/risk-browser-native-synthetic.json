@@ -1,0 +1,495 @@
+{
+  "code": {
+    "capital_contract.py": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65",
+    "instrument_identity.py": "a36f25f9e97d31c30e50c86f5c8b5ca902ae90fe50d4078a4b26fd247d9c54a9",
+    "portfolio_risk_model.py": "e8314f68c6d259929076f2e71dca3b4a486c85620f52022f5a55e70cdb933540"
+  },
+  "generated_at": "2026-09-18T17:00:00+00:00",
+  "packets": {
+    "holdings_without_nav": {
+      "alerts_summary": {
+        "correlation_cluster_count": 0,
+        "sector_concentration_breach": true,
+        "stops_hit_count": 0,
+        "var_breach": null
+      },
+      "capital_basis": {
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ],
+        "nav": null,
+        "status": "UNAVAILABLE"
+      },
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "correlation_clusters": [],
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": 1.0
+        }
+      },
+      "engine": "justhodl-portfolio-risk",
+      "etf_lookthrough": {
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book",
+        "sector_lookthrough": [],
+        "status": "UNVERIFIED"
+      },
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "gross_market_value": 1000.0,
+      "historical_scenarios": {},
+      "holdings_risk": {
+        "annual_vol_pct_of_gross": 6.36,
+        "beta_spy_per_gross": 1.0,
+        "daily_pnl_std_dollars": 4.0,
+        "var_1d_95_dollars": 6.59,
+        "var_1d_99_dollars": 9.31
+      },
+      "max_sector_concentration_pct": 100.0,
+      "n_instruments": 1,
+      "n_positions": 1,
+      "permissions": {
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability",
+        "sizing_eligible": false
+      },
+      "portfolio_beta_spy": null,
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "30d_max_drawdown_pct": -1.21,
+          "90d_max_drawdown_pct": -1.26,
+          "annual_vol_pct": 6.36,
+          "as_of": "2026-09-17",
+          "beta_spy": 1.0,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "errors": [],
+          "n_bars": 129,
+          "n_returns": 128,
+          "status": "AVAILABLE"
+        }
+      },
+      "quality": {
+        "data_errors": {
+          "AAA": [],
+          "SPY": []
+        },
+        "reason_codes": [],
+        "status": "partial"
+      },
+      "risk_contract": {
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "annualization_sessions": 252,
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        },
+        "minimum_sample": 60,
+        "missing_input_defaults": false,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "sample_count": 128,
+        "sample_end": "2026-09-17",
+        "sample_start": "2026-03-23",
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX"
+      },
+      "schema_version": "2.0.0",
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "stops_hit": [],
+      "total_market_value": 1000.0,
+      "var_1d_95_dollars": null,
+      "var_1d_95_pct": null,
+      "var_1d_99_dollars": null,
+      "var_1d_99_pct": null
+    },
+    "incomplete": {
+      "alerts_summary": {
+        "correlation_cluster_count": 0,
+        "sector_concentration_breach": true,
+        "stops_hit_count": 0,
+        "var_breach": null
+      },
+      "capital_basis": {
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ],
+        "nav": null,
+        "status": "UNAVAILABLE"
+      },
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "correlation_clusters": [],
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": null
+        }
+      },
+      "engine": "justhodl-portfolio-risk",
+      "etf_lookthrough": {
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book",
+        "sector_lookthrough": [],
+        "status": "UNVERIFIED"
+      },
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "gross_market_value": 1000.0,
+      "historical_scenarios": {},
+      "holdings_risk": {
+        "annual_vol_pct_of_gross": null,
+        "beta_spy_per_gross": null,
+        "daily_pnl_std_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_dollars": null
+      },
+      "max_sector_concentration_pct": 100.0,
+      "n_instruments": 1,
+      "n_positions": 1,
+      "permissions": {
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability",
+        "sizing_eligible": false
+      },
+      "portfolio_beta_spy": null,
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "30d_max_drawdown_pct": null,
+          "90d_max_drawdown_pct": null,
+          "annual_vol_pct": null,
+          "as_of": null,
+          "beta_spy": null,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "errors": [
+            "BAR_IDENTITY_OR_ADJUSTMENT_UNVERIFIED",
+            "INSUFFICIENT_OR_LAGGING_HISTORY"
+          ],
+          "n_bars": 0,
+          "n_returns": 0,
+          "status": "UNAVAILABLE"
+        }
+      },
+      "quality": {
+        "data_errors": {
+          "AAA": [
+            "BAR_IDENTITY_OR_ADJUSTMENT_UNVERIFIED"
+          ],
+          "SPY": []
+        },
+        "reason_codes": [
+          "COMMON_SAMPLE_NOT_CURRENT",
+          "INSUFFICIENT_COMMON_SESSIONS",
+          "INVALID_OR_MISSING_MARKET_INPUT"
+        ],
+        "status": "unavailable"
+      },
+      "risk_contract": {
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "annualization_sessions": 252,
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        },
+        "minimum_sample": 60,
+        "missing_input_defaults": false,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "sample_count": 0,
+        "sample_end": null,
+        "sample_start": null,
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX"
+      },
+      "schema_version": "2.0.0",
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "status": "INCOMPLETE",
+      "stops_hit": [],
+      "total_market_value": 1000.0,
+      "var_1d_95_dollars": null,
+      "var_1d_95_pct": null,
+      "var_1d_99_dollars": null,
+      "var_1d_99_pct": null
+    },
+    "measured_zero_risk": {
+      "alerts_summary": {
+        "correlation_cluster_count": 0,
+        "sector_concentration_breach": true,
+        "stops_hit_count": 0,
+        "var_breach": null
+      },
+      "capital_basis": {
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ],
+        "nav": null,
+        "status": "UNAVAILABLE"
+      },
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "correlation_clusters": [],
+      "correlation_matrix": {
+        "BBB": {
+          "BBB": null
+        }
+      },
+      "engine": "justhodl-portfolio-risk",
+      "etf_lookthrough": {
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book",
+        "sector_lookthrough": [],
+        "status": "UNVERIFIED"
+      },
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "gross_market_value": 1000.0,
+      "historical_scenarios": {},
+      "holdings_risk": {
+        "annual_vol_pct_of_gross": 0.0,
+        "beta_spy_per_gross": 0.0,
+        "daily_pnl_std_dollars": 0.0,
+        "var_1d_95_dollars": 0.0,
+        "var_1d_99_dollars": 0.0
+      },
+      "max_sector_concentration_pct": 100.0,
+      "n_instruments": 1,
+      "n_positions": 1,
+      "permissions": {
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability",
+        "sizing_eligible": false
+      },
+      "portfolio_beta_spy": null,
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "position_metrics": {
+        "BBB": {
+          "30d_max_drawdown_pct": 0.0,
+          "90d_max_drawdown_pct": 0.0,
+          "annual_vol_pct": 0.0,
+          "as_of": "2026-09-17",
+          "beta_spy": 0.0,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "errors": [],
+          "n_bars": 129,
+          "n_returns": 128,
+          "status": "AVAILABLE"
+        }
+      },
+      "quality": {
+        "data_errors": {
+          "BBB": [],
+          "SPY": []
+        },
+        "reason_codes": [],
+        "status": "partial"
+      },
+      "risk_contract": {
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "annualization_sessions": 252,
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        },
+        "minimum_sample": 60,
+        "missing_input_defaults": false,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "sample_count": 128,
+        "sample_end": "2026-09-17",
+        "sample_start": "2026-03-23",
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX"
+      },
+      "schema_version": "2.0.0",
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "stops_hit": [],
+      "total_market_value": 1000.0,
+      "var_1d_95_dollars": null,
+      "var_1d_95_pct": null,
+      "var_1d_99_dollars": null,
+      "var_1d_99_pct": null
+    },
+    "reported_reconciled_nav": {
+      "alerts_summary": {
+        "correlation_cluster_count": 0,
+        "sector_concentration_breach": true,
+        "stops_hit_count": 0,
+        "var_breach": false
+      },
+      "capital_basis": {
+        "currency": "USD",
+        "errors": [],
+        "nav": 2000.0,
+        "status": "RECONCILED"
+      },
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "correlation_clusters": [],
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": 1.0
+        }
+      },
+      "engine": "justhodl-portfolio-risk",
+      "etf_lookthrough": {
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book",
+        "sector_lookthrough": [],
+        "status": "UNVERIFIED"
+      },
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "gross_market_value": 1000.0,
+      "historical_scenarios": {},
+      "holdings_risk": {
+        "annual_vol_pct_of_gross": 6.36,
+        "beta_spy_per_gross": 1.0,
+        "daily_pnl_std_dollars": 4.0,
+        "var_1d_95_dollars": 6.59,
+        "var_1d_99_dollars": 9.31
+      },
+      "max_sector_concentration_pct": 100.0,
+      "n_instruments": 1,
+      "n_positions": 1,
+      "permissions": {
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability",
+        "sizing_eligible": false
+      },
+      "portfolio_beta_spy": 0.5,
+      "portfolio_vol_annual_pct": 3.18,
+      "portfolio_vol_daily_pct": 0.2,
+      "position_metrics": {
+        "AAA": {
+          "30d_max_drawdown_pct": -1.21,
+          "90d_max_drawdown_pct": -1.26,
+          "annual_vol_pct": 6.36,
+          "as_of": "2026-09-17",
+          "beta_spy": 1.0,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "errors": [],
+          "n_bars": 129,
+          "n_returns": 128,
+          "status": "AVAILABLE"
+        }
+      },
+      "quality": {
+        "data_errors": {
+          "AAA": [],
+          "SPY": []
+        },
+        "reason_codes": [],
+        "status": "partial"
+      },
+      "risk_contract": {
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "annualization_sessions": 252,
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        },
+        "minimum_sample": 60,
+        "missing_input_defaults": false,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "sample_count": 128,
+        "sample_end": "2026-09-17",
+        "sample_start": "2026-03-23",
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX"
+      },
+      "schema_version": "2.0.0",
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "stops_hit": [],
+      "total_market_value": 1000.0,
+      "var_1d_95_dollars": 6.59,
+      "var_1d_95_pct": 0.33,
+      "var_1d_99_dollars": 9.31,
+      "var_1d_99_pct": 0.47
+    }
+  },
+  "scope": "Wholly synthetic outputs of the current reviewed native pure model using its existing synthetic test fixtures. No real holdings, account, native invocation, network or private artifacts."
+}

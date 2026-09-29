@@ -3,7 +3,7 @@
 <head>
 <meta name="jh-primary-engine" content="justhodl-portfolio-snapshot,justhodl-portfolio-risk">
 <script src="/private-artifacts.js?v=20260909"></script>
-<script src="/jh-portfolio-risk-contract.js?v=2.0.0"></script>
+<script src="/jh-portfolio-risk-contract.js?v=20260929-metadata"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>📊 Portfolio + Risk · JustHodl.AI</title>
@@ -25,7 +25,8 @@ header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e1
   border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
 header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
 .badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
-.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+@media(max-width:600px){header{align-items:flex-start;flex-direction:column;gap:8px;}main{padding:12px;}.section-meta{overflow-wrap:anywhere;}.metric-box{min-width:0;}.scenarios-grid{grid-template-columns:minmax(0,1fr);}}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
 .nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
 .nav-back:hover{color:var(--text);}
@@ -101,7 +102,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
   <h1>📊 Portfolio + Risk Engine <span class="badge">#9 #10</span></h1>
   <div class="header-meta">
     <a class="nav-back" href="/">← JustHodl.AI</a>
-    <span><span class="dot"></span>Updated <span id="updated">—</span></span>
+    <span>Snapshot timestamp: <span id="updated">unavailable</span></span>
   </div>
 </header>
 
@@ -222,7 +223,7 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function fmtMoney(v){ if(typeof v !== 'number' || !Number.isFinite(v)) return '—'; const sign = v < 0 ? '-' : ''; v = Math.abs(v); return sign + '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}); }
-function fmtPct(v, digits=2){ return v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(digits) + '%'; }
+function fmtPct(v, digits=2){ return typeof v !== 'number' || !Number.isFinite(v) ? '—' : (v > 0 ? '+' : '') + v.toFixed(digits) + '%'; }
 function pnlClass(v){ return v == null ? 'dim' : v > 0 ? 'pos' : v < 0 ? 'neg' : 'dim'; }
 
 function tierBadge(t){
@@ -231,9 +232,8 @@ function tierBadge(t){
 }
 
 function setUpdated(){
-  if(!snapshot) return;
-  const d = new Date(snapshot.generated_at);
-  document.getElementById('updated').textContent = d.toLocaleString();
+  const stamp = JHPortfolioRisk.timestamp(snapshot && snapshot.generated_at);
+  document.getElementById('updated').textContent = Number.isFinite(stamp) ? new Date(stamp).toISOString() : 'unavailable';
 }
 
 function renderTopMetrics(){
@@ -248,17 +248,18 @@ function renderTopMetrics(){
 
   if(risk){
     document.getElementById('mv-var').textContent = fmtMoney(risk.var_1d_99_dollars);
-    document.getElementById('mv-var-pct').textContent = risk.var_1d_99_pct == null ? 'Reconciled NAV unavailable' : `${risk.var_1d_99_pct.toFixed(2)}% of reconciled NAV`;
+    document.getElementById('mv-var-pct').textContent = risk.var_1d_99_pct == null ? 'Reconciled NAV unavailable' : `${JHPortfolioRisk.number(risk.var_1d_99_pct)}% of model-reported NAV`;
     document.getElementById('mv-beta').textContent = JHPortfolioRisk.number(risk.portfolio_beta_spy);
-    document.getElementById('mv-vol').textContent = risk.portfolio_vol_annual_pct == null ? '—' : `${risk.portfolio_vol_annual_pct.toFixed(1)}%`;
+    document.getElementById('mv-vol').textContent = risk.portfolio_vol_annual_pct == null ? '—' : `${JHPortfolioRisk.number(risk.portfolio_vol_annual_pct,1)}%`;
     document.getElementById('mv-hhi').textContent = JHPortfolioRisk.number(risk.concentration_hhi, 0);
     document.getElementById('mv-hhi-label').textContent = risk.concentration_label || '—';
   }
 
   const counts = (snapshot && snapshot.counts) || {};
-  document.getElementById('mv-positions').textContent = counts.positions || 0;
+  const displayCount=v=>Number.isSafeInteger(v) && v>=0 ? String(v) : '—';
+  document.getElementById('mv-positions').textContent = displayCount(counts.positions);
   document.getElementById('mv-watchlist').textContent =
-    `${counts.watchlist || 0} watchlist (${counts.auto_watch_S || 0} S + ${counts.auto_watch_A || 0} A auto)`;
+    `${displayCount(counts.watchlist)} watchlist (${displayCount(counts.auto_watch_S)} S + ${displayCount(counts.auto_watch_A)} A auto)`;
 }
 
 function renderAlerts(){
@@ -295,6 +296,7 @@ function renderAlerts(){
 }
 
 function renderPositions(){
+  document.getElementById('pos-count').textContent = 'Holdings count unavailable';
   if(!snapshot) return;
   const positions = snapshot.positions || [];
   const tbody = document.getElementById('positions-body');
@@ -340,7 +342,8 @@ function renderPositions(){
 }
 
 function renderSectors(){
-  if(!risk) return;
+  document.getElementById('sector-summary').textContent='';
+  if(!risk){ document.getElementById('sector-summary').textContent=''; return; }
   const concs = risk.sector_concentration || [];
   const body = document.getElementById('sector-body');
   if(concs.length === 0){ body.innerHTML = '<div class="dim">No sector data.</div>'; return; }
@@ -374,6 +377,7 @@ function renderCorrelations(){
   const matrix = risk.correlation_matrix || {};
   const symbols = Object.keys(matrix);
   if(symbols.length < 2){ document.getElementById('corr-section').style.display = 'none'; return; }
+  document.getElementById('corr-section').style.display = '';
 
   function corrColor(v){
     if(v == null) return 'var(--text-mute)';
@@ -401,6 +405,7 @@ function renderCorrelations(){
 }
 
 function renderWatchlist(){
+  document.getElementById('watch-count').textContent = 'Watchlist count unavailable';
   if(!snapshot) return;
   const watch = snapshot.watchlist || [];
   document.getElementById('watch-count').textContent = `${watch.length} entries`;
@@ -454,7 +459,7 @@ async function loadAll(){
     renderCorrelations();
     renderWatchlist();
   } catch(err){
-    snapshot = null; risk = null; renderTopMetrics(); renderAlerts();
+    snapshot = null; risk = null; setUpdated(); renderTopMetrics(); renderAlerts(); renderSectors(); renderPositions(); renderWatchlist();
     for(const id of ['sector-body','scenarios-grid','corr-matrix','watch-body','risk-replay-status','holdings-risk-summary','pos-pnl-summary']) document.getElementById(id).innerHTML='';
     document.getElementById('risk-contract-title').textContent = 'Risk unavailable';
     document.getElementById('risk-contract-detail').textContent = 'Current private inputs could not be loaded.';
