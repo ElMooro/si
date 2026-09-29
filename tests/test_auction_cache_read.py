@@ -63,7 +63,7 @@ def test_short_reads_are_fully_consumed_and_streams_are_closed():
         def read(self,n=-1):return super().read(min(n,3))
     for raw,valid in [(b'{"operations":{}}',True),(b'{"operations":{}}unread trailing bytes',False)]:
         stream=Short(raw)
-        with patch.object(store,'get_object',return_value={'Body':stream}):
+        with patch.object(store,'get_object',return_value={'Body':stream,'ETag':'"fixture-read-version"'}):
             if valid:assert scope['_s3_json'](scope['BUY_KEY'])=={'operations':{}}
             else:rejects(lambda:scope['_s3_json'](scope['BUY_KEY']))
         assert stream.closed
@@ -73,7 +73,7 @@ def test_raw_and_inflated_byte_bounds_reject_whole_objects_without_truncating():
     store,scope,env=loaded();env['MAX_CACHE_BYTES']=128
     for key,raw in [(scope['BUY_KEY'],b'x'*129),(scope['HIST_KEY'],gzip.compress(b'{"records":{},"padding":"'+b'x'*512+b'"}'))]:
         stream=io.BytesIO(raw)
-        with patch.object(store,'get_object',return_value={'Body':stream}):
+        with patch.object(store,'get_object',return_value={'Body':stream,'ETag':'"fixture-read-version"'}):
             assert 'byte limit' in str(rejects(lambda:scope['_s3_json'](key)))
         assert stream.closed and not store.writes
 
@@ -83,7 +83,7 @@ def test_a_stream_failure_after_get_object_is_not_a_missing_object():
     class Broken(io.BytesIO):
         def read(self,n=-1):raise failure
     stream=Broken(b'partial')
-    with patch.object(store,'get_object',return_value={'Body':stream}):
+    with patch.object(store,'get_object',return_value={'Body':stream,'ETag':'"fixture-read-version"'}):
         assert rejects(lambda:scope['_s3_json'](scope['BUY_KEY'],{})) is failure
     assert stream.closed and not store.writes
 

@@ -61,7 +61,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.8"
+VERSION = "1.5.7"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -74,8 +74,6 @@ COMPOSITE_KEY = "data/warm/treasury-auctions/composite-history.json"
 REACT_KEY = "data/warm/treasury-auctions/reactions.json"
 MAX_CACHE_BYTES = 128 * 1024 * 1024
 MAX_HTTP_BYTES = 128 * 1024 * 1024
-BANK_KEYS = frozenset((HIST_KEY, BUY_KEY, FULL_KEY, ASSETS_KEY))
-_BANK_CONDITIONS = {}
 PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 FULL_FIELDS = ("cusip", "security_type", "security_term", "auction_date", "issue_date", "maturity_date", "high_rate", "high_yield",
                "high_discnt_rate", "high_investment_rate", "low_rate", "low_yield", "low_discnt_rate", "median_rate", "median_yield",
@@ -173,7 +171,6 @@ def _cache_object(pairs):
 
 
 def _s3_json(key, default=None):
-    _BANK_CONDITIONS.pop(key, None)
     try:
         response = s3.get_object(Bucket=BUCKET, Key=key)
     except Exception as exc:
@@ -184,8 +181,6 @@ def _s3_json(key, default=None):
         error = failure.get('Error') if isinstance(failure, dict) else None
         code = str(error.get('Code', '')) if isinstance(error, dict) else ''
         if code in ('NoSuchKey', '404'):
-            if key in BANK_KEYS:
-                _BANK_CONDITIONS[key] = {'IfNoneMatch': '*'}
             return default
         raise
     raw = _cache_bytes(response['Body'])
@@ -203,28 +198,16 @@ def _s3_json(key, default=None):
     if key == BUY_KEY and 'superseded_operations' in doc and (not isinstance(doc['superseded_operations'], dict) or
             any(not isinstance(row, dict) for row in doc['superseded_operations'].values())):
         raise ValueError('Cached retired buyback evidence is malformed')
-    if key in BANK_KEYS:
-        etag = response.get('ETag')
-        if not isinstance(etag, str) or len(etag) < 3 or not etag.startswith('"') or not etag.endswith('"'):
-            raise ValueError('Owned bank read requires a version ETag')
-        _BANK_CONDITIONS[key] = {'IfMatch': etag}
     return doc
 
 
 def _put_json(key, obj, gz=False):
-    condition = {}
-    if key in BANK_KEYS:
-        # Consume this read version even on a failed write. An ambiguous retry
-        # must read and merge the current bank again, never blindly overwrite it.
-        condition = _BANK_CONDITIONS.pop(key, None)
-        if condition is None:
-            raise ValueError('Owned bank write requires a complete versioned read')
     body = json.dumps(obj, separators=(",", ":"), default=str).encode()
     kw = {"Bucket": BUCKET, "Key": key, "ContentType": "application/json", "CacheControl": "no-cache"}
     if gz:
         body = gzip.compress(body)
         kw["ContentEncoding"] = "gzip"
-    s3.put_object(Body=body, **kw, **condition)
+    s3.put_object(Body=body, **kw)
 
 
 def _f(v):
@@ -914,7 +897,6 @@ def realised_scoreboard(day_ops, assets, day_list, verdicts, n=6, as_of=None):
 
 # ─────────────────────────── main ────────────────────────────────────
 def lambda_handler(event, ctx):
-    _BANK_CONDITIONS.clear()
     t0 = time.time()
     event = event or {}
     _PAR_DATES.clear()

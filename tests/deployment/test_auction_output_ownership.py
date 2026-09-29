@@ -37,7 +37,7 @@ class Store:
             raise StorageError('NoSuchKey')
         body = self.docs[key] if isinstance(self.docs[key],bytes) else json.dumps(self.docs[key]).encode()
         if key.endswith(".gz") and not isinstance(self.docs[key],bytes):
-            body = gzip.compress(body)
+            body = gzip.compress(body, mtime=0)
         return {"Body": io.BytesIO(body), "LastModified": datetime.now(timezone.utc), "ETag": '"'+hashlib.sha256(body).hexdigest()+'"'}
 
     def put_object(self, **kwargs):

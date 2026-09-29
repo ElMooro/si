@@ -146,7 +146,7 @@ def test_desk_acquisition_retains_missing_btc_amount_and_unknown_source_fields()
     today=datetime.now(timezone.utc).date();old=(today-timedelta(days=20)).isoformat()
     legacy=raw(old);store=support['Store']()
     scope=support['load']('auction-desk',store);fn=scope['load_full_bank'];env=fn.__globals__
-    env['_s3_json']=lambda *args:{'rows':{old+'|'+legacy['cusip']:legacy},'legacy_metadata':'keep'}
+    store.docs[scope['FULL_KEY']]={'rows':{old+'|'+legacy['cusip']:legacy},'legacy_metadata':'keep'}
     row=raw(today.isoformat(),None,bid_to_cover_ratio=None,extra_original='retained')
     def fetch(*args,**kwargs):
         kwargs['proof_out'].append({'complete':True,'rows':2,'pages':1});return [legacy,row]
@@ -175,7 +175,7 @@ def test_desk_completed_pagination_and_failed_bank_update_are_atomic():
     env['_get_json']=lambda *a,**k:{'data':[row],'meta':{'total-count':1,'total-pages':1}}
     proof=[];assert fn('auctions_query',{},proof_out=proof)==[row] and proof[0]['complete']
     old={'rows':{today+'|'+row['cusip']:row}}
-    env['_s3_json']=lambda *args:deepcopy(old)
+    store.docs[scope['FULL_KEY']]=deepcopy(old)
     env['_get_json']=lambda *a,**k:{'data':[row,row],'meta':{'total-count':2,'total-pages':1}}
     out=scope['load_full_bank']();assert out['rows']==old['rows'] and 'duplicate identity' in out['error']
     assert store.writes==[] and 'population_coverage' not in out
