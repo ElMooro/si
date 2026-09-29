@@ -1,0 +1,106 @@
+{
+  "status": "offline_code_acceptance_native_release_pending",
+  "compiler_method": "warehouse_deterministic_v2",
+  "public_output_version": "3.1",
+  "defect_reproduction": {
+    "direct_note": "WALCL Wednesday level 2026-09-23; WTREGEN weekly average ending 2026-09-23; RRP daily operation 2026-09-25. Displayed as-of is the oldest selected input date, not a shared measurement period. Current-vintage descriptive proxy; not investable cash or an easing signal.",
+    "frozen_note": "WALCL - WTREGEN - RRPONTSYD. Individual source periods are not qualified by a packet date. Not investable cash or an easing signal.",
+    "frozen_liquidity_projection": {
+      "generated_at": "2026-09-28T12:35:00Z",
+      "quality": {
+        "status": "fresh",
+        "observation_date": "2026-09-23"
+      },
+      "current": {
+        "net_liquidity_b": 0
+      }
+    }
+  },
+  "corrections": [
+    "Freeze the reviewed liquidity contract and all three exact component calendar dates.",
+    "Expose mixed source periods and require complete, nonfuture periods with matching oldest-date as-of before fresh status.",
+    "Evaluate age against UTC consistently for equivalent generation instants.",
+    "Retain collector publication clocks and impose an explicit 26-hour additional age ceiling; missing/future/stale clocks cannot be fresh.",
+    "Preserve observed scalar values for inspection, but withhold current-use permission on clock/period failures."
+  ],
+  "tests": {
+    "new_compiler_regressions": 8,
+    "runtime_probe_regressions": 2,
+    "deployment_static": 564,
+    "candidate_shell": 12,
+    "frontend": 1698,
+    "public_page_graphs": 599,
+    "page_source_syntax_errors": 0,
+    "native_suites_passed": [
+      "justhodl-ai-brief",
+      "justhodl-calls-research-audit",
+      "justhodl-signal-harvester",
+      "justhodl-prospective-evaluator"
+    ],
+    "existing_liquidity_consumer_tests": 2,
+    "wiring_check": true,
+    "page_contract_check": true
+  },
+  "source_registry": {
+    "engines": 893,
+    "changed_engine_rows": 4,
+    "changes": [
+      {
+        "engine": "justhodl-ai-brief",
+        "changed_fields": [
+          "write_evidence"
+        ],
+        "unresolved_before": 0,
+        "unresolved_after": 0
+      },
+      {
+        "engine": "justhodl-calls-research-audit",
+        "changed_fields": [
+          "write_evidence"
+        ],
+        "unresolved_before": 0,
+        "unresolved_after": 0
+      },
+      {
+        "engine": "justhodl-prospective-evaluator",
+        "changed_fields": [
+          "write_evidence"
+        ],
+        "unresolved_before": 1,
+        "unresolved_after": 1
+      },
+      {
+        "engine": "justhodl-signal-harvester",
+        "changed_fields": [
+          "write_evidence"
+        ],
+        "unresolved_before": 2,
+        "unresolved_after": 2
+      }
+    ],
+    "read_and_write_key_sets_unchanged": true,
+    "timestamp_only_discarded": false
+  },
+  "predecessors": {
+    "tests/fixtures/pre-calls-period-replay-calls_free_brief.py.txt": {
+      "bytes": 8284,
+      "sha256": "5414439e46afcf72254bf581e37efe2e82d0788f5ceadc0b23c36524b96ba415"
+    },
+    "tests/fixtures/pre-calls-period-replay-calls_research_replay.py.txt": {
+      "bytes": 10770,
+      "sha256": "72340c927c40eff246aa7d62371edeb41374d5033eee389706f0b9dbe8801963"
+    }
+  },
+  "acceptance_operation": 6323,
+  "native_invocations": 0,
+  "private_or_downstream_output_reads": 0,
+  "current_native_publication_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "limitations": [
+    "Frozen typed projections are not complete original-provider responses.",
+    "Collector age does not verify provider acquisition or the release calendar; existing observation ceilings remain explicit.",
+    "Original code versions remain necessary to replay older compiler-bound records; no stored history is rewritten.",
+    "Exact native packages and release receipts still require post-push acceptance. Current consumer/outcome packets are excluded from this verification."
+  ]
+}

@@ -8,8 +8,7 @@ from datetime import datetime, timezone
 from pd_fails_context import project
 
 PUBLIC_KEY = 'data/ai-brief-public.json'
-METHOD = 'warehouse_deterministic_v2'
-MAX_PUBLICATION_AGE_SECONDS = 26 * 3600
+METHOD = 'warehouse_deterministic_v1'
 
 
 def get(doc, path):
@@ -28,40 +27,16 @@ def day(value):
     except (TypeError, ValueError): return None
 
 
-def period_day(value):
-    """Source periods are exact calendar dates, not truncated timestamps/text."""
-    if not isinstance(value,str) or len(value)!=10:return None
-    result=day(value)
-    return result if result==value else None
-
-
-def publication_clock(value,now):
-    """A collector clock is an additional age check, not provider freshness proof."""
-    try:
-        if not isinstance(value,str) or 'T' not in value:raise ValueError('missing publication time')
-        stamp=datetime.fromisoformat(value.replace('Z','+00:00'))
-        if stamp.tzinfo is None:raise ValueError('missing publication timezone')
-        stamp=stamp.astimezone(timezone.utc);age=(now-stamp).total_seconds()
-        return {'source_generated_at':stamp.isoformat(),'source_age_seconds':age,
-                'source_clock_status':'future' if age<0 else 'stale' if age>MAX_PUBLICATION_AGE_SECONDS else 'within_age_ceiling',
-                'max_source_age_seconds':MAX_PUBLICATION_AGE_SECONDS}
-    except (TypeError,ValueError,OverflowError):
-        return {'source_generated_at':None,'source_age_seconds':None,'source_clock_status':'unavailable',
-                'max_source_age_seconds':MAX_PUBLICATION_AGE_SECONDS}
-
-
 def build(load, generated_at):
     now = datetime.fromisoformat(generated_at.replace('Z','+00:00'))
-    if now.tzinfo is None:raise ValueError('brief requires timezone-aware generation time')
-    now=now.astimezone(timezone.utc)
-    rows, missing, source_clocks = [], [], {}
+    rows, missing, source_dates = [], [], {}
     def read(key):
         try: doc = load(key)
         except Exception: doc = {}
         if not isinstance(doc, dict): doc = {}
-        source_clocks[key] = publication_clock(doc.get('generated_at'),now)
+        source_dates[key] = day(doc.get('generated_at'))
         return doc
-    def add(doc, key, field, unit, root, observation=None, frequency='daily', note=None, periods=None):
+    def add(doc, key, field, unit, root, observation=None, frequency='daily', note=None):
         value = finite(get(doc, field))
         observed = day(observation)
         q = doc.get('quality') if isinstance(doc.get('quality'),dict) else {}
@@ -70,41 +45,24 @@ def build(load, generated_at):
         limit = 14 if frequency=='weekly' else 92 if frequency=='monthly' else 5
         if value is None or age is None or age<0: status='unavailable'
         elif age>limit: status='stale'
-        collector=source_clocks[key]
-        if collector['source_clock_status']=='future':status='unavailable'
-        elif status=='fresh' and collector['source_clock_status']!='within_age_ceiling':
-            status='stale' if collector['source_clock_status']=='stale' else 'unverified'
         row={'series_id':key+'#'+field,'value':value,'unit':unit,'observation_date':observed,
              'quality_status':status,'frequency':frequency,'root_ids':root,
-             'source':key,'role':'monitor_only','calls_eligible':False,**collector,
-             'observation_age_days':age,'max_observation_age_days':limit,
-             'freshness_basis':'Reported source quality plus observation and collector age ceilings; provider acquisition and release calendar not verified here.'}
-        if periods is not None:
-            row['component_observation_dates']=periods
-            row['measurement_period_basis']='mixed_source_periods'
-            complete=all(periods.values())
-            future=any(value and value>now.date().isoformat() for value in periods.values())
-            row['period_alignment_status']=('future_component_date' if future else 'complete_oldest_date_matches' if complete and observed==min(periods.values())
-                else 'incomplete_component_dates' if not complete else 'oldest_date_mismatch')
-            if status=='fresh' and row['period_alignment_status']!='complete_oldest_date_matches':
-                status=row['quality_status']='unverified'
+             'source':key,'role':'monitor_only','calls_eligible':False}
         if note: row['note']=note
         rows.append(row)
         if status!='fresh': missing.append(row['series_id'])
     liq_key='data/liquidity-flow.json';liq=read(liq_key)
-    periods=None
     liquidity_note='WALCL - WTREGEN - RRPONTSYD. Individual source periods are not qualified by a packet date. Not investable cash or an easing signal.'
     if liq.get('contract')=='liquidity-flow-research.v1':
         dates=get(liq,'current.observation_dates') or {}
         if not isinstance(dates,dict): dates={}
-        periods={sid:period_day(dates.get(sid)) for sid in ('WALCL','WTREGEN','RRPONTSYD')}
-        liquidity_note=('WALCL Wednesday level '+str(periods['WALCL'] or 'unavailable')+
-            '; WTREGEN weekly average ending '+str(periods['WTREGEN'] or 'unavailable')+
-            '; RRP daily operation '+str(periods['RRPONTSYD'] or 'unavailable')+
-            '. The reported as-of must equal the oldest selected input date; this is not a shared measurement period. '
+        liquidity_note=('WALCL Wednesday level '+str(day(dates.get('WALCL')) or 'unavailable')+
+            '; WTREGEN weekly average ending '+str(day(dates.get('WTREGEN')) or 'unavailable')+
+            '; RRP daily operation '+str(day(dates.get('RRPONTSYD')) or 'unavailable')+
+            '. Displayed as-of is the oldest selected input date, not a shared measurement period. '
             'Current-vintage descriptive proxy; not investable cash or an easing signal.')
     add(liq,liq_key,'current.net_liquidity_b','usd_bn',['WALCL','WTREGEN','RRPONTSYD'],
-        get(liq,'quality.observation_date') or liq.get('as_of'),note=liquidity_note,periods=periods)
+        get(liq,'quality.observation_date') or liq.get('as_of'),note=liquidity_note)
     settlement_key='data/settlement-fails.json';settlement=project(read(settlement_key),now)
     for scope in (settlement,settlement['ust_ex_tips']):
         for field in ('ftd_bn','ftr_bn','combined_bn'):
@@ -134,8 +92,7 @@ def build(load, generated_at):
         '', '## DATA TAPE']
     for r in rows:
         value=str(r['value']) if r['value'] is not None else 'unavailable'
-        lines.append('- '+r['series_id']+': '+value+' '+r['unit']+'; observation '+str(r['observation_date'] or 'unavailable')+'; quality '+r['quality_status']+
-            '; source publication '+str(r['source_generated_at'] or 'unavailable')+' ('+r['source_clock_status']+').')
+        lines.append('- '+r['series_id']+': '+value+' '+r['unit']+'; observation '+str(r['observation_date'] or 'unavailable')+'; quality '+r['quality_status']+'.')
     lines += ['', '## OBSERVATIONS',
         '- '+str(len(fresh))+' of '+str(len(rows))+' displayed fields have a fresh observation contract. This is field coverage, not independent evidence or predictive accuracy.',
         '- Treasury gross and UST ex-TIPS are overlapping scopes. FTD and FTR are two-sided settlement reports; neither scope measures unique defaults, new inflows or central-bank injection.',
@@ -146,14 +103,13 @@ def build(load, generated_at):
         '- Composites may reuse the same series. Six settlement fields all share FR2004; they do not become six independent votes.',
         '', '## DATA LIMITATIONS',
         '- '+str(len(missing))+' fields are stale, incomplete or unverified. Missing observation dates are shown explicitly; publication time is never substituted.',
-        '- Source publication must also be dated, not future, and within 26 hours. This collector age ceiling does not verify original provider acquisition or its release calendar.',
         '- No allocation model or out-of-sample edge is validated here. All fields are monitor-only, even when fresh. No target exposure, probability or position size is inferred.',
         '', '## WATCH CONDITIONS',
         '- Reassess when the named source observations change, their dates advance, or upstream quality deteriorates.',
         '- Any future allocation change requires eligible independent evidence, a validated model and a separately enforced risk limit.',
         '', '## DECISION STATUS', '**DECISIVE CALL: WAIT**',
         'Abstain from new allocation guidance. WAIT does not mean sell existing positions or override independent risk controls.']
-    result={'version':'3.1','generated_at':generated_at,'generation_method':METHOD,
+    result={'version':'3.0','generated_at':generated_at,'generation_method':METHOD,
         'model':None,'paid_api_calls':0,'brief_md':'\n'.join(lines)+'\n',
         'evidence':rows,'coverage':{'fields':len(rows),'available':len(available),'fresh':len(fresh),'eligible_votes':0},
         'quality':{'status':'partial' if missing else 'fresh','missing':missing},

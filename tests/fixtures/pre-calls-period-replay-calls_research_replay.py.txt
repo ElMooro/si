@@ -19,9 +19,7 @@ PREFIX = "data/calls-research-runs/"
 CODE_FILES = ("calls_research_replay.py", "calls_free_brief.py", "pd_fails_context.py")
 COMMON = {"generated_at": "date", "quality.status": "quality", "quality.observation_date": "date"}
 FIELDS = {
-    "data/liquidity-flow.json": {**COMMON, "current.net_liquidity_b": "number", "as_of": "date",
-        "contract": "liquidity_contract", **{"current.observation_dates."+sid: "calendar_date"
-        for sid in ("WALCL", "WTREGEN", "RRPONTSYD")}},
+    "data/liquidity-flow.json": {**COMMON, "current.net_liquidity_b": "number", "as_of": "date"},
     "data/settlement-fails.json": {**COMMON, **{
         scope + "." + field: kind for scope in ("treasury", "headline") for field, kind in {
             "as_of": "date", "ftd_bn": "number", "ftr_bn": "number", "gross_bn": "number", "combined_bn": "number",
@@ -62,11 +60,6 @@ def _typed(value, kind):
     if kind == "boolean": return value if isinstance(value, bool) else None
     if kind == "quality": return value if value in ("fresh", "stale", "partial", "unavailable", "unverified") else None
     if kind == "scope": return value if value in ("treasury_incl_tips", "ust_ex_tips") else "__invalid_scope__" if value is not None else None
-    if kind == "liquidity_contract": return value if value == "liquidity-flow-research.v1" else None
-    if kind == "calendar_date":
-        if not isinstance(value,str) or len(value)!=10: return None
-        try: return datetime.strptime(value,'%Y-%m-%d').date().isoformat() if re.fullmatch(r'\d{4}-\d{2}-\d{2}',value) else None
-        except ValueError: return None
     if kind == "date":
         if not isinstance(value, str) or len(value) > 40 or not re.match(r"^\d{4}-\d{2}-\d{2}(T|$)", value): return None
         try: datetime.fromisoformat(value.replace("Z", "+00:00")); return value
