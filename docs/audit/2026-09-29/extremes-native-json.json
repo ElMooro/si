@@ -1,0 +1,100 @@
+{
+  "stage": 425,
+  "status": "source_accepted_native_and_static_deployment_pending",
+  "checked_at": "2026-09-29T17:45:07.228639+00:00",
+  "baseline_commit": "9555726093ebed61104da290d6da679509d2be89",
+  "reproduction": {
+    "scope": "Reviewed current code and isolated synthetic Storage; no network, archived code or actual source/consumer reads",
+    "source": "aws/shared/extremes_native_store.py",
+    "source_sha256": "33b98a6afd4657e84fdf8e9d0136953eb72fe7437006a8e7eef9935391858b17",
+    "duplicate_field": "generated_at",
+    "first_clock": "2000-01-01T00:00:00Z",
+    "last_clock": "2026-09-20T18:20:00+00:00",
+    "status": "retained",
+    "upstream_identity_verified": true,
+    "research_context_available": true,
+    "raw_ambiguous_bytes_retained": true,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "current_packet_reads": 0
+  },
+  "before_tests": {
+    "cases": 11,
+    "assertion_failures_including_subtests": 13,
+    "errors": 0,
+    "scope": "Current source and synthetic storage only; archived source not executed"
+  },
+  "predecessor": "extremes-json-predecessor.json",
+  "improvements": [
+    "One strict parser rejects duplicate decoded keys at every depth, JSON nonfinite constants and floating-point overflow while preserving ordinary finite numeric types, explicit zero, false, null and literal text.",
+    "Native capture, upstream proof parsing, retained inputs/output/manifest replay, current predecessor/readback and existing request-state reads share strict parsing. Both current HTTP handlers return a controlled unavailable response for ambiguous or non-object JSON.",
+    "Source bytes are retained before interpretation. Bounded upstream proof bytes are retained before validation. Malformed source packets are withheld and their exact retained replay reproduces that exclusion. A parseable source cannot claim malformed status.",
+    "Upstream proof/capture failures do not attempt publication. A failed publication-stage readback reports publication_status=unverified rather than claiming rollback; it does not overwrite a possible concurrent winner."
+  ],
+  "sources": {
+    "aws/shared/extremes_native_store.py": {
+      "bytes": 14693,
+      "sha256": "f3d3fdd0943d0e78d049c0dc3b4fcd51d3c8162d46bd26e9d64795620aafc09d"
+    },
+    "aws/lambdas/justhodl-capitulation/source/lambda_function.py": {
+      "bytes": 1712,
+      "sha256": "999b48139c0a0e92b0a85563875df86738b3407aaf8de4314e6a9a8630e441e2"
+    },
+    "aws/lambdas/justhodl-market-extremes/source/lambda_function.py": {
+      "bytes": 1715,
+      "sha256": "78074cfe0f047f63198c620bf87cd0bd91d43e2b48387bc2843d7a591a1fa620"
+    },
+    "tests/extremes_consumer_test_support.py": {
+      "bytes": 6784,
+      "sha256": "31cfda2f58fce0c87aa37e556d19be5f6465ce9abe940c0f65625cbc633a36fb"
+    },
+    "tests/extremes_json_tests.py": {
+      "bytes": 12765,
+      "sha256": "8ac2a5e9e8e3fe1128d10266f5ff1fc0c5a1a5212f4f5230f53e07c6765f0f7c"
+    },
+    "aws/lambdas/justhodl-capitulation/tests/run_tests.py": {
+      "bytes": 1665,
+      "sha256": "3e5eaa7d26989f00f91f68f341c3f2f91d350c68932319a37f27a3611cdd7d12"
+    },
+    "aws/lambdas/justhodl-market-extremes/tests/run_tests.py": {
+      "bytes": 1528,
+      "sha256": "c68d1e33cac8f5e0cf4a31b535b4075c9807ddfc1d5368b48f984e5cc2937796"
+    }
+  },
+  "tests": {
+    "native_suites": [
+      {
+        "suite": "justhodl-capitulation",
+        "unittest_cases": 103,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-market-extremes",
+        "unittest_cases": 91,
+        "passed": true
+      }
+    ],
+    "strict_json_distinct": 19,
+    "deployment_static": 702,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "frontend_last_pass_unchanged": 1855
+  },
+  "boundaries": {
+    "native_invocations": 0,
+    "current_packet_reads": 0,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0,
+    "resource_changes": 0,
+    "portfolio_writes": 0
+  },
+  "limitations": [
+    "Exact native and static deployment acceptance remain pending.",
+    "Normal scheduled publication is separate and unverified.",
+    "This establishes parser integrity, not upstream economic correctness, original historical availability, model qualification or allocation authority.",
+    "The browser has a separately reproduced duplicate-key acceptance gap and is next work.",
+    "Dynamic current-writer source binding remains unproven. A publication-stage failure does not certify rollback or absence of a write."
+  ]
+}

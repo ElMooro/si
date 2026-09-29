@@ -1,0 +1,36 @@
+{
+  "baseline_commit": "9555726093ebed61104da290d6da679509d2be89",
+  "scope": "Whole predecessor bytes retained without execution; current modules only tested with isolated synthetic storage.",
+  "files": {
+    "aws/shared/extremes_native_store.py": {
+      "fixture": "tests/fixtures/pre-extremes-strict-json-store.py.txt",
+      "bytes": 13578,
+      "sha256": "33b98a6afd4657e84fdf8e9d0136953eb72fe7437006a8e7eef9935391858b17"
+    },
+    "aws/lambdas/justhodl-capitulation/source/lambda_function.py": {
+      "fixture": "tests/fixtures/pre-extremes-strict-json-capitulation.py.txt",
+      "bytes": 1605,
+      "sha256": "93d3c296da3f54e745ddd689301b41ab285d3038a0abcfbcb26074a824ca8a4b"
+    },
+    "aws/lambdas/justhodl-market-extremes/source/lambda_function.py": {
+      "fixture": "tests/fixtures/pre-extremes-strict-json-market-extremes.py.txt",
+      "bytes": 1608,
+      "sha256": "e8ac1037107894e4c32d0516dc05f9d7204d4f0e3c137f8c3dc525923ae32f33"
+    }
+  },
+  "reproduction": {
+    "scope": "Reviewed current code and isolated synthetic Storage; no network, archived code or actual source/consumer reads",
+    "source": "aws/shared/extremes_native_store.py",
+    "source_sha256": "33b98a6afd4657e84fdf8e9d0136953eb72fe7437006a8e7eef9935391858b17",
+    "duplicate_field": "generated_at",
+    "first_clock": "2000-01-01T00:00:00Z",
+    "last_clock": "2026-09-20T18:20:00+00:00",
+    "status": "retained",
+    "upstream_identity_verified": true,
+    "research_context_available": true,
+    "raw_ambiguous_bytes_retained": true,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "current_packet_reads": 0
+  }
+}

@@ -1,10 +1,25 @@
 """Protected upstream snapshots, bounded replay and conditional public publication."""
 from pathlib import Path
 from datetime import datetime,timezone
-import json,re,sys,time
+import json,math,re,sys,time
 import extremes_native_model as model
 PREFIX=model.PREFIX;PRIVATE=model.PRIVATE;MAX=12*1024*1024;TOTAL=48*1024*1024
 COMPILERS=(model,sys.modules[__name__],*model.COMPANIONS)
+
+def strict_json(raw):
+    """Preserve JSON types; reject conflicting keys and non-finite numbers."""
+    def pairs(items):
+        out={}
+        for key,value in items:
+            if key in out:raise ValueError('Duplicate research JSON key')
+            out[key]=value
+        return out
+    def finite(token):
+        value=float(token)
+        if not math.isfinite(value):raise ValueError('Non-finite research JSON number')
+        return value
+    def constant(_):raise ValueError('Non-finite research JSON constant')
+    return json.loads(raw,object_pairs_hook=pairs,parse_float=finite,parse_constant=constant)
 
 def now():return datetime.now(timezone.utc).isoformat()
 def current(engine):
@@ -47,12 +62,12 @@ def original(ref,read):
     return raw
 def upstream_path(name,key,category):return bool(re.fullmatch('data/'+re.escape(model.SOURCES[name][2] or 'no-source')+'/'+category+r'/[a-f0-9]{64}\.json',str(key)))
 def verify_upstream(name,packet,run_raw,out_raw):
-    ref=packet['replay'];run=json.loads(run_raw)
+    ref=packet['replay'];run=strict_json(run_raw)
     if not model.identity(packet,name) or ref['manifest_key'].rsplit('/',1)[-1]!=model.sha(run_raw)+'.json':raise ValueError('Upstream run identity differs')
     out=run['output'];digest=ref['output_sha256']
     if not upstream_path(name,out['key'],'outputs') or out['key'].rsplit('/',1)[-1]!=digest+'.json':raise ValueError('Upstream output path differs')
     if out.get('sha256')!=digest or run.get('output_sha256')!=digest or out.get('bytes')!=len(out_raw) or model.sha(out_raw)!=digest:raise ValueError('Upstream output bytes differ')
-    if json.loads(out_raw)!={k:v for k,v in packet.items() if k!='replay'} or run['generated_at']!=packet['generated_at']:raise ValueError('Upstream publication differs from retained run')
+    if strict_json(out_raw)!={k:v for k,v in packet.items() if k!='replay'} or run['generated_at']!=packet['generated_at']:raise ValueError('Upstream publication differs from retained run')
 
 def collect(client,bucket,engine,deadline):
     entries={};total=0
@@ -67,17 +82,19 @@ def collect(client,bucket,engine,deadline):
         total+=len(raw)
         if total>TOTAL:raise ValueError('Total capture bound exceeded')
         entry.update(status='retained',packet=retain_original(client,bucket,raw),acquired_at=now())
-        try:p=json.loads(raw)
+        try:p=strict_json(raw)
         except (ValueError,UnicodeDecodeError):entry['status']='malformed_source_json';entries[name]=entry;continue
         if contract and model.identity(p,name):
-            run_key=p['replay']['manifest_key'];run_raw=bounded(client.get_object(Bucket=bucket,Key=run_key)['Body']);run=json.loads(run_raw)
+            run_key=p['replay']['manifest_key'];run_raw=bounded(client.get_object(Bucket=bucket,Key=run_key)['Body']);total+=len(run_raw)
+            if total>TOTAL:raise ValueError('Total capture bound exceeded')
+            run_ref=retain_original(client,bucket,run_raw);run=strict_json(run_raw)
             out_key=run['output']['key']
             if not upstream_path(name,out_key,'outputs'):raise ValueError('Upstream source path refused')
-            out_raw=bounded(client.get_object(Bucket=bucket,Key=out_key)['Body']);verify_upstream(name,p,run_raw,out_raw)
-            total+=len(run_raw)+len(out_raw)
+            out_raw=bounded(client.get_object(Bucket=bucket,Key=out_key)['Body']);total+=len(out_raw)
             if total>TOTAL:raise ValueError('Total capture bound exceeded')
-            entry.update(upstream_identity_verified=True,upstream_run={'source_key':run_key,**retain_original(client,bucket,run_raw)},
-                upstream_output={'source_key':out_key,**retain_original(client,bucket,out_raw)})
+            out_ref=retain_original(client,bucket,out_raw);verify_upstream(name,p,run_raw,out_raw)
+            entry.update(upstream_identity_verified=True,upstream_run={'source_key':run_key,**run_ref},
+                upstream_output={'source_key':out_key,**out_ref})
         entries[name]=entry
     return entries
 
@@ -93,15 +110,16 @@ def compile_output(inputs,read):
             packets[name]=None;continue
         if entry.get('status') not in ('retained','malformed_source_json'):raise ValueError('Unknown source status')
         raw=original(entry['packet'],read);total+=len(raw)
-        try:packet=json.loads(raw)
+        try:packet=strict_json(raw)
         except (ValueError,UnicodeDecodeError):
             if entry['status']!='malformed_source_json' or entry.get('upstream_identity_verified') is not False:raise
             packets[name]=None;continue
+        if entry['status']=='malformed_source_json':raise ValueError('Malformed status contains parseable JSON')
         if not isinstance(packet,dict):packet=None
         if entry.get('upstream_identity_verified') is True:
             run_raw=original(entry['upstream_run'],read);out_raw=original(entry['upstream_output'],read);total+=len(run_raw)+len(out_raw)
             verify_upstream(name,packet,run_raw,out_raw)
-            if entry['upstream_run']['source_key']!=packet['replay']['manifest_key'] or entry['upstream_output']['source_key']!=json.loads(run_raw)['output']['key']:raise ValueError('Upstream retained path differs')
+            if entry['upstream_run']['source_key']!=packet['replay']['manifest_key'] or entry['upstream_output']['source_key']!=strict_json(run_raw)['output']['key']:raise ValueError('Upstream retained path differs')
         elif entry.get('upstream_identity_verified') is not False:raise ValueError('Explicit upstream verification state required')
         packets[name]=packet
     if total>TOTAL:raise ValueError('Total replay bound exceeded')
@@ -112,11 +130,11 @@ def checked(ref,category,read):
     if not re.fullmatch('[a-f0-9]{64}',digest) or ref.get('key')!=PREFIX+category+'/'+digest+'.json':raise ValueError('Artifact identity differs')
     raw=read(ref['key'])
     if type(ref.get('bytes')) is not int or len(raw)!=ref['bytes'] or model.sha(raw)!=digest:raise ValueError('Artifact bytes differ')
-    return json.loads(raw)
+    return strict_json(raw)
 def replay(ref,read):
     key=ref.get('manifest_key','')
     if not re.fullmatch(re.escape(PREFIX)+r'runs/[a-f0-9]{64}\.json',key):raise ValueError('Reviewed run identity required')
-    raw=read(key);m=json.loads(raw)
+    raw=read(key);m=strict_json(raw)
     if key!=PREFIX+'runs/'+model.sha(raw)+'.json' or m.get('contract')!='extremes-native-replay.v1':raise ValueError('Run bytes differ')
     if set(m['compilers'])!={c.__name__ for c in COMPILERS}:raise ValueError('Compiler inventory differs')
     for c in COMPILERS:
@@ -141,7 +159,7 @@ def publish(client,bucket,packet):
     key=current(packet['engine']);at=model.clock(packet['generated_at'])
     for _ in range(4):
         try:
-            obj=client.get_object(Bucket=bucket,Key=key);raw=bounded(obj['Body']);old=json.loads(raw)
+            obj=client.get_object(Bucket=bucket,Key=key);raw=bounded(obj['Body']);old=strict_json(raw)
             if old.get('generated_at') and model.clock(old['generated_at'])>at:return False
             if old.get('generated_at') and model.clock(old['generated_at'])==at and old!=packet:raise ValueError('Conflicting same-clock publication')
             retain_original(client,bucket,raw);condition={'IfMatch':obj['ETag']}
@@ -150,7 +168,7 @@ def publish(client,bucket,packet):
             condition={'IfNoneMatch':'*'}
         try:
             client.put_object(Bucket=bucket,Key=key,Body=model.encoded(packet),ContentType='application/json',CacheControl='no-store',**condition)
-            live=json.loads(reader(client,bucket)(key))
+            live=strict_json(reader(client,bucket)(key))
             if live!=packet and model.clock(live['generated_at'])<=at:raise ValueError('Publication readback differs')
             return True
         except Exception as exc:
@@ -167,7 +185,7 @@ def run(client,bucket,engine,request_id,execution_id,remaining_seconds=60):
     try:write(status,IfNoneMatch='*')
     except Exception as exc:
         if not conflict(exc):raise
-        return json.loads(bounded(client.get_object(Bucket=bucket,Key=key)['Body']))
+        return strict_json(bounded(client.get_object(Bucket=bucket,Key=key)['Body']))
     try:
         sources=collect(client,bucket,engine,time.monotonic()+max(0,min(80,remaining_seconds-25)))
         inputs={'contract':'extremes-native-inputs.v1','engine':engine,'started_at':start,'generated_at':now(),'sources':sources}
@@ -178,5 +196,8 @@ def run(client,bucket,engine,request_id,execution_id,remaining_seconds=60):
             'provider_requests':0,'private_account_reads':0,'paid_ai_calls':0,'notifications_sent':0,'portfolio_writes':0}
         write(result);return result
     except Exception:
-        write({**status,'status':'failed','completed_at':now(),'error':'native_capture_replay_or_publication_failed'})
-        raise RuntimeError('Native synthesis failed; prior publication preserved') from None
+        # A failed readback can follow a successful conditional write. Do not
+        # claim rollback or overwrite a possible concurrent winner.
+        write({**status,'status':'failed','completed_at':now(),'error':'native_capture_replay_or_publication_failed',
+            'publication_status':'unverified' if status['phase']=='publish' else 'not_attempted'})
+        raise RuntimeError('Native synthesis failed; publication not verified') from None

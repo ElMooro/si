@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import ast,json,sys,textwrap,unittest
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'aws/shared'))
 import extremes_research as adapter
+from extremes_native_store import strict_json
 from extremes_native_test_support import packet,AT
 BAD={'signal':'GENERATIONAL_BUY','capitulation_score':99,'posture':'CAPITULATION','cycle_posture':'CAPITULATION','cycle_position':0,'score':99,
     'scores':{'top_risk':99,'capitulation':99},'candidates':[{'ticker':'TEST','score':99}],'calls_eligible':True,'sizing_eligible':True}
@@ -56,7 +57,7 @@ class Boundaries(unittest.TestCase):
         s,i,p=packet()
         def forbidden(*args,**kw):raise AssertionError('Unexpected acquisition or publication')
         for engine in ('capitulation','market-extremes'):
-            ns={'ENGINE':engine,'json':json,'CONTRACT':adapter.CONTRACT,'Config':lambda **kw:None,'boto3':SimpleNamespace(client=lambda *a,**kw:None),
+            ns={'ENGINE':engine,'json':json,'strict_json':strict_json,'CONTRACT':adapter.CONTRACT,'Config':lambda **kw:None,'boto3':SimpleNamespace(client=lambda *a,**kw:None),
                 'reader':lambda *a:lambda key:json.dumps({**p,'engine':engine}).encode(),'current':lambda e:'data/'+e+'.json','run':forbidden}
             h=function(engine,'lambda_handler',ns);self.assertEqual(h({'httpMethod':'GET'})['statusCode'],200)
             ns['boto3']=SimpleNamespace(client=forbidden);self.assertEqual(h({'validate_only':True})['statusCode'],200)

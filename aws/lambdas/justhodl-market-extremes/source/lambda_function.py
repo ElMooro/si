@@ -3,7 +3,7 @@ import json
 import boto3
 from botocore.config import Config
 from extremes_native_model import CONTRACT
-from extremes_native_store import current,reader,run
+from extremes_native_store import current,reader,run,strict_json
 ENGINE='market-extremes'
 
 def lambda_handler(event=None,context=None):
@@ -13,8 +13,9 @@ def lambda_handler(event=None,context=None):
     client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=3,read_timeout=10,retries={'max_attempts':1},max_pool_connections=8,tcp_keepalive=True))
     bucket='justhodl-dashboard-live'
     if (event.get('requestContext') or {}).get('http') or event.get('httpMethod'):
-        packet=json.loads(reader(client,bucket)(current(ENGINE)))
-        if packet.get('contract')!=CONTRACT or packet.get('engine')!=ENGINE:
+        try:packet=strict_json(reader(client,bucket)(current(ENGINE)))
+        except (ValueError,UnicodeDecodeError):packet=None
+        if not isinstance(packet,dict) or packet.get('contract')!=CONTRACT or packet.get('engine')!=ENGINE:
             return {'statusCode':503,'body':json.dumps({'reason':'native_research_publication_unavailable'})}
         return {'statusCode':200,'headers':{'Content-Type':'application/json','Cache-Control':'no-store'},'body':json.dumps(packet)}
     execution_id=getattr(context,'aws_request_id',None)

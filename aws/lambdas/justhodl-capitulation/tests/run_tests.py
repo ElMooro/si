@@ -40,3 +40,7 @@ if __name__=='__main__':
 if __name__=='__main__':
     from extremes_transport_tests import run as run_extremes_transport
     run_extremes_transport()
+
+if __name__=='__main__':
+    from extremes_json_tests import run as run_extremes_json
+    run_extremes_json()
