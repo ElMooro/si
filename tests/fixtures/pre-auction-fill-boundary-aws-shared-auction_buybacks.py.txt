@@ -170,13 +170,6 @@ def measurement_problems(op, as_of):
     return problems
 
 
-def large_high_fill(accepted, maximum):
-    """One exact boundary for operation descriptions and whole-day cohorts."""
-    accepted, maximum = numeric(accepted), numeric(maximum)
-    return (accepted is not None and maximum is not None and maximum >= 5e9 and accepted <= maximum and
-            Fraction(str(accepted))/Fraction(str(maximum)) >= Fraction(9,10))
-
-
 def analyze(op, program, as_of):
     """Keep all supplied operations; do not infer easing or forced duration bids."""
     values = {metric: numeric(op.get(metric), metric.startswith('n_issues_')) for metric in METRICS}
@@ -202,7 +195,7 @@ def analyze(op, program, as_of):
     rank_unique = len({row['operation_identity'] for row in prior_inputs}) == len(prior_inputs)
     rank_valid = bool(prior) and valid and rank_unique and all(row['accepted'] is not None and row['source_mapping_complete'] and not row['measurement_problems'] for row in prior_inputs)
     rank = round(100 * (sum(row['accepted'] < accepted for row in prior_inputs) + .5*sum(row['accepted'] == accepted for row in prior_inputs)) / len(prior_inputs), 1) if rank_valid else None
-    size = ('strong' if valid and large_high_fill(accepted, maximum) else
+    size = ('strong' if valid and maximum and maximum >= 5e9 and Fraction(str(accepted))/Fraction(str(maximum)) >= Fraction(9,10) else
             'moderate' if valid and accepted >= 2e9 else 'light' if valid else 'unavailable')
     tags = []
     if not valid:

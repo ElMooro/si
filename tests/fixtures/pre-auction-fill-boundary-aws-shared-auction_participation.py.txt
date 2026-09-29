@@ -175,7 +175,7 @@ def classify(auctions, buybacks):
             sum(auction_buybacks.identity(other) == auction_buybacks.identity(row) for other in buybacks) != 1 or
             accepted is None or maximum is None or accepted < 0 or maximum <= 0 or accepted > maximum):
             problems.append({'buyback_index': index, 'reason': 'missing_or_invalid_fill_inputs'})
-        elif auction_buybacks.large_high_fill(accepted, maximum):
+        elif maximum >= 5e9 and accepted / maximum >= .9:
             if 'buyback_strong' not in classes:
                 classes.append('buyback_strong')
     if problems:

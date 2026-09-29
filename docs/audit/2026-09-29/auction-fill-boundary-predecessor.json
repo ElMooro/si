@@ -1,0 +1,37 @@
+{
+  "base": "1d6f6d2cca172bfe9cd990202fc9137891aa995d",
+  "checked_at": "2026-09-29T15:09:34.478238+00:00",
+  "reproduced": {
+    "raw": {
+      "operation_date": "2026-09-28",
+      "operation_type": "Liquidity support",
+      "security_type": "Nominal",
+      "maturity_bucket": "7-10 years",
+      "max_par_amt": "73689012360.54117",
+      "par_amt_accepted": "66320111124.48705",
+      "par_amt_offered": "100000000000"
+    },
+    "operation_class": "accepted_par_at_least_2bn",
+    "operation_alias": "moderate",
+    "day_classes": [
+      "buyback_strong"
+    ],
+    "floating_ratio": 0.9,
+    "original_source_verified": false,
+    "scope": "Synthetic supplied valid-number boundary; no actual Treasury observation or native invocation"
+  },
+  "fixtures": [
+    {
+      "source": "aws/shared/auction_buybacks.py",
+      "fixture": "tests/fixtures/pre-auction-fill-boundary-aws-shared-auction_buybacks.py.txt",
+      "bytes": 19447,
+      "sha256": "4174b4914568c99569a1a80aade8716d4bc0c2701eaa7f2cebbfa075fb13e001"
+    },
+    {
+      "source": "aws/shared/auction_participation.py",
+      "fixture": "tests/fixtures/pre-auction-fill-boundary-aws-shared-auction_participation.py.txt",
+      "bytes": 10330,
+      "sha256": "58650b76328787a3a3517a60741a1033a859de1975c119dfe632e6c16d056fb9"
+    }
+  ]
+}

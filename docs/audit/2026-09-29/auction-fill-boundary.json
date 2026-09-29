@@ -1,0 +1,66 @@
+{
+  "stage": 418,
+  "status": "source_and_regressions_accepted_deployment_pending",
+  "checked_at": "2026-09-29T15:13:15.997983+00:00",
+  "baseline_commit": "1d6f6d2cca172bfe9cd990202fc9137891aa995d",
+  "sources": {
+    "aws/shared/auction_buybacks.py": {
+      "bytes": 19749,
+      "sha256": "c2e888dcbe646505eef2f474d3943dfa89e123beadb3dc8afa00884d2ed905a0"
+    },
+    "aws/shared/auction_participation.py": {
+      "bytes": 10338,
+      "sha256": "14e3a3fb4e2771082477f3d881e24e6dc9a32bf8bea047e64fb73d6538b1237e"
+    },
+    "aws/lambdas/justhodl-auction-desk/source/lambda_function.py": {
+      "bytes": 65507,
+      "sha256": "f09af010c67f49f008191dd47e06f02d8b5026f6db1a78054d70aa0207bcdc76"
+    }
+  },
+  "predecessor": "auction-fill-boundary-predecessor.json",
+  "reproduced": {
+    "raw": {
+      "operation_date": "2026-09-28",
+      "operation_type": "Liquidity support",
+      "security_type": "Nominal",
+      "maturity_bucket": "7-10 years",
+      "max_par_amt": "73689012360.54117",
+      "par_amt_accepted": "66320111124.48705",
+      "par_amt_offered": "100000000000"
+    },
+    "operation_class": "accepted_par_at_least_2bn",
+    "operation_alias": "moderate",
+    "day_classes": [
+      "buyback_strong"
+    ],
+    "floating_ratio": 0.9,
+    "original_source_verified": false,
+    "scope": "Synthetic supplied valid-number boundary; no actual Treasury observation or native invocation"
+  },
+  "improvement": "Operation descriptions and whole-day historical cohorts now call one exact rational high-fill predicate. Rounded display percentages and floating-point division cannot move an operation across the 90% boundary. The existing USD 5bn maximum-par condition and complete-input requirements remain.",
+  "tests": {
+    "native_and_desk": 277,
+    "participation": 15,
+    "deployment_static": 685,
+    "candidate_shell": 12,
+    "frontend_unchanged_from_accepted_stage417": 1844
+  },
+  "regressions": [
+    "Supplied decimal case where floating-point division returns 0.9 but exact retained-value arithmetic is below 9/10.",
+    "Exact threshold, just below/above, too-small operation, missing, boolean, impossible and zero denominator cases.",
+    "Forged high-fill metadata/legacy alias cannot replace recomputation from bound measurement inputs.",
+    "Actual handler day tags and reaction cohort remain consistent with the operation classifier and with false Calls/sizing permissions."
+  ],
+  "runtime_acceptance_operation": "ops_6346_auction_fill_semantics_runtime_acceptance.py (existing receipt-only verifier, expected source commit resolved from changed compiler paths)",
+  "static_assets": "Unchanged from verified Stage 417 source 02fa39e985c12f61011253913040c771929d2ac0; no page rebuild required by this logic-only follow-up.",
+  "limits": [
+    "The reproduced fractional-par inputs are synthetic, not a claim that a real Treasury observation had this discrepancy.",
+    "Exact supplied-input arithmetic is not original-provider verification, first-publication timing, complete source coverage or forecasting skill.",
+    "Ordinary native publication and the full ten-workstream institutional objective remain open."
+  ],
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "private_reads": 0,
+  "current_packet_reads": 0,
+  "schedule_changes": 0
+}

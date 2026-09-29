@@ -5779,3 +5779,8 @@ Post-deploy review reproduced a transition failure: a complete 4,862,036-byte le
 - At 2026-09-29T15:08:09.684354+00:00, all five static assets match the exact commit-bound build. Native Git shipped the complete 23-file batch, including full large source/page files.
 - Exact threshold, legacy replay, altered metadata, failed refresh, cached-response race and Blob lifecycle regressions pass. The isolated page exposes corrected labels and complete cash-effect/classification context without changing raw predecessor evidence. Mobile evidence regions remain keyboard accessible.
 - Normal engine publication and actual download completion through the in-app browser remain unverified. Provider originals, historical availability, complete populations, predictive qualification and portfolio sizing are not certified. All ten platform workstreams remain open. Evidence: `docs/audit/2026-09-29/auction-fill-semantics.json`.
+
+
+### Stage 418: identical exact fill boundary across operation and day classification
+
+A reproduced synthetic decimal boundary returned 0.9 under floating-point division while remaining strictly below 9/10 for the retained numeric values. One exact predicate now drives both the operation descriptor and whole-day reaction cohort. Display rounding and forged descriptive metadata cannot change membership. All 277 native/desk checks and 685 deployment checks pass. Static page code is unchanged from accepted Stage 417. Exact native deployment acceptance and normal publication remain separate; all ten workstreams remain open. Evidence: `docs/audit/2026-09-29/auction-fill-boundary.json`.

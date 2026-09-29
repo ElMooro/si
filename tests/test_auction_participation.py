@@ -167,6 +167,31 @@ def test_nonfinite_legacy_evidence_is_retained_as_diagnostic_and_numeric_output_
     json.dumps(out,allow_nan=False)
 
 
+def test_operation_and_day_fill_classification_share_exact_threshold_not_float_ratio():
+    raw={'operation_date':'2026-09-28','operation_type':'Liquidity support','security_type':'Nominal','maturity_bucket':'7-10 years',
+         'par_amt_accepted':'66320111124.48705','max_par_amt':'73689012360.54117','par_amt_offered':'100000000000'}
+    op=auction_buybacks.normalize(raw);buy=auction_buybacks.analyze(op,[op],'2026-09-29')
+    assert buy['accepted']/buy['max_par']==.9  # Floating-point division loses the distinction.
+    assert buy['fill_pct']==90.0 and buy['liquidity_signal']=='moderate'
+    assert model.classify([],[buy])['cohort_classes']==['buyback_other']
+    buy['fill_classification']['value']='large_high_fill';buy['liquidity_signal']='strong'
+    assert model.classify([],[buy])['cohort_classes']==['buyback_other']
+    for accepted,maximum,expected in [('4500000000','5000000000',True),('4499999999.99','5000000000',False),
+                                      ('4500000000.01','5000000000',True),('900','1000',False),
+                                      (None,5e9,False),(True,5e9,False),(9e9,5e9,False),(0,0,False)]:
+        assert auction_buybacks.large_high_fill(accepted,maximum) is expected
+
+
+def test_actual_day_verdict_does_not_upgrade_a_rounded_ninety_percent_fill():
+    support_buybacks=runpy.run_path(str(ROOT/'tests/test_auction_buybacks.py'))
+    raw=support_buybacks['raw'](max_par_amt='73689012360.54117',par_amt_accepted='66320111124.48705',par_amt_offered='100000000000')
+    packet,_=support_buybacks['native_packet']([raw])
+    assert packet['buybacks']['operations'][0]['fill_classification']['value']=='accepted_par_at_least_2bn'
+    assert 'LARGE HIGH-FILL BUYBACK' not in packet['today']['verdict']['tags']
+    assert packet['reactions']['classification_inputs']['2026-09-28']['cohort_classes']==['buyback_other']
+    assert packet['decision']['call'] is None and packet['decision']['sizing_eligible'] is False
+
+
 if __name__=='__main__':
     tests=[fn for name,fn in list(globals().items()) if name.startswith('test_')]
     for test in tests:test()
