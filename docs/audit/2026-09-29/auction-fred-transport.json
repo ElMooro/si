@@ -1,5 +1,5 @@
 {
-  "status": "source_checked_native_deployment_pending",
+  "status": "exact_native_code_and_static_assets_accepted_normal_publication_pending",
   "checked_at": "2026-09-29T07:59:53.076100+00:00",
   "baseline_commit": "ae38966be8af97f5a5db3bdda6e06c3b90d8fe5c",
   "complete_predecessors": [
@@ -119,5 +119,99 @@
   ],
   "calls_eligible": false,
   "sizing_eligible": false,
-  "execution_eligible": false
+  "execution_eligible": false,
+  "source_commit": "98581fee88f1c432b81377aca13135d11215aecd",
+  "native_acceptance": {
+    "actual_runtimes": {
+      "justhodl-auction-crisis-detector": {
+        "code_sha256": "JHMYVJb3XOYXCaRsTf8pTgogRbB9M3pNNd9hn+7v7xQ=",
+        "source_files_checked": 17,
+        "handler_bytes": 43225,
+        "timeout": 240,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "98581fee88f1c432b81377aca13135d11215aecd"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-active",
+            "state": "ENABLED",
+            "expression": "cron(50 19 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-auction-crisis-backstop",
+            "state": "ENABLED",
+            "expression": "cron(5 13 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-auction-crisis-detector",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "expected_commit": "98581fee88f1c432b81377aca13135d11215aecd",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_packages_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "native_acceptance_run": 36540309679,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6336_auction_transport_runtime_acceptance.md",
+  "native_acceptance_report_commit": "7786c336366ad901b1dda9407d1be66b15bf3f56",
+  "lambda_run": 36539982008,
+  "pages_run": 36539982036,
+  "static_acceptance": {
+    "checked_at": "2026-09-29T08:07:40.753307+00:00",
+    "intended_commit": "98581fee88f1c432b81377aca13135d11215aecd",
+    "served_commit": "98581fee88f1c432b81377aca13135d11215aecd",
+    "assets": {
+      "auction-crisis.html": {
+        "bytes": 58858,
+        "sha256": "a14eda8e2b689e95f1ce312847586607226e7cbd521ea91076566c9ba3a245b5",
+        "matches_manifest": true
+      },
+      "auction-crisis.js": {
+        "bytes": 45207,
+        "sha256": "5cee64b218210944f40c79fdc87f6d6daa70e315351216598f2eeb2a64cca495",
+        "matches_manifest": true,
+        "matches_committed_source": false,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "282f9f24fa0b2b752d5ab2fe5238ec524bd2c5d842857e1fc69ee8c3c749578f"
+      },
+      "jh-auction-originals.js": {
+        "bytes": 7616,
+        "sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d",
+        "matches_manifest": true,
+        "matches_committed_source": true,
+        "matches_source_after_declared_palette_transform": true,
+        "source_sha256": "298664021433977df601403db59b101aca1fa7d84698f3a526217c8e9859b22d"
+      },
+      "engine-manifest.json": {
+        "bytes": 1353392,
+        "sha256": "2fd76a092ed8497c69c2a4437caa1a41d244f89c3854bb3a88e726a8c08e7507",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 4692854,
+        "sha256": "4c082085f41d80bce5f59747845fa3a5c363d27a820a25504617d0dc817b7a40",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML/scripts/generated registry transport only. No browser execution or current consumer packet request."
+  }
 }
