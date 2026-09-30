@@ -1,0 +1,1 @@
+{"description":"CBOE delayed options chains with in-house Black-Scholes IV/Greeks","env":{"S3_BUCKET":"justhodl-dashboard-live","S3_CHAIN_KEY":"data/cboe-options-chain.json"},"function_name":"justhodl-cboe-options-chain","handler":"lambda_function.lambda_handler","memory":1024,"runtime":"python3.12","schedule":"cron(5,35 * * * ? *)","timeout":300}
