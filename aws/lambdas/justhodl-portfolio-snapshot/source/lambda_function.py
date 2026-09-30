@@ -328,20 +328,52 @@ def load_s3_json(key, default=None):
             body.close()
 
 
-def query_pk(pk):
-    """Query DDB for all items with given pk."""
-    items = []
-    last_key = None
-    while True:
-        kwargs = {"KeyConditionExpression": "pk = :pk",
-                    "ExpressionAttributeValues": {":pk": pk}}
-        if last_key: kwargs["ExclusiveStartKey"] = last_key
-        resp = table.query(**kwargs)
-        items.extend(resp.get("Items", []))
-        last_key = resp.get("LastEvaluatedKey")
-        if not last_key: break
-    return [_scrub_decimals(i) for i in items]
+BOOK_MAX_ROWS=10000
+BOOK_MAX_PAGES=100
+BOOK_MAX_BYTES=8*1024*1024
+BOOK_READ_SECONDS=20
 
+
+class BookReadUnavailable(RuntimeError):
+    """Fixed diagnostics never include private record values."""
+
+
+def query_pk(pk):
+    """Complete, bounded, individually consistent pages; retain exact stored values."""
+    if pk not in {'POSITION','WATCHLIST'}:raise BookReadUnavailable('Unsupported book partition')
+    items=[];last_key=None;seen_keys=set();seen_cursors=set();size=2;pages=0
+    deadline=time.monotonic()+BOOK_READ_SECONDS
+    while True:
+        if pages>=BOOK_MAX_PAGES or time.monotonic()>deadline:raise BookReadUnavailable('Complete book read bound exceeded')
+        kwargs={'KeyConditionExpression':'pk = :pk','ExpressionAttributeValues':{':pk':pk},'ConsistentRead':True}
+        if last_key is not None:kwargs['ExclusiveStartKey']=last_key
+        try:response=table.query(**kwargs)
+        except Exception:raise BookReadUnavailable('Complete book page unavailable') from None
+        pages+=1
+        if time.monotonic()>deadline:raise BookReadUnavailable('Complete book read deadline exceeded')
+        if not isinstance(response,dict) or not isinstance(response.get('Items'),list):raise BookReadUnavailable('Complete book page malformed')
+        for item in response['Items']:
+            if time.monotonic()>deadline:raise BookReadUnavailable('Complete book read deadline exceeded')
+            if not isinstance(item,dict) or item.get('pk')!=pk or not isinstance(item.get('sk'),str) or not item['sk']:
+                raise BookReadUnavailable('Book record identity malformed')
+            identity=(item['pk'],item['sk'])
+            if identity in seen_keys:raise BookReadUnavailable('Repeated book record identity')
+            seen_keys.add(identity)
+            try:
+                source=accounting_source(item)
+                json.dumps(source,ensure_ascii=False,allow_nan=False).encode('utf-8')
+                size+=len(json.dumps(source,ensure_ascii=True,allow_nan=False).encode('utf-8'))+(1 if items else 0)
+            except (TypeError,ValueError,UnicodeError,RecursionError):raise BookReadUnavailable('Unsupported complete book record encoding') from None
+            if size>BOOK_MAX_BYTES or len(items)>=BOOK_MAX_ROWS:raise BookReadUnavailable('Complete book read bound exceeded')
+            items.append(item)
+        cursor=response.get('LastEvaluatedKey')
+        if cursor is None or cursor=={}:break
+        if not isinstance(cursor,dict) or set(cursor)!={'pk','sk'} or cursor.get('pk')!=pk or not isinstance(cursor.get('sk'),str) or not cursor['sk']:
+            raise BookReadUnavailable('Book continuation malformed')
+        marker=(cursor['pk'],cursor['sk'])
+        if marker in seen_cursors:raise BookReadUnavailable('Repeated book continuation')
+        seen_cursors.add(marker);last_key=cursor
+    return items
 
 def fetch_polygon_latest(symbol):
     """Get latest daily close from Polygon. Returns dict or None."""
@@ -662,8 +694,10 @@ def lambda_handler(event, context):
           f"-{len(sync_changes['removed_S'])+len(sync_changes['removed_A'])} stale")
 
     # 3. Re-query after sync
+    book_read_started_at = datetime.now(timezone.utc).isoformat()
     positions = query_pk("POSITION")
     watchlist = query_pk("WATCHLIST")
+    book_read_completed_at = datetime.now(timezone.utc).isoformat()
     print(f"  positions={len(positions)} watchlist={len(watchlist)}")
 
     # 4. Build unique symbol set + fetch prices in parallel
@@ -715,7 +749,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.2",
+        "audit_version": "2026-09-30.3",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
@@ -723,6 +757,16 @@ def lambda_handler(event, context):
         "accounting": {
             "schema_version": "holdings-accounting.v1", "valuation_at": accounting_now.isoformat(),
             "source_positions": accounting_source(positions), "source_prices": accounting_source(price_data),
+            "source_watchlist": accounting_source(watchlist),
+            "book_read": {
+                "schema_version": "portfolio-book-read.v1", "status": "COMPLETE",
+                "consistency": "STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT",
+                "started_at": book_read_started_at, "completed_at": book_read_completed_at,
+                "position_count": len(positions), "watchlist_count": len(watchlist),
+                "exact_stored_decimal_evidence": True, "account_reconciled": False,
+                "per_partition_bounds": {"rows": BOOK_MAX_ROWS, "pages": BOOK_MAX_PAGES,
+                    "encoded_bytes": BOOK_MAX_BYTES, "acceptance_seconds": BOOK_READ_SECONDS},
+            },
             "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
             "assumptions_verified": False, "allows_sizing": False,
         },

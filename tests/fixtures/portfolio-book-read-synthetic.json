@@ -1,0 +1,235 @@
+{
+  "scope": "Current reviewed snapshot with complete invented table pages, mocked providers, publishers and sidecars. No actual private data or AWS calls. Archived source stays inert.",
+  "source_sha256": "3c3e410a77ce6d547bdfccb19a732800ab27b2b2f03c2ebcbe3bd06276506e40",
+  "source_bytes": 44708,
+  "cases": [
+    {
+      "name": "missing_items_is_published_as_empty_book",
+      "complete_configured_pages": [
+        {}
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          },
+          "ConsistentRead": true
+        }
+      ],
+      "complete_responses": [
+        {}
+      ],
+      "result": null,
+      "writes": [],
+      "error": {
+        "type": "BookReadUnavailable",
+        "message": "Complete book page malformed"
+      }
+    },
+    {
+      "name": "missing_second_page_is_published_as_complete_partial_book",
+      "complete_configured_pages": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ],
+          "LastEvaluatedKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        },
+        {}
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          },
+          "ConsistentRead": true
+        },
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          },
+          "ConsistentRead": true,
+          "ExclusiveStartKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        }
+      ],
+      "complete_responses": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ],
+          "LastEvaluatedKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        },
+        {}
+      ],
+      "result": null,
+      "writes": [],
+      "error": {
+        "type": "BookReadUnavailable",
+        "message": "Complete book page malformed"
+      }
+    },
+    {
+      "name": "exact_stored_decimal_source_is_rounded_before_retention",
+      "complete_configured_pages": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "9007199254740993"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "0.10000000000000000001"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ]
+        }
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          },
+          "ConsistentRead": true
+        }
+      ],
+      "complete_responses": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "9007199254740993"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "0.10000000000000000001"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ]
+        }
+      ],
+      "result": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "9007199254740993"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "0.10000000000000000001"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "Complete invented owner record"
+        }
+      ],
+      "writes": [],
+      "error": null
+    },
+    {
+      "name": "malformed_items_text_is_returned_as_three_rows",
+      "complete_configured_pages": [
+        {
+          "Items": "bad"
+        }
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          },
+          "ConsistentRead": true
+        }
+      ],
+      "complete_responses": [
+        {
+          "Items": "bad"
+        }
+      ],
+      "result": null,
+      "writes": [],
+      "error": {
+        "type": "BookReadUnavailable",
+        "message": "Complete book page malformed"
+      }
+    }
+  ],
+  "actual_private_reads": 0,
+  "native_invocations": 0
+}

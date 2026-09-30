@@ -1,0 +1,527 @@
+{
+  "scope": "Current reviewed snapshot with complete invented table pages, mocked providers, publishers and sidecars. No actual private data or AWS calls. Archived source stays inert.",
+  "source_sha256": "df03da2444ee74bd21ba9afaf43261db6e1a5a58fb8201e415a40f527fc8ec28",
+  "source_bytes": 41506,
+  "cases": [
+    {
+      "name": "missing_items_is_published_as_empty_book",
+      "complete_configured_pages": [
+        {}
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          }
+        },
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "WATCHLIST"
+          }
+        }
+      ],
+      "complete_responses": [
+        {},
+        {
+          "Items": []
+        }
+      ],
+      "result": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 0, \"n_watchlist\": 0, \"total_market_value\": 0.0, \"total_pnl_dollars\": 0.0, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.0}"
+      },
+      "writes": [
+        {
+          "sink": "invented-private-mirror",
+          "kind": "portfolio-snapshot",
+          "payload": {
+            "generated_at": "2026-09-30T07:32:23.121160+00:00",
+            "audit_version": "2026-09-30.2",
+            "generated_at_unix": 1790753543,
+            "elapsed_seconds": 0.0,
+            "portfolio_summary": {
+              "n_positions": 0,
+              "priced_positions_count": 0,
+              "basis_positions_count": 0,
+              "pnl_eligible_positions_count": 0,
+              "total_market_value": 0.0,
+              "total_market_value_scope": "all positions priced",
+              "total_cost_basis": 0.0,
+              "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+              "total_pnl_dollars": 0.0,
+              "total_pnl_pct": null,
+              "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+              "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+              "pnl_pct_denominator": 0.0,
+              "unpriced_positions": [],
+              "pnl_excluded_positions": [],
+              "unpriced_cost_basis": 0.0,
+              "unpriced_cost_basis_known_count": 0,
+              "stops_hit_count": 0,
+              "stops_hit": [],
+              "stops_not_evaluable": [],
+              "accounting_coverage_status": "EMPTY",
+              "accounting_reason_codes": [],
+              "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+            },
+            "accounting": {
+              "schema_version": "holdings-accounting.v1",
+              "valuation_at": "2026-09-30T07:32:23.121160+00:00",
+              "source_positions": [],
+              "source_prices": {},
+              "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+              "assumptions_verified": false,
+              "allows_sizing": false
+            },
+            "capital_book": {
+              "schema_version": "1.0",
+              "status": "BLOCKED",
+              "allows_new_entries": false,
+              "reason_codes": [
+                "MISSING_RECONCILED_CAPITAL_LEDGER"
+              ],
+              "as_of": "2026-09-30T07:32:23.121160+00:00",
+              "book_id": null,
+              "account_id": null,
+              "currency": null,
+              "equity_nav": null,
+              "cash": null,
+              "liabilities": null,
+              "reconciled_at": null,
+              "reserved_order_exposure": null,
+              "nav_history": [],
+              "open_orders": [],
+              "gross_exposure": 0.0,
+              "net_exposure": 0.0,
+              "exposure_scope": "ALL_POSITIONS",
+              "positions": [],
+              "unpriced_positions": []
+            },
+            "positions": [],
+            "watchlist": [],
+            "sector_concentration": [],
+            "watchlist_sync": {
+              "added_S": [],
+              "added_A": [],
+              "removed_S": [],
+              "removed_A": [],
+              "status": "SKIPPED_INVALID_SOURCE"
+            },
+            "counts": {
+              "positions": 0,
+              "watchlist": 0,
+              "auto_watch_S": 0,
+              "auto_watch_A": 0,
+              "manual_watch": 0
+            }
+          }
+        },
+        {
+          "sink": "invented-s3",
+          "Bucket": "justhodl-dashboard-live",
+          "Key": "portfolio/snapshot.json",
+          "Body": {
+            "source_type": "bytes",
+            "utf8": "{\"generated_at\":\"2026-09-30T07:32:23.121160+00:00\",\"audit_version\":\"2026-09-30.2\",\"generated_at_unix\":1790753543,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":0,\"priced_positions_count\":0,\"basis_positions_count\":0,\"pnl_eligible_positions_count\":0,\"total_market_value\":0.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":0.0,\"total_cost_basis_scope\":\"Known signed quantity-times-unit-cost only\",\"total_pnl_dollars\":0.0,\"total_pnl_pct\":null,\"pnl_scope\":\"Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX\",\"pnl_pct_basis\":\"SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN\",\"pnl_pct_denominator\":0.0,\"unpriced_positions\":[],\"pnl_excluded_positions\":[],\"unpriced_cost_basis\":0.0,\"unpriced_cost_basis_known_count\":0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[],\"accounting_coverage_status\":\"EMPTY\",\"accounting_reason_codes\":[],\"accounting_assumptions\":\"Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified\"},\"accounting\":{\"schema_version\":\"holdings-accounting.v1\",\"valuation_at\":\"2026-09-30T07:32:23.121160+00:00\",\"source_positions\":[],\"source_prices\":{},\"nonfinite_source_encoding\":\"rejected_number_type plus exact source representation\",\"assumptions_verified\":false,\"allows_sizing\":false},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T07:32:23.121160+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":0.0,\"net_exposure\":0.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[],\"unpriced_positions\":[]},\"positions\":[],\"watchlist\":[],\"sector_concentration\":[],\"watchlist_sync\":{\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\"},\"counts\":{\"positions\":0,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}"
+          },
+          "ContentType": "application/json",
+          "CacheControl": "private, no-store"
+        }
+      ]
+    },
+    {
+      "name": "missing_second_page_is_published_as_complete_partial_book",
+      "complete_configured_pages": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ],
+          "LastEvaluatedKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        },
+        {}
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          }
+        },
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          },
+          "ExclusiveStartKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        },
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "WATCHLIST"
+          }
+        }
+      ],
+      "complete_responses": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ],
+          "LastEvaluatedKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        },
+        {},
+        {
+          "Items": []
+        }
+      ],
+      "result": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 1, \"n_watchlist\": 0, \"total_market_value\": 1100.0, \"total_pnl_dollars\": 100.0, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.0}"
+      },
+      "writes": [
+        {
+          "sink": "invented-private-mirror",
+          "kind": "portfolio-snapshot",
+          "payload": {
+            "generated_at": "2026-09-30T07:32:23.122211+00:00",
+            "audit_version": "2026-09-30.2",
+            "generated_at_unix": 1790753543,
+            "elapsed_seconds": 0.0,
+            "portfolio_summary": {
+              "n_positions": 1,
+              "priced_positions_count": 1,
+              "basis_positions_count": 1,
+              "pnl_eligible_positions_count": 1,
+              "total_market_value": 1100.0,
+              "total_market_value_scope": "all positions priced",
+              "total_cost_basis": 1000.0,
+              "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+              "total_pnl_dollars": 100.0,
+              "total_pnl_pct": 10.0,
+              "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+              "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+              "pnl_pct_denominator": 1000.0,
+              "unpriced_positions": [],
+              "pnl_excluded_positions": [],
+              "unpriced_cost_basis": 0.0,
+              "unpriced_cost_basis_known_count": 0,
+              "stops_hit_count": 0,
+              "stops_hit": [],
+              "stops_not_evaluable": [],
+              "accounting_coverage_status": "COMPLETE",
+              "accounting_reason_codes": [],
+              "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+            },
+            "accounting": {
+              "schema_version": "holdings-accounting.v1",
+              "valuation_at": "2026-09-30T07:32:23.122211+00:00",
+              "source_positions": [
+                {
+                  "pk": "POSITION",
+                  "sk": "AAA",
+                  "symbol": "AAA",
+                  "qty": 10.0,
+                  "cost_basis_per_share": 100.0,
+                  "cost_basis_total": 1000.0,
+                  "position_type": "LONG",
+                  "notes": "Complete invented owner record"
+                }
+              ],
+              "source_prices": {
+                "AAA": {
+                  "price": 110,
+                  "as_of_unix_ms": 1790753543122
+                }
+              },
+              "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+              "assumptions_verified": false,
+              "allows_sizing": false
+            },
+            "capital_book": {
+              "schema_version": "1.0",
+              "status": "BLOCKED",
+              "allows_new_entries": false,
+              "reason_codes": [
+                "MISSING_RECONCILED_CAPITAL_LEDGER"
+              ],
+              "as_of": "2026-09-30T07:32:23.122211+00:00",
+              "book_id": null,
+              "account_id": null,
+              "currency": null,
+              "equity_nav": null,
+              "cash": null,
+              "liabilities": null,
+              "reconciled_at": null,
+              "reserved_order_exposure": null,
+              "nav_history": [],
+              "open_orders": [],
+              "gross_exposure": 1100.0,
+              "net_exposure": 1100.0,
+              "exposure_scope": "ALL_POSITIONS",
+              "positions": [
+                {
+                  "symbol": "AAA",
+                  "current_price": 110.0,
+                  "price_asof_unix_ms": 1790753543122.0,
+                  "price_provider": "polygon:prev_close",
+                  "price_open": null,
+                  "price_high": null,
+                  "price_low": null,
+                  "volume": null,
+                  "confluence_tier": null,
+                  "source_record_index": 0,
+                  "qty": 10.0,
+                  "cost_basis_per_share": 100.0,
+                  "cost_basis_total": 1000.0,
+                  "market_value": 1100.0,
+                  "pnl_dollars": 100.0,
+                  "pnl_pct": 10.0,
+                  "position_type": "LONG",
+                  "valuation_status": "PRICED",
+                  "mark_age_h": 0.0,
+                  "pnl_eligible": true,
+                  "accounting_reason_codes": [],
+                  "stop_loss": null,
+                  "stop_hit": null,
+                  "stop_distance_pct": null,
+                  "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+                  "target_weight_pct": null,
+                  "added_at": null,
+                  "notes": "Complete invented owner record",
+                  "weight_drift_pct": null,
+                  "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+                  "current_weight_pct": 100.0,
+                  "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+                  "gross_holdings_weight_pct": 100.0,
+                  "gross_holdings_weight_scope": "ALL_HOLDINGS"
+                }
+              ],
+              "unpriced_positions": []
+            },
+            "positions": [
+              {
+                "symbol": "AAA",
+                "current_price": 110.0,
+                "price_asof_unix_ms": 1790753543122.0,
+                "price_provider": "polygon:prev_close",
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "confluence_tier": null,
+                "source_record_index": 0,
+                "qty": 10.0,
+                "cost_basis_per_share": 100.0,
+                "cost_basis_total": 1000.0,
+                "market_value": 1100.0,
+                "pnl_dollars": 100.0,
+                "pnl_pct": 10.0,
+                "position_type": "LONG",
+                "valuation_status": "PRICED",
+                "mark_age_h": 0.0,
+                "pnl_eligible": true,
+                "accounting_reason_codes": [],
+                "stop_loss": null,
+                "stop_hit": null,
+                "stop_distance_pct": null,
+                "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+                "target_weight_pct": null,
+                "added_at": null,
+                "notes": "Complete invented owner record",
+                "weight_drift_pct": null,
+                "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+                "current_weight_pct": 100.0,
+                "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+                "gross_holdings_weight_pct": 100.0,
+                "gross_holdings_weight_scope": "ALL_HOLDINGS"
+              }
+            ],
+            "watchlist": [],
+            "sector_concentration": [
+              {
+                "sector": "Unknown",
+                "value": 1100.0,
+                "weight_pct": 100.0,
+                "weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV"
+              }
+            ],
+            "watchlist_sync": {
+              "added_S": [],
+              "added_A": [],
+              "removed_S": [],
+              "removed_A": [],
+              "status": "SKIPPED_INVALID_SOURCE"
+            },
+            "counts": {
+              "positions": 1,
+              "watchlist": 0,
+              "auto_watch_S": 0,
+              "auto_watch_A": 0,
+              "manual_watch": 0
+            }
+          }
+        },
+        {
+          "sink": "invented-s3",
+          "Bucket": "justhodl-dashboard-live",
+          "Key": "portfolio/snapshot.json",
+          "Body": {
+            "source_type": "bytes",
+            "utf8": "{\"generated_at\":\"2026-09-30T07:32:23.122211+00:00\",\"audit_version\":\"2026-09-30.2\",\"generated_at_unix\":1790753543,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"priced_positions_count\":1,\"basis_positions_count\":1,\"pnl_eligible_positions_count\":1,\"total_market_value\":1100.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":1000.0,\"total_cost_basis_scope\":\"Known signed quantity-times-unit-cost only\",\"total_pnl_dollars\":100.0,\"total_pnl_pct\":10.0,\"pnl_scope\":\"Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX\",\"pnl_pct_basis\":\"SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN\",\"pnl_pct_denominator\":1000.0,\"unpriced_positions\":[],\"pnl_excluded_positions\":[],\"unpriced_cost_basis\":0.0,\"unpriced_cost_basis_known_count\":0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[],\"accounting_coverage_status\":\"COMPLETE\",\"accounting_reason_codes\":[],\"accounting_assumptions\":\"Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified\"},\"accounting\":{\"schema_version\":\"holdings-accounting.v1\",\"valuation_at\":\"2026-09-30T07:32:23.122211+00:00\",\"source_positions\":[{\"pk\":\"POSITION\",\"sk\":\"AAA\",\"symbol\":\"AAA\",\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"position_type\":\"LONG\",\"notes\":\"Complete invented owner record\"}],\"source_prices\":{\"AAA\":{\"price\":110,\"as_of_unix_ms\":1790753543122}},\"nonfinite_source_encoding\":\"rejected_number_type plus exact source representation\",\"assumptions_verified\":false,\"allows_sizing\":false},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T07:32:23.122211+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":1100.0,\"net_exposure\":1100.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790753543122.0,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"source_record_index\":0,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":1100.0,\"pnl_dollars\":100.0,\"pnl_pct\":10.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"pnl_eligible\":true,\"accounting_reason_codes\":[],\"stop_loss\":null,\"stop_hit\":null,\"stop_distance_pct\":null,\"stop_comparison_scope\":\"PREVIOUS_CLOSE_NOT_EXECUTION\",\"target_weight_pct\":null,\"added_at\":null,\"notes\":\"Complete invented owner record\",\"weight_drift_pct\":null,\"weight_drift_reason\":\"TARGET_DENOMINATOR_UNVERIFIED\",\"current_weight_pct\":100.0,\"current_weight_scope\":\"SIGNED_NET_HOLDINGS_NOT_NAV\",\"gross_holdings_weight_pct\":100.0,\"gross_holdings_weight_scope\":\"ALL_HOLDINGS\"}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790753543122.0,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"source_record_index\":0,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":1100.0,\"pnl_dollars\":100.0,\"pnl_pct\":10.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"pnl_eligible\":true,\"accounting_reason_codes\":[],\"stop_loss\":null,\"stop_hit\":null,\"stop_distance_pct\":null,\"stop_comparison_scope\":\"PREVIOUS_CLOSE_NOT_EXECUTION\",\"target_weight_pct\":null,\"added_at\":null,\"notes\":\"Complete invented owner record\",\"weight_drift_pct\":null,\"weight_drift_reason\":\"TARGET_DENOMINATOR_UNVERIFIED\",\"current_weight_pct\":100.0,\"current_weight_scope\":\"SIGNED_NET_HOLDINGS_NOT_NAV\",\"gross_holdings_weight_pct\":100.0,\"gross_holdings_weight_scope\":\"ALL_HOLDINGS\"}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":1100.0,\"weight_pct\":100.0,\"weight_scope\":\"SIGNED_NET_HOLDINGS_NOT_NAV\"}],\"watchlist_sync\":{\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\"},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}"
+          },
+          "ContentType": "application/json",
+          "CacheControl": "private, no-store"
+        }
+      ]
+    },
+    {
+      "name": "exact_stored_decimal_source_is_rounded_before_retention",
+      "complete_configured_pages": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "9007199254740993"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "0.10000000000000000001"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ]
+        }
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          }
+        }
+      ],
+      "complete_responses": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "9007199254740993"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "0.10000000000000000001"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "Complete invented owner record"
+            }
+          ]
+        }
+      ],
+      "result": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": 9007199254740992.0,
+          "cost_basis_per_share": 0.1,
+          "cost_basis_total": 1000.0,
+          "position_type": "LONG",
+          "notes": "Complete invented owner record"
+        }
+      ],
+      "writes": []
+    },
+    {
+      "name": "malformed_items_text_is_returned_as_three_rows",
+      "complete_configured_pages": [
+        {
+          "Items": "bad"
+        }
+      ],
+      "calls": [
+        {
+          "KeyConditionExpression": "pk = :pk",
+          "ExpressionAttributeValues": {
+            ":pk": "POSITION"
+          }
+        }
+      ],
+      "complete_responses": [
+        {
+          "Items": "bad"
+        }
+      ],
+      "result": [
+        "b",
+        "a",
+        "d"
+      ],
+      "writes": []
+    }
+  ],
+  "actual_private_reads": 0,
+  "native_invocations": 0
+}
