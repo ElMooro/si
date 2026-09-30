@@ -5,12 +5,13 @@ import base64
 import hashlib
 import json
 import os
+import time
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
-from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars, snapshot_value_identity
+from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars, snapshot_value_identity, MAX_SOURCE_BYTES, source_document
 
 S3_BUCKET = "justhodl-dashboard-live"
 SNAPSHOT_KEY = "portfolio/snapshot.json"
@@ -115,6 +116,48 @@ SCENARIOS = {
 }
 
 
+def read_provider_response(response, deadline):
+    """Complete HTTP message with a byte bound and elapsed-time acceptance gate.
+
+    read1 returns available socket data instead of waiting to fill a large read.
+    The existing twenty-second socket timeout still bounds a blocked read; the
+    elapsed-time gate never accepts a body that finishes after the deadline.
+    """
+    if response.status != 200:
+        raise ValueError('Complete provider HTTP response required')
+    lengths = response.headers.get_all('Content-Length') or []
+    if len(lengths) > 1:
+        raise ValueError('Ambiguous provider response length')
+    declared = None
+    if lengths:
+        text = lengths[0]
+        if type(text) is not str:
+            raise ValueError('Invalid provider response length')
+        text = text.strip(' \t')
+        if not text or any(c not in '0123456789' for c in text):
+            raise ValueError('Invalid provider response length')
+        declared = int(text)
+        if declared > MAX_SOURCE_BYTES:
+            raise ValueError('Provider response exceeds complete byte bound')
+    parts, size = [], 0
+    while True:
+        if time.monotonic() >= deadline:
+            raise TimeoutError('Provider response acceptance deadline exceeded')
+        part = response.read1(min(65536, MAX_SOURCE_BYTES + 1 - size))
+        if time.monotonic() >= deadline:
+            raise TimeoutError('Provider response acceptance deadline exceeded')
+        if type(part) is not bytes:
+            raise ValueError('Provider response must contain bytes')
+        if not part: break
+        size += len(part)
+        if size > MAX_SOURCE_BYTES:
+            raise ValueError('Provider response exceeds complete byte bound')
+        parts.append(part)
+    if declared is not None and declared != size:
+        raise ValueError('Incomplete provider response body')
+    return b''.join(parts)
+
+
 def fetch_polygon_bars(symbol, lookback_days=180):
     if not POLY_KEY:
         return {"error": "PROVIDER_CREDENTIAL_UNAVAILABLE"}
@@ -125,13 +168,14 @@ def fetch_polygon_bars(symbol, lookback_days=180):
     url = "https://api.polygon.io" + path + "?" + query + "&apiKey=" + urllib.parse.quote(POLY_KEY, safe='')
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-PortfolioRisk/2.0"})
+        deadline = time.monotonic() + 20
         with urllib.request.urlopen(req, timeout=20) as response:
-            raw = response.read()
+            raw = read_provider_response(response, deadline)
         if POLY_KEY.encode() in raw:
             raise ValueError("provider echoed a credential")
-        packet = json.loads(raw)
-        if not isinstance(packet, dict):
-            raise ValueError("invalid provider packet")
+        packet = source_document(raw)
+        if '_source_evidence' in packet:
+            raise ValueError("provider response contains reserved evidence field")
         packet['_source_evidence'] = {"request": "https://api.polygon.io"+path+"?"+query,
             "received_at": datetime.now(timezone.utc).isoformat(), "body_sha256": hashlib.sha256(raw).hexdigest(),
             "raw_body_base64": base64.b64encode(raw).decode(),

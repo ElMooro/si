@@ -29,7 +29,10 @@ class SnapshotBinding(unittest.TestCase):
 
     def test_current_complete_bundle_replays_with_binding(self):
         retained=json.loads((ROOT/'tests/fixtures/portfolio-coherence-bound-synthetic.json').read_bytes())
-        self.assertEqual(model.replay(retained['bundle']),retained['output'])
+        # Retain the whole old compiler-bound bundle; execute only current code.
+        with self.assertRaisesRegex(ValueError,'code/schema mismatch'):model.replay(retained['bundle'])
+        current,output=model.freeze(**retained['bundle']['inputs'])
+        self.assertEqual(model.replay(current),output);self.assertEqual(output,retained['output'])
         bundle,output=model.freeze(**self.predecessor['bundle']['inputs'])
         self.assertEqual(model.replay(bundle),output)
         altered=deepcopy(bundle);altered['inputs']['snapshot']['positions'][0]['qty']+=1

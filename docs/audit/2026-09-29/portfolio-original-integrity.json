@@ -1,0 +1,82 @@
+{
+  "stage": 443,
+  "status": "source_and_full_checks_accepted_exact_deployment_pending",
+  "checked_at": "2026-09-30T01:19:01.596200+00:00",
+  "baseline_commit": "543af3a9b8391c855d7d8725d58681ad88ebfa2d",
+  "predecessor": "portfolio-original-predecessor.json",
+  "native_predecessor": "portfolio-original-native-predecessor.json",
+  "source_findings": "portfolio-original-source-gap.json",
+  "improvements": [
+    "Whole provider responses are read to EOF within four MiB, with HTTP 200, unambiguous optional lengths, fixed socket timeout and a monotonic header/body acceptance deadline. Accepted responses retain every original byte; failures never accept a prefix or trigger retries.",
+    "Adapter and pure model both require complete strict UTF-8 JSON, reject duplicate decoded keys, nonfinite/invalid Unicode/deep values and preserve unknown fields, every row and zero/null/false distinctions. Typed canonical source comparison prevents Python boolean/numeric equality from validating altered values.",
+    "The original source body and SHA-256 remain separate from parsed-value identity. Invalid affected inputs withhold modeled results. Existing formulas, scenario constants, schema, acquisition range, source identity and receipt windows remain unchanged."
+  ],
+  "unchanged_model_functions_except_read_bars": true,
+  "complete_valid_output_unchanged": true,
+  "synthetic_replay": {
+    "current_compilers": {
+      "portfolio_risk_model.py": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4",
+      "capital_contract.py": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65",
+      "instrument_identity.py": "a36f25f9e97d31c30e50c86f5c8b5ca902ae90fe50d4078a4b26fd247d9c54a9"
+    },
+    "complete_output_sha256": "392bb8b6c682d96e16bebbc89cb94de0615ddafaa367b7631b05c531ae8dd2d4",
+    "current_bundle_sha256": "f1cb9235fbf237a03375174573ee779c12793c86a6ffb72d27b69e5bd4e088bd",
+    "original_input_sha256": "39c15f82219921d96951627d6df09d573ccf3b23d2c19356521762cc0c0c4c1e",
+    "scope": "Complete wholly synthetic retained inputs; current compiler only; old code remains inert."
+  },
+  "source_identity": [
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "bytes": 23524,
+      "sha256": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4"
+    },
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+      "bytes": 14653,
+      "sha256": "3bbf0ef909c9a41d49cecf2617ba5244b3f045437346ebeadc254f19072424da"
+    }
+  ],
+  "boundaries": {
+    "native_invocations": 0,
+    "actual_private_account_reads": 0,
+    "current_packet_reads": 0,
+    "provider_probes": 0,
+    "actual_account_mutations": 0,
+    "paid_ai_requests": 0,
+    "access_policy_changes": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0
+  },
+  "limitations": [
+    "Exact changed native deployment and static build acceptance remain pending. The receipt-only baseline confirmed six source members, original 1024 MiB/300-second resources and both hourly :43 bindings.",
+    "The twenty-second monotonic gate rejects late completed bodies; existing socket/close operations are not a hard twenty-second process cancellation guarantee.",
+    "Fractional numbers retain existing binary floating-point semantics; this is not arbitrary-precision decimal validation. Original exact bytes remain separately retained.",
+    "Normal private publication, actual account reconciliation, provider market correctness and forecast qualification are unverified. No actual private/current packet is read. All ten institutional workstreams remain open."
+  ],
+  "tests": {
+    "new_original_response_cases": 16,
+    "portfolio_model_cases": 36,
+    "private_handler_checks": 10,
+    "scenario_cases": 24,
+    "real_stdlib_http_with_synthetic_bytes": true,
+    "frontend": 1987,
+    "deployment_static": 734,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143
+  },
+  "verification_recovery": {
+    "initial_full_attempt": "Timed out in unchanged tests/test_calls_liquidity_lineage.py; no assertion or source failure was reported.",
+    "failed_log_sha256": "5b64b60f12e97cd5901c479d18613ec3fa7fe70cb0ac5b8eb7e761348e208d18",
+    "isolated_original_wrapper": {
+      "started_at": "2026-09-30T01:30:47.111452+00:00",
+      "completed_at": "2026-09-30T01:30:59.702633+00:00",
+      "elapsed_seconds": 12.59299999999348,
+      "exit_code": 0,
+      "original_timeout_seconds": 120,
+      "test_unchanged": true,
+      "output": ""
+    },
+    "subsequent_complete_suite": "734 static and twelve shell checks passed; no timeout or assertion was changed."
+  }
+}

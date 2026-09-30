@@ -34,15 +34,69 @@ def rounded(value, digits=3):
     return round(value, digits) if finite(value) is not None else None
 
 
+MAX_SOURCE_BYTES = 4 * 1024 * 1024
+
+
+def source_value_bytes(value):
+    """Complete typed JSON identity; booleans must never compare as numbers."""
+    pending = [(value, 0)]
+    while pending:
+        item, depth = pending.pop()
+        if depth > 128:
+            raise ValueError('Original response nesting exceeds bound')
+        if item is None or type(item) in (bool, int):
+            continue
+        if type(item) is float:
+            if not math.isfinite(item): raise ValueError('Nonfinite original response number')
+        elif type(item) is str:
+            item.encode('utf-8', errors='strict')
+        elif type(item) is list:
+            pending.extend((child, depth + 1) for child in item)
+        elif type(item) is dict:
+            for key, child in item.items():
+                if type(key) is not str: raise ValueError('Original response key must be text')
+                key.encode('utf-8', errors='strict')
+                pending.append((child, depth + 1))
+        else:
+            raise ValueError('Original response requires JSON values')
+    return canonical(value)
+
+
+def source_document(raw):
+    """Decode a whole bounded original response, without rewriting its bytes."""
+    if type(raw) is not bytes or len(raw) > MAX_SOURCE_BYTES:
+        raise ValueError('Original response exceeds complete byte bound')
+    def pairs(rows):
+        out = {}
+        for key, value in rows:
+            if key in out: raise ValueError('Duplicate original response JSON field')
+            out[key] = value
+        return out
+    def constant(_): raise ValueError('Nonfinite original response JSON value')
+    try:
+        document = json.loads(raw.decode('utf-8', errors='strict'), object_pairs_hook=pairs, parse_constant=constant)
+        if type(document) is not dict: raise ValueError('Original response must be an object')
+        source_value_bytes(document)
+    except RecursionError as exc:
+        raise ValueError('Original response nesting exceeds bound') from exc
+    return document
+
+
 def read_bars(packet, symbol, now):
     errors, closes = [], {}
     if not isinstance(packet, dict) or packet.get('ticker') != symbol or packet.get('adjusted') is not True:
         return {}, ['BAR_IDENTITY_OR_ADJUSTMENT_UNVERIFIED']
-    evidence = packet.get('_source_evidence') or {}
+    evidence = packet.get('_source_evidence')
     try:
-        raw = base64.b64decode(evidence['raw_body_base64'], validate=True)
+        if type(evidence) is not dict:
+            raise ValueError('original response evidence must be an object')
+        encoded = evidence.get('raw_body_base64')
+        if type(encoded) is not str or len(encoded) > 4 * ((MAX_SOURCE_BYTES + 2) // 3):
+            raise ValueError('original response exceeds complete byte bound')
+        raw = base64.b64decode(encoded, validate=True)
+        document = source_document(raw)
         received = timestamp(evidence.get('received_at'))
-        if hashlib.sha256(raw).hexdigest() != evidence.get('body_sha256') or json.loads(raw) != {k:v for k,v in packet.items() if k != '_source_evidence'}:
+        if hashlib.sha256(raw).hexdigest() != evidence.get('body_sha256') or source_value_bytes(document) != source_value_bytes({k:v for k,v in packet.items() if k != '_source_evidence'}):
             raise ValueError('response mismatch')
         if received is None or not -300 <= (now-received).total_seconds() <= 3600:
             raise ValueError('receipt outside run window')
