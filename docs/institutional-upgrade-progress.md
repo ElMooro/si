@@ -6746,3 +6746,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 - Read-only operation 6391 reads only the reviewed safe failure-context events from the original September 30 execution window. It verifies the exact native package, receipt, resources and unchanged schedule before and after the diagnostic. Every matching event is validated; malformed or incomplete populations refuse instead of being truncated.
 - Six invented regression cases cover diagnostic typing, redaction, complete pagination, conflicting identities, scope isolation, population bounds and native configuration. All 934 deployment, fifteen shell, 18 native and six focused checks pass. The actual runner report remains pending. No current/private/account/consumer object, provider request or native invocation is used. A diagnostic is not recovery; all ten institutional workstreams remain open.
+
+
+### Stage 483 safe diagnostic acceptance
+
+- Read-only operation 6391 at `2f3132df1367c49cfdab75861ee3b6da7ff68ded`, run `36781738943`, passed with report commit `ae9ac03eaed183c9aed269ef05e5533ec8cc365f`. The original four-file native package, CodeSha256 `rTLqyoSzBvyCX0wYFGwwJmpgHWnsFy2TATNlmqZ/mJ8=`, resources and schedule match before and after the exact original execution-window diagnostic. All matching events are retained and schema-checked.
+- No matching reviewed failure context was found. Publication status and the failure cause remain unknown; absence is not success.
+- No native invoke, provider probe, actual current/private/account/consumer read, native data write or schedule change was used. The China engine remains open pending a reproduced repair and normal-publication evidence.
