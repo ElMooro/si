@@ -281,52 +281,72 @@ def _scrub_decimals(obj):
     return obj
 
 
+RESEARCH_SOURCE_MAX_BYTES = 8 * 1024 * 1024
+SNAPSHOT_MIRROR_MAX_BYTES = 20000000
+
+
+class ResearchDocument(dict):
+    def __init__(self, document, evidence):
+        super().__init__(document)
+        self.source_evidence = evidence
+
+
 def load_s3_json(key, default=None):
+    """Retain complete original research bytes; unavailable is not an empty source."""
+    import base64
     body = None
+    trace = {}
+    trace.update(schema_version='snapshot-research-source.v1', key=key,
+                 started_at=datetime.now(timezone.utc).isoformat(), completed_at=None,
+                 status='UNAVAILABLE', body_complete=False, reason_code=None,
+                 freshness_verified=False, upstream_provenance_verified=False)
     try:
         response = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        body = response["Body"]
-        expected = response.get("ContentLength")
-        if type(expected) is not int or not 0 <= expected <= 32 * 1024 * 1024:
-            raise ValueError("invalid source byte length")
+        body = response['Body']
+        expected = response.get('ContentLength')
+        available = RESEARCH_SOURCE_MAX_BYTES
+        if type(expected) is not int or not 0 <= expected <= available:
+            trace['reason_code'] = 'SOURCE_BYTE_BOUND_OR_INVALID_LENGTH'
+            raise ValueError('source byte bound')
         chunks, size, deadline = [], 0, time.monotonic() + 20
         while True:
-            if time.monotonic() > deadline:
-                raise ValueError("source acceptance deadline exceeded")
-            chunk = body.read(min(65536, 32 * 1024 * 1024 + 1 - size))
-            if not isinstance(chunk, bytes):
-                raise ValueError("source stream type invalid")
-            if time.monotonic() > deadline:
-                raise ValueError("source acceptance deadline exceeded")
-            if not chunk:
-                break
-            chunks.append(chunk)
+            if time.monotonic() > deadline:raise ValueError('source acceptance deadline')
+            chunk = body.read(min(65536, available + 1 - size))
+            if not isinstance(chunk, bytes):raise ValueError('source stream type')
+            if time.monotonic() > deadline:raise ValueError('source acceptance deadline')
+            if not chunk:break
             size += len(chunk)
-            if size > 32 * 1024 * 1024:
-                raise ValueError("source byte bound exceeded")
-        if size != expected:
-            raise ValueError("incomplete source body")
+            if size > available:raise ValueError('source byte bound')
+            chunks.append(chunk)
+        if size != expected:raise ValueError('incomplete source body')
+        raw = b''.join(chunks)
+        trace.update(body_complete=True, body_bytes=size, body_sha256=hashlib.sha256(raw).hexdigest(),
+                     body_encoding='base64', body=base64.b64encode(raw).decode('ascii'))
         def pairs(rows):
             out = {}
             for name, value in rows:
-                if name in out:
-                    raise ValueError("duplicate source member")
+                if name in out:raise ValueError('duplicate source member')
                 out[name] = value
             return out
-        def invalid_constant(value):
-            raise ValueError("nonfinite source number")
-        out = json.loads(b"".join(chunks).decode("utf-8"), object_pairs_hook=pairs, parse_constant=invalid_constant)
-        # Reject numeric overflow, lone surrogates and non-object sidecars.
-        json.dumps(out, allow_nan=False, ensure_ascii=False).encode("utf-8")
-        if not isinstance(out, dict):
-            raise ValueError("source sidecar is not an object")
-        return out
+        def invalid_constant(value):raise ValueError('nonfinite source number')
+        out = json.loads(raw.decode('utf-8'), object_pairs_hook=pairs, parse_constant=invalid_constant)
+        json.dumps(out, allow_nan=False, ensure_ascii=False).encode('utf-8')
+        if not isinstance(out, dict):raise ValueError('source sidecar is not an object')
+        trace.update(status='COMPLETE_JSON_OBJECT', reason_code=None,
+                     declared_generated_at=out.get('generated_at') if isinstance(out.get('generated_at'), str) else None)
+        return ResearchDocument(out, trace)
     except Exception:
-        print(f"  [s3:{key}] source unavailable or invalid")
-        return default
+        trace['reason_code'] = trace['reason_code'] or 'SOURCE_UNAVAILABLE_OR_INVALID'
+        print(f'  [s3:{key}] source unavailable or invalid')
+        return ResearchDocument(default, trace) if isinstance(default, dict) else default
     finally:
+        trace['completed_at'] = datetime.now(timezone.utc).isoformat()
         if body is not None:
-            body.close()
+            try:
+                body.close()
+                trace['stream_close_confirmed'] = True
+            except Exception:
+                trace['stream_close_confirmed'] = False
 
 
 BOOK_MAX_ROWS=10000
@@ -521,8 +541,60 @@ def sync_auto_watchlist(alpha_data):
 # ENRICHMENT
 # ═══════════════════════════════════════════════════════════════════════
 
-def index_by_symbol(rows, sym_key="symbol"):
-    return {r[sym_key]: r for r in rows if isinstance(r, dict) and isinstance(r.get(sym_key), str)} if isinstance(rows, list) else {}
+class ResearchIndex(dict):
+    """Index unique identified occurrences without overwriting duplicate evidence."""
+    def __init__(self, rows, symbol_key='symbol'):
+        super().__init__()
+        self.occurrences = {}
+        self.invalid_occurrences = []
+        self.source_shape = 'ARRAY' if isinstance(rows, list) else 'UNAVAILABLE_OR_INVALID_ARRAY'
+        self.row_count = len(rows) if isinstance(rows, list) else None
+        if not isinstance(rows, list):return
+        for index, row in enumerate(rows):
+            symbol = accounting_symbol({'symbol':row.get(symbol_key)}) if isinstance(row, dict) else None
+            if symbol is None:
+                self.invalid_occurrences.append(index)
+                continue
+            self.occurrences.setdefault(symbol, []).append(index)
+        for symbol, positions in self.occurrences.items():
+            if len(positions) == 1:self[symbol] = rows[positions[0]]
+
+    def evidence(self, symbol):
+        positions = self.occurrences.get(symbol, [])
+        status = 'UNIQUE_SOURCE_ROW' if len(positions) == 1 else 'AMBIGUOUS_DUPLICATE_SYMBOL' if positions else 'NO_IDENTIFIED_ROW'
+        if self.source_shape != 'ARRAY':status = self.source_shape
+        return {'status':status, 'zero_based_occurrences':positions}
+
+    def summary(self):
+        return {'source_shape':self.source_shape, 'source_row_count':self.row_count,
+                'unique_usable_symbols':len(self), 'invalid_zero_based_occurrences':self.invalid_occurrences,
+                'duplicate_symbol_occurrences':{symbol:positions for symbol,positions in self.occurrences.items() if len(positions)>1}}
+
+
+def index_by_symbol(rows, sym_key='symbol'):
+    return ResearchIndex(rows, sym_key)
+
+
+def research_text(value):
+    return value if isinstance(value, str) and value.strip() else None
+
+
+def research_value(value, depth=0):
+    """Keep exposed research fields representable by the existing browser binding."""
+    if depth > 64:return False
+    if value is None or type(value) in (bool, str):return True
+    if type(value) in (int, float):
+        return accounting_number(value) is not None and abs(value) <= 2**53-1
+    if isinstance(value, list):return all(research_value(item, depth+1) for item in value)
+    if isinstance(value, dict):return all(isinstance(key, str) and research_value(item, depth+1) for key,item in value.items())
+    return False
+
+
+def research_join(index, symbol, key, array_path):
+    evidence = index.evidence(symbol) if isinstance(index, ResearchIndex) else {'status':'INDEX_PROVENANCE_UNAVAILABLE','zero_based_occurrences':[]}
+    return {'source_key':key, 'array_path':array_path, **evidence,
+            'freshness_verified':False, 'independent_evidence_verified':False, 'allows_sizing':False}
+
 
 
 def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx,
@@ -547,46 +619,58 @@ def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx
     rec["price_low"] = p.get("low")
     rec["volume"] = p.get("volume")
 
-    # Alpha-score
+    # Descriptive source fields only. Invalid values never become measured zero.
+    rec['research_evidence'] = {
+        'schema_version':'snapshot-research-joins.v1', 'allows_sizing':False,
+        'alpha':research_join(alpha_idx, sym, ALPHA_KEY, 'stocks'),
+        'confluence_s':research_join(confluence_s_idx, sym, CONFLUENCE_KEY, 'tier_s_confluence'),
+        'confluence_a':research_join(confluence_a_idx, sym, CONFLUENCE_KEY, 'tier_a_confluence'),
+        'confluence_b':research_join(confluence_b_idx, sym, CONFLUENCE_KEY, 'tier_b_confluence'),
+        'regime':research_join(regime_picks_idx, sym, REGIME_KEY, 'regime_picks'),
+        'sentiment':research_join(sentiment_idx, sym, SENTIMENT_KEY, 'sentiment'),
+        'invalid_fields':[], 'interpretation':'Descriptive source fields; freshness, independence and predictive validity unverified',
+    }
+    invalid = rec['research_evidence']['invalid_fields']
+    for field in ('alpha_score','tier','rank','name','sector','components','top_signals','risk_flags',
+                  'confluence_tier','confluence_count','components_firing','regime_adj','regime_adj_score',
+                  'sentiment_signal','sentiment_score','sentiment_reason'):
+        rec[field] = None
+    def accept(field, source, source_field, validator):
+        value = source.get(source_field)
+        valid = validator(value)
+        rec[field] = value if valid else None
+        if source_field in source and value is not None and not valid:invalid.append(field)
+    finite = lambda value:accounting_number(value) is not None and abs(value) <= 2**53-1
+    text = lambda value:research_text(value) is not None
     alpha_row = alpha_idx.get(sym)
-    if alpha_row:
-        rec["alpha_score"] = alpha_row.get("alpha_score")
-        rec["tier"] = alpha_row.get("tier")
-        rec["rank"] = alpha_row.get("rank")
-        rec["name"] = alpha_row.get("name")
-        rec["sector"] = alpha_row.get("sector")
-        rec["components"] = alpha_row.get("components")
-        rec["top_signals"] = (alpha_row.get("top_signals") or [])[:3]
-        rec["risk_flags"] = (alpha_row.get("risk_flags") or [])[:3]
-
-    # Confluence (which tier of confluence?)
-    if sym in confluence_s_idx:
-        rec["confluence_tier"] = "S"
-        rec["confluence_count"] = confluence_s_idx[sym].get("confluence_count")
-        rec["components_firing"] = confluence_s_idx[sym].get("components_firing")
-    elif sym in confluence_a_idx:
-        rec["confluence_tier"] = "A"
-        rec["confluence_count"] = confluence_a_idx[sym].get("confluence_count")
-    elif sym in confluence_b_idx:
-        rec["confluence_tier"] = "B"
-        rec["confluence_count"] = confluence_b_idx[sym].get("confluence_count")
-    else:
-        rec["confluence_tier"] = None
-
-    # Regime fit
+    if isinstance(alpha_row, dict):
+        accept('alpha_score', alpha_row, 'alpha_score', lambda value:finite(value) and 0 <= value <= 100)
+        accept('tier', alpha_row, 'tier', lambda value:isinstance(value, str) and value in {'S','A','B','C','D'})
+        accept('rank', alpha_row, 'rank', lambda value:type(value) is int and 0 < value <= 2**53-1)
+        for field in ('name','sector'):accept(field, alpha_row, field, text)
+        accept('components', alpha_row, 'components', lambda value:isinstance(value, dict) and research_value(value))
+        for field in ('top_signals','risk_flags'):accept(field, alpha_row, field, lambda value:isinstance(value, list) and research_value(value))
+    tier_sources = [('S',confluence_s_idx),('A',confluence_a_idx),('B',confluence_b_idx)]
+    observed_tiers = [(tier,index) for tier,index in tier_sources if sym in index or isinstance(index,ResearchIndex) and bool(index.occurrences.get(sym))]
+    if len(observed_tiers) == 1:
+        tier, index = observed_tiers[0]
+        row = index.get(sym)
+        if isinstance(row, dict):
+            rec['confluence_tier'] = tier
+            accept('confluence_count', row, 'confluence_count', lambda value:type(value) is int and 0 <= value <= 2**53-1)
+            accept('components_firing', row, 'components_firing', lambda value:isinstance(value, list) and research_value(value))
+    elif len(observed_tiers) > 1:
+        rec['research_evidence']['confluence_conflict'] = 'SYMBOL_OCCURS_IN_MULTIPLE_TIERS'
     regime_row = regime_picks_idx.get(sym)
-    if regime_row:
-        rec["regime_adj"] = regime_row.get("regime_adj")
-        rec["regime_adj_score"] = regime_row.get("regime_adj_score")
-
-    # News sentiment
+    if isinstance(regime_row, dict):
+        for field in ('regime_adj','regime_adj_score'):accept(field, regime_row, field, finite)
     sent_row = sentiment_idx.get(sym)
-    if sent_row:
-        rec["sentiment_signal"] = sent_row.get("sentimentSignal")
-        rec["sentiment_score"] = sent_row.get("sentimentScore")
-        rec["sentiment_reason"] = (sent_row.get("sentimentReason") or "")[:140]
-
+    if isinstance(sent_row, dict):
+        accept('sentiment_signal', sent_row, 'sentimentSignal', text)
+        accept('sentiment_score', sent_row, 'sentimentScore', finite)
+        accept('sentiment_reason', sent_row, 'sentimentReason', lambda value:isinstance(value,str))
     return rec
+
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -772,18 +856,25 @@ def lambda_handler(event, context):
     started = time.time()
     print(f"=== PORTFOLIO SNAPSHOT · {datetime.now(timezone.utc).isoformat()} ===")
 
-    # 1. Load all sidecars
-    alpha = load_s3_json(ALPHA_KEY, {})
-    confluence = load_s3_json(CONFLUENCE_KEY, {})
-    regime = load_s3_json(REGIME_KEY, {})
-    sentiment_data = load_s3_json(SENTIMENT_KEY, {})
-
-    alpha_idx = index_by_symbol(alpha.get("stocks") or [])
-    confluence_s_idx = index_by_symbol(confluence.get("tier_s_confluence") or [])
-    confluence_a_idx = index_by_symbol(confluence.get("tier_a_confluence") or [])
-    confluence_b_idx = index_by_symbol(confluence.get("tier_b_confluence") or [])
-    regime_picks_idx = index_by_symbol(regime.get("regime_picks") or [])
-    sentiment_idx = index_by_symbol(sentiment_data.get("sentiment") or [])
+    # 1. Keep the complete source behind every descriptive research field.
+    research_sources, documents, retained_source_bytes = {}, {}, 0
+    for key in (ALPHA_KEY, CONFLUENCE_KEY, REGIME_KEY, SENTIMENT_KEY):
+        document = load_s3_json(key, {})
+        trace = getattr(document, 'source_evidence', None)
+        trace = trace if isinstance(trace, dict) else {'key':key, 'status':'READ_EVIDENCE_UNAVAILABLE', 'body_complete':False}
+        if trace.get('body_complete') is True:
+            size = trace.get('body_bytes')
+            if type(size) is not int or size < 0:raise ValueError('Research evidence byte count unavailable')
+            retained_source_bytes += size
+            if retained_source_bytes > RESEARCH_SOURCE_MAX_BYTES:raise ValueError('Complete research source evidence exceeds snapshot bound')
+        research_sources[key], documents[key] = trace, document
+    alpha, confluence, regime, sentiment_data = (documents[key] for key in (ALPHA_KEY, CONFLUENCE_KEY, REGIME_KEY, SENTIMENT_KEY))
+    alpha_idx = index_by_symbol(alpha.get('stocks'))
+    confluence_s_idx = index_by_symbol(confluence.get('tier_s_confluence'))
+    confluence_a_idx = index_by_symbol(confluence.get('tier_a_confluence'))
+    confluence_b_idx = index_by_symbol(confluence.get('tier_b_confluence'))
+    regime_picks_idx = index_by_symbol(regime.get('regime_picks'))
+    sentiment_idx = index_by_symbol(sentiment_data.get('sentiment'))
 
     print(f"  loaded: alpha={len(alpha_idx)} conf_S={len(confluence_s_idx)} "
           f"conf_A={len(confluence_a_idx)} regime={len(regime_picks_idx)} "
@@ -846,18 +937,30 @@ def lambda_handler(event, context):
     # Sort watchlist: S confluence first, then by alpha
     watchlist_records.sort(key=lambda r: (
         0 if r.get("confluence_tier") == "S" else 1 if r.get("confluence_tier") == "A" else 2,
-        -(r.get("alpha_score") or 0),
+        r.get("alpha_score") is None,
+        -r["alpha_score"] if r.get("alpha_score") is not None else 0,
+        r.get("symbol") or "",
     ))
 
     elapsed = time.time() - started
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.4",
+        "audit_version": "2026-09-30.5",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
         "portfolio_summary": portfolio_summary,
+        "research": {
+            "schema_version": "snapshot-research.v1", "status": "DESCRIPTIVE_RESEARCH_ONLY",
+            "source_documents": research_sources, "retained_complete_body_bytes": retained_source_bytes,
+            "source_byte_bound": RESEARCH_SOURCE_MAX_BYTES,
+            "joins": {name:index.summary() for name,index in (
+                ("alpha",alpha_idx),("confluence_s",confluence_s_idx),("confluence_a",confluence_a_idx),
+                ("confluence_b",confluence_b_idx),("regime",regime_picks_idx),("sentiment",sentiment_idx))},
+            "freshness_verified": False, "upstream_provenance_verified": False,
+            "independent_evidence_verified": False, "allows_sizing": False,
+        },
         "accounting": {
             "schema_version": "holdings-accounting.v1", "valuation_at": accounting_now.isoformat(),
             "source_positions": accounting_source(positions), "source_prices": accounting_source(price_data),
@@ -907,6 +1010,9 @@ def lambda_handler(event, context):
     }
 
     encoded = json.dumps(payload, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    # Match the existing mirror's spaced JSON encoding before either sink writes.
+    if len(json.dumps(payload, allow_nan=False).encode("utf-8")) > SNAPSHOT_MIRROR_MAX_BYTES:
+        raise ValueError("Complete snapshot exceeds private mirror byte bound")
     if validation_only:
         return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
                 "status": payload["capital_book"]["status"], "artifact_size_bytes": len(encoded)}

@@ -71,7 +71,7 @@ runpy.run_path(sys.argv[1]+"/run_tests.py",run_name="__main__")
     result = subprocess.run([sys.executable,'-c',bootstrap,str(root/'aws/lambdas'/FUNCTION/'tests')],cwd=root,env=env,capture_output=True,text=True,encoding='utf-8',timeout=120)
     if result.returncode != 0:
         raise ValueError('Offline candidate regressions failed; no promotion permitted')
-    if 'justhodl-portfolio-snapshot integration tests passed' not in result.stdout or 'Ran 80 tests' not in result.stderr or '\nOK\n' not in result.stderr:
+    if 'justhodl-portfolio-snapshot integration tests passed' not in result.stdout or 'Ran 108 tests' not in result.stderr or '\nOK\n' not in result.stderr:
         raise ValueError('Complete offline regression acknowledgement required')
     # Tests do not get to alter the artifact or source they just validated.
     if verify_package(root, package) != proof:
@@ -79,7 +79,7 @@ runpy.run_path(sys.argv[1]+"/run_tests.py",run_name="__main__")
     return {'ok':True,'validation_only':True,'schema_version':SCHEMA,'status':'OFFLINE_SYNTHETIC_TESTS_PASSED',
             'artifact_size_bytes':proof['bytes'],'validation_mode':MODE,'native_invocations':0,
             'actual_private_reads':0,'provider_requests':0,'normal_private_publication_verified':False,
-            'tests':{'watchlist_and_reader':21,'holdings_accounting':15,'complete_book_read':16,'previous_close_reader':28,'actual_handler_integration':4}, **proof}
+            'tests':{'watchlist_and_reader':21,'holdings_accounting':15,'complete_book_read':16,'previous_close_reader':28,'research_enrichment':28,'actual_handler_integration':4}, **proof}
 
 
 if __name__=='__main__':

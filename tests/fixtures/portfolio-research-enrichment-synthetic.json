@@ -1,0 +1,2835 @@
+{
+  "scope": "Current source only, complete invented research sources and book records, mocked sync/quotes/publication. Byte-bearing requests are retained entirely as base64.",
+  "source_sha256": "53b94ef1cf3ddb91a0f1ed1ac252e6a7d2e4f0f6d11f82e139706b33b54dd640",
+  "source_bytes": 59824,
+  "cases": [
+    {
+      "name": "full_signal_and_risk_flag_arrays",
+      "complete_inputs": {
+        "alpha": [
+          {
+            "symbol": "AAA",
+            "top_signals": [
+              "s0",
+              "s1",
+              "s2",
+              "s3",
+              "s4",
+              "s5",
+              "s6",
+              "s7"
+            ],
+            "risk_flags": [
+              "r0",
+              "r1",
+              "r2",
+              "r3",
+              "r4",
+              "r5",
+              "r6",
+              "r7"
+            ]
+          }
+        ]
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "research_evidence": {
+          "schema_version": "snapshot-research-joins.v1",
+          "allows_sizing": false,
+          "alpha": {
+            "source_key": "screener/alpha-score.json",
+            "array_path": "stocks",
+            "status": "UNIQUE_SOURCE_ROW",
+            "zero_based_occurrences": [
+              0
+            ],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_s": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_s_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_a": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_a_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_b": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_b_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "regime": {
+            "source_key": "signals/regime-picks.json",
+            "array_path": "regime_picks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "sentiment": {
+            "source_key": "sentiment/data.json",
+            "array_path": "sentiment",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "invalid_fields": [],
+          "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+        },
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": [
+          "s0",
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s5",
+          "s6",
+          "s7"
+        ],
+        "risk_flags": [
+          "r0",
+          "r1",
+          "r2",
+          "r3",
+          "r4",
+          "r5",
+          "r6",
+          "r7"
+        ],
+        "confluence_tier": null,
+        "confluence_count": null,
+        "components_firing": null,
+        "regime_adj": null,
+        "regime_adj_score": null,
+        "sentiment_signal": null,
+        "sentiment_score": null,
+        "sentiment_reason": null
+      }
+    },
+    {
+      "name": "full_sentiment_explanation",
+      "complete_inputs": {
+        "sent": [
+          {
+            "symbol": "AAA",
+            "sentimentReason": "INVENTED full explanation evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence ",
+            "sentimentScore": 0.5,
+            "sentimentSignal": "NEUTRAL"
+          }
+        ]
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "research_evidence": {
+          "schema_version": "snapshot-research-joins.v1",
+          "allows_sizing": false,
+          "alpha": {
+            "source_key": "screener/alpha-score.json",
+            "array_path": "stocks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_s": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_s_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_a": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_a_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_b": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_b_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "regime": {
+            "source_key": "signals/regime-picks.json",
+            "array_path": "regime_picks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "sentiment": {
+            "source_key": "sentiment/data.json",
+            "array_path": "sentiment",
+            "status": "UNIQUE_SOURCE_ROW",
+            "zero_based_occurrences": [
+              0
+            ],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "invalid_fields": [],
+          "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+        },
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": null,
+        "risk_flags": null,
+        "confluence_tier": null,
+        "confluence_count": null,
+        "components_firing": null,
+        "regime_adj": null,
+        "regime_adj_score": null,
+        "sentiment_signal": "NEUTRAL",
+        "sentiment_score": 0.5,
+        "sentiment_reason": "INVENTED full explanation evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence "
+      }
+    },
+    {
+      "name": "ambiguous_duplicate_symbols_withheld",
+      "complete_inputs": {
+        "alpha": [
+          {
+            "symbol": "AAA",
+            "alpha_score": 10,
+            "source_identity": "first occurrence"
+          },
+          {
+            "symbol": "AAA",
+            "alpha_score": 99,
+            "source_identity": "second occurrence"
+          }
+        ]
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "research_evidence": {
+          "schema_version": "snapshot-research-joins.v1",
+          "allows_sizing": false,
+          "alpha": {
+            "source_key": "screener/alpha-score.json",
+            "array_path": "stocks",
+            "status": "AMBIGUOUS_DUPLICATE_SYMBOL",
+            "zero_based_occurrences": [
+              0,
+              1
+            ],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_s": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_s_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_a": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_a_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_b": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_b_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "regime": {
+            "source_key": "signals/regime-picks.json",
+            "array_path": "regime_picks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "sentiment": {
+            "source_key": "sentiment/data.json",
+            "array_path": "sentiment",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "invalid_fields": [],
+          "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+        },
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": null,
+        "risk_flags": null,
+        "confluence_tier": null,
+        "confluence_count": null,
+        "components_firing": null,
+        "regime_adj": null,
+        "regime_adj_score": null,
+        "sentiment_signal": null,
+        "sentiment_score": null,
+        "sentiment_reason": null
+      }
+    },
+    {
+      "name": "ambiguous_confluence_tiers_withheld",
+      "complete_inputs": {
+        "cs": [
+          {
+            "symbol": "AAA",
+            "confluence_count": 7
+          }
+        ],
+        "ca": [
+          {
+            "symbol": "AAA",
+            "confluence_count": 2
+          }
+        ]
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "research_evidence": {
+          "schema_version": "snapshot-research-joins.v1",
+          "allows_sizing": false,
+          "alpha": {
+            "source_key": "screener/alpha-score.json",
+            "array_path": "stocks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_s": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_s_confluence",
+            "status": "UNIQUE_SOURCE_ROW",
+            "zero_based_occurrences": [
+              0
+            ],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_a": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_a_confluence",
+            "status": "UNIQUE_SOURCE_ROW",
+            "zero_based_occurrences": [
+              0
+            ],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_b": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_b_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "regime": {
+            "source_key": "signals/regime-picks.json",
+            "array_path": "regime_picks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "sentiment": {
+            "source_key": "sentiment/data.json",
+            "array_path": "sentiment",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "invalid_fields": [],
+          "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified",
+          "confluence_conflict": "SYMBOL_OCCURS_IN_MULTIPLE_TIERS"
+        },
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": null,
+        "risk_flags": null,
+        "confluence_tier": null,
+        "confluence_count": null,
+        "components_firing": null,
+        "regime_adj": null,
+        "regime_adj_score": null,
+        "sentiment_signal": null,
+        "sentiment_score": null,
+        "sentiment_reason": null
+      }
+    },
+    {
+      "name": "malformed_array_shapes_withheld",
+      "complete_inputs": {
+        "alpha": [
+          {
+            "symbol": "AAA",
+            "top_signals": "NOT_AN_ARRAY",
+            "risk_flags": "NOT_AN_ARRAY"
+          }
+        ]
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "research_evidence": {
+          "schema_version": "snapshot-research-joins.v1",
+          "allows_sizing": false,
+          "alpha": {
+            "source_key": "screener/alpha-score.json",
+            "array_path": "stocks",
+            "status": "UNIQUE_SOURCE_ROW",
+            "zero_based_occurrences": [
+              0
+            ],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_s": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_s_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_a": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_a_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "confluence_b": {
+            "source_key": "signals/confluence.json",
+            "array_path": "tier_b_confluence",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "regime": {
+            "source_key": "signals/regime-picks.json",
+            "array_path": "regime_picks",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "sentiment": {
+            "source_key": "sentiment/data.json",
+            "array_path": "sentiment",
+            "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+            "zero_based_occurrences": [],
+            "freshness_verified": false,
+            "independent_evidence_verified": false,
+            "allows_sizing": false
+          },
+          "invalid_fields": [
+            "top_signals",
+            "risk_flags"
+          ],
+          "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+        },
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": null,
+        "risk_flags": null,
+        "confluence_tier": null,
+        "confluence_count": null,
+        "components_firing": null,
+        "regime_adj": null,
+        "regime_adj_score": null,
+        "sentiment_signal": null,
+        "sentiment_score": null,
+        "sentiment_reason": null
+      }
+    },
+    {
+      "name": "typed_score_sort_and_complete_original_clock",
+      "complete_inputs": {
+        "documents": {
+          "screener/alpha-score.json": {
+            "generated_at": "2020-01-01T00:00:00Z",
+            "stocks": [
+              {
+                "symbol": "AAA",
+                "alpha_score": "99",
+                "generated_at": "2020-01-01T00:00:00Z"
+              },
+              {
+                "symbol": "BBB",
+                "alpha_score": 0
+              },
+              {
+                "symbol": "CCC",
+                "alpha_score": 1
+              }
+            ]
+          },
+          "signals/confluence.json": {
+            "tier_s_confluence": [],
+            "tier_a_confluence": [],
+            "tier_b_confluence": []
+          },
+          "signals/regime-picks.json": {
+            "regime_picks": []
+          },
+          "sentiment/data.json": {
+            "sentiment": []
+          }
+        },
+        "watchlist": [
+          {
+            "symbol": "AAA"
+          },
+          {
+            "symbol": "BBB"
+          },
+          {
+            "symbol": "CCC"
+          }
+        ],
+        "positions": []
+      },
+      "limits": {
+        "research_bytes": 8388608,
+        "mirror_bytes": 20000000
+      },
+      "result": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 0, \"n_watchlist\": 3, \"total_market_value\": 0.0, \"total_pnl_dollars\": 0.0, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.0}"
+      },
+      "error": null,
+      "source_requests": [
+        "screener/alpha-score.json",
+        "signals/confluence.json",
+        "signals/regime-picks.json",
+        "sentiment/data.json"
+      ],
+      "sync_calls": [
+        {
+          "generated_at": "2020-01-01T00:00:00Z",
+          "stocks": [
+            {
+              "symbol": "AAA",
+              "alpha_score": "99",
+              "generated_at": "2020-01-01T00:00:00Z"
+            },
+            {
+              "symbol": "BBB",
+              "alpha_score": 0
+            },
+            {
+              "symbol": "CCC",
+              "alpha_score": 1
+            }
+          ]
+        }
+      ],
+      "price_calls": [
+        [
+          "BBB",
+          "AAA",
+          "CCC"
+        ]
+      ],
+      "all_bodies_closed": true,
+      "writes": [
+        {
+          "sink": "private",
+          "kind": "portfolio-snapshot",
+          "payload": {
+            "generated_at": "2026-09-30T08:35:00+00:00",
+            "audit_version": "2026-09-30.5",
+            "generated_at_unix": 1790757300,
+            "elapsed_seconds": 0.0,
+            "portfolio_summary": {
+              "n_positions": 0,
+              "priced_positions_count": 0,
+              "basis_positions_count": 0,
+              "pnl_eligible_positions_count": 0,
+              "total_market_value": 0.0,
+              "total_market_value_scope": "all positions priced",
+              "total_cost_basis": 0.0,
+              "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+              "total_pnl_dollars": 0.0,
+              "total_pnl_pct": null,
+              "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+              "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+              "pnl_pct_denominator": 0.0,
+              "unpriced_positions": [],
+              "pnl_excluded_positions": [],
+              "unpriced_cost_basis": 0.0,
+              "unpriced_cost_basis_known_count": 0,
+              "stops_hit_count": 0,
+              "stops_hit": [],
+              "stops_not_evaluable": [],
+              "accounting_coverage_status": "EMPTY",
+              "accounting_reason_codes": [],
+              "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+            },
+            "research": {
+              "schema_version": "snapshot-research.v1",
+              "status": "DESCRIPTIVE_RESEARCH_ONLY",
+              "source_documents": {
+                "screener/alpha-score.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "screener/alpha-score.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 206,
+                  "body_sha256": "bc8d421c2b053bd45efe5fee1cecd554a9cbdf4493e3fce84492e6621d962527",
+                  "body_encoding": "base64",
+                  "body": "eyJnZW5lcmF0ZWRfYXQiOiAiMjAyMC0wMS0wMVQwMDowMDowMFoiLCAic3RvY2tzIjogW3sic3ltYm9sIjogIkFBQSIsICJhbHBoYV9zY29yZSI6ICI5OSIsICJnZW5lcmF0ZWRfYXQiOiAiMjAyMC0wMS0wMVQwMDowMDowMFoifSwgeyJzeW1ib2wiOiAiQkJCIiwgImFscGhhX3Njb3JlIjogMH0sIHsic3ltYm9sIjogIkNDQyIsICJhbHBoYV9zY29yZSI6IDF9XX0=",
+                  "declared_generated_at": "2020-01-01T00:00:00Z",
+                  "stream_close_confirmed": true
+                },
+                "signals/confluence.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/confluence.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 75,
+                  "body_sha256": "1504910309c871abfbdf70364b21f526d3930ff5708c69c1779db0ce522cd2a3",
+                  "body_encoding": "base64",
+                  "body": "eyJ0aWVyX3NfY29uZmx1ZW5jZSI6IFtdLCAidGllcl9hX2NvbmZsdWVuY2UiOiBbXSwgInRpZXJfYl9jb25mbHVlbmNlIjogW119",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "signals/regime-picks.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/regime-picks.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 20,
+                  "body_sha256": "0cf1d10c9ce66b47f6afbc4a7296eda04299444ebda169ff7a4a43d28e339458",
+                  "body_encoding": "base64",
+                  "body": "eyJyZWdpbWVfcGlja3MiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "sentiment/data.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "sentiment/data.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 17,
+                  "body_sha256": "d5a950fd1375bb852c7989ad043ac63bc4308d9641e4f5f50d22e26542f3a6df",
+                  "body_encoding": "base64",
+                  "body": "eyJzZW50aW1lbnQiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                }
+              },
+              "retained_complete_body_bytes": 318,
+              "source_byte_bound": 8388608,
+              "joins": {
+                "alpha": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 3,
+                  "unique_usable_symbols": 3,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_s": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_a": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_b": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "regime": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "sentiment": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                }
+              },
+              "freshness_verified": false,
+              "upstream_provenance_verified": false,
+              "independent_evidence_verified": false,
+              "allows_sizing": false
+            },
+            "accounting": {
+              "schema_version": "holdings-accounting.v1",
+              "valuation_at": "2026-09-30T08:35:00+00:00",
+              "source_positions": [],
+              "source_prices": {},
+              "source_watchlist": [
+                {
+                  "symbol": "AAA"
+                },
+                {
+                  "symbol": "BBB"
+                },
+                {
+                  "symbol": "CCC"
+                }
+              ],
+              "book_read": {
+                "schema_version": "portfolio-book-read.v1",
+                "status": "COMPLETE",
+                "consistency": "STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT",
+                "started_at": "2026-09-30T08:35:00+00:00",
+                "completed_at": "2026-09-30T08:35:00+00:00",
+                "position_count": 0,
+                "watchlist_count": 3,
+                "exact_stored_decimal_evidence": true,
+                "account_reconciled": false,
+                "per_partition_bounds": {
+                  "rows": 10000,
+                  "pages": 100,
+                  "encoded_bytes": 8388608,
+                  "acceptance_seconds": 20
+                }
+              },
+              "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+              "assumptions_verified": false,
+              "allows_sizing": false
+            },
+            "capital_book": {
+              "schema_version": "1.0",
+              "status": "BLOCKED",
+              "allows_new_entries": false,
+              "reason_codes": [
+                "MISSING_RECONCILED_CAPITAL_LEDGER"
+              ],
+              "as_of": "2026-09-30T08:35:00+00:00",
+              "book_id": null,
+              "account_id": null,
+              "currency": null,
+              "equity_nav": null,
+              "cash": null,
+              "liabilities": null,
+              "reconciled_at": null,
+              "reserved_order_exposure": null,
+              "nav_history": [],
+              "open_orders": [],
+              "gross_exposure": 0.0,
+              "net_exposure": 0.0,
+              "exposure_scope": "ALL_POSITIONS",
+              "positions": [],
+              "unpriced_positions": []
+            },
+            "positions": [],
+            "watchlist": [
+              {
+                "symbol": "CCC",
+                "current_price": null,
+                "price_asof_unix_ms": null,
+                "price_basis": null,
+                "price_timestamp_basis": null,
+                "price_source": {
+                  "schema_version": null,
+                  "requested_symbol": null,
+                  "requested_adjusted": null,
+                  "status": null,
+                  "reason_code": null,
+                  "body_sha256": null,
+                  "started_at": null,
+                  "completed_at": null,
+                  "currency_verified": null,
+                  "instrument_binding_verified": null
+                },
+                "price_provider": null,
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "research_evidence": {
+                  "schema_version": "snapshot-research-joins.v1",
+                  "allows_sizing": false,
+                  "alpha": {
+                    "source_key": "screener/alpha-score.json",
+                    "array_path": "stocks",
+                    "status": "UNIQUE_SOURCE_ROW",
+                    "zero_based_occurrences": [
+                      2
+                    ],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_s": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_s_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_a": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_a_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_b": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_b_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "regime": {
+                    "source_key": "signals/regime-picks.json",
+                    "array_path": "regime_picks",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "sentiment": {
+                    "source_key": "sentiment/data.json",
+                    "array_path": "sentiment",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "invalid_fields": [],
+                  "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                },
+                "alpha_score": 1,
+                "tier": null,
+                "rank": null,
+                "name": null,
+                "sector": null,
+                "components": null,
+                "top_signals": null,
+                "risk_flags": null,
+                "confluence_tier": null,
+                "confluence_count": null,
+                "components_firing": null,
+                "regime_adj": null,
+                "regime_adj_score": null,
+                "sentiment_signal": null,
+                "sentiment_score": null,
+                "sentiment_reason": null,
+                "source": null,
+                "auto_source_generated_at": null,
+                "auto_sync_version": null,
+                "added_at": null,
+                "notes": null
+              },
+              {
+                "symbol": "BBB",
+                "current_price": null,
+                "price_asof_unix_ms": null,
+                "price_basis": null,
+                "price_timestamp_basis": null,
+                "price_source": {
+                  "schema_version": null,
+                  "requested_symbol": null,
+                  "requested_adjusted": null,
+                  "status": null,
+                  "reason_code": null,
+                  "body_sha256": null,
+                  "started_at": null,
+                  "completed_at": null,
+                  "currency_verified": null,
+                  "instrument_binding_verified": null
+                },
+                "price_provider": null,
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "research_evidence": {
+                  "schema_version": "snapshot-research-joins.v1",
+                  "allows_sizing": false,
+                  "alpha": {
+                    "source_key": "screener/alpha-score.json",
+                    "array_path": "stocks",
+                    "status": "UNIQUE_SOURCE_ROW",
+                    "zero_based_occurrences": [
+                      1
+                    ],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_s": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_s_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_a": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_a_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_b": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_b_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "regime": {
+                    "source_key": "signals/regime-picks.json",
+                    "array_path": "regime_picks",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "sentiment": {
+                    "source_key": "sentiment/data.json",
+                    "array_path": "sentiment",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "invalid_fields": [],
+                  "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                },
+                "alpha_score": 0,
+                "tier": null,
+                "rank": null,
+                "name": null,
+                "sector": null,
+                "components": null,
+                "top_signals": null,
+                "risk_flags": null,
+                "confluence_tier": null,
+                "confluence_count": null,
+                "components_firing": null,
+                "regime_adj": null,
+                "regime_adj_score": null,
+                "sentiment_signal": null,
+                "sentiment_score": null,
+                "sentiment_reason": null,
+                "source": null,
+                "auto_source_generated_at": null,
+                "auto_sync_version": null,
+                "added_at": null,
+                "notes": null
+              },
+              {
+                "symbol": "AAA",
+                "current_price": null,
+                "price_asof_unix_ms": null,
+                "price_basis": null,
+                "price_timestamp_basis": null,
+                "price_source": {
+                  "schema_version": null,
+                  "requested_symbol": null,
+                  "requested_adjusted": null,
+                  "status": null,
+                  "reason_code": null,
+                  "body_sha256": null,
+                  "started_at": null,
+                  "completed_at": null,
+                  "currency_verified": null,
+                  "instrument_binding_verified": null
+                },
+                "price_provider": null,
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "research_evidence": {
+                  "schema_version": "snapshot-research-joins.v1",
+                  "allows_sizing": false,
+                  "alpha": {
+                    "source_key": "screener/alpha-score.json",
+                    "array_path": "stocks",
+                    "status": "UNIQUE_SOURCE_ROW",
+                    "zero_based_occurrences": [
+                      0
+                    ],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_s": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_s_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_a": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_a_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_b": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_b_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "regime": {
+                    "source_key": "signals/regime-picks.json",
+                    "array_path": "regime_picks",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "sentiment": {
+                    "source_key": "sentiment/data.json",
+                    "array_path": "sentiment",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "invalid_fields": [
+                    "alpha_score"
+                  ],
+                  "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                },
+                "alpha_score": null,
+                "tier": null,
+                "rank": null,
+                "name": null,
+                "sector": null,
+                "components": null,
+                "top_signals": null,
+                "risk_flags": null,
+                "confluence_tier": null,
+                "confluence_count": null,
+                "components_firing": null,
+                "regime_adj": null,
+                "regime_adj_score": null,
+                "sentiment_signal": null,
+                "sentiment_score": null,
+                "sentiment_reason": null,
+                "source": null,
+                "auto_source_generated_at": null,
+                "auto_sync_version": null,
+                "added_at": null,
+                "notes": null
+              }
+            ],
+            "sector_concentration": [],
+            "watchlist_sync": {
+              "added_S": [],
+              "added_A": [],
+              "removed_S": [],
+              "removed_A": []
+            },
+            "counts": {
+              "positions": 0,
+              "watchlist": 3,
+              "auto_watch_S": 0,
+              "auto_watch_A": 0,
+              "manual_watch": 0
+            }
+          }
+        },
+        {
+          "sink": "s3",
+          "request": {
+            "Bucket": "justhodl-dashboard-live",
+            "Key": "portfolio/snapshot.json",
+            "Body": {
+              "complete_bytes_encoding": "base64",
+              "value": "eyJnZW5lcmF0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiYXVkaXRfdmVyc2lvbiI6IjIwMjYtMDktMzAuNSIsImdlbmVyYXRlZF9hdF91bml4IjoxNzkwNzU3MzAwLCJlbGFwc2VkX3NlY29uZHMiOjAuMCwicG9ydGZvbGlvX3N1bW1hcnkiOnsibl9wb3NpdGlvbnMiOjAsInByaWNlZF9wb3NpdGlvbnNfY291bnQiOjAsImJhc2lzX3Bvc2l0aW9uc19jb3VudCI6MCwicG5sX2VsaWdpYmxlX3Bvc2l0aW9uc19jb3VudCI6MCwidG90YWxfbWFya2V0X3ZhbHVlIjowLjAsInRvdGFsX21hcmtldF92YWx1ZV9zY29wZSI6ImFsbCBwb3NpdGlvbnMgcHJpY2VkIiwidG90YWxfY29zdF9iYXNpcyI6MC4wLCJ0b3RhbF9jb3N0X2Jhc2lzX3Njb3BlIjoiS25vd24gc2lnbmVkIHF1YW50aXR5LXRpbWVzLXVuaXQtY29zdCBvbmx5IiwidG90YWxfcG5sX2RvbGxhcnMiOjAuMCwidG90YWxfcG5sX3BjdCI6bnVsbCwicG5sX3Njb3BlIjoiUm93cyB3aXRoIGVsaWdpYmxlIHF1YW50aXR5LCBtYXJrIGFuZCBjb3N0IGJhc2lzIG9ubHk7IHVucmVhbGl6ZWQgcHJpY2UgUCZMIGJlZm9yZSBmZWVzLCBpbmNvbWUgYW5kIEZYIiwicG5sX3BjdF9iYXNpcyI6IlNVTV9BQlNPTFVURV9FTElHSUJMRV9DT1NUX05PVF9OQVZfUkVUVVJOIiwicG5sX3BjdF9kZW5vbWluYXRvciI6MC4wLCJ1bnByaWNlZF9wb3NpdGlvbnMiOltdLCJwbmxfZXhjbHVkZWRfcG9zaXRpb25zIjpbXSwidW5wcmljZWRfY29zdF9iYXNpcyI6MC4wLCJ1bnByaWNlZF9jb3N0X2Jhc2lzX2tub3duX2NvdW50IjowLCJzdG9wc19oaXRfY291bnQiOjAsInN0b3BzX2hpdCI6W10sInN0b3BzX25vdF9ldmFsdWFibGUiOltdLCJhY2NvdW50aW5nX2NvdmVyYWdlX3N0YXR1cyI6IkVNUFRZIiwiYWNjb3VudGluZ19yZWFzb25fY29kZXMiOltdLCJhY2NvdW50aW5nX2Fzc3VtcHRpb25zIjoiTGVnYWN5IHNpbmdsZS1jdXJyZW5jeSBjYXNoLWVxdWl0eSBhcml0aG1ldGljOyBpbnN0cnVtZW50LCBjdXJyZW5jeSBhbmQgYWNjb3VudCByZWNvbmNpbGlhdGlvbiB1bnZlcmlmaWVkIn0sInJlc2VhcmNoIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gudjEiLCJzdGF0dXMiOiJERVNDUklQVElWRV9SRVNFQVJDSF9PTkxZIiwic291cmNlX2RvY3VtZW50cyI6eyJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2NyZWVuZXIvYWxwaGEtc2NvcmUuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjoyMDYsImJvZHlfc2hhMjU2IjoiYmM4ZDQyMWMyYjA1M2JkNDVlZmU1ZmVlMWNlY2Q1NTRhOWNiZGY0NDkzZTNmY2U4NDQ5MmU2NjIxZDk2MjUyNyIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKblpXNWxjbUYwWldSZllYUWlPaUFpTWpBeU1DMHdNUzB3TVZRd01Eb3dNRG93TUZvaUxDQWljM1J2WTJ0eklqb2dXM3NpYzNsdFltOXNJam9nSWtGQlFTSXNJQ0poYkhCb1lWOXpZMjl5WlNJNklDSTVPU0lzSUNKblpXNWxjbUYwWldSZllYUWlPaUFpTWpBeU1DMHdNUzB3TVZRd01Eb3dNRG93TUZvaWZTd2dleUp6ZVcxaWIyd2lPaUFpUWtKQ0lpd2dJbUZzY0doaFgzTmpiM0psSWpvZ01IMHNJSHNpYzNsdFltOXNJam9nSWtORFF5SXNJQ0poYkhCb1lWOXpZMjl5WlNJNklERjlYWDA9IiwiZGVjbGFyZWRfZ2VuZXJhdGVkX2F0IjoiMjAyMC0wMS0wMVQwMDowMDowMFoiLCJzdHJlYW1fY2xvc2VfY29uZmlybWVkIjp0cnVlfSwic2lnbmFscy9jb25mbHVlbmNlLmpzb24iOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1zb3VyY2UudjEiLCJrZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjo3NSwiYm9keV9zaGEyNTYiOiIxNTA0OTEwMzA5Yzg3MWFiZmJkZjcwMzY0YjIxZjUyNmQzOTMwZmY1NzA4YzY5YzE3NzlkYjBjZTUyMmNkMmEzIiwiYm9keV9lbmNvZGluZyI6ImJhc2U2NCIsImJvZHkiOiJleUowYVdWeVgzTmZZMjl1Wm14MVpXNWpaU0k2SUZ0ZExDQWlkR2xsY2w5aFgyTnZibVpzZFdWdVkyVWlPaUJiWFN3Z0luUnBaWEpmWWw5amIyNW1iSFZsYm1ObElqb2dXMTE5IiwiZGVjbGFyZWRfZ2VuZXJhdGVkX2F0IjpudWxsLCJzdHJlYW1fY2xvc2VfY29uZmlybWVkIjp0cnVlfSwic2lnbmFscy9yZWdpbWUtcGlja3MuanNvbiI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLXNvdXJjZS52MSIsImtleSI6InNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iLCJzdGFydGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsImNvbXBsZXRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJzdGF0dXMiOiJDT01QTEVURV9KU09OX09CSkVDVCIsImJvZHlfY29tcGxldGUiOnRydWUsInJlYXNvbl9jb2RlIjpudWxsLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJ1cHN0cmVhbV9wcm92ZW5hbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYm9keV9ieXRlcyI6MjAsImJvZHlfc2hhMjU2IjoiMGNmMWQxMGM5Y2U2NmI0N2Y2YWZiYzRhNzI5NmVkYTA0Mjk5NDQ0ZWJkYTE2OWZmN2E0YTQzZDI4ZTMzOTQ1OCIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKeVpXZHBiV1ZmY0dsamEzTWlPaUJiWFgwPSIsImRlY2xhcmVkX2dlbmVyYXRlZF9hdCI6bnVsbCwic3RyZWFtX2Nsb3NlX2NvbmZpcm1lZCI6dHJ1ZX0sInNlbnRpbWVudC9kYXRhLmpzb24iOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1zb3VyY2UudjEiLCJrZXkiOiJzZW50aW1lbnQvZGF0YS5qc29uIiwic3RhcnRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJjb21wbGV0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwic3RhdHVzIjoiQ09NUExFVEVfSlNPTl9PQkpFQ1QiLCJib2R5X2NvbXBsZXRlIjp0cnVlLCJyZWFzb25fY29kZSI6bnVsbCwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwidXBzdHJlYW1fcHJvdmVuYW5jZV92ZXJpZmllZCI6ZmFsc2UsImJvZHlfYnl0ZXMiOjE3LCJib2R5X3NoYTI1NiI6ImQ1YTk1MGZkMTM3NWJiODUyYzc5ODlhZDA0M2FjNjNiYzQzMDhkOTY0MWU0ZjVmNTBkMjJlMjY1NDJmM2E2ZGYiLCJib2R5X2VuY29kaW5nIjoiYmFzZTY0IiwiYm9keSI6ImV5SnpaVzUwYVcxbGJuUWlPaUJiWFgwPSIsImRlY2xhcmVkX2dlbmVyYXRlZF9hdCI6bnVsbCwic3RyZWFtX2Nsb3NlX2NvbmZpcm1lZCI6dHJ1ZX19LCJyZXRhaW5lZF9jb21wbGV0ZV9ib2R5X2J5dGVzIjozMTgsInNvdXJjZV9ieXRlX2JvdW5kIjo4Mzg4NjA4LCJqb2lucyI6eyJhbHBoYSI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjMsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MywiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJjb25mbHVlbmNlX3MiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fSwiY29uZmx1ZW5jZV9hIjp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX0sImNvbmZsdWVuY2VfYiI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjAsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MCwiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJyZWdpbWUiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fSwic2VudGltZW50Ijp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX19LCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJ1cHN0cmVhbV9wcm92ZW5hbmNlX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImFjY291bnRpbmciOnsic2NoZW1hX3ZlcnNpb24iOiJob2xkaW5ncy1hY2NvdW50aW5nLnYxIiwidmFsdWF0aW9uX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInNvdXJjZV9wb3NpdGlvbnMiOltdLCJzb3VyY2VfcHJpY2VzIjp7fSwic291cmNlX3dhdGNobGlzdCI6W3sic3ltYm9sIjoiQUFBIn0seyJzeW1ib2wiOiJCQkIifSx7InN5bWJvbCI6IkNDQyJ9XSwiYm9va19yZWFkIjp7InNjaGVtYV92ZXJzaW9uIjoicG9ydGZvbGlvLWJvb2stcmVhZC52MSIsInN0YXR1cyI6IkNPTVBMRVRFIiwiY29uc2lzdGVuY3kiOiJTVFJPTkdMWV9DT05TSVNURU5UX1BBR0VTX05PVF9BVE9NSUNfU05BUFNIT1QiLCJzdGFydGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsImNvbXBsZXRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJwb3NpdGlvbl9jb3VudCI6MCwid2F0Y2hsaXN0X2NvdW50IjozLCJleGFjdF9zdG9yZWRfZGVjaW1hbF9ldmlkZW5jZSI6dHJ1ZSwiYWNjb3VudF9yZWNvbmNpbGVkIjpmYWxzZSwicGVyX3BhcnRpdGlvbl9ib3VuZHMiOnsicm93cyI6MTAwMDAsInBhZ2VzIjoxMDAsImVuY29kZWRfYnl0ZXMiOjgzODg2MDgsImFjY2VwdGFuY2Vfc2Vjb25kcyI6MjB9fSwibm9uZmluaXRlX3NvdXJjZV9lbmNvZGluZyI6InJlamVjdGVkX251bWJlcl90eXBlIHBsdXMgZXhhY3Qgc291cmNlIHJlcHJlc2VudGF0aW9uIiwiYXNzdW1wdGlvbnNfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNhcGl0YWxfYm9vayI6eyJzY2hlbWFfdmVyc2lvbiI6IjEuMCIsInN0YXR1cyI6IkJMT0NLRUQiLCJhbGxvd3NfbmV3X2VudHJpZXMiOmZhbHNlLCJyZWFzb25fY29kZXMiOlsiTUlTU0lOR19SRUNPTkNJTEVEX0NBUElUQUxfTEVER0VSIl0sImFzX29mIjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsImJvb2tfaWQiOm51bGwsImFjY291bnRfaWQiOm51bGwsImN1cnJlbmN5IjpudWxsLCJlcXVpdHlfbmF2IjpudWxsLCJjYXNoIjpudWxsLCJsaWFiaWxpdGllcyI6bnVsbCwicmVjb25jaWxlZF9hdCI6bnVsbCwicmVzZXJ2ZWRfb3JkZXJfZXhwb3N1cmUiOm51bGwsIm5hdl9oaXN0b3J5IjpbXSwib3Blbl9vcmRlcnMiOltdLCJncm9zc19leHBvc3VyZSI6MC4wLCJuZXRfZXhwb3N1cmUiOjAuMCwiZXhwb3N1cmVfc2NvcGUiOiJBTExfUE9TSVRJT05TIiwicG9zaXRpb25zIjpbXSwidW5wcmljZWRfcG9zaXRpb25zIjpbXX0sInBvc2l0aW9ucyI6W10sIndhdGNobGlzdCI6W3sic3ltYm9sIjoiQ0NDIiwiY3VycmVudF9wcmljZSI6bnVsbCwicHJpY2VfYXNvZl91bml4X21zIjpudWxsLCJwcmljZV9iYXNpcyI6bnVsbCwicHJpY2VfdGltZXN0YW1wX2Jhc2lzIjpudWxsLCJwcmljZV9zb3VyY2UiOnsic2NoZW1hX3ZlcnNpb24iOm51bGwsInJlcXVlc3RlZF9zeW1ib2wiOm51bGwsInJlcXVlc3RlZF9hZGp1c3RlZCI6bnVsbCwic3RhdHVzIjpudWxsLCJyZWFzb25fY29kZSI6bnVsbCwiYm9keV9zaGEyNTYiOm51bGwsInN0YXJ0ZWRfYXQiOm51bGwsImNvbXBsZXRlZF9hdCI6bnVsbCwiY3VycmVuY3lfdmVyaWZpZWQiOm51bGwsImluc3RydW1lbnRfYmluZGluZ192ZXJpZmllZCI6bnVsbH0sInByaWNlX3Byb3ZpZGVyIjpudWxsLCJwcmljZV9vcGVuIjpudWxsLCJwcmljZV9oaWdoIjpudWxsLCJwcmljZV9sb3ciOm51bGwsInZvbHVtZSI6bnVsbCwicmVzZWFyY2hfZXZpZGVuY2UiOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1qb2lucy52MSIsImFsbG93c19zaXppbmciOmZhbHNlLCJhbHBoYSI6eyJzb3VyY2Vfa2V5Ijoic2NyZWVuZXIvYWxwaGEtc2NvcmUuanNvbiIsImFycmF5X3BhdGgiOiJzdG9ja3MiLCJzdGF0dXMiOiJVTklRVUVfU09VUkNFX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOlsyXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfcyI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9zX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9hIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX2FfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX2IiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfYl9jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sInJlZ2ltZSI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9yZWdpbWUtcGlja3MuanNvbiIsImFycmF5X3BhdGgiOiJyZWdpbWVfcGlja3MiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwic2VudGltZW50Ijp7InNvdXJjZV9rZXkiOiJzZW50aW1lbnQvZGF0YS5qc29uIiwiYXJyYXlfcGF0aCI6InNlbnRpbWVudCIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJpbnZhbGlkX2ZpZWxkcyI6W10sImludGVycHJldGF0aW9uIjoiRGVzY3JpcHRpdmUgc291cmNlIGZpZWxkczsgZnJlc2huZXNzLCBpbmRlcGVuZGVuY2UgYW5kIHByZWRpY3RpdmUgdmFsaWRpdHkgdW52ZXJpZmllZCJ9LCJhbHBoYV9zY29yZSI6MSwidGllciI6bnVsbCwicmFuayI6bnVsbCwibmFtZSI6bnVsbCwic2VjdG9yIjpudWxsLCJjb21wb25lbnRzIjpudWxsLCJ0b3Bfc2lnbmFscyI6bnVsbCwicmlza19mbGFncyI6bnVsbCwiY29uZmx1ZW5jZV90aWVyIjpudWxsLCJjb25mbHVlbmNlX2NvdW50IjpudWxsLCJjb21wb25lbnRzX2ZpcmluZyI6bnVsbCwicmVnaW1lX2FkaiI6bnVsbCwicmVnaW1lX2Fkal9zY29yZSI6bnVsbCwic2VudGltZW50X3NpZ25hbCI6bnVsbCwic2VudGltZW50X3Njb3JlIjpudWxsLCJzZW50aW1lbnRfcmVhc29uIjpudWxsLCJzb3VyY2UiOm51bGwsImF1dG9fc291cmNlX2dlbmVyYXRlZF9hdCI6bnVsbCwiYXV0b19zeW5jX3ZlcnNpb24iOm51bGwsImFkZGVkX2F0IjpudWxsLCJub3RlcyI6bnVsbH0seyJzeW1ib2wiOiJCQkIiLCJjdXJyZW50X3ByaWNlIjpudWxsLCJwcmljZV9hc29mX3VuaXhfbXMiOm51bGwsInByaWNlX2Jhc2lzIjpudWxsLCJwcmljZV90aW1lc3RhbXBfYmFzaXMiOm51bGwsInByaWNlX3NvdXJjZSI6eyJzY2hlbWFfdmVyc2lvbiI6bnVsbCwicmVxdWVzdGVkX3N5bWJvbCI6bnVsbCwicmVxdWVzdGVkX2FkanVzdGVkIjpudWxsLCJzdGF0dXMiOm51bGwsInJlYXNvbl9jb2RlIjpudWxsLCJib2R5X3NoYTI1NiI6bnVsbCwic3RhcnRlZF9hdCI6bnVsbCwiY29tcGxldGVkX2F0IjpudWxsLCJjdXJyZW5jeV92ZXJpZmllZCI6bnVsbCwiaW5zdHJ1bWVudF9iaW5kaW5nX3ZlcmlmaWVkIjpudWxsfSwicHJpY2VfcHJvdmlkZXIiOm51bGwsInByaWNlX29wZW4iOm51bGwsInByaWNlX2hpZ2giOm51bGwsInByaWNlX2xvdyI6bnVsbCwidm9sdW1lIjpudWxsLCJyZXNlYXJjaF9ldmlkZW5jZSI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLWpvaW5zLnYxIiwiYWxsb3dzX3NpemluZyI6ZmFsc2UsImFscGhhIjp7InNvdXJjZV9rZXkiOiJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIiwiYXJyYXlfcGF0aCI6InN0b2NrcyIsInN0YXR1cyI6IlVOSVFVRV9TT1VSQ0VfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6WzFdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9zIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX3NfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX2EiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfYV9jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfYiI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9iX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwicmVnaW1lIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL3JlZ2ltZS1waWNrcy5qc29uIiwiYXJyYXlfcGF0aCI6InJlZ2ltZV9waWNrcyIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJzZW50aW1lbnQiOnsic291cmNlX2tleSI6InNlbnRpbWVudC9kYXRhLmpzb24iLCJhcnJheV9wYXRoIjoic2VudGltZW50Iiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImludmFsaWRfZmllbGRzIjpbXSwiaW50ZXJwcmV0YXRpb24iOiJEZXNjcmlwdGl2ZSBzb3VyY2UgZmllbGRzOyBmcmVzaG5lc3MsIGluZGVwZW5kZW5jZSBhbmQgcHJlZGljdGl2ZSB2YWxpZGl0eSB1bnZlcmlmaWVkIn0sImFscGhhX3Njb3JlIjowLCJ0aWVyIjpudWxsLCJyYW5rIjpudWxsLCJuYW1lIjpudWxsLCJzZWN0b3IiOm51bGwsImNvbXBvbmVudHMiOm51bGwsInRvcF9zaWduYWxzIjpudWxsLCJyaXNrX2ZsYWdzIjpudWxsLCJjb25mbHVlbmNlX3RpZXIiOm51bGwsImNvbmZsdWVuY2VfY291bnQiOm51bGwsImNvbXBvbmVudHNfZmlyaW5nIjpudWxsLCJyZWdpbWVfYWRqIjpudWxsLCJyZWdpbWVfYWRqX3Njb3JlIjpudWxsLCJzZW50aW1lbnRfc2lnbmFsIjpudWxsLCJzZW50aW1lbnRfc2NvcmUiOm51bGwsInNlbnRpbWVudF9yZWFzb24iOm51bGwsInNvdXJjZSI6bnVsbCwiYXV0b19zb3VyY2VfZ2VuZXJhdGVkX2F0IjpudWxsLCJhdXRvX3N5bmNfdmVyc2lvbiI6bnVsbCwiYWRkZWRfYXQiOm51bGwsIm5vdGVzIjpudWxsfSx7InN5bWJvbCI6IkFBQSIsImN1cnJlbnRfcHJpY2UiOm51bGwsInByaWNlX2Fzb2ZfdW5peF9tcyI6bnVsbCwicHJpY2VfYmFzaXMiOm51bGwsInByaWNlX3RpbWVzdGFtcF9iYXNpcyI6bnVsbCwicHJpY2Vfc291cmNlIjp7InNjaGVtYV92ZXJzaW9uIjpudWxsLCJyZXF1ZXN0ZWRfc3ltYm9sIjpudWxsLCJyZXF1ZXN0ZWRfYWRqdXN0ZWQiOm51bGwsInN0YXR1cyI6bnVsbCwicmVhc29uX2NvZGUiOm51bGwsImJvZHlfc2hhMjU2IjpudWxsLCJzdGFydGVkX2F0IjpudWxsLCJjb21wbGV0ZWRfYXQiOm51bGwsImN1cnJlbmN5X3ZlcmlmaWVkIjpudWxsLCJpbnN0cnVtZW50X2JpbmRpbmdfdmVyaWZpZWQiOm51bGx9LCJwcmljZV9wcm92aWRlciI6bnVsbCwicHJpY2Vfb3BlbiI6bnVsbCwicHJpY2VfaGlnaCI6bnVsbCwicHJpY2VfbG93IjpudWxsLCJ2b2x1bWUiOm51bGwsInJlc2VhcmNoX2V2aWRlbmNlIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtam9pbnMudjEiLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZSwiYWxwaGEiOnsic291cmNlX2tleSI6InNjcmVlbmVyL2FscGhhLXNjb3JlLmpzb24iLCJhcnJheV9wYXRoIjoic3RvY2tzIiwic3RhdHVzIjoiVU5JUVVFX1NPVVJDRV9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbMF0sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX3MiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfc19jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfYSI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9hX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9iIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX2JfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJyZWdpbWUiOnsic291cmNlX2tleSI6InNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iLCJhcnJheV9wYXRoIjoicmVnaW1lX3BpY2tzIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sInNlbnRpbWVudCI6eyJzb3VyY2Vfa2V5Ijoic2VudGltZW50L2RhdGEuanNvbiIsImFycmF5X3BhdGgiOiJzZW50aW1lbnQiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiaW52YWxpZF9maWVsZHMiOlsiYWxwaGFfc2NvcmUiXSwiaW50ZXJwcmV0YXRpb24iOiJEZXNjcmlwdGl2ZSBzb3VyY2UgZmllbGRzOyBmcmVzaG5lc3MsIGluZGVwZW5kZW5jZSBhbmQgcHJlZGljdGl2ZSB2YWxpZGl0eSB1bnZlcmlmaWVkIn0sImFscGhhX3Njb3JlIjpudWxsLCJ0aWVyIjpudWxsLCJyYW5rIjpudWxsLCJuYW1lIjpudWxsLCJzZWN0b3IiOm51bGwsImNvbXBvbmVudHMiOm51bGwsInRvcF9zaWduYWxzIjpudWxsLCJyaXNrX2ZsYWdzIjpudWxsLCJjb25mbHVlbmNlX3RpZXIiOm51bGwsImNvbmZsdWVuY2VfY291bnQiOm51bGwsImNvbXBvbmVudHNfZmlyaW5nIjpudWxsLCJyZWdpbWVfYWRqIjpudWxsLCJyZWdpbWVfYWRqX3Njb3JlIjpudWxsLCJzZW50aW1lbnRfc2lnbmFsIjpudWxsLCJzZW50aW1lbnRfc2NvcmUiOm51bGwsInNlbnRpbWVudF9yZWFzb24iOm51bGwsInNvdXJjZSI6bnVsbCwiYXV0b19zb3VyY2VfZ2VuZXJhdGVkX2F0IjpudWxsLCJhdXRvX3N5bmNfdmVyc2lvbiI6bnVsbCwiYWRkZWRfYXQiOm51bGwsIm5vdGVzIjpudWxsfV0sInNlY3Rvcl9jb25jZW50cmF0aW9uIjpbXSwid2F0Y2hsaXN0X3N5bmMiOnsiYWRkZWRfUyI6W10sImFkZGVkX0EiOltdLCJyZW1vdmVkX1MiOltdLCJyZW1vdmVkX0EiOltdfSwiY291bnRzIjp7InBvc2l0aW9ucyI6MCwid2F0Y2hsaXN0IjozLCJhdXRvX3dhdGNoX1MiOjAsImF1dG9fd2F0Y2hfQSI6MCwibWFudWFsX3dhdGNoIjowfX0=",
+              "bytes": 13532,
+              "sha256": "8e60eb7104e83347f09faefe3e14e91d6975638e9e31afcb68cff7524e682c06"
+            },
+            "ContentType": "application/json",
+            "CacheControl": "private, no-store"
+          }
+        }
+      ]
+    },
+    {
+      "name": "complete_invalid_source_retained_without_losing_positions",
+      "complete_inputs": {
+        "documents": {
+          "screener/alpha-score.json": {
+            "complete_bytes_encoding": "base64",
+            "value": "eyJzdG9ja3MiOltdLCJzdG9ja3MiOltdfQ==",
+            "bytes": 25,
+            "sha256": "cf6867d63bfe0cbd923dc5828e9c7556899ad1440cc051a1ec59e0f8dfba579b"
+          },
+          "signals/confluence.json": {
+            "tier_s_confluence": [],
+            "tier_a_confluence": [],
+            "tier_b_confluence": []
+          },
+          "signals/regime-picks.json": {
+            "regime_picks": []
+          },
+          "sentiment/data.json": {
+            "sentiment": []
+          }
+        },
+        "watchlist": [],
+        "positions": [
+          {
+            "symbol": "AAA",
+            "qty": 1,
+            "cost_basis_per_share": 10
+          }
+        ]
+      },
+      "limits": {
+        "research_bytes": 8388608,
+        "mirror_bytes": 20000000
+      },
+      "result": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 1, \"n_watchlist\": 0, \"total_market_value\": null, \"total_pnl_dollars\": null, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.0}"
+      },
+      "error": null,
+      "source_requests": [
+        "screener/alpha-score.json",
+        "signals/confluence.json",
+        "signals/regime-picks.json",
+        "sentiment/data.json"
+      ],
+      "sync_calls": [
+        {}
+      ],
+      "price_calls": [
+        [
+          "AAA"
+        ]
+      ],
+      "all_bodies_closed": true,
+      "writes": [
+        {
+          "sink": "private",
+          "kind": "portfolio-snapshot",
+          "payload": {
+            "generated_at": "2026-09-30T08:35:00+00:00",
+            "audit_version": "2026-09-30.5",
+            "generated_at_unix": 1790757300,
+            "elapsed_seconds": 0.0,
+            "portfolio_summary": {
+              "n_positions": 1,
+              "priced_positions_count": 0,
+              "basis_positions_count": 1,
+              "pnl_eligible_positions_count": 0,
+              "total_market_value": null,
+              "total_market_value_scope": "PRICED positions only",
+              "total_cost_basis": 10.0,
+              "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+              "total_pnl_dollars": null,
+              "total_pnl_pct": null,
+              "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+              "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+              "pnl_pct_denominator": null,
+              "unpriced_positions": [
+                "AAA"
+              ],
+              "pnl_excluded_positions": [
+                "AAA"
+              ],
+              "unpriced_cost_basis": 10.0,
+              "unpriced_cost_basis_known_count": 1,
+              "stops_hit_count": 0,
+              "stops_hit": [],
+              "stops_not_evaluable": [],
+              "accounting_coverage_status": "PARTIAL",
+              "accounting_reason_codes": [],
+              "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+            },
+            "research": {
+              "schema_version": "snapshot-research.v1",
+              "status": "DESCRIPTIVE_RESEARCH_ONLY",
+              "source_documents": {
+                "screener/alpha-score.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "screener/alpha-score.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "UNAVAILABLE",
+                  "body_complete": true,
+                  "reason_code": "SOURCE_UNAVAILABLE_OR_INVALID",
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 25,
+                  "body_sha256": "cf6867d63bfe0cbd923dc5828e9c7556899ad1440cc051a1ec59e0f8dfba579b",
+                  "body_encoding": "base64",
+                  "body": "eyJzdG9ja3MiOltdLCJzdG9ja3MiOltdfQ==",
+                  "stream_close_confirmed": true
+                },
+                "signals/confluence.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/confluence.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 75,
+                  "body_sha256": "1504910309c871abfbdf70364b21f526d3930ff5708c69c1779db0ce522cd2a3",
+                  "body_encoding": "base64",
+                  "body": "eyJ0aWVyX3NfY29uZmx1ZW5jZSI6IFtdLCAidGllcl9hX2NvbmZsdWVuY2UiOiBbXSwgInRpZXJfYl9jb25mbHVlbmNlIjogW119",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "signals/regime-picks.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/regime-picks.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 20,
+                  "body_sha256": "0cf1d10c9ce66b47f6afbc4a7296eda04299444ebda169ff7a4a43d28e339458",
+                  "body_encoding": "base64",
+                  "body": "eyJyZWdpbWVfcGlja3MiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "sentiment/data.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "sentiment/data.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 17,
+                  "body_sha256": "d5a950fd1375bb852c7989ad043ac63bc4308d9641e4f5f50d22e26542f3a6df",
+                  "body_encoding": "base64",
+                  "body": "eyJzZW50aW1lbnQiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                }
+              },
+              "retained_complete_body_bytes": 137,
+              "source_byte_bound": 8388608,
+              "joins": {
+                "alpha": {
+                  "source_shape": "UNAVAILABLE_OR_INVALID_ARRAY",
+                  "source_row_count": null,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_s": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_a": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_b": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "regime": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "sentiment": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                }
+              },
+              "freshness_verified": false,
+              "upstream_provenance_verified": false,
+              "independent_evidence_verified": false,
+              "allows_sizing": false
+            },
+            "accounting": {
+              "schema_version": "holdings-accounting.v1",
+              "valuation_at": "2026-09-30T08:35:00+00:00",
+              "source_positions": [
+                {
+                  "symbol": "AAA",
+                  "qty": 1,
+                  "cost_basis_per_share": 10
+                }
+              ],
+              "source_prices": {},
+              "source_watchlist": [],
+              "book_read": {
+                "schema_version": "portfolio-book-read.v1",
+                "status": "COMPLETE",
+                "consistency": "STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT",
+                "started_at": "2026-09-30T08:35:00+00:00",
+                "completed_at": "2026-09-30T08:35:00+00:00",
+                "position_count": 1,
+                "watchlist_count": 0,
+                "exact_stored_decimal_evidence": true,
+                "account_reconciled": false,
+                "per_partition_bounds": {
+                  "rows": 10000,
+                  "pages": 100,
+                  "encoded_bytes": 8388608,
+                  "acceptance_seconds": 20
+                }
+              },
+              "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+              "assumptions_verified": false,
+              "allows_sizing": false
+            },
+            "capital_book": {
+              "schema_version": "1.0",
+              "status": "BLOCKED",
+              "allows_new_entries": false,
+              "reason_codes": [
+                "MISSING_RECONCILED_CAPITAL_LEDGER"
+              ],
+              "as_of": "2026-09-30T08:35:00+00:00",
+              "book_id": null,
+              "account_id": null,
+              "currency": null,
+              "equity_nav": null,
+              "cash": null,
+              "liabilities": null,
+              "reconciled_at": null,
+              "reserved_order_exposure": null,
+              "nav_history": [],
+              "open_orders": [],
+              "gross_exposure": null,
+              "net_exposure": null,
+              "exposure_scope": "PRICED_POSITIONS_ONLY",
+              "positions": [
+                {
+                  "symbol": "AAA",
+                  "current_price": null,
+                  "price_asof_unix_ms": null,
+                  "price_basis": null,
+                  "price_timestamp_basis": null,
+                  "price_source": {
+                    "schema_version": null,
+                    "requested_symbol": null,
+                    "requested_adjusted": null,
+                    "status": null,
+                    "reason_code": null,
+                    "body_sha256": null,
+                    "started_at": null,
+                    "completed_at": null,
+                    "currency_verified": null,
+                    "instrument_binding_verified": null
+                  },
+                  "price_provider": null,
+                  "price_open": null,
+                  "price_high": null,
+                  "price_low": null,
+                  "volume": null,
+                  "research_evidence": {
+                    "schema_version": "snapshot-research-joins.v1",
+                    "allows_sizing": false,
+                    "alpha": {
+                      "source_key": "screener/alpha-score.json",
+                      "array_path": "stocks",
+                      "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+                      "zero_based_occurrences": [],
+                      "freshness_verified": false,
+                      "independent_evidence_verified": false,
+                      "allows_sizing": false
+                    },
+                    "confluence_s": {
+                      "source_key": "signals/confluence.json",
+                      "array_path": "tier_s_confluence",
+                      "status": "NO_IDENTIFIED_ROW",
+                      "zero_based_occurrences": [],
+                      "freshness_verified": false,
+                      "independent_evidence_verified": false,
+                      "allows_sizing": false
+                    },
+                    "confluence_a": {
+                      "source_key": "signals/confluence.json",
+                      "array_path": "tier_a_confluence",
+                      "status": "NO_IDENTIFIED_ROW",
+                      "zero_based_occurrences": [],
+                      "freshness_verified": false,
+                      "independent_evidence_verified": false,
+                      "allows_sizing": false
+                    },
+                    "confluence_b": {
+                      "source_key": "signals/confluence.json",
+                      "array_path": "tier_b_confluence",
+                      "status": "NO_IDENTIFIED_ROW",
+                      "zero_based_occurrences": [],
+                      "freshness_verified": false,
+                      "independent_evidence_verified": false,
+                      "allows_sizing": false
+                    },
+                    "regime": {
+                      "source_key": "signals/regime-picks.json",
+                      "array_path": "regime_picks",
+                      "status": "NO_IDENTIFIED_ROW",
+                      "zero_based_occurrences": [],
+                      "freshness_verified": false,
+                      "independent_evidence_verified": false,
+                      "allows_sizing": false
+                    },
+                    "sentiment": {
+                      "source_key": "sentiment/data.json",
+                      "array_path": "sentiment",
+                      "status": "NO_IDENTIFIED_ROW",
+                      "zero_based_occurrences": [],
+                      "freshness_verified": false,
+                      "independent_evidence_verified": false,
+                      "allows_sizing": false
+                    },
+                    "invalid_fields": [],
+                    "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                  },
+                  "alpha_score": null,
+                  "tier": null,
+                  "rank": null,
+                  "name": null,
+                  "sector": null,
+                  "components": null,
+                  "top_signals": null,
+                  "risk_flags": null,
+                  "confluence_tier": null,
+                  "confluence_count": null,
+                  "components_firing": null,
+                  "regime_adj": null,
+                  "regime_adj_score": null,
+                  "sentiment_signal": null,
+                  "sentiment_score": null,
+                  "sentiment_reason": null,
+                  "source_record_index": 0,
+                  "qty": 1.0,
+                  "cost_basis_per_share": 10.0,
+                  "cost_basis_total": 10.0,
+                  "market_value": null,
+                  "pnl_dollars": null,
+                  "pnl_pct": null,
+                  "position_type": "LONG",
+                  "valuation_status": "UNPRICED",
+                  "mark_age_h": null,
+                  "pnl_eligible": false,
+                  "accounting_reason_codes": [
+                    "UNPRICED"
+                  ],
+                  "stop_loss": null,
+                  "stop_hit": null,
+                  "stop_distance_pct": null,
+                  "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+                  "target_weight_pct": null,
+                  "added_at": null,
+                  "notes": null,
+                  "weight_drift_pct": null,
+                  "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+                  "current_weight_pct": null,
+                  "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+                  "gross_holdings_weight_pct": null,
+                  "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+                }
+              ],
+              "unpriced_positions": [
+                "AAA"
+              ]
+            },
+            "positions": [
+              {
+                "symbol": "AAA",
+                "current_price": null,
+                "price_asof_unix_ms": null,
+                "price_basis": null,
+                "price_timestamp_basis": null,
+                "price_source": {
+                  "schema_version": null,
+                  "requested_symbol": null,
+                  "requested_adjusted": null,
+                  "status": null,
+                  "reason_code": null,
+                  "body_sha256": null,
+                  "started_at": null,
+                  "completed_at": null,
+                  "currency_verified": null,
+                  "instrument_binding_verified": null
+                },
+                "price_provider": null,
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "research_evidence": {
+                  "schema_version": "snapshot-research-joins.v1",
+                  "allows_sizing": false,
+                  "alpha": {
+                    "source_key": "screener/alpha-score.json",
+                    "array_path": "stocks",
+                    "status": "UNAVAILABLE_OR_INVALID_ARRAY",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_s": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_s_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_a": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_a_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_b": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_b_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "regime": {
+                    "source_key": "signals/regime-picks.json",
+                    "array_path": "regime_picks",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "sentiment": {
+                    "source_key": "sentiment/data.json",
+                    "array_path": "sentiment",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "invalid_fields": [],
+                  "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                },
+                "alpha_score": null,
+                "tier": null,
+                "rank": null,
+                "name": null,
+                "sector": null,
+                "components": null,
+                "top_signals": null,
+                "risk_flags": null,
+                "confluence_tier": null,
+                "confluence_count": null,
+                "components_firing": null,
+                "regime_adj": null,
+                "regime_adj_score": null,
+                "sentiment_signal": null,
+                "sentiment_score": null,
+                "sentiment_reason": null,
+                "source_record_index": 0,
+                "qty": 1.0,
+                "cost_basis_per_share": 10.0,
+                "cost_basis_total": 10.0,
+                "market_value": null,
+                "pnl_dollars": null,
+                "pnl_pct": null,
+                "position_type": "LONG",
+                "valuation_status": "UNPRICED",
+                "mark_age_h": null,
+                "pnl_eligible": false,
+                "accounting_reason_codes": [
+                  "UNPRICED"
+                ],
+                "stop_loss": null,
+                "stop_hit": null,
+                "stop_distance_pct": null,
+                "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+                "target_weight_pct": null,
+                "added_at": null,
+                "notes": null,
+                "weight_drift_pct": null,
+                "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+                "current_weight_pct": null,
+                "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+                "gross_holdings_weight_pct": null,
+                "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+              }
+            ],
+            "watchlist": [],
+            "sector_concentration": [],
+            "watchlist_sync": {
+              "added_S": [],
+              "added_A": [],
+              "removed_S": [],
+              "removed_A": []
+            },
+            "counts": {
+              "positions": 1,
+              "watchlist": 0,
+              "auto_watch_S": 0,
+              "auto_watch_A": 0,
+              "manual_watch": 0
+            }
+          }
+        },
+        {
+          "sink": "s3",
+          "request": {
+            "Bucket": "justhodl-dashboard-live",
+            "Key": "portfolio/snapshot.json",
+            "Body": {
+              "complete_bytes_encoding": "base64",
+              "value": "eyJnZW5lcmF0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiYXVkaXRfdmVyc2lvbiI6IjIwMjYtMDktMzAuNSIsImdlbmVyYXRlZF9hdF91bml4IjoxNzkwNzU3MzAwLCJlbGFwc2VkX3NlY29uZHMiOjAuMCwicG9ydGZvbGlvX3N1bW1hcnkiOnsibl9wb3NpdGlvbnMiOjEsInByaWNlZF9wb3NpdGlvbnNfY291bnQiOjAsImJhc2lzX3Bvc2l0aW9uc19jb3VudCI6MSwicG5sX2VsaWdpYmxlX3Bvc2l0aW9uc19jb3VudCI6MCwidG90YWxfbWFya2V0X3ZhbHVlIjpudWxsLCJ0b3RhbF9tYXJrZXRfdmFsdWVfc2NvcGUiOiJQUklDRUQgcG9zaXRpb25zIG9ubHkiLCJ0b3RhbF9jb3N0X2Jhc2lzIjoxMC4wLCJ0b3RhbF9jb3N0X2Jhc2lzX3Njb3BlIjoiS25vd24gc2lnbmVkIHF1YW50aXR5LXRpbWVzLXVuaXQtY29zdCBvbmx5IiwidG90YWxfcG5sX2RvbGxhcnMiOm51bGwsInRvdGFsX3BubF9wY3QiOm51bGwsInBubF9zY29wZSI6IlJvd3Mgd2l0aCBlbGlnaWJsZSBxdWFudGl0eSwgbWFyayBhbmQgY29zdCBiYXNpcyBvbmx5OyB1bnJlYWxpemVkIHByaWNlIFAmTCBiZWZvcmUgZmVlcywgaW5jb21lIGFuZCBGWCIsInBubF9wY3RfYmFzaXMiOiJTVU1fQUJTT0xVVEVfRUxJR0lCTEVfQ09TVF9OT1RfTkFWX1JFVFVSTiIsInBubF9wY3RfZGVub21pbmF0b3IiOm51bGwsInVucHJpY2VkX3Bvc2l0aW9ucyI6WyJBQUEiXSwicG5sX2V4Y2x1ZGVkX3Bvc2l0aW9ucyI6WyJBQUEiXSwidW5wcmljZWRfY29zdF9iYXNpcyI6MTAuMCwidW5wcmljZWRfY29zdF9iYXNpc19rbm93bl9jb3VudCI6MSwic3RvcHNfaGl0X2NvdW50IjowLCJzdG9wc19oaXQiOltdLCJzdG9wc19ub3RfZXZhbHVhYmxlIjpbXSwiYWNjb3VudGluZ19jb3ZlcmFnZV9zdGF0dXMiOiJQQVJUSUFMIiwiYWNjb3VudGluZ19yZWFzb25fY29kZXMiOltdLCJhY2NvdW50aW5nX2Fzc3VtcHRpb25zIjoiTGVnYWN5IHNpbmdsZS1jdXJyZW5jeSBjYXNoLWVxdWl0eSBhcml0aG1ldGljOyBpbnN0cnVtZW50LCBjdXJyZW5jeSBhbmQgYWNjb3VudCByZWNvbmNpbGlhdGlvbiB1bnZlcmlmaWVkIn0sInJlc2VhcmNoIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gudjEiLCJzdGF0dXMiOiJERVNDUklQVElWRV9SRVNFQVJDSF9PTkxZIiwic291cmNlX2RvY3VtZW50cyI6eyJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2NyZWVuZXIvYWxwaGEtc2NvcmUuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IlVOQVZBSUxBQkxFIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOiJTT1VSQ0VfVU5BVkFJTEFCTEVfT1JfSU5WQUxJRCIsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjoyNSwiYm9keV9zaGEyNTYiOiJjZjY4NjdkNjNiZmUwY2JkOTIzZGM1ODI4ZTljNzU1Njg5OWFkMTQ0MGNjMDUxYTFlYzU5ZTBmOGRmYmE1NzliIiwiYm9keV9lbmNvZGluZyI6ImJhc2U2NCIsImJvZHkiOiJleUp6ZEc5amEzTWlPbHRkTENKemRHOWphM01pT2x0ZGZRPT0iLCJzdHJlYW1fY2xvc2VfY29uZmlybWVkIjp0cnVlfSwic2lnbmFscy9jb25mbHVlbmNlLmpzb24iOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1zb3VyY2UudjEiLCJrZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjo3NSwiYm9keV9zaGEyNTYiOiIxNTA0OTEwMzA5Yzg3MWFiZmJkZjcwMzY0YjIxZjUyNmQzOTMwZmY1NzA4YzY5YzE3NzlkYjBjZTUyMmNkMmEzIiwiYm9keV9lbmNvZGluZyI6ImJhc2U2NCIsImJvZHkiOiJleUowYVdWeVgzTmZZMjl1Wm14MVpXNWpaU0k2SUZ0ZExDQWlkR2xsY2w5aFgyTnZibVpzZFdWdVkyVWlPaUJiWFN3Z0luUnBaWEpmWWw5amIyNW1iSFZsYm1ObElqb2dXMTE5IiwiZGVjbGFyZWRfZ2VuZXJhdGVkX2F0IjpudWxsLCJzdHJlYW1fY2xvc2VfY29uZmlybWVkIjp0cnVlfSwic2lnbmFscy9yZWdpbWUtcGlja3MuanNvbiI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLXNvdXJjZS52MSIsImtleSI6InNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iLCJzdGFydGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsImNvbXBsZXRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJzdGF0dXMiOiJDT01QTEVURV9KU09OX09CSkVDVCIsImJvZHlfY29tcGxldGUiOnRydWUsInJlYXNvbl9jb2RlIjpudWxsLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJ1cHN0cmVhbV9wcm92ZW5hbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYm9keV9ieXRlcyI6MjAsImJvZHlfc2hhMjU2IjoiMGNmMWQxMGM5Y2U2NmI0N2Y2YWZiYzRhNzI5NmVkYTA0Mjk5NDQ0ZWJkYTE2OWZmN2E0YTQzZDI4ZTMzOTQ1OCIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKeVpXZHBiV1ZmY0dsamEzTWlPaUJiWFgwPSIsImRlY2xhcmVkX2dlbmVyYXRlZF9hdCI6bnVsbCwic3RyZWFtX2Nsb3NlX2NvbmZpcm1lZCI6dHJ1ZX0sInNlbnRpbWVudC9kYXRhLmpzb24iOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1zb3VyY2UudjEiLCJrZXkiOiJzZW50aW1lbnQvZGF0YS5qc29uIiwic3RhcnRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJjb21wbGV0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwic3RhdHVzIjoiQ09NUExFVEVfSlNPTl9PQkpFQ1QiLCJib2R5X2NvbXBsZXRlIjp0cnVlLCJyZWFzb25fY29kZSI6bnVsbCwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwidXBzdHJlYW1fcHJvdmVuYW5jZV92ZXJpZmllZCI6ZmFsc2UsImJvZHlfYnl0ZXMiOjE3LCJib2R5X3NoYTI1NiI6ImQ1YTk1MGZkMTM3NWJiODUyYzc5ODlhZDA0M2FjNjNiYzQzMDhkOTY0MWU0ZjVmNTBkMjJlMjY1NDJmM2E2ZGYiLCJib2R5X2VuY29kaW5nIjoiYmFzZTY0IiwiYm9keSI6ImV5SnpaVzUwYVcxbGJuUWlPaUJiWFgwPSIsImRlY2xhcmVkX2dlbmVyYXRlZF9hdCI6bnVsbCwic3RyZWFtX2Nsb3NlX2NvbmZpcm1lZCI6dHJ1ZX19LCJyZXRhaW5lZF9jb21wbGV0ZV9ib2R5X2J5dGVzIjoxMzcsInNvdXJjZV9ieXRlX2JvdW5kIjo4Mzg4NjA4LCJqb2lucyI6eyJhbHBoYSI6eyJzb3VyY2Vfc2hhcGUiOiJVTkFWQUlMQUJMRV9PUl9JTlZBTElEX0FSUkFZIiwic291cmNlX3Jvd19jb3VudCI6bnVsbCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX0sImNvbmZsdWVuY2VfcyI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjAsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MCwiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJjb25mbHVlbmNlX2EiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fSwiY29uZmx1ZW5jZV9iIjp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX0sInJlZ2ltZSI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjAsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MCwiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJzZW50aW1lbnQiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fX0sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiYWNjb3VudGluZyI6eyJzY2hlbWFfdmVyc2lvbiI6ImhvbGRpbmdzLWFjY291bnRpbmcudjEiLCJ2YWx1YXRpb25fYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwic291cmNlX3Bvc2l0aW9ucyI6W3sic3ltYm9sIjoiQUFBIiwicXR5IjoxLCJjb3N0X2Jhc2lzX3Blcl9zaGFyZSI6MTB9XSwic291cmNlX3ByaWNlcyI6e30sInNvdXJjZV93YXRjaGxpc3QiOltdLCJib29rX3JlYWQiOnsic2NoZW1hX3ZlcnNpb24iOiJwb3J0Zm9saW8tYm9vay1yZWFkLnYxIiwic3RhdHVzIjoiQ09NUExFVEUiLCJjb25zaXN0ZW5jeSI6IlNUUk9OR0xZX0NPTlNJU1RFTlRfUEFHRVNfTk9UX0FUT01JQ19TTkFQU0hPVCIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInBvc2l0aW9uX2NvdW50IjoxLCJ3YXRjaGxpc3RfY291bnQiOjAsImV4YWN0X3N0b3JlZF9kZWNpbWFsX2V2aWRlbmNlIjp0cnVlLCJhY2NvdW50X3JlY29uY2lsZWQiOmZhbHNlLCJwZXJfcGFydGl0aW9uX2JvdW5kcyI6eyJyb3dzIjoxMDAwMCwicGFnZXMiOjEwMCwiZW5jb2RlZF9ieXRlcyI6ODM4ODYwOCwiYWNjZXB0YW5jZV9zZWNvbmRzIjoyMH19LCJub25maW5pdGVfc291cmNlX2VuY29kaW5nIjoicmVqZWN0ZWRfbnVtYmVyX3R5cGUgcGx1cyBleGFjdCBzb3VyY2UgcmVwcmVzZW50YXRpb24iLCJhc3N1bXB0aW9uc192ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY2FwaXRhbF9ib29rIjp7InNjaGVtYV92ZXJzaW9uIjoiMS4wIiwic3RhdHVzIjoiQkxPQ0tFRCIsImFsbG93c19uZXdfZW50cmllcyI6ZmFsc2UsInJlYXNvbl9jb2RlcyI6WyJNSVNTSU5HX1JFQ09OQ0lMRURfQ0FQSVRBTF9MRURHRVIiXSwiYXNfb2YiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiYm9va19pZCI6bnVsbCwiYWNjb3VudF9pZCI6bnVsbCwiY3VycmVuY3kiOm51bGwsImVxdWl0eV9uYXYiOm51bGwsImNhc2giOm51bGwsImxpYWJpbGl0aWVzIjpudWxsLCJyZWNvbmNpbGVkX2F0IjpudWxsLCJyZXNlcnZlZF9vcmRlcl9leHBvc3VyZSI6bnVsbCwibmF2X2hpc3RvcnkiOltdLCJvcGVuX29yZGVycyI6W10sImdyb3NzX2V4cG9zdXJlIjpudWxsLCJuZXRfZXhwb3N1cmUiOm51bGwsImV4cG9zdXJlX3Njb3BlIjoiUFJJQ0VEX1BPU0lUSU9OU19PTkxZIiwicG9zaXRpb25zIjpbeyJzeW1ib2wiOiJBQUEiLCJjdXJyZW50X3ByaWNlIjpudWxsLCJwcmljZV9hc29mX3VuaXhfbXMiOm51bGwsInByaWNlX2Jhc2lzIjpudWxsLCJwcmljZV90aW1lc3RhbXBfYmFzaXMiOm51bGwsInByaWNlX3NvdXJjZSI6eyJzY2hlbWFfdmVyc2lvbiI6bnVsbCwicmVxdWVzdGVkX3N5bWJvbCI6bnVsbCwicmVxdWVzdGVkX2FkanVzdGVkIjpudWxsLCJzdGF0dXMiOm51bGwsInJlYXNvbl9jb2RlIjpudWxsLCJib2R5X3NoYTI1NiI6bnVsbCwic3RhcnRlZF9hdCI6bnVsbCwiY29tcGxldGVkX2F0IjpudWxsLCJjdXJyZW5jeV92ZXJpZmllZCI6bnVsbCwiaW5zdHJ1bWVudF9iaW5kaW5nX3ZlcmlmaWVkIjpudWxsfSwicHJpY2VfcHJvdmlkZXIiOm51bGwsInByaWNlX29wZW4iOm51bGwsInByaWNlX2hpZ2giOm51bGwsInByaWNlX2xvdyI6bnVsbCwidm9sdW1lIjpudWxsLCJyZXNlYXJjaF9ldmlkZW5jZSI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLWpvaW5zLnYxIiwiYWxsb3dzX3NpemluZyI6ZmFsc2UsImFscGhhIjp7InNvdXJjZV9rZXkiOiJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIiwiYXJyYXlfcGF0aCI6InN0b2NrcyIsInN0YXR1cyI6IlVOQVZBSUxBQkxFX09SX0lOVkFMSURfQVJSQVkiLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfcyI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9zX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9hIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX2FfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX2IiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfYl9jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sInJlZ2ltZSI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9yZWdpbWUtcGlja3MuanNvbiIsImFycmF5X3BhdGgiOiJyZWdpbWVfcGlja3MiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwic2VudGltZW50Ijp7InNvdXJjZV9rZXkiOiJzZW50aW1lbnQvZGF0YS5qc29uIiwiYXJyYXlfcGF0aCI6InNlbnRpbWVudCIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJpbnZhbGlkX2ZpZWxkcyI6W10sImludGVycHJldGF0aW9uIjoiRGVzY3JpcHRpdmUgc291cmNlIGZpZWxkczsgZnJlc2huZXNzLCBpbmRlcGVuZGVuY2UgYW5kIHByZWRpY3RpdmUgdmFsaWRpdHkgdW52ZXJpZmllZCJ9LCJhbHBoYV9zY29yZSI6bnVsbCwidGllciI6bnVsbCwicmFuayI6bnVsbCwibmFtZSI6bnVsbCwic2VjdG9yIjpudWxsLCJjb21wb25lbnRzIjpudWxsLCJ0b3Bfc2lnbmFscyI6bnVsbCwicmlza19mbGFncyI6bnVsbCwiY29uZmx1ZW5jZV90aWVyIjpudWxsLCJjb25mbHVlbmNlX2NvdW50IjpudWxsLCJjb21wb25lbnRzX2ZpcmluZyI6bnVsbCwicmVnaW1lX2FkaiI6bnVsbCwicmVnaW1lX2Fkal9zY29yZSI6bnVsbCwic2VudGltZW50X3NpZ25hbCI6bnVsbCwic2VudGltZW50X3Njb3JlIjpudWxsLCJzZW50aW1lbnRfcmVhc29uIjpudWxsLCJzb3VyY2VfcmVjb3JkX2luZGV4IjowLCJxdHkiOjEuMCwiY29zdF9iYXNpc19wZXJfc2hhcmUiOjEwLjAsImNvc3RfYmFzaXNfdG90YWwiOjEwLjAsIm1hcmtldF92YWx1ZSI6bnVsbCwicG5sX2RvbGxhcnMiOm51bGwsInBubF9wY3QiOm51bGwsInBvc2l0aW9uX3R5cGUiOiJMT05HIiwidmFsdWF0aW9uX3N0YXR1cyI6IlVOUFJJQ0VEIiwibWFya19hZ2VfaCI6bnVsbCwicG5sX2VsaWdpYmxlIjpmYWxzZSwiYWNjb3VudGluZ19yZWFzb25fY29kZXMiOlsiVU5QUklDRUQiXSwic3RvcF9sb3NzIjpudWxsLCJzdG9wX2hpdCI6bnVsbCwic3RvcF9kaXN0YW5jZV9wY3QiOm51bGwsInN0b3BfY29tcGFyaXNvbl9zY29wZSI6IlBSRVZJT1VTX0NMT1NFX05PVF9FWEVDVVRJT04iLCJ0YXJnZXRfd2VpZ2h0X3BjdCI6bnVsbCwiYWRkZWRfYXQiOm51bGwsIm5vdGVzIjpudWxsLCJ3ZWlnaHRfZHJpZnRfcGN0IjpudWxsLCJ3ZWlnaHRfZHJpZnRfcmVhc29uIjoiVEFSR0VUX0RFTk9NSU5BVE9SX1VOVkVSSUZJRUQiLCJjdXJyZW50X3dlaWdodF9wY3QiOm51bGwsImN1cnJlbnRfd2VpZ2h0X3Njb3BlIjoiU0lHTkVEX05FVF9IT0xESU5HU19OT1RfTkFWIiwiZ3Jvc3NfaG9sZGluZ3Nfd2VpZ2h0X3BjdCI6bnVsbCwiZ3Jvc3NfaG9sZGluZ3Nfd2VpZ2h0X3Njb3BlIjoiUFJJQ0VEX0hPTERJTkdTX09OTFkifV0sInVucHJpY2VkX3Bvc2l0aW9ucyI6WyJBQUEiXX0sInBvc2l0aW9ucyI6W3sic3ltYm9sIjoiQUFBIiwiY3VycmVudF9wcmljZSI6bnVsbCwicHJpY2VfYXNvZl91bml4X21zIjpudWxsLCJwcmljZV9iYXNpcyI6bnVsbCwicHJpY2VfdGltZXN0YW1wX2Jhc2lzIjpudWxsLCJwcmljZV9zb3VyY2UiOnsic2NoZW1hX3ZlcnNpb24iOm51bGwsInJlcXVlc3RlZF9zeW1ib2wiOm51bGwsInJlcXVlc3RlZF9hZGp1c3RlZCI6bnVsbCwic3RhdHVzIjpudWxsLCJyZWFzb25fY29kZSI6bnVsbCwiYm9keV9zaGEyNTYiOm51bGwsInN0YXJ0ZWRfYXQiOm51bGwsImNvbXBsZXRlZF9hdCI6bnVsbCwiY3VycmVuY3lfdmVyaWZpZWQiOm51bGwsImluc3RydW1lbnRfYmluZGluZ192ZXJpZmllZCI6bnVsbH0sInByaWNlX3Byb3ZpZGVyIjpudWxsLCJwcmljZV9vcGVuIjpudWxsLCJwcmljZV9oaWdoIjpudWxsLCJwcmljZV9sb3ciOm51bGwsInZvbHVtZSI6bnVsbCwicmVzZWFyY2hfZXZpZGVuY2UiOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1qb2lucy52MSIsImFsbG93c19zaXppbmciOmZhbHNlLCJhbHBoYSI6eyJzb3VyY2Vfa2V5Ijoic2NyZWVuZXIvYWxwaGEtc2NvcmUuanNvbiIsImFycmF5X3BhdGgiOiJzdG9ja3MiLCJzdGF0dXMiOiJVTkFWQUlMQUJMRV9PUl9JTlZBTElEX0FSUkFZIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX3MiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfc19jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfYSI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9hX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9iIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX2JfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJyZWdpbWUiOnsic291cmNlX2tleSI6InNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iLCJhcnJheV9wYXRoIjoicmVnaW1lX3BpY2tzIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sInNlbnRpbWVudCI6eyJzb3VyY2Vfa2V5Ijoic2VudGltZW50L2RhdGEuanNvbiIsImFycmF5X3BhdGgiOiJzZW50aW1lbnQiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiaW52YWxpZF9maWVsZHMiOltdLCJpbnRlcnByZXRhdGlvbiI6IkRlc2NyaXB0aXZlIHNvdXJjZSBmaWVsZHM7IGZyZXNobmVzcywgaW5kZXBlbmRlbmNlIGFuZCBwcmVkaWN0aXZlIHZhbGlkaXR5IHVudmVyaWZpZWQifSwiYWxwaGFfc2NvcmUiOm51bGwsInRpZXIiOm51bGwsInJhbmsiOm51bGwsIm5hbWUiOm51bGwsInNlY3RvciI6bnVsbCwiY29tcG9uZW50cyI6bnVsbCwidG9wX3NpZ25hbHMiOm51bGwsInJpc2tfZmxhZ3MiOm51bGwsImNvbmZsdWVuY2VfdGllciI6bnVsbCwiY29uZmx1ZW5jZV9jb3VudCI6bnVsbCwiY29tcG9uZW50c19maXJpbmciOm51bGwsInJlZ2ltZV9hZGoiOm51bGwsInJlZ2ltZV9hZGpfc2NvcmUiOm51bGwsInNlbnRpbWVudF9zaWduYWwiOm51bGwsInNlbnRpbWVudF9zY29yZSI6bnVsbCwic2VudGltZW50X3JlYXNvbiI6bnVsbCwic291cmNlX3JlY29yZF9pbmRleCI6MCwicXR5IjoxLjAsImNvc3RfYmFzaXNfcGVyX3NoYXJlIjoxMC4wLCJjb3N0X2Jhc2lzX3RvdGFsIjoxMC4wLCJtYXJrZXRfdmFsdWUiOm51bGwsInBubF9kb2xsYXJzIjpudWxsLCJwbmxfcGN0IjpudWxsLCJwb3NpdGlvbl90eXBlIjoiTE9ORyIsInZhbHVhdGlvbl9zdGF0dXMiOiJVTlBSSUNFRCIsIm1hcmtfYWdlX2giOm51bGwsInBubF9lbGlnaWJsZSI6ZmFsc2UsImFjY291bnRpbmdfcmVhc29uX2NvZGVzIjpbIlVOUFJJQ0VEIl0sInN0b3BfbG9zcyI6bnVsbCwic3RvcF9oaXQiOm51bGwsInN0b3BfZGlzdGFuY2VfcGN0IjpudWxsLCJzdG9wX2NvbXBhcmlzb25fc2NvcGUiOiJQUkVWSU9VU19DTE9TRV9OT1RfRVhFQ1VUSU9OIiwidGFyZ2V0X3dlaWdodF9wY3QiOm51bGwsImFkZGVkX2F0IjpudWxsLCJub3RlcyI6bnVsbCwid2VpZ2h0X2RyaWZ0X3BjdCI6bnVsbCwid2VpZ2h0X2RyaWZ0X3JlYXNvbiI6IlRBUkdFVF9ERU5PTUlOQVRPUl9VTlZFUklGSUVEIiwiY3VycmVudF93ZWlnaHRfcGN0IjpudWxsLCJjdXJyZW50X3dlaWdodF9zY29wZSI6IlNJR05FRF9ORVRfSE9MRElOR1NfTk9UX05BViIsImdyb3NzX2hvbGRpbmdzX3dlaWdodF9wY3QiOm51bGwsImdyb3NzX2hvbGRpbmdzX3dlaWdodF9zY29wZSI6IlBSSUNFRF9IT0xESU5HU19PTkxZIn1dLCJ3YXRjaGxpc3QiOltdLCJzZWN0b3JfY29uY2VudHJhdGlvbiI6W10sIndhdGNobGlzdF9zeW5jIjp7ImFkZGVkX1MiOltdLCJhZGRlZF9BIjpbXSwicmVtb3ZlZF9TIjpbXSwicmVtb3ZlZF9BIjpbXX0sImNvdW50cyI6eyJwb3NpdGlvbnMiOjEsIndhdGNobGlzdCI6MCwiYXV0b193YXRjaF9TIjowLCJhdXRvX3dhdGNoX0EiOjAsIm1hbnVhbF93YXRjaCI6MH19",
+              "bytes": 12072,
+              "sha256": "bd5287be28284998867d8c871cd75266f5dac65f7ceb78b41b8461e86a5c42c1"
+            },
+            "ContentType": "application/json",
+            "CacheControl": "private, no-store"
+          }
+        }
+      ]
+    },
+    {
+      "name": "complete_duplicate_sources_retained",
+      "complete_inputs": {
+        "documents": {
+          "screener/alpha-score.json": {
+            "generated_at": "2020-01-01T00:00:00Z",
+            "stocks": [
+              {
+                "symbol": "AAA",
+                "alpha_score": 1
+              },
+              {
+                "symbol": "AAA",
+                "alpha_score": 99
+              }
+            ]
+          },
+          "signals/confluence.json": {
+            "tier_s_confluence": [],
+            "tier_a_confluence": [],
+            "tier_b_confluence": []
+          },
+          "signals/regime-picks.json": {
+            "regime_picks": []
+          },
+          "sentiment/data.json": {
+            "sentiment": []
+          }
+        },
+        "watchlist": [
+          {
+            "symbol": "AAA"
+          }
+        ],
+        "positions": []
+      },
+      "limits": {
+        "research_bytes": 8388608,
+        "mirror_bytes": 20000000
+      },
+      "result": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 0, \"n_watchlist\": 1, \"total_market_value\": 0.0, \"total_pnl_dollars\": 0.0, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.0}"
+      },
+      "error": null,
+      "source_requests": [
+        "screener/alpha-score.json",
+        "signals/confluence.json",
+        "signals/regime-picks.json",
+        "sentiment/data.json"
+      ],
+      "sync_calls": [
+        {
+          "generated_at": "2020-01-01T00:00:00Z",
+          "stocks": [
+            {
+              "symbol": "AAA",
+              "alpha_score": 1
+            },
+            {
+              "symbol": "AAA",
+              "alpha_score": 99
+            }
+          ]
+        }
+      ],
+      "price_calls": [
+        [
+          "AAA"
+        ]
+      ],
+      "all_bodies_closed": true,
+      "writes": [
+        {
+          "sink": "private",
+          "kind": "portfolio-snapshot",
+          "payload": {
+            "generated_at": "2026-09-30T08:35:00+00:00",
+            "audit_version": "2026-09-30.5",
+            "generated_at_unix": 1790757300,
+            "elapsed_seconds": 0.0,
+            "portfolio_summary": {
+              "n_positions": 0,
+              "priced_positions_count": 0,
+              "basis_positions_count": 0,
+              "pnl_eligible_positions_count": 0,
+              "total_market_value": 0.0,
+              "total_market_value_scope": "all positions priced",
+              "total_cost_basis": 0.0,
+              "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+              "total_pnl_dollars": 0.0,
+              "total_pnl_pct": null,
+              "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+              "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+              "pnl_pct_denominator": 0.0,
+              "unpriced_positions": [],
+              "pnl_excluded_positions": [],
+              "unpriced_cost_basis": 0.0,
+              "unpriced_cost_basis_known_count": 0,
+              "stops_hit_count": 0,
+              "stops_hit": [],
+              "stops_not_evaluable": [],
+              "accounting_coverage_status": "EMPTY",
+              "accounting_reason_codes": [],
+              "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+            },
+            "research": {
+              "schema_version": "snapshot-research.v1",
+              "status": "DESCRIPTIVE_RESEARCH_ONLY",
+              "source_documents": {
+                "screener/alpha-score.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "screener/alpha-score.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 127,
+                  "body_sha256": "ef047426068b85cd19c38ba304bb7807879c59bfa8e55a773f3862396bca9db7",
+                  "body_encoding": "base64",
+                  "body": "eyJnZW5lcmF0ZWRfYXQiOiAiMjAyMC0wMS0wMVQwMDowMDowMFoiLCAic3RvY2tzIjogW3sic3ltYm9sIjogIkFBQSIsICJhbHBoYV9zY29yZSI6IDF9LCB7InN5bWJvbCI6ICJBQUEiLCAiYWxwaGFfc2NvcmUiOiA5OX1dfQ==",
+                  "declared_generated_at": "2020-01-01T00:00:00Z",
+                  "stream_close_confirmed": true
+                },
+                "signals/confluence.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/confluence.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 75,
+                  "body_sha256": "1504910309c871abfbdf70364b21f526d3930ff5708c69c1779db0ce522cd2a3",
+                  "body_encoding": "base64",
+                  "body": "eyJ0aWVyX3NfY29uZmx1ZW5jZSI6IFtdLCAidGllcl9hX2NvbmZsdWVuY2UiOiBbXSwgInRpZXJfYl9jb25mbHVlbmNlIjogW119",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "signals/regime-picks.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/regime-picks.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 20,
+                  "body_sha256": "0cf1d10c9ce66b47f6afbc4a7296eda04299444ebda169ff7a4a43d28e339458",
+                  "body_encoding": "base64",
+                  "body": "eyJyZWdpbWVfcGlja3MiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "sentiment/data.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "sentiment/data.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 17,
+                  "body_sha256": "d5a950fd1375bb852c7989ad043ac63bc4308d9641e4f5f50d22e26542f3a6df",
+                  "body_encoding": "base64",
+                  "body": "eyJzZW50aW1lbnQiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                }
+              },
+              "retained_complete_body_bytes": 239,
+              "source_byte_bound": 8388608,
+              "joins": {
+                "alpha": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 2,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {
+                    "AAA": [
+                      0,
+                      1
+                    ]
+                  }
+                },
+                "confluence_s": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_a": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_b": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "regime": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "sentiment": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                }
+              },
+              "freshness_verified": false,
+              "upstream_provenance_verified": false,
+              "independent_evidence_verified": false,
+              "allows_sizing": false
+            },
+            "accounting": {
+              "schema_version": "holdings-accounting.v1",
+              "valuation_at": "2026-09-30T08:35:00+00:00",
+              "source_positions": [],
+              "source_prices": {},
+              "source_watchlist": [
+                {
+                  "symbol": "AAA"
+                }
+              ],
+              "book_read": {
+                "schema_version": "portfolio-book-read.v1",
+                "status": "COMPLETE",
+                "consistency": "STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT",
+                "started_at": "2026-09-30T08:35:00+00:00",
+                "completed_at": "2026-09-30T08:35:00+00:00",
+                "position_count": 0,
+                "watchlist_count": 1,
+                "exact_stored_decimal_evidence": true,
+                "account_reconciled": false,
+                "per_partition_bounds": {
+                  "rows": 10000,
+                  "pages": 100,
+                  "encoded_bytes": 8388608,
+                  "acceptance_seconds": 20
+                }
+              },
+              "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+              "assumptions_verified": false,
+              "allows_sizing": false
+            },
+            "capital_book": {
+              "schema_version": "1.0",
+              "status": "BLOCKED",
+              "allows_new_entries": false,
+              "reason_codes": [
+                "MISSING_RECONCILED_CAPITAL_LEDGER"
+              ],
+              "as_of": "2026-09-30T08:35:00+00:00",
+              "book_id": null,
+              "account_id": null,
+              "currency": null,
+              "equity_nav": null,
+              "cash": null,
+              "liabilities": null,
+              "reconciled_at": null,
+              "reserved_order_exposure": null,
+              "nav_history": [],
+              "open_orders": [],
+              "gross_exposure": 0.0,
+              "net_exposure": 0.0,
+              "exposure_scope": "ALL_POSITIONS",
+              "positions": [],
+              "unpriced_positions": []
+            },
+            "positions": [],
+            "watchlist": [
+              {
+                "symbol": "AAA",
+                "current_price": null,
+                "price_asof_unix_ms": null,
+                "price_basis": null,
+                "price_timestamp_basis": null,
+                "price_source": {
+                  "schema_version": null,
+                  "requested_symbol": null,
+                  "requested_adjusted": null,
+                  "status": null,
+                  "reason_code": null,
+                  "body_sha256": null,
+                  "started_at": null,
+                  "completed_at": null,
+                  "currency_verified": null,
+                  "instrument_binding_verified": null
+                },
+                "price_provider": null,
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "research_evidence": {
+                  "schema_version": "snapshot-research-joins.v1",
+                  "allows_sizing": false,
+                  "alpha": {
+                    "source_key": "screener/alpha-score.json",
+                    "array_path": "stocks",
+                    "status": "AMBIGUOUS_DUPLICATE_SYMBOL",
+                    "zero_based_occurrences": [
+                      0,
+                      1
+                    ],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_s": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_s_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_a": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_a_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_b": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_b_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "regime": {
+                    "source_key": "signals/regime-picks.json",
+                    "array_path": "regime_picks",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "sentiment": {
+                    "source_key": "sentiment/data.json",
+                    "array_path": "sentiment",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "invalid_fields": [],
+                  "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                },
+                "alpha_score": null,
+                "tier": null,
+                "rank": null,
+                "name": null,
+                "sector": null,
+                "components": null,
+                "top_signals": null,
+                "risk_flags": null,
+                "confluence_tier": null,
+                "confluence_count": null,
+                "components_firing": null,
+                "regime_adj": null,
+                "regime_adj_score": null,
+                "sentiment_signal": null,
+                "sentiment_score": null,
+                "sentiment_reason": null,
+                "source": null,
+                "auto_source_generated_at": null,
+                "auto_sync_version": null,
+                "added_at": null,
+                "notes": null
+              }
+            ],
+            "sector_concentration": [],
+            "watchlist_sync": {
+              "added_S": [],
+              "added_A": [],
+              "removed_S": [],
+              "removed_A": []
+            },
+            "counts": {
+              "positions": 0,
+              "watchlist": 1,
+              "auto_watch_S": 0,
+              "auto_watch_A": 0,
+              "manual_watch": 0
+            }
+          }
+        },
+        {
+          "sink": "s3",
+          "request": {
+            "Bucket": "justhodl-dashboard-live",
+            "Key": "portfolio/snapshot.json",
+            "Body": {
+              "complete_bytes_encoding": "base64",
+              "value": "eyJnZW5lcmF0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiYXVkaXRfdmVyc2lvbiI6IjIwMjYtMDktMzAuNSIsImdlbmVyYXRlZF9hdF91bml4IjoxNzkwNzU3MzAwLCJlbGFwc2VkX3NlY29uZHMiOjAuMCwicG9ydGZvbGlvX3N1bW1hcnkiOnsibl9wb3NpdGlvbnMiOjAsInByaWNlZF9wb3NpdGlvbnNfY291bnQiOjAsImJhc2lzX3Bvc2l0aW9uc19jb3VudCI6MCwicG5sX2VsaWdpYmxlX3Bvc2l0aW9uc19jb3VudCI6MCwidG90YWxfbWFya2V0X3ZhbHVlIjowLjAsInRvdGFsX21hcmtldF92YWx1ZV9zY29wZSI6ImFsbCBwb3NpdGlvbnMgcHJpY2VkIiwidG90YWxfY29zdF9iYXNpcyI6MC4wLCJ0b3RhbF9jb3N0X2Jhc2lzX3Njb3BlIjoiS25vd24gc2lnbmVkIHF1YW50aXR5LXRpbWVzLXVuaXQtY29zdCBvbmx5IiwidG90YWxfcG5sX2RvbGxhcnMiOjAuMCwidG90YWxfcG5sX3BjdCI6bnVsbCwicG5sX3Njb3BlIjoiUm93cyB3aXRoIGVsaWdpYmxlIHF1YW50aXR5LCBtYXJrIGFuZCBjb3N0IGJhc2lzIG9ubHk7IHVucmVhbGl6ZWQgcHJpY2UgUCZMIGJlZm9yZSBmZWVzLCBpbmNvbWUgYW5kIEZYIiwicG5sX3BjdF9iYXNpcyI6IlNVTV9BQlNPTFVURV9FTElHSUJMRV9DT1NUX05PVF9OQVZfUkVUVVJOIiwicG5sX3BjdF9kZW5vbWluYXRvciI6MC4wLCJ1bnByaWNlZF9wb3NpdGlvbnMiOltdLCJwbmxfZXhjbHVkZWRfcG9zaXRpb25zIjpbXSwidW5wcmljZWRfY29zdF9iYXNpcyI6MC4wLCJ1bnByaWNlZF9jb3N0X2Jhc2lzX2tub3duX2NvdW50IjowLCJzdG9wc19oaXRfY291bnQiOjAsInN0b3BzX2hpdCI6W10sInN0b3BzX25vdF9ldmFsdWFibGUiOltdLCJhY2NvdW50aW5nX2NvdmVyYWdlX3N0YXR1cyI6IkVNUFRZIiwiYWNjb3VudGluZ19yZWFzb25fY29kZXMiOltdLCJhY2NvdW50aW5nX2Fzc3VtcHRpb25zIjoiTGVnYWN5IHNpbmdsZS1jdXJyZW5jeSBjYXNoLWVxdWl0eSBhcml0aG1ldGljOyBpbnN0cnVtZW50LCBjdXJyZW5jeSBhbmQgYWNjb3VudCByZWNvbmNpbGlhdGlvbiB1bnZlcmlmaWVkIn0sInJlc2VhcmNoIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gudjEiLCJzdGF0dXMiOiJERVNDUklQVElWRV9SRVNFQVJDSF9PTkxZIiwic291cmNlX2RvY3VtZW50cyI6eyJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2NyZWVuZXIvYWxwaGEtc2NvcmUuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjoxMjcsImJvZHlfc2hhMjU2IjoiZWYwNDc0MjYwNjhiODVjZDE5YzM4YmEzMDRiYjc4MDc4NzljNTliZmE4ZTU1YTc3M2YzODYyMzk2YmNhOWRiNyIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKblpXNWxjbUYwWldSZllYUWlPaUFpTWpBeU1DMHdNUzB3TVZRd01Eb3dNRG93TUZvaUxDQWljM1J2WTJ0eklqb2dXM3NpYzNsdFltOXNJam9nSWtGQlFTSXNJQ0poYkhCb1lWOXpZMjl5WlNJNklERjlMQ0I3SW5ONWJXSnZiQ0k2SUNKQlFVRWlMQ0FpWVd4d2FHRmZjMk52Y21VaU9pQTVPWDFkZlE9PSIsImRlY2xhcmVkX2dlbmVyYXRlZF9hdCI6IjIwMjAtMDEtMDFUMDA6MDA6MDBaIiwic3RyZWFtX2Nsb3NlX2NvbmZpcm1lZCI6dHJ1ZX0sInNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJzdGFydGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsImNvbXBsZXRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJzdGF0dXMiOiJDT01QTEVURV9KU09OX09CSkVDVCIsImJvZHlfY29tcGxldGUiOnRydWUsInJlYXNvbl9jb2RlIjpudWxsLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJ1cHN0cmVhbV9wcm92ZW5hbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYm9keV9ieXRlcyI6NzUsImJvZHlfc2hhMjU2IjoiMTUwNDkxMDMwOWM4NzFhYmZiZGY3MDM2NGIyMWY1MjZkMzkzMGZmNTcwOGM2OWMxNzc5ZGIwY2U1MjJjZDJhMyIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKMGFXVnlYM05mWTI5dVpteDFaVzVqWlNJNklGdGRMQ0FpZEdsbGNsOWhYMk52Ym1ac2RXVnVZMlVpT2lCYlhTd2dJblJwWlhKZllsOWpiMjVtYkhWbGJtTmxJam9nVzExOSIsImRlY2xhcmVkX2dlbmVyYXRlZF9hdCI6bnVsbCwic3RyZWFtX2Nsb3NlX2NvbmZpcm1lZCI6dHJ1ZX0sInNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iOnsic2NoZW1hX3ZlcnNpb24iOiJzbmFwc2hvdC1yZXNlYXJjaC1zb3VyY2UudjEiLCJrZXkiOiJzaWduYWxzL3JlZ2ltZS1waWNrcy5qc29uIiwic3RhcnRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJjb21wbGV0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwic3RhdHVzIjoiQ09NUExFVEVfSlNPTl9PQkpFQ1QiLCJib2R5X2NvbXBsZXRlIjp0cnVlLCJyZWFzb25fY29kZSI6bnVsbCwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwidXBzdHJlYW1fcHJvdmVuYW5jZV92ZXJpZmllZCI6ZmFsc2UsImJvZHlfYnl0ZXMiOjIwLCJib2R5X3NoYTI1NiI6IjBjZjFkMTBjOWNlNjZiNDdmNmFmYmM0YTcyOTZlZGEwNDI5OTQ0NGViZGExNjlmZjdhNGE0M2QyOGUzMzk0NTgiLCJib2R5X2VuY29kaW5nIjoiYmFzZTY0IiwiYm9keSI6ImV5SnlaV2RwYldWZmNHbGphM01pT2lCYlhYMD0iLCJkZWNsYXJlZF9nZW5lcmF0ZWRfYXQiOm51bGwsInN0cmVhbV9jbG9zZV9jb25maXJtZWQiOnRydWV9LCJzZW50aW1lbnQvZGF0YS5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2VudGltZW50L2RhdGEuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjoxNywiYm9keV9zaGEyNTYiOiJkNWE5NTBmZDEzNzViYjg1MmM3OTg5YWQwNDNhYzYzYmM0MzA4ZDk2NDFlNGY1ZjUwZDIyZTI2NTQyZjNhNmRmIiwiYm9keV9lbmNvZGluZyI6ImJhc2U2NCIsImJvZHkiOiJleUp6Wlc1MGFXMWxiblFpT2lCYlhYMD0iLCJkZWNsYXJlZF9nZW5lcmF0ZWRfYXQiOm51bGwsInN0cmVhbV9jbG9zZV9jb25maXJtZWQiOnRydWV9fSwicmV0YWluZWRfY29tcGxldGVfYm9keV9ieXRlcyI6MjM5LCJzb3VyY2VfYnl0ZV9ib3VuZCI6ODM4ODYwOCwiam9pbnMiOnsiYWxwaGEiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjoyLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnsiQUFBIjpbMCwxXX19LCJjb25mbHVlbmNlX3MiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fSwiY29uZmx1ZW5jZV9hIjp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX0sImNvbmZsdWVuY2VfYiI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjAsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MCwiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJyZWdpbWUiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fSwic2VudGltZW50Ijp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX19LCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJ1cHN0cmVhbV9wcm92ZW5hbmNlX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImFjY291bnRpbmciOnsic2NoZW1hX3ZlcnNpb24iOiJob2xkaW5ncy1hY2NvdW50aW5nLnYxIiwidmFsdWF0aW9uX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInNvdXJjZV9wb3NpdGlvbnMiOltdLCJzb3VyY2VfcHJpY2VzIjp7fSwic291cmNlX3dhdGNobGlzdCI6W3sic3ltYm9sIjoiQUFBIn1dLCJib29rX3JlYWQiOnsic2NoZW1hX3ZlcnNpb24iOiJwb3J0Zm9saW8tYm9vay1yZWFkLnYxIiwic3RhdHVzIjoiQ09NUExFVEUiLCJjb25zaXN0ZW5jeSI6IlNUUk9OR0xZX0NPTlNJU1RFTlRfUEFHRVNfTk9UX0FUT01JQ19TTkFQU0hPVCIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInBvc2l0aW9uX2NvdW50IjowLCJ3YXRjaGxpc3RfY291bnQiOjEsImV4YWN0X3N0b3JlZF9kZWNpbWFsX2V2aWRlbmNlIjp0cnVlLCJhY2NvdW50X3JlY29uY2lsZWQiOmZhbHNlLCJwZXJfcGFydGl0aW9uX2JvdW5kcyI6eyJyb3dzIjoxMDAwMCwicGFnZXMiOjEwMCwiZW5jb2RlZF9ieXRlcyI6ODM4ODYwOCwiYWNjZXB0YW5jZV9zZWNvbmRzIjoyMH19LCJub25maW5pdGVfc291cmNlX2VuY29kaW5nIjoicmVqZWN0ZWRfbnVtYmVyX3R5cGUgcGx1cyBleGFjdCBzb3VyY2UgcmVwcmVzZW50YXRpb24iLCJhc3N1bXB0aW9uc192ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY2FwaXRhbF9ib29rIjp7InNjaGVtYV92ZXJzaW9uIjoiMS4wIiwic3RhdHVzIjoiQkxPQ0tFRCIsImFsbG93c19uZXdfZW50cmllcyI6ZmFsc2UsInJlYXNvbl9jb2RlcyI6WyJNSVNTSU5HX1JFQ09OQ0lMRURfQ0FQSVRBTF9MRURHRVIiXSwiYXNfb2YiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiYm9va19pZCI6bnVsbCwiYWNjb3VudF9pZCI6bnVsbCwiY3VycmVuY3kiOm51bGwsImVxdWl0eV9uYXYiOm51bGwsImNhc2giOm51bGwsImxpYWJpbGl0aWVzIjpudWxsLCJyZWNvbmNpbGVkX2F0IjpudWxsLCJyZXNlcnZlZF9vcmRlcl9leHBvc3VyZSI6bnVsbCwibmF2X2hpc3RvcnkiOltdLCJvcGVuX29yZGVycyI6W10sImdyb3NzX2V4cG9zdXJlIjowLjAsIm5ldF9leHBvc3VyZSI6MC4wLCJleHBvc3VyZV9zY29wZSI6IkFMTF9QT1NJVElPTlMiLCJwb3NpdGlvbnMiOltdLCJ1bnByaWNlZF9wb3NpdGlvbnMiOltdfSwicG9zaXRpb25zIjpbXSwid2F0Y2hsaXN0IjpbeyJzeW1ib2wiOiJBQUEiLCJjdXJyZW50X3ByaWNlIjpudWxsLCJwcmljZV9hc29mX3VuaXhfbXMiOm51bGwsInByaWNlX2Jhc2lzIjpudWxsLCJwcmljZV90aW1lc3RhbXBfYmFzaXMiOm51bGwsInByaWNlX3NvdXJjZSI6eyJzY2hlbWFfdmVyc2lvbiI6bnVsbCwicmVxdWVzdGVkX3N5bWJvbCI6bnVsbCwicmVxdWVzdGVkX2FkanVzdGVkIjpudWxsLCJzdGF0dXMiOm51bGwsInJlYXNvbl9jb2RlIjpudWxsLCJib2R5X3NoYTI1NiI6bnVsbCwic3RhcnRlZF9hdCI6bnVsbCwiY29tcGxldGVkX2F0IjpudWxsLCJjdXJyZW5jeV92ZXJpZmllZCI6bnVsbCwiaW5zdHJ1bWVudF9iaW5kaW5nX3ZlcmlmaWVkIjpudWxsfSwicHJpY2VfcHJvdmlkZXIiOm51bGwsInByaWNlX29wZW4iOm51bGwsInByaWNlX2hpZ2giOm51bGwsInByaWNlX2xvdyI6bnVsbCwidm9sdW1lIjpudWxsLCJyZXNlYXJjaF9ldmlkZW5jZSI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLWpvaW5zLnYxIiwiYWxsb3dzX3NpemluZyI6ZmFsc2UsImFscGhhIjp7InNvdXJjZV9rZXkiOiJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIiwiYXJyYXlfcGF0aCI6InN0b2NrcyIsInN0YXR1cyI6IkFNQklHVU9VU19EVVBMSUNBVEVfU1lNQk9MIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6WzAsMV0sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX3MiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfc19jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfYSI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9hX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9iIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX2JfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJyZWdpbWUiOnsic291cmNlX2tleSI6InNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iLCJhcnJheV9wYXRoIjoicmVnaW1lX3BpY2tzIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sInNlbnRpbWVudCI6eyJzb3VyY2Vfa2V5Ijoic2VudGltZW50L2RhdGEuanNvbiIsImFycmF5X3BhdGgiOiJzZW50aW1lbnQiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiaW52YWxpZF9maWVsZHMiOltdLCJpbnRlcnByZXRhdGlvbiI6IkRlc2NyaXB0aXZlIHNvdXJjZSBmaWVsZHM7IGZyZXNobmVzcywgaW5kZXBlbmRlbmNlIGFuZCBwcmVkaWN0aXZlIHZhbGlkaXR5IHVudmVyaWZpZWQifSwiYWxwaGFfc2NvcmUiOm51bGwsInRpZXIiOm51bGwsInJhbmsiOm51bGwsIm5hbWUiOm51bGwsInNlY3RvciI6bnVsbCwiY29tcG9uZW50cyI6bnVsbCwidG9wX3NpZ25hbHMiOm51bGwsInJpc2tfZmxhZ3MiOm51bGwsImNvbmZsdWVuY2VfdGllciI6bnVsbCwiY29uZmx1ZW5jZV9jb3VudCI6bnVsbCwiY29tcG9uZW50c19maXJpbmciOm51bGwsInJlZ2ltZV9hZGoiOm51bGwsInJlZ2ltZV9hZGpfc2NvcmUiOm51bGwsInNlbnRpbWVudF9zaWduYWwiOm51bGwsInNlbnRpbWVudF9zY29yZSI6bnVsbCwic2VudGltZW50X3JlYXNvbiI6bnVsbCwic291cmNlIjpudWxsLCJhdXRvX3NvdXJjZV9nZW5lcmF0ZWRfYXQiOm51bGwsImF1dG9fc3luY192ZXJzaW9uIjpudWxsLCJhZGRlZF9hdCI6bnVsbCwibm90ZXMiOm51bGx9XSwic2VjdG9yX2NvbmNlbnRyYXRpb24iOltdLCJ3YXRjaGxpc3Rfc3luYyI6eyJhZGRlZF9TIjpbXSwiYWRkZWRfQSI6W10sInJlbW92ZWRfUyI6W10sInJlbW92ZWRfQSI6W119LCJjb3VudHMiOnsicG9zaXRpb25zIjowLCJ3YXRjaGxpc3QiOjEsImF1dG9fd2F0Y2hfUyI6MCwiYXV0b193YXRjaF9BIjowLCJtYW51YWxfd2F0Y2giOjB9fQ==",
+              "bytes": 8563,
+              "sha256": "543a533797176ef9772bbe97d90913febdc84314a7d5bf9cfb98c63f018f8d55"
+            },
+            "ContentType": "application/json",
+            "CacheControl": "private, no-store"
+          }
+        }
+      ]
+    },
+    {
+      "name": "unsafe_nested_metadata_retained_in_original_and_withheld_from_fields",
+      "complete_inputs": {
+        "documents": {
+          "screener/alpha-score.json": {
+            "generated_at": "2020-01-01T00:00:00Z",
+            "stocks": [
+              {
+                "symbol": "AAA",
+                "alpha_score": 10,
+                "rank": 9007199254740992,
+                "components": {
+                  "unsafe_integer": 9007199254740992
+                },
+                "risk_flags": [
+                  {
+                    "unsafe_integer": 9007199254740992
+                  }
+                ]
+              }
+            ]
+          },
+          "signals/confluence.json": {
+            "tier_s_confluence": [],
+            "tier_a_confluence": [],
+            "tier_b_confluence": []
+          },
+          "signals/regime-picks.json": {
+            "regime_picks": []
+          },
+          "sentiment/data.json": {
+            "sentiment": []
+          }
+        },
+        "watchlist": [
+          {
+            "symbol": "AAA"
+          }
+        ],
+        "positions": []
+      },
+      "limits": {
+        "research_bytes": 8388608,
+        "mirror_bytes": 20000000
+      },
+      "result": {
+        "statusCode": 200,
+        "body": "{\"success\": true, \"n_positions\": 0, \"n_watchlist\": 1, \"total_market_value\": 0.0, \"total_pnl_dollars\": 0.0, \"stops_hit_count\": 0, \"elapsed_seconds\": 0.0}"
+      },
+      "error": null,
+      "source_requests": [
+        "screener/alpha-score.json",
+        "signals/confluence.json",
+        "signals/regime-picks.json",
+        "sentiment/data.json"
+      ],
+      "sync_calls": [
+        {
+          "generated_at": "2020-01-01T00:00:00Z",
+          "stocks": [
+            {
+              "symbol": "AAA",
+              "alpha_score": 10,
+              "rank": 9007199254740992,
+              "components": {
+                "unsafe_integer": 9007199254740992
+              },
+              "risk_flags": [
+                {
+                  "unsafe_integer": 9007199254740992
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "price_calls": [
+        [
+          "AAA"
+        ]
+      ],
+      "all_bodies_closed": true,
+      "writes": [
+        {
+          "sink": "private",
+          "kind": "portfolio-snapshot",
+          "payload": {
+            "generated_at": "2026-09-30T08:35:00+00:00",
+            "audit_version": "2026-09-30.5",
+            "generated_at_unix": 1790757300,
+            "elapsed_seconds": 0.0,
+            "portfolio_summary": {
+              "n_positions": 0,
+              "priced_positions_count": 0,
+              "basis_positions_count": 0,
+              "pnl_eligible_positions_count": 0,
+              "total_market_value": 0.0,
+              "total_market_value_scope": "all positions priced",
+              "total_cost_basis": 0.0,
+              "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+              "total_pnl_dollars": 0.0,
+              "total_pnl_pct": null,
+              "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+              "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+              "pnl_pct_denominator": 0.0,
+              "unpriced_positions": [],
+              "pnl_excluded_positions": [],
+              "unpriced_cost_basis": 0.0,
+              "unpriced_cost_basis_known_count": 0,
+              "stops_hit_count": 0,
+              "stops_hit": [],
+              "stops_not_evaluable": [],
+              "accounting_coverage_status": "EMPTY",
+              "accounting_reason_codes": [],
+              "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+            },
+            "research": {
+              "schema_version": "snapshot-research.v1",
+              "status": "DESCRIPTIVE_RESEARCH_ONLY",
+              "source_documents": {
+                "screener/alpha-score.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "screener/alpha-score.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 222,
+                  "body_sha256": "402b1f072f8d03b09ffe82f46fe26498d56959668b012a9a2163c13e0ad09329",
+                  "body_encoding": "base64",
+                  "body": "eyJnZW5lcmF0ZWRfYXQiOiAiMjAyMC0wMS0wMVQwMDowMDowMFoiLCAic3RvY2tzIjogW3sic3ltYm9sIjogIkFBQSIsICJhbHBoYV9zY29yZSI6IDEwLCAicmFuayI6IDkwMDcxOTkyNTQ3NDA5OTIsICJjb21wb25lbnRzIjogeyJ1bnNhZmVfaW50ZWdlciI6IDkwMDcxOTkyNTQ3NDA5OTJ9LCAicmlza19mbGFncyI6IFt7InVuc2FmZV9pbnRlZ2VyIjogOTAwNzE5OTI1NDc0MDk5Mn1dfV19",
+                  "declared_generated_at": "2020-01-01T00:00:00Z",
+                  "stream_close_confirmed": true
+                },
+                "signals/confluence.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/confluence.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 75,
+                  "body_sha256": "1504910309c871abfbdf70364b21f526d3930ff5708c69c1779db0ce522cd2a3",
+                  "body_encoding": "base64",
+                  "body": "eyJ0aWVyX3NfY29uZmx1ZW5jZSI6IFtdLCAidGllcl9hX2NvbmZsdWVuY2UiOiBbXSwgInRpZXJfYl9jb25mbHVlbmNlIjogW119",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "signals/regime-picks.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "signals/regime-picks.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 20,
+                  "body_sha256": "0cf1d10c9ce66b47f6afbc4a7296eda04299444ebda169ff7a4a43d28e339458",
+                  "body_encoding": "base64",
+                  "body": "eyJyZWdpbWVfcGlja3MiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                },
+                "sentiment/data.json": {
+                  "schema_version": "snapshot-research-source.v1",
+                  "key": "sentiment/data.json",
+                  "started_at": "2026-09-30T08:35:00+00:00",
+                  "completed_at": "2026-09-30T08:35:00+00:00",
+                  "status": "COMPLETE_JSON_OBJECT",
+                  "body_complete": true,
+                  "reason_code": null,
+                  "freshness_verified": false,
+                  "upstream_provenance_verified": false,
+                  "body_bytes": 17,
+                  "body_sha256": "d5a950fd1375bb852c7989ad043ac63bc4308d9641e4f5f50d22e26542f3a6df",
+                  "body_encoding": "base64",
+                  "body": "eyJzZW50aW1lbnQiOiBbXX0=",
+                  "declared_generated_at": null,
+                  "stream_close_confirmed": true
+                }
+              },
+              "retained_complete_body_bytes": 334,
+              "source_byte_bound": 8388608,
+              "joins": {
+                "alpha": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 1,
+                  "unique_usable_symbols": 1,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_s": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_a": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "confluence_b": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "regime": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                },
+                "sentiment": {
+                  "source_shape": "ARRAY",
+                  "source_row_count": 0,
+                  "unique_usable_symbols": 0,
+                  "invalid_zero_based_occurrences": [],
+                  "duplicate_symbol_occurrences": {}
+                }
+              },
+              "freshness_verified": false,
+              "upstream_provenance_verified": false,
+              "independent_evidence_verified": false,
+              "allows_sizing": false
+            },
+            "accounting": {
+              "schema_version": "holdings-accounting.v1",
+              "valuation_at": "2026-09-30T08:35:00+00:00",
+              "source_positions": [],
+              "source_prices": {},
+              "source_watchlist": [
+                {
+                  "symbol": "AAA"
+                }
+              ],
+              "book_read": {
+                "schema_version": "portfolio-book-read.v1",
+                "status": "COMPLETE",
+                "consistency": "STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT",
+                "started_at": "2026-09-30T08:35:00+00:00",
+                "completed_at": "2026-09-30T08:35:00+00:00",
+                "position_count": 0,
+                "watchlist_count": 1,
+                "exact_stored_decimal_evidence": true,
+                "account_reconciled": false,
+                "per_partition_bounds": {
+                  "rows": 10000,
+                  "pages": 100,
+                  "encoded_bytes": 8388608,
+                  "acceptance_seconds": 20
+                }
+              },
+              "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+              "assumptions_verified": false,
+              "allows_sizing": false
+            },
+            "capital_book": {
+              "schema_version": "1.0",
+              "status": "BLOCKED",
+              "allows_new_entries": false,
+              "reason_codes": [
+                "MISSING_RECONCILED_CAPITAL_LEDGER"
+              ],
+              "as_of": "2026-09-30T08:35:00+00:00",
+              "book_id": null,
+              "account_id": null,
+              "currency": null,
+              "equity_nav": null,
+              "cash": null,
+              "liabilities": null,
+              "reconciled_at": null,
+              "reserved_order_exposure": null,
+              "nav_history": [],
+              "open_orders": [],
+              "gross_exposure": 0.0,
+              "net_exposure": 0.0,
+              "exposure_scope": "ALL_POSITIONS",
+              "positions": [],
+              "unpriced_positions": []
+            },
+            "positions": [],
+            "watchlist": [
+              {
+                "symbol": "AAA",
+                "current_price": null,
+                "price_asof_unix_ms": null,
+                "price_basis": null,
+                "price_timestamp_basis": null,
+                "price_source": {
+                  "schema_version": null,
+                  "requested_symbol": null,
+                  "requested_adjusted": null,
+                  "status": null,
+                  "reason_code": null,
+                  "body_sha256": null,
+                  "started_at": null,
+                  "completed_at": null,
+                  "currency_verified": null,
+                  "instrument_binding_verified": null
+                },
+                "price_provider": null,
+                "price_open": null,
+                "price_high": null,
+                "price_low": null,
+                "volume": null,
+                "research_evidence": {
+                  "schema_version": "snapshot-research-joins.v1",
+                  "allows_sizing": false,
+                  "alpha": {
+                    "source_key": "screener/alpha-score.json",
+                    "array_path": "stocks",
+                    "status": "UNIQUE_SOURCE_ROW",
+                    "zero_based_occurrences": [
+                      0
+                    ],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_s": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_s_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_a": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_a_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "confluence_b": {
+                    "source_key": "signals/confluence.json",
+                    "array_path": "tier_b_confluence",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "regime": {
+                    "source_key": "signals/regime-picks.json",
+                    "array_path": "regime_picks",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "sentiment": {
+                    "source_key": "sentiment/data.json",
+                    "array_path": "sentiment",
+                    "status": "NO_IDENTIFIED_ROW",
+                    "zero_based_occurrences": [],
+                    "freshness_verified": false,
+                    "independent_evidence_verified": false,
+                    "allows_sizing": false
+                  },
+                  "invalid_fields": [
+                    "rank",
+                    "components",
+                    "risk_flags"
+                  ],
+                  "interpretation": "Descriptive source fields; freshness, independence and predictive validity unverified"
+                },
+                "alpha_score": 10,
+                "tier": null,
+                "rank": null,
+                "name": null,
+                "sector": null,
+                "components": null,
+                "top_signals": null,
+                "risk_flags": null,
+                "confluence_tier": null,
+                "confluence_count": null,
+                "components_firing": null,
+                "regime_adj": null,
+                "regime_adj_score": null,
+                "sentiment_signal": null,
+                "sentiment_score": null,
+                "sentiment_reason": null,
+                "source": null,
+                "auto_source_generated_at": null,
+                "auto_sync_version": null,
+                "added_at": null,
+                "notes": null
+              }
+            ],
+            "sector_concentration": [],
+            "watchlist_sync": {
+              "added_S": [],
+              "added_A": [],
+              "removed_S": [],
+              "removed_A": []
+            },
+            "counts": {
+              "positions": 0,
+              "watchlist": 1,
+              "auto_watch_S": 0,
+              "auto_watch_A": 0,
+              "manual_watch": 0
+            }
+          }
+        },
+        {
+          "sink": "s3",
+          "request": {
+            "Bucket": "justhodl-dashboard-live",
+            "Key": "portfolio/snapshot.json",
+            "Body": {
+              "complete_bytes_encoding": "base64",
+              "value": "eyJnZW5lcmF0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiYXVkaXRfdmVyc2lvbiI6IjIwMjYtMDktMzAuNSIsImdlbmVyYXRlZF9hdF91bml4IjoxNzkwNzU3MzAwLCJlbGFwc2VkX3NlY29uZHMiOjAuMCwicG9ydGZvbGlvX3N1bW1hcnkiOnsibl9wb3NpdGlvbnMiOjAsInByaWNlZF9wb3NpdGlvbnNfY291bnQiOjAsImJhc2lzX3Bvc2l0aW9uc19jb3VudCI6MCwicG5sX2VsaWdpYmxlX3Bvc2l0aW9uc19jb3VudCI6MCwidG90YWxfbWFya2V0X3ZhbHVlIjowLjAsInRvdGFsX21hcmtldF92YWx1ZV9zY29wZSI6ImFsbCBwb3NpdGlvbnMgcHJpY2VkIiwidG90YWxfY29zdF9iYXNpcyI6MC4wLCJ0b3RhbF9jb3N0X2Jhc2lzX3Njb3BlIjoiS25vd24gc2lnbmVkIHF1YW50aXR5LXRpbWVzLXVuaXQtY29zdCBvbmx5IiwidG90YWxfcG5sX2RvbGxhcnMiOjAuMCwidG90YWxfcG5sX3BjdCI6bnVsbCwicG5sX3Njb3BlIjoiUm93cyB3aXRoIGVsaWdpYmxlIHF1YW50aXR5LCBtYXJrIGFuZCBjb3N0IGJhc2lzIG9ubHk7IHVucmVhbGl6ZWQgcHJpY2UgUCZMIGJlZm9yZSBmZWVzLCBpbmNvbWUgYW5kIEZYIiwicG5sX3BjdF9iYXNpcyI6IlNVTV9BQlNPTFVURV9FTElHSUJMRV9DT1NUX05PVF9OQVZfUkVUVVJOIiwicG5sX3BjdF9kZW5vbWluYXRvciI6MC4wLCJ1bnByaWNlZF9wb3NpdGlvbnMiOltdLCJwbmxfZXhjbHVkZWRfcG9zaXRpb25zIjpbXSwidW5wcmljZWRfY29zdF9iYXNpcyI6MC4wLCJ1bnByaWNlZF9jb3N0X2Jhc2lzX2tub3duX2NvdW50IjowLCJzdG9wc19oaXRfY291bnQiOjAsInN0b3BzX2hpdCI6W10sInN0b3BzX25vdF9ldmFsdWFibGUiOltdLCJhY2NvdW50aW5nX2NvdmVyYWdlX3N0YXR1cyI6IkVNUFRZIiwiYWNjb3VudGluZ19yZWFzb25fY29kZXMiOltdLCJhY2NvdW50aW5nX2Fzc3VtcHRpb25zIjoiTGVnYWN5IHNpbmdsZS1jdXJyZW5jeSBjYXNoLWVxdWl0eSBhcml0aG1ldGljOyBpbnN0cnVtZW50LCBjdXJyZW5jeSBhbmQgYWNjb3VudCByZWNvbmNpbGlhdGlvbiB1bnZlcmlmaWVkIn0sInJlc2VhcmNoIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gudjEiLCJzdGF0dXMiOiJERVNDUklQVElWRV9SRVNFQVJDSF9PTkxZIiwic291cmNlX2RvY3VtZW50cyI6eyJzY3JlZW5lci9hbHBoYS1zY29yZS5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2NyZWVuZXIvYWxwaGEtc2NvcmUuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjoyMjIsImJvZHlfc2hhMjU2IjoiNDAyYjFmMDcyZjhkMDNiMDlmZmU4MmY0NmZlMjY0OThkNTY5NTk2NjhiMDEyYTlhMjE2M2MxM2UwYWQwOTMyOSIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKblpXNWxjbUYwWldSZllYUWlPaUFpTWpBeU1DMHdNUzB3TVZRd01Eb3dNRG93TUZvaUxDQWljM1J2WTJ0eklqb2dXM3NpYzNsdFltOXNJam9nSWtGQlFTSXNJQ0poYkhCb1lWOXpZMjl5WlNJNklERXdMQ0FpY21GdWF5STZJRGt3TURjeE9Ua3lOVFEzTkRBNU9USXNJQ0pqYjIxd2IyNWxiblJ6SWpvZ2V5SjFibk5oWm1WZmFXNTBaV2RsY2lJNklEa3dNRGN4T1RreU5UUTNOREE1T1RKOUxDQWljbWx6YTE5bWJHRm5jeUk2SUZ0N0luVnVjMkZtWlY5cGJuUmxaMlZ5SWpvZ09UQXdOekU1T1RJMU5EYzBNRGs1TW4xZGZWMTkiLCJkZWNsYXJlZF9nZW5lcmF0ZWRfYXQiOiIyMDIwLTAxLTAxVDAwOjAwOjAwWiIsInN0cmVhbV9jbG9zZV9jb25maXJtZWQiOnRydWV9LCJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLXNvdXJjZS52MSIsImtleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwic3RhcnRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJjb21wbGV0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwic3RhdHVzIjoiQ09NUExFVEVfSlNPTl9PQkpFQ1QiLCJib2R5X2NvbXBsZXRlIjp0cnVlLCJyZWFzb25fY29kZSI6bnVsbCwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwidXBzdHJlYW1fcHJvdmVuYW5jZV92ZXJpZmllZCI6ZmFsc2UsImJvZHlfYnl0ZXMiOjc1LCJib2R5X3NoYTI1NiI6IjE1MDQ5MTAzMDljODcxYWJmYmRmNzAzNjRiMjFmNTI2ZDM5MzBmZjU3MDhjNjljMTc3OWRiMGNlNTIyY2QyYTMiLCJib2R5X2VuY29kaW5nIjoiYmFzZTY0IiwiYm9keSI6ImV5SjBhV1Z5WDNOZlkyOXVabXgxWlc1alpTSTZJRnRkTENBaWRHbGxjbDloWDJOdmJtWnNkV1Z1WTJVaU9pQmJYU3dnSW5ScFpYSmZZbDlqYjI1bWJIVmxibU5sSWpvZ1cxMTkiLCJkZWNsYXJlZF9nZW5lcmF0ZWRfYXQiOm51bGwsInN0cmVhbV9jbG9zZV9jb25maXJtZWQiOnRydWV9LCJzaWduYWxzL3JlZ2ltZS1waWNrcy5qc29uIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtc291cmNlLnYxIiwia2V5Ijoic2lnbmFscy9yZWdpbWUtcGlja3MuanNvbiIsInN0YXJ0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwiY29tcGxldGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsInN0YXR1cyI6IkNPTVBMRVRFX0pTT05fT0JKRUNUIiwiYm9keV9jb21wbGV0ZSI6dHJ1ZSwicmVhc29uX2NvZGUiOm51bGwsImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJib2R5X2J5dGVzIjoyMCwiYm9keV9zaGEyNTYiOiIwY2YxZDEwYzljZTY2YjQ3ZjZhZmJjNGE3Mjk2ZWRhMDQyOTk0NDRlYmRhMTY5ZmY3YTRhNDNkMjhlMzM5NDU4IiwiYm9keV9lbmNvZGluZyI6ImJhc2U2NCIsImJvZHkiOiJleUp5WldkcGJXVmZjR2xqYTNNaU9pQmJYWDA9IiwiZGVjbGFyZWRfZ2VuZXJhdGVkX2F0IjpudWxsLCJzdHJlYW1fY2xvc2VfY29uZmlybWVkIjp0cnVlfSwic2VudGltZW50L2RhdGEuanNvbiI6eyJzY2hlbWFfdmVyc2lvbiI6InNuYXBzaG90LXJlc2VhcmNoLXNvdXJjZS52MSIsImtleSI6InNlbnRpbWVudC9kYXRhLmpzb24iLCJzdGFydGVkX2F0IjoiMjAyNi0wOS0zMFQwODozNTowMCswMDowMCIsImNvbXBsZXRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJzdGF0dXMiOiJDT01QTEVURV9KU09OX09CSkVDVCIsImJvZHlfY29tcGxldGUiOnRydWUsInJlYXNvbl9jb2RlIjpudWxsLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJ1cHN0cmVhbV9wcm92ZW5hbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYm9keV9ieXRlcyI6MTcsImJvZHlfc2hhMjU2IjoiZDVhOTUwZmQxMzc1YmI4NTJjNzk4OWFkMDQzYWM2M2JjNDMwOGQ5NjQxZTRmNWY1MGQyMmUyNjU0MmYzYTZkZiIsImJvZHlfZW5jb2RpbmciOiJiYXNlNjQiLCJib2R5IjoiZXlKelpXNTBhVzFsYm5RaU9pQmJYWDA9IiwiZGVjbGFyZWRfZ2VuZXJhdGVkX2F0IjpudWxsLCJzdHJlYW1fY2xvc2VfY29uZmlybWVkIjp0cnVlfX0sInJldGFpbmVkX2NvbXBsZXRlX2JvZHlfYnl0ZXMiOjMzNCwic291cmNlX2J5dGVfYm91bmQiOjgzODg2MDgsImpvaW5zIjp7ImFscGhhIjp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MSwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjoxLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX0sImNvbmZsdWVuY2VfcyI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjAsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MCwiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJjb25mbHVlbmNlX2EiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fSwiY29uZmx1ZW5jZV9iIjp7InNvdXJjZV9zaGFwZSI6IkFSUkFZIiwic291cmNlX3Jvd19jb3VudCI6MCwidW5pcXVlX3VzYWJsZV9zeW1ib2xzIjowLCJpbnZhbGlkX3plcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJkdXBsaWNhdGVfc3ltYm9sX29jY3VycmVuY2VzIjp7fX0sInJlZ2ltZSI6eyJzb3VyY2Vfc2hhcGUiOiJBUlJBWSIsInNvdXJjZV9yb3dfY291bnQiOjAsInVuaXF1ZV91c2FibGVfc3ltYm9scyI6MCwiaW52YWxpZF96ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZHVwbGljYXRlX3N5bWJvbF9vY2N1cnJlbmNlcyI6e319LCJzZW50aW1lbnQiOnsic291cmNlX3NoYXBlIjoiQVJSQVkiLCJzb3VyY2Vfcm93X2NvdW50IjowLCJ1bmlxdWVfdXNhYmxlX3N5bWJvbHMiOjAsImludmFsaWRfemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImR1cGxpY2F0ZV9zeW1ib2xfb2NjdXJyZW5jZXMiOnt9fX0sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsInVwc3RyZWFtX3Byb3ZlbmFuY2VfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiYWNjb3VudGluZyI6eyJzY2hlbWFfdmVyc2lvbiI6ImhvbGRpbmdzLWFjY291bnRpbmcudjEiLCJ2YWx1YXRpb25fYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwic291cmNlX3Bvc2l0aW9ucyI6W10sInNvdXJjZV9wcmljZXMiOnt9LCJzb3VyY2Vfd2F0Y2hsaXN0IjpbeyJzeW1ib2wiOiJBQUEifV0sImJvb2tfcmVhZCI6eyJzY2hlbWFfdmVyc2lvbiI6InBvcnRmb2xpby1ib29rLXJlYWQudjEiLCJzdGF0dXMiOiJDT01QTEVURSIsImNvbnNpc3RlbmN5IjoiU1RST05HTFlfQ09OU0lTVEVOVF9QQUdFU19OT1RfQVRPTUlDX1NOQVBTSE9UIiwic3RhcnRlZF9hdCI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJjb21wbGV0ZWRfYXQiOiIyMDI2LTA5LTMwVDA4OjM1OjAwKzAwOjAwIiwicG9zaXRpb25fY291bnQiOjAsIndhdGNobGlzdF9jb3VudCI6MSwiZXhhY3Rfc3RvcmVkX2RlY2ltYWxfZXZpZGVuY2UiOnRydWUsImFjY291bnRfcmVjb25jaWxlZCI6ZmFsc2UsInBlcl9wYXJ0aXRpb25fYm91bmRzIjp7InJvd3MiOjEwMDAwLCJwYWdlcyI6MTAwLCJlbmNvZGVkX2J5dGVzIjo4Mzg4NjA4LCJhY2NlcHRhbmNlX3NlY29uZHMiOjIwfX0sIm5vbmZpbml0ZV9zb3VyY2VfZW5jb2RpbmciOiJyZWplY3RlZF9udW1iZXJfdHlwZSBwbHVzIGV4YWN0IHNvdXJjZSByZXByZXNlbnRhdGlvbiIsImFzc3VtcHRpb25zX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjYXBpdGFsX2Jvb2siOnsic2NoZW1hX3ZlcnNpb24iOiIxLjAiLCJzdGF0dXMiOiJCTE9DS0VEIiwiYWxsb3dzX25ld19lbnRyaWVzIjpmYWxzZSwicmVhc29uX2NvZGVzIjpbIk1JU1NJTkdfUkVDT05DSUxFRF9DQVBJVEFMX0xFREdFUiJdLCJhc19vZiI6IjIwMjYtMDktMzBUMDg6MzU6MDArMDA6MDAiLCJib29rX2lkIjpudWxsLCJhY2NvdW50X2lkIjpudWxsLCJjdXJyZW5jeSI6bnVsbCwiZXF1aXR5X25hdiI6bnVsbCwiY2FzaCI6bnVsbCwibGlhYmlsaXRpZXMiOm51bGwsInJlY29uY2lsZWRfYXQiOm51bGwsInJlc2VydmVkX29yZGVyX2V4cG9zdXJlIjpudWxsLCJuYXZfaGlzdG9yeSI6W10sIm9wZW5fb3JkZXJzIjpbXSwiZ3Jvc3NfZXhwb3N1cmUiOjAuMCwibmV0X2V4cG9zdXJlIjowLjAsImV4cG9zdXJlX3Njb3BlIjoiQUxMX1BPU0lUSU9OUyIsInBvc2l0aW9ucyI6W10sInVucHJpY2VkX3Bvc2l0aW9ucyI6W119LCJwb3NpdGlvbnMiOltdLCJ3YXRjaGxpc3QiOlt7InN5bWJvbCI6IkFBQSIsImN1cnJlbnRfcHJpY2UiOm51bGwsInByaWNlX2Fzb2ZfdW5peF9tcyI6bnVsbCwicHJpY2VfYmFzaXMiOm51bGwsInByaWNlX3RpbWVzdGFtcF9iYXNpcyI6bnVsbCwicHJpY2Vfc291cmNlIjp7InNjaGVtYV92ZXJzaW9uIjpudWxsLCJyZXF1ZXN0ZWRfc3ltYm9sIjpudWxsLCJyZXF1ZXN0ZWRfYWRqdXN0ZWQiOm51bGwsInN0YXR1cyI6bnVsbCwicmVhc29uX2NvZGUiOm51bGwsImJvZHlfc2hhMjU2IjpudWxsLCJzdGFydGVkX2F0IjpudWxsLCJjb21wbGV0ZWRfYXQiOm51bGwsImN1cnJlbmN5X3ZlcmlmaWVkIjpudWxsLCJpbnN0cnVtZW50X2JpbmRpbmdfdmVyaWZpZWQiOm51bGx9LCJwcmljZV9wcm92aWRlciI6bnVsbCwicHJpY2Vfb3BlbiI6bnVsbCwicHJpY2VfaGlnaCI6bnVsbCwicHJpY2VfbG93IjpudWxsLCJ2b2x1bWUiOm51bGwsInJlc2VhcmNoX2V2aWRlbmNlIjp7InNjaGVtYV92ZXJzaW9uIjoic25hcHNob3QtcmVzZWFyY2gtam9pbnMudjEiLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZSwiYWxwaGEiOnsic291cmNlX2tleSI6InNjcmVlbmVyL2FscGhhLXNjb3JlLmpzb24iLCJhcnJheV9wYXRoIjoic3RvY2tzIiwic3RhdHVzIjoiVU5JUVVFX1NPVVJDRV9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbMF0sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJjb25mbHVlbmNlX3MiOnsic291cmNlX2tleSI6InNpZ25hbHMvY29uZmx1ZW5jZS5qc29uIiwiYXJyYXlfcGF0aCI6InRpZXJfc19jb25mbHVlbmNlIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sImNvbmZsdWVuY2VfYSI6eyJzb3VyY2Vfa2V5Ijoic2lnbmFscy9jb25mbHVlbmNlLmpzb24iLCJhcnJheV9wYXRoIjoidGllcl9hX2NvbmZsdWVuY2UiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiY29uZmx1ZW5jZV9iIjp7InNvdXJjZV9rZXkiOiJzaWduYWxzL2NvbmZsdWVuY2UuanNvbiIsImFycmF5X3BhdGgiOiJ0aWVyX2JfY29uZmx1ZW5jZSIsInN0YXR1cyI6Ik5PX0lERU5USUZJRURfUk9XIiwiemVyb19iYXNlZF9vY2N1cnJlbmNlcyI6W10sImZyZXNobmVzc192ZXJpZmllZCI6ZmFsc2UsImluZGVwZW5kZW50X2V2aWRlbmNlX3ZlcmlmaWVkIjpmYWxzZSwiYWxsb3dzX3NpemluZyI6ZmFsc2V9LCJyZWdpbWUiOnsic291cmNlX2tleSI6InNpZ25hbHMvcmVnaW1lLXBpY2tzLmpzb24iLCJhcnJheV9wYXRoIjoicmVnaW1lX3BpY2tzIiwic3RhdHVzIjoiTk9fSURFTlRJRklFRF9ST1ciLCJ6ZXJvX2Jhc2VkX29jY3VycmVuY2VzIjpbXSwiZnJlc2huZXNzX3ZlcmlmaWVkIjpmYWxzZSwiaW5kZXBlbmRlbnRfZXZpZGVuY2VfdmVyaWZpZWQiOmZhbHNlLCJhbGxvd3Nfc2l6aW5nIjpmYWxzZX0sInNlbnRpbWVudCI6eyJzb3VyY2Vfa2V5Ijoic2VudGltZW50L2RhdGEuanNvbiIsImFycmF5X3BhdGgiOiJzZW50aW1lbnQiLCJzdGF0dXMiOiJOT19JREVOVElGSUVEX1JPVyIsInplcm9fYmFzZWRfb2NjdXJyZW5jZXMiOltdLCJmcmVzaG5lc3NfdmVyaWZpZWQiOmZhbHNlLCJpbmRlcGVuZGVudF9ldmlkZW5jZV92ZXJpZmllZCI6ZmFsc2UsImFsbG93c19zaXppbmciOmZhbHNlfSwiaW52YWxpZF9maWVsZHMiOlsicmFuayIsImNvbXBvbmVudHMiLCJyaXNrX2ZsYWdzIl0sImludGVycHJldGF0aW9uIjoiRGVzY3JpcHRpdmUgc291cmNlIGZpZWxkczsgZnJlc2huZXNzLCBpbmRlcGVuZGVuY2UgYW5kIHByZWRpY3RpdmUgdmFsaWRpdHkgdW52ZXJpZmllZCJ9LCJhbHBoYV9zY29yZSI6MTAsInRpZXIiOm51bGwsInJhbmsiOm51bGwsIm5hbWUiOm51bGwsInNlY3RvciI6bnVsbCwiY29tcG9uZW50cyI6bnVsbCwidG9wX3NpZ25hbHMiOm51bGwsInJpc2tfZmxhZ3MiOm51bGwsImNvbmZsdWVuY2VfdGllciI6bnVsbCwiY29uZmx1ZW5jZV9jb3VudCI6bnVsbCwiY29tcG9uZW50c19maXJpbmciOm51bGwsInJlZ2ltZV9hZGoiOm51bGwsInJlZ2ltZV9hZGpfc2NvcmUiOm51bGwsInNlbnRpbWVudF9zaWduYWwiOm51bGwsInNlbnRpbWVudF9zY29yZSI6bnVsbCwic2VudGltZW50X3JlYXNvbiI6bnVsbCwic291cmNlIjpudWxsLCJhdXRvX3NvdXJjZV9nZW5lcmF0ZWRfYXQiOm51bGwsImF1dG9fc3luY192ZXJzaW9uIjpudWxsLCJhZGRlZF9hdCI6bnVsbCwibm90ZXMiOm51bGx9XSwic2VjdG9yX2NvbmNlbnRyYXRpb24iOltdLCJ3YXRjaGxpc3Rfc3luYyI6eyJhZGRlZF9TIjpbXSwiYWRkZWRfQSI6W10sInJlbW92ZWRfUyI6W10sInJlbW92ZWRfQSI6W119LCJjb3VudHMiOnsicG9zaXRpb25zIjowLCJ3YXRjaGxpc3QiOjEsImF1dG9fd2F0Y2hfUyI6MCwiYXV0b193YXRjaF9BIjowLCJtYW51YWxfd2F0Y2giOjB9fQ==",
+              "bytes": 8695,
+              "sha256": "66cea66646036465867f5c8ee980f21879fc7b51cfb59fe2059039537a232025"
+            },
+            "ContentType": "application/json",
+            "CacheControl": "private, no-store"
+          }
+        }
+      ]
+    },
+    {
+      "name": "oversized_mirror_has_no_partial_publication",
+      "complete_inputs": {
+        "documents": {
+          "screener/alpha-score.json": {
+            "generated_at": "2020-01-01T00:00:00Z",
+            "stocks": []
+          },
+          "signals/confluence.json": {
+            "tier_s_confluence": [],
+            "tier_a_confluence": [],
+            "tier_b_confluence": []
+          },
+          "signals/regime-picks.json": {
+            "regime_picks": []
+          },
+          "sentiment/data.json": {
+            "sentiment": []
+          }
+        },
+        "watchlist": [],
+        "positions": []
+      },
+      "limits": {
+        "research_bytes": 8388608,
+        "mirror_bytes": 100
+      },
+      "result": null,
+      "error": {
+        "type": "ValueError",
+        "message": "Complete snapshot exceeds private mirror byte bound"
+      },
+      "source_requests": [
+        "screener/alpha-score.json",
+        "signals/confluence.json",
+        "signals/regime-picks.json",
+        "sentiment/data.json"
+      ],
+      "sync_calls": [
+        {
+          "generated_at": "2020-01-01T00:00:00Z",
+          "stocks": []
+        }
+      ],
+      "price_calls": [
+        []
+      ],
+      "all_bodies_closed": true,
+      "writes": []
+    },
+    {
+      "name": "cumulative_source_bound_precedes_sync_and_marks",
+      "complete_inputs": {
+        "documents": {
+          "screener/alpha-score.json": {
+            "generated_at": "2020-01-01T00:00:00Z",
+            "stocks": []
+          },
+          "signals/confluence.json": {
+            "tier_s_confluence": [],
+            "tier_a_confluence": [],
+            "tier_b_confluence": []
+          },
+          "signals/regime-picks.json": {
+            "regime_picks": []
+          },
+          "sentiment/data.json": {
+            "sentiment": []
+          }
+        },
+        "watchlist": [],
+        "positions": []
+      },
+      "limits": {
+        "research_bytes": 100,
+        "mirror_bytes": 20000000
+      },
+      "result": null,
+      "error": {
+        "type": "ValueError",
+        "message": "Complete research source evidence exceeds snapshot bound"
+      },
+      "source_requests": [
+        "screener/alpha-score.json",
+        "signals/confluence.json"
+      ],
+      "sync_calls": [],
+      "price_calls": [],
+      "all_bodies_closed": true,
+      "writes": []
+    }
+  ],
+  "provider_requests": 0,
+  "actual_private_reads": 0,
+  "native_invocations": 0
+}

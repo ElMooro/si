@@ -214,8 +214,8 @@ class SourceReaderTests(unittest.TestCase):
         root=SOURCE.parents[3]
         def functions(path):return {n.name:n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(root/'tests/fixtures/pre-snapshot-accounting/lambda_function.py.txt');after=functions(SOURCE/'lambda_function.py')
-        self.assertEqual({name for name in before if ast.dump(before[name])!=ast.dump(after[name])},{'enrich_symbol','lambda_handler','query_pk','fetch_polygon_latest'})
-        self.assertEqual({name for name in after if name not in before},{'accounting_number','accounting_round','accounting_sum','accounting_source','accounting_symbol','build_holdings_accounting','parse_previous_close','read_previous_close_body'})
+        self.assertEqual({name for name in before if ast.dump(before[name])!=ast.dump(after[name])},{'enrich_symbol','lambda_handler','query_pk','fetch_polygon_latest','load_s3_json','index_by_symbol'})
+        self.assertEqual({name for name in after if name not in before},{'accounting_number','accounting_round','accounting_sum','accounting_source','accounting_symbol','build_holdings_accounting','parse_previous_close','read_previous_close_body','research_text','research_join','research_value'})
     def test_complete_body_and_eof_are_required_and_closed(self):
         mod=load_current();raw=json.dumps(frame()).encode();body=io.BytesIO(raw)
         mod.s3.get_object=lambda **kw:{'Body':body,'ContentLength':len(raw)}

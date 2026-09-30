@@ -1,0 +1,341 @@
+{
+  "scope": "Current reviewed snapshot source, complete invented inputs and mocked writes only; no actual account or sidecar packets.",
+  "source_sha256": "6d1f0d14b1542b7382b929e3214a4f504fa8e253d4c26f65645b023b74e272df",
+  "source_bytes": 52028,
+  "cases": [
+    {
+      "name": "source_signal_and_risk_flag_lists_are_shortened",
+      "complete_inputs": {
+        "alpha": {
+          "AAA": {
+            "symbol": "AAA",
+            "top_signals": [
+              "s0",
+              "s1",
+              "s2",
+              "s3",
+              "s4",
+              "s5",
+              "s6",
+              "s7"
+            ],
+            "risk_flags": [
+              "r0",
+              "r1",
+              "r2",
+              "r3",
+              "r4",
+              "r5",
+              "r6",
+              "r7"
+            ]
+          }
+        },
+        "confluence_s": {},
+        "confluence_a": {},
+        "confluence_b": {},
+        "regime": {},
+        "sentiment": {}
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": [
+          "s0",
+          "s1",
+          "s2"
+        ],
+        "risk_flags": [
+          "r0",
+          "r1",
+          "r2"
+        ],
+        "confluence_tier": null
+      }
+    },
+    {
+      "name": "source_sentiment_explanation_is_shortened",
+      "complete_inputs": {
+        "alpha": {},
+        "confluence_s": {},
+        "confluence_a": {},
+        "confluence_b": {},
+        "regime": {},
+        "sentiment": {
+          "AAA": {
+            "symbol": "AAA",
+            "sentimentReason": "INVENTED full explanation evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence ",
+            "sentimentScore": 0.5,
+            "sentimentSignal": "NEUTRAL"
+          }
+        }
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "confluence_tier": null,
+        "sentiment_signal": "NEUTRAL",
+        "sentiment_score": 0.5,
+        "sentiment_reason": "INVENTED full explanation evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence evidence eviden"
+      }
+    },
+    {
+      "name": "duplicate_symbol_last_occurrence_silently_wins",
+      "complete_inputs": [
+        {
+          "symbol": "AAA",
+          "alpha_score": 10,
+          "tier": "C",
+          "source_identity": "first original occurrence"
+        },
+        {
+          "symbol": "AAA",
+          "alpha_score": 99,
+          "tier": "S",
+          "source_identity": "second original occurrence"
+        }
+      ],
+      "result": {
+        "AAA": {
+          "symbol": "AAA",
+          "alpha_score": 99,
+          "tier": "S",
+          "source_identity": "second original occurrence"
+        }
+      }
+    },
+    {
+      "name": "conflicting_confluence_tiers_silently_choose_s",
+      "complete_inputs": {
+        "alpha": {},
+        "confluence_s": {
+          "AAA": {
+            "symbol": "AAA",
+            "confluence_count": 7
+          }
+        },
+        "confluence_a": {
+          "AAA": {
+            "symbol": "AAA",
+            "confluence_count": 2
+          }
+        },
+        "confluence_b": {},
+        "regime": {},
+        "sentiment": {}
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "confluence_tier": "S",
+        "confluence_count": 7,
+        "components_firing": null
+      }
+    },
+    {
+      "name": "source_clock_disappears_from_alpha_enrichment",
+      "complete_inputs": {
+        "alpha": {
+          "AAA": {
+            "symbol": "AAA",
+            "alpha_score": 99,
+            "tier": "S",
+            "generated_at": "2020-01-01T00:00:00Z",
+            "source_note": "invented stale source"
+          }
+        },
+        "confluence_s": {},
+        "confluence_a": {},
+        "confluence_b": {},
+        "regime": {},
+        "sentiment": {}
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "alpha_score": 99,
+        "tier": "S",
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": [],
+        "risk_flags": [],
+        "confluence_tier": null
+      }
+    },
+    {
+      "name": "string_signal_and_flag_shapes_are_sliced_as_text",
+      "complete_inputs": {
+        "alpha": {
+          "AAA": {
+            "symbol": "AAA",
+            "top_signals": "NOT_AN_ARRAY",
+            "risk_flags": "NOT_AN_ARRAY"
+          }
+        },
+        "confluence_s": {},
+        "confluence_a": {},
+        "confluence_b": {},
+        "regime": {},
+        "sentiment": {}
+      },
+      "result": {
+        "symbol": "AAA",
+        "current_price": null,
+        "price_asof_unix_ms": null,
+        "price_basis": null,
+        "price_timestamp_basis": null,
+        "price_source": {
+          "schema_version": null,
+          "requested_symbol": null,
+          "requested_adjusted": null,
+          "status": null,
+          "reason_code": null,
+          "body_sha256": null,
+          "started_at": null,
+          "completed_at": null,
+          "currency_verified": null,
+          "instrument_binding_verified": null
+        },
+        "price_provider": null,
+        "price_open": null,
+        "price_high": null,
+        "price_low": null,
+        "volume": null,
+        "alpha_score": null,
+        "tier": null,
+        "rank": null,
+        "name": null,
+        "sector": null,
+        "components": null,
+        "top_signals": "NOT",
+        "risk_flags": "NOT",
+        "confluence_tier": null
+      }
+    },
+    {
+      "name": "text_alpha_score_crashes_whole_snapshot_sort",
+      "complete_inputs": {
+        "positions": [],
+        "watchlist": [
+          {
+            "symbol": "AAA",
+            "source": "MANUAL"
+          }
+        ],
+        "sidecars": {
+          "screener/alpha-score.json": {
+            "generated_at": "2026-09-30T08:00:00Z",
+            "stocks": [
+              {
+                "symbol": "AAA",
+                "alpha_score": "99",
+                "tier": "S"
+              }
+            ]
+          },
+          "signals/confluence.json": {},
+          "signals/regime-picks.json": {},
+          "sentiment/data.json": {}
+        }
+      },
+      "result": null,
+      "error": {
+        "type": "TypeError",
+        "message": "bad operand type for unary -: 'str'"
+      },
+      "writes": [],
+      "captured_log": "=== PORTFOLIO SNAPSHOT \u00b7 2026-09-30T08:20:23.538907+00:00 ===\n  loaded: alpha=1 conf_S=0 conf_A=0 regime=0 sentiment=0\n  watchlist sync: +0 S +0 A -0 stale\n  positions=0 watchlist=1\n  prices fetched: 0/1\n"
+    }
+  ],
+  "actual_private_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0
+}
