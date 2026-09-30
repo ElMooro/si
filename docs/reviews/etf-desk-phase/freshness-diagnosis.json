@@ -1,0 +1,43 @@
+{
+  "observed_at": "2026-09-30T20:37:52.482582+00:00",
+  "diagnosis": "Desk captures canonical holdings before the daily canonical refresh; copied clocks correctly expire. Canonical acquisition is current.",
+  "canonical_generated_at": "2026-09-29T22:48:24.628411+00:00",
+  "desk_generated_at": "2026-09-29T22:21:53.790899+00:00",
+  "desk_embedded_canonical_generated_at": "2026-09-28T22:48:25.254914+00:00",
+  "canonical_current_funds": 294,
+  "canonical_configured_funds": 300,
+  "shared_desk_funds": 100,
+  "shared_desk_current_holdings": 0,
+  "shared_latest_canonical_current_holdings": 100,
+  "extra_desk_current_holdings": 16,
+  "declared_daily_utc": {
+    "justhodl-etf-global-desk": "22:20",
+    "justhodl-etf-constituents": "22:45",
+    "justhodl-flow-lookthrough": "23:15"
+  },
+  "scheduler_current_state_queried": false,
+  "cloud_probe_run": false,
+  "canonical_unavailable_funds": [
+    "BERZ",
+    "BULZ",
+    "FNGD",
+    "FNGU",
+    "GDXD",
+    "GDXU"
+  ],
+  "unavailable_cause": "Public summary shows no complete returned snapshot; does not establish entitlement or transport cause.",
+  "spy_desk": {
+    "effective_dates": {
+      "2026-09-24": 505
+    },
+    "source_acquired_at": "2026-09-28T22:47:38.053198+00:00",
+    "source_valid_until": "2026-09-30T00:47:38.053198+00:00"
+  },
+  "spy_canonical": {
+    "effective_dates": {
+      "2026-09-28": 505
+    },
+    "source_acquired_at": "2026-09-29T22:47:37.500002+00:00",
+    "source_valid_until": "2026-10-01T00:47:37.500002+00:00"
+  }
+}
