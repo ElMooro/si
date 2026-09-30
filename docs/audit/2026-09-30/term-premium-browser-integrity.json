@@ -159,5 +159,3121 @@
   "release_acceptance": {
     "status": "pending_exact_pages_build_and_live_static_verification"
   },
-  "scope": "Strict bounded browser evidence, request lifecycle and publication-bound notices. Original retained archives and whole invented inputs only; no actual current/private/consumer packets, provider requests, native invokes, schedules or investment authority changes. All ten workstreams remain open."
+  "scope": "Strict bounded browser evidence, request lifecycle and publication-bound notices. Original retained archives and whole invented inputs only; no actual current/private/consumer packets, provider requests, native invokes, schedules or investment authority changes. All ten workstreams remain open.",
+  "acceptance": {
+    "status": "exact_static_build_and_whole_original_browser_replay_accepted",
+    "source_commit": "832710ee59b0b3f5070aa0176dc68d1ef1ca4f59",
+    "pages_run": 36759732739,
+    "guard_run": 36759732939,
+    "static": {
+      "checked_at": "2026-09-30T18:43:14.127355+00:00",
+      "intended_commit": "832710ee59b0b3f5070aa0176dc68d1ef1ca4f59",
+      "served_commit": "832710ee59b0b3f5070aa0176dc68d1ef1ca4f59",
+      "assets": {
+        "term-premium.html": {
+          "bytes": 11119,
+          "sha256": "30aeeee5f0b81800758bd60e4dc5ce35836ad99340c7a299921ac1c38cb1254b",
+          "matches_manifest": true
+        },
+        "index.html": {
+          "bytes": 18300,
+          "sha256": "bd69b80a1f809424dc6014424da630c91f4c6c22784904d17c7dac2af44c7428",
+          "matches_manifest": true,
+          "embedded_home_configuration_hashes_match_exact_served_files": true
+        },
+        "portfolio-manager.html": {
+          "bytes": 30627,
+          "sha256": "a2ef27f64db070c1ef7794591d1a0fbbaea4d8d4d959e21dda8c3e2b5dccfc8f",
+          "matches_manifest": true
+        },
+        "portfolio/index.html": {
+          "bytes": 48427,
+          "sha256": "f675b4d35e0adba4a20c9615877e3d203ec0ddb20ad9e8b7092db002e2ca4817",
+          "matches_manifest": true,
+          "helper_content_version_matches_reviewed_source": true
+        },
+        "position-sizer.html": {
+          "bytes": 11687,
+          "sha256": "2f4f3fceddecfbb089c63a3d19a5f4dd8ceefe8698b0212ab18586c201e4fc57",
+          "matches_manifest": true,
+          "model_sri_matches_reviewed_source": true
+        },
+        "cb-injection.html": {
+          "bytes": 14823,
+          "sha256": "325fd3978bb073c9aa899043ecef61a53e360b25fef5dffed87319b3c2a41ddb",
+          "matches_manifest": true
+        },
+        "liquidity.html": {
+          "bytes": 68374,
+          "sha256": "ac8f0968566ce5cc06266b34905f10dab49d2c9774492e49d50b2d2e72ed6a83",
+          "matches_manifest": true
+        },
+        "calls.html": {
+          "bytes": 28216,
+          "sha256": "dd32a5cdb563ac95d7b53b4636006815906ce761aa388eb53904d1c73b2f0840",
+          "matches_manifest": true
+        },
+        "engine-data.html": {
+          "bytes": 3125,
+          "sha256": "6bd445a193715f858049411ea910c1d5fe6b423e0521d574056010e1f7fc4f6d",
+          "matches_manifest": true
+        },
+        "capitulation.html": {
+          "bytes": 9023,
+          "sha256": "143d5a4372eefb7a346e101c0aaa2b3987fa389bff8d6842ce92709528b9afd3",
+          "matches_manifest": true,
+          "embedded_primary_contract_matches_source": true
+        },
+        "market-extremes.html": {
+          "bytes": 10103,
+          "sha256": "fad96dd667d3718cb7a0830b3f478f82726c8ea788b05fef203a8495536a349c",
+          "matches_manifest": true,
+          "embedded_primary_contract_matches_source": true
+        },
+        "jh-term-premium-research.js": {
+          "bytes": 20425,
+          "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-term-premium-research.css": {
+          "bytes": 3683,
+          "sha256": "33d5380d45b69ac06505bc84bd455cf09d769cc1679385b717de22e76b9ba49d",
+          "matches_manifest": true
+        },
+        "jh-portfolio-research.js": {
+          "bytes": 5693,
+          "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-research-page.js": {
+          "bytes": 7876,
+          "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-quotes.js": {
+          "bytes": 7020,
+          "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-quotes-page.js": {
+          "bytes": 8073,
+          "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "private-artifacts.js": {
+          "bytes": 13930,
+          "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-evidence-io.js": {
+          "bytes": 5002,
+          "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-binding.js": {
+          "bytes": 3954,
+          "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-risk-contract.js": {
+          "bytes": 11530,
+          "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-scenario.js": {
+          "bytes": 7387,
+          "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-scenario-io.js": {
+          "bytes": 3035,
+          "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-portfolio-scenario-page.js": {
+          "bytes": 9325,
+          "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-cb-research.js": {
+          "bytes": 15703,
+          "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-cb-page.js": {
+          "bytes": 1072,
+          "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-liquidity-research.js": {
+          "bytes": 6746,
+          "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "calls-page.js": {
+          "bytes": 13589,
+          "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-public-brief.js": {
+          "bytes": 25766,
+          "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-extremes-research.js": {
+          "bytes": 16212,
+          "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "jh-data-inspector.js": {
+          "bytes": 34117,
+          "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+          "matches_manifest": true,
+          "matches_source_after_declared_build_transform": true
+        },
+        "engine-manifest.json": {
+          "bytes": 3070592,
+          "sha256": "8b4f06e8a3a9f37d1c484846ce10e21ced32cf3ee88ea091b3124e907110a2e9",
+          "matches_manifest": true,
+          "complete_inventory_matches_excluding_generated_at": true,
+          "engines": 893
+        },
+        "nav-manifest.json": {
+          "bytes": 36854,
+          "sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05",
+          "matches_manifest": true
+        },
+        "assets/vendor/world-atlas-2.0.2-countries-110m.json": {
+          "bytes": 107761,
+          "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8",
+          "matches_manifest": true
+        },
+        "config/home-layout.json": {
+          "bytes": 562,
+          "sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2",
+          "matches_manifest": true
+        },
+        "config/section-registry.json": {
+          "bytes": 1305504,
+          "sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3",
+          "matches_manifest": true
+        },
+        "config/page-data-contracts.json": {
+          "bytes": 7666551,
+          "sha256": "20bce333b500d02e676d7e601afdb1ed6383a97ae75b982713504ccd1af4ba83",
+          "matches_manifest": true,
+          "complete_contract_matches_source_and_exact_built_asset_bindings": true,
+          "pages": 599
+        },
+        "engines.html": {
+          "bytes": 954676,
+          "sha256": "bfccfc390bbcdd7208470ba5400a4dd5e897f60e889f620d9eb2390b11bfd4db",
+          "matches_manifest": true
+        },
+        "config/engine-registry.json": {
+          "bytes": 194734,
+          "sha256": "71ced61ee8dc950e463ed4d8664f30ca2240753ab85f7cd481dd265633eee7c9",
+          "matches_manifest": true
+        }
+      },
+      "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+      "generated_asset_bindings": {
+        "navigation_replayed_from_source_at_recorded_build_date": true,
+        "rows": [
+          {
+            "page": "0dte/index.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "10kq-filings.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "13f.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "8k-items.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "aaii.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "about.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "accum-composite.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "accumulation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "accuracy.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "activist-13d.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "activist-filings.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "agreement-terminations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ai-rerating.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ai.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ai_predictions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "alerts.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "allocator.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "alpha-atlas.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "alpha-compass.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "alpha-families.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "alpha-scoreboard.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "altseason.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "analogs.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "analyst-actions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "analytics.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "apac.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "apex.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "api-docs.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ark.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ask.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "asset-compass.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "asymmetric.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ath.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "attention.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "auction-crisis.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "auctions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "audit.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "backlog.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "backtest.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "backtests.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "baggers.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "beneish.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "benzinga.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "best-ideas.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "billings-crpo.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bis-crossborder.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "blackout.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bls.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "boj-detail.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bond-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bond-vol.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bonds.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "boom-board.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "boom-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "boom-stage.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bottleneck-boom.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bottleneck.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "bottom.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "brain-compiler.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "brain.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "breadth-thrust.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "brief.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "buyback-scanner.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "buybacks.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "buzz-velocity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "calibration-fleet.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "calls.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "canaries.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "capex-pulse.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "capital-flow.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "capital-inflows.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "capital-return.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "capture-gap.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "carry-surface.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cash-conversion-cycle.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "catalyst-calendar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "catalysts.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "catch-up.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cb-injection.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cds-monitor.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "census.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cftc.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "chart-macro.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "chart-patterns.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "chart-pro.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "charts.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ciss.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "classic-dashboard.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cockpit.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "comeback.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "compare.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "compass.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "compound-signals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "compounders.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "confluence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "consolidation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "construction-housing.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "consumer-pulse.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "contact.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "conviction.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "correlation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cot-extremes.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "credit/index.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "credit-before-equity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "credit-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crisis.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cross-asset-flow.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cross-asset-rv.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "cross-asset.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crypto-confluence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crypto-emergence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crypto-liquidity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crypto-narratives.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crypto-opportunities.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "crypto-risk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dark-pool.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "data.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "deal-scanner.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dealer-survey.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "debt-wall.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "deep-value-overlap.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "deep-value.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "defcon.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "deferred-revenue.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "delisting-notices.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dep-graph.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "desk-allocator.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "desk-v2.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dex.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "digest-archive.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "digest-trends.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dilution.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "directory.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dislocations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "distribution-composite.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "divergence-v2.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dividend-growth.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dollar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dossier.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "download.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "downloads.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "dxy.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "early-signals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "earnings-pead.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "earnings-quality.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "earnings-whisper.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ecb-detail.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ecb-history.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ecb.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "econ-calendar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "edge-discovery.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "edge.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "eia.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "engine.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "engines.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "episode-compass.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "eps-velocity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "equity-chokepoint.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "equity-confluence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "equity-cyclical-bagger.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "errors.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "estimate-revisions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "etf-census.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "etf-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "eu-dump-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "euro-fragmentation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "eva.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "event-study.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "factor-regime.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "factor-returns.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "factor-risk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fed-speak.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "feedback.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fifx-vol.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "filing-cycle-tape.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "filing-redflags.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "financial-conditions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "financial-obligations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "finviz-signals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "firm-book.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "firm-risk-board.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "firm-stress.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fixed-income-census.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fleet-audit.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fleet-edge.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fleet-health.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "flow-confluence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "flow.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fmp.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "foreign-flows.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "forensic.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "forward-orders.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fred.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "freight-pulse.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "frontrun.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fundamental-census.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fundamental-graphs.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fundamentals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "funding-plumbing.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fusion.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "future-intel.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "futures-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "fx-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "gdelt.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "geo-risk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "gex/index.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "gf-value.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-cycle/index.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-cycle.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-flow-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-liquidity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-macro.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-recession.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-sovereign.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-stress.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "global-tide.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "glossary.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "gold-rotation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "grid-queue.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "groups.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "gsi-calibration.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "health.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "heatmap.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "hedge-planner.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "hedge-pnl.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "highs-lows.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "hiring-velocity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "holdings-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "horizons-gsi.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "horizons.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "hot-stocks.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "housing-predict-future.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "housing-tv-extras.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ici-flows.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ignition.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "impairments-8k.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "import-canary.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "index-recon.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "index.html",
+            "key": "config/home-layout.json",
+            "source_sha256": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+            "built_sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+          },
+          {
+            "page": "index.html",
+            "key": "config/section-registry.json",
+            "source_sha256": "886996bb301b1bc9ed26d389931b273bd86b606a049de4d08826e0891a3a028e",
+            "built_sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3"
+          },
+          {
+            "page": "index.html",
+            "key": "engine-manifest.json",
+            "source_sha256": "473b3fff3f3d2fb337e04abec0f696bac752d43fa8321edc8cb1d28aa60cc7e6",
+            "built_sha256": "8b4f06e8a3a9f37d1c484846ce10e21ced32cf3ee88ea091b3124e907110a2e9"
+          },
+          {
+            "page": "index.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "industry-rotation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "industry-triad.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "inflection.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insider-buys.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insider-clusters.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insider-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insider-drawdown.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insider-industry-cluster.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insider.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "insiders.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "institutional-footprint.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "intelligence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "interpretation-scorecard.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "inventory-drawdown.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "investor.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ipo-pipeline.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "journal.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "jsi.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "katlin.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "khalid.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "khalidrisk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "kill-theses.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "lce.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "leader-observations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "leverage.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "liquidity-capacity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "liquidity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "live-pulse.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "live.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "livermore.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "llm-cost.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "lobbying.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ma-crosses.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ma-reversion.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ma200-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "macro-data.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "macro-economic-data.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "macro-frontrun.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "macro-leads.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "macro-rooms.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "magic-formula.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "market-evidence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "market-internals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "market-leaders.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "market-map.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "master-allocator.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "master-board.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "master-rank.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "material-agreements.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "materials-orders.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "merger-arb-risk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "merger-arb.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "metals-miners.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "methodology.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "microcap-float-squeeze.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ml-predictions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "momentum-observations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "momentum.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "my-portfolio.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "narrative.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "nasdaq-datalink.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "news.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "nobrainers.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "notifications.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "nowcast-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ny-fed.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "observability.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "offexchange-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "officer-change.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "official-orders.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "official-pulse.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ofr.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "onchain.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "opex-calendar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "opportunities.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "option-chain-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "options-analytics.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "options-confluence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "options-flow.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "options-scanner.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "options.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "orderbook.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pairs-arb.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pairs-scanner.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pairs.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "panels.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "paper-book.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "patent-velocity.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "patterns.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pead-signals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "performance.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "phases.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "physical-trade.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "plumbing.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pm-decision.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pnl-attribution.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "political.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "port-cargo.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "portfolio-manager.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "portfolio.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "portwatch.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "positioning.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ppi-acceleration.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pre-pump-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "predictability.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "pricing.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "privacy.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "proof.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "proven-alpha.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "proven-portfolio.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "provider.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "purchase-obligations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "quality-cycle.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "quantum-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "read.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "readthrough.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "real-economy-tape.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "rebalance-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "regime-map.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "regime.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "reports.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "reserves-production.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "resilience.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "retail-edges.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "revenue-acceleration.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "risk-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "risk-gate.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "risk-monitor.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "risk-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "risk-regime.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "risk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "rotation-chains.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "rotation-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "russell-recon.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "rv-iv-scanner.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "scarcity-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "scorecard.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "sec-filings.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "sector-emergence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "sentiment.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "settings.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "short/index.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "short-book.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "short-interest-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "short-pressure.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "short-volume-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-board.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-genealogy.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-halflife.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-intelligence.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-orthogonality.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-replay.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signal-scorecard.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "signals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "sizing.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "skill.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "smart-beta.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "smart-money-13f.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "smart-money.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "snb-detail.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "sovereign-stress.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "sovereign.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "spinoff-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "squeeze-fuel.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "squeeze.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "stablecoin-flow.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "starmine.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "statement-research.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "status.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "strategist.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "strategy-portfolio.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "stress.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "strong.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "supply-chain.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "supply-inflection.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "switzerland.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "system-health.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "system.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "systemic-stress.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "tail-hedge.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "tape-reader.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "targets.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "tax-plan.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "term-premium.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "terms.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "theme-tiers.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "themes.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "theses.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "ticker.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "today.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "track-public.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "track-record.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "trade-journal.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "trading-signals.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "treasury-auctions.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "treasury-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "treasury-noise.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "treasury-rehypo.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "trend-engine.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "trend-reversal.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "tv-notes.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "tv-watchlist-tape.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "universe-heatmap.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "upside-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "uptime.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "us-cycle.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "us-data-desk.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "valuations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vintages.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vix-capitulation.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vix-curve.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vol-radar.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vol-regime.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vol-target-unwind.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "vol.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "volatility-observations.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "volatility.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "watchlist.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "watchlists.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "wealth-plan.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "weights.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "welcome.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "whales.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "why-cross-signal.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "why-now.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "why.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "workspace.html",
+            "key": "engine-manifest.json",
+            "source_sha256": "473b3fff3f3d2fb337e04abec0f696bac752d43fa8321edc8cb1d28aa60cc7e6",
+            "built_sha256": "8b4f06e8a3a9f37d1c484846ce10e21ced32cf3ee88ea091b3124e907110a2e9"
+          },
+          {
+            "page": "write-downs.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "wyckoff.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          },
+          {
+            "page": "yield-curve.html",
+            "key": "nav-manifest.json",
+            "source_sha256": "f19e7a2d625ba62cad3457e380dfc0ba9e2e2658c66ce3ee0061ea7bc654072e",
+            "built_sha256": "da1749d511974dff213f6e6d387caf00066788b71229bb8f9f5232a1d141ea05"
+          }
+        ]
+      },
+      "offline_build": {
+        "complete_engine_rows": 893,
+        "complete_source_registry_matches_manifest": true,
+        "all_concrete_outputs_unchecked_with_null_measurements": true,
+        "counts": {
+          "no-outs": 70,
+          "wired-unverified-feed": 670,
+          "declared-unverified": 153
+        },
+        "rails": [
+          {
+            "page": "calls.html",
+            "all_reference_modification_times_unknown": true,
+            "references": 1
+          },
+          {
+            "page": "liquidity.html",
+            "all_reference_modification_times_unknown": true,
+            "references": 1
+          }
+        ],
+        "source_references_are_not_runtime_health": true
+      },
+      "intended_static_commit": "832710ee59b0b3f5070aa0176dc68d1ef1ca4f59",
+      "static_sources_unchanged_between_commits": true,
+      "build_manifest_sha256": "4667b57bec32e947f1ec6c4c426a729e9ee56eed1a7936a6d44d69849e6c9e3e",
+      "same_build_manifest_before_after": true
+    },
+    "native_source_unchanged": "5c03c2d10aa9766de9ebe2461bb8019a3cb09007",
+    "new_native_publication_verified": false,
+    "scope": "Static release, complete retained original browser replay and isolated whole invented browser behavior. No current/private/consumer or provider requests, native invocation or authority claim."
+  }
 }
