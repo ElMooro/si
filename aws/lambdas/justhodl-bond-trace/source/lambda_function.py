@@ -23,6 +23,11 @@ This is a pragmatic v1 — actual TRACE feed requires FINRA registration. For
 now we synthesize using free ETF + FRED data, with an upgrade path to TRACE
 API when registered.
 
+Phase 1 (schema 2.0): real FINRA TRACE aggregate layer via finra_trace
+(treasuryDailyAggregates, corporateDebtMarketBreadth, trace prints) with
+dealer-positioning z-score, breadth momentum, and VWAP dislocation derived
+stress. The proxy above runs first and is untouched if TRACE fails.
+
 Output: data/bond-trace.json
   • hy_lq_ratio, hy_30d_perf, lq_30d_perf, ratio_5d_chg, ratio_30d_chg
   • flow_signal, stress_score, regime
@@ -43,6 +48,8 @@ except Exception:
 
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/bond-trace.json"
+TRACE_KEY = "data/trace-bond-prints.json"
+TRACE_HISTORY_KEY = "data/trace-bond-prints-history.json"
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
@@ -102,6 +109,176 @@ def put_s3_json(key, body, cache="public, max-age=14400"):
                    ContentType="application/json", CacheControl=cache)
 
 
+def _last_trade_date():
+    """Return the most recent weekday (YYYY-MM-DD) for TRACE queries."""
+    d = datetime.now(timezone.utc).date()
+    while d.weekday() >= 5:  # Sat=5, Sun=6
+        d -= timedelta(days=1)
+    return d.isoformat()
+
+
+def _num(x):
+    """Coerce to float, or None."""
+    try:
+        return float(x) if x is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def build_trace_layer(prior):
+    """Fetch FINRA TRACE aggregates and compute derived stress.
+
+    Returns a 'trace' dict for the bond-trace output, or None when the
+    TRACE layer is unavailable (caller then uses the proxy fallback tag).
+    On success it also writes the standalone data/trace-bond-prints.json
+    artifact plus a rolling 30-trade-day history used for z-scoring.
+    All failures are swallowed: the existing proxy output is never harmed.
+    """
+    try:
+        import finra_trace
+    except Exception as e:
+        print(f"[trace-layer] finra_trace import failed: {e}")
+        return None
+
+    try:
+        trade_date = _last_trade_date()
+        treasury = finra_trace.fetch_treasury_daily(trade_date)
+        breadth = finra_trace.fetch_corporate_breadth()
+        agg = finra_trace.fetch_trace_aggregates(trade_date)
+        if treasury is None and breadth is None and agg is None:
+            print("[trace-layer] all TRACE fetches returned None")
+            return None
+
+        # --- Dealer positioning from Treasury aggregates ---
+        # dealer_share = dealer-customer volume / total; volume-weighted.
+        dealer_share = None
+        vwap_dislocation = None
+        buckets = []
+        if treasury:
+            wsum = 0.0
+            wvol = 0.0
+            max_disloc = 0.0
+            for b in treasury:
+                dc = _num(b.get("dealerCustomerVolume")) or 0.0
+                ats = _num(b.get("atsInterdealerVolume")) or 0.0
+                tot = dc + ats
+                share = (dc / tot) if tot > 0 else None
+                vwap = _num(b.get("volumeWeightedAveragePrice"))
+                bench = _num(b.get("benchmark"))
+                disloc = None
+                if vwap is not None and bench not in (None, 0):
+                    disloc = abs(vwap - bench) / abs(bench)
+                    max_disloc = max(max_disloc, disloc)
+                buckets.append({
+                    "product_category": b.get("productCategory"),
+                    "years_to_maturity": b.get("yearsToMaturity"),
+                    "dealer_share": round(share, 4) if share is not None else None,
+                    "vwap": vwap,
+                    "benchmark": bench,
+                    "vwap_dislocation": round(disloc, 5) if disloc is not None else None,
+                })
+                if share is not None and tot > 0:
+                    wsum += share * tot
+                    wvol += tot
+            if wvol > 0:
+                dealer_share = round(wsum / wvol, 4)
+            vwap_dislocation = round(max_disloc, 5)
+
+        # --- Corporate breadth momentum ---
+        breadth_net_pct = None
+        if breadth:
+            adv = _num(breadth.get("numberOfIssuesAdvancing")) or 0.0
+            dec = _num(breadth.get("numberOfIssuesDeclining")) or 0.0
+            unch = _num(breadth.get("numberOfIssuesUnchanged")) or 0.0
+            tot_issues = adv + dec + unch
+            if tot_issues > 0:
+                breadth_net_pct = round((adv - dec) / tot_issues * 100, 2)
+
+        # --- Rolling history for z-scoring (dealer positioning) ---
+        hist = get_s3_json(TRACE_HISTORY_KEY, []) or []
+        if not isinstance(hist, list):
+            hist = []
+        hist_vals = [_num(h.get("dealer_share")) for h in hist]
+        hist_vals = [v for v in hist_vals if v is not None][-20:]
+        dealer_positioning_z = None
+        if dealer_share is not None and len(hist_vals) >= 5:
+            mean = sum(hist_vals) / len(hist_vals)
+            var = sum((v - mean) ** 2 for v in hist_vals) / len(hist_vals)
+            std = var ** 0.5
+            if std > 0:
+                dealer_positioning_z = round((dealer_share - mean) / std, 2)
+
+        # --- Breadth momentum vs previous run ---
+        breadth_momentum = None
+        prior_breadth = None
+        for h in reversed(hist):
+            pb = _num(h.get("breadth_net_pct"))
+            if pb is not None:
+                prior_breadth = pb
+                break
+        if breadth_net_pct is not None and prior_breadth is not None:
+            breadth_momentum = round(breadth_net_pct - prior_breadth, 2)
+
+        # Update rolling history (30 trade days max)
+        hist.append({
+            "trade_date": trade_date,
+            "dealer_share": dealer_share,
+            "breadth_net_pct": breadth_net_pct,
+        })
+        hist = hist[-30:]
+        try:
+            put_s3_json(TRACE_HISTORY_KEY, hist, cache="no-cache")
+        except Exception as e:
+            print(f"[trace-layer] history write failed (non-fatal): {e}")
+
+        # Standalone artifact
+        standalone = {
+            "schema_version": "1.0",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "trade_date": trade_date,
+            "provenance": "finra-trace",
+            "treasury": {
+                "n_buckets": len(buckets),
+                "buckets": buckets,
+                "dealer_share": dealer_share,
+                "vwap_dislocation": vwap_dislocation,
+            },
+            "corporate": {
+                "breadth": breadth,
+                "breadth_net_pct": breadth_net_pct,
+            },
+            "trace_aggregates": agg,
+            "stress_derived": {
+                "dealer_positioning_z": dealer_positioning_z,
+                "breadth_momentum": breadth_momentum,
+                "vwap_dislocation": vwap_dislocation,
+            },
+            "notes": ("Phase 1 aggregate layer. Per-print TRACE detail arrives "
+                      "in Phase 2."),
+        }
+        try:
+            put_s3_json(TRACE_KEY, standalone)
+        except Exception as e:
+            print(f"[trace-layer] standalone write failed (non-fatal): {e}")
+
+        return {
+            "provenance": "finra-trace",
+            "trade_date": trade_date,
+            "dealer_positioning_z": dealer_positioning_z,
+            "breadth_momentum": breadth_momentum,
+            "vwap_dislocation": vwap_dislocation,
+            "treasury_dealer_share": dealer_share,
+            "treasury_n_buckets": len(buckets),
+            "corporate_breadth_net_pct": breadth_net_pct,
+            "trace_n_prints": (agg or {}).get("n_prints"),
+            "trace_total_volume": (agg or {}).get("total_volume"),
+            "standalone_key": TRACE_KEY,
+        }
+    except Exception as e:
+        print(f"[trace-layer] failed: {e}")
+        return None
+
+
 def maybe_telegram(msg):
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
         print(f"[tg] no creds: {msg[:80]}"); return
@@ -132,8 +309,8 @@ def lambda_handler(event, context):
     angl = fetch_aggs("ANGL", 90)  # fallen angels
 
     out = {
-        "schema_version": "1.0",
-        "method": "bond_trace_v1",
+        "schema_version": "2.0",
+        "method": "bond_trace_v1+trace_layer",
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -242,6 +419,18 @@ def lambda_handler(event, context):
     out["notes"] = ("Proxy from HYG/LQD/JNK/TLT ETFs + ICE BofA HY OAS. "
                      "Real TRACE prints require FINRA registration.")
     out["duration_s"] = round(time.time()-t0, 1)
+
+    # Phase 1: real FINRA TRACE aggregate layer (fail-soft; proxy untouched
+    # on any failure — the fields above remain authoritative).
+    trace_layer = build_trace_layer(prior)
+    if trace_layer is not None:
+        out["trace"] = trace_layer
+    else:
+        out["trace"] = {
+            "provenance": "proxy-fallback",
+            "note": ("TRACE fetch unavailable; proxy fields above are "
+                     "authoritative."),
+        }
 
     put_s3_json(S3_KEY, out)
     print(f"[bond-trace] stress={score} regime={regime}")
