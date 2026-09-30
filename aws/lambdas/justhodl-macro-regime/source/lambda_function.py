@@ -2,27 +2,34 @@
 
 PHASE 2: MULTI-ASSET MACRO REGIME ENGINE
 
-Pulls from THREE Polygon subscriptions:
+Pulls from THREE Polygon subscriptions plus FRED (free, via S3 cache):
   - Indices Basic (free): VIX, SPX, NDX, RUT, DJX, VVIX
   - Futures Starter ($29/mo): VIX1M/3M/6M futures, ES, NQ, TY (10Y), TU (2Y),
     US (30Y), CL (oil), GC (gold), HG (copper)
   - Currencies Starter ($49/mo): DXY, EURUSD, USDJPY, USDCNH, USDMXN,
     AUDUSD, EURGBP
+  - FRED (free, S3 cache via justhodl-financial-secretary, no key needed
+    here): T10Y2Y, DGS10/2, T5YIE, CPI, UNRATE, WALCL, RRPONTSYD, HY spreads
 
 OUTPUTS:
-  macro/regime.json         — current regime + 6 sub-regime signals
+  macro/regime.json         — current regime + 9 sub-regime signals
+                              (6 market-price + 3 FRED macro)
   macro/term-structure.json — VIX & Treasury curve shape
   macro/cross-asset.json    — rolling 60d correlations matrix
   macro/history/{date}.json — historical archive
 
 REGIME CLASSIFIER:
-  6 sub-regimes combined into top-level classification:
+  9 sub-regimes combined into top-level classification
+  (6 market-price + 3 FRED macro):
     1. VIX_REGIME: backwardation (stress) / contango (calm)
     2. CURVE_REGIME: inverted / steep / flat
     3. DOLLAR_REGIME: strong / weak / mixed
     4. CARRY_REGIME: risk-on / unwind / mixed (JPY signal)
     5. COMMODITY_REGIME: reflation / deflation / mixed
     6. EM_REGIME: bid / pressured / mixed
+    7. INFLATION_REGIME: hot/rising / elevated / disinflation (FRED CPI YoY + T5YIE)
+    8. LABOR_REGIME: deteriorating / tight / cooling / stable (FRED UNRATE)
+    9. LIQUIDITY_REGIME: QT drain / QT / neutral / QE (FRED WALCL + RRPONTSYD)
 
   Top-level: GLOBAL_RISK_ON / GLOBAL_RISK_OFF / FLIGHT_TO_QUALITY /
              REFLATION / DEFLATION / TRANSITION / NEUTRAL
@@ -237,6 +244,215 @@ def by_role(metrics: list) -> dict:
 
 
 # ═════════════════════════════════════════════════════════════════════
+# FRED MACRO OVERLAY — Bloomberg parity upgrade 1/10
+# ═════════════════════════════════════════════════════════════════════
+# Primary-source macro series from the S3 FRED cache populated by
+# justhodl-financial-secretary (data/fred-cache-secretary.json).
+# No API key needed here; the secretary owns the FRED key + refresh cadence.
+#
+# Cache entry shape per series (history is newest-first):
+#   {"name": str, "value": float, "prev": float, "chg_1d": float,
+#    "chg_1m": float, "date": "YYYY-MM-DD", "history": [float, ...]}
+#
+# Design rules:
+#   - FAIL-SOFT: missing/empty/malformed data -> INSUFFICIENT_DATA, and the
+#     ETF-proxy classifiers below remain as the fallback path.
+#   - FRED never removes an existing signal; it only upgrades precision
+#     (curve spread in bp instead of an ETF price proxy, etc.).
+
+FRED_CACHE_KEY = "data/fred-cache-secretary.json"
+
+# Series consumed here (subset of the ~26 the secretary caches)
+FRED_SERIES_USED = [
+    "T10Y2Y", "DGS10", "DGS2", "T5YIE",      # rates / curve / breakeven
+    "CPIAUCSL", "CPILFESL",                   # inflation
+    "FEDFUNDS", "UNRATE",                     # policy / labor
+    "WALCL", "RRPONTSYD",                     # liquidity
+    "BAMLH0A0HYM2",                           # credit
+    "STLFSI2", "NFCI",                        # stress (informational)
+    "NAPM",                                   # ISM PMI (informational)
+]
+
+
+def fetch_fred_macro() -> dict:
+    """Read the S3 FRED cache.
+
+    Returns {series_id: cache_entry} for the series we consume, or {}
+    on any error (fail-soft: the engine runs on ETF proxies alone).
+    """
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key=FRED_CACHE_KEY)
+        raw = json.loads(obj["Body"].read().decode("utf-8"))
+    except Exception as e:
+        print(f"[macro-regime] FRED cache read failed ({type(e).__name__}): "
+              f"{e}; continuing without FRED")
+        return {}
+    if not isinstance(raw, dict):
+        print("[macro-regime] FRED cache malformed (not a dict); continuing without FRED")
+        return {}
+    fred = {sid: raw[sid] for sid in FRED_SERIES_USED if isinstance(raw.get(sid), dict)}
+    print(f"[macro-regime] FRED cache: {len(fred)}/{len(FRED_SERIES_USED)} series available")
+    return fred
+
+
+def _fred_entry(fred: dict, sid: str) -> dict:
+    """Safely fetch one FRED cache entry; {} when missing/malformed."""
+    e = (fred or {}).get(sid)
+    return e if isinstance(e, dict) else {}
+
+
+def _fred_value(fred: dict, sid: str):
+    """Latest numeric value for a series, or None."""
+    v = _fred_entry(fred, sid).get("value")
+    return v if isinstance(v, (int, float)) else None
+
+
+def _fred_history(fred: dict, sid: str) -> list:
+    """Newest-first numeric history for a series, or []."""
+    h = _fred_entry(fred, sid).get("history") or []
+    return [x for x in h if isinstance(x, (int, float))]
+
+
+def _fred_summary(fred: dict) -> dict:
+    """Compact, history-free snapshot of the FRED overlay for S3 output."""
+    series = {}
+    for sid in FRED_SERIES_USED:
+        e = _fred_entry(fred, sid)
+        if not e:
+            continue
+        series[sid] = {
+            "name": e.get("name"),
+            "value": e.get("value"),
+            "date": e.get("date"),
+            "chg_1d": e.get("chg_1d"),
+            "chg_1m": e.get("chg_1m"),
+        }
+    return {
+        "source": f"S3 {S3_BUCKET}/{FRED_CACHE_KEY}",
+        "n_series": len(series),
+        "series": series,
+    }
+
+
+def classify_inflation_regime(fred: dict) -> dict:
+    """Inflation sub-regime from FRED CPI (YoY) + 5Y breakeven (T5YIE).
+
+    CPI YoY > 3.5% and rising  -> -30 (hot/rising inflation pressure).
+    CPI YoY < 2.0% and falling -> +20 (disinflation tailwind).
+    T5YIE (market-implied breakeven) nudges the score by +/-10.
+    """
+    cpi = _fred_history(fred, "CPIAUCSL")
+    t5yie = _fred_value(fred, "T5YIE")
+    if len(cpi) < 13 and t5yie is None:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+
+    score = 0
+    yoy = None
+    rising = falling = False
+    if len(cpi) >= 13 and cpi[12]:
+        yoy = round(100 * (cpi[0] / cpi[12] - 1), 2)
+        if len(cpi) >= 16 and cpi[15]:
+            yoy_then = 100 * (cpi[3] / cpi[15] - 1)
+            rising = yoy > yoy_then + 0.05
+            falling = yoy < yoy_then - 0.05
+        else:  # short history: compare price levels 3 observations apart
+            rising = cpi[0] > cpi[3]
+            falling = cpi[0] < cpi[3]
+        if yoy > 3.5 and rising:
+            score -= 30
+        elif yoy < 2.0 and falling:
+            score += 20
+        elif yoy > 3.5:
+            score -= 15
+        elif yoy < 2.0:
+            score += 10
+
+    if t5yie is not None:  # market-implied inflation cross-check
+        if t5yie > 2.75:
+            score -= 10
+        elif t5yie < 2.0:
+            score += 10
+
+    if score <= -30:
+        label = "INFLATION_HOT_RISING"
+    elif score <= -15:
+        label = "INFLATION_ELEVATED"
+    elif score >= 20:
+        label = "DISINFLATION"
+    elif score >= 10:
+        label = "INFLATION_LOW"
+    else:
+        label = "INFLATION_NEUTRAL"
+    return {"label": label, "score": score, "source": "FRED",
+            "cpi_yoy_pct": yoy,
+            "cpi_yoy_rising": rising if yoy is not None else None,
+            "t5yie_pct": t5yie}
+
+
+def classify_labor_regime(fred: dict) -> dict:
+    """Labor sub-regime from FRED UNRATE (Sahm-style deterioration rule).
+
+    UNRATE up >= 0.5pp from its 12-month low -> -40 (deteriorating).
+    Level check: < 4.0% tight (+10); > 5.0% soft (-15); +0.3pp rise -> -10.
+    """
+    h = _fred_history(fred, "UNRATE")
+    if not h:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+    latest = h[0]
+    low_12m = min(h[:13])  # ~12 months of monthly observations
+    rise_pp = round(latest - low_12m, 2)
+    if rise_pp >= 0.5:
+        label, score = "LABOR_DETERIORATING", -40
+    elif latest < 4.0:
+        label, score = "LABOR_TIGHT", 10
+    elif latest > 5.0:
+        label, score = "LABOR_SOFT", -15
+    elif rise_pp >= 0.3:
+        label, score = "LABOR_COOLING", -10
+    else:
+        label, score = "LABOR_STABLE", 0
+    return {"label": label, "score": score, "source": "FRED",
+            "unrate_pct": latest,
+            "rise_from_12m_low_pp": rise_pp,
+            "low_12m_pct": round(low_12m, 2)}
+
+
+def classify_liquidity_regime(fred: dict) -> dict:
+    """Fed liquidity sub-regime from balance sheet (WALCL, weekly) + ON RRP.
+
+    QT (WALCL shrinking ~3mo) + elevated RRP parked at the Fed -> -25.
+    RRP draining back into the banking system -> +10 (liquidity returning).
+    Balance-sheet expansion -> +15.
+    """
+    walcl = _fred_history(fred, "WALCL")
+    rrp = _fred_history(fred, "RRPONTSYD")
+    if not walcl and not rrp:
+        return {"label": "INSUFFICIENT_DATA", "score": None}
+
+    walcl_chg = (walcl[0] - walcl[min(13, len(walcl) - 1)]) if len(walcl) >= 2 else None  # ~3mo, $bn
+    rrp_val = rrp[0] if rrp else None
+    rrp_chg = (rrp[0] - rrp[-1]) if len(rrp) >= 2 else None  # over available window, $bn
+
+    qt = walcl_chg is not None and walcl_chg < -50
+    rrp_elevated = rrp_val is not None and rrp_val > 100
+
+    if qt and rrp_elevated:
+        label, score = "LIQUIDITY_QT_DRAIN", -25
+    elif qt:
+        label, score = "LIQUIDITY_QT", -10
+    elif rrp_chg is not None and rrp_chg < -200:
+        label, score = "LIQUIDITY_RRP_DRAINING", 10
+    elif walcl_chg is not None and walcl_chg > 100:
+        label, score = "LIQUIDITY_QE", 15
+    else:
+        label, score = "LIQUIDITY_NEUTRAL", 0
+    return {"label": label, "score": score, "source": "FRED",
+            "walcl_chg_3m_bn": round(walcl_chg, 1) if walcl_chg is not None else None,
+            "rrp_bn": rrp_val,
+            "rrp_chg_window_bn": round(rrp_chg, 1) if rrp_chg is not None else None}
+
+
+# ═════════════════════════════════════════════════════════════════════
 # SUB-REGIME CLASSIFIERS
 # ═════════════════════════════════════════════════════════════════════
 def classify_vix_regime(b: dict) -> dict:
@@ -279,14 +495,33 @@ def classify_vix_regime(b: dict) -> dict:
             "spread_pct": round(spread_21d, 2), "short_1d_pct": short_1d}
 
 
-def classify_curve_regime(b: dict) -> dict:
-    """Treasury curve shape via SHY (2Y) / IEF (7-10Y) / TLT (20+Y) ETF prices.
+def classify_curve_regime(b: dict, fred: dict = None) -> dict:
+    """Treasury curve shape.
 
-    Bond ETF prices move INVERSELY to yields. When long-end ETFs rally
-    harder than short-end, that means long yields are falling faster
-    than short yields = curve flattening / bull flattening (recession signal).
-    Conversely, short-end rallies while long sells off = bear steepening.
+    Preferred: FRED T10Y2Y spread (actual 10Y-2Y in percentage points;
+    negative = inverted).
+      spread < 0     -> CURVE_INVERTED, -40 (recession signal)
+      spread > 1.50  -> CURVE_STEEP, +25   (>150bp)
+      spread < 0.50  -> CURVE_FLAT, -10
+      else           -> CURVE_NORMAL, +5
+    Fallback: SHY (2Y) / IEF (7-10Y) / TLT (20+Y) ETF price proxies, where
+    bond ETF prices move INVERSELY to yields (unchanged legacy logic).
     """
+    spread = _fred_value(fred or {}, "T10Y2Y")
+    if spread is not None:
+        entry = _fred_entry(fred, "T10Y2Y")
+        if spread < 0:
+            label, score = "CURVE_INVERTED", -40
+        elif spread > 1.50:
+            label, score = "CURVE_STEEP", 25
+        elif spread < 0.50:
+            label, score = "CURVE_FLAT", -10
+        else:
+            label, score = "CURVE_NORMAL", 5
+        return {"label": label, "score": score, "source": "FRED_T10Y2Y",
+                "spread_pp": round(spread, 2),
+                "spread_date": entry.get("date"),
+                "spread_chg_1m_pp": entry.get("chg_1m")}
     short = b.get("rates_short")  # SHY
     long = b.get("rates_long")    # TLT
     mid = b.get("rates_10y")      # IEF
@@ -307,7 +542,7 @@ def classify_curve_regime(b: dict) -> dict:
         label, score = "CURVE_STEEPENING", 15
     else:
         label, score = "CURVE_NEUTRAL", 0
-    return {"label": label, "score": score,
+    return {"label": label, "score": score, "source": "ETF_PROXY",
             "long_21d_pct": long_perf, "short_21d_pct": short_perf,
             "long_minus_short_21d": round(spread, 2)}
 
@@ -420,8 +655,35 @@ def classify_em_regime(b: dict) -> dict:
     return {"label": label, "score": score, "em_stress_21d": round(em_stress, 2)}
 
 
-def classify_credit_regime(b: dict) -> dict:
-    """Credit appetite via HYG/LQD ratio (HY vs IG performance)."""
+def classify_credit_regime(b: dict, fred: dict = None) -> dict:
+    """Credit appetite.
+
+    Preferred: FRED HY option-adjusted spread (BAMLH0A0HYM2, in %).
+      spread > 6.00 (>600bp)            -> CREDIT_STRESS, -50
+      widening fast (1-mo chg > 100bp)  -> CREDIT_WIDENING, -15
+      spread < 3.50                     -> CREDIT_TIGHT, +20
+      spread < 4.50                     -> CREDIT_HEALTHY, +10
+      else                              -> CREDIT_NEUTRAL, 0
+    Fallback: HYG/LQD 21d performance ratio (unchanged legacy logic).
+    """
+    oas = _fred_value(fred or {}, "BAMLH0A0HYM2")
+    if oas is not None:
+        entry = _fred_entry(fred, "BAMLH0A0HYM2")
+        chg_1m = entry.get("chg_1m")
+        widening = isinstance(chg_1m, (int, float)) and chg_1m > 1.00
+        if oas > 6.00:
+            label, score = "CREDIT_STRESS", -50
+        elif widening:
+            label, score = "CREDIT_WIDENING", -15
+        elif oas < 3.50:
+            label, score = "CREDIT_TIGHT", 20
+        elif oas < 4.50:
+            label, score = "CREDIT_HEALTHY", 10
+        else:
+            label, score = "CREDIT_NEUTRAL", 0
+        return {"label": label, "score": score, "source": "FRED_HY_OAS",
+                "hy_oas_pct": round(oas, 2), "hy_oas_date": entry.get("date"),
+                "hy_oas_chg_1m_pp": chg_1m}
     hy = b.get("credit_hy")
     ig = b.get("credit_ig")
     if not hy or not ig:
@@ -441,7 +703,7 @@ def classify_credit_regime(b: dict) -> dict:
         label, score = "CREDIT_DETERIORATING", -25
     else:
         label, score = "CREDIT_NEUTRAL", 0
-    return {"label": label, "score": score,
+    return {"label": label, "score": score, "source": "ETF_PROXY",
             "hy_21d_pct": hy_21d, "ig_21d_pct": ig_21d,
             "hy_minus_ig_21d": round(spread, 2)}
 
@@ -463,6 +725,18 @@ def classify_top_level(subs: dict) -> dict:
     commod = scores.get("commodity_regime", 0)
     em = scores.get("em_regime", 0)
     credit = scores.get("credit_regime", 0)
+    inflation = scores.get("inflation_regime", 0)
+    labor = scores.get("labor_regime", 0)
+    liquidity = scores.get("liquidity_regime", 0)
+
+    # FRED macro-overlay rules — evaluated FIRST. Fundamentals take precedence
+    # over market-price heuristics when both agree on stress.
+    if inflation <= -30 and labor <= -30:
+        return {"regime": "STAGFLATION_RISK", "confidence": "HIGH",
+                "reasoning": "Hot/rising inflation + deteriorating labor market (FRED)"}
+    if liquidity <= -25 and curve <= -40:
+        return {"regime": "QT_TIGHTENING", "confidence": "MEDIUM",
+                "reasoning": "QT liquidity drain + inverted/flat curve (FRED)"}
 
     # Heuristic top-level rules (priority order — first match wins)
     if credit <= -40 and vol <= -20:
@@ -508,6 +782,10 @@ def lambda_handler(event, context):
     n_ok = sum(1 for s in snapshots.values() if not s.get("error"))
     print(f"[macro-regime] fetched {n_ok}/{len(ALL_UNIVERSE)}")
 
+    # 1b. FRED macro overlay (fail-soft — {} when the cache is unavailable)
+    fred = fetch_fred_macro()
+    fred_summary = _fred_summary(fred)
+
     # 2. Compute per-asset metrics
     metrics = [
         compute_asset_metrics(snapshots[t]) for t in ALL_UNIVERSE.keys()
@@ -517,12 +795,15 @@ def lambda_handler(event, context):
     # 3. Sub-regime classifications
     subs = {
         "vix_regime":       classify_vix_regime(by_role_map),
-        "curve_regime":     classify_curve_regime(by_role_map),
+        "curve_regime":     classify_curve_regime(by_role_map, fred),
         "dollar_regime":    classify_dollar_regime(by_role_map),
         "carry_regime":     classify_carry_regime(by_role_map),
         "commodity_regime": classify_commodity_regime(by_role_map),
         "em_regime":        classify_em_regime(by_role_map),
-        "credit_regime":    classify_credit_regime(by_role_map),
+        "credit_regime":    classify_credit_regime(by_role_map, fred),
+        "inflation_regime": classify_inflation_regime(fred),
+        "labor_regime":     classify_labor_regime(fred),
+        "liquidity_regime": classify_liquidity_regime(fred),
     }
 
     # 4. Top-level regime
@@ -537,13 +818,14 @@ def lambda_handler(event, context):
         "universe_size": len(ALL_UNIVERSE),
         "n_ok": n_ok,
         "elapsed_s": elapsed,
-        "schema_version": "1.0",
+        "schema_version": "1.1",
     }
     out = {
         **meta,
         "top_level_regime": top_regime,
         "sub_regimes": subs,
         "asset_metrics": metrics,
+        "fred": fred_summary,
     }
 
     out = macro_regime_public(out)
