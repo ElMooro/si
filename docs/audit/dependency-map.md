@@ -1,8 +1,8 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-09-30T12:32:50 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-09-30T15:19:02 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `a45b65698246df17a5147b96f2062d646ac619d8ed143b9309aaf48a24558ca5`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `3cdf81a4b67072a3a0bcb942ab41ca098de4ee7f7055b2307b49ca300f2c6459`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
@@ -12,8 +12,8 @@ Potential transitive dependencies from candidate code references. Unproven write
 | engines | 893 |
 | engines without consumer | 33 |
 | engines without schedule | 259 |
-| keys | 2043 |
-| orphan engine refs | 529 |
+| keys | 2044 |
+| orphan engine refs | 530 |
 | orphan page refs | 105 |
 | pages | 599 |
 | two cycles | 66 |
@@ -651,6 +651,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `factory/training/current.json` <- justhodl-ai
 - `history/archive/feed/portfolio/risk.json/publication-v1-*.json` <- justhodl-portfolio-risk
 - `history/archive/feed/portfolio/risk.json/risk-v2-*.json` <- justhodl-portfolio-risk
+- `history/archive/feed/portfolio/snapshot.json/*.json` <- justhodl-portfolio-snapshot
 - `portfolio/pnl-daily.json` <- justhodl-ai-brief
 - `portfolio/watchlist.json` <- justhodl-watchlist-debate
 - `screener/alpha-panel/*.json` <- justhodl-alpha-score

@@ -46,7 +46,12 @@ test('snapshot publication preserves every original byte and negative zero with 
     assert.equal(native.writes[0].value,complete.toString('utf8'));assert.equal((await accepted.json()).body_sha256,wire.sha256);
   }
   const current=JSON.parse(require('node:zlib').gunzipSync(fs.readFileSync(path.join(root,'tests/fixtures/snapshot-byte-publication-synthetic.json.gz'))));
-  for(const [name,digest] of Object.entries(current.source_files))assert.equal(sha(fs.readFileSync(path.join(root,name))),digest);
+  for(const [name,digest] of Object.entries(current.source_files)){
+    // These whole frames precede native ordering. Keep their generating source
+    // inert and hash-bound; current ordered frames have their own integration.
+    const retained=name.startsWith('aws/lambdas/justhodl-portfolio-snapshot/source/')?'tests/fixtures/pre-snapshot-native-ordering/'+path.basename(name)+'.txt':name;
+    assert.equal(sha(fs.readFileSync(path.join(root,retained))),digest);
+  }
   assert.equal(Object.keys(current.cases).length,6);
   for(const [name,row] of Object.entries(current.cases)){
     assert.equal(row.measurement_values_unchanged,true);

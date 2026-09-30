@@ -1,0 +1,173 @@
+{
+  "status": "current_code_complete_invented_acceptance_passed_native_and_policy_cutover_pending",
+  "predecessor_commit": "b030c0d4fdc358000abbfe81ee98df47eb7c8cb1",
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py": {
+      "bytes": 70558,
+      "sha256": "9c42106433e3ac89ee8ac535838c10755a5b5bd0a9a9f76148e4cf6a66c570ec"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/source/portfolio_snapshot_publication.py": {
+      "bytes": 9387,
+      "sha256": "f6bcf231dbff3df52f96913e408d994f97d2922f64fc7680e5ab405912162c77"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/source/portfolio_snapshot_ordering.py": {
+      "bytes": 17937,
+      "sha256": "1f9f480b6ffdb4c5bc651c9062583ed13b611f9b21925360326e4e57b3c43218"
+    },
+    "aws/ops/staged/ops_6373_snapshot_ordering_runtime_acceptance.py": {
+      "bytes": 4902,
+      "sha256": "64c43be55973929bb2d03c2d2763bcea9efacb0d7081c60418048c94ebc63261"
+    },
+    "aws/ops/staged/ops_6374_snapshot_conditional_storage.py": {
+      "bytes": 7364,
+      "sha256": "5302ebd01a70577d3ebadea18f4240166a5c8123a989c4655f478de827063cb3"
+    },
+    "scripts/validate_snapshot_candidate.py": {
+      "bytes": 5213,
+      "sha256": "514f1c2abf693cd34d11de2aa6afd4f46ef7c211c210ffa4071040c1488715ed"
+    },
+    "aws/lambdas/justhodl-portfolio-admin/tests/run_tests.py": {
+      "bytes": 13849,
+      "sha256": "ff59098d0b916442f677da5094aaf5e57a11e5d740acb9381a78765f2ad51ca1"
+    },
+    "tests/deployment/test_snapshot_conditional_storage.py": {
+      "bytes": 7658,
+      "sha256": "6077763f77ee575020337d5d408778db1df2191b04f609bd94e04e67e161223e"
+    },
+    "tests/deployment/test_snapshot_ordered_mirror_contract.py": {
+      "bytes": 2104,
+      "sha256": "dd862ac150f506adbc832c792e4cb27776959c728c6c8fed35d885c362976284"
+    },
+    "tests/worker-snapshot-ordering.test.js": {
+      "bytes": 22990,
+      "sha256": "445651b26135a0f4ae1d869b8c65e0ec069e02b53d94d8b353acd02ddc2cd59f"
+    },
+    "tests/worker-snapshot-publication.test.js": {
+      "bytes": 9962,
+      "sha256": "3f089b438eeb951a3a345e957423c71cc8e58b02f6771ee7e90d48b79b8c6312"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/run_tests.py": {
+      "bytes": 1480,
+      "sha256": "bae640b371c837c8c6614c4f3a1157eecce2942b3b96d9a1ef7b3244157e405e"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_watchlist_sync.py": {
+      "bytes": 16839,
+      "sha256": "6c95b1fa09c98a32e531a7964766a0580cd94d8475fadc3c0fb3f10fddc82ff5"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_byte_publication.py": {
+      "bytes": 10520,
+      "sha256": "fa5ef62828393aacd29095c42cf6842a98e8da104a916e70a0815fbc87c72f7f"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/publication_stub.py": {
+      "bytes": 843,
+      "sha256": "e1fafb995e0a3b3004d0be2e29a49976a00219fe0643b4a1d69505b7cd77b556"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_ordered_publication.py": {
+      "bytes": 27398,
+      "sha256": "fc1b7a419dfd37ba4a10d7870507ebbbeea58aeda83662685cab59715cfa4cec"
+    }
+  },
+  "fixtures": {
+    "aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py": {
+      "path": "tests/fixtures/pre-snapshot-native-ordering/lambda_function.py.txt",
+      "bytes": 69511,
+      "sha256": "53c36489ea2c1d4c5ec0903938296889043c0ab705ffa8f30e4b5cd94383e0f9"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/source/portfolio_snapshot_publication.py": {
+      "path": "tests/fixtures/pre-snapshot-native-ordering/portfolio_snapshot_publication.py.txt",
+      "bytes": 9334,
+      "sha256": "09b041b825e6f183dfb5ede41718ba95658700ccb4df3a97d84477243a32acea"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_byte_publication.py": {
+      "path": "tests/fixtures/pre-snapshot-native-ordering/test_byte_publication.py.txt",
+      "bytes": 13763,
+      "sha256": "4e268b3181ac065855c3c262ba77e928106c9282d9453dea429b993b17133d4a"
+    }
+  },
+  "synthetic_acceptance": {
+    "path": "tests/fixtures/snapshot-native-ordering-synthetic.json.gz",
+    "bytes": 1267217,
+    "sha256": "fb04b72c1a97dda51649b550064baaf499c0f7f2d9d4433e98390812eaded4c9",
+    "complete_uncompressed_bytes": 11966987,
+    "complete_cases": 5
+  },
+  "source_inventory_sha256": "3cdf81a4b67072a3a0bcb942ab41ca098de4ee7f7055b2307b49ca300f2c6459",
+  "changed_engine_inventory_entries": [
+    "justhodl-portfolio-snapshot"
+  ],
+  "measurement_functions_unchanged": true,
+  "required_worker_commit": "f3e77dcb361941e7d9bbf298c1f2ed93275bc0c4",
+  "prior_native_commit": "90e3a348058dafefa34637fb06ccc2f66345337e",
+  "offline_candidate": {
+    "ok": true,
+    "validation_only": true,
+    "schema_version": "audit-accounting-1.0",
+    "status": "OFFLINE_SYNTHETIC_TESTS_PASSED",
+    "artifact_size_bytes": 963680,
+    "validation_mode": "offline_snapshot_v1",
+    "native_invocations": 0,
+    "actual_private_reads": 0,
+    "provider_requests": 0,
+    "normal_private_publication_verified": false,
+    "tests": {
+      "watchlist_and_reader": 21,
+      "holdings_accounting": 15,
+      "complete_book_read": 16,
+      "previous_close_reader": 28,
+      "research_enrichment": 28,
+      "snapshot_consumer_compatibility": 15,
+      "quote_collection": 23,
+      "sector_accounting": 6,
+      "snapshot_byte_publication": 19,
+      "snapshot_ordered_publication": 39,
+      "actual_handler_integration": 4
+    },
+    "bytes": 963680,
+    "code_sha256": "ANpJ7BrXWhvEJoo0CURWPNI7z6cRLR0Tlvp/INKssb8=",
+    "source_files_checked": 309
+  },
+  "tests": {
+    "snapshot_unit": 210,
+    "snapshot_handler": 4,
+    "ordered_publication": 39,
+    "admin_unit": 55,
+    "admin_handler": 8,
+    "risk_unit": 96,
+    "risk_handler": 10,
+    "scenario": 24,
+    "frontend": 2127,
+    "deployment_static": 881,
+    "deployment_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "checks": {
+    "deployment": "bfcbefa35002680068596435fb1596f3c67b80a9a06e7b3f96168b12d7b5c697",
+    "frontend": "d3e01ce43711bbe41570bcc999732646eeb6c21574a3e2859e73b810ca1fe13d",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "d23f41adf6f8bb0701975920aecb5cf86d6f1f0d73a4c409fe64041314a5dda0",
+    "justhodl-portfolio-admin": "440eed246708798eed67305c907bfd7b8bdeb40465dd7b62973bb836103221aa",
+    "justhodl-portfolio-risk": "fd09b8ea24893fe53bcc4c69f456ae91eafe4de319b11ce0a9ebb7e94391e3f0",
+    "justhodl-position-sizer": "4325fd21795e44fa7ef1b4ebae3569c2b05f7ff65cc7c2da997397611b8f52b0"
+  },
+  "native_cutover_operation": 6373,
+  "conditional_storage_operation": 6374,
+  "conditional_policy_bytes": 20366,
+  "conditional_policy_limit": 20480,
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "normal_private_publication_verified": false,
+  "two_destination_atomicity": false,
+  "pre_admitted_requests_cancelled": false,
+  "whole_native_memory_verified": false,
+  "new_investment_authority": false,
+  "standing_restrictions": "Complete invented fixtures and approved code/control-plane captures only; no actual private packets, producer invokes or schedule acceleration.",
+  "limits": [
+    "Configuration reads do not lock future policy/versioning/lifecycle settings.",
+    "Bucket policy changes cannot be claimed to cancel requests already admitted under the predecessor.",
+    "Whole maximum-load native memory and actual private publication are unverified.",
+    "Marked holdings remain unreconciled and provide no sizing authority."
+  ]
+}

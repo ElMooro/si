@@ -145,6 +145,9 @@ def _load_snapshot(prices):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     mod.batch_fetch_prices = lambda syms, max_workers=10, context=None: {s: prices[s] for s in syms if s in prices}
+    stub_spec=importlib.util.spec_from_file_location("snapshot_measurement_publication_stub", LAMBDAS / "justhodl-portfolio-snapshot" / "tests" / "publication_stub.py")
+    stub=importlib.util.module_from_spec(stub_spec);stub_spec.loader.exec_module(stub)
+    stub.isolate(mod)
     return mod
 
 
@@ -204,7 +207,7 @@ def test_validate_only_snapshot_skips_sync_and_all_writes():
     mod.sync_auto_watchlist=forbidden
     mod.query_pk=lambda key:[{"symbol":"AAA","qty":10,"cost_basis_per_share":100}] if key=="POSITION" else []
     mod.s3.put_object=forbidden
-    mod.publish_snapshot=forbidden
+    mod.publish_snapshot=forbidden;mod.begin_snapshot_publication=forbidden;mod.finish_snapshot_publication=forbidden
     result=mod.lambda_handler({"mode":"validate_only"},None)
     assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
 

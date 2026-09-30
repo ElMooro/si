@@ -206,6 +206,8 @@ def load_current():
     fake=types.ModuleType('boto3');fake.client=lambda *a,**k:types.SimpleNamespace();fake.resource=lambda *a,**k:types.SimpleNamespace(Table=lambda n:Table())
     spec=importlib.util.spec_from_file_location('current_snapshot_reader',SOURCE/'lambda_function.py');mod=importlib.util.module_from_spec(spec)
     with patch.dict(sys.modules,{'boto3':fake}):spec.loader.exec_module(mod)
+    from publication_stub import isolate
+    isolate(mod)
     return mod
 
 

@@ -15,6 +15,31 @@ const api = import(pathToFileURL(path.join(src, 'snapshot-publication.js')).href
 const transportApi = import(pathToFileURL(path.join(src, 'portfolio-publication.js')).href);
 const modulePromise = import(pathToFileURL(path.join(src, 'index.js')).href);
 
+test('complete native ordered fixtures pass the current Worker without byte changes', async () => {
+  const { gunzipSync } = require('node:zlib');
+  const { createHash } = require('node:crypto');
+  const retained = JSON.parse(gunzipSync(fs.readFileSync(path.join(root, 'tests/fixtures/snapshot-native-ordering-synthetic.json.gz'))));
+  const chosen = retained.cases.filter(row => ['complete_native_handler', 'complete_large_candidate', 'older_attempt_finishes_last'].includes(row.name));
+  assert.equal(chosen.length, 3);
+  for (const row of chosen) {
+    const original = row.complete_store['portfolio/snapshot.json'].raw;
+    const raw = Buffer.from(original.body, 'base64');
+    assert.equal(raw.length, original.bytes); assert.equal(createHash('sha256').update(raw).digest('hex'), original.sha256);
+    const revision = JSON.parse(raw).publication.revision;
+    // A local issued token binds to the unchanged native frame. Tokens are
+    // transport metadata, never rewritten into the original JSON body.
+    const f = await fixture(), issued = await f.reserve(revision - 1);
+    assert.equal(issued.revision, revision);
+    const write = await f.call('PUT', raw, {'X-JH-Publication-Token':issued.token,'X-JH-Body-SHA256':original.sha256});
+    assert.equal(write.status, 200, await write.clone().text());
+    const ack = await write.json(); assert.equal(ack.body_sha256, original.sha256); assert.equal(ack.body_bytes, raw.length);
+    const get = await f.call(); assert.equal(get.status, 200); assert.deepEqual(Buffer.from(await get.arrayBuffer()), raw);
+    if (row.name === 'complete_large_candidate') assert.ok(raw.length > 2000000);
+    const retry = await f.call('PUT', raw, {'X-JH-Publication-Token':issued.token,'X-JH-Body-SHA256':original.sha256});
+    assert.equal((await retry.json()).status, 'unchanged');
+  }
+});
+
 class Storage {
   constructor() { this.map = new Map(); this.writes = []; this.failAt = null; }
   methods(map) {

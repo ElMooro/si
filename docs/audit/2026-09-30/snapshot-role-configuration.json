@@ -1,6 +1,6 @@
 {
   "contract": "snapshot-role-configuration-audit.v1",
-  "status": "complete_invented_role_capture_acceptance_passed_runner_capture_pending",
+  "status": "complete_role_configuration_captured_and_verified",
   "base_commit": "02a5128eaa707915cbaa80dd1744b6b9bf3dd124",
   "source_files": {
     "aws/ops/staged/ops_6372_snapshot_role_configuration.py": {
@@ -32,5 +32,35 @@
     "deployment_static": 874,
     "deployment_shell": 15
   },
-  "deployment_log_sha256": "6da088ece91c1a4da7d92869f48bb81565a831456ddf65870bbf70915ea0a151"
+  "deployment_log_sha256": "6da088ece91c1a4da7d92869f48bb81565a831456ddf65870bbf70915ea0a151",
+  "source_commit": "1d10db8e9c9a84f674effaac01118b5e10e5914f",
+  "acceptance": {
+    "source_commit": "1d10db8e9c9a84f674effaac01118b5e10e5914f",
+    "ops_run": 36732816882,
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6372_snapshot_role_configuration.md",
+      "bytes": 146104,
+      "sha256": "f21bc306b246dc7730f95d26c40213a2410444d687db493031259fa835efc7ea",
+      "commit": "b030c0d4fdc358000abbfe81ee98df47eb7c8cb1"
+    },
+    "capture": {
+      "bytes": 109016,
+      "sha256": "a9a725ec99a3fd8d78f0a840ca949fa8ca2137c0a24c6860237ae0c6b7a96f37",
+      "observations": 2,
+      "captured_at": "2026-09-30T14:56:17.613589+00:00"
+    },
+    "inline_policies": 25,
+    "managed_and_boundary_policies": 8,
+    "boundary": null,
+    "configuration_stable": true,
+    "effective_permissions_verified": false,
+    "private_reads": 0,
+    "native_invocations": 0,
+    "permission_changes": 0,
+    "decoded_secret_findings": 0
+  },
+  "push_workflows_verified_success": {
+    "lambda_no_target": 36732772331,
+    "configuration_operation": 36732816882
+  }
 }

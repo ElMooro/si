@@ -120,8 +120,8 @@ def _header(headers, name, default=None):
     return values[0]
 
 
-def _acknowledgement(response, deadline):
-    if response.status != 200 or response.geturl() != URL:
+def _acknowledgement(response, deadline, expected_url=URL, statuses=(200,)):
+    if response.status not in statuses or response.geturl() != expected_url:
         raise SnapshotPublicationUnavailable('Snapshot publication response not accepted')
     headers = response.headers
     if _header(headers, 'Content-Encoding', 'identity') not in ('', 'identity'):

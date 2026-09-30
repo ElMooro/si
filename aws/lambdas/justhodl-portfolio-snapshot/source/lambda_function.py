@@ -27,7 +27,8 @@ Uses the existing configured Polygon key; no new paid AI dependency.
 """
 import json
 from private_artifact import private_http_denied
-from portfolio_snapshot_publication import encode_snapshot, publish_snapshot
+from portfolio_snapshot_publication import encode_snapshot, SnapshotPublicationUnavailable
+from portfolio_snapshot_ordering import begin_snapshot_publication, finish_snapshot_publication
 from portfolio_sector_exposure import build_sector_exposure
 import math
 import os
@@ -38,6 +39,7 @@ from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from decimal import Decimal
 
 import boto3
+from botocore.config import Config
 
 S3_BUCKET = "justhodl-dashboard-live"
 SNAPSHOT_KEY = "portfolio/snapshot.json"
@@ -54,6 +56,7 @@ AUTO_WATCH_TIER_S_LIMIT = 10
 AUTO_WATCH_TIER_A_LIMIT = 15
 
 s3 = boto3.client("s3", region_name="us-east-1")
+publication_s3 = boto3.client("s3", region_name="us-east-1", config=Config(connect_timeout=5, read_timeout=8, retries={"total_max_attempts":1}))
 ddb_client = boto3.client("dynamodb", region_name="us-east-1")
 ddb_res = boto3.resource("dynamodb", region_name="us-east-1")
 table = ddb_res.Table(TABLE_NAME)
@@ -993,6 +996,10 @@ def lambda_handler(event, context):
     started = time.time()
     print(f"=== PORTFOLIO SNAPSHOT · {datetime.now(timezone.utc).isoformat()} ===")
 
+    validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
+    # Reserve before research, book, provider acquisition or watchlist changes.
+    attempt = None if validation_only else begin_snapshot_publication(publication_s3, validate_snapshot_publication, context)
+
     # 1. Keep the complete source behind every descriptive research field.
     research_sources, documents, retained_source_bytes = {}, {}, 0
     for key in (ALPHA_KEY, CONFLUENCE_KEY, REGIME_KEY, SENTIMENT_KEY):
@@ -1018,7 +1025,6 @@ def lambda_handler(event, context):
           f"sentiment={len(sentiment_idx)}")
 
     # 2. Auto-sync watchlist
-    validation_only = isinstance(event, dict) and event.get("mode") == "validate_only"
     sync_changes = ({"added_S":[],"added_A":[],"removed_S":[],"removed_A":[],"validation_skipped_sync":True}
                     if validation_only else sync_auto_watchlist(alpha))
     print(f"  watchlist sync: +{len(sync_changes['added_S'])} S "
@@ -1084,7 +1090,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.9",
+        "audit_version": "2026-09-30.10",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
@@ -1148,22 +1154,27 @@ def lambda_handler(event, context):
         },
     }
 
+    if attempt is not None:
+        payload["publication"] = dict(attempt["frame"])
     # Both publication sinks must receive a frame the current consumers can represent.
     identity_bytes = validate_snapshot_publication(payload)
     encoded = encode_snapshot(payload, max_bytes=SNAPSHOT_MIRROR_MAX_BYTES)
     if validation_only:
         return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
                 "status": payload["capital_book"]["status"], "artifact_size_bytes": len(encoded)}
-    publish_snapshot(encoded, identity_bytes, context)
-    s3.put_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY,
-        Body=encoded,
-        ContentType="application/json",
-        CacheControl="private, no-store")
+    delivery = finish_snapshot_publication(publication_s3, validate_snapshot_publication, attempt, encoded, identity_bytes, context)
+    if not delivery["published"]:
+        if delivery["status"].startswith("superseded_") or delivery["status"] == "mirror_superseded_publication":
+            return {"statusCode": 409, "body": json.dumps({"success": False, "publication": delivery})}
+        # Scheduled/async Lambda ignores an HTTP-shaped 503 return. Raise a
+        # fixed diagnostic so incomplete delivery is an actual invocation error.
+        raise SnapshotPublicationUnavailable("Snapshot publication incomplete: " + delivery["status"])
 
     print(f"  ✓ snapshot written · {elapsed:.2f}s")
 
     return {"statusCode": 200, "body": json.dumps({
         "success": True,
+        "publication": delivery,
         "n_positions": len(position_records),
         "n_watchlist": len(watchlist_records),
         "total_market_value": total_value,

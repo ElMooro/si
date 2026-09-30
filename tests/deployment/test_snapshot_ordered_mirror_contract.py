@@ -9,7 +9,8 @@ def test_snapshot_ordering_preserves_whole_predecessors_and_unchanged_native_ris
     for row in audit['fixtures'].values():
         raw=(ROOT/row['path']).read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
     for path,row in audit['unchanged_sources'].items():
-        raw=(ROOT/path).read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
+        retained = ROOT/'tests/fixtures/pre-snapshot-native-ordering'/ (Path(path).name+'.txt') if path.startswith('aws/lambdas/justhodl-portfolio-snapshot/source/') else ROOT/path
+        raw=retained.read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
     assert audit['snapshot_native_ordering_implemented'] is False and audit['two_destination_atomicity'] is False
 
 

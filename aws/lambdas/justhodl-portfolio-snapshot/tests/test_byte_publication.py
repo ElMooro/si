@@ -114,38 +114,5 @@ class Publication(unittest.TestCase):
         for body,count in (('',1),(bytearray(b'{}'),1),(b'',1),(b'{}',True),(b'{}',0),(b'{}',2**53)):
             with self.assertRaises(self.mod.SnapshotPublicationUnavailable):self.mod.publish_snapshot(body,count)
         self.assertEqual(self.secret_calls,[])
-    def test_actual_handler_reuses_identical_bytes_for_both_sinks_after_full_acknowledgement(self):
-        import test_research_enrichment as research
-        support=research.Research();support.setUp();requests=[];responses=[]
-        def open_(request,**kwargs):
-            requests.append(request);body=request.data;identity=support.mod.validate_snapshot_publication(json.loads(body))
-            acknowledgement={'ok':True,'protocol':self.mod.PROTOCOL,'body_bytes':len(body),'body_sha256':hashlib.sha256(body).hexdigest(),'identity_bytes':identity}
-            response=Response(json.dumps(acknowledgement).encode());responses.append(response);return response
-        with patch.object(self.mod.urllib.request,'build_opener',return_value=types.SimpleNamespace(open=open_)):
-            result,payload=support.handler(positions=[{'symbol':'AAA','qty':2,'cost_basis_per_share':1.25}],publisher=self.mod.publish_snapshot)
-        self.assertEqual(result['statusCode'],200);self.assertEqual(len(requests),1);self.assertTrue(responses[0].closed)
-        self.assertEqual(len(support.writes),2);self.assertIs(requests[0].data,support.writes[0]['body']);self.assertIs(requests[0].data,support.writes[1]['request']['Body'])
-        self.assertEqual(json.loads(requests[0].data),payload);self.assertFalse(payload['capital_book']['allows_new_entries'])
-    def test_actual_handler_does_not_write_s3_after_unrelated_or_legacy_acknowledgement(self):
-        import test_research_enrichment as research
-        for acknowledgement in ({'ok':True},{'ok':True,'protocol':self.mod.PROTOCOL,'body_bytes':1,'body_sha256':'0'*64,'identity_bytes':1}):
-            support=research.Research();support.setUp();requests=[];response=Response(json.dumps(acknowledgement).encode())
-            def open_(request,**kwargs):requests.append(request);return response
-            with patch.object(self.mod.urllib.request,'build_opener',return_value=types.SimpleNamespace(open=open_)):
-                with self.assertRaises(self.mod.SnapshotPublicationUnavailable):support.handler(publisher=self.mod.publish_snapshot)
-            self.assertEqual(len(requests),1);self.assertTrue(response.closed);self.assertEqual(support.writes,[])
-    def test_actual_handler_wire_bound_is_checked_before_either_destination(self):
-        import test_research_enrichment as research
-        support=research.Research();support.setUp();support.mod.SNAPSHOT_MIRROR_MAX_BYTES=10
-        with self.assertRaisesRegex(ValueError,'byte bound'):support.handler(publisher=lambda *args:self.fail('Publisher ran before complete body validation'))
-        self.assertEqual(support.writes,[])
-    def test_s3_failure_remains_a_failure_after_acknowledged_mirror_write(self):
-        import test_research_enrichment as research
-        support=research.Research();support.setUp()
-        def acknowledged(*args):
-            support.mod.s3.put_object=lambda **kwargs:(_ for _ in ()).throw(RuntimeError('invented S3 failure'))
-        with self.assertRaisesRegex(RuntimeError,'invented S3 failure'):support.handler(publisher=acknowledged)
-        self.assertEqual([row['sink'] for row in support.writes],['private'])
-        # This is explicitly a partial two-sink failure, never an atomic commit.
 
 if __name__=='__main__':unittest.main()
