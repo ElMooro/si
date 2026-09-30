@@ -4,7 +4,7 @@ import json
 R=Path(__file__).resolve().parents[3]
 titles=['Rates & FX','Ω &lt;literal&gt;','<img src=x onerror="throw 1"> literal','Café ⚡ Research','Treasury & Settlement','Credit Review']
 manifest={'generated_at':'2000-01-01','title_encoding':'unicode_text','n_pages':len(titles),'categories':[{'name':'Invented Research','count':len(titles),'pages':[{'href':'/invented-'+str(i)+'.html','title':s} for i,s in enumerate(titles)]}]}
-page='''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invented navigation QA</title><style>body{margin:40px;background:#14130f;color:#eee;font:16px system-ui}a{color:#fcc65d}</style></head><body data-jh-no-chrome><h1>Invented navigation QA</h1><p>All six entries are synthetic. Use the navigation handle or Ctrl+B to browse.</p><script>
+page='''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invented navigation QA</title><style>body{margin:40px;background:#14130f;color:#eee;font:16px system-ui}a{color:#fcc65d}</style></head><body data-jh-no-chrome><h1>Invented navigation QA</h1><button id="fixture-opener">Fixture action</button><p>All six entries are synthetic. Use the navigation handle or Ctrl+B to browse.</p><script>
 localStorage.setItem('jh_sw_gen','3372');localStorage.setItem('jh_favs','[]');localStorage.setItem('jh_tags','{}');sessionStorage.setItem('jh_diag_3276','1');
 const realFetch=window.fetch.bind(window);window.fixtureRequests=[];window.fixtureErrors=[];
 addEventListener('error',e=>window.fixtureErrors.push(e.message));

@@ -28,6 +28,11 @@ disabled, invalid input and interrupted replacement. JavaScript tests execute th
 actual renderer and retained predecessor. `preview_server.py` serves six invented
 entries, blocks external traffic, disables native diagnostics and needs no login.
 Browser acceptance covers titles, search, favorite refresh and mobile/desktop
-rendering. A separate observed accessibility gap remains: Escape closes the drawer
-visually but focus stays in its offscreen search field. That is not accepted as
-complete keyboard accessibility and needs the next repair.
+rendering. The navigation disclosure now names its region and search field, exposes the
+handle's expanded/controls relationship and removes closed controls from focus
+and the accessibility tree using inert, visibility and aria-hidden. Opening focuses
+search synchronously. Closing restores a connected, enabled opener (otherwise
+the handle), without moving focus if the user already returned to the page.
+Repeated or rapid open/close cannot leave a delayed focus callback. This is a
+non-modal navigation disclosure, not a modal dialog or whole-site accessibility
+certification. Category and favorite/tag keyboard controls remain separate work.

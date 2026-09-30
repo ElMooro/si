@@ -94,9 +94,9 @@
     + ".jhnav-handle.jhnav-open{left:280px}"
     + ".jhnav-backdrop{position:fixed;inset:0;background:rgba(12,11,9,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:999996}"
     + ".jhnav-backdrop.jhnav-open{opacity:1;pointer-events:auto}"
-    + ".jhnav-drawer{position:fixed;left:0;top:0;bottom:0;width:280px;background:#0C0B09;border-right:1px solid #17150E;padding:16px 12px;overflow-y:auto;transform:translateX(-100%);visibility:hidden;transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:999998;box-shadow:12px 0 34px rgba(0,0,0,.45);font-family:Inter,system-ui,sans-serif;box-sizing:border-box}"
+    + ".jhnav-drawer{position:fixed;left:0;top:0;bottom:0;width:280px;background:#0C0B09;border-right:1px solid #17150E;padding:16px 12px;overflow-y:auto;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:999998;box-shadow:12px 0 34px rgba(0,0,0,.45);font-family:Inter,system-ui,sans-serif;box-sizing:border-box}"
     + ".jhnav-drawer *{box-sizing:border-box}"
-    + ".jhnav-drawer.jhnav-open{transform:translateX(0);visibility:visible}"
+    + ".jhnav-drawer.jhnav-open{transform:translateX(0)}"
     + ".jhnav-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:0 2px}"
     + ".jhnav-dot{width:8px;height:8px;background:#6fce8a;border-radius:50%;box-shadow:0 0 8px #6fce8a;flex-shrink:0}"
     + ".jhnav-brand{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:13px;color:#e8e2d4}"
@@ -116,7 +116,7 @@
     + ".jhnav-item:hover{color:#C9942E;background:#12110C}"
     + ".jhnav-item.jhnav-here{color:#6fce8a;font-weight:600}";
 
-  var backdrop, handle, drawer, previousFocus = null, hereCatIndex = -1;
+  var backdrop, handle, drawer, hereCatIndex = -1;
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -130,33 +130,15 @@
   }
 
   function open() {
-    if (drawer.classList.contains("jhnav-open")) return;
-    previousFocus = document.activeElement;
-    drawer.inert = false;
-    drawer.setAttribute("aria-hidden", "false");
     drawer.classList.add("jhnav-open"); backdrop.classList.add("jhnav-open");
     handle.classList.add("jhnav-open"); handle.textContent = "\u2039";
     handle.setAttribute("aria-label", "Close navigation");
-    handle.setAttribute("aria-expanded", "true");
-    var search = document.getElementById("jhnav-search");
-    (search || drawer).focus({preventScroll: true});
+    setTimeout(function () { var s = document.getElementById("jhnav-search"); if (s) s.focus(); }, 120);
   }
   function close() {
-    if (!drawer.classList.contains("jhnav-open")) return;
-    // Move focus out before hiding the region. A closed drawer never steals focus.
-    if (drawer.contains(document.activeElement) || document.activeElement === handle) {
-      var target = previousFocus && previousFocus.isConnected && !previousFocus.disabled ? previousFocus : handle;
-      try { target.focus({preventScroll: true}); } catch (e) {}
-      if (drawer.contains(document.activeElement)) handle.focus({preventScroll: true});
-    }
-    closeTagPop();
-    drawer.inert = true;
-    drawer.setAttribute("aria-hidden", "true");
     drawer.classList.remove("jhnav-open"); backdrop.classList.remove("jhnav-open");
     handle.classList.remove("jhnav-open"); handle.textContent = "\u203a";
     handle.setAttribute("aria-label", "Open navigation");
-    handle.setAttribute("aria-expanded", "false");
-    previousFocus = null;
   }
   function toggle() { drawer.classList.contains("jhnav-open") ? close() : open(); }
 
@@ -497,21 +479,13 @@
     handle.type = "button";
     handle.title = "Search & browse all pages (Ctrl/Cmd+B)";
     handle.setAttribute("aria-label", "Open navigation");
-    handle.setAttribute("aria-expanded", "false");
-    handle.setAttribute("aria-controls", "jhnav-drawer");
     handle.textContent = "\u203a";
 
     drawer = document.createElement("div");
     drawer.className = "jhnav-drawer";
-    drawer.id = "jhnav-drawer";
-    drawer.setAttribute("role", "navigation");
-    drawer.setAttribute("aria-label", "Page navigation");
-    drawer.setAttribute("aria-hidden", "true");
-    drawer.tabIndex = -1;
-    drawer.inert = true;
     drawer.innerHTML =
       '<div class="jhnav-head"><span class="jhnav-dot"></span><span class="jhnav-brand">JustHodl<b>.AI</b></span><span class="jhnav-count" id="jhnav-count"></span></div>'
-      + '<input class="jhnav-search" id="jhnav-search" aria-label="Search pages" placeholder="Search pages\u2026" autocomplete="off">'
+      + '<input class="jhnav-search" id="jhnav-search" placeholder="Search pages\u2026" autocomplete="off">'
       + '<div id="jhnav-tagfilter" class="jhtag-filter"></div>'
       + '<div id="jhnav-groups"></div>'
       + '<div style="margin-top:12px;border-top:1px solid #17150E;padding-top:10px">'

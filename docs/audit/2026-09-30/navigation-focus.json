@@ -1,0 +1,84 @@
+{
+  "base": "8b26edaeaf44f10a836a06344fe0777353a2870d",
+  "scope": "Navigation disclosure lifecycle only; complete invented local fixture; no native/account/consumer/provider activity.",
+  "source": [
+    {
+      "path": "jh-nav-drawer.js",
+      "bytes": 31948,
+      "sha256": "c878ef20e605fe780a89712cba6df89fe6372480f2527f81b7c7fabaad89a9a8"
+    },
+    {
+      "path": "tests/navigation-focus.test.js",
+      "bytes": 3589,
+      "sha256": "a88c22f34ee529a5f12357c74a044b08980343b7bd7a6964d5d3fe9983055252"
+    },
+    {
+      "path": "tests/fixtures/navigation/pre-focus-drawer.js.txt",
+      "bytes": 30614,
+      "sha256": "2a298a5470a244d734264efc02e98905e9ad69b060b6fd94c62ea9e1482ce939"
+    },
+    {
+      "path": "tests/fixtures/navigation/preview_server.py",
+      "bytes": 2672,
+      "sha256": "66ded9a82dce88397fe3aba9ec789ebe28b96de7e318ac60811e721f7652a696"
+    },
+    {
+      "path": "docs/contracts/navigation-publication.md",
+      "bytes": 2570,
+      "sha256": "3e240da2774d733e2c3ecbd6578741af9dbcd54ffaa53a9b915cf376b8050245"
+    }
+  ],
+  "browser": {
+    "scope": "Invented local six-entry fixture, no login, native diagnostic disabled, external requests blocked",
+    "desktop": [
+      1280,
+      800
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "initial_closed_tree": [
+      "Invented navigation QA heading",
+      "Fixture action button",
+      "description",
+      "Open navigation button"
+    ],
+    "keyboard_open": "Control+B from Fixture action focuses Search pages inside the named Page navigation region; handle exposes expanded state",
+    "keyboard_close": "Escape restores Fixture action focus and removes the navigation region and all of its controls from the accessibility tree",
+    "closed_tab": "Tab from Fixture action reaches Open navigation; offscreen search does not intercept focus",
+    "mobile_close": "Escape after a literal-title search restores the Open navigation handle and removes the region from the accessibility tree",
+    "console_warnings_or_errors": [],
+    "remaining_scope": "This accepts disclosure/focus lifecycle only; category, favorite/tag keyboard controls and full site accessibility remain separate work"
+  },
+  "tests": {
+    "focused": 7,
+    "full": "passed",
+    "frontend": 2213,
+    "deployment": 972,
+    "candidate_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "checks": {
+      "base": "8b26edaeaf44f10a836a06344fe0777353a2870d",
+      "checks": [
+        "contracts-check",
+        "page-scripts",
+        "wiring",
+        "deployment",
+        "frontend"
+      ]
+    }
+  },
+  "acceptance": {
+    "status": "not_deployed",
+    "investment_authority": false
+  },
+  "incoming_control_review": {
+    "tested_base": "8b26edaeaf44f10a836a06344fe0777353a2870d",
+    "reviewed_head": "a40609260acf5a76969397d70be7eb1fa13c6d60",
+    "operation": "aws/ops/staged/ops_6396_public_holdings_tape_browser.py",
+    "operation_sha256": "48c4f98150287b528f1603c1bb2699ecb7b1f4acdc85eaa8277a059b846815d9",
+    "review": "Only unrelated browser QA source, its report path and claim arrived; no shared/page/engine/config/test code changed. Source compiled and static preflight passed. This lane did not execute the probe or read its report contents."
+  }
+}
