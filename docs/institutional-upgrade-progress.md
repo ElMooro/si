@@ -6774,3 +6774,11 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 - Read-only operation 6392 qualifies only a complete post-release original run under all fourteen exact current compiler hashes. Before that run exists, the complete public manifest inventory yields pending, without fetching original response bodies or forcing another execution.
 - The unshipped prototype was shown to accept a wrong-series URL through a prefix-only check. The reviewed candidate binds the exact official request, series, typed controls, acquisition clock, complete population and independent proof. Eight whole invented regression cases pass in isolation. All 948 deployment, fifteen shell, 58 native and eight focused checks pass. Runner evidence remains pending. Current-pointer delivery, triggering event, first-release availability and investment authority remain unverified.
+
+
+### Stage 485 exact qualification-run acceptance
+
+- Operation 6392 at `3e8a34180d719afa29eaf3d3fb0d7152361d69ee`, run `36784380934`, passes with report commit `ce04fbd4fb8a8e375245c838da6af4082b210dd0`. All fifteen native package sources, exact API release receipt, original resources and weekday 21:20 UTC schedule match before and after. The qualification is independently reproduced locally from the whole runner evidence.
+- Observed qualification: `pending_new_normal_originals`; API originals verified: `false`. All 3 retained public manifests were checked without a current-pointer read.
+- No post-cutoff original run exists in this inspected complete inventory. Only 3 whole manifest objects were read; no original response bodies were fetched. New source delivery remains pending the original next publication. This is not a recovery claim.
+- No provider request, native invocation, current/private/account/consumer read, data write or schedule change occurred. Current pointer, trigger causation, point-in-time history and investment authority remain unverified. All ten institutional workstreams remain OPEN.

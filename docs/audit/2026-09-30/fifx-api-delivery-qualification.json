@@ -26,7 +26,931 @@
     "preflight": "pass"
   },
   "acceptance": {
-    "runner": "pending",
+    "status": "read_only_qualification_checked",
+    "source_commit": "3e8a34180d719afa29eaf3d3fb0d7152361d69ee",
+    "runner": {
+      "run_id": 36784380934,
+      "operation_commit": "3e8a34180d719afa29eaf3d3fb0d7152361d69ee",
+      "report_commit": "ce04fbd4fb8a8e375245c838da6af4082b210dd0",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6392_fifx_api_original_qualification.md",
+        "bytes": 33841,
+        "sha256": "2bbbce963f7f12eabf3d5144d6aac6a1c366342b1abfbb72966c42d31ef8ae9c"
+      },
+      "evidence": {
+        "source_commit": "1129b6d6a66f4afe9ff0c35f368fc45530a5c964",
+        "cutoff": "2026-09-30T21:37:13Z",
+        "native_before": {
+          "code_sha256": "5Sccz3vBIUm78HFTLyTEWfVw+6p2bgc8ydRrFAhJY5s=",
+          "source_files_checked": 15,
+          "handler_bytes": 1496,
+          "timeout": 900,
+          "memory_mb": 2048,
+          "receipt": {
+            "status": "matched",
+            "commit": "1129b6d6a66f4afe9ff0c35f368fc45530a5c964"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-fifx-vol-daily",
+              "state": "ENABLED",
+              "expression": "cron(20 21 ? * MON-FRI *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-fifx-vol-migration",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "native_after": {
+          "code_sha256": "5Sccz3vBIUm78HFTLyTEWfVw+6p2bgc8ydRrFAhJY5s=",
+          "source_files_checked": 15,
+          "handler_bytes": 1496,
+          "timeout": 900,
+          "memory_mb": 2048,
+          "receipt": {
+            "status": "matched",
+            "commit": "1129b6d6a66f4afe9ff0c35f368fc45530a5c964"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-fifx-vol-daily",
+              "state": "ENABLED",
+              "expression": "cron(20 21 ? * MON-FRI *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-fifx-vol-migration",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "origin": {
+          "function": "justhodl-fifx-vol-migration",
+          "code_sha256": "5Sccz3vBIUm78HFTLyTEWfVw+6p2bgc8ydRrFAhJY5s=",
+          "configured_bucket_matches_reviewed_source": true
+        },
+        "expected_compilers": {
+          "fifx_model": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f",
+          "fifx_candidate": "6b520e62610539c0092d3b166db295a0ff2ca8c55cf9c747b2eed04c0a25f57d",
+          "fifx_catalog": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243",
+          "fifx_fred": "318b93508bb973366060eeb98b035b2acded7cf4bd46743b07ce2d7c21f20a42",
+          "fifx_originals": "d6ff5d668b850fce9ce61a85470ca810c553a8a9817b8c83c9bd2275cda4a446",
+          "fifx_timezones": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a",
+          "verify_fifx_arithmetic": "cfc1b262da01dfdb4c40b04d95d3c65b80503016b3aeaa4c1d2c4d8b62d6549e",
+          "fifx_acquire": "1768ba421fd4a2742d50da841a4db30b23222640fe0ec3e13023fda30fc3d775",
+          "fifx_qualification": "5f5bcad59aaba0a0d6dee055e25454eb700b9487266e6d474c64d59024041e6a",
+          "canonical_fred_replay": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+          "report_observations": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+          "research_brief_model": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+          "evidence_store": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+          "fifx_store": "6a606122b49ee481812e71630dff2b68315abd65befe7d8436325978a27c01d4"
+        },
+        "complete_original_archive": {
+          "status": "pending_original_post_repair_archive",
+          "manifests": [
+            {
+              "key": "data/fifx-vol-research/runs/91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b.json",
+              "manifest": {
+                "compilers": {
+                  "canonical_fred_replay": {
+                    "bytes": 4686,
+                    "key": "data/fifx-vol-research/compilers/20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa.py",
+                    "sha256": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa"
+                  },
+                  "evidence_store": {
+                    "bytes": 3788,
+                    "key": "data/fifx-vol-research/compilers/3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976.py",
+                    "sha256": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976"
+                  },
+                  "fifx_acquire": {
+                    "bytes": 1959,
+                    "key": "data/fifx-vol-research/compilers/d4b235db54e6a8dca1c43010865b5550efe06aeb9ce17735e41c91b9891256af.py",
+                    "sha256": "d4b235db54e6a8dca1c43010865b5550efe06aeb9ce17735e41c91b9891256af"
+                  },
+                  "fifx_candidate": {
+                    "bytes": 8455,
+                    "key": "data/fifx-vol-research/compilers/c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0.py",
+                    "sha256": "c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0"
+                  },
+                  "fifx_catalog": {
+                    "bytes": 4744,
+                    "key": "data/fifx-vol-research/compilers/bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243.py",
+                    "sha256": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243"
+                  },
+                  "fifx_model": {
+                    "bytes": 6665,
+                    "key": "data/fifx-vol-research/compilers/06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f.py",
+                    "sha256": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f"
+                  },
+                  "fifx_originals": {
+                    "bytes": 9034,
+                    "key": "data/fifx-vol-research/compilers/2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51.py",
+                    "sha256": "2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51"
+                  },
+                  "fifx_qualification": {
+                    "bytes": 777,
+                    "key": "data/fifx-vol-research/compilers/6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c.py",
+                    "sha256": "6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c"
+                  },
+                  "fifx_store": {
+                    "bytes": 17465,
+                    "key": "data/fifx-vol-research/compilers/e67c1d4fc51a5b64c4a76dc24e69828e1cdc68a808684525ae002e07181afa4d.py",
+                    "sha256": "e67c1d4fc51a5b64c4a76dc24e69828e1cdc68a808684525ae002e07181afa4d"
+                  },
+                  "fifx_timezones": {
+                    "bytes": 13766,
+                    "key": "data/fifx-vol-research/compilers/5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a.py",
+                    "sha256": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a"
+                  },
+                  "report_observations": {
+                    "bytes": 14909,
+                    "key": "data/fifx-vol-research/compilers/ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979.py",
+                    "sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979"
+                  },
+                  "research_brief_model": {
+                    "bytes": 11898,
+                    "key": "data/fifx-vol-research/compilers/6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c.py",
+                    "sha256": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c"
+                  },
+                  "verify_fifx_arithmetic": {
+                    "bytes": 13054,
+                    "key": "data/fifx-vol-research/compilers/d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204.py",
+                    "sha256": "d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204"
+                  }
+                },
+                "contract": "fifx-vol-replay.v1",
+                "generated_at": "2026-09-28T21:21:57.335781+00:00",
+                "input": {
+                  "bytes": 4381,
+                  "key": "data/fifx-vol-research/inputs/9538646067332b614ff2d6e5861db82716eeb318b80b30635ab2e88600527d83.json",
+                  "sha256": "9538646067332b614ff2d6e5861db82716eeb318b80b30635ab2e88600527d83"
+                },
+                "proofs": {
+                  "bytes": 3567,
+                  "key": "data/fifx-vol-research/outputs/a4e4a73e21a0bd5893018b2b73660330e4997f235541fbbde901e127af7c7e14.json",
+                  "sha256": "a4e4a73e21a0bd5893018b2b73660330e4997f235541fbbde901e127af7c7e14"
+                },
+                "series": {
+                  "000001.SS": {
+                    "bytes": 2646,
+                    "key": "data/fifx-vol-research/series/a091a9d8206476cb949ec969c4f91bef9ebbcb8ead193f65c20ab0538a7e7b4b.json",
+                    "sha256": "a091a9d8206476cb949ec969c4f91bef9ebbcb8ead193f65c20ab0538a7e7b4b"
+                  },
+                  "DEXJPUS": {
+                    "bytes": 2661,
+                    "key": "data/fifx-vol-research/series/963db9987943c28b2d9afa0efd370df21e8b05ed0312dd8fdcbe939da74cde2d.json",
+                    "sha256": "963db9987943c28b2d9afa0efd370df21e8b05ed0312dd8fdcbe939da74cde2d"
+                  },
+                  "DEXUSEU": {
+                    "bytes": 2654,
+                    "key": "data/fifx-vol-research/series/68b97bbd2da9f2d076d1721d79e350aad89dec78ed6aba396ece2b128049a128.json",
+                    "sha256": "68b97bbd2da9f2d076d1721d79e350aad89dec78ed6aba396ece2b128049a128"
+                  },
+                  "DEXUSUK": {
+                    "bytes": 2669,
+                    "key": "data/fifx-vol-research/series/cb598a4191bc20e2b36a489ac910216a358e9c43c715aba83b719495120b9396.json",
+                    "sha256": "cb598a4191bc20e2b36a489ac910216a358e9c43c715aba83b719495120b9396"
+                  },
+                  "DGS10": {
+                    "bytes": 2585,
+                    "key": "data/fifx-vol-research/series/9bf1b0f4897205d8d4050bbd627144fff47bfaf11ddacc4c060a5883f83827db.json",
+                    "sha256": "9bf1b0f4897205d8d4050bbd627144fff47bfaf11ddacc4c060a5883f83827db"
+                  },
+                  "DTWEXBGS": {
+                    "bytes": 2650,
+                    "key": "data/fifx-vol-research/series/ee8c1f75744967637757a0306694896ac529f3623a0fe86d51bbdb0e15aa86a8.json",
+                    "sha256": "ee8c1f75744967637757a0306694896ac529f3623a0fe86d51bbdb0e15aa86a8"
+                  },
+                  "VIXCLS": {
+                    "bytes": 2578,
+                    "key": "data/fifx-vol-research/series/456eb4deed803832d1d50f63bbf40ba1c24e0863fd106fbf7858c6da1b1ea4a2.json",
+                    "sha256": "456eb4deed803832d1d50f63bbf40ba1c24e0863fd106fbf7858c6da1b1ea4a2"
+                  },
+                  "^AXJO": {
+                    "bytes": 2638,
+                    "key": "data/fifx-vol-research/series/8af6f8c3da598547cf62dc205869c49d4c4f9a29362eac01d2a850ecfa6b873d.json",
+                    "sha256": "8af6f8c3da598547cf62dc205869c49d4c4f9a29362eac01d2a850ecfa6b873d"
+                  },
+                  "^BSESN": {
+                    "bytes": 2640,
+                    "key": "data/fifx-vol-research/series/344489a79393d998ba186b01394b396a387ce17e3df91bb8229024ccbad64c6e.json",
+                    "sha256": "344489a79393d998ba186b01394b396a387ce17e3df91bb8229024ccbad64c6e"
+                  },
+                  "^BVSP": {
+                    "bytes": 2638,
+                    "key": "data/fifx-vol-research/series/8a5cc5761a91910db5a85db6fb7ffbb146a6ba6bd10dd103ec9563ab54eec37e.json",
+                    "sha256": "8a5cc5761a91910db5a85db6fb7ffbb146a6ba6bd10dd103ec9563ab54eec37e"
+                  },
+                  "^FCHI": {
+                    "bytes": 2638,
+                    "key": "data/fifx-vol-research/series/8a0a4791c88f71e6b2f00530de37ea22a7eae81d957e1d88fff054cd3eed72c4.json",
+                    "sha256": "8a0a4791c88f71e6b2f00530de37ea22a7eae81d957e1d88fff054cd3eed72c4"
+                  },
+                  "^FTSE": {
+                    "bytes": 2638,
+                    "key": "data/fifx-vol-research/series/a10338eb09aab58d8ed18d918a7042a2476bac55c61af411ac3df3f2c7f9865b.json",
+                    "sha256": "a10338eb09aab58d8ed18d918a7042a2476bac55c61af411ac3df3f2c7f9865b"
+                  },
+                  "^GDAXI": {
+                    "bytes": 2640,
+                    "key": "data/fifx-vol-research/series/b620bc91f7f5afbc61bff6ba94ad5f94441fcc417ab1fbff6b8b60c5ebe0d6f0.json",
+                    "sha256": "b620bc91f7f5afbc61bff6ba94ad5f94441fcc417ab1fbff6b8b60c5ebe0d6f0"
+                  },
+                  "^HSI": {
+                    "bytes": 2636,
+                    "key": "data/fifx-vol-research/series/3fed9e8f8f9a9137a933db2b71a26936e432c4294e389fe7d0d64c537cd497f8.json",
+                    "sha256": "3fed9e8f8f9a9137a933db2b71a26936e432c4294e389fe7d0d64c537cd497f8"
+                  },
+                  "^KS11": {
+                    "bytes": 2638,
+                    "key": "data/fifx-vol-research/series/d40eefdf2340920f66b83e3d91fc0190c25cb8e7ceb486cb8f951d73a9d54442.json",
+                    "sha256": "d40eefdf2340920f66b83e3d91fc0190c25cb8e7ceb486cb8f951d73a9d54442"
+                  },
+                  "^MOVE": {
+                    "bytes": 50528,
+                    "key": "data/fifx-vol-research/series/c35f881b4873564a47232dcee2cfebbc054100f15b955334749539fa964a4fb9.json",
+                    "sha256": "c35f881b4873564a47232dcee2cfebbc054100f15b955334749539fa964a4fb9"
+                  },
+                  "^N225": {
+                    "bytes": 2638,
+                    "key": "data/fifx-vol-research/series/3c19b50225d04b9ab75d67d451ddd8394d3f01143dacbb520b0f056993daeefb.json",
+                    "sha256": "3c19b50225d04b9ab75d67d451ddd8394d3f01143dacbb520b0f056993daeefb"
+                  },
+                  "^VHSI": {
+                    "bytes": 2630,
+                    "key": "data/fifx-vol-research/series/2020652665830f9cc9fe9e1b4fa206b3c9c46646ca54d1bee272519313c3dee0.json",
+                    "sha256": "2020652665830f9cc9fe9e1b4fa206b3c9c46646ca54d1bee272519313c3dee0"
+                  }
+                },
+                "view": {
+                  "bytes": 31721,
+                  "key": "data/fifx-vol-research/views/4f9e2bda543b604c49a58916e7e14024bc3849fb8a8163e7ae2d8b2e6d19e068.json",
+                  "sha256": "4f9e2bda543b604c49a58916e7e14024bc3849fb8a8163e7ae2d8b2e6d19e068"
+                }
+              }
+            },
+            {
+              "key": "data/fifx-vol-research/runs/9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88.json",
+              "manifest": {
+                "compilers": {
+                  "canonical_fred_replay": {
+                    "bytes": 4686,
+                    "key": "data/fifx-vol-research/compilers/20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa.py",
+                    "sha256": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa"
+                  },
+                  "evidence_store": {
+                    "bytes": 3788,
+                    "key": "data/fifx-vol-research/compilers/3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976.py",
+                    "sha256": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976"
+                  },
+                  "fifx_acquire": {
+                    "bytes": 4747,
+                    "key": "data/fifx-vol-research/compilers/810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec.py",
+                    "sha256": "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec"
+                  },
+                  "fifx_candidate": {
+                    "bytes": 8455,
+                    "key": "data/fifx-vol-research/compilers/c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0.py",
+                    "sha256": "c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0"
+                  },
+                  "fifx_catalog": {
+                    "bytes": 4744,
+                    "key": "data/fifx-vol-research/compilers/bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243.py",
+                    "sha256": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243"
+                  },
+                  "fifx_model": {
+                    "bytes": 6665,
+                    "key": "data/fifx-vol-research/compilers/06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f.py",
+                    "sha256": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f"
+                  },
+                  "fifx_originals": {
+                    "bytes": 9034,
+                    "key": "data/fifx-vol-research/compilers/2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51.py",
+                    "sha256": "2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51"
+                  },
+                  "fifx_qualification": {
+                    "bytes": 777,
+                    "key": "data/fifx-vol-research/compilers/6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c.py",
+                    "sha256": "6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c"
+                  },
+                  "fifx_store": {
+                    "bytes": 17163,
+                    "key": "data/fifx-vol-research/compilers/46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7.py",
+                    "sha256": "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7"
+                  },
+                  "fifx_timezones": {
+                    "bytes": 13766,
+                    "key": "data/fifx-vol-research/compilers/5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a.py",
+                    "sha256": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a"
+                  },
+                  "report_observations": {
+                    "bytes": 14909,
+                    "key": "data/fifx-vol-research/compilers/ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979.py",
+                    "sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979"
+                  },
+                  "research_brief_model": {
+                    "bytes": 11898,
+                    "key": "data/fifx-vol-research/compilers/6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c.py",
+                    "sha256": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c"
+                  },
+                  "verify_fifx_arithmetic": {
+                    "bytes": 13054,
+                    "key": "data/fifx-vol-research/compilers/d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204.py",
+                    "sha256": "d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204"
+                  }
+                },
+                "contract": "fifx-vol-replay.v1",
+                "generated_at": "2026-09-29T21:20:56.057463+00:00",
+                "input": {
+                  "bytes": 8918,
+                  "key": "data/fifx-vol-research/inputs/cfc32fe6cf59afdabd1f1e8414300b5fb57e4d5b874d7689eff572e761adf592.json",
+                  "sha256": "cfc32fe6cf59afdabd1f1e8414300b5fb57e4d5b874d7689eff572e761adf592"
+                },
+                "proofs": {
+                  "bytes": 3749,
+                  "key": "data/fifx-vol-research/outputs/63aa67f051ad6627daceb1176e73cad96130facc88ffd18a5b921522f8e3123d.json",
+                  "sha256": "63aa67f051ad6627daceb1176e73cad96130facc88ffd18a5b921522f8e3123d"
+                },
+                "series": {
+                  "000001.SS": {
+                    "bytes": 8156149,
+                    "key": "data/fifx-vol-research/series/66a625b6e28bc919cb7e8d2dd0af9d4d223a366f16c570850fd93ef7be9076ea.json",
+                    "sha256": "66a625b6e28bc919cb7e8d2dd0af9d4d223a366f16c570850fd93ef7be9076ea"
+                  },
+                  "DEXJPUS": {
+                    "bytes": 2661,
+                    "key": "data/fifx-vol-research/series/29d83ab975508b47e92481d8d1d7d965fba9afa53fca6e5608f79bdd689abe35.json",
+                    "sha256": "29d83ab975508b47e92481d8d1d7d965fba9afa53fca6e5608f79bdd689abe35"
+                  },
+                  "DEXUSEU": {
+                    "bytes": 2654,
+                    "key": "data/fifx-vol-research/series/8e6569275ceb02e603820f775c411917ac6b0f0dcc19b4668f6ade1a21211eb0.json",
+                    "sha256": "8e6569275ceb02e603820f775c411917ac6b0f0dcc19b4668f6ade1a21211eb0"
+                  },
+                  "DEXUSUK": {
+                    "bytes": 2669,
+                    "key": "data/fifx-vol-research/series/92184aa9ce1baa19a9c1d18b0b2a66c8eeea5c1f75d87325ed10cb5bfd6e8a3e.json",
+                    "sha256": "92184aa9ce1baa19a9c1d18b0b2a66c8eeea5c1f75d87325ed10cb5bfd6e8a3e"
+                  },
+                  "DGS10": {
+                    "bytes": 2585,
+                    "key": "data/fifx-vol-research/series/c19ce49386a3c70420a5d7b42c54f63a5be8b1efa862e26ac767e03e14b50bf9.json",
+                    "sha256": "c19ce49386a3c70420a5d7b42c54f63a5be8b1efa862e26ac767e03e14b50bf9"
+                  },
+                  "DTWEXBGS": {
+                    "bytes": 2650,
+                    "key": "data/fifx-vol-research/series/9e8a68d9eb9feadf5e801eb841ec35b74002ad1c14bc4fdfdd716490a969f80e.json",
+                    "sha256": "9e8a68d9eb9feadf5e801eb841ec35b74002ad1c14bc4fdfdd716490a969f80e"
+                  },
+                  "VIXCLS": {
+                    "bytes": 2578,
+                    "key": "data/fifx-vol-research/series/87c9b05375c16a98855a9d8cc331fa45aec1fd37204af119cfccd6d830671de9.json",
+                    "sha256": "87c9b05375c16a98855a9d8cc331fa45aec1fd37204af119cfccd6d830671de9"
+                  },
+                  "^AXJO": {
+                    "bytes": 12410429,
+                    "key": "data/fifx-vol-research/series/94826897d5195532a9170f7a6c31ff010de28eabaff73bf852c7c13da6093b24.json",
+                    "sha256": "94826897d5195532a9170f7a6c31ff010de28eabaff73bf852c7c13da6093b24"
+                  },
+                  "^BSESN": {
+                    "bytes": 10420482,
+                    "key": "data/fifx-vol-research/series/ce9dc54e694d97993ae811b76db22943cf4c5228d27981af4818d4e93545055c.json",
+                    "sha256": "ce9dc54e694d97993ae811b76db22943cf4c5228d27981af4818d4e93545055c"
+                  },
+                  "^BVSP": {
+                    "bytes": 11942018,
+                    "key": "data/fifx-vol-research/series/ec80854cbcd42072d69b305bb86e746e6ac685243da855c1127f2f7fbab7e7c5.json",
+                    "sha256": "ec80854cbcd42072d69b305bb86e746e6ac685243da855c1127f2f7fbab7e7c5"
+                  },
+                  "^FCHI": {
+                    "bytes": 13492621,
+                    "key": "data/fifx-vol-research/series/7d22e39353b34676b0432d70b5703049970f630b9c65b958749fa62de1c6cde3.json",
+                    "sha256": "7d22e39353b34676b0432d70b5703049970f630b9c65b958749fa62de1c6cde3"
+                  },
+                  "^FTSE": {
+                    "bytes": 15708854,
+                    "key": "data/fifx-vol-research/series/53ab073f71943417b3af6225159c7969d95e3c19b35ba3b13a4c87e886f27503.json",
+                    "sha256": "53ab073f71943417b3af6225159c7969d95e3c19b35ba3b13a4c87e886f27503"
+                  },
+                  "^GDAXI": {
+                    "bytes": 14242987,
+                    "key": "data/fifx-vol-research/series/6609b0f5eef239bdbc10edb590be7edec767f8cd9c580ea4e3a6123fded57263.json",
+                    "sha256": "6609b0f5eef239bdbc10edb590be7edec767f8cd9c580ea4e3a6123fded57263"
+                  },
+                  "^HSI": {
+                    "bytes": 14247404,
+                    "key": "data/fifx-vol-research/series/1bc594a4d3a6ced6060b86bea4e9bdb44ca1b8d18fe2c721f00db0dd0440ba49.json",
+                    "sha256": "1bc594a4d3a6ced6060b86bea4e9bdb44ca1b8d18fe2c721f00db0dd0440ba49"
+                  },
+                  "^KS11": {
+                    "bytes": 10295513,
+                    "key": "data/fifx-vol-research/series/9555133d86c8046164696b17fb733f5876d097feeb30948b536b3fdd7c427e63.json",
+                    "sha256": "9555133d86c8046164696b17fb733f5876d097feeb30948b536b3fdd7c427e63"
+                  },
+                  "^MOVE": {
+                    "bytes": 50623,
+                    "key": "data/fifx-vol-research/series/3b46d61b6a440c500c187e65863b1aaffaa2953e6c57f964d94459bca78b9011.json",
+                    "sha256": "3b46d61b6a440c500c187e65863b1aaffaa2953e6c57f964d94459bca78b9011"
+                  },
+                  "^N225": {
+                    "bytes": 16327449,
+                    "key": "data/fifx-vol-research/series/d2d1474504b45c556f0bdf9fd3fa41998ffc7170c5869b639ebb1eb46e8abce0.json",
+                    "sha256": "d2d1474504b45c556f0bdf9fd3fa41998ffc7170c5869b639ebb1eb46e8abce0"
+                  },
+                  "^VHSI": {
+                    "bytes": 3035,
+                    "key": "data/fifx-vol-research/series/12fb3e19e4f59ad4082442b31318ee7ad514d6e8eeb2db3be29708d0e8ca5459.json",
+                    "sha256": "12fb3e19e4f59ad4082442b31318ee7ad514d6e8eeb2db3be29708d0e8ca5459"
+                  }
+                },
+                "view": {
+                  "bytes": 75020,
+                  "key": "data/fifx-vol-research/views/78abe8d5ff392a12264113ae7c5a3ffc342c8add2814c50cec9026d5403202e9.json",
+                  "sha256": "78abe8d5ff392a12264113ae7c5a3ffc342c8add2814c50cec9026d5403202e9"
+                }
+              }
+            },
+            {
+              "key": "data/fifx-vol-research/runs/d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880.json",
+              "manifest": {
+                "compilers": {
+                  "canonical_fred_replay": {
+                    "bytes": 4686,
+                    "key": "data/fifx-vol-research/compilers/20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa.py",
+                    "sha256": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa"
+                  },
+                  "evidence_store": {
+                    "bytes": 3788,
+                    "key": "data/fifx-vol-research/compilers/3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976.py",
+                    "sha256": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976"
+                  },
+                  "fifx_acquire": {
+                    "bytes": 6857,
+                    "key": "data/fifx-vol-research/compilers/6cec54424d8a64b9d1462ec7d99cc37ae06060820eca56e193cd4ddcc115f1a6.py",
+                    "sha256": "6cec54424d8a64b9d1462ec7d99cc37ae06060820eca56e193cd4ddcc115f1a6"
+                  },
+                  "fifx_candidate": {
+                    "bytes": 8455,
+                    "key": "data/fifx-vol-research/compilers/c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0.py",
+                    "sha256": "c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0"
+                  },
+                  "fifx_catalog": {
+                    "bytes": 4744,
+                    "key": "data/fifx-vol-research/compilers/bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243.py",
+                    "sha256": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243"
+                  },
+                  "fifx_model": {
+                    "bytes": 6665,
+                    "key": "data/fifx-vol-research/compilers/06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f.py",
+                    "sha256": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f"
+                  },
+                  "fifx_originals": {
+                    "bytes": 9034,
+                    "key": "data/fifx-vol-research/compilers/2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51.py",
+                    "sha256": "2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51"
+                  },
+                  "fifx_qualification": {
+                    "bytes": 777,
+                    "key": "data/fifx-vol-research/compilers/6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c.py",
+                    "sha256": "6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c"
+                  },
+                  "fifx_store": {
+                    "bytes": 17774,
+                    "key": "data/fifx-vol-research/compilers/5a77b910409bc0b8f90458a9ba7003bf3658a9d5fe5a2a4bdc5db3b3f3ebb27b.py",
+                    "sha256": "5a77b910409bc0b8f90458a9ba7003bf3658a9d5fe5a2a4bdc5db3b3f3ebb27b"
+                  },
+                  "fifx_timezones": {
+                    "bytes": 13766,
+                    "key": "data/fifx-vol-research/compilers/5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a.py",
+                    "sha256": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a"
+                  },
+                  "report_observations": {
+                    "bytes": 14909,
+                    "key": "data/fifx-vol-research/compilers/ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979.py",
+                    "sha256": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979"
+                  },
+                  "research_brief_model": {
+                    "bytes": 11898,
+                    "key": "data/fifx-vol-research/compilers/6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c.py",
+                    "sha256": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c"
+                  },
+                  "verify_fifx_arithmetic": {
+                    "bytes": 13054,
+                    "key": "data/fifx-vol-research/compilers/d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204.py",
+                    "sha256": "d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204"
+                  }
+                },
+                "contract": "fifx-vol-replay.v1",
+                "generated_at": "2026-09-30T21:20:55.859442+00:00",
+                "input": {
+                  "bytes": 9328,
+                  "key": "data/fifx-vol-research/inputs/00bffa6cfb6808c988e8106d505cc4c21829c8e466f6fc60433cb4613d1e09ca.json",
+                  "sha256": "00bffa6cfb6808c988e8106d505cc4c21829c8e466f6fc60433cb4613d1e09ca"
+                },
+                "proofs": {
+                  "bytes": 3749,
+                  "key": "data/fifx-vol-research/outputs/ab2c524cdbcbd773eb4b81975cf3479d5af316fb0edba4c1ce2497f36330b5b8.json",
+                  "sha256": "ab2c524cdbcbd773eb4b81975cf3479d5af316fb0edba4c1ce2497f36330b5b8"
+                },
+                "series": {
+                  "000001.SS": {
+                    "bytes": 8157305,
+                    "key": "data/fifx-vol-research/series/d98d456f7dbf650d1483121fd6dba12cac8c7de3bc56100779192033a23cd1f0.json",
+                    "sha256": "d98d456f7dbf650d1483121fd6dba12cac8c7de3bc56100779192033a23cd1f0"
+                  },
+                  "DEXJPUS": {
+                    "bytes": 2661,
+                    "key": "data/fifx-vol-research/series/6fce7aab8ea1fc4824d07e2ef2c8e61143f790748e08e45520fa9cee97fc2593.json",
+                    "sha256": "6fce7aab8ea1fc4824d07e2ef2c8e61143f790748e08e45520fa9cee97fc2593"
+                  },
+                  "DEXUSEU": {
+                    "bytes": 2654,
+                    "key": "data/fifx-vol-research/series/b07a85ec343e23f8e648659f568cfc7631ce64429018451c5d8ca2dd0e094963.json",
+                    "sha256": "b07a85ec343e23f8e648659f568cfc7631ce64429018451c5d8ca2dd0e094963"
+                  },
+                  "DEXUSUK": {
+                    "bytes": 2669,
+                    "key": "data/fifx-vol-research/series/5e110fc6cd46eaa97c149dc9a2e92294c0f01477229c096e2915efa21c7b3f82.json",
+                    "sha256": "5e110fc6cd46eaa97c149dc9a2e92294c0f01477229c096e2915efa21c7b3f82"
+                  },
+                  "DGS10": {
+                    "bytes": 2585,
+                    "key": "data/fifx-vol-research/series/6515952aff2b1ee10b2bb487bd609148e3768e280151fb4046fb0fd14a539b2b.json",
+                    "sha256": "6515952aff2b1ee10b2bb487bd609148e3768e280151fb4046fb0fd14a539b2b"
+                  },
+                  "DTWEXBGS": {
+                    "bytes": 2650,
+                    "key": "data/fifx-vol-research/series/1ee938b56ccc18a67c0689b4f1cade436a2261bf84cb0fddfbd3c1a08a8d22b0.json",
+                    "sha256": "1ee938b56ccc18a67c0689b4f1cade436a2261bf84cb0fddfbd3c1a08a8d22b0"
+                  },
+                  "VIXCLS": {
+                    "bytes": 2578,
+                    "key": "data/fifx-vol-research/series/2b50377f3f0fbcab1f4e07b703c19d0afc78fd51809424268167a7b6837fad8c.json",
+                    "sha256": "2b50377f3f0fbcab1f4e07b703c19d0afc78fd51809424268167a7b6837fad8c"
+                  },
+                  "^AXJO": {
+                    "bytes": 12411914,
+                    "key": "data/fifx-vol-research/series/00afa2595307882fd0d800040e263ce3e84438df2c7fa2465e8b31fd656db156.json",
+                    "sha256": "00afa2595307882fd0d800040e263ce3e84438df2c7fa2465e8b31fd656db156"
+                  },
+                  "^BSESN": {
+                    "bytes": 10421955,
+                    "key": "data/fifx-vol-research/series/23e370461e03a6543cdc5e1804fa7d4df970646208df323eee40c75ab98e4b90.json",
+                    "sha256": "23e370461e03a6543cdc5e1804fa7d4df970646208df323eee40c75ab98e4b90"
+                  },
+                  "^BVSP": {
+                    "bytes": 11943500,
+                    "key": "data/fifx-vol-research/series/92e06bb22d547c0d4755eb203ec5977f62d8417d08ef3e0b70d1473e790fc119.json",
+                    "sha256": "92e06bb22d547c0d4755eb203ec5977f62d8417d08ef3e0b70d1473e790fc119"
+                  },
+                  "^FCHI": {
+                    "bytes": 13494093,
+                    "key": "data/fifx-vol-research/series/397791e94c612920cb16bf985641ddc948fe3edca7ba8a4ae39b570d2c30d4d7.json",
+                    "sha256": "397791e94c612920cb16bf985641ddc948fe3edca7ba8a4ae39b570d2c30d4d7"
+                  },
+                  "^FTSE": {
+                    "bytes": 15710318,
+                    "key": "data/fifx-vol-research/series/eac4c4ea5327284e3cd8bb9988c93a63244094d7b7f3c310e225346cd5831b67.json",
+                    "sha256": "eac4c4ea5327284e3cd8bb9988c93a63244094d7b7f3c310e225346cd5831b67"
+                  },
+                  "^GDAXI": {
+                    "bytes": 14244470,
+                    "key": "data/fifx-vol-research/series/d4e39f338040edc35053c80f5ec880901d2a5d216904e77fb69fa25761cba8cd.json",
+                    "sha256": "d4e39f338040edc35053c80f5ec880901d2a5d216904e77fb69fa25761cba8cd"
+                  },
+                  "^HSI": {
+                    "bytes": 14248878,
+                    "key": "data/fifx-vol-research/series/bc0fe5214dd8c95d056271b9da90764ba0d5fbd62d9f3c81fa1f06345c4fdf08.json",
+                    "sha256": "bc0fe5214dd8c95d056271b9da90764ba0d5fbd62d9f3c81fa1f06345c4fdf08"
+                  },
+                  "^KS11": {
+                    "bytes": 10296661,
+                    "key": "data/fifx-vol-research/series/cf869ffea3c47eb9b3528eb19dfe8e497982a6ae329db04bed0a93b02a54bf40.json",
+                    "sha256": "cf869ffea3c47eb9b3528eb19dfe8e497982a6ae329db04bed0a93b02a54bf40"
+                  },
+                  "^MOVE": {
+                    "bytes": 50622,
+                    "key": "data/fifx-vol-research/series/4858be779959c07cbae37da0e5e96512c884378dff1937aa3e122e1624d0958a.json",
+                    "sha256": "4858be779959c07cbae37da0e5e96512c884378dff1937aa3e122e1624d0958a"
+                  },
+                  "^N225": {
+                    "bytes": 16328925,
+                    "key": "data/fifx-vol-research/series/e7dbc8463e5ec738b381a54c3aa4adb9f6d0f84809a9ac561475e0f366114502.json",
+                    "sha256": "e7dbc8463e5ec738b381a54c3aa4adb9f6d0f84809a9ac561475e0f366114502"
+                  },
+                  "^VHSI": {
+                    "bytes": 3035,
+                    "key": "data/fifx-vol-research/series/ed74df3a762d61eb7bac8a3c1a50a5034bbcaedb6f883f1d6116f4e0cb019e65.json",
+                    "sha256": "ed74df3a762d61eb7bac8a3c1a50a5034bbcaedb6f883f1d6116f4e0cb019e65"
+                  }
+                },
+                "view": {
+                  "bytes": 75019,
+                  "key": "data/fifx-vol-research/views/e58fb0d30cc0d154d1a391c45a6a81330818ecbf544da1b205f3c1361b51e251.json",
+                  "sha256": "e58fb0d30cc0d154d1a391c45a6a81330818ecbf544da1b205f3c1361b51e251"
+                }
+              }
+            }
+          ],
+          "cutoff": "2026-09-30T21:37:13Z",
+          "checked_at": "2026-09-30T22:14:53.158398+00:00",
+          "replayed": false,
+          "current_head_read": false,
+          "current_head_publication_verified": false,
+          "schedule_causation_verified": false,
+          "investment_authority": false,
+          "point_in_time_qualified": false,
+          "inventory_before": {
+            "pages": [
+              {
+                "ResponseMetadata": {
+                  "RequestId": "N4HTGDHFRGD80TP4",
+                  "HostId": "eYtYPyCFZ/CeYWg/Enxjd0dQZWne4J9JMyAqDsizbr7z+xr5O47mt1rFCTOz/+emqGNTPR0zMFg=",
+                  "HTTPStatusCode": 200,
+                  "HTTPHeaders": {
+                    "x-amz-id-2": "eYtYPyCFZ/CeYWg/Enxjd0dQZWne4J9JMyAqDsizbr7z+xr5O47mt1rFCTOz/+emqGNTPR0zMFg=",
+                    "x-amz-request-id": "N4HTGDHFRGD80TP4",
+                    "date": "Wed, 30 Sep 2026 22:14:54 GMT",
+                    "x-amz-bucket-region": "us-east-1",
+                    "content-type": "application/xml",
+                    "transfer-encoding": "chunked",
+                    "server": "AmazonS3"
+                  },
+                  "RetryAttempts": 0
+                },
+                "IsTruncated": false,
+                "Contents": [
+                  {
+                    "Key": "data/fifx-vol-research/runs/91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b.json",
+                    "LastModified": {
+                      "sdk_type": "datetime",
+                      "iso8601": "2026-09-28T21:22:01+00:00"
+                    },
+                    "ETag": "\"80a7d1fe47921923bd73f99182cc2af8\"",
+                    "ChecksumAlgorithm": [
+                      "CRC32"
+                    ],
+                    "ChecksumType": "FULL_OBJECT",
+                    "Size": 7315,
+                    "StorageClass": "STANDARD"
+                  },
+                  {
+                    "Key": "data/fifx-vol-research/runs/9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88.json",
+                    "LastModified": {
+                      "sdk_type": "datetime",
+                      "iso8601": "2026-09-29T21:23:56+00:00"
+                    },
+                    "ETag": "\"7eba598b93f5be73cd03050a5b3e3b58\"",
+                    "ChecksumAlgorithm": [
+                      "CRC32"
+                    ],
+                    "ChecksumType": "FULL_OBJECT",
+                    "Size": 7354,
+                    "StorageClass": "STANDARD"
+                  },
+                  {
+                    "Key": "data/fifx-vol-research/runs/d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880.json",
+                    "LastModified": {
+                      "sdk_type": "datetime",
+                      "iso8601": "2026-09-30T21:23:49+00:00"
+                    },
+                    "ETag": "\"42e4c72973a2be917e6ae81f394ec8d0\"",
+                    "ChecksumAlgorithm": [
+                      "CRC32"
+                    ],
+                    "ChecksumType": "FULL_OBJECT",
+                    "Size": 7354,
+                    "StorageClass": "STANDARD"
+                  }
+                ],
+                "Name": "justhodl-dashboard-live",
+                "Prefix": "data/fifx-vol-research/runs/",
+                "MaxKeys": 1000,
+                "EncodingType": "url",
+                "KeyCount": 3
+              }
+            ],
+            "entries": [
+              {
+                "Key": "data/fifx-vol-research/runs/91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b.json",
+                "LastModified": {
+                  "sdk_type": "datetime",
+                  "iso8601": "2026-09-28T21:22:01+00:00"
+                },
+                "ETag": "\"80a7d1fe47921923bd73f99182cc2af8\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 7315,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/fifx-vol-research/runs/9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88.json",
+                "LastModified": {
+                  "sdk_type": "datetime",
+                  "iso8601": "2026-09-29T21:23:56+00:00"
+                },
+                "ETag": "\"7eba598b93f5be73cd03050a5b3e3b58\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 7354,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/fifx-vol-research/runs/d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880.json",
+                "LastModified": {
+                  "sdk_type": "datetime",
+                  "iso8601": "2026-09-30T21:23:49+00:00"
+                },
+                "ETag": "\"42e4c72973a2be917e6ae81f394ec8d0\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 7354,
+                "StorageClass": "STANDARD"
+              }
+            ]
+          },
+          "inventory_after": {
+            "pages": [
+              {
+                "ResponseMetadata": {
+                  "RequestId": "N4HZWG24R9HSC68S",
+                  "HostId": "qYIEgYSGA7/ux8/uUfwwQ3t7maNQYGXlAXq6UF9bFG8nC07q+mQdogDtcGxpnociZwM38iXVyQc=",
+                  "HTTPStatusCode": 200,
+                  "HTTPHeaders": {
+                    "x-amz-id-2": "qYIEgYSGA7/ux8/uUfwwQ3t7maNQYGXlAXq6UF9bFG8nC07q+mQdogDtcGxpnociZwM38iXVyQc=",
+                    "x-amz-request-id": "N4HZWG24R9HSC68S",
+                    "date": "Wed, 30 Sep 2026 22:14:54 GMT",
+                    "x-amz-bucket-region": "us-east-1",
+                    "content-type": "application/xml",
+                    "transfer-encoding": "chunked",
+                    "server": "AmazonS3"
+                  },
+                  "RetryAttempts": 0
+                },
+                "IsTruncated": false,
+                "Contents": [
+                  {
+                    "Key": "data/fifx-vol-research/runs/91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b.json",
+                    "LastModified": {
+                      "sdk_type": "datetime",
+                      "iso8601": "2026-09-28T21:22:01+00:00"
+                    },
+                    "ETag": "\"80a7d1fe47921923bd73f99182cc2af8\"",
+                    "ChecksumAlgorithm": [
+                      "CRC32"
+                    ],
+                    "ChecksumType": "FULL_OBJECT",
+                    "Size": 7315,
+                    "StorageClass": "STANDARD"
+                  },
+                  {
+                    "Key": "data/fifx-vol-research/runs/9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88.json",
+                    "LastModified": {
+                      "sdk_type": "datetime",
+                      "iso8601": "2026-09-29T21:23:56+00:00"
+                    },
+                    "ETag": "\"7eba598b93f5be73cd03050a5b3e3b58\"",
+                    "ChecksumAlgorithm": [
+                      "CRC32"
+                    ],
+                    "ChecksumType": "FULL_OBJECT",
+                    "Size": 7354,
+                    "StorageClass": "STANDARD"
+                  },
+                  {
+                    "Key": "data/fifx-vol-research/runs/d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880.json",
+                    "LastModified": {
+                      "sdk_type": "datetime",
+                      "iso8601": "2026-09-30T21:23:49+00:00"
+                    },
+                    "ETag": "\"42e4c72973a2be917e6ae81f394ec8d0\"",
+                    "ChecksumAlgorithm": [
+                      "CRC32"
+                    ],
+                    "ChecksumType": "FULL_OBJECT",
+                    "Size": 7354,
+                    "StorageClass": "STANDARD"
+                  }
+                ],
+                "Name": "justhodl-dashboard-live",
+                "Prefix": "data/fifx-vol-research/runs/",
+                "MaxKeys": 1000,
+                "EncodingType": "url",
+                "KeyCount": 3
+              }
+            ],
+            "entries": [
+              {
+                "Key": "data/fifx-vol-research/runs/91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b.json",
+                "LastModified": {
+                  "sdk_type": "datetime",
+                  "iso8601": "2026-09-28T21:22:01+00:00"
+                },
+                "ETag": "\"80a7d1fe47921923bd73f99182cc2af8\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 7315,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/fifx-vol-research/runs/9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88.json",
+                "LastModified": {
+                  "sdk_type": "datetime",
+                  "iso8601": "2026-09-29T21:23:56+00:00"
+                },
+                "ETag": "\"7eba598b93f5be73cd03050a5b3e3b58\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 7354,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/fifx-vol-research/runs/d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880.json",
+                "LastModified": {
+                  "sdk_type": "datetime",
+                  "iso8601": "2026-09-30T21:23:49+00:00"
+                },
+                "ETag": "\"42e4c72973a2be917e6ae81f394ec8d0\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 7354,
+                "StorageClass": "STANDARD"
+              }
+            ]
+          },
+          "complete_artifacts_read": [
+            {
+              "key": "data/fifx-vol-research/runs/91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b.json",
+              "bytes": 7315,
+              "sha256": "91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b",
+              "stored_bytes": 7315,
+              "stored_sha256": "91023c207f3567da002318860fc4682535e0181d230c68739f3e4db4ca516a3b"
+            },
+            {
+              "key": "data/fifx-vol-research/runs/9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88.json",
+              "bytes": 7354,
+              "sha256": "9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88",
+              "stored_bytes": 7354,
+              "stored_sha256": "9416af324e5ad6593015044fdd1184e2443cfe48f415a1b827acc5de6cbb2d88"
+            },
+            {
+              "key": "data/fifx-vol-research/runs/d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880.json",
+              "bytes": 7354,
+              "sha256": "d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880",
+              "stored_bytes": 7354,
+              "stored_sha256": "d433b90bc8ecd5da6c35b3b7b538c218a7431dd5ed91e70fdf17e72e35d8c880"
+            }
+          ]
+        },
+        "qualification": {
+          "status": "pending_new_normal_originals",
+          "api_originals_verified": false,
+          "current_fred_sources": null,
+          "current_pointer_delivery_verified": false,
+          "schedule_causation_verified": false,
+          "point_in_time_qualified": false,
+          "investment_authority": false
+        },
+        "native_invocations": 0,
+        "provider_requests": 0,
+        "current_packet_reads": 0,
+        "private_reads": 0,
+        "account_reads": 0,
+        "consumer_reads": 0,
+        "native_writes": 0,
+        "archive_writes": 0,
+        "schedule_changes": 0,
+        "scope": "Complete content-addressed public original archive, exact package/resources/schedule and independent calculation replay only. Before a post-release run exists, inspect complete original manifest inventory only. No current pointer, causal trigger, first-release, forecast or investment authority claim."
+      }
+    },
     "api_originals_verified": false
   },
   "scope": {
