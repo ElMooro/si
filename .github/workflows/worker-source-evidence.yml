@@ -1,0 +1,63 @@
+name: Capture Worker source predecessor
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: 'Exact main commit reviewed for this read-only capture'
+        required: true
+
+permissions:
+  contents: write
+concurrency:
+  group: worker-source-evidence
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate read-only capture
+        run: |
+          set -euo pipefail
+          python3 tests/deployment/test_worker_source_evidence.py
+          python3 aws/ops/_preflight.py aws/ops/staged/ops_6354_worker_source_predecessor.py
+      - name: Capture complete inert source
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          rc=0
+          python3 aws/ops/staged/ops_6354_worker_source_predecessor.py || rc=$?
+          echo "CAPTURE_RC=$rc" >> "$GITHUB_ENV"
+      - name: Retain capture or failure report
+        if: always()
+        run: |
+          set -euo pipefail
+          report=aws/ops/reports/latest/ops_6354_worker_source_predecessor.md
+          test -f "$report"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -- "$report"
+          artifact="aws/ops/reports/worker-source/6354-${GITHUB_RUN_ID}.json"
+          if [ -f "$artifact" ]; then git add -- "$artifact"; fi
+          git commit -m "Retain Worker control-plane predecessor ${GITHUB_RUN_ID} [skip-deploy] [skip-ops]"
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then pushed=1; break; fi
+            sleep $((i * 7))
+          done
+          test "$pushed" = 1
+      - name: Require successful capture
+        if: always()
+        run: test "${CAPTURE_RC:-missing}" = 0

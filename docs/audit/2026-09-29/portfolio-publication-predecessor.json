@@ -1,0 +1,79 @@
+{
+  "base_commit": "a9faaf91c7166b10aeb075382dc2ca684a10146f",
+  "scope": "Whole inert source, complete synthetic input/output. No archived code execution or live/private input reads.",
+  "sources": [
+    {
+      "source": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-portfolio-publication/aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py.txt",
+      "bytes": 14653,
+      "sha256": "3bbf0ef909c9a41d49cecf2617ba5244b3f045437346ebeadc254f19072424da"
+    },
+    {
+      "source": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "fixture": "tests/fixtures/pre-portfolio-publication/aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py.txt",
+      "bytes": 23524,
+      "sha256": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4"
+    },
+    {
+      "source": ".github/workflows/deploy-workers.yml",
+      "fixture": "tests/fixtures/pre-portfolio-publication/.github/workflows/deploy-workers.yml.txt",
+      "bytes": 8629,
+      "sha256": "ba60cda0b9b09eaa098e740769a8f8b216dc0bce5310eb1f8af7236b2ba68edf"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/account_state.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/account_state.js.txt",
+      "bytes": 15821,
+      "sha256": "134c546766a359af459bf9bb01d1d34f1e6d1bab8e663c5b761fde8bf423951c"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/ask_desk_api.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/ask_desk_api.js.txt",
+      "bytes": 2041,
+      "sha256": "42403a8f98a8843220e33e2625c7868d690fb789d8f35d7b86c5e04cd1787c6d"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/factory-gateway.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/factory-gateway.js.txt",
+      "bytes": 2571,
+      "sha256": "a14ae303cd6982f8adf2b019ad0ddcd6b71620af03ca0d3489eff77efe35af35"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/fusion_api.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/fusion_api.js.txt",
+      "bytes": 23550,
+      "sha256": "5abc09c419d3f614b89790aa3c61c5ab6d170980fc9bc97cb04a8a81aa6a3cf4"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/index.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/index.js.txt",
+      "bytes": 142583,
+      "sha256": "efcdf19ef2da486bb04fa8cef684f86d782a0afd1d7843dbe2dd749ac4a22e4c"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/reviewed-artifacts.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/reviewed-artifacts.js.txt",
+      "bytes": 6595,
+      "sha256": "deb59eed4b99f1dcfa4de10e3da3622976f0f5a452d877d944e45e424e30d752"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/src/warehouse-ohlc.js",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/src/warehouse-ohlc.js.txt",
+      "bytes": 6770,
+      "sha256": "c405b153c57472a18bbc234f1ef58c6145fbf0e247c0d8b468ca54288baaba56"
+    },
+    {
+      "source": "cloudflare/workers/justhodl-data-proxy/wrangler.toml",
+      "fixture": "tests/fixtures/pre-portfolio-publication/cloudflare/workers/justhodl-data-proxy/wrangler.toml.txt",
+      "bytes": 4618,
+      "sha256": "00b9af513ecbaf185f9a21dea29beb2c4c1b2d6231bd7049cfe0f56738f89839"
+    }
+  ],
+  "synthetic": {
+    "fixture": "tests/fixtures/pre-portfolio-publication/complete-synthetic.json",
+    "bytes": 162346,
+    "sha256": "26f909241fb6d5ee856c9791fadc881d3411c3391d52731a7f575b3f517c8fb9"
+  },
+  "worker_control_plane_capture_pending": true,
+  "publication_repair_pending": true
+}

@@ -1,0 +1,80 @@
+name = "justhodl-data-proxy"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+
+# Publish to <worker>.raafouis.workers.dev — same pattern as siblings.
+workers_dev = true
+
+# Zone routes: makes relative fetch('data/*.json') work on the live domain
+# for EVERY page, current and future (ops 2730 — Surveillance Desk 404 was
+# a class defect: the domain never had a /data/* route; legacy pages used
+# absolute proxy URLs, this month's pages use the clean relative form).
+routes = [
+  # Exact public compatibility objects; no holdings archive wildcard.
+  { pattern = "justhodl.ai/etf-flows/constituent-pressure.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/stock-exposure-lookup.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/constituent-pressure.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/stock-exposure-lookup.json", zone_name = "justhodl.ai" },
+
+  # Exact legacy public flow aliases; do not expose the archive namespace.
+  { pattern = "justhodl.ai/etf-flows/daily.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/daily.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/measurements.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/measurements.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/composite.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/composite.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/event-study.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/event-study.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/rotation.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/rotation.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/per-ticker-context.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/per-ticker-context.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/etf-flows/ai-analysis.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/etf-flows/ai-analysis.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/valuations-data.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/valuations-data.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/intelligence-report.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/intelligence-report.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/factory/*", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/factory/*", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/student-state.json", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/student-state.json", zone_name = "justhodl.ai" },
+  { pattern = "justhodl.ai/data/*", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/data/*", zone_name = "justhodl.ai" },
+  # ops 5215: versioned read API for the fusion layer (src/fusion_api.js)
+  { pattern = "justhodl.ai/api/v1/*", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/api/v1/*", zone_name = "justhodl.ai" }
+]
+
+[observability]
+enabled = true
+
+# Non-secret configuration. Provider keys (POLYGON_KEY, FRED_KEY), the service
+# ADMIN_TOKEN and Stripe/Supabase secrets are Worker SECRETS attached by
+# .github/workflows/deploy-workers.yml from AWS SSM -- never literals here
+# (audit 2026-09-08 INST-06: this file is in a public repository).
+[vars]
+# ops 5116: leave empty to discover the symbol-directory endpoint from S3 (data/symdir/endpoint.json)
+SYMDIR_URL = ""
+SUPABASE_URL = "https://bdmjenqcyvzouusfcgow.supabase.co"
+# audit 2026-09-08: owner role = verified Supabase user with one of these emails (comma list);
+# additional owner uids can be bound at runtime in KV owner:uids via the service-only /admin/owner route.
+OWNER_EMAILS = "raafouis@gmail.com"
+# Legacy single-user Brain store id the owner role maps to.
+BRAIN_OWNER_STORE = "brain-930ffa48-60a1-4b11-8726-8848d1b827f9"
+# Server-side Stripe price -> plan allowlist (INST-04). Unknown prices are rejected at checkout
+# and never change entitlement in the webhook.
+PRICE_PLAN_MAP = '{"price_1TfKrrQ0UPXfFGwHVUfVhyaA":"pro"}'
+
+# Per-user data store (watchlists, flags, settings) for the public site.
+[[kv_namespaces]]
+binding = "USER_DATA"
+id = "43a046649f05407dac2b9e50a489e2e9"
+
+[[durable_objects.bindings]]
+name = "WORKSPACE_COORDINATOR"
+class_name = "WorkspaceCoordinator"
+
+[[migrations]]
+tag = "workspace-v1"
+new_sqlite_classes = ["WorkspaceCoordinator"]

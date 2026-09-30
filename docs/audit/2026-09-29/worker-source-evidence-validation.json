@@ -1,0 +1,34 @@
+{
+  "scope": "Read-only Worker predecessor capture; no publication behavior or production resource change.",
+  "tests": {
+    "worker_source_evidence": 14,
+    "deployment_static": 748,
+    "deployment_shell": 12,
+    "native": [
+      {
+        "suite": "justhodl-portfolio-risk",
+        "unittest_cases": 36,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-position-sizer",
+        "unittest_cases": 24,
+        "passed": true
+      }
+    ],
+    "private_handler_checks": 10
+  },
+  "intended_repo_build_verified": false,
+  "source_active_version_binding_verified": false,
+  "runner_capture": "pending",
+  "no_live_private_data_reads": true,
+  "no_producer_invocations": true,
+  "source_predecessors_byte_identical": 11,
+  "complete_synthetic_bytes": 162346,
+  "production_publication_repair": "open",
+  "logs": {
+    "stage444-deployment.log": "500f81cd8689db4991f031c09a9b5e35912b09ba64574d808974467be026c3c5",
+    "stage444-justhodl-portfolio-risk.log": "2c3aec07b30b9e6ca79cebf1b2698be5128da2e8f9f50fe3ed62080c3ca717bc",
+    "stage444-justhodl-position-sizer.log": "88d2694607951f9443ed81de930499827b2d27ac8bdacb3a2deb7fd4c849b609"
+  }
+}
