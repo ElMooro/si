@@ -60,7 +60,8 @@ def test_portfolio_research_browser_fixture_is_complete_and_source_bound():
     for path,digest in fixture['source_files'].items():
         # The frozen browser run used this complete predecessor, retained inert
         # when the producer's publication guard changed in the next source release.
-        retained='tests/fixtures/pre-snapshot-publication-compatibility/lambda_function.py.txt' if path=='aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py' else path
+        retained={'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py':'tests/fixtures/pre-snapshot-publication-compatibility/lambda_function.py.txt',
+                  'portfolio/index.html':'tests/fixtures/pre-portfolio-quote-page/index.html.txt'}.get(path,path)
         assert hashlib.sha256((ROOT/retained).read_bytes()).hexdigest()==digest,path
     assert set(fixture['cases'])=={'complete','duplicate','binary','missing','corrupt','legacy'}
     complete=fixture['cases']['complete']

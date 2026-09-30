@@ -1,0 +1,194 @@
+{
+  "stage": 460,
+  "status": "current_source_and_invented_browser_checks_passed_exact_static_release_pending",
+  "predecessor_site_commit": "51b4ea7a088e49c4d11754fc2451bdd06b90f3c4",
+  "native_snapshot_source_commit": "51b4ea7a088e49c4d11754fc2451bdd06b90f3c4",
+  "native_snapshot_runtime": {
+    "code_sha256": "K6J0CQ0WFib9nvTamZfy24RIXM+UzoBEmrPuM0XAT7g=",
+    "source_files_checked": 3,
+    "handler_bytes": 69549,
+    "timeout": 180,
+    "memory_mb": 512,
+    "receipt": {
+      "status": "matched",
+      "commit": "51b4ea7a088e49c4d11754fc2451bdd06b90f3c4"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-portfolio-snapshot-hourly",
+        "state": "ENABLED",
+        "expression": "cron(40 * * * ? *)",
+        "native_targets": 1,
+        "qualified_targets": [
+          "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-snapshot:live"
+        ]
+      },
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "portfolio-snapshot-sched",
+        "state": "ENABLED",
+        "expression": "cron(40 * * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default",
+        "target_qualifier": "live"
+      }
+    ],
+    "function_name": "justhodl-portfolio-snapshot",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512,
+    "active_alias": {
+      "alias": "live",
+      "version": "12",
+      "code_sha256": "K6J0CQ0WFib9nvTamZfy24RIXM+UzoBEmrPuM0XAT7g="
+    }
+  },
+  "native_admin_runtime": {
+    "code_sha256": "vmSPyMmagL/CYlZDJaYishKe7o2k+YkHr+HYkRCcXKI=",
+    "source_files_checked": 1,
+    "handler_bytes": 29794,
+    "timeout": 30,
+    "memory_mb": 256,
+    "receipt": {
+      "status": "matched",
+      "commit": "51b4ea7a088e49c4d11754fc2451bdd06b90f3c4"
+    },
+    "schedules": [],
+    "function_name": "justhodl-portfolio-admin",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "fixtures": {
+    "index.html.txt": {
+      "path": "tests/fixtures/pre-portfolio-quote-page/index.html.txt",
+      "bytes": 38866,
+      "sha256": "d1922fa7a6e6001b307ab89b898005459c5b7bd48750da7306510b0594f9660d"
+    },
+    "lambda_function.py.txt": {
+      "path": "tests/fixtures/pre-portfolio-quote-page/lambda_function.py.txt",
+      "bytes": 69549,
+      "sha256": "dc111da241de9fe37dc1a622f9a82fca65fd0219a217c22ad3f1db0ec51e988f"
+    }
+  },
+  "actual_private_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "scope": "Present and verify the quote evidence already in a loaded snapshot. No new account/provider requests, portfolio writes or native changes.",
+  "source_files": {
+    "portfolio/index.html": {
+      "bytes": 40944,
+      "sha256": "b78e5b9253f2e78f0592f675abc21ac05f69141390764a299690ce981d0e1953"
+    },
+    "jh-portfolio-quotes.js": {
+      "bytes": 7020,
+      "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7"
+    },
+    "jh-portfolio-quotes-page.js": {
+      "bytes": 8073,
+      "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358"
+    },
+    "tests/portfolio-quotes.test.js": {
+      "bytes": 13848,
+      "sha256": "759c678f9daab8de1c34113a4dc938d9895e0c6fbdb4f9ae189a922e2efe2bce"
+    },
+    "tests/portfolio-watchlist.test.js": {
+      "bytes": 9448,
+      "sha256": "86ebc92fcecfd8404513c823a1d5bda63f4efa0f52f3f0cd20caf502ab967bcd"
+    },
+    "tests/deployment/test_page_data_contracts.py": {
+      "bytes": 28659,
+      "sha256": "2e1aa6cf6da3e20515852613658711498b8a4b36f8381dafa66798855b212cc3"
+    },
+    "tests/deployment/test_portfolio_quote_page.py": {
+      "bytes": 3360,
+      "sha256": "fa663dd1c06f32fa88bbf9d88cc432c7c860c47feace5d10560dfb3b6990e9a0"
+    }
+  },
+  "source_inventory_sha256": "43de4c151cc3280a053c8a8a0b7efc03918925225824ad393a06c380c01a9259",
+  "synthetic_acceptance": {
+    "fixture": "tests/fixtures/portfolio-quotes-browser-synthetic.json.gz",
+    "bytes": 338021,
+    "sha256": "29ad74568482083ebd20d9f95a8740853ee8b67babdce8fe91891c2ad4006e11",
+    "complete_uncompressed_bytes": 6240636,
+    "complete_cases": 7,
+    "watchlist_rows_complete_case": 105,
+    "quote_identities_complete_case": 106,
+    "native_source_execution": "current reviewed code with complete invented sources, marks and book; all I/O mocked",
+    "fault_cases": [
+      "corrupt hash",
+      "legacy missing collection contract",
+      "requested identity mismatch"
+    ]
+  },
+  "browser_acceptance": {
+    "scope": "Isolated localhost current page and helpers, complete invented current handler/model frames and fake auth. No external connection paths permitted. Production authentication and actual private publication are not tested.",
+    "desktop_viewport_width": 1280,
+    "desktop_document_width": 1265,
+    "mobile_viewport_width": 360,
+    "mobile_document_width": 345,
+    "mobile_table_region_width": 275,
+    "mobile_table_scroll_width": 820,
+    "checks": [
+      "literal 900719925474099312345, markup and Unicode preserved",
+      "SHA failure clears old text and removes download",
+      "binary original verifies but remains binary-only",
+      "legacy coverage unavailable",
+      "identity mismatch visible",
+      "genuine empty collection stays zero",
+      "partial population retains all 106 unattempted identities",
+      "all 106 records reachable across five pages",
+      "open and close keyboard focus",
+      "Tab reaches verified download with visible focus",
+      "failed refresh clears preceding evidence",
+      "valid refresh recovers controls",
+      "selected original appears above table",
+      "no page-wide horizontal overflow"
+    ],
+    "console_errors_or_warnings": [],
+    "download_file_save_verified": false,
+    "download_limitation": "Actual file-save completion was not established. Exact Blob bytes, MIME type and URL cleanup pass independent tests."
+  },
+  "tests": {
+    "quote_frontend_focused": 20,
+    "additional_price_display_regressions": 2,
+    "frontend": 2083,
+    "snapshot_unit": 146,
+    "snapshot_handler": 4,
+    "admin_unit": 55,
+    "admin_existing": 8,
+    "risk_unit": 80,
+    "risk_handler": 10,
+    "scenario": 24,
+    "deployment_static": 819,
+    "deployment_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "checks": {
+    "frontend": "8a06e160506c4d6961a4a663e4fd5e2ffaaf30ebee03654a96fec008c2d684b5",
+    "deployment": "cc42328dd7cb90a6ac8a35c2eb7f8aa8af4b82577ceb55235c241afb7ac3a2c0",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "justhodl-portfolio-snapshot": "308ebcba678f7abde3a6492d133b0769ed6b8d2dcb5aeb35c0580c91681dce47",
+    "justhodl-portfolio-admin": "498902357d9fd32973023f65e0a797fb8c332d62848538574f03646ef1ecabbb",
+    "justhodl-portfolio-risk": "3b4532c89377d435b96ef4b8df8005c2c306dbe425cd133e62c8a4c4022350bd",
+    "justhodl-position-sizer": "7456af3ab002dc4c5f3cb04f30f0f42d43002cfb584e1d22a527fd5cb1fd97e3"
+  },
+  "investment_qualification": "BLOCKED",
+  "normal_private_publication_verified": false,
+  "additional_data_requests": 0,
+  "newly_observed_open_bug": "Invented missing sector metadata is still presented elsewhere on the page as Unknown at 100% concentration. Requires a separate source/model/consumer repair."
+}

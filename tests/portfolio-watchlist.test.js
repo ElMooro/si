@@ -100,9 +100,23 @@ test('invalid page deltas cannot create holes or reorder the list',()=>{
  for(const delta of [null,true,'1',0,.5,2,Infinity,NaN]){ctx.page(delta);assert.equal(ctx.body(),before);}
 });
 
-test('measured zero is retained while an absent source is not relabeled manual',()=>{
+test('zero scores are retained while invalid zero close and absent source stay unavailable',()=>{
  const ctx=context({watchlist:[prior.complete.input.watchlist[0]]});
- assert.match(ctx.body(),/\$0/);assert.match(ctx.body(),/>0</);assert.doesNotMatch(ctx.body(),/MANUAL/);
+ assert.doesNotMatch(ctx.body(),/\$0/);assert.match(ctx.body(),/<td class="num">—<\/td>/);assert.match(ctx.body(),/>0</);assert.doesNotMatch(ctx.body(),/MANUAL/);
+});
+
+test('previous-close display keeps reported precision without assuming a quote currency',()=>{
+ const ctx=context({watchlist:[{...prior.complete.input.watchlist[0],current_price:123.123456789}]});
+ assert.match(ctx.body(),/>123\.123456789</);assert.doesNotMatch(ctx.body(),/\$/);
+ const html=fs.readFileSync('portfolio/index.html','utf8');assert.equal((html.match(/>PREV CLOSE</g)||[]).length,2);
+});
+
+test('quote formatter refuses absent nonfinite unsafe and nonpositive prices',()=>{
+ const ctx=context();
+ for(const value of [null,undefined,true,'1',0,-1,Infinity,NaN,Number.MAX_SAFE_INTEGER+1]){
+  ctx.scope.quoteValue=value;assert.equal(vm.runInContext('fmtQuotePrice(quoteValue)',ctx.scope),'—');
+ }
+ ctx.scope.quoteValue=0.0000001;assert.equal(vm.runInContext('fmtQuotePrice(quoteValue)',ctx.scope),'1e-7');
 });
 
 test('names remain available in full and arbitrary metadata is escaped',()=>{

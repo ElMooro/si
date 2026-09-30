@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="jh-primary-engine" content="justhodl-portfolio-snapshot,justhodl-portfolio-risk">
+<script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-portfolio-risk-contract.js?v=20260929-metadata"></script>
+<script src="/jh-evidence-io.js?v=20260929-complete"></script>
+<script src="/jh-portfolio-scenario-io.js?v=20260929-replay"></script>
+<script src="/jh-portfolio-binding.js?v=20260929-coherence"></script>
+<script src="/jh-portfolio-research.js?v=20260930-originals"></script>
+<script src="/jh-portfolio-research-page.js?v=20260930-originals"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>📊 Portfolio + Risk · JustHodl.AI</title>
+<meta name="description" content="Portfolio tracker with positions, watchlist, sector concentration, VAR, beta, correlations, and historical stress scenarios.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa; --gold:#fbbf24;
+  --tier-s:#ff79c6; --tier-a:#fbbf24; --tier-b:#a78bfa; --tier-c:#22d3ee; --tier-d:#5b6479;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));
+  border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 6px;border-radius:3px;font-weight:500;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+@media(max-width:600px){header{align-items:flex-start;flex-direction:column;gap:8px;}main{padding:12px;}.section-meta{overflow-wrap:anywhere;}.metric-box{min-width:0;}.scenarios-grid{grid-template-columns:minmax(0,1fr);}}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--pos);display:inline-block;margin-right:4px;box-shadow:0 0 6px var(--pos);}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+.watch-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border);}
+.watch-controls button{min-height:36px;padding:6px 12px;border:1px solid var(--border-hi);border-radius:4px;background:var(--panel);color:var(--text);font:inherit;cursor:pointer;}
+.watch-controls button:disabled{opacity:.45;cursor:default;}
+.watch-controls button:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.watch-controls span{flex:1;min-width:160px;color:var(--text-dim);overflow-wrap:anywhere;}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+.metric-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;}
+@media (max-width:1100px){.metric-row{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:600px){.metric-row{grid-template-columns:repeat(2,1fr);}}
+.metric-box{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;}
+.metric-label{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.6px;margin-bottom:2px;}
+.metric-value{font-family:var(--font-mono);font-size:18px;font-weight:700;letter-spacing:-.4px;}
+.metric-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+.section{background:var(--panel);border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden;}
+.section-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline;}
+.section-title{font-size:13px;font-weight:600;margin:0;}
+.section-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);letter-spacing:.4px;}
+.section-body{padding:10px 14px;}
+
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 6px;text-align:left;background:rgba(28,35,48,.4);font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:500;letter-spacing:.5px;border-bottom:1px solid var(--border);position:sticky;top:0;}
+td{padding:7px 6px;border-bottom:1px solid rgba(28,35,48,.4);font-family:var(--font-mono);}
+tr:hover td{background:rgba(28,35,48,.3);}
+#positions-table a,#watch-table a{color:var(--info);text-decoration:underline;}
+#positions-table a:focus-visible,#watch-table a:focus-visible{outline:2px solid var(--info);outline-offset:3px;}
+.num{text-align:right;}
+.pos{color:var(--pos);}
+.neg{color:var(--neg);}
+.dim{color:var(--text-dim);}
+.mute{color:var(--text-mute);}
+
+.tier-badge{font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:2px;font-weight:700;letter-spacing:.5px;}
+.tier-S{background:rgba(255,121,198,.18);color:var(--tier-s);}
+.tier-A{background:rgba(251,191,36,.18);color:var(--tier-a);}
+.tier-B{background:rgba(167,139,250,.15);color:var(--tier-b);}
+.tier-C{background:rgba(34,211,238,.12);color:var(--tier-c);}
+.tier-D{background:rgba(91,100,121,.18);color:var(--tier-d);}
+
+.flag-stop{background:rgba(255,61,90,.18);color:var(--neg);padding:1px 5px;border-radius:2px;font-size:9px;font-weight:700;}
+.flag-S{background:rgba(255,121,198,.18);color:var(--tier-s);padding:1px 5px;border-radius:2px;font-size:9px;font-weight:700;}
+.flag-A{background:rgba(251,191,36,.18);color:var(--tier-a);padding:1px 5px;border-radius:2px;font-size:9px;font-weight:700;}
+
+.scenarios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.scenario-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 14px;border-left:3px solid var(--accent);}
+.scenario-name{font-size:11px;color:var(--text);margin:0 0 4px;font-weight:600;}
+.scenario-pnl{font-family:var(--font-mono);font-size:20px;font-weight:700;margin:4px 0;}
+.scenario-meta{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);}
+
+.corr-matrix{font-family:var(--font-mono);font-size:10px;}
+.corr-matrix td{text-align:center;padding:4px 6px;min-width:40px;}
+.corr-cell{font-weight:600;}
+
+.alert-banner{background:linear-gradient(135deg,rgba(255,61,90,.15),rgba(255,121,198,.08));border:1px solid rgba(255,61,90,.4);border-radius:5px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.alert-icon{font-size:20px;}
+.alert-body{flex:1;}
+.alert-title{font-weight:700;font-size:12px;}
+.alert-detail{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);}
+.empty-state h3{color:var(--text);margin:0 0 8px;}
+.empty-state code{background:rgba(28,35,48,.6);padding:6px 10px;border-radius:3px;font-family:var(--font-mono);font-size:11px;color:var(--gold);display:inline-block;margin-top:8px;text-align:left;}
+#risk-replay-status{overflow-wrap:anywhere;font-size:11px;color:var(--text-dim);}
+
+.sector-bar-track{height:10px;background:rgba(28,35,48,.4);border-radius:2px;overflow:hidden;position:relative;}
+.sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--info));border-radius:2px;transition:width .3s;}
+
+footer{text-align:center;padding:30px 20px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
+footer a{color:var(--text-dim);text-decoration:none;}
+.research-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+@media(max-width:700px){.research-sources{grid-template-columns:minmax(0,1fr);}}
+.research-source{min-width:0;border:1px solid var(--border-hi);border-radius:5px;padding:14px;}
+#research-evidence{overflow-wrap:anywhere;}
+#research-evidence h3,#research-evidence h4{margin:0 0 8px;}
+#research-evidence p{color:var(--text-dim);}
+#research-evidence button,#research-evidence a{display:inline-block;min-height:40px;padding:8px 12px;margin:8px 6px 0 0;border:1px solid var(--border-hi);border-radius:4px;background:var(--panel);color:var(--text);font:inherit;}
+#research-evidence button{cursor:pointer;}
+#research-evidence button:disabled{opacity:.5;cursor:default;}
+#research-evidence :focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+#research-evidence dl{font-size:12px;margin:12px 0;}
+#research-evidence dt{color:var(--text-dim);margin-top:6px;}
+#research-evidence dd{margin:0;font-family:var(--font-mono);}
+#research-evidence summary{cursor:pointer;padding:10px 0;min-height:40px;}
+.research-key,.research-hash{font-family:var(--font-mono);font-size:11px;}
+.research-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.research-original{border-top:1px solid var(--border-hi);border-bottom:1px solid var(--border-hi);padding:18px 0;margin:16px 0;}
+#research-evidence pre{white-space:pre;overflow:auto;max-height:420px;max-width:100%;padding:12px;background:var(--bg);border:1px solid var(--border-hi);font-size:12px;}
+.research-table{overflow-x:auto;}
+.research-table table{min-width:580px;}
+#research-evidence [hidden]{display:none!important;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Portfolio + Risk Engine <span class="badge">#9 #10</span></h1>
+  <div class="header-meta">
+    <a class="nav-back" href="/">← JustHodl.AI</a>
+    <span>Snapshot timestamp: <span id="updated">unavailable</span></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ─── TOP-LEVEL METRICS ─── -->
+  <div class="metric-row" id="metric-row">
+    <div class="metric-box"><div class="metric-label">NET MARKED HOLDINGS</div>
+      <div class="metric-value" id="mv-value">—</div>
+      <div class="metric-sub" id="mv-pnl">—</div>
+      <div class="metric-sub" id="mv-accounting" role="status">Accounting coverage unavailable</div></div>
+    <div class="metric-box"><div class="metric-label">1-DAY 99% VAR</div>
+      <div class="metric-value" id="mv-var">—</div>
+      <div class="metric-sub" id="mv-var-pct">—</div></div>
+    <div class="metric-box"><div class="metric-label">β SPY</div>
+      <div class="metric-value" id="mv-beta">—</div>
+      <div class="metric-sub">requires reconciled account NAV</div></div>
+    <div class="metric-box"><div class="metric-label">ANN. VOL</div>
+      <div class="metric-value" id="mv-vol">—</div>
+      <div class="metric-sub">requires reconciled account NAV</div></div>
+    <div class="metric-box"><div class="metric-label">CONCENTRATION</div>
+      <div class="metric-value" id="mv-hhi">—</div>
+      <div class="metric-sub" id="mv-hhi-label">—</div></div>
+    <div class="metric-box"><div class="metric-label">POSITIONS</div>
+      <div class="metric-value" id="mv-positions">—</div>
+      <div class="metric-sub" id="mv-watchlist">—</div></div>
+  </div>
+
+  <!-- ─── ALERT BANNERS ─── -->
+  <section class="section" aria-labelledby="risk-contract-title"><div class="section-body">
+    <h2 id="risk-contract-title">Risk unavailable</h2><p id="risk-contract-detail">Sign in to view private risk inputs.</p>
+    <p id="holdings-risk-summary"></p><p id="risk-model-note">Normal 1-day VaR is a model estimate, not a maximum loss. No sizing authority.</p>
+    <p id="risk-replay-status"></p>
+  </div></section><div id="alert-zone"></div>
+
+  <!-- ─── POSITIONS TABLE ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Holdings <span class="section-meta" id="pos-count">—</span></h2>
+      <span class="section-meta" id="pos-pnl-summary">—</span>
+    </div>
+    <div class="section-body" style="padding:0;overflow-x:auto;">
+      <table id="positions-table">
+        <thead><tr>
+          <th>SYM</th><th>SECTOR</th><th class="num">QTY</th>
+          <th class="num">COST</th><th class="num">CURRENT</th>
+          <th class="num">P&amp;L $</th><th class="num">P&amp;L %</th>
+          <th class="num">GROSS WT</th><th class="num">α</th>
+          <th>TIER</th><th>FLAGS</th>
+          <th class="num">VOL</th><th class="num">β</th>
+        </tr></thead>
+        <tbody id="positions-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── SECTOR CONCENTRATION ─── -->
+  <div class="section">
+    <div class="section-header"><h2 class="section-title">Sector Exposure</h2>
+      <span class="section-meta" id="sector-summary">—</span></div>
+    <div class="section-body" id="sector-body"></div>
+  </div>
+
+  <!-- ─── HISTORICAL SCENARIOS ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Hypothetical Sector Stress Scenarios</h2>
+      <span class="section-meta">static assumptions · no verified historical replay</span>
+    </div>
+    <div class="section-body">
+      <div class="scenarios-grid" id="scenarios-grid"></div>
+    </div>
+  </div>
+
+  <!-- ─── CORRELATION MATRIX ─── -->
+  <div class="section" id="corr-section">
+    <div class="section-header"><h2 class="section-title">Correlation Matrix</h2>
+      <span class="section-meta">matching sessions · at least 60 observations</span></div>
+    <div class="section-body" style="overflow-x:auto;">
+      <div id="corr-matrix"></div>
+    </div>
+  </div>
+
+  <section class="section" aria-labelledby="research-title">
+    <div class="section-header"><h2 class="section-title" id="research-title">Research evidence</h2></div>
+    <div class="section-body" id="research-evidence"><p>Retained research evidence is unavailable until a supported private snapshot loads.</p></div>
+  </section>
+
+  <!-- ─── WATCHLIST ─── -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Watchlist <span class="section-meta" id="watch-count">—</span></h2>
+      <span class="section-meta">Auto-synced from TIER S/A + manual entries</span>
+    </div>
+    <div class="section-body" style="padding:0;overflow-x:auto;">
+      <table id="watch-table">
+        <thead><tr>
+          <th>SYM</th><th>NAME</th><th>SECTOR</th>
+          <th class="num">PRICE</th><th class="num">α</th>
+          <th>TIER</th><th>CONFLUENCE</th><th>REGIME ADJ</th>
+          <th>SOURCE</th>
+        </tr></thead>
+        <tbody id="watch-body"></tbody>
+      </table>
+    </div>
+    <nav class="watch-controls" aria-label="Watchlist pages">
+      <button type="button" id="watch-prev" aria-controls="watch-table" onclick="changeWatchPage(-1)" disabled>Previous watchlist page</button>
+      <span id="watch-page-status" role="status" aria-live="polite">Watchlist data unavailable.</span>
+      <button type="button" id="watch-next" aria-controls="watch-table" onclick="changeWatchPage(1)" disabled>Next watchlist page</button>
+    </nav>
+    <p id="watch-sync-status" role="status" aria-live="polite" style="margin:0;padding:12px 16px;color:var(--muted);font-size:12px;overflow-wrap:anywhere;">Automatic watchlist sync status unavailable.</p>
+  </div>
+
+</main>
+
+<footer>
+  Portfolio research · dated holdings risk model ·
+  <a href="https://justhodl.ai/alpha/">α Alpha</a> ·
+  <a href="https://justhodl.ai/screener/">Screener</a>
+</footer>
+
+<script>
+const SNAPSHOT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/snapshot.json';
+const RISK_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/risk.json';
+let snapshot = null;
+let risk = null;
+let researchView = null;
+function renderResearchEvidence(){
+  if(!window.JHPortfolioResearchPage || !window.JHPortfolioResearch)return;
+  if(!researchView)researchView=window.JHPortfolioResearchPage.mount(document.getElementById('research-evidence'));
+  researchView.render(snapshot);
+}
+
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtMoney(v){ if(typeof v !== 'number' || !Number.isFinite(v)) return '—'; const sign = v < 0 ? '-' : ''; v = Math.abs(v); return sign + '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}); }
+function fmtPct(v, digits=2){ return typeof v !== 'number' || !Number.isFinite(v) ? '—' : (v > 0 ? '+' : '') + v.toFixed(digits) + '%'; }
+function metricText(v){return typeof v==='number' && Number.isFinite(v) ? String(v) : '—';}
+function pnlClass(v){ return typeof v!=='number' || !Number.isFinite(v) ? 'dim' : v > 0 ? 'pos' : v < 0 ? 'neg' : 'dim'; }
+function symbolLink(value){
+  if(typeof value!=='string' || !value.trim())return '—';
+  return `<a href="/stock/?symbol=${escapeHtml(encodeURIComponent(value))}" target="_blank" rel="noopener noreferrer">${escapeHtml(value)}</a>`;
+}
+
+function tierBadge(t){
+  if(!['S','A','B','C','D'].includes(t)) return '<span class="dim">—</span>';
+  return `<span class="tier-badge tier-${t}">${t}</span>`;
+}
+
+function setUpdated(){
+  const stamp = JHPortfolioRisk.timestamp(snapshot && snapshot.generated_at);
+  document.getElementById('updated').textContent = Number.isFinite(stamp) ? new Date(stamp).toISOString() : 'unavailable';
+}
+
+function accountingCoverage(){
+  const ps=snapshot && snapshot.portfolio_summary;
+  const validCount=v=>Number.isSafeInteger(v) && v>=0;
+  if(!ps || !snapshot.accounting || snapshot.accounting.schema_version!=='holdings-accounting.v1' ||
+     !Array.isArray(snapshot.positions) || ps.n_positions!==snapshot.positions.length ||
+     ![ps.n_positions,ps.priced_positions_count,ps.basis_positions_count,ps.pnl_eligible_positions_count].every(validCount) ||
+     ps.priced_positions_count>ps.n_positions || ps.basis_positions_count>ps.n_positions ||
+     ps.pnl_eligible_positions_count>Math.min(ps.priced_positions_count,ps.basis_positions_count))
+    return {text:'Accounting coverage unavailable; legacy totals are unverified.',percent:null};
+  const partial=ps.priced_positions_count<ps.n_positions || ps.pnl_eligible_positions_count<ps.n_positions || ps.accounting_coverage_status==='PARTIAL';
+  return {text:`Marks ${ps.priced_positions_count}/${ps.n_positions} · P&L ${ps.pnl_eligible_positions_count}/${ps.n_positions} · ${partial?'Partial coverage':ps.n_positions?'Complete arithmetic coverage':'Empty holdings list'}. Instrument and currency assumptions unverified.`,
+    percent:ps.pnl_pct_basis==='SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN'?ps.total_pnl_pct:null};
+}
+
+function renderTopMetrics(){
+  for(const id of ['mv-value','mv-pnl','mv-accounting','mv-var','mv-var-pct','mv-beta','mv-vol','mv-hhi','mv-hhi-label','mv-positions','mv-watchlist']) document.getElementById(id).textContent='—';
+  if(!snapshot && !risk) return;
+  const ps = (snapshot && snapshot.portfolio_summary) || {};
+  document.getElementById('mv-value').textContent = fmtMoney(ps.total_market_value);
+  const coverage=accountingCoverage();
+  document.getElementById('mv-accounting').textContent=coverage.text;
+  const pnlPct = coverage.percent;
+  const pnlD = ps.total_pnl_dollars;
+  const pnlEl = document.getElementById('mv-pnl');
+  pnlEl.innerHTML = `Unrealized P&L <span class="${pnlClass(pnlD)}">${fmtMoney(pnlD)}</span> · ${fmtPct(pnlPct)} of paired gross cost; not NAV return`;
+
+  if(risk){
+    document.getElementById('mv-var').textContent = fmtMoney(risk.var_1d_99_dollars);
+    document.getElementById('mv-var-pct').textContent = risk.var_1d_99_pct == null ? 'Reconciled NAV unavailable' : `${JHPortfolioRisk.number(risk.var_1d_99_pct)}% of model-reported NAV`;
+    document.getElementById('mv-beta').textContent = JHPortfolioRisk.number(risk.portfolio_beta_spy);
+    document.getElementById('mv-vol').textContent = risk.portfolio_vol_annual_pct == null ? '—' : `${JHPortfolioRisk.number(risk.portfolio_vol_annual_pct,1)}%`;
+    document.getElementById('mv-hhi').textContent = JHPortfolioRisk.number(risk.concentration_hhi, 0);
+    document.getElementById('mv-hhi-label').textContent = risk.concentration_label || '—';
+  }
+
+  const counts = (snapshot && snapshot.counts) || {};
+  const displayCount=v=>Number.isSafeInteger(v) && v>=0 ? String(v) : '—';
+  document.getElementById('mv-positions').textContent = displayCount(counts.positions);
+  document.getElementById('mv-watchlist').textContent =
+    `${displayCount(counts.watchlist)} watchlist (${displayCount(counts.auto_watch_S)} S + ${displayCount(counts.auto_watch_A)} A auto)`;
+}
+
+function renderAlerts(){
+  const zone = document.getElementById('alert-zone');
+  zone.innerHTML = '';
+  if(!risk) return;
+  const a = risk.alerts_summary || {};
+
+  if(a.stops_hit_count > 0){
+    (risk.stops_hit || []).forEach(s => {
+      zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">📉</span>
+        <div class="alert-body"><div class="alert-title">CLOSE CROSSED STOP — ${escapeHtml(s.symbol)}</div>
+        <div class="alert-detail">Marked close ${fmtMoney(s.current_price)} · Stop ${fmtMoney(s.stop_loss)} · Price comparison; execution unverified</div></div></div>`;
+    });
+  }
+  if(a.var_breach === true && typeof risk.var_1d_99_pct==='number' && Number.isFinite(risk.var_1d_99_pct) && risk.var_1d_99_pct>5){
+    zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">⚠️</span>
+      <div class="alert-body"><div class="alert-title">VAR BREACH — ${JHPortfolioRisk.number(risk.var_1d_99_pct)}% 1-day risk exceeds 5%</div>
+      <div class="alert-detail">Annualized vol ${JHPortfolioRisk.number(risk.portfolio_vol_annual_pct,1)}% · β ${JHPortfolioRisk.number(risk.portfolio_beta_spy)}</div></div></div>`;
+  }
+  if(a.sector_concentration_breach === true){
+    const top = (risk.sector_concentration || [])[0];
+    if(top && typeof top.weight_pct==='number' && Number.isFinite(top.weight_pct) && top.weight_pct>40){
+      zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">📊</span>
+        <div class="alert-body"><div class="alert-title">SECTOR CONCENTRATION — ${escapeHtml(top.sector)} at ${JHPortfolioRisk.number(top.weight_pct,1)}%</div>
+        <div class="alert-detail">HHI ${JHPortfolioRisk.number(risk.concentration_hhi,0)} (${escapeHtml(risk.concentration_label)})</div></div></div>`;
+    }
+  }
+  (risk.correlation_clusters || []).forEach(c => {
+    zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">🔗</span>
+      <div class="alert-body"><div class="alert-title">CORRELATION CLUSTER — ${escapeHtml(c.symbols.join(', '))}</div>
+      <div class="alert-detail">Avg correlation ${JHPortfolioRisk.number(c.avg_pairwise_correlation)} · Combined ${metricText(c.total_weight_pct)}% of gross exposure</div></div></div>`;
+  });
+}
+
+function renderPositions(){
+  document.getElementById('pos-count').textContent = 'Holdings count unavailable';
+  if(!snapshot) return;
+  const positions = snapshot.positions;
+  const tbody = document.getElementById('positions-body');
+  if(!Array.isArray(positions)){
+    tbody.innerHTML = '<tr><td colspan="13">Holdings list unavailable. Missing or malformed positions do not mean an empty portfolio.</td></tr>';
+    document.getElementById('pos-pnl-summary').textContent = '';
+    return;
+  }
+  const validRecord=p=>p && typeof p==='object' && !Array.isArray(p) && typeof p.symbol==='string' && p.symbol.trim();
+  const invalid=positions.filter(p=>!validRecord(p)).length;
+  document.getElementById('pos-count').textContent = invalid ? `${positions.length} supplied records · ${invalid} invalid` : `${positions.length} holdings`;
+
+  if(positions.length === 0){
+    tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state">
+      <h3>No positions yet</h3>
+<div><a href="/portfolio-manager.html">Manage your holdings</a></div>
+    </div></td></tr>`;
+    document.getElementById('pos-pnl-summary').textContent = '';
+    return;
+  }
+
+  const psm = snapshot.portfolio_summary || {};
+  document.getElementById('pos-pnl-summary').innerHTML =
+    `Eligible unrealized P&L: <span class="${pnlClass(psm.total_pnl_dollars)}">${fmtMoney(psm.total_pnl_dollars)}</span> · ${escapeHtml(accountingCoverage().text)}`;
+
+  const metrics = (risk && risk.position_metrics) || {};
+
+  tbody.innerHTML = positions.map((p,index) => {
+    if(!validRecord(p)) return `<tr><td colspan="13">Position record ${index+1} unavailable: malformed holding or instrument identifier.</td></tr>`;
+    const m = metrics[p.symbol] || {};
+    let flags = '';
+    if(p.stop_hit === true) flags += '<span class="flag-stop" title="Previous close comparison; execution unverified">CLOSE CROSSED STOP</span> ';
+    if(p.pnl_eligible === false) flags += '<span class="dim">P&amp;L unavailable</span> ';
+    if(p.confluence_tier === 'S') flags += '<span class="flag-S">⚡ CONFLUENCE S</span> ';
+    if(p.confluence_tier === 'A') flags += '<span class="flag-A">⚡ A</span> ';
+    return `<tr>
+      <td style="font-weight:700">${symbolLink(p.symbol)}</td>
+      <td class="dim">${escapeHtml(typeof p.sector==='string' ? p.sector.substring(0,16) : '')}</td>
+      <td class="num">${metricText(p.qty)}</td>
+      <td class="num dim">${fmtMoney(p.cost_basis_per_share)}</td>
+      <td class="num">${fmtMoney(p.current_price)}</td>
+      <td class="num ${pnlClass(p.pnl_dollars)}">${fmtMoney(p.pnl_dollars)}</td>
+      <td class="num ${pnlClass(p.pnl_pct)}">${fmtPct(p.pnl_pct)}</td>
+      <td class="num">${risk && typeof risk.gross_market_value==='number' && Number.isFinite(risk.gross_market_value) && risk.gross_market_value > 0 && typeof p.market_value==='number' && Number.isFinite(p.market_value) ? JHPortfolioRisk.number(Math.abs(p.market_value)/risk.gross_market_value*100,1) + '%' : '—'}</td>
+      <td class="num">${metricText(p.alpha_score)}</td>
+      <td>${tierBadge(p.tier)}</td>
+      <td>${flags || '<span class="dim">—</span>'}</td>
+      <td class="num dim">${m.annual_vol_pct != null ? JHPortfolioRisk.number(m.annual_vol_pct,0) + '%' : '—'}</td>
+      <td class="num dim">${JHPortfolioRisk.number(m.beta_spy)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSectors(){
+  document.getElementById('sector-summary').textContent='';
+  if(!risk){ document.getElementById('sector-summary').textContent=''; return; }
+  const concs = risk.sector_concentration || [];
+  const body = document.getElementById('sector-body');
+  if(concs.length === 0){ body.innerHTML = '<div class="dim">No sector data.</div>'; return; }
+  body.innerHTML = concs.map(s => `
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+        <span style="font-size:12px;">${escapeHtml(s.sector)}</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:${typeof s.weight_pct==='number' && s.weight_pct > 40 ? 'var(--neg)' : 'var(--text)'}">${JHPortfolioRisk.number(s.weight_pct)}%</span>
+      </div>
+      <div class="sector-bar-track"><div class="sector-bar-fill" style="${typeof s.weight_pct==='number' && Number.isFinite(s.weight_pct) ? 'width:'+Math.max(0,Math.min(s.weight_pct,100))+'%' : 'display:none'}"></div></div>
+    </div>`).join('');
+  document.getElementById('sector-summary').textContent =
+    `Gross exposure HHI ${JHPortfolioRisk.number(risk.concentration_hhi,0)} · ETF holdings not decomposed`;
+}
+
+function renderScenarios(){
+  if(!risk) return;
+  const scenarios = risk.historical_scenarios || {};
+  const grid = document.getElementById('scenarios-grid');
+  grid.innerHTML = Object.values(scenarios).map(s => `
+    <div class="scenario-card">
+      <div class="scenario-name">${escapeHtml(s.name)}</div>
+      <div class="scenario-meta">Assumed SPY shock: ${metricText(s.spy_return_pct)}% · ${metricText(s.duration_days)} days</div><p>${escapeHtml(s.basis||"Unverified scenario")}</p>
+      ${typeof s.rounding==='string' ? `<p class="scenario-meta">${escapeHtml(s.rounding)}</p>` : ''}
+      <div class="scenario-pnl ${pnlClass(s.projected_pnl_dollars)}">${fmtMoney(s.projected_pnl_dollars)}</div>
+      <div class="scenario-meta">${fmtPct(s.pct_of_gross_exposure)} of gross holdings</div><div class="scenario-meta ${pnlClass(s.projected_pnl_pct)}">${fmtPct(s.projected_pnl_pct)} on reconciled NAV</div>
+    </div>`).join('');
+}
+
+function renderCorrelations(){
+  if(!risk) return;
+  const matrix = risk.correlation_matrix || {};
+  const symbols = Object.keys(matrix);
+  if(symbols.length < 2){ document.getElementById('corr-section').style.display = 'none'; return; }
+  document.getElementById('corr-section').style.display = '';
+
+  function corrColor(v){
+    if(typeof v!=='number' || !Number.isFinite(v)) return 'var(--text-mute)';
+    if(v > 0.7) return 'var(--neg)';
+    if(v > 0.4) return 'var(--gold)';
+    if(v > 0.0) return 'var(--info)';
+    if(v > -0.4) return 'var(--accent)';
+    return 'var(--pos)';
+  }
+
+  let html = '<table class="corr-matrix"><thead><tr><th></th>';
+  symbols.forEach(s => html += `<th>${escapeHtml(s)}</th>`);
+  html += '</tr></thead><tbody>';
+  symbols.forEach(s1 => {
+    html += `<tr><th>${escapeHtml(s1)}</th>`;
+    symbols.forEach(s2 => {
+      const v = matrix[s1][s2];
+      const display = JHPortfolioRisk.number(v);
+      html += `<td class="corr-cell" style="color:${corrColor(v)};background:${s1===s2?'rgba(28,35,48,.5)':'transparent'}">${display}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('corr-matrix').innerHTML = html;
+}
+
+let watchPage=0;
+const WATCH_PAGE_SIZE=25;
+function changeWatchPage(delta){
+  if(delta!==-1 && delta!==1) return;
+  if(!snapshot || !Array.isArray(snapshot.watchlist)) return;
+  const last=Math.max(0,Math.ceil(snapshot.watchlist.length/WATCH_PAGE_SIZE)-1);
+  watchPage=Math.min(last,Math.max(0,watchPage+delta));
+  renderWatchlist();
+}
+function renderWatchlist(){
+  const syncState=snapshot && snapshot.watchlist_sync;
+  const syncText=document.getElementById('watch-sync-status');
+  const syncLabels={APPLIED:'Automatic watchlist revision applied.',UNCHANGED:'Automatic watchlist source revision unchanged.',CONFLICT:'Automatic update withheld because a concurrent edit conflicted.',SKIPPED_INVALID_SOURCE:'Automatic update withheld: source data is incomplete or outside its age policy.',SKIPPED_INVALID_STATE:'Automatic update withheld: stored state could not be safely reconciled.',SKIPPED_READ_OR_PREPARE_ERROR:'Automatic update withheld: a complete source or stored state was unavailable.',WRITE_UNCONFIRMED:'Automatic update acknowledgement unavailable; the write outcome is uncertain.'};
+  const syncLabel=syncState && typeof syncState==='object' && !Array.isArray(syncState) && typeof syncState.status==='string' && Object.hasOwn(syncLabels,syncState.status) ? syncLabels[syncState.status] : 'Automatic watchlist sync status unavailable.';
+  const sourceClock=syncState && syncState.provenance && syncState.provenance.source_generated_at;
+  syncText.textContent=syncLabel+(typeof sourceClock==='string' && sourceClock.trim() ? ` Source generated: ${sourceClock}.` : '')+' Automatic entries are research rankings; investment qualification is unverified.';
+  document.getElementById('watch-count').textContent = 'Watchlist count unavailable';
+  const body = document.getElementById('watch-body');
+  const previous=document.getElementById('watch-prev'),next=document.getElementById('watch-next'),status=document.getElementById('watch-page-status');
+  previous.disabled=true;next.disabled=true;
+  const watch=snapshot && snapshot.watchlist;
+  if(!Array.isArray(watch)){
+    watchPage=0;
+    status.textContent='Watchlist data unavailable.';
+    body.innerHTML='<tr><td colspan="9"><div class="empty-state">A complete watchlist is unavailable. Missing or malformed data does not mean an empty watchlist.</div></td></tr>';
+    return;
+  }
+  const validRecord=w=>w && typeof w==='object' && !Array.isArray(w) && typeof w.symbol==='string' && w.symbol.trim();
+  const invalid=watch.filter(w=>!validRecord(w)).length;
+  document.getElementById('watch-count').textContent = invalid ? `${watch.length} supplied records · ${invalid} invalid` : `${watch.length} entries`;
+  const pages=Math.max(1,Math.ceil(watch.length/WATCH_PAGE_SIZE));
+  watchPage=Math.min(pages-1,Math.max(0,watchPage));
+  const start=watchPage*WATCH_PAGE_SIZE,end=Math.min(start+WATCH_PAGE_SIZE,watch.length);
+  previous.disabled=watchPage===0;next.disabled=end===watch.length;
+  status.textContent=watch.length ? `Showing ${start+1}–${end} of ${watch.length} supplied records · page ${watchPage+1} of ${pages}` : 'No watchlist entries in this snapshot.';
+  if(watch.length === 0){
+    body.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="dim">Watchlist empty.</div></div></td></tr>';
+    return;
+  }
+  body.innerHTML = watch.slice(start,end).map((w,index) => {
+    if(!validRecord(w)) return `<tr><td colspan="9">Watchlist record ${start+index+1} unavailable: malformed entry or instrument identifier.</td></tr>`;
+    const conf = tierBadge(w.confluence_tier);
+    const adj = w.regime_adj;
+    const adjStr = typeof adj==='number' && Number.isFinite(adj) ? `<span class="${pnlClass(adj)}">${adj > 0 ? '+' : ''}${metricText(adj)}</span>` : '<span class="dim">—</span>';
+    return `<tr>
+      <td style="font-weight:700">${symbolLink(w.symbol)}</td>
+      <td class="dim" title="${escapeHtml(typeof w.name==='string' ? w.name : '')}">${escapeHtml(typeof w.name==='string' ? w.name.substring(0,24) : '')}</td>
+      <td class="dim" title="${escapeHtml(typeof w.sector==='string' ? w.sector : '')}">${escapeHtml(typeof w.sector==='string' ? w.sector.substring(0,18) : '')}</td>
+      <td class="num">${fmtMoney(w.current_price)}</td>
+      <td class="num">${metricText(w.alpha_score)}</td>
+      <td>${tierBadge(w.tier)}</td>
+      <td>${conf}</td>
+      <td class="num">${adjStr}</td>
+      <td class="dim" style="font-size:10px">${typeof w.source==='string' && w.source.trim() ? escapeHtml(w.source).replace('AUTO_', '').replace('_', ' ') : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+let riskCandidate=null, snapshotBindingError='', snapshotBindingVerified=false, loadGeneration=0, loadController=null;
+let networkTimer=null, ageTimer=null;
+
+function renderCurrent(){
+  let contract=JHPortfolioRisk.view(riskCandidate);
+  if(contract.current && !snapshotBindingVerified) contract={current:false,title:'Risk withheld · snapshot unverified',detail:snapshotBindingError || 'A complete matching snapshot binding is required.',holdings:null};
+  risk=contract.current ? riskCandidate : null;
+  if(!risk) for(const id of ['sector-body','scenarios-grid','corr-matrix','risk-replay-status']) document.getElementById(id).innerHTML='';
+  if(!snapshot) for(const id of ['watch-body','pos-pnl-summary']) document.getElementById(id).innerHTML='';
+  document.getElementById('risk-contract-title').textContent=contract.title;
+  document.getElementById('risk-contract-detail').textContent=contract.detail+(risk?' Complete snapshot values match this risk calculation. This does not independently verify marks, account reconciliation or forecast skill.':'');
+  const h=contract.holdings || {};
+  document.getElementById('holdings-risk-summary').textContent=contract.current ? `Holdings-only normal 99% VaR: ${fmtMoney(h.var_1d_99_dollars)} · volatility: ${JHPortfolioRisk.number(h.annual_vol_pct_of_gross)}% of gross · beta per gross: ${JHPortfolioRisk.number(h.beta_spy_per_gross)}` : '';
+  const replayHash=risk && risk.replay && risk.replay.output_sha256;
+  document.getElementById('risk-replay-status').textContent=typeof replayHash==='string' && /^[a-f0-9]{64}$/.test(replayHash) ? 'Private frozen inputs retained · output hash '+replayHash+'. Retention is not independent verification.' : '';
+  if(!snapshot) document.getElementById('positions-body').innerHTML='<tr><td colspan="13">Sign in to view your private holdings. Account data is not public.</td></tr>';
+  setUpdated();renderTopMetrics();renderAlerts();renderPositions();renderSectors();renderScenarios();renderCorrelations();renderWatchlist();renderResearchEvidence();
+}
+
+async function loadAll(){
+  const generation=++loadGeneration;
+  loadController?.abort();const controller=new AbortController();loadController=controller;
+  const current=()=>generation===loadGeneration && !controller.signal.aborted;
+  const read=async url=>JHScenarioIO.decode(await JHScenarioIO.readComplete(
+    signal=>fetch(url+'?t='+Date.now(),{cache:'no-store',redirect:'error',signal}),{signal:controller.signal}));
+  try{
+    const [nextSnapshot,nextRisk]=await Promise.all([read(SNAPSHOT_URL),read(RISK_URL)]);
+    if(!current())return;
+    if(!nextSnapshot || typeof nextSnapshot!=='object' || Array.isArray(nextSnapshot)) throw Error('A complete snapshot object is required');
+    let bindingError='',bindingVerified=false;
+    if(JHPortfolioRisk.view(nextRisk).current){
+      try{await JHPortfolioBinding.verify(nextSnapshot,nextRisk);bindingVerified=true;}catch(error){bindingError=error.message;}
+    }
+    if(!current())return;
+    snapshot=nextSnapshot;riskCandidate=nextRisk;snapshotBindingError=bindingError;snapshotBindingVerified=bindingVerified;renderCurrent();
+  }catch(error){
+    if(!current())return;
+    snapshot=null;riskCandidate=null;snapshotBindingError='';snapshotBindingVerified=false;renderCurrent();
+    document.getElementById('risk-contract-detail').textContent='Complete current private inputs could not be loaded. Missing data does not mean zero risk.';
+    document.getElementById('positions-body').innerHTML=`<tr><td colspan="13"><div class="empty-state">Failed to load: ${escapeHtml(String(error.message).replace(/Scenario/g,'Portfolio'))}</div></td></tr>`;
+  }finally{
+    controller.abort();if(loadController===controller)loadController=null;
+  }
+}
+
+function refreshRiskAge(){if(risk && !JHPortfolioRisk.view(riskCandidate).current)renderCurrent();}
+function startTimers(){
+  if(networkTimer!==null)return;
+  networkTimer=setInterval(loadAll,300000);
+  // Age the already-received packet; this makes no account or provider request.
+  ageTimer=setInterval(refreshRiskAge,60000);
+}
+function stopTimers(){
+  clearInterval(networkTimer);clearInterval(ageTimer);networkTimer=null;ageTimer=null;
+  ++loadGeneration;loadController?.abort();loadController=null;
+  researchView?.clear();
+}
+window.addEventListener?.('pagehide',stopTimers);
+window.addEventListener?.('pageshow',event=>{renderCurrent();startTimers();if(event.persisted)loadAll();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshRiskAge();});
+loadAll();startTimers();
+</script>
+</body>
+</html>

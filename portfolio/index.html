@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="jh-primary-engine" content="justhodl-portfolio-snapshot,justhodl-portfolio-risk">
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-portfolio-risk-contract.js?v=20260929-metadata"></script>
@@ -9,10 +10,11 @@
 <script src="/jh-portfolio-binding.js?v=20260929-coherence"></script>
 <script src="/jh-portfolio-research.js?v=20260930-originals"></script>
 <script src="/jh-portfolio-research-page.js?v=20260930-originals"></script>
-<meta charset="UTF-8">
+<script src="/jh-portfolio-quotes.js?v=20260930-quote-evidence"></script>
+<script src="/jh-portfolio-quotes-page.js?v=20260930-quote-evidence"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>📊 Portfolio + Risk · JustHodl.AI</title>
-<meta name="description" content="Portfolio tracker with positions, watchlist, sector concentration, VAR, beta, correlations, and historical stress scenarios.">
+<meta name="description" content="Private holdings research with dated previous-close quotes, retained source evidence, holdings-only risk estimates and hypothetical sector scenarios.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -127,6 +129,20 @@ footer a{color:var(--text-dim);text-decoration:none;}
 .research-table{overflow-x:auto;}
 .research-table table{min-width:580px;}
 #research-evidence [hidden]{display:none!important;}
+#quote-evidence{overflow-wrap:anywhere;min-width:0;}
+#quote-evidence h3,#quote-evidence h4{margin:0 0 8px;}
+#quote-evidence p{color:var(--text-dim);}
+#quote-evidence summary{cursor:pointer;min-height:40px;padding:10px 0;}
+#quote-evidence button,#quote-evidence a{display:inline-block;min-height:40px;padding:8px 12px;margin:6px 6px 6px 0;border:1px solid var(--border-hi);border-radius:4px;background:var(--panel);color:var(--text);font:inherit;}
+#quote-evidence button{cursor:pointer;}
+#quote-evidence button:disabled{opacity:.5;cursor:default;}
+#quote-evidence :focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+#quote-evidence pre{white-space:pre;overflow:auto;max-height:360px;max-width:100%;padding:12px;background:var(--bg);border:1px solid var(--border-hi);font-size:12px;}
+#quote-evidence [hidden]{display:none!important;}
+.quote-table{overflow-x:auto;max-width:100%;}
+.quote-table table{min-width:820px;}
+.quote-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.quote-original{border-top:1px solid var(--border-hi);padding:16px 0;margin-top:12px;}
 </style>
 </head>
 <body>
@@ -171,6 +187,11 @@ footer a{color:var(--text-dim);text-decoration:none;}
     <p id="risk-replay-status"></p>
   </div></section><div id="alert-zone"></div>
 
+  <section class="section" aria-labelledby="quotes-title">
+    <div class="section-header"><h2 class="section-title" id="quotes-title">Quote coverage &amp; evidence</h2></div>
+    <div class="section-body" id="quote-evidence"><p>Quote evidence is unavailable until a supported private snapshot loads.</p></div>
+  </section>
+
   <!-- ─── POSITIONS TABLE ─── -->
   <div class="section">
     <div class="section-header">
@@ -181,7 +202,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
       <table id="positions-table">
         <thead><tr>
           <th>SYM</th><th>SECTOR</th><th class="num">QTY</th>
-          <th class="num">COST</th><th class="num">CURRENT</th>
+          <th class="num">COST</th><th class="num">PREV CLOSE</th>
           <th class="num">P&amp;L $</th><th class="num">P&amp;L %</th>
           <th class="num">GROSS WT</th><th class="num">α</th>
           <th>TIER</th><th>FLAGS</th>
@@ -234,7 +255,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
       <table id="watch-table">
         <thead><tr>
           <th>SYM</th><th>NAME</th><th>SECTOR</th>
-          <th class="num">PRICE</th><th class="num">α</th>
+          <th class="num">PREV CLOSE</th><th class="num">α</th>
           <th>TIER</th><th>CONFLUENCE</th><th>REGIME ADJ</th>
           <th>SOURCE</th>
         </tr></thead>
@@ -263,6 +284,12 @@ const RISK_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/ris
 let snapshot = null;
 let risk = null;
 let researchView = null;
+let quotesView = null;
+function renderQuoteEvidence(){
+  if(!window.JHPortfolioQuotesPage || !window.JHPortfolioQuotes)return;
+  if(!quotesView)quotesView=window.JHPortfolioQuotesPage.mount(document.getElementById('quote-evidence'));
+  quotesView.render(snapshot);
+}
 function renderResearchEvidence(){
   if(!window.JHPortfolioResearchPage || !window.JHPortfolioResearch)return;
   if(!researchView)researchView=window.JHPortfolioResearchPage.mount(document.getElementById('research-evidence'));
@@ -276,6 +303,7 @@ function escapeHtml(s){
 function fmtMoney(v){ if(typeof v !== 'number' || !Number.isFinite(v)) return '—'; const sign = v < 0 ? '-' : ''; v = Math.abs(v); return sign + '$' + v.toLocaleString('en-US', {maximumFractionDigits: 2}); }
 function fmtPct(v, digits=2){ return typeof v !== 'number' || !Number.isFinite(v) ? '—' : (v > 0 ? '+' : '') + v.toFixed(digits) + '%'; }
 function metricText(v){return typeof v==='number' && Number.isFinite(v) ? String(v) : '—';}
+function fmtQuotePrice(v){return typeof v==='number' && Number.isFinite(v) && v>0 && (!Number.isInteger(v)||Number.isSafeInteger(v)) ? String(v) : '—';}
 function pnlClass(v){ return typeof v!=='number' || !Number.isFinite(v) ? 'dim' : v > 0 ? 'pos' : v < 0 ? 'neg' : 'dim'; }
 function symbolLink(value){
   if(typeof value!=='string' || !value.trim())return '—';
@@ -409,7 +437,7 @@ function renderPositions(){
       <td class="dim">${escapeHtml(typeof p.sector==='string' ? p.sector.substring(0,16) : '')}</td>
       <td class="num">${metricText(p.qty)}</td>
       <td class="num dim">${fmtMoney(p.cost_basis_per_share)}</td>
-      <td class="num">${fmtMoney(p.current_price)}</td>
+      <td class="num">${fmtQuotePrice(p.current_price)}</td>
       <td class="num ${pnlClass(p.pnl_dollars)}">${fmtMoney(p.pnl_dollars)}</td>
       <td class="num ${pnlClass(p.pnl_pct)}">${fmtPct(p.pnl_pct)}</td>
       <td class="num">${risk && typeof risk.gross_market_value==='number' && Number.isFinite(risk.gross_market_value) && risk.gross_market_value > 0 && typeof p.market_value==='number' && Number.isFinite(p.market_value) ? JHPortfolioRisk.number(Math.abs(p.market_value)/risk.gross_market_value*100,1) + '%' : '—'}</td>
@@ -534,7 +562,7 @@ function renderWatchlist(){
       <td style="font-weight:700">${symbolLink(w.symbol)}</td>
       <td class="dim" title="${escapeHtml(typeof w.name==='string' ? w.name : '')}">${escapeHtml(typeof w.name==='string' ? w.name.substring(0,24) : '')}</td>
       <td class="dim" title="${escapeHtml(typeof w.sector==='string' ? w.sector : '')}">${escapeHtml(typeof w.sector==='string' ? w.sector.substring(0,18) : '')}</td>
-      <td class="num">${fmtMoney(w.current_price)}</td>
+      <td class="num">${fmtQuotePrice(w.current_price)}</td>
       <td class="num">${metricText(w.alpha_score)}</td>
       <td>${tierBadge(w.tier)}</td>
       <td>${conf}</td>
@@ -560,7 +588,7 @@ function renderCurrent(){
   const replayHash=risk && risk.replay && risk.replay.output_sha256;
   document.getElementById('risk-replay-status').textContent=typeof replayHash==='string' && /^[a-f0-9]{64}$/.test(replayHash) ? 'Private frozen inputs retained · output hash '+replayHash+'. Retention is not independent verification.' : '';
   if(!snapshot) document.getElementById('positions-body').innerHTML='<tr><td colspan="13">Sign in to view your private holdings. Account data is not public.</td></tr>';
-  setUpdated();renderTopMetrics();renderAlerts();renderPositions();renderSectors();renderScenarios();renderCorrelations();renderWatchlist();renderResearchEvidence();
+  setUpdated();renderTopMetrics();renderAlerts();renderPositions();renderSectors();renderScenarios();renderCorrelations();renderWatchlist();renderResearchEvidence();renderQuoteEvidence();
 }
 
 async function loadAll(){
@@ -600,6 +628,7 @@ function stopTimers(){
   clearInterval(networkTimer);clearInterval(ageTimer);networkTimer=null;ageTimer=null;
   ++loadGeneration;loadController?.abort();loadController=null;
   researchView?.clear();
+  quotesView?.clear();
 }
 window.addEventListener?.('pagehide',stopTimers);
 window.addEventListener?.('pageshow',event=>{renderCurrent();startTimers();if(event.persisted)loadAll();});
