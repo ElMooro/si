@@ -8,16 +8,19 @@ import types
 import urllib.parse
 from datetime import date, datetime, timezone
 from pathlib import Path
+from unittest.mock import Mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "shared"))
 from macro_observations import calendar_yoy, finite, valid_yoy_row
+from quote_meta import classify_badge, time_fetch
 SOURCE = Path(__file__).resolve().parents[1] / "source/lambda_function.py"
 NOW = datetime(2026, 9, 18, 16, tzinfo=timezone.utc)
 
 
 def load():
     env = dict(json=json, date=date, datetime=datetime, timezone=timezone, finite=finite,
+               classify_badge=classify_badge, time_fetch=time_fetch,
                valid_yoy_row=valid_yoy_row, urllib=types.SimpleNamespace(parse=urllib.parse),
                FMP_KEY="fixture", FRED_KEY="fixture", BUCKET="fixture", KEY="data/market-tape.json")
     tree = ast.parse(SOURCE.read_text(encoding="utf8"))
@@ -27,6 +30,24 @@ def load():
 
 def quote(symbol):
     return {"symbol": symbol, "price": 100, "timestamp": NOW.timestamp(), "changePercentage": 1.5}
+
+
+def test_real_timing_and_badge_helpers_execute_on_stubbed_sources():
+    env = load()
+    assert env["time_fetch"] is time_fetch and env["classify_badge"] is classify_badge
+    timed, badge = Mock(wraps=env["time_fetch"]), Mock(wraps=env["classify_badge"])
+    env.update(time_fetch=timed, classify_badge=badge)
+    env["source_json"] = Mock(side_effect=[
+        ([quote("^IXIC")], {"first_received_at": NOW.isoformat()}),
+        ({"observations": [{"date": "2026-09-17", "value": "100"}]},
+         {"first_received_at": NOW.isoformat()}),
+    ])
+    quoted = env["fmp_quote"]("^IXIC", NOW)
+    observed = env["fred_latest"]("DTWEXBGS", NOW)
+    assert timed.call_count == 2 and env["source_json"].call_count == 2
+    badge.assert_called_once_with(NOW.isoformat(), "fmp")
+    assert quoted["value"] == observed["value"] == 100
+    assert quoted["latency_ms"] >= 0 and observed["latency_ms"] >= 0
 
 
 def test_mismatched_symbol_undated_or_nonfinite_quote_is_not_displayable():
