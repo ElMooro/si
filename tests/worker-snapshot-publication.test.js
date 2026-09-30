@@ -30,7 +30,10 @@ test('snapshot publication preserves every original byte and negative zero with 
   // Full native-handler outputs, not shortened account-shaped examples. All
   // source bytes are bound, and every original mocked S3 write is preserved.
   const frames=JSON.parse(require('node:zlib').gunzipSync(fs.readFileSync(path.join(root,'tests/fixtures/portfolio-sector-browser-synthetic.json.gz'))));
-  for(const [name,digest] of Object.entries(frames.source_files))assert.equal(sha(fs.readFileSync(path.join(root,name))),digest);
+  for(const [name,digest] of Object.entries(frames.source_files)){
+    const retained=name==='aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py'?'tests/fixtures/pre-snapshot-byte-publication/lambda_function.py.txt':name;
+    assert.equal(sha(fs.readFileSync(path.join(root,retained))),digest);
+  }
   assert.equal(Object.keys(frames.cases).length,9);
   const nativeNames=['complete','partial','binary','empty','mixed','known'];
   assert.deepEqual(Object.keys(frames.cases).filter(name=>Array.isArray(frames.cases[name].writes)),nativeNames);
@@ -41,6 +44,19 @@ test('snapshot publication preserves every original byte and negative zero with 
     const complete=Buffer.from(wire.body,'base64');assert.equal(complete.length,wire.bytes);assert.equal(sha(complete),wire.sha256);
     const native=fixture(),accepted=await native.publish(complete);assert.equal(accepted.status,200);
     assert.equal(native.writes[0].value,complete.toString('utf8'));assert.equal((await accepted.json()).body_sha256,wire.sha256);
+  }
+  const current=JSON.parse(require('node:zlib').gunzipSync(fs.readFileSync(path.join(root,'tests/fixtures/snapshot-byte-publication-synthetic.json.gz'))));
+  for(const [name,digest] of Object.entries(current.source_files))assert.equal(sha(fs.readFileSync(path.join(root,name))),digest);
+  assert.equal(Object.keys(current.cases).length,6);
+  for(const [name,row] of Object.entries(current.cases)){
+    assert.equal(row.measurement_values_unchanged,true);
+    if(name==='partial'){
+      assert.equal(row.candidate_only_not_published,true);assert.equal(row.writes.length,0);assert.equal(row.acknowledgements.length,0);assert.match(row.failure.reason,/runtime reserve/);continue;
+    }
+    const wire=row.candidate.complete_body,complete=Buffer.from(wire.body,'base64');assert.equal(sha(complete),wire.sha256);assert.equal(complete.length,wire.bytes);
+    assert.deepEqual(row.writes.map(write=>write.sink),['private','s3']);assert.ok(row.writes.every(write=>write.body_sha256===wire.sha256));
+    const receiver=fixture(),response=await receiver.publish(complete);assert.equal(response.status,200);assert.equal(receiver.writes[0].value,complete.toString('utf8'));
+    assert.deepEqual(await response.json(),JSON.parse(Buffer.from(row.acknowledgements[0].complete_acknowledgement.body,'base64')));
   }
 });
 test('snapshot value-size accounting matches the real browser for complete cross-runtime vectors', async () => {

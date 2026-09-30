@@ -25,9 +25,9 @@ for fn in $DEPLOY_TARGETS; do
       exit 0
     fi
     echo "──── Deploying $fn ────"
-    if [ "$fn" = "justhodl-portfolio-risk" ]; then
+    if [ "$fn" = "justhodl-portfolio-risk" ] || [ "$fn" = "justhodl-portfolio-snapshot" ]; then
       # The new native writer must not reach AWS before its mirror protocol.
-      python3 scripts/check_worker_prerequisite.py --region "$DEPLOY_AWS_REGION" --wait 180
+      python3 scripts/check_worker_prerequisite.py --function "$fn" --region "$DEPLOY_AWS_REGION" --wait 180
     fi
     tmp=$(mktemp -d)
     config_file="$dir/config.json"

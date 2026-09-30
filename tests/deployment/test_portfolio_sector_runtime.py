@@ -5,6 +5,12 @@ ROOT=Path(__file__).resolve().parents[2]
 PATH=ROOT/'aws/ops/staged/ops_6368_portfolio_sector_runtime_acceptance.py'
 
 
+def retained_source(path):
+    if path=='aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py':
+        return ROOT/'tests/fixtures/pre-snapshot-byte-publication/lambda_function.py.txt'
+    return ROOT/path
+
+
 def evidence(function):
     return {'function_name':function,'receipt':{'status':'matched','commit':'a'*40},
         'source_files_checked':4 if function.endswith('snapshot') else 8,
@@ -58,7 +64,7 @@ def test_whole_inert_predecessors_and_current_synthetic_sector_frames_are_bound(
     for row in audit['fixtures'].values():
         raw=(ROOT/row['path']).read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
     frames=json.loads(gzip.decompress((ROOT/'tests/fixtures/portfolio-sector-coverage-synthetic.json.gz').read_bytes()));assert len(frames['cases'])==16
-    for path,digest in frames['source_files'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==digest,path
+    for path,digest in frames['source_files'].items():assert hashlib.sha256(retained_source(path).read_bytes()).hexdigest()==digest,path
     for row in frames['cases'].values():
         assert row['output']['permissions']['sizing_eligible'] is False
         assert len(row['bundle']['inputs']['snapshot']['positions'])==len(row['output']['sector_exposure']['records'])
@@ -66,7 +72,7 @@ def test_whole_inert_predecessors_and_current_synthetic_sector_frames_are_bound(
 
 def test_complete_current_browser_frames_preserve_unknown_known_empty_and_all_sources():
     frames=json.loads(gzip.decompress((ROOT/'tests/fixtures/portfolio-sector-browser-synthetic.json.gz').read_bytes()))
-    for path,digest in frames['source_files'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==digest,path
+    for path,digest in frames['source_files'].items():assert hashlib.sha256(retained_source(path).read_bytes()).hexdigest()==digest,path
     assert len(frames['cases'])==9
     for name,unknown,breach in [('complete',100,None),('mixed',65,None),('known',35,True)]:
         row=frames['cases'][name];assert len(row['writes'])==2

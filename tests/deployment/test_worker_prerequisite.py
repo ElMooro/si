@@ -83,6 +83,40 @@ def test_ordered_worker_check_occurs_before_native_code_or_schedule_mutation():
     assert 'scripts/check_worker_prerequisite.py' in (ROOT/'.github/workflows/deploy-lambdas.yml').read_text(encoding='utf-8')
 
 
+def test_snapshot_requires_its_complete_worker_adapter_and_exact_receipt():
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory); receipt, expected = fixture(root)
+        assert SCOPE['validate'](receipt, expected, root, 'justhodl-portfolio-snapshot')['function']=='justhodl-portfolio-snapshot'
+        refuses(lambda:SCOPE['validate'](receipt, expected, root, 'other'))
+    with tempfile.TemporaryDirectory() as directory:
+        root=Path(directory); source=root/SCOPE['WORKER_PATH']/'src';source.mkdir(parents=True)
+        (source/'portfolio-publication.js').write_text('export const synthetic = true;\n',encoding='utf-8')
+        def git(*args):return subprocess.check_output(['git',*args],cwd=root,stderr=subprocess.DEVNULL)
+        git('init');git('add','.');git('-c','user.name=Synthetic','-c','user.email=synthetic@example.invalid','commit','-m','Synthetic')
+        refuses(lambda:SCOPE['source_identity'](root,'justhodl-portfolio-snapshot'))
+        (source/'portfolio-snapshot.js').write_text('export const syntheticSnapshot = true;\n',encoding='utf-8')
+        git('add','.');git('-c','user.name=Synthetic','-c','user.email=synthetic@example.invalid','commit','-m','Synthetic snapshot')
+        assert SCOPE['source_identity'](root,'justhodl-portfolio-snapshot')['commit']==git('rev-parse','HEAD').decode().strip()
+
+
+def test_snapshot_origin_check_is_read_only_and_never_returns_environment_values():
+    calls=[]
+    class Native:
+        def __init__(self,value):self.value=value
+        def get_function_configuration(self,**request):calls.append(request);return self.value
+    for value in ({},{'Environment':{'Variables':{}}},{'Environment':{'Variables':{'PRIVATE_ARTIFACT_PROXY':SCOPE['SNAPSHOT_ORIGIN']+'/'}}}):
+        assert SCOPE['check_snapshot_origin'](Native(value)) is True
+    for value in ({'Environment':None},{'Environment':{'Error':{'Code':'Unavailable'}}},{'Environment':{'Variables':{'PRIVATE_ARTIFACT_PROXY':'https://invented.invalid'}}},{'Environment':{'Variables':{'PRIVATE_ARTIFACT_PROXY':False}}}):
+        refuses(lambda:SCOPE['check_snapshot_origin'](Native(value)))
+    assert all(call=={'FunctionName':'justhodl-portfolio-snapshot'} for call in calls)
+
+
+def test_snapshot_prerequisite_runs_before_deploy_using_the_exact_function_identity():
+    shell=(ROOT/'scripts/deploy_lambdas.sh').read_text(encoding='utf-8')
+    guard=shell.index('scripts/check_worker_prerequisite.py --function "$fn"')
+    assert shell.index('[ "$fn" = "justhodl-portfolio-snapshot" ]')<guard<shell.index('aws lambda update-function-code')
+
+
 if __name__ == '__main__':
     tests = [v for k, v in list(globals().items()) if k.startswith('test_') and callable(v)]
     for test in tests: test()

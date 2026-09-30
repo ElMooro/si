@@ -20,6 +20,8 @@ TOOLS = ['.github/workflows/deploy-workers.yml', 'scripts/worker_release.py',
          'aws/ops/checks/worker_source_evidence.py', 'aws/ops/checks/worker_release_evidence.py']
 BUCKET = 'justhodl-dashboard-live'
 KEY = 'data/ops/releases/worker-' + WORKER + '.json'
+FUNCTIONS = ('justhodl-portfolio-risk', 'justhodl-portfolio-snapshot')
+SNAPSHOT_ORIGIN = 'https://justhodl-data-proxy.raafouis.workers.dev'
 
 
 class PrerequisiteError(RuntimeError):
@@ -35,7 +37,9 @@ def same(left, right):
         return False
 
 
-def source_identity(root=ROOT):
+def source_identity(root=ROOT, function='justhodl-portfolio-risk'):
+    if function not in FUNCTIONS:
+        raise PrerequisiteError('Unreviewed native Worker consumer')
     paths = [WORKER_PATH, *TOOLS]
     subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', *paths], cwd=root, stdout=subprocess.DEVNULL, check=True)
     extra = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '-z', '--', *paths], cwd=root)
@@ -43,8 +47,10 @@ def source_identity(root=ROOT):
     if extra or ignored:
         raise PrerequisiteError('Uncommitted Worker prerequisite input')
     names = subprocess.check_output(['git', 'ls-files', '-z', '--', *paths], cwd=root).decode('utf-8').split('\0')
-    required = WORKER_PATH + '/src/portfolio-publication.js'
-    if required not in names:
+    required = [WORKER_PATH + '/src/portfolio-publication.js']
+    if function == 'justhodl-portfolio-snapshot':
+        required.append(WORKER_PATH + '/src/portfolio-snapshot.js')
+    if not all(path in names for path in required):
         raise PrerequisiteError('Ordered Worker protocol source missing')
     commit = subprocess.check_output(['git', 'log', '-1', '--format=%H', '--', *paths], cwd=root, text=True).strip()
     if not re.fullmatch(r'[a-f0-9]{40}', commit):
@@ -106,7 +112,9 @@ def read_receipt(client, deadline):
         raise PrerequisiteError('Invalid complete Worker receipt') from None
 
 
-def validate(receipt, expected, root=ROOT):
+def validate(receipt, expected, root=ROOT, function='justhodl-portfolio-risk'):
+    if function not in FUNCTIONS:
+        raise PrerequisiteError('Unreviewed native Worker consumer')
     if (type(receipt) is not dict or receipt.get('contract') != 'worker-release.v1' or
             receipt.get('status') != 'matched' or receipt.get('worker') != WORKER or
             receipt.get('commit') != expected['commit'] or not same(receipt.get('repository_files'), expected['repository_files']) or
@@ -121,26 +129,46 @@ def validate(receipt, expected, root=ROOT):
     raw = (root/capture['path']).read_bytes()
     if hashlib.sha256(raw).hexdigest() != capture.get('sha256'):
         raise PrerequisiteError('Retained Worker source capture differs')
-    return {'function': 'justhodl-portfolio-risk', 'worker': WORKER, 'commit': expected['commit'],
+    return {'function': function, 'worker': WORKER, 'commit': expected['commit'],
             'status': 'exact_prerequisite_matched', 'worker_invocations': 0, 'private_reads': 0}
+
+
+def check_snapshot_origin(client):
+    """Inspect only the existing non-secret origin setting; never log env data."""
+    config = client.get_function_configuration(FunctionName='justhodl-portfolio-snapshot')
+    environment = config.get('Environment', {})
+    if type(environment) is not dict or environment.get('Error'):
+        raise PrerequisiteError('Snapshot publication origin configuration unavailable')
+    variables = environment.get('Variables', {})
+    if type(variables) is not dict:
+        raise PrerequisiteError('Snapshot publication origin configuration unavailable')
+    origin = variables.get('PRIVATE_ARTIFACT_PROXY', SNAPSHOT_ORIGIN)
+    if type(origin) is not str or origin.rstrip('/') != SNAPSHOT_ORIGIN:
+        raise PrerequisiteError('Snapshot publication origin differs from reviewed adapter')
+    return True
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--region', default='us-east-1')
     parser.add_argument('--wait', type=int, default=180)
+    parser.add_argument('--function', choices=FUNCTIONS, default='justhodl-portfolio-risk')
     args = parser.parse_args()
     if not 0 <= args.wait <= 300:
         raise PrerequisiteError('Bounded prerequisite wait required')
     import boto3
     from botocore.config import Config
-    expected = source_identity()
+    expected = source_identity(function=args.function)
     client = boto3.client('s3', region_name=args.region, config=Config(connect_timeout=5, read_timeout=15, retries={'total_max_attempts': 2}))
     end = time.monotonic() + args.wait
     while True:
         try:
             receipt = read_receipt(client, time.monotonic()+20)
-            print(json.dumps(validate(receipt, expected)))
+            result = validate(receipt, expected, function=args.function)
+            if args.function == 'justhodl-portfolio-snapshot':
+                native = boto3.client('lambda', region_name=args.region, config=Config(connect_timeout=5, read_timeout=15, retries={'total_max_attempts': 2}))
+                result['reviewed_snapshot_origin_verified'] = check_snapshot_origin(native)
+            print(json.dumps(result))
             return
         except Exception:
             if time.monotonic() >= end:

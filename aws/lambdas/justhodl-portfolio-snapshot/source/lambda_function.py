@@ -26,7 +26,8 @@ Schedule: existing hourly :40 EventBridge rule and Scheduler, preserved.
 Uses the existing configured Polygon key; no new paid AI dependency.
 """
 import json
-from private_artifact import publish_private, private_http_denied
+from private_artifact import private_http_denied
+from portfolio_snapshot_publication import encode_snapshot, publish_snapshot
 from portfolio_sector_exposure import build_sector_exposure
 import math
 import os
@@ -1083,7 +1084,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.8",
+        "audit_version": "2026-09-30.9",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
@@ -1148,15 +1149,12 @@ def lambda_handler(event, context):
     }
 
     # Both publication sinks must receive a frame the current consumers can represent.
-    validate_snapshot_publication(payload)
-    encoded = json.dumps(payload, separators=(",", ":"), allow_nan=False).encode("utf-8")
-    # Match the existing mirror's spaced JSON encoding before either sink writes.
-    if len(json.dumps(payload, allow_nan=False).encode("utf-8")) > SNAPSHOT_MIRROR_MAX_BYTES:
-        raise ValueError("Complete snapshot exceeds private mirror byte bound")
+    identity_bytes = validate_snapshot_publication(payload)
+    encoded = encode_snapshot(payload, max_bytes=SNAPSHOT_MIRROR_MAX_BYTES)
     if validation_only:
         return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
                 "status": payload["capital_book"]["status"], "artifact_size_bytes": len(encoded)}
-    publish_private("portfolio-snapshot", payload)
+    publish_snapshot(encoded, identity_bytes, context)
     s3.put_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY,
         Body=encoded,
         ContentType="application/json",

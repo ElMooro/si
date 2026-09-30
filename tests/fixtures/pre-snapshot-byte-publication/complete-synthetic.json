@@ -1,0 +1,105 @@
+{
+  "scope": "Current reviewed publisher with complete invented payloads and wholly mocked transport; no external I/O.",
+  "cases": [
+    {
+      "name": "legacy_only",
+      "complete_invented_payload": {
+        "positions": [],
+        "watchlist": [],
+        "unknown": {
+          "literal": "complete invented text",
+          "zero": -0.0
+        }
+      },
+      "complete_acknowledgement": "{\"ok\":true}",
+      "requests": [
+        {
+          "url": "https://justhodl-data-proxy.raafouis.workers.dev/private-artifact?kind=portfolio-snapshot",
+          "method": "PUT",
+          "body": "{\"positions\": [], \"watchlist\": [], \"unknown\": {\"literal\": \"complete invented text\", \"zero\": -0.0}}",
+          "timeout": 25
+        }
+      ],
+      "accepted": true,
+      "read_sizes": [
+        -1
+      ],
+      "closed": true
+    },
+    {
+      "name": "wrong_digest",
+      "complete_invented_payload": {
+        "positions": [],
+        "watchlist": [],
+        "unknown": {
+          "literal": "complete invented text",
+          "zero": -0.0
+        }
+      },
+      "complete_acknowledgement": "{\"ok\":true,\"body_sha256\":\"wrong\",\"body_bytes\":0}",
+      "requests": [
+        {
+          "url": "https://justhodl-data-proxy.raafouis.workers.dev/private-artifact?kind=portfolio-snapshot",
+          "method": "PUT",
+          "body": "{\"positions\": [], \"watchlist\": [], \"unknown\": {\"literal\": \"complete invented text\", \"zero\": -0.0}}",
+          "timeout": 25
+        }
+      ],
+      "accepted": true,
+      "read_sizes": [
+        -1
+      ],
+      "closed": true
+    },
+    {
+      "name": "nonfinite_extra",
+      "complete_invented_payload": {
+        "positions": [],
+        "watchlist": [],
+        "unknown": {
+          "literal": "complete invented text",
+          "zero": -0.0
+        }
+      },
+      "complete_acknowledgement": "{\"ok\":true,\"unknown\":NaN}",
+      "requests": [
+        {
+          "url": "https://justhodl-data-proxy.raafouis.workers.dev/private-artifact?kind=portfolio-snapshot",
+          "method": "PUT",
+          "body": "{\"positions\": [], \"watchlist\": [], \"unknown\": {\"literal\": \"complete invented text\", \"zero\": -0.0}}",
+          "timeout": 25
+        }
+      ],
+      "accepted": true,
+      "read_sizes": [
+        -1
+      ],
+      "closed": true
+    },
+    {
+      "name": "oversized_ack",
+      "complete_invented_payload": {
+        "positions": [],
+        "watchlist": [],
+        "unknown": {
+          "literal": "complete invented text",
+          "zero": -0.0
+        }
+      },
+      "complete_acknowledgement": "{\"ok\": true, \"whole\": \"invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented \"}",
+      "requests": [
+        {
+          "url": "https://justhodl-data-proxy.raafouis.workers.dev/private-artifact?kind=portfolio-snapshot",
+          "method": "PUT",
+          "body": "{\"positions\": [], \"watchlist\": [], \"unknown\": {\"literal\": \"complete invented text\", \"zero\": -0.0}}",
+          "timeout": 25
+        }
+      ],
+      "accepted": true,
+      "read_sizes": [
+        -1
+      ],
+      "closed": true
+    }
+  ]
+}

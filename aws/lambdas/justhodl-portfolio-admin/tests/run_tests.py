@@ -140,6 +140,7 @@ def _load_snapshot(prices):
     fake.client = lambda *a, **k: types.SimpleNamespace(get_object=lambda **k: (_ for _ in ()).throw(Exception("no s3")), put_object=lambda **k: None)
     fake.resource = lambda *a, **k: types.SimpleNamespace(Table=lambda n: _Table([]))
     sys.modules["boto3"] = fake
+    sys.path.insert(0, str(LAMBDAS / "justhodl-portfolio-snapshot" / "source"))
     spec = importlib.util.spec_from_file_location("psnap", LAMBDAS / "justhodl-portfolio-snapshot" / "source" / "lambda_function.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -154,7 +155,7 @@ def _snapshot_run(prices, positions):
     mod.query_pk = lambda key: positions if key == "POSITION" else []
     written = []
     published=[]
-    mod.publish_private=lambda kind,doc:published.append((kind,doc))
+    mod.publish_snapshot=lambda body,identity,context=None:published.append(("portfolio-snapshot",json.loads(body)))
     def capture(**kw):
         assert kw["CacheControl"]=="private, no-store"
         written.append(json.loads(kw["Body"]))
@@ -203,7 +204,7 @@ def test_validate_only_snapshot_skips_sync_and_all_writes():
     mod.sync_auto_watchlist=forbidden
     mod.query_pk=lambda key:[{"symbol":"AAA","qty":10,"cost_basis_per_share":100}] if key=="POSITION" else []
     mod.s3.put_object=forbidden
-    mod.publish_private=forbidden
+    mod.publish_snapshot=forbidden
     result=mod.lambda_handler({"mode":"validate_only"},None)
     assert result["ok"] and result["validation_only"] and result["status"]=="BLOCKED" and result["artifact_size_bytes"]>0,result
 
@@ -215,7 +216,7 @@ def test_anonymous_snapshot_http_denied_before_account_reads():
     private_artifact.service_headers=lambda:{"X-JH-Service-Token":"test-service-token"}
     def forbidden(*args,**kwargs):raise AssertionError("anonymous HTTP must not read or write account state")
     mod.load_s3_json=forbidden;mod.query_pk=forbidden;mod.sync_auto_watchlist=forbidden
-    mod.s3.put_object=forbidden;mod.publish_private=forbidden
+    mod.s3.put_object=forbidden;mod.publish_snapshot=forbidden
     try:
         response=mod.lambda_handler({"requestContext":{"http":{"method":"POST"}},"headers":{}},None)
         assert response["statusCode"]==401 and response["headers"]["Cache-Control"]=="private, no-store"
@@ -230,7 +231,7 @@ def test_private_publication_failure_prevents_snapshot_write():
     mod.query_pk=lambda key:[]
     writes=[]
     mod.s3.put_object=lambda **kw:writes.append(kw)
-    mod.publish_private=lambda *args:(_ for _ in ()).throw(RuntimeError("authenticated publisher unavailable"))
+    mod.publish_snapshot=lambda *args:(_ for _ in ()).throw(RuntimeError("authenticated publisher unavailable"))
     try:
         mod.lambda_handler({},None)
         raise AssertionError("failed private publication must fail the handler")

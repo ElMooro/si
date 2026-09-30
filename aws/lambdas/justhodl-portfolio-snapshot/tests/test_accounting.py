@@ -140,7 +140,7 @@ class AccountingTests(unittest.TestCase):
             mod.load_s3_json=lambda key,default:default
             mod.sync_auto_watchlist=lambda _:dict(added_S=[],added_A=[],removed_S=[],removed_A=[])
             mod.query_pk=lambda key:case['positions'] if key=='POSITION' else []
-            writes=[];published=[];mod.publish_private=lambda kind,doc:published.append(doc)
+            writes=[];published=[];mod.publish_snapshot=lambda body,identity,context=None:published.append(json.loads(body))
             mod.s3.put_object=lambda **kw:writes.append(kw['Body'])
             self.assertEqual(mod.lambda_handler({},None)['statusCode'],200)
             payload=json.loads(writes[0],parse_constant=lambda x:(_ for _ in ()).throw(AssertionError(x)))
@@ -154,7 +154,7 @@ class AccountingTests(unittest.TestCase):
         mod.sync_auto_watchlist=lambda _:dict(added_S=[],added_A=[],removed_S=[],removed_A=[])
         mod.query_pk=lambda key:[position(qty=float('nan'))] if key=='POSITION' else []
         mod.batch_fetch_prices=lambda syms,**kwargs:{'AAA':{'price':110,'as_of_unix_ms':NOW.timestamp()*1000}}
-        published=[];mod.publish_private=lambda kind,doc:published.append(doc);written=[];mod.s3.put_object=lambda **kw:written.append(kw['Body'])
+        published=[];mod.publish_snapshot=lambda body,identity,context=None:published.append(json.loads(body));written=[];mod.s3.put_object=lambda **kw:written.append(kw['Body'])
         mod.lambda_handler({},None)
         payload=json.loads(written[0]);self.assertEqual(payload['accounting']['source_positions'][0]['qty'],{'rejected_number_type':'float','representation':'nan'})
         self.assertIsNone(payload['positions'][0]['qty']);json.dumps(published[0],allow_nan=False)

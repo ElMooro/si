@@ -141,7 +141,7 @@ class QuoteReads(unittest.TestCase):
         self.mod.sync_auto_watchlist=lambda _:{'added_S':[],'added_A':[],'removed_S':[],'removed_A':[]}
         positions=[{'symbol':'AAA','qty':10,'cost_basis_per_share':100},{'symbol':'BBB','qty':5,'cost_basis_per_share':100}]
         self.mod.query_pk=lambda pk:copy.deepcopy(positions) if pk=='POSITION' else []
-        writes=[];self.mod.publish_private=lambda kind,payload:writes.append(copy.deepcopy(payload));self.mod.s3.put_object=lambda **kw:None
+        writes=[];self.mod.publish_snapshot=lambda body,identity,context=None:writes.append(json.loads(body));self.mod.s3.put_object=lambda **kw:None
         def open_request(request,**kw):
             symbol='AAA' if '/AAA/' in request.full_url else 'BBB';data=frame(symbol)
             if symbol=='BBB':data['ticker']='OTHER'

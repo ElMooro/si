@@ -24,7 +24,7 @@ class Research(unittest.TestCase):
         return {self.mod.ALPHA_KEY:{'generated_at':'2020-01-01T00:00:00Z','stocks':[] if alpha is None else alpha},
                 self.mod.CONFLUENCE_KEY:{'tier_s_confluence':[],'tier_a_confluence':[],'tier_b_confluence':[]},
                 self.mod.REGIME_KEY:{'regime_picks':[]},self.mod.SENTIMENT_KEY:{'sentiment':[]}}
-    def handler(self,documents=None,watchlist=None,positions=None):
+    def handler(self,documents=None,watchlist=None,positions=None,publisher=None):
         docs=self.documents() if documents is None else documents
         def get(**kw):
             self.requests.append(kw['Key']);value=docs[kw['Key']];raw=value if isinstance(value,bytes) else json.dumps(value).encode()
@@ -35,7 +35,10 @@ class Research(unittest.TestCase):
         self.mod.sync_auto_watchlist=sync
         def prices(symbols,**kwargs):self.prices.append(list(symbols));return {}
         self.mod.batch_fetch_prices=prices
-        self.mod.publish_private=lambda kind,payload:self.writes.append({'sink':'private','kind':kind,'payload':copy.deepcopy(payload)})
+        def publish(body,identity,context=None):
+            if publisher is not None:publisher(body,identity,context)
+            self.writes.append({'sink':'private','kind':'portfolio-snapshot','payload':json.loads(body),'body':body,'identity_bytes':identity})
+        self.mod.publish_snapshot=publish
         self.mod.s3.put_object=lambda **kw:self.writes.append({'sink':'s3','request':kw})
         with patch.object(self.mod,'datetime',FrozenDateTime),patch.object(self.mod.time,'time',return_value=NOW.timestamp()),contextlib.redirect_stdout(io.StringIO()):
             result=self.mod.lambda_handler({},None)
@@ -127,7 +130,7 @@ class Research(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Complete research source evidence exceeds'):self.handler(docs)
         self.assertEqual(self.syncs,[]);self.assertEqual(self.prices,[]);self.assertEqual(self.writes,[]);self.assertTrue(all(b.closed for b in self.bodies));self.assertEqual(len(self.requests),2)
     def test_final_mirror_wire_bound_checks_spaced_encoding_before_both_sinks(self):
-        _,payload=self.handler();wire=len(json.dumps(payload,allow_nan=False).encode());self.writes=[];self.mod.SNAPSHOT_MIRROR_MAX_BYTES=wire
+        _,payload=self.handler();wire=len(self.mod.encode_snapshot(payload));self.writes=[];self.mod.SNAPSHOT_MIRROR_MAX_BYTES=wire
         self.handler();self.assertEqual(len(self.writes),2);self.writes=[];self.mod.SNAPSHOT_MIRROR_MAX_BYTES=wire-1
         with self.assertRaisesRegex(ValueError,'Complete snapshot exceeds'):self.handler()
         self.assertEqual(self.writes,[])

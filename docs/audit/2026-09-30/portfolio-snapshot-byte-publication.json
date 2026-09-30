@@ -1,0 +1,287 @@
+{
+  "status": "current_source_and_complete_invented_acceptance_passed_exact_native_release_pending",
+  "predecessor_commit": "b1c8cbe43fe405adf78e555a16d2affcc5901a7d",
+  "fixtures": {
+    "aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py": {
+      "path": "tests/fixtures/pre-snapshot-byte-publication/lambda_function.py.txt",
+      "bytes": 69700,
+      "sha256": "fa04f1252bd8aee262b9c418a9a3c2fb46dfcabfa7325918c8d09889639132ad"
+    },
+    "aws/shared/private_artifact.py": {
+      "path": "tests/fixtures/pre-snapshot-byte-publication/private_artifact.py.txt",
+      "bytes": 6285,
+      "sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba"
+    },
+    "scripts/deploy_lambdas.sh": {
+      "path": "tests/fixtures/pre-snapshot-byte-publication/deploy_lambdas.sh.txt",
+      "bytes": 21588,
+      "sha256": "d0503981faba5b692301c1288abd0f03259e011f24a8ca4e20a3b78aeef88117"
+    },
+    "scripts/check_worker_prerequisite.py": {
+      "path": "tests/fixtures/pre-snapshot-byte-publication/check_worker_prerequisite.py.txt",
+      "bytes": 7342,
+      "sha256": "77d922aab81f7155654dec3087c488de4beedae5f05dee83a1a8eea483e4ba66"
+    },
+    "complete_synthetic": {
+      "path": "tests/fixtures/pre-snapshot-byte-publication/complete-synthetic.json",
+      "bytes": 16599,
+      "sha256": "cf5d6610badfb4b600d9b74121696e69104a5c5b78eb5d68c2722fd19550ec02"
+    }
+  },
+  "reproduced": "Legacy publisher accepts an unrelated or nonfinite acknowledgement and reads an unbounded response; handler serializes its complete snapshot three times.",
+  "predecessor_snapshot_runtime": {
+    "code_sha256": "mwNms/xd3LhH0oj1SuuRajn8vOVmjTHIGc+oNVy24nQ=",
+    "source_files_checked": 4,
+    "handler_bytes": 69700,
+    "timeout": 180,
+    "memory_mb": 512,
+    "receipt": {
+      "status": "matched",
+      "commit": "6b22576d485b7bf788229e3129aee0fba4165d73"
+    },
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-portfolio-snapshot-hourly",
+        "state": "ENABLED",
+        "expression": "cron(40 * * * ? *)",
+        "native_targets": 1,
+        "qualified_targets": [
+          "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-snapshot:live"
+        ]
+      },
+      {
+        "kind": "EventBridge Scheduler",
+        "name": "portfolio-snapshot-sched",
+        "state": "ENABLED",
+        "expression": "cron(40 * * * ? *)",
+        "timezone": "UTC",
+        "native_targets": 1,
+        "group": "default",
+        "target_qualifier": "live"
+      }
+    ],
+    "function_name": "justhodl-portfolio-snapshot",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512,
+    "active_alias": {
+      "alias": "live",
+      "version": "13",
+      "code_sha256": "mwNms/xd3LhH0oj1SuuRajn8vOVmjTHIGc+oNVy24nQ="
+    }
+  },
+  "required_worker_commit": "47446e46037aaa66e7b6071c6792b11da2037cfd",
+  "normal_private_publication_verified": false,
+  "publication_ordering_verified": false,
+  "predecessor_admin_runtime": {
+    "code_sha256": "vmSPyMmagL/CYlZDJaYishKe7o2k+YkHr+HYkRCcXKI=",
+    "source_files_checked": 1,
+    "handler_bytes": 29794,
+    "timeout": 30,
+    "memory_mb": 256,
+    "receipt": {
+      "status": "matched",
+      "commit": "51b4ea7a088e49c4d11754fc2451bdd06b90f3c4"
+    },
+    "schedules": [],
+    "function_name": "justhodl-portfolio-admin",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py": {
+      "bytes": 69511,
+      "sha256": "53c36489ea2c1d4c5ec0903938296889043c0ab705ffa8f30e4b5cd94383e0f9"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/source/portfolio_snapshot_publication.py": {
+      "bytes": 9334,
+      "sha256": "09b041b825e6f183dfb5ede41718ba95658700ccb4df3a97d84477243a32acea"
+    },
+    "aws/ops/staged/ops_6369_portfolio_snapshot_bytes_runtime_acceptance.py": {
+      "bytes": 5080,
+      "sha256": "6f23cce89797bb66ea3a9244fb48c6ff90476e0c7bf9c146088ddfe6ccc3d822"
+    },
+    "scripts/check_worker_prerequisite.py": {
+      "bytes": 9205,
+      "sha256": "0d6eec596011901cff691a104b84f1bbcd6fdfe90b6e3dd187b7cad204044bd4"
+    },
+    "scripts/deploy_lambdas.sh": {
+      "bytes": 21650,
+      "sha256": "67a2fe9ddba6acf9dff29c09a2a7c89a54df0ca546a27231af158050708a0510"
+    },
+    "scripts/validate_snapshot_candidate.py": {
+      "bytes": 5179,
+      "sha256": "5f7f7b6614d4ee11154e8fb0877f6e1a26e13ba320f0ced92a764c1171276ddd"
+    },
+    "aws/lambdas/justhodl-portfolio-admin/tests/run_tests.py": {
+      "bytes": 13488,
+      "sha256": "699adeb3073ea28a27fa20ea3f101d3e044efded3a9ab3c8455ff68b6a0ae0ac"
+    },
+    "tests/deployment/test_worker_prerequisite.py": {
+      "bytes": 7776,
+      "sha256": "a8e843bf5eeda2c86a733941e71031467321d104d89e32747594b66c5e139d70"
+    },
+    "tests/deployment/test_snapshot_byte_publication_runtime.py": {
+      "bytes": 4531,
+      "sha256": "adba2d7f0588cd1d7041113b4aa2cf6464f325249864b8b97e0d837ebd631d93"
+    },
+    "tests/deployment/test_portfolio_sector_runtime.py": {
+      "bytes": 5297,
+      "sha256": "b59dfec79a94b91c6f3e2a9b68f6924c5b30d37b34ad6ba32c98ed014ba92160"
+    },
+    "tests/worker-snapshot-publication.test.js": {
+      "bytes": 9622,
+      "sha256": "70b6af5559bc645ca9e90985c36a7f842dfdbd6ba46d5e9a1d7d73a7fa00ff4d"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/run_tests.py": {
+      "bytes": 1429,
+      "sha256": "529dc2a8abdcbefb3090acfcc9e3a4f8dd29fa6ebbf89713dd0509aab58f3e4b"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_accounting.py": {
+      "bytes": 11471,
+      "sha256": "19a6458b8a44149b87870fe9e72bfe23c17387033e6d7cdeebeb79d72c7aefbf"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_book_read.py": {
+      "bytes": 9938,
+      "sha256": "4ff3f7cb75a079b0eb92471a8a5deaedcc6e990e22e83d0f8b23140fc761636c"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_quote_collection.py": {
+      "bytes": 16952,
+      "sha256": "4c5fada21d693df4ddc5c8d50e165e0cc73ca0e44d885cdaa6ecb1686f6d14ae"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_quote_read.py": {
+      "bytes": 15890,
+      "sha256": "d03c5576bbfe8bdd2a91b782c54698bc4661451dd29fd28cb5a8119d13b5fc18"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_research_enrichment.py": {
+      "bytes": 16497,
+      "sha256": "36af501e098444937d584982b419bcc3a59fb631caf1dafe34e8ea5d163046b1"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_watchlist_sync.py": {
+      "bytes": 16781,
+      "sha256": "ab2587d481fd01d0c0b7f4eaeea40228d50fae98f33389098c7d66c1c85fee55"
+    },
+    "aws/lambdas/justhodl-portfolio-snapshot/tests/test_byte_publication.py": {
+      "bytes": 13763,
+      "sha256": "4e268b3181ac065855c3c262ba77e928106c9282d9453dea429b993b17133d4a"
+    }
+  },
+  "source_inventory_sha256": "a45b65698246df17a5147b96f2062d646ac619d8ed143b9309aaf48a24558ca5",
+  "changed_engine_inventory_entries": [
+    "justhodl-portfolio-snapshot"
+  ],
+  "offline_candidate": {
+    "ok": true,
+    "validation_only": true,
+    "schema_version": "audit-accounting-1.0",
+    "status": "OFFLINE_SYNTHETIC_TESTS_PASSED",
+    "artifact_size_bytes": 957922,
+    "validation_mode": "offline_snapshot_v1",
+    "native_invocations": 0,
+    "actual_private_reads": 0,
+    "provider_requests": 0,
+    "normal_private_publication_verified": false,
+    "tests": {
+      "watchlist_and_reader": 21,
+      "holdings_accounting": 15,
+      "complete_book_read": 16,
+      "previous_close_reader": 28,
+      "research_enrichment": 28,
+      "snapshot_consumer_compatibility": 15,
+      "quote_collection": 23,
+      "sector_accounting": 6,
+      "snapshot_byte_publication": 23,
+      "actual_handler_integration": 4
+    },
+    "bytes": 957922,
+    "code_sha256": "W9/ZecQdNflLbuTxT3Fh6IkF+d/8oUbxFQUaitPJCP8=",
+    "source_files_checked": 308
+  },
+  "synthetic_acceptance": {
+    "path": "tests/fixtures/snapshot-byte-publication-synthetic.json.gz",
+    "bytes": 195010,
+    "sha256": "61d29eccff51324574acd6aa42c3e1b3954cc8a4e62cc1a41ca0a1038a268f60",
+    "complete_uncompressed_bytes": 3463941,
+    "complete_cases": 6,
+    "published_cases": 5,
+    "withheld_before_both_writes": 1,
+    "measurement_values_unchanged": true
+  },
+  "allocation_measurement": {
+    "path": "tests/fixtures/snapshot-publication-allocation-synthetic.json.gz",
+    "bytes": 323587,
+    "sha256": "691e57ffc7e464bcb90b501d544bcc3a5479e4ac1315c72041c05b1d774c2102",
+    "complete_uncompressed_bytes": 4090544,
+    "cases": {
+      "escaped_text": {
+        "output_bytes": 9000069,
+        "output_sha256": "f28a512884df6a841f358b93ef0118df507e7d7316ae07a0c2738793ce8760b0",
+        "prior_measured_incremental_allocation": {
+          "incremental_python_peak_bytes": 31501652,
+          "retained_python_bytes": 18000802,
+          "elapsed_seconds": 0.03523560002213344
+        },
+        "current_measured_incremental_allocation": {
+          "incremental_python_peak_bytes": 9793295,
+          "retained_python_bytes": 9001382,
+          "elapsed_seconds": 0.023664899985305965
+        },
+        "complete_output_bytes_match_prior_digest": true
+      },
+      "numeric_records": {
+        "output_bytes": 1088970,
+        "output_sha256": "2bdff4044ec9676ea5c20cec5923ed15549a9152d60037e48ae541f8428c2543",
+        "prior_measured_incremental_allocation": {
+          "incremental_python_peak_bytes": 3567595,
+          "retained_python_bytes": 2328579,
+          "elapsed_seconds": 0.5006518000154756
+        },
+        "current_measured_incremental_allocation": {
+          "incremental_python_peak_bytes": 1204291,
+          "retained_python_bytes": 1090291,
+          "elapsed_seconds": 0.7919356999918818
+        },
+        "complete_output_bytes_match_prior_digest": true
+      }
+    },
+    "scope": "Current reviewed serializer and complete invented inputs. Earlier baseline measured before source changes; no archived source was executed. Tracemalloc records incremental Python allocation, not native total RSS, Lambda memory or a performance guarantee. Each case is one local observation."
+  },
+  "tests": {
+    "snapshot_byte_publication_focused": 23,
+    "snapshot_unit": 175,
+    "snapshot_handler": 4,
+    "admin_unit": 55,
+    "admin_existing": 8,
+    "risk_unit": 96,
+    "risk_handler": 10,
+    "scenario": 24,
+    "frontend": 2106,
+    "deployment_static": 831,
+    "deployment_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "checks": {
+    "frontend": "fccfa505259c6b0e1ae8087c5ecef905f4cb6f2bac3fcf94d116ccad8586a1a9",
+    "deployment": "848cb4a6b432c668753b51c1c8e3388eee24d2cbc733f8c0356b14f163886972",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "justhodl-portfolio-snapshot": "7885b24d1a5992fa7d7c5ff0a32f076c7d6bd7a0c60f720dd1daf71f01c9fa78",
+    "justhodl-portfolio-admin": "ed28f555f7cff863b5b93c414487e798f29caed41fcf80ab892fe4230eccc690",
+    "justhodl-portfolio-risk": "f61666411ec8a750c700669b52d7999b9fc10fe15003f09aefe36b418a7161c1",
+    "justhodl-position-sizer": "1f019cb2d07059a06fe353a2b7122986ade1c43e7681c6998f4d39fbef49c803"
+  },
+  "whole_native_memory_verified": false
+}

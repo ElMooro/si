@@ -157,7 +157,7 @@ class QuoteCollectionTests(unittest.TestCase):
         self.mod.sync_auto_watchlist=lambda _:{'added_S':[],'added_A':[],'removed_S':[],'removed_A':[]}
         positions=[{'symbol':'AAA','qty':10,'cost_basis_per_share':100}];watch=[{'symbol':'BBB','source':'MANUAL'},{'symbol':'AAA','source':'MANUAL'}]
         self.mod.query_pk=lambda pk:copy.deepcopy(positions if pk=='POSITION' else watch);writes=[]
-        self.mod.publish_private=lambda kind,payload:writes.append(copy.deepcopy(payload));self.mod.s3.put_object=lambda **kw:None
+        self.mod.publish_snapshot=lambda body,identity,context=None:writes.append(json.loads(body));self.mod.s3.put_object=lambda **kw:None
         with patch.object(self.mod.urllib.request,'build_opener') as opener,contextlib.redirect_stdout(io.StringIO()):result=self.mod.lambda_handler({},types.SimpleNamespace(get_remaining_time_in_millis=lambda:1))
         opener.assert_not_called();self.assertEqual(result['statusCode'],200);payload=writes[0]
         self.assertEqual(len(payload['positions']),1);self.assertEqual(len(payload['watchlist']),2);self.assertEqual(set(payload['accounting']['source_prices']),{'AAA','BBB'});self.assertEqual(payload['accounting']['quote_collection']['unattempted_count'],2);self.assertIsNone(payload['positions'][0]['market_value']);self.assertFalse(payload['capital_book']['allows_new_entries'])

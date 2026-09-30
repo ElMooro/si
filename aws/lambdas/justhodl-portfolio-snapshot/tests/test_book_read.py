@@ -88,7 +88,7 @@ class BookReads(unittest.TestCase):
         def marks(symbols,**kwargs):
             self.prices.append(list(symbols));return {s:{'price':110,'as_of_unix_ms':int(datetime.now(timezone.utc).timestamp()*1000)} for s in symbols}
         self.mod.batch_fetch_prices=marks
-        self.mod.publish_private=lambda kind,payload:self.writes.append(('private',copy.deepcopy(payload)))
+        self.mod.publish_snapshot=lambda body,identity,context=None:self.writes.append(('private',json.loads(body)))
         self.mod.s3.put_object=lambda **kw:self.writes.append(('s3',copy.deepcopy(kw)))
         return self.mod.lambda_handler({},None)
     def test_invalid_private_book_prevents_marks_and_both_publications(self):

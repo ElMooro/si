@@ -229,7 +229,7 @@ class SourceReaderTests(unittest.TestCase):
         mod=load_current();table=Table();before=copy.deepcopy(table.items);mod.table=table;mod.ddb_client=table
         mod.s3.get_object=lambda **kw:(_ for _ in ()).throw(IOError('invented failure'))
         mod.query_pk=lambda pk:[] if pk=='POSITION' else list(table.items.values())
-        mod.batch_fetch_prices=lambda symbols,**kwargs:{};published=[];mod.publish_private=lambda kind,doc:published.append(doc);mod.s3.put_object=lambda **kw:None
+        mod.batch_fetch_prices=lambda symbols,**kwargs:{};published=[];mod.publish_snapshot=lambda body,identity,context=None:published.append(json.loads(body));mod.s3.put_object=lambda **kw:None
         result=mod.lambda_handler({},None)
         self.assertEqual(result['statusCode'],200);self.assertEqual(table.items,before);self.assertEqual(table.writes,[])
         self.assertEqual(published[0]['watchlist_sync']['status'],'SKIPPED_INVALID_SOURCE');self.assertEqual(len(published[0]['watchlist']),2)
