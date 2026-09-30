@@ -229,6 +229,83 @@ def enrich_figi(by_ticker, limit=2500):
                                   and r.get("figi_status") != "no_match")}
 
 
+# ── ops 9/10: bond-CUSIP enrichment (OpenFIGI ID_CUSIP bridge) ──────────
+BOND_CUSIP_QUEUE_KEY = "data/_state/bond-cusip-queue.json"
+BOND_CUSIP_MASTER_KEY = "data/symbology/bond-cusips.json"
+
+
+def enrich_bond_cusips(limit=100):
+    """Resolve pending bond CUSIPs via OpenFIGI ID_CUSIP mapping (9/10).
+
+    Reads the pending queue from data/_state/bond-cusip-queue.json (a JSON
+    list of 9-char CUSIP strings; absent/malformed queue is a graceful
+    no-op), resolves up to `limit` new CUSIPs per run through the shared
+    openfigi.cusip_to_security helper, and merges results into
+    data/symbology/bond-cusips.json with carry-forward of previously
+    resolved entries.
+
+    Unresolvable CUSIPs are recorded as {"no_match": True} — explicit,
+    never invented. Fail-soft: any failure returns stats with an error
+    note and never touches the existing equity symbology logic.
+    """
+    stats = {"resolved": 0, "no_match": 0, "errors": 0, "remaining": 0}
+    try:
+        import openfigi
+    except Exception as e:
+        stats["error"] = (f"openfigi module unavailable: "
+                          f"{type(e).__name__}")
+        return stats
+    try:
+        raw_q = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=BOND_CUSIP_QUEUE_KEY)["Body"].read())
+    except Exception:
+        return {**stats, "note": "no queue file"}
+    if not isinstance(raw_q, list):
+        return {**stats, "note": "queue malformed"}
+    seen = set()
+    queue = []
+    for c in raw_q:
+        cu = str(c).upper().strip() if isinstance(c, str) else ""
+        if len(cu) == 9 and cu not in seen:
+            seen.add(cu)
+            queue.append(cu)
+    try:
+        prior_doc = json.loads(s3.get_object(
+            Bucket=BUCKET, Key=BOND_CUSIP_MASTER_KEY)["Body"].read())
+        prior = prior_doc.get("by_cusip") or {}
+    except Exception:
+        prior = {}
+    if not isinstance(prior, dict):
+        prior = {}
+    by_cusip = dict(prior)
+    todo = [c for c in queue if c not in by_cusip][:limit]
+    for c in todo:
+        try:
+            hit = openfigi.cusip_to_security(c)
+        except Exception as e:
+            stats["errors"] += 1
+            print("bond cusip err:", c, str(e)[:60])
+            continue
+        if hit:
+            by_cusip[c] = hit
+            stats["resolved"] += 1
+        else:
+            by_cusip[c] = {"no_match": True}
+            stats["no_match"] += 1
+        time.sleep(0.35)
+    doc = {"generated_at": datetime.now(timezone.utc).isoformat(
+               timespec="seconds"),
+           "schema_version": "1.0",
+           "n_cusips": len(by_cusip),
+           "by_cusip": by_cusip}
+    s3.put_object(Bucket=BUCKET, Key=BOND_CUSIP_MASTER_KEY,
+                  Body=json.dumps(doc, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    stats["remaining"] = len([c for c in queue if c not in by_cusip])
+    stats["n_cusips"] = len(by_cusip)
+    return stats
+
+
 def lambda_handler(event, context):
     url = "https://www.sec.gov/files/company_tickers.json"
     req = urllib.request.Request(url, headers={
@@ -264,6 +341,7 @@ def lambda_handler(event, context):
         pass
     figi_stats = enrich_figi(by_ticker)
     cusip_stats = enrich_cusip_chain(by_ticker)
+    bond_cusip_stats = enrich_bond_cusips()
     n = len(by_ticker)
     doc = {"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "spec": "E1 v1 — SEC spine; OpenFIGI/CUSIP enrichment in later "
@@ -274,7 +352,7 @@ def lambda_handler(event, context):
                "note": "320k includes global+delisted+funds; SEC registrants "
                        "are the US-listed operating spine"},
            "enrichment_status": {"cik": "complete", "cusip_chain": cusip_stats, "figi": figi_stats, "isin": "pending",
-                                 "sedol": "pending"},
+                                 "sedol": "pending", "bond_cusips": bond_cusip_stats},
            "by_ticker": by_ticker}
     s3.put_object(Bucket=BUCKET, Key="data/symbology/master.json",
                   Body=json.dumps(doc, default=str).encode(),
