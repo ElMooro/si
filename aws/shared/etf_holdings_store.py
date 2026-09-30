@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from datetime import datetime, timezone
 from pathlib import Path
-import json, re, sys, time
+import json, os, re, sys, time
 import etf_holdings_native as native
 import etf_holdings_model as model
 import etf_holdings_collect as collector
@@ -374,8 +374,11 @@ def run(client, bucket, kind, request_id, execution_id, credential='', remaining
             collections, requests, source_bytes = acquisition.collect()
             inputs = {'contract': 'etf-holdings-inputs.v1', 'kind': kind, 'generated_at': now(),
                 'query_date': acquisition.query_date, 'contexts': contexts, 'collections': collections,
-                'ownership_summary_policy': model.OWNERSHIP_POLICY,
                 'provider_requests': requests, 'original_provider_bytes': source_bytes, 'previous': previous}
+            # Acquisition-only publication brake; retained/recovery inputs are never rewritten.
+            # Only the exact configured string enables new summaries; absent/malformed is off.
+            if os.environ.get('ETF_OWNERSHIP_SUMMARY_ENABLED') == 'true':
+                inputs['ownership_summary_policy'] = model.OWNERSHIP_POLICY
         else:
             canonical = snapshot(client, bucket, model.CURRENT, read)
             try: previous = snapshot(client, bucket, model.LOOK_CURRENT, read)

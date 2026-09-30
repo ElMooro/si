@@ -87,3 +87,15 @@ test('32-page request ceiling spans cohorts; cache hits do not spend or reset it
  s.select(other.cohort_id);const fresh=await s.next('raw',counted,time(f.p));assert.equal(fresh.requests,1);assert.equal(calls,1);
  s.select(other.cohort_id);assert.equal((await s.next('raw',counted,time(f.p))).requests,1);assert.equal(calls,1);
 });
+test('reviewed PR14 UI-only downgrade verifies new publications and keeps selected-fund inspectors',async()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto');
+ const source=fs.readFileSync(__dirname+'/fixtures/pr14-holdings-ui-rollback.js.txt','utf8');
+ assert.equal(crypto.createHash('sha256').update(source).digest('hex'),'a562a1d9fa6352b8c8b918a677d76f924fb6eb7511a302141e7ac3c18254c69b');
+ const ctx={crypto:globalThis.crypto,TextEncoder,TextDecoder,AbortController,DOMException,module:{exports:{}}};
+ vm.runInNewContext(source,ctx);const old=ctx.module.exports,f=fixture();
+ for(const p of Object.values(f.packets)){
+  await old.verifyPacket(p,f.fetcher);const snap=await old.snapshot(p,'SPY','current',f.fetcher);
+  assert.equal(snap.indexed_rows,306);const html=old.render(p);
+  assert.match(html,/data-hd-heat-load/);assert.doesNotMatch(html,/data-hd-ownership/);
+ }
+});

@@ -139,6 +139,86 @@ class Replay(unittest.TestCase):
         ref=store.retain(db,'fixture',i,out,read)
         return db,i,out,ref
 
+    def test_acquisition_brake_transition_replays_both_versions_and_consumers(self):
+        import os
+        import test_etf_desk_store as ds
+        with mock.patch.object(desk.catalog,'DESK',('SPY','VOO','BND')),mock.patch.dict(model.catalog.ETF_UNIVERSE,{'SPY':{'category':'broad'},'VOO':{'category':'broad'}},clear=True):
+            db,di=ds.fixture();legacy=json.loads(db.objects[model.CURRENT])
+            run=json.loads(db.objects[legacy['replay']['manifest_key']]);hi=json.loads(db.objects[run['input']['key']])
+            fake=mock.Mock();fake.query_date=hi['query_date'];fake.collect.return_value=(hi['collections'],hi['provider_requests'],hi['original_provider_bytes'])
+            retained=[legacy];results=[];digests=[]
+            with mock.patch.object(store.collector,'Collector',return_value=fake):
+                for number,value in enumerate(('true','false','true'),1):
+                    stamp='2026-09-21T10:0%d:00+00:00'%number
+                    with mock.patch.dict(os.environ,{'ETF_OWNERSHIP_SUMMARY_ENABLED':value}),mock.patch.object(store,'now',return_value=stamp):
+                        result=store.run(db,'fixture','holdings','brake-'+str(number),'exec-'+str(number))
+                        self.assertTrue(result['published']);packet=json.loads(db.objects[model.CURRENT]);retained.append(packet);results.append(result)
+                        saved=dict(db.objects)
+                        repeated=store.run(db,'fixture','holdings','brake-'+str(number),'repeat')
+                        self.assertEqual(repeated,result);self.assertEqual(db.objects,saved)
+                        inputs=json.loads(db.objects[result['retained_input']['key']])
+                        self.assertEqual('ownership_summary_policy' in inputs,value=='true')
+                        self.assertEqual('ownership_summary' in packet,value=='true')
+                        if value=='true':digests.append(packet['ownership_summary']['manifest']['sha256'])
+                        # Immutable output bytes reconstructed under either current switch state.
+                        for prior in retained:
+                            expected={k:v for k,v in prior.items() if k!='replay'}
+                            self.assertEqual(model.encoded(store.replay(prior['replay'],store.reader(db,'fixture'))),model.encoded(expected))
+                        look=store.run(db,'fixture','lookthrough','look-'+str(number),'look-exec')
+                        self.assertTrue(look['published'])
+                        looked=json.loads(db.objects[model.LOOK_CURRENT]);self.assertEqual('ownership_summary' in looked,value=='true')
+                        self.assertEqual(store.replay(looked['replay'],store.reader(db,'fixture')),{k:v for k,v in looked.items() if k!='replay'})
+                        current_di=copy.deepcopy(di);current_di['generated_at']=stamp
+                        current_di['canonical_holdings']=desk.snapshot(db,'fixture',model.CURRENT,desk.reader(db,'fixture'))
+                        dp=ds.RetainedDesk().native(db,current_di)
+                        self.assertEqual(desk.replay(dp['replay'],desk.reader(db,'fixture')),{k:v for k,v in dp.items() if k!='replay'})
+                        if value=='false':
+                            self.assertEqual(store.run(db,'fixture','holdings','brake-1','retry-under-disabled'),results[0])
+                            # Recovery uses retained policy even while new acquisition generation is off.
+                            recovered=store.run(db,'fixture','holdings','recover-summary-disabled','recover-exec',recover_run=retained[1]['replay'])
+                            self.assertEqual(recovered['replay']['output_sha256'],retained[1]['replay']['output_sha256'])
+                            self.assertEqual(db.objects[model.CURRENT],model.encoded(packet))
+            self.assertEqual(fake.collect.call_count,3)
+            self.assertEqual(len(digests),2)
+            self.assertTrue(all(r['provider_requests']==hi['provider_requests'] for r in results))
+
+    def test_absent_or_malformed_brake_omits_only_new_summary_policy(self):
+        import os
+        for value in (None,'','false','TRUE','1',' true ','unexpected'):
+            db,inputs=fixture();fake=mock.Mock();fake.query_date=inputs['query_date']
+            fake.collect.return_value=(inputs['collections'],inputs['provider_requests'],inputs['original_provider_bytes'])
+            with mock.patch.dict(os.environ,{},clear=True),mock.patch.object(store.collector,'Collector',return_value=fake),mock.patch.object(store,'now',return_value=GENERATED):
+                if value is not None:os.environ['ETF_OWNERSHIP_SUMMARY_ENABLED']=value
+                result=store.run(db,'fixture','holdings','off','off-exec')
+                self.assertTrue(result['published'])
+                packet=json.loads(db.objects[model.CURRENT]);self.assertNotIn('ownership_summary',packet)
+                retained=json.loads(db.objects[result['retained_input']['key']]);self.assertNotIn('ownership_summary_policy',retained)
+                self.assertEqual(packet['funds']['SPY']['current']['quality']['status'],'complete_returned_snapshot')
+                self.assertEqual(fake.collect.call_count,1)
+                self.assertEqual(store.replay(packet['replay'],store.reader(db,'fixture')),{k:v for k,v in packet.items() if k!='replay'})
+
+    def test_config_only_brake_deploy_selects_canonical_and_preserves_compiler_bytes(self):
+        import os,subprocess
+        sys.path.insert(0,str(ROOT/'scripts'))
+        from lambda_config_environment import config_environment
+        from normalize_lambda_config import normalize_config
+        from shared_dependents import dependents
+        relative='aws/lambdas/justhodl-etf-constituents/config.json'
+        config=json.loads((ROOT/relative).read_bytes());self.assertEqual(config['environment']['ETF_OWNERSHIP_SUMMARY_ENABLED'],'true')
+        before={p.name:p.read_bytes() for p in (ROOT/'aws/shared').glob('etf_holdings_*.py')}
+        off=copy.deepcopy(config);off['environment']['ETF_OWNERSHIP_SUMMARY_ENABLED']='false'
+        for value,cfg in [('true',config),('false',off)]:
+            resolved=config_environment(normalize_config(cfg),lambda name:{'FMP_KEY':'synthetic-fmp','POLYGON_KEY':'synthetic-polygon','ETF_OWNERSHIP_SUMMARY_ENABLED':'must-not-inherit'})
+            self.assertEqual(resolved['ETF_OWNERSHIP_SUMMARY_ENABLED'],value)
+            self.assertEqual(resolved['POLYGON_KEY'],'synthetic-polygon')
+        self.assertEqual({k:v for k,v in off.items() if k!='environment'},{k:v for k,v in config.items() if k!='environment'})
+        workflow=(ROOT/'.github/workflows/deploy-lambdas.yml').read_text()
+        command=next(line.strip() for line in workflow.splitlines() if line.strip().startswith('targets=$(echo "$changed"'))
+        selected=subprocess.check_output(['bash','-c',command+'\nprintf "%s" "$targets"'],env={**os.environ,'changed':relative},text=True)
+        self.assertEqual(selected,'justhodl-etf-constituents')
+        self.assertEqual(dependents(ROOT,['aws/shared/etf_holdings_store.py']),['justhodl-etf-constituents','justhodl-etf-global-desk','justhodl-flow-lookthrough'])
+        self.assertEqual(before,{p.name:p.read_bytes() for p in (ROOT/'aws/shared').glob('etf_holdings_*.py')})
+
     def test_old_input_golden_replays_without_executing_retained_compilers(self):
         f=json.loads(gzip.decompress((ROOT/'tests/fixtures/holdings-summary-predecessor-synthetic.json.gz').read_bytes()))
         db=Storage();db.objects={k:v.encode() for k,v in f['objects'].items()}

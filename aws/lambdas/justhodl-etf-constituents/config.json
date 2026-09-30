@@ -25,5 +25,8 @@
     "expression": "cron(45 22 * * ? *)",
     "name": "justhodl-etf-constituents-daily",
     "description": "17:45 ET daily \u2014 45min after flow engine, after macro regime, after AI strategist"
+  },
+  "environment": {
+    "ETF_OWNERSHIP_SUMMARY_ENABLED": "true"
   }
 }
