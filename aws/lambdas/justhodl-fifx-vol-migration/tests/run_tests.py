@@ -26,7 +26,7 @@ class Store:
     def get_object(self,**kw):
         if kw['Key'] not in self.objects:raise Missing()
         raw=self.objects[kw['Key']]
-        return {'Body':io.BytesIO(raw),'ETag':hashlib.sha256(raw).hexdigest()}
+        return {'Body':io.BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
     def put_object(self,**kw):
         self.puts.append(kw);old=self.objects.get(kw['Key'])
         if kw.get('IfNoneMatch')=='*' and old is not None:raise Conflict()
@@ -271,4 +271,9 @@ class Tests(unittest.TestCase):
         self.assertEqual(config['memory'],2048);self.assertEqual(config['timeout'],900)
         self.assertEqual((SOURCE.parent/'tests/legacy_lambda_function.py.txt').stat().st_size,19283)
 
-if __name__=='__main__':unittest.main(verbosity=2)
+if __name__=='__main__':
+    import test_fifx_transport
+    suite=unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(Tests),
+                             unittest.defaultTestLoader.loadTestsFromModule(test_fifx_transport)])
+    result=unittest.TextTestRunner(verbosity=2).run(suite)
+    raise SystemExit(not result.wasSuccessful())

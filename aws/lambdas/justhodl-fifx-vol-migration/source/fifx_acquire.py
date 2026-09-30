@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import time
-import hashlib, urllib.parse, urllib.request, urllib.error
+import hashlib, re, urllib.parse, urllib.request, urllib.error
 import fifx_catalog as catalog
 
 MAX=8*1024*1024
@@ -27,17 +27,52 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
 
 
+def complete(stream, limit=MAX, *, expected_length=None):
+    """Read the whole binary response, including fragmented transports."""
+    try:
+        if type(limit) is not int or limit<=0:raise ValueError('Positive whole-byte bound required')
+        if expected_length is not None and (type(expected_length) is not int or not 0<expected_length<=limit):
+            raise ValueError('Complete declared artifact length required')
+        chunks=[];size=0
+        while True:
+            requested=min(1024*1024,limit+1-size)
+            chunk=stream.read(requested)
+            if type(chunk) is not bytes or len(chunk)>requested:raise ValueError('Exact binary response fragment required')
+            if not chunk:break
+            size+=len(chunk)
+            if size>limit:raise ValueError('Complete original exceeds reviewed byte bound')
+            chunks.append(chunk)
+        if not size or expected_length is not None and size!=expected_length:
+            raise ValueError('Complete original differs from declared length')
+        return b''.join(chunks)
+    finally:stream.close()
+
+
 def acquire(url,timeout=20):
-    if not 0<timeout<=20:raise ValueError('Bounded source timeout required')
-    request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (JustHodl original-source research)','Accept':'application/json,text/csv'})
+    if type(timeout) not in (int,float) or not 0<timeout<=20:raise ValueError('Bounded source timeout required')
+    request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (JustHodl original-source research)',
+        'Accept':'application/json,text/csv','Accept-Encoding':'identity'})
     opener=urllib.request.build_opener(NoRedirect)
     try:response=opener.open(request,timeout=timeout)
     except urllib.error.HTTPError as error:response=error
+    handed_to_reader=False
     try:
-        raw=response.read(MAX+1);status=response.code
+        status=response.code
+        if type(status) is not int or not 200<=status<=599 or status==206 or response.geturl()!=url:
+            raise ValueError('Exact original request and complete response status required')
+        if response.headers.get('Content-Range') is not None or response.headers.get('Content-Encoding','identity').strip().lower() not in ('','identity'):
+            raise ValueError('Whole unencoded original response required')
+        lengths=response.headers.get_all('Content-Length') if hasattr(response.headers,'get_all') else (
+            [response.headers['Content-Length']] if 'Content-Length' in response.headers else [])
+        lengths=lengths or []
+        if len(lengths)>1 or lengths and (type(lengths[0]) is not str or not re.fullmatch(r'[0-9]+',lengths[0])):
+            raise ValueError('One exact original Content-Length required')
+        expected=int(lengths[0]) if lengths else None
         headers={k:v for k,v in response.headers.items() if k.lower() in ('date','etag','last-modified','content-type')}
-    finally:response.close()
-    if not 0<len(raw)<=MAX:raise ValueError('Complete bounded original required')
+        handed_to_reader=True
+        raw=complete(response,expected_length=expected)
+    finally:
+        if not handed_to_reader:response.close()
     return raw,{'source_url':url,'http_status':status,'headers':headers,'acquired_at':datetime.now(timezone.utc).isoformat(),
         'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
 

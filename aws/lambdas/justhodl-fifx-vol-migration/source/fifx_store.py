@@ -43,11 +43,15 @@ def same_json(left,right):
     return model.encoded(left)==model.encoded(right)
 
 
-def bounded(stream,limit=MAX):
-    try:raw=stream.read(limit+1)
-    finally:stream.close()
-    if not 0<len(raw)<=limit:raise ValueError('Complete bounded artifact required')
-    return raw
+def bounded(stream,limit=MAX,*,expected_length=None):
+    return acquisition.complete(stream,limit=limit,expected_length=expected_length)
+
+
+def stored(response):
+    body=response['Body'];length=response.get('ContentLength')
+    if type(length) is not int or not 0<length<=MAX:
+        body.close();raise ValueError('Exact S3 ContentLength required')
+    return bounded(body,expected_length=length)
 
 
 def qualified_arithmetic():
@@ -65,7 +69,7 @@ def allowed(key):
 def reader(client,bucket):
     def read(key):
         if not allowed(key):raise ValueError('Unreviewed source artifact path')
-        raw=bounded(client.get_object(Bucket=bucket,Key=key)['Body'])
+        raw=stored(client.get_object(Bucket=bucket,Key=key))
         return bounded(gzip.GzipFile(fileobj=io.BytesIO(raw))) if key.endswith('.gz') else raw
     return read
 
@@ -81,7 +85,7 @@ def retain_bytes(client,bucket,raw,category,extension='json',private=False):
             CacheControl='no-store' if private else 'public, max-age=31536000, immutable')
     except Exception as exc:
         if not conflict(exc):raise
-    if bounded(client.get_object(Bucket=bucket,Key=key)['Body'])!=raw:raise ValueError('Retained artifact differs')
+    if stored(client.get_object(Bucket=bucket,Key=key))!=raw:raise ValueError('Retained artifact differs')
     return {'key':key,'sha256':sha(raw),'bytes':len(raw)}
 
 
@@ -123,7 +127,12 @@ def replay(packet,read):
     qualified_arithmetic();run=binding(packet,read)
     if set(run['compilers'])!={m.__name__ for m in COMPILERS}:raise ValueError('Complete native compiler closure required')
     for module in COMPILERS:
-        if checked(run['compilers'][module.__name__],'compilers',read,'py')!=Path(module.__file__).read_bytes():
+        archived=checked(run['compilers'][module.__name__],'compilers',read,'py')
+        # Only these exact transport predecessors may replay under current code.
+        # Every mathematical compiler remains exact; archived code never runs.
+        prior_transport={'fifx_store':'46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7',
+                         'fifx_acquire':'810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec'}
+        if archived!=Path(module.__file__).read_bytes() and sha(archived)!=prior_transport.get(module.__name__):
             raise ValueError('Reviewed compiler bytes differ')
     inputs=checked(run['input'],'inputs',read)
     if inputs.get('contract')!='fifx-vol-inputs.v1' or set(inputs['sources'])!=set(catalog.SOURCES) or set(run['series'])!=set(catalog.SOURCES):
@@ -161,7 +170,7 @@ def retain(client,bucket,inputs):
 
 
 def previous_state(client,bucket):
-    raw=bounded(client.get_object(Bucket=bucket,Key=model.CURRENT)['Body'])
+    raw=stored(client.get_object(Bucket=bucket,Key=model.CURRENT))
     current=retain_bytes(client,bucket,raw,'snapshots',private=True)
     try:packet=strict(raw)
     except (ValueError,UnicodeError):packet={}
@@ -169,7 +178,7 @@ def previous_state(client,bucket):
     if packet.get('contract')==model.CONTRACT:
         binding(packet,reader(client,bucket))
         return packet['predecessors'],model.watermarks(packet)
-    history=bounded(client.get_object(Bucket=bucket,Key=model.HISTORY)['Body'])
+    history=stored(client.get_object(Bucket=bucket,Key=model.HISTORY))
     return {'packet':current,'history':retain_bytes(client,bucket,history,'snapshots',private=True)},model.empty_watermarks()
 
 
@@ -200,7 +209,7 @@ def publish(client,bucket,packet,key=model.CURRENT):
         raise ValueError('Complete research-only packet required')
     binding(packet,reader(client,bucket));stamp=model.clock(packet['generated_at']);marks=model.watermarks(packet)
     for _ in range(4):
-        obj=client.get_object(Bucket=bucket,Key=key);raw=bounded(obj['Body'])
+        obj=client.get_object(Bucket=bucket,Key=key);raw=stored(obj)
         try:old=strict(raw)
         except (ValueError,UnicodeError):old={}
         if not isinstance(old,dict):old={}
@@ -240,7 +249,7 @@ def run(client,bucket,request_id):
     def journal(claim=False):
         raw=model.encoded(progress)
         client.put_object(Bucket=bucket,Key=key,Body=raw,ContentType='application/json',CacheControl='no-store',**({'IfNoneMatch':'*'} if claim else {}))
-        if bounded(client.get_object(Bucket=bucket,Key=key)['Body'])!=raw:raise ValueError('Native claim differs')
+        if stored(client.get_object(Bucket=bucket,Key=key))!=raw:raise ValueError('Native claim differs')
     def save(raw,receipt):
         return {'original':retain_bytes(client,bucket,raw,'originals','bin') if raw is not None else None,
                 'receipt':retain_bytes(client,bucket,model.encoded(receipt),'receipts') if receipt is not None else None}

@@ -1,0 +1,334 @@
+{
+  "schema": "fifx-complete-transport.v1",
+  "prepared_at": "2026-09-30T19:27:17.998241+00:00",
+  "base_commit": "b73a93a6c73a12f3cb98cf0ca74608979656214c",
+  "reproduction": {
+    "whole_invented_original_hex": "6f62736572766174696f6e5f646174652c44475331300a323032362d30392d32342c342e30310a323032362d30392d32352c342e30320a",
+    "complete_bytes": 55,
+    "stored_returned_bytes": 7,
+    "http_returned_bytes": 7,
+    "http_declared_bytes": 55,
+    "receipt_bytes": 7,
+    "stored_closed": 1,
+    "http_closed": 1,
+    "source": {
+      "fifx_store.py": {
+        "bytes": 17163,
+        "sha256": "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7"
+      },
+      "fifx_acquire.py": {
+        "bytes": 4747,
+        "sha256": "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec"
+      }
+    }
+  },
+  "whole_predecessors": {
+    "fifx_store.py": {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/pre_complete_transport_fifx_store.py.txt",
+      "bytes": 17163,
+      "sha256": "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7"
+    },
+    "fifx_acquire.py": {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/pre_complete_transport_fifx_acquire.py.txt",
+      "bytes": 4747,
+      "sha256": "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec"
+    },
+    "run_tests.py": {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/pre_complete_transport_run_tests.py.txt",
+      "bytes": 18446,
+      "sha256": "cc4f6ca23ea78c65cead2fce2a37f860a921e3b815466fe689484c8a4250036e"
+    }
+  },
+  "source": [
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_store.py",
+      "bytes": 17774,
+      "sha256": "5a77b910409bc0b8f90458a9ba7003bf3658a9d5fe5a2a4bdc5db3b3f3ebb27b"
+    },
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_acquire.py",
+      "bytes": 6857,
+      "sha256": "6cec54424d8a64b9d1462ec7d99cc37ae06060820eca56e193cd4ddcc115f1a6"
+    },
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/run_tests.py",
+      "bytes": 18770,
+      "sha256": "dbae46ab86e45f785e9a85003f90cd13fb1af6f578f13ddafde60eecc25e94d8"
+    },
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/test_fifx_transport.py",
+      "bytes": 9972,
+      "sha256": "e2294ab6dcbee12528290b12b481218e37aca7db226645e515a1142906769126"
+    },
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/pre_complete_transport_fifx_store.py.txt",
+      "bytes": 17163,
+      "sha256": "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7"
+    },
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/pre_complete_transport_fifx_acquire.py.txt",
+      "bytes": 4747,
+      "sha256": "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec"
+    },
+    {
+      "path": "aws/lambdas/justhodl-fifx-vol-migration/tests/pre_complete_transport_run_tests.py.txt",
+      "bytes": 18446,
+      "sha256": "cc4f6ca23ea78c65cead2fce2a37f860a921e3b815466fe689484c8a4250036e"
+    },
+    {
+      "path": "aws/ops/staged/ops_6379_fifx_transport_acceptance.py",
+      "bytes": 4385,
+      "sha256": "4da486a0c7706d98c7f3bc51d3dd77c55e23456edcbe633b74a2796375427540"
+    },
+    {
+      "path": "tests/deployment/test_fifx_transport_operation.py",
+      "bytes": 2311,
+      "sha256": "b8506d4483fb14234b177a9471db2b8eba041e483e788d92860ec0d6b16a252e"
+    }
+  ],
+  "tests": {
+    "native": 32,
+    "new_transport": 10,
+    "whole_archive_and_operation": 13,
+    "deployment": 926,
+    "candidate_shell": 15,
+    "ops_preflight": "pass",
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "independent_whole_invented_candidate_replay": {
+    "complete_transport_pass": true,
+    "declared_length_and_partial_response_fail_closed": true,
+    "whole_old_archive_replays": [
+      {
+        "generated_at": "2026-09-26T07:00:00+00:00",
+        "sources": 18,
+        "original_rows": 714
+      },
+      {
+        "generated_at": "2026-09-26T08:00:00+00:00",
+        "sources": 18,
+        "original_rows": 714
+      }
+    ],
+    "candidate_source": {
+      "fifx_store.py": "5a77b910409bc0b8f90458a9ba7003bf3658a9d5fe5a2a4bdc5db3b3f3ebb27b",
+      "fifx_acquire.py": "6cec54424d8a64b9d1462ec7d99cc37ae06060820eca56e193cd4ddcc115f1a6"
+    },
+    "checkout_unchanged": true,
+    "deployed": false
+  },
+  "acceptance": {
+    "status": "pending_native_deploy_and_read_only_runner",
+    "operation": 6379,
+    "new_release_publication_verified": false
+  },
+  "generated_metadata_changes": {
+    "engine-manifest.json": [
+      [
+        "/engines/356/unresolved_writes/4/line",
+        79,
+        83
+      ],
+      [
+        "/engines/356/write_evidence/audit-private/20260909-originals/fifx-vol-research/requests/*.json/0/line",
+        242,
+        251
+      ],
+      [
+        "/engines/356/write_evidence/audit-private/20260909-originals/fifx-vol-research/requests/*.json/0/via/2/line",
+        268,
+        277
+      ],
+      [
+        "/engines/356/write_evidence/audit-private/20260909-originals/fifx-vol-research/requests/*.json/1/line",
+        242,
+        251
+      ],
+      [
+        "/engines/356/write_evidence/data/fifx-vol-history.json/0/line",
+        226,
+        235
+      ],
+      [
+        "/engines/356/write_evidence/data/fifx-vol-history.json/0/via/2/line",
+        276,
+        285
+      ],
+      [
+        "/engines/356/write_evidence/data/fifx-vol.json/0/line",
+        226,
+        235
+      ],
+      [
+        "/engines/356/write_evidence/data/fifx-vol.json/0/via/2/line",
+        275,
+        284
+      ],
+      [
+        "/generated_at",
+        "2026-09-30T19:06:33.483642+00:00",
+        "2026-09-30T19:30:06.422696+00:00"
+      ]
+    ],
+    "config/page-data-contracts.json": [
+      [
+        "/engines/justhodl-fifx-vol-migration/outputs/0/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/engines/justhodl-fifx-vol-migration/outputs/0/ownership_evidence/0/via/2/line",
+        276,
+        285
+      ],
+      [
+        "/engines/justhodl-fifx-vol-migration/outputs/1/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/engines/justhodl-fifx-vol-migration/outputs/1/ownership_evidence/0/via/2/line",
+        275,
+        284
+      ],
+      [
+        "/pages/bond-desk.html/outputs/3/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/bond-desk.html/outputs/3/ownership_evidence/0/via/2/line",
+        276,
+        285
+      ],
+      [
+        "/pages/bond-desk.html/outputs/4/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/bond-desk.html/outputs/4/ownership_evidence/0/via/2/line",
+        275,
+        284
+      ],
+      [
+        "/pages/fifx-vol.html/outputs/0/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/fifx-vol.html/outputs/0/ownership_evidence/0/via/2/line",
+        276,
+        285
+      ],
+      [
+        "/pages/fifx-vol.html/outputs/1/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/fifx-vol.html/outputs/1/ownership_evidence/0/via/2/line",
+        275,
+        284
+      ],
+      [
+        "/pages/ici-flows.html/outputs/1/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/ici-flows.html/outputs/1/ownership_evidence/0/via/2/line",
+        276,
+        285
+      ],
+      [
+        "/pages/ici-flows.html/outputs/2/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/ici-flows.html/outputs/2/ownership_evidence/0/via/2/line",
+        275,
+        284
+      ],
+      [
+        "/pages/index.html/repository_assets/2/sha256",
+        "197d2292680e41ae3357cf951a859f924400b4af834b7f44004974d1c8054725",
+        "d9efb4299b3bec6b16e8ac3197edda84a816cb42fda7521792b4877170c212e4"
+      ],
+      [
+        "/pages/signal-board.html/outputs/0/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/signal-board.html/outputs/0/ownership_evidence/0/via/2/line",
+        276,
+        285
+      ],
+      [
+        "/pages/signal-board.html/outputs/1/ownership_evidence/0/line",
+        226,
+        235
+      ],
+      [
+        "/pages/signal-board.html/outputs/1/ownership_evidence/0/via/2/line",
+        275,
+        284
+      ],
+      [
+        "/pages/workspace.html/repository_assets/0/sha256",
+        "197d2292680e41ae3357cf951a859f924400b4af834b7f44004974d1c8054725",
+        "d9efb4299b3bec6b16e8ac3197edda84a816cb42fda7521792b4877170c212e4"
+      ]
+    ],
+    "docs/audit/dependency-map.json": [
+      [
+        "/engines/justhodl-fifx-vol-migration/lines",
+        1079,
+        1123
+      ],
+      [
+        "/engines/justhodl-fifx-vol-migration/unresolved_writes/4/line",
+        79,
+        83
+      ],
+      [
+        "/generated_at",
+        "2026-09-30T19:08:06.277641+00:00",
+        "2026-09-30T19:31:07.725718+00:00"
+      ],
+      [
+        "/input_identity/files/1016/bytes",
+        4747,
+        6857
+      ],
+      [
+        "/input_identity/files/1016/sha256",
+        "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec",
+        "6cec54424d8a64b9d1462ec7d99cc37ae06060820eca56e193cd4ddcc115f1a6"
+      ],
+      [
+        "/input_identity/files/1022/bytes",
+        17163,
+        17774
+      ],
+      [
+        "/input_identity/files/1022/sha256",
+        "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7",
+        "5a77b910409bc0b8f90458a9ba7003bf3658a9d5fe5a2a4bdc5db3b3f3ebb27b"
+      ],
+      [
+        "/input_identity/files/2881/sha256",
+        "197d2292680e41ae3357cf951a859f924400b4af834b7f44004974d1c8054725",
+        "d9efb4299b3bec6b16e8ac3197edda84a816cb42fda7521792b4877170c212e4"
+      ],
+      [
+        "/input_identity/sha256",
+        "9e1d9aa8c8b0c615d295f83c1640c26df15434b6edef4c3a3bf25ad9aa71886d",
+        "a2dcffac19520956bffe7383816f446202197e27b749b0ca29a706b4685b06ea"
+      ]
+    ]
+  }
+}
