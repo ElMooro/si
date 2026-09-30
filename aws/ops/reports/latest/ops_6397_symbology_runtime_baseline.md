@@ -1,0 +1,13 @@
+
+**Status:** success  
+**Duration:** 4.4s  
+**Finished:** 2026-09-30T23:59:00+00:00  
+
+## Data
+
+| evidence |
+|---|
+| {'status': 'baseline_observed', 'expected_commit': 'c2d115a992725e72b37a6f3a5fcc900d614e9b04', 'reviewed_source_hashes': {'aws/lambdas/justhodl-symbology-master/source/lambda_function.py': '9508b10dacaa5bdc76047a7b993b077a3e5e71ef04dae287c608a85c2595172e', 'aws/shared/openfigi.py': 'ec77488a3220c0f12b244fb2af2bd12c91780a88744aea6fa32a9b5b51d935a9'}, 'native_before': {'code_sha256': 'R2Ztx/jW58QR1uQ/8zmLhkA4hpn2UJ4Jqu2jl9P7xBI=', 'source_files_checked': 3, 'handler_bytes': 14683, 'timeout': 120, 'memory_mb': 1024, 'receipt': {'status': 'matched', 'commit': 'c2d115a992725e72b37a6f3a5fcc900d614e9b04'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-symbology-master-daily', 'state': 'ENABLED', 'expression': 'cron(15 5 * * ? *)', 'native_targets': 1}], 'function_name': 'justhodl-symbology-master', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512}, 'native_after': {'code_sha256': 'R2Ztx/jW58QR1uQ/8zmLhkA4hpn2UJ4Jqu2jl9P7xBI=', 'source_files_checked': 3, 'handler_bytes': 14683, 'timeout': 120, 'memory_mb': 1024, 'receipt': {'status': 'matched', 'commit': 'c2d115a992725e72b37a6f3a5fcc900d614e9b04'}, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-symbology-master-daily', 'state': 'ENABLED', 'expression': 'cron(15 5 * * ? *)', 'native_targets': 1}], 'function_name': 'justhodl-symbology-master', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512}, 'declared_settings': {'function_name': 'justhodl-symbology-master', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 120, 'memory_mb': 1024, 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role'}, 'declared_settings_match': True, 'all_observed_schedules_enabled': True, 'normal_publication_verified': False, 'source_replay_verified': False, 'investment_authority': False, 'native_invocations': 0, 'provider_requests': 0, 'current_packet_reads': 0, 'private_reads': 0, 'account_reads': 0, 'consumer_reads': 0, 'native_writes': 0, 'schedule_changes': 0, 'application_log_queries': 0, 'scope': 'Exact native package, public release receipt and selected resource/schedule controls only. No environment values, signed package URL, queue, master, original archive, data publication or logs are returned.'} |
+
+## Log
+
