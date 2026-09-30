@@ -1,0 +1,1 @@
+{"description":"Enrich 8-K filings with tickers and full-text headlines","env":{"S3_BUCKET":"justhodl-dashboard-live","S3_INPUT_KEY":"data/8k-filings.json"},"function_name":"justhodl-sec-8k-enrich","handler":"lambda_function.lambda_handler","memory":512,"runtime":"python3.12","schedule":"cron(10,40 * * * ? *)","timeout":300}
