@@ -6753,3 +6753,9 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Read-only operation 6391 at `2f3132df1367c49cfdab75861ee3b6da7ff68ded`, run `36781738943`, passed with report commit `ae9ac03eaed183c9aed269ef05e5533ec8cc365f`. The original four-file native package, CodeSha256 `rTLqyoSzBvyCX0wYFGwwJmpgHWnsFy2TATNlmqZ/mJ8=`, resources and schedule match before and after the exact original execution-window diagnostic. All matching events are retained and schema-checked.
 - No matching reviewed failure context was found. Publication status and the failure cause remain unknown; absence is not success.
 - No native invoke, provider probe, actual current/private/account/consumer read, native data write or schedule change was used. The China engine remains open pending a reproduced repair and normal-publication evidence.
+
+
+## Stage 484: distinguish China execution from publication
+
+- Operation 6391 found no reviewed failure context in the original September 30 window. Read-only 6393 checks only the complete fixed-window AWS execution metrics, with exact native package/resources/schedule validation before and after. Missing metric bins remain unknown. Lambda function error counts cannot certify the caught-error application response.
+- Six invented tests cover request scope, all fifteen unordered minute bins, missing versus explicit zero, typed counters and invalid timestamps, weighted duration statistics and retention bounds. All 940 deployment, fifteen shell, 18 native and six focused checks pass. The actual runner report remains pending. No log body, actual current/private/account/consumer data, provider probe, native invoke, write or schedule change is used.

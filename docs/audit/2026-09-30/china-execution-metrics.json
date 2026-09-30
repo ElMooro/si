@@ -1,0 +1,36 @@
+{
+  "schema": "china-execution-metrics.v1",
+  "prepared_at": "2026-09-30T21:55:27.721586+00:00",
+  "base_commit": "63c31682d55edd6a99bbb9471ef7a7917f88d349",
+  "operation": 6393,
+  "native_source_commit": "b84b1513c115572e3cfffb5a5c66389134ea895f",
+  "reason": "Operation 6391 found no reviewed failure context; absence does not establish publication or execution.",
+  "window": [
+    "2026-09-30T14:30:00+00:00",
+    "2026-09-30T14:45:00+00:00"
+  ],
+  "source": {
+    "path": "aws/ops/staged/ops_6393_china_execution_metrics.py",
+    "bytes": 7246,
+    "sha256": "89bc01aea7644405d1fa383e3d90525607587c18080768bc5614fb507dd43d96"
+  },
+  "tests": {
+    "focused": 6,
+    "deployment": 940,
+    "native": 18,
+    "candidate_shell": 15,
+    "preflight": "pass"
+  },
+  "acceptance": {
+    "runner": "pending",
+    "publication_verified": false
+  },
+  "scope": {
+    "application_log_reads": 0,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "current_private_account_consumer_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0
+  }
+}
