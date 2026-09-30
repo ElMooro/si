@@ -101,7 +101,7 @@ test('Escaping, complete page content and preserved predecessor stay intact',asy
   const doc=await api.snapshot(holdings,'SPY','current',fetcher),row=(await api.rowPart(doc,0,fetcher))[0];
   const html=api.rowTable([{...row,constituent_ticker:'<img src=x onerror=evil()>'}]);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);
   for(const page of ['etf-holdings.html','flow-lookthrough.html']){
-    const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-etf-holdings.js\?v=20260921-native2/);assert.doesNotMatch(source,/jh-page-ai.js|force mechanical buying/);
+    const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-etf-holdings.js\?v=20260930-membership2/);assert.doesNotMatch(source,/jh-page-ai.js|force mechanical buying/);
     for(const match of source.matchAll(/href="(\/[^"?#]*)"/g)){const route=match[1],target=route.endsWith('/')?route+'index.html':route;assert.ok(fs.existsSync(path.join(__dirname,'..',target.slice(1))),route);}
   }
   const old=fs.readFileSync(path.join(__dirname,'../docs/legacy/etf-holdings-flow-lookthrough-pre-native-20260921.html.txt'),'utf8');assert.ok(old.includes('force mechanical buying'));
@@ -112,4 +112,53 @@ test('Streaming byte bound rejects oversized evidence before parsing',async()=>{
   await assert.rejects(api.load('data/etf-holdings-research.json',async()=>({ok:true,body:{getReader:()=>({
     read:async()=>{reads++;return {done:false,value:new Uint8Array(9*1024*1024)};},cancel:async()=>{cancelled=true;}})}})),/byte bound/);
   assert.equal(cancelled,true);assert.equal(reads,2);
+});
+
+test('Declared loader budgets must be positive integers within the absolute ceiling before fetching',async()=>{
+  const ceiling=16*1024*1024;
+  for(const value of [ceiling+1,17825792,NaN,Infinity,-Infinity,1.5,-1,0,'1024',null]){
+    let reads=0;
+    await assert.rejects(api.load('data/etf-holdings-research.json',async()=>{reads++;return {ok:true,arrayBuffer:async()=>new TextEncoder().encode('{}').buffer};},undefined,value),/byte bound/);
+    assert.equal(reads,0,'Invalid bound must reject before transport: '+String(value));
+  }
+});
+
+function syntheticSizedPublication(size,declared=size){
+  const {createHash}=require('node:crypto'),digest=x=>createHash('sha256').update(x).digest('hex');
+  const {replay,...body}=holdings,base=JSON.stringify(body);
+  const output=base+' '.repeat(Math.max(0,size-Buffer.byteLength(base))),hash=digest(output);
+  const manifest=JSON.stringify({contract:'etf-holdings-replay.v1',kind:'holdings',generated_at:holdings.generated_at,
+    output_sha256:hash,output:{key:'data/etf-holdings-research/outputs/'+hash+'.json',sha256:hash,bytes:declared}});
+  const key='data/etf-holdings-research/runs/'+digest(manifest)+'.json';
+  return {packet:{...body,replay:{manifest_key:key,output_sha256:hash}},manifest,output};
+}
+
+test('Correctly hashed oversized publication cannot raise the initial verification hard limit',async()=>{
+  const sample=syntheticSizedPublication(17825792);let outputReads=0;
+  await assert.rejects(api.verifyPacket(sample.packet,async key=>{
+    const output=key.includes('/outputs/');if(output)outputReads++;
+    return {ok:true,arrayBuffer:async()=>new TextEncoder().encode(output?sample.output:sample.manifest).buffer};
+  }),/byte bound/);
+  assert.equal(outputReads,0);
+});
+
+test('Manifest output byte declarations reject malformed wire types before output fetch',async()=>{
+  for(const declared of [undefined,null,0,-1,1.5,'1024']){
+    const sample=syntheticSizedPublication(0,declared);let outputReads=0;
+    if(declared===undefined){
+      const manifest=JSON.parse(sample.manifest);delete manifest.output.bytes;sample.manifest=JSON.stringify(manifest);
+      sample.packet.replay.manifest_key='data/etf-holdings-research/runs/'+require('node:crypto').createHash('sha256').update(sample.manifest).digest('hex')+'.json';
+    }
+    await assert.rejects(api.verifyPacket(sample.packet,async key=>{
+      if(key.includes('/outputs/'))outputReads++;
+      return {ok:true,arrayBuffer:async()=>new TextEncoder().encode(key.includes('/outputs/')?sample.output:sample.manifest).buffer};
+    }),/byte bound/);
+    assert.equal(outputReads,0);
+  }
+});
+
+test('A correctly hashed publication at exactly 16 MiB remains accepted',async()=>{
+  const sample=syntheticSizedPublication(16*1024*1024);let reads=0;
+  const p=await api.verifyPacket(sample.packet,async key=>{reads++;return {ok:true,arrayBuffer:async()=>new TextEncoder().encode(key.includes('/outputs/')?sample.output:sample.manifest).buffer};});
+  assert.deepEqual(p,sample.packet);assert.equal(reads,2);
 });
