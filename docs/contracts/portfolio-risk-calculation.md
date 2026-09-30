@@ -1,4 +1,4 @@
-# Portfolio holdings risk 2.0.1
+# Portfolio holdings risk 2.0.2
 
 This is a private research calculation over a complete identified snapshot. It
 does not establish account reconciliation, forecast skill, suitability or sizing
@@ -45,7 +45,7 @@ liquidity losses remain outside the holdings model's supported scope.
 
 ## Version and evidence
 
-The UI accepts the reviewed 2.0.0 and 2.0.1 schemas and preserves research-only
+The UI accepts the reviewed 2.0.0, 2.0.1 and 2.0.2 schemas and preserves research-only
 permission checks. A frozen bundle binds the whole inputs, compiler identity and
 output hash. Changing the compiler does not relabel or overwrite an older
 bundle: incompatible replay is explicitly rejected. Recalculating invented
@@ -56,3 +56,9 @@ retention are separate contracts and remain unchanged by this calculation repair
 Exact native package/runtime/schedule and complete static asset checks establish
 deployment acceptance. Normal private publication and actual-account correctness
 remain unverified by that read-only acceptance.
+
+Version 2.0.2 adds [reported sector coverage](portfolio-sector-coverage.md) and
+binds its shared classifier in the replay compiler identity. Unknown exposure
+does not become a sector or a fabricated concentration component. Sector HHI
+and alerts require the separate record-level coverage contract; legacy holdings
+risk packets can remain visible without qualifying their sector claims.

@@ -27,7 +27,7 @@ class BookReads(unittest.TestCase):
     def test_only_book_reader_and_handler_change_from_exact_predecessor(self):
         def functions(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(ROOT/'tests/fixtures/pre-portfolio-book-read/lambda_function.py.txt');after=functions(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py')
-        self.assertEqual(set(after)-set(before),{'parse_previous_close','read_previous_close_body','research_text','research_join','research_value','validate_snapshot_publication'});self.assertEqual({k for k in before if before[k]!=after[k]},{'query_pk','lambda_handler','fetch_polygon_latest','enrich_symbol','load_s3_json','index_by_symbol','batch_fetch_prices'})
+        self.assertEqual(set(after)-set(before),{'parse_previous_close','read_previous_close_body','research_text','research_join','research_value','validate_snapshot_publication'});self.assertEqual({k for k in before if before[k]!=after[k]},{'query_pk','lambda_handler','fetch_polygon_latest','enrich_symbol','load_s3_json','index_by_symbol','batch_fetch_prices','build_holdings_accounting'})
     def test_every_page_is_consistent_and_all_exact_values_are_retained(self):
         first=position(qty=Decimal('9007199254740993'),cost_basis_per_share=Decimal('0.10000000000000000001'),extra={'entire':[Decimal('2.001'),False,None]});second=position('BBB')
         self.pages=[{'Items':[first],'LastEvaluatedKey':{'pk':'POSITION','sk':'AAA'}},{'Items':[second]}]

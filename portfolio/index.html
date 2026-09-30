@@ -105,6 +105,9 @@ tr:hover td{background:rgba(28,35,48,.3);}
 
 .sector-bar-track{height:10px;background:rgba(28,35,48,.4);border-radius:2px;overflow:hidden;position:relative;}
 .sector-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--info));border-radius:2px;transition:width .3s;}
+#sector-header{display:block;}
+#sector-summary{display:block;margin-top:8px;font-size:12px;line-height:1.6;letter-spacing:0;white-space:normal;color:var(--text-dim);}
+#sector-body :focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
 
 footer{text-align:center;padding:30px 20px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
 footer a{color:var(--text-dim);text-decoration:none;}
@@ -215,7 +218,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
 
   <!-- ─── SECTOR CONCENTRATION ─── -->
   <div class="section">
-    <div class="section-header"><h2 class="section-title">Sector Exposure</h2>
+    <div class="section-header" id="sector-header"><h2 class="section-title">Sector Exposure</h2>
       <span class="section-meta" id="sector-summary">—</span></div>
     <div class="section-body" id="sector-body"></div>
   </div>
@@ -351,8 +354,9 @@ function renderTopMetrics(){
     document.getElementById('mv-var-pct').textContent = risk.var_1d_99_pct == null ? 'Reconciled NAV unavailable' : `${JHPortfolioRisk.number(risk.var_1d_99_pct)}% of model-reported NAV`;
     document.getElementById('mv-beta').textContent = JHPortfolioRisk.number(risk.portfolio_beta_spy);
     document.getElementById('mv-vol').textContent = risk.portfolio_vol_annual_pct == null ? '—' : `${JHPortfolioRisk.number(risk.portfolio_vol_annual_pct,1)}%`;
-    document.getElementById('mv-hhi').textContent = JHPortfolioRisk.number(risk.concentration_hhi, 0);
-    document.getElementById('mv-hhi-label').textContent = risk.concentration_label || '—';
+    const sectorView=JHPortfolioRisk.sectors(risk,snapshot);
+    document.getElementById('mv-hhi').textContent = JHPortfolioRisk.number(sectorView.hhi, 0);
+    document.getElementById('mv-hhi-label').textContent = sectorView.hhi===null ? 'Sector coverage incomplete or unavailable' : 'Reported-sector HHI · classification unverified';
   }
 
   const counts = (snapshot && snapshot.counts) || {};
@@ -380,12 +384,13 @@ function renderAlerts(){
       <div class="alert-body"><div class="alert-title">VAR BREACH — ${JHPortfolioRisk.number(risk.var_1d_99_pct)}% 1-day risk exceeds 5%</div>
       <div class="alert-detail">Annualized vol ${JHPortfolioRisk.number(risk.portfolio_vol_annual_pct,1)}% · β ${JHPortfolioRisk.number(risk.portfolio_beta_spy)}</div></div></div>`;
   }
-  if(a.sector_concentration_breach === true){
-    const top = (risk.sector_concentration || [])[0];
+  const sectorView=JHPortfolioRisk.sectors(risk,snapshot);
+  if(sectorView.alert){
+    const top = sectorView.rows[0];
     if(top && typeof top.weight_pct==='number' && Number.isFinite(top.weight_pct) && top.weight_pct>40){
       zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">📊</span>
-        <div class="alert-body"><div class="alert-title">SECTOR CONCENTRATION — ${escapeHtml(top.sector)} at ${JHPortfolioRisk.number(top.weight_pct,1)}%</div>
-        <div class="alert-detail">HHI ${JHPortfolioRisk.number(risk.concentration_hhi,0)} (${escapeHtml(risk.concentration_label)})</div></div></div>`;
+        <div class="alert-body"><div class="alert-title">REPORTED SECTOR EXPOSURE — ${escapeHtml(top.sector)} at ${JHPortfolioRisk.number(top.weight_pct,2)}%</div>
+        <div class="alert-detail">Above 40% of gross marked exposure before rounding. Classification and ETF look-through unverified. ${escapeHtml(sectorView.detail)}</div></div></div>`;
     }
   }
   (risk.correlation_clusters || []).forEach(c => {
@@ -452,20 +457,20 @@ function renderPositions(){
 
 function renderSectors(){
   document.getElementById('sector-summary').textContent='';
-  if(!risk){ document.getElementById('sector-summary').textContent=''; return; }
-  const concs = risk.sector_concentration || [];
   const body = document.getElementById('sector-body');
-  if(concs.length === 0){ body.innerHTML = '<div class="dim">No sector data.</div>'; return; }
-  body.innerHTML = concs.map(s => `
+  body.innerHTML='';
+  if(!risk)return;
+  const view=JHPortfolioRisk.sectors(risk,snapshot),concs=view.rows;
+  document.getElementById('sector-summary').textContent=view.detail;
+  if(!view.available){body.textContent=view.detail;return;}
+  body.innerHTML = `<p class="dim">Reported classification coverage: ${JHPortfolioRisk.number(view.coveragePct)}% of gross marked exposure. Unclassified: ${JHPortfolioRisk.number(view.unknownPct)}%. Unknown exposure is not a sector.</p>` + concs.map(s => `
     <div style="margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
         <span style="font-size:12px;">${escapeHtml(s.sector)}</span>
         <span style="font-family:var(--font-mono);font-size:11px;color:${typeof s.weight_pct==='number' && s.weight_pct > 40 ? 'var(--neg)' : 'var(--text)'}">${JHPortfolioRisk.number(s.weight_pct)}%</span>
       </div>
       <div class="sector-bar-track"><div class="sector-bar-fill" style="${typeof s.weight_pct==='number' && Number.isFinite(s.weight_pct) ? 'width:'+Math.max(0,Math.min(s.weight_pct,100))+'%' : 'display:none'}"></div></div>
-    </div>`).join('');
-  document.getElementById('sector-summary').textContent =
-    `Gross exposure HHI ${JHPortfolioRisk.number(risk.concentration_hhi,0)} · ETF holdings not decomposed`;
+    </div>`).join('') + `<details><summary>Complete sector coverage records</summary><pre tabindex="0" aria-label="Complete sector coverage metadata" style="max-height:360px;overflow:auto;max-width:100%;font-size:11px;">${escapeHtml(JSON.stringify(view.evidence,null,2))}</pre></details>`;
 }
 
 function renderScenarios(){

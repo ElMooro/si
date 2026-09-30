@@ -44,11 +44,12 @@ class OriginalResponse(unittest.TestCase):
     def rejected(self,response,kind='ValueError',open_hook=None):
         self.assertEqual(self.fetch(response,open_hook),{'error':'SOURCE_REQUEST_FAILED','error_type':kind})
     def test_complete_frozen_valid_output_remains_exact(self):
+        import test_snapshot_binding as binding_tests
         inputs=deepcopy(self.retained['bundle']['inputs'])
-        self.assertEqual(model.build(**inputs),{**self.retained['output'], 'schema_version':'2.0.1'})
+        binding_tests.SnapshotBinding.assert_preserved_math(self,model.build(**inputs),self.retained['output'])
         self.assertEqual(inputs,self.retained['bundle']['inputs'])
         bundle,out=model.freeze(**inputs);self.assertEqual(model.replay(bundle),out)
-        self.assertEqual(out,{**self.retained['output'], 'schema_version':'2.0.1'})
+        binding_tests.SnapshotBinding.assert_preserved_math(self,out,self.retained['output'])
         with self.assertRaisesRegex(ValueError,'code/schema mismatch'):model.replay(self.retained['bundle'])
     def test_all_three_frozen_defects_reject_before_risk(self):
         variants=json.loads((ROOT/'tests/fixtures/pre-portfolio-original-complete-variants.json').read_bytes())
@@ -148,7 +149,7 @@ class OriginalResponse(unittest.TestCase):
         current=ast.parse((ROOT/'aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py').read_text(encoding='utf-8'))
         before={n.name:ast.dump(n,include_attributes=False) for n in prior.body if isinstance(n,ast.FunctionDef)}
         after={n.name:ast.dump(n,include_attributes=False) for n in current.body if isinstance(n,ast.FunctionDef)}
-        self.assertEqual({name for name,code in before.items() if after[name]!=code},{'build','exposure_view'})
+        self.assertEqual({name for name,code in before.items() if after[name]!=code},{'build','exposure_view','code_identity'})
         self.assertEqual(set(after)-set(before),{'cash_equity_identity','risk_capital_book'})
 
 

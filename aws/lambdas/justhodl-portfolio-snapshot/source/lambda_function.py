@@ -27,6 +27,7 @@ Uses the existing configured Polygon key; no new paid AI dependency.
 """
 import json
 from private_artifact import publish_private, private_http_denied
+from portfolio_sector_exposure import build_sector_exposure
 import math
 import os
 import time
@@ -867,7 +868,7 @@ def build_holdings_accounting(positions, enriched, now):
     if not isinstance(positions, list):
         raise ValueError("A complete positions list is required")
     records, values, costs, pnls, paired_costs, missing_costs = [], [], [], [], [], []
-    sectors, unpriced, unpaired, raw_values = {}, [], [], []
+    unpriced, unpaired, raw_values = [], [], []
     identities = [accounting_symbol(p) for p in positions]
     counts = {}
     for sym in identities:
@@ -917,6 +918,8 @@ def build_holdings_accounting(positions, enriched, now):
         if p.get("target_weight_pct") is not None and target is None: reasons.append("TARGET_WEIGHT_INVALID")
         row = {
             **e, "symbol": sym, "source_record_index": index, "qty": qty,
+            "sector": e.get("sector") if e.get("sector") is not None else p.get("sector"),
+            "sector_source": "RESEARCH_ENRICHMENT" if e.get("sector") is not None else "SOURCE_BOOK" if p.get("sector") is not None else "UNAVAILABLE",
             "current_price": price, "price_asof_unix_ms": stamp_ms,
             "cost_basis_per_share": cost, "cost_basis_total": accounting_round(cost_total),
             "market_value": accounting_round(market), "pnl_dollars": accounting_round(pnl),
@@ -935,9 +938,6 @@ def build_holdings_accounting(positions, enriched, now):
             if cost_total is not None: missing_costs.append(abs(cost_total))
         else:
             values.append(market)
-            sector = e.get("sector") or p.get("sector")
-            sector = sector if isinstance(sector, str) and sector.strip() else "Unknown"
-            sectors.setdefault(sector, []).append(market)
         if cost_total is not None: costs.append(cost_total)
         if pnl is None: unpaired.append(identity)
         else:
@@ -958,13 +958,11 @@ def build_holdings_accounting(positions, enriched, now):
         row["current_weight_scope"] = "SIGNED_NET_HOLDINGS_NOT_NAV"
         row["gross_holdings_weight_pct"] = accounting_round(abs(market) / gross * 100) if market is not None and gross else None
         row["gross_holdings_weight_scope"] = "PRICED_HOLDINGS_ONLY" if unpriced else "ALL_HOLDINGS"
-    concentration = []
-    for sector, legs in sectors.items():
-        value = accounting_sum(legs)
-        concentration.append({"sector": sector, "value": accounting_round(value),
-            "weight_pct": accounting_round(value / total * 100) if value is not None and total and not unpriced else None,
-            "weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV"})
-    concentration.sort(key=lambda row: (row["value"] is None, -(row["value"] or 0), row["sector"]))
+    sector_evidence = build_sector_exposure(records, raw_values, valuation_complete=not unpriced and gross is not None)
+    concentration = [{"sector": row["sector"], "value": accounting_round(row["signed_marked_value"]),
+        "gross_value": accounting_round(row["gross_marked_value"]), "weight_pct": accounting_round(row["weight_pct"]),
+        "weight_scope": "GROSS_MARKED_LOTS_NOT_NAV", "source_record_indices": row["input_indices"]}
+        for row in sector_evidence["known_sectors"]]
     stops = [{"symbol": row["symbol"], "stop_loss": row["stop_loss"], "current_price": row["current_price"]} for row in records if row["stop_hit"] is True]
     summary = {
         "n_positions": count, "priced_positions_count": len(values), "basis_positions_count": len(costs),
@@ -981,7 +979,7 @@ def build_holdings_accounting(positions, enriched, now):
         "stops_hit_count": len(stops), "stops_hit": stops,
         "stops_not_evaluable": [row["symbol"] for row, original in zip(records, positions) if isinstance(original, dict) and original.get("stop_loss") is not None and row["stop_hit"] is None],
         "accounting_coverage_status": "EMPTY" if not count else "PARTIAL" if unpaired or unpriced or aggregate_issues else "COMPLETE",
-        "accounting_reason_codes": aggregate_issues,
+        "accounting_reason_codes": aggregate_issues, "sector_exposure": sector_evidence,
         "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified",
     }
     return records, summary, concentration, accounting_round(gross)
@@ -1085,7 +1083,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.7",
+        "audit_version": "2026-09-30.8",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 

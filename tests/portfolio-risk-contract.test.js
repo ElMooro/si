@@ -14,7 +14,7 @@ test('risk 2.0.1 complete calculation repairs remain displayable without looseni
     assert.equal(packet.schema_version,'2.0.1');assert.equal(result.current,true,result.detail);
     assert.match(result.title,/research only/);assert.equal(JSON.stringify(packet),before);
     assert.equal(contract.view({...packet,permissions:{sizing_eligible:true,may_recommend_trades:false}},now).current,false);
-    assert.equal(contract.view({...packet,schema_version:'2.0.2'},now).current,false);
+    assert.equal(contract.view({...packet,schema_version:'2.0.3'},now).current,false);
   }
   assert.equal(updated.packets.rounded_scenario_lots.historical_scenarios.sector_shock.projected_pnl_dollars,-26.5);
 });

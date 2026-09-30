@@ -53,3 +53,10 @@ ZIP and executes these tests offline without runner credentials, networking or
 native invocation. Admin production source is unchanged; its shared test update
 still causes a deployment and therefore requires its own exact release receipt.
 Actual private publication and transaction permissions remain unverified.
+
+The separate [reported sector coverage contract](portfolio-sector-coverage.md)
+now preserves every classification occurrence and unknown amount. Sector weights
+use complete gross marked lots, while the existing group value remains signed.
+This corrects the prior signed-net sector denominator and prevents absent labels
+from becoming an `Unknown` economic sector. All 152 snapshot unit checks plus
+four actual-handler checks run in the offline candidate gate.

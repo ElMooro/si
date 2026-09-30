@@ -204,8 +204,8 @@ class PublicationOrdering(unittest.TestCase):
             self.assertEqual(model.replay(current),output)
             expected = copy.deepcopy(self.fixture[name+'_payload'])
             expected.pop('replay'); expected.pop('alerts_sent')
-            expected['schema_version'] = '2.0.1'
-            self.assertEqual(output,expected)
+            import test_snapshot_binding as binding_tests
+            binding_tests.SnapshotBinding.assert_preserved_math(self,output,expected)
 
 
 

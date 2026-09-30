@@ -16,7 +16,11 @@ def test_quote_helpers_preserve_original_page_inputs_and_primary_engines():
 
 def test_complete_current_quote_browser_frames_bind_sources_and_every_provider_body():
     fixture=json.loads(gzip.decompress((ROOT/'tests/fixtures/portfolio-quotes-browser-synthetic.json.gz').read_bytes()))
-    for path,digest in fixture['source_files'].items():assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==digest,path
+    # Freeze the complete Stage 460 frame against its whole inert predecessors.
+    changed={'portfolio/index.html':'index.html.txt','aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py':'snapshot-lambda_function.py.txt','aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py':'portfolio_risk_model.py.txt'}
+    for path,digest in fixture['source_files'].items():
+        target=ROOT/'tests/fixtures/pre-portfolio-sector-coverage'/changed[path] if path in changed else ROOT/path
+        assert hashlib.sha256(target.read_bytes()).hexdigest()==digest,path
     assert set(fixture['cases'])=={'complete','partial','binary','empty','corrupt','legacy','identity'}
     for name in ('complete','partial','binary','empty'):
         case=fixture['cases'][name];snapshot=case['frame']['snapshot']
@@ -41,4 +45,4 @@ def test_retained_predecessor_page_and_native_source_are_complete_and_inert():
     for row in audit['fixtures'].values():
         raw=(ROOT/row['path']).read_bytes();assert len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
     assert audit['native_snapshot_source_commit']=='51b4ea7a088e49c4d11754fc2451bdd06b90f3c4'
-    assert (ROOT/'tests/fixtures/pre-portfolio-quote-page/lambda_function.py.txt').read_bytes()==(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py').read_bytes()
+    assert (ROOT/'tests/fixtures/pre-portfolio-quote-page/lambda_function.py.txt').read_bytes()==(ROOT/'tests/fixtures/pre-portfolio-sector-coverage/snapshot-lambda_function.py.txt').read_bytes()

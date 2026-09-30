@@ -8,8 +8,8 @@ suite=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(suite)
 if __name__ == "__main__":
     # Load before integration fixtures substitute boto3 in sys.modules.
-    import test_watchlist_sync, test_accounting, test_book_read, test_quote_read, test_research_enrichment, test_publication_compatibility, test_quote_collection
-    cases=unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromModule(module) for module in (test_watchlist_sync,test_accounting,test_book_read,test_quote_read,test_research_enrichment,test_publication_compatibility,test_quote_collection))
+    import test_watchlist_sync, test_accounting, test_book_read, test_quote_read, test_research_enrichment, test_publication_compatibility, test_quote_collection, test_sector_accounting
+    cases=unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromModule(module) for module in (test_watchlist_sync,test_accounting,test_book_read,test_quote_read,test_research_enrichment,test_publication_compatibility,test_quote_collection,test_sector_accounting))
     result=unittest.TextTestRunner(verbosity=1).run(cases)
     if not result.wasSuccessful():raise SystemExit(1)
     suite.test_actual_handler_handles_mixed_priced_unpriced_book()

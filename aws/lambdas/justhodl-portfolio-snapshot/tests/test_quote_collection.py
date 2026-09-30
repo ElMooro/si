@@ -59,7 +59,7 @@ class QuoteCollectionTests(unittest.TestCase):
     def test_only_collector_reader_and_handler_change_from_exact_predecessor(self):
         def functions(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(ROOT/'tests/fixtures/pre-snapshot-quote-collection/lambda_function.py.txt');after=functions(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py')
-        self.assertEqual(set(after),set(before));self.assertEqual({key for key in before if before[key]!=after[key]},{'batch_fetch_prices','fetch_polygon_latest','lambda_handler'})
+        self.assertEqual(set(after),set(before));self.assertEqual({key for key in before if before[key]!=after[key]},{'batch_fetch_prices','fetch_polygon_latest','lambda_handler','build_holdings_accounting'})
     def test_empty_workload_has_explicit_complete_zero_without_executor(self):
         result=self.control.run([]);self.assertEqual(result,{});self.assertEqual(self.control.input_options,[])
         trace=result.collection_evidence;self.assertEqual(trace['status'],'COMPLETE_ATTEMPT_COVERAGE');self.assertEqual(trace['tasks_started'],0);self.assertEqual(trace['retained_complete_body_bytes'],0);self.assertFalse(trace['allows_sizing'])

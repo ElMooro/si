@@ -118,7 +118,7 @@ class CalculationIntegrity(unittest.TestCase):
             response=env['_run_private']({},None)
             self.assertTrue(json.loads(response['body'])['success'])
             self.assertEqual(store.docs['portfolio/risk.json']['status'],'INCOMPLETE')
-            self.assertEqual(store.docs['portfolio/risk.json']['schema_version'],'2.0.1')
+            self.assertEqual(store.docs['portfolio/risk.json']['schema_version'],'2.0.2')
 
     def test_native_mixed_rows_preserve_input_and_complete_publication(self):
         store=Store();store.docs['portfolio/snapshot.json']=fixture()[0]

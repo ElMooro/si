@@ -14,6 +14,14 @@ class Chunks(io.BytesIO):
 
 
 class SnapshotBinding(unittest.TestCase):
+    def assert_preserved_math(self,current,prior):
+        # Stage 461 adds complete sector coverage; all unrelated math stays exact.
+        revised={'schema_version','sector_exposure','sector_concentration','concentration_basis','concentration_label'}
+        self.assertEqual({k:v for k,v in current.items() if k not in revised},{k:v for k,v in prior.items() if k not in revised})
+        self.assertEqual(current['schema_version'],'2.0.2')
+        self.assertEqual([{k:row[k] for k in ('sector','weight_pct')} for row in current['sector_concentration']],prior['sector_concentration'])
+        self.assertEqual(current['sector_exposure']['status'],'COMPLETE_REPORTED_CLASSIFICATION')
+        self.assertFalse(current['sector_exposure']['classification_verified'])
     def setUp(self):
         self.predecessor=json.loads((ROOT/'tests/fixtures/pre-portfolio-coherence-native.json').read_bytes())
         self.store=Store();_,_,self.env=load('portfolio-risk',self.store)
@@ -22,7 +30,7 @@ class SnapshotBinding(unittest.TestCase):
     def test_complete_predecessor_math_is_unchanged(self):
         before=deepcopy(self.predecessor['bundle']['inputs'])
         output=model.build(**before);binding=output.pop('snapshot_binding')
-        self.assertEqual(output,{**self.predecessor['output'], 'schema_version':'2.0.1'})
+        self.assert_preserved_math(output,self.predecessor['output'])
         self.assertEqual(binding,{'contract':'portfolio-snapshot-value.v1','key':'portfolio/snapshot.json',
             'generated_at':before['snapshot']['generated_at'],**model.snapshot_value_identity(before['snapshot'])})
         self.assertEqual(before,self.predecessor['bundle']['inputs'])
@@ -32,7 +40,7 @@ class SnapshotBinding(unittest.TestCase):
         # Retain the whole old compiler-bound bundle; execute only current code.
         with self.assertRaisesRegex(ValueError,'code/schema mismatch'):model.replay(retained['bundle'])
         current,output=model.freeze(**retained['bundle']['inputs'])
-        self.assertEqual(model.replay(current),output);self.assertEqual(output,{**retained['output'], 'schema_version':'2.0.1'})
+        self.assertEqual(model.replay(current),output);self.assert_preserved_math(output,retained['output'])
         bundle,output=model.freeze(**self.predecessor['bundle']['inputs'])
         self.assertEqual(model.replay(bundle),output)
         altered=deepcopy(bundle);altered['inputs']['snapshot']['positions'][0]['qty']+=1

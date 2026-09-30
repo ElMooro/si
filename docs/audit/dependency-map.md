@@ -1,8 +1,8 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-09-30T10:50:29 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-09-30T11:38:38 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `43de4c151cc3280a053c8a8a0b7efc03918925225824ad393a06c380c01a9259`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `1ea929f33b8143f80d911164ab6531bb43f413d131949eb15a425caf3b5b2b25`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 

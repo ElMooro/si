@@ -14,8 +14,9 @@ import statistics
 
 from capital_contract import capital_book_view, finite, timestamp
 from instrument_identity import resolve_instrument
+from portfolio_sector_exposure import build_sector_exposure, marked_lot_value, label as sector_label
 
-VERSION = '2.0.1'
+VERSION = '2.0.2'
 MIN_RETURNS = 60
 MAX_BAR_AGE_DAYS = 5
 MAX_MARK_AGE_H = 96
@@ -219,8 +220,9 @@ def exposure_view(snapshot, now):
         if sector is not None and type(sector) is not str:
             errors.append('INVALID_SECTOR_CLASSIFICATION')
             sector = None
-        sector = sector or 'Unknown'
-        sectors[sector] = sectors.get(sector, 0) + abs(value)
+        sector, _ = sector_label(sector)
+        if sector is not None:
+            sectors[sector] = sectors.get(sector, 0) + abs(value)
     return signed, gross, sectors, sorted(set(errors))
 
 
@@ -343,8 +345,13 @@ def build(snapshot, packets, generated_at, scenarios):
             nav_errors.append('capital book and marked snapshot positions differ')
         if not nav_errors and not errors:
             nav = book['equity_nav']
-    concentration = [{'sector': s, 'weight_pct': rounded(v/gross*100, 2)} for s,v in sorted(sectors.items(), key=lambda x:-x[1])] if gross and not exposure_errors else []
-    hhi = sum((v/gross*100)**2 for v in sectors.values()) if concentration else None
+    sector_evidence = build_sector_exposure(position_rows,
+        [marked_lot_value(p) for p in position_rows],
+        valuation_complete=not exposure_errors or (isinstance(positions, list) and not positions))
+    concentration = [{'sector': row['sector'], 'weight_pct': rounded(row['weight_pct'], 2),
+                      'gross_marked_value': row['gross_marked_value'], 'input_indices': row['input_indices']}
+                     for row in sector_evidence['known_sectors']]
+    hhi = sector_evidence['concentration_hhi']
     projections = {}
     for sid, scenario in scenarios.items():
         parts, unmodeled, contributions = [], [], []
@@ -407,9 +414,10 @@ def build(snapshot, packets, generated_at, scenarios):
         'var_1d_99_pct': rounded(daily*2.326347874/nav*100, 2) if daily is not None and nav else None,
         'var_1d_95_pct': rounded(daily*1.644853627/nav*100, 2) if daily is not None and nav else None,
         'position_metrics': metrics, 'correlation_matrix': corr, 'correlation_clusters': [],
-        'sector_concentration': concentration, 'concentration_basis': 'Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through',
-        'concentration_hhi': rounded(hhi, 1), 'concentration_label': 'Gross sector HHI (0..10000)' if hhi is not None else 'Unavailable',
-        'max_sector_concentration_pct': concentration[0]['weight_pct'] if concentration else None,
+        'sector_concentration': concentration, 'sector_exposure': sector_evidence,
+        'concentration_basis': sector_evidence['basis'],
+        'concentration_hhi': rounded(hhi, 1), 'concentration_label': 'Reported-sector gross HHI (0..10000)' if hhi is not None else 'Unavailable: incomplete sector or mark coverage',
+        'max_sector_concentration_pct': rounded(sector_evidence['maximum_sector_weight_pct'], 2),
         'historical_scenarios': projections,
         'stops_hit': [p for p in position_rows if p.get('stop_hit') is True] if not exposure_errors else [],
         'etf_lookthrough': {'status': 'UNVERIFIED', 'sector_lookthrough': [], 'geo_lookthrough': [], 'note': 'ETF constituent vintages and coverage have not been reconciled to this book'},
@@ -427,15 +435,15 @@ def build(snapshot, packets, generated_at, scenarios):
             report['correlation_clusters'].append({'symbols': sorted(members), 'avg_pairwise_correlation': rounded(statistics.mean(values)),
                 'total_weight_pct': rounded(sum(gross_by[s] for s in members)/gross*100, 2), 'weight_basis': 'gross absolute lots'})
     report['alerts_summary'] = {'var_breach': report['var_1d_99_pct'] > 5 if report['var_1d_99_pct'] is not None else None,
-        'stops_hit_count': len(report['stops_hit']), 'sector_concentration_breach': concentration[0]['weight_pct'] > 40 if concentration else None,
+        'stops_hit_count': len(report['stops_hit']), 'sector_concentration_breach': sector_evidence['known_sector_above_40pct'],
         'correlation_cluster_count': len(report['correlation_clusters'])}
     return report
 
 
 def code_identity():
-    import capital_contract, instrument_identity
+    import capital_contract, instrument_identity, portfolio_sector_exposure
     return {p.name: hashlib.sha256(p.read_text(encoding='utf-8').replace('\r\n','\n').encode()).hexdigest()
-            for p in (Path(__file__), Path(capital_contract.__file__), Path(instrument_identity.__file__))}
+            for p in (Path(__file__), Path(capital_contract.__file__), Path(instrument_identity.__file__), Path(portfolio_sector_exposure.__file__))}
 
 
 def freeze(snapshot, packets, generated_at, scenarios):
