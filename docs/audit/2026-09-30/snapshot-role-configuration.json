@@ -1,0 +1,36 @@
+{
+  "contract": "snapshot-role-configuration-audit.v1",
+  "status": "complete_invented_role_capture_acceptance_passed_runner_capture_pending",
+  "base_commit": "02a5128eaa707915cbaa80dd1744b6b9bf3dd124",
+  "source_files": {
+    "aws/ops/staged/ops_6372_snapshot_role_configuration.py": {
+      "bytes": 9374,
+      "sha256": "8c7173ba02c37910cbfd9251a757cdbe024376de17830b296223e7a00abff95c"
+    },
+    "tests/deployment/test_snapshot_role_configuration.py": {
+      "bytes": 8889,
+      "sha256": "2ee4783e1026d77856720f5cf753cd9a9dbd664df048ed823f3cdae7b82812e1"
+    }
+  },
+  "unchanged_dependency": {
+    "aws/ops/staged/ops_6370_snapshot_storage_configuration.py": {
+      "bytes": 7665,
+      "sha256": "168667eef7a991d11080a36ebbd5235a4eddbaf257a0bf49953ca5cad238c18d"
+    }
+  },
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_association_basis": "Previously accepted Stage 464 native configuration; no new function invocation or role assumption.",
+  "private_reads": 0,
+  "object_reads": 0,
+  "role_assumptions": 0,
+  "permission_changes": 0,
+  "native_invocations": 0,
+  "effective_permissions_verified": false,
+  "conditional_write_guard_installed": false,
+  "tests": {
+    "complete_role_configuration": 6,
+    "deployment_static": 874,
+    "deployment_shell": 15
+  },
+  "deployment_log_sha256": "6da088ece91c1a4da7d92869f48bb81565a831456ddf65870bbf70915ea0a151"
+}

@@ -95,5 +95,288 @@
   "push_workflows_verified_success": {
     "lambda_no_target": 36729788525,
     "configuration_operation": 36729787961
+  },
+  "post_policy_static_acceptance": {
+    "checked_at": "2026-09-30T14:39:22.630662+00:00",
+    "intended_commit": "9f2ddd29d6fef2cb35e87bf613defa7975ae7c92",
+    "served_commit": "9f2ddd29d6fef2cb35e87bf613defa7975ae7c92",
+    "assets": {
+      "portfolio-manager.html": {
+        "bytes": 30627,
+        "sha256": "511553bd7f15ca962868ed57bb3ad8a323621011c56a4e818f49248137e5ac41",
+        "matches_manifest": true
+      },
+      "portfolio/index.html": {
+        "bytes": 48196,
+        "sha256": "7f09304c1018caaffd6f72376c65b3f0cf6ab5c14ab3d294213ba0ca33eee1e8",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "ab0554d29d88e94110097572ee61de3a7f18a4a60b842c7f168f34ccbf5477f5",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "95caca949c265f8b6c5657fffa6fd0ba4732aa57ffe21e95fa815905b7d29bde",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68345,
+        "sha256": "5d0834b400172fc7847150b350a4f9127975f7e5d77bcdbf41227585a2c12048",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "9894dfc6a972cf3973105fc01d1495c403d460a39057abfddf4595f9f9f8f1e3",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "7bba503a325b9b0da368945dadb8e834d83d0a61f3bfc879355c3c8ce5f760c7",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "5b7fb540703d1d9b8bc07130c30c524086102852ddc2d012b4d02cffa4eb80c1",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "65b85a014716b044876c769a8433a2776bb0744eef7528b5473fa64f1015a652",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-portfolio-research.js": {
+        "bytes": 5693,
+        "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-research-page.js": {
+        "bytes": 7876,
+        "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-quotes.js": {
+        "bytes": 7020,
+        "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-quotes-page.js": {
+        "bytes": 8073,
+        "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 11530,
+        "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3069098,
+        "sha256": "6824995a2dcc7670a461d28e268f0041ec490f1f53aff0d9c0e3a755249fb872",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7666089,
+        "sha256": "a2d621dce768323f647094cded3edd01fb9da60ae17fb5a0da3dd570b0d0fc77",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+    "static_sources_unchanged_between_commits": true,
+    "intended_policy_commit": "9d65a40eee1e54ee4e9997646216f627c46856e9"
+  },
+  "unchanged_worker_receipt_after_policy": {
+    "commit": "f3e77dcb361941e7d9bbf298c1f2ed93275bc0c4",
+    "status": "matched",
+    "version_id": "610ebe97-88a9-4c15-81c2-8862a4a0e040",
+    "deployment_id": "ef35968d-64be-4c9c-8a50-ee8ced56f2e9",
+    "captured_at": "2026-09-30T14:00:29.250546+00:00",
+    "source_files": {
+      "index.js": {
+        "bytes": 214933,
+        "content_type": "application/javascript+module",
+        "sha256": "c2a7ce7e05baead99ae0da499da242dd41a852ba55f565c58a2b05d5e890ed51"
+      }
+    },
+    "configuration": {
+      "bindings": [
+        {
+          "configuration_sha256": "2ebdf56cd788ef3d29a88c7bd2bf1beaf0cf5297ca65ac6ece95b83977de6ca0",
+          "name": "ADMIN_TOKEN",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "55bdb46ab9466940dd61509719a63f2b67351e5c84b3cd47318dfa3f5367e37c",
+          "name": "BRAIN_OWNER_STORE",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "e065ee9a12724ecfa5467642506b88d3a69a5083dbd8fb8557fee827dee9dc68",
+          "name": "FMP_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "ad189337f7859e091772fef27616629d35abecbab7c67abd1fd1ba7d9d005ef5",
+          "name": "FRED_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "15b20cc5122c17b2925179e1092e80c244962f28586ef5490d859a5c95d379ea",
+          "name": "OWNER_EMAILS",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "691b0f25e76203a12b17b408b1873f3af38e420cc6c4be3138a93d01e6a9d60d",
+          "name": "POLYGON_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "da5792e7b1f325eb06018fb411cccec41ba2fb6d4e10677459fe23299b60ab53",
+          "name": "PRICE_PLAN_MAP",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "7be92833e7a9562786ab6ce4d61ff3316caf3b7ccea1043b8fbeafc06870d130",
+          "name": "STRIPE_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "f73495b93a3c8639378089f2667916d69dc5c57250e4d9bbeb8ed1d6d37d5769",
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "9ee1f0128229ee032808269a583294e95a8e4f49f5c56ac2666e41fccfb3a0c8",
+          "name": "SUPABASE_SERVICE_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "8c127714ed3f395eedfe25c1d7d35ef17325cad0b7163d2e6a32e6fea06b5efa",
+          "name": "SUPABASE_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "97a8cffb5ca622b53cd86061db7302e10013422134c3020399ccf5b018c2194c",
+          "name": "SYMDIR_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "63c6aad2f1ad0a595d18097340667a2bf6347b93409ba59d8e59d9ebc9f18f71",
+          "name": "USER_DATA",
+          "type": "kv_namespace"
+        },
+        {
+          "configuration_sha256": "2ca88993a16a6148b7aac2d7fd2a8d4b6b4defa66ffb8f575faf588598f072a2",
+          "name": "WORKSPACE_COORDINATOR",
+          "type": "durable_object_namespace"
+        }
+      ],
+      "compatibility_date": "2025-10-01",
+      "compatibility_flags": [],
+      "configuration_sha256": "2d0813beacba5c6ac4775ec4da73df51b76895bafe0e9dcf9cdf274f2ba9c599",
+      "schedule_count": 0,
+      "schedules_sha256": "6daa9ec137a94fc5962f6d05ab16df8dba70096ae34571ccd552ac130cd733c5"
+    },
+    "capture_artifact": {
+      "path": "aws/ops/reports/worker-source/release-36725595039.json",
+      "sha256": "54052634b4932f02d22d31d039befc0b246c7c0923c94bf778d12d3319efad5f"
+    },
+    "predecessor_kind": "previous_release",
+    "checked_at": "2026-09-30T14:39:23.672122+00:00",
+    "public_receipt_matches": true,
+    "complete_before_after_capture_verified": true,
+    "repository_input_files_checked": 17,
+    "local_build_matches": true,
+    "private_reads": 0,
+    "worker_invocations": 0,
+    "normal_private_publication_verified": false
   }
 }
