@@ -23,5 +23,11 @@
   "acceptance_scope": "Only native source packages, exact release receipts and original control-plane resources/schedules for snapshot and admin. Actual account/current/history/provider inputs remain excluded.",
   "actual_private_reads": 0,
   "native_invocations": 0,
-  "native_source_modified": false
+  "native_source_modified": false,
+  "baseline_failure": {
+    "run": 36675814449,
+    "report": "aws/ops/reports/latest/ops_6359_portfolio_accounting_runtime_acceptance.md",
+    "reason": "The actual admin source package matches reviewed code and original 256 MiB/30-second settings, but its legacy release receipt is absent. The baseline incorrectly required a modern receipt.",
+    "repair": "Operation 6360 records this explicit legacy baseline exception only before any change; both functions still require matched exact-commit receipts after the new deployment."
+  }
 }
