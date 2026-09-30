@@ -48,11 +48,11 @@ test('complete source and whole response inspection retain every row',async()=>{
  const w=wire();await api.verifyView(w.packet,w.fetcher,webcrypto);const whole=await api.verifySeries(w.packet,'DGS10',w.fetcher,webcrypto);
  assert.equal(whole.original_rows.length,650);assert.equal(whole.history.length,620);
  const proof=await api.verifyOriginal(w.packet,w.run,'DGS10',w.fetcher,webcrypto);assert.equal(proof.rows,650);assert.equal(proof.bytes,w.rawRef.bytes);
- w.objects[w.rawRef.key]=Buffer.from('wrong original');await assert.rejects(api.verifyOriginal(w.packet,w.run,'DGS10',w.fetcher,webcrypto),/bytes differ/);
+ w.objects[w.rawRef.key]=Buffer.from('wrong original');await assert.rejects(api.verifyOriginal(w.packet,w.run,'DGS10',w.fetcher,webcrypto),/bytes differ|Incomplete JSON bytes/);
 });
 test('missing or private history and interrupted reads are rejected',async()=>{
  const w=wire();await assert.rejects(api.verifySeries(w.packet,'../../private',w.fetcher,webcrypto));
- w.objects[w.packet.series.DGS10.complete_source_artifact.key]=Buffer.from('{}');await assert.rejects(api.verifySeries(w.packet,'DGS10',w.fetcher,webcrypto),/bytes differ/);
+ w.objects[w.packet.series.DGS10.complete_source_artifact.key]=Buffer.from('{}');await assert.rejects(api.verifySeries(w.packet,'DGS10',w.fetcher,webcrypto),/bytes differ|Incomplete JSON bytes/);
  await assert.rejects(api.bytes('/x',()=>new Promise(()=>{}),100,5),/timed out/);
  await assert.rejects(api.bytes('/x',async()=>new Response('123456'),3),/bound/);
 });

@@ -1,0 +1,11 @@
+# FI/FX browser evidence and lifecycle
+
+The original page accepted duplicate source identities even when the full response hash matched, leaked responses arriving after timeout, and allowed an older failed action to clear newer successfully verified evidence. Whole invented publications reproduced each fault before repair.
+
+All FI/FX artifact bytes now use the shared complete bounded evidence reader. Reads require HTTP 200 without Content-Range, carry caller cancellation through every artifact, close late bodies and validate the immutable reference's complete decoded byte count independently of HTTP compression metadata. Strict UTF-8 JSON rejects duplicate identities, nonfinite values and invalid Unicode. The source view remains descriptive, with WAIT and all portfolio authority disabled.
+
+The page separately tracks publication and inspection actions. Refresh, source selection, history-kind changes and page suspension invalidate older work. Old success or error callbacks cannot restore or erase a later result, including when the selection changes away and back to the same source. Refresh clears every old reading and proof before accepting the new publication. Page suspension cancels work and removes the clock; return starts one clock and verifies again. Unchanged age ticks preserve open precision disclosures. Actual expiry still withholds current values.
+
+The status says “Retained view matched” because matching a saved output projection is distinct from checking the original source. Original verification displays its complete source hash and acquisition clock, with narrow-screen wrapping. The browser does not claim independent arithmetic replay; the separate native archive verifier checks that. Missing originals and rejected source identities remain unavailable.
+
+Bond Desk, ICI Flows and Signal Board also use this transport helper. All four source pages load the shared evidence reader before it. Their existing inputs are retained. Fourteen new cases use two complete invented publications, all eighteen sources and 114 complete retained objects. Existing 650-row pagination tests remain, along with full frontend/deployment checks. Browser QA uses only a local fixture server with external connections blocked; actual current, private and consumer packets are not inspected.
