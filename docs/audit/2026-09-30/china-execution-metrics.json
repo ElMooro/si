@@ -22,7 +22,259 @@
     "preflight": "pass"
   },
   "acceptance": {
-    "runner": "pending",
+    "status": "bounded_read_only_execution_metrics_accepted",
+    "source_commit": "73ffe40889ebb5082e5f98300770bb7cf5da2ff0",
+    "runner": {
+      "run_id": 36783070300,
+      "operation_commit": "73ffe40889ebb5082e5f98300770bb7cf5da2ff0",
+      "report_commit": "91c3116aa1f2a04a825580d1ebba8b74c065a642",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6393_china_execution_metrics.md",
+        "bytes": 6160,
+        "sha256": "f94231fc13e44bdfbb18b97e707fe5849d7eae25b797acad7a8fc90feb4b290e"
+      },
+      "evidence": {
+        "source_commit": "b84b1513c115572e3cfffb5a5c66389134ea895f",
+        "native_before": {
+          "code_sha256": "rTLqyoSzBvyCX0wYFGwwJmpgHWnsFy2TATNlmqZ/mJ8=",
+          "source_files_checked": 4,
+          "handler_bytes": 31926,
+          "timeout": 120,
+          "memory_mb": 256,
+          "receipt": {
+            "status": "matched",
+            "commit": "b84b1513c115572e3cfffb5a5c66389134ea895f"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge rule",
+              "name": "china-liquidity-daily",
+              "state": "ENABLED",
+              "expression": "cron(30 14 ? * MON-FRI *)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-china-liquidity",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "native_after": {
+          "code_sha256": "rTLqyoSzBvyCX0wYFGwwJmpgHWnsFy2TATNlmqZ/mJ8=",
+          "source_files_checked": 4,
+          "handler_bytes": 31926,
+          "timeout": 120,
+          "memory_mb": 256,
+          "receipt": {
+            "status": "matched",
+            "commit": "b84b1513c115572e3cfffb5a5c66389134ea895f"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge rule",
+              "name": "china-liquidity-daily",
+              "state": "ENABLED",
+              "expression": "cron(30 14 ? * MON-FRI *)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-china-liquidity",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "window_start": "2026-09-30T14:30:00+00:00",
+        "window_end": "2026-09-30T14:45:00+00:00",
+        "namespace": "AWS/Lambda",
+        "dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": "justhodl-china-liquidity"
+          }
+        ],
+        "metrics": {
+          "Invocations": {
+            "metric": "Invocations",
+            "unit": "Count",
+            "statistics": [
+              "Sum"
+            ],
+            "period_seconds": 60,
+            "datapoints": [
+              {
+                "timestamp": "2026-09-30T14:30:00+00:00",
+                "unit": "Count",
+                "Sum": 1.0
+              }
+            ],
+            "returned_minutes": 1,
+            "window_minutes": 15,
+            "unreported_minutes": [
+              "2026-09-30T14:31:00+00:00",
+              "2026-09-30T14:32:00+00:00",
+              "2026-09-30T14:33:00+00:00",
+              "2026-09-30T14:34:00+00:00",
+              "2026-09-30T14:35:00+00:00",
+              "2026-09-30T14:36:00+00:00",
+              "2026-09-30T14:37:00+00:00",
+              "2026-09-30T14:38:00+00:00",
+              "2026-09-30T14:39:00+00:00",
+              "2026-09-30T14:40:00+00:00",
+              "2026-09-30T14:41:00+00:00",
+              "2026-09-30T14:42:00+00:00",
+              "2026-09-30T14:43:00+00:00",
+              "2026-09-30T14:44:00+00:00"
+            ],
+            "sum_of_reported_points": 1.0,
+            "unreported_minutes_are_zero": false,
+            "sdk_datapoints_sha256": "ac27ffda6865cb4e84830a47f3b1753dd7f193e33168724f840f1a8a4819d397"
+          },
+          "Errors": {
+            "metric": "Errors",
+            "unit": "Count",
+            "statistics": [
+              "Sum"
+            ],
+            "period_seconds": 60,
+            "datapoints": [
+              {
+                "timestamp": "2026-09-30T14:30:00+00:00",
+                "unit": "Count",
+                "Sum": 0.0
+              }
+            ],
+            "returned_minutes": 1,
+            "window_minutes": 15,
+            "unreported_minutes": [
+              "2026-09-30T14:31:00+00:00",
+              "2026-09-30T14:32:00+00:00",
+              "2026-09-30T14:33:00+00:00",
+              "2026-09-30T14:34:00+00:00",
+              "2026-09-30T14:35:00+00:00",
+              "2026-09-30T14:36:00+00:00",
+              "2026-09-30T14:37:00+00:00",
+              "2026-09-30T14:38:00+00:00",
+              "2026-09-30T14:39:00+00:00",
+              "2026-09-30T14:40:00+00:00",
+              "2026-09-30T14:41:00+00:00",
+              "2026-09-30T14:42:00+00:00",
+              "2026-09-30T14:43:00+00:00",
+              "2026-09-30T14:44:00+00:00"
+            ],
+            "sum_of_reported_points": 0.0,
+            "unreported_minutes_are_zero": false,
+            "sdk_datapoints_sha256": "ebb6a05d9b6daf3a185109777ae6ad7cb2e078244b527b305c3bd78c0df22832"
+          },
+          "Throttles": {
+            "metric": "Throttles",
+            "unit": "Count",
+            "statistics": [
+              "Sum"
+            ],
+            "period_seconds": 60,
+            "datapoints": [
+              {
+                "timestamp": "2026-09-30T14:30:00+00:00",
+                "unit": "Count",
+                "Sum": 0.0
+              }
+            ],
+            "returned_minutes": 1,
+            "window_minutes": 15,
+            "unreported_minutes": [
+              "2026-09-30T14:31:00+00:00",
+              "2026-09-30T14:32:00+00:00",
+              "2026-09-30T14:33:00+00:00",
+              "2026-09-30T14:34:00+00:00",
+              "2026-09-30T14:35:00+00:00",
+              "2026-09-30T14:36:00+00:00",
+              "2026-09-30T14:37:00+00:00",
+              "2026-09-30T14:38:00+00:00",
+              "2026-09-30T14:39:00+00:00",
+              "2026-09-30T14:40:00+00:00",
+              "2026-09-30T14:41:00+00:00",
+              "2026-09-30T14:42:00+00:00",
+              "2026-09-30T14:43:00+00:00",
+              "2026-09-30T14:44:00+00:00"
+            ],
+            "sum_of_reported_points": 0.0,
+            "unreported_minutes_are_zero": false,
+            "sdk_datapoints_sha256": "ebb6a05d9b6daf3a185109777ae6ad7cb2e078244b527b305c3bd78c0df22832"
+          },
+          "Duration": {
+            "metric": "Duration",
+            "unit": "Milliseconds",
+            "statistics": [
+              "Minimum",
+              "Maximum",
+              "Sum",
+              "SampleCount"
+            ],
+            "period_seconds": 60,
+            "datapoints": [
+              {
+                "timestamp": "2026-09-30T14:30:00+00:00",
+                "unit": "Milliseconds",
+                "Minimum": 89383.88,
+                "Maximum": 89383.88,
+                "Sum": 89383.88,
+                "SampleCount": 1.0
+              }
+            ],
+            "returned_minutes": 1,
+            "window_minutes": 15,
+            "unreported_minutes": [
+              "2026-09-30T14:31:00+00:00",
+              "2026-09-30T14:32:00+00:00",
+              "2026-09-30T14:33:00+00:00",
+              "2026-09-30T14:34:00+00:00",
+              "2026-09-30T14:35:00+00:00",
+              "2026-09-30T14:36:00+00:00",
+              "2026-09-30T14:37:00+00:00",
+              "2026-09-30T14:38:00+00:00",
+              "2026-09-30T14:39:00+00:00",
+              "2026-09-30T14:40:00+00:00",
+              "2026-09-30T14:41:00+00:00",
+              "2026-09-30T14:42:00+00:00",
+              "2026-09-30T14:43:00+00:00",
+              "2026-09-30T14:44:00+00:00"
+            ],
+            "sum_of_reported_points": 89383.88,
+            "unreported_minutes_are_zero": false,
+            "sdk_datapoints_sha256": "69d4406b51dc415539ccafb4c2abda5d90a754191fb4d7747f18f1695b29bbcd",
+            "reported_samples": 1.0,
+            "mean_of_reported_samples_ms": 89383.88
+          }
+        },
+        "interpretation": {
+          "execution_observed": true,
+          "publication_verified": false,
+          "schedule_causation_verified": false,
+          "executing_code_identity_verified": false,
+          "metric_scope": "FunctionName aggregates versions; counts cannot identify a trigger, executing code revision or successful application publication.",
+          "missing_metric_meaning": "Unreported, never inferred as zero. Sum and mean cover returned points only.",
+          "caught_error_limit": "The reviewed handler may return statusCode 503 after catching an exception; Lambda Errors alone does not certify application success."
+        },
+        "native_invocations": 0,
+        "provider_requests": 0,
+        "application_log_reads": 0,
+        "current_packet_reads": 0,
+        "private_reads": 0,
+        "account_reads": 0,
+        "consumer_reads": 0,
+        "native_writes": 0,
+        "schedule_changes": 0,
+        "scope": "Four complete fixed-window AWS execution-statistic responses plus exact native package/resources/schedule controls. No logs or application/source/account/consumer objects."
+      }
+    },
     "publication_verified": false
   },
   "scope": {

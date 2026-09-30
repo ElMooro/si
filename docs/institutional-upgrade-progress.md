@@ -6759,3 +6759,12 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 - Operation 6391 found no reviewed failure context in the original September 30 window. Read-only 6393 checks only the complete fixed-window AWS execution metrics, with exact native package/resources/schedule validation before and after. Missing metric bins remain unknown. Lambda function error counts cannot certify the caught-error application response.
 - Six invented tests cover request scope, all fifteen unordered minute bins, missing versus explicit zero, typed counters and invalid timestamps, weighted duration statistics and retention bounds. All 940 deployment, fifteen shell, 18 native and six focused checks pass. The actual runner report remains pending. No log body, actual current/private/account/consumer data, provider probe, native invoke, write or schedule change is used.
+
+
+### Stage 484 execution-metric acceptance
+
+- Read-only 6393 at `73ffe40889ebb5082e5f98300770bb7cf5da2ff0`, run `36783070300`, passed with report commit `91c3116aa1f2a04a825580d1ebba8b74c065a642`. The exact original native package, resources and schedule match before and after four complete metric responses for the September 30 14:30–14:45 UTC window. No application log or current/private/account/consumer object was read.
+- `Invocations`: sum of reported points 1.0, with 1 reported and 14 unreported minute bins. Missing bins are not treated as zero.
+- `Errors`: sum of reported points 0.0, with 1 reported and 14 unreported minute bins. Missing bins are not treated as zero.
+- `Throttles`: sum of reported points 0.0, with 1 reported and 14 unreported minute bins. Missing bins are not treated as zero.
+- Duration mean across reported samples: 89383.88 ms. Function-level metric evidence cannot identify the triggering event or executing code revision. A caught application error can also return without a Lambda error. Publication, source correctness, schedule causation and investment qualification remain unverified; no recovery is inferred.
