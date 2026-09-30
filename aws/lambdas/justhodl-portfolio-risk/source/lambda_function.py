@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars, snapshot_value_identity, MAX_SOURCE_BYTES, source_document
+from portfolio_publication import reserve_publication, publish_ordered, publication_request, opaque_etag
 
 S3_BUCKET = "justhodl-dashboard-live"
 SNAPSHOT_KEY = "portfolio/snapshot.json"
@@ -295,7 +296,14 @@ def _run_private(event, context):
             'original_response_sha256':packet['_source_evidence']['body_sha256'],
             'sample_count':output['risk_contract']['sample_count'], 'as_of':output['risk_contract']['sample_end'],
             'replay':'reproduced', 'sizing_eligible':False})}
-    snapshot = snapshot_document(s3.get_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY))
+    # Preserve early rejection of malformed private input before any reservation
+    # or provider work. Reacquire the actual input only after its revision exists.
+    snapshot_document(s3.get_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY))
+    attempt = reserve_publication(s3, S3_BUCKET, RISK_KEY, publication_request)
+    snapshot_response = s3.get_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY)
+    snapshot = snapshot_document(snapshot_response)
+    attempt['source_etag'] = opaque_etag(snapshot_response.get('ETag'))
+    attempt['source_value_sha256'] = snapshot_value_identity(snapshot)['value_sha256']
     if not isinstance(snapshot, dict):
         raise ValueError('invalid private snapshot')
     symbols = {'SPY'}
@@ -309,10 +317,11 @@ def _run_private(event, context):
     payload['replay'] = retain_bundle(bundle)
     payload['alerts_sent'] = 0
     payload['notification_policy'] = 'No automatic messages from this research risk model'
-    publish_risk(payload)
+    publication = publish_risk(payload, attempt)
     # Invoke response contains no holdings, account balances or model values.
-    return {'statusCode': 200, 'body': json.dumps({'success': True, 'schema_version': VERSION,
-        'status': payload['status'], 'generated_at': payload['generated_at'], 'alerts_sent': 0})}
+    return {'statusCode': 200, 'body': json.dumps({'success': publication['published'], 'schema_version': VERSION,
+        'status': payload['status'] if publication['published'] else 'PUBLICATION_NOT_CURRENT',
+        'publication_status': publication['status'], 'generated_at': payload['generated_at'], 'alerts_sent': 0})}
 
 
 def load_alert_history():
@@ -332,10 +341,23 @@ def save_alert_history(history):
     publish_private('portfolio-risk-history', history)
 
 
-def publish_risk(payload):
-    s3.put_object(Bucket=S3_BUCKET, Key=RISK_KEY, Body=canonical(payload),
-                  ContentType='application/json', CacheControl='private, no-store')
-    publish_private('portfolio-risk', payload)
+def retain_risk_publication(raw):
+    """Preserve every byte of the private predecessor before conditional replace."""
+    key = ARCHIVE_PREFIX + 'publication-v1-' + hashlib.sha256(raw).hexdigest() + '.json'
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=key, Body=raw, ContentType='application/json',
+                      CacheControl='private, no-store', IfNoneMatch='*')
+    except Exception as error:
+        code = str(getattr(error, 'response', {}).get('Error', {}).get('Code', ''))
+        if code not in ('PreconditionFailed', '412'):
+            raise
+        deadline = time.monotonic() + 20
+        verify_archive_bytes(s3.get_object(Bucket=S3_BUCKET, Key=key), raw, deadline)
+
+
+def publish_risk(payload, attempt):
+    return publish_ordered(payload, attempt, s3, S3_BUCKET, RISK_KEY, SNAPSHOT_KEY,
+                           publication_request, retain_risk_publication)
 
 
 def lambda_handler(event, context):

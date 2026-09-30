@@ -92,3 +92,40 @@ inert.
 References: [Cloudflare transaction semantics](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/),
 [SQLite object limits](https://developers.cloudflare.com/durable-objects/platform/limits/),
 and [legacy KV write semantics](https://developers.cloudflare.com/kv/api/write-key-value-pairs/).
+
+
+## Stage 447 native adapter (candidate until exact release acceptance)
+
+The native adapter first validates the entire initial snapshot without provider
+work or reservation. It then reads the current complete risk packet to establish
+a validated revision floor, reserves the revision, and reacquires the actual
+snapshot for this calculation. The second GET supplies the opaque ETag and
+complete typed value identity. This preserves early input rejection and binds
+the actual calculation to acquisition after its rank was issued.
+
+Every current-risk PUT uses IfMatch against the completely read predecessor or
+IfNoneMatch for absence. Before a replacement, the whole predecessor's raw bytes
+are retained with create-only semantics at the existing private risk archive,
+using publication-v1-<SHA256>.json. Collisions must match every byte through EOF.
+No predecessor timestamp is fabricated to order a legacy packet. Four bounded
+conflict attempts re-read the current version; there is no unconditional fallback.
+
+Source HEAD checks before/after S3 publication reject observed source changes.
+They cannot atomically lock a different S3 key. Exact current-risk checks around
+the mirror acknowledgement report supersession or partial publication explicitly.
+The same reserved attempt can retry identical bytes safely; a subsequent normal
+invocation reserves a new revision and recomputes. A lost acknowledgement is not
+reported as success. Native responses expose only fixed status metadata. The
+model, private replay bundles, lack of sizing authority and notification policy
+are unchanged.
+
+The deployment prerequisite reads only the public Worker release receipt and
+compares it with the complete retained receipt/capture and exact repository input
+identities. That evidence must already be in the checkout: ship the compatible
+Worker phase first. A prerequisite failure blocks native mutation. Original
+resources and schedules remain in place; no producer is invoked to accept this
+change. A legacy invocation may still finish during its original 300-second
+runtime window after code replacement. Read-only code/package acceptance does
+not certify normal private publication or runtime SDK operation.
+
+S3 conditional-write behavior follows the [AWS contract](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html).

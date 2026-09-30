@@ -1,0 +1,89 @@
+{
+  "stage": 447,
+  "status": "source_and_full_checks_accepted_exact_deployment_pending",
+  "base_commit": "4d628d44ff5a8ba0cac7c5db482a2936b25b1973",
+  "worker_prerequisite_commit": "8b1796470c5dd854a335edf5244f263da340d6ce",
+  "scope": "Native publisher source, whole synthetic fixtures and offline protocol/HTTP/storage tests. No real private/current/provider data or native invocation.",
+  "predecessors": {
+    "native": "tests/fixtures/pre-portfolio-ordering/lambda_function.py.txt",
+    "complete_synthetic": "tests/fixtures/pre-portfolio-publication/complete-synthetic.json",
+    "test_support": {
+      "path": "tests/private_portfolio_test_support.py",
+      "fixture": "tests/fixtures/pre-portfolio-ordering/private_portfolio_test_support.py.txt",
+      "bytes": 12512,
+      "sha256": "91cfef0f5cb315e1d7c175fe5e6d81e7edcd72fec06baa78ccd3399c0fcdd18a"
+    }
+  },
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py": {
+      "bytes": 17410,
+      "sha256": "1ace91fed2791bc00fd96db3158b6fc48955d1acf6c7ca5c4e044d2785568b14"
+    },
+    "aws/lambdas/justhodl-portfolio-risk/source/portfolio_publication.py": {
+      "bytes": 12303,
+      "sha256": "d501c99da4620926d29d2952eb9d68a61759c0eeca5aeb983135c8f7022d1027"
+    }
+  },
+  "tests": {
+    "new_ordering_cases": 18,
+    "new_transport_cases": 6,
+    "worker_prerequisite_cases": 4,
+    "native_acceptance_operation_cases": 3,
+    "native_total_unittest_cases": 68,
+    "private_handler_checks": 33,
+    "scenario_checks_pending": false,
+    "frontend": 2005,
+    "deployment": 767,
+    "scenarios": 24,
+    "deployment_shell": 12,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "deployment_workflow_shell_blocks": 8,
+    "deployment_script_syntax": true
+  },
+  "semantics": [
+    "Reject malformed snapshot before a reservation; reacquire complete actual snapshot after revision allocation",
+    "Keep source ETag opaque and snapshot value digest typed; generation and acquisition time remain distinct",
+    "Before S3 replacement retain every predecessor byte in the existing private archive",
+    "Use IfMatch or IfNoneMatch on every current write, reread on conflict, never unconditional fallback",
+    "Reject older/equal-conflicting publication revisions; new attempts obtain durable counter rank",
+    "Source HEAD fences known changes and the existing UI snapshot-binding check remains mandatory",
+    "Exact canonical candidate bytes reach both stores; ack must bind protocol, revision and body digest",
+    "Explicit superseded/changed/partial states; transport failures never become success",
+    "No redirects or unreviewed publication origin; bounded complete strict UTF-8 acknowledgement",
+    "Read-only native operation requires exactly original six source closure members plus portfolio_publication.py and unchanged original resources/schedules"
+  ],
+  "limitations": [
+    "S3 and mirror are separate commits; the stores are not globally atomic",
+    "Source HEAD checks are not an atomic cross-key transaction",
+    "In-flight legacy Lambda writes remain possible during the original 300-second runtime window",
+    "Same-attempt exact retry is safe; after a failed invocation the next normal run reserves a new rank and recalculates",
+    "Native receipt prerequisite requires Worker evidence already retained in the checkout; deploy the backward-compatible Worker phase first",
+    "Actual normal private publication and runtime SDK behavior remain unverified by read-only acceptance"
+  ],
+  "native_acceptance": null,
+  "static_acceptance": null,
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "model_sha256": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4",
+  "unchanged_original_adapter_functions": [
+    "batch_fetch_bars",
+    "fetch_polygon_bars",
+    "lambda_handler",
+    "load_alert_history",
+    "read_provider_response",
+    "retain_bundle",
+    "save_alert_history",
+    "snapshot_document",
+    "verify_archive_bytes"
+  ],
+  "checks": {
+    "frontend": "b52fef6ca471ada4c3a9221329413754aee540b0291393519999559461d66e46",
+    "deployment": "8db47396d6145351555e146a5200bacb2d0e413b684788d72beb5d87ff6e80c9",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "native-full": "2e0c979c7cb7e681269ea88b3cb4c297d13063bf040d74cdc5c77a9f171e823b"
+  }
+}

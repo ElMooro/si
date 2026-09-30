@@ -6,6 +6,7 @@ shared HTTP identity guard runs against a synthetic environment service token.
 from contextlib import redirect_stdout
 from copy import deepcopy
 import io
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -42,15 +43,39 @@ class Store:
             "data/history/behavior-mirror-history.json": {"snapshots": []},
         }
         self.reads, self.writes = [], []
+        self.raws, self.signatures = {}, {}
         self.exceptions = types.SimpleNamespace(NoSuchKey=KeyError, ResourceNotFoundException=KeyError)
 
     def get_object(self, **kw):
         self.reads.append(kw["Key"])
-        return {"Body": io.BytesIO(json.dumps(self.docs.get(kw["Key"], {})).encode())}
+        raw = self.raw_body(kw['Key'])
+        return {"Body": io.BytesIO(raw), 'ETag': self.etag(kw['Key']), 'ContentLength': len(raw)}
+
+    def raw_body(self, key):
+        value = self.docs.get(key, {})
+        # Preserve exact PUT bytes unless the test explicitly changes the doc.
+        # JSON text distinguishes booleans from numbers (Python equality does not).
+        signature = json.dumps(value, sort_keys=True, separators=(',', ':'))
+        return self.raws[key] if self.signatures.get(key) == signature else json.dumps(value).encode()
+
+    def etag(self, key):
+        return '"synthetic-' + hashlib.sha256(self.raw_body(key)).hexdigest() + '"'
+
+    def head_object(self, **kw):
+        self.reads.append('HEAD:' + kw['Key'])
+        if kw['Key'] not in self.docs:
+            raise StoreError('NoSuchKey')
+        return {'ETag': self.etag(kw['Key'])}
 
     def put_object(self, **kw):
+        if kw.get('IfNoneMatch') == '*' and kw['Key'] in self.docs:
+            raise StoreError('PreconditionFailed')
+        if 'IfMatch' in kw and (kw['Key'] not in self.docs or kw['IfMatch'] != self.etag(kw['Key'])):
+            raise StoreError('PreconditionFailed')
         self.writes.append({**kw, "document": json.loads(kw["Body"])})
         self.docs[kw["Key"]] = json.loads(kw["Body"])
+        self.raws[kw['Key']] = kw['Body'] if type(kw['Body']) is bytes else kw['Body'].encode()
+        self.signatures[kw['Key']] = json.dumps(self.docs[kw['Key']], sort_keys=True, separators=(',', ':'))
         return {}
 
     def get_parameter(self, **kw):
@@ -62,6 +87,12 @@ class Store:
     def scan(self, **kw):
         self.reads.append("DDB")
         return {"Items": []}
+
+
+class StoreError(Exception):
+    def __init__(self, code):
+        super().__init__('Invented S3 conflict')
+        self.response = {'Error': {'Code': code}}
 
 
 def load(engine, store, fail_publish=False):
@@ -83,6 +114,20 @@ def load(engine, store, fail_publish=False):
                 "maybe_telegram": lambda *a, **kw: (_ for _ in ()).throw(AssertionError("no Telegram permitted in tests"))})
     if engine == "portfolio-risk":
         env["batch_fetch_bars"] = lambda symbols, days: {s: [{"c": 100 + i + (i % 3)} for i in range(90)] for s in symbols}
+        issued = 0
+        def risk_request(method, raw, **headers):
+            nonlocal issued
+            doc = json.loads(raw)
+            if method == 'POST':
+                issued = max(issued, doc['minimum_revision']) + 1
+                return {'ok': True, 'protocol': 'portfolio-risk-publication.v1', 'revision': issued,
+                        'token': f'{issued:08x}-0000-4000-8000-000000000000'}
+            assert method == 'PUT'
+            assert headers['sha256'] == hashlib.sha256(raw).hexdigest()
+            publish('portfolio-risk', doc)
+            return {'ok': True, 'protocol': 'portfolio-risk-publication.v1', 'revision': doc['publication']['revision'],
+                    'body_sha256': headers['sha256'], 'status': 'published'}
+        env['publication_request'] = risk_request
     if engine == "portfolio-catalysts":
         env["scan_ddb_all"] = lambda: ({SYMBOL: store.position}, {})
     if engine == "behavior-mirror":
