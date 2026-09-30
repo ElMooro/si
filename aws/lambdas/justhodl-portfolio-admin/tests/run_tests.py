@@ -134,7 +134,7 @@ def test_absent_position_and_non_finite_inputs_are_refused():
 
 
 def _load_snapshot(prices):
-    src = (LAMBDAS / "justhodl-portfolio-snapshot" / "source" / "lambda_function.py").read_text()
+    src = (LAMBDAS / "justhodl-portfolio-snapshot" / "source" / "lambda_function.py").read_text(encoding="utf-8")
     # isolate the position-valuation block by executing the module with stubbed boto3 and price fetch
     fake = types.ModuleType("boto3")
     fake.client = lambda *a, **k: types.SimpleNamespace(get_object=lambda **k: (_ for _ in ()).throw(Exception("no s3")), put_object=lambda **k: None)
@@ -253,6 +253,6 @@ if __name__ == "__main__":
         fn()
         print("ok", name)
     print("portfolio tests passed: %d" % len(tests))
-    import unittest, test_admin_integrity
-    result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(test_admin_integrity))
+    import unittest, test_admin_integrity, test_watchlist_admin
+    result=unittest.TextTestRunner(verbosity=1).run(unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromModule(module) for module in (test_admin_integrity,test_watchlist_admin)))
     if not result.wasSuccessful():raise SystemExit(1)

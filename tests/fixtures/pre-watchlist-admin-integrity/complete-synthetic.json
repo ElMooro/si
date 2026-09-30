@@ -1,0 +1,545 @@
+{
+  "scope": "Current reviewed handler and complete invented records only; no AWS or account reads. Archived bytes are inert.",
+  "source_sha256": "65036117b787f73822b39834e4dae445e87814f3fe80886b729ced140f1f804c",
+  "source_bytes": 23503,
+  "observed_at": "2026-09-30T07:16:27.981224+00:00",
+  "cases": [
+    {
+      "name": "add_silently_replaces_existing_notes_and_metadata",
+      "event": {
+        "action": "add_watchlist",
+        "symbol": "AAA"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"add_watchlist\", \"item\": {\"pk\": \"WATCHLIST\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"source\": \"MANUAL\", \"added_at\": \"2026-09-30T07:16:27.975184+00:00\"}}"
+      },
+      "after": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T07:16:27.975184+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "put_item",
+          {
+            "Item": {
+              "pk": "WATCHLIST",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "source": "MANUAL",
+              "added_at": "2026-09-30T07:16:27.975184+00:00"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "custom_auto_owner_is_deleted_by_prefix",
+      "event": {
+        "action": "clear_auto_watchlist"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_CUSTOM",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"clear_auto_watchlist\", \"deleted_count\": 1, \"deleted_symbols\": [\"AAA\"]}"
+      },
+      "after": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "WATCHLIST"
+            }
+          }
+        ],
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "stale_remove_token_is_ignored",
+      "event": {
+        "action": "remove_watchlist",
+        "symbol": "AAA",
+        "expected_record_etag": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"remove_watchlist\", \"symbol\": \"AAA\", \"existed\": true}"
+      },
+      "after": [],
+      "calls": [
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            },
+            "ReturnValues": "ALL_OLD"
+          }
+        ]
+      ]
+    },
+    {
+      "name": "clear_deletes_concurrent_manual_conversion",
+      "event": {
+        "action": "clear_auto_watchlist"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"clear_auto_watchlist\", \"deleted_count\": 1, \"deleted_symbols\": [\"AAA\"]}"
+      },
+      "after": [],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "WATCHLIST"
+            }
+          }
+        ],
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "clear_only_reads_first_page",
+      "event": {
+        "action": "clear_auto_watchlist"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "AUTO_TIER_A",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": [
+        {
+          "Items": [
+            {
+              "pk": "WATCHLIST",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "source": "AUTO_TIER_S",
+              "added_at": "2026-09-29T00:00:00Z",
+              "notes": "Invented original owner note",
+              "extra": {
+                "preserve": [
+                  "all",
+                  "fields"
+                ]
+              }
+            }
+          ],
+          "LastEvaluatedKey": {
+            "pk": "WATCHLIST",
+            "sk": "AAA"
+          }
+        },
+        {
+          "Items": [
+            {
+              "pk": "WATCHLIST",
+              "sk": "BBB",
+              "symbol": "BBB",
+              "source": "AUTO_TIER_A",
+              "added_at": "2026-09-29T00:00:00Z",
+              "notes": "Invented original owner note",
+              "extra": {
+                "preserve": [
+                  "all",
+                  "fields"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"clear_auto_watchlist\", \"deleted_count\": 1, \"deleted_symbols\": [\"AAA\"]}"
+      },
+      "after": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "AUTO_TIER_A",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "WATCHLIST"
+            }
+          }
+        ],
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "clear_failure_leaves_partial_deletion",
+      "event": {
+        "action": "clear_auto_watchlist"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "AUTO_TIER_A",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": null,
+      "response": {
+        "statusCode": 503,
+        "body": "{\"ok\": false, \"err\": \"operation outcome unconfirmed; refresh before retrying\", \"error_code\": \"OPERATION_UNCONFIRMED\"}"
+      },
+      "after": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "AUTO_TIER_A",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "WATCHLIST"
+            }
+          }
+        ],
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        ],
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "BBB"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "missing_add_acknowledgement_reported_as_success",
+      "event": {
+        "action": "add_watchlist",
+        "symbol": "AAA"
+      },
+      "before": [],
+      "query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"add_watchlist\", \"item\": {\"pk\": \"WATCHLIST\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"source\": \"MANUAL\", \"added_at\": \"2026-09-30T07:16:27.980221+00:00\"}}"
+      },
+      "after": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T07:16:27.980221+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "put_item",
+          {
+            "Item": {
+              "pk": "WATCHLIST",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "source": "MANUAL",
+              "added_at": "2026-09-30T07:16:27.980221+00:00"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "malformed_owner_fails_after_prior_deletion",
+      "event": {
+        "action": "clear_auto_watchlist"
+      },
+      "before": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": null,
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "query_pages": null,
+      "response": {
+        "statusCode": 503,
+        "body": "{\"ok\": false, \"err\": \"operation outcome unconfirmed; refresh before retrying\", \"error_code\": \"OPERATION_UNCONFIRMED\"}"
+      },
+      "after": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": null,
+          "added_at": "2026-09-29T00:00:00Z",
+          "notes": "Invented original owner note",
+          "extra": {
+            "preserve": [
+              "all",
+              "fields"
+            ]
+          }
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "WATCHLIST"
+            }
+          }
+        ],
+        [
+          "delete_item",
+          {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        ]
+      ]
+    }
+  ],
+  "actual_private_reads": 0,
+  "native_invocations": 0
+}

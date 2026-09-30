@@ -17,7 +17,7 @@ Actions:
   list               filter: "POSITION" | "WATCHLIST" | "STOPLOSS" | "ALL"
   add_watchlist      symbol, source ("MANUAL" default)
   remove_watchlist   symbol
-  clear_auto_watchlist (removes all AUTO_TIER_S/A entries — for clean re-sync)
+  clear_auto_watchlist (atomic deletion of observed AUTO_TIER_S/A rows; later sync may add rows)
 
 Example invoke payload:
   {"action": "add_position", "symbol": "LLY", "qty": 50,
@@ -35,6 +35,7 @@ import boto3
 
 TABLE_NAME = "justhodl-portfolio"
 ddb = boto3.resource("dynamodb", region_name="us-east-1")
+_ddb_client = boto3.client("dynamodb", region_name="us-east-1")
 table = ddb.Table(TABLE_NAME)
 
 # ── auth + pipeline plumbing (Function URL path) ──
@@ -132,12 +133,12 @@ def _item_view(item):
     return view
 
 
-def _observed_condition(item):
+def _observed_condition(item,owned_fields=POSITION_FIELDS):
     # Compare every observed value and absence of fields any position writer owns.
     # Unknown fields newly added by external writers are preserved by updates;
     # this is not a general table-wide transaction or cross-item revision claim.
     names,values,terms={}, {}, []
-    for index,key in enumerate(sorted(set(item)|POSITION_FIELDS)):
+    for index,key in enumerate(sorted(set(item)|owned_fields)):
         alias='#c'+str(index);names[alias]=key
         if key in item:
             token=':c'+str(index);values[token]=item[key];terms.append(alias+' = '+token)
@@ -331,44 +332,110 @@ def set_stop_loss(event):
 
 
 
+WATCH_FIELDS={'symbol','source','notes','added_at','updated_at','mutation_id','source_generated_at','sync_version'}
+WATCH_META_KEY={'pk':'SYNC_META','sk':'AUTO_WATCHLIST_V1'}
+AUTO_WATCH_SOURCES={'AUTO_TIER_S','AUTO_TIER_A'}
+
+
+def _watch_view(item):
+    return {**_scrub(item),'record_etag':_record_tag(item)}
+
+
+def _watchlist_tag(rows):
+    return _record_tag({'record_tags':sorted([row['sk'],_record_tag(row)] for row in rows)})
+
+
+def _expected_tag(event,field,actual):
+    if field not in event:return
+    value=event[field]
+    if not isinstance(value,str) or not re.fullmatch('[0-9a-f]{64}',value):raise InputError(field+' must be a complete edit token')
+    if value!=actual:raise InputError('watchlist changed since it was displayed; refresh before editing',409,'STALE_EDIT')
+
+
+def _watch_identity(item):
+    if not isinstance(item,dict) or item.get('pk')!='WATCHLIST' or item.get('sk')!=item.get('symbol') or _symbol(item.get('symbol'))!=item['symbol']:
+        raise InputError('watchlist record identity is unsupported; no mutation attempted',409,'WATCHLIST_IDENTITY_INVALID')
+
+
+def _condition_fields(item,fields):
+    condition,names,values=_observed_condition(item,fields)
+    return {'ConditionExpression':condition,'ExpressionAttributeNames':names,'ExpressionAttributeValues':values}
+
+
+@checked_action
 def add_watchlist(event):
-    sym = event["symbol"].upper().strip()
-    source = event.get("source", "MANUAL")
-    item = {
-        "pk": "WATCHLIST", "sk": sym, "symbol": sym,
-        "source": source,
-        "added_at": datetime.now(timezone.utc).isoformat(),
-    }
-    if event.get("notes"): item["notes"] = str(event["notes"])
-    table.put_item(Item=item)
-    return {"ok": True, "action": "add_watchlist", "item": _scrub(item)}
+    if set(event)-{'action','symbol','source','notes'}:raise InputError('unsupported add-watchlist fields')
+    symbol=_symbol(event.get('symbol'));source=_text(event.get('source','MANUAL'),'source',64)
+    if not source or source.strip()!=source:raise InputError('source must be nonempty ownership text without surrounding whitespace')
+    now=datetime.now(timezone.utc).isoformat()
+    item={'pk':'WATCHLIST','sk':symbol,'symbol':symbol,'source':source,'added_at':now,'updated_at':now,'mutation_id':str(uuid.uuid4())}
+    if 'notes' in event:item['notes']=_text(event['notes'],'notes')
+    _write('put_item',Item=item,ConditionExpression='attribute_not_exists(pk)')
+    return {'ok':True,'action':'add_watchlist','item':_watch_view(item),'changed':True}
 
 
+@checked_action
 def remove_watchlist(event):
-    sym = event["symbol"].upper().strip()
-    resp = table.delete_item(
-        Key={"pk": "WATCHLIST", "sk": sym},
-        ReturnValues="ALL_OLD",
-    )
-    return {"ok": True, "action": "remove_watchlist", "symbol": sym,
-            "existed": bool(resp.get("Attributes"))}
+    if set(event)-{'action','symbol','expected_record_etag'}:raise InputError('unsupported remove-watchlist fields')
+    symbol=_symbol(event.get('symbol'))
+    if 'expected_record_etag' in event:_expected_tag(event,'expected_record_etag',event['expected_record_etag'])
+    response=table.get_item(Key={'pk':'WATCHLIST','sk':symbol},ConsistentRead=True)
+    if not isinstance(response,dict):raise InputError('watchlist read unavailable; no write attempted',503,'LIST_UNAVAILABLE')
+    item=response.get('Item')
+    if item is None:return {'ok':True,'action':'remove_watchlist','symbol':symbol,'existed':False,'removed_item':None,'changed':False}
+    _watch_identity(item);_expected_tag(event,'expected_record_etag',_record_tag(item))
+    response=_write('delete_item',Key={'pk':'WATCHLIST','sk':symbol},ReturnValues='ALL_OLD',**_condition_fields(item,WATCH_FIELDS))
+    removed=response.get('Attributes')
+    if not isinstance(removed,dict) or _record_tag(removed)!=_record_tag(item):raise InputError('watchlist deletion outcome unconfirmed; refresh before retrying',503,'WRITE_UNCONFIRMED')
+    return {'ok':True,'action':'remove_watchlist','symbol':symbol,'existed':True,'removed_item':_watch_view(removed),'changed':True}
 
 
+@checked_action
 def clear_auto_watchlist(event):
-    """Delete all AUTO_TIER_S and AUTO_TIER_A watchlist entries.
-    Used before snapshot Lambda re-syncs from current alpha-score."""
-    resp = table.query(
-        KeyConditionExpression="pk = :pk",
-        ExpressionAttributeValues={":pk": "WATCHLIST"},
-    )
-    deleted = []
-    with table.batch_writer() as batch:
-        for item in resp.get("Items", []):
-            if item.get("source", "MANUAL").startswith("AUTO_"):
-                batch.delete_item(Key={"pk": item["pk"], "sk": item["sk"]})
-                deleted.append(item["symbol"])
-    return {"ok": True, "action": "clear_auto_watchlist",
-            "deleted_count": len(deleted), "deleted_symbols": deleted}
+    """Atomically remove the observed S/A automatic rows; do not promise an empty future list."""
+    if set(event)-{'action','expected_watchlist_etag'}:raise InputError('unsupported clear-watchlist fields')
+    if 'expected_watchlist_etag' in event:_expected_tag(event,'expected_watchlist_etag',event['expected_watchlist_etag'])
+    response=table.get_item(Key=WATCH_META_KEY,ConsistentRead=True)
+    if not isinstance(response,dict):raise InputError('sync checkpoint unavailable; no mutation attempted',503,'LIST_UNAVAILABLE')
+    meta=response.get('Item')
+    if meta is not None and (not isinstance(meta,dict) or any(meta.get(k)!=v for k,v in WATCH_META_KEY.items())):
+        raise InputError('sync checkpoint invalid; no mutation attempted',409,'WATCHLIST_CHECKPOINT_INVALID')
+    rows=_complete_partition('WATCHLIST');observed_tag=_watchlist_tag(rows)
+    _expected_tag(event,'expected_watchlist_etag',observed_tag)
+    selected=[]
+    for row in rows:
+        # Unrecognized and absent ownership remains untouched, never prefix-matched.
+        if isinstance(row.get('source'),str) and row['source'] in AUTO_WATCH_SOURCES:
+            _watch_identity(row);selected.append(row)
+    base={'action':'clear_auto_watchlist','observed_watchlist_etag':observed_tag,'observed_records':len(rows),
+          'scope':'OBSERVED_AUTO_TIER_S_AND_A_ROWS','list_consistency':'STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT',
+          'later_sync_may_add_rows':True}
+    if not selected:return {**base,'ok':True,'changed':False,'deleted_count':0,'deleted_symbols':[],'transaction_operations':0}
+    if len(selected)>99:raise InputError('automatic clear exceeds one atomic transaction; no mutation attempted',413,'WATCHLIST_TRANSACTION_TOO_LARGE')
+    guard={'ConditionExpression':'attribute_not_exists(pk)'} if meta is None else _condition_fields(meta,{'version','source_generated_at','source_sha256','updated_at'})
+    operations=[{'ConditionCheck':{'TableName':TABLE_NAME,'Key':WATCH_META_KEY,**guard}}]
+    operations.extend({'Delete':{'TableName':TABLE_NAME,'Key':{'pk':'WATCHLIST','sk':row['sk']},**_condition_fields(row,WATCH_FIELDS)}} for row in selected)
+    serializer=TypeSerializer();wire=[]
+    for operation in operations:
+        kind,body=next(iter(operation.items()));out=dict(body)
+        for field in ('Item','Key','ExpressionAttributeValues'):
+            if field in out:out[field]={k:serializer.serialize(v) for k,v in out[field].items()}
+        wire.append({kind:out})
+    try:wire_bytes=len(json.dumps(wire,allow_nan=False).encode('utf-8'))
+    except (TypeError,ValueError):raise InputError('watchlist contains unsupported transaction values; no mutation attempted',409,'WATCHLIST_TRANSACTION_INVALID') from None
+    if wire_bytes>3_500_000:raise InputError('automatic clear exceeds transaction byte bound; no mutation attempted',413,'WATCHLIST_TRANSACTION_TOO_LARGE')
+    token=str(uuid.uuid4())
+    try:
+        acknowledgement=_ddb_client.transact_write_items(TransactItems=wire,ClientRequestToken=token)
+        metadata=acknowledgement.get('ResponseMetadata') if isinstance(acknowledgement,dict) else None
+        if not isinstance(metadata,dict) or type(metadata.get('HTTPStatusCode')) is not int or metadata['HTTPStatusCode']!=200:raise ValueError('missing acknowledgement')
+    except Exception as error:
+        code=getattr(error,'response',{}).get('Error',{}).get('Code')
+        if code in {'TransactionCanceledException','ConditionalCheckFailedException'}:
+            raise InputError('atomic clear was rejected; refresh before retrying',409,'WATCHLIST_TRANSACTION_REJECTED') from None
+        raise InputError('atomic clear outcome unconfirmed; refresh before retrying',503,'WRITE_UNCONFIRMED') from None
+    return {**base,'ok':True,'changed':True,'deleted_count':len(selected),'deleted_symbols':[row['symbol'] for row in selected],
+            'transaction_operations':len(operations),'request_id':token}
 
 
 @checked_action
@@ -378,8 +445,11 @@ def list_items(event):
     selected=value.upper();out={'positions':[],'watchlist':[],'stoploss':[],'meta':[]}
     for partition,key in [('POSITION','positions'),('WATCHLIST','watchlist'),('STOPLOSS','stoploss'),('META','meta')]:
         if selected=='ALL' or selected==partition:
-            out[key]=[_item_view(item) if partition=='POSITION' else _scrub(item) for item in _complete_partition(partition)]
+            out[key]=[_item_view(item) if partition=='POSITION' else _watch_view(item) if partition=='WATCHLIST' else _scrub(item) for item in _complete_partition(partition)]
     out['counts']={key:len(value) for key,value in out.items()}
+    if selected in {'WATCHLIST','ALL'}:
+        # Tags were added only to the view: bind the original stored rows.
+        out['watchlist_etag']=_record_tag({'record_tags':sorted([r['sk'],r['record_etag']] for r in out['watchlist'])})
     out.update(ok=True,list_complete=True,list_consistency='STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT')
     if len(json.dumps(out,allow_nan=False).encode('utf-8'))>MAX_LIST_BYTES:raise InputError('complete list exceeds response limit; no partial book returned',413,'LIST_TOO_LARGE')
     return out
