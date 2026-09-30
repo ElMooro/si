@@ -1,5 +1,5 @@
 from equity_donor_inputs import load_inputs, stock_context
-import json, time, boto3, urllib.request
+import json, time, boto3, urllib.request, math
 try:
     from fabrication_guard import guard_output  # ops 4440 F8 (fixed header)
 except Exception:
@@ -71,6 +71,15 @@ def fmp(path, params="", max_retries=3):
 def sf(v):
     try: f=float(v); return round(f,4) if f==f else None
     except: return None
+
+def _sf(v):
+    """Float coercion returning None for missing/unparseable (fail-soft)."""
+    if v is None or v == "":
+        return None
+    try:
+        return float(v)
+    except (ValueError, TypeError):
+        return None
 
 def sp(v):
     try: f=float(v); return round(f*100,2) if f==f else None
@@ -1066,30 +1075,45 @@ def compute_steal_score(stocks):
     if not stocks:
         return
 
-    # ── 12 factor weights — sum = 100 (Stage 9 added 3 factors) ──
+    # ── STAGE 13: SI squeeze-setup raw score (0-100) per stock ──
+    # Crowded short base (log scale) + days-to-cover + rising SI change.
+    # Stocks with no SI data get 0 (factor contributes nothing for them).
+    for s in stocks:
+        si_n = _sf(s.get("siShares"))
+        dtc_n = _sf(s.get("siDaysToCover"))
+        chg = _sf(s.get("siChangePct"))
+        s["siScoreRaw"] = (min(1.0, (math.log10(si_n + 1) / 8.0)) * 50
+                           + min(1.0, (dtc_n or 0) / 10.0) * 30
+                           + (min(1.0, max(0.0, (chg or 0)) / 50.0)) * 20) if si_n else 0
+
+    # ── 16 factor weights — sum = 100 (Stage 13 added SI squeeze setup) ──
+    # Existing weights rescaled ×0.95 so the total stays 100 with the new
+    # 5-weight SI factor.
     factors = [
         # (label, weight, value_map, invert_lower_is_better)
-        ("valuation_pe",       8, _vmap(stocks, "peRatio"),       True),
-        ("valuation_evebitda", 8, _vmap(stocks, "evEbitda"),      True),
-        ("growth_revenue",     12, _vmap(stocks, "revenueGrowth"), False),
-        ("profit_opmargin",     7, _vmap(stocks, "operatingMargin"), False),
-        ("profit_roic",         6, _vmap(stocks, "roic"),          False),
-        ("earnings_quality",    8, _vmap_quality(stocks),          False),
-        ("balance_de",          4, _vmap(stocks, "debtToEquity"),  True),
-        ("balance_currratio",   3, _vmap(stocks, "currentRatio"),  False),
-        ("momentum_6m",         8, _vmap(stocks, "chg6m"),         False),
-        ("inst_flow",           7, _vmap_capped(stocks, "instQoQChgPct", lo=-50, hi=100), False),
-        ("insider_flow",        4, _vmap(stocks, "insiderNet90dUsd"), False),
-        ("earnings_surprise_streak", 4, _vmap(stocks, "beatStreak"), False),
+        ("valuation_pe",       7.6, _vmap(stocks, "peRatio"),       True),
+        ("valuation_evebitda", 7.6, _vmap(stocks, "evEbitda"),      True),
+        ("growth_revenue",     11.4, _vmap(stocks, "revenueGrowth"), False),
+        ("profit_opmargin",     6.65, _vmap(stocks, "operatingMargin"), False),
+        ("profit_roic",         5.7, _vmap(stocks, "roic"),          False),
+        ("earnings_quality",    7.6, _vmap_quality(stocks),          False),
+        ("balance_de",          3.8, _vmap(stocks, "debtToEquity"),  True),
+        ("balance_currratio",   2.85, _vmap(stocks, "currentRatio"), False),
+        ("momentum_6m",         7.6, _vmap(stocks, "chg6m"),         False),
+        ("inst_flow",           6.65, _vmap_capped(stocks, "instQoQChgPct", lo=-50, hi=100), False),
+        ("insider_flow",        3.8, _vmap(stocks, "insiderNet90dUsd"), False),
+        ("earnings_surprise_streak", 3.8, _vmap(stocks, "beatStreak"), False),
         # ── STAGE 9: 3 new factors ──
         # Analyst grades consensus — sentiment of professional analysts
-        ("analyst_grades",      7, _vmap(stocks, "gradesScore"),   False),
+        ("analyst_grades",      6.65, _vmap(stocks, "gradesScore"),   False),
         # DCF undervaluation — the value-investing flagship signal
-        ("dcf_upside",          8, _vmap_capped(stocks, "dcfUpsidePct", lo=-100, hi=300), False),
+        ("dcf_upside",          7.6, _vmap_capped(stocks, "dcfUpsidePct", lo=-100, hi=300), False),
         # Political buying — alpha from informed insiders (Sen/House trades)
-        ("political_buying",    6, _vmap(stocks, "politicalBuyersN90d"), False),
+        ("political_buying",    5.7, _vmap(stocks, "politicalBuyersN90d"), False),
+        # ── STAGE 13: SI squeeze setup — crowded shorts + DTC + rising SI ──
+        ("si_squeeze_setup",    5, _vmap_capped(stocks, "siScoreRaw", lo=0, hi=100), False),
     ]
-    # Total weight: 8+8+12+7+6+8+4+3+8+7+4+4+7+8+6 = 100
+    # Total weight: 7.6+7.6+11.4+6.65+5.7+7.6+3.8+2.85+7.6+6.65+3.8+3.8+6.65+7.6+5.7+5 = 100
 
     factor_ranks = {}
     for label, weight, val_map, invert in factors:
@@ -1163,7 +1187,7 @@ def compute_steal_score(stocks):
 
 
 def process(args):
-    symbol, price_changes = args
+    symbol, price_changes, si_map = args
     try:
         d  = get_stock_data(symbol)
         pc = price_changes.get(symbol, {})
@@ -1173,6 +1197,11 @@ def process(args):
         d["chg3m"] = sf(pc.get("3M"))
         d["chg6m"] = sf(pc.get("6M"))
         d["chg1y"] = sf(pc.get("1Y"))
+        si = si_map.get(symbol, {}) or {}
+        d["siShares"] = si.get("short_interest")
+        d["siChangePct"] = si.get("change_pct")
+        d["siDaysToCover"] = si.get("dtc_effective") or si.get("days_to_cover")
+        d["siSettlementDate"] = si.get("settlement_date")
         return d
     except Exception as e:
         print(f"  FAIL {symbol}: {e}")
@@ -1237,8 +1266,18 @@ def lambda_handler(event, context):
     except Exception as e:
         print(f"  M&A load skipped: {e}")
 
+    # ── STAGE 13 INTEGRATION: FINRA short interest per ticker ──
+    # Single S3 read of data/short-interest-tickers.json (Bloomberg parity 3/10).
+    si_map = {}
+    try:
+        si_obj = s3.get_object(Bucket=S3_BUCKET, Key="data/short-interest-tickers.json")
+        si_map = json.loads(si_obj["Body"].read()).get("by_ticker", {}) or {}
+        print(f"  SI: {len(si_map)} tickers")
+    except Exception as e:
+        print(f"  SI load skipped: {e}")
+
     print(f"Processing {len(symbols)} stocks ({WORKERS} workers)...")
-    args_list = [(sym, price_changes) for sym in symbols]
+    args_list = [(sym, price_changes, si_map) for sym in symbols]
     stocks = []
 
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
@@ -1282,6 +1321,23 @@ def lambda_handler(event, context):
             s["maLatestRole"] = None
             s["maLatestDate"] = None
             s["maLatestCounterparty"] = None
+
+    # ── STAGE 13: SI query-param filters (FINRA short interest) ──
+    qsp = event.get("queryStringParameters") or {}
+    def _qp(name):
+        try: return float(qsp.get(name)) if qsp.get(name) not in (None, "") else None
+        except (ValueError, TypeError): return None
+    min_si_pct, max_si_pct, min_dtc = _qp("min_si_pct"), _qp("max_si_pct"), _qp("min_days_to_cover")
+    if min_si_pct is not None or max_si_pct is not None or min_dtc is not None:
+        kept = []
+        for s in stocks:
+            cp, dtc = _sf(s.get("siChangePct")), _sf(s.get("siDaysToCover"))
+            if min_si_pct is not None and (cp is None or cp < min_si_pct): continue
+            if max_si_pct is not None and (cp is None or cp > max_si_pct): continue
+            if min_dtc is not None and (dtc is None or dtc < min_dtc): continue
+            kept.append(s)
+        print(f"  SI filter: {len(stocks)} -> {len(kept)}")
+        stocks = kept
 
     donor_docs,donor_receipts=load_inputs(s3,S3_BUCKET,[("data/credit-before-equity.json",48,("names",)),("data/estimate-revisions.json",48,()),("data/earnings-quality.json",72,("all_ranked",))])
     stock_context(stocks,donor_docs)
@@ -1410,6 +1466,11 @@ def write_snapshot_and_diff(today_stocks, today_payload):
             "maAcquirerDealsN": s.get("maAcquirerDealsN"),
             "maTargetDealsN": s.get("maTargetDealsN"),
             "maLatestRole": s.get("maLatestRole"),
+            # Stage 13 fields — FINRA short interest
+            "siShares": s.get("siShares"),
+            "siChangePct": s.get("siChangePct"),
+            "siDaysToCover": s.get("siDaysToCover"),
+            "siSettlementDate": s.get("siSettlementDate"),
         })
     snap_payload = {
         "snapshot_date": today_iso,
