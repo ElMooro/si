@@ -19,6 +19,21 @@ uncertainty rules still apply. Whole-manifest comparison excludes only the
 generated timestamp and retains every engine, candidate, unresolved issue,
 call-chain proof and source line.
 
+## Portable inventory order
+
+Engine directories are sorted by their exact names, and candidate source files
+by repository-relative POSIX strings. The compiler never relies on `Path`
+comparison, which folds case on Windows and preserves it on Linux. Nested source
+paths and unsupported-runtime paths also use POSIX separators. This preserves
+engine identity and source evidence while making array order reproducible.
+
+The first strict live comparison caught a pre-existing host-order difference:
+all 893 named records matched, but 875 positions differed. The complete Linux
+manifest is retained as a three-megabyte fixture, bound to the observed Pages
+build and checked by hash. Future engine changes are not frozen to that historical
+capture; synthetic mixed-case/nested-path regressions enforce the ordering rule,
+and each release compares its complete newly generated inventory.
+
 ## Access policy snapshots
 
 `access_rules()` reads the current complete checked-in private-artifact policy.

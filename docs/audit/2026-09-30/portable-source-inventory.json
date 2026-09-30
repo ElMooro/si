@@ -1,0 +1,4527 @@
+{
+  "schema": "portable-source-inventory-audit.v1",
+  "prepared_at": "2026-09-30T16:37:44.105132+00:00",
+  "base_commit": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
+  "reproduction": {
+    "source_commit": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
+    "complete_live_manifest": {
+      "path": "tests/fixtures/pre-portable-order-live-engine-manifest.json",
+      "bytes": 3070592,
+      "sha256": "5230cddb5eb40d600c216c3709d5ee5d273ce327214bbeffa0d2d666bf62b779"
+    },
+    "named_engine_records_equal": true,
+    "array_order_differences": [
+      {
+        "index": 0,
+        "linux": "MLPredictor",
+        "windows": "aiapi-market-analyzer"
+      },
+      {
+        "index": 1,
+        "linux": "aiapi-market-analyzer",
+        "windows": "alphavantage-market-agent"
+      },
+      {
+        "index": 2,
+        "linux": "alphavantage-market-agent",
+        "windows": "alphavantage-technical-analysis"
+      },
+      {
+        "index": 3,
+        "linux": "alphavantage-technical-analysis",
+        "windows": "autonomous-ai-processor"
+      },
+      {
+        "index": 4,
+        "linux": "autonomous-ai-processor",
+        "windows": "bea-economic-agent"
+      },
+      {
+        "index": 5,
+        "linux": "bea-economic-agent",
+        "windows": "benzinga-news-agent"
+      },
+      {
+        "index": 6,
+        "linux": "benzinga-news-agent",
+        "windows": "bls-employment-api-v2"
+      },
+      {
+        "index": 7,
+        "linux": "bls-employment-api-v2",
+        "windows": "bls-labor-agent"
+      },
+      {
+        "index": 8,
+        "linux": "bls-labor-agent",
+        "windows": "bond-indices-agent"
+      },
+      {
+        "index": 9,
+        "linux": "bond-indices-agent",
+        "windows": "census-economic-agent"
+      },
+      {
+        "index": 10,
+        "linux": "census-economic-agent",
+        "windows": "cftc-futures-positioning-agent"
+      },
+      {
+        "index": 11,
+        "linux": "cftc-futures-positioning-agent",
+        "windows": "chatgpt-agent-api"
+      },
+      {
+        "index": 12,
+        "linux": "chatgpt-agent-api",
+        "windows": "coinmarketcap-agent"
+      },
+      {
+        "index": 13,
+        "linux": "coinmarketcap-agent",
+        "windows": "daily-liquidity-report"
+      },
+      {
+        "index": 14,
+        "linux": "daily-liquidity-report",
+        "windows": "dollar-strength-agent"
+      },
+      {
+        "index": 15,
+        "linux": "dollar-strength-agent",
+        "windows": "ecb"
+      },
+      {
+        "index": 16,
+        "linux": "ecb",
+        "windows": "ecb-auto-updater"
+      },
+      {
+        "index": 17,
+        "linux": "ecb-auto-updater",
+        "windows": "ecb-data-daily-updater"
+      },
+      {
+        "index": 18,
+        "linux": "ecb-data-daily-updater",
+        "windows": "economyapi"
+      },
+      {
+        "index": 19,
+        "linux": "economyapi",
+        "windows": "eia-energy-agent"
+      },
+      {
+        "index": 20,
+        "linux": "eia-energy-agent",
+        "windows": "enhanced-repo-agent"
+      },
+      {
+        "index": 21,
+        "linux": "enhanced-repo-agent",
+        "windows": "fedliquidityapi"
+      },
+      {
+        "index": 22,
+        "linux": "fedliquidityapi",
+        "windows": "fmp-fundamentals-agent"
+      },
+      {
+        "index": 23,
+        "linux": "fmp-fundamentals-agent",
+        "windows": "fmp-stock-picks-agent"
+      },
+      {
+        "index": 24,
+        "linux": "fmp-stock-picks-agent",
+        "windows": "fred-ice-bofa-api"
+      },
+      {
+        "index": 25,
+        "linux": "fred-ice-bofa-api",
+        "windows": "global-liquidity-agent-v2"
+      },
+      {
+        "index": 26,
+        "linux": "global-liquidity-agent-v2",
+        "windows": "google-trends-agent"
+      },
+      {
+        "index": 27,
+        "linux": "google-trends-agent",
+        "windows": "justhodl-13f-clone-alpha"
+      },
+      {
+        "index": 28,
+        "linux": "justhodl-13f-clone-alpha",
+        "windows": "justhodl-13f-positions"
+      },
+      {
+        "index": 29,
+        "linux": "justhodl-13f-positions",
+        "windows": "justhodl-13f-price-divergence"
+      },
+      {
+        "index": 30,
+        "linux": "justhodl-13f-price-divergence",
+        "windows": "justhodl-52wk-quality-breakout"
+      },
+      {
+        "index": 31,
+        "linux": "justhodl-52wk-quality-breakout",
+        "windows": "justhodl-a2a-bus"
+      },
+      {
+        "index": 32,
+        "linux": "justhodl-a2a-bus",
+        "windows": "justhodl-aaii-sentiment"
+      },
+      {
+        "index": 33,
+        "linux": "justhodl-aaii-sentiment",
+        "windows": "justhodl-ab-test"
+      },
+      {
+        "index": 34,
+        "linux": "justhodl-ab-test",
+        "windows": "justhodl-accum-composite"
+      },
+      {
+        "index": 35,
+        "linux": "justhodl-accum-composite",
+        "windows": "justhodl-accumulation-radar"
+      },
+      {
+        "index": 36,
+        "linux": "justhodl-accumulation-radar",
+        "windows": "justhodl-activist-13d"
+      },
+      {
+        "index": 37,
+        "linux": "justhodl-activist-13d",
+        "windows": "justhodl-activist-filings-scanner"
+      },
+      {
+        "index": 38,
+        "linux": "justhodl-activist-filings-scanner",
+        "windows": "justhodl-activity-nowcast"
+      },
+      {
+        "index": 39,
+        "linux": "justhodl-activity-nowcast",
+        "windows": "justhodl-ai"
+      },
+      {
+        "index": 40,
+        "linux": "justhodl-ai",
+        "windows": "justhodl-ai-brief"
+      },
+      {
+        "index": 41,
+        "linux": "justhodl-ai-brief",
+        "windows": "justhodl-ai-brief-router"
+      },
+      {
+        "index": 42,
+        "linux": "justhodl-ai-brief-router",
+        "windows": "justhodl-ai-chat"
+      },
+      {
+        "index": 43,
+        "linux": "justhodl-ai-chat",
+        "windows": "justhodl-ai-council"
+      },
+      {
+        "index": 44,
+        "linux": "justhodl-ai-council",
+        "windows": "justhodl-ai-infra-stack"
+      },
+      {
+        "index": 45,
+        "linux": "justhodl-ai-infra-stack",
+        "windows": "justhodl-ai-rerating-radar"
+      },
+      {
+        "index": 46,
+        "linux": "justhodl-ai-rerating-radar",
+        "windows": "justhodl-ai-website-synthesis"
+      },
+      {
+        "index": 47,
+        "linux": "justhodl-ai-website-synthesis",
+        "windows": "justhodl-air-cargo"
+      },
+      {
+        "index": 48,
+        "linux": "justhodl-air-cargo",
+        "windows": "justhodl-alert-backtester"
+      },
+      {
+        "index": 49,
+        "linux": "justhodl-alert-backtester",
+        "windows": "justhodl-alert-router"
+      },
+      {
+        "index": 50,
+        "linux": "justhodl-alert-router",
+        "windows": "justhodl-alert-sentinel"
+      },
+      {
+        "index": 51,
+        "linux": "justhodl-alert-sentinel",
+        "windows": "justhodl-allocator"
+      },
+      {
+        "index": 52,
+        "linux": "justhodl-allocator",
+        "windows": "justhodl-alpha-alerts"
+      },
+      {
+        "index": 53,
+        "linux": "justhodl-alpha-alerts",
+        "windows": "justhodl-alpha-calibrator"
+      },
+      {
+        "index": 54,
+        "linux": "justhodl-alpha-calibrator",
+        "windows": "justhodl-alpha-compass"
+      },
+      {
+        "index": 55,
+        "linux": "justhodl-alpha-compass",
+        "windows": "justhodl-alpha-confluence"
+      },
+      {
+        "index": 56,
+        "linux": "justhodl-alpha-confluence",
+        "windows": "justhodl-alpha-council"
+      },
+      {
+        "index": 57,
+        "linux": "justhodl-alpha-council",
+        "windows": "justhodl-alpha-daily-brief"
+      },
+      {
+        "index": 58,
+        "linux": "justhodl-alpha-daily-brief",
+        "windows": "justhodl-alpha-decay"
+      },
+      {
+        "index": 59,
+        "linux": "justhodl-alpha-decay",
+        "windows": "justhodl-alpha-research"
+      },
+      {
+        "index": 60,
+        "linux": "justhodl-alpha-research",
+        "windows": "justhodl-alpha-score"
+      },
+      {
+        "index": 61,
+        "linux": "justhodl-alpha-score",
+        "windows": "justhodl-altseason"
+      },
+      {
+        "index": 62,
+        "linux": "justhodl-altseason",
+        "windows": "justhodl-analyst-actions"
+      },
+      {
+        "index": 63,
+        "linux": "justhodl-analyst-actions",
+        "windows": "justhodl-analyst-consensus"
+      },
+      {
+        "index": 64,
+        "linux": "justhodl-analyst-consensus",
+        "windows": "justhodl-analytics-snapshot"
+      },
+      {
+        "index": 65,
+        "linux": "justhodl-analytics-snapshot",
+        "windows": "justhodl-anomaly-detector"
+      },
+      {
+        "index": 66,
+        "linux": "justhodl-anomaly-detector",
+        "windows": "justhodl-apac-flows"
+      },
+      {
+        "index": 67,
+        "linux": "justhodl-apac-flows",
+        "windows": "justhodl-apac-leadlag"
+      },
+      {
+        "index": 68,
+        "linux": "justhodl-apac-leadlag",
+        "windows": "justhodl-apex-fusion"
+      },
+      {
+        "index": 69,
+        "linux": "justhodl-apex-fusion",
+        "windows": "justhodl-api-keys-admin"
+      },
+      {
+        "index": 70,
+        "linux": "justhodl-api-keys-admin",
+        "windows": "justhodl-ark-holdings"
+      },
+      {
+        "index": 71,
+        "linux": "justhodl-ark-holdings",
+        "windows": "justhodl-asia-leads"
+      },
+      {
+        "index": 72,
+        "linux": "justhodl-asia-leads",
+        "windows": "justhodl-asia-trade-full"
+      },
+      {
+        "index": 73,
+        "linux": "justhodl-asia-trade-full",
+        "windows": "justhodl-ask"
+      },
+      {
+        "index": 74,
+        "linux": "justhodl-ask",
+        "windows": "justhodl-ask-desk"
+      },
+      {
+        "index": 75,
+        "linux": "justhodl-ask-desk",
+        "windows": "justhodl-asset-compass"
+      },
+      {
+        "index": 76,
+        "linux": "justhodl-asset-compass",
+        "windows": "justhodl-asset-discovery"
+      },
+      {
+        "index": 77,
+        "linux": "justhodl-asset-discovery",
+        "windows": "justhodl-asymmetric-hunter"
+      },
+      {
+        "index": 78,
+        "linux": "justhodl-asymmetric-hunter",
+        "windows": "justhodl-asymmetric-scorer"
+      },
+      {
+        "index": 79,
+        "linux": "justhodl-asymmetric-scorer",
+        "windows": "justhodl-attention-confluence"
+      },
+      {
+        "index": 80,
+        "linux": "justhodl-attention-confluence",
+        "windows": "justhodl-attention-signals"
+      },
+      {
+        "index": 81,
+        "linux": "justhodl-attention-signals",
+        "windows": "justhodl-auction-crisis-ai"
+      },
+      {
+        "index": 82,
+        "linux": "justhodl-auction-crisis-ai",
+        "windows": "justhodl-auction-crisis-detector"
+      },
+      {
+        "index": 83,
+        "linux": "justhodl-auction-crisis-detector",
+        "windows": "justhodl-auction-desk"
+      },
+      {
+        "index": 84,
+        "linux": "justhodl-auction-desk",
+        "windows": "justhodl-auction-grader"
+      },
+      {
+        "index": 85,
+        "linux": "justhodl-auction-grader",
+        "windows": "justhodl-auction-interpreter"
+      },
+      {
+        "index": 86,
+        "linux": "justhodl-auction-interpreter",
+        "windows": "justhodl-auction-tail"
+      },
+      {
+        "index": 87,
+        "linux": "justhodl-auction-tail",
+        "windows": "justhodl-audit-loop"
+      },
+      {
+        "index": 88,
+        "linux": "justhodl-audit-loop",
+        "windows": "justhodl-backend-agent"
+      },
+      {
+        "index": 89,
+        "linux": "justhodl-backend-agent",
+        "windows": "justhodl-backfill-orchestrator"
+      },
+      {
+        "index": 90,
+        "linux": "justhodl-backfill-orchestrator",
+        "windows": "justhodl-backlog"
+      },
+      {
+        "index": 91,
+        "linux": "justhodl-backlog",
+        "windows": "justhodl-backlog-miner"
+      },
+      {
+        "index": 92,
+        "linux": "justhodl-backlog-miner",
+        "windows": "justhodl-backtest-engine"
+      },
+      {
+        "index": 93,
+        "linux": "justhodl-backtest-engine",
+        "windows": "justhodl-backtest-harness"
+      },
+      {
+        "index": 94,
+        "linux": "justhodl-backtest-harness",
+        "windows": "justhodl-bagger-engine"
+      },
+      {
+        "index": 95,
+        "linux": "justhodl-bagger-engine",
+        "windows": "justhodl-bank-stress"
+      },
+      {
+        "index": 96,
+        "linux": "justhodl-bank-stress",
+        "windows": "justhodl-base-rates"
+      },
+      {
+        "index": 97,
+        "linux": "justhodl-base-rates",
+        "windows": "justhodl-basket-var"
+      },
+      {
+        "index": 98,
+        "linux": "justhodl-basket-var",
+        "windows": "justhodl-beaters-grader"
+      },
+      {
+        "index": 99,
+        "linux": "justhodl-beaters-grader",
+        "windows": "justhodl-behavior-mirror"
+      },
+      {
+        "index": 100,
+        "linux": "justhodl-behavior-mirror",
+        "windows": "justhodl-beneish"
+      },
+      {
+        "index": 101,
+        "linux": "justhodl-beneish",
+        "windows": "justhodl-benzinga-earnings"
+      },
+      {
+        "index": 102,
+        "linux": "justhodl-benzinga-earnings",
+        "windows": "justhodl-best-ideas"
+      },
+      {
+        "index": 103,
+        "linux": "justhodl-best-ideas",
+        "windows": "justhodl-best-setups"
+      },
+      {
+        "index": 104,
+        "linux": "justhodl-best-setups",
+        "windows": "justhodl-beta-laggard"
+      },
+      {
+        "index": 105,
+        "linux": "justhodl-beta-laggard",
+        "windows": "justhodl-bis-crossborder"
+      },
+      {
+        "index": 106,
+        "linux": "justhodl-bis-crossborder",
+        "windows": "justhodl-bis-gleif"
+      },
+      {
+        "index": 107,
+        "linux": "justhodl-bis-gleif",
+        "windows": "justhodl-blackswan-watch"
+      },
+      {
+        "index": 108,
+        "linux": "justhodl-blackswan-watch",
+        "windows": "justhodl-bloomberg-v8"
+      },
+      {
+        "index": 109,
+        "linux": "justhodl-bloomberg-v8",
+        "windows": "justhodl-bls-full"
+      },
+      {
+        "index": 110,
+        "linux": "justhodl-bls-full",
+        "windows": "justhodl-boe-full"
+      },
+      {
+        "index": 111,
+        "linux": "justhodl-boe-full",
+        "windows": "justhodl-boj-detail"
+      },
+      {
+        "index": 112,
+        "linux": "justhodl-boj-detail",
+        "windows": "justhodl-boj-full"
+      },
+      {
+        "index": 113,
+        "linux": "justhodl-boj-full",
+        "windows": "justhodl-bond-desk"
+      },
+      {
+        "index": 114,
+        "linux": "justhodl-bond-desk",
+        "windows": "justhodl-bond-regime-detector"
+      },
+      {
+        "index": 115,
+        "linux": "justhodl-bond-regime-detector",
+        "windows": "justhodl-bond-trace"
+      },
+      {
+        "index": 116,
+        "linux": "justhodl-bond-trace",
+        "windows": "justhodl-bond-vol"
+      },
+      {
+        "index": 117,
+        "linux": "justhodl-bond-vol",
+        "windows": "justhodl-bond-warroom"
+      },
+      {
+        "index": 118,
+        "linux": "justhodl-bond-warroom",
+        "windows": "justhodl-boom-radar"
+      },
+      {
+        "index": 119,
+        "linux": "justhodl-boom-radar",
+        "windows": "justhodl-boom-stage"
+      },
+      {
+        "index": 120,
+        "linux": "justhodl-boom-stage",
+        "windows": "justhodl-bottleneck-boom"
+      },
+      {
+        "index": 121,
+        "linux": "justhodl-bottleneck-boom",
+        "windows": "justhodl-bottleneck-research"
+      },
+      {
+        "index": 122,
+        "linux": "justhodl-bottleneck-research",
+        "windows": "justhodl-bottom"
+      },
+      {
+        "index": 123,
+        "linux": "justhodl-bottom",
+        "windows": "justhodl-bottom-signals"
+      },
+      {
+        "index": 124,
+        "linux": "justhodl-bottom-signals",
+        "windows": "justhodl-brain-compiler"
+      },
+      {
+        "index": 125,
+        "linux": "justhodl-brain-compiler",
+        "windows": "justhodl-brain-sync"
+      },
+      {
+        "index": 126,
+        "linux": "justhodl-brain-sync",
+        "windows": "justhodl-breadth-divergence"
+      },
+      {
+        "index": 127,
+        "linux": "justhodl-breadth-divergence",
+        "windows": "justhodl-breadth-thrust"
+      },
+      {
+        "index": 128,
+        "linux": "justhodl-breadth-thrust",
+        "windows": "justhodl-brief-compiler"
+      },
+      {
+        "index": 129,
+        "linux": "justhodl-brief-compiler",
+        "windows": "justhodl-buyback-engine"
+      },
+      {
+        "index": 130,
+        "linux": "justhodl-buyback-engine",
+        "windows": "justhodl-buyback-scanner"
+      },
+      {
+        "index": 131,
+        "linux": "justhodl-buyback-scanner",
+        "windows": "justhodl-buyback-yield-ranking"
+      },
+      {
+        "index": 132,
+        "linux": "justhodl-buyback-yield-ranking",
+        "windows": "justhodl-buzz-velocity"
+      },
+      {
+        "index": 133,
+        "linux": "justhodl-buzz-velocity",
+        "windows": "justhodl-calibration-fleet"
+      },
+      {
+        "index": 134,
+        "linux": "justhodl-calibration-fleet",
+        "windows": "justhodl-calibration-snapshot"
+      },
+      {
+        "index": 135,
+        "linux": "justhodl-calibration-snapshot",
+        "windows": "justhodl-calibration-snapshotter"
+      },
+      {
+        "index": 136,
+        "linux": "justhodl-calibration-snapshotter",
+        "windows": "justhodl-calibrator"
+      },
+      {
+        "index": 137,
+        "linux": "justhodl-calibrator",
+        "windows": "justhodl-calls-backtest"
+      },
+      {
+        "index": 138,
+        "linux": "justhodl-calls-backtest",
+        "windows": "justhodl-calls-research-audit"
+      },
+      {
+        "index": 139,
+        "linux": "justhodl-calls-research-audit",
+        "windows": "justhodl-canary-grid"
+      },
+      {
+        "index": 140,
+        "linux": "justhodl-canary-grid",
+        "windows": "justhodl-canary-macro"
+      },
+      {
+        "index": 141,
+        "linux": "justhodl-canary-macro",
+        "windows": "justhodl-canary-warroom"
+      },
+      {
+        "index": 142,
+        "linux": "justhodl-canary-warroom",
+        "windows": "justhodl-cannibals"
+      },
+      {
+        "index": 143,
+        "linux": "justhodl-cannibals",
+        "windows": "justhodl-capex-pulse"
+      },
+      {
+        "index": 144,
+        "linux": "justhodl-capex-pulse",
+        "windows": "justhodl-capital-flow"
+      },
+      {
+        "index": 145,
+        "linux": "justhodl-capital-flow",
+        "windows": "justhodl-capital-flow-radar"
+      },
+      {
+        "index": 146,
+        "linux": "justhodl-capital-flow-radar",
+        "windows": "justhodl-capital-inflows"
+      },
+      {
+        "index": 147,
+        "linux": "justhodl-capital-inflows",
+        "windows": "justhodl-capital-return"
+      },
+      {
+        "index": 148,
+        "linux": "justhodl-capital-return",
+        "windows": "justhodl-capitulation"
+      },
+      {
+        "index": 149,
+        "linux": "justhodl-capitulation",
+        "windows": "justhodl-carry-surface"
+      },
+      {
+        "index": 150,
+        "linux": "justhodl-carry-surface",
+        "windows": "justhodl-cascade-recalibrator"
+      },
+      {
+        "index": 151,
+        "linux": "justhodl-cascade-recalibrator",
+        "windows": "justhodl-cascade-validator"
+      },
+      {
+        "index": 152,
+        "linux": "justhodl-cascade-validator",
+        "windows": "justhodl-catalyst"
+      },
+      {
+        "index": 153,
+        "linux": "justhodl-catalyst",
+        "windows": "justhodl-catalyst-calendar"
+      },
+      {
+        "index": 154,
+        "linux": "justhodl-catalyst-calendar",
+        "windows": "justhodl-catalyst-chain"
+      },
+      {
+        "index": 155,
+        "linux": "justhodl-catalyst-chain",
+        "windows": "justhodl-catalyst-classifier"
+      },
+      {
+        "index": 156,
+        "linux": "justhodl-catalyst-classifier",
+        "windows": "justhodl-catalyst-clusters"
+      },
+      {
+        "index": 157,
+        "linux": "justhodl-catalyst-clusters",
+        "windows": "justhodl-catalyst-skew-premove"
+      },
+      {
+        "index": 158,
+        "linux": "justhodl-catalyst-skew-premove",
+        "windows": "justhodl-causality-scanner"
+      },
+      {
+        "index": 159,
+        "linux": "justhodl-causality-scanner",
+        "windows": "justhodl-cb-injection"
+      },
+      {
+        "index": 160,
+        "linux": "justhodl-cb-injection",
+        "windows": "justhodl-cb-stance"
+      },
+      {
+        "index": 161,
+        "linux": "justhodl-cb-stance",
+        "windows": "justhodl-cds-monitor"
+      },
+      {
+        "index": 162,
+        "linux": "justhodl-cds-monitor",
+        "windows": "justhodl-cds-proxy"
+      },
+      {
+        "index": 163,
+        "linux": "justhodl-cds-proxy",
+        "windows": "justhodl-cef-discount"
+      },
+      {
+        "index": 164,
+        "linux": "justhodl-cef-discount",
+        "windows": "justhodl-census-us"
+      },
+      {
+        "index": 165,
+        "linux": "justhodl-census-us",
+        "windows": "justhodl-cftc-deep-view"
+      },
+      {
+        "index": 166,
+        "linux": "justhodl-cftc-deep-view",
+        "windows": "justhodl-cftc-full-datasets"
+      },
+      {
+        "index": 167,
+        "linux": "justhodl-cftc-full-datasets",
+        "windows": "justhodl-chain-resumer"
+      },
+      {
+        "index": 168,
+        "linux": "justhodl-chain-resumer",
+        "windows": "justhodl-chart-data"
+      },
+      {
+        "index": 169,
+        "linux": "justhodl-chart-data",
+        "windows": "justhodl-chart-patterns"
+      },
+      {
+        "index": 170,
+        "linux": "justhodl-chart-patterns",
+        "windows": "justhodl-chart-vision"
+      },
+      {
+        "index": 171,
+        "linux": "justhodl-chart-vision",
+        "windows": "justhodl-charts-agent"
+      },
+      {
+        "index": 172,
+        "linux": "justhodl-charts-agent",
+        "windows": "justhodl-chat-api"
+      },
+      {
+        "index": 173,
+        "linux": "justhodl-chat-api",
+        "windows": "justhodl-china-liquidity"
+      },
+      {
+        "index": 174,
+        "linux": "justhodl-china-liquidity",
+        "windows": "justhodl-chokepoint"
+      },
+      {
+        "index": 175,
+        "linux": "justhodl-chokepoint",
+        "windows": "justhodl-ciss-ai"
+      },
+      {
+        "index": 176,
+        "linux": "justhodl-ciss-ai",
+        "windows": "justhodl-ciss-stress"
+      },
+      {
+        "index": 177,
+        "linux": "justhodl-ciss-stress",
+        "windows": "justhodl-coffee-can"
+      },
+      {
+        "index": 178,
+        "linux": "justhodl-coffee-can",
+        "windows": "justhodl-coinbase-premium"
+      },
+      {
+        "index": 179,
+        "linux": "justhodl-coinbase-premium",
+        "windows": "justhodl-comeback-screener"
+      },
+      {
+        "index": 180,
+        "linux": "justhodl-comeback-screener",
+        "windows": "justhodl-commodity-curves"
+      },
+      {
+        "index": 181,
+        "linux": "justhodl-commodity-curves",
+        "windows": "justhodl-compound-aggregator"
+      },
+      {
+        "index": 182,
+        "linux": "justhodl-compound-aggregator",
+        "windows": "justhodl-concentration-liquidity"
+      },
+      {
+        "index": 183,
+        "linux": "justhodl-concentration-liquidity",
+        "windows": "justhodl-confluence-meta"
+      },
+      {
+        "index": 184,
+        "linux": "justhodl-confluence-meta",
+        "windows": "justhodl-congress-alpha"
+      },
+      {
+        "index": 185,
+        "linux": "justhodl-congress-alpha",
+        "windows": "justhodl-congress-direct"
+      },
+      {
+        "index": 186,
+        "linux": "justhodl-congress-direct",
+        "windows": "justhodl-consensus-bottom"
+      },
+      {
+        "index": 187,
+        "linux": "justhodl-consensus-bottom",
+        "windows": "justhodl-construction-housing"
+      },
+      {
+        "index": 188,
+        "linux": "justhodl-construction-housing",
+        "windows": "justhodl-consumer-pulse"
+      },
+      {
+        "index": 189,
+        "linux": "justhodl-consumer-pulse",
+        "windows": "justhodl-contract-gate"
+      },
+      {
+        "index": 190,
+        "linux": "justhodl-contract-gate",
+        "windows": "justhodl-convergence-radar"
+      },
+      {
+        "index": 191,
+        "linux": "justhodl-convergence-radar",
+        "windows": "justhodl-convexity-scorer"
+      },
+      {
+        "index": 192,
+        "linux": "justhodl-convexity-scorer",
+        "windows": "justhodl-conviction-engine"
+      },
+      {
+        "index": 193,
+        "linux": "justhodl-conviction-engine",
+        "windows": "justhodl-correlation-break-trade-router"
+      },
+      {
+        "index": 194,
+        "linux": "justhodl-correlation-break-trade-router",
+        "windows": "justhodl-correlation-breaks"
+      },
+      {
+        "index": 195,
+        "linux": "justhodl-correlation-breaks",
+        "windows": "justhodl-correlation-surface"
+      },
+      {
+        "index": 196,
+        "linux": "justhodl-correlation-surface",
+        "windows": "justhodl-cost-anomaly"
+      },
+      {
+        "index": 197,
+        "linux": "justhodl-cost-anomaly",
+        "windows": "justhodl-cot-extremes-scanner"
+      },
+      {
+        "index": 198,
+        "linux": "justhodl-cot-extremes-scanner",
+        "windows": "justhodl-cot-feed"
+      },
+      {
+        "index": 199,
+        "linux": "justhodl-cot-feed",
+        "windows": "justhodl-cot-tracker"
+      },
+      {
+        "index": 200,
+        "linux": "justhodl-cot-tracker",
+        "windows": "justhodl-coverage-gap-report"
+      },
+      {
+        "index": 201,
+        "linux": "justhodl-coverage-gap-report",
+        "windows": "justhodl-cq-feed"
+      },
+      {
+        "index": 202,
+        "linux": "justhodl-cq-feed",
+        "windows": "justhodl-credit-before-equity"
+      },
+      {
+        "index": 203,
+        "linux": "justhodl-credit-before-equity",
+        "windows": "justhodl-credit-composite"
+      },
+      {
+        "index": 204,
+        "linux": "justhodl-credit-composite",
+        "windows": "justhodl-credit-equity-divergence"
+      },
+      {
+        "index": 205,
+        "linux": "justhodl-credit-equity-divergence",
+        "windows": "justhodl-credit-stress"
+      },
+      {
+        "index": 206,
+        "linux": "justhodl-credit-stress",
+        "windows": "justhodl-crisis-canaries"
+      },
+      {
+        "index": 207,
+        "linux": "justhodl-crisis-canaries",
+        "windows": "justhodl-crisis-composite"
+      },
+      {
+        "index": 208,
+        "linux": "justhodl-crisis-composite",
+        "windows": "justhodl-crisis-knowledge-base"
+      },
+      {
+        "index": 209,
+        "linux": "justhodl-crisis-knowledge-base",
+        "windows": "justhodl-crisis-plumbing"
+      },
+      {
+        "index": 210,
+        "linux": "justhodl-crisis-plumbing",
+        "windows": "justhodl-cro-digest"
+      },
+      {
+        "index": 211,
+        "linux": "justhodl-cro-digest",
+        "windows": "justhodl-cro-escalation"
+      },
+      {
+        "index": 212,
+        "linux": "justhodl-cro-escalation",
+        "windows": "justhodl-cross-asset-confirm"
+      },
+      {
+        "index": 213,
+        "linux": "justhodl-cross-asset-confirm",
+        "windows": "justhodl-cross-asset-flow-state"
+      },
+      {
+        "index": 214,
+        "linux": "justhodl-cross-asset-flow-state",
+        "windows": "justhodl-cross-asset-regime"
+      },
+      {
+        "index": 215,
+        "linux": "justhodl-cross-asset-regime",
+        "windows": "justhodl-cross-asset-rv"
+      },
+      {
+        "index": 216,
+        "linux": "justhodl-cross-asset-rv",
+        "windows": "justhodl-crypto-basis"
+      },
+      {
+        "index": 217,
+        "linux": "justhodl-crypto-basis",
+        "windows": "justhodl-crypto-confluence"
+      },
+      {
+        "index": 218,
+        "linux": "justhodl-crypto-confluence",
+        "windows": "justhodl-crypto-cot"
+      },
+      {
+        "index": 219,
+        "linux": "justhodl-crypto-cot",
+        "windows": "justhodl-crypto-cycle-risk"
+      },
+      {
+        "index": 220,
+        "linux": "justhodl-crypto-cycle-risk",
+        "windows": "justhodl-crypto-dvol"
+      },
+      {
+        "index": 221,
+        "linux": "justhodl-crypto-dvol",
+        "windows": "justhodl-crypto-emergence"
+      },
+      {
+        "index": 222,
+        "linux": "justhodl-crypto-emergence",
+        "windows": "justhodl-crypto-enricher"
+      },
+      {
+        "index": 223,
+        "linux": "justhodl-crypto-enricher",
+        "windows": "justhodl-crypto-etf-arb"
+      },
+      {
+        "index": 224,
+        "linux": "justhodl-crypto-etf-arb",
+        "windows": "justhodl-crypto-etf-flows"
+      },
+      {
+        "index": 225,
+        "linux": "justhodl-crypto-etf-flows",
+        "windows": "justhodl-crypto-exchange-flows"
+      },
+      {
+        "index": 226,
+        "linux": "justhodl-crypto-exchange-flows",
+        "windows": "justhodl-crypto-funding"
+      },
+      {
+        "index": 227,
+        "linux": "justhodl-crypto-funding",
+        "windows": "justhodl-crypto-gex"
+      },
+      {
+        "index": 228,
+        "linux": "justhodl-crypto-gex",
+        "windows": "justhodl-crypto-intel"
+      },
+      {
+        "index": 229,
+        "linux": "justhodl-crypto-intel",
+        "windows": "justhodl-crypto-liquidity"
+      },
+      {
+        "index": 230,
+        "linux": "justhodl-crypto-liquidity",
+        "windows": "justhodl-crypto-ma200"
+      },
+      {
+        "index": 231,
+        "linux": "justhodl-crypto-ma200",
+        "windows": "justhodl-crypto-miners"
+      },
+      {
+        "index": 232,
+        "linux": "justhodl-crypto-miners",
+        "windows": "justhodl-crypto-narratives"
+      },
+      {
+        "index": 233,
+        "linux": "justhodl-crypto-narratives",
+        "windows": "justhodl-crypto-opportunities"
+      },
+      {
+        "index": 234,
+        "linux": "justhodl-crypto-opportunities",
+        "windows": "justhodl-crypto-options"
+      },
+      {
+        "index": 235,
+        "linux": "justhodl-crypto-options",
+        "windows": "justhodl-crypto-options-surface"
+      },
+      {
+        "index": 236,
+        "linux": "justhodl-crypto-options-surface",
+        "windows": "justhodl-crypto-scorecard"
+      },
+      {
+        "index": 237,
+        "linux": "justhodl-crypto-scorecard",
+        "windows": "justhodl-crypto-stablecoin-peg"
+      },
+      {
+        "index": 238,
+        "linux": "justhodl-crypto-stablecoin-peg",
+        "windows": "justhodl-cryptoquant"
+      },
+      {
+        "index": 239,
+        "linux": "justhodl-cryptoquant",
+        "windows": "justhodl-cta-trend-exhaust"
+      },
+      {
+        "index": 240,
+        "linux": "justhodl-cta-trend-exhaust",
+        "windows": "justhodl-cusip-map-rebuild"
+      },
+      {
+        "index": 241,
+        "linux": "justhodl-cusip-map-rebuild",
+        "windows": "justhodl-cycle-clock"
+      },
+      {
+        "index": 242,
+        "linux": "justhodl-cycle-clock",
+        "windows": "justhodl-cycle-features"
+      },
+      {
+        "index": 243,
+        "linux": "justhodl-cycle-features",
+        "windows": "justhodl-cyclical-bagger"
+      },
+      {
+        "index": 244,
+        "linux": "justhodl-cyclical-bagger",
+        "windows": "justhodl-daily-macro-report"
+      },
+      {
+        "index": 245,
+        "linux": "justhodl-daily-macro-report",
+        "windows": "justhodl-daily-report-v3"
+      },
+      {
+        "index": 246,
+        "linux": "justhodl-daily-report-v3",
+        "windows": "justhodl-dark-pool"
+      },
+      {
+        "index": 247,
+        "linux": "justhodl-dark-pool",
+        "windows": "justhodl-data-census"
+      },
+      {
+        "index": 248,
+        "linux": "justhodl-data-census",
+        "windows": "justhodl-data-collector"
+      },
+      {
+        "index": 249,
+        "linux": "justhodl-data-collector",
+        "windows": "justhodl-deal-scanner"
+      },
+      {
+        "index": 250,
+        "linux": "justhodl-deal-scanner",
+        "windows": "justhodl-dealer-gex"
+      },
+      {
+        "index": 251,
+        "linux": "justhodl-dealer-gex",
+        "windows": "justhodl-debate-engine"
+      },
+      {
+        "index": 252,
+        "linux": "justhodl-debate-engine",
+        "windows": "justhodl-deep-value-overlap"
+      },
+      {
+        "index": 253,
+        "linux": "justhodl-deep-value-overlap",
+        "windows": "justhodl-deep-value-screener"
+      },
+      {
+        "index": 254,
+        "linux": "justhodl-deep-value-screener",
+        "windows": "justhodl-dep-graph"
+      },
+      {
+        "index": 255,
+        "linux": "justhodl-dep-graph",
+        "windows": "justhodl-desk-allocator"
+      },
+      {
+        "index": 256,
+        "linux": "justhodl-desk-allocator",
+        "windows": "justhodl-desk-returns"
+      },
+      {
+        "index": 257,
+        "linux": "justhodl-desk-returns",
+        "windows": "justhodl-devils-advocate"
+      },
+      {
+        "index": 258,
+        "linux": "justhodl-devils-advocate",
+        "windows": "justhodl-dex-scanner"
+      },
+      {
+        "index": 259,
+        "linux": "justhodl-dex-scanner",
+        "windows": "justhodl-digest-trends-ai"
+      },
+      {
+        "index": 260,
+        "linux": "justhodl-digest-trends-ai",
+        "windows": "justhodl-dislocation-ai"
+      },
+      {
+        "index": 261,
+        "linux": "justhodl-dislocation-ai",
+        "windows": "justhodl-dislocation-detector"
+      },
+      {
+        "index": 262,
+        "linux": "justhodl-dislocation-detector",
+        "windows": "justhodl-distribution-composite"
+      },
+      {
+        "index": 263,
+        "linux": "justhodl-distribution-composite",
+        "windows": "justhodl-divcut-warning"
+      },
+      {
+        "index": 264,
+        "linux": "justhodl-divcut-warning",
+        "windows": "justhodl-divergence-engine-v2"
+      },
+      {
+        "index": 265,
+        "linux": "justhodl-divergence-engine-v2",
+        "windows": "justhodl-divergence-interpreter"
+      },
+      {
+        "index": 266,
+        "linux": "justhodl-divergence-interpreter",
+        "windows": "justhodl-divergence-scanner"
+      },
+      {
+        "index": 267,
+        "linux": "justhodl-divergence-scanner",
+        "windows": "justhodl-dividend-growth"
+      },
+      {
+        "index": 268,
+        "linux": "justhodl-dividend-growth",
+        "windows": "justhodl-dix"
+      },
+      {
+        "index": 269,
+        "linux": "justhodl-dix",
+        "windows": "justhodl-dol-full"
+      },
+      {
+        "index": 270,
+        "linux": "justhodl-dol-full",
+        "windows": "justhodl-dollar-radar"
+      },
+      {
+        "index": 271,
+        "linux": "justhodl-dollar-radar",
+        "windows": "justhodl-domain-barometers"
+      },
+      {
+        "index": 272,
+        "linux": "justhodl-domain-barometers",
+        "windows": "justhodl-dr-snapshot"
+      },
+      {
+        "index": 273,
+        "linux": "justhodl-dr-snapshot",
+        "windows": "justhodl-dxy-equity-divergence"
+      },
+      {
+        "index": 274,
+        "linux": "justhodl-dxy-equity-divergence",
+        "windows": "justhodl-dxy-predict"
+      },
+      {
+        "index": 275,
+        "linux": "justhodl-dxy-predict",
+        "windows": "justhodl-early-movers"
+      },
+      {
+        "index": 276,
+        "linux": "justhodl-early-movers",
+        "windows": "justhodl-earnings"
+      },
+      {
+        "index": 277,
+        "linux": "justhodl-earnings",
+        "windows": "justhodl-earnings-blackout"
+      },
+      {
+        "index": 278,
+        "linux": "justhodl-earnings-blackout",
+        "windows": "justhodl-earnings-cascade"
+      },
+      {
+        "index": 279,
+        "linux": "justhodl-earnings-cascade",
+        "windows": "justhodl-earnings-confluence"
+      },
+      {
+        "index": 280,
+        "linux": "justhodl-earnings-confluence",
+        "windows": "justhodl-earnings-iv-crush"
+      },
+      {
+        "index": 281,
+        "linux": "justhodl-earnings-iv-crush",
+        "windows": "justhodl-earnings-nlp"
+      },
+      {
+        "index": 282,
+        "linux": "justhodl-earnings-nlp",
+        "windows": "justhodl-earnings-pead"
+      },
+      {
+        "index": 283,
+        "linux": "justhodl-earnings-pead",
+        "windows": "justhodl-earnings-quality"
+      },
+      {
+        "index": 284,
+        "linux": "justhodl-earnings-quality",
+        "windows": "justhodl-earnings-sentiment"
+      },
+      {
+        "index": 285,
+        "linux": "justhodl-earnings-sentiment",
+        "windows": "justhodl-earnings-tone-velocity"
+      },
+      {
+        "index": 286,
+        "linux": "justhodl-earnings-tone-velocity",
+        "windows": "justhodl-earnings-tracker"
+      },
+      {
+        "index": 287,
+        "linux": "justhodl-earnings-tracker",
+        "windows": "justhodl-earnings-whisper"
+      },
+      {
+        "index": 288,
+        "linux": "justhodl-earnings-whisper",
+        "windows": "justhodl-ecb-deep"
+      },
+      {
+        "index": 289,
+        "linux": "justhodl-ecb-deep",
+        "windows": "justhodl-ecb-derived"
+      },
+      {
+        "index": 290,
+        "linux": "justhodl-ecb-derived",
+        "windows": "justhodl-ecb-detail"
+      },
+      {
+        "index": 291,
+        "linux": "justhodl-ecb-detail",
+        "windows": "justhodl-ecb-full-catalog"
+      },
+      {
+        "index": 292,
+        "linux": "justhodl-ecb-full-catalog",
+        "windows": "justhodl-ecb-history"
+      },
+      {
+        "index": 293,
+        "linux": "justhodl-ecb-history",
+        "windows": "justhodl-ecb-proxy"
+      },
+      {
+        "index": 294,
+        "linux": "justhodl-ecb-proxy",
+        "windows": "justhodl-econ-calendar"
+      },
+      {
+        "index": 295,
+        "linux": "justhodl-econ-calendar",
+        "windows": "justhodl-edgar-authority"
+      },
+      {
+        "index": 296,
+        "linux": "justhodl-edgar-authority",
+        "windows": "justhodl-edgar-full-index"
+      },
+      {
+        "index": 297,
+        "linux": "justhodl-edgar-full-index",
+        "windows": "justhodl-edgar-insiders"
+      },
+      {
+        "index": 298,
+        "linux": "justhodl-edgar-insiders",
+        "windows": "justhodl-edge-discovery"
+      },
+      {
+        "index": 299,
+        "linux": "justhodl-edge-discovery",
+        "windows": "justhodl-edge-engine"
+      },
+      {
+        "index": 300,
+        "linux": "justhodl-edge-engine",
+        "windows": "justhodl-email-reports"
+      },
+      {
+        "index": 301,
+        "linux": "justhodl-email-reports",
+        "windows": "justhodl-email-reports-v2"
+      },
+      {
+        "index": 302,
+        "linux": "justhodl-email-reports-v2",
+        "windows": "justhodl-engine-conflicts"
+      },
+      {
+        "index": 303,
+        "linux": "justhodl-engine-conflicts",
+        "windows": "justhodl-engine-contribution"
+      },
+      {
+        "index": 304,
+        "linux": "justhodl-engine-contribution",
+        "windows": "justhodl-engine-fusion"
+      },
+      {
+        "index": 305,
+        "linux": "justhodl-engine-fusion",
+        "windows": "justhodl-engine-leaderboard"
+      },
+      {
+        "index": 306,
+        "linux": "justhodl-engine-leaderboard",
+        "windows": "justhodl-engine-robustness"
+      },
+      {
+        "index": 307,
+        "linux": "justhodl-engine-robustness",
+        "windows": "justhodl-engine-signal-map"
+      },
+      {
+        "index": 308,
+        "linux": "justhodl-engine-signal-map",
+        "windows": "justhodl-engine-trust"
+      },
+      {
+        "index": 309,
+        "linux": "justhodl-engine-trust",
+        "windows": "justhodl-episode-compass"
+      },
+      {
+        "index": 310,
+        "linux": "justhodl-episode-compass",
+        "windows": "justhodl-episode-reference"
+      },
+      {
+        "index": 311,
+        "linux": "justhodl-episode-reference",
+        "windows": "justhodl-eps-revision-velocity"
+      },
+      {
+        "index": 312,
+        "linux": "justhodl-eps-revision-velocity",
+        "windows": "justhodl-equity-confluence"
+      },
+      {
+        "index": 313,
+        "linux": "justhodl-equity-confluence",
+        "windows": "justhodl-equity-ftd"
+      },
+      {
+        "index": 314,
+        "linux": "justhodl-equity-ftd",
+        "windows": "justhodl-equity-prewarm"
+      },
+      {
+        "index": 315,
+        "linux": "justhodl-equity-prewarm",
+        "windows": "justhodl-equity-research"
+      },
+      {
+        "index": 316,
+        "linux": "justhodl-equity-research",
+        "windows": "justhodl-esi"
+      },
+      {
+        "index": 317,
+        "linux": "justhodl-esi",
+        "windows": "justhodl-estimate-revisions"
+      },
+      {
+        "index": 318,
+        "linux": "justhodl-estimate-revisions",
+        "windows": "justhodl-etf-census"
+      },
+      {
+        "index": 319,
+        "linux": "justhodl-etf-census",
+        "windows": "justhodl-etf-constituents"
+      },
+      {
+        "index": 320,
+        "linux": "justhodl-etf-constituents",
+        "windows": "justhodl-etf-flows"
+      },
+      {
+        "index": 321,
+        "linux": "justhodl-etf-flows",
+        "windows": "justhodl-etf-fund-flows"
+      },
+      {
+        "index": 322,
+        "linux": "justhodl-etf-fund-flows",
+        "windows": "justhodl-etf-global-desk"
+      },
+      {
+        "index": 323,
+        "linux": "justhodl-etf-global-desk",
+        "windows": "justhodl-etf-true-flows"
+      },
+      {
+        "index": 324,
+        "linux": "justhodl-etf-true-flows",
+        "windows": "justhodl-euro-fragmentation"
+      },
+      {
+        "index": 325,
+        "linux": "justhodl-euro-fragmentation",
+        "windows": "justhodl-eurodollar-plumbing"
+      },
+      {
+        "index": 326,
+        "linux": "justhodl-eurodollar-plumbing",
+        "windows": "justhodl-eurodollar-stress"
+      },
+      {
+        "index": 327,
+        "linux": "justhodl-eurodollar-stress",
+        "windows": "justhodl-eurostat-history"
+      },
+      {
+        "index": 328,
+        "linux": "justhodl-eurostat-history",
+        "windows": "justhodl-eurostat-oecd"
+      },
+      {
+        "index": 329,
+        "linux": "justhodl-eurostat-oecd",
+        "windows": "justhodl-eva-spread"
+      },
+      {
+        "index": 330,
+        "linux": "justhodl-eva-spread",
+        "windows": "justhodl-event-coordinator"
+      },
+      {
+        "index": 331,
+        "linux": "justhodl-event-coordinator",
+        "windows": "justhodl-event-flow-monitor"
+      },
+      {
+        "index": 332,
+        "linux": "justhodl-event-flow-monitor",
+        "windows": "justhodl-event-study"
+      },
+      {
+        "index": 333,
+        "linux": "justhodl-event-study",
+        "windows": "justhodl-exchange-flows"
+      },
+      {
+        "index": 334,
+        "linux": "justhodl-exchange-flows",
+        "windows": "justhodl-executive-intel"
+      },
+      {
+        "index": 335,
+        "linux": "justhodl-executive-intel",
+        "windows": "justhodl-fabrication-weekly"
+      },
+      {
+        "index": 336,
+        "linux": "justhodl-fabrication-weekly",
+        "windows": "justhodl-factor-decomposition"
+      },
+      {
+        "index": 337,
+        "linux": "justhodl-factor-decomposition",
+        "windows": "justhodl-factor-regime"
+      },
+      {
+        "index": 338,
+        "linux": "justhodl-factor-regime",
+        "windows": "justhodl-factor-returns"
+      },
+      {
+        "index": 339,
+        "linux": "justhodl-factor-returns",
+        "windows": "justhodl-factor-risk"
+      },
+      {
+        "index": 340,
+        "linux": "justhodl-factor-risk",
+        "windows": "justhodl-factory-grader"
+      },
+      {
+        "index": 341,
+        "linux": "justhodl-factory-grader",
+        "windows": "justhodl-failed-pattern-reversal"
+      },
+      {
+        "index": 342,
+        "linux": "justhodl-failed-pattern-reversal",
+        "windows": "justhodl-failure-library"
+      },
+      {
+        "index": 343,
+        "linux": "justhodl-failure-library",
+        "windows": "justhodl-families-feed"
+      },
+      {
+        "index": 344,
+        "linux": "justhodl-families-feed",
+        "windows": "justhodl-fast-filings"
+      },
+      {
+        "index": 345,
+        "linux": "justhodl-fast-filings",
+        "windows": "justhodl-fed-collateral"
+      },
+      {
+        "index": 346,
+        "linux": "justhodl-fed-collateral",
+        "windows": "justhodl-fed-nlp"
+      },
+      {
+        "index": 347,
+        "linux": "justhodl-fed-nlp",
+        "windows": "justhodl-fed-pivot-factor-router"
+      },
+      {
+        "index": 348,
+        "linux": "justhodl-fed-pivot-factor-router",
+        "windows": "justhodl-fed-speak"
+      },
+      {
+        "index": 349,
+        "linux": "justhodl-fed-speak",
+        "windows": "justhodl-fedwatch-rate-probability"
+      },
+      {
+        "index": 350,
+        "linux": "justhodl-fedwatch-rate-probability",
+        "windows": "justhodl-feed-catalog"
+      },
+      {
+        "index": 351,
+        "linux": "justhodl-feed-catalog",
+        "windows": "justhodl-feed-registry"
+      },
+      {
+        "index": 352,
+        "linux": "justhodl-feed-registry",
+        "windows": "justhodl-feedback"
+      },
+      {
+        "index": 353,
+        "linux": "justhodl-feedback",
+        "windows": "justhodl-fi-census"
+      },
+      {
+        "index": 354,
+        "linux": "justhodl-fi-census",
+        "windows": "justhodl-fiat-peg-monitor"
+      },
+      {
+        "index": 355,
+        "linux": "justhodl-fiat-peg-monitor",
+        "windows": "justhodl-fifx-vol-migration"
+      },
+      {
+        "index": 356,
+        "linux": "justhodl-fifx-vol-migration",
+        "windows": "justhodl-financial-secretary"
+      },
+      {
+        "index": 357,
+        "linux": "justhodl-financial-secretary",
+        "windows": "justhodl-finnhub-signals"
+      },
+      {
+        "index": 358,
+        "linux": "justhodl-finnhub-signals",
+        "windows": "justhodl-finra-full"
+      },
+      {
+        "index": 359,
+        "linux": "justhodl-finra-full",
+        "windows": "justhodl-finra-short"
+      },
+      {
+        "index": 360,
+        "linux": "justhodl-finra-short",
+        "windows": "justhodl-finviz-groups"
+      },
+      {
+        "index": 361,
+        "linux": "justhodl-finviz-groups",
+        "windows": "justhodl-finviz-news"
+      },
+      {
+        "index": 362,
+        "linux": "justhodl-finviz-news",
+        "windows": "justhodl-finviz-signals"
+      },
+      {
+        "index": 363,
+        "linux": "justhodl-finviz-signals",
+        "windows": "justhodl-finviz-universe"
+      },
+      {
+        "index": 364,
+        "linux": "justhodl-finviz-universe",
+        "windows": "justhodl-firm-book"
+      },
+      {
+        "index": 365,
+        "linux": "justhodl-firm-book",
+        "windows": "justhodl-firm-risk-board"
+      },
+      {
+        "index": 366,
+        "linux": "justhodl-firm-risk-board",
+        "windows": "justhodl-firm-stress"
+      },
+      {
+        "index": 367,
+        "linux": "justhodl-firm-stress",
+        "windows": "justhodl-fiscaldata-full"
+      },
+      {
+        "index": 368,
+        "linux": "justhodl-fiscaldata-full",
+        "windows": "justhodl-fleet-auditor"
+      },
+      {
+        "index": 369,
+        "linux": "justhodl-fleet-auditor",
+        "windows": "justhodl-fleet-error-monitor"
+      },
+      {
+        "index": 370,
+        "linux": "justhodl-fleet-error-monitor",
+        "windows": "justhodl-fleet-freshness-monitor"
+      },
+      {
+        "index": 371,
+        "linux": "justhodl-fleet-freshness-monitor",
+        "windows": "justhodl-fleet-integrity"
+      },
+      {
+        "index": 372,
+        "linux": "justhodl-fleet-integrity",
+        "windows": "justhodl-fleet-monitor"
+      },
+      {
+        "index": 373,
+        "linux": "justhodl-fleet-monitor",
+        "windows": "justhodl-floor-audit"
+      },
+      {
+        "index": 374,
+        "linux": "justhodl-floor-audit",
+        "windows": "justhodl-flow-anomaly-detector"
+      },
+      {
+        "index": 375,
+        "linux": "justhodl-flow-anomaly-detector",
+        "windows": "justhodl-flow-confluence"
+      },
+      {
+        "index": 376,
+        "linux": "justhodl-flow-confluence",
+        "windows": "justhodl-flow-lookthrough"
+      },
+      {
+        "index": 377,
+        "linux": "justhodl-flow-lookthrough",
+        "windows": "justhodl-flows-ai-analysis"
+      },
+      {
+        "index": 378,
+        "linux": "justhodl-flows-ai-analysis",
+        "windows": "justhodl-fomc-reaction"
+      },
+      {
+        "index": 379,
+        "linux": "justhodl-fomc-reaction",
+        "windows": "justhodl-forced-selling-bounce"
+      },
+      {
+        "index": 380,
+        "linux": "justhodl-forced-selling-bounce",
+        "windows": "justhodl-foreign-flows"
+      },
+      {
+        "index": 381,
+        "linux": "justhodl-foreign-flows",
+        "windows": "justhodl-forensic-screen"
+      },
+      {
+        "index": 382,
+        "linux": "justhodl-forensic-screen",
+        "windows": "justhodl-fortress"
+      },
+      {
+        "index": 383,
+        "linux": "justhodl-fortress",
+        "windows": "justhodl-forward-orders"
+      },
+      {
+        "index": 384,
+        "linux": "justhodl-forward-orders",
+        "windows": "justhodl-forward-returns"
+      },
+      {
+        "index": 385,
+        "linux": "justhodl-forward-returns",
+        "windows": "justhodl-frbddp-full"
+      },
+      {
+        "index": 386,
+        "linux": "justhodl-frbddp-full",
+        "windows": "justhodl-fred-catalog"
+      },
+      {
+        "index": 387,
+        "linux": "justhodl-fred-catalog",
+        "windows": "justhodl-fred-proxy"
+      },
+      {
+        "index": 388,
+        "linux": "justhodl-fred-proxy",
+        "windows": "justhodl-fred-tag-crawler"
+      },
+      {
+        "index": 389,
+        "linux": "justhodl-fred-tag-crawler",
+        "windows": "justhodl-freight-pulse"
+      },
+      {
+        "index": 390,
+        "linux": "justhodl-freight-pulse",
+        "windows": "justhodl-fundamental-census"
+      },
+      {
+        "index": 391,
+        "linux": "justhodl-fundamental-census",
+        "windows": "justhodl-fundamental-graphs"
+      },
+      {
+        "index": 392,
+        "linux": "justhodl-fundamental-graphs",
+        "windows": "justhodl-fundamentals-engine"
+      },
+      {
+        "index": 393,
+        "linux": "justhodl-fundamentals-engine",
+        "windows": "justhodl-funding-plumbing"
+      },
+      {
+        "index": 394,
+        "linux": "justhodl-funding-plumbing",
+        "windows": "justhodl-future-intelligence"
+      },
+      {
+        "index": 395,
+        "linux": "justhodl-future-intelligence",
+        "windows": "justhodl-fx-decomposition"
+      },
+      {
+        "index": 396,
+        "linux": "justhodl-fx-decomposition",
+        "windows": "justhodl-fx-intelligence"
+      },
+      {
+        "index": 397,
+        "linux": "justhodl-fx-intelligence",
+        "windows": "justhodl-gap-fill-confirm"
+      },
+      {
+        "index": 398,
+        "linux": "justhodl-gap-fill-confirm",
+        "windows": "justhodl-gap-metrics"
+      },
+      {
+        "index": 399,
+        "linux": "justhodl-gap-metrics",
+        "windows": "justhodl-gdelt-buzz"
+      },
+      {
+        "index": 400,
+        "linux": "justhodl-gdelt-buzz",
+        "windows": "justhodl-gdelt-full"
+      },
+      {
+        "index": 401,
+        "linux": "justhodl-gdelt-full",
+        "windows": "justhodl-gdelt-sentiment"
+      },
+      {
+        "index": 402,
+        "linux": "justhodl-gdelt-sentiment",
+        "windows": "justhodl-geopolitical-risk"
+      },
+      {
+        "index": 403,
+        "linux": "justhodl-geopolitical-risk",
+        "windows": "justhodl-gf-value"
+      },
+      {
+        "index": 404,
+        "linux": "justhodl-gf-value",
+        "windows": "justhodl-global-business-cycle"
+      },
+      {
+        "index": 405,
+        "linux": "justhodl-global-business-cycle",
+        "windows": "justhodl-global-expansion"
+      },
+      {
+        "index": 406,
+        "linux": "justhodl-global-expansion",
+        "windows": "justhodl-global-flow-desk"
+      },
+      {
+        "index": 407,
+        "linux": "justhodl-global-flow-desk",
+        "windows": "justhodl-global-flows"
+      },
+      {
+        "index": 408,
+        "linux": "justhodl-global-flows",
+        "windows": "justhodl-global-liquidity"
+      },
+      {
+        "index": 409,
+        "linux": "justhodl-global-liquidity",
+        "windows": "justhodl-global-macro"
+      },
+      {
+        "index": 410,
+        "linux": "justhodl-global-macro",
+        "windows": "justhodl-global-markets"
+      },
+      {
+        "index": 411,
+        "linux": "justhodl-global-markets",
+        "windows": "justhodl-global-recession"
+      },
+      {
+        "index": 412,
+        "linux": "justhodl-global-recession",
+        "windows": "justhodl-global-sovereign"
+      },
+      {
+        "index": 413,
+        "linux": "justhodl-global-sovereign",
+        "windows": "justhodl-global-stress"
+      },
+      {
+        "index": 414,
+        "linux": "justhodl-global-stress",
+        "windows": "justhodl-global-tide"
+      },
+      {
+        "index": 415,
+        "linux": "justhodl-global-tide",
+        "windows": "justhodl-gold-equity-rotation"
+      },
+      {
+        "index": 416,
+        "linux": "justhodl-gold-equity-rotation",
+        "windows": "justhodl-google-trends"
+      },
+      {
+        "index": 417,
+        "linux": "justhodl-google-trends",
+        "windows": "justhodl-gov-sources"
+      },
+      {
+        "index": 418,
+        "linux": "justhodl-gov-sources",
+        "windows": "justhodl-grid-queue"
+      },
+      {
+        "index": 419,
+        "linux": "justhodl-grid-queue",
+        "windows": "justhodl-gsi-calibrator"
+      },
+      {
+        "index": 420,
+        "linux": "justhodl-gsi-calibrator",
+        "windows": "justhodl-gsi-horizons"
+      },
+      {
+        "index": 421,
+        "linux": "justhodl-gsi-horizons",
+        "windows": "justhodl-guardrail-notify"
+      },
+      {
+        "index": 422,
+        "linux": "justhodl-guardrail-notify",
+        "windows": "justhodl-health-monitor"
+      },
+      {
+        "index": 423,
+        "linux": "justhodl-health-monitor",
+        "windows": "justhodl-hedge-planner"
+      },
+      {
+        "index": 424,
+        "linux": "justhodl-hedge-planner",
+        "windows": "justhodl-hedge-pnl"
+      },
+      {
+        "index": 425,
+        "linux": "justhodl-hedge-pnl",
+        "windows": "justhodl-hiring-velocity"
+      },
+      {
+        "index": 426,
+        "linux": "justhodl-hiring-velocity",
+        "windows": "justhodl-hist-banker"
+      },
+      {
+        "index": 427,
+        "linux": "justhodl-hist-banker",
+        "windows": "justhodl-historical-analogs"
+      },
+      {
+        "index": 428,
+        "linux": "justhodl-historical-analogs",
+        "windows": "justhodl-history-api"
+      },
+      {
+        "index": 429,
+        "linux": "justhodl-history-api",
+        "windows": "justhodl-history-snapshotter"
+      },
+      {
+        "index": 430,
+        "linux": "justhodl-history-snapshotter",
+        "windows": "justhodl-hkma-monitor"
+      },
+      {
+        "index": 431,
+        "linux": "justhodl-hkma-monitor",
+        "windows": "justhodl-hot-money"
+      },
+      {
+        "index": 432,
+        "linux": "justhodl-hot-money",
+        "windows": "justhodl-hot-stocks-digest"
+      },
+      {
+        "index": 433,
+        "linux": "justhodl-hot-stocks-digest",
+        "windows": "justhodl-house-ptr-extract"
+      },
+      {
+        "index": 434,
+        "linux": "justhodl-house-ptr-extract",
+        "windows": "justhodl-hyperliquid-perps"
+      },
+      {
+        "index": 435,
+        "linux": "justhodl-hyperliquid-perps",
+        "windows": "justhodl-ici-flows"
+      },
+      {
+        "index": 436,
+        "linux": "justhodl-ici-flows",
+        "windows": "justhodl-ignition"
+      },
+      {
+        "index": 437,
+        "linux": "justhodl-ignition",
+        "windows": "justhodl-imf-full"
+      },
+      {
+        "index": 438,
+        "linux": "justhodl-imf-full",
+        "windows": "justhodl-impact-graph"
+      },
+      {
+        "index": 439,
+        "linux": "justhodl-impact-graph",
+        "windows": "justhodl-implied-prob"
+      },
+      {
+        "index": 440,
+        "linux": "justhodl-implied-prob",
+        "windows": "justhodl-import-canary"
+      },
+      {
+        "index": 441,
+        "linux": "justhodl-import-canary",
+        "windows": "justhodl-import-sentinel"
+      },
+      {
+        "index": 442,
+        "linux": "justhodl-import-sentinel",
+        "windows": "justhodl-index-inclusion"
+      },
+      {
+        "index": 443,
+        "linux": "justhodl-index-inclusion",
+        "windows": "justhodl-index-recon"
+      },
+      {
+        "index": 444,
+        "linux": "justhodl-index-recon",
+        "windows": "justhodl-indicator-bus"
+      },
+      {
+        "index": 445,
+        "linux": "justhodl-indicator-bus",
+        "windows": "justhodl-industry-boom"
+      },
+      {
+        "index": 446,
+        "linux": "justhodl-industry-boom",
+        "windows": "justhodl-industry-case"
+      },
+      {
+        "index": 447,
+        "linux": "justhodl-industry-case",
+        "windows": "justhodl-industry-rotation"
+      },
+      {
+        "index": 448,
+        "linux": "justhodl-industry-rotation",
+        "windows": "justhodl-insider-aggregate"
+      },
+      {
+        "index": 449,
+        "linux": "justhodl-insider-aggregate",
+        "windows": "justhodl-insider-buyback-confluence"
+      },
+      {
+        "index": 450,
+        "linux": "justhodl-insider-buyback-confluence",
+        "windows": "justhodl-insider-buys-enriched"
+      },
+      {
+        "index": 451,
+        "linux": "justhodl-insider-buys-enriched",
+        "windows": "justhodl-insider-cluster-scanner"
+      },
+      {
+        "index": 452,
+        "linux": "justhodl-insider-cluster-scanner",
+        "windows": "justhodl-insider-industry-cluster"
+      },
+      {
+        "index": 453,
+        "linux": "justhodl-insider-industry-cluster",
+        "windows": "justhodl-insider-radar"
+      },
+      {
+        "index": 454,
+        "linux": "justhodl-insider-radar",
+        "windows": "justhodl-insider-sell-cluster"
+      },
+      {
+        "index": 455,
+        "linux": "justhodl-insider-sell-cluster",
+        "windows": "justhodl-insider-trades"
+      },
+      {
+        "index": 456,
+        "linux": "justhodl-insider-trades",
+        "windows": "justhodl-institutional-footprint"
+      },
+      {
+        "index": 457,
+        "linux": "justhodl-institutional-footprint",
+        "windows": "justhodl-intelligence"
+      },
+      {
+        "index": 458,
+        "linux": "justhodl-intelligence",
+        "windows": "justhodl-interpretation-grader"
+      },
+      {
+        "index": 459,
+        "linux": "justhodl-interpretation-grader",
+        "windows": "justhodl-intraday-pulse"
+      },
+      {
+        "index": 460,
+        "linux": "justhodl-intraday-pulse",
+        "windows": "justhodl-inventory-drawdown"
+      },
+      {
+        "index": 461,
+        "linux": "justhodl-inventory-drawdown",
+        "windows": "justhodl-inverse-harvester"
+      },
+      {
+        "index": 462,
+        "linux": "justhodl-inverse-harvester",
+        "windows": "justhodl-invest"
+      },
+      {
+        "index": 463,
+        "linux": "justhodl-invest",
+        "windows": "justhodl-investor-agents"
+      },
+      {
+        "index": 464,
+        "linux": "justhodl-investor-agents",
+        "windows": "justhodl-investor-lenses"
+      },
+      {
+        "index": 465,
+        "linux": "justhodl-investor-lenses",
+        "windows": "justhodl-ipo-pipeline"
+      },
+      {
+        "index": 466,
+        "linux": "justhodl-ipo-pipeline",
+        "windows": "justhodl-jh-fusion"
+      },
+      {
+        "index": 467,
+        "linux": "justhodl-jh-fusion",
+        "windows": "justhodl-jhsignal-bridge"
+      },
+      {
+        "index": 468,
+        "linux": "justhodl-jhsignal-bridge",
+        "windows": "justhodl-journal-grader"
+      },
+      {
+        "index": 469,
+        "linux": "justhodl-journal-grader",
+        "windows": "justhodl-jsi-calibrator"
+      },
+      {
+        "index": 470,
+        "linux": "justhodl-jsi-calibrator",
+        "windows": "justhodl-ka-metrics"
+      },
+      {
+        "index": 471,
+        "linux": "justhodl-ka-metrics",
+        "windows": "justhodl-katlin"
+      },
+      {
+        "index": 472,
+        "linux": "justhodl-katlin",
+        "windows": "justhodl-kb-matcher"
+      },
+      {
+        "index": 473,
+        "linux": "justhodl-kb-matcher",
+        "windows": "justhodl-khalid"
+      },
+      {
+        "index": 474,
+        "linux": "justhodl-khalid",
+        "windows": "justhodl-khalid-adaptive"
+      },
+      {
+        "index": 475,
+        "linux": "justhodl-khalid-adaptive",
+        "windows": "justhodl-khalid-metrics"
+      },
+      {
+        "index": 476,
+        "linux": "justhodl-khalid-metrics",
+        "windows": "justhodl-khalid-risk"
+      },
+      {
+        "index": 477,
+        "linux": "justhodl-khalid-risk",
+        "windows": "justhodl-kill-switch"
+      },
+      {
+        "index": 478,
+        "linux": "justhodl-kill-switch",
+        "windows": "justhodl-labor-leading"
+      },
+      {
+        "index": 479,
+        "linux": "justhodl-labor-leading",
+        "windows": "justhodl-lambda-inventory"
+      },
+      {
+        "index": 480,
+        "linux": "justhodl-lambda-inventory",
+        "windows": "justhodl-leading-markets"
+      },
+      {
+        "index": 481,
+        "linux": "justhodl-leading-markets",
+        "windows": "justhodl-leadlag-graph"
+      },
+      {
+        "index": 482,
+        "linux": "justhodl-leadlag-graph",
+        "windows": "justhodl-liq-indicators"
+      },
+      {
+        "index": 483,
+        "linux": "justhodl-liq-indicators",
+        "windows": "justhodl-liquidity-agent"
+      },
+      {
+        "index": 484,
+        "linux": "justhodl-liquidity-agent",
+        "windows": "justhodl-liquidity-capacity"
+      },
+      {
+        "index": 485,
+        "linux": "justhodl-liquidity-capacity",
+        "windows": "justhodl-liquidity-credit-engine"
+      },
+      {
+        "index": 486,
+        "linux": "justhodl-liquidity-credit-engine",
+        "windows": "justhodl-liquidity-flow"
+      },
+      {
+        "index": 487,
+        "linux": "justhodl-liquidity-flow",
+        "windows": "justhodl-liquidity-inflection"
+      },
+      {
+        "index": 488,
+        "linux": "justhodl-liquidity-inflection",
+        "windows": "justhodl-liquidity-profile"
+      },
+      {
+        "index": 489,
+        "linux": "justhodl-liquidity-profile",
+        "windows": "justhodl-liquidity-pulse"
+      },
+      {
+        "index": 490,
+        "linux": "justhodl-liquidity-pulse",
+        "windows": "justhodl-liquidity-reversal"
+      },
+      {
+        "index": 491,
+        "linux": "justhodl-liquidity-reversal",
+        "windows": "justhodl-live-pulse"
+      },
+      {
+        "index": 492,
+        "linux": "justhodl-live-pulse",
+        "windows": "justhodl-llm-cost-dashboard"
+      },
+      {
+        "index": 493,
+        "linux": "justhodl-llm-cost-dashboard",
+        "windows": "justhodl-llm-health"
+      },
+      {
+        "index": 494,
+        "linux": "justhodl-llm-health",
+        "windows": "justhodl-lobbying-intel"
+      },
+      {
+        "index": 495,
+        "linux": "justhodl-lobbying-intel",
+        "windows": "justhodl-lockup-expiration"
+      },
+      {
+        "index": 496,
+        "linux": "justhodl-lockup-expiration",
+        "windows": "justhodl-ma-reversion"
+      },
+      {
+        "index": 497,
+        "linux": "justhodl-ma-reversion",
+        "windows": "justhodl-ma-target-predictor"
+      },
+      {
+        "index": 498,
+        "linux": "justhodl-ma-target-predictor",
+        "windows": "justhodl-ma-tracker"
+      },
+      {
+        "index": 499,
+        "linux": "justhodl-ma-tracker",
+        "windows": "justhodl-ma200-reclaim"
+      },
+      {
+        "index": 500,
+        "linux": "justhodl-ma200-reclaim",
+        "windows": "justhodl-macro-attribution"
+      },
+      {
+        "index": 501,
+        "linux": "justhodl-macro-attribution",
+        "windows": "justhodl-macro-calendar"
+      },
+      {
+        "index": 502,
+        "linux": "justhodl-macro-calendar",
+        "windows": "justhodl-macro-confluence"
+      },
+      {
+        "index": 503,
+        "linux": "justhodl-macro-confluence",
+        "windows": "justhodl-macro-leads"
+      },
+      {
+        "index": 504,
+        "linux": "justhodl-macro-leads",
+        "windows": "justhodl-macro-nowcast"
+      },
+      {
+        "index": 505,
+        "linux": "justhodl-macro-nowcast",
+        "windows": "justhodl-macro-predict"
+      },
+      {
+        "index": 506,
+        "linux": "justhodl-macro-predict",
+        "windows": "justhodl-macro-regime"
+      },
+      {
+        "index": 507,
+        "linux": "justhodl-macro-regime",
+        "windows": "justhodl-macro-surprise"
+      },
+      {
+        "index": 508,
+        "linux": "justhodl-macro-surprise",
+        "windows": "justhodl-magic-formula"
+      },
+      {
+        "index": 509,
+        "linux": "justhodl-magic-formula",
+        "windows": "justhodl-magnitude-distributions"
+      },
+      {
+        "index": 510,
+        "linux": "justhodl-magnitude-distributions",
+        "windows": "justhodl-margin-lending"
+      },
+      {
+        "index": 511,
+        "linux": "justhodl-margin-lending",
+        "windows": "justhodl-market-extremes"
+      },
+      {
+        "index": 512,
+        "linux": "justhodl-market-extremes",
+        "windows": "justhodl-market-internals"
+      },
+      {
+        "index": 513,
+        "linux": "justhodl-market-internals",
+        "windows": "justhodl-market-interpreter"
+      },
+      {
+        "index": 514,
+        "linux": "justhodl-market-interpreter",
+        "windows": "justhodl-market-machine"
+      },
+      {
+        "index": 515,
+        "linux": "justhodl-market-machine",
+        "windows": "justhodl-market-map"
+      },
+      {
+        "index": 516,
+        "linux": "justhodl-market-map",
+        "windows": "justhodl-market-tape"
+      },
+      {
+        "index": 517,
+        "linux": "justhodl-market-tape",
+        "windows": "justhodl-massive-signals"
+      },
+      {
+        "index": 518,
+        "linux": "justhodl-massive-signals",
+        "windows": "justhodl-master-allocator"
+      },
+      {
+        "index": 519,
+        "linux": "justhodl-master-allocator",
+        "windows": "justhodl-master-ranker"
+      },
+      {
+        "index": 520,
+        "linux": "justhodl-master-ranker",
+        "windows": "justhodl-mean-reversion"
+      },
+      {
+        "index": 521,
+        "linux": "justhodl-mean-reversion",
+        "windows": "justhodl-merger-arb"
+      },
+      {
+        "index": 522,
+        "linux": "justhodl-merger-arb",
+        "windows": "justhodl-merger-arb-risk"
+      },
+      {
+        "index": 523,
+        "linux": "justhodl-merger-arb-risk",
+        "windows": "justhodl-meta-improver"
+      },
+      {
+        "index": 524,
+        "linux": "justhodl-meta-improver",
+        "windows": "justhodl-meta-labeler"
+      },
+      {
+        "index": 525,
+        "linux": "justhodl-meta-labeler",
+        "windows": "justhodl-metals-miners"
+      },
+      {
+        "index": 526,
+        "linux": "justhodl-metals-miners",
+        "windows": "justhodl-methodology-scout"
+      },
+      {
+        "index": 527,
+        "linux": "justhodl-methodology-scout",
+        "windows": "justhodl-microcap-float-squeeze"
+      },
+      {
+        "index": 528,
+        "linux": "justhodl-microcap-float-squeeze",
+        "windows": "justhodl-miss-calibrator"
+      },
+      {
+        "index": 529,
+        "linux": "justhodl-miss-calibrator",
+        "windows": "justhodl-miss-detector"
+      },
+      {
+        "index": 530,
+        "linux": "justhodl-miss-detector",
+        "windows": "justhodl-ml-predictions"
+      },
+      {
+        "index": 531,
+        "linux": "justhodl-ml-predictions",
+        "windows": "justhodl-momentum-breakout"
+      },
+      {
+        "index": 532,
+        "linux": "justhodl-momentum-breakout",
+        "windows": "justhodl-momentum-leaders"
+      },
+      {
+        "index": 533,
+        "linux": "justhodl-momentum-leaders",
+        "windows": "justhodl-momentum-scanner"
+      },
+      {
+        "index": 534,
+        "linux": "justhodl-momentum-scanner",
+        "windows": "justhodl-money-flow-state"
+      },
+      {
+        "index": 535,
+        "linux": "justhodl-money-flow-state",
+        "windows": "justhodl-morning-brief-tg"
+      },
+      {
+        "index": 536,
+        "linux": "justhodl-morning-brief-tg",
+        "windows": "justhodl-morning-intelligence"
+      },
+      {
+        "index": 537,
+        "linux": "justhodl-morning-intelligence",
+        "windows": "justhodl-move-index"
+      },
+      {
+        "index": 538,
+        "linux": "justhodl-move-index",
+        "windows": "justhodl-multi-tf-convergence"
+      },
+      {
+        "index": 539,
+        "linux": "justhodl-multi-tf-convergence",
+        "windows": "justhodl-my-brief"
+      },
+      {
+        "index": 540,
+        "linux": "justhodl-my-brief",
+        "windows": "justhodl-naaim"
+      },
+      {
+        "index": 541,
+        "linux": "justhodl-naaim",
+        "windows": "justhodl-narrative-density-tracker"
+      },
+      {
+        "index": 542,
+        "linux": "justhodl-narrative-density-tracker",
+        "windows": "justhodl-narrative-vs-tape"
+      },
+      {
+        "index": 543,
+        "linux": "justhodl-narrative-vs-tape",
+        "windows": "justhodl-ndx-spx-spread"
+      },
+      {
+        "index": 544,
+        "linux": "justhodl-ndx-spx-spread",
+        "windows": "justhodl-near-miss-monitor"
+      },
+      {
+        "index": 545,
+        "linux": "justhodl-near-miss-monitor",
+        "windows": "justhodl-news-sentiment"
+      },
+      {
+        "index": 546,
+        "linux": "justhodl-news-sentiment",
+        "windows": "justhodl-news-velocity"
+      },
+      {
+        "index": 547,
+        "linux": "justhodl-news-velocity",
+        "windows": "justhodl-news-wire"
+      },
+      {
+        "index": 548,
+        "linux": "justhodl-news-wire",
+        "windows": "justhodl-nobrainer-rationale"
+      },
+      {
+        "index": 549,
+        "linux": "justhodl-nobrainer-rationale",
+        "windows": "justhodl-nobrainer-tracker"
+      },
+      {
+        "index": 550,
+        "linux": "justhodl-nobrainer-tracker",
+        "windows": "justhodl-notes-intel"
+      },
+      {
+        "index": 551,
+        "linux": "justhodl-notes-intel",
+        "windows": "justhodl-nowcast-desk"
+      },
+      {
+        "index": 552,
+        "linux": "justhodl-nowcast-desk",
+        "windows": "justhodl-nyfed-dealer-survey"
+      },
+      {
+        "index": 553,
+        "linux": "justhodl-nyfed-dealer-survey",
+        "windows": "justhodl-nyfed-full-history"
+      },
+      {
+        "index": 554,
+        "linux": "justhodl-nyfed-full-history",
+        "windows": "justhodl-nyfed-markets-full"
+      },
+      {
+        "index": 555,
+        "linux": "justhodl-nyfed-markets-full",
+        "windows": "justhodl-nyfed-pd"
+      },
+      {
+        "index": 556,
+        "linux": "justhodl-nyfed-pd",
+        "windows": "justhodl-nyfed-repo-deep"
+      },
+      {
+        "index": 557,
+        "linux": "justhodl-nyfed-repo-deep",
+        "windows": "justhodl-oecd-cli"
+      },
+      {
+        "index": 558,
+        "linux": "justhodl-oecd-cli",
+        "windows": "justhodl-official-pulse"
+      },
+      {
+        "index": 559,
+        "linux": "justhodl-official-pulse",
+        "windows": "justhodl-ofr-stfm"
+      },
+      {
+        "index": 560,
+        "linux": "justhodl-ofr-stfm",
+        "windows": "justhodl-onchain-ratios"
+      },
+      {
+        "index": 561,
+        "linux": "justhodl-onchain-ratios",
+        "windows": "justhodl-opex-calendar"
+      },
+      {
+        "index": 562,
+        "linux": "justhodl-opex-calendar",
+        "windows": "justhodl-opportunities-research"
+      },
+      {
+        "index": 563,
+        "linux": "justhodl-opportunities-research",
+        "windows": "justhodl-opportunity-calibrator"
+      },
+      {
+        "index": 564,
+        "linux": "justhodl-opportunity-calibrator",
+        "windows": "justhodl-opportunity-engine"
+      },
+      {
+        "index": 565,
+        "linux": "justhodl-opportunity-engine",
+        "windows": "justhodl-opportunity-screener"
+      },
+      {
+        "index": 566,
+        "linux": "justhodl-opportunity-screener",
+        "windows": "justhodl-options-analytics"
+      },
+      {
+        "index": 567,
+        "linux": "justhodl-options-analytics",
+        "windows": "justhodl-options-confluence"
+      },
+      {
+        "index": 568,
+        "linux": "justhodl-options-confluence",
+        "windows": "justhodl-options-flow"
+      },
+      {
+        "index": 569,
+        "linux": "justhodl-options-flow",
+        "windows": "justhodl-options-flow-scanner"
+      },
+      {
+        "index": 570,
+        "linux": "justhodl-options-flow-scanner",
+        "windows": "justhodl-options-gamma"
+      },
+      {
+        "index": 571,
+        "linux": "justhodl-options-gamma",
+        "windows": "justhodl-outcome-checker"
+      },
+      {
+        "index": 572,
+        "linux": "justhodl-outcome-checker",
+        "windows": "justhodl-page-ai"
+      },
+      {
+        "index": 573,
+        "linux": "justhodl-page-ai",
+        "windows": "justhodl-page-ai-commentary"
+      },
+      {
+        "index": 574,
+        "linux": "justhodl-page-ai-commentary",
+        "windows": "justhodl-pair-trades"
+      },
+      {
+        "index": 575,
+        "linux": "justhodl-pair-trades",
+        "windows": "justhodl-pairs-arb"
+      },
+      {
+        "index": 576,
+        "linux": "justhodl-pairs-arb",
+        "windows": "justhodl-pairs-scanner"
+      },
+      {
+        "index": 577,
+        "linux": "justhodl-pairs-scanner",
+        "windows": "justhodl-paper-book"
+      },
+      {
+        "index": 578,
+        "linux": "justhodl-paper-book",
+        "windows": "justhodl-patent-velocity"
+      },
+      {
+        "index": 579,
+        "linux": "justhodl-patent-velocity",
+        "windows": "justhodl-pead-detector"
+      },
+      {
+        "index": 580,
+        "linux": "justhodl-pead-detector",
+        "windows": "justhodl-peer-comparison"
+      },
+      {
+        "index": 581,
+        "linux": "justhodl-peer-comparison",
+        "windows": "justhodl-peru-copper"
+      },
+      {
+        "index": 582,
+        "linux": "justhodl-peru-copper",
+        "windows": "justhodl-phase-detector"
+      },
+      {
+        "index": 583,
+        "linux": "justhodl-phase-detector",
+        "windows": "justhodl-physical-econ"
+      },
+      {
+        "index": 584,
+        "linux": "justhodl-physical-econ",
+        "windows": "justhodl-pjm-grid"
+      },
+      {
+        "index": 585,
+        "linux": "justhodl-pjm-grid",
+        "windows": "justhodl-playbook-engine"
+      },
+      {
+        "index": 586,
+        "linux": "justhodl-playbook-engine",
+        "windows": "justhodl-plumbing-aggregator"
+      },
+      {
+        "index": 587,
+        "linux": "justhodl-plumbing-aggregator",
+        "windows": "justhodl-plumbing-composite"
+      },
+      {
+        "index": 588,
+        "linux": "justhodl-plumbing-composite",
+        "windows": "justhodl-plumbing-panel"
+      },
+      {
+        "index": 589,
+        "linux": "justhodl-plumbing-panel",
+        "windows": "justhodl-pm-decision"
+      },
+      {
+        "index": 590,
+        "linux": "justhodl-pm-decision",
+        "windows": "justhodl-pnl-attribution"
+      },
+      {
+        "index": 591,
+        "linux": "justhodl-pnl-attribution",
+        "windows": "justhodl-pnl-tracker"
+      },
+      {
+        "index": 592,
+        "linux": "justhodl-pnl-tracker",
+        "windows": "justhodl-political-ai-investigation"
+      },
+      {
+        "index": 593,
+        "linux": "justhodl-political-ai-investigation",
+        "windows": "justhodl-political-intel"
+      },
+      {
+        "index": 594,
+        "linux": "justhodl-political-intel",
+        "windows": "justhodl-political-stocks"
+      },
+      {
+        "index": 595,
+        "linux": "justhodl-political-stocks",
+        "windows": "justhodl-political-trades"
+      },
+      {
+        "index": 596,
+        "linux": "justhodl-political-trades",
+        "windows": "justhodl-polygon-daily-snapshot"
+      },
+      {
+        "index": 597,
+        "linux": "justhodl-polygon-daily-snapshot",
+        "windows": "justhodl-polygon-full"
+      },
+      {
+        "index": 598,
+        "linux": "justhodl-polygon-full",
+        "windows": "justhodl-polygon-futures-curves"
+      },
+      {
+        "index": 599,
+        "linux": "justhodl-polygon-futures-curves",
+        "windows": "justhodl-polygon-fx-regime"
+      },
+      {
+        "index": 600,
+        "linux": "justhodl-polygon-fx-regime",
+        "windows": "justhodl-polygon-options-flow"
+      },
+      {
+        "index": 601,
+        "linux": "justhodl-polygon-options-flow",
+        "windows": "justhodl-port-cargo"
+      },
+      {
+        "index": 602,
+        "linux": "justhodl-port-cargo",
+        "windows": "justhodl-portfolio-admin"
+      },
+      {
+        "index": 603,
+        "linux": "justhodl-portfolio-admin",
+        "windows": "justhodl-portfolio-analytics"
+      },
+      {
+        "index": 604,
+        "linux": "justhodl-portfolio-analytics",
+        "windows": "justhodl-portfolio-catalysts"
+      },
+      {
+        "index": 605,
+        "linux": "justhodl-portfolio-catalysts",
+        "windows": "justhodl-portfolio-risk"
+      },
+      {
+        "index": 606,
+        "linux": "justhodl-portfolio-risk",
+        "windows": "justhodl-portfolio-sizer"
+      },
+      {
+        "index": 607,
+        "linux": "justhodl-portfolio-sizer",
+        "windows": "justhodl-portfolio-snapshot"
+      },
+      {
+        "index": 608,
+        "linux": "justhodl-portfolio-snapshot",
+        "windows": "justhodl-portwatch"
+      },
+      {
+        "index": 609,
+        "linux": "justhodl-portwatch",
+        "windows": "justhodl-position-monitor"
+      },
+      {
+        "index": 610,
+        "linux": "justhodl-position-monitor",
+        "windows": "justhodl-position-sizer"
+      },
+      {
+        "index": 611,
+        "linux": "justhodl-position-sizer",
+        "windows": "justhodl-position-sizer-v2"
+      },
+      {
+        "index": 612,
+        "linux": "justhodl-position-sizer-v2",
+        "windows": "justhodl-positioning-analog"
+      },
+      {
+        "index": 613,
+        "linux": "justhodl-positioning-analog",
+        "windows": "justhodl-post-earnings-mean-rev"
+      },
+      {
+        "index": 614,
+        "linux": "justhodl-post-earnings-mean-rev",
+        "windows": "justhodl-powell-pivot"
+      },
+      {
+        "index": 615,
+        "linux": "justhodl-powell-pivot",
+        "windows": "justhodl-ppi-acceleration"
+      },
+      {
+        "index": 616,
+        "linux": "justhodl-ppi-acceleration",
+        "windows": "justhodl-pre-pump-detector"
+      },
+      {
+        "index": 617,
+        "linux": "justhodl-pre-pump-detector",
+        "windows": "justhodl-precatalyst-vol-expansion"
+      },
+      {
+        "index": 618,
+        "linux": "justhodl-precatalyst-vol-expansion",
+        "windows": "justhodl-predictability"
+      },
+      {
+        "index": 619,
+        "linux": "justhodl-predictability",
+        "windows": "justhodl-prediction-snapshotter"
+      },
+      {
+        "index": 620,
+        "linux": "justhodl-prediction-snapshotter",
+        "windows": "justhodl-premortem-engine"
+      },
+      {
+        "index": 621,
+        "linux": "justhodl-premortem-engine",
+        "windows": "justhodl-prepump-alerts-router"
+      },
+      {
+        "index": 622,
+        "linux": "justhodl-prepump-alerts-router",
+        "windows": "justhodl-prepump-summary"
+      },
+      {
+        "index": 623,
+        "linux": "justhodl-prepump-summary",
+        "windows": "justhodl-price-redundancy"
+      },
+      {
+        "index": 624,
+        "linux": "justhodl-price-redundancy",
+        "windows": "justhodl-prompt-iterator"
+      },
+      {
+        "index": 625,
+        "linux": "justhodl-prompt-iterator",
+        "windows": "justhodl-prospective-evaluator"
+      },
+      {
+        "index": 626,
+        "linux": "justhodl-prospective-evaluator",
+        "windows": "justhodl-proven-alpha"
+      },
+      {
+        "index": 627,
+        "linux": "justhodl-proven-alpha",
+        "windows": "justhodl-proven-portfolio"
+      },
+      {
+        "index": 628,
+        "linux": "justhodl-proven-portfolio",
+        "windows": "justhodl-provenance-rollup"
+      },
+      {
+        "index": 629,
+        "linux": "justhodl-provenance-rollup",
+        "windows": "justhodl-provider-catalog"
+      },
+      {
+        "index": 630,
+        "linux": "justhodl-provider-catalog",
+        "windows": "justhodl-provider-window-sentinel"
+      },
+      {
+        "index": 631,
+        "linux": "justhodl-provider-window-sentinel",
+        "windows": "justhodl-public-api-demo"
+      },
+      {
+        "index": 632,
+        "linux": "justhodl-public-api-demo",
+        "windows": "justhodl-public-archive-index"
+      },
+      {
+        "index": 633,
+        "linux": "justhodl-public-archive-index",
+        "windows": "justhodl-pump-earnings-nlp"
+      },
+      {
+        "index": 634,
+        "linux": "justhodl-pump-earnings-nlp",
+        "windows": "justhodl-pump-mechanics"
+      },
+      {
+        "index": 635,
+        "linux": "justhodl-pump-mechanics",
+        "windows": "justhodl-pump-positioning"
+      },
+      {
+        "index": 636,
+        "linux": "justhodl-pump-positioning",
+        "windows": "justhodl-pump-radar-brief"
+      },
+      {
+        "index": 637,
+        "linux": "justhodl-pump-radar-brief",
+        "windows": "justhodl-push-api"
+      },
+      {
+        "index": 638,
+        "linux": "justhodl-push-api",
+        "windows": "justhodl-put-call-extreme"
+      },
+      {
+        "index": 639,
+        "linux": "justhodl-put-call-extreme",
+        "windows": "justhodl-quality-on-sale"
+      },
+      {
+        "index": 640,
+        "linux": "justhodl-quality-on-sale",
+        "windows": "justhodl-quantum-desk"
+      },
+      {
+        "index": 641,
+        "linux": "justhodl-quantum-desk",
+        "windows": "justhodl-radar-backtest"
+      },
+      {
+        "index": 642,
+        "linux": "justhodl-radar-backtest",
+        "windows": "justhodl-rating-change-cluster"
+      },
+      {
+        "index": 643,
+        "linux": "justhodl-rating-change-cluster",
+        "windows": "justhodl-readthrough"
+      },
+      {
+        "index": 644,
+        "linux": "justhodl-readthrough",
+        "windows": "justhodl-real-economy-collector"
+      },
+      {
+        "index": 645,
+        "linux": "justhodl-real-economy-collector",
+        "windows": "justhodl-rebalance-radar"
+      },
+      {
+        "index": 646,
+        "linux": "justhodl-rebalance-radar",
+        "windows": "justhodl-redflag-alerter"
+      },
+      {
+        "index": 647,
+        "linux": "justhodl-redflag-alerter",
+        "windows": "justhodl-refining-stress"
+      },
+      {
+        "index": 648,
+        "linux": "justhodl-refining-stress",
+        "windows": "justhodl-regime-anomaly"
+      },
+      {
+        "index": 649,
+        "linux": "justhodl-regime-anomaly",
+        "windows": "justhodl-regime-composite"
+      },
+      {
+        "index": 650,
+        "linux": "justhodl-regime-composite",
+        "windows": "justhodl-regime-conditional-router"
+      },
+      {
+        "index": 651,
+        "linux": "justhodl-regime-conditional-router",
+        "windows": "justhodl-regime-conditional-trust"
+      },
+      {
+        "index": 652,
+        "linux": "justhodl-regime-conditional-trust",
+        "windows": "justhodl-regime-engine"
+      },
+      {
+        "index": 653,
+        "linux": "justhodl-regime-engine",
+        "windows": "justhodl-regime-map"
+      },
+      {
+        "index": 654,
+        "linux": "justhodl-regime-map",
+        "windows": "justhodl-regime-playbook"
+      },
+      {
+        "index": 655,
+        "linux": "justhodl-regime-playbook",
+        "windows": "justhodl-reit-nav-discount"
+      },
+      {
+        "index": 656,
+        "linux": "justhodl-reit-nav-discount",
+        "windows": "justhodl-repo"
+      },
+      {
+        "index": 657,
+        "linux": "justhodl-repo",
+        "windows": "justhodl-repo-lending"
+      },
+      {
+        "index": 658,
+        "linux": "justhodl-repo-lending",
+        "windows": "justhodl-repo-market"
+      },
+      {
+        "index": 659,
+        "linux": "justhodl-repo-market",
+        "windows": "justhodl-repo-monitor"
+      },
+      {
+        "index": 660,
+        "linux": "justhodl-repo-monitor",
+        "windows": "justhodl-reports-builder"
+      },
+      {
+        "index": 661,
+        "linux": "justhodl-reports-builder",
+        "windows": "justhodl-research-backtest"
+      },
+      {
+        "index": 662,
+        "linux": "justhodl-research-backtest",
+        "windows": "justhodl-research-critique"
+      },
+      {
+        "index": 663,
+        "linux": "justhodl-research-critique",
+        "windows": "justhodl-research-papers"
+      },
+      {
+        "index": 664,
+        "linux": "justhodl-research-papers",
+        "windows": "justhodl-resilience"
+      },
+      {
+        "index": 665,
+        "linux": "justhodl-resilience",
+        "windows": "justhodl-retail-sentiment"
+      },
+      {
+        "index": 666,
+        "linux": "justhodl-retail-sentiment",
+        "windows": "justhodl-revenue-acceleration"
+      },
+      {
+        "index": 667,
+        "linux": "justhodl-revenue-acceleration",
+        "windows": "justhodl-reversal-radar"
+      },
+      {
+        "index": 668,
+        "linux": "justhodl-reversal-radar",
+        "windows": "justhodl-risk-gate"
+      },
+      {
+        "index": 669,
+        "linux": "justhodl-risk-gate",
+        "windows": "justhodl-risk-monitor"
+      },
+      {
+        "index": 670,
+        "linux": "justhodl-risk-monitor",
+        "windows": "justhodl-risk-radar"
+      },
+      {
+        "index": 671,
+        "linux": "justhodl-risk-radar",
+        "windows": "justhodl-risk-ratios"
+      },
+      {
+        "index": 672,
+        "linux": "justhodl-risk-ratios",
+        "windows": "justhodl-risk-regime"
+      },
+      {
+        "index": 673,
+        "linux": "justhodl-risk-regime",
+        "windows": "justhodl-risk-sizer"
+      },
+      {
+        "index": 674,
+        "linux": "justhodl-risk-sizer",
+        "windows": "justhodl-rotation-chain"
+      },
+      {
+        "index": 675,
+        "linux": "justhodl-rotation-chain",
+        "windows": "justhodl-rotation-dashboard"
+      },
+      {
+        "index": 676,
+        "linux": "justhodl-rotation-dashboard",
+        "windows": "justhodl-rotation-radar"
+      },
+      {
+        "index": 677,
+        "linux": "justhodl-rotation-radar",
+        "windows": "justhodl-russell-recon-frontrun"
+      },
+      {
+        "index": 678,
+        "linux": "justhodl-russell-recon-frontrun",
+        "windows": "justhodl-rv-iv-scanner"
+      },
+      {
+        "index": 679,
+        "linux": "justhodl-rv-iv-scanner",
+        "windows": "justhodl-scarcity-radar"
+      },
+      {
+        "index": 680,
+        "linux": "justhodl-scarcity-radar",
+        "windows": "justhodl-schedule-liveness"
+      },
+      {
+        "index": 681,
+        "linux": "justhodl-schedule-liveness",
+        "windows": "justhodl-schedule-reconciler"
+      },
+      {
+        "index": 682,
+        "linux": "justhodl-schedule-reconciler",
+        "windows": "justhodl-scheduler"
+      },
+      {
+        "index": 683,
+        "linux": "justhodl-scheduler",
+        "windows": "justhodl-screen-backtest"
+      },
+      {
+        "index": 684,
+        "linux": "justhodl-screen-backtest",
+        "windows": "justhodl-screen-builder"
+      },
+      {
+        "index": 685,
+        "linux": "justhodl-screen-builder",
+        "windows": "justhodl-screener-alerts"
+      },
+      {
+        "index": 686,
+        "linux": "justhodl-screener-alerts",
+        "windows": "justhodl-sdmx-walker"
+      },
+      {
+        "index": 687,
+        "linux": "justhodl-sdmx-walker",
+        "windows": "justhodl-search-attention"
+      },
+      {
+        "index": 688,
+        "linux": "justhodl-search-attention",
+        "windows": "justhodl-seasonality"
+      },
+      {
+        "index": 689,
+        "linux": "justhodl-seasonality",
+        "windows": "justhodl-sec-10kq"
+      },
+      {
+        "index": 690,
+        "linux": "justhodl-sec-10kq",
+        "windows": "justhodl-sec-13f"
+      },
+      {
+        "index": 691,
+        "linux": "justhodl-sec-13f",
+        "windows": "justhodl-sec-8k"
+      },
+      {
+        "index": 692,
+        "linux": "justhodl-sec-8k",
+        "windows": "justhodl-sec-bulk"
+      },
+      {
+        "index": 693,
+        "linux": "justhodl-sec-bulk",
+        "windows": "justhodl-sec-filing-diff"
+      },
+      {
+        "index": 694,
+        "linux": "justhodl-sec-filing-diff",
+        "windows": "justhodl-sec-filings-intel"
+      },
+      {
+        "index": 695,
+        "linux": "justhodl-sec-filings-intel",
+        "windows": "justhodl-sec-midas"
+      },
+      {
+        "index": 696,
+        "linux": "justhodl-sec-midas",
+        "windows": "justhodl-sector-capital-fusion"
+      },
+      {
+        "index": 697,
+        "linux": "justhodl-sector-capital-fusion",
+        "windows": "justhodl-sector-earnings-diffusion"
+      },
+      {
+        "index": 698,
+        "linux": "justhodl-sector-earnings-diffusion",
+        "windows": "justhodl-sector-emergence"
+      },
+      {
+        "index": 699,
+        "linux": "justhodl-sector-emergence",
+        "windows": "justhodl-sector-flow-state"
+      },
+      {
+        "index": 700,
+        "linux": "justhodl-sector-flow-state",
+        "windows": "justhodl-sector-heatmap"
+      },
+      {
+        "index": 701,
+        "linux": "justhodl-sector-heatmap",
+        "windows": "justhodl-sector-rotation"
+      },
+      {
+        "index": 702,
+        "linux": "justhodl-sector-rotation",
+        "windows": "justhodl-sector-tilt"
+      },
+      {
+        "index": 703,
+        "linux": "justhodl-sector-tilt",
+        "windows": "justhodl-self-critique"
+      },
+      {
+        "index": 704,
+        "linux": "justhodl-self-critique",
+        "windows": "justhodl-self-improvement"
+      },
+      {
+        "index": 705,
+        "linux": "justhodl-self-improvement",
+        "windows": "justhodl-sellside-views"
+      },
+      {
+        "index": 706,
+        "linux": "justhodl-sellside-views",
+        "windows": "justhodl-sequence-alpha-detector"
+      },
+      {
+        "index": 707,
+        "linux": "justhodl-sequence-alpha-detector",
+        "windows": "justhodl-series-extractor"
+      },
+      {
+        "index": 708,
+        "linux": "justhodl-series-extractor",
+        "windows": "justhodl-settlement-fails"
+      },
+      {
+        "index": 709,
+        "linux": "justhodl-settlement-fails",
+        "windows": "justhodl-setups-push"
+      },
+      {
+        "index": 710,
+        "linux": "justhodl-setups-push",
+        "windows": "justhodl-shadow-lab"
+      },
+      {
+        "index": 711,
+        "linux": "justhodl-shadow-lab",
+        "windows": "justhodl-share-flows"
+      },
+      {
+        "index": 712,
+        "linux": "justhodl-share-flows",
+        "windows": "justhodl-short-book"
+      },
+      {
+        "index": 713,
+        "linux": "justhodl-short-book",
+        "windows": "justhodl-short-interest"
+      },
+      {
+        "index": 714,
+        "linux": "justhodl-short-interest",
+        "windows": "justhodl-short-pressure"
+      },
+      {
+        "index": 715,
+        "linux": "justhodl-short-pressure",
+        "windows": "justhodl-signal-backtest"
+      },
+      {
+        "index": 716,
+        "linux": "justhodl-signal-backtest",
+        "windows": "justhodl-signal-board"
+      },
+      {
+        "index": 717,
+        "linux": "justhodl-signal-board",
+        "windows": "justhodl-signal-fabric"
+      },
+      {
+        "index": 718,
+        "linux": "justhodl-signal-fabric",
+        "windows": "justhodl-signal-genealogy"
+      },
+      {
+        "index": 719,
+        "linux": "justhodl-signal-genealogy",
+        "windows": "justhodl-signal-halflife"
+      },
+      {
+        "index": 720,
+        "linux": "justhodl-signal-halflife",
+        "windows": "justhodl-signal-harvester"
+      },
+      {
+        "index": 721,
+        "linux": "justhodl-signal-harvester",
+        "windows": "justhodl-signal-logger"
+      },
+      {
+        "index": 722,
+        "linux": "justhodl-signal-logger",
+        "windows": "justhodl-signal-optimizer"
+      },
+      {
+        "index": 723,
+        "linux": "justhodl-signal-optimizer",
+        "windows": "justhodl-signal-orthogonality"
+      },
+      {
+        "index": 724,
+        "linux": "justhodl-signal-orthogonality",
+        "windows": "justhodl-signal-portfolio"
+      },
+      {
+        "index": 725,
+        "linux": "justhodl-signal-portfolio",
+        "windows": "justhodl-signal-scorecard"
+      },
+      {
+        "index": 726,
+        "linux": "justhodl-signal-scorecard",
+        "windows": "justhodl-singapore-nodx"
+      },
+      {
+        "index": 727,
+        "linux": "justhodl-singapore-nodx",
+        "windows": "justhodl-sizing-engine"
+      },
+      {
+        "index": 728,
+        "linux": "justhodl-sizing-engine",
+        "windows": "justhodl-skew-tail-hedging"
+      },
+      {
+        "index": 729,
+        "linux": "justhodl-skew-tail-hedging",
+        "windows": "justhodl-smart-beta"
+      },
+      {
+        "index": 730,
+        "linux": "justhodl-smart-beta",
+        "windows": "justhodl-smart-money-13f"
+      },
+      {
+        "index": 731,
+        "linux": "justhodl-smart-money-13f",
+        "windows": "justhodl-smart-money-cluster"
+      },
+      {
+        "index": 732,
+        "linux": "justhodl-smart-money-cluster",
+        "windows": "justhodl-smart-money-holdings"
+      },
+      {
+        "index": 733,
+        "linux": "justhodl-smart-money-holdings",
+        "windows": "justhodl-smart-money-tracker"
+      },
+      {
+        "index": 734,
+        "linux": "justhodl-smart-money-tracker",
+        "windows": "justhodl-smart-wake"
+      },
+      {
+        "index": 735,
+        "linux": "justhodl-smart-wake",
+        "windows": "justhodl-snb-detail"
+      },
+      {
+        "index": 736,
+        "linux": "justhodl-snb-detail",
+        "windows": "justhodl-soma-cusip"
+      },
+      {
+        "index": 737,
+        "linux": "justhodl-soma-cusip",
+        "windows": "justhodl-source-map"
+      },
+      {
+        "index": 738,
+        "linux": "justhodl-source-map",
+        "windows": "justhodl-sovereign-fiscal"
+      },
+      {
+        "index": 739,
+        "linux": "justhodl-sovereign-fiscal",
+        "windows": "justhodl-sovereign-stress"
+      },
+      {
+        "index": 740,
+        "linux": "justhodl-sovereign-stress",
+        "windows": "justhodl-sp500"
+      },
+      {
+        "index": 741,
+        "linux": "justhodl-sp500",
+        "windows": "justhodl-spac-floor-warrant"
+      },
+      {
+        "index": 742,
+        "linux": "justhodl-spac-floor-warrant",
+        "windows": "justhodl-spinoff-desk"
+      },
+      {
+        "index": 743,
+        "linux": "justhodl-spinoff-desk",
+        "windows": "justhodl-spx-beaters"
+      },
+      {
+        "index": 744,
+        "linux": "justhodl-spx-beaters",
+        "windows": "justhodl-spx-history"
+      },
+      {
+        "index": 745,
+        "linux": "justhodl-spx-history",
+        "windows": "justhodl-spx-ma"
+      },
+      {
+        "index": 746,
+        "linux": "justhodl-spx-ma",
+        "windows": "justhodl-squeeze-fuel"
+      },
+      {
+        "index": 747,
+        "linux": "justhodl-squeeze-fuel",
+        "windows": "justhodl-squeeze-pretrigger"
+      },
+      {
+        "index": 748,
+        "linux": "justhodl-squeeze-pretrigger",
+        "windows": "justhodl-src-mirror"
+      },
+      {
+        "index": 749,
+        "linux": "justhodl-src-mirror",
+        "windows": "justhodl-stablecoin-flow"
+      },
+      {
+        "index": 750,
+        "linux": "justhodl-stablecoin-flow",
+        "windows": "justhodl-starmine"
+      },
+      {
+        "index": 751,
+        "linux": "justhodl-starmine",
+        "windows": "justhodl-stealth-accumulation"
+      },
+      {
+        "index": 752,
+        "linux": "justhodl-stealth-accumulation",
+        "windows": "justhodl-stealth-flow"
+      },
+      {
+        "index": 753,
+        "linux": "justhodl-stealth-flow",
+        "windows": "justhodl-stock-ai-research"
+      },
+      {
+        "index": 754,
+        "linux": "justhodl-stock-ai-research",
+        "windows": "justhodl-stock-analyzer"
+      },
+      {
+        "index": 755,
+        "linux": "justhodl-stock-analyzer",
+        "windows": "justhodl-stock-buying"
+      },
+      {
+        "index": 756,
+        "linux": "justhodl-stock-buying",
+        "windows": "justhodl-stock-screener"
+      },
+      {
+        "index": 757,
+        "linux": "justhodl-stock-screener",
+        "windows": "justhodl-stock-valuations"
+      },
+      {
+        "index": 758,
+        "linux": "justhodl-stock-valuations",
+        "windows": "justhodl-stock-xray"
+      },
+      {
+        "index": 759,
+        "linux": "justhodl-stock-xray",
+        "windows": "justhodl-stocktwits"
+      },
+      {
+        "index": 760,
+        "linux": "justhodl-stocktwits",
+        "windows": "justhodl-strategist"
+      },
+      {
+        "index": 761,
+        "linux": "justhodl-strategist",
+        "windows": "justhodl-strategy-portfolio"
+      },
+      {
+        "index": 762,
+        "linux": "justhodl-strategy-portfolio",
+        "windows": "justhodl-streaming-fanout"
+      },
+      {
+        "index": 763,
+        "linux": "justhodl-streaming-fanout",
+        "windows": "justhodl-stress-index"
+      },
+      {
+        "index": 764,
+        "linux": "justhodl-stress-index",
+        "windows": "justhodl-stress-loadings"
+      },
+      {
+        "index": 765,
+        "linux": "justhodl-stress-loadings",
+        "windows": "justhodl-stress-scenarios"
+      },
+      {
+        "index": 766,
+        "linux": "justhodl-stress-scenarios",
+        "windows": "justhodl-stress-simulator"
+      },
+      {
+        "index": 767,
+        "linux": "justhodl-stress-simulator",
+        "windows": "justhodl-structural-pre-signals"
+      },
+      {
+        "index": 768,
+        "linux": "justhodl-structural-pre-signals",
+        "windows": "justhodl-student-rsi"
+      },
+      {
+        "index": 769,
+        "linux": "justhodl-student-rsi",
+        "windows": "justhodl-subscribe"
+      },
+      {
+        "index": 770,
+        "linux": "justhodl-subscribe",
+        "windows": "justhodl-supabase-keepalive"
+      },
+      {
+        "index": 771,
+        "linux": "justhodl-supabase-keepalive",
+        "windows": "justhodl-supply-chain-graph"
+      },
+      {
+        "index": 772,
+        "linux": "justhodl-supply-chain-graph",
+        "windows": "justhodl-supply-chain-linkage"
+      },
+      {
+        "index": 773,
+        "linux": "justhodl-supply-chain-linkage",
+        "windows": "justhodl-supply-inflection-scanner"
+      },
+      {
+        "index": 774,
+        "linux": "justhodl-supply-inflection-scanner",
+        "windows": "justhodl-switzerland"
+      },
+      {
+        "index": 775,
+        "linux": "justhodl-switzerland",
+        "windows": "justhodl-symbol-dictionary"
+      },
+      {
+        "index": 776,
+        "linux": "justhodl-symbol-dictionary",
+        "windows": "justhodl-symbol-feed"
+      },
+      {
+        "index": 777,
+        "linux": "justhodl-symbol-feed",
+        "windows": "justhodl-symbol-resolver"
+      },
+      {
+        "index": 778,
+        "linux": "justhodl-symbol-resolver",
+        "windows": "justhodl-symbology-master"
+      },
+      {
+        "index": 779,
+        "linux": "justhodl-symbology-master",
+        "windows": "justhodl-symdir"
+      },
+      {
+        "index": 780,
+        "linux": "justhodl-symdir",
+        "windows": "justhodl-sympathetic-momentum"
+      },
+      {
+        "index": 781,
+        "linux": "justhodl-sympathetic-momentum",
+        "windows": "justhodl-synthetic-monitor"
+      },
+      {
+        "index": 782,
+        "linux": "justhodl-synthetic-monitor",
+        "windows": "justhodl-system-signal-logger"
+      },
+      {
+        "index": 783,
+        "linux": "justhodl-system-signal-logger",
+        "windows": "justhodl-systemic-stress"
+      },
+      {
+        "index": 784,
+        "linux": "justhodl-systemic-stress",
+        "windows": "justhodl-tail-hedge"
+      },
+      {
+        "index": 785,
+        "linux": "justhodl-tail-hedge",
+        "windows": "justhodl-tail-risk"
+      },
+      {
+        "index": 786,
+        "linux": "justhodl-tail-risk",
+        "windows": "justhodl-taiwan-moea"
+      },
+      {
+        "index": 787,
+        "linux": "justhodl-taiwan-moea",
+        "windows": "justhodl-talent-migration"
+      },
+      {
+        "index": 788,
+        "linux": "justhodl-talent-migration",
+        "windows": "justhodl-tape-reader"
+      },
+      {
+        "index": 789,
+        "linux": "justhodl-tape-reader",
+        "windows": "justhodl-tape-truth"
+      },
+      {
+        "index": 790,
+        "linux": "justhodl-tape-truth",
+        "windows": "justhodl-tax-plan"
+      },
+      {
+        "index": 791,
+        "linux": "justhodl-tax-plan",
+        "windows": "justhodl-te-feed"
+      },
+      {
+        "index": 792,
+        "linux": "justhodl-te-feed",
+        "windows": "justhodl-te-fred-mirror"
+      },
+      {
+        "index": 793,
+        "linux": "justhodl-te-fred-mirror",
+        "windows": "justhodl-technical-overlays"
+      },
+      {
+        "index": 794,
+        "linux": "justhodl-technical-overlays",
+        "windows": "justhodl-telegram-bot"
+      },
+      {
+        "index": 795,
+        "linux": "justhodl-telegram-bot",
+        "windows": "justhodl-tenor-signal-interpreter"
+      },
+      {
+        "index": 796,
+        "linux": "justhodl-tenor-signal-interpreter",
+        "windows": "justhodl-term-premium"
+      },
+      {
+        "index": 797,
+        "linux": "justhodl-term-premium",
+        "windows": "justhodl-theme-cascade"
+      },
+      {
+        "index": 798,
+        "linux": "justhodl-theme-cascade",
+        "windows": "justhodl-theme-cascade-backtest"
+      },
+      {
+        "index": 799,
+        "linux": "justhodl-theme-cascade-backtest",
+        "windows": "justhodl-theme-classifier"
+      },
+      {
+        "index": 800,
+        "linux": "justhodl-theme-classifier",
+        "windows": "justhodl-theme-detector"
+      },
+      {
+        "index": 801,
+        "linux": "justhodl-theme-detector",
+        "windows": "justhodl-theme-rotation"
+      },
+      {
+        "index": 802,
+        "linux": "justhodl-theme-rotation",
+        "windows": "justhodl-theme-rotation-engine"
+      },
+      {
+        "index": 803,
+        "linux": "justhodl-theme-rotation-engine",
+        "windows": "justhodl-theme-second-wave"
+      },
+      {
+        "index": 804,
+        "linux": "justhodl-theme-second-wave",
+        "windows": "justhodl-theme-tier-classifier"
+      },
+      {
+        "index": 805,
+        "linux": "justhodl-theme-tier-classifier",
+        "windows": "justhodl-thesis-engine"
+      },
+      {
+        "index": 806,
+        "linux": "justhodl-thesis-engine",
+        "windows": "justhodl-tic-flows"
+      },
+      {
+        "index": 807,
+        "linux": "justhodl-tic-flows",
+        "windows": "justhodl-tic-full"
+      },
+      {
+        "index": 808,
+        "linux": "justhodl-tic-full",
+        "windows": "justhodl-ticker-deep-research"
+      },
+      {
+        "index": 809,
+        "linux": "justhodl-ticker-deep-research",
+        "windows": "justhodl-ticker-trends"
+      },
+      {
+        "index": 810,
+        "linux": "justhodl-ticker-trends",
+        "windows": "justhodl-ticket-ai-rationale"
+      },
+      {
+        "index": 811,
+        "linux": "justhodl-ticket-ai-rationale",
+        "windows": "justhodl-tiingo-news"
+      },
+      {
+        "index": 812,
+        "linux": "justhodl-tiingo-news",
+        "windows": "justhodl-top-signals"
+      },
+      {
+        "index": 813,
+        "linux": "justhodl-top-signals",
+        "windows": "justhodl-track-record"
+      },
+      {
+        "index": 814,
+        "linux": "justhodl-track-record",
+        "windows": "justhodl-trade-evaluator"
+      },
+      {
+        "index": 815,
+        "linux": "justhodl-trade-evaluator",
+        "windows": "justhodl-trade-journal"
+      },
+      {
+        "index": 816,
+        "linux": "justhodl-trade-journal",
+        "windows": "justhodl-trade-logger"
+      },
+      {
+        "index": 817,
+        "linux": "justhodl-trade-logger",
+        "windows": "justhodl-trade-nowcast"
+      },
+      {
+        "index": 818,
+        "linux": "justhodl-trade-nowcast",
+        "windows": "justhodl-trade-ticket-monitor"
+      },
+      {
+        "index": 819,
+        "linux": "justhodl-trade-ticket-monitor",
+        "windows": "justhodl-trade-tickets"
+      },
+      {
+        "index": 820,
+        "linux": "justhodl-trade-tickets",
+        "windows": "justhodl-tradingview"
+      },
+      {
+        "index": 821,
+        "linux": "justhodl-tradingview",
+        "windows": "justhodl-transcript-indexer"
+      },
+      {
+        "index": 822,
+        "linux": "justhodl-transcript-indexer",
+        "windows": "justhodl-transcript-query"
+      },
+      {
+        "index": 823,
+        "linux": "justhodl-transcript-query",
+        "windows": "justhodl-treasury-fiscal-full"
+      },
+      {
+        "index": 824,
+        "linux": "justhodl-treasury-fiscal-full",
+        "windows": "justhodl-treasury-noise"
+      },
+      {
+        "index": 825,
+        "linux": "justhodl-treasury-noise",
+        "windows": "justhodl-treasury-proxy"
+      },
+      {
+        "index": 826,
+        "linux": "justhodl-treasury-proxy",
+        "windows": "justhodl-treasury-rehypo"
+      },
+      {
+        "index": 827,
+        "linux": "justhodl-treasury-rehypo",
+        "windows": "justhodl-trend-engine"
+      },
+      {
+        "index": 828,
+        "linux": "justhodl-trend-engine",
+        "windows": "justhodl-trend-reversal"
+      },
+      {
+        "index": 829,
+        "linux": "justhodl-trend-reversal",
+        "windows": "justhodl-tv-bars"
+      },
+      {
+        "index": 830,
+        "linux": "justhodl-tv-bars",
+        "windows": "justhodl-tv-notes-crawler"
+      },
+      {
+        "index": 831,
+        "linux": "justhodl-tv-notes-crawler",
+        "windows": "justhodl-tv-notes-ingest"
+      },
+      {
+        "index": 832,
+        "linux": "justhodl-tv-notes-ingest",
+        "windows": "justhodl-tv-watchlist-tracker"
+      },
+      {
+        "index": 833,
+        "linux": "justhodl-tv-watchlist-tracker",
+        "windows": "justhodl-tv-workbench"
+      },
+      {
+        "index": 834,
+        "linux": "justhodl-tv-workbench",
+        "windows": "justhodl-ultimate-orchestrator"
+      },
+      {
+        "index": 835,
+        "linux": "justhodl-ultimate-orchestrator",
+        "windows": "justhodl-universe-builder"
+      },
+      {
+        "index": 836,
+        "linux": "justhodl-universe-builder",
+        "windows": "justhodl-universe-discovery"
+      },
+      {
+        "index": 837,
+        "linux": "justhodl-universe-discovery",
+        "windows": "justhodl-upside-radar"
+      },
+      {
+        "index": 838,
+        "linux": "justhodl-upside-radar",
+        "windows": "justhodl-upside-thesis"
+      },
+      {
+        "index": 839,
+        "linux": "justhodl-upside-thesis",
+        "windows": "justhodl-us-cycle"
+      },
+      {
+        "index": 840,
+        "linux": "justhodl-us-cycle",
+        "windows": "justhodl-us10y-sentinel"
+      },
+      {
+        "index": 841,
+        "linux": "justhodl-us10y-sentinel",
+        "windows": "justhodl-usd-funding"
+      },
+      {
+        "index": 842,
+        "linux": "justhodl-usd-funding",
+        "windows": "justhodl-usgov-direct"
+      },
+      {
+        "index": 843,
+        "linux": "justhodl-usgov-direct",
+        "windows": "justhodl-valuations-agent"
+      },
+      {
+        "index": 844,
+        "linux": "justhodl-valuations-agent",
+        "windows": "justhodl-velocity-acceleration"
+      },
+      {
+        "index": 845,
+        "linux": "justhodl-velocity-acceleration",
+        "windows": "justhodl-vintage-fred"
+      },
+      {
+        "index": 846,
+        "linux": "justhodl-vintage-fred",
+        "windows": "justhodl-vix-backwardation-trigger"
+      },
+      {
+        "index": 847,
+        "linux": "justhodl-vix-backwardation-trigger",
+        "windows": "justhodl-vix-curve"
+      },
+      {
+        "index": 848,
+        "linux": "justhodl-vix-curve",
+        "windows": "justhodl-vix9d-vix-inversion"
+      },
+      {
+        "index": 849,
+        "linux": "justhodl-vix9d-vix-inversion",
+        "windows": "justhodl-vol-radar"
+      },
+      {
+        "index": 850,
+        "linux": "justhodl-vol-radar",
+        "windows": "justhodl-vol-regime"
+      },
+      {
+        "index": 851,
+        "linux": "justhodl-vol-regime",
+        "windows": "justhodl-vol-surface"
+      },
+      {
+        "index": 852,
+        "linux": "justhodl-vol-surface",
+        "windows": "justhodl-vol-target-unwind"
+      },
+      {
+        "index": 853,
+        "linux": "justhodl-vol-target-unwind",
+        "windows": "justhodl-volatility-squeeze-hunter"
+      },
+      {
+        "index": 854,
+        "linux": "justhodl-volatility-squeeze-hunter",
+        "windows": "justhodl-vrp"
+      },
+      {
+        "index": 855,
+        "linux": "justhodl-vrp",
+        "windows": "justhodl-vvix-vov-regime"
+      },
+      {
+        "index": 856,
+        "linux": "justhodl-vvix-vov-regime",
+        "windows": "justhodl-warm-bridge"
+      },
+      {
+        "index": 857,
+        "linux": "justhodl-warm-bridge",
+        "windows": "justhodl-warroom-weights"
+      },
+      {
+        "index": 858,
+        "linux": "justhodl-warroom-weights",
+        "windows": "justhodl-watchlist"
+      },
+      {
+        "index": 859,
+        "linux": "justhodl-watchlist",
+        "windows": "justhodl-watchlist-debate"
+      },
+      {
+        "index": 860,
+        "linux": "justhodl-watchlist-debate",
+        "windows": "justhodl-wave-signal-logger"
+      },
+      {
+        "index": 861,
+        "linux": "justhodl-wave-signal-logger",
+        "windows": "justhodl-wealth-plan"
+      },
+      {
+        "index": 862,
+        "linux": "justhodl-wealth-plan",
+        "windows": "justhodl-weekly-ai-review"
+      },
+      {
+        "index": 863,
+        "linux": "justhodl-weekly-ai-review",
+        "windows": "justhodl-whales"
+      },
+      {
+        "index": 864,
+        "linux": "justhodl-whales",
+        "windows": "justhodl-whats-changed"
+      },
+      {
+        "index": 865,
+        "linux": "justhodl-whats-changed",
+        "windows": "justhodl-wl-engines"
+      },
+      {
+        "index": 866,
+        "linux": "justhodl-wl-engines",
+        "windows": "justhodl-wl-fusion"
+      },
+      {
+        "index": 867,
+        "linux": "justhodl-wl-fusion",
+        "windows": "justhodl-wl-series-api"
+      },
+      {
+        "index": 868,
+        "linux": "justhodl-wl-series-api",
+        "windows": "justhodl-worldbank-full"
+      },
+      {
+        "index": 869,
+        "linux": "justhodl-worldbank-full",
+        "windows": "justhodl-yen-carry"
+      },
+      {
+        "index": 870,
+        "linux": "justhodl-yen-carry",
+        "windows": "justhodl-yield-curve"
+      },
+      {
+        "index": 871,
+        "linux": "justhodl-yield-curve",
+        "windows": "macro-financial-intelligence"
+      },
+      {
+        "index": 872,
+        "linux": "macro-financial-intelligence",
+        "windows": "macro-report-api"
+      },
+      {
+        "index": 873,
+        "linux": "macro-report-api",
+        "windows": "manufacturing-global-agent"
+      },
+      {
+        "index": 874,
+        "linux": "manufacturing-global-agent",
+        "windows": "MLPredictor"
+      }
+    ]
+  },
+  "complete_observed_build_manifest": {
+    "path": "tests/fixtures/pre-portable-order-live-build-manifest.json",
+    "bytes": 90869,
+    "sha256": "55903003c681a10a1d8fccaa29ad1019b94cd1f1d324d78d86bbbd1ee7ee4cd4"
+  },
+  "complete_observed_engine_manifest": {
+    "path": "tests/fixtures/pre-portable-order-live-engine-manifest.json",
+    "bytes": 3070592,
+    "sha256": "5230cddb5eb40d600c216c3709d5ee5d273ce327214bbeffa0d2d666bf62b779"
+  },
+  "complete_predecessor_generator": {
+    "path": "tests/fixtures/pre-source-contract-compilation-gen_engine_manifest.py.txt",
+    "bytes": 37615,
+    "sha256": "5d052a66e303454172e76c2cf02cf72b99828b74807643795cad68ed3ea628f5"
+  },
+  "repair": "Exact-name directory ordering, POSIX relative source ordering and path representation; no engine computation or permission changes.",
+  "whole_comparison": {
+    "engines": 893,
+    "all_records_and_array_order_match_original_linux_build_except_generated_at": true,
+    "pages": 599,
+    "all_contract_definitions_and_permissions_unchanged": true,
+    "updated_source_asset_bindings": [
+      {
+        "page": "index.html",
+        "before": {
+          "key": "engine-manifest.json",
+          "role": "repository_configuration_or_asset",
+          "purpose": "Build-generated source ownership inventory",
+          "sha256": "ac12eac2f79c256957722b545b3a5d3f3424ed055ec88ebc79e0851ee10e05ff"
+        },
+        "after": {
+          "key": "engine-manifest.json",
+          "role": "repository_configuration_or_asset",
+          "purpose": "Build-generated source ownership inventory",
+          "sha256": "a0e9972fe55b4127f412b864ad2a20f943a1bd03d1f62e125ea5c1697dbfa2e7"
+        }
+      },
+      {
+        "page": "workspace.html",
+        "before": {
+          "key": "engine-manifest.json",
+          "role": "repository_configuration_or_asset",
+          "purpose": "Build-generated source ownership inventory",
+          "sha256": "ac12eac2f79c256957722b545b3a5d3f3424ed055ec88ebc79e0851ee10e05ff"
+        },
+        "after": {
+          "key": "engine-manifest.json",
+          "role": "repository_configuration_or_asset",
+          "purpose": "Build-generated source ownership inventory",
+          "sha256": "a0e9972fe55b4127f412b864ad2a20f943a1bd03d1f62e125ea5c1697dbfa2e7"
+        }
+      }
+    ],
+    "complete_navigation_source_replay_pages": 543
+  },
+  "acceptance_rules": "Live comparison requires one unchanged build manifest before/after. Engine records/order match source except generation clock. Navigation is regenerated using current source and the recorded build date. Only those two generated assets may rebind repository-asset hashes to the exact served bytes; all other contract fields must match.",
+  "static_source_files": [
+    {
+      "path": "scripts/gen_engine_manifest.py",
+      "bytes": 37869,
+      "sha256": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858"
+    },
+    {
+      "path": "tests/deployment/test_manifest_portable_order.py",
+      "bytes": 3259,
+      "sha256": "3b16b8a8d926399ad87a2ebd704d4b15162321466a58840a802d0269350f0fb5"
+    },
+    {
+      "path": "engine-manifest.json",
+      "bytes": 3070592,
+      "sha256": "a0e9972fe55b4127f412b864ad2a20f943a1bd03d1f62e125ea5c1697dbfa2e7"
+    },
+    {
+      "path": "config/page-data-contracts.json",
+      "bytes": 7666551,
+      "sha256": "68b0c6d46914392d7d3f1ebc17bfb2110faad69e558f876ebcfe5fae9ab8e003"
+    }
+  ],
+  "tests": {
+    "focused": {
+      "modules": [
+        {
+          "module": "test_manifest_portable_order.py",
+          "passed": 3
+        },
+        {
+          "module": "test_contract_policy_snapshot.py",
+          "passed": 8
+        },
+        {
+          "module": "test_source_graph_paths.py",
+          "passed": 4
+        },
+        {
+          "module": "test_engine_manifest.py",
+          "passed": 3
+        },
+        {
+          "module": "test_entrypoint_provenance.py",
+          "passed": 11
+        },
+        {
+          "module": "test_page_data_contracts.py",
+          "passed": 29
+        },
+        {
+          "module": "test_returned_readers.py",
+          "passed": 11
+        },
+        {
+          "module": "test_returned_key_graph.py",
+          "passed": 12
+        },
+        {
+          "module": "test_shared_write_graph.py",
+          "passed": 15
+        },
+        {
+          "module": "test_source_call_binding.py",
+          "passed": 9
+        }
+      ],
+      "passed": 105,
+      "elapsed_seconds": 7.751499700010754
+    },
+    "deployment": 896,
+    "candidate_shell": 15,
+    "frontend": 2127,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "missing_or_stale_wires": 0
+  },
+  "release_acceptance": {
+    "status": "pending_exact_push_and_coherent_live_static_build"
+  },
+  "scope": "Only source compilation, static evidence and retained complete public build captures. No native producer, private account/current consumer packet, provider request or schedule change. All ten institutional workstreams remain open."
+}

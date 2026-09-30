@@ -441,7 +441,9 @@ def confirmed_write_keys(code):
 def build(root=ROOT):
     from source_write_graph import SharedWriteGraph
     engines=[]
-    for d in sorted((root/'aws/lambdas').iterdir()):
+    # Path ordering is case-folded on Windows and case-sensitive on Linux.
+    # Explicit POSIX strings keep the complete inventory reproducible on both.
+    for d in sorted((root/'aws/lambdas').iterdir(),key=lambda path:path.name):
         if not d.is_dir() or d.name.startswith('_') or not (d/'source').is_dir():continue
         cfg={}
         try:cfg=json.loads((d/'config.json').read_text(encoding='utf-8'))
@@ -453,12 +455,12 @@ def build(root=ROOT):
         module=str(handler or '').rsplit('.',1)[0].replace('.','/')
         entrypoint=next((module+ext for ext in ('.py','.js','.mjs','.cjs') if module and (d/'source'/str(module+ext)).is_file()),None)
         if handler and entrypoint is None:unresolved.append({'file':'config.json','reason':'configured handler module missing from source'})
-        unsupported=[str(p.relative_to(d/'source')) for p in (d/'source').rglob('*') if p.suffix in ('.js','.mjs','.cjs','.ts') and 'node_modules' not in p.parts]
+        unsupported=sorted(p.relative_to(d/'source').as_posix() for p in (d/'source').rglob('*') if p.suffix in ('.js','.mjs','.cjs','.ts') and 'node_modules' not in p.parts)
         for src in unsupported:unresolved.append({'file':src,'reason':'unsupported runtime analysis; API and dynamic outputs require explicit runtime contract'})
         constant_cache={}
-        for src in sorted((d/'source').rglob('*.py')):
+        for src in sorted((d/'source').rglob('*.py'),key=lambda path:path.relative_to(d/'source').as_posix()):
             if '__pycache__' in src.parts:continue
-            rel=str(src.relative_to(d/'source'))
+            rel=src.relative_to(d/'source').as_posix()
             try:
                 symbols=imported_symbols(src,[d/'source',root/'aws/shared'],env,cache=constant_cache)
                 s=scan_code(src.read_text(encoding='utf-8'),env,str(handler).rsplit('.',1)[-1] if rel==entrypoint else None,symbols);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
