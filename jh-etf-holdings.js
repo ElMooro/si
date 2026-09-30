@@ -34,29 +34,29 @@
   async function sha(raw) {
     return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256', raw)), b => b.toString(16).padStart(2, '0')).join('');
   }
-  async function load(key, fetcher, signal) {
+  async function load(key, fetcher, signal, maxBytes=16 * 1024 * 1024) {
     if (!safe(key) && !Object.values(kinds).some(v => v.current === key)) throw Error('Unapproved holdings evidence path');
     const r = await fetcher('/' + key, {cache: safe(key) ? 'default' : 'no-store', signal});
     if (!r.ok) throw Error('Holdings evidence request failed');
-    if (Number(r.headers?.get('content-length')) > 16 * 1024 * 1024) throw Error('Holdings evidence byte bound');
+    if (Number(r.headers?.get('content-length')) > maxBytes) throw Error('Holdings evidence byte bound');
     let raw;
     if (r.body?.getReader) {
       const reader = r.body.getReader(), parts = [];let length = 0;
       try {
         for (;;) {const item = await reader.read();if (item.done) break;length += item.value.byteLength;
-          if (length > 16 * 1024 * 1024) throw Error('Holdings evidence byte bound');parts.push(item.value);}
+          if (length > maxBytes) throw Error('Holdings evidence byte bound');parts.push(item.value);}
       } catch (error) {await reader.cancel();throw error;}
       const combined = new Uint8Array(length);let offset = 0;
       for (const part of parts) {combined.set(part, offset);offset += part.byteLength;}
       raw = combined.buffer;
     } else raw = await r.arrayBuffer();
-    if (raw.byteLength > 16 * 1024 * 1024) throw Error('Holdings evidence byte bound');
+    if (raw.byteLength > maxBytes) throw Error('Holdings evidence byte bound');
     return {raw, doc: JSON.parse(new TextDecoder().decode(raw))};
   }
   async function retained(ref, group, fetcher, signal) {
     if (!ref || !/^[a-f0-9]{64}$/.test(ref.sha256) || ref.key !== prefix + group + '/' + ref.sha256 + '.json' ||
         !Number.isInteger(ref.bytes) || ref.bytes <= 0 || ref.bytes > 16 * 1024 * 1024) throw Error('Holdings artifact identity differs');
-    const out = await load(ref.key, fetcher, signal);
+    const out = await load(ref.key, fetcher, signal, ref.bytes);
     if (out.raw.byteLength !== ref.bytes || await sha(out.raw) !== ref.sha256) throw Error('Holdings artifact bytes differ');
     return out.doc;
   }
@@ -69,7 +69,7 @@
         m.kind !== k || m.generated_at !== p.generated_at || m.output_sha256 !== p.replay.output_sha256) throw Error('Holdings run differs');
     const ref = m.output;
     if (ref?.key !== base + 'outputs/' + m.output_sha256 + '.json' || ref.sha256 !== m.output_sha256) throw Error('Holdings output identity differs');
-    const out = await load(ref.key, fetcher, signal);
+    const out = await load(ref.key, fetcher, signal, ref.bytes);
     if (out.raw.byteLength !== ref.bytes || await sha(out.raw) !== ref.sha256) throw Error('Holdings output bytes differ');
     const {replay, ...body} = p;
     if (JSON.stringify(stable(body)) !== JSON.stringify(stable(out.doc))) throw Error('Current holdings body differs');
@@ -200,7 +200,7 @@
       scope: 'Your assumed exposure and shock; not measured look-through exposure, a forecast, or a suggested allocation.'};
   }
   function render(p) {
-    return '<h2>Trace holdings before using them</h2><p data-hd-clock class="xr-state">' + esc(sourceState(p)) + ' · WAIT means abstention.</p>' +
+    return heatPanel() + '<h2>Trace holdings before using them</h2><p data-hd-clock class="xr-state">' + esc(sourceState(p)) + ' · WAIT means abstention.</p>' +
       '<p>' + p.quality.complete_returned_snapshots + ' of ' + p.quality.configured_funds + ' configured funds have complete returned current snapshots; ' +
       p.quality.reconstructed_current_rows + ' rows reconstructed. Compiled ' + esc(p.generated_at) + '.</p>' +
       '<p>No ticker is required to retain a row. Bonds, cash, swaps and other derivative records remain visible. The dates below describe the reported holdings, not today’s ownership.</p>' +
@@ -215,6 +215,100 @@
       '<h2>Evidence and definitions</h2><p><a href="/' + esc(p.replay.manifest_key) + '">Retained calculation run</a> · <a href="/data/etf-holdings-research-verification.json">Deployment acceptance</a></p>' +
       '<details><summary>Read the measurement limits and source definitions</summary>' + Object.entries(p.methodology).map(([k,v]) => '<p><b>' + esc(k) + '</b>: ' + esc(v) + '</p>').join('') +
       '</details><button type="button" data-hd-refresh>Refresh and verify</button>';
+  }
+
+  // Opt-in bounded cohort, never a ranking of a partially downloaded universe.
+  const heatLimits = {funds: 8, requests: 40, bytes: 8 * 1024 * 1024};
+  const identityFields = ['figi','isin','us_code','sedol','exchange','currency_traded','asset_class','security_type'];
+  function heatSelection(p, text) {
+    const funds = [...new Set(text.toUpperCase().split(/[\s,]+/).filter(Boolean))];
+    if (!funds.length || funds.length > heatLimits.funds || funds.some(t => !p.funds[t])) throw Error('Choose 1–8 configured fund tickers, separated by commas.');
+    return funds.sort();
+  }
+  function heatReason(p, s, date, at) {
+    const q = s.quality || {}, ds = Object.keys(s.effective_dates || {});
+    if (!Number.isFinite(Date.parse(p.generated_at)) || Date.parse(p.generated_at) > at) return 'Future or invalid publication';
+    if (q.status !== 'complete_returned_snapshot' || q.pagination_complete !== true) return 'Incomplete returned snapshot';
+    if (!Number.isFinite(Date.parse(s.source_acquired_at)) || Date.parse(s.source_acquired_at) > at ||
+        !Number.isFinite(Date.parse(s.source_valid_until)) || !(at < Date.parse(s.source_valid_until))) return 'Source check unavailable, future or expired';
+    if (ds.length !== 1 || ds[0] !== date || date > new Date(at).toISOString().slice(0,10)) return 'Effective date outside chosen cohort';
+    if (q.missing_identity_rows !== 0 || q.duplicate_identity_rows !== 0 || q.rows_with_field_errors !== 0) return 'Identity or field coverage unresolved';
+    return null;
+  }
+  function heatMeasure(p, selected, snapshots, date, at=Date.now()) {
+    const coverage = selected.map(t => {
+      const s = snapshots[t];if (!s) throw Error('Whole selected sample must finish before ranking');
+      return {fund:t, reason:heatReason(p,s,date,at), dates:dates(s.effective_dates), tags:JSON.stringify(p.funds[t].configured_tag_unverified||{}), acquired:s.source_acquired_at, expiry:s.source_valid_until};
+    });
+    const eligible = new Set(coverage.filter(r => !r.reason).map(r => r.fund)), identities = new Map();
+    let unidentified = 0;
+    for (const t of selected) {
+      const s = snapshots[t], seenRows = new Set(), seenIdentities = new Set();
+      if (s.rows.length !== s.indexed_rows) throw Error('Whole snapshot row count differs');
+      for (const row of s.rows) {
+        if (!row.row_id || seenRows.has(row.row_id)) throw Error('Duplicate source row');seenRows.add(row.row_id);
+        if (!row.identity_key) {unidentified++;if (eligible.has(t)) throw Error('Qualified snapshot has unidentified rows');continue;}
+        const tuple = JSON.stringify(identityFields.map(k => row[k] ?? null));
+        let rec = identities.get(row.identity_key);
+        if (rec && rec.tuple !== tuple) throw Error('Provider identity collision');
+        if (!rec) {rec={identity:row.identity_key,tuple,name:row.constituent_name,ticker:row.constituent_ticker,asset:row.asset_class,raw:new Set(),qualified:new Set()};identities.set(row.identity_key,rec);}
+        if (eligible.has(t) && (seenIdentities.has(row.identity_key) || row.effective_date !== date || row.processed_date !== s.processed_date)) throw Error('Qualified identity or date coverage differs');
+        seenIdentities.add(row.identity_key);rec.raw.add(t);if (eligible.has(t)) rec.qualified.add(t);
+      }
+    }
+    const rows=[...identities.values()].map(r=>({...r,raw:[...r.raw],qualified:[...r.qualified]}));
+    rows.sort((a,b)=>eligible.size ? b.qualified.length-a.qualified.length || a.identity.localeCompare(b.identity) : a.identity.localeCompare(b.identity));
+    return {coverage,selected:selected.length,configured:Object.keys(p.funds).length,eligible:eligible.size,date,unidentified,rows};
+  }
+  function heatSession() {
+    const cache=new Map();let cacheBytes=0, controller=null, generation=0;
+    return {
+      cancel(){generation++;controller?.abort();},
+      async run(p, selected, date, fetcher, progress=()=>{}, at=null) {
+        this.cancel();const token=generation;controller=new AbortController();const signal=controller.signal;
+        let requests=0, bytes=0;const snapshots={};
+        const read=async(ref,group)=>{
+          if (signal.aborted) throw new DOMException('Cancelled','AbortError');
+          if (!ref || !Number.isInteger(ref.bytes) || ref.bytes<=0 || ref.bytes>heatLimits.bytes) throw Error('Snapshot exceeds the heatmap byte budget; choose a smaller sample');
+          const key=JSON.stringify(ref);
+          if (cache.has(key)) return cache.get(key);
+          if (requests+1>heatLimits.requests || bytes+ref.bytes>heatLimits.bytes) throw Error('Heatmap request/byte budget reached; no partial ranking. Choose a smaller sample.');
+          requests++;bytes+=ref.bytes;const doc=await retained(ref,group,fetcher,signal);
+          if (signal.aborted) throw new DOMException('Cancelled','AbortError');
+          while(cacheBytes+ref.bytes>heatLimits.bytes && cache.size){const [k,v]=cache.entries().next().value;cacheBytes-=v.bytes;cache.delete(k);}
+          cache.set(key,{doc,bytes:ref.bytes});cacheBytes+=ref.bytes;return cache.get(key);
+        };
+        for (const t of selected) {
+          const ref=p.funds[t].current.snapshot, s=(await read(ref,'snapshots')).doc;
+          if(s.contract!=='etf-holdings-snapshot.v1'||s.ticker!==t||!Array.isArray(s.parts)||!Number.isInteger(s.indexed_rows)||s.indexed_rows<0||s.indexed_rows>100000) throw Error('Heatmap snapshot contract differs');
+          const rows=[];
+          for(const part of s.parts){const d=(await read(part,'rows')).doc;
+            if(d.contract!=='etf-holdings-rows.v1'||d.ticker!==t||d.processed_date!==s.processed_date||d.row_offset!==rows.length||!Array.isArray(d.rows)||d.rows.length>250) throw Error('Heatmap row chain differs');
+            rows.push(...d.rows);
+          }
+          snapshots[t]={...s,rows};progress({completed:Object.keys(snapshots).length,total:selected.length,requests,bytes});
+        }
+        if(token!==generation||signal.aborted) throw new DOMException('Cancelled','AbortError');
+        return {...heatMeasure(p,selected,snapshots,date,at ?? Date.now()),requests,bytes};
+      }
+    };
+  }
+  function heatPanel() {
+    return '<section data-hd-heat aria-label="Selected fund membership heatmap"><h2>Reported membership heatmap</h2>'+
+      '<p>Choose up to eight funds and one effective date. Rankings cover only the eligible funds in your selected sample, never the whole market. Only your selected funds are loaded.</p>'+
+      '<label>Selected configured funds<input data-hd-heat-funds aria-label="Heatmap fund tickers" placeholder="SPY, QQQ, IWM" autocomplete="off"></label>'+
+      '<label>Common effective date<input data-hd-heat-date aria-label="Heatmap effective date" type="date"></label>'+
+      '<button type="button" data-hd-heat-load>Load / retry selected sample</button> <button type="button" data-hd-heat-cancel>Cancel</button>'+
+      '<div data-hd-heat-status role="status">Not loaded. At most 40 additional verified objects / 8 MiB per attempt; cached objects are reused in this page.</div><div data-hd-heat-result></div></section>';
+  }
+  function heatView(m) {
+    const qualified=m.rows.filter(r=>r.qualified.length), shown=(m.eligible?qualified:m.rows).slice(0,12);
+    return '<p><b>'+m.eligible+' eligible / '+m.selected+' selected / '+m.configured+' configured funds.</b> Effective-date cohort '+esc(m.date)+'. '+m.unidentified+' unidentified rows excluded.</p>'+
+      table(['Fund','Qualification / exclusion','Effective dates','Configured tags · unverified','Source acquired','Source expires'],m.coverage.map(r=>[r.fund,r.reason||'Complete, fresh, identity-resolved dated snapshot',r.dates,r.tags,r.acquired,r.expiry]),'Heatmap coverage')+
+      '<p>'+ (m.eligible?'Highest membership counts within the eligible selected sample.':'Qualified ranking unavailable. Unranked raw observations below may be partial or stale.')+
+      ' Showing '+shown.length+' of '+(m.eligible?qualified.length:m.rows.length)+' identities. No aggregate dollars, allocation weights, trading events or favorability score. Counts describe reported rows, including zero or short positions; they do not certify long ownership.</p><div class="hd-heat-grid">'+
+      shown.map(r=>'<article class="hd-heat-tile" style="border-left-width:'+ (m.eligible?2+Math.round(10*r.qualified.length/m.eligible):2)+'px;background:rgba(43,133,180,'+(m.eligible?0.06+0.24*r.qualified.length/m.eligible:0.06)+')"><b>'+esc(r.ticker||r.name||'Unlabelled identity')+'</b><p>'+esc(r.asset||'Asset type unknown')+' · source classification</p><p>Qualified '+(m.eligible?r.qualified.length+' / '+m.eligible:'Unavailable')+' · raw observed '+r.raw.length+' / '+m.selected+'</p><p>'+esc(r.qualified.join(', ')||'No qualified membership')+'</p><small>'+esc(r.identity)+'</small></article>').join('')+'</div>'+
+      '<p>Use the existing fund and security inspectors below for full rows and exact current/prior dates. Membership comparisons are reported observations; quantity and raw weight differences remain separate. Thirty-day query cutoffs are not daily changes; same-date revisions and corporate actions are not trades. Weight and value units remain unqualified. Fund overlap, fund-of-funds and leveraged/inverse strategies are not combined into exposure.</p>';
   }
 
   function bindScenario(host, getState) {
@@ -243,6 +337,7 @@
     if (!kinds[mode]) return;
     let packet = null, snap = null, selected = null, dir = null, controller = null, ticker = 'SPY', basis = 'current';
     let epoch = 0, rowEpoch = 0, securityEpoch = 0, publicationEpoch = 0, page = 0, searchPage = 0, matches = [], displayed = [], rowsCache = new Map();
+    const heat = heatSession();let heatEpoch=0, heatUntil=Infinity;
     const fetcher = root.fetch.bind(root), signal = () => controller?.signal;
     const q = selector => panel.querySelector(selector);
     const invalidate = bindScenario(host, () => ({packet, ticker, basis, snapshot: snap, row: selected}));
@@ -323,7 +418,7 @@
       } catch (error) {if (token === securityEpoch) fail('[data-hd-search-results]', error);}
     }
     async function refresh() {
-      epoch++;rowEpoch++;securityEpoch++;controller?.abort();controller = new AbortController();
+      heatEpoch++;heat.cancel();epoch++;rowEpoch++;securityEpoch++;controller?.abort();controller = new AbortController();
       const publication = ++publicationEpoch, activeSignal = controller.signal;
       packet = null;snap = null;selected = null;dir = null;invalidate();
       panel.textContent = 'Checking retained ETF holdings evidence…';
@@ -332,6 +427,19 @@
         const candidate = await verifyPacket(loaded.doc, fetcher, activeSignal);
         if (publication !== publicationEpoch) return;
         packet = candidate;panel.innerHTML = render(packet);
+        const clearHeat=()=>{heatEpoch++;heat.cancel();q('[data-hd-heat-result]').textContent='';q('[data-hd-heat-status]').textContent='Selection changed or cancelled; load to recompute the whole selected sample.';};
+        q('[data-hd-heat-funds]').oninput=clearHeat;q('[data-hd-heat-date]').oninput=clearHeat;q('[data-hd-heat-cancel]').onclick=clearHeat;
+        q('[data-hd-heat-load]').onclick=async()=>{
+          heat.cancel();const token=++heatEpoch;q('[data-hd-heat-result]').textContent='';
+          try{
+            const chosen=heatSelection(packet,q('[data-hd-heat-funds]').value), date=q('[data-hd-heat-date]').value;
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Error('Choose an effective-date cohort.');
+            q('[data-hd-heat-status]').textContent='Loading complete selected snapshots; no ranking yet…';
+            const m=await heat.run(packet,chosen,date,fetcher,p=>{if(token===heatEpoch)q('[data-hd-heat-status]').textContent=p.completed+' / '+p.total+' fund snapshots loaded; '+p.requests+' requests, '+p.bytes+' declared bytes. No partial ranking.';});
+            if(token!==heatEpoch)return;
+            heatUntil=Math.min(...m.coverage.filter(r=>!r.reason).map(r=>Date.parse(r.expiry)));q('[data-hd-heat-result]').innerHTML=heatView(m);q('[data-hd-heat-status]').textContent='Selected sample verified: '+m.requests+' network requests, '+m.bytes+' bytes. Qualification evaluated '+new Date().toISOString()+'.';
+          }catch(e){if(token===heatEpoch)q('[data-hd-heat-status]').textContent='Heatmap unavailable: '+e.message;}
+        };
         q('[data-hd-fund]').onchange = inspect;q('[data-hd-basis]').onchange = inspect;
         q('[data-hd-filter]').oninput = () => {page = 0;void showRows();};
         q('[data-hd-previous]').onclick = () => {page--;void showRows();};q('[data-hd-next]').onclick = () => {page++;void showRows();};
@@ -345,12 +453,13 @@
     }
     root.setInterval(() => {
       if (packet && q('[data-hd-clock]')) q('[data-hd-clock]').textContent = sourceState(packet) + ' · WAIT means abstention.';
+      if(Date.now()>=heatUntil && q('[data-hd-heat-result]')?.textContent){heatEpoch++;heat.cancel();q('[data-hd-heat-result]').textContent='';q('[data-hd-heat-status]').textContent='Qualification clock advanced; reload the selected sample (verified cache reused).';}
       if (snap && Date.now() >= Date.parse(snap.source_valid_until)) invalidate();
     }, 60000);
     await refresh();
   }
 
-  const api = {kinds, typed, safe, load, retained, verifyPacket, snapshot, rowPart, directory, memberships, comparison,
+  const api = {heatLimits, heatSelection, heatReason, heatMeasure, heatSession, heatView, kinds, typed, safe, load, retained, verifyPacket, snapshot, rowPart, directory, memberships, comparison,
     searchRows, searchSecurities, snapshotView, rowTable, rowDetail, memberView, scenario, render, sourceState, table, esc, cash, bindScenario, boot};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.JHHoldings = api;

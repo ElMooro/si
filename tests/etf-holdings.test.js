@@ -101,7 +101,7 @@ test('Escaping, complete page content and preserved predecessor stay intact',asy
   const doc=await api.snapshot(holdings,'SPY','current',fetcher),row=(await api.rowPart(doc,0,fetcher))[0];
   const html=api.rowTable([{...row,constituent_ticker:'<img src=x onerror=evil()>'}]);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);
   for(const page of ['etf-holdings.html','flow-lookthrough.html']){
-    const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-etf-holdings.js\?v=20260921-native2/);assert.doesNotMatch(source,/jh-page-ai.js|force mechanical buying/);
+    const source=fs.readFileSync(path.join(__dirname,'..',page),'utf8');assert.match(source,/jh-etf-holdings.js\?v=20260930-membership1/);assert.doesNotMatch(source,/jh-page-ai.js|force mechanical buying/);
     for(const match of source.matchAll(/href="(\/[^"?#]*)"/g)){const route=match[1],target=route.endsWith('/')?route+'index.html':route;assert.ok(fs.existsSync(path.join(__dirname,'..',target.slice(1))),route);}
   }
   const old=fs.readFileSync(path.join(__dirname,'../docs/legacy/etf-holdings-flow-lookthrough-pre-native-20260921.html.txt'),'utf8');assert.ok(old.includes('force mechanical buying'));
