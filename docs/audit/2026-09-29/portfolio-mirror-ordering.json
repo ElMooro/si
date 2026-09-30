@@ -1,0 +1,118 @@
+{
+  "status": "candidate_source_and_checks_accepted_exact_deploy_pending",
+  "stage": 446,
+  "scope": "Authenticated Worker mirror protocol prerequisite. Existing native S3 publisher is unchanged and remains unordered until the next coordinated repair.",
+  "predecessors": {
+    "base_commit": "ebf9e5e4c0bb58d9fe8b4e2dcb0817c6345ee6b0",
+    "files": [
+      {
+        "path": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+        "fixture": "tests/fixtures/pre-portfolio-ordering/lambda_function.py.txt",
+        "bytes": 15975,
+        "sha256": "3d0fd94573ff7e52392747d6cff99c5d8a4cf493a07355469a0c2077fef119a1"
+      },
+      {
+        "path": "cloudflare/workers/justhodl-data-proxy/src/index.js",
+        "fixture": "tests/fixtures/pre-portfolio-ordering/index.js.txt",
+        "bytes": 142583,
+        "sha256": "efcdf19ef2da486bb04fa8cef684f86d782a0afd1d7843dbe2dd749ac4a22e4c"
+      },
+      {
+        "path": "cloudflare/workers/justhodl-data-proxy/wrangler.toml",
+        "fixture": "tests/fixtures/pre-portfolio-ordering/wrangler.toml.txt",
+        "bytes": 4618,
+        "sha256": "00b9af513ecbaf185f9a21dea29beb2c4c1b2d6231bd7049cfe0f56738f89839"
+      },
+      {
+        "path": "tests/worker-data-proxy.test.js",
+        "fixture": "tests/fixtures/pre-portfolio-ordering/worker-data-proxy.test.js.txt",
+        "bytes": 60066,
+        "sha256": "272c9a0cafb55446cc5e678c3733893e879e35455f565274b2216ea64b48612d"
+      }
+    ],
+    "scope": "Whole inert source predecessors only; never executed. Known out-of-order reproduction retained in tests/fixtures/pre-portfolio-publication/complete-synthetic.json."
+  },
+  "protocol": "portfolio-risk-publication.v1",
+  "actual_private_publication_verified": false,
+  "sources": [
+    {
+      "url": "https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/",
+      "applied": "Atomic storage transaction and confirmed writes; serialize external awaits too."
+    },
+    {
+      "url": "https://developers.cloudflare.com/durable-objects/platform/limits/",
+      "applied": "Existing SQLite object; 256 KiB byte chunks below 2 MiB combined value/key limit."
+    },
+    {
+      "url": "https://developers.cloudflare.com/kv/api/write-key-value-pairs/",
+      "applied": "Legacy KV is not used to claim ordered publication."
+    }
+  ],
+  "tests": {
+    "synthetic_worker_cases": 18,
+    "local_runtime_checks": 12,
+    "frontend": 2005,
+    "deployment_static": 760,
+    "deployment_shell": 12,
+    "workflow_shell_blocks": 11,
+    "native": [
+      {
+        "suite": "justhodl-portfolio-risk",
+        "unittest_cases": 44,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-position-sizer",
+        "unittest_cases": 24,
+        "passed": true
+      }
+    ],
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "invariants": [
+    "No new DO binding, migration, production resource or schedule",
+    "Only service role can reserve/publish; owner/service can read; no new public/private archive exposure",
+    "Whole raw payload retained without reserialization after governed publication",
+    "Revision reservation occurs before acquisition in the forthcoming native adapter",
+    "Delayed/same-rank conflicting/malformed/partial packets cannot replace governed state",
+    "Strict complete UTF-8 JSON, typed revision and snapshot binding, independent exact body digest",
+    "Complete legacy mirror retained once at transition; KV left unchanged after transition",
+    "Atomic chunks/current-pointer update; bounded 128-reservation journal; gaps permitted",
+    "No actual private/current/provider requests or production route invocation during acceptance"
+  ],
+  "limitations": [
+    "Legacy publishers retain legacy semantics until native protocol adoption",
+    "S3 and Cloudflare are not one distributed transaction",
+    "Receipt proves deployed source, not actual private publication",
+    "20 MB byte ceiling is not a guarantee all documents fit platform CPU/memory limits",
+    "New mirror retains the current packet and the complete first migration predecessor; native publisher must retain complete prior packets in its existing private S3 archive"
+  ],
+  "compiled_source": {
+    "bytes": 201061,
+    "sha256": "b5f4366b60d97a4618af0078bcba4687ee964789402c2dfa1c868bc776b48f6b",
+    "wrangler": "4.144.0",
+    "miniflare": "5.20260926.1-alpha",
+    "workerd": "1.20260926.1"
+  },
+  "deployment_acceptance": null,
+  "local_runtime": {
+    "status": "passed",
+    "checks": 12,
+    "compiled_sha256": "b5f4366b60d97a4618af0078bcba4687ee964789402c2dfa1c868bc776b48f6b",
+    "complete_synthetic_bytes": 2700540,
+    "runtime": "local workerd with SQLite Durable Object",
+    "external_requests": 0,
+    "actual_private_reads": 0,
+    "actual_private_writes": 0
+  },
+  "check_log_sha256": {
+    "frontend": "a98bd34fd974cad3c47ab00896efe40b85f6e1db486280019f8e004ebd608efa",
+    "deployment": "9f9bf37e86895590575d71b2f25a95d121cf62e6b4e69140063fd3a8f001e521",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "4980c2a20ca69840f8756b9578d24fff695242fde30ec10d2e88e39cdaa67164",
+    "runtime": "c3aac27f3e0068d239b8826a124ecae8f240044fbcec3a8933c5028c2a0b5356"
+  }
+}

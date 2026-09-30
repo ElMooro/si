@@ -31,7 +31,10 @@ function kvStore(seed) {
   const m = new Map(Object.entries(seed || {}));
   return {
     _m: m,
-    async get(k) { return m.has(k) ? m.get(k) : null; },
+    async get(k, options) {
+      if (!m.has(k)) return null;
+      return options?.type === 'arrayBuffer' ? new TextEncoder().encode(m.get(k)).buffer : m.get(k);
+    },
     async put(k, v) { m.set(k, String(v)); },
     async delete(k) { m.delete(k); },
     async list(opts) {

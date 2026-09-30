@@ -185,6 +185,7 @@ jobs:
             git diff --exit-code "$GITHUB_SHA" origin/main -- "$dir" .github/workflows/deploy-workers.yml scripts/worker_release.py aws/ops/checks/worker_source_evidence.py aws/ops/checks/worker_release_evidence.py > /dev/null
             if [ "$w" = 'justhodl-data-proxy' ]; then
               wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-build" --config "$dir/wrangler.toml"
+              node "$dir/tests/portfolio-publication-runtime.cjs" "$RUNNER_TEMP/worker-build/index.js" "$(npm root -g)/wrangler"
               python3 scripts/worker_release.py before --build-dir "$RUNNER_TEMP/worker-build" --evidence-dir "$RUNNER_TEMP/worker-evidence" --commit "$GITHUB_SHA"
             fi
             echo "──── Deploying $w ────"

@@ -104,6 +104,7 @@ def test_worker_release_transaction_refuses_changed_build_before_capture_or_rece
 def test_worker_release_workflow_pins_captures_verifies_and_retains_failures():
     workflow=(ROOT/'.github/workflows/deploy-workers.yml').read_text(encoding='utf-8')
     assert 'wrangler@4.144.0' in workflow and 'wrangler@latest' not in workflow
+    assert workflow.index('wrangler deploy --dry-run') < workflow.index('tests/portfolio-publication-runtime.cjs') < workflow.index('worker_release.py before')
     assert workflow.index('worker_release.py before') < workflow.index('\n            wrangler deploy\n') < workflow.index('worker_release.py after')
     assert workflow.index('worker_release.py after') < workflow.index('aws s3 cp data/ops/releases/worker-')
     assert 'cancel-in-progress: false' in workflow and 'source-evidence-${{ github.sha }}' in workflow

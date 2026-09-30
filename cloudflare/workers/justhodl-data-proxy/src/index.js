@@ -1,4 +1,5 @@
 import { factoryGateway } from './factory-gateway.js';
+import { handlePortfolioPublication, routePortfolioPublication } from './portfolio-publication.js';
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
 import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, mergeBarsPrefer, yahooResultToBars, binanceSymbol, binanceKlinesToBars} from './warehouse-ohlc.js';
@@ -478,6 +479,12 @@ export class WorkspaceCoordinator {
   }
 
   async fetch(request) {
+    if (new URL(request.url).pathname === '/risk-publication') {
+      // Serialize through external KV reads/digests as well as storage awaits.
+      const task = (this.riskQueue || Promise.resolve()).then(() => handlePortfolioPublication(this.state.storage, this.env, request));
+      this.riskQueue = task.then(() => undefined, () => undefined);
+      return task;
+    }
     if (['/journal', '/billing'].includes(new URL(request.url).pathname)) {
       // A DO can interleave requests at external awaits. Explicit per-object
       // serialization covers Stripe + profile writes, not only storage calls.
@@ -544,6 +551,13 @@ export default {
       if (!env.USER_DATA) return jsonResp({ error: "private store unavailable" }, 503);
       const kind = privateKind || url.searchParams.get("kind");
       if (!Object.values(PRIVATE_ARTIFACTS).includes(kind)) return jsonResp({ error: "unknown artifact" }, 404);
+      if (kind === 'portfolio-risk') {
+        if (request.method !== 'GET' && request.method !== 'HEAD') {
+          if (url.pathname !== '/private-artifact' || !['PUT', 'POST'].includes(request.method)) return jsonResp({ error: 'method not allowed' }, 405);
+          if (identity.role !== 'service') return forbidden('service publisher required');
+        }
+        return routePortfolioPublication(request, env, corsHeaders());
+      }
       const key = "private-artifact:" + kind;
       if (request.method === "PUT" && url.pathname === "/private-artifact") {
         if (identity.role !== "service") return forbidden("service publisher required");
