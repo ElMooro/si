@@ -1,0 +1,71 @@
+{
+  "stage": 445,
+  "status": "source_and_full_checks_accepted_exact_deployment_pending",
+  "checked_at": "2026-09-30T02:39:26.401098+00:00",
+  "source_identity": {
+    "path": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+    "bytes": 15975,
+    "sha256": "3d0fd94573ff7e52392747d6cff99c5d8a4cf493a07355469a0c2077fef119a1"
+  },
+  "predecessor_fixture": "tests/fixtures/pre-portfolio-publication/aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py.txt",
+  "complete_synthetic_fixture": "tests/fixtures/pre-portfolio-publication/complete-synthetic.json",
+  "predecessor_native_acceptance": "docs/audit/2026-09-29/portfolio-original-integrity.json",
+  "only_existing_function_changed": "retain_bundle",
+  "added_function": "verify_archive_bytes",
+  "pure_model_byte_identical": true,
+  "synthetic_replays": [
+    {
+      "bundle": "old_bundle",
+      "bytes": 36355,
+      "bundle_sha256": "f1cb9235fbf237a03375174573ee779c12793c86a6ffb72d27b69e5bd4e088bd",
+      "output_sha256": "392bb8b6c682d96e16bebbc89cb94de0615ddafaa367b7631b05c531ae8dd2d4",
+      "reproduced": true
+    },
+    {
+      "bundle": "new_bundle",
+      "bytes": 36355,
+      "bundle_sha256": "80bb39ac2076b04481fb0a0dfa4c6677f3b213e8ef13763056e95ef6c021d175",
+      "output_sha256": "cfec9dbd1bed4334f1beb960b19b61d7e569a8cc1d0586a2e964345987a68da0",
+      "reproduced": true
+    }
+  ],
+  "tests": {
+    "archive_retention": 8,
+    "portfolio_model": 44,
+    "private_handler": 10,
+    "scenario": 24,
+    "frontend": 1987,
+    "deployment_static": 760,
+    "deployment_shell": 12,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "behavior": "Only existing immutable archive collisions gain complete bounded byte comparison and unconditional body closure. New archive writes, model output, risk publication, resources and schedules remain unchanged.",
+  "limits": {
+    "max_read_chunk_bytes": 65536,
+    "max_accepted_body_bytes": "exact canonical candidate bundle length",
+    "required_complete_eof": true,
+    "header_body_acceptance_seconds": 20,
+    "sdk_timeouts_changed": false
+  },
+  "boundaries": {
+    "actual_private_reads": 0,
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "actual_private_writes": 0,
+    "paid_ai": 0
+  },
+  "limitations": [
+    "The monotonic deadline rejects late completed reads; it is not hard cancellation of a blocking SDK call.",
+    "Exact deployment and normal private publication are not yet verified.",
+    "The separate older-over-newer publisher defect is still open."
+  ],
+  "checks": {
+    "frontend": "a664f7087d8c93d04bd31e992e508f4d2d045c455e77c0eb1ec3a94e289256c7",
+    "deployment": "fc375360d3cff692b8f3797038820c1b63f97ba5dbc4aaba48d2510640774a1c",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "4980c2a20ca69840f8756b9578d24fff695242fde30ec10d2e88e39cdaa67164"
+  }
+}

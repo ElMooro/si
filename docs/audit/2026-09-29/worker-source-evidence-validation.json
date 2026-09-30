@@ -20,7 +20,11 @@
   },
   "intended_repo_build_verified": false,
   "source_active_version_binding_verified": false,
-  "runner_capture": "pending",
+  "runner_capture": {
+    "status": "success",
+    "run": 36658515237,
+    "artifact": "aws/ops/reports/worker-source/6354-36658515237.json"
+  },
   "no_live_private_data_reads": true,
   "no_producer_invocations": true,
   "source_predecessors_byte_identical": 11,
@@ -30,5 +34,6 @@
     "stage444-deployment.log": "500f81cd8689db4991f031c09a9b5e35912b09ba64574d808974467be026c3c5",
     "stage444-justhodl-portfolio-risk.log": "2c3aec07b30b9e6ca79cebf1b2698be5128da2e8f9f50fe3ed62080c3ca717bc",
     "stage444-justhodl-position-sizer.log": "88d2694607951f9443ed81de930499827b2d27ac8bdacb3a2deb7fd4c849b609"
-  }
+  },
+  "subsequent_exact_build_verification": "docs/audit/2026-09-29/worker-source-release-integrity.json"
 }

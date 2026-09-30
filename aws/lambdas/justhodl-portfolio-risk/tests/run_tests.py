@@ -11,3 +11,4 @@ if __name__ == "__main__":
     subprocess.run([sys.executable, str(Path(__file__).with_name('test_risk_model.py'))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name('test_snapshot_binding.py'))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name('test_original_response.py'))], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_archive_retention.py'))], check=True)

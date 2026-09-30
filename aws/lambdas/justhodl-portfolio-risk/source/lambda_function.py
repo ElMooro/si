@@ -196,6 +196,35 @@ def batch_fetch_bars(symbols, lookback_days=180, max_workers=6):
     return out
 
 
+def verify_archive_bytes(response, expected, deadline):
+    """Accept an immutable collision only after exact complete byte comparison."""
+    body = response['Body']
+    size = 0
+    try:
+        declared = response.get('ContentLength')
+        if declared is not None and (type(declared) is not int or declared != len(expected)):
+            raise ValueError('Invalid immutable archive length')
+        if response.get('ContentEncoding', 'identity') not in ('', 'identity'):
+            raise ValueError('Unexpected immutable archive encoding')
+        while True:
+            if time.monotonic() >= deadline:
+                raise ValueError('Immutable archive read deadline exceeded')
+            part = body.read(min(65536, len(expected) + 1 - size))
+            if time.monotonic() >= deadline:
+                raise ValueError('Immutable archive read deadline exceeded')
+            if type(part) is not bytes:
+                raise ValueError('Invalid immutable archive body')
+            if not part:
+                break
+            if part != expected[size:size + len(part)]:
+                raise ValueError('Immutable archive content differs')
+            size += len(part)
+        if size != len(expected):
+            raise ValueError('Incomplete immutable archive body')
+    finally:
+        body.close()
+
+
 def retain_bundle(bundle):
     raw = canonical(bundle)
     sha = hashlib.sha256(raw).hexdigest()
@@ -207,8 +236,9 @@ def retain_bundle(bundle):
         code = str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
         if code not in ('PreconditionFailed', '412'):
             raise
-        if s3.get_object(Bucket=S3_BUCKET, Key=key)['Body'].read() != raw:
-            raise RuntimeError('private risk archive content collision') from exc
+        deadline = time.monotonic() + 20
+        response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        verify_archive_bytes(response, raw, deadline)
     return {'schema_version': VERSION, 'bundle_key': key, 'bundle_sha256': sha,
             'output_sha256': bundle['output_sha256'], 'scope': 'private owner risk',
             'independent_runner_verified': False}

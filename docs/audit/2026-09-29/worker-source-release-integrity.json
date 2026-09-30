@@ -124,7 +124,7 @@
     "workflow_shell_blocks": 11
   },
   "production_worker_semantics_changed": false,
-  "release_workflow_deployment": "pending",
+  "release_workflow_deployment": "exact_worker_and_static_assets_accepted",
   "publication_ordering_repair": "open",
   "private_reads": 0,
   "worker_invocations": 0,
@@ -135,5 +135,177 @@
   "logs": {
     "stage444-release-final-deployment.log": "317246f038854baeb375fc9d5fa74935c2391e5d9555f753003e19298694ec4b",
     "stage444-release-worker.log": "fd50f0fba5aaa37e60ca949993e10371f8c957e9e0405604d2cefff37e3a4743"
-  }
+  },
+  "source_commit": "fc3b1bc1a9a5d9e0085dd5802bff029aacc9211e",
+  "worker_acceptance": {
+    "commit": "fc3b1bc1a9a5d9e0085dd5802bff029aacc9211e",
+    "workflow_run_id": "36660086042",
+    "status": "matched",
+    "captured_at": "2026-09-30T02:31:42.480847+00:00",
+    "version_id": "d0633b3c-b4fa-4444-88ac-77e08b3d5f88",
+    "deployment_id": "9af1ebdd-f9e9-4e22-be54-32652ba70e2a",
+    "source_files": {
+      "index.js": {
+        "bytes": 185194,
+        "content_type": "application/javascript+module",
+        "sha256": "56258cae5c5e85662a81454e4b69eed50d461ee6344444149fdf700d52ea15a7"
+      }
+    },
+    "public_receipt_matches": true,
+    "complete_before_after_capture_verified": true,
+    "visible_configuration_preserved": true,
+    "secret_values_compared": false,
+    "worker_invocations": 0,
+    "private_reads": 0,
+    "normal_private_publication_verified": false
+  },
+  "static_acceptance": {
+    "checked_at": "2026-09-30T02:35:05.456564+00:00",
+    "intended_commit": "fc3b1bc1a9a5d9e0085dd5802bff029aacc9211e",
+    "served_commit": "fc3b1bc1a9a5d9e0085dd5802bff029aacc9211e",
+    "assets": {
+      "portfolio/index.html": {
+        "bytes": 35807,
+        "sha256": "7cc22d3b96a22216dfb2ee64a77bddd4f15f1243259f018a2a524148a4a3f28f",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "24df2df6ba813717c2fcd76d04d6ed8639bbbd40affed22b2ee72cf38811d684",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "8b2af58ac11838c4547acfa0514fbbbedef91e9f0205ba9885bb095ab73c6e2d",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68249,
+        "sha256": "4c803dd2d007dc0519e21f8e805236404af8304496db167ea6056dabf3b2fc33",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "6b794c3e068db97cf9ef34eeb3498ca47e2d854f59d93bacc699b5651a2995ab",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "50ad641e8fd4a2bc0b0925468281f00566a8a51d80163e1f1f9afb3e15e3b4b2",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "82eee6b5e9ba64190dcae01d956db0850115f9dca3a0077c8d60050d5f66b4e4",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "e71535724ca80daf60c4facb3d8184c04bdb711df6dfe902da1a4b36309357b6",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 5048,
+        "sha256": "f675fefc75292d3f1d516d8adb075eeb0cb830e14caf108bb154bc019ead68aa",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3067214,
+        "sha256": "f33b27444fafa587c167738077a816e803364774c6c981d3f5a258c0879b8cf1",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7665701,
+        "sha256": "a0fd0082a49b9d391c4522d0a06a34e5867f2dd689cff12c772d2b0833053ef9",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "worker_run": 36660086042,
+  "pages_run": 36660085912,
+  "lambda_gate_run": 36660085899
 }
