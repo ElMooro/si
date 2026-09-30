@@ -143,3 +143,147 @@ def cf_latest_annual(facts, concepts, unit="USD"):
             best = max(anns, key=lambda u: (u.get("end", ""), u.get("fy", 0)))
             return best.get("val"), best.get("fy"), best.get("end")
     return None, None, None
+
+# ── point-in-time XBRL fundamentals concept lists (4/10) ──
+# Additive to the filing-grade set above. XBRL naming evolves across
+# filers & eras, so each metric keeps its own ordered fallback list.
+EPS_DILUTED = ["EarningsPerShareDiluted"]
+EPS_BASIC = ["EarningsPerShareBasic"]
+SHARES_DILUTED = ["WeightedAverageNumberOfDilutedSharesOutstanding"]
+SHARES_BASIC = ["WeightedAverageNumberOfSharesOutstandingBasic"]
+SHARES_OUTSTANDING = ["CommonStockSharesOutstanding"]
+OCF = ["NetCashProvidedByUsedInOperatingActivities"]
+CAPEX = ["PaymentsToAcquirePropertyPlantAndEquipment"]
+DIVIDENDS = ["PaymentsOfDividendsCommonStock", "PaymentsOfDividends"]
+DDA = ["DepreciationDepletionAndAmortization"]
+LT_DEBT = ["LongTermDebtNoncurrent", "LongTermDebt"]
+RETAINED_EARNINGS = ["RetainedEarningsAccumulatedDeficit"]
+INVENTORY = ["InventoryNet"]
+AR = ["AccountsReceivableNet", "ReceivablesNetCurrent"]
+COGS = ["CostOfGoodsAndServicesSold", "CostOfGoodsSold"]
+GROSS_PROFIT = ["GrossProfit"]
+OP_INCOME = ["OperatingIncomeLoss"]
+INTEREST_EXP = ["InterestExpense"]
+TAX_EXP = ["IncomeTaxExpenseBenefit"]
+RD_EXP = ["ResearchAndDevelopmentExpense"]
+
+# Canonical point-in-time metric table: metric name -> fallback concept list.
+# Consumed by justhodl-xbrl-fundamentals via cf_series().
+FUNDAMENTAL_CONCEPTS = {
+    "revenue": REVENUE,
+    "net_income": NET_INCOME,
+    "eps_diluted": EPS_DILUTED,
+    "eps_basic": EPS_BASIC,
+    "shares_diluted": SHARES_DILUTED,
+    "shares_basic": SHARES_BASIC,
+    "shares_outstanding": SHARES_OUTSTANDING,
+    "ocf": OCF,
+    "capex": CAPEX,
+    "dividends": DIVIDENDS,
+    "dda": DDA,
+    "assets": ASSETS,
+    "assets_current": ASSETS_CURRENT,
+    "liabilities": LIABILITIES,
+    "liabilities_current": LIABILITIES_CURRENT,
+    "lt_debt": LT_DEBT,
+    "stockholders_equity": STOCKHOLDERS_EQUITY,
+    "retained_earnings": RETAINED_EARNINGS,
+    "cash": CASH,
+    "inventory": INVENTORY,
+    "ar": AR,
+    "cogs": COGS,
+    "gross_profit": GROSS_PROFIT,
+    "op_income": OP_INCOME,
+    "interest_exp": INTEREST_EXP,
+    "tax_exp": TAX_EXP,
+    "rd_exp": RD_EXP,
+}
+
+_PIT_FORMS = ("10-K", "10-Q")
+
+
+def cf_series(facts, concept_lists, form_filter=None):
+    """Point-in-time observation series for the first matching concept.
+
+    Unlike cf_latest_annual() (which collapses to a single value), this
+    returns EVERY reported observation, preserving the original filing
+    context so consumers see values exactly as known at filing time —
+    no restatements applied. That is what makes the series point-in-time.
+
+    facts: companyfacts JSON as returned by companyfacts().
+    concept_lists: iterable of concept fallback lists, tried in order;
+        the first list with ANY matching observation wins (same
+        first-match semantics as frames_multi()). A bare string is
+        treated as a single-concept list.
+    form_filter: optional form prefix or iterable of prefixes to accept,
+        e.g. "10-K" or ("10-K", "10-Q"). Defaults to ("10-K", "10-Q").
+        Amendments ("/A") match by prefix, which is intentional: the
+        amended observation is kept alongside the original, filed-date
+        ordered, so consumers can see what changed.
+
+    Returns a list of dicts, oldest-first by (end, filed):
+        {val, end, filed, form, fy, fp, accession, concept_used}
+    where accession is the filing's accn. Every us-gaap unit present
+    (USD, USD/shares, shares, ...) is scanned. Duplicate observations
+    reported under two concept tags are de-duplicated.
+    Fail-soft: [] on malformed input.
+    """
+    if isinstance(form_filter, str):
+        forms = (form_filter,)
+    else:
+        forms = tuple(form_filter) if form_filter else _PIT_FORMS
+    out = []
+    seen = set()
+    try:
+        if not isinstance(facts, dict):
+            return []
+        facts_node = facts.get("facts")
+        if not isinstance(facts_node, dict):
+            return []
+        usg = facts_node.get("us-gaap")
+        if not isinstance(usg, dict):
+            return []
+        for group in concept_lists or []:
+            if isinstance(group, str):
+                group = [group]
+            for concept in group or []:
+                node = usg.get(concept)
+                if not isinstance(node, dict):
+                    continue
+                units = node.get("units")
+                if not isinstance(units, dict):
+                    continue
+                for unit_name in sorted(units):
+                    obs = units[unit_name]
+                    if not isinstance(obs, list):
+                        continue
+                    for o in obs:
+                        if not isinstance(o, dict):
+                            continue
+                        form = o.get("form") or ""
+                        if not isinstance(form, str) or not form.startswith(forms):
+                            continue
+                        val = o.get("val")
+                        if val is None:
+                            continue
+                        key = (o.get("end"), o.get("filed"), form,
+                               o.get("fp"), str(val))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        out.append({
+                            "val": val,
+                            "end": o.get("end"),
+                            "filed": o.get("filed"),
+                            "form": form,
+                            "fy": o.get("fy"),
+                            "fp": o.get("fp"),
+                            "accession": o.get("accn"),
+                            "concept_used": concept,
+                        })
+            if out:
+                break  # first concept group with observations wins
+    except (AttributeError, TypeError, ValueError):
+        return []
+    out.sort(key=lambda r: ((r.get("end") or ""), (r.get("filed") or "")))
+    return out
