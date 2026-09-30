@@ -1,0 +1,22 @@
+{
+  "source": {
+    "path": "private-artifacts.js",
+    "bytes": 8023,
+    "sha256": "240e5536c4b33210f8e4fb5587e8bab4d455da146fbed13c74937ce275696e6d"
+  },
+  "scope": "Execute current source with entirely synthetic in-memory auth and network adapters. No network, actual credentials, accounts, provider data, private packets or archived source execution.",
+  "findings": {
+    "whole_upstream_buffer": {
+      "returned_status": 200,
+      "bytes_accepted": 34603008,
+      "array_buffer_calls": 1,
+      "native_mock_calls": 1
+    },
+    "abort_converted_to_outage": {
+      "returned_status": 503,
+      "access_status_render_scheduled": true
+    }
+  },
+  "actual_network_requests": 0,
+  "actual_private_reads": 0
+}
