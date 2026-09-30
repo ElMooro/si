@@ -28,12 +28,8 @@ async function main() {
   });
   const call = (method, body, headers = {}, action = '') => mf.dispatchFetch('http://local.test/private-artifact?kind=portfolio-risk' + action,
     { method, headers: { 'X-JH-Service-Token': token, ...headers }, ...(body === undefined ? {} : { body }) });
-  const snapshotCall = (method, body, extra = {}, action = '') => mf.dispatchFetch('http://local.test/private-artifact?kind=portfolio-snapshot' + action,
-    { method, headers: { 'X-JH-Service-Token': token, ...extra }, ...(body === undefined ? {} : { body }) });
-  const reserveSnapshot = async () => {
-    const response=await snapshotCall('POST','{}',{},'&action=reserve');assert.equal(response.status,200,await response.clone().text());return response.json();
-  };
-  const publishSnapshot=(ticket,body)=>snapshotCall('PUT',body,{'X-JH-Publication-Token':ticket.token,'X-JH-Body-SHA256':sha(Buffer.from(body))});
+  const snapshotCall = (method, body) => mf.dispatchFetch('http://local.test/private-artifact?kind=portfolio-snapshot',
+    { method, headers: { 'X-JH-Service-Token': token }, ...(body === undefined ? {} : { body }) });
   const reserve = async () => {
     const r = await call('POST', '{}', {}, '&action=reserve'); assert.equal(r.status, 200, await r.clone().text()); return r.json();
   };
@@ -65,27 +61,12 @@ async function main() {
     assert.equal(await (await snapshotCall('GET')).text(), snapshotRaw); checks++;
     assert.equal((await snapshotCall('PUT', '{"duplicate":1,"duplicate":2}')).status, 400);
     assert.equal(await (await snapshotCall('GET')).text(), snapshotRaw); checks++;
-    const snapshotTickets=await Promise.all(Array.from({length:8},reserveSnapshot));
-    assert.deepEqual(snapshotTickets.map(t=>t.revision).sort((a,b)=>a-b),[1,2,3,4,5,6,7,8]);checks++;
-    const snapshotPacket=t=>snapshotRaw.trimEnd().slice(0,-1)+',"publication":'+JSON.stringify({schema_version:'portfolio-snapshot-publication.v1',revision:t.revision,started_at:'2026-09-30T13:00:00Z'})+'}\n';
-    const latestSnapshot=snapshotTickets.find(t=>t.revision===8),orderedSnapshot=snapshotPacket(latestSnapshot);
-    const orderedAck=await (await publishSnapshot(latestSnapshot,orderedSnapshot)).json();
-    assert.equal(orderedAck.protocol,'portfolio-snapshot-publication.v1');assert.equal(orderedAck.status,'published');assert.equal(orderedAck.revision,8);
-    assert.equal(orderedAck.body_bytes,Buffer.byteLength(orderedSnapshot));assert.equal(orderedAck.body_sha256,sha(Buffer.from(orderedSnapshot)));checks++;
-    const earlierSnapshot=snapshotTickets.find(t=>t.revision===1);
-    assert.equal((await publishSnapshot(earlierSnapshot,snapshotPacket(earlierSnapshot))).status,409);checks++;
-    assert.equal((await (await publishSnapshot(latestSnapshot,orderedSnapshot)).json()).status,'unchanged');checks++;
-    assert.equal((await publishSnapshot(latestSnapshot,orderedSnapshot+' ')).status,409);checks++;
-    assert.equal((await snapshotCall('PUT',snapshotRaw)).status,409);checks++;
-    const orderedGet=await snapshotCall('GET');assert.equal(orderedGet.headers.get('X-JH-Publication-Revision'),'8');assert.equal(await orderedGet.text(),orderedSnapshot);checks++;
-    assert.equal(await kv.get('private-artifact:portfolio-snapshot'),snapshotRaw);checks++;
     await mf.dispose(); mf = new Miniflare(options); await mf.ready;
     const head = await call('HEAD'); assert.equal(head.status, 200); assert.equal(Number(head.headers.get('Content-Length')), Buffer.byteLength(raw)); checks++;
     assert.equal(await (await call('GET')).text(), raw); checks++;
     assert.equal((await reserve()).revision, 9); checks++;
     const restoredSnapshot = await (await snapshotCall('GET')).text();
-    assert.equal(restoredSnapshot, orderedSnapshot); assert.ok(Object.is(JSON.parse(restoredSnapshot).zero, -0)); checks++;
-    assert.equal((await reserveSnapshot()).revision,9);checks++;
+    assert.equal(restoredSnapshot, snapshotRaw); assert.ok(Object.is(JSON.parse(restoredSnapshot).zero, -0)); checks++;
     assert.equal(external, 0); assert.equal(sha(fs.readFileSync(bundlePath)), expected);
     console.log(JSON.stringify({ status: 'passed', checks, compiled_sha256: expected, complete_synthetic_bytes: Buffer.byteLength(raw), complete_snapshot_synthetic_bytes: Buffer.byteLength(snapshotRaw),
       runtime: 'local workerd with SQLite Durable Object', external_requests: external, actual_private_reads: 0, actual_private_writes: 0 }));

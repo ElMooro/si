@@ -106,23 +106,23 @@ jobs:
             # that aren't the tip (the old bug — deploys skipped silently).
             before="$BEFORE_SHA"
             targets=""
-            if [ -z "$before" ] \
-               || [ "$before" = "0000000000000000000000000000000000000000" ] \
-               || ! git cat-file -e "$before" 2>/dev/null \
-               || ! git merge-base --is-ancestor "$before" "$GITHUB_SHA"; then
-              echo '::error::Unresolved push range; dispatch one explicit Worker'
-              exit 1
+            if [ -n "$before" ] \
+               && [ "$before" != "0000000000000000000000000000000000000000" ] \
+               && git cat-file -e "$before" 2>/dev/null; then
+              targets=$(git diff --name-only "$before" "$GITHUB_SHA" \
+                | grep '^cloudflare/workers/' \
+                | awk -F/ '{print $3}' | sort -u | paste -sd ' ' - || true)
             fi
-            changed=$(git diff --name-only "$before" "$GITHUB_SHA")
-            targets=$(printf '%s\n' "$changed" | grep '^cloudflare/workers/' \
-              | awk -F/ '{print $3}' | sort -u | paste -sd ' ' - || true)
-            # Only actual deployment-tool changes additionally deploy the data
-            # proxy. Root behavioural/evidence tests run without replacing code
-            # or issuing a new Worker receipt for identical source bytes.
-            # Read the whole list: grep -q can close early and turn printf's
-            # SIGPIPE into a false negative under pipefail for a large push.
-            if printf '%s\n' "$changed" | grep -E '^(\.github/workflows/deploy-workers\.yml|scripts/worker_release\.py|aws/ops/checks/worker_(source|release)_evidence\.py)$' > /dev/null; then
-              targets=$(printf '%s\n' "$targets" 'justhodl-data-proxy' | tr ' ' '\n' | grep -v '^$' | sort -u | paste -sd ' ' -)
+            # Workflow/evidence-only changes belong to the governed data proxy.
+            # Do not redeploy unrelated Workers just because their code was absent
+            # from this diff. Unresolvable ranges require an explicit target.
+            if [ -z "$targets" ]; then
+              if [ -n "$before" ] && git cat-file -e "$before" 2>/dev/null; then
+                targets="justhodl-data-proxy"
+              else
+                echo '::error::Unresolved push range; dispatch one explicit Worker'
+                exit 1
+              fi
             fi
           fi
           echo "Targets: $targets"

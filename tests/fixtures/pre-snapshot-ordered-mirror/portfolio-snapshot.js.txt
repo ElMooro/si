@@ -9,7 +9,7 @@ const KEY = 'private-artifact:portfolio-snapshot';
 const MAX_IDENTITY_BYTES = 32 * 1024 * 1024;
 const utf8 = new TextEncoder();
 
-export function snapshotFrame(raw) {
+export function snapshotIdentityBytes(raw) {
   const document = riskDocument(raw);
   let size = 0;
   const add = count => {
@@ -45,11 +45,7 @@ export function snapshotFrame(raw) {
     }
   };
   visit(document);
-  return { document, identityBytes: size };
-}
-
-export function snapshotIdentityBytes(raw) {
-  return snapshotFrame(raw).identityBytes;
+  return size;
 }
 
 export async function publishSnapshot(request, env, cors) {
