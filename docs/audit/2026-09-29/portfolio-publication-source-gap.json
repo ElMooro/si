@@ -1,0 +1,41 @@
+{
+  "scope": "Current reviewed candidate source, wholly synthetic inputs and in-memory storage/mirrors. No actual account/provider/storage access, native invocation, private publication or archived-code execution.",
+  "sources": [
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+      "bytes": 14653,
+      "sha256": "3bbf0ef909c9a41d49cecf2617ba5244b3f045437346ebeadc254f19072424da",
+      "frozen": "stage444-predecessor-lambda_function.py.txt"
+    },
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "bytes": 23524,
+      "sha256": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4",
+      "frozen": "stage444-predecessor-portfolio_risk_model.py.txt"
+    }
+  ],
+  "complete_synthetic": {
+    "file": "stage444-complete-synthetic.json",
+    "bytes": 162346,
+    "sha256": "26f909241fb6d5ee856c9791fadc881d3411c3391d52731a7f575b3f517c8fb9"
+  },
+  "publication": {
+    "newer_generated_at": "2026-09-18T17:05:00+00:00",
+    "older_generated_at": "2026-09-18T17:00:00+00:00",
+    "last_stored_generated_at": "2026-09-18T17:00:00+00:00",
+    "last_mirrored_generated_at": "2026-09-18T17:00:00+00:00",
+    "older_overwrites_newer": true
+  },
+  "retention": {
+    "accepted": true,
+    "read_sizes": [
+      -1
+    ],
+    "body_closed": false,
+    "body_bytes": 36355
+  },
+  "actual_network_requests": 0,
+  "actual_private_reads": 0,
+  "actual_writes": 0,
+  "subsequently_verified_source_commit": "34594a19944975e5b326e7c360e468d5c571e994"
+}
