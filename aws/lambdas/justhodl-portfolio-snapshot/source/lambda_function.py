@@ -6,7 +6,8 @@ SNAPSHOTS YOUR ENTIRE PORTFOLIO + WATCHLIST EVERY HOUR
 ─────────────────────────────────────────────────────
 Reads positions/watchlist from DDB, joins with the entire JustHodl
 intelligence stack (alpha-score, confluence, regime-picks, sentiment),
-fetches latest Polygon prices, computes P&L, writes a unified sidecar.
+fetches split-adjusted previous-day Polygon closes, computes descriptive
+holdings P&L and writes a unified sidecar. Marks are not execution quotes.
 
 Pipeline:
   1. Scan DDB for POSITION + WATCHLIST items
@@ -14,15 +15,15 @@ Pipeline:
      - Replace AUTO_TIER_S / AUTO_TIER_A entries with current top picks
      - Leave MANUAL watchlist entries untouched
   3. For each symbol (deduplicated):
-       - Fetch latest Polygon price (per-symbol parallel)
+       - Fetch identified, complete previous-day bars (per-symbol parallel)
        - Join with alpha-score row (alpha, tier, components, signals, flags)
        - Join with confluence row (confluence_tier, components_firing)
        - Join with regime row (regime_adj, regime_adj_score)
-  4. For POSITIONS: compute P&L (qty × (current - cost) and %)
+  4. For POSITIONS: compute eligible descriptive P&L from previous closes
   5. Write portfolio/snapshot.json
 
-Schedule: every 30 min during market hours · every hour off-hours
-Cost: ~$0 (Polygon free tier, no Claude calls)
+Schedule: existing hourly :40 EventBridge rule and Scheduler, preserved.
+Uses the existing configured Polygon key; no new paid AI dependency.
 """
 import json
 from private_artifact import publish_private, private_http_denied
@@ -375,29 +376,125 @@ def query_pk(pk):
         seen_cursors.add(marker);last_key=cursor
     return items
 
-def fetch_polygon_latest(symbol):
-    """Get latest daily close from Polygon. Returns dict or None."""
-    if not POLY_KEY: return None
-    # Use the previous-close endpoint as fallback if last open is in the future
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/prev?adjusted=true&apiKey={POLY_KEY}"
+PREVIOUS_CLOSE_MAX_BYTES=128*1024
+PREVIOUS_CLOSE_READ_SECONDS=20
+
+
+class PreviousCloseUnavailable(ValueError):
+    def __init__(self,code):super().__init__(code);self.code=code
+
+
+class NoQuoteRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,request,fp,code,message,headers,newurl):
+        try:fp.close()
+        finally:raise PreviousCloseUnavailable('REDIRECT_REFUSED')
+
+
+def parse_previous_close(raw,symbol):
+    """One identified split-adjusted previous-day bar, never a current trade quote."""
+    if accounting_symbol({'symbol':symbol}) is None:raise PreviousCloseUnavailable('UNSUPPORTED_REQUEST_IDENTITY')
+    def pairs(rows):
+        value={}
+        for key,item in rows:
+            if key in value:raise PreviousCloseUnavailable('DUPLICATE_JSON_FIELD')
+            value[key]=item
+        return value
+    def constant(_):raise PreviousCloseUnavailable('NONFINITE_JSON')
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-PS/1.0"})
-        with urllib.request.urlopen(req, timeout=8) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        results = data.get("results") or []
-        if results:
-            row = results[0]
-            return {
-                "price": row.get("c"), "open": row.get("o"),
-                "high": row.get("h"), "low": row.get("l"),
-                "volume": row.get("v"),
-                "as_of_unix_ms": row.get("t"),
-            }
-    except Exception as e:
-        print(f"  [poly:{symbol}] {str(e)[:80]}")
-    return None
+        data=json.loads(raw.decode('utf-8','strict'),object_pairs_hook=pairs,parse_constant=constant)
+        json.dumps(data,allow_nan=False,ensure_ascii=False).encode('utf-8')
+    except PreviousCloseUnavailable:raise
+    except (ValueError,UnicodeError,TypeError,OverflowError,RecursionError):raise PreviousCloseUnavailable('INVALID_COMPLETE_JSON') from None
+    if not isinstance(data,dict):raise PreviousCloseUnavailable('RESPONSE_OBJECT_REQUIRED')
+    if data.get('status')!='OK':raise PreviousCloseUnavailable('PROVIDER_STATUS_NOT_OK')
+    if data.get('ticker')!=symbol:raise PreviousCloseUnavailable('RESPONSE_TICKER_MISMATCH')
+    if data.get('adjusted') is not True:raise PreviousCloseUnavailable('ADJUSTMENT_BASIS_MISMATCH')
+    rows=data.get('results')
+    if not isinstance(rows,list) or len(rows)!=1 or type(data.get('resultsCount')) is not int or data['resultsCount']!=1 or type(data.get('queryCount')) is not int or data['queryCount']!=1:
+        raise PreviousCloseUnavailable('SINGLE_COMPLETE_BAR_REQUIRED')
+    row=rows[0]
+    if not isinstance(row,dict) or ('T' in row and row['T']!=symbol):raise PreviousCloseUnavailable('BAR_TICKER_MISMATCH')
+    values={}
+    for field in ('o','h','l','c','v'):
+        value=row.get(field)
+        try:finite=type(value) in (int,float) and math.isfinite(value)
+        except (ValueError,OverflowError):finite=False
+        if not finite or (value<0 if field=='v' else value<=0):raise PreviousCloseUnavailable('INVALID_BAR_NUMBER')
+        values[field]=value
+    if values['l']>min(values['o'],values['c']) or values['h']<max(values['o'],values['c']) or values['l']>values['h']:
+        raise PreviousCloseUnavailable('INCOHERENT_OHLC_RANGE')
+    stamp=row.get('t')
+    if type(stamp) is not int or not 0<=stamp<=2**53-1:raise PreviousCloseUnavailable('INVALID_AGGREGATE_WINDOW_TIME')
+    return {'price':values['c'],'open':values['o'],'high':values['h'],'low':values['l'],'volume':values['v'],
+            'as_of_unix_ms':stamp,'price_basis':'SPLIT_ADJUSTED_PREVIOUS_DAY_CLOSE',
+            'price_timestamp_basis':'AGGREGATE_WINDOW_START_UTC_MS','currency':None}
 
 
+def read_previous_close_body(response,deadline):
+    if type(getattr(response,'status',None)) is not int or response.status!=200:raise PreviousCloseUnavailable('HTTP_STATUS_NOT_OK')
+    headers=getattr(response,'headers',None)
+    if headers is None:raise PreviousCloseUnavailable('RESPONSE_HEADERS_UNAVAILABLE')
+    content_type=headers.get('Content-Type','').split(';',1)[0].strip().lower()
+    if content_type!='application/json':raise PreviousCloseUnavailable('CONTENT_TYPE_NOT_JSON')
+    encoding=headers.get('Content-Encoding','identity').strip().lower()
+    if encoding not in ('','identity'):raise PreviousCloseUnavailable('CONTENT_ENCODING_UNSUPPORTED')
+    declared=headers.get('Content-Length')
+    if declared is not None:
+        if not isinstance(declared,str) or not re.fullmatch(r'[0-9]+',declared):raise PreviousCloseUnavailable('INVALID_CONTENT_LENGTH')
+        declared=int(declared)
+        if declared>PREVIOUS_CLOSE_MAX_BYTES:raise PreviousCloseUnavailable('RESPONSE_BYTE_BOUND')
+    chunks=[];size=0
+    while True:
+        if time.monotonic()>deadline:raise PreviousCloseUnavailable('READ_DEADLINE')
+        chunk=response.read(min(16384,PREVIOUS_CLOSE_MAX_BYTES+1-size))
+        if time.monotonic()>deadline:raise PreviousCloseUnavailable('READ_DEADLINE')
+        if not isinstance(chunk,bytes):raise PreviousCloseUnavailable('INVALID_BODY_CHUNK')
+        if not chunk:break
+        size+=len(chunk)
+        if size>PREVIOUS_CLOSE_MAX_BYTES:raise PreviousCloseUnavailable('RESPONSE_BYTE_BOUND')
+        chunks.append(chunk)
+    if declared is not None and size!=declared:raise PreviousCloseUnavailable('INCOMPLETE_DECLARED_BODY')
+    return b''.join(chunks)
+
+
+def fetch_polygon_latest(symbol):
+    """Keep complete accepted bytes and fixed failure reasons, never provider error text."""
+    import base64
+    import urllib.parse
+    evidence={'schema_version':'previous-close-source.v1','requested_symbol':symbol,'requested_adjusted':True,
+              'endpoint_origin':'https://api.polygon.io','endpoint_path':None,
+              'started_at':datetime.now(timezone.utc).isoformat(),'completed_at':None,
+              'body_complete':False,'status':'UNAVAILABLE','reason_code':None,
+              'currency_verified':False,'instrument_binding_verified':False,'execution_quote':False}
+    output={'price':None,'open':None,'high':None,'low':None,'volume':None,'as_of_unix_ms':None,
+            'price_basis':'SPLIT_ADJUSTED_PREVIOUS_DAY_CLOSE','price_timestamp_basis':'AGGREGATE_WINDOW_START_UTC_MS',
+            'currency':None,'source_evidence':evidence}
+    try:
+        if accounting_symbol({'symbol':symbol}) is None:raise PreviousCloseUnavailable('UNSUPPORTED_REQUEST_IDENTITY')
+        path='/v2/aggs/ticker/'+symbol+'/prev';evidence['endpoint_path']=path
+        if not isinstance(POLY_KEY,str) or not POLY_KEY:raise PreviousCloseUnavailable('PROVIDER_UNCONFIGURED')
+        url=evidence['endpoint_origin']+path+'?adjusted=true&apiKey='+urllib.parse.quote(POLY_KEY,safe='')
+        request=urllib.request.Request(url,headers={'User-Agent':'JustHodl-PS/1.0','Accept':'application/json','Accept-Encoding':'identity'})
+        opener=urllib.request.build_opener(NoQuoteRedirect())
+        deadline=time.monotonic()+PREVIOUS_CLOSE_READ_SECONDS
+        with opener.open(request,timeout=8) as response:
+            final=urllib.parse.urlsplit(response.geturl())
+            if final.scheme!='https' or final.netloc!='api.polygon.io' or final.path!=path or final.query!=urllib.parse.urlsplit(url).query or final.fragment:
+                raise PreviousCloseUnavailable('RESPONSE_URL_MISMATCH')
+            raw=read_previous_close_body(response,deadline)
+            evidence.update(body_complete=True,body_bytes=len(raw),body_sha256=hashlib.sha256(raw).hexdigest(),
+                            body_encoding='base64',body=base64.b64encode(raw).decode('ascii'),http_status=200)
+        output.update(parse_previous_close(raw,symbol))
+        evidence.update(status='MEASURED_PREVIOUS_CLOSE',reason_code=None)
+    except PreviousCloseUnavailable as failure:evidence['reason_code']=failure.code
+    except urllib.error.HTTPError as failure:
+        evidence['reason_code']='HTTP_ERROR'
+        if type(failure.code) is int:evidence['http_status']=failure.code
+        try:failure.close()
+        except Exception:pass
+    except Exception:evidence['reason_code']='TRANSPORT_OR_SOURCE_UNAVAILABLE'
+    evidence['completed_at']=datetime.now(timezone.utc).isoformat()
+    return output
 def batch_fetch_prices(symbols, max_workers=10):
     """Parallel price fetch."""
     if not symbols: return {}
@@ -437,6 +534,13 @@ def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx
     rec["current_price"] = p.get("price")
     # audit 2026-09-08 INST-08: carry the mark's provenance with the price
     rec["price_asof_unix_ms"] = p.get("as_of_unix_ms")
+    quote_source = p.get("source_evidence") if isinstance(p.get("source_evidence"), dict) else {}
+    rec["price_basis"] = p.get("price_basis")
+    rec["price_timestamp_basis"] = p.get("price_timestamp_basis")
+    rec["price_source"] = {key: quote_source.get(key) for key in
+        ("schema_version", "requested_symbol", "requested_adjusted", "status", "reason_code",
+         "body_sha256", "started_at", "completed_at", "currency_verified", "instrument_binding_verified")}
+
     rec["price_provider"] = "polygon:prev_close" if p.get("price") is not None else None
     rec["price_open"] = p.get("open")
     rec["price_high"] = p.get("high")
@@ -706,7 +810,7 @@ def lambda_handler(event, context):
         sym = accounting_symbol(row)
         if sym is not None: all_symbols.add(sym)
     price_data = batch_fetch_prices(list(all_symbols))
-    n_priced = sum(1 for v in price_data.values() if v)
+    n_priced = sum(1 for v in price_data.values() if isinstance(v, dict) and accounting_number(v.get("price")) is not None and accounting_number(v.get("price")) > 0)
     print(f"  prices fetched: {n_priced}/{len(all_symbols)}")
 
     # 5. Enrich each symbol
@@ -749,7 +853,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.3",
+        "audit_version": "2026-09-30.4",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 

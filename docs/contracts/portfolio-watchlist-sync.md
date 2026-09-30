@@ -68,7 +68,7 @@ all supplied watchlist rows, source dates and explicit research-only language.
 Only this function can select `offline_snapshot_v1` in its release configuration.
 The release helper verifies every file and byte in the exact built ZIP against
 reviewed source, rejects extra/missing/duplicate members, runs the actual current
-52-case invented suite plus four handler checks, and rechecks the package after
+80-case invented suite plus four handler checks, and rechecks the package after
 testing. The child receives no runner/provider credentials; networking and
 subprocess audit hooks refuse external activity. No native validation invocation
 occurs. Existing version/hash pins, alias compare-and-swap, schedule preservation

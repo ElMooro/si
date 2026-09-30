@@ -1,0 +1,289 @@
+{
+  "scope": "Current reviewed quote reader with complete invented HTTP bodies only. No provider requests or actual credentials; the explicit canary is invented.",
+  "source_sha256": "3c3e410a77ce6d547bdfccb19a732800ab27b2b2f03c2ebcbe3bd06276506e40",
+  "source_bytes": 44708,
+  "cases": [
+    {
+      "name": "different_ticker_bar_accepted",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"BBB\", \"adjusted\": true, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"BBB\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "218",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 110,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "second_returned_bar_silently_dropped",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": true, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 2, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}, {\"T\": \"AAA\", \"c\": 120, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "302",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 110,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "error_status_with_results_is_accepted",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": true, \"status\": \"ERROR\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "221",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 110,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "unadjusted_response_accepted_for_adjusted_request",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": false, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "219",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 110,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "duplicate_close_key_uses_last_value",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": true, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"c\": 999, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "228",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 999,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "shorter_than_declared_body_is_accepted",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": true, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "5000",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 110,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "redirected_response_origin_is_not_bound",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": true, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "218",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://invented-other.invalid/response",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [
+        []
+      ],
+      "body_closed": true,
+      "result": {
+        "price": 110,
+        "open": 100,
+        "high": 115,
+        "low": 99,
+        "volume": 1000,
+        "as_of_unix_ms": 1790726400000
+      },
+      "captured_log": ""
+    },
+    {
+      "name": "raw_provider_error_is_logged",
+      "requested_symbol": "AAA",
+      "complete_invented_response_utf8": "{\"ticker\": \"AAA\", \"adjusted\": true, \"status\": \"OK\", \"queryCount\": 1, \"resultsCount\": 1, \"request_id\": \"invented-request\", \"results\": [{\"T\": \"AAA\", \"c\": 110, \"o\": 100, \"h\": 115, \"l\": 99, \"v\": 1000, \"t\": 1790726400000}]}",
+      "response_status": 200,
+      "response_headers": {
+        "Content-Length": "218",
+        "Content-Type": "application/json"
+      },
+      "response_url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev",
+      "request_calls": [
+        {
+          "url": "https://api.polygon.io/v2/aggs/ticker/AAA/prev?adjusted=true&apiKey=INVENTED_SECRET_CANARY",
+          "method": "GET",
+          "headers": {
+            "User-agent": "JustHodl-PS/1.0"
+          },
+          "options": {
+            "timeout": 8
+          }
+        }
+      ],
+      "body_read_calls": [],
+      "body_closed": false,
+      "result": null,
+      "captured_log": "  [poly:AAA] <urlopen error apiKey=INVENTED_SECRET_CANARY>\n"
+    }
+  ],
+  "provider_requests": 0,
+  "actual_private_reads": 0,
+  "native_invocations": 0
+}
