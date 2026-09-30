@@ -31,8 +31,13 @@ class SharedWriteGraph:
         self.entrypoint_proofs = {}
         self.trail, self.seen = [], set()
         self.fingerprint_objects = {}
+        self.source_labels = {}
 
     def relative(self, path):
+        # Loaded module paths were already resolved and bound to their source.
+        # Fingerprinting every invocation must not resolve them through the OS
+        # again. Unknown paths still receive the original containment check.
+        if path in self.source_labels:return self.source_labels[path]
         return Path(path).resolve().relative_to(self.root).as_posix()
 
     def locate(self, source, module, level=0):
@@ -59,11 +64,13 @@ class SharedWriteGraph:
         return result
 
     def load(self, path):
+        path = Path(path).resolve()
         if path in self.modules:return self.modules[path]
         if path in self.loading:return None, {}
         self.loading.add(path)
         try:
             text = path.read_text(encoding='utf-8')
+            self.source_labels[path] = path.relative_to(self.root).as_posix()
             constants = self.import_constants(path,self.roots,self.environment,cache=self.constant_cache)
             scan = self.scan_type(text,self.environment,constants,self,path)
             # Store the module before following imports, to bound cycles.

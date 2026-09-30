@@ -5,6 +5,7 @@ No network or runtime completeness claim. Dynamic/private/unresolved outputs rem
 import argparse,ast,hashlib,json,os,re,shutil,sys
 from collections import defaultdict
 from functools import lru_cache
+from types import MappingProxyType
 from pathlib import Path
 from page_sources import scan_pages,pages
 from html.parser import HTMLParser
@@ -61,38 +62,72 @@ ARCHIVE_INDEXES={
  'calibration/history-index.json':{'engine':'justhodl-calibration-snapshotter','rows':'snapshots','key_field':'key','patterns':['calibration/history/*.json','calibration/versions/cal-*-*-*.json']},
 }
 
+def policy_source():
+    """Missing policy is a build failure, never an implicit public policy."""
+    return (ROOT/'aws/shared/private_artifact.py').read_bytes()
+
+
+def literal_private_keys(node, mirrors):
+    if isinstance(node,ast.Name) and node.id=='MIRRORED_ARTIFACTS':return set(mirrors)
+    if isinstance(node,(ast.Set,ast.Tuple,ast.List)):
+        values=ast.literal_eval(node)
+        if not all(isinstance(value,str) for value in values):raise ValueError('Invalid private key declaration')
+        return set(values)
+    if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id in ('set','frozenset') and not node.keywords:
+        if not node.args:return set()
+        if len(node.args)==1:return literal_private_keys(node.args[0],mirrors)
+    if isinstance(node,ast.BinOp) and isinstance(node.op,ast.BitOr):
+        return literal_private_keys(node.left,mirrors)|literal_private_keys(node.right,mirrors)
+    raise ValueError('Unsupported private key policy; explicit access review required')
+
+
 @lru_cache(maxsize=1)
-def access_rules():
-    """Read only literal policy data, without importing credential/cloud modules."""
-    path=ROOT/'aws/shared/private_artifact.py'
-    if not path.exists():return {},set(),()
-    mirrors={};aliases={};private=set();prefixes=()
-    for node in ast.parse(path.read_text(encoding='utf-8')).body:
+def parse_access_rules(source):
+    """Cache only the complete policy bytes; return immutable literal rules."""
+    mirrors={};aliases={};private=set();prefixes=();seen=set()
+    required={'MIRRORED_ARTIFACTS','PRIVATE_ARTIFACT_ALIASES','PRIVATE_KEYS','PRIVATE_PREFIXES'}
+    archive_expression=ast.parse("tuple('history/archive/feed/'+key+'/' for key in sorted(set(PRIVATE_KEYS)|{value.removeprefix('data/') for value in PRIVATE_KEYS}))",mode='eval').body
+    for node in ast.parse(source.decode('utf-8')).body:
         if not isinstance(node,ast.Assign):continue
-        names={t.id for t in node.targets if isinstance(t,ast.Name)}
+        names={t.id for t in node.targets if isinstance(t,ast.Name)}&required
+        if seen&names:raise ValueError('Duplicate private policy declaration')
+        dependencies={'PRIVATE_KEYS':{'MIRRORED_ARTIFACTS'},
+                      'PRIVATE_PREFIXES':{'MIRRORED_ARTIFACTS','PRIVATE_KEYS'}}
+        if any(not dependencies.get(name,set())<=seen for name in names):
+            raise ValueError('Private policy declaration precedes its dependencies')
+        seen.update(names)
         if 'MIRRORED_ARTIFACTS' in names:mirrors=ast.literal_eval(node.value)
         if 'PRIVATE_ARTIFACT_ALIASES' in names:aliases=ast.literal_eval(node.value)
+        if 'PRIVATE_KEYS' in names:private=literal_private_keys(node.value,mirrors)
         if 'PRIVATE_PREFIXES' in names:
             if isinstance(node.value,ast.Tuple):prefixes=ast.literal_eval(node.value)
-            elif isinstance(node.value,ast.BinOp) and isinstance(node.value.op,ast.Add) and isinstance(node.value.left,ast.Tuple):
-                # The policy appends raw-history families for each private key and /data alias.
+            elif (isinstance(node.value,ast.BinOp) and isinstance(node.value.op,ast.Add)
+                  and isinstance(node.value.left,ast.Tuple)
+                  and ast.dump(node.value.right)==ast.dump(archive_expression)):
                 keys=set(mirrors)|private
-                prefixes=ast.literal_eval(node.value.left)+tuple('history/archive/feed/'+key+'/' for key in keys|{key.removeprefix('data/') for key in keys})
+                prefixes=ast.literal_eval(node.value.left)+tuple('history/archive/feed/'+key+'/' for key in sorted(keys|{key.removeprefix('data/') for key in keys}))
             else:raise ValueError('Unsupported private prefix policy; explicit access review required')
-        if 'PRIVATE_KEYS' in names:
-            for part in ast.walk(node.value):
-                if isinstance(part,ast.Set):private.update(ast.literal_eval(part))
+    if seen!=required:raise ValueError('Incomplete private artifact access policy')
+    for mapping in (mirrors,aliases):
+        if not isinstance(mapping,dict) or not all(isinstance(key,str) and isinstance(value,str) for key,value in mapping.items()):
+            raise ValueError('Invalid private artifact mapping')
+    if not all(isinstance(prefix,str) for prefix in prefixes):raise ValueError('Invalid private prefix policy')
     for alias,canonical in aliases.items():
         if canonical not in mirrors:raise ValueError('Owner artifact alias has no canonical mirror: '+alias)
         mirrors[alias]=mirrors[canonical]
-    return mirrors,set(mirrors)|private,tuple(prefixes)
+    return MappingProxyType(mirrors),frozenset(set(mirrors)|private),tuple(prefixes)
 
-def public_key(key):
-    _,private,prefixes=access_rules()
+
+def access_rules():
+    """Read current policy bytes without importing credential/cloud modules."""
+    return parse_access_rules(policy_source())
+
+def public_key(key,rules=None):
+    _,private,prefixes=access_rules() if rules is None else rules
     return (key.endswith(('.json','.json.gz')) and '*' not in key and '..' not in key.split('/') and key not in private and key not in RETIRED_PRIVATE_OUTPUTS and not key.startswith(prefixes)
             and (key in PUBLIC_EXACT or (not SENSITIVE.search(key) and key.split('/')[0] in PUBLIC_PREFIXES and not any(part.startswith('_') for part in key.split('/')))))
 
-def add_archive_index_relationships(emap,engines,root):
+def add_archive_index_relationships(emap,engines,root,rules=None):
     """Attach reviewed listings to their source engine without relabeling the writer."""
     publisher='justhodl-public-archive-index'
     path=root/'aws/lambdas'/publisher/'source/lambda_function.py'
@@ -120,7 +155,7 @@ def add_archive_index_relationships(emap,engines,root):
             if pattern not in scan.writes or not scan.proofs.get(pattern):raise ValueError('Retired archive write is not source-proven: '+name)
             evidence=[{'file':source_name,'line':line,'sha256':row['sha256'],'producer_active':False} for line in sorted(scan.proofs[pattern])];active=False
         elif owners!={name}:raise ValueError('Archive family ownership or public boundary drift: '+name)
-        if not public_key(pattern.replace('*','reviewed-member')):raise ValueError('Archive family public boundary drift: '+name)
+        if not public_key(pattern.replace('*','reviewed-member'),rules):raise ValueError('Archive family public boundary drift: '+name)
         index=next((output for output in emap[publisher]['outputs'] if output['key']==key),None)
         if index is None:raise ValueError('Archive index has no source-bound concrete writer: '+key)
         emap[name]['outputs'].append({**index,'source_engine':name,
@@ -180,13 +215,13 @@ def validated_primary_scopes(role,engines,root,route):
                     if isinstance(target,ast.Name):constants[target.id]=node.value.value
         if set(keys)!={constants.get(name) for name in evidence.get('constants',[])}:raise ValueError('Dedicated output constants drift: '+route)
     return scopes
-def dependency_group(name,engine,writers,internal_keys):
+def dependency_group(name,engine,writers,internal_keys,rules=None):
     """Reference metadata only; never authorize or fetch an upstream artifact."""
     reads=engine.get('reads')
     available=isinstance(reads,list) and all(isinstance(key,str) for key in reads)
     refs=[];withheld=0
     for key in sorted(set(reads)) if available else []:
-        if key in internal_keys or not public_key(key):
+        if key in internal_keys or not public_key(key,rules):
             withheld+=1;continue
         owners=sorted(writers.get(key,set()))
         refs.append({'key':key,'possible_producers':owners,'own_output_reference':name in owners,
@@ -198,7 +233,8 @@ def dependency_group(name,engine,writers,internal_keys):
             'independent_evidence_count':None,'calls_eligible':False,'sizing_eligible':False}
 
 def contract(root):
-    mirrors,private_keys,private_prefixes=access_rules()
+    policy_bytes=policy_source();rules=parse_access_rules(policy_bytes)
+    mirrors,private_keys,private_prefixes=rules
     role_path=root/'config/page-role-overrides.json'
     roles=json.loads(role_path.read_text(encoding='utf-8'))['pages'] if role_path.exists() else {}
     doc=json.loads((root/'engine-manifest.json').read_text(encoding='utf-8'));engines={e['engine']:e for e in doc['engines']};writers=defaultdict(set)
@@ -211,21 +247,21 @@ def contract(root):
     internal_roles=internal_output_roles(root,engines);emap={}
     internal_dependency_keys={key for rows in internal_roles.values() for key in rows}
     for name,e in engines.items():
-        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':{'data/brain-compiler.json':'brain-compiler','data/sizing.json':'sizing','_health/fleet.json':'fleet-health','data/_fleet-monitor.json':'fleet-errors','data/_freshness-monitor.json':'fleet-freshness','data/source-map.json':'source-map','etf-flows/daily.json':'provider-metrics','macro/regime.json':'provider-metrics'}.get(k),'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[]),'entrypoint_reachability':e.get('output_reachability',{}).get(k,{'status':'not_analyzed','runtime_verified':False})} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k) or k in mirrors)]
+        allowed=[{'engine':name,'key':k,'access':'owner_authenticated' if k in mirrors else 'public','private_kind':mirrors.get(k),'required_projection':{'data/brain-compiler.json':'brain-compiler','data/sizing.json':'sizing','_health/fleet.json':'fleet-health','data/_fleet-monitor.json':'fleet-errors','data/_freshness-monitor.json':'fleet-freshness','data/source-map.json':'source-map','etf-flows/daily.json':'provider-metrics','macro/regime.json':'provider-metrics'}.get(k),'inspection_schema':'json-value.v1','ownership_evidence':e['write_evidence'].get(k,[]),'entrypoint_reachability':e.get('output_reachability',{}).get(k,{'status':'not_analyzed','runtime_verified':False})} for k in e['keys'] if k not in internal_roles.get(name,{}) and (public_key(k,rules) or k in mirrors)]
         for output in allowed:
             if (output['key'],name) in augmentations:output['ownership_role']=augmentations[(output['key'],name)]
             index=ARCHIVE_INDEXES.get(output['key'])
             if index and index['engine']==name:
                 patterns=[pattern for pattern in e['key_patterns'] if pattern.startswith(index['family_prefix'])] if index.get('family_prefix') else index.get('patterns') or [index['pattern']]
                 if not patterns or any(pattern not in e['key_patterns'] for pattern in patterns):raise ValueError('Archive index write family drift: '+name)
-                exacts=[key for key in e['keys'] if key!=output['key'] and public_key(key) and key.startswith(index['include_exact_prefix'])] if index.get('include_exact_prefix') else []
+                exacts=[key for key in e['keys'] if key!=output['key'] and public_key(key,rules) and key.startswith(index['include_exact_prefix'])] if index.get('include_exact_prefix') else []
                 output['archive_index']={**index,'patterns':patterns,'key_regex':'^(?:'+'|'.join(re.escape(pattern).replace(r'\*',r'[^/]+') for pattern in patterns+exacts)+')$'}
-        emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
+        emap[name]={'outputs':allowed,'restricted_count':sum(not public_key(k,rules) and k not in mirrors for k in e['keys']),'owner_authenticated_count':sum(k in mirrors for k in e['keys']),
                     'excluded_internal_outputs':list(internal_roles.get(name,{}).values()),
                     'historical_or_dynamic_family_count':sum(pattern not in internal_roles.get(name,{}) for pattern in e['key_patterns']), 'unresolved_count':len(e['unresolved_writes']),
                     'runtime_coverage':'unverified_until_opened','ownership_basis':'candidate source write arguments; handler reachability is recorded separately',
-                    'dependency_groups':[dependency_group(name,e,writers,internal_dependency_keys)]}
-    add_archive_index_relationships(emap,engines,root)
+                    'dependency_groups':[dependency_group(name,e,writers,internal_dependency_keys,rules)]}
+    add_archive_index_relationships(emap,engines,root,rules)
     pmap={};graphs=scan_pages(root);source_usage=defaultdict(int)
     for graph in graphs.values():
         for source in graph['scripts']:source_usage[source]+=1
@@ -271,11 +307,11 @@ def contract(root):
         for static in role.get('static_outputs',[]):
             from gen_engine_manifest import ast_keys
             source=root/static['source'];key=static['key'];written,_,parsed=ast_keys(source.read_text(encoding='utf-8'))
-            if not parsed or key not in written or not public_key(key):raise ValueError('Static output ownership or access invalid: '+route+' '+key)
+            if not parsed or key not in written or not public_key(key,rules):raise ValueError('Static output ownership or access invalid: '+route+' '+key)
             outputs.append({'engine':static['engine'],'key':key,'access':'public','inspection_schema':'json-value.v1','ownership_evidence':[{'file':static['source'],'basis':'bound write argument'}]});static_keys.add(key)
         unresolved=[row for row in unresolved if row['key'] not in static_keys]
         primary_accessible=sum((o.get('source_engine') or o['engine']) in primary for o in outputs)+len(api_responses)+len(runtime_outputs)+len(static_keys)
-        primary_withheld=sum(sum(not public_key(k) and k not in mirrors and k not in internal_roles.get(e,{}) for k in scopes.get(e,engines[e]['keys'])) for e in primary)
+        primary_withheld=sum(sum(not public_key(k,rules) and k not in mirrors and k not in internal_roles.get(e,{}) for k in scopes.get(e,engines[e]['keys'])) for e in primary)
         internal_inventory=[row for name in sorted(primary) for row in emap[name]['excluded_internal_outputs'] if name not in scopes or row['key'] in scopes[name]]
         primary_unresolved=sum(emap[e]['unresolved_count'] for e in primary if e not in scopes)
         # A narrowly scoped page cannot waive missing handler reachability.
@@ -301,6 +337,7 @@ def contract(root):
     for route,row in pmap.items():
         row['inspection_entry']={'mode':'standalone','href':'/engine-data.html?page='+route} if route in STANDALONE_INSPECTION_PAGES else {'mode':'embedded'}
     standalone=sum(row['inspection_entry']['mode']=='standalone' for row in pmap.values())
+    if policy_source()!=policy_bytes:raise ValueError('Private artifact policy changed during contract compilation; rebuild from current source')
     return {'schema_version':'page-data-contract.v1','inspection_schema':'json-value.v1','source_manifest_schema':doc['schema_version'],
             'pages':pmap,'engines':emap,'coverage':{'public_routes':len(pmap),'engines':len(emap),'routes_with_source_bound_outputs':sum(bool(x['outputs']) for x in pmap.values()),
             'primary_valid_contract':sum(x['coverage_class']=='PRIMARY_VALID_CONTRACT' for x in pmap.values()),'primary_partial':sum(x['coverage_class']=='PRIMARY_PARTIAL' for x in pmap.values()),'support_only':sum(x['coverage_class']=='SUPPORT_ONLY' for x in pmap.values()),'no_association':sum(x['coverage_class']=='NO_ASSOCIATION' for x in pmap.values()),'not_applicable':sum(x['coverage_class']=='NOT_APPLICABLE' for x in pmap.values()),'routes_with_api_response_contract':sum(bool(x['api_responses']) for x in pmap.values()),

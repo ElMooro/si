@@ -1,0 +1,395 @@
+{
+  "schema": "source-contract-compilation-audit.v1",
+  "prepared_at": "2026-09-30T16:12:56.439749+00:00",
+  "base_commit": "f48f694f2c83e15e22d3732dfd8a99805f7e8da8",
+  "scope": "Static source compiler correctness and repeated loaded-path resolution only. No engine, private packet, provider, native invocation, schedule or policy control-plane change.",
+  "predecessors": [
+    {
+      "path": "tests/fixtures/pre-source-contract-compilation-source_write_graph.py.txt",
+      "bytes": 11094,
+      "sha256": "0f025b0037fceede6daef7f8fec3a5724d202a725b10b12f001b8873c46403d2"
+    },
+    {
+      "path": "tests/fixtures/pre-source-contract-compilation-build_page_data_contracts.py.txt",
+      "bytes": 33005,
+      "sha256": "79bfe3d14acde2773bb3cff05117838afd8ef747d22b5683e72f56f74b556798"
+    }
+  ],
+  "reproduced_policy_bug": {
+    "whole_invented_policy_only": true,
+    "original_policy": "MIRRORED_ARTIFACTS={}\nPRIVATE_ARTIFACT_ALIASES={}\nPRIVATE_KEYS=set()\nPRIVATE_PREFIXES=()\n",
+    "updated_policy": "MIRRORED_ARTIFACTS={'data/invented-series.json':'invented'}\nPRIVATE_ARTIFACT_ALIASES={}\nPRIVATE_KEYS=set()\nPRIVATE_PREFIXES=()\n",
+    "key": "data/invented-series.json",
+    "before_private_policy": true,
+    "after_policy_changed_same_process": true,
+    "after_explicit_cache_clear": false,
+    "bug_reproduced": true
+  },
+  "current_sources": [
+    {
+      "path": "scripts/source_write_graph.py",
+      "bytes": 11545,
+      "sha256": "0c72d12c43e28444256518ea892b1876383615442db660831810b66eb45e965d"
+    },
+    {
+      "path": "scripts/build_page_data_contracts.py",
+      "bytes": 35546,
+      "sha256": "71fbfe19cd31973aaca0c3f56f66fb11e78cdf56ebc5f44b39d5294a4a605507"
+    },
+    {
+      "path": "tests/deployment/test_source_graph_paths.py",
+      "bytes": 3724,
+      "sha256": "c5630efbebae2700eb6f9cccc53b1e5c574c64a2dbdceec309101e7e77d160f8"
+    },
+    {
+      "path": "tests/deployment/test_contract_policy_snapshot.py",
+      "bytes": 9001,
+      "sha256": "57da9978a903202bdd40ea66b458c67db84fa61ca54f927e44dfd2b98acfeb38"
+    }
+  ],
+  "ownership_comparison": {
+    "complete_engines": 893,
+    "equal_except_generated_at": true,
+    "whole_semantic_sha256": "75da31ea1eb0dc408afd9346d2f64c1be7ea12dacf05f5c718c60fc477dbd6da",
+    "profile_input_sources_still_match": true,
+    "policy_order_guard_added_after_manifest_profile": "Only page access compilation changed; ownership analyzer and every engine/shared input remain byte-identical to that profile."
+  },
+  "page_comparison": {
+    "complete_pages": 599,
+    "whole_contract_equal": true,
+    "source_contract": {
+      "path": "config/page-data-contracts.json",
+      "bytes": 7666551,
+      "sha256": "4f3e5e834a37754ac3153eb25abe1e6c16ead7c5244dec7e55b6b75e1e10426a"
+    },
+    "elapsed_seconds_with_profiler": 15.416768099996261
+  },
+  "performance": {
+    "local_profiles": {
+      "baseline": {
+        "elapsed_seconds_with_profiler": 447.356319500017,
+        "whole_manifest_equal_excluding_generated_at": true,
+        "engines": 893,
+        "functions": [
+          {
+            "file": "source_write_graph.py",
+            "function": "relative",
+            "calls": 168666,
+            "self_seconds": 0.7097988000000001,
+            "cumulative_seconds": 81.62321850000001
+          },
+          {
+            "file": "source_write_graph.py",
+            "function": "load",
+            "calls": 3884,
+            "self_seconds": 0.9347897000000001,
+            "cumulative_seconds": 118.6364066
+          },
+          {
+            "file": "source_write_graph.py",
+            "function": "call",
+            "calls": 486129,
+            "self_seconds": 1.6878565,
+            "cumulative_seconds": 159.9429483
+          }
+        ]
+      },
+      "optimized": {
+        "elapsed_seconds_with_profiler": 465.29464360000566,
+        "whole_manifest_equal_excluding_generated_at": true,
+        "engines": 893,
+        "functions": [
+          {
+            "file": "source_write_graph.py",
+            "function": "load",
+            "calls": 3884,
+            "self_seconds": 1.354068,
+            "cumulative_seconds": 157.57486400000002
+          },
+          {
+            "file": "source_write_graph.py",
+            "function": "call",
+            "calls": 486129,
+            "self_seconds": 1.7469875000000001,
+            "cumulative_seconds": 95.24937910000001
+          },
+          {
+            "file": "source_write_graph.py",
+            "function": "relative",
+            "calls": 168666,
+            "self_seconds": 0.1478973,
+            "cumulative_seconds": 0.19058830000000002
+          }
+        ]
+      }
+    },
+    "prior_pages_run": 36736831011,
+    "prior_completed_step_timings": [
+      {
+        "job": "build",
+        "step": "Set up job",
+        "conclusion": "success",
+        "seconds": 1.0
+      },
+      {
+        "job": "build",
+        "step": "Run actions/checkout@v4",
+        "conclusion": "success",
+        "seconds": 14.0
+      },
+      {
+        "job": "build",
+        "step": "Set up Node 22",
+        "conclusion": "success",
+        "seconds": 1.0
+      },
+      {
+        "job": "build",
+        "step": "Block published credentials",
+        "conclusion": "success",
+        "seconds": 17.0
+      },
+      {
+        "job": "build",
+        "step": "Brain publication boundaries",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Frontend + worker behavioural tests",
+        "conclusion": "success",
+        "seconds": 24.0
+      },
+      {
+        "job": "build",
+        "step": "Public page source syntax and regression gate",
+        "conclusion": "success",
+        "seconds": 7.0
+      },
+      {
+        "job": "build",
+        "step": "Required sovereign page dependency reaches the artifact",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Engine wiring registry must match what the pages declare (audit 2026-09-08 C-6)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)",
+        "conclusion": "success",
+        "seconds": 1.0
+      },
+      {
+        "job": "build",
+        "step": "Assemble lean site artifact",
+        "conclusion": "success",
+        "seconds": 141.0
+      },
+      {
+        "job": "build",
+        "step": "Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Bake section numbers into every page + ship home layout/registry (ops 5200)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Bake last-known values into homepage (zero em-dash first paint)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "CI gate \u2014 template leaks + dead-paint ratchet",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Bake right-rail insight panel (Design audit sec8-C)",
+        "conclusion": "success",
+        "seconds": 17.0
+      },
+      {
+        "job": "build",
+        "step": "Bake engine directory (real live wiring status)",
+        "conclusion": "success",
+        "seconds": 42.0
+      },
+      {
+        "job": "build",
+        "step": "Bake data-plane inventory into data.html (ops 5129 - non-JS readers see all providers)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Reskin legacy palette -> Amber (all pages; index+screener untouched)",
+        "conclusion": "success",
+        "seconds": 1.0
+      },
+      {
+        "job": "build",
+        "step": "Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Bake SEO layer (canonical/OG/description + sitemap)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Build complete producer-to-page data contracts",
+        "conclusion": "success",
+        "seconds": 8.0
+      },
+      {
+        "job": "build",
+        "step": "Final built page syntax gate",
+        "conclusion": "success",
+        "seconds": 7.0
+      },
+      {
+        "job": "build",
+        "step": "Stamp every page and asset in commit-bound build manifest",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Run actions/upload-pages-artifact@v3",
+        "conclusion": "success",
+        "seconds": 3.0
+      },
+      {
+        "job": "build",
+        "step": "Post Set up Node 22",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Post Run actions/checkout@v4",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "build",
+        "step": "Complete job",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "deploy",
+        "step": "Set up job",
+        "conclusion": "success",
+        "seconds": 1.0
+      },
+      {
+        "job": "deploy",
+        "step": "Run actions/deploy-pages@v4",
+        "conclusion": "success",
+        "seconds": 12.0
+      },
+      {
+        "job": "deploy",
+        "step": "Report deploy outcome",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "deploy",
+        "step": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+        "conclusion": "success",
+        "seconds": 0.0
+      },
+      {
+        "job": "deploy",
+        "step": "Fail this run when Pages was not deployed",
+        "conclusion": "skipped",
+        "seconds": 0.0
+      },
+      {
+        "job": "deploy",
+        "step": "Complete job",
+        "conclusion": "success",
+        "seconds": 0.0
+      }
+    ],
+    "claim": "Repeated loaded-path filesystem resolution is removed. Overall local optimized profiling overlapped other validation; its total time was higher. These runs are not a controlled end-to-end speed benchmark and establish no latency SLO."
+  },
+  "dependency_map_changed_fields": [
+    "generated_at",
+    "input_identity"
+  ],
+  "validation": {
+    "focused": {
+      "modules": [
+        {
+          "module": "test_contract_policy_snapshot.py",
+          "passed": 8
+        },
+        {
+          "module": "test_source_graph_paths.py",
+          "passed": 4
+        },
+        {
+          "module": "test_engine_manifest.py",
+          "passed": 3
+        },
+        {
+          "module": "test_entrypoint_provenance.py",
+          "passed": 11
+        },
+        {
+          "module": "test_page_data_contracts.py",
+          "passed": 29
+        },
+        {
+          "module": "test_returned_readers.py",
+          "passed": 11
+        },
+        {
+          "module": "test_returned_key_graph.py",
+          "passed": 12
+        },
+        {
+          "module": "test_shared_write_graph.py",
+          "passed": 15
+        },
+        {
+          "module": "test_source_call_binding.py",
+          "passed": 9
+        }
+      ],
+      "passed": 102,
+      "elapsed_seconds": 7.534831499971915
+    },
+    "deployment": 893,
+    "candidate_shell": 15,
+    "frontend": 2127,
+    "public_page_graphs": 599,
+    "syntax_errors": 0,
+    "companion_wires": 143,
+    "missing_or_stale_wires": 0,
+    "environment_failure": "The first frontend harness selected system Python without tzdata; rerun with the existing configured Python/dependency environment passed all tests. No application change addressed that harness failure."
+  },
+  "release_acceptance": {
+    "status": "pending_exact_push_and_live_static_build"
+  },
+  "institutional_workstreams": "all ten remain open"
+}
