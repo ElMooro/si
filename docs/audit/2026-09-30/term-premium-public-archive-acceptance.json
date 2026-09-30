@@ -1,0 +1,142 @@
+{
+  "schema": "term-premium-public-original-acceptance.v1",
+  "prepared_at": "2026-09-30T17:50:27.059862+00:00",
+  "base_commit": "ee3f535583aeee9129c34e885a81f1f683c31c2d",
+  "expected_native_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "4qAD9ijkK0VMmJuFwZUovB4qDUhb7iirJTxNQdWyklM=",
+    "commit": "33a552073789abd27609e307209077a6c84c8407",
+    "deployed_at": "2026-09-28T14:06:24Z",
+    "function": "justhodl-term-premium",
+    "run_id": "36433319304",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36433319304",
+    "schema": "release-receipt.v1",
+    "source": {
+      "lambda_function.py": {
+        "bytes": 1359,
+        "sha256": "0358ca1ab9576ccb7de248f7eb15248610ddae64c552c5c51c49e6176f8287db"
+      },
+      "term_premium_candidate.py": {
+        "bytes": 9524,
+        "sha256": "c42456a0bd812f2f75f635c7c0b9bf70a4a438af855303de4b159f54c825d560"
+      },
+      "term_premium_model.py": {
+        "bytes": 3573,
+        "sha256": "08a41369eab7022ede2629f632e944a812eecf8e04545148c25643f50479f69b"
+      },
+      "term_premium_qualification.py": {
+        "bytes": 1158,
+        "sha256": "ba138d5260033aa85b8976cfad81e1a71498163ea1845c66f943e73c88bc4215"
+      },
+      "term_premium_store.py": {
+        "bytes": 14452,
+        "sha256": "def1ed96c885267e1ea17a5761fcbef94a8cfe62a6ce67dddca89f806d350828"
+      },
+      "verify_term_premium_arithmetic.py": {
+        "bytes": 8348,
+        "sha256": "8351cf926ed1542a8f6ef07ad3c50aef92506a6a2df6979fa7a7a630f1d20e00"
+      },
+      "xlrd-2.0.1.dist-info/INSTALLER": {
+        "bytes": 4,
+        "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+      },
+      "xlrd-2.0.1.dist-info/LICENSE": {
+        "bytes": 3771,
+        "sha256": "b5a5dbce60265e305a815a6cb83ed07f24519d8ba644f2a307994488bced8815"
+      },
+      "xlrd-2.0.1.dist-info/METADATA": {
+        "bytes": 3443,
+        "sha256": "40955978fa70eba066a1bd1ed4d13c5441a5ebf2dd3aed40e61f2d4e327de1df"
+      },
+      "xlrd-2.0.1.dist-info/RECORD": {
+        "bytes": 1843,
+        "sha256": "fe0298ec9a2f1ca117508053cb68990a7867803e34327398b1504de5ee8f0f27"
+      },
+      "xlrd-2.0.1.dist-info/REQUESTED": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "xlrd-2.0.1.dist-info/WHEEL": {
+        "bytes": 110,
+        "sha256": "c9e606c840230153747e9d8ebc072917d499b6bdaf23325cd39dd4a82fe686db"
+      },
+      "xlrd-2.0.1.dist-info/top_level.txt": {
+        "bytes": 5,
+        "sha256": "9d9faddd273f0aa36c72d4b72fe577eaa5f00b90ee005be40758a7240a45fef3"
+      },
+      "xlrd/__init__.py": {
+        "bytes": 7320,
+        "sha256": "926b88133f1cbad6ad1a38d6dc499a0294c481c1e672c628d027161ffb61d8fd"
+      },
+      "xlrd/biffh.py": {
+        "bytes": 16651,
+        "sha256": "1a3b41a08f4f34811d6d99864ef7c343c1ee85988b25dda87dda36aa6ba7ce60"
+      },
+      "xlrd/book.py": {
+        "bytes": 57527,
+        "sha256": "d4b1f1c9631be74641230525642e14b4815e9b9cbca3c337cc00dc74f085ffce"
+      },
+      "xlrd/compdoc.py": {
+        "bytes": 21091,
+        "sha256": "df191fb896cb44644c74f899541b160201a4b70ec99dafb0de9fe5713093e984"
+      },
+      "xlrd/formatting.py": {
+        "bytes": 45573,
+        "sha256": "e8c87a18e33b1594e3d1c2781474a5d02568fbc227603bf6288653332704c3a4"
+      },
+      "xlrd/formula.py": {
+        "bytes": 94455,
+        "sha256": "56c9338d270d6cf2aa0f139aff03a6199daeff9c5a73796a1600ccd1d4c6277d"
+      },
+      "xlrd/info.py": {
+        "bytes": 36,
+        "sha256": "67404b69fc8178430a47a40bfbcd31d1d8d93ed2b474c4186e49c646364fd4e5"
+      },
+      "xlrd/sheet.py": {
+        "bytes": 106806,
+        "sha256": "9a1c04a84b5e508418f632b90b25fceecb6e9363265d444e35ff3a91940c858d"
+      },
+      "xlrd/timemachine.py": {
+        "bytes": 1757,
+        "sha256": "ec2b54ec563a9905bb1d23f91633352bda487cd7b1542b7f3c95c6d8cdc51007"
+      },
+      "xlrd/xldate.py": {
+        "bytes": 7934,
+        "sha256": "4beb9468b5fc91ab86cb64a45ff33e4be141aaa43a1fd11f4c0569bf914c5f42"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 1097641,
+    "zip_sha256_hex": "e2a003f628e42b454c989b85c19528bc1e2a0d485bee28ab253c4d41d5b29253"
+  },
+  "source": [
+    {
+      "path": "aws/ops/staged/ops_6376_term_premium_public_archive_acceptance.py",
+      "bytes": 4177,
+      "sha256": "799cee5504ccf94065ee5bf811f237b5b291e6d85ac9a4a7d9ded2b0fee1c5f7"
+    },
+    {
+      "path": "aws/ops/checks/term_premium_archive_acceptance.py",
+      "bytes": 6827,
+      "sha256": "a9850bdf021080fce3bc4231d6d1141baf8236f764ed2c646ff94cf7556a4924"
+    },
+    {
+      "path": "tests/deployment/test_term_public_archive_acceptance.py",
+      "bytes": 8620,
+      "sha256": "e7ac65e69c48cb1bbe08f2366d515d34a6cc2033b86906e94d6ce0a2c7281336"
+    }
+  ],
+  "contract": "docs/contracts/term-premium-public-archive-acceptance.md",
+  "tests": {
+    "focused_whole_invented_cases": 9,
+    "native": 20,
+    "deployment": 911,
+    "candidate_shell": 15
+  },
+  "runner_acceptance": {
+    "status": "pending_read_only_runner_capture",
+    "operation": 6376
+  },
+  "scope": "Exact native runtime and original content-addressed public archives only. No current packet, private predecessor/journal, account, downstream packet, provider or native invoke. No AWS writes or cadence changes. Full archive replay alone does not verify current-head publication or schedule causation. All platform workstreams remain open."
+}
