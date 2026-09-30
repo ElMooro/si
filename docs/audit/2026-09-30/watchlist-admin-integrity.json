@@ -1,6 +1,6 @@
 {
   "stage": 453,
-  "status": "full_source_and_invented_transaction_checks_passed_exact_deployment_pending",
+  "status": "exact_native_and_static_assets_accepted_normal_private_mutations_unverified",
   "predecessor_runtime": {
     "code_sha256": "7dGjpFQbs2sgHaMuSyTuQ/4UQDLjD2YY05uvKciUn2A=",
     "source_files_checked": 1,
@@ -49,9 +49,40 @@
     "missing_add_acknowledgement_reported_as_success",
     "malformed_owner_fails_after_prior_deletion"
   ],
-  "native_acceptance": null,
+  "native_acceptance": {
+    "actual_runtime": {
+      "code_sha256": "QI2xJVXh84hE5JVNUsfj/bT+bKhh8rc5Gq1EKyZlCAY=",
+      "source_files_checked": 1,
+      "handler_bytes": 29794,
+      "timeout": 30,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "matched",
+        "commit": "acd86e5c75248e9e6586ce150baa4c4cb13c37a2"
+      },
+      "schedules": [],
+      "function_name": "justhodl-portfolio-admin",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "acd86e5c75248e9e6586ce150baa4c4cb13c37a2",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_package_verified": true,
+    "native_invocations": 0,
+    "normal_private_mutations_verified": false,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
   "scope": "Guard existing watchlist admin actions and atomically remove the complete observed eligible automatic rows. No account execution or private acceptance reads. Future syncs and external writers remain distinct.",
-  "source_commit": "5156f5ab6c5795b95d4a6969fed14bde7a244d25",
+  "source_commit": "acd86e5c75248e9e6586ce150baa4c4cb13c37a2",
   "source_files": {
     "aws/lambdas/justhodl-portfolio-admin/source/lambda_function.py": {
       "bytes": 29794,
@@ -111,5 +142,162 @@
     "justhodl-position-sizer": "aa03b8aafb9fb85a53fbc7597c16193c4311cd095b3340f3526d1ab01062bcab"
   },
   "normal_private_mutations_verified": false,
-  "investment_qualification": "BLOCKED"
+  "investment_qualification": "BLOCKED",
+  "predecessor_source_commit": "5156f5ab6c5795b95d4a6969fed14bde7a244d25",
+  "native_acceptance_run": 36684911900,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6362_watchlist_admin_runtime_acceptance.md",
+  "native_report_commit": "dde790541741cb6c8b01e9c638e4337f23d6c4f6",
+  "lambda_run": 36684596100,
+  "pages_run": 36684596123,
+  "static_acceptance": {
+    "checked_at": "2026-09-30T07:42:04.030211+00:00",
+    "intended_commit": "acd86e5c75248e9e6586ce150baa4c4cb13c37a2",
+    "served_commit": "acd86e5c75248e9e6586ce150baa4c4cb13c37a2",
+    "assets": {
+      "portfolio-manager.html": {
+        "bytes": 30627,
+        "sha256": "5ccabbaa781b8716da54bde83bf253f6dd31892c4acb9339b4ee4e861be72101",
+        "matches_manifest": true
+      },
+      "portfolio/index.html": {
+        "bytes": 42918,
+        "sha256": "a933cb4942bade92ad499fa98d7ea66bd89f69f235394861cc45aa84fd552746",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "10f51b0076c56418e132ff9db8f8753cebdf879c9c3e03429f1d233e5abf2194",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "16aaa874b7f96b6d80e26314c003ccc6585dfb9fb9acd965ab8f54cd93115050",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68345,
+        "sha256": "fc18287ca439bd75317c24ad7eaceadb49efa78b89637aad68587eb317e84cff",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "74b94f16da7633912f81ad3d1e2fedef96b4f852a4badacbcca28d24f7b25b0f",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "2ac5eb13159f8b5721a2d98149caee0c81ccf4e735958f92c6ef3698a0465402",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "8c475044f371b590441a71c41e0921ba5643091fcb5309a5ed0c79b69dc6a9d6",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "d07cb6baa74aa6e65547c1d7cb306f048536c7e9c5fd923aabdcec4092f769c0",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 5067,
+        "sha256": "6f0e335170f0d12f62bad6e6e93509e08194e6663a44bf1b508859312adb6b48",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3069611,
+        "sha256": "40f500b348ef79b77404348f956a812d286e4abe37b78928d6f2f2325c8f91f8",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7666087,
+        "sha256": "d7c09d1232de69cfb1047db83129af29985363e8e810d156ec02a35ee2044a7b",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  }
 }
