@@ -56,7 +56,7 @@ metadata with required, last_modified, as_of, freshness and error.
 These observations establish the existing public shape, not deployment acceptance
 for this patch or a claim of current future-dated corruption.
 
-## Validation
+## Initial shared-source validation (insufficient for packaged behavior)
 
 - Before production edit: shared contract tests **24 failed, 49 passed**. Failures
   reproduced +1 microsecond, +1 hour, +365 days and offset-normalized future dates,
@@ -82,3 +82,41 @@ branch-protection settings returned HTTP 403, so required-check policy is unknow
 This is a draft review candidate only. No merge, deploy, schedule change, or live
 producer invocation is included; later runtime acceptance requires an authorized
 release and exact receipt verification.
+
+
+## Packaging correction after independent review
+
+The initial commit fixed only the shared module. Independent review correctly
+found that `scripts/deploy_lambdas.sh` copies top-level shared Python files first,
+then overlays the Lambda source directory (`cp -rT`). Its local `brief_contract.py`
+therefore replaced the fix. Initial source-only tests were not deployment proof.
+
+The local contract was introduced by `1b696f686` ("pack brief_contract into
+compiler zip"). Before this correction it differed from the shared version only
+by the missing four-line future guard. Preserve that explicit local packaging
+strategy and synchronize it byte-for-byte with the canonical shared module;
+change no packaging script, workflow, schedule or AWS resource.
+
+Search of all Lambda source paths and direct/transitive imports found exactly one
+local `brief_contract.py` override, in `justhodl-brief-compiler`, and no local
+`brief_compiler.py`. The dependency scanner again selects only that Lambda.
+
+The importer runner now checks byte identity and executes the actual offline
+staging block extracted from `scripts/deploy_lambdas.sh`, with its real copy order.
+A fresh isolated Python process imports both modules from the staged directory,
+preventing source-tree or cached imports from concealing the override. It checks
+all configured TTL boundaries, missing/malformed dates, timezone normalization,
+and 24 compiler cases: every required input across all five modes, at now,
++1 microsecond, +1 hour and +365 days (both market-tape required inputs separately).
+All future required cases must be EXPIRED / HELD; now remains FRESH / LIVE.
+
+Before synchronizing the local copy: importer runner **12 passed, 2 failed**
+(identity and packaged behavior). After: **14 passed**. The shared/adapter suite
+also remains **90 passed**, selected source/config checks and preflight pass,
+and the local public-boundary suite remains **15 passed**. Full deployment,
+secret and staged-inventory gates are rerun for the correction. This is a new
+[shopiz] commit, without rewriting the original commit or force-pushing.
+
+Unlike the first commit, the correction touches a Lambda source path and should
+trigger the PR's stub guard; its actual terminal result is recorded in the PR.
+The consumer risk described above still applies. No runtime acceptance is claimed.

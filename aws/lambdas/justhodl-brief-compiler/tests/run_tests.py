@@ -6,6 +6,8 @@ import io
 import json
 from pathlib import Path
 import sys
+import subprocess
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -176,6 +178,83 @@ class InternalsTests(unittest.TestCase):
                     n_new_high=700,n_new_low=300)
         self.assertEqual(compiler.compute(legs)["fields"],canonical.compute(legs)["fields"])
         self.assertEqual(compiler.FRED_LEGS,canonical.FRED_LEGS)
+
+
+class PackagedBriefTests(unittest.TestCase):
+    def test_local_contract_matches_canonical(self):
+        self.assertEqual((SOURCE / "brief_contract.py").read_bytes(),
+                         (ROOT / "aws/shared/brief_contract.py").read_bytes())
+
+    def test_actual_deployment_copy_order_rejects_future_inputs(self):
+        # Run only the offline staging block from the production deploy script.
+        # It copies shared modules first, then overlays the Lambda's source tree.
+        script = (ROOT / "scripts/deploy_lambdas.sh").read_text(encoding="utf-8")
+        start = script.index('  staging="$tmp/stage"')
+        end = script.index('  if [ "$fn" = "justhodl-portfolio-snapshot" ]; then', start)
+        staging_block = script[start:end]
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.run(["bash", "-eu", "-c",
+                            'tmp="$1"; dir="$2"\n' + staging_block,
+                            "stage-brief-test", tmp, str(SOURCE.parent)],
+                           cwd=ROOT, check=True, capture_output=True, text=True)
+            stage = Path(tmp) / "stage"
+            # Isolated interpreter prevents source-tree imports and cached modules
+            # from masking an override in the actual staged deployment candidate.
+            probe = r"""
+import json, sys
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import brief_contract as contract
+import brief_compiler as compiler
+assert Path(contract.__file__).parent == Path(sys.argv[1])
+assert Path(compiler.__file__).parent == Path(sys.argv[1])
+now = datetime(2026, 9, 30, 12, tzinfo=timezone.utc)
+for ttl in set(contract.TTL_HOURS.values()):
+    for factor, micros, expected in [(0, 0, 'FRESH'), (0, 1, 'FRESH'),
+            (1, -1, 'FRESH'), (1, 0, 'FRESH'), (1, 1, 'STALE'),
+            (2, -1, 'STALE'), (2, 0, 'STALE'), (2, 1, 'EXPIRED')]:
+        assert contract.freshness(now - timedelta(hours=ttl*factor, microseconds=micros), ttl, now) == expected
+    for ahead in [timedelta(microseconds=1), timedelta(hours=1), timedelta(days=365)]:
+        assert contract.freshness(now + ahead, ttl, now) == 'EXPIRED'
+for stamp in [None, '', 'bad', '2026-02-30T12:00:00Z']:
+    assert contract.freshness(stamp, 36, now) == 'EXPIRED'
+for stamp in ['2026-09-30T12:00:00', '2026-09-30T14:00:00+02:00', '2026-09-30T07:00:00-05:00']:
+    assert contract.freshness(stamp, 36, now) == 'FRESH'
+assert contract.freshness('2026-09-30T14:00:00.000001+02:00', 36, now) == 'EXPIRED'
+class Clock(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return now
+contract.datetime = Clock
+compiler._now = lambda: now
+writes = []
+compiler._put = lambda s3, key, doc: writes.append(doc)
+checks = 0
+for mode, required_key in [
+        ('plumbing', 'data/plumbing-stress.json'),
+        ('official_stats', 'data/fed-nowcast-join.json'),
+        ('market_tape', 'data/warm/us-equities-daily/latest-summary.json'),
+        ('market_tape', 'data/etf-flows.json'),
+        ('positioning', 'data/13f-positions.json'),
+        ('event', 'data/finviz-signals.json')]:
+    for ahead in [timedelta(0), timedelta(microseconds=1), timedelta(hours=1), timedelta(days=365)]:
+        def load(s3, key):
+            stamp = (now + ahead if key == required_key else now).isoformat()
+            return {'generated_at': stamp, 'as_of': stamp}, now.isoformat(), None
+        compiler._load = load
+        doc = compiler.run(None, mode)
+        assert doc['status'] == ('HELD' if ahead else 'LIVE'), (mode, required_key, ahead, doc)
+        assert doc['inputs'][required_key]['freshness'] == ('EXPIRED' if ahead else 'FRESH')
+        assert contract.validate_brief(doc) == []
+        assert writes[-1] == doc
+        checks += 1
+print(json.dumps({'packaged_compiler_cases': checks, 'future': 'EXPIRED', 'future_modes': 'all five HELD'}))
+"""
+            result = subprocess.run([sys.executable, "-I", "-c", probe, str(stage)],
+                                    cwd=tmp, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout)["packaged_compiler_cases"], 24)
 
 
 if __name__ == "__main__":
