@@ -1,4 +1,15 @@
-executing-against: 3cf75f2c9dc9d1e2cb6cb28caca300b24f0f9fa7
-wrote data/ai/wall/student-latest.json 1762
-wrote data/ai-student-desk.json 1762
-{"decision_status": "ADVISORY_ONLY", "understanding_score": 0.925, "market_exam_holdout": {"score": 0.4836, "direction_acc": 0.5455, "prior_score": 0.5127, "beats_prior": false, "n_drills": 55}, "calls": {"made": 11, "graded": 0, "hit_rate_by_window": {"5": {"hits": 0, "n": 0, "hit_rate": null}, "21": {"hits": 0, "n": 0, "hit_rate": null}, "63": {"hits": 0, "n": 0, "hit_rate": null}}}}
+executing-against: 69aada68e0095e130f7d463cac7ce95aed34484b
+Verifying Lambda functions exist...
+  ERROR justhodl-factor-decomposition: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-fx-decomposition: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-fedwatch-rate-probability: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-cftc-deep-view: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-sec-filing-diff: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-transcript-query: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-peer-comparison: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-screen-builder: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+  ERROR justhodl-supply-chain-linkage: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
+
+Report written to s3://justhodl-dashboard-live/ops/reports/1051.json
+
+Summary: 0 created, 0 updated, 9 errors, 0 missing
