@@ -1,24 +1,24 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-09-30T19:48:59 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-09-30T21:23:09 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `9610c09c2c8e71675d3fbcac22bd4c3dd4df6ed3d489fc3c8491c7b595f6bc7e`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `f21e99c4549a0b7bfd467124d3e34d28dc4747cb30c690fbf1d00ba9a500d147`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
 | metric | count |
 |---|---|
 | duplicate writers | 15 |
-| engines | 893 |
+| engines | 896 |
 | engines without consumer | 33 |
 | engines without schedule | 259 |
-| keys | 2044 |
-| orphan engine refs | 530 |
+| keys | 2055 |
+| orphan engine refs | 531 |
 | orphan page refs | 105 |
 | pages | 599 |
 | two cycles | 66 |
-| unused outputs | 155 |
-| writers | 1421 |
+| unused outputs | 158 |
+| writers | 1431 |
 
 ## Pages referencing keys no engine writes (orphan page references -- missing or obsolete outputs, or written outside aws/lambdas)
 
@@ -623,6 +623,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `data/warm/us-equities-daily/*.json.gz` <- justhodl-symdir
 - `data/warm/worldbank-full/indicators.json.gz` <- justhodl-symdir
 - `data/warm/worldbank/catalog.json.gz` <- justhodl-symdir
+- `data/xbrl-raw/CIK*.json` <- justhodl-xbrl-fundamentals
 - `data/yen-research/inputs/*.json` <- justhodl-yen-carry
 - `data/yen-research/outputs/*.json` <- justhodl-yen-carry
 - `data/yen-research/runs/*.json` <- justhodl-yen-carry
@@ -766,7 +767,7 @@ cftc-futures-positioning-agent, ecb-auto-updater, eia-energy-agent, fmp-fundamen
 - justhodl-backfill-orchestrator, justhodl-treasury-fiscal-full
 - justhodl-backlog-miner, justhodl-base-rates, justhodl-invest, justhodl-spx-beaters, justhodl-stock-buying
 - justhodl-blackswan-watch, justhodl-bottom-signals, justhodl-dxy-predict, justhodl-liq-indicators, justhodl-liquidity-reversal, justhodl-macro-predict, justhodl-top-signals
-- justhodl-bond-regime-detector, justhodl-capital-flow-radar, justhodl-cascade-recalibrator, justhodl-crisis-knowledge-base, justhodl-crypto-intel, justhodl-etf-constituents, justhodl-etf-fund-flows, justhodl-etf-global-desk, justhodl-etf-true-flows, justhodl-financial-secretary, justhodl-flow-lookthrough, justhodl-flows-ai-analysis, justhodl-options-confluence, justhodl-polygon-options-flow, justhodl-prediction-snapshotter, justhodl-sector-rotation, justhodl-self-improvement, justhodl-theme-cascade, justhodl-trade-tickets
+- justhodl-bond-regime-detector, justhodl-capital-flow-radar, justhodl-cascade-recalibrator, justhodl-crisis-knowledge-base, justhodl-crypto-intel, justhodl-etf-constituents, justhodl-etf-fund-flows, justhodl-etf-global-desk, justhodl-etf-true-flows, justhodl-financial-secretary, justhodl-flow-lookthrough, justhodl-flows-ai-analysis, justhodl-macro-regime, justhodl-options-confluence, justhodl-polygon-options-flow, justhodl-prediction-snapshotter, justhodl-sector-rotation, justhodl-self-improvement, justhodl-theme-cascade, justhodl-trade-tickets
 - justhodl-bottom, justhodl-fortress, justhodl-katlin
 - justhodl-carry-surface, justhodl-crisis-composite, justhodl-global-stress, justhodl-liquidity-inflection, justhodl-risk-regime, justhodl-sovereign-stress, justhodl-stress-index
 - justhodl-credit-stress, justhodl-nyfed-pd

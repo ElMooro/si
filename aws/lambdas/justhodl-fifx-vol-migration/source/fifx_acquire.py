@@ -5,6 +5,8 @@ import threading
 import time
 import hashlib, re, urllib.parse, urllib.request, urllib.error
 import fifx_catalog as catalog
+import fifx_fred as fred
+import os
 
 MAX=8*1024*1024
 MAX_CONCURRENT=4
@@ -15,8 +17,7 @@ def plan(stamp):
     clock=datetime.fromisoformat(stamp.replace('Z','+00:00'))
     if clock.tzinfo is None:raise ValueError('Acquisition timezone required')
     date=clock.astimezone(timezone.utc).date().isoformat()
-    out={sid:'https://fred.stlouisfed.org/graph/fredgraph.csv?'+urllib.parse.urlencode(
-        {'id':sid,'cosd':'1988-01-01','coed':date}) for sid in catalog.FRED}
+    out={sid:fred.source_url(sid,date) for sid in catalog.FRED}
     for sid in catalog.QUOTES[1:]:
         params={'range':'2y','interval':'1d'} if sid=='^VHSI' else {'period1':315532800,'period2':int(clock.timestamp()),'interval':'1d'}
         out[sid]='https://query1.finance.yahoo.com/v8/finance/chart/'+urllib.parse.quote(sid,safe='')+'?'+urllib.parse.urlencode(params)
@@ -48,9 +49,53 @@ def complete(stream, limit=MAX, *, expected_length=None):
     finally:stream.close()
 
 
+class CredentialUnavailable(ValueError):
+    """Existing managed provider credential is unavailable; never includes it."""
+
+
+_credential_lock=threading.Lock()
+_credential_value=None
+_credential_expires=0
+
+
+def fred_credential():
+    # Resolve existing configuration only. SSM time/retry bounds are explicit;
+    # no credential, exception text or private request URL enters an artifact.
+    global _credential_value,_credential_expires
+    with _credential_lock:
+        value=os.environ.get('FRED_API_KEY') or os.environ.get('FRED_KEY')
+        if not value:
+            if _credential_value is None or time.monotonic()>=_credential_expires:
+                try:
+                    import boto3
+                    from botocore.config import Config
+                    client=boto3.client('ssm',region_name='us-east-1',config=Config(connect_timeout=3,read_timeout=5,retries={'total_max_attempts':1}))
+                    candidate=client.get_parameter(Name='/justhodl/fred/api-key',WithDecryption=True)['Parameter']['Value']
+                    if type(candidate) is not str or not re.fullmatch('[a-z0-9]{32}',candidate):
+                        raise CredentialUnavailable('Valid existing FRED credential required')
+                    _credential_value=candidate
+                    _credential_expires=time.monotonic()+1800
+                except Exception:raise CredentialUnavailable('Existing managed FRED credential unavailable') from None
+            value=_credential_value
+        if type(value) is not str or not re.fullmatch('[a-z0-9]{32}',value):
+            raise CredentialUnavailable('Valid existing FRED credential required')
+        return value
+
+
+def authorized_request(url):
+    if not url.startswith('https://api.stlouisfed.org/fred/series/observations?'):
+        return url,None
+    parsed=urllib.parse.urlsplit(url);params=urllib.parse.parse_qs(parsed.query,keep_blank_values=True)
+    sid=params.get('series_id',[None])[0];as_of=params.get('realtime_start',[None])[0]
+    fred.request_identity(url,sid,as_of)
+    key=fred_credential()
+    return url+'&api_key='+urllib.parse.quote(key,safe=''),key
+
+
 def acquire(url,timeout=20):
     if type(timeout) not in (int,float) or not 0<timeout<=20:raise ValueError('Bounded source timeout required')
-    request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (JustHodl original-source research)',
+    request_url,credential=authorized_request(url)
+    request=urllib.request.Request(request_url,headers={'User-Agent':'Mozilla/5.0 (JustHodl original-source research)',
         'Accept':'application/json,text/csv','Accept-Encoding':'identity'})
     opener=urllib.request.build_opener(NoRedirect)
     try:response=opener.open(request,timeout=timeout)
@@ -58,7 +103,7 @@ def acquire(url,timeout=20):
     handed_to_reader=False
     try:
         status=response.code
-        if type(status) is not int or not 200<=status<=599 or status==206 or response.geturl()!=url:
+        if type(status) is not int or not 200<=status<=599 or status==206 or response.geturl()!=request_url:
             raise ValueError('Exact original request and complete response status required')
         if response.headers.get('Content-Range') is not None or response.headers.get('Content-Encoding','identity').strip().lower() not in ('','identity'):
             raise ValueError('Whole unencoded original response required')
@@ -71,6 +116,8 @@ def acquire(url,timeout=20):
         headers={k:v for k,v in response.headers.items() if k.lower() in ('date','etag','last-modified','content-type')}
         handed_to_reader=True
         raw=complete(response,expected_length=expected)
+        if credential and (credential.encode() in raw or any(credential in v for v in headers.values())):
+            raise ValueError('Sensitive provider response cannot become public evidence')
     finally:
         if not handed_to_reader:response.close()
     return raw,{'source_url':url,'http_status':status,'headers':headers,'acquired_at':datetime.now(timezone.utc).isoformat(),
@@ -92,13 +139,14 @@ def collect(source_plan, begin, finish, budget=ADMISSION_SECONDS):
     if type(budget) not in (int,float) or not 1<budget<=ADMISSION_SECONDS:
         raise ValueError('Bounded acquisition admission budget required')
     deadline=time.monotonic()+budget
-    lock=threading.Lock();aborted=threading.Event()
+    lock=threading.Lock();aborted=threading.Event();failure=[None]
     def deliver(result):
         # Retain before this worker admits another source. Completed response
         # bodies cannot accumulate in an unbounded future-results queue.
         with lock:
             try:finish(*result)
-            except Exception:
+            except Exception as exc:
+                if failure[0] is None:failure[0]=exc
                 aborted.set();raise
     def one(sid,url):
         with lock:
@@ -107,7 +155,8 @@ def collect(source_plan, begin, finish, budget=ADMISSION_SECONDS):
             expired=remaining<=1
             if not expired:
                 try:begin(sid)
-                except Exception:
+                except Exception as exc:
+                    if failure[0] is None:failure[0]=exc
                     aborted.set();raise
         if expired:
             return deliver((sid,None,None,{'status':'acquisition_budget_exhausted'}))
@@ -125,6 +174,10 @@ def collect(source_plan, begin, finish, budget=ADMISSION_SECONDS):
             for future in as_completed(futures):
                 future.result()
         except Exception:
-            aborted.set()
+            with lock:
+                aborted.set();cause=failure[0]
             for future in futures:future.cancel()
+            # A queued worker may finish its cancellation before the failing
+            # callback's future is observed. Preserve the first causal error.
+            if cause is not None:raise cause
             raise

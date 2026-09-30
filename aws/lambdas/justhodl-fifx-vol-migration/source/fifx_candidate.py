@@ -100,16 +100,25 @@ def rank_history(history):
                 invalid -= 1
 
 
-def build_source(sid, raw, receipt, generated_at, definition=None):
+def build_source(sid, raw, receipt, generated_at, definition=None,requested_url=None):
     if sid not in catalog.SOURCES:
         raise ValueError('Unreviewed source identity')
     spec = deepcopy(catalog.SPECS[sid])
+    if requested_url is not None:
+        if type(requested_url) is not str or receipt and requested_url!=receipt['source_url']:
+            raise ValueError('Original response must match its declared request')
+        if sid in catalog.FRED:
+            originals.fred.request_day(requested_url,sid,generated_at)
+    route=requested_url or (receipt or {}).get('source_url','')
+    if sid in catalog.FRED and route.startswith('https://api.stlouisfed.org/fred/series/observations?'):
+        spec['provider']='fred_api'
     out = {'contract': CONTRACT, 'candidate_only': True, 'source_id': sid, 'generated_at': generated_at,
         'specification': spec, 'receipt': deepcopy(receipt), 'original_sha256': hashlib.sha256(raw).hexdigest() if raw is not None else None,
         'original_bytes': len(raw) if raw is not None else None, 'original_rows': [], 'history': [],
         'source_identity': None, 'latest_reported': None, 'current': None, 'last_calculated': None,
         'quality': {'status': 'unavailable'}, 'methodology': deepcopy(catalog.METHOD),
         'independent_votes': 0, **catalog.AUTHORITY}
+    if requested_url is not None:out['requested_url']=requested_url
     if raw is None:
         if receipt is not None:
             raise ValueError('Missing original cannot have a receipt')
@@ -119,7 +128,7 @@ def build_source(sid, raw, receipt, generated_at, definition=None):
         out['quality']['status'] = 'http_error'
         return out
     try:
-        rows, identity = originals.parse_csv(raw, sid, definition) if sid in catalog.FRED else originals.parse_quote(raw, sid)
+        rows, identity = originals.parse_fred(raw, sid, definition,receipt) if sid in catalog.FRED else originals.parse_quote(raw, sid)
     except (ValueError, KeyError, TypeError, IndexError, UnicodeError, ArithmeticError) as exc:
         out['quality'].update(status='invalid_original_schema', error_type=type(exc).__name__)
         return out

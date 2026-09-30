@@ -5,6 +5,7 @@ import gzip, hashlib, io, json, re, sys, time
 import fifx_model as model
 import fifx_candidate as arithmetic
 import fifx_catalog as catalog
+import fifx_fred as fred
 import fifx_originals as originals
 import fifx_timezones as timezones
 import verify_fifx_arithmetic as independent
@@ -17,7 +18,7 @@ MAX=64*1024*1024
 ROOT=Path(__file__).resolve().parent
 SOURCE='data/report-measurements.json'
 BOND='data/bond-vol.json'
-COMPILERS=(model,arithmetic,catalog,originals,timezones,independent,acquisition,qualification,
+COMPILERS=(model,arithmetic,catalog,fred,originals,timezones,independent,acquisition,qualification,
            canonical,report_observations,research_brief_model,evidence_store,sys.modules[__name__])
 sha=lambda raw:hashlib.sha256(raw).hexdigest()
 now=lambda:datetime.now(timezone.utc).isoformat()
@@ -118,21 +119,23 @@ def compile_source(sid,inputs,defs,read):
     entry=inputs['sources'][sid]
     raw=checked(entry['original'],'originals',read,'bin') if entry['original'] else None
     receipt=checked(entry['receipt'],'receipts',read) if entry['receipt'] else None
-    out=arithmetic.build_source(sid,raw,receipt,inputs['generated_at'],defs.get(sid))
-    proof=independent.verify(out,raw,receipt,defs.get(sid))
+    out=arithmetic.build_source(sid,raw,receipt,inputs['generated_at'],defs.get(sid),requested_url=entry.get('requested_url'))
+    proof=independent.verify(out,raw,receipt,defs.get(sid),requested_url=entry.get('requested_url'))
     return out,proof
 
 
 def replay(packet,read):
     qualified_arithmetic();run=binding(packet,read)
-    if set(run['compilers'])!={m.__name__ for m in COMPILERS}:raise ValueError('Complete native compiler closure required')
+    # Permit only exact reviewed historical sources. No archived code executes;
+    # the current compiler must still reconstruct every original output/proof.
+    legacy={'fifx_acquire': ['6cec54424d8a64b9d1462ec7d99cc37ae06060820eca56e193cd4ddcc115f1a6', '810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec'], 'fifx_candidate': ['c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0'], 'fifx_originals': ['2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51'], 'verify_fifx_arithmetic': ['d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204'], 'fifx_qualification': ['6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c'], 'fifx_store': ['5a77b910409bc0b8f90458a9ba7003bf3658a9d5fe5a2a4bdc5db3b3f3ebb27b', '46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7']}
+    wanted={m.__name__ for m in COMPILERS};present=set(run['compilers'])
+    historical=present==wanted-{'fifx_fred'} and run['compilers'].get('fifx_acquire',{}).get('sha256') in legacy['fifx_acquire']
+    if present!=wanted and not historical:raise ValueError('Complete native compiler closure required')
     for module in COMPILERS:
+        if historical and module.__name__=='fifx_fred':continue
         archived=checked(run['compilers'][module.__name__],'compilers',read,'py')
-        # Only these exact transport predecessors may replay under current code.
-        # Every mathematical compiler remains exact; archived code never runs.
-        prior_transport={'fifx_store':'46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7',
-                         'fifx_acquire':'810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec'}
-        if archived!=Path(module.__file__).read_bytes() and sha(archived)!=prior_transport.get(module.__name__):
+        if archived!=Path(module.__file__).read_bytes() and sha(archived) not in legacy.get(module.__name__,[]):
             raise ValueError('Reviewed compiler bytes differ')
     inputs=checked(run['input'],'inputs',read)
     if inputs.get('contract')!='fifx-vol-inputs.v1' or set(inputs['sources'])!=set(catalog.SOURCES) or set(run['series'])!=set(catalog.SOURCES):
@@ -273,7 +276,7 @@ def run(client,bucket,request_id):
             progress['sources'][sid]={'status':'attempt_recorded'};progress['provider_requests']+=1;journal()
         def finish(sid,raw,receipt,status):
             progress['sources'][sid]=status
-            sources[sid]=save(raw,receipt);journal()
+            sources[sid]={**save(raw,receipt),'requested_url':source_plan[sid]};journal()
         acquisition.collect(source_plan,begin,finish)
         inputs={'contract':'fifx-vol-inputs.v1','generated_at':now(),'macro':macro,'sources':sources,'predecessors':predecessors,
                 'previous_watermarks':previous,'context':context,'acquisition':{'provider_requests':progress['provider_requests'],

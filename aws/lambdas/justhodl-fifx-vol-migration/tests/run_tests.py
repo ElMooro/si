@@ -58,7 +58,7 @@ def packet(client):
 class Tests(unittest.TestCase):
     def test_qualified_modules_are_exact_and_closed(self):
         store.qualified_arithmetic()
-        self.assertEqual(set(store.qualification.QUALIFIED),{'fifx_candidate.py','fifx_catalog.py','fifx_originals.py','fifx_timezones.py','verify_fifx_arithmetic.py'})
+        self.assertEqual(set(store.qualification.QUALIFIED),{'fifx_candidate.py','fifx_catalog.py','fifx_originals.py','fifx_fred.py','fifx_timezones.py','verify_fifx_arithmetic.py'})
 
     def test_complete_retention_and_original_replay(self):
         client=Store();out,value,defs=packet(client)
@@ -173,7 +173,8 @@ class Tests(unittest.TestCase):
         # the production loop, which would also catch a test AssertionError.
         self.assertTrue(all(1<=r[1]<=4 and 0<r[2]<=20 for r in observed))
         self.assertEqual(set(value['sources']),set(store.catalog.SOURCES))
-        self.assertTrue(all(v=={'original':None,'receipt':None} for v in value['sources'].values()))
+        self.assertEqual(value['sources']['^MOVE'],{'original':None,'receipt':None})
+        self.assertTrue(all(v=={'original':None,'receipt':None,'requested_url':acquisition.plan(value['generated_at'])[sid]} for sid,v in value['sources'].items() if sid!='^MOVE'))
         self.assertEqual(value['acquisition']['sources']['^MOVE']['status'],'bound_source_unavailable')
         self.assertEqual(value['acquisition']['max_concurrent_requests'],4)
         self.assertEqual(value['acquisition']['budget_scope'],'admission_deadline')
@@ -209,6 +210,21 @@ class Tests(unittest.TestCase):
         with patch.object(acquisition,'acquire',side_effect=acquire),self.assertRaisesRegex(RuntimeError,'retention failed'):
             acquisition.collect(plan,lambda sid:None,finish)
         self.assertTrue(entered.is_set());self.assertEqual(active,0)
+
+    def test_queued_cancellation_cannot_hide_the_causal_retention_failure(self):
+        from concurrent.futures import wait
+        plan=acquisition.plan(fixture.NOW);observed=[]
+        def request(url,timeout):return b'whole invented source',{'http_status':200}
+        def finish(*args):raise RuntimeError('original retention failed')
+        def cancelled_first(futures):
+            wait(futures)
+            ordered=sorted(futures,key=lambda future:str(future.exception())!='Acquisition aborted before admission')
+            observed.extend(str(future.exception()) for future in ordered)
+            return iter(ordered)
+        with patch.object(acquisition,'acquire',side_effect=request),patch.object(acquisition,'as_completed',side_effect=cancelled_first),self.assertRaisesRegex(RuntimeError,'original retention failed'):
+            acquisition.collect(plan,lambda sid:None,finish)
+        self.assertEqual(observed[0],'Acquisition aborted before admission')
+        self.assertIn('original retention failed',observed)
 
     def test_durable_admission_failure_never_starts_a_source_request(self):
         def begin(sid):raise RuntimeError('journal unavailable')
@@ -272,8 +288,9 @@ class Tests(unittest.TestCase):
         self.assertEqual((SOURCE.parent/'tests/legacy_lambda_function.py.txt').stat().st_size,19283)
 
 if __name__=='__main__':
-    import test_fifx_transport
+    import test_fifx_transport, test_fifx_api_protocol, test_fifx_api_acquisition, test_fifx_api_arithmetic, test_fifx_api_retention
     suite=unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(Tests),
-                             unittest.defaultTestLoader.loadTestsFromModule(test_fifx_transport)])
+        *[unittest.defaultTestLoader.loadTestsFromModule(module) for module in
+          (test_fifx_transport,test_fifx_api_protocol,test_fifx_api_acquisition,test_fifx_api_arithmetic,test_fifx_api_retention)]])
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     raise SystemExit(not result.wasSuccessful())
