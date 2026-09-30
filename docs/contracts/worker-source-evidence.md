@@ -30,10 +30,36 @@ This is a predecessor capture, **not a deployment receipt**. A stable deployment
 and a script ETag do not independently prove that the source endpoint is bound
 to the active version or that it equals an intended repository build. Both
 `source_active_version_binding_verified` and `intended_repo_build_verified`
-remain false. Exact build/deployment verification is required before accepting
+remain false in this capture. Exact build/deployment verification is required before accepting
 the planned Worker publication repair. No Worker route, KV/DO contents, logs,
 private account, current consumer packet or native producer is accessed, and
 no configuration, schedule, Worker code or private state is changed.
+
+The separate release verifier now requires Wrangler **4.144.0**, a freshly
+generated complete build, unchanged repository/build inputs during deployment,
+and exact byte/size identity for the entire uploaded `index.js` module. It refuses
+extra runtime modules and unknown build files. Wrangler's debug map and README
+are recorded build auxiliaries, not uploaded executable modules. Source ETags
+must be strong and equal to the active version's opaque script identity; they
+are never treated as SHA-256. Both the captured complete source and the intended
+build must match before the verifier can set the two verification flags true.
+
+The deploy workflow serializes Worker releases, refuses obsolete source trees,
+captures the complete predecessor before code mutation, and verifies after
+existing managed-secret synchronization. It publishes the public, value-free
+receipt at `data/ops/releases/worker-justhodl-data-proxy.json` and commits the
+complete before/after code capture under `aws/ops/reports/worker-source/`.
+Evidence-upload and report-push failures remain workflow failures. Workflow-only
+changes deploy this governed Worker, not unrelated Workers; manual dispatch
+requires an exact validated Worker name. Other Workers retain their existing
+deployment behavior and do not inherit this Worker's receipt claim.
+
+Configuration comparison covers complete **control-plane-visible** settings,
+binding metadata and schedule metadata. Cloudflare does not expose secret values;
+those values are neither read nor compared. No owner route or actual account
+publication is invoked by receipt acceptance. An exact package receipt proves
+deployed code identity at the captured deployment, not continuous availability,
+private publication success, financial accuracy or performance.
 
 The existing publication defect and unbounded immutable-bundle collision read
 are reproduced with complete synthetic packets, retained with eleven whole

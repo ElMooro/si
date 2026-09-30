@@ -1,0 +1,139 @@
+{
+  "scope": "Exact built Worker source plus stable control-plane identities, not private publication acceptance.",
+  "predecessor_capture": {
+    "path": "aws/ops/reports/worker-source/6354-36658515237.json",
+    "sha256": "9f7a3f90682ea62e7454a9892e9d798f4b3ecb22d9d13970bbf078a0a372694a",
+    "run": 36658515237,
+    "inspection_commit": "a695fb6b767e9e6642c5d06aa02ba5605b0c66bf",
+    "whole_source_bytes": 185194
+  },
+  "subsequent_offline_complete_build_check": {
+    "contract": "worker-release.v1",
+    "status": "matched",
+    "worker": "justhodl-data-proxy",
+    "commit": "a695fb6b767e9e6642c5d06aa02ba5605b0c66bf",
+    "captured_at": "2026-09-30T02:09:45.031701+00:00",
+    "deployment_id": "0eab478c-8204-407a-ba71-520fcf1c6554",
+    "version_id": "e0166141-9ff0-4f6a-b52a-c24b8e684eb9",
+    "provider_script_etag": "49fa93e250fecfba4f67cd79187696050ac746eeddc1ecd21974e7b0e715e7e4",
+    "source_files": {
+      "index.js": {
+        "bytes": 185194,
+        "sha256": "56258cae5c5e85662a81454e4b69eed50d461ee6344444149fdf700d52ea15a7",
+        "content_type": "application/javascript+module"
+      }
+    },
+    "build_tool": {
+      "name": "wrangler",
+      "version": "4.144.0"
+    },
+    "configuration": {
+      "bindings": [
+        {
+          "configuration_sha256": "2ebdf56cd788ef3d29a88c7bd2bf1beaf0cf5297ca65ac6ece95b83977de6ca0",
+          "name": "ADMIN_TOKEN",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "55bdb46ab9466940dd61509719a63f2b67351e5c84b3cd47318dfa3f5367e37c",
+          "name": "BRAIN_OWNER_STORE",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "e065ee9a12724ecfa5467642506b88d3a69a5083dbd8fb8557fee827dee9dc68",
+          "name": "FMP_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "ad189337f7859e091772fef27616629d35abecbab7c67abd1fd1ba7d9d005ef5",
+          "name": "FRED_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "15b20cc5122c17b2925179e1092e80c244962f28586ef5490d859a5c95d379ea",
+          "name": "OWNER_EMAILS",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "691b0f25e76203a12b17b408b1873f3af38e420cc6c4be3138a93d01e6a9d60d",
+          "name": "POLYGON_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "da5792e7b1f325eb06018fb411cccec41ba2fb6d4e10677459fe23299b60ab53",
+          "name": "PRICE_PLAN_MAP",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "7be92833e7a9562786ab6ce4d61ff3316caf3b7ccea1043b8fbeafc06870d130",
+          "name": "STRIPE_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "f73495b93a3c8639378089f2667916d69dc5c57250e4d9bbeb8ed1d6d37d5769",
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "9ee1f0128229ee032808269a583294e95a8e4f49f5c56ac2666e41fccfb3a0c8",
+          "name": "SUPABASE_SERVICE_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "8c127714ed3f395eedfe25c1d7d35ef17325cad0b7163d2e6a32e6fea06b5efa",
+          "name": "SUPABASE_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "97a8cffb5ca622b53cd86061db7302e10013422134c3020399ccf5b018c2194c",
+          "name": "SYMDIR_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "63c6aad2f1ad0a595d18097340667a2bf6347b93409ba59d8e59d9ebc9f18f71",
+          "name": "USER_DATA",
+          "type": "kv_namespace"
+        },
+        {
+          "configuration_sha256": "2ca88993a16a6148b7aac2d7fd2a8d4b6b4defa66ffb8f575faf588598f072a2",
+          "name": "WORKSPACE_COORDINATOR",
+          "type": "durable_object_namespace"
+        }
+      ],
+      "compatibility_date": "2025-10-01",
+      "compatibility_flags": [],
+      "configuration_sha256": "2d0813beacba5c6ac4775ec4da73df51b76895bafe0e9dcf9cdf274f2ba9c599",
+      "schedule_count": 0,
+      "schedules_sha256": "6daa9ec137a94fc5962f6d05ab16df8dba70096ae34571ccd552ac130cd733c5"
+    },
+    "source_active_version_binding_verified": true,
+    "intended_repo_build_verified": true,
+    "complete_source_transport_sha256": "10179946194fd1aead7b581b1cc4f2a22775e26e7612f38b261548be6705162e",
+    "private_reads": 0,
+    "worker_invocations": 0,
+    "configuration_changes": 0,
+    "normal_private_publication_verified": false,
+    "verification_scope": "Complete built module bytes, provider representation identity, stable deployment/configuration; no live route invocation"
+  },
+  "tests": {
+    "deployment_static": 757,
+    "deployment_shell": 12,
+    "worker_behaviour": 131,
+    "capture": 14,
+    "release": 9,
+    "workflow_shell_blocks": 11
+  },
+  "production_worker_semantics_changed": false,
+  "release_workflow_deployment": "pending",
+  "publication_ordering_repair": "open",
+  "private_reads": 0,
+  "worker_invocations": 0,
+  "limitations": [
+    "Control-plane secret values are not exposed or compared. configuration_changes refers only to differences in returned visible metadata.",
+    "Exact source identity does not prove actual account publication, availability or investment performance."
+  ],
+  "logs": {
+    "stage444-release-final-deployment.log": "317246f038854baeb375fc9d5fa74935c2391e5d9555f753003e19298694ec4b",
+    "stage444-release-worker.log": "fd50f0fba5aaa37e60ca949993e10371f8c957e9e0405604d2cefff37e3a4743"
+  }
+}
