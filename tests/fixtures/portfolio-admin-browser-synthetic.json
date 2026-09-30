@@ -1,0 +1,1460 @@
+{
+  "scope": "Complete invented local book and current admin handler responses. Fake DynamoDB and refresh; no actual accounts, native invocation or provider requests.",
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-admin/source/lambda_function.py": "65036117b787f73822b39834e4dae445e87814f3fe80886b729ced140f1f804c",
+    "portfolio-manager.html": "9aef87e9960f3b86550a2a9db6bef4447f7bd8f02a0da34710e2642480d8d161"
+  },
+  "records": [
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"list\",\"filter\":\"POSITION\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"positions\": [{\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 10.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 1000.0, \"position_type\": \"LONG\", \"notes\": \"Invented owner note\", \"record_etag\": \"58d21b2d39e97d98d1f34f926d30550a48f7eb4ae100ad2462ab27bf15733cb6\", \"computed_cost_basis_total\": 1000.0, \"basis_reconciliation_status\": \"MATCHED\"}, {\"pk\": \"POSITION\", \"sk\": \"BBB\", \"symbol\": \"BBB\", \"qty\": -5.0, \"cost_basis_per_share\": 80.0, \"cost_basis_total\": -400.0, \"position_type\": \"SHORT\", \"notes\": \"Invented short holding\", \"record_etag\": \"cc5296e0551b63922298edc893a873c23e806f906d83fec8b9977a498f0a6b14\", \"computed_cost_basis_total\": -400.0, \"basis_reconciliation_status\": \"MATCHED\"}], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 2, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true, \"list_complete\": true, \"list_consistency\": \"STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "POSITION"
+            },
+            "ConsistentRead": true
+          }
+        ]
+      ],
+      "captured_log": ""
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"update_position\",\"symbol\":\"AAA\",\"expected_record_etag\":\"58d21b2d39e97d98d1f34f926d30550a48f7eb4ae100ad2462ab27bf15733cb6\",\"qty\":20}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"update_position\", \"updated\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"Invented owner note\", \"updated_at\": \"2026-09-30T07:05:18.149967+00:00\", \"mutation_id\": \"0560a1ca-f7d4-4cae-b2df-96be7e4947b5\", \"record_etag\": \"5d79e3a3207ceb80338d7f3d13b6f2f07fea794da3782cb32d8ceb145b929162\", \"computed_cost_basis_total\": 2000.0, \"basis_reconciliation_status\": \"MATCHED\"}, \"changed\": true, \"snapshot_refresh\": \"queued\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "0560a1ca-f7d4-4cae-b2df-96be7e4947b5"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "get_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "ConsistentRead": true
+          }
+        ],
+        [
+          "update_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "UpdateExpression": "SET #u0 = :u0, #u1 = :u1, #u2 = :u2, #u3 = :u3, #u4 = :u4",
+            "ConditionExpression": "attribute_not_exists(#c0) AND #c1 = :c1 AND #c2 = :c2 AND attribute_not_exists(#c3) AND attribute_not_exists(#c4) AND #c5 = :c5 AND #c6 = :c6 AND #c7 = :c7 AND #c8 = :c8 AND attribute_not_exists(#c9) AND #c10 = :c10 AND attribute_not_exists(#c11) AND #c12 = :c12 AND attribute_not_exists(#c13) AND attribute_not_exists(#c14)",
+            "ExpressionAttributeNames": {
+              "#c0": "added_at",
+              "#c1": "cost_basis_per_share",
+              "#c2": "cost_basis_total",
+              "#c3": "entry_thesis",
+              "#c4": "mutation_id",
+              "#c5": "notes",
+              "#c6": "pk",
+              "#c7": "position_type",
+              "#c8": "qty",
+              "#c9": "sector",
+              "#c10": "sk",
+              "#c11": "stop_loss",
+              "#c12": "symbol",
+              "#c13": "target_weight_pct",
+              "#c14": "updated_at",
+              "#u0": "qty",
+              "#u1": "cost_basis_total",
+              "#u2": "position_type",
+              "#u3": "updated_at",
+              "#u4": "mutation_id"
+            },
+            "ExpressionAttributeValues": {
+              ":c1": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              ":c2": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              ":c5": "Invented owner note",
+              ":c6": "POSITION",
+              ":c7": "LONG",
+              ":c8": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              ":c10": "AAA",
+              ":c12": "AAA",
+              ":u0": {
+                "source_type": "Decimal",
+                "text": "20"
+              },
+              ":u1": {
+                "source_type": "Decimal",
+                "text": "2000"
+              },
+              ":u2": "LONG",
+              ":u3": "2026-09-30T07:05:18.149967+00:00",
+              ":u4": "0560a1ca-f7d4-4cae-b2df-96be7e4947b5"
+            },
+            "ReturnValues": "ALL_NEW"
+          }
+        ]
+      ],
+      "captured_log": ""
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"list\",\"filter\":\"POSITION\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "0560a1ca-f7d4-4cae-b2df-96be7e4947b5"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"positions\": [{\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"Invented owner note\", \"updated_at\": \"2026-09-30T07:05:18.149967+00:00\", \"mutation_id\": \"0560a1ca-f7d4-4cae-b2df-96be7e4947b5\", \"record_etag\": \"5d79e3a3207ceb80338d7f3d13b6f2f07fea794da3782cb32d8ceb145b929162\", \"computed_cost_basis_total\": 2000.0, \"basis_reconciliation_status\": \"MATCHED\"}, {\"pk\": \"POSITION\", \"sk\": \"BBB\", \"symbol\": \"BBB\", \"qty\": -5.0, \"cost_basis_per_share\": 80.0, \"cost_basis_total\": -400.0, \"position_type\": \"SHORT\", \"notes\": \"Invented short holding\", \"record_etag\": \"cc5296e0551b63922298edc893a873c23e806f906d83fec8b9977a498f0a6b14\", \"computed_cost_basis_total\": -400.0, \"basis_reconciliation_status\": \"MATCHED\"}], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 2, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true, \"list_complete\": true, \"list_consistency\": \"STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "0560a1ca-f7d4-4cae-b2df-96be7e4947b5"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "POSITION"
+            },
+            "ConsistentRead": true
+          }
+        ]
+      ],
+      "captured_log": ""
+    },
+    {
+      "control": "stale",
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented owner note",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "0560a1ca-f7d4-4cae-b2df-96be7e4947b5"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ]
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"update_position\",\"symbol\":\"AAA\",\"expected_record_etag\":\"5d79e3a3207ceb80338d7f3d13b6f2f07fea794da3782cb32d8ceb145b929162\",\"qty\":30}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 409,
+        "body": "{\"ok\": false, \"err\": \"position changed since it was displayed; refresh before editing\", \"error_code\": \"STALE_EDIT\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "get_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "ConsistentRead": true
+          }
+        ]
+      ],
+      "captured_log": ""
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"list\",\"filter\":\"POSITION\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"positions\": [{\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"Competing invented owner edit\", \"updated_at\": \"2026-09-30T07:05:18.149967+00:00\", \"mutation_id\": \"invented-competing-version\", \"record_etag\": \"81ecaeb5dbb5dc4f7543832d6ae2109b05093032a431b0600faeed530f08880f\", \"computed_cost_basis_total\": 2000.0, \"basis_reconciliation_status\": \"MATCHED\"}, {\"pk\": \"POSITION\", \"sk\": \"BBB\", \"symbol\": \"BBB\", \"qty\": -5.0, \"cost_basis_per_share\": 80.0, \"cost_basis_total\": -400.0, \"position_type\": \"SHORT\", \"notes\": \"Invented short holding\", \"record_etag\": \"cc5296e0551b63922298edc893a873c23e806f906d83fec8b9977a498f0a6b14\", \"computed_cost_basis_total\": -400.0, \"basis_reconciliation_status\": \"MATCHED\"}], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 2, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true, \"list_complete\": true, \"list_consistency\": \"STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "POSITION"
+            },
+            "ConsistentRead": true
+          }
+        ]
+      ],
+      "captured_log": ""
+    },
+    {
+      "control": "failure",
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ]
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"list\",\"filter\":\"POSITION\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 503,
+        "body": "{\"ok\": false, \"err\": \"operation outcome unconfirmed; refresh before retrying\", \"error_code\": \"OPERATION_UNCONFIRMED\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [],
+      "captured_log": ""
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"list\",\"filter\":\"POSITION\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"positions\": [{\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"Competing invented owner edit\", \"updated_at\": \"2026-09-30T07:05:18.149967+00:00\", \"mutation_id\": \"invented-competing-version\", \"record_etag\": \"81ecaeb5dbb5dc4f7543832d6ae2109b05093032a431b0600faeed530f08880f\", \"computed_cost_basis_total\": 2000.0, \"basis_reconciliation_status\": \"MATCHED\"}, {\"pk\": \"POSITION\", \"sk\": \"BBB\", \"symbol\": \"BBB\", \"qty\": -5.0, \"cost_basis_per_share\": 80.0, \"cost_basis_total\": -400.0, \"position_type\": \"SHORT\", \"notes\": \"Invented short holding\", \"record_etag\": \"cc5296e0551b63922298edc893a873c23e806f906d83fec8b9977a498f0a6b14\", \"computed_cost_basis_total\": -400.0, \"basis_reconciliation_status\": \"MATCHED\"}], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 2, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true, \"list_complete\": true, \"list_consistency\": \"STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "POSITION"
+            },
+            "ConsistentRead": true
+          }
+        ]
+      ],
+      "captured_log": ""
+    },
+    {
+      "control": "uncertain",
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ]
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"update_position\",\"symbol\":\"AAA\",\"expected_record_etag\":\"81ecaeb5dbb5dc4f7543832d6ae2109b05093032a431b0600faeed530f08880f\",\"notes\":\"Invented final note\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Competing invented owner edit",
+          "updated_at": "2026-09-30T07:05:18.149967+00:00",
+          "mutation_id": "invented-competing-version"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"update_position\", \"updated\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"Invented final note\", \"updated_at\": \"2026-09-30T07:05:30.359193+00:00\", \"mutation_id\": \"f324ffc7-e003-407a-9eb4-0783cd96066d\", \"record_etag\": \"4b5db0dcfd491483da891ef4d47e9f68105f0ae05090d0e0d266fbd9e1eb32fe\", \"computed_cost_basis_total\": 2000.0, \"basis_reconciliation_status\": \"MATCHED\"}, \"changed\": true, \"snapshot_refresh\": \"unconfirmed\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented final note",
+          "updated_at": "2026-09-30T07:05:30.359193+00:00",
+          "mutation_id": "f324ffc7-e003-407a-9eb4-0783cd96066d"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "get_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "ConsistentRead": true
+          }
+        ],
+        [
+          "update_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "UpdateExpression": "SET #u0 = :u0, #u1 = :u1, #u2 = :u2",
+            "ConditionExpression": "attribute_not_exists(#c0) AND #c1 = :c1 AND #c2 = :c2 AND attribute_not_exists(#c3) AND #c4 = :c4 AND #c5 = :c5 AND #c6 = :c6 AND #c7 = :c7 AND #c8 = :c8 AND attribute_not_exists(#c9) AND #c10 = :c10 AND attribute_not_exists(#c11) AND #c12 = :c12 AND attribute_not_exists(#c13) AND #c14 = :c14",
+            "ExpressionAttributeNames": {
+              "#c0": "added_at",
+              "#c1": "cost_basis_per_share",
+              "#c2": "cost_basis_total",
+              "#c3": "entry_thesis",
+              "#c4": "mutation_id",
+              "#c5": "notes",
+              "#c6": "pk",
+              "#c7": "position_type",
+              "#c8": "qty",
+              "#c9": "sector",
+              "#c10": "sk",
+              "#c11": "stop_loss",
+              "#c12": "symbol",
+              "#c13": "target_weight_pct",
+              "#c14": "updated_at",
+              "#u0": "notes",
+              "#u1": "updated_at",
+              "#u2": "mutation_id"
+            },
+            "ExpressionAttributeValues": {
+              ":c1": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              ":c2": {
+                "source_type": "Decimal",
+                "text": "2000"
+              },
+              ":c4": "invented-competing-version",
+              ":c5": "Competing invented owner edit",
+              ":c6": "POSITION",
+              ":c7": "LONG",
+              ":c8": {
+                "source_type": "Decimal",
+                "text": "20"
+              },
+              ":c10": "AAA",
+              ":c12": "AAA",
+              ":c14": "2026-09-30T07:05:18.149967+00:00",
+              ":u0": "Invented final note",
+              ":u1": "2026-09-30T07:05:30.359193+00:00",
+              ":u2": "f324ffc7-e003-407a-9eb4-0783cd96066d"
+            },
+            "ReturnValues": "ALL_NEW"
+          }
+        ]
+      ],
+      "captured_log": "[portfolio-admin] snapshot refresh acknowledgement unavailable\n"
+    },
+    {
+      "event": {
+        "requestContext": {
+          "http": {
+            "method": "POST"
+          }
+        },
+        "headers": {
+          "x-justhodl-token": "invented-infra-token",
+          "origin": "https://justhodl.ai"
+        },
+        "body": "{\"action\":\"list\",\"filter\":\"POSITION\"}"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented final note",
+          "updated_at": "2026-09-30T07:05:30.359193+00:00",
+          "mutation_id": "f324ffc7-e003-407a-9eb4-0783cd96066d"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"positions\": [{\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"Invented final note\", \"updated_at\": \"2026-09-30T07:05:30.359193+00:00\", \"mutation_id\": \"f324ffc7-e003-407a-9eb4-0783cd96066d\", \"record_etag\": \"4b5db0dcfd491483da891ef4d47e9f68105f0ae05090d0e0d266fbd9e1eb32fe\", \"computed_cost_basis_total\": 2000.0, \"basis_reconciliation_status\": \"MATCHED\"}, {\"pk\": \"POSITION\", \"sk\": \"BBB\", \"symbol\": \"BBB\", \"qty\": -5.0, \"cost_basis_per_share\": 80.0, \"cost_basis_total\": -400.0, \"position_type\": \"SHORT\", \"notes\": \"Invented short holding\", \"record_etag\": \"cc5296e0551b63922298edc893a873c23e806f906d83fec8b9977a498f0a6b14\", \"computed_cost_basis_total\": -400.0, \"basis_reconciliation_status\": \"MATCHED\"}], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 2, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true, \"list_complete\": true, \"list_consistency\": \"STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT\"}",
+        "headers": {
+          "Cache-Control": "private, no-store",
+          "Content-Type": "application/json"
+        }
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000"
+          },
+          "position_type": "LONG",
+          "notes": "Invented final note",
+          "updated_at": "2026-09-30T07:05:30.359193+00:00",
+          "mutation_id": "f324ffc7-e003-407a-9eb4-0783cd96066d"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "-5"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "80"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-400"
+          },
+          "position_type": "SHORT",
+          "notes": "Invented short holding"
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "POSITION"
+            },
+            "ConsistentRead": true
+          }
+        ]
+      ],
+      "captured_log": ""
+    }
+  ],
+  "mocked_refresh_requests": [
+    {
+      "FunctionName": "justhodl-portfolio-snapshot",
+      "Qualifier": "live",
+      "InvocationType": "Event",
+      "Payload": "{}"
+    },
+    {
+      "FunctionName": "justhodl-portfolio-snapshot",
+      "Qualifier": "live",
+      "InvocationType": "Event",
+      "Payload": "{}"
+    }
+  ],
+  "actual_private_reads": 0,
+  "native_invocations": 0
+}

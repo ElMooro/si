@@ -1,0 +1,160 @@
+{
+  "stage": 452,
+  "status": "full_source_and_isolated_browser_checks_passed_exact_deployment_pending",
+  "predecessor_runtime": {
+    "code_sha256": "4U9ooWwwqPvnU//lnnVW/aADCheVn48vcLA+I664fvk=",
+    "source_files_checked": 1,
+    "handler_bytes": 15490,
+    "timeout": 30,
+    "memory_mb": 256,
+    "receipt": {
+      "status": "matched",
+      "commit": "f9cf9a5ac78ac05bd262e0a1e375bc806867ca4c"
+    },
+    "schedules": [],
+    "function_name": "justhodl-portfolio-admin",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512
+  },
+  "predecessor_receipt_commit": "f9cf9a5ac78ac05bd262e0a1e375bc806867ca4c",
+  "baseline_run": 36678709268,
+  "baseline_report": "aws/ops/reports/latest/ops_6360_portfolio_accounting_runtime_acceptance.md",
+  "baseline_report_commit": "653a7ce388e93b74c5ee3248504ee4b95da658c6",
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "findings": [
+    "manager_edit_field_names_ignored",
+    "boolean_quantity_is_stored_as_one",
+    "negative_cost_is_accepted",
+    "add_replaces_existing_owner_record",
+    "missing_counterpart_cost_becomes_zero_total",
+    "concurrent_cost_edit_leaves_total_inconsistent",
+    "stop_update_creates_absent_position",
+    "failed_refresh_is_reported_queued",
+    "list_silently_omits_second_page"
+  ],
+  "fixtures": {
+    "lambda_function.py.txt": {
+      "path": "tests/fixtures/pre-portfolio-admin-integrity/lambda_function.py.txt",
+      "bytes": 15490,
+      "sha256": "037f69b384d360728a91661504dccdd279981ac3537fa8a8d3d3928fab5718cf"
+    },
+    "portfolio-manager.html.txt": {
+      "path": "tests/fixtures/pre-portfolio-admin-integrity/portfolio-manager.html.txt",
+      "bytes": 16002,
+      "sha256": "cdfa9dd6dd36f97c50b410ccf0f939288b664b46a528f6b84080231da2c25ad0"
+    },
+    "run_tests.py.txt": {
+      "path": "tests/fixtures/pre-portfolio-admin-integrity/run_tests.py.txt",
+      "bytes": 10318,
+      "sha256": "3659c2c672a86f2901b947a11d468a6a1bb9a5991b65e1b57e37c7b793e87895"
+    },
+    "complete-synthetic.json": {
+      "path": "tests/fixtures/pre-portfolio-admin-integrity/complete-synthetic.json",
+      "bytes": 23522,
+      "sha256": "a89ab418d52f153a219e5dd5f6d5d55ad2e450f0bc8b435fe9ec90424fb9f231"
+    }
+  },
+  "native_acceptance": null,
+  "scope": "Portfolio position CRUD, complete owner lists, exact edit contract and truthful refresh acknowledgement. Watchlist administrative mutations, private publication ordering and account/provider qualification remain separate work.",
+  "source_commit": "13cc27bfaf3a49b390462867d3229634d6026ef5",
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-admin/source/lambda_function.py": {
+      "bytes": 23503,
+      "sha256": "65036117b787f73822b39834e4dae445e87814f3fe80886b729ced140f1f804c"
+    },
+    "aws/lambdas/justhodl-portfolio-admin/tests/run_tests.py": {
+      "bytes": 13241,
+      "sha256": "a0b4a9a09f689a45f3d647b5dda8979cc849e1c7976b1a6af601846f8a9dc84c"
+    },
+    "aws/lambdas/justhodl-portfolio-admin/tests/test_admin_integrity.py": {
+      "bytes": 15151,
+      "sha256": "351b1e775fa86c2d45a7fd43aa8d5fb79a73944a0aa5e11886b18a689f385f81"
+    },
+    "portfolio-manager.html": {
+      "bytes": 22030,
+      "sha256": "9aef87e9960f3b86550a2a9db6bef4447f7bd8f02a0da34710e2642480d8d161"
+    },
+    "config/page-role-overrides.json": {
+      "bytes": 60291,
+      "sha256": "e9303bac061a2efeeb53521c2f9d2e29bd87d54eb8429372697961666d191cea"
+    },
+    "aws/ops/staged/ops_6361_portfolio_admin_runtime_acceptance.py": {
+      "bytes": 2844,
+      "sha256": "871bb0b7a6ac27416b9c8cd66dccd21c4435b39823e3c9ad557c20d4ef88e2d4"
+    },
+    "tests/deployment/test_portfolio_admin_runtime.py": {
+      "bytes": 3018,
+      "sha256": "2282676c49e5e4a4ea45aa8bcbf2bdae83a8222d4f8f1a979d2dce74fa62ed95"
+    },
+    "tests/portfolio-manager-integrity.test.js": {
+      "bytes": 9311,
+      "sha256": "30b503b3816cfab2af4493273f2fd6035b5a8b243cbf05242cd31437ec64c6e8"
+    }
+  },
+  "source_inventory_sha256": "6a07afc7838feb451c8ccce5a669c7ccdcc40d74ae08daa14f3e7ce793d0fb0a",
+  "browser_acceptance": {
+    "fixture": "tests/fixtures/portfolio-admin-browser-synthetic.json",
+    "bytes": 46815,
+    "sha256": "c535e451b3554b9c3171a37e9f817c23e499e00ec84a13a90675dee719ab4e7b",
+    "scope": "Current handler and manager with complete invented local state only; actual private writes, companion briefs and history unverified.",
+    "scenarios": [
+      "successful_quantity_edit",
+      "concurrent_owner_edit_rejected_without_retry",
+      "failed_complete_list_clears_book_and_disables_mutations",
+      "manual_refresh_recovers_book",
+      "confirmed_write_with_unconfirmed_snapshot_refresh"
+    ],
+    "desktop": {
+      "viewport_width": 1265,
+      "document_client_width": 1250,
+      "document_scroll_width": 1250
+    },
+    "mobile": {
+      "viewport_width": 360,
+      "document_client_width": 345,
+      "document_scroll_width": 345,
+      "table_client_width": 275,
+      "table_scroll_width": 980,
+      "numeric_values_unbroken": true,
+      "status_position": "static"
+    },
+    "keyboard_edit_save": true,
+    "table_region_keyboard_focus": true,
+    "console_errors_or_warnings": []
+  },
+  "tests": {
+    "admin_focused": 28,
+    "admin_existing": 8,
+    "snapshot_unit": 36,
+    "snapshot_handler": 4,
+    "risk_unit": 80,
+    "risk_handler": 10,
+    "scenario": 24,
+    "manager_focused": 13,
+    "frontend": 2039,
+    "deployment_static": 787,
+    "deployment_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "checks": {
+    "frontend": "fd326df48ee33a2fa2c5f1078966d7c978835a19af801b180d632272ade3efb1",
+    "deployment": "b5ee07a94f4a98e5c1443e47d46e32359a6fa9103d8182fd5b6a50d925719799",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "justhodl-portfolio-snapshot": "f78004060d4f27f99f1284d1fe1aef150ae3c4bac5e2366d0e1141981bfbdd4d",
+    "justhodl-portfolio-admin": "e9cc65491d9c1f5b640ef74ed7c39411bdb231c709bf2eedc6f863e7082b3e9e",
+    "justhodl-portfolio-risk": "5fa3189c6aced5bca4b503a11f5ab32b9db86ffb156b8f744dfaed28f5c73e2e",
+    "justhodl-position-sizer": "b7b7aab1363ae83fb31bacea262b1396f22f50cdad6add4cbedb7fa72fcd6804"
+  },
+  "normal_private_mutations_verified": false,
+  "investment_qualification": "BLOCKED"
+}

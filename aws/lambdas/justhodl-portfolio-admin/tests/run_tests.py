@@ -6,6 +6,8 @@ with stubbed I/O.
 """
 from __future__ import annotations
 
+import copy
+from boto3.dynamodb.types import TypeSerializer
 import importlib.util
 import json
 import sys
@@ -19,32 +21,76 @@ sys.path.insert(0, str(HERE.parents[2] / "shared"))
 
 
 class _Table:
+    """Invented DDB state with typed conditions and explicit acknowledgements."""
     def __init__(self, items):
-        self.items = {(i["pk"], i["sk"]): dict(i) for i in items}
+        self.items = {(i['pk'], i['sk']): copy.deepcopy(i) for i in items}
         self.last_condition = None
+        self.last_request = None
+        self.calls = []
+        self.before_write = None
+        self.response_override = None
 
-    def get_item(self, Key):
-        it = self.items.get((Key["pk"], Key["sk"]))
-        return {"Item": dict(it)} if it else {}
+    def get_item(self, Key, **kwargs):
+        self.calls.append(('get_item', {'Key':Key, **kwargs}))
+        item=self.items.get((Key['pk'],Key['sk']))
+        return {'Item':copy.deepcopy(item)} if item else {}
 
-    def update_item(self, Key, UpdateExpression, ExpressionAttributeValues, ExpressionAttributeNames, ReturnValues, ConditionExpression=None):
-        self.last_condition = ConditionExpression
-        it = self.items.get((Key["pk"], Key["sk"]))
-        if ConditionExpression and ("attribute_exists(pk)" in ConditionExpression) and not it:
-            raise Exception("ConditionalCheckFailedException")
-        if it is None:
-            it = {"pk": Key["pk"], "sk": Key["sk"]}
-        if ConditionExpression and "#cq = :cq" in ConditionExpression:
-            if it.get("qty") != ExpressionAttributeValues[":cq"]:
-                raise Exception("ConditionalCheckFailedException")
-        for part in UpdateExpression[len("SET "):].split(", "):
-            alias, ph = [x.strip() for x in part.split("=")]
-            it[ExpressionAttributeNames[alias]] = ExpressionAttributeValues[ph]
-        self.items[(Key["pk"], Key["sk"])] = it
-        return {"Attributes": dict(it)}
+    @staticmethod
+    def equal(left,right):
+        # DDB booleans never compare equal to numeric one or zero.
+        a,b=TypeSerializer().serialize(left),TypeSerializer().serialize(right)
+        if set(a)==set(b)=={'N'}:return Decimal(a['N'])==Decimal(b['N'])
+        return a==b
 
-    def query(self, **kw):
-        return {"Items": list(self.items.values())}
+    def condition(self,item,request):
+        condition=request.get('ConditionExpression');self.last_condition=condition
+        if not condition:return
+        names=request.get('ExpressionAttributeNames',{});values=request.get('ExpressionAttributeValues',{})
+        for clause in condition.split(' AND '):
+            if clause.startswith('attribute_not_exists('):
+                alias=clause[len('attribute_not_exists('):-1];field=names.get(alias,alias);ok=item is None or field not in item
+            elif clause.startswith('attribute_exists('):
+                alias=clause[len('attribute_exists('):-1];field=names.get(alias,alias);ok=item is not None and field in item
+            else:
+                alias,token=clause.split(' = ');field=names.get(alias,alias);ok=item is not None and field in item and self.equal(item[field],values[token])
+            if not ok:raise RuntimeError('ConditionalCheckFailedException')
+
+    def prepare(self,method,request):
+        self.calls.append((method,copy.deepcopy(request)));self.last_request=copy.deepcopy(request)
+        if self.before_write:
+            hook=self.before_write;self.before_write=None;hook(self)
+
+    def answer(self,**fields):
+        if self.response_override is not None:return copy.deepcopy(self.response_override)
+        return {'ResponseMetadata':{'HTTPStatusCode':200},**fields}
+
+    def put_item(self,**request):
+        self.prepare('put_item',request);row=request['Item'];key=(row['pk'],row['sk'])
+        TypeSerializer().serialize(row);self.condition(self.items.get(key),request)
+        self.items[key]=copy.deepcopy(row);return self.answer()
+
+    def delete_item(self,**request):
+        self.prepare('delete_item',request);key=(request['Key']['pk'],request['Key']['sk'])
+        row=self.items.get(key);self.condition(row,request)
+        removed=self.items.pop(key,None);return self.answer(Attributes=copy.deepcopy(removed))
+
+    def update_item(self,**request):
+        self.prepare('update_item',request);key=(request['Key']['pk'],request['Key']['sk'])
+        row=copy.deepcopy(self.items.get(key));self.condition(row,request)
+        if row is None:row=dict(request['Key'])
+        names=request.get('ExpressionAttributeNames',{});values=request['ExpressionAttributeValues']
+        set_text,*remove=request['UpdateExpression'].removeprefix('SET ').split(' REMOVE ')
+        for part in set_text.split(', '):
+            alias,token=part.split(' = ');row[names.get(alias,alias)]=copy.deepcopy(values[token])
+        if remove:
+            for alias in remove[0].split(', '):row.pop(names.get(alias,alias),None)
+        TypeSerializer().serialize(row);self.items[key]=row
+        return self.answer(Attributes=copy.deepcopy(row))
+
+    def query(self,**request):
+        self.calls.append(('query',copy.deepcopy(request)))
+        partition=request.get('ExpressionAttributeValues',{}).get(':pk')
+        return {'Items':[copy.deepcopy(row) for row in self.items.values() if partition is None or row['pk']==partition]}
 
 
 def _load_admin(items):
@@ -73,7 +119,8 @@ def test_quantity_only_edit_recomputes_the_basis_and_flips_the_side():
     r = mod.update_position({"symbol": "AAA", "cost_basis_per_share": 50})
     it = tbl.items[("POSITION", "AAA")]
     assert float(it["cost_basis_total"]) == -1000.0, "cost-only edit recomputes the total too"
-    assert "attribute_exists(pk)" in tbl.last_condition and "#cq = :cq" in tbl.last_condition
+    assert set(tbl.last_request['ExpressionAttributeNames'].values()) >= {'pk','sk','qty','cost_basis_per_share','updated_at','mutation_id'}
+    assert 'attribute_not_exists(' in tbl.last_condition
 
 
 def test_absent_position_and_non_finite_inputs_are_refused():
@@ -206,3 +253,6 @@ if __name__ == "__main__":
         fn()
         print("ok", name)
     print("portfolio tests passed: %d" % len(tests))
+    import unittest, test_admin_integrity
+    result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(test_admin_integrity))
+    if not result.wasSuccessful():raise SystemExit(1)

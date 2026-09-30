@@ -1,0 +1,819 @@
+{
+  "scope": "Current reviewed admin source with complete invented state, boto3 serialization checks, explicit condition evaluator and mocked refresh. No native calls or actual private data.",
+  "source_sha256": "037f69b384d360728a91661504dccdd279981ac3537fa8a8d3d3928fab5718cf",
+  "source_bytes": 15490,
+  "observed_at": "2026-09-30T06:29:16.503324+00:00",
+  "cases": [
+    {
+      "name": "manager_edit_field_names_ignored",
+      "event": {
+        "action": "update_position",
+        "symbol": "AAA",
+        "new_qty": 20,
+        "new_cost_basis_per_share": 100,
+        "new_stop_loss": 95,
+        "new_target_weight": 5,
+        "new_notes": "edited"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": false, \"err\": \"No update fields provided\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "calls": [
+        [
+          "get_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            }
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [],
+      "captured_log": ""
+    },
+    {
+      "name": "boolean_quantity_is_stored_as_one",
+      "event": {
+        "action": "add_position",
+        "symbol": "AAA",
+        "qty": true,
+        "cost_basis_per_share": 100
+      },
+      "before": [],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"add_position\", \"item\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 1.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 100.0, \"position_type\": \"LONG\", \"added_at\": \"2026-09-30T06:29:16.497252+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "1.0"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100.0"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "100.0"
+          },
+          "position_type": "LONG",
+          "added_at": "2026-09-30T06:29:16.497252+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "put_item",
+          {
+            "Item": {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "1.0"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100.0"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "100.0"
+              },
+              "position_type": "LONG",
+              "added_at": "2026-09-30T06:29:16.497252+00:00"
+            }
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": ""
+    },
+    {
+      "name": "negative_cost_is_accepted",
+      "event": {
+        "action": "add_position",
+        "symbol": "AAA",
+        "qty": 10,
+        "cost_basis_per_share": -100
+      },
+      "before": [],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"add_position\", \"item\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 10.0, \"cost_basis_per_share\": -100.0, \"cost_basis_total\": -1000.0, \"position_type\": \"LONG\", \"added_at\": \"2026-09-30T06:29:16.498252+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10.0"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "-100.0"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "-1000.0"
+          },
+          "position_type": "LONG",
+          "added_at": "2026-09-30T06:29:16.498252+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "put_item",
+          {
+            "Item": {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10.0"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "-100.0"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "-1000.0"
+              },
+              "position_type": "LONG",
+              "added_at": "2026-09-30T06:29:16.498252+00:00"
+            }
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": ""
+    },
+    {
+      "name": "add_replaces_existing_owner_record",
+      "event": {
+        "action": "add_position",
+        "symbol": "AAA",
+        "qty": 20,
+        "cost_basis_per_share": 90
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"add_position\", \"item\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 90.0, \"cost_basis_total\": 1800.0, \"position_type\": \"LONG\", \"added_at\": \"2026-09-30T06:29:16.499251+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20.0"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "90.0"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1800.0"
+          },
+          "position_type": "LONG",
+          "added_at": "2026-09-30T06:29:16.499251+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "put_item",
+          {
+            "Item": {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "20.0"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "90.0"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1800.0"
+              },
+              "position_type": "LONG",
+              "added_at": "2026-09-30T06:29:16.499251+00:00"
+            }
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": ""
+    },
+    {
+      "name": "missing_counterpart_cost_becomes_zero_total",
+      "event": {
+        "action": "update_position",
+        "symbol": "AAA",
+        "qty": 20
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"update_position\", \"updated\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"position_type\": \"LONG\", \"notes\": \"invented owner note\", \"cost_basis_total\": 0.0, \"updated_at\": \"2026-09-30T06:29:16.499251+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note",
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "0.0"
+          },
+          "updated_at": "2026-09-30T06:29:16.499251+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "get_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            }
+          }
+        ],
+        [
+          "update_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "UpdateExpression": "SET #qty = :qty, #cbt = :cbt, #u = :u",
+            "ConditionExpression": "attribute_exists(pk) AND #cq = :cq",
+            "ExpressionAttributeValues": {
+              ":qty": {
+                "source_type": "Decimal",
+                "text": "20"
+              },
+              ":cbt": {
+                "source_type": "Decimal",
+                "text": "0.0"
+              },
+              ":u": "2026-09-30T06:29:16.499251+00:00",
+              ":cq": {
+                "source_type": "Decimal",
+                "text": "10"
+              }
+            },
+            "ExpressionAttributeNames": {
+              "#qty": "qty",
+              "#cbt": "cost_basis_total",
+              "#u": "updated_at",
+              "#cq": "qty"
+            },
+            "ReturnValues": "ALL_NEW"
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": ""
+    },
+    {
+      "name": "concurrent_cost_edit_leaves_total_inconsistent",
+      "event": {
+        "action": "update_position",
+        "symbol": "AAA",
+        "qty": 20
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "concurrent_change": {
+        "cost_basis_per_share": {
+          "source_type": "Decimal",
+          "text": "200"
+        },
+        "cost_basis_total": {
+          "source_type": "Decimal",
+          "text": "2000"
+        },
+        "updated_at": "2026-09-30T06:00:00Z"
+      },
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"update_position\", \"updated\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 20.0, \"cost_basis_per_share\": 200.0, \"cost_basis_total\": 2000.0, \"position_type\": \"LONG\", \"notes\": \"invented owner note\", \"updated_at\": \"2026-09-30T06:29:16.500252+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "20"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "200"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "2000.0"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note",
+          "updated_at": "2026-09-30T06:29:16.500252+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "get_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            }
+          }
+        ],
+        [
+          "update_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "UpdateExpression": "SET #qty = :qty, #cbt = :cbt, #u = :u",
+            "ConditionExpression": "attribute_exists(pk) AND #cq = :cq",
+            "ExpressionAttributeValues": {
+              ":qty": {
+                "source_type": "Decimal",
+                "text": "20"
+              },
+              ":cbt": {
+                "source_type": "Decimal",
+                "text": "2000.0"
+              },
+              ":u": "2026-09-30T06:29:16.500252+00:00",
+              ":cq": {
+                "source_type": "Decimal",
+                "text": "10"
+              }
+            },
+            "ExpressionAttributeNames": {
+              "#qty": "qty",
+              "#cbt": "cost_basis_total",
+              "#u": "updated_at",
+              "#cq": "qty"
+            },
+            "ReturnValues": "ALL_NEW"
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": ""
+    },
+    {
+      "name": "stop_update_creates_absent_position",
+      "event": {
+        "action": "set_stop_loss",
+        "symbol": "AAA",
+        "stop_price": 90
+      },
+      "before": [],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"set_stop_loss\", \"symbol\": \"AAA\", \"stop_price\": 90.0, \"updated\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"stop_loss\": 90.0, \"updated_at\": \"2026-09-30T06:29:16.501252+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "stop_loss": {
+            "source_type": "Decimal",
+            "text": "90.0"
+          },
+          "updated_at": "2026-09-30T06:29:16.501252+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "update_item",
+          {
+            "Key": {
+              "pk": "POSITION",
+              "sk": "AAA"
+            },
+            "UpdateExpression": "SET stop_loss = :s, updated_at = :u",
+            "ExpressionAttributeValues": {
+              ":s": {
+                "source_type": "Decimal",
+                "text": "90.0"
+              },
+              ":u": "2026-09-30T06:29:16.501252+00:00"
+            },
+            "ReturnValues": "ALL_NEW"
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": ""
+    },
+    {
+      "name": "failed_refresh_is_reported_queued",
+      "event": {
+        "action": "add_position",
+        "symbol": "AAA",
+        "qty": 10,
+        "cost_basis_per_share": 100
+      },
+      "before": [],
+      "concurrent_change": null,
+      "complete_query_pages": null,
+      "response": {
+        "statusCode": 200,
+        "body": "{\"ok\": true, \"action\": \"add_position\", \"item\": {\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 10.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 1000.0, \"position_type\": \"LONG\", \"added_at\": \"2026-09-30T06:29:16.501252+00:00\"}, \"snapshot_refresh\": \"queued\"}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10.0"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100.0"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000.0"
+          },
+          "position_type": "LONG",
+          "added_at": "2026-09-30T06:29:16.501252+00:00"
+        }
+      ],
+      "calls": [
+        [
+          "put_item",
+          {
+            "Item": {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10.0"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100.0"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000.0"
+              },
+              "position_type": "LONG",
+              "added_at": "2026-09-30T06:29:16.501252+00:00"
+            }
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [
+        {
+          "FunctionName": "justhodl-portfolio-snapshot",
+          "Qualifier": "live",
+          "InvocationType": "Event",
+          "Payload": "{}"
+        }
+      ],
+      "captured_log": "[portfolio-admin] snapshot trigger failed: Invented refresh transport failure\n"
+    },
+    {
+      "name": "list_silently_omits_second_page",
+      "event": {
+        "action": "list",
+        "filter": "POSITION"
+      },
+      "before": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "concurrent_change": null,
+      "complete_query_pages": [
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "AAA",
+              "symbol": "AAA",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "invented owner note"
+            }
+          ],
+          "LastEvaluatedKey": {
+            "pk": "POSITION",
+            "sk": "AAA"
+          }
+        },
+        {
+          "Items": [
+            {
+              "pk": "POSITION",
+              "sk": "BBB",
+              "symbol": "BBB",
+              "qty": {
+                "source_type": "Decimal",
+                "text": "10"
+              },
+              "cost_basis_per_share": {
+                "source_type": "Decimal",
+                "text": "100"
+              },
+              "cost_basis_total": {
+                "source_type": "Decimal",
+                "text": "1000"
+              },
+              "position_type": "LONG",
+              "notes": "invented owner note"
+            }
+          ]
+        }
+      ],
+      "response": {
+        "statusCode": 200,
+        "body": "{\"positions\": [{\"pk\": \"POSITION\", \"sk\": \"AAA\", \"symbol\": \"AAA\", \"qty\": 10.0, \"cost_basis_per_share\": 100.0, \"cost_basis_total\": 1000.0, \"position_type\": \"LONG\", \"notes\": \"invented owner note\"}], \"watchlist\": [], \"stoploss\": [], \"meta\": [], \"counts\": {\"positions\": 1, \"watchlist\": 0, \"stoploss\": 0, \"meta\": 0}, \"ok\": true}"
+      },
+      "after": [
+        {
+          "pk": "POSITION",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        },
+        {
+          "pk": "POSITION",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "qty": {
+            "source_type": "Decimal",
+            "text": "10"
+          },
+          "cost_basis_per_share": {
+            "source_type": "Decimal",
+            "text": "100"
+          },
+          "cost_basis_total": {
+            "source_type": "Decimal",
+            "text": "1000"
+          },
+          "position_type": "LONG",
+          "notes": "invented owner note"
+        }
+      ],
+      "calls": [
+        [
+          "query",
+          {
+            "KeyConditionExpression": "pk = :pk",
+            "ExpressionAttributeValues": {
+              ":pk": "POSITION"
+            }
+          }
+        ]
+      ],
+      "mocked_snapshot_requests": [],
+      "captured_log": ""
+    }
+  ]
+}

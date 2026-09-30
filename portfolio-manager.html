@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="jh-primary-engine" content="justhodl-ai-brief-router">
+<meta name="jh-primary-engine" content="justhodl-portfolio-admin">
 <script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-evidence-io.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Portfolio Manager · JustHodl.AI</title>
@@ -50,13 +51,16 @@ tr:hover td{background:var(--panel2)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
 .kc h3{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
 .kc .big{font-family:var(--mono);font-size:22px;font-weight:700}
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px;padding:11px 18px;font-family:var(--mono);font-size:11.5px;color:var(--txt);box-shadow:0 8px 28px rgba(0,0,0,.5);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50}
-.toast.show{opacity:1}
+.toast{display:none;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:6px;padding:11px 14px;font-family:var(--mono);font-size:12px;color:var(--txt);margin:12px 0;overflow-wrap:anywhere}
+.toast.show{display:block}
 .toast.err{border-left-color:var(--red)}
 .msg{font-family:var(--mono);font-size:11px;margin-top:8px;min-height:14px}
 .msg.err{color:var(--red)}.msg.ok{color:var(--green)}
 .loading{text-align:center;padding:36px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:1.5px}
 .note{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:14px;max-width:980px}
+#book{overflow-x:auto} #book table{min-width:980px} #book .num,#book td:nth-child(2){white-space:nowrap} #book td:nth-child(9){min-width:200px;max-width:300px;overflow-wrap:anywhere} #book td:last-child{min-width:160px} #book input{min-width:105px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.note{overflow-wrap:anywhere}.container{min-width:0}
 .editrow input{padding:5px 7px;font-size:11px}
 @media(max-width:880px){.formgrid{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr}}
 </style>
@@ -66,10 +70,10 @@ tr:hover td{background:var(--panel2)}
 <div class="container">
   <header>
     <h1>📓 Portfolio Manager</h1>
-    <p class="subtitle">Your book — the single source of truth. Positions entered here flow straight into <a href="/portfolio.html" style="color:var(--cyan)">portfolio-risk</a> (beta, VAR, correlation clusters, scenario P&amp;L) and on into the <a href="/pm-decision.html" style="color:var(--cyan)">PM Decision cockpit</a>. Every save triggers a snapshot refresh, so the risk pipeline updates within minutes.</p>
+    <p class="subtitle">Record and edit holdings with explicit quantities and cost bases. This does not place trades or establish account NAV. Successful writes report snapshot-refresh acknowledgement separately; risk calculations remain conditional on eligible, reconciled inputs.</p>
     <nav class="crumbs">
       <a href="/index.html">desk</a>
-      <a href="/portfolio.html">portfolio dashboard</a>
+      <a href="/portfolio/index.html">portfolio dashboard</a>
       <a href="/pm-decision.html">pm decision</a>
       <a href="/intelligence/">intelligence</a>
     </nav>
@@ -104,166 +108,196 @@ tr:hover td{background:var(--panel2)}
     <h2>Add Position</h2>
     <div class="card">
       <div class="formgrid">
-        <div class="fld req"><label>Symbol</label><input id="f_sym" placeholder="LLY"></div>
-        <div class="fld req"><label>Quantity</label><input id="f_qty" type="number" step="any" placeholder="50"></div>
-        <div class="fld req"><label>Cost / Share</label><input id="f_cost" type="number" step="any" placeholder="925.00"></div>
-        <div class="fld"><label>Stop Loss</label><input id="f_stop" type="number" step="any" placeholder="optional"></div>
-        <div class="fld"><label>Target Wt %</label><input id="f_tw" type="number" step="any" placeholder="optional"></div>
-        <div class="fld"><label>Sector</label><input id="f_sec" placeholder="optional"></div>
+        <div class="fld req"><label for="f_sym">Symbol</label><input id="f_sym" placeholder="LLY"></div>
+        <div class="fld req"><label for="f_qty">Quantity</label><input id="f_qty" type="number" step="any" placeholder="50"></div>
+        <div class="fld req"><label for="f_cost">Cost / Share</label><input id="f_cost" type="number" step="any" placeholder="925.00"></div>
+        <div class="fld"><label for="f_stop">Stop Loss</label><input id="f_stop" type="number" step="any" placeholder="optional"></div>
+        <div class="fld"><label for="f_tw">Target Wt %</label><input id="f_tw" type="number" step="any" placeholder="optional"></div>
+        <div class="fld"><label for="f_sec">Sector</label><input id="f_sec" placeholder="optional"></div>
       </div>
       <div class="formgrid" style="margin-top:10px;grid-template-columns:5fr 1fr">
-        <div class="fld"><label>Notes / Thesis</label><input id="f_notes" placeholder="optional — why you own it"></div>
-        <div class="fld"><button class="primary" style="width:100%" onclick="addPos()">Add</button></div>
+        <div class="fld"><label for="f_notes">Notes / Thesis</label><input id="f_notes" placeholder="optional — why you own it"></div>
+        <div class="fld"><button class="primary" data-mutation style="width:100%" onclick="addPos()">Add</button></div>
       </div>
       <div class="msg" id="addMsg"></div>
     </div>
 
     <h2>Current Book</h2>
-    <div class="card" style="padding:6px 10px"><div id="book"><div class="loading">…</div></div></div>
+    <button id="book-refresh" onclick="refreshBook()">Refresh book</button>
+    <p class="note" id="book-status" role="status">Complete book unavailable.</p>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="card" style="padding:6px 10px"><div id="book" tabindex="0" role="region" aria-label="Recorded holdings, horizontally scrollable table"><div class="loading">…</div></div></div>
 
     <p class="note" id="note"></p>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+
 <script>
 const ADMIN_URL="https://api.justhodl.ai/portfolio-admin";
-let TOKEN=sessionStorage.getItem("pa_pin")||"";
-let POSITIONS=[];
+let TOKEN=sessionStorage.getItem('pa_pin')||'',POSITIONS=null,EDITING=null,SAVING=false,loadGeneration=0;
 const $=id=>document.getElementById(id);
-const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const money=n=>n==null?"—":"$"+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+const finite=v=>typeof v==='number'&&Number.isFinite(v);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>finite(v)?String(v):'—';
+const money=v=>finite(v)?v.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}):'—';
+const ticker=v=>typeof v==='string'&&/^[A-Z][A-Z0-9.\-]{0,14}$/.test(v);
+const editToken=p=>p&&typeof p.record_etag==='string'&&/^[0-9a-f]{64}$/.test(p.record_etag);
 
-function toast(msg,err){
-  const t=$("toast"); t.textContent=msg; t.className="toast show"+(err?" err":"");
-  setTimeout(()=>t.className="toast",2600);
-}
+function toast(msg,err=false){const t=$('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');}
+function setBusy(value){SAVING=value;$('book-refresh').disabled=value;for(const el of document.querySelectorAll('[data-mutation]'))el.disabled=value||!Array.isArray(POSITIONS)||el.getAttribute('data-invalid')==='true';}
 
-async function api(action,params){
-  const r=await fetch(ADMIN_URL,{
-    method:"POST",
-    headers:{"content-type":"application/json","x-mgr-pass":TOKEN},
-    body:JSON.stringify(Object.assign({action},params||{}))
-  });
-  let j={}; try{j=await r.json();}catch(e){j={ok:false,err:"bad response"};}
-  return {status:r.status,body:j};
-}
-
-async function connect(){
-  TOKEN=$("tok").value.trim();
-  if(!TOKEN){$("gateMsg").textContent="PIN required.";return;}
-  $("gateMsg").textContent="checking…";
+async function api(action,params={}){
+  let status=0;
   try{
-    const {status,body}=await api("list",{filter:"POSITION"});
-    if(status===403){$("gateMsg").textContent="PIN rejected.";return;}
-    if(!body.ok){$("gateMsg").textContent=body.err||"unexpected error";return;}
-    sessionStorage.setItem("pa_pin",TOKEN);
-    $("gate").style.display="none"; $("app").style.display="block";
-    POSITIONS=body.positions||[];
-    render();
-  }catch(e){$("gateMsg").textContent="Network error — "+e.message;}
+    const raw=await JHEvidenceIO.readComplete(async signal=>{
+      const response=await fetch(ADMIN_URL,{method:'POST',redirect:'error',cache:'no-store',signal,
+        headers:{'content-type':'application/json','x-mgr-pass':TOKEN},body:JSON.stringify({action,...params})});
+      status=response.status;
+      return {ok:true,body:response.body,headers:response.headers};
+    },{limit:4*1024*1024,timeoutMs:20000});
+    const body=JHEvidenceIO.decode(raw,4*1024*1024);
+    if(!body||typeof body!=='object'||Array.isArray(body)||typeof body.ok!=='boolean')throw Error('invalid response');
+    if(body.ok===true&&(!Number.isInteger(status)||status<200||status>=300))throw Error('response status does not confirm success');
+    return {status,body};
+  }catch(error){return {status,body:{ok:false,error_code:'RESPONSE_UNCONFIRMED',err:'Response unconfirmed. Refresh the book before retrying.'}};}
 }
 
-async function refresh(){
-  const {body}=await api("list",{filter:"POSITION"});
-  POSITIONS=(body&&body.positions)||[];
+function acceptBook(body){
+  if(body.ok!==true||body.list_complete!==true||!Array.isArray(body.positions)||!body.counts||
+     !Number.isSafeInteger(body.counts.positions)||body.counts.positions!==body.positions.length)
+    throw Error(body.err||'Complete book unavailable; reload after the service is ready.');
+  POSITIONS=body.positions;EDITING=null;
+  $('book-status').textContent=`${POSITIONS.length} records received in complete pages. Pages are read individually; this is not an atomic account snapshot.`;
   render();
 }
 
-function render(){
-  // KPIs
-  const n=POSITIONS.length;
-  const totCost=POSITIONS.reduce((s,p)=>s+(Number(p.cost_basis_total)||0),0);
-  const tw=POSITIONS.reduce((s,p)=>s+(Number(p.target_weight_pct)||0),0);
-  $("kpis").innerHTML=[
-    ["Positions",n,"in the book"],
-    ["Total Cost Basis",money(totCost),"sum of entries"],
-    ["Target Weight Set",tw?tw.toFixed(1)+"%":"—",tw>100?"over 100% — review":"of intended allocation"],
-  ].map(c=>`<div class="card kc"><h3>${c[0]}</h3><div class="big">${c[1]}</div><div style="font-size:10.5px;color:var(--dim);margin-top:3px">${c[2]}</div></div>`).join("");
-  // book
-  if(!n){$("book").innerHTML=`<div class="loading">No positions yet — add your first above.</div>`;return;}
-  let h=`<table><thead><tr><th>Symbol</th><th>Type</th><th class="num">Qty</th><th class="num">Cost/Sh</th><th class="num">Cost Basis</th><th class="num">Stop</th><th class="num">Tgt %</th><th>Sector</th><th>Notes</th><th></th></tr></thead><tbody>`;
-  for(const p of POSITIONS.slice().sort((a,b)=>String(a.symbol).localeCompare(b.symbol))){
-    const t=(p.position_type||"LONG");
-    h+=`<tr id="row_${esc(p.symbol)}">
-      <td><b style="color:var(--txt)">${esc(p.symbol)}</b></td>
-      <td><span class="pill p${esc(t)}">${esc(t)}</span></td>
-      <td class="num">${p.qty}</td>
-      <td class="num">${p.cost_basis_per_share}</td>
-      <td class="num">${money(p.cost_basis_total)}</td>
-      <td class="num">${p.stop_loss!=null?p.stop_loss:"—"}</td>
-      <td class="num">${p.target_weight_pct!=null?p.target_weight_pct:"—"}</td>
-      <td>${esc(p.sector||"—")}</td>
-      <td style="max-width:220px;color:var(--mute)">${esc(p.notes||p.entry_thesis||"")}</td>
-      <td style="white-space:nowrap"><button class="sm" onclick="editRow('${esc(p.symbol)}')">Edit</button>
-        <button class="sm danger" onclick="removePos('${esc(p.symbol)}')">✕</button></td>
-    </tr>`;
-  }
-  $("book").innerHTML=h+`</tbody></table>`;
+function unavailable(message){POSITIONS=null;EDITING=null;render();$('book-status').textContent=message;}
+
+async function connect(){
+  const generation=++loadGeneration;TOKEN=$('tok').value.trim();
+  if(!TOKEN){$('gateMsg').textContent='PIN required.';return;}
+  $('gateMsg').textContent='Checking access…';
+  const {status,body}=await api('list',{filter:'POSITION'});
+  if(generation!==loadGeneration)return;
+  try{
+    if(status===403)throw Error('PIN rejected.');
+    acceptBook(body);sessionStorage.setItem('pa_pin',TOKEN);
+    $('gate').style.display='none';$('app').style.display='block';$('gateMsg').textContent='';
+  }catch(error){unavailable(error.message);$('gateMsg').textContent=error.message;}
 }
+
+function refreshBook(){if(SAVING)return;$('toast').textContent='';$('toast').className='toast';return refresh();}
+
+async function refresh(){
+  if(SAVING)return;
+  const generation=++loadGeneration;
+  unavailable('Refreshing the complete book…');
+  const {body}=await api('list',{filter:'POSITION'});
+  if(generation!==loadGeneration)return;
+  try{acceptBook(body);}catch(error){unavailable(error.message);}
+}
+
+function knownSum(values){
+  if(!values.length)return null;
+  let total=0,correction=0;
+  for(const value of values){const next=value-correction,sum=total+next;correction=(sum-total)-next;total=sum;}
+  return finite(total)?total:null;
+}
+
+function render(){
+  EDITING=null;
+  if(!Array.isArray(POSITIONS)){
+    $('kpis').innerHTML='';$('book').innerHTML='<p class="loading">Book unavailable. A failed or incomplete read does not mean there are no positions.</p>';setBusy(SAVING);return;
+  }
+  const count=POSITIONS.length,valid=POSITIONS.filter(p=>p&&typeof p==='object'&&!Array.isArray(p));
+  const basis=valid.map(p=>p.computed_cost_basis_total).filter(finite),targets=valid.filter(p=>finite(p.target_weight_pct));
+  const cards=[['Position records',String(count),'All returned records retained'],['Known signed basis',money(count?knownSum(basis):0),`${basis.length}/${count} computed from quantity × unit cost; currency assumptions unverified`],['Target fields set',String(targets.length),`of ${count} records; target denominator unverified`]];
+  $('kpis').innerHTML=cards.map(c=>`<div class="card kc"><h3>${esc(c[0])}</h3><div class="big">${esc(c[1])}</div><div class="note">${esc(c[2])}</div></div>`).join('');
+  if(!count){$('book').innerHTML='<p class="loading">The complete response contains no positions.</p>';setBusy(SAVING);return;}
+  const counts=new Map();for(const p of valid)if(ticker(p.symbol))counts.set(p.symbol,(counts.get(p.symbol)||0)+1);
+  let html='<table><thead><tr><th>Symbol</th><th>Type</th><th class="num">Qty</th><th class="num">Cost/Sh</th><th class="num">Computed basis</th><th class="num">Stop</th><th class="num">Target %</th><th>Sector</th><th>Notes</th><th>Actions</th></tr></thead><tbody>';
+  POSITIONS.forEach((p,index)=>{
+    if(!p||typeof p!=='object'||Array.isArray(p)||!ticker(p.symbol)){html+=`<tr><td colspan="10">Record ${index+1} unavailable: malformed position or symbol.</td></tr>`;return;}
+    const side=finite(p.qty)?(p.qty<0?'SHORT':'LONG'):'—',enabled=editToken(p)&&counts.get(p.symbol)===1;
+    const reason=enabled?'':'Edit token unavailable or duplicate symbol; refresh required.';
+    html+=`<tr id="row_${index}"><td><b>${esc(p.symbol)}</b></td><td>${esc(side)}</td><td class="num">${num(p.qty)}</td><td class="num">${num(p.cost_basis_per_share)}</td><td class="num">${money(p.computed_cost_basis_total)}<br><small>${esc(p.basis_reconciliation_status||'Stored-basis comparison unavailable')}</small></td><td class="num">${num(p.stop_loss)}</td><td class="num">${num(p.target_weight_pct)}</td><td>${esc(p.sector||'—')}</td><td>${esc(p.notes||p.entry_thesis||'')}</td><td><button data-mutation data-action="edit" data-index="${index}" aria-label="Edit ${esc(p.symbol)}" ${enabled?'':'data-invalid="true" disabled'} title="${esc(reason)}">Edit</button> <button data-mutation data-action="remove" data-index="${index}" aria-label="Remove ${esc(p.symbol)}" ${enabled?'':'data-invalid="true" disabled'}>Remove</button></td></tr>`;
+  });
+  $('book').innerHTML=html+'</tbody></table>';setBusy(SAVING);
+  for(const button of document.querySelectorAll('[data-invalid]'))button.disabled=true;
+}
+
+function inputNumber(id,required=false){
+  const text=$(id).value.trim();
+  if(!text){if(required)throw Error('Quantity and unit cost are required.');return null;}
+  const value=Number(text);if(!finite(value))throw Error('Numeric fields must be finite.');return value;
+}
+
+function refreshMessage(body){return body.snapshot_refresh==='queued'?'Snapshot refresh accepted; completion is not yet verified.':body.snapshot_refresh==='not_requested'?'No refresh was needed.':'Book write confirmed; snapshot refresh is unconfirmed. Check the portfolio snapshot for completion.';}
 
 async function addPos(){
-  const sym=$("f_sym").value.trim().toUpperCase();
-  const qty=$("f_qty").value, cost=$("f_cost").value;
-  if(!sym||qty===""||cost===""){$("addMsg").className="msg err";$("addMsg").textContent="Symbol, quantity and cost/share are required.";return;}
-  const p={symbol:sym,qty:Number(qty),cost_basis_per_share:Number(cost)};
-  if($("f_stop").value!=="")p.stop_loss=Number($("f_stop").value);
-  if($("f_tw").value!=="")p.target_weight_pct=Number($("f_tw").value);
-  if($("f_sec").value.trim())p.sector=$("f_sec").value.trim();
-  if($("f_notes").value.trim())p.notes=$("f_notes").value.trim();
-  $("addMsg").className="msg";$("addMsg").textContent="saving…";
-  const {body}=await api("add_position",p);
-  if(!body.ok){$("addMsg").className="msg err";$("addMsg").textContent=body.err||"failed";return;}
-  ["f_sym","f_qty","f_cost","f_stop","f_tw","f_sec","f_notes"].forEach(i=>$(i).value="");
-  $("addMsg").className="msg ok";$("addMsg").textContent=sym+" added · snapshot refresh queued";
-  toast(sym+" added to book");
-  refresh();
+  if(SAVING||!Array.isArray(POSITIONS))return;
+  try{
+    const symbol=$('f_sym').value.trim().toUpperCase();if(!ticker(symbol))throw Error('Enter a valid ticker.');
+    const request={symbol,qty:inputNumber('f_qty',true),cost_basis_per_share:inputNumber('f_cost',true)};
+    for(const [id,field] of [['f_stop','stop_loss'],['f_tw','target_weight_pct']]){const value=inputNumber(id);if(value!==null)request[field]=value;}
+    for(const [id,field] of [['f_sec','sector'],['f_notes','notes']])if($(id).value.trim())request[field]=$(id).value.trim();
+    setBusy(true);$('addMsg').className='msg';$('addMsg').textContent='Saving…';
+    const {body}=await api('add_position',request);
+    if(body.ok!==true)throw Error(body.err||'Write unconfirmed. Refresh before retrying.');
+    for(const id of ['f_sym','f_qty','f_cost','f_stop','f_tw','f_sec','f_notes'])$(id).value='';
+    $('addMsg').className='msg ok';$('addMsg').textContent=symbol+' added. '+refreshMessage(body);
+    setBusy(false);await refresh();
+  }catch(error){$('addMsg').className='msg err';$('addMsg').textContent=error.message;}
+  finally{setBusy(false);}
 }
 
-function editRow(sym){
-  const p=POSITIONS.find(x=>x.symbol===sym); if(!p)return;
-  const row=$("row_"+sym); if(!row)return;
-  row.classList.add("editrow");
-  row.innerHTML=`
-    <td><b>${esc(sym)}</b></td><td>—</td>
-    <td><input id="e_qty" type="number" step="any" value="${p.qty}"></td>
-    <td><input id="e_cost" type="number" step="any" value="${p.cost_basis_per_share}"></td>
-    <td class="num" style="color:var(--dim)">recalc</td>
-    <td><input id="e_stop" type="number" step="any" value="${p.stop_loss!=null?p.stop_loss:''}"></td>
-    <td><input id="e_tw" type="number" step="any" value="${p.target_weight_pct!=null?p.target_weight_pct:''}"></td>
-    <td>—</td>
-    <td><input id="e_notes" value="${esc(p.notes||p.entry_thesis||'')}"></td>
-    <td style="white-space:nowrap"><button class="sm primary" onclick="saveRow('${esc(sym)}')">Save</button>
-      <button class="sm" onclick="render()">Cancel</button></td>`;
+function editRow(index){
+  if(SAVING||!Array.isArray(POSITIONS)||!Number.isSafeInteger(index))return;
+  const p=POSITIONS[index];if(!p||!ticker(p.symbol)||!editToken(p)||POSITIONS.filter(r=>r&&r.symbol===p.symbol).length!==1)return;
+  const value=v=>finite(v)?String(v):'';
+  const notes=typeof p.notes==='string'?p.notes:'';
+  render();EDITING={index,symbol:p.symbol,record_etag:p.record_etag,initial:{e_qty:value(p.qty),e_cost:value(p.cost_basis_per_share),e_stop:value(p.stop_loss),e_tw:value(p.target_weight_pct),e_notes:notes}};
+  $('row_'+index).innerHTML=`<td>${esc(p.symbol)}</td><td>—</td><td><input aria-label="Quantity for ${esc(p.symbol)}" id="e_qty" type="number" step="any" value="${value(p.qty)}"></td><td><input aria-label="Unit cost for ${esc(p.symbol)}" id="e_cost" type="number" step="any" value="${value(p.cost_basis_per_share)}"></td><td>Recomputed on save</td><td><input aria-label="Stop for ${esc(p.symbol)}" id="e_stop" type="number" step="any" value="${value(p.stop_loss)}"></td><td><input aria-label="Target for ${esc(p.symbol)}" id="e_tw" type="number" step="any" value="${value(p.target_weight_pct)}"></td><td>${esc(p.sector||'—')}</td><td><input aria-label="Notes for ${esc(p.symbol)}" id="e_notes" value="${esc(notes)}"></td><td><button data-mutation data-action="save" aria-label="Save ${esc(p.symbol)}">Save</button> <button data-action="cancel">Cancel</button></td>`;
+  $('e_qty').focus();
 }
 
-async function saveRow(sym){
-  const u={symbol:sym};
-  const q=$("e_qty").value, c=$("e_cost").value;
-  if(q!=="")u.new_qty=Number(q);
-  if(c!=="")u.new_cost_basis_per_share=Number(c);
-  if($("e_stop").value!=="")u.new_stop_loss=Number($("e_stop").value);
-  if($("e_tw").value!=="")u.new_target_weight=Number($("e_tw").value);
-  u.new_notes=$("e_notes").value.trim();
-  const {body}=await api("update_position",u);
-  if(!body.ok){toast(body.err||"update failed",true);return;}
-  toast(sym+" updated"); refresh();
+async function saveRow(){
+  if(SAVING||!EDITING)return;
+  try{
+    const edited={...EDITING};const request={symbol:edited.symbol,expected_record_etag:edited.record_etag};
+    for(const [id,field] of [['e_qty','qty'],['e_cost','cost_basis_per_share'],['e_stop','stop_loss'],['e_tw','target_weight_pct']]){
+      if($(id).value.trim()!==edited.initial[id])request[field]=inputNumber(id,id==='e_qty'||id==='e_cost');
+    }
+    if($('e_notes').value!==edited.initial.e_notes)request.notes=$('e_notes').value;
+    if(Object.keys(request).length===2){toast('No changes to save.');return;}
+    setBusy(true);const {body}=await api('update_position',request);
+    if(body.ok!==true)throw Error(body.err||'Write unconfirmed. Refresh before retrying.');
+    toast(edited.symbol+' updated. '+refreshMessage(body));setBusy(false);await refresh();
+  }catch(error){toast(error.message,true);}finally{setBusy(false);}
 }
 
-async function removePos(sym){
-  if(!confirm("Remove "+sym+" from the book?"))return;
-  const {body}=await api("remove_position",{symbol:sym});
-  if(!body.ok){toast(body.err||"remove failed",true);return;}
-  toast(sym+" removed"); refresh();
+async function removePos(index){
+  if(SAVING||!Array.isArray(POSITIONS)||!Number.isSafeInteger(index))return;
+  const p=POSITIONS[index];if(!p||!ticker(p.symbol)||!editToken(p))return;
+  if(!confirm('Remove '+p.symbol+' from the recorded book? This does not place a trade.'))return;
+  setBusy(true);
+  try{
+    const {body}=await api('remove_position',{symbol:p.symbol,expected_record_etag:p.record_etag});
+    if(body.ok!==true)throw Error(body.err||'Delete unconfirmed. Refresh before retrying.');
+    toast(p.symbol+' removed from the recorded book. '+refreshMessage(body));setBusy(false);await refresh();
+  }catch(error){toast(error.message,true);}finally{setBusy(false);}
 }
 
-$("note").textContent="Writes route through the Cloudflare Worker, which vaults the AWS "
-  +"infra token as an encrypted secret — it never reaches this browser. Access is gated "
-  +"by your Manager PIN and an Origin allowlist. Position changes fire a portfolio-snapshot "
-  +"refresh automatically — live prices, P&L, beta, VAR and the PM Decision posture catch "
-  +"up within minutes. The PIN lives only in this browser tab for the session.";
-
-// auto-connect if a token is already cached for this tab
-if(TOKEN){ $("tok").value=TOKEN; connect(); }
+$('book').addEventListener('click',event=>{
+  const button=event.target.closest('button[data-action]');if(!button||button.disabled)return;
+  const index=Number(button.dataset.index);
+  if(button.dataset.action==='edit')editRow(index);
+  else if(button.dataset.action==='remove')removePos(index);
+  else if(button.dataset.action==='save')saveRow();
+  else if(button.dataset.action==='cancel'&&!SAVING)render();
+});
+$('note').textContent='Writes use the existing authenticated Worker route. This records holdings; it does not place trades or establish account NAV. Each write reports its own outcome separately from snapshot-refresh acknowledgement. Unknown results require a fresh book read before another attempt. Instrument, currency and account reconciliation remain unverified.';
+if(TOKEN){$('tok').value=TOKEN;connect();}else render();
 </script>
 
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>

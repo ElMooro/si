@@ -10,7 +10,9 @@ payload specifies action + parameters. Returns JSON result.
 Actions:
   add_position       symbol, qty, cost_basis_per_share, [stop_loss, target_weight_pct, sector, notes]
   remove_position    symbol
-  update_position    symbol, [new_qty, new_cost_basis_per_share, new_stop_loss, new_target_weight, new_notes]
+  update_position    symbol, [qty, cost_basis_per_share, stop_loss, target_weight_pct, notes]
+                     Existing new_* aliases remain accepted; conflicting aliases fail.
+                     expected_record_etag protects edits against a stale manager form.
   set_stop_loss      symbol, stop_price
   list               filter: "POSITION" | "WATCHLIST" | "STOPLOSS" | "ALL"
   add_watchlist      symbol, source ("MANUAL" default)
@@ -48,6 +50,172 @@ _lam = boto3.client("lambda", region_name="us-east-1")
 _token_cache = {"v": None}
 
 
+import hashlib
+import math
+import re
+import uuid
+from functools import wraps
+from decimal import localcontext
+from boto3.dynamodb.types import TypeSerializer, DYNAMODB_CONTEXT
+
+MAX_REQUEST_BYTES = 65536
+MAX_LIST_ITEMS = 10000
+MAX_LIST_BYTES = 4 * 1024 * 1024
+POSITION_FIELDS = {'symbol','qty','cost_basis_per_share','cost_basis_total','position_type',
+                   'stop_loss','target_weight_pct','sector','notes','entry_thesis','added_at',
+                   'updated_at','mutation_id'}
+EDIT_ALIASES = {'new_qty':'qty','new_cost_basis_per_share':'cost_basis_per_share',
+                'new_stop_loss':'stop_loss','new_target_weight':'target_weight_pct','new_notes':'notes'}
+
+
+class InputError(ValueError):
+    def __init__(self, message, status=400, code='INVALID_INPUT'):
+        super().__init__(message);self.status=status;self.code=code
+
+
+def checked_action(function):
+    @wraps(function)
+    def wrapped(event):
+        try:return function(event)
+        except InputError as error:
+            return {'ok':False,'err':str(error),'error_code':error.code,'_http_status':error.status}
+    return wrapped
+
+
+def _symbol(value):
+    if not isinstance(value,str):raise InputError('symbol must be a ticker string')
+    symbol=value.strip().upper()
+    if not re.fullmatch(r'[A-Z][A-Z0-9.\-]{0,14}',symbol):raise InputError('symbol has an unsupported format')
+    return symbol
+
+
+def _number(value,name,minimum=None,positive=False):
+    if type(value) not in (int,float,Decimal):raise InputError(name+' must be a finite number')
+    try:
+        number=Decimal(str(value))
+        if not number.is_finite() or not math.isfinite(float(number)):raise ValueError()
+        TypeSerializer().serialize(number)
+    except Exception:raise InputError(name+' must be a finite DynamoDB-representable number') from None
+    if minimum is not None and number<minimum:raise InputError(name+' must be at least '+str(minimum))
+    if positive and number<=0:raise InputError(name+' must be positive')
+    return number
+
+
+def _text(value,name,limit=20000):
+    if not isinstance(value,str) or len(value)>limit:raise InputError(name+' must be text within '+str(limit)+' characters')
+    try:value.encode('utf-8')
+    except UnicodeError:raise InputError(name+' contains invalid Unicode') from None
+    return value
+
+
+def _cost_total(qty,cost):
+    try:
+        with localcontext(DYNAMODB_CONTEXT):value=qty*cost
+        return _number(value,'cost_basis_total')
+    except Exception:raise InputError('quantity times unit cost exceeds exact supported numeric precision') from None
+
+
+def _record_tag(item):
+    raw=json.dumps(TypeSerializer().serialize(item),sort_keys=True,separators=(',',':'),ensure_ascii=True,allow_nan=False).encode('utf-8')
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _item_view(item):
+    if not item:return None
+    view={**_scrub(item),'record_etag':_record_tag(item),'computed_cost_basis_total':None,'basis_reconciliation_status':'UNAVAILABLE'}
+    try:
+        computed=_cost_total(_number(item.get('qty'),'stored qty'),_number(item.get('cost_basis_per_share'),'stored cost',minimum=0))
+        view['computed_cost_basis_total']=float(computed)
+        view['basis_reconciliation_status']='MATCHED' if _number(item.get('cost_basis_total'),'stored total')==computed else 'MISMATCH'
+    except InputError:
+        if view['computed_cost_basis_total'] is not None:view['basis_reconciliation_status']='STORED_TOTAL_UNAVAILABLE'
+    return view
+
+
+def _observed_condition(item):
+    # Compare every observed value and absence of fields any position writer owns.
+    # Unknown fields newly added by external writers are preserved by updates;
+    # this is not a general table-wide transaction or cross-item revision claim.
+    names,values,terms={}, {}, []
+    for index,key in enumerate(sorted(set(item)|POSITION_FIELDS)):
+        alias='#c'+str(index);names[alias]=key
+        if key in item:
+            token=':c'+str(index);values[token]=item[key];terms.append(alias+' = '+token)
+        else:terms.append('attribute_not_exists('+alias+')')
+    condition=' AND '.join(terms)
+    if len(condition.encode())>3500:raise InputError('record exceeds conditional edit limit; no write attempted',409,'EDIT_CONDITION_TOO_LARGE')
+    return condition,names,values
+
+
+def _current_position(event):
+    symbol=_symbol(event.get('symbol'))
+    response=table.get_item(Key={'pk':'POSITION','sk':symbol},ConsistentRead=True)
+    current=response.get('Item')
+    if not isinstance(current,dict) or not current:
+        raise InputError('position '+symbol+' does not exist -- use add_position',404,'POSITION_NOT_FOUND')
+    expected=event.get('expected_record_etag')
+    if 'expected_record_etag' in event:
+        if not isinstance(expected,str) or not re.fullmatch('[0-9a-f]{64}',expected):raise InputError('expected_record_etag must be a complete edit token')
+        if expected!=_record_tag(current):raise InputError('position changed since it was displayed; refresh before editing',409,'STALE_EDIT')
+    return symbol,current
+
+
+def _write(method,**request):
+    try:response=getattr(table,method)(**request)
+    except Exception as error:
+        code=getattr(error,'response',{}).get('Error',{}).get('Code')
+        if code=='ConditionalCheckFailedException' or 'ConditionalCheckFailed' in str(error):
+            raise InputError('position already exists or a concurrent edit changed it; refresh before retrying',409,'CONCURRENT_EDIT') from None
+        raise InputError('write outcome unconfirmed; refresh the book before retrying',503,'WRITE_UNCONFIRMED') from None
+    if not isinstance(response,dict) or response.get('ResponseMetadata',{}).get('HTTPStatusCode')!=200:
+        raise InputError('write outcome unconfirmed; refresh the book before retrying',503,'WRITE_UNCONFIRMED')
+    return response
+
+
+def _edit_values(event):
+    allowed={'action','symbol','expected_record_etag','qty','cost_basis_per_share','stop_loss','target_weight_pct','sector','notes'}|set(EDIT_ALIASES)
+    if set(event)-allowed:raise InputError('unsupported update fields: '+', '.join(sorted(set(event)-allowed)))
+    result={}
+    for key,value in event.items():
+        field=EDIT_ALIASES.get(key,key)
+        if field in {'action','symbol','expected_record_etag'}:continue
+        if field in result and (type(value) is not type(result[field]) or value!=result[field]):raise InputError('conflicting aliases for '+field)
+        result[field]=value
+    if not result:raise InputError('No update fields provided')
+    for field,value in list(result.items()):
+        if field in {'qty','cost_basis_per_share'}:result[field]=_number(value,field,minimum=0 if field=='cost_basis_per_share' else None)
+        elif field in {'stop_loss','target_weight_pct'}:
+            result[field]=None if value is None else _number(value,field,positive=field=='stop_loss')
+        else:result[field]=_text(value,field,256 if field=='sector' else 20000)
+    return result
+
+
+def _complete_partition(partition):
+    rows,seen,cursor,seen_cursors=[],set(),None,set()
+    size=0;pages=0
+    while True:
+        pages+=1
+        if pages>100:raise InputError('complete list exceeds page bound; no partial book returned',413,'LIST_TOO_LARGE')
+        request={'KeyConditionExpression':'pk = :pk','ExpressionAttributeValues':{':pk':partition},'ConsistentRead':True}
+        if cursor is not None:request['ExclusiveStartKey']=cursor
+        response=table.query(**request)
+        if not isinstance(response,dict) or not isinstance(response.get('Items'),list):raise InputError('complete list unavailable',503,'LIST_UNAVAILABLE')
+        for item in response['Items']:
+            if not isinstance(item,dict) or item.get('pk')!=partition or not isinstance(item.get('sk'),str):raise InputError('list contains an invalid record',503,'LIST_UNAVAILABLE')
+            identity=(item['pk'],item['sk'])
+            if identity in seen:raise InputError('list changed during pagination; refresh',409,'LIST_CONFLICT')
+            seen.add(identity);rows.append(item)
+            size+=len(json.dumps(TypeSerializer().serialize(item),ensure_ascii=True).encode())
+        if len(rows)>MAX_LIST_ITEMS or size>MAX_LIST_BYTES:raise InputError('complete list exceeds the response limit; no partial book returned',413,'LIST_TOO_LARGE')
+        next_key=response.get('LastEvaluatedKey')
+        if not next_key:break
+        if not isinstance(next_key,dict) or next_key.get('pk')!=partition or not isinstance(next_key.get('sk'),str):raise InputError('invalid list continuation',503,'LIST_UNAVAILABLE')
+        marker=json.dumps(TypeSerializer().serialize(next_key),sort_keys=True)
+        # Cursor identity is tracked separately from returned item identity.
+        if marker in seen_cursors:raise InputError('repeated list continuation',503,'LIST_UNAVAILABLE')
+        seen_cursors.add(marker)
+        cursor=next_key
+    return rows
 def _admin_token():
     """SSM SecureString token, cached for the warm container lifetime."""
     if _token_cache["v"] is None:
@@ -57,12 +225,16 @@ def _admin_token():
 
 
 def _trigger_snapshot():
-    """Fire-and-forget refresh of the portfolio snapshot after a book edit."""
+    """A successful book write and an acknowledged refresh are different facts."""
     try:
-        _lam.invoke(FunctionName=SNAPSHOT_FN, Qualifier="live", InvocationType="Event",
-                    Payload=b"{}")
-    except Exception as e:  # never let a refresh failure break the write
-        print(f"[portfolio-admin] snapshot trigger failed: {e}")
+        response=_lam.invoke(FunctionName=SNAPSHOT_FN,Qualifier='live',InvocationType='Event',Payload=b'{}')
+        if isinstance(response,dict) and type(response.get('StatusCode')) is int and response['StatusCode']==202 and not response.get('FunctionError'):
+            return 'queued'
+    except Exception:
+        pass
+    print('[portfolio-admin] snapshot refresh acknowledgement unavailable')
+    return 'unconfirmed'
+
 
 
 def _dec(v):
@@ -82,147 +254,81 @@ def _scrub(item):
     return item
 
 
+@checked_action
 def add_position(event):
-    sym = event["symbol"].upper().strip()
-    qty = float(event["qty"])
-    cost = float(event["cost_basis_per_share"])
-    item = {
-        "pk": "POSITION", "sk": sym, "symbol": sym,
-        "qty": _dec(qty),
-        "cost_basis_per_share": _dec(cost),
-        "cost_basis_total": _dec(qty * cost),
-        "position_type": "LONG" if qty >= 0 else "SHORT",
-        "added_at": datetime.now(timezone.utc).isoformat(),
-    }
-    for opt_key, opt_type in [
-        ("stop_loss", float), ("target_weight_pct", float),
-        ("sector", str), ("notes", str), ("entry_thesis", str),
-    ]:
-        v = event.get(opt_key)
-        if v is not None and v != "":
-            item[opt_key] = _dec(v) if opt_type is float else str(v)
-    table.put_item(Item=item)
-    return {"ok": True, "action": "add_position", "item": _scrub(item)}
+    allowed={'action','symbol','qty','cost_basis_per_share','stop_loss','target_weight_pct','sector','notes','entry_thesis'}
+    if set(event)-allowed:raise InputError('unsupported add-position fields')
+    symbol=_symbol(event.get('symbol'));qty=_number(event.get('qty'),'qty');cost=_number(event.get('cost_basis_per_share'),'cost_basis_per_share',minimum=0)
+    now=datetime.now(timezone.utc).isoformat()
+    item={'pk':'POSITION','sk':symbol,'symbol':symbol,'qty':qty,'cost_basis_per_share':cost,
+          'cost_basis_total':_cost_total(qty,cost),'position_type':'LONG' if qty>=0 else 'SHORT',
+          'added_at':now,'updated_at':now,'mutation_id':str(uuid.uuid4())}
+    for field in ('stop_loss','target_weight_pct','sector','notes','entry_thesis'):
+        if field not in event or event[field] is None:continue
+        item[field]=_number(event[field],field,positive=field=='stop_loss') if field in ('stop_loss','target_weight_pct') else _text(event[field],field,256 if field=='sector' else 20000)
+    _write('put_item',Item=item,ConditionExpression='attribute_not_exists(pk)')
+    return {'ok':True,'action':'add_position','item':_item_view(item),'changed':True}
 
 
+
+@checked_action
 def remove_position(event):
-    sym = event["symbol"].upper().strip()
-    resp = table.delete_item(
-        Key={"pk": "POSITION", "sk": sym},
-        ReturnValues="ALL_OLD",
-    )
-    removed = resp.get("Attributes")
-    return {"ok": True, "action": "remove_position", "symbol": sym,
-            "existed": bool(removed),
-            "removed_item": _scrub(removed) if removed else None}
-
-
-def _finite(v, name):
-    """audit 2026-09-08 INST-07: numeric edits must be finite numbers."""
-    try:
-        f = float(v)
-    except (TypeError, ValueError):
-        raise ValueError("%s must be a number (got %r)" % (name, v))
-    if f != f or f in (float("inf"), float("-inf")):
-        raise ValueError("%s must be finite" % name)
-    return f
-
-
-def update_position(event):
-    sym = event["symbol"].upper().strip()
-    # audit 2026-09-08 INST-07: read-validate-write. A quantity-only or cost-only edit used to leave
-    # cost_basis_total stale (10 sh @ $100 -> 20 sh kept a $1,000 total = a fabricated $1,000 gain), and
-    # position_type was fixed at creation (a flip to -20 stayed LONG, selecting the wrong stop rule).
-    # Every dependent field is recomputed from the merged state, the write is conditioned on the item
-    # still being the one we read (optimistic concurrency), and upserts to absent positions are refused.
-    try:
-        cur = table.get_item(Key={"pk": "POSITION", "sk": sym}).get("Item")
-    except Exception as e:
-        return {"ok": False, "err": "read failed: %s" % str(e)[:120]}
-    if not cur:
-        return {"ok": False, "err": "position %s does not exist -- use add_position" % sym}
-    try:
-        new_qty = _finite(event["qty"], "qty") if event.get("qty") is not None else float(cur.get("qty") or 0)
-        new_cost = _finite(event["cost_basis_per_share"], "cost_basis_per_share") if event.get("cost_basis_per_share") is not None else float(cur.get("cost_basis_per_share") or 0)
-        for k in ("stop_loss", "target_weight_pct"):
-            if event.get(k) is not None:
-                _finite(event[k], k)
-    except ValueError as e:
-        return {"ok": False, "err": str(e)}
-    # Build UpdateExpression dynamically
-    updates, values, names = [], {}, {}
-    field_map = {
-        "qty": ("qty", float),
-        "cost_basis_per_share": ("cost_basis_per_share", float),
-        "stop_loss": ("stop_loss", float),
-        "target_weight_pct": ("target_weight_pct", float),
-        "sector": ("sector", str),
-        "notes": ("notes", str),
-    }
-    for event_key, (attr_name, attr_type) in field_map.items():
-        v = event.get(event_key)
-        if v is None: continue
-        placeholder = f":{event_key}"
-        name_alias = f"#{event_key}"
-        updates.append(f"{name_alias} = {placeholder}")
-        values[placeholder] = _dec(v) if attr_type is float else str(v)
-        names[name_alias] = attr_name
-
-    # Recompute EVERY dependent field whenever either input changed (partial edits included)
-    if event.get("qty") is not None or event.get("cost_basis_per_share") is not None:
-        updates.append("#cbt = :cbt")
-        values[":cbt"] = _dec(new_qty * new_cost)
-        names["#cbt"] = "cost_basis_total"
-        side = "LONG" if new_qty >= 0 else "SHORT"
-        if side != cur.get("position_type"):
-            updates.append("#pt = :pt")
-            values[":pt"] = side
-            names["#pt"] = "position_type"
-
-    if not updates:
-        return {"ok": False, "err": "No update fields provided"}
-
-    updates.append("#u = :u")
-    values[":u"] = datetime.now(timezone.utc).isoformat()
-    names["#u"] = "updated_at"
-
-    # optimistic concurrency: the item must still carry the qty/cost/updated_at we based the merge on
-    names["#cq"] = "qty"
-    values[":cq"] = cur.get("qty")
-    cond = "attribute_exists(pk) AND #cq = :cq"
-    if cur.get("updated_at") is not None:
-        names["#cu"] = "updated_at"
-        values[":cu"] = cur.get("updated_at")
-        cond += " AND #cu = :cu"
-    try:
-        resp = table.update_item(
-            Key={"pk": "POSITION", "sk": sym},
-            UpdateExpression="SET " + ", ".join(updates),
-            ConditionExpression=cond,
-            ExpressionAttributeValues=values,
-            ExpressionAttributeNames=names,
-            ReturnValues="ALL_NEW",
-        )
-    except Exception as e:
-        if "ConditionalCheckFailed" in str(e):
-            return {"ok": False, "err": "concurrent edit detected for %s -- re-read and retry" % sym}
+    symbol=_symbol(event.get('symbol'))
+    try:symbol,current=_current_position(event)
+    except InputError as error:
+        if error.code=='POSITION_NOT_FOUND':return {'ok':True,'action':'remove_position','symbol':symbol,'existed':False,'removed_item':None,'changed':False}
         raise
-    return {"ok": True, "action": "update_position",
-             "updated": _scrub(resp.get("Attributes"))}
+    condition,names,values=_observed_condition(current)
+    response=_write('delete_item',Key={'pk':'POSITION','sk':symbol},ConditionExpression=condition,
+                    ExpressionAttributeNames=names,ExpressionAttributeValues=values,ReturnValues='ALL_OLD')
+    removed=response.get('Attributes')
+    if not isinstance(removed,dict):raise InputError('delete acknowledgement lacks the removed record; refresh before retrying',503,'WRITE_UNCONFIRMED')
+    return {'ok':True,'action':'remove_position','symbol':symbol,'existed':True,'removed_item':_item_view(removed),'changed':True}
 
 
+
+def _finite(value,name):
+    return float(_number(value,name))
+
+
+
+@checked_action
+def update_position(event):
+    edits=_edit_values(event)
+    symbol,current=_current_position(event)
+    if 'qty' in edits or 'cost_basis_per_share' in edits:
+        qty=edits['qty'] if 'qty' in edits else _number(current.get('qty'),'stored qty')
+        cost=edits['cost_basis_per_share'] if 'cost_basis_per_share' in edits else _number(current.get('cost_basis_per_share'),'stored cost_basis_per_share',minimum=0)
+        edits.update(cost_basis_total=_cost_total(qty,cost),position_type='LONG' if qty>=0 else 'SHORT')
+    edits.update(updated_at=datetime.now(timezone.utc).isoformat(),mutation_id=str(uuid.uuid4()))
+    condition,names,values=_observed_condition(current)
+    sets,removes=[],[]
+    for index,(field,value) in enumerate(edits.items()):
+        alias='#u'+str(index);names[alias]=field
+        if value is None:removes.append(alias)
+        else:
+            token=':u'+str(index);values[token]=value;sets.append(alias+' = '+token)
+    expression='SET '+', '.join(sets)
+    if removes:expression+=' REMOVE '+', '.join(removes)
+    response=_write('update_item',Key={'pk':'POSITION','sk':symbol},UpdateExpression=expression,
+                    ConditionExpression=condition,ExpressionAttributeNames=names,ExpressionAttributeValues=values,ReturnValues='ALL_NEW')
+    updated=response.get('Attributes')
+    if not isinstance(updated,dict) or updated.get('mutation_id')!=edits['mutation_id']:
+        raise InputError('update acknowledgement lacks the intended revision; refresh before retrying',503,'WRITE_UNCONFIRMED')
+    return {'ok':True,'action':'update_position','updated':_item_view(updated),'changed':True}
+
+
+
+@checked_action
 def set_stop_loss(event):
-    sym = event["symbol"].upper().strip()
-    stop = float(event["stop_price"])
-    resp = table.update_item(
-        Key={"pk": "POSITION", "sk": sym},
-        UpdateExpression="SET stop_loss = :s, updated_at = :u",
-        ExpressionAttributeValues={":s": _dec(stop),
-                                     ":u": datetime.now(timezone.utc).isoformat()},
-        ReturnValues="ALL_NEW",
-    )
-    return {"ok": True, "action": "set_stop_loss", "symbol": sym,
-            "stop_price": stop, "updated": _scrub(resp.get("Attributes"))}
+    if 'stop_price' not in event:raise InputError('stop_price is required')
+    request={'symbol':event.get('symbol'),'stop_loss':event['stop_price']}
+    if 'expected_record_etag' in event:request['expected_record_etag']=event['expected_record_etag']
+    result=update_position(request)
+    if result.get('ok'):
+        result.update(action='set_stop_loss',symbol=result['updated']['symbol'],stop_price=result['updated'].get('stop_loss'))
+    return result
+
 
 
 def add_watchlist(event):
@@ -265,28 +371,19 @@ def clear_auto_watchlist(event):
             "deleted_count": len(deleted), "deleted_symbols": deleted}
 
 
+@checked_action
 def list_items(event):
-    filt = (event.get("filter") or "ALL").upper()
-    out = {"positions": [], "watchlist": [], "stoploss": [], "meta": []}
-    if filt in ("POSITION", "ALL"):
-        r = table.query(KeyConditionExpression="pk = :pk",
-                          ExpressionAttributeValues={":pk": "POSITION"})
-        out["positions"] = [_scrub(i) for i in r.get("Items", [])]
-    if filt in ("WATCHLIST", "ALL"):
-        r = table.query(KeyConditionExpression="pk = :pk",
-                          ExpressionAttributeValues={":pk": "WATCHLIST"})
-        out["watchlist"] = [_scrub(i) for i in r.get("Items", [])]
-    if filt in ("STOPLOSS", "ALL"):
-        r = table.query(KeyConditionExpression="pk = :pk",
-                          ExpressionAttributeValues={":pk": "STOPLOSS"})
-        out["stoploss"] = [_scrub(i) for i in r.get("Items", [])]
-    if filt == "ALL":
-        r = table.query(KeyConditionExpression="pk = :pk",
-                          ExpressionAttributeValues={":pk": "META"})
-        out["meta"] = [_scrub(i) for i in r.get("Items", [])]
-    out["counts"] = {k: len(v) for k, v in out.items() if isinstance(v, list)}
-    out["ok"] = True
+    value=event.get('filter','ALL')
+    if not isinstance(value,str) or value.upper() not in {'POSITION','WATCHLIST','STOPLOSS','ALL'}:raise InputError('unsupported list filter')
+    selected=value.upper();out={'positions':[],'watchlist':[],'stoploss':[],'meta':[]}
+    for partition,key in [('POSITION','positions'),('WATCHLIST','watchlist'),('STOPLOSS','stoploss'),('META','meta')]:
+        if selected=='ALL' or selected==partition:
+            out[key]=[_item_view(item) if partition=='POSITION' else _scrub(item) for item in _complete_partition(partition)]
+    out['counts']={key:len(value) for key,value in out.items()}
+    out.update(ok=True,list_complete=True,list_consistency='STRONGLY_CONSISTENT_PAGES_NOT_ATOMIC_SNAPSHOT')
+    if len(json.dumps(out,allow_nan=False).encode('utf-8'))>MAX_LIST_BYTES:raise InputError('complete list exceeds response limit; no partial book returned',413,'LIST_TOO_LARGE')
     return out
+
 
 
 ACTIONS = {
@@ -302,81 +399,58 @@ ACTIONS = {
 
 
 def _dispatch(payload):
-    """Run one action. `payload` is a dict with `action` + parameters.
-
-    Returns (status_code, result_dict). Used by both the direct-invoke
-    path (ops scripts / CLI) and the authenticated Function URL path.
-    """
-    action = (payload or {}).get("action")
-    if not action:
-        return 400, {"ok": False, "err": "missing action",
-                     "available_actions": list(ACTIONS.keys())}
-    handler = ACTIONS.get(action)
-    if not handler:
-        return 400, {"ok": False, "err": f"unknown action: {action}",
-                     "available_actions": list(ACTIONS.keys())}
+    if not isinstance(payload,dict):return 400,{'ok':False,'err':'action body must be an object','error_code':'INVALID_INPUT'}
+    action=payload.get('action')
+    if not isinstance(action,str) or action not in ACTIONS:return 400,{'ok':False,'err':'unknown or missing action','available_actions':list(ACTIONS)}
     try:
-        result = handler(payload)
-    except KeyError as e:
-        return 400, {"ok": False, "err": f"missing parameter: {e}"}
-    except Exception as e:
-        return 500, {"ok": False,
-                     "err": f"{type(e).__name__}: {str(e)[:300]}"}
-
-    if action in _MUTATING and result.get("ok"):
-        _trigger_snapshot()
-        result["snapshot_refresh"] = "queued"
-    return 200, result
-
-
-def lambda_handler(event, context):
-    """Dual-mode entrypoint.
-
-    • Direct invoke (ops scripts / CLI, no HTTP context): the event IS the
-      payload — runs un-gated, the caller is already inside AWS.
-    • Function URL invoke (browser): requires the x-justhodl-token header to
-      match SSM /justhodl/portfolio-admin/token and an allow-listed Origin.
-      This endpoint mutates the book, so every call is gated.
-    """
-    rc = (event or {}).get("requestContext") or {}
-    http = rc.get("http") or {}
-
-    # ── direct invoke — unchanged legacy behaviour ──
-    if not http:
-        status, result = _dispatch(event or {})
-        return {"statusCode": status,
-                "body": json.dumps(result, default=str)}
-
-    # ── Function URL invoke ──
-    method = (http.get("method") or "").upper()
-    if method == "OPTIONS":                       # CORS preflight
-        return {"statusCode": 200, "body": ""}
-
-    headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
-
-    try:
-        expected = _admin_token()
-    except Exception as e:
-        return {"statusCode": 500, "body": json.dumps(
-            {"ok": False, "err": f"auth config error: {str(e)[:160]}"})}
-
-    if headers.get("x-justhodl-token") != expected:
-        return {"statusCode": 403,
-                "body": json.dumps({"ok": False, "err": "forbidden"})}
-
-    origin = headers.get("origin")
-    if origin and origin not in ALLOWED_ORIGINS:
-        return {"statusCode": 403,
-                "body": json.dumps({"ok": False, "err": "origin not allowed"})}
-
-    raw = event.get("body") or "{}"
-    if event.get("isBase64Encoded"):
-        raw = base64.b64decode(raw).decode("utf-8", "replace")
-    try:
-        payload = json.loads(raw) if raw.strip() else {}
+        # Reject values that could not have appeared in a complete finite JSON request.
+        if len(json.dumps(payload,allow_nan=False,ensure_ascii=False).encode('utf-8'))>MAX_REQUEST_BYTES:
+            return 413,{'ok':False,'err':'request exceeds byte limit','error_code':'REQUEST_TOO_LARGE'}
+        result=ACTIONS[action](payload)
+    except (KeyError,ValueError,TypeError,OverflowError,UnicodeError):
+        return 400,{'ok':False,'err':'invalid or missing action parameters','error_code':'INVALID_INPUT'}
     except Exception:
-        return {"statusCode": 400,
-                "body": json.dumps({"ok": False, "err": "invalid JSON body"})}
+        return 503,{'ok':False,'err':'operation outcome unconfirmed; refresh before retrying','error_code':'OPERATION_UNCONFIRMED'}
+    status=result.pop('_http_status',200)
+    if action in _MUTATING and result.get('ok'):
+        result['snapshot_refresh']=_trigger_snapshot() if result.get('changed',True) else 'not_requested'
+    return status,result
 
-    status, result = _dispatch(payload)
-    return {"statusCode": status, "body": json.dumps(result, default=str)}
+
+
+def lambda_handler(event,context):
+    if not isinstance(event,dict):return {'statusCode':400,'body':json.dumps({'ok':False,'err':'request must be an object'})}
+    context_value=event.get('requestContext');http=context_value.get('http') if isinstance(context_value,dict) else None
+    if 'requestContext' not in event:
+        status,result=_dispatch(event)
+        return {'statusCode':status,'body':json.dumps(result,allow_nan=False)}
+    if not isinstance(http,dict):return {'statusCode':400,'body':'{"ok":false,"err":"invalid HTTP context"}'}
+    method=http.get('method')
+    if method=='OPTIONS':return {'statusCode':200,'body':''}
+    if method!='POST':return {'statusCode':405,'body':'{"ok":false,"err":"POST required"}'}
+    raw_headers=event.get('headers')
+    headers={key.lower():value for key,value in raw_headers.items() if isinstance(key,str)} if isinstance(raw_headers,dict) else {}
+    try:
+        expected=_admin_token()
+        if not isinstance(expected,str) or not expected:raise ValueError('unavailable token')
+    except Exception:return {'statusCode':503,'body':'{"ok":false,"err":"authentication unavailable"}'}
+    if headers.get('x-justhodl-token')!=expected:return {'statusCode':403,'body':'{"ok":false,"err":"forbidden"}'}
+    origin=headers.get('origin')
+    if origin and origin not in ALLOWED_ORIGINS:return {'statusCode':403,'body':'{"ok":false,"err":"origin not allowed"}'}
+    raw=event.get('body','{}')
+    try:
+        if not isinstance(raw,str) or len(raw)>MAX_REQUEST_BYTES*2:raise ValueError('body shape or size')
+        if event.get('isBase64Encoded') is True:raw=base64.b64decode(raw,validate=True).decode('utf-8','strict')
+        if len(raw.encode('utf-8'))>MAX_REQUEST_BYTES:raise ValueError('body size')
+        def pairs(items):
+            out={}
+            for key,value in items:
+                if key in out:raise ValueError('duplicate JSON key')
+                out[key]=value
+            return out
+        def constant(value):raise ValueError('nonfinite JSON')
+        payload=json.loads(raw,object_pairs_hook=pairs,parse_constant=constant)
+        json.dumps(payload,allow_nan=False,ensure_ascii=False).encode('utf-8')
+    except Exception:return {'statusCode':400,'body':'{"ok":false,"err":"complete finite JSON object required"}'}
+    status,result=_dispatch(payload)
+    return {'statusCode':status,'body':json.dumps(result,allow_nan=False),'headers':{'Cache-Control':'private, no-store','Content-Type':'application/json'}}
