@@ -15,6 +15,8 @@ class NoCloud:
 sys.modules["boto3"] = types.SimpleNamespace(client=lambda *args, **kwargs: NoCloud())
 
 scope = runpy.run_path(str(Path(__file__).with_name("test_scoring.py")))
+sys.path.insert(0, str(Path(__file__).parent))
+scope.update(runpy.run_path(str(Path(__file__).with_name("test_provider_flow_evidence.py"))))
 tests = sorted(
     (name, fn)
     for name, fn in scope.items()
