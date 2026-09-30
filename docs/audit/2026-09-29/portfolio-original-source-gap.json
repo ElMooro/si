@@ -1,0 +1,47 @@
+{
+  "scope": "Current pure risk model and wholly synthetic source packets only. Complete current code retained inertly; no Lambda/provider/account/current packet reads or archived-code execution.",
+  "sources": [
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "bytes": 21125,
+      "sha256": "7c1d89af0b37bb123371e06503f6b3dc1df6c97faf3f9cfb2b9aef936fe5e1e3",
+      "frozen": "stage443-predecessor-portfolio_risk_model.py.txt"
+    },
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+      "bytes": 12614,
+      "sha256": "8afaba9b8212579bbd6f77ecd2221d334933ec5b31ed6bba82b1b86e6fcda7bf",
+      "frozen": "stage443-predecessor-lambda_function.py.txt"
+    }
+  ],
+  "findings": {
+    "duplicate_adjustment": {
+      "read_bars_errors": [],
+      "accepted_closes": 129,
+      "risk_status": "AVAILABLE_HOLDINGS_MODEL",
+      "holdings_var_dollars": 9.31
+    },
+    "utf16_source": {
+      "read_bars_errors": [],
+      "accepted_closes": 129,
+      "risk_status": "AVAILABLE_HOLDINGS_MODEL",
+      "holdings_var_dollars": 9.31
+    },
+    "boolean_close_identity": {
+      "read_bars_errors": [],
+      "accepted_closes": 129,
+      "risk_status": "AVAILABLE_HOLDINGS_MODEL",
+      "holdings_var_dollars": 40508.53
+    }
+  },
+  "static_adapter_gap": "fetch_polygon_bars uses one unbounded response.read() and json.loads(raw); body acquisition has no byte cap and decoding is permissive.",
+  "synthetic_baseline": {
+    "file": "stage443-original-synthetic-bundle.json",
+    "bytes": 64228,
+    "sha256": "e46d875edf330486659ab47792a1abe6ebe5ae15b526a153561e182be849fb1d",
+    "holdings_var_dollars": 9.31
+  },
+  "complete_variants": "stage443-complete-synthetic-variants.json",
+  "actual_network_requests": 0,
+  "actual_private_reads": 0
+}
