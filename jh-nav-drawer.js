@@ -124,6 +124,11 @@
       .replace(/&/g, "&amp;").replace(/</g, "&lt;");
   }
 
+  function escText(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
   function open() {
     drawer.classList.add("jhnav-open"); backdrop.classList.add("jhnav-open");
     handle.classList.add("jhnav-open"); handle.textContent = "\u2039";
@@ -299,7 +304,7 @@
       var isHere = p.href === here;
       var on = favs.indexOf(p.href) >= 0;
       return '<a class="jhnav-item' + (isHere ? " jhnav-here" : "") + '" href="' + esc(p.href) + '">'
-        + '<span class="jhnav-t">' + esc(p.title) + (isHere ? " \u2014 you\u2019re here" : "") + '</span>'
+        + '<span class="jhnav-t">' + (m.title_encoding === "unicode_text" ? escText(p.title) : esc(p.title)) + (isHere ? " \u2014 you\u2019re here" : "") + '</span>'
         + (p.href !== "#" ? '<span class="jhtag-dots" data-dots="' + esc(p.href) + '">' + tagDotsHtml(p.href) + '</span>'
           + '<span class="jhnav-tagbtn" data-tag="' + esc(p.href) + '" title="Color tags">\ud83c\udfa8</span>' : "")
         + '<span class="jhnav-star' + (on ? " on" : "") + '" data-fav="' + esc(p.href) + '" title="' + (on ? "Unfavorite" : "Favorite") + '">' + (on ? "\u2605" : "\u2606") + '</span></a>';
@@ -342,8 +347,8 @@
       })(groups[gi]);
     }
     var search = document.getElementById("jhnav-search");
-    search.addEventListener("input", function () {
-      var q = this.value.toLowerCase();
+    function filterPages() {
+      var q = search.value.toLowerCase();
       var gs = groupsEl.querySelectorAll(".jhnav-group");
       for (var i = 0; i < gs.length; i++) {
         var g = gs[i], any = false;
@@ -357,7 +362,12 @@
         g.classList.toggle("jhnav-gopen", q ? any : (g.getAttribute("data-i") == hereCatIndex));
         g.style.display = (q && !any) ? "none" : "";
       }
-    });
+    }
+    if (!search.__jhSearchWired) {
+      search.__jhSearchWired = true;
+      search.addEventListener("input", filterPages);
+    }
+    filterPages();
     /* ops 3368: tag filter strip + re-apply after the search pass runs */
     buildTagFilter(); applyTagFilter();
     if (!search.__jhTagWired) { search.__jhTagWired = true;

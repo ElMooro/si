@@ -6,7 +6,11 @@ out of the FAVORITES section). Known hrefs keep their existing
 category; new pages are keyword-classified; redirect stubs are
 skipped."""
 import json
+import os
 import re
+import tempfile
+from html import unescape
+from html.parser import HTMLParser
 from datetime import date
 from pathlib import Path
 
@@ -33,17 +37,56 @@ RULES = [
 ]
 
 
+class TitleParser(HTMLParser):
+    # Title text is RCDATA: collect markup-like text intact, then decode once.
+    CDATA_CONTENT_ELEMENTS = ("script", "style", "title")
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.active = False
+        self.parts = []
+        self.titles = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "title":
+            self.active = True
+            self.parts = []
+
+    def handle_data(self, text):
+        if self.active:
+            self.parts.append(text)
+
+    def handle_endtag(self, tag):
+        if tag == "title" and self.active:
+            self.titles.append(unescape("".join(self.parts)))
+            self.active = False
+
+
 def title_of(p):
-    try:
-        head = p.read_text(encoding="utf-8", errors="replace")[:4000]
-    except Exception:
+    parser = TitleParser()
+    parser.feed(p.read_text(encoding="utf-8"))
+    parser.close()
+    if parser.active or len(parser.titles) > 1:
+        raise ValueError("One complete page title required: " + p.name)
+    if not parser.titles:
         return None
-    m = re.search(r"<title>(.*?)</title>", head, re.S | re.I)
-    if not m:
-        return None
-    t = re.sub(r"\s+", " ", m.group(1)).strip()
+    t = re.sub(r"\s+", " ", parser.titles[0]).strip()
     t = re.sub(r"\s*[|·—-]\s*JustHodl.*$", "", t, flags=re.I).strip()
     return t or None
+
+
+def write_manifest(path, value):
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n",
+                dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False) as target:
+            temporary = Path(target.name)
+            target.write(json.dumps(value, ensure_ascii=False))
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 FORCE = {  # ops 3302
@@ -109,7 +152,7 @@ def classify(href, title):
 
 
 def main():
-    cur = json.loads(CUR.read_text()) if CUR.exists() else {}
+    cur = json.loads(CUR.read_text(encoding="utf-8")) if CUR.exists() else {}
     order = [c["name"] for c in cur.get("categories") or []]
     for extra in ("Equity Signals", "Research & Tools",
                   "System & Meta"):
@@ -130,9 +173,10 @@ def main():
         cats.setdefault(cat, []).append({"href": href, "title": t})
         n += 1
     out = {"generated_at": date.today().isoformat(), "n_pages": n,
+           "title_encoding": "unicode_text",
            "categories": [{"name": k, "count": len(v), "pages": v}
                           for k, v in cats.items() if v]}
-    CUR.write_text(json.dumps(out, ensure_ascii=False))
+    write_manifest(CUR, out)
     print(f"[nav] {n} pages across {sum(1 for v in cats.values() if v)}"
           " categories")
 
