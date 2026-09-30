@@ -1,0 +1,56 @@
+{
+  "scope": "Current original page executed only in an invented DOM with complete synthetic snapshots; no native invocation or actual account/provider/current-consumer request.",
+  "source": {
+    "path": "portfolio/index.html",
+    "bytes": 30262,
+    "sha256": "31d4774d61bd2b07a3f348c9c8c1af312a71f908c5fbb6b30aa6b983d9f1d1d2",
+    "frozen": "stage449-predecessor-portfolio-index.html.txt",
+    "fixture": "tests/fixtures/pre-watchlist-completeness/portfolio-index.html.txt"
+  },
+  "complete_synthetic": {
+    "file": "stage449-complete-synthetic.json",
+    "bytes": 59431,
+    "sha256": "cc53e62c3aba77821d72b58bfd3dd19da611b0960594b2b3dc9e5b441a6ea54b",
+    "fixture": "tests/fixtures/pre-watchlist-completeness/complete-synthetic.json"
+  },
+  "findings": {
+    "complete": {
+      "display_count": "105 entries",
+      "error": null,
+      "rendered_rows": 30,
+      "last_supplied_row_visible": false
+    },
+    "malformed_list": {
+      "display_count": "7 entries",
+      "error": {
+        "name": "TypeError",
+        "message": "watch.slice(...).map is not a function"
+      },
+      "rendered_rows": 0,
+      "last_supplied_row_visible": false
+    },
+    "malformed_row": {
+      "display_count": "2 entries",
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of null (reading 'confluence_tier')"
+      },
+      "rendered_rows": 0,
+      "last_supplied_row_visible": false
+    },
+    "missing": {
+      "display_count": "0 entries",
+      "error": null,
+      "rendered_rows": 1,
+      "last_supplied_row_visible": false
+    },
+    "explicit_empty": {
+      "display_count": "0 entries",
+      "error": null,
+      "rendered_rows": 1,
+      "last_supplied_row_visible": false
+    }
+  },
+  "actual_private_reads": 0,
+  "actual_network_requests": 0
+}

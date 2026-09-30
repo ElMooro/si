@@ -1,0 +1,112 @@
+{
+  "stage": 449,
+  "status": "source_full_checks_and_isolated_browser_accepted_exact_static_deployment_pending",
+  "base_commit": "d765066a0ab1247cbd425d4cc4a81b399e0251a2",
+  "source_gap": "watchlist-source-gap.json",
+  "scope": "Original portfolio watchlist renderer, complete invented input fixtures and isolated browser checks. No native producer or actual private/current packet access.",
+  "source_files": {
+    "portfolio/index.html": {
+      "bytes": 33117,
+      "sha256": "cf87be8d60851f458206e07cf56e6091bb13cecaa41e86a9acee641f09644c5d"
+    }
+  },
+  "native_files_unchanged": {
+    "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py": "17d98659b6bb430b16f7b1a5768340d170a6beb9ddae99041296350aa89e491a",
+    "aws/lambdas/justhodl-portfolio-risk/source/portfolio_publication.py": "d501c99da4620926d29d2952eb9d68a61759c0eeca5aeb983135c8f7022d1027",
+    "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py": "66d3bb3b1344113d1118b03331a73c3e16c0086a4c90879380149e2126aca291"
+  },
+  "changes": [
+    "Every supplied watchlist record is reachable in source order through 25-row pages; no truncation or deduplication",
+    "Malformed list values remain unavailable and only an explicit empty list is called empty",
+    "Invalid rows keep their absolute supplied positions as unavailable rows",
+    "Refresh retains the selected page and clamps it on shrink; failure clears old rows and disables controls",
+    "Zero observations remain visible; absent source metadata is no longer called MANUAL",
+    "Names and sectors are available in full via escaped title attributes; controls have keyboard focus and announced ranges"
+  ],
+  "tests": {
+    "new_frontend_regressions": 12,
+    "focused_frontend": 49,
+    "frontend": 2021,
+    "deployment_static": 770,
+    "deployment_shell": 12,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "browser_acceptance": {
+    "scope": "Original current page and authenticated adapter at localhost, with whole invented snapshots/current model outputs and CSP denying external connections.",
+    "pagination": [
+      {
+        "page": 1,
+        "range": "1\u201325",
+        "first": "S000",
+        "last": "S024",
+        "rows": 25
+      },
+      {
+        "page": 2,
+        "range": "26\u201350",
+        "first": "S025",
+        "last": "S049",
+        "rows": 25
+      },
+      {
+        "page": 3,
+        "range": "51\u201375",
+        "first": "S050",
+        "last": "S074",
+        "rows": 25
+      },
+      {
+        "page": 4,
+        "range": "76\u2013100",
+        "first": "S075",
+        "last": "S099",
+        "rows": 25
+      },
+      {
+        "page": 5,
+        "range": "101\u2013105",
+        "first": "S100",
+        "last": "S104",
+        "rows": 5
+      }
+    ],
+    "first_previous_disabled": true,
+    "last_next_disabled": true,
+    "shrink_recovery": "Showing 26\u201331 of 31 supplied records \u00b7 page 2 of 2",
+    "malformed_row": "2 supplied records \u00b7 1 invalid; original second row retained as unavailable",
+    "malformed_list": "Watchlist count unavailable; navigation disabled",
+    "missing_list": "Watchlist count unavailable; navigation disabled",
+    "empty_list": "0 entries; No watchlist entries in this snapshot.",
+    "recovered_full_list": "Showing 1\u201325 of 105 supplied records \u00b7 page 1 of 5",
+    "mobile": {
+      "viewport_width": 360,
+      "client_width": 345,
+      "scroll_width": 345,
+      "keyboard_enter_reached_page": 2,
+      "focused_button": "Next watchlist page",
+      "full_page_screenshot_inspected": true
+    },
+    "desktop_overflow": false,
+    "console_errors_or_warnings": [],
+    "viewport_override_reset": true,
+    "actual_private_reads": 0,
+    "actual_network_requests": 0,
+    "native_invocations": 0
+  },
+  "static_acceptance": null,
+  "limitations": [
+    "Pagination proves display coverage of the supplied snapshot, not issuer identity, freshness, classification, ranking skill or investment authority",
+    "Normal private publication and current actual account data remain unverified"
+  ],
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "checks": {
+    "frontend": "3c1637b7d84116f61701042b138f2ca03de40d25d9d8f93d3041ad6b400a6ba2",
+    "deployment": "a346ec0c1b8e4e9822c3bb0d947be351fa64b48443e4f4276f4353e0f7de7658",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24"
+  }
+}
