@@ -7,6 +7,8 @@
 <script src="/jh-evidence-io.js?v=20260929-complete"></script>
 <script src="/jh-portfolio-scenario-io.js?v=20260929-replay"></script>
 <script src="/jh-portfolio-binding.js?v=20260929-coherence"></script>
+<script src="/jh-portfolio-research.js?v=20260930-originals"></script>
+<script src="/jh-portfolio-research-page.js?v=20260930-originals"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>📊 Portfolio + Risk · JustHodl.AI</title>
@@ -104,6 +106,27 @@ tr:hover td{background:rgba(28,35,48,.3);}
 
 footer{text-align:center;padding:30px 20px;color:var(--text-mute);font-family:var(--font-mono);font-size:10px;}
 footer a{color:var(--text-dim);text-decoration:none;}
+.research-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+@media(max-width:700px){.research-sources{grid-template-columns:minmax(0,1fr);}}
+.research-source{min-width:0;border:1px solid var(--border-hi);border-radius:5px;padding:14px;}
+#research-evidence{overflow-wrap:anywhere;}
+#research-evidence h3,#research-evidence h4{margin:0 0 8px;}
+#research-evidence p{color:var(--text-dim);}
+#research-evidence button,#research-evidence a{display:inline-block;min-height:40px;padding:8px 12px;margin:8px 6px 0 0;border:1px solid var(--border-hi);border-radius:4px;background:var(--panel);color:var(--text);font:inherit;}
+#research-evidence button{cursor:pointer;}
+#research-evidence button:disabled{opacity:.5;cursor:default;}
+#research-evidence :focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+#research-evidence dl{font-size:12px;margin:12px 0;}
+#research-evidence dt{color:var(--text-dim);margin-top:6px;}
+#research-evidence dd{margin:0;font-family:var(--font-mono);}
+#research-evidence summary{cursor:pointer;padding:10px 0;min-height:40px;}
+.research-key,.research-hash{font-family:var(--font-mono);font-size:11px;}
+.research-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.research-original{border-top:1px solid var(--border-hi);border-bottom:1px solid var(--border-hi);padding:18px 0;margin:16px 0;}
+#research-evidence pre{white-space:pre;overflow:auto;max-height:420px;max-width:100%;padding:12px;background:var(--bg);border:1px solid var(--border-hi);font-size:12px;}
+.research-table{overflow-x:auto;}
+.research-table table{min-width:580px;}
+#research-evidence [hidden]{display:none!important;}
 </style>
 </head>
 <body>
@@ -196,6 +219,11 @@ footer a{color:var(--text-dim);text-decoration:none;}
     </div>
   </div>
 
+  <section class="section" aria-labelledby="research-title">
+    <div class="section-header"><h2 class="section-title" id="research-title">Research evidence</h2></div>
+    <div class="section-body" id="research-evidence"><p>Retained research evidence is unavailable until a supported private snapshot loads.</p></div>
+  </section>
+
   <!-- ─── WATCHLIST ─── -->
   <div class="section">
     <div class="section-header">
@@ -224,7 +252,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
 </main>
 
 <footer>
-  Powered by 184 Lambdas · DDB-backed portfolio · dated holdings risk model ·
+  Portfolio research · dated holdings risk model ·
   <a href="https://justhodl.ai/alpha/">α Alpha</a> ·
   <a href="https://justhodl.ai/screener/">Screener</a>
 </footer>
@@ -234,6 +262,12 @@ const SNAPSHOT_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio
 const RISK_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/portfolio/risk.json';
 let snapshot = null;
 let risk = null;
+let researchView = null;
+function renderResearchEvidence(){
+  if(!window.JHPortfolioResearchPage || !window.JHPortfolioResearch)return;
+  if(!researchView)researchView=window.JHPortfolioResearchPage.mount(document.getElementById('research-evidence'));
+  researchView.render(snapshot);
+}
 
 function escapeHtml(s){
   if(s == null) return '';
@@ -526,7 +560,7 @@ function renderCurrent(){
   const replayHash=risk && risk.replay && risk.replay.output_sha256;
   document.getElementById('risk-replay-status').textContent=typeof replayHash==='string' && /^[a-f0-9]{64}$/.test(replayHash) ? 'Private frozen inputs retained · output hash '+replayHash+'. Retention is not independent verification.' : '';
   if(!snapshot) document.getElementById('positions-body').innerHTML='<tr><td colspan="13">Sign in to view your private holdings. Account data is not public.</td></tr>';
-  setUpdated();renderTopMetrics();renderAlerts();renderPositions();renderSectors();renderScenarios();renderCorrelations();renderWatchlist();
+  setUpdated();renderTopMetrics();renderAlerts();renderPositions();renderSectors();renderScenarios();renderCorrelations();renderWatchlist();renderResearchEvidence();
 }
 
 async function loadAll(){
@@ -565,6 +599,7 @@ function startTimers(){
 function stopTimers(){
   clearInterval(networkTimer);clearInterval(ageTimer);networkTimer=null;ageTimer=null;
   ++loadGeneration;loadController?.abort();loadController=null;
+  researchView?.clear();
 }
 window.addEventListener?.('pagehide',stopTimers);
 window.addEventListener?.('pageshow',event=>{renderCurrent();startTimers();if(event.persisted)loadAll();});

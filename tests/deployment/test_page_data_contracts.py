@@ -37,6 +37,40 @@ def test_recursive_routes_relative_imports_exact_keys_and_comments():
         (r/'only.html').write_text('<script>fetch("data/crypto-cycle-risk.json")</script>')
         assert 'portfolio/risk.json' not in page_graph(r,r/'only.html')['keys']
 
+def test_retained_portfolio_source_labels_do_not_expand_page_data_access():
+    graph=page_graph(ROOT,ROOT/'portfolio/index.html')
+    assert graph['keys']==['portfolio/risk.json','portfolio/snapshot.json'],graph['keys']
+    assert set(graph['primary_engines'])=={'justhodl-portfolio-snapshot','justhodl-portfolio-risk'}
+    assert {'jh-portfolio-research.js','jh-portfolio-research-page.js'}<=set(graph['scripts'])
+    assert not graph['script_parse_errors']
+
+def test_non_consumer_label_asset_does_not_hide_imported_consumers():
+    with tempfile.TemporaryDirectory() as td:
+        r=Path(td)
+        (r/'page.html').write_text('<script src="/jh-portfolio-research.js"></script>')
+        (r/'jh-portfolio-research.js').write_text('const label="screener/alpha-score.json"; import "./real-consumer.js";')
+        (r/'real-consumer.js').write_text('fetch("/data/real.json");')
+        graph=page_graph(r,r/'page.html')
+        assert graph['keys']==['data/real.json'],graph
+        assert set(graph['scripts'])=={'jh-portfolio-research.js','real-consumer.js'}
+
+def test_portfolio_research_browser_fixture_is_complete_and_source_bound():
+    import base64,hashlib
+    fixture=json.loads((ROOT/'tests/fixtures/portfolio-research-browser-synthetic.json').read_bytes())
+    for path,digest in fixture['source_files'].items():
+        assert hashlib.sha256((ROOT/path).read_bytes()).hexdigest()==digest,path
+    assert set(fixture['cases'])=={'complete','duplicate','binary','missing','corrupt','legacy'}
+    complete=fixture['cases']['complete']
+    assert len(complete['watchlist'])==105 and len(complete['frame']['snapshot']['watchlist'])==105
+    raw=base64.b64decode(complete['original_research_bodies']['screener/alpha-score.json']['body'],validate=True)
+    assert b'900719925474099312345' in raw
+    for name in ('complete','duplicate','binary','missing'):
+        for key,row in fixture['cases'][name]['original_research_bodies'].items():
+            body=base64.b64decode(row['body'],validate=True)
+            assert len(body)==row['bytes'] and hashlib.sha256(body).hexdigest()==row['sha256']
+            source=fixture['cases'][name]['frame']['snapshot']['research']['source_documents'][key]
+            assert base64.b64decode(source['body'],validate=True)==body
+
 def test_wiring_check_rejects_wrong_title_schema_and_duplicate_records():
     with tempfile.TemporaryDirectory() as td:
         old=os.getcwd();os.chdir(td)
