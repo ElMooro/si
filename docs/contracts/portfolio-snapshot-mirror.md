@@ -1,0 +1,13 @@
+# Complete snapshot mirror representation
+
+The existing private snapshot route preserves the complete validated UTF-8 body. It must not parse and then serialize that body for storage: JSON serialization erases negative zero, so the browser can receive different values from the snapshot used by risk's typed binary64 replay identity. Unknown fields, text, number spellings and whitespace also remain intact.
+
+The route retains the existing service-only write and owner/service read authorization, private KV key, bindings and schedules. Other private artifact kinds retain their existing behavior. The older native publisher remains compatible because the acknowledgement still contains `ok: true`; new acknowledgement fields are additive.
+
+Before its single existing KV write, the route uses the reviewed complete-body reader and strict JSON parser. The request is bounded to 20,000,000 bytes, with declared-length reconciliation, a 20-second body acceptance deadline, no non-identity content encoding, valid UTF-8, no duplicate fields, no unsupported Unicode and depth at most 128. The full value tree must satisfy the snapshot's existing safe binary64 number and 32 MiB typed-identity limits. Every occurrence counts; no record or field is dropped to fit. An optional `X-JH-Body-SHA256` must match the complete body if supplied.
+
+After the storage API acknowledges the write, the response contains `protocol: portfolio-snapshot-bytes.v1`, `body_bytes`, `body_sha256` and `identity_bytes`. An incomplete or incompatible input performs no write. A storage failure produces a fixed 503 response without copying private exception text or claiming success. A caller cannot infer that a failed or lost acknowledgement means no write occurred.
+
+This is a representation and acknowledgement contract. It does not make KV strongly consistent, serialize competing producers, make the mirror and S3 an atomic transaction, prove an actual account publication or qualify an investment recommendation. Ordering, two-destination recovery and full process peak memory remain open. Whole retained snapshots from before this change are not rewritten or treated as newly verified.
+
+Acceptance uses the current reviewed modules with complete invented inputs, existing browser identity vectors and a compiled local workerd runtime. The runtime preserves a complete 2.7 MB snapshot and negative zero across persistence restart while retaining all prior risk-publication checks. Production acceptance requires the exact Worker release receipt, complete before/after source capture, matching pinned local build and unchanged original configuration. No actual private packet is read and no production Worker route is invoked for acceptance.

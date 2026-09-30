@@ -1,0 +1,108 @@
+{
+  "status": "current_source_and_compiled_invented_acceptance_passed_exact_worker_release_pending",
+  "predecessor_commit": "ee0db9e8487e0eeb3f4b3b8dacd2a4bc210c26c9",
+  "fixtures": {
+    "cloudflare/workers/justhodl-data-proxy/src/index.js": {
+      "path": "tests/fixtures/pre-snapshot-mirror-bytes/index.js.txt",
+      "bytes": 143497,
+      "sha256": "b8b38fc23912af6358a56d15a47f8c5391bb9da5e50b1453dd7d80f9b463d9c6"
+    },
+    "cloudflare/workers/justhodl-data-proxy/tests/portfolio-publication-runtime.cjs": {
+      "path": "tests/fixtures/pre-snapshot-mirror-bytes/portfolio-publication-runtime.cjs.txt",
+      "bytes": 4877,
+      "sha256": "d90e903d8924a4f79f628a960a7abc67634b101f88e102bf763a7ec4b82c971a"
+    },
+    "tests/worker-data-proxy.test.js": {
+      "path": "tests/fixtures/pre-snapshot-mirror-bytes/worker-data-proxy.test.js.txt",
+      "bytes": 60179,
+      "sha256": "42d9406f000da5923d11fde7d2cffa0a94bc0cce6628c36abe052433b28fcfdd"
+    },
+    "complete_synthetic": {
+      "path": "tests/fixtures/pre-snapshot-mirror-bytes/complete-synthetic.json",
+      "bytes": 496,
+      "sha256": "ef3790ff85ce12a33989bf68f789a87a5c9d72cb9204623ffd8c2cfe8a2d1d57"
+    }
+  },
+  "reproduced": "Current snapshot mirror changes negative zero and the complete original JSON representation by parsing and serializing before storage.",
+  "scope": "Current reviewed Worker and wholly invented in-memory data; no actual private reads, writes or Worker invocation.",
+  "normal_private_publication_verified": false,
+  "publication_ordering_verified": false,
+  "source_files": {
+    "cloudflare/workers/justhodl-data-proxy/src/index.js": {
+      "bytes": 143652,
+      "sha256": "0d7103c618ac0fba8c915b2f43d317b232bf09e41be4fdfdd47bcb7673c4c4af"
+    },
+    "cloudflare/workers/justhodl-data-proxy/src/portfolio-snapshot.js": {
+      "bytes": 3284,
+      "sha256": "1350a45be3839bb8294ccdc85b43d8028125ed518d1d22044267619519f5c018"
+    },
+    "cloudflare/workers/justhodl-data-proxy/tests/portfolio-publication-runtime.cjs": {
+      "bytes": 6038,
+      "sha256": "a3b406c50dfebd767fbd369dcce7fe18c3c1eb3a4aa0ed11563e44f70aefc60a"
+    },
+    "tests/worker-data-proxy.test.js": {
+      "bytes": 61465,
+      "sha256": "9b9638d402de806d69d2bb35abd7d53efab641c4b932953a597b8df311ab5a11"
+    },
+    "tests/worker-snapshot-publication.test.js": {
+      "bytes": 8138,
+      "sha256": "3c7eda1cbe4e44bbe2861d6d212baffd5164cd0fa6bb915dceba7e173f051ec3"
+    }
+  },
+  "source_inventory_sha256": "d11d67181c515d476e273d090884521b8d978029e0a47c1e0dcf0a7391547ffe",
+  "compiled_runtime": {
+    "status": "passed",
+    "checks": 16,
+    "compiled_sha256": "ffc6cb3a84abea0077d9d8b981cdb4eb12b6f0b2438e0c31d205f85c7904e805",
+    "complete_synthetic_bytes": 2700540,
+    "complete_snapshot_synthetic_bytes": 2700068,
+    "runtime": "local workerd with SQLite Durable Object",
+    "external_requests": 0,
+    "actual_private_reads": 0,
+    "actual_private_writes": 0
+  },
+  "compiled_bytes": 204104,
+  "tests": {
+    "focused_snapshot": 13,
+    "combined_worker_focused": 56,
+    "frontend": 2106,
+    "deployment_static": 824,
+    "deployment_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "current_synthetic": {
+    "path": "tests/fixtures/snapshot-mirror-bytes-synthetic.json",
+    "bytes": 688,
+    "sha256": "343d3cef614dd1987fa0a61ad8a95415f9ff6e131118a040fc7efcaad84fa605"
+  },
+  "checks": {
+    "frontend": "24b2d7cece60d544ac3b9dceecf58d73775f41dd87717722a7f71b1ef8d980b0",
+    "deployment": "13ba8ebfca01d8d9d2ac0a9023e5c56ec174aca16065a60152e38d6d0bda523a",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "runtime": "b33a14635b3c1b4abedce68de27de7fe3334dd005c511303c15e92b2b379535b"
+  },
+  "native_output_compatibility": {
+    "fixture": "tests/fixtures/portfolio-sector-browser-synthetic.json.gz",
+    "sha256": "457f093ea0f21b299184cd3442a744bfb146da2539ed6905ad902321f77018f6",
+    "complete_native_cases": [
+      "complete",
+      "partial",
+      "binary",
+      "empty",
+      "mixed",
+      "known"
+    ],
+    "separate_browser_fault_cases": [
+      "corrupt",
+      "legacy",
+      "identity"
+    ],
+    "all_six_complete_original_native_bodies_preserved": true
+  },
+  "dependency_inventory_includes_worker_sources": false,
+  "worker_inventory_scope": "Worker source is bound separately by the exact release build inventory; the current dependency map does not include these Worker source files."
+}

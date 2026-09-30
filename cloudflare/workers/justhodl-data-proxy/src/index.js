@@ -1,5 +1,6 @@
 import { factoryGateway } from './factory-gateway.js';
 import { handlePortfolioPublication, routePortfolioPublication } from './portfolio-publication.js';
+import { publishSnapshot } from './portfolio-snapshot.js';
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
 import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, mergeBarsPrefer, yahooResultToBars, binanceSymbol, binanceKlinesToBars} from './warehouse-ohlc.js';
@@ -561,6 +562,7 @@ export default {
       const key = "private-artifact:" + kind;
       if (request.method === "PUT" && url.pathname === "/private-artifact") {
         if (identity.role !== "service") return forbidden("service publisher required");
+        if (kind === 'portfolio-snapshot') return publishSnapshot(request, env, corsHeaders());
         const raw = await boundedBody(request, 20000000);
         if (raw === null) return jsonResp({ error: "artifact too large" }, 413);
         let doc; try { doc = JSON.parse(raw); } catch (_) { return jsonResp({ error: "invalid artifact" }, 400); }

@@ -415,6 +415,20 @@ test('Journal decisions survive delete/edit attempts, concurrent writes and dura
   assert.ok(obj.data.has('journal:event:000000000003'));
 });
 
+test('snapshot mirror preserves complete publication bytes behind existing owner and service authorization', async () => {
+  const {env,kv}=fresh(),w=await worker(),raw=' {"positions":[],"unknown":{"n":-0.0,"s":"literal π"},"watchlist":[]}\n';
+  for(const headers of [{},{Authorization:'Bearer other_tok_000000000000'},{Authorization:'Bearer owner_tok_000000000000'}]){
+    assert.ok([401,403].includes((await w.fetch(req('/private-artifact?kind=portfolio-snapshot',{method:'PUT',headers,body:raw}),env,{})).status));
+    assert.equal(kv._m.has('private-artifact:portfolio-snapshot'),false);
+  }
+  const published=await w.fetch(req('/private-artifact?kind=portfolio-snapshot',{method:'PUT',headers:{'X-JH-Service-Token':ADMIN},body:raw}),env,{});
+  assert.equal(published.status,200);assert.equal((await published.json()).protocol,'portfolio-snapshot-bytes.v1');assert.equal(kv._m.get('private-artifact:portfolio-snapshot'),raw);
+  for(const route of ['/private-artifact?kind=portfolio-snapshot','/portfolio/snapshot.json']){
+    assert.equal((await w.fetch(req(route),env,{})).status,401);
+    const response=await w.fetch(req(route,{headers:{Authorization:'Bearer owner_tok_000000000000'}}),env,{});assert.equal(response.status,200);assert.equal(await response.text(),raw);
+  }
+});
+
 function delivery(id='evt_residual',over={}){
   const payload=JSON.stringify({id,type:over.type||'customer.subscription.updated',data:{object:{id:'sub_historical',customer:'cus_1',status:'active',metadata:{user_id:OTHER_UID},items:{data:[{price:{id:'price_pro_123'}}]},...over.object}}});
   return req('/stripe-webhook',{method:'POST',headers:{'stripe-signature':signed(payload,'whsec_test')},body:payload});
