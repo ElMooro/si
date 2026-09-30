@@ -117,7 +117,7 @@
     }
   ],
   "release_acceptance": {
-    "status": "offline_directory_verified_but_two_served_asset_hashes_require_followup",
+    "status": "verified_in_descendant_after_portable_order_offline_build_and_served_asset_repairs",
     "source_commit": "c0087e1af923ac1899532ab7b47e12fd97a5ab2b",
     "pages_run": 36749017126,
     "lambda_no_target_run": 36749017242,
@@ -3017,7 +3017,17 @@
       "same_build_manifest_before_after": true
     },
     "remaining_mismatch": "Two index.html repository asset hashes describe pre-compaction source bytes. All other 599 contract fields match after independently verifying existing build transformations.",
-    "followup_audit": "docs/audit/2026-09-30/served-asset-bindings.json"
+    "followup_audit": "docs/audit/2026-09-30/served-asset-bindings.json",
+    "prior_status": "offline_directory_verified_but_two_served_asset_hashes_require_followup",
+    "resolution": {
+      "source_commit": "65ba3089f3a60a5092d3430b3308b8ef849475a7",
+      "pages_run": 36751633916,
+      "checked_at": "2026-09-30T17:34:22.055969+00:00",
+      "audit": "docs/audit/2026-09-30/served-asset-bindings.json",
+      "whole_static_assets": 36,
+      "complete_engine_records": 893,
+      "complete_page_contracts": 599
+    }
   },
   "scope": "Source compilation and whole invented fixtures only. No native producer invocation, provider request, account inspection, prospective outcomes, scorecard or private/current consumer packet acceptance. All ten institutional workstreams remain open."
 }

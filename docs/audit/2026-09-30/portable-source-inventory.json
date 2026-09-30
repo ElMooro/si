@@ -4521,10 +4521,20 @@
     "missing_or_stale_wires": 0
   },
   "release_acceptance": {
-    "status": "portable_order_source_repair_shipped_complete_static_acceptance_pending_asset_binding_repair",
+    "status": "verified_in_descendant_after_portable_order_offline_build_and_served_asset_repairs",
     "source_commit": "bc9a1470127f3fff8e6e222e78e2c80abb1b64ac",
     "cancelled_pages_run": 36745621116,
-    "followup_audit": "docs/audit/2026-09-30/served-asset-bindings.json"
+    "followup_audit": "docs/audit/2026-09-30/served-asset-bindings.json",
+    "prior_status": "portable_order_source_repair_shipped_complete_static_acceptance_pending_asset_binding_repair",
+    "resolution": {
+      "source_commit": "65ba3089f3a60a5092d3430b3308b8ef849475a7",
+      "pages_run": 36751633916,
+      "checked_at": "2026-09-30T17:34:22.055969+00:00",
+      "audit": "docs/audit/2026-09-30/served-asset-bindings.json",
+      "whole_static_assets": 36,
+      "complete_engine_records": 893,
+      "complete_page_contracts": 599
+    }
   },
   "scope": "Only source compilation, static evidence and retained complete public build captures. No native producer, private account/current consumer packet, provider request or schedule change. All ten institutional workstreams remain open."
 }

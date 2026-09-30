@@ -389,7 +389,7 @@
     "environment_failure": "The first frontend harness selected system Python without tzdata; rerun with the existing configured Python/dependency environment passed all tests. No application change addressed that harness failure."
   },
   "release_acceptance": {
-    "status": "deployed_live_inventory_order_mismatch_repair_prepared",
+    "status": "verified_in_descendant_after_portable_order_offline_build_and_served_asset_repairs",
     "source_commit": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
     "pages_run": 36742590693,
     "lambda_no_target_run": 36742590588,
@@ -402,7 +402,17 @@
       "sha256": "5230cddb5eb40d600c216c3709d5ee5d273ce327214bbeffa0d2d666bf62b779"
     },
     "followup_audit": "docs/audit/2026-09-30/portable-source-inventory.json",
-    "claim": "Do not treat the first strict live comparison as passed. Generated asset hash changes must also be checked against their exact build, not ignored."
+    "claim": "Do not treat the first strict live comparison as passed. Generated asset hash changes must also be checked against their exact build, not ignored.",
+    "prior_status": "deployed_live_inventory_order_mismatch_repair_prepared",
+    "resolution": {
+      "source_commit": "65ba3089f3a60a5092d3430b3308b8ef849475a7",
+      "pages_run": 36751633916,
+      "checked_at": "2026-09-30T17:34:22.055969+00:00",
+      "audit": "docs/audit/2026-09-30/served-asset-bindings.json",
+      "whole_static_assets": 36,
+      "complete_engine_records": 893,
+      "complete_page_contracts": 599
+    }
   },
   "institutional_workstreams": "all ten remain open"
 }
