@@ -17,8 +17,8 @@ def pair():
     return native.reconstruct(a, raw.__getitem__, GENERATED), native.reconstruct(b, old.__getitem__, GENERATED)
 
 
-def output(pairs):
-    acc=model.OwnershipSummary(GENERATED,len(pairs));artifacts={}
+def output(pairs, generated=GENERATED):
+    acc=model.OwnershipSummary(generated,len(pairs));artifacts={}
     for t,(a,b) in sorted(pairs.items()):
         a=copy.deepcopy(a);b=copy.deepcopy(b);a['ticker']=b['ticker']=t
         comparison=native.compare(a,b)
@@ -41,6 +41,40 @@ class Summary(unittest.TestCase):
         self.assertEqual((r['raw_observed_fund_count'],r['known_presence_lower_bound'],r['qualified_fund_count']),(2,2,1))
         self.assertEqual(m['funds']['BBB']['qualification_exclusion'],'incomplete_returned_snapshot')
         self.assertFalse(m['calls_eligible']);self.assertFalse(m['corporate_actions_verified'])
+
+    def test_lower_bound_deadline_includes_excluded_partial_contributors(self):
+        a,b=pair();a['source_valid_until']='2026-09-22T08:00:00+00:00'
+        partial=copy.deepcopy(a);partial['source_valid_until']='2026-09-21T08:00:00+00:00'
+        partial['quality'].update(status='incomplete',pagination_complete=False)
+        inputs={'AAA':(a,b),'BBB':(partial,b)}
+        _,m,p=output(inputs)
+        g=next(g for g in m['cohorts'] if g['kind']=='current_membership')
+        self.assertEqual(g['source_valid_until'],a['source_valid_until'])
+        self.assertEqual(g['lower_bound_valid_until'],partial['source_valid_until'])
+        self.assertEqual(rows(m,p)[0]['known_presence_lower_bound'],2)
+        self.assertEqual(rows(m,p)[0]['qualified_fund_count'],1)
+        # At the exclusive deadline the retained lower bound is no longer fresh.
+        for now in ('2026-09-21T08:00:00+00:00','2026-09-21T09:00:00+00:00'):
+            self.assertFalse(native.clock(now)<native.clock(g['lower_bound_valid_until']))
+            _,fresh,fp=output(inputs,now)
+            fg=next(g for g in fresh['cohorts'] if g['kind']=='current_membership')
+            self.assertEqual(rows(fresh,fp)[0]['known_presence_lower_bound'],1)
+            self.assertEqual(rows(fresh,fp)[0]['raw_observed_fund_count'],2)
+            self.assertEqual(fg['lower_bound_valid_until'],a['source_valid_until'])
+
+    def test_partial_only_lower_bound_has_own_deadline_or_is_unavailable(self):
+        a,b=pair();a['source_valid_until']='2026-09-21T08:00:00+00:00'
+        a['quality'].update(status='incomplete',pagination_complete=False)
+        _,m,p=output({'BBB':(a,b)})
+        g=m['cohorts'][0];r=rows(m,p)[0]
+        self.assertIsNone(g['source_valid_until']);self.assertEqual(g['eligible_fund_count'],0)
+        self.assertEqual(g['lower_bound_valid_until'],a['source_valid_until'])
+        self.assertEqual(r['known_presence_lower_bound'],1);self.assertIsNone(r['qualified_fund_count'])
+        _,m,p=output({'BBB':(a,b)},a['source_valid_until'])
+        self.assertIsNone(m['cohorts'][0]['lower_bound_valid_until'])
+        self.assertEqual(rows(m,p)[0]['raw_observed_fund_count'],1)
+        self.assertEqual(rows(m,p)[0]['known_presence_lower_bound'],0)
+        self.assertEqual(output({'BBB':(a,b)}),output({'BBB':(a,b)}))
 
     def test_stale_future_mixed_missing_and_ambiguous_identity_exclusions(self):
         a,b=pair()

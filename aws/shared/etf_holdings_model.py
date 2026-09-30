@@ -96,7 +96,7 @@ class OwnershipSummary:
         definition = {'kind': kind, 'effective_dates': dates}
         key = sha(encoded(definition))
         if key not in self.groups:
-            self.groups[key] = {**definition, 'cohort_id': key, 'eligible_funds': [], 'source_valid_until': None, 'rows': {}}
+            self.groups[key] = {**definition, 'cohort_id': key, 'eligible_funds': [], 'source_valid_until': None, 'lower_bound_valid_until': None, 'rows': {}}
         return self.groups[key]
 
     def record(self, group, row):
@@ -150,7 +150,11 @@ class OwnershipSummary:
             rec = self.record(group, row);rec['raw'].add(fund)
             if reason is None: rec['qualified'].add(fund)
             # Known presence is not evidence of absence; never part of an exact rank.
-            if lower_current and native.day(row['effective_date']) <= self.at.date(): rec['lower'].add(fund)
+            if lower_current and native.day(row['effective_date']) <= self.at.date():
+                rec['lower'].add(fund)
+                expiry = clock(current['source_valid_until'])
+                previous = group['lower_bound_valid_until']
+                group['lower_bound_valid_until'] = min(expiry, clock(previous) if previous else expiry).isoformat()
         if pair_reason is None:
             group = self.group('dated_membership_comparison',
                                [*sorted(prior['effective_dates']), *sorted(current['effective_dates'])])
@@ -211,6 +215,8 @@ class OwnershipSummary:
                        'manifest_bytes': SUMMARY_MANIFEST_BYTES, 'pages': SUMMARY_MAX_PAGES},
             'scope': 'Reported rows, including zero/short positions; not current ownership, trades, daily changes or capital flows. '
                      'Known presence is a separate lower bound, never proof of absence or a global rank. '
+                     'Fresh lower bounds require now < lower_bound_valid_until; null means unavailable. '
+                     'source_valid_until qualifies eligible rankings only; raw observations remain historical. '
                      'Quantity and raw-weight observations remain in the referenced comparison records. '
                      'No aggregate exposure, unit conversion, inferred asset class, fund-of-funds lookthrough or leveraged/inverse netting.',
             'source_classifications_verified': False, 'corporate_actions_verified': False, 'weight_unit_certified': False, 'market_value_currency_certified': False,
