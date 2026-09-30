@@ -9,6 +9,8 @@ from decimal import Decimal, localcontext, ROUND_HALF_EVEN
 from fractions import Fraction
 from zoneinfo import ZoneInfo
 import base64, csv, hashlib, io, json, math
+from copy import deepcopy
+from urllib.parse import urlsplit,parse_qs
 import fifx_catalog as catalog
 import fifx_timezones as pinned
 
@@ -46,8 +48,15 @@ def zone(name):
     return ZoneInfo.from_file(io.BytesIO(raw), key=name)
 
 
-def verify(output, raw, receipt, definition=None):
-    sid = output['source_id'];spec = catalog.SPECS[sid]
+def verify(output, raw, receipt, definition=None,requested_url=None):
+    sid = output['source_id'];spec = deepcopy(catalog.SPECS[sid])
+    if requested_url is not None:
+        assert type(requested_url) is str and output['requested_url']==requested_url
+        if receipt:assert requested_url==receipt['source_url']
+    else:assert 'requested_url' not in output
+    route=requested_url or (receipt or {}).get('source_url','')
+    api=bool(sid in catalog.FRED and route.startswith('https://api.stlouisfed.org/fred/series/observations?'))
+    if api:spec['provider']='fred_api'
     assert output['contract'] == 'fifx-source-candidate.v1' and output['candidate_only'] is True
     assert output['specification'] == spec and output['methodology'] == catalog.METHOD
     assert all(output[k] is False for k in catalog.AUTHORITY) and output['independent_votes'] == 0
@@ -74,9 +83,38 @@ def verify(output, raw, receipt, definition=None):
     now, acquired = clock(output['generated_at']), clock(receipt['acquired_at'])
     assert now >= acquired
     if sid in catalog.FRED:
-        table = list(csv.reader(io.StringIO(raw.decode('utf-8-sig'), newline='')))
-        expected_rows = [{'original_row': i, 'date': r[0], 'value': r[1]} for i, r in enumerate(table[1:])]
-        assert table[0] in (['observation_date', sid], ['DATE', sid])
+        if api:
+            def pairs(items):
+                result={}
+                for key,value in items:
+                    assert key not in result;result[key]=value
+                return result
+            doc=json.loads(raw.decode('utf-8'),object_pairs_hook=pairs)
+            parsed=urlsplit(receipt['source_url']);query=parse_qs(parsed.query,keep_blank_values=True)
+            assert len(query.get('realtime_start',[]))==1;as_of=query['realtime_start'][0]
+            assert date.fromisoformat(as_of).isoformat()==as_of and 0<=(acquired.date()-date.fromisoformat(as_of)).days<=1
+            assert parsed.scheme=='https' and parsed.netloc=='api.stlouisfed.org' and parsed.path=='/fred/series/observations' and not parsed.fragment
+            controls={'series_id':sid,'file_type':'json','realtime_start':as_of,'realtime_end':as_of,'observation_start':'1988-01-01',
+                      'observation_end':as_of,'units':'lin','sort_order':'asc','limit':'50000','offset':'0','output_type':'1'}
+            assert parse_qs(parsed.query,keep_blank_values=True)=={k:[v] for k,v in controls.items()}
+            envelope={'realtime_start':as_of,'realtime_end':as_of,'observation_start':'1988-01-01','observation_end':as_of,'units':'lin',
+                      'output_type':1,'file_type':'json','order_by':'observation_date','sort_order':'asc','offset':0,'limit':50000}
+            assert all(type(doc.get(k)) is type(v) and doc[k]==v for k,v in envelope.items())
+            assert type(doc['count']) is int and 0<doc['count']<=50000 and len(doc['observations'])==doc['count']
+            expected_rows=[]
+            for i,r in enumerate(doc['observations']):
+                assert set(r)=={'date','value','realtime_start','realtime_end'} and r['realtime_start']==r['realtime_end']==as_of
+                assert type(r['date']) is str and date.fromisoformat(r['date']).isoformat()==r['date'] and '1988-01-01'<=r['date']<=as_of
+                assert type(r['value']) is str and (r['value']=='.' or Decimal(r['value']).is_finite())
+                expected_rows.append({'original_row':i,'date':r['date'],'value':r['value']})
+            assert [r['date'] for r in expected_rows]==sorted({r['date'] for r in expected_rows})
+            assert output['source_identity']['population']=={'requested_start':'1988-01-01','requested_end':as_of,'realtime_start':as_of,'realtime_end':as_of,
+                'offset':0,'limit':50000,'returned_rows':len(expected_rows),'reported_rows':doc['count'],'complete_requested_window':True,
+                'full_series_history':False,'point_in_time_backtest':False}
+        else:
+            table = list(csv.reader(io.StringIO(raw.decode('utf-8-sig'), newline='')))
+            expected_rows = [{'original_row': i, 'date': r[0], 'value': r[1]} for i, r in enumerate(table[1:])]
+            assert table[0] in (['observation_date', sid], ['DATE', sid])
         assert output['source_identity']['definition'] == definition
         meta = definition.get('seriess', []) if isinstance(definition, dict) else []
         reviewed = len(meta) == 1 and meta[0].get('id') == sid and meta[0].get('units') == catalog.FRED_UNITS[sid] and meta[0].get('frequency_short') == 'D' and meta[0].get('frequency') == ('Daily, Close' if sid == 'VIXCLS' else 'Daily') and meta[0].get('seasonal_adjustment') == 'Not Seasonally Adjusted'

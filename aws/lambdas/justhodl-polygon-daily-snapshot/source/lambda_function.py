@@ -68,7 +68,9 @@ def lambda_handler(event, context):
                       Key="data/warm/us-equities-daily/latest-summary.json",
                       Body=json.dumps({
                           "as_of": now.isoformat(timespec="seconds"),
-                          "session": d, "n_tickers": len(rows),
+                          "session": d, "session_date": d,
+                          "walkback_days_used": back,
+                          "n_tickers": len(rows),
                           "approved_as": "APR-0001 (Khalid)",
                           "sample": rows[:3]}).encode(),
                       ContentType="application/json",

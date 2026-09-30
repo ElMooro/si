@@ -5,7 +5,7 @@
   const PREFIX='data/fifx-vol-research/',LIMIT=64*1024*1024;
   const LABELS={VIXCLS:'VIX reported index',DGS10:'10-year Treasury yield',DEXUSEU:'Euro / US dollar',DEXJPUS:'US dollar / Japanese yen',DEXUSUK:'Sterling / US dollar',DTWEXBGS:'Broad US dollar index','^MOVE':'MOVE reported index','^KS11':'KOSPI','^HSI':'Hang Seng','^N225':'Nikkei 225','^GDAXI':'Provider DAX index','^FTSE':'FTSE 100','^FCHI':'CAC 40','000001.SS':'Shanghai Composite','^BSESN':'Sensex','^BVSP':'Ibovespa','^AXJO':'ASX 200','^VHSI':'HSI Volatility Index'};
   const IDS=Object.keys(LABELS),FLAGS=['calls_eligible','sizing_eligible','execution_eligible','forecast_qualified','point_in_time_backtest_qualified','publication_eligible'];
-  const readable=value=>value==null?'Unavailable':({basis_points:'Basis points',index_points:'Index points',percent_log_return:'Log-return %',within_age_ceiling:'Within freshness limits',identity_mismatch:'Source identity mismatch',http_error:'Provider returned an error',fred_csv:'FRED',yahoo_chart:'Yahoo Finance',not_applicable:'Not applicable',reviewed_source_identity:'Source identity reviewed'}[value]||String(value).replace(/_/g,' '));
+  const readable=value=>value==null?'Unavailable':({basis_points:'Basis points',index_points:'Index points',percent_log_return:'Log-return %',within_age_ceiling:'Within freshness limits',identity_mismatch:'Source identity mismatch',http_error:'Provider returned an error',fred_csv:'FRED CSV',fred_api:'FRED observations API',yahoo_chart:'Yahoo Finance',not_applicable:'Not applicable',reviewed_source_identity:'Source identity reviewed'}[value]||String(value).replace(/_/g,' '));
   const number=v=>typeof v==='number'&&Number.isFinite(v);
   const clock=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(s)?Date.parse(s):NaN;
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -81,6 +81,28 @@
     for(const p of points){if(!number(p.x)||!number(p.y)){pen=false;continue;}path+=(pen?' L':' M')+X(p.x).toFixed(2)+' '+Y(p.y).toFixed(2);pen=true;}
     return '<svg class="fx-chart" viewBox="0 0 710 220" role="img" aria-label="Complete retained history"><line x1="48" x2="678" y1="'+Y(0)+'" y2="'+Y(0)+'"/><path d="'+path+'"/><text x="4" y="20">'+esc(unit)+' · '+hi.toFixed(2)+'</text><text x="4" y="192">'+lo.toFixed(2)+'</text><text x="48" y="212">'+esc(valid[0].date)+'</text><text x="678" y="212" text-anchor="end">'+esc(valid.at(-1).date)+'</text></svg>';
   }
+  function sourceIdentityRows(row,sid){
+    const identity=row.source_identity,meta=identity?.metadata,definition=identity?.definition?.seriess?.[0],population=identity?.population;
+    const date=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s+'T00:00:00Z'))&&new Date(s+'T00:00:00Z').toISOString().slice(0,10)===s;
+    const range=(first,last)=>date(first)&&date(last)&&first<=last?first+' → '+last:null;
+    const rows=[['Provider',row.specification.provider],['Identity status',identity?.status],['Provider name',meta?.longName??definition?.title??sid],
+      ['Original unit',row.specification.source_unit],['Original response',Number.isInteger(row.receipt?.http_status)?'HTTP '+row.receipt.http_status:'Unavailable'],
+      ['Exchange / currency',meta?meta.exchangeName+' / '+meta.currency:null],['Session timezone',identity?.timezone?.name??'Source observation date'],
+      ['Pinned timezone database',identity?.timezone?.iana_version??null],['Source roots',row.specification.dependency_roots.join(', ')]];
+    if(row.specification.provider==='fred_api'){
+      const valid=population&&range(population.requested_start,population.requested_end)&&range(population.realtime_start,population.realtime_end)&&
+        Number.isSafeInteger(population.returned_rows)&&population.returned_rows>0&&Number.isSafeInteger(population.reported_rows)&&population.reported_rows>0;
+      const complete=valid&&row.receipt?.http_status===200&&population.complete_requested_window===true&&population.offset===0&&population.limit===50000&&
+        population.returned_rows===population.reported_rows&&population.returned_rows<=population.limit&&population.returned_rows===row.retained_original_rows;
+      rows.push(['Requested observations',valid?range(population.requested_start,population.requested_end):null],
+        ['Response realtime window',valid?range(population.realtime_start,population.realtime_end):null],
+        ['Returned / reported rows',valid?population.returned_rows.toLocaleString('en-US')+' / '+population.reported_rows.toLocaleString('en-US'):null],
+        ['Requested-window completeness',complete?'Complete according to retained response counts':'Unverified'],
+        ['Full series history','Unverified'],['Historical first-release availability','Unverified']);
+    }
+    rows.push(['Official quote-feed parity',row.specification.provider==='yahoo_chart'?'Unverified':'Not applicable'],['Forecast / sizing','Unqualified']);
+    return rows;
+  }
   function mount(doc,fetcher=root.fetch,crypto=root.crypto){
     if(!doc.getElementById('fx-research'))return;
     const el=id=>doc.getElementById('fx-'+id),requests=new Set();
@@ -115,8 +137,7 @@
       el('reading').innerHTML='<div class="fx-reading">'+stat(row.specification.window_changes?'Annualized dispersion (252-step assumption)':'Reported index level',current?.estimate,readable(row.specification.measurement_unit))+stat('Descriptive z-score',current?.baseline?.z_score,'504 preceding estimates')+stat('Midrank percentile',current?.baseline?.midrank_percentile,'percentile, not a probability')+'</div>';
       const last=row.last_calculated;
       el('window').innerHTML=pairs([['Current status',available?row.quality.status:row.current?'Expired':row.quality.status],['Latest source observation',row.latest_reported?.date],['Acquired',row.receipt?.acquired_at],['Current expires',row.current_expires_at],['Release cadence',row.specification.release_cadence],['Last calculated window',last?(last.start_date?last.start_date+' → ':'')+last.date:null],['Window steps',last?.change_count??'Reported index level'],['Calendar span / max gap',last?.change_count?last.elapsed_calendar_days+' / '+last.max_interval_days+' days':null],['Missing interior rows',last?.missing_rows_inside_window??null],['Session evidence',row.session_evidence?.status],['Baseline status',last?.baseline?.status]]);
-      const meta=row.source_identity?.metadata,definition=row.source_identity?.definition?.seriess?.[0];
-      el('identity').innerHTML=pairs([['Provider',row.specification.provider],['Identity status',row.source_identity?.status],['Provider name',meta?.longName??definition?.title??sid],['Original unit',row.specification.source_unit],['Exchange / currency',meta?meta.exchangeName+' / '+meta.currency:null],['Session timezone',row.source_identity?.timezone?.name??'Source observation date'],['Pinned timezone database',row.source_identity?.timezone?.iana_version??null],['Source roots',row.specification.dependency_roots.join(', ')],['Official quote-feed parity',row.specification.provider==='yahoo_chart'?'Unverified':'Official FRED response'],['Forecast / sizing','Unqualified']]);
+      el('identity').innerHTML=pairs(sourceIdentityRows(row,sid));
     }
     async function refresh(){
       if(paused||destroyed)return;
@@ -152,7 +173,7 @@
     root.addEventListener?.('pagehide',suspend);root.addEventListener?.('pageshow',resume);
     startClock();refresh();return {refresh,render,suspend,resume,destroy};
   }
-  const api={IDS,LABELS,bytes,hash,qualified,fresh,verifyView,verifySeries,verifyOriginal,display,chart,mount};
+  const api={IDS,LABELS,bytes,hash,qualified,fresh,verifyView,verifySeries,verifyOriginal,display,chart,sourceIdentityRows,mount};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;root.JHFIFXResearch=api;
   if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',()=>mount(root.document));else mount(root.document);}
 })(typeof globalThis!=='undefined'?globalThis:this);

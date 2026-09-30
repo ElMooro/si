@@ -1,0 +1,11 @@
+# China native execution metrics
+
+A missing reviewed failure diagnostic cannot establish either a successful publication or a missed execution. This operation reads four AWS/Lambda metrics for justhodl-china-liquidity over the fixed September 30 14:30–14:45 UTC window: Invocations, Errors, Throttles and Duration. It verifies the exact native receipt/package, resources and unchanged original schedule before and after inspection.
+
+Requests use the FunctionName dimension, one-minute periods and explicit units/statistics. All returned points survive the report. Response labels, timestamps, units, typed counts, finite values, complete duration statistics and duplicate minute identities are checked. Unknown response fields and inconsistent populations refuse the report. Metric points arrive out of order and are sorted, not trimmed. The entire window has fifteen possible minute bins, far below the API's 1,440-point limit. The operation refuses an unfinished window or a window outside its reviewed one-minute retention period.
+
+Unreported bins stay unreported, never zero. Count totals cover returned points only; duration means weight those points by SampleCount. SDK-normalized point hashes identify reported statistics, not original financial observations or raw HTTP bytes. A positive invocation count proves observed execution at that dimension; it does not identify the trigger, executing code revision or application publication. The native handler can catch a publication failure and return a 503 object without raising a Lambda function error. Consequently no Errors point, or a reported zero, cannot establish application success.
+
+No application log, actual current/private/account/consumer packet or provider source is read. No native invocation, provider probe, data write or schedule change occurs. This operation cannot grant investment authority.
+
+References: [CloudWatch GetMetricStatistics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_GetMetricStatistics.html) and [Lambda metric definitions](https://docs.aws.amazon.com/lambda/latest/dg/monitoring-metrics-types.html). The scope and the caught-error limitation are checked against the actual native handler source.

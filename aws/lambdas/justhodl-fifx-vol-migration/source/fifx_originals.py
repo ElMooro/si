@@ -3,6 +3,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 import csv, hashlib, io, json, re, urllib.parse
 import fifx_catalog as catalog
+import fifx_fred as fred
 import fifx_timezones as timezones
 
 
@@ -40,7 +41,7 @@ def unique_object(pairs):
 def receipt_check(sid, raw, receipt, generated_at):
     if sid not in catalog.SOURCES or not isinstance(raw, bytes) or not 0 < len(raw) <= 8 * 1024 * 1024:
         raise ValueError('Whole reviewed source required')
-    if receipt.get('bytes') != len(raw) or receipt.get('sha256') != hashlib.sha256(raw).hexdigest():
+    if type(receipt.get('bytes')) is not int or receipt['bytes'] != len(raw) or receipt.get('sha256') != hashlib.sha256(raw).hexdigest():
         raise ValueError('Original acquisition receipt differs')
     if type(receipt.get('http_status')) is not int:
         raise ValueError('HTTP outcome required')
@@ -54,6 +55,8 @@ def receipt_check(sid, raw, receipt, generated_at):
     if sid in catalog.FRED:
         expected = {'id': [sid], 'cosd': ['1988-01-01'], 'coed': [str(acquired.date())]}
         valid = url.netloc == 'fred.stlouisfed.org' and url.path == '/graph/fredgraph.csv' and params == expected
+        if url.netloc == 'api.stlouisfed.org':
+            fred.request_day(receipt['source_url'],sid,receipt['acquired_at']);valid=True
     else:
         valid = url.netloc == 'query1.finance.yahoo.com' and urllib.parse.unquote(url.path) == '/v8/finance/chart/' + sid
         if sid in ('^MOVE', '^VHSI'):
@@ -79,11 +82,23 @@ def parse_csv(raw, sid, definition):
     dates = [r['date'] for r in rows]
     if dates != sorted(dates) or len(set(dates)) != len(dates):
         raise ValueError('Monotonic unique original dates required')
+    return rows, fred_identity(sid,definition)
+
+
+def fred_identity(sid,definition):
     meta = definition.get('seriess', []) if isinstance(definition, dict) else []
     expected = (sid, catalog.FRED_UNITS[sid], 'D', 'Daily, Close' if sid == 'VIXCLS' else 'Daily', 'Not Seasonally Adjusted')
     identity = len(meta) == 1 and tuple(meta[0].get(k) for k in ('id', 'units', 'frequency_short', 'frequency', 'seasonal_adjustment')) == expected
-    return rows, {'status': 'reviewed_source_identity' if identity else 'definition_mismatch',
+    return {'status': 'reviewed_source_identity' if identity else 'definition_mismatch',
                   'definition': definition, 'identity_reviewed': identity, 'timezone': None}
+
+
+def parse_fred(raw,sid,definition,receipt):
+    if receipt['source_url'].startswith('https://api.stlouisfed.org/fred/series/observations?'):
+        rows,population=fred.original(raw,sid,receipt['source_url'],fred.request_day(receipt['source_url'],sid,receipt['acquired_at']))
+        identity=fred_identity(sid,definition);identity['population']=population
+        return rows,identity
+    return parse_csv(raw,sid,definition)
 
 
 def parse_quote(raw, sid):

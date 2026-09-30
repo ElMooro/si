@@ -15,6 +15,7 @@ import boto3
 from evidence_store import capture
 from macro_observations import finite, valid_yoy_row
 from managed_secret import managed_secret
+from quote_meta import classify_badge, time_fetch  # 8/10: shared freshness contract
 
 BUCKET = os.environ.get("JH_BUCKET", "justhodl-dashboard-live")
 KEY = "data/market-tape.json"
@@ -33,9 +34,19 @@ def source_json(url, provider):
 
 
 def fmp_quote(symbol, now):
+    """Fetch an FMP quote with latency timing and an honest freshness badge.
+
+    8/10: the old bespoke "fresh if age <= 900 else delayed" status is now
+    quote_meta.classify_badge(); the 900s boundary is preserved inside the
+    shared contract. FMP is passed as a non-realtime kind because exchange
+    real-time entitlement is not asserted, so fresh intraday quotes badge
+    DELAYED rather than LIVE.
+    """
     if not FMP_KEY:
         raise ValueError("quote provider unavailable")
-    payload, evidence = source_json("https://financialmodelingprep.com/stable/quote?" +
+    (payload, evidence), latency_ms = time_fetch(
+        source_json,
+        "https://financialmodelingprep.com/stable/quote?" +
         urllib.parse.urlencode({"symbol": symbol, "apikey": FMP_KEY}), "fmp")
     rows = payload if isinstance(payload, list) else [payload]
     matches = [r for r in rows if isinstance(r, dict) and r.get("symbol") == symbol]
@@ -54,15 +65,21 @@ def fmp_quote(symbol, now):
             "observed_at": observed.isoformat(), "received_at": evidence["first_received_at"],
             "provider_symbol": symbol, "source": "FMP", "src": "FMP:" + symbol,
             "definition": row.get("name") or symbol, "evidence": {"quote": evidence},
-            "quality": {"status": "fresh" if age <= 900 else "delayed", "age_seconds": max(0, int(age)),
-                        "basis": "provider_timestamp; exchange real-time entitlement not asserted"},
+            "latency_ms": latency_ms,
+            "quality": {"status": classify_badge(observed.isoformat(), "fmp"),
+                        "age_seconds": max(0, int(age)), "latency_ms": latency_ms,
+                        "basis": ("provider_timestamp; exchange real-time entitlement not asserted; "
+                                  "900s boundary via quote_meta")},
             "sizing_eligible": False}
 
 
 def fred_latest(sid, now):
+    """Fetch the latest FRED observation with latency timing (8/10)."""
     if not FRED_KEY:
         raise ValueError("FRED provider unavailable")
-    payload, evidence = source_json("https://api.stlouisfed.org/fred/series/observations?" +
+    (payload, evidence), latency_ms = time_fetch(
+        source_json,
+        "https://api.stlouisfed.org/fred/series/observations?" +
         urllib.parse.urlencode({"series_id": sid, "api_key": FRED_KEY, "file_type": "json",
                                 "sort_order": "desc", "limit": 10}), "fred")
     rows = sorted(payload.get("observations") or [], key=lambda r: r["date"], reverse=True)
@@ -83,6 +100,7 @@ def fred_latest(sid, now):
             "source": "FRED", "src": "FRED:" + sid, "series_id": sid,
             "source_url": "https://fred.stlouisfed.org/series/" + sid,
             "received_at": evidence["first_received_at"], "evidence": {"observations": evidence},
+            "latency_ms": latency_ms,
             "quality": {"status": "fresh", "observation_age_days": age, "max_observation_age_days": max_age,
                         "basis": ("daily observations published weekly in H.10; not an intraday quote" if sid == "DTWEXBGS" else "daily published observation, not an intraday quote"),
                         "latest_returned_period": rows[0]["date"]}, "sizing_eligible": False}
