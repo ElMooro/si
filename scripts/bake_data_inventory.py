@@ -37,13 +37,16 @@ def fmt_n(x):
         return "—"
 
 
-def main():
+def main(*, offline=True):
     site = sys.argv[1] if len(sys.argv) > 1 else "_site"
     path = f"{site}/data.html"
     try:
         src = open(path, encoding="utf-8").read()
     except FileNotFoundError:
         print("bake_data_inventory: no data.html — skipping")
+        return 0
+    if offline:
+        print("bake_data_inventory: offline; current provider counts and freshness are not inspected or baked")
         return 0
     try:
         hub = get("https://justhodl.ai/data/provider-catalog.json")

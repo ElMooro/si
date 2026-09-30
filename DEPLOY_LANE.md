@@ -27,6 +27,13 @@ runtime/schedule acceptance.
 
 ### Page source and browser acceptance
 
+Pages bakes source references offline. The four snapshot/metadata bakers run
+through `scripts/run_offline_bake.py ... --offline`; the guard rejects Python
+network access and unapproved child processes even if the baker catches the
+error. Unknown availability remains null, never zero or fresh. Do not replace
+this with live feed-body probes in the build. See
+`docs/contracts/offline-pages-build.md` for scope and exact static acceptance.
+
 Run `python3 scripts/check_page_scripts.py` against the current checkout, plus
 the frontend behavioural suite, before publishing page or shared-script changes.
 Also run `python3 scripts/gen_engine_wiring.py --check`: rewriting a primary desk

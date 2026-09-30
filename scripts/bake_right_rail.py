@@ -89,7 +89,7 @@ def fetch_metadata(key, live):
         return None
 
 
-def main(build_dir=".", live=True):
+def main(build_dir=".", live=False):
     man = json.loads((Path(build_dir)/"nav-manifest.json").read_text(encoding="utf-8"))
     titles = {p["href"].lstrip("/"): p["title"] for c in man["categories"] for p in c["pages"]}
 
@@ -148,7 +148,7 @@ def main(build_dir=".", live=True):
         interpret = html.unescape(m.group(1).strip()) if m else ""
         if GENERIC_META in interpret.lower():
             interpret = ""
-        data = {"snapshot_at": snapshot_at, "title": title, "feeds": feeds, "related": related, "feedsInto": fi, "interpret": interpret}
+        data = {"build_mode":"explicit_metadata" if live else "offline", "availability_checked":False, "snapshot_at": snapshot_at, "title": title, "feeds": feeds, "related": related, "feedsInto": fi, "interpret": interpret}
         if research:
             data["research"] = research
         payload = json.dumps(data, separators=(",", ":")).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
@@ -162,4 +162,4 @@ def main(build_dir=".", live=True):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else ".", live="--no-live" not in sys.argv)
+    main(sys.argv[1] if len(sys.argv) > 1 else ".", live=False)

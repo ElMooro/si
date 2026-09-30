@@ -21,7 +21,7 @@ test("home.js reads the deploy-fresh engine registry before the July S3 document
   assert.ok(i > 0 && j > i, "config copy must be tried first");
 });
 
-test("engine directory is baked from the deploy-time manifest unioned with the registry (never stale on its own)", () => {
+test("engine directory is baked from the current source manifest without live registry requests", () => {
   const py = read("scripts/bake_engine_directory.py");
   assert.match(py, /def load_entries/);
   assert.match(py, /engine-manifest\.json/);
@@ -30,7 +30,8 @@ test("engine directory is baked from the deploy-time manifest unioned with the r
   const script = `
 import sys, json; sys.path.insert(0, ${JSON.stringify(path.join(root, "scripts"))})
 import bake_engine_directory as b
-b.get = lambda url, to=12: (None, b"", {})
+def forbidden(*args, **kwargs): raise AssertionError("Offline source build attempted network")
+b.get = forbidden
 entries, asof = b.load_entries(${JSON.stringify(root)})
 print(json.dumps({"n": len(entries), "fusion": "justhodl-jh-fusion" in entries, "katlin": "justhodl-katlin" in entries, "asof": asof}))`;
   const out = JSON.parse(execFileSync("python3", ["-c", script], { encoding: "utf8" }).trim().split("\n").pop());

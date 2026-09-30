@@ -120,14 +120,14 @@ def test_directory_never_fetches_families_or_labels_partial_as_complete():
     with tempfile.TemporaryDirectory() as td:
         r=Path(td);(r/'engines.html').write_text('__JH_ENGINE_DATA__');(r/'p.html').write_text('<script>fetch("data/one.json");fetch("data/two.json")</script>')
         old_load,old_get=baker.load_entries,baker.get;requests=[]
-        baker.load_entries=lambda _:({'engine':{'outs':['data/one.json','data/two.json'],'key_patterns':['data/history/*.json']}},None)
+        baker.load_entries=lambda _,**kw:({'engine':{'outs':['data/one.json','data/two.json'],'key_patterns':['data/history/*.json']}},None)
         def get(url,to=12):
             requests.append(url)
             if 'one.json' in url:
                 return 200,json.dumps({'generated_at':'2099-01-01T00:00:00Z','rows':[1]}).encode(),{}
             return 404,b'',{}
         baker.get=get
-        try:baker.main(td)
+        try:baker.main(td,offline=False)
         finally:baker.load_entries,baker.get=old_load,old_get
         row=json.loads((r/'engines.html').read_text())['rows'][0]
         assert row['status']!='wired' and not any('*' in u for u in requests)
@@ -162,9 +162,9 @@ def test_directory_transport_and_denied_responses_never_claim_absence():
         with tempfile.TemporaryDirectory() as td:
             r=Path(td);(r/'engines.html').write_text('__JH_ENGINE_DATA__');(r/'p.html').write_text('<script>fetch("data/one.json")</script>')
             old_load,old_get=baker.load_entries,baker.get
-            baker.load_entries=lambda _:({'engine':{'outs':['data/one.json']}},None)
+            baker.load_entries=lambda _,**kw:({'engine':{'outs':['data/one.json']}},None)
             baker.get=lambda *a,**kw:(code,b'',{})
-            try:baker.main(td)
+            try:baker.main(td,offline=False)
             finally:baker.load_entries,baker.get=old_load,old_get
             row=json.loads((r/'engines.html').read_text())['rows'][0]
             assert row['status']==('wired-missing-feed' if code==404 else 'wired-unverified-feed'),row

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/private-artifacts.js?v=20260909"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Engine Directory · JustHodl AI</title>
+<meta name="description" content="Live status for all 661 registered engines: which page displays each one's output, and which are running with zero page anywhere — computed fresh on every deploy, not a static list.">
+<meta name="theme-color" content="#F0B429">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/jh-theme.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--jh-bg);color:var(--jh-ink);font-family:"IBM Plex Sans",sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 24px 40px}
+  .crumb{font:11px var(--jh-mono);letter-spacing:.08em;color:var(--jh-dim);margin-bottom:10px}
+  .crumb a{color:var(--jh-dim);text-decoration:none}
+  .crumb a:hover{color:var(--jh-amber)}
+  .ptitle{font:600 22px/1.2 var(--jh-mono);letter-spacing:.02em;margin:0 0 4px}
+  .pstamp{font:11px var(--jh-mono);color:var(--jh-dim);margin-bottom:18px}
+  .lede{font:14px/1.6 "IBM Plex Sans",sans-serif;color:#d8d1bf;max-width:760px;margin-bottom:22px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--jh-line);
+    border:1px solid var(--jh-line);margin-bottom:20px}
+  .kpi{background:var(--jh-panel);padding:14px 16px;cursor:pointer;transition:background .1s}
+  .kpi:hover{background:var(--jh-panel-2)}
+  .kpi.active{outline:1px solid var(--jh-amber);outline-offset:-1px}
+  .kpi .l{font:10px var(--jh-mono);letter-spacing:.1em;color:var(--jh-dim);margin-bottom:6px}
+  .kpi .v{font:600 20px var(--jh-mono);font-variant-numeric:tabular-nums}
+  .kpi .v.wired{color:#6fce8a}.kpi .v.fresh{color:#f5b93e}.kpi .v.stale{color:#e07a6a}.kpi .v.noouts{color:var(--jh-dim)}
+  .controls{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  #q{flex:1;min-width:200px;background:var(--jh-panel);border:1px solid var(--jh-line);color:var(--jh-ink);
+    padding:8px 12px;font:12.5px var(--jh-mono)}
+  #q:focus{outline:none;border-color:var(--jh-amber)}
+  .count{font:11px var(--jh-mono);color:var(--jh-dim)}
+  table{width:100%;border-collapse:collapse;background:var(--jh-panel);border:1px solid var(--jh-line)}
+  th{text-align:left;font:10px var(--jh-mono);letter-spacing:.08em;color:#6a6455;
+    padding:8px 10px;border-bottom:1px solid var(--jh-line);position:sticky;top:0;background:var(--jh-panel)}
+  td{font:11.5px var(--jh-mono);padding:7px 10px;border-bottom:1px solid #1e1c15;vertical-align:top}
+  tr:hover td{background:var(--jh-panel-2)}
+  .badge{display:inline-block;font:9.5px var(--jh-mono);letter-spacing:.04em;padding:2px 6px;border:1px solid}
+  .b-wired{color:#6fce8a;border-color:#6fce8a}
+  .b-fresh{color:#f5b93e;border-color:#f5b93e}
+  .b-stale{color:#e07a6a;border-color:#e07a6a}
+  .b-dead{color:#e07a6a;border-color:#6a6455;opacity:.7}
+  .b-noouts{color:var(--jh-dim);border-color:var(--jh-line)}
+  .pagelinks a{color:var(--jh-amber);text-decoration:none;margin-right:8px;font-size:11px}
+  .pagelinks a:hover{color:#FFD45E}
+  .dim{color:var(--jh-dim)}
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}
+    table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="/">SYSTEM &amp; META</a> / ENGINE DIRECTORY</div>
+  <h1 class="ptitle">Engine Directory</h1>
+  <div class="pstamp" id="stamp">UPDATED —</div>
+  <p class="lede">Source-bound producer outputs and exact page references. Availability and source age are checked during deployment; per-output details show failures and unresolved families. A source reference is not proof that a page rendered the data. Open complete data to inspect every returned field and row.</p>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="controls">
+    <input id="q" type="text" placeholder="Search engine name or output file…" autocomplete="off">
+    <span class="count" id="count"></span>
+  </div>
+  <table>
+    <thead><tr><th>Engine</th><th>Status</th><th>Output</th><th>Last Update</th><th>Shown On</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+
+<script>window.__jhEngineData = __JH_ENGINE_DATA__;</script>
+<script>
+(function(){
+"use strict";
+var D = window.__jhEngineData || {rows:[], counts:{}, total:0};
+var filterStatus = null;
+
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+function badge(status){
+  // audit 2026-09-08 (section C-3): per-output states -- WIRED now means "a page references a present, fresh output";
+  // a referenced-but-stale or referenced-but-missing feed is no longer hidden inside WIRED.
+  var map = {wired:["b-wired","REFERENCED · AVAILABLE"], partial:["b-stale","PARTIAL COVERAGE"], "wired-stale-feed":["b-stale","WIRED · STALE FEED"], "wired-missing-feed":["b-dead","WIRED · MISSING FEED"],
+    "declared-absent":["b-dead","CONFIRMED ABSENT (404)"], "declared-unverified":["b-stale","AVAILABILITY UNVERIFIED"], "wired-unverified-feed":["b-stale","REFERENCED · UNVERIFIED"], "wired-invalid-feed":["b-dead","REFERENCED · INVALID JSON"],
+    "orphan-fresh":["b-fresh","ORPHAN · FRESH"],
+    "orphan-stale":["b-stale","ORPHAN · STALE"], "orphan-dead":["b-dead","ORPHAN · DEAD FEED"],
+    "no-outs":["b-noouts","NO CONCRETE OUTPUT BOUND"]};
+  var m = map[status] || ["b-noouts", status];
+  return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
+}
+function ageLabel(h){
+  if (h == null) return '<span class="dim">—</span>';
+  if (h < 1) return Math.round(h*60) + "m ago";
+  if (h < 48) return Math.round(h) + "h ago";
+  return Math.round(h/24) + "d ago";
+}
+
+document.getElementById("stamp").textContent = "UPDATED " + (D.generated_at || "—");
+
+var KPI_DEFS = [
+  ["wired", "REFERENCED · AVAILABLE", "wired"], ["partial", "PARTIAL COVERAGE", "stale"], ["wired-stale-feed", "WIRED · STALE FEED", "stale"], ["wired-missing-feed", "WIRED · MISSING FEED", "stale"],
+  ["orphan-fresh", "ORPHAN · FRESH", "fresh"], ["orphan-stale", "ORPHAN · STALE", "stale"],
+  ["wired-unverified-feed", "REFERENCED · UNVERIFIED", "stale"], ["wired-invalid-feed", "REFERENCED · INVALID JSON", "stale"], ["declared-unverified", "AVAILABILITY UNVERIFIED", "stale"], ["declared-absent", "CONFIRMED ABSENT (404)", "stale"], ["no-outs", "NO CONCRETE OUTPUT BOUND", "noouts"]
+];
+document.getElementById("kpis").innerHTML = KPI_DEFS.map(function(k){
+  var n = (D.counts[k[0]] || 0) + (k[0] === "orphan-stale" ? (D.counts["orphan-dead"] || 0) : 0);
+  return '<div class="kpi" data-status="' + k[0] + '"><div class="l">' + k[1] +
+    '</div><div class="v ' + k[2] + '">' + n + "</div></div>";
+}).join("");
+
+function render(){
+  var q = (document.getElementById("q").value || "").toLowerCase();
+  var rows = D.rows.filter(function(row){
+    if (filterStatus === "orphan-stale" && row.status !== "orphan-stale" && row.status !== "orphan-dead") return false;
+    if (filterStatus && filterStatus !== "orphan-stale" && row.status !== filterStatus) return false;
+    if (!q) return true;
+    return row.name.toLowerCase().indexOf(q) >= 0 ||
+      (row.outs || []).some(function(o){ return o.toLowerCase().indexOf(q) >= 0; });
+  });
+  document.getElementById("count").textContent = rows.length + " of " + D.total;
+  document.getElementById("rows").innerHTML = rows.map(function(row){
+    var pages = (row.pages || []).length
+      ? '<span class="pagelinks">' + row.pages.map(function(p){
+          return '<a href="/' + p + '">' + p.replace(".html","") + "</a>";
+        }).join("") + "</span>"
+      : '<span class="dim">— none —</span>';
+    var outsCell = esc((row.outs || [])[0] || "—");
+    if (row.n_outputs != null) outsCell += ' <span class="dim" title="declared / present on S3 / referenced by a page">' + row.n_outputs + " out · " + (row.n_present || 0) + " present · " + (row.n_referenced || 0) + " referenced</span>";
+    var detail = (row.outputs || []).length ? '<details><summary class="dim">per-output state</summary>' + row.outputs.map(function(o){
+      return '<div class="dim">' + esc(o.key) + " · " + esc(o.state || "unknown") + (o.age_h != null ? " · " + ageLabel(o.age_h) : "") + " · " + ((o.pages || []).length ? o.pages.map(function(p){return '<a href="/'+esc(p)+'">'+esc(p)+'</a>';}).join(", ") + " [" + (o.ref_kind || []).join(",") + "]" : "no page reference") + "</div>";
+    }).join("") + "</details>" : "";
+    return "<tr><td>" + esc(row.name) + ' <a href="/engine-data.html?engine='+encodeURIComponent(row.name)+'">complete data</a>' + detail + "</td><td>" + badge(row.status) + "</td><td>" + outsCell + "</td><td>" + ageLabel(row.age_h) + "</td><td>" + pages + "</td></tr>";
+  }).join("");
+}
+
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("kpis").addEventListener("click", function(e){
+  var el = e.target.closest(".kpi");
+  if (!el) return;
+  var s = el.getAttribute("data-status");
+  filterStatus = (filterStatus === s) ? null : s;
+  Array.prototype.forEach.call(document.querySelectorAll(".kpi"), function(k){
+    k.classList.toggle("active", k.getAttribute("data-status") === filterStatus);
+  });
+  render();
+});
+render();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>

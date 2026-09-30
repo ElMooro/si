@@ -1,0 +1,238 @@
+# First-party GitHub Pages deploy — lean whitelisted artifact (site files only).
+# Ops auto-commits touch aws/** and can NEVER trigger or cancel site deploys.
+#
+# SELF-HEALING: GitHub-hosted runners intermittently draw a non-allowlisted
+# Azure blob host (productionresultssaNN.blob.core.windows.net) when deploy-pages
+# fetches the Pages artifact. This is GitHub-side infra flakiness with NO
+# user-configurable fix on personal accounts (no org/enterprise egress settings).
+# We absorb it: the deploy step is non-fatal, and on a miss we auto-dispatch a
+# FRESH run (new build -> new artifact host draw) until it lands, with a circuit
+# breaker to prevent runaway loops.
+name: Deploy site to Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.html"
+      - "**/*.html"
+      - "nav-manifest.json"
+      - "engine-manifest.json"
+      - "cq-universe.json"
+      - "config/home-layout.json"
+      - "config/feed-sla.json"
+      - "config/global-sovereign-universe.json"
+      - "*.js"
+      - "*.css"
+      - "scripts/**"
+      - "_redirects"
+      - "CNAME"
+      - "tools/**"
+      - "assets/**"
+      - "js/**"
+      - "css/**"
+      - ".github/workflows/pages.yml"
+  schedule:
+    - cron: '*/15 * * * *'   # re-bake last-known homepage values
+  workflow_dispatch:
+    inputs:
+      retry_count:
+        description: 'Internal self-heal retry counter (do not set manually)'
+        required: false
+        default: '0'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Block published credentials
+        run: python3 scripts/check_secrets.py
+      - name: Brain publication boundaries
+        run: |
+          if [ -f tests/test_brain_public_boundaries.py ]; then
+            python3 tests/test_brain_public_boundaries.py
+          fi
+      # audit 2026-09-08 INST-14: EVERY frontend/worker suite gates the Pages deploy, not one file.
+      - name: Frontend + worker behavioural tests
+        run: node --test tests/*.test.js
+      - name: Public page source syntax and regression gate
+        run: |
+          python3 tests/test_page_script_gate.py
+          python3 scripts/check_page_scripts.py
+      - name: Required sovereign page dependency reaches the artifact
+        run: python3 tests/test_sovereign_site_assets.py
+      - name: Engine wiring registry must match what the pages declare (audit 2026-09-08 C-6)
+        run: python3 scripts/gen_engine_wiring.py --check
+      - name: Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)
+        run: |
+          BAD=0
+          for f in *.html; do
+            if grep -nE '\[object Object\]|undefined%' "$f"; then echo "::error file=$f::forbidden literal"; BAD=1; fi
+          done
+          exit $BAD
+      - name: Assemble lean site artifact
+        run: |
+          mkdir -p _site
+          shopt -s nullglob
+          cp -f *.html *.js *.css _site/ 2>/dev/null || true
+          python3 scripts/gen_nav_manifest.py  # ops 3269: never stale
+          python3 scripts/gen_engine_manifest.py
+          cp -f nav-manifest.json engine-manifest.json cq-universe.json _site/ 2>/dev/null || true
+          for f in _redirects CNAME .nojekyll favicon.ico; do [ -f "$f" ] && cp -f "$f" _site/; done
+          for d in assets js css img fonts tools data; do [ -d "$d" ] && cp -r "$d" _site/; done
+          # ops 4354: serve ALL page subdirectories (crypto/, intel/, screener/, ...).
+          # The lean whitelist above shipped root *.html only — every /dir/ page
+          # 404'd at the edge (crypto/index.html existed in repo, not in artifact).
+          # Rule: any top-level dir containing .html is a site page dir, minus the
+          # infra denylist. Dynamic — new page dirs deploy with zero workflow edits.
+          DENY=" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site "
+          for d in */; do
+            d="${d%/}"
+            case "$DENY" in *" $d "*) continue ;; esac
+            if find "$d" -name "*.html" -print -quit 2>/dev/null | grep -q .; then
+              cp -r "$d" _site/
+            fi
+          done
+          echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
+      - name: Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)
+        run: python3 scripts/build_workspaces.py _site
+      - name: Bake section numbers into every page + ship home layout/registry (ops 5200)
+        run: python3 scripts/bake_sections.py _site
+      - name: Bake last-known values into homepage (zero em-dash first paint)
+        run: python3 scripts/bake_homepage.py _site/index.html
+      - name: CI gate — template leaks + dead-paint ratchet
+        run: |
+          python3 - <<'G'
+          import re, glob, os, sys
+          leaks, dashes = [], 0
+          for f in glob.glob('_site/**/*.html', recursive=True):
+              t = open(f, encoding='utf-8', errors='replace').read()
+              if re.search(r'{{[A-Z_]+}}', t): leaks.append(f)
+              t2 = re.sub(r'<[^>]*data-realtime[^>]*>.*?</[a-z]+>', '', t, flags=re.S)
+              dashes += t2.count('>—<')
+          if leaks: print('GATE FAIL template leaks:', leaks[:5]); sys.exit(1)
+          bpath = 'ci/dash_budget.txt'
+          if not os.path.exists(bpath):
+              os.makedirs('ci', exist_ok=True); open(bpath,'w').write(str(dashes))
+              print(f'gate bootstrap: dash budget set to {dashes}')
+          else:
+              budget = int(open(bpath).read().strip())
+              if dashes > budget: print(f'GATE FAIL dead-dash ratchet: {dashes} > {budget}'); sys.exit(1)
+              if dashes < budget: open(bpath,'w').write(str(dashes))
+              print(f'gate clean: 0 leaks, dashes {dashes} <= budget {budget}')
+          G
+      - name: Bake right-rail insight panel (Design audit sec8-C)
+        run: python3 scripts/bake_right_rail.py _site
+
+      - name: Bake engine directory (real live wiring status)
+        run: python3 scripts/bake_engine_directory.py _site
+
+      - name: "Bake data-plane inventory into data.html (ops 5129 - non-JS readers see all providers)"
+        run: python3 scripts/bake_data_inventory.py _site
+
+      - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
+        run: python3 scripts/reskin_site.py _site
+      - name: Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)  # ops 3370
+        run: python3 scripts/stamp_assets.py _site
+      - name: Bake SEO layer (canonical/OG/description + sitemap)
+        run: python3 scripts/bake_seo.py _site
+      - name: Build complete producer-to-page data contracts
+        run: python3 scripts/build_page_data_contracts.py --site _site
+      - name: Final built page syntax gate
+        run: python3 scripts/check_page_scripts.py _site
+      - name: Stamp every page and asset in commit-bound build manifest
+        run: python3 scripts/stamp_build_manifest.py _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.deployment.outcome }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Report deploy outcome
+        run: |
+          echo "deploy-pages outcome: ${{ steps.deployment.outcome }}"
+          if [ "${{ steps.deployment.outcome }}" != "success" ]; then
+            echo "::notice::Pages deploy hit a transient infra flake — self-heal will re-dispatch a fresh run."
+          fi
+      - name: Purge Cloudflare cache on success (ops 4366 — success path never purged)
+        if: steps.deployment.outcome == 'success'
+        continue-on-error: true
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          [ -z "$CF_TOKEN" ] && echo "no CF token, skip" && exit 0
+          ZID=$(curl -s -H "Authorization: Bearer $CF_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones?name=justhodl.ai" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print((d.get('result') or [{}])[0].get('id',''))")
+          [ -z "$ZID" ] && echo "zone lookup failed" && exit 0
+          curl -s -X POST -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/$ZID/purge_cache" \
+            | head -c 300
+      - name: Fail this run when Pages was not deployed
+        if: always() && steps.deployment.outcome != 'success'
+        run: |
+          echo "::error::This revision was not deployed to Pages; a retry is a separate release attempt."
+          exit 1
+  self-heal:
+    needs: [build, deploy]
+    if: always() && needs.build.result == 'success' && needs.deploy.outputs.ok != 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Re-dispatch a fresh Pages run (deterministic retry cap)
+        env:
+          # PAGES_PAT can expire silently; job already grants actions:write,
+          # so fall back to the built-in token rather than failing red.
+          GH_TOKEN: ${{ secrets.PAGES_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
+          RETRY_COUNT: ${{ github.event.inputs.retry_count || '0' }}
+        run: |
+          rc="${RETRY_COUNT:-0}"
+          case "$rc" in ''|*[!0-9]*) rc=0 ;; esac
+          next=$((rc + 1))
+          if [ "$rc" -ge 4 ]; then
+            echo "::warning::Self-heal retry cap reached (attempt $rc) — not re-dispatching. Pages may need a manual check."
+            exit 0
+          fi
+          echo "Deploy hit an egress flake — re-dispatching a fresh run (attempt $next of 4) to redraw the artifact host…"
+          gh workflow run pages.yml --ref main -f retry_count="$next"
+          echo "Fresh run dispatched (retry_count=$next)."
+
+      - name: Purge Cloudflare cache (ops 3309 — HTML edits must go live immediately)
+        if: always()
+        continue-on-error: true
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          [ -z "$CF_TOKEN" ] && echo "no CF token, skip" && exit 0
+          ZID=$(curl -s -H "Authorization: Bearer $CF_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones?name=justhodl.ai" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print((d.get('result') or [{}])[0].get('id',''))")
+          [ -z "$ZID" ] && echo "zone lookup failed (token lacks Zone read?)" && exit 0
+          curl -s -X POST -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' \
+            "https://api.cloudflare.com/client/v4/zones/$ZID/purge_cache" \
+            | head -c 300

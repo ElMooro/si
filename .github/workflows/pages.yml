@@ -32,7 +32,7 @@ on:
       - "css/**"
       - ".github/workflows/pages.yml"
   schedule:
-    - cron: '*/15 * * * *'   # re-bake last-known homepage values
+    - cron: '*/15 * * * *'   # retained site build cadence; source-only, no live feed probes
   workflow_dispatch:
     inputs:
       retry_count:
@@ -80,6 +80,8 @@ jobs:
             if grep -nE '\[object Object\]|undefined%' "$f"; then echo "::error file=$f::forbidden literal"; BAD=1; fi
           done
           exit $BAD
+      - name: Offline build boundary regression gate
+        run: python3 tests/test_offline_pages.py
       - name: Assemble lean site artifact
         run: |
           mkdir -p _site
@@ -108,8 +110,8 @@ jobs:
         run: python3 scripts/build_workspaces.py _site
       - name: Bake section numbers into every page + ship home layout/registry (ops 5200)
         run: python3 scripts/bake_sections.py _site
-      - name: Bake last-known values into homepage (zero em-dash first paint)
-        run: python3 scripts/bake_homepage.py _site/index.html
+      - name: Preserve homepage source (offline; no market snapshot)
+        run: python3 scripts/run_offline_bake.py bake_homepage _site/index.html --offline
       - name: CI gate — template leaks + dead-paint ratchet
         run: |
           python3 - <<'G'
@@ -131,14 +133,14 @@ jobs:
               if dashes < budget: open(bpath,'w').write(str(dashes))
               print(f'gate clean: 0 leaks, dashes {dashes} <= budget {budget}')
           G
-      - name: Bake right-rail insight panel (Design audit sec8-C)
-        run: python3 scripts/bake_right_rail.py _site
+      - name: Bake right-rail source references (offline)
+        run: python3 scripts/run_offline_bake.py bake_right_rail _site --offline
 
-      - name: Bake engine directory (real live wiring status)
-        run: python3 scripts/bake_engine_directory.py _site
+      - name: Bake engine directory (source references; availability unchecked)
+        run: python3 scripts/run_offline_bake.py bake_engine_directory _site --offline
 
-      - name: "Bake data-plane inventory into data.html (ops 5129 - non-JS readers see all providers)"
-        run: python3 scripts/bake_data_inventory.py _site
+      - name: "Preserve provider page source (offline; no live inventory snapshot)"
+        run: python3 scripts/run_offline_bake.py bake_data_inventory _site --offline
 
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site

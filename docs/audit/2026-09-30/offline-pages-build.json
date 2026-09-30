@@ -1,0 +1,123 @@
+{
+  "schema": "offline-pages-build-audit.v1",
+  "prepared_at": "2026-09-30T17:06:06.243477+00:00",
+  "base_commit": "76ff61c9b1231c294cc5724df44baf1b7b483549",
+  "predecessors": [
+    {
+      "source": "scripts/bake_engine_directory.py",
+      "fixture": "tests/fixtures/pre-offline-pages/scripts__bake_engine_directory.py.txt",
+      "bytes": 10135,
+      "sha256": "bb76152badde987399d963e7668b781eee6ad249578954df38a049764d100c67"
+    },
+    {
+      "source": "scripts/bake_right_rail.py",
+      "fixture": "tests/fixtures/pre-offline-pages/scripts__bake_right_rail.py.txt",
+      "bytes": 8520,
+      "sha256": "bf73dde944a63f6e222e6cccf9cd3f6569174dda8fd3faa5e2d70f44a9ae0dad"
+    },
+    {
+      "source": "scripts/bake_homepage.py",
+      "fixture": "tests/fixtures/pre-offline-pages/scripts__bake_homepage.py.txt",
+      "bytes": 9414,
+      "sha256": "c367677ecda013fb5c7ebc8041f85cc00e5fbd01fa8d7eb2e398ce52d97d9ee8"
+    },
+    {
+      "source": "scripts/bake_data_inventory.py",
+      "fixture": "tests/fixtures/pre-offline-pages/scripts__bake_data_inventory.py.txt",
+      "bytes": 5932,
+      "sha256": "3588d8a2259b79203b894324e35dd10ea1cdb8993a8d139eb26dcfc1d2fbaa33"
+    },
+    {
+      "source": ".github/workflows/pages.yml",
+      "fixture": "tests/fixtures/pre-offline-pages/.github__workflows__pages.yml.txt",
+      "bytes": 11211,
+      "sha256": "17989b8ef64a7aed29caf0b38aa09f6f5eb0a73cbc13061b55bc8be3d63a7f19"
+    },
+    {
+      "source": "engines.html",
+      "fixture": "tests/fixtures/pre-offline-pages/engines.html.txt",
+      "bytes": 9528,
+      "sha256": "f7fd690e21cf4f285e1a92c49aeab29b736ab3d8eba9af670ccf12c76ee9ebfc"
+    }
+  ],
+  "discovery": {
+    "prior_source": "bc9a1470127f3fff8e6e222e78e2c80abb1b64ac",
+    "cancelled_pages_run": 36745621116,
+    "final_jobs": {
+      "build": "success",
+      "deploy": "cancelled",
+      "self-heal": "cancelled"
+    },
+    "claim": "Cancellation did not prove that earlier build probes had not run. No feed-body logs or resulting current/private packets were inspected. The Lambda no-target job succeeded; no Pages acceptance was recorded. Pages has no deploy-failure report writer; the existing reports hook belongs to Lambda."
+  },
+  "repair": {
+    "all_four_cli_and_library_defaults_offline": true,
+    "python_socket_http_and_unapproved_child_attempts_fail_even_if_caught": true,
+    "only_reviewed_child": "node scripts/js_source_refs.cjs with exact arguments, no NODE_OPTIONS",
+    "boundary_limitation": "Regression boundary, not an OS network sandbox",
+    "availability": "null and not_checked_during_build; unresolved families retained",
+    "legacy_library_probe_branches": "Retained for injected synthetic regressions; not exposed by CLI or used for acceptance",
+    "source_contracts_and_engine_inventory_byte_identical_to_base": true,
+    "native_engines_and_schedules_changed": false
+  },
+  "tests": {
+    "deployment": 897,
+    "candidate_shell": 15,
+    "frontend": 2129,
+    "focused_source": 105,
+    "offline_complete_invented_site_and_boundary": 6,
+    "right_rail_snapshot": 2,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "missing_or_stale_wires": 0,
+    "harness_note": "Initial frontend launcher exceeded Windows command-line length before spawning Node. Relative test paths repaired the harness; all 2129 tests then passed. No product change was made for the launcher issue."
+  },
+  "browser_review": {
+    "scope": "Isolated local whole invented rows; external scripts stripped and CSP default-src none",
+    "search": "liquidity returned 1 of 2 invented rows",
+    "disclosure": "expanded exact_path source reference and not_checked_during_build",
+    "unknown_count": "availability unchecked, not 0 present",
+    "layout": "desktop screenshot reviewed; no live browser navigation"
+  },
+  "changed_source": [
+    {
+      "path": ".github/workflows/pages.yml",
+      "bytes": 11430,
+      "sha256": "c5ffffd09d3df87e4c2d2bec7d0b248cb0dd0447f2590d71cb8b352610b4a1d0"
+    },
+    {
+      "path": "engines.html",
+      "bytes": 9708,
+      "sha256": "5789d7d8b9003074ce524d02a4db16d8359ae8e5e4df13c3fe97d2ef2dc95a36"
+    },
+    {
+      "path": "scripts/run_offline_bake.py",
+      "bytes": 2391,
+      "sha256": "1c0d55f027641071a48750e013932d49e3831b82880c4885912f40ec2e09c161"
+    },
+    {
+      "path": "scripts/bake_engine_directory.py",
+      "bytes": 11548,
+      "sha256": "04bf3f735123251aade91279b3f934da285155a1f6b852b4fe7102224c7ad216"
+    },
+    {
+      "path": "scripts/bake_right_rail.py",
+      "bytes": 8586,
+      "sha256": "ea05dc67df55cb0055ff233a8a6cebe65e45a3e18cae54d8f5c82c31b846ea73"
+    },
+    {
+      "path": "scripts/bake_homepage.py",
+      "bytes": 9544,
+      "sha256": "e5b7bd51f2adb8a98ecee500e26e37c55076db2e044c5224741a44c0531a4da0"
+    },
+    {
+      "path": "scripts/bake_data_inventory.py",
+      "bytes": 6092,
+      "sha256": "9609e6df6b7c3205567635f2a9359e9a775a17a5f962b05069da725ec42e7bb9"
+    }
+  ],
+  "release_acceptance": {
+    "status": "pending_exact_push_and_coherent_live_static_build"
+  },
+  "scope": "Source compilation and whole invented fixtures only. No native producer invocation, provider request, account inspection, prospective outcomes, scorecard or private/current consumer packet acceptance. All ten institutional workstreams remain open."
+}

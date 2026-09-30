@@ -77,7 +77,10 @@ def tolerant(d, limit=22):
             return r
     return None
 
-def main(target):
+def main(target, *, offline=True):
+    if offline:
+        print("bake_homepage: offline; market values are not inspected or baked")
+        return
     V = {}
 
     tape = get("data/market-tape.json") or {}
