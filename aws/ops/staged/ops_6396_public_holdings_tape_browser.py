@@ -17,6 +17,10 @@ def need(value, label):
         raise RuntimeError(label)
 
 
+def record_observation(r, observation, **changes):
+    r.kv(**{**observation, **changes})
+
+
 def ready(page, selector, prefix):
     page.wait_for_function("([s,p])=>{const e=document.querySelector(s);return e&&(e.textContent.startsWith(p)||e.textContent.includes('unavailable'));}", arg=[selector,prefix], timeout=45000)
     need(page.locator(selector).inner_text().startswith(prefix), 'public_contract_or_access_unavailable')
@@ -122,13 +126,13 @@ def run_browser(r, env):
                         need(not denied,'public_data_access_denied')
                         layout=common(page,width);need(not layout['overflow'],'document_horizontal_overflow')
                         observed.update(layout=layout,error_categories=dict(errors),blocked_non_read_methods=len(blocked_writes),status='passed')
-                        r.row(**observed)
+                        record_observation(r,observed)
                     except Exception as exc:
                         message=str(exc)
                         category='tls_validation_failed' if 'ERR_CERT' in message or 'certificate' in message.lower() else 'public_access_denied' if denied else 'browser_or_assertion_failure'
                         # Never retain browser exception messages/URLs or console bodies.
                         reason=message if isinstance(exc,RuntimeError) and message.replace('_','').isalnum() else type(exc).__name__
-                        r.row(**observed,status='failed',failure_category=category,reason=reason,error_categories=dict(errors),denied_statuses=denied)
+                        record_observation(r,observed,status='failed',failure_category=category,reason=reason,error_categories=dict(errors),denied_statuses=denied)
                         raise RuntimeError(category) from None
                     finally:ctx.close()
         finally:browser.close()
