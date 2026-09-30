@@ -35,7 +35,6 @@ OUTPUT: data/microcap-float-squeeze.json
 """
 import io, json, os, time, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from collections import defaultdict
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -114,60 +113,67 @@ def fetch_history(symbol, days=90):
         return None
 
 
-def fetch_finra_short_volume(date_yyyymmdd):
-    """FINRA RegSHO daily short volume — free."""
-    url = "https://cdn.finra.org/equity/regsho/daily/CNMSshvol" + date_yyyymmdd + ".txt"
+def _f(v):
+    """Float coercion; None for missing/unparseable (fail-soft)."""
+    if v is None or v == "":
+        return None
     try:
-        text = fetch_url(url, timeout=20)
+        return float(v)
+    except (ValueError, TypeError):
+        return None
+
+
+def load_finra_short_volume_map(s3_client, bucket):
+    """Daily Reg SHO short-sale *volume* from the fleet pipeline.
+
+    justhodl-finra-short publishes data/finra-short.json; this replaces
+    the direct cdn.finra.org scrape. Returns {} on any failure.
+    """
+    try:
+        doc = json.loads(s3_client.get_object(
+            Bucket=bucket, Key="data/finra-short.json")["Body"].read())
     except Exception:
         return {}
-    out = {}
-    for line in text.splitlines()[1:]:
-        parts = line.split("|")
-        if len(parts) < 5:
+    return doc if isinstance(doc, dict) else {}
+
+
+def load_si_positions(s3_client, bucket):
+    """Settlement *positions* per ticker (Bloomberg parity 3/10)."""
+    import short_interest_tickers
+    try:
+        return short_interest_tickers.load_tickers(
+            s3_client, bucket).get("by_ticker", {}) or {}
+    except Exception:
+        return {}
+
+
+def _vol_entry(short_vol_map, sym):
+    """Per-ticker entry from the finra-short.json volume feed.
+
+    Merges the `tickers` dict entry (takes precedence) with the richer
+    `squeeze_candidates` entry, which fills in keys the tickers entry
+    lacks (e.g. momentum_pct). Returns {} when the ticker is absent.
+    """
+    if not isinstance(short_vol_map, dict):
+        return {}
+    entry = {}
+    tickers = short_vol_map.get("tickers") or {}
+    if isinstance(tickers, dict):
+        e = tickers.get(sym)
+        if isinstance(e, dict):
+            entry = dict(e)
+    for c in (short_vol_map.get("squeeze_candidates") or []):
+        if not isinstance(c, dict):
             continue
-        sym = parts[1].strip().upper()
-        try:
-            short_vol = float(parts[2])
-            total_vol = float(parts[4])
-            if total_vol > 0:
-                out[sym] = {
-                    "short_vol": short_vol,
-                    "total_vol": total_vol,
-                    "short_pct": short_vol / total_vol * 100,
-                }
-        except (ValueError, IndexError):
-            continue
-    return out
+        if (c.get("symbol") or c.get("ticker") or "").upper() == sym:
+            for k, v in c.items():
+                if k not in entry and v not in (None, ""):
+                    entry[k] = v
+            break
+    return entry
 
 
-def get_finra_short_history(days=20):
-    """Multi-day FINRA history (skip weekends)."""
-    history = defaultdict(list)
-    days_collected = 0
-    days_back = 1
-    while days_collected < days and days_back < days * 2 + 5:
-        check_dt = time.gmtime(time.time() - days_back * 86400)
-        if check_dt.tm_wday >= 5:
-            days_back += 1
-            continue
-        date_str = time.strftime("%Y%m%d", check_dt)
-        date_iso = time.strftime("%Y-%m-%d", check_dt)
-        try:
-            data = fetch_finra_short_volume(date_str)
-            if data:
-                for sym, info in data.items():
-                    history[sym].append({"date": date_iso, **info})
-                days_collected += 1
-        except Exception:
-            pass
-        days_back += 1
-    for sym in history:
-        history[sym].sort(key=lambda x: x["date"])
-    return dict(history)
-
-
-def evaluate_ticker(stock, finra_history):
+def evaluate_ticker(stock, short_vol_map, si_positions):
     sym = (stock.get("symbol") or "").upper()
     sector = stock.get("sector", "?")
     industry = stock.get("industry", "?")
@@ -221,23 +227,21 @@ def evaluate_ticker(stock, finra_history):
     # Float exhaustion: daily volume / float
     float_turnover_30d = avg_vol_30 / float_shares * 100  # in %
 
-    # FINRA short data
-    finra = finra_history.get(sym, [])
-    days_to_cover = None
-    short_pct_recent = None
-    short_velocity = None
-    short_pct_change = None
-    if len(finra) >= 5:
-        recent_short_pct = sum(d["short_pct"] for d in finra[-5:]) / 5
-        older_short_pct = sum(d["short_pct"] for d in finra[:-5]) / max(1, len(finra) - 5) if len(finra) > 5 else recent_short_pct
-        avg_short_vol_5d = sum(d["short_vol"] for d in finra[-5:]) / 5
-        short_pct_recent = recent_short_pct
-        short_pct_change = recent_short_pct - older_short_pct
-        # Days-to-cover: total short / avg_daily_volume
-        # FINRA gives daily short_volume (sold short on that day), not total short interest.
-        # As a proxy, use cumulative recent short_vol / avg_vol
-        days_to_cover = avg_short_vol_5d / max(avg_vol_30, 1) * 5  # rough estimate
-        short_velocity = short_pct_change
+    # FINRA short data: pipeline artifacts (no direct HTTP).
+    # DTC and position size come from real settlement positions
+    # (data/short-interest-tickers.json); volume velocity comes from the
+    # fleet's Reg SHO volume feed (data/finra-short.json). This fixes the
+    # flow-vs-positions conflation: DTC is positions, velocity is volume.
+    si = si_positions.get(sym, {}) if isinstance(si_positions, dict) else {}
+    days_to_cover = _f(si.get("dtc_effective")) or _f(si.get("days_to_cover"))
+    short_interest_shares = _f(si.get("short_interest"))
+    si_change_pct = _f(si.get("change_pct"))
+    si_settlement = si.get("settlement_date")
+
+    vol = _vol_entry(short_vol_map, sym)
+    short_pct_recent = _f(vol.get("si_pct")) or _f(vol.get("short_pct"))
+    short_pct_change = _f(vol.get("momentum_pct"))
+    short_velocity = short_pct_change
 
     # Returns / range context
     ret_5d = (today / closes[-6] - 1) * 100 if n >= 6 else 0
@@ -347,6 +351,9 @@ def evaluate_ticker(stock, finra_history):
             "short_pct_recent": round(short_pct_recent, 1) if short_pct_recent is not None else None,
             "short_pct_change": round(short_pct_change, 2) if short_pct_change is not None else None,
             "days_to_cover_proxy": round(days_to_cover, 1) if days_to_cover is not None else None,
+            "si_shares": int(short_interest_shares) if short_interest_shares is not None else None,
+            "si_change_pct": round(si_change_pct, 2) if si_change_pct is not None else None,
+            "si_settlement_date": si_settlement,
             "ret_5d": round(ret_5d, 1),
             "ret_30d": round(ret_30d, 1),
             "ret_60d": round(ret_60d, 1),
@@ -368,9 +375,11 @@ def _legacy_lambda_handler(event=None, context=None):
         return {"statusCode": 200, "body": json.dumps({"n": 0})}
     print("[float-sq] universe: " + str(len(universe)) + " stocks")
 
-    print("[float-sq] fetching FINRA short volume history...")
-    finra_history = get_finra_short_history(days=20)
-    print("[float-sq] FINRA tickers: " + str(len(finra_history)))
+    print("[float-sq] loading FINRA volume feed + SI positions from pipeline...")
+    short_vol_map = load_finra_short_volume_map(S3, BUCKET)
+    si_positions = load_si_positions(S3, BUCKET)
+    print("[float-sq] FINRA volume tickers: " + str(len((short_vol_map.get("tickers") or {}))) +
+          ", SI position tickers: " + str(len(si_positions)))
 
     results = []
     n_no_data = 0
@@ -380,7 +389,7 @@ def _legacy_lambda_handler(event=None, context=None):
         if time.time() > deadline:
             return None
         try:
-            return evaluate_ticker(stock, finra_history)
+            return evaluate_ticker(stock, short_vol_map, si_positions)
         except Exception as e:
             print("[float-sq] " + (stock.get("symbol") or "?") + " err: " + str(e))
             return None
@@ -418,7 +427,8 @@ def _legacy_lambda_handler(event=None, context=None):
             "n_tier_s": len(by_tier["tier_s"]),
             "n_tier_a": len(by_tier["tier_a"]),
             "n_tier_b": len(by_tier["tier_b"]),
-            "n_finra_tickers": len(finra_history),
+            "n_short_vol_tickers": len(short_vol_map.get("tickers") or {}),
+            "n_si_tickers": len(si_positions),
         },
         "summary": {
             "top_25_overall": [
