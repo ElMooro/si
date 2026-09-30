@@ -533,7 +533,17 @@
         "item_types": {
           "complexes": "dict"
         }
-      }
+      },
+      "informational_fields_consumed": [
+        "contract",
+        "funds",
+        "complexes.windows",
+        "reference.end_date",
+        "source_generated_at",
+        "source_valid_until",
+        "replay"
+      ],
+      "informational_role": "One provider evidence root; additive observations only, no votes, scoring or capital authority."
     },
     {
       "id": "crypto_emergence",

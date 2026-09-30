@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Khalid native Radar informational evidence only; agent/shopiz/khalid-provider-flow-evidence; draft, no deploy | none | S-shopiz#kpf0930r8 | 2026-09-30 19:10 |
 | brief_contract future timestamps only; draft review branch agent/shopiz/brief-future-timestamps (no ops/deploy) | none | S-shopiz#bft0930 | 2026-09-30 17:38 |
 | Factory discipline in the student tick (factory_doctrine.verdict, spawn caps), evidence contract, reading receipts, governed outside voice, official prints lane (scripts/factory_official_prints.py + factory-official-prints.yml), gate | 5520-5526 | S-claude-factory#9k2f | 2026-09-13 18:2x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |

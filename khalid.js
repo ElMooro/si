@@ -454,6 +454,7 @@
     set("feed-status", data.status || "UNKNOWN");
     set("updated-at", "Updated " + ago(data.generated_at));
     renderCommand(data); renderOpportunities(); renderAssets(data); renderRisk(data); renderMethod(data);
+    if (window.JHKhalidProviderFlow) window.JHKhalidProviderFlow.render($("provider-flow-research"), data.provider_flow_research);
   }
   async function load() {
     $("loading").hidden = false; $("error").hidden = true;

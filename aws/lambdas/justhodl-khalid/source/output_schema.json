@@ -34,5 +34,18 @@
   "confidence_bounds": [0, 1],
   "statuses": ["OK", "DEGRADED", "NO_DATA"],
   "actions": ["READY_TO_SNIPE", "ARMED", "BUILDING_BASE", "WATCH_RECLAIM", "TRACKING", "REJECTED"],
-  "discovery_stages": ["ENTRY_READY", "HIGH_CONVICTION", "UNDERAPPRECIATED", "RISK_BLOCKED", "EARLY_SIGNAL", "EVIDENCE_HOLD"]
+  "discovery_stages": ["ENTRY_READY", "HIGH_CONVICTION", "UNDERAPPRECIATED", "RISK_BLOCKED", "EARLY_SIGNAL", "EVIDENCE_HOLD"],
+  "optional_informational_outputs": {
+    "provider_flow_research": {
+      "contract": "khalid-provider-flow-evidence.v1",
+      "statuses": [
+        "available",
+        "partial",
+        "unavailable"
+      ],
+      "independent_investment_votes": 0,
+      "informational_only": true,
+      "scope": "Dated ETF fund observations and configured baskets only; does not change decision fields. Older outputs may omit this section."
+    }
+  }
 }

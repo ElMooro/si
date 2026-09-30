@@ -334,3 +334,15 @@ th { position: sticky; top: 0; background: var(--k-panel-2); color: var(--k-mute
 .k-kpis > .jh-secbadge.float,
 .k-asset-grid > .jh-secbadge.float,
 .k-opportunities > .jh-secbadge.float { top: -18px; left: 0; }
+
+/* Additive informational provider evidence; tables scroll within the panel. */
+#provider-flow-evidence { margin-top:24px; min-width:0; overflow:hidden; }
+#provider-flow-research p { overflow-wrap:anywhere; line-height:1.6; }
+.k-provider-controls { display:flex; flex-wrap:wrap; gap:16px; margin:16px 0; }
+.k-provider-controls label { display:flex; flex-direction:column; gap:6px; max-width:100%; }
+.k-provider-controls input,.k-provider-controls select { max-width:100%; padding:10px; color:inherit; background:#12151b; border:1px solid #59606b; }
+.k-provider-scroll { max-width:100%; max-height:440px; overflow:auto; margin:12px 0 24px; }
+.k-provider-scroll table { width:100%; border-collapse:collapse; font-size:12px; }
+.k-provider-scroll th,.k-provider-scroll td { padding:10px; text-align:left; border-bottom:1px solid #343a43; min-width:90px; }
+.k-provider-scroll thead th { position:sticky; top:0; background:#12151b; }
+.k-provider-scroll a { text-decoration:underline; }
