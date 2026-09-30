@@ -1,18 +1,39 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-  "observed_at": "2026-09-30T16:18:55.195107+00:00",
+  "observed_at": "2026-09-30T16:29:24.085296+00:00",
   "ok": false,
   "routes_checked": 599,
-  "verified_routes": 598,
+  "verified_routes": 577,
   "failed_routes": [
-    "proof.html"
+    "0dte/index.html",
+    "8k-items.html",
+    "activity-nowcast.html",
+    "agreement-terminations.html",
+    "ai.html",
+    "billings-crpo.html",
+    "buybacks.html",
+    "capex-pulse.html",
+    "classic-dashboard.html",
+    "comeback.html",
+    "fails.html",
+    "firm-risk-board.html",
+    "fundamental-graphs.html",
+    "horizons.html",
+    "insider-industry-cluster.html",
+    "inventory-drawdown.html",
+    "macro-economic-data.html",
+    "observability.html",
+    "options-flow.html",
+    "rotation-chains.html",
+    "trading-signals.html",
+    "weights.html"
   ],
   "source_equivalent_builds": {
     "ebb4328d67d3fbed762036da5d53a15c2fc5de75": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 597,
+  "embedded_inspection_routes": 576,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -20,13 +41,12 @@
   "rows": [
     {
       "route": "0dte/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 13341,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "10kq-filings.html",
@@ -50,13 +70,12 @@
     },
     {
       "route": "8k-items.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 10510,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "aaii.html",
@@ -130,13 +149,12 @@
     },
     {
       "route": "activity-nowcast.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 11144,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "agent/index.html",
@@ -150,13 +168,12 @@
     },
     {
       "route": "agreement-terminations.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 9034,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "ai-interpret.html",
@@ -180,13 +197,12 @@
     },
     {
       "route": "ai.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 126858,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "ai_predictions.html",
@@ -570,13 +586,12 @@
     },
     {
       "route": "billings-crpo.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 19786,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "bis-crossborder.html",
@@ -800,13 +815,12 @@
     },
     {
       "route": "buybacks.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 11729,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "buzz-velocity.html",
@@ -860,13 +874,12 @@
     },
     {
       "route": "capex-pulse.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 17259,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "capital-flow-radar.html",
@@ -1140,13 +1153,12 @@
     },
     {
       "route": "classic-dashboard.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 225386,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "cockpit.html",
@@ -1160,13 +1172,12 @@
     },
     {
       "route": "comeback.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 13836,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "commodities/index.html",
@@ -1874,7 +1885,7 @@
       "http_status": 200,
       "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
       "inspector_present": true,
-      "bytes_read": 11149,
+      "bytes_read": 11172,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -2034,7 +2045,7 @@
       "http_status": 200,
       "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
       "inspector_present": true,
-      "bytes_read": 1040731,
+      "bytes_read": 1040697,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -2250,13 +2261,12 @@
     },
     {
       "route": "fails.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 10327,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "fed-speak.html",
@@ -2380,13 +2390,12 @@
     },
     {
       "route": "firm-risk-board.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 23490,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "firm-stress.html",
@@ -2600,13 +2609,12 @@
     },
     {
       "route": "fundamental-graphs.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 73303,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "fundamentals.html",
@@ -2980,13 +2988,12 @@
     },
     {
       "route": "horizons.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 24091,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "hot-money.html",
@@ -3180,13 +3187,12 @@
     },
     {
       "route": "insider-industry-cluster.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 16379,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "insider-research.html",
@@ -3290,13 +3296,12 @@
     },
     {
       "route": "inventory-drawdown.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 10799,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "invest.html",
@@ -3580,13 +3585,12 @@
     },
     {
       "route": "macro-economic-data.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 30792,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "macro-frontrun.html",
@@ -3960,13 +3964,12 @@
     },
     {
       "route": "observability.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 21509,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "offexchange-research.html",
@@ -4044,7 +4047,7 @@
       "http_status": 200,
       "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
       "inspector_present": true,
-      "bytes_read": 90107,
+      "bytes_read": 90130,
       "inspection_mode": "embedded",
       "product_source_matches_release": true
     },
@@ -4080,13 +4083,12 @@
     },
     {
       "route": "options-flow.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 3900,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "options-scanner.html",
@@ -4440,12 +4442,13 @@
     },
     {
       "route": "proof.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
+      "inspector_present": true,
+      "bytes_read": 24746,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "proven-alpha.html",
@@ -4739,13 +4742,12 @@
     },
     {
       "route": "rotation-chains.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 17118,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "rotation-dashboard.html",
@@ -5549,13 +5551,12 @@
     },
     {
       "route": "trading-signals.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 18393,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "tradingview.html",
@@ -5889,13 +5890,12 @@
     },
     {
       "route": "weights.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ebb4328d67d3fbed762036da5d53a15c2fc5de75",
-      "inspector_present": true,
-      "bytes_read": 33186,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "welcome.html",
@@ -6009,7 +6009,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36742590693,
+  "deployment_run_id": 36743481335,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-09-30T16:18:55.203343+00:00"
+  "check_finished_at": "2026-09-30T16:29:24.093451+00:00"
 }
