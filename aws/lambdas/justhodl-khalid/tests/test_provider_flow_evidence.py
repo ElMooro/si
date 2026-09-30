@@ -60,6 +60,7 @@ def test_null_zero_and_finite_decimal_strings():
         p=packet();p['funds']['XLU']['aligned_windows']['1']['flow_usd_decimal']=bad
         assert row(project(p,NOW))['windows']['1']['flow_usd_decimal'] is None,repr(bad)
     p=packet();p['funds']['XLU']['aligned_windows']['1']['flow_usd_decimal']='0'
+    p['funds']['XLU']['latest_observation']['reported_flow_usd_decimal']='0.00'
     assert row(project(p,NOW))['windows']['1']['flow_usd_decimal']=='0'
 
 
@@ -115,3 +116,53 @@ def test_loader_error_with_retained_payload_is_unavailable():
     import lambda_function as candidate
     output=candidate.build_output({'capital_flow':packet()},{'capital_flow':{'error':'read unavailable'}},NOW,[])
     assert output['provider_flow_research']['status']=='unavailable'
+
+
+def single_member(p, ticker='XLU', n='5'):
+    w=p['complexes'][0]['windows'][n]
+    w.update(required=[ticker], included=[ticker], required_count=1, included_count=1,
+             excluded={}, status='complete_matched_group',
+             flow_usd_decimal=p['funds'][ticker]['aligned_windows'][n]['flow_usd_decimal'])
+    return w
+
+
+def test_latest_observation_reconciles_same_date_decimal_value():
+    p=packet();p['funds']['XLU']['aligned_windows']['1']['flow_usd_decimal']='1000'
+    w=row(project(p,NOW))['windows']['1']
+    assert w['status']=='unavailable' and w['reasons']==['conflicting_latest_observation']
+    for value in ['-21738274.8000', '-021738274.8']:
+        p=packet();p['funds']['XLU']['latest_observation']['reported_flow_usd_decimal']=value
+        assert row(project(p,NOW))['windows']['1']['status']=='available'
+    for value in [None, 'NaN', 0]:
+        p=packet();p['funds']['XLU']['latest_observation']['reported_flow_usd_decimal']=value
+        assert row(project(p,NOW))['windows']['1']['status']=='unavailable'
+
+
+def test_cross_ticker_history_identity_conflicts_but_basket_overlap_is_valid():
+    p=packet();p['funds']['XLU']['history']=copy.deepcopy(p['funds']['SPY']['history'])
+    out=project(p,NOW)
+    for ticker in ['XLU','SPY']:
+        assert unavailable(out,ticker)
+        assert row(out,ticker)['windows']['5']['reasons']==['cross_ticker_history_conflict']
+    p=packet();single_member(p);p['complexes'].append(copy.deepcopy(p['complexes'][0]))
+    out=project(p,NOW)
+    assert out['baskets'][0]['windows']['5']['status']=='available'
+    assert out['baskets'][-1]['windows']['5']['status']=='available'
+
+
+def test_basket_sum_matches_canonical_fifty_digit_precision():
+    p=packet();value='123456789012345678.123456789012345678'
+    p['funds']['XLU']['aligned_windows']['5']['flow_usd_decimal']=value
+    single_member(p)
+    w=project(p,NOW)['baskets'][0]['windows']['5']
+    assert w['status']=='available' and w['flow_usd_decimal']==value
+
+
+def test_basket_classification_requires_known_unleveraged_category():
+    for classification,reason in [(None,'unverified_basket_classification'),({},'unverified_basket_classification'),({'category':'unknown'},'unverified_basket_classification'),({'category':'inverse'},'leveraged_inverse_separate'),({'category':'leveraged'},'leveraged_inverse_separate')]:
+        p=packet();p['funds']['SOXL']['classification']=classification;single_member(p,'SOXL')
+        w=project(p,NOW)['baskets'][0]['windows']['5']
+        assert w['status']=='unavailable' and w['observed_subset_flow_usd_decimal'] is None
+        assert w['reasons']==[reason]
+    p=packet();single_member(p)
+    assert project(p,NOW)['baskets'][0]['windows']['5']['status']=='available'

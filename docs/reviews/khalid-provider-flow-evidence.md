@@ -47,7 +47,7 @@ protected originals. No private Brain or original response bodies were fetched.
 
 ## Validation
 
-- Engine suite: 61 tests, including six full-output baseline/final comparisons
+- Engine suite: 65 tests, including six full-output baseline/final comparisons
   across native/legacy/missing Radar and valid/missing authoritative risk input.
   The baseline handler's SHA-256 is pinned; only the new evidence key may differ.
 - Frontend: 2,157 Node tests passed, including six new evidence regressions.
@@ -79,3 +79,24 @@ Current main was merged normally into the draft branch; no force-push. No merge
 or production deployment is authorized here. Independent review is pending.
 The review should focus on fail-closed semantics, expiry, identity, partial groups,
 and the full-output parity proof. No unresolved investment criterion is decided.
+
+
+## PR13 P2 review repair
+
+Four mutation regressions each failed against reviewed head 925e66717 before
+repair and now pass. Same-date latest observations must numerically equal the
+one-observation aligned flow (equivalent Decimal formats and measured zero remain
+valid). Cross-ticker reuse of a validated ticker-specific history key/hash holds
+both funds; ordinary overlapping basket membership remains valid. Basket sums
+use canonical sorted ticker order and local Decimal precision 50, including a
+36-significant-digit regression. Missing/unknown classifications hold basket
+aggregation with an explicit reason; inverse and leveraged classifications remain
+separate. These are constructed test mutations, not claims of live corruption.
+
+All 65 engine tests include the original six full-output decision parity cases.
+The captured real projection remains 289 available funds / 300 configured funds,
+46 baskets and 310,597 compact bytes. No handler, frontend, registry, schema,
+schedule, cloud I/O or decision logic changed in this repair. The 1440/390 local
+browser preview was rerun with the repaired projection; both passed, including
+old-packet compatibility, expiry suppression and unchanged decision DOM.
+Re-review is required before any merge or deployment.

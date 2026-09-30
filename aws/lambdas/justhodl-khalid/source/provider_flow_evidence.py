@@ -1,11 +1,14 @@
 """Bounded informational projection of the existing Radar input; no I/O or votes."""
 from datetime import datetime, timezone, timedelta, date
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, localcontext
 import re
 
 CONTRACT = 'khalid-provider-flow-evidence.v1'
 FLAGS = ('forecast_qualified', 'calls_eligible', 'sizing_eligible', 'execution_eligible')
 PERIODS = ('1', '5', '21')
+# Explicit native catalog categories; unknown classifications cannot certify separation.
+BASKET_CATEGORIES = frozenset(('broad', 'commodity', 'country', 'credit', 'crypto',
+                               'factor', 'fx', 'sector', 'thematic', 'treasury'))
 TICKER = re.compile(r'[A-Z][A-Z0-9.-]{0,14}')
 MONEY = re.compile(r'-?\d{1,24}(?:\.\d{1,50})?')
 REF = re.compile(r'data/(?:provider-flow|capital-radar)-research/(?:runs|histories)/[a-f0-9]{64}\.json')
@@ -128,6 +131,13 @@ def fund(ticker, raw, end, generated, now):
     for w in out['windows'].values():
         if w['status'] == 'available' and (not out['effective_date'] or end > out['effective_date']):
             w.update(status='unavailable', flow_usd_decimal=None, reasons=['window_after_latest_observation'])
+    one = out['windows']['1']
+    if one['status'] == 'available' and end == out['effective_date']:
+        try:
+            if amount(raw['latest_observation'].get('reported_flow_usd_decimal')) != amount(one['flow_usd_decimal']):
+                raise ValueError('conflicting_latest_observation')
+        except (ValueError, TypeError, InvalidOperation):
+            one.update(status='unavailable', flow_usd_decimal=None, reasons=['conflicting_latest_observation'])
     # All aligned windows must describe one nested reporting grid.
     valid_dates = [out['windows'][n]['dates'] for n in PERIODS]
     if any(valid_dates) and any(valid_dates[i] and valid_dates[i + 1] and valid_dates[i] != valid_dates[i + 1][-len(valid_dates[i]):] for i in range(2)):
@@ -169,6 +179,17 @@ def project(packet, now):
         if now >= due:
             raise ValueError('packet_source_expired')
         rows = [fund(t, funds[t], end.isoformat(), source, now) for t in sorted(funds)]
+        # Histories contain ticker identity. A shared key/hash across funds is a
+        # conflict, unlike a fund legitimately occurring in several named baskets.
+        history_owners = {}
+        for row in rows:
+            if row['history_key']:
+                history_owners.setdefault(row['history_key'], []).append(row)
+        for owners in history_owners.values():
+            if len(owners) > 1:
+                for row in owners:
+                    for w in row['windows'].values():
+                        w.update(status='unavailable', flow_usd_decimal=None, reasons=['cross_ticker_history_conflict'])
         grids = {n: next((r['windows'][n]['dates'] for r in rows if r['ticker'] == 'SPY'), []) for n in PERIODS}
         if any(len(grids[n]) != int(n) for n in PERIODS):
             raise ValueError('reference_grid_unavailable')
@@ -200,14 +221,17 @@ def project(packet, now):
                 w = {'status': 'unavailable', 'flow_usd_decimal': None, 'observed_subset_flow_usd_decimal': None,
                      'required_count': 0, 'included_count': 0, 'excluded': [], 'dates': [], 'reasons': ['invalid_basket']}
                 if isinstance(members, list) and 0 < len(members) <= 500 and all(isinstance(t, str) and t in indexed for t in members) and len(set(members)) == len(members):
-                    accepted = [t for t in members if indexed[t]['windows'][n]['status'] == 'available']
+                    accepted = [t for t in sorted(members) if indexed[t]['windows'][n]['status'] == 'available']
                     grids = {tuple(indexed[t]['windows'][n]['dates']) for t in accepted}
                     # Leveraged/inverse funds remain individually labelled; never blend into industry baskets.
-                    special = any(indexed[t]['category'] == 'leveraged' for t in members)
+                    special = any(indexed[t]['category'] in ('leveraged', 'inverse') for t in members)
+                    unverified = any(indexed[t]['category'] not in BASKET_CATEGORIES | {'leveraged', 'inverse'} for t in members)
                     excluded = sorted(set(members) - set(accepted))
                     w.update(required_count=len(members), included_count=len(accepted), excluded=excluded)
-                    if len(grids) == 1 and not special:
-                        subtotal = sum((amount(indexed[t]['windows'][n]['flow_usd_decimal']) for t in accepted), Decimal(0))
+                    if len(grids) == 1 and not special and not unverified:
+                        with localcontext() as ctx:
+                            ctx.prec = 50
+                            subtotal = sum((amount(indexed[t]['windows'][n]['flow_usd_decimal']) for t in accepted), Decimal(0))
                         dates = list(next(iter(grids)))
                         w.update(dates=dates, observed_subset_flow_usd_decimal=format(subtotal, 'f'), reasons=['partial_configured_basket'] if excluded else [])
                         if excluded:
@@ -222,6 +246,8 @@ def project(packet, now):
                                 w.update(status='available', flow_usd_decimal=format(subtotal, 'f'))
                             except (ValueError, TypeError, InvalidOperation):
                                 w.update(status='unavailable', observed_subset_flow_usd_decimal=None, reasons=['conflicting_basket'])
+                    elif unverified:
+                        w['reasons'] = ['unverified_basket_classification']
                     elif special:
                         w['reasons'] = ['leveraged_inverse_separate']
                 projected['windows'][n] = w
