@@ -110,7 +110,9 @@ def test_worker_release_workflow_pins_captures_verifies_and_retains_failures():
     assert 'cancel-in-progress: false' in workflow and 'source-evidence-${{ github.sha }}' in workflow
     assert 'REQUESTED_WORKER: ${{ github.event.inputs.worker }}' in workflow
     assert 'targets="${{ github.event.inputs.worker }}"' not in workflow
-    assert 'test "$pushed" = 1' in workflow and 'contents: write' in workflow
+    assert 'publish_worker_evidence.py --build-dir' in workflow and 'contents: write' in workflow
+    assert workflow.index('publish_worker_evidence.py --build-dir') < workflow.index('aws s3 cp data/ops/releases/worker-')
+    assert 'git pull --rebase' not in workflow
 
 
 def test_worker_build_identity_rejects_untracked_and_ignored_source_inputs():

@@ -49,7 +49,7 @@ def test_worker_test_only_push_does_not_redeploy_any_code():
 
 
 def test_worker_tools_select_proxy_and_keep_other_changed_workers():
-    for tool in ('.github/workflows/deploy-workers.yml','scripts/worker_release.py','aws/ops/checks/worker_source_evidence.py','aws/ops/checks/worker_release_evidence.py'):
+    for tool in ('.github/workflows/deploy-workers.yml','scripts/worker_release.py','scripts/publish_worker_evidence.py','aws/ops/checks/worker_source_evidence.py','aws/ops/checks/worker_release_evidence.py'):
         with tempfile.TemporaryDirectory() as root:
             result,output=Repository(root).select([tool,'cloudflare/workers/justhodl-other/src/index.js'])
             assert result.returncode==0,result.stderr;assert output=='targets=justhodl-data-proxy justhodl-other'

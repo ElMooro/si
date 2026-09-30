@@ -12,8 +12,6 @@ on:
       - 'tests/reviewed-artifacts.test.js'
       - '.github/workflows/deploy-workers.yml'
       - 'scripts/worker_release.py'
-      - 'scripts/publish_worker_evidence.py'
-      - 'tests/deployment/test_worker_evidence_publisher.py'
       - 'aws/ops/checks/worker_release_evidence.py'
       - 'aws/ops/checks/worker_source_evidence.py'
       - 'tests/deployment/test_worker_*evidence.py'
@@ -64,7 +62,6 @@ jobs:
         run: |
           python3 tests/deployment/test_worker_source_evidence.py
           python3 tests/deployment/test_worker_release_evidence.py
-          python3 tests/deployment/test_worker_evidence_publisher.py
 
   deploy:
     name: Deploy changed Workers
@@ -124,7 +121,7 @@ jobs:
             # or issuing a new Worker receipt for identical source bytes.
             # Read the whole list: grep -q can close early and turn printf's
             # SIGPIPE into a false negative under pipefail for a large push.
-            if printf '%s\n' "$changed" | grep -E '^(\.github/workflows/deploy-workers\.yml|scripts/(worker_release|publish_worker_evidence)\.py|aws/ops/checks/worker_(source|release)_evidence\.py)$' > /dev/null; then
+            if printf '%s\n' "$changed" | grep -E '^(\.github/workflows/deploy-workers\.yml|scripts/worker_release\.py|aws/ops/checks/worker_(source|release)_evidence\.py)$' > /dev/null; then
               targets=$(printf '%s\n' "$targets" 'justhodl-data-proxy' | tr ' ' '\n' | grep -v '^$' | sort -u | paste -sd ' ' -)
             fi
           fi
@@ -185,7 +182,7 @@ jobs:
               echo "::warning::$dir not found — skipping"
               continue
             fi
-            git diff --exit-code "$GITHUB_SHA" origin/main -- "$dir" .github/workflows/deploy-workers.yml scripts/worker_release.py scripts/publish_worker_evidence.py aws/ops/checks/worker_source_evidence.py aws/ops/checks/worker_release_evidence.py > /dev/null
+            git diff --exit-code "$GITHUB_SHA" origin/main -- "$dir" .github/workflows/deploy-workers.yml scripts/worker_release.py aws/ops/checks/worker_source_evidence.py aws/ops/checks/worker_release_evidence.py > /dev/null
             if [ "$w" = 'justhodl-data-proxy' ]; then
               wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-build" --config "$dir/wrangler.toml"
               node "$dir/tests/portfolio-publication-runtime.cjs" "$RUNNER_TEMP/worker-build/index.js" "$(npm root -g)/wrangler"
@@ -221,6 +218,7 @@ jobs:
             cd - > /dev/null
             if [ "$w" = 'justhodl-data-proxy' ]; then
               python3 scripts/worker_release.py after --build-dir "$RUNNER_TEMP/worker-build" --evidence-dir "$RUNNER_TEMP/worker-evidence" --commit "$GITHUB_SHA"
+              aws s3 cp data/ops/releases/worker-justhodl-data-proxy.json s3://justhodl-dashboard-live/data/ops/releases/worker-justhodl-data-proxy.json --content-type application/json --cache-control 'no-store' --only-show-errors
             fi
           done
 
@@ -241,10 +239,16 @@ jobs:
           set -euo pipefail
           artifact="aws/ops/reports/worker-source/release-${GITHUB_RUN_ID}.json"
           if [ ! -f "$artifact" ]; then exit 0; fi
-          # Commit exact bytes on a fresh main tree. No checkout mutation or
-          # receipt rebase; a failed retention cannot publish a dangling receipt.
-          python3 scripts/publish_worker_evidence.py --build-dir "$RUNNER_TEMP/worker-build" --commit "$GITHUB_SHA"
-          aws s3 cp data/ops/releases/worker-justhodl-data-proxy.json s3://justhodl-dashboard-live/data/ops/releases/worker-justhodl-data-proxy.json --content-type application/json --cache-control 'no-store' --only-show-errors
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -- "$artifact" data/ops/releases/worker-justhodl-data-proxy.json
+          git commit -m "Record exact Worker release ${GITHUB_SHA:0:10} [skip-deploy] [skip-ops]"
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then pushed=1; break; fi
+            sleep $((i * 7))
+          done
+          test "$pushed" = 1
 
       - name: Summary
         if: always()

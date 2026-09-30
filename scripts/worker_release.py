@@ -20,23 +20,24 @@ from check_secrets import findings
 
 WORKER_PATH = 'cloudflare/workers/justhodl-data-proxy'
 BASELINE = ROOT/'aws/ops/reports/worker-source/6354-36658515237.json'
-TOOLS = ['.github/workflows/deploy-workers.yml', 'scripts/worker_release.py',
+TOOLS = ['.github/workflows/deploy-workers.yml', 'scripts/worker_release.py', 'scripts/publish_worker_evidence.py',
     'aws/ops/checks/worker_release_evidence.py', 'aws/ops/checks/worker_source_evidence.py']
 
 
-def build_identity(build_dir, commit):
-    actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+def build_identity(build_dir, commit, root=None):
+    root = ROOT if root is None else Path(root)
+    actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
     if not re.fullmatch(r'[a-f0-9]{40}', commit) or actual != commit:
         raise EvidenceError('Worker checkout differs from intended commit')
-    subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', WORKER_PATH, *TOOLS], cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
-    untracked = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '-z', '--', WORKER_PATH, *TOOLS], cwd=ROOT)
-    ignored_source = subprocess.check_output(['git', 'ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', WORKER_PATH+'/src'], cwd=ROOT)
+    subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', WORKER_PATH, *TOOLS], cwd=root, check=True, stdout=subprocess.DEVNULL)
+    untracked = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '-z', '--', WORKER_PATH, *TOOLS], cwd=root)
+    ignored_source = subprocess.check_output(['git', 'ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', WORKER_PATH+'/src'], cwd=root)
     if untracked or ignored_source:
         raise EvidenceError('Uncommitted Worker build input refused')
-    names = subprocess.check_output(['git', 'ls-files', '-z', '--', WORKER_PATH, *TOOLS], cwd=ROOT).decode().split('\0')
-    if any((ROOT/name).is_symlink() for name in names if name):
+    names = subprocess.check_output(['git', 'ls-files', '-z', '--', WORKER_PATH, *TOOLS], cwd=root).decode().split('\0')
+    if any((root/name).is_symlink() for name in names if name):
         raise EvidenceError('External symlinked Worker input refused')
-    sources = {name: {'bytes':len((ROOT/name).read_bytes()), 'sha256':digest((ROOT/name).read_bytes())} for name in names if name}
+    sources = {name: {'bytes':len((root/name).read_bytes()), 'sha256':digest((root/name).read_bytes())} for name in names if name}
     raw = (Path(build_dir)/'index.js').read_bytes()
     return {'commit':commit, 'repository_files':sources, 'built_index':{'bytes':len(raw),'sha256':digest(raw)},
         'build_tool':{'name':'wrangler','version':WRANGLER_VERSION}}

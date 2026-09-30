@@ -1,0 +1,65 @@
+{
+  "contract": "worker-evidence-publication-audit.v1",
+  "status": "current_source_and_complete_invented_acceptance_passed_exact_worker_release_pending",
+  "base_commit": "8aca6321b80feda6679ed0b23d0a8590c47a9fa5",
+  "source_files": {
+    "scripts/publish_worker_evidence.py": {
+      "bytes": 10160,
+      "sha256": "35dcbbcc731c3fafde2c572e54d8c6492888d6f06b3ce53809b0f75a410dfa06"
+    },
+    "scripts/worker_release.py": {
+      "bytes": 6220,
+      "sha256": "5b629271a1da2c4319509f8246aae7b729c6430febc1adc5df41190e76a8998f"
+    },
+    "scripts/check_worker_prerequisite.py": {
+      "bytes": 11174,
+      "sha256": "a012884da65916fb022b248ebef8104c05893146162b751e97205c195a7acb58"
+    },
+    ".github/workflows/deploy-workers.yml": {
+      "bytes": 12348,
+      "sha256": "de5a40e231f3351a7275bd258bb3d457ac2af3ad6083770cf2b2e5e6097870b5"
+    },
+    "tests/deployment/test_worker_evidence_publisher.py": {
+      "bytes": 14677,
+      "sha256": "34107564e207f4ce0f20933928a620cb89362b6654be1169690fa535ac2e8b62"
+    },
+    "tests/deployment/test_worker_release_evidence.py": {
+      "bytes": 8305,
+      "sha256": "2b04775b0e65af00756fc7fc9077331047b99b6cf381880c4f8e1a0668387634"
+    },
+    "tests/deployment/test_worker_deploy_selection.py": {
+      "bytes": 5411,
+      "sha256": "d389a5e6221b4a638348600781c6a9bcb639487df598d655a74d7406ac7e5e32"
+    }
+  },
+  "fixtures": {
+    "tests/fixtures/pre-worker-evidence-publisher/deploy-workers.yml.txt": {
+      "bytes": 12379,
+      "sha256": "4616a9d1830bf1df4cd88d8ad27fb87019af69b633fa3c9c6e95134485ca5f4d"
+    }
+  },
+  "previous_failure_report": "aws/ops/reports/deploy-failures/4552640-36721622916.md",
+  "private_reads": 0,
+  "worker_invocations": 0,
+  "native_producer_invocations": 0,
+  "two_store_atomicity": false,
+  "all_ten_workstreams_open": true,
+  "tests": {
+    "git_publisher": 11,
+    "deployment_selection": 6,
+    "frontend": 2126,
+    "compiled_workerd_sqlite": 25,
+    "deployment_static": 854,
+    "deployment_shell": 15
+  },
+  "checks": {
+    "frontend": "875200a079e332ebc5284512b64e852341db705f7d85fb11cb1b533732efea0f",
+    "deployment": "84d491bbb70646f0bff2f5cbf8bb128a94a22a1cc79d3df708321ebc677cf4ed",
+    "build": "2d1bf912127c42c0b888ca300d3f5aef600e47e015b19e06463c191ed4b92700",
+    "runtime": "f6c10f41579b5be69fd5a3842306acc21c510d93b7ab25d7068e368e2153704f"
+  },
+  "compiled_build": {
+    "bytes": 214933,
+    "sha256": "c2a7ce7e05baead99ae0da499da242dd41a852ba55f565c58a2b05d5e890ed51"
+  }
+}

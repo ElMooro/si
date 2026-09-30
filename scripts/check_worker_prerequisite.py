@@ -16,7 +16,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 WORKER = 'justhodl-data-proxy'
 WORKER_PATH = 'cloudflare/workers/' + WORKER
-TOOLS = ['.github/workflows/deploy-workers.yml', 'scripts/worker_release.py',
+TOOLS = ['.github/workflows/deploy-workers.yml', 'scripts/worker_release.py', 'scripts/publish_worker_evidence.py',
          'aws/ops/checks/worker_source_evidence.py', 'aws/ops/checks/worker_release_evidence.py']
 BUCKET = 'justhodl-dashboard-live'
 KEY = 'data/ops/releases/worker-' + WORKER + '.json'
