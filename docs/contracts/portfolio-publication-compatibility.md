@@ -22,6 +22,6 @@ The check precedes both publication calls and the `validation_only` return. Exis
 
 ## Acceptance
 
-Fifteen focused cases include all three complete reproduced failures, a valid complete handler frame, exact boundaries, Unicode, types, signed zero, cycles, immutability and complete cross-runtime vectors. The snapshot suite has 123 unit cases plus four handler checks. Candidate ZIP validation runs those current invented tests without credentials, network or native invocation. Read-only operation 6366 checks the exact deployed package/receipt/live alias and original resources and schedules; it cannot read account data or invoke the producer.
+Fifteen focused cases include all three complete reproduced failures, a valid complete handler frame, exact boundaries, Unicode, types, signed zero, cycles, immutability and complete cross-runtime vectors. The snapshot suite has 146 unit cases plus four handler checks. Candidate ZIP validation runs those current invented tests without credentials, network or native invocation. Read-only operation 6366 checks the exact deployed package/receipt/live alias and original resources and schedules; it cannot read account data or invoke the producer.
 
-Actual normal private publication, total quote collection budgets, cross-writer ordering and portfolio qualification remain unverified.
+The separate [quote collection contract](portfolio-quote-collection.md) bounds pending tasks, retained complete bodies and mark-acceptance time. Actual normal private publication, hard process deadlines, peak process memory, cross-writer ordering and portfolio qualification remain unverified.

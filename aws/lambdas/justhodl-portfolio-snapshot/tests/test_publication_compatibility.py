@@ -33,7 +33,7 @@ class PublicationCompatibility(unittest.TestCase):
         def functions(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(ROOT/'tests/fixtures/pre-snapshot-publication-compatibility/lambda_function.py.txt');after=functions(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py')
         self.assertEqual(set(after)-set(before),{'validate_snapshot_publication'})
-        self.assertEqual({name for name in before if before[name]!=after[name]},{'lambda_handler'})
+        self.assertEqual({name for name in before if before[name]!=after[name]},{'lambda_handler','fetch_polygon_latest','batch_fetch_prices'})
     def test_cross_runtime_vectors_match_existing_identity_byte_count(self):
         for row in json.loads((ROOT/'tests/fixtures/portfolio-value-identity-vectors.json').read_bytes()):
             self.assertEqual(self.mod.validate_snapshot_publication(row['value']),row['encoded_bytes'])

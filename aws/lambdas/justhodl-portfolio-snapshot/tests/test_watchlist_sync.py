@@ -214,7 +214,7 @@ class SourceReaderTests(unittest.TestCase):
         root=SOURCE.parents[3]
         def functions(path):return {n.name:n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(root/'tests/fixtures/pre-snapshot-accounting/lambda_function.py.txt');after=functions(SOURCE/'lambda_function.py')
-        self.assertEqual({name for name in before if ast.dump(before[name])!=ast.dump(after[name])},{'enrich_symbol','lambda_handler','query_pk','fetch_polygon_latest','load_s3_json','index_by_symbol'})
+        self.assertEqual({name for name in before if ast.dump(before[name])!=ast.dump(after[name])},{'enrich_symbol','lambda_handler','query_pk','fetch_polygon_latest','load_s3_json','index_by_symbol','batch_fetch_prices'})
         self.assertEqual({name for name in after if name not in before},{'accounting_number','accounting_round','accounting_sum','accounting_source','accounting_symbol','build_holdings_accounting','parse_previous_close','read_previous_close_body','research_text','research_join','research_value','validate_snapshot_publication'})
     def test_complete_body_and_eof_are_required_and_closed(self):
         mod=load_current();raw=json.dumps(frame()).encode();body=io.BytesIO(raw)
@@ -229,7 +229,7 @@ class SourceReaderTests(unittest.TestCase):
         mod=load_current();table=Table();before=copy.deepcopy(table.items);mod.table=table;mod.ddb_client=table
         mod.s3.get_object=lambda **kw:(_ for _ in ()).throw(IOError('invented failure'))
         mod.query_pk=lambda pk:[] if pk=='POSITION' else list(table.items.values())
-        mod.batch_fetch_prices=lambda symbols:{};published=[];mod.publish_private=lambda kind,doc:published.append(doc);mod.s3.put_object=lambda **kw:None
+        mod.batch_fetch_prices=lambda symbols,**kwargs:{};published=[];mod.publish_private=lambda kind,doc:published.append(doc);mod.s3.put_object=lambda **kw:None
         result=mod.lambda_handler({},None)
         self.assertEqual(result['statusCode'],200);self.assertEqual(table.items,before);self.assertEqual(table.writes,[])
         self.assertEqual(published[0]['watchlist_sync']['status'],'SKIPPED_INVALID_SOURCE');self.assertEqual(len(published[0]['watchlist']),2)

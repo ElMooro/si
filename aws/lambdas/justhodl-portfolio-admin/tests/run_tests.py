@@ -143,7 +143,7 @@ def _load_snapshot(prices):
     spec = importlib.util.spec_from_file_location("psnap", LAMBDAS / "justhodl-portfolio-snapshot" / "source" / "lambda_function.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    mod.batch_fetch_prices = lambda syms, max_workers=10: {s: prices[s] for s in syms if s in prices}
+    mod.batch_fetch_prices = lambda syms, max_workers=10, context=None: {s: prices[s] for s in syms if s in prices}
     return mod
 
 

@@ -32,7 +32,7 @@ import os
 import time
 import urllib.request
 from datetime import datetime, timezone
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from decimal import Decimal
 
 import boto3
@@ -477,14 +477,14 @@ def read_previous_close_body(response,deadline):
     return b''.join(chunks)
 
 
-def fetch_polygon_latest(symbol):
+def fetch_polygon_latest(symbol, collection_deadline=None):
     """Keep complete accepted bytes and fixed failure reasons, never provider error text."""
     import base64
     import urllib.parse
     evidence={'schema_version':'previous-close-source.v1','requested_symbol':symbol,'requested_adjusted':True,
               'endpoint_origin':'https://api.polygon.io','endpoint_path':None,
               'started_at':datetime.now(timezone.utc).isoformat(),'completed_at':None,
-              'body_complete':False,'status':'UNAVAILABLE','reason_code':None,
+              'body_complete':False,'status':'UNAVAILABLE','reason_code':None,'request_attempted':False,
               'currency_verified':False,'instrument_binding_verified':False,'execution_quote':False}
     output={'price':None,'open':None,'high':None,'low':None,'volume':None,'as_of_unix_ms':None,
             'price_basis':'SPLIT_ADJUSTED_PREVIOUS_DAY_CLOSE','price_timestamp_basis':'AGGREGATE_WINDOW_START_UTC_MS',
@@ -492,19 +492,26 @@ def fetch_polygon_latest(symbol):
     try:
         if accounting_symbol({'symbol':symbol}) is None:raise PreviousCloseUnavailable('UNSUPPORTED_REQUEST_IDENTITY')
         path='/v2/aggs/ticker/'+symbol+'/prev';evidence['endpoint_path']=path
+        if collection_deadline is not None and time.monotonic()>=collection_deadline:raise PreviousCloseUnavailable('COLLECTION_ACCEPTANCE_DEADLINE')
         if not isinstance(POLY_KEY,str) or not POLY_KEY:raise PreviousCloseUnavailable('PROVIDER_UNCONFIGURED')
         url=evidence['endpoint_origin']+path+'?adjusted=true&apiKey='+urllib.parse.quote(POLY_KEY,safe='')
         request=urllib.request.Request(url,headers={'User-Agent':'JustHodl-PS/1.0','Accept':'application/json','Accept-Encoding':'identity'})
         opener=urllib.request.build_opener(NoQuoteRedirect())
         deadline=time.monotonic()+PREVIOUS_CLOSE_READ_SECONDS
-        with opener.open(request,timeout=8) as response:
+        if collection_deadline is not None:deadline=min(deadline,collection_deadline)
+        remaining=deadline-time.monotonic()
+        if remaining<=0:raise PreviousCloseUnavailable('COLLECTION_ACCEPTANCE_DEADLINE')
+        evidence['request_attempted']=True
+        with opener.open(request,timeout=min(8,remaining)) as response:
             final=urllib.parse.urlsplit(response.geturl())
             if final.scheme!='https' or final.netloc!='api.polygon.io' or final.path!=path or final.query!=urllib.parse.urlsplit(url).query or final.fragment:
                 raise PreviousCloseUnavailable('RESPONSE_URL_MISMATCH')
             raw=read_previous_close_body(response,deadline)
             evidence.update(body_complete=True,body_bytes=len(raw),body_sha256=hashlib.sha256(raw).hexdigest(),
                             body_encoding='base64',body=base64.b64encode(raw).decode('ascii'),http_status=200)
-        output.update(parse_previous_close(raw,symbol))
+        parsed=parse_previous_close(raw,symbol)
+        if collection_deadline is not None and time.monotonic()>=collection_deadline:raise PreviousCloseUnavailable('COLLECTION_ACCEPTANCE_DEADLINE')
+        output.update(parsed)
         evidence.update(status='MEASURED_PREVIOUS_CLOSE',reason_code=None)
     except PreviousCloseUnavailable as failure:evidence['reason_code']=failure.code
     except urllib.error.HTTPError as failure:
@@ -561,16 +568,101 @@ def validate_snapshot_publication(payload):
     return size
 
 
-def batch_fetch_prices(symbols, max_workers=10):
-    """Parallel price fetch."""
-    if not symbols: return {}
-    out = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {ex.submit(fetch_polygon_latest, s): s for s in symbols}
-        for f in as_completed(futures):
-            sym = futures[f]
-            try: out[sym] = f.result()
-            except Exception: out[sym] = None
+QUOTE_COLLECTION_MAX_BODY_BYTES=4*1024*1024
+QUOTE_COLLECTION_SECONDS=45
+QUOTE_COLLECTION_FINALIZE_RESERVE_SECONDS=30
+
+
+class QuoteCollection(dict):
+    """Every requested identity survives an incomplete collection."""
+    @staticmethod
+    def unavailable(symbol,reason,started=False):
+        return {'price':None,'open':None,'high':None,'low':None,'volume':None,'as_of_unix_ms':None,
+                'price_basis':'SPLIT_ADJUSTED_PREVIOUS_DAY_CLOSE',
+                'price_timestamp_basis':'AGGREGATE_WINDOW_START_UTC_MS','currency':None,
+                'source_evidence':{'schema_version':'previous-close-source.v1','requested_symbol':symbol,
+                    'requested_adjusted':True,'endpoint_origin':'https://api.polygon.io',
+                    'endpoint_path':'/v2/aggs/ticker/'+symbol+'/prev','started_at':None,'completed_at':None,
+                    'status':'UNAVAILABLE' if started else 'NOT_ATTEMPTED','reason_code':reason,
+                    'body_complete':False,'collection_task_started':started,
+                    'request_attempted':None if started else False,'currency_verified':False,
+                    'instrument_binding_verified':False,'execution_quote':False}}
+
+
+def batch_fetch_prices(symbols, max_workers=10, context=None):
+    """Incremental requests with reserved room for every complete in-flight body.
+
+    A shared deadline controls submission and mark acceptance, not a hard thread
+    kill. Running requests are drained before return. DNS/socket/runtime stalls
+    can outlast it; no background collector survives publication.
+    """
+    if type(symbols) is not list or len(symbols)>2*BOOK_MAX_ROWS or any(accounting_symbol({'symbol':s}) is None for s in symbols):
+        raise ValueError('Complete supported quote identity list required')
+    if type(max_workers) is not int or not 1<=max_workers<=10:raise ValueError('Quote concurrency must be between one and ten')
+    ordered=sorted(set(symbols));started=time.monotonic();started_at=datetime.now(timezone.utc).isoformat()
+    allowance=QUOTE_COLLECTION_SECONDS;context_status='UNAVAILABLE_OFFLINE_DEFAULT'
+    if context is not None:
+        try:
+            remaining_ms=context.get_remaining_time_in_millis()
+            if type(remaining_ms) not in (int,float) or not math.isfinite(remaining_ms) or remaining_ms<0:raise ValueError()
+            allowance=min(allowance,max(0,remaining_ms/1000-QUOTE_COLLECTION_FINALIZE_RESERVE_SECONDS))
+            context_status='REMAINING_TIME_RESERVE_APPLIED'
+        except Exception:allowance=0;context_status='INVALID_REMAINING_TIME_NO_REQUESTS'
+    deadline=started+allowance
+    out=QuoteCollection((symbol,QuoteCollection.unavailable(symbol,'COLLECTION_NOT_STARTED')) for symbol in ordered)
+    pending={};next_index=0;retained=0;max_pending=0;stop_reason=None
+    if ordered and allowance>0:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            while next_index<len(ordered) or pending:
+                while next_index<len(ordered) and len(pending)<max_workers:
+                    if time.monotonic()>=deadline:stop_reason='COLLECTION_ACCEPTANCE_DEADLINE';break
+                    if retained+(len(pending)+1)*PREVIOUS_CLOSE_MAX_BYTES>QUOTE_COLLECTION_MAX_BODY_BYTES:
+                        stop_reason='COLLECTION_BODY_RESERVATION_EXHAUSTED';break
+                    symbol=ordered[next_index]
+                    future=executor.submit(fetch_polygon_latest,symbol,collection_deadline=deadline)
+                    pending[future]=symbol;next_index+=1;max_pending=max(max_pending,len(pending));stop_reason=None
+                if not pending:break
+                done,_=wait(tuple(pending),return_when=FIRST_COMPLETED)
+                for future in sorted(done,key=lambda f:pending[f]):
+                    symbol=pending.pop(future)
+                    try:quote=future.result()
+                    except Exception:quote=QuoteCollection.unavailable(symbol,'COLLECTION_TASK_FAILED',started=True)
+                    if not isinstance(quote,dict) or not isinstance(quote.get('source_evidence'),dict):
+                        raise ValueError('Complete quote task result required')
+                    trace=quote['source_evidence']
+                    if trace.get('requested_symbol')!=symbol:raise ValueError('Quote task identity differs')
+                    trace['collection_task_started']=True
+                    if trace.get('body_complete') is True:
+                        size=trace.get('body_bytes');body=trace.get('body')
+                        if type(size) is not int or not 0<=size<=PREVIOUS_CLOSE_MAX_BYTES or type(body) is not str or len(body)!=4*((size+2)//3):
+                            raise ValueError('Complete quote body reservation differs')
+                        retained+=size
+                        if retained>QUOTE_COLLECTION_MAX_BODY_BYTES:raise ValueError('Complete quote collection exceeds body bound')
+                    if time.monotonic()>=deadline:
+                        trace['collection_deadline_exceeded']=True
+                        if trace.get('status')=='MEASURED_PREVIOUS_CLOSE':
+                            trace.update(received_source_status=trace['status'],status='UNAVAILABLE',reason_code='COLLECTION_ACCEPTANCE_DEADLINE')
+                            for field in ('price','open','high','low','volume','as_of_unix_ms'):quote[field]=None
+                    out[symbol]=quote
+    if next_index<len(ordered):
+        stop_reason=stop_reason or 'COLLECTION_ACCEPTANCE_DEADLINE'
+        for symbol in ordered[next_index:]:out[symbol]=QuoteCollection.unavailable(symbol,stop_reason)
+    reasons={}
+    for quote in out.values():
+        code=quote['source_evidence'].get('reason_code')
+        if code is not None:reasons[code]=reasons.get(code,0)+1
+    out.collection_evidence={'schema_version':'portfolio-quote-collection.v1',
+        'status':'COMPLETE_ATTEMPT_COVERAGE' if next_index==len(ordered) else 'PARTIAL_ATTEMPT_COVERAGE',
+        'started_at':started_at,'completed_at':datetime.now(timezone.utc).isoformat(),
+        'requested_occurrences_count':len(symbols),'requested_symbols':ordered,'ordering':'LEXICOGRAPHIC_SYMBOL',
+        'unique_requested_count':len(ordered),'tasks_started':next_index,'unattempted_count':len(ordered)-next_index,
+        'measured_previous_close_count':sum(q['source_evidence'].get('status')=='MEASURED_PREVIOUS_CLOSE' for q in out.values()),
+        'reason_counts':reasons,'retained_complete_body_bytes':retained,'source_body_byte_bound':QUOTE_COLLECTION_MAX_BODY_BYTES,
+        'per_task_body_reservation_bytes':PREVIOUS_CLOSE_MAX_BYTES,'max_in_flight':max_workers,'max_in_flight_observed':max_pending,
+        'acceptance_seconds':allowance,'maximum_acceptance_seconds':QUOTE_COLLECTION_SECONDS,
+        'finalize_reserve_seconds':QUOTE_COLLECTION_FINALIZE_RESERVE_SECONDS,'context_budget_status':context_status,
+        'elapsed_seconds':max(0,time.monotonic()-started),'deadline_semantics':'SUBMISSION_AND_MARK_ACCEPTANCE_NOT_HARD_PROCESS_DEADLINE',
+        'all_started_tasks_drained':True,'allows_sizing':False}
     return out
 
 
@@ -946,7 +1038,8 @@ def lambda_handler(event, context):
     for row in positions + watchlist:
         sym = accounting_symbol(row)
         if sym is not None: all_symbols.add(sym)
-    price_data = batch_fetch_prices(list(all_symbols))
+    all_symbols = sorted(all_symbols)
+    price_data = batch_fetch_prices(all_symbols, context=context)
     n_priced = sum(1 for v in price_data.values() if isinstance(v, dict) and accounting_number(v.get("price")) is not None and accounting_number(v.get("price")) > 0)
     print(f"  prices fetched: {n_priced}/{len(all_symbols)}")
 
@@ -992,7 +1085,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.6",
+        "audit_version": "2026-09-30.7",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
@@ -1010,6 +1103,7 @@ def lambda_handler(event, context):
         "accounting": {
             "schema_version": "holdings-accounting.v1", "valuation_at": accounting_now.isoformat(),
             "source_positions": accounting_source(positions), "source_prices": accounting_source(price_data),
+            "quote_collection": getattr(price_data,'collection_evidence',{'status':'COLLECTION_EVIDENCE_UNAVAILABLE','allows_sizing':False}),
             "source_watchlist": accounting_source(watchlist),
             "book_read": {
                 "schema_version": "portfolio-book-read.v1", "status": "COMPLETE",

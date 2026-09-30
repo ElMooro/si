@@ -153,7 +153,7 @@ class AccountingTests(unittest.TestCase):
         mod=self.mod;mod.load_s3_json=lambda key,default:default
         mod.sync_auto_watchlist=lambda _:dict(added_S=[],added_A=[],removed_S=[],removed_A=[])
         mod.query_pk=lambda key:[position(qty=float('nan'))] if key=='POSITION' else []
-        mod.batch_fetch_prices=lambda syms:{'AAA':{'price':110,'as_of_unix_ms':NOW.timestamp()*1000}}
+        mod.batch_fetch_prices=lambda syms,**kwargs:{'AAA':{'price':110,'as_of_unix_ms':NOW.timestamp()*1000}}
         published=[];mod.publish_private=lambda kind,doc:published.append(doc);written=[];mod.s3.put_object=lambda **kw:written.append(kw['Body'])
         mod.lambda_handler({},None)
         payload=json.loads(written[0]);self.assertEqual(payload['accounting']['source_positions'][0]['qty'],{'rejected_number_type':'float','representation':'nan'})
@@ -161,7 +161,7 @@ class AccountingTests(unittest.TestCase):
         # An unrelated invalid enrichment cannot reach either publication sink.
         published.clear();written.clear()
         mod.query_pk=lambda key:[position()] if key=='POSITION' else []
-        mod.batch_fetch_prices=lambda syms:{'AAA':{'price':110,'as_of_unix_ms':NOW.timestamp()*1000,'volume':float('inf')}}
+        mod.batch_fetch_prices=lambda syms,**kwargs:{'AAA':{'price':110,'as_of_unix_ms':NOW.timestamp()*1000,'volume':float('inf')}}
         with self.assertRaises(ValueError):mod.lambda_handler({},None)
         self.assertEqual(published,[]);self.assertEqual(written,[])
 
