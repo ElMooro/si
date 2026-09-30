@@ -1,0 +1,27 @@
+{
+  "stage": 451,
+  "status": "seven_source_failures_reproduced_read_only_baseline_pending",
+  "predecessor_runtime": null,
+  "native_acceptance": null,
+  "source_sha256": "910c3373f4f5a266f72146d34ab7d1e6aa5e644ab1c26bf40b13ef84fb8b049c",
+  "source_bytes": 36196,
+  "source_commit": "99b780fbbaae0a6a6b6c1a7a16049f7884788b5f",
+  "complete_invented_reproduction": {
+    "path": "tests/fixtures/pre-snapshot-accounting/complete-synthetic.json",
+    "bytes": 23212,
+    "sha256": "ebf736506d491d816130e74a9a8b1aaade25d5b77f7679572bed10956cab675f"
+  },
+  "findings": [
+    "Boolean quantity becomes one unit",
+    "Missing quantity becomes measured zero",
+    "Missing unit cost becomes zero and produces an artificial gain",
+    "Boolean price becomes a one-dollar mark",
+    "Rounding mark age before eligibility accepts a mark older than 120 hours",
+    "A NaN quantity string produces nonfinite values in emitted JSON",
+    "An entirely unpriced sleeve is reported as measured zero P&L"
+  ],
+  "acceptance_scope": "Only native source packages, exact release receipts and original control-plane resources/schedules for snapshot and admin. Actual account/current/history/provider inputs remain excluded.",
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "native_source_modified": false
+}

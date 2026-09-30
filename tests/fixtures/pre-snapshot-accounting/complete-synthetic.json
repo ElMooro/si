@@ -1,0 +1,148 @@
+{
+  "source_sha256": "910c3373f4f5a266f72146d34ab7d1e6aa5e644ab1c26bf40b13ef84fb8b049c",
+  "source_bytes": 36196,
+  "observed_at": "2026-09-30T05:37:45.973801+00:00",
+  "scope": "Actual current handler with complete invented positions/price frames and mocked inputs/publication/storage; no actual private or provider data. Invalid emitted JSON is retained whole as text, never normalized.",
+  "cases": [
+    {
+      "name": "boolean_quantity",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": true,
+          "cost_basis_per_share": 100,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": 110,
+          "as_of_unix_ms": 1790746665973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.034815+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":110.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":100.0,\"total_pnl_dollars\":10.0,\"total_pnl_pct\":10.0,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[],\"unpriced_cost_basis\":0.0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.034815+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":110.0,\"net_exposure\":110.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":1.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":100.0,\"market_value\":110.0,\"pnl_dollars\":10.0,\"pnl_pct\":10.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":1.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":100.0,\"market_value\":110.0,\"pnl_dollars\":10.0,\"pnl_pct\":10.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":110.0,\"weight_pct\":100.0}],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": true,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    },
+    {
+      "name": "missing_quantity",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": null,
+          "cost_basis_per_share": 100,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": 110,
+          "as_of_unix_ms": 1790746665973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.035819+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":0.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":0.0,\"total_pnl_dollars\":0.0,\"total_pnl_pct\":null,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[],\"unpriced_cost_basis\":0.0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.035819+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":0.0,\"net_exposure\":0.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":0.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":0.0,\"market_value\":0.0,\"pnl_dollars\":0.0,\"pnl_pct\":null,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":null}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":0.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":0.0,\"market_value\":0.0,\"pnl_dollars\":0.0,\"pnl_pct\":null,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":null}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":0.0,\"weight_pct\":null}],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": true,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    },
+    {
+      "name": "missing_basis",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": 10,
+          "cost_basis_per_share": null,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": 110,
+          "as_of_unix_ms": 1790746665973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.036821+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":1100.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":0.0,\"total_pnl_dollars\":1100.0,\"total_pnl_pct\":null,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[],\"unpriced_cost_basis\":0.0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.036821+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":1100.0,\"net_exposure\":1100.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":0.0,\"cost_basis_total\":0.0,\"market_value\":1100.0,\"pnl_dollars\":1100.0,\"pnl_pct\":null,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":0.0,\"cost_basis_total\":0.0,\"market_value\":1100.0,\"pnl_dollars\":1100.0,\"pnl_pct\":null,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":1100.0,\"weight_pct\":100.0}],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": true,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    },
+    {
+      "name": "boolean_price",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": 10,
+          "cost_basis_per_share": 100,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": true,
+          "as_of_unix_ms": 1790746665973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.037825+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":10.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":1000.0,\"total_pnl_dollars\":-990.0,\"total_pnl_pct\":-99.0,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[],\"unpriced_cost_basis\":0.0,\"stops_hit_count\":1,\"stops_hit\":[{\"symbol\":\"AAA\",\"stop_loss\":90.0,\"current_price\":1.0}],\"stops_not_evaluable\":[]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.037825+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":10.0,\"net_exposure\":10.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":1.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":10.0,\"pnl_dollars\":-990.0,\"pnl_pct\":-99.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":-98.89,\"stop_hit\":true,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":1.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":10.0,\"pnl_dollars\":-990.0,\"pnl_pct\":-99.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":-98.89,\"stop_hit\":true,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":10.0,\"weight_pct\":100.0}],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": true,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    },
+    {
+      "name": "mark_older_than_120_hours",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": 10,
+          "cost_basis_per_share": 100,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": 110,
+          "as_of_unix_ms": 1790314605973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.038843+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":1100.0,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":1000.0,\"total_pnl_dollars\":100.0,\"total_pnl_pct\":10.0,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[],\"unpriced_cost_basis\":0.0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.038843+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":1100.0,\"net_exposure\":1100.0,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790314605973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":1100.0,\"pnl_dollars\":100.0,\"pnl_pct\":10.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":120.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790314605973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":1100.0,\"pnl_dollars\":100.0,\"pnl_pct\":10.0,\"position_type\":\"LONG\",\"valuation_status\":\"PRICED\",\"mark_age_h\":120.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":false,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":100.0}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":1100.0,\"weight_pct\":100.0}],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": true,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    },
+    {
+      "name": "nonfinite_quantity_string",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": "NaN",
+          "cost_basis_per_share": 100,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": 110,
+          "as_of_unix_ms": 1790746665973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.039847+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":NaN,\"total_market_value_scope\":\"all positions priced\",\"total_cost_basis\":NaN,\"total_pnl_dollars\":NaN,\"total_pnl_pct\":NaN,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[],\"unpriced_cost_basis\":0.0,\"stops_hit_count\":1,\"stops_hit\":[{\"symbol\":\"AAA\",\"stop_loss\":90.0,\"current_price\":110.0}],\"stops_not_evaluable\":[]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.039847+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":NaN,\"net_exposure\":NaN,\"exposure_scope\":\"ALL_POSITIONS\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":NaN,\"cost_basis_per_share\":100.0,\"cost_basis_total\":NaN,\"market_value\":NaN,\"pnl_dollars\":NaN,\"pnl_pct\":NaN,\"position_type\":\"SHORT\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":true,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":NaN}],\"unpriced_positions\":[]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":110.0,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":\"polygon:prev_close\",\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":NaN,\"cost_basis_per_share\":100.0,\"cost_basis_total\":NaN,\"market_value\":NaN,\"pnl_dollars\":NaN,\"pnl_pct\":NaN,\"position_type\":\"SHORT\",\"valuation_status\":\"PRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":22.22,\"stop_hit\":true,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":NaN}],\"watchlist\":[],\"sector_concentration\":[{\"sector\":\"Unknown\",\"value\":NaN,\"weight_pct\":NaN}],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": false,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    },
+    {
+      "name": "no_valuation_grade_marks",
+      "positions": [
+        {
+          "symbol": "AAA",
+          "qty": 10,
+          "cost_basis_per_share": 100,
+          "stop_loss": 90
+        }
+      ],
+      "price_frame": {
+        "AAA": {
+          "price": null,
+          "as_of_unix_ms": 1790746665973.8008
+        }
+      },
+      "complete_native_payload_text": "{\"generated_at\":\"2026-09-30T05:37:46.039847+00:00\",\"audit_version\":\"2026-09-30.1\",\"generated_at_unix\":1790746666,\"elapsed_seconds\":0.0,\"portfolio_summary\":{\"n_positions\":1,\"total_market_value\":0.0,\"total_market_value_scope\":\"PRICED positions only\",\"total_cost_basis\":1000.0,\"total_pnl_dollars\":0.0,\"total_pnl_pct\":null,\"pnl_scope\":\"PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)\",\"unpriced_positions\":[\"AAA\"],\"unpriced_cost_basis\":1000.0,\"stops_hit_count\":0,\"stops_hit\":[],\"stops_not_evaluable\":[\"AAA\"]},\"capital_book\":{\"schema_version\":\"1.0\",\"status\":\"BLOCKED\",\"allows_new_entries\":false,\"reason_codes\":[\"MISSING_RECONCILED_CAPITAL_LEDGER\"],\"as_of\":\"2026-09-30T05:37:46.040850+00:00\",\"book_id\":null,\"account_id\":null,\"currency\":null,\"equity_nav\":null,\"cash\":null,\"liabilities\":null,\"reconciled_at\":null,\"reserved_order_exposure\":null,\"nav_history\":[],\"open_orders\":[],\"gross_exposure\":0,\"net_exposure\":0.0,\"exposure_scope\":\"PRICED_POSITIONS_ONLY\",\"positions\":[{\"symbol\":\"AAA\",\"current_price\":null,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":null,\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":null,\"pnl_dollars\":null,\"pnl_pct\":null,\"position_type\":\"LONG\",\"valuation_status\":\"UNPRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":null,\"stop_hit\":null,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":null}],\"unpriced_positions\":[\"AAA\"]},\"positions\":[{\"symbol\":\"AAA\",\"current_price\":null,\"price_asof_unix_ms\":1790746665973.8008,\"price_provider\":null,\"price_open\":null,\"price_high\":null,\"price_low\":null,\"volume\":null,\"confluence_tier\":null,\"qty\":10.0,\"cost_basis_per_share\":100.0,\"cost_basis_total\":1000.0,\"market_value\":null,\"pnl_dollars\":null,\"pnl_pct\":null,\"position_type\":\"LONG\",\"valuation_status\":\"UNPRICED\",\"mark_age_h\":0.0,\"stop_loss\":90.0,\"stop_distance_pct\":null,\"stop_hit\":null,\"target_weight_pct\":null,\"added_at\":null,\"notes\":null,\"current_weight_pct\":null}],\"watchlist\":[],\"sector_concentration\":[],\"watchlist_sync\":{\"schema_version\":\"watchlist-sync.v1\",\"added_S\":[],\"added_A\":[],\"removed_S\":[],\"removed_A\":[],\"status\":\"SKIPPED_INVALID_SOURCE\",\"reason_codes\":[\"SOURCE_UNIVERSE_UNAVAILABLE\"],\"write_attempted\":false},\"counts\":{\"positions\":1,\"watchlist\":0,\"auto_watch_S\":0,\"auto_watch_A\":0,\"manual_watch\":0}}",
+      "finite_json": true,
+      "scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)"
+    }
+  ]
+}
