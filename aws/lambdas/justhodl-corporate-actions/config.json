@@ -1,0 +1,1 @@
+{"description":"Corporate-action adjustment pipeline: per-ticker split/dividend factors from Polygon + Yahoo cross-check","env":{"S3_BUCKET":"justhodl-dashboard-live"},"function_name":"justhodl-corporate-actions","handler":"lambda_function.lambda_handler","memory":256,"runtime":"python3.12","schedule":"cron(30 6 ? * * *)","timeout":300}
