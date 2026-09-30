@@ -25,7 +25,7 @@ class PublicArchiveReader:
         suffix = r'(?:runs|inputs|outputs|tables|views|sources|compilers|originals)/[a-f0-9]{64}\.(?:json|py|xls)'
         if not isinstance(key, str) or not re.fullmatch(re.escape(self.model.PREFIX) + suffix, key):
             raise ValueError('Only content-addressed public Term Premium originals may be read')
-        raw = self.store.bounded(self.client.get_object(Bucket=self.bucket, Key=key)['Body'])
+        raw = self.store.stored(self.client.get_object(Bucket=self.bucket, Key=key))
         digest = hashlib.sha256(raw).hexdigest()
         if key.rsplit('/', 1)[1].split('.', 1)[0] != digest:
             raise ValueError('Complete archive content address differs')

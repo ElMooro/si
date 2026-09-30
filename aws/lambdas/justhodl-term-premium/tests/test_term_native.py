@@ -17,7 +17,7 @@ class Storage:
             'data/history/acm-term-premium.json':b'[{"old_archive":"whole"}]'};self.reads=[];self.writes=[]
     def get_object(self,**kw):
         self.reads.append(kw['Key']);raw=self.objects[kw['Key']]
-        return {'Body':io.BytesIO(raw),'ETag':hashlib.sha256(raw).hexdigest()}
+        return {'Body':io.BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.sha256(raw).hexdigest()}
     def put_object(self,**kw):
         key=kw['Key'];old=self.objects.get(key)
         if kw.get('IfNoneMatch')=='*' and old is not None:raise Conflict()

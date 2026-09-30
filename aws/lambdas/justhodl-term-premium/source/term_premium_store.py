@@ -1,7 +1,7 @@
 """Native original workbook retention, reproducible research and conditional head."""
 from datetime import datetime,timezone
 from pathlib import Path
-import hashlib,json,re,time,urllib.request
+import hashlib,json,re,time,urllib.request,urllib.error
 import term_premium_model as model
 from term_premium_qualification import QUALIFIED
 
@@ -32,11 +32,35 @@ def same_json(left,right):
     return model.encoded(left)==model.encoded(right)
 
 
-def bounded(stream):
-    try:raw=stream.read(MAX+1)
-    finally:stream.close()
-    if not 0<len(raw)<=MAX:raise ValueError('Complete nonempty bounded artifact required')
-    return raw
+def bounded(stream, *, expected_length=None):
+    """Read every byte to EOF; one read may return only a transport fragment."""
+    try:
+        if expected_length is not None and (type(expected_length) is not int or not 0<expected_length<=MAX):
+            raise ValueError('Complete declared artifact length required')
+        chunks=[];size=0
+        while True:
+            requested=min(1024*1024,MAX+1-size)
+            chunk=stream.read(requested)
+            if type(chunk) is not bytes or len(chunk)>requested:
+                raise ValueError('Exact binary response fragment required')
+            if not chunk:break
+            size+=len(chunk)
+            if size>MAX:raise ValueError('Complete artifact exceeds reviewed byte bound')
+            chunks.append(chunk)
+        if not size or expected_length is not None and size!=expected_length:
+            raise ValueError('Complete artifact differs from declared length')
+        return b''.join(chunks)
+    finally:
+        stream.close()
+
+
+def stored(response):
+    """S3 always declares its body length; reject missing or partial evidence."""
+    stream=response['Body'];length=response.get('ContentLength')
+    if type(length) is not int or not 0<length<=MAX:
+        stream.close()
+        raise ValueError('Exact S3 ContentLength required')
+    return bounded(stream,expected_length=length)
 
 
 def qualified_arithmetic():
@@ -56,7 +80,7 @@ def allowed(key):
 def reader(client,bucket):
     def read(key):
         if not allowed(key):raise ValueError('Unapproved ACM research artifact')
-        return bounded(client.get_object(Bucket=bucket,Key=key)['Body'])
+        return stored(client.get_object(Bucket=bucket,Key=key))
     return read
 
 
@@ -70,7 +94,7 @@ def retain_bytes(client,bucket,raw,category,extension='json',private=False):
         CacheControl='no-store' if private else 'public, max-age=31536000, immutable')
     except Exception as exc:
         if not conflict(exc):raise
-    if bounded(client.get_object(Bucket=bucket,Key=key)['Body'])!=raw:raise ValueError('Whole artifact readback differs')
+    if stored(client.get_object(Bucket=bucket,Key=key))!=raw:raise ValueError('Whole artifact readback differs')
     return {'key':key,'sha256':sha(raw),'bytes':len(raw)}
 
 
@@ -106,7 +130,13 @@ def replay(packet,read):
     manifest=binding(packet,read);paths=compilers()
     if set(manifest['compilers'])!=set(paths):raise ValueError('Complete compiler closure required')
     for name,path in paths.items():
-        if checked(manifest['compilers'][name],'compilers',read,'py')!=path.read_bytes():raise ValueError('Reviewed compiler bytes differ')
+        archived=checked(manifest['compilers'][name],'compilers',read,'py')
+        # This exact retained predecessor differs only in storage/HTTP transport
+        # and replay identity handling. All mathematical compilers stay exact.
+        # Never execute archived code or accept an arbitrary historical hash.
+        compatible_store=(name=='term_premium_store.py' and sha(archived)==
+            'def1ed96c885267e1ea17a5761fcbef94a8cfe62a6ce67dddca89f806d350828')
+        if archived!=path.read_bytes() and not compatible_store:raise ValueError('Reviewed compiler bytes differ')
     inputs=checked(manifest['input'],'inputs',read);output=compile_output(inputs,read)
     if model.digest(output)!=manifest['output_sha256'] or not same_json(output,checked(manifest['output'],'outputs',read)):
         raise ValueError('Complete original workbook replay differs')
@@ -130,7 +160,7 @@ def retain(client,bucket,inputs,output):
 
 
 def previous_state(client,bucket):
-    raw=bounded(client.get_object(Bucket=bucket,Key=model.CURRENT)['Body'])
+    raw=stored(client.get_object(Bucket=bucket,Key=model.CURRENT))
     ref=retain_bytes(client,bucket,raw,'sources',private=True)
     try:packet=strict(raw)
     except (ValueError,UnicodeDecodeError):packet={}
@@ -138,7 +168,7 @@ def previous_state(client,bucket):
     if packet.get('contract')==model.CONTRACT:
         manifest=binding(packet,reader(client,bucket))
         return packet['predecessors'],model.continuity(packet),checked(manifest['input'],'inputs',reader(client,bucket))
-    archive=bounded(client.get_object(Bucket=bucket,Key='data/history/acm-term-premium.json')['Body'])
+    archive=stored(client.get_object(Bucket=bucket,Key='data/history/acm-term-premium.json'))
     return {'packet':ref,'parsed_archive':retain_bytes(client,bucket,archive,'sources',private=True)},None,None
 
 
@@ -153,7 +183,7 @@ def publish(client,bucket,packet):
         raise ValueError('Series acquired investment authority')
     binding(packet,reader(client,bucket));stamp=model.clock(packet['generated_at']);marks=model.continuity(packet)
     for _ in range(4):
-        obj=client.get_object(Bucket=bucket,Key=model.CURRENT);raw=bounded(obj['Body'])
+        obj=client.get_object(Bucket=bucket,Key=model.CURRENT);raw=stored(obj)
         try:old=strict(raw)
         except (ValueError,UnicodeDecodeError):old={}
         if not isinstance(old,dict):old={}
@@ -185,9 +215,25 @@ def publish(client,bucket,packet):
 
 def acquire():
     request=urllib.request.Request(model.arithmetic.URL,headers={'User-Agent':'Mozilla/5.0 JustHodl-source-research/1.0'})
-    with urllib.request.urlopen(request,timeout=35) as response:
+    try:response=urllib.request.urlopen(request,timeout=35)
+    except urllib.error.HTTPError as exc:
+        exc.close()
+        raise
+    try:
+        if response.status!=200 or response.headers.get('Content-Range') is not None:
+            raise ValueError('Complete HTTP 200 workbook response required')
         if response.geturl()!=model.arithmetic.URL:raise ValueError('Unreviewed source redirect')
-        headers={name:response.headers.get(name) for name in ('Content-Type','ETag','Last-Modified')};raw=bounded(response)
+        if response.headers.get('Content-Encoding','identity').strip().lower()!='identity':
+            raise ValueError('Unreviewed encoded workbook response')
+        lengths=response.headers.get_all('Content-Length',[])
+        if len(lengths)>1 or lengths and not re.fullmatch('[0-9]+',lengths[0].strip()):
+            raise ValueError('Unambiguous HTTP Content-Length required')
+        expected=int(lengths[0].strip()) if lengths else None
+        headers={name:response.headers.get(name) for name in ('Content-Type','ETag','Last-Modified')}
+    except Exception:
+        response.close()
+        raise
+    raw=bounded(response,expected_length=expected)
     return raw,{'source_url':model.arithmetic.URL,'bytes':len(raw),'sha256':sha(raw),'acquired_at':now(),'response_headers':headers}
 
 
@@ -199,7 +245,7 @@ def run(client,bucket,request_id):
     progress={'status':'claimed','started_at':now(),'provider_request_attempts':0,'stage':'claimed','stage_timings':[]}
     def journal(claim=False):
         raw=model.encoded(progress);client.put_object(Bucket=bucket,Key=key,Body=raw,ContentType='application/json',CacheControl='no-store',**({'IfNoneMatch':'*'} if claim else {}))
-        if bounded(client.get_object(Bucket=bucket,Key=key)['Body'])!=raw:raise ValueError('Native claim readback differs')
+        if stored(client.get_object(Bucket=bucket,Key=key))!=raw:raise ValueError('Native claim readback differs')
     def stage(name):
         nonlocal phase_started
         current=time.monotonic()

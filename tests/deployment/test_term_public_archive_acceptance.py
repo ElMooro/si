@@ -19,7 +19,7 @@ class PublicClient:
     def get_object(self,**request):
         assert set(request)=={'Bucket','Key'} and request['Bucket']=='invented'
         key=request['Key'];assert key.startswith(native.model.PREFIX) and key!=native.model.CURRENT
-        self.reads.append(key);return {'Body':io.BytesIO(self.objects[key])}
+        self.reads.append(key);return {'Body':io.BytesIO(self.objects[key]),'ContentLength':len(self.objects[key])}
     def get_paginator(self,name):
         assert name=='list_objects_v2';return self
     def paginate(self,**request):

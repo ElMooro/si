@@ -1,0 +1,105 @@
+{
+  "schema": "term-premium-complete-transport.v1",
+  "prepared_at": "2026-09-30T18:12:12.675906+00:00",
+  "base_commit": "78b787b8328424d5e92e3b643e9f0d905f6e1c01",
+  "predecessor": {
+    "path": "aws/lambdas/justhodl-term-premium/tests/pre_complete_transport_store.py.txt",
+    "bytes": 14452,
+    "sha256": "def1ed96c885267e1ea17a5761fcbef94a8cfe62a6ce67dddca89f806d350828"
+  },
+  "reproduction": {
+    "complete_invented_body_hex": "7b2277686f6c655f696e76656e7465645f6f62736572766174696f6e223a317d0a2020",
+    "returned_prefix_hex": "7b2277686f6c65",
+    "complete_bytes": 35,
+    "returned_bytes": 7,
+    "stream_closed": true
+  },
+  "source": [
+    {
+      "path": "aws/lambdas/justhodl-term-premium/source/term_premium_store.py",
+      "bytes": 16810,
+      "sha256": "9e0bbcbaf586b641661b443af1fc7ee1a79648ebcd3413fe798993f31a4bd7de"
+    },
+    {
+      "path": "aws/lambdas/justhodl-term-premium/tests/run_tests.py",
+      "bytes": 239,
+      "sha256": "679665e9d4ba1ac2549e3a6c4b206f7df61bb784e711be9f6f07830c4fb1d449"
+    },
+    {
+      "path": "aws/lambdas/justhodl-term-premium/tests/test_term_native.py",
+      "bytes": 14783,
+      "sha256": "4dfd36e1af04bf295983a11966287f600cdb0a216a4c583104da726784cd3fdc"
+    },
+    {
+      "path": "aws/lambdas/justhodl-term-premium/tests/test_term_transport.py",
+      "bytes": 7905,
+      "sha256": "2c46c4e1ff460a32145b6ae49a7c9353e68c7cfb9080b251553a83226042a911"
+    },
+    {
+      "path": "aws/ops/checks/term_premium_archive_acceptance.py",
+      "bytes": 6818,
+      "sha256": "a0acbd2c24034268d4aa838485b030f3b984b3b60facbc49557f3864249d92a0"
+    },
+    {
+      "path": "aws/ops/staged/ops_6377_term_premium_transport_acceptance.py",
+      "bytes": 4409,
+      "sha256": "004b099fd58641b46f3354fa87838afad942fff01232eb50a8b840a9058424a0"
+    },
+    {
+      "path": "tests/deployment/test_term_public_archive_acceptance.py",
+      "bytes": 8659,
+      "sha256": "ec734968b2e37ec94601889f80d1305d02f60c800c313ccbc4c17035ebe611c2"
+    },
+    {
+      "path": "tests/deployment/test_term_transport_operation.py",
+      "bytes": 2331,
+      "sha256": "5245128bfad6e419e3c256d75672ec7123e798b0595f210e222d30700d601845"
+    }
+  ],
+  "validation": {
+    "native": 28,
+    "new_native_transport_cases": 8,
+    "deployment": 913,
+    "candidate_shell": 15,
+    "archive_and_operation_cases": 11,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "missing_or_stale_wires": 0,
+    "frontend_source_changed": false,
+    "prior_frontend_passed": 2129,
+    "changed_engine_records": [
+      "justhodl-term-premium"
+    ],
+    "page_definitions_unchanged_except_exact_source_lines": [
+      {
+        "section": "engines",
+        "key": "justhodl-term-premium",
+        "writer_before": 177,
+        "writer_after": 207,
+        "caller_before": 231,
+        "caller_after": 277
+      },
+      {
+        "section": "pages",
+        "key": "term-premium.html",
+        "writer_before": 177,
+        "writer_after": 207,
+        "caller_before": 231,
+        "caller_after": 277
+      }
+    ],
+    "updated_inventory_bindings": 2,
+    "dependency_map_changed_fields": [
+      "engines",
+      "generated_at",
+      "input_identity"
+    ]
+  },
+  "mathematical_compilers_unchanged": true,
+  "original_schedule_and_resources_unchanged": true,
+  "acceptance": {
+    "status": "pending_exact_native_release_original_archive_compatibility_and_static_build",
+    "operation": 6377
+  },
+  "scope": "Whole invented transport/workbook fixtures, exact native control-plane identity and original public archives. No actual current/private/account/consumer packet access, provider probe, native invoke or accelerated schedule. New native publication remains pending its original schedule; research authority remains false."
+}
