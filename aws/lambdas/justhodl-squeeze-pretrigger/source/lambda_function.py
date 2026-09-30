@@ -61,6 +61,7 @@ UA = "JustHodlAI-SqueezePreTrigger/1.0"
 # Source feeds
 FEED_FINRA = "data/finra-short.json"
 FEED_SHORT_INTEREST = "data/short-interest.json"
+FEED_SHORT_INTEREST_TICKERS = "data/short-interest-tickers.json"
 FEED_CATALYST = "data/catalyst-calendar.json"
 
 # Filters
@@ -194,21 +195,33 @@ def extract_finra_metrics(data):
     return out
 
 
-def extract_short_interest(data):
-    """short-interest.json schema (per ops 1012 probe):
-      - by_ticker: dict (157 entries) keyed by symbol with
-        latest_short_pct, days_to_cover, trend_pct, recent_5d_avg,
-        prior_9d_avg, si_change_pct, short_interest, settlement_date,
-        signal, score
-      - top_crowded_shorts, top_squeeze_risk, top_high_dtc, top_covering:
-        ranked lists with same shape as by_ticker values
+def _num(v):
+    """Best-effort float coercion; 0 for None/empty/unparseable."""
+    if v is None or v == "":
+        return 0
+    try:
+        return float(v)
+    except (ValueError, TypeError):
+        return 0
 
-    NOTE on field semantics: 'latest_short_pct' in the upstream engine
-    appears to be the short-volume-to-total-volume ratio (not pure
-    SI/free_float). Used here as the best available SI proxy; downstream
-    threshold (c1 = >18%) interprets it accordingly. Stale-data caveat:
-    ops 1012 found settlement_date stuck at 2017-12-29 across all tickers
-    — separate upstream bug in justhodl-short-interest Lambda.
+
+def extract_short_interest(data):
+    """data/short-interest-tickers.json schema (Bloomberg parity 3/10):
+      - by_ticker: dict keyed by symbol with
+        short_interest, prev_short_interest, change_shares, change_pct,
+        avg_daily_volume, days_to_cover, dtc_effective, dtc_status,
+        settlement_date, ...
+      - top_crowded, top_squeeze_risk, top_high_dtc, top_rising_si,
+        top_covering: ranked lists with ticker, short_interest,
+        change_pct, days_to_cover, dtc_effective, settlement_date
+
+    NOTE on field semantics: FINRA consolidated short interest reports
+    settlement *positions*, not SI-as-%-of-float (float shares are not
+    published by FINRA). 'si_pct_float' is therefore 0 here; the FINRA
+    short-volume map (finra-short.json) still provides the SI ratio
+    proxy used at the scoring site. 'days_to_cover' comes from real
+    settlement positions (provider value, falling back to reconstructed
+    dtc_effective).
     """
     if not isinstance(data, dict):
         return {}
@@ -222,19 +235,22 @@ def extract_short_interest(data):
             if not sym:
                 continue
             out[sym] = {
-                "si_pct_float": row.get("latest_short_pct")
-                    or row.get("si_pct_float")
-                    or row.get("short_pct")
-                    or row.get("short_pct_float") or 0,
-                "days_to_cover": row.get("days_to_cover") or 0,
-                "signal": row.get("signal"),
-                "score": row.get("score"),
-                "trend_pct": row.get("trend_pct") or 0,
+                "si_pct_float": 0,  # % of float unavailable from FINRA
+                                    # positions; the FINRA short-volume map
+                                    # still provides the ratio
+                "short_interest_shares": _num(row.get("short_interest")),
+                "si_change_pct": _num(row.get("change_pct")),
+                "days_to_cover": _num(row.get("days_to_cover"))
+                    or _num(row.get("dtc_effective")) or 0,
+                "dtc_status": row.get("dtc_status"),
+                "signal": None,
+                "score": None,
+                "trend_pct": _num(row.get("change_pct")) or 0,
                 "settlement_date": row.get("settlement_date"),
             }
     # Top-ranked lists as additional sources (idempotent upsert)
-    for list_key in ("top_crowded_shorts", "top_squeeze_risk",
-                      "top_high_dtc", "top_covering"):
+    for list_key in ("top_crowded", "top_squeeze_risk",
+                      "top_high_dtc", "top_rising_si", "top_covering"):
         for r in (data.get(list_key) or []):
             if not isinstance(r, dict):
                 continue
@@ -243,10 +259,16 @@ def extract_short_interest(data):
                 continue
             existing = out.get(sym, {})
             if not existing.get("si_pct_float"):
-                existing["si_pct_float"] = (r.get("latest_short_pct")
-                    or r.get("si_pct_float") or r.get("short_pct") or 0)
+                existing["si_pct_float"] = 0
             if not existing.get("days_to_cover"):
-                existing["days_to_cover"] = r.get("days_to_cover") or 0
+                existing["days_to_cover"] = (_num(r.get("days_to_cover"))
+                    or _num(r.get("dtc_effective")) or 0)
+            if "short_interest_shares" not in existing:
+                existing["short_interest_shares"] = _num(r.get("short_interest"))
+            if "si_change_pct" not in existing:
+                existing["si_change_pct"] = _num(r.get("change_pct"))
+            if "settlement_date" not in existing:
+                existing["settlement_date"] = r.get("settlement_date")
             out[sym] = existing
     # Legacy fallbacks (rows/tickers/data) for any older deployment
     for legacy_key in ("rows", "data"):
@@ -339,7 +361,7 @@ def lambda_handler(event, context):
     try:
         # 1. Load feeds
         finra = __import__("short_volume_context").decision_view(read_s3(s3, FEED_FINRA))
-        si_data = __import__("short_interest_context").decision_view(read_s3(s3, FEED_SHORT_INTEREST))
+        si_data = read_s3(s3, FEED_SHORT_INTEREST_TICKERS) or {}
         catalyst = read_s3(s3, FEED_CATALYST)
 
         finra_map = extract_finra_metrics(finra or {})
