@@ -45,7 +45,7 @@ def test_real_timing_and_badge_helpers_execute_on_stubbed_sources():
     quoted = env["fmp_quote"]("^IXIC", NOW)
     observed = env["fred_latest"]("DTWEXBGS", NOW)
     assert timed.call_count == 2 and env["source_json"].call_count == 2
-    badge.assert_called_once_with(NOW.isoformat(), "fmp")
+    badge.assert_called_once_with(NOW.isoformat(), "fmp", now=NOW)
     assert quoted["value"] == observed["value"] == 100
     assert quoted["latency_ms"] >= 0 and observed["latency_ms"] >= 0
 
@@ -81,18 +81,43 @@ def test_broad_dollar_weekly_release_does_not_expire_like_daily_rates():
         else: raise AssertionError("stale observation accepted")
 
 
-def run_tape(bus=None, bus_time=None):
+def run_tape(bus=None, bus_time=None, now=NOW, quote_age=0):
     env = load()
     def source(url, provider):
         query = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
-        data = [quote(query["symbol"][0])] if provider == "fmp" else {"observations": [{"date": "2026-09-17", "value": "100"}]}
+        data = [{**quote(query["symbol"][0]), "timestamp": now.timestamp() - quote_age}] if provider == "fmp" else {"observations": [{"date": "2026-09-17", "value": "100"}]}
         return data, {"first_received_at": NOW.isoformat()}
     env["source_json"] = source
     class S3:
         def get_object(self, **kwargs):
             return {"Body": io.BytesIO(json.dumps({"generated_at": bus_time or NOW.isoformat(), "indicators": bus or {}}).encode())}
     env["_s3"] = S3()
-    return env["build_tape"](NOW)
+    return env["build_tape"](now)
+
+
+def test_quote_status_badge_clocks_and_crypto_weekend_boundaries():
+    env = load()
+    sunday = datetime(2026, 9, 20, 16, tzinfo=timezone.utc)
+    for now in (NOW, sunday):
+        for symbol in ("^GSPC", "^IXIC", "BTCUSD", "GCUSD"):
+            for age in (-300, 0, 900, 901, 43200, 86401, 7 * 86400):
+                stamp = now.timestamp() - age
+                env["source_json"] = lambda *a: ([{**quote(symbol), "timestamp": stamp}], {"first_received_at": now.isoformat()})
+                result = env["fmp_quote"](symbol, now)
+                assert result["quality"]["status"] == ("fresh" if age <= 900 else "delayed")
+                expected = ("DELAYED" if age <= 900 else "STALE") if symbol == "BTCUSD" else classify_badge(
+                    datetime.fromtimestamp(stamp, timezone.utc).isoformat(), "fmp", now=now)
+                assert result["badge"] == expected and result["quality"]["age_seconds"] == max(0, age)
+                assert result["sizing_eligible"] is False
+            for stamp in (None, float("nan"), now.timestamp() + 301, now.timestamp() - 7 * 86400 - 1):
+                env["source_json"] = lambda *a: ([{**quote(symbol), "timestamp": stamp}], {"first_received_at": now.isoformat()})
+                try: env["fmp_quote"](symbol, now)
+                except ValueError: pass
+                else: raise AssertionError("invalid quote clock accepted")
+    weekend = run_tape(now=sunday, quote_age=43200)
+    by_label = {r["label"]: r for r in weekend["items"]}
+    assert by_label["BTC"]["badge"] == "STALE"
+    assert by_label["SPX"]["badge"] == by_label["COMP"]["badge"] == "SESSION"
 
 
 def test_index_identity_and_legacy_macro_values_cannot_be_mislabeled():
