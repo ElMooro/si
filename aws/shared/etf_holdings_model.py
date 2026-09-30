@@ -48,10 +48,186 @@ def retain_snapshot(snapshot, emit):
         'snapshot': ref}
 
 
+# New inputs opt into this policy. Absence preserves the historical output bytes.
+OWNERSHIP_POLICY = 'qualified-membership.v1'
+OWNERSHIP_CONTRACT = 'etf-qualified-membership-summary.v1'
+SUMMARY_MAX_RECORDS = 100000
+SUMMARY_MAX_OBSERVATIONS = 300000
+SUMMARY_MAX_BYTES = 48 * 1024 * 1024
+SUMMARY_PAGE_BYTES = 256 * 1024
+SUMMARY_MANIFEST_BYTES = 512 * 1024
+SUMMARY_PAGE_ROWS = 200
+SUMMARY_MAX_PAGES = 768
+
+
+class SummaryBound(ValueError):
+    pass
+
+
+def summary_reason(snapshot, at):
+    q = snapshot.get('quality', {})
+    if q.get('status') != 'complete_returned_snapshot' or q.get('pagination_complete') is not True:
+        return 'incomplete_returned_snapshot'
+    try:
+        acquired, expiry = clock(snapshot['source_acquired_at']), clock(snapshot['source_valid_until'])
+        dates = list(snapshot['effective_dates'])
+        if acquired > at or expiry <= acquired or at >= expiry: return 'source_check_not_current'
+        if len(dates) != 1 or native.day(dates[0]) > at.date(): return 'mixed_or_future_effective_dates'
+        if native.day(snapshot['processed_date']) > acquired.date(): return 'future_processing_date'
+    except (KeyError, TypeError, ValueError): return 'invalid_source_clocks'
+    if any(type(q.get(k)) is not int or q[k] != 0 for k in
+           ('missing_identity_rows', 'duplicate_identity_rows', 'rows_with_field_errors')):
+        return 'identity_or_field_coverage_unresolved'
+    return None
+
+
+class OwnershipSummary:
+    """Only existing reconstructed rows; never a collector or an investment vote."""
+    def __init__(self, generated_at, configured):
+        self.at = clock(generated_at)
+        self.configured = configured
+        self.groups = {}
+        self.funds = {}
+        self.observations = 0
+        self.records = 0
+        self.failed = None
+
+    def group(self, kind, dates):
+        definition = {'kind': kind, 'effective_dates': dates}
+        key = sha(encoded(definition))
+        if key not in self.groups:
+            self.groups[key] = {**definition, 'cohort_id': key, 'eligible_funds': [], 'source_valid_until': None, 'rows': {}}
+        return self.groups[key]
+
+    def record(self, group, row):
+        identity = row['identity_key']
+        if not isinstance(identity, str) or len(identity) != 64: raise ValueError('Summary exact identity required')
+        records = group['rows']
+        if identity not in records:
+            self.records += 1
+            if self.records > SUMMARY_MAX_RECORDS: raise SummaryBound('summary_record_bound')
+            records[identity] = {'identity_key': identity, 'raw': set(), 'qualified': set(), 'lower': set(),
+                                 'both': set(), 'current_only': set(), 'prior_only': set(), 'tickers': set(),
+                                 'source_asset_class': row.get('asset_class'), 'source_security_type': row.get('security_type')}
+        if row.get('constituent_ticker'): records[identity]['tickers'].add(row['constituent_ticker'])
+        return records[identity]
+
+    def eligible(self, group, fund, snapshots):
+        group['eligible_funds'].append(fund)
+        expiry = min(s['source_valid_until'] for s in snapshots)
+        group['source_valid_until'] = min(group['source_valid_until'] or expiry, expiry)
+
+    def add(self, fund, current, prior, comparison, current_ref, prior_ref, comparison_ref, tags):
+        if self.failed: return
+        try:
+            self._add(fund, current, prior, comparison, current_ref, prior_ref, comparison_ref, tags)
+        except SummaryBound as exc:
+            self.failed = str(exc);self.groups.clear();self.funds.clear()
+
+    def _add(self, fund, current, prior, comparison, current_ref, prior_ref, comparison_ref, tags):
+        self.observations += len(current['rows']) + len(comparison['rows'])
+        if self.observations > SUMMARY_MAX_OBSERVATIONS: raise SummaryBound('summary_observation_bound')
+        reason = summary_reason(current, self.at)
+        prior_reason = summary_reason(prior, self.at)
+        pair_reason = reason or prior_reason or (None if comparison['comparable_snapshots'] else 'incompatible_effective_dates')
+        self.funds[fund] = {'current_snapshot': current_ref, 'prior_snapshot': prior_ref, 'comparison': comparison_ref,
+            'current_effective_dates': sorted(current['effective_dates']), 'prior_effective_dates': sorted(prior['effective_dates']),
+            'source_acquired_at': current['source_acquired_at'], 'source_valid_until': current['source_valid_until'],
+            'qualification_exclusion': reason, 'comparison_exclusion': pair_reason,
+            'missing_identity_rows': current['quality'].get('missing_identity_rows'),
+            'duplicate_identity_rows': current['quality'].get('duplicate_identity_rows'),
+            'configured_tags_unverified': tags}
+        if reason is None:
+            group = self.group('current_membership', sorted(current['effective_dates']))
+            self.eligible(group, fund, [current])
+        lower_current = False
+        try:
+            lower_current = (clock(current['source_acquired_at']) <= self.at < clock(current['source_valid_until']))
+        except (TypeError, ValueError): pass
+        for row in current['rows']:
+            if not row['identity_key']: continue
+            group = self.group('current_membership', [row['effective_date']])
+            rec = self.record(group, row);rec['raw'].add(fund)
+            if reason is None: rec['qualified'].add(fund)
+            # Known presence is not evidence of absence; never part of an exact rank.
+            if lower_current and native.day(row['effective_date']) <= self.at.date(): rec['lower'].add(fund)
+        if pair_reason is None:
+            group = self.group('dated_membership_comparison',
+                               [*sorted(prior['effective_dates']), *sorted(current['effective_dates'])])
+            self.eligible(group, fund, [current, prior])
+            source_rows = {r['identity_key']: r for r in prior['rows'] + current['rows']}
+            mapping = {'observed_in_both': 'both', 'observed_only_in_current': 'current_only', 'observed_only_in_prior': 'prior_only'}
+            for row in comparison['rows']:
+                if row['status'] not in mapping: raise ValueError('Qualified comparison identity differs')
+                self.record(group, source_rows[row['identity_key']])[mapping[row['status']]].add(fund)
+
+    def finish(self, emit):
+        if self.failed: return {'status': 'unavailable', 'policy': OWNERSHIP_POLICY, 'reason': self.failed}
+        try: return self._finish(emit)
+        except SummaryBound as exc:
+            return {'status': 'unavailable', 'policy': OWNERSHIP_POLICY, 'reason': str(exc)}
+
+    def _finish(self, emit):
+        if len(self.funds) != self.configured: raise ValueError('Complete summary fund inventory required')
+        pending = [];total = 0;cohorts = []
+        def prepare(doc, limit):
+            nonlocal total
+            raw = encoded(doc)
+            if len(raw) > limit: raise SummaryBound('summary_artifact_byte_bound')
+            total += len(raw)
+            if total > SUMMARY_MAX_BYTES: raise SummaryBound('summary_total_byte_bound')
+            key = PREFIX + 'directories/' + sha(raw) + '.json'
+            pending.append((key, raw))
+            return {'key': key, 'sha256': sha(raw), 'bytes': len(raw)}
+        page_count = 0
+        for key, group in sorted(self.groups.items()):
+            eligible = sorted(set(group['eligible_funds']))
+            rows = []
+            for identity, rec in group['rows'].items():
+                rows.append({'identity_key': identity, 'reported_tickers': sorted(rec['tickers']),
+                    'source_asset_class': rec['source_asset_class'], 'source_security_type': rec['source_security_type'],
+                    'raw_observed_fund_count': len(rec['raw']) if group['kind'] == 'current_membership' else None,
+                    'known_presence_lower_bound': len(rec['lower']) if group['kind'] == 'current_membership' else None,
+                    'qualified_fund_count': len(rec['qualified']) if eligible and group['kind'] == 'current_membership' else None,
+                    'observed_in_both_count': len(rec['both']) if group['kind'] == 'dated_membership_comparison' else None,
+                    'observed_only_in_current_count': len(rec['current_only']) if group['kind'] == 'dated_membership_comparison' else None,
+                    'observed_only_in_prior_count': len(rec['prior_only']) if group['kind'] == 'dated_membership_comparison' else None})
+            rows.sort(key=lambda r: (-(r['qualified_fund_count'] or 0), r['identity_key']))
+            refs = []
+            for start in range(0, len(rows), SUMMARY_PAGE_ROWS):
+                page_count += 1
+                if page_count > SUMMARY_MAX_PAGES: raise SummaryBound('summary_page_bound')
+                refs.append(prepare({'contract': 'etf-qualified-membership-rows.v1', 'cohort_id': key,
+                                     'row_offset': start, 'rows': rows[start:start + SUMMARY_PAGE_ROWS]}, SUMMARY_PAGE_BYTES))
+            cohorts.append({k: v for k, v in group.items() if k not in ('rows', 'eligible_funds')} | {
+                'eligible_funds': eligible, 'eligible_fund_count': len(eligible), 'configured_fund_count': self.configured,
+                'ranking_scope': 'exact_within_eligible_date_cohort' if eligible and group['kind'] == 'current_membership' else 'unranked_reported_observations',
+                'record_count': len(rows), 'parts': refs})
+        manifest = {'contract': OWNERSHIP_CONTRACT, 'policy': OWNERSHIP_POLICY, 'generated_at': self.at.isoformat(),
+            'configured_fund_count': self.configured, 'funds': self.funds, 'cohorts': cohorts,
+            'record_count': self.records, 'page_count': page_count,
+            'limits': {'records': SUMMARY_MAX_RECORDS, 'observations': SUMMARY_MAX_OBSERVATIONS,
+                       'total_bytes': SUMMARY_MAX_BYTES, 'page_bytes': SUMMARY_PAGE_BYTES, 'page_rows': SUMMARY_PAGE_ROWS,
+                       'manifest_bytes': SUMMARY_MANIFEST_BYTES, 'pages': SUMMARY_MAX_PAGES},
+            'scope': 'Reported rows, including zero/short positions; not current ownership, trades, daily changes or capital flows. '
+                     'Known presence is a separate lower bound, never proof of absence or a global rank. '
+                     'Quantity and raw-weight observations remain in the referenced comparison records. '
+                     'No aggregate exposure, unit conversion, inferred asset class, fund-of-funds lookthrough or leveraged/inverse netting.',
+            'source_classifications_verified': False, 'corporate_actions_verified': False, 'weight_unit_certified': False, 'market_value_currency_certified': False,
+            'independent_investment_votes': 0, **permissions()}
+        ref = prepare(manifest, SUMMARY_MANIFEST_BYTES)
+        # Preflight all bytes before a single summary PUT; overflow cannot publish a prefix as complete.
+        for key, raw in pending: emit(key, raw)
+        return {'status': 'complete', 'policy': OWNERSHIP_POLICY, 'manifest': ref}
+
+
 def build(inputs, read, emit, previous=None):
     if inputs.get('contract') != 'etf-holdings-inputs.v1' or inputs.get('kind') != 'holdings':
         raise ValueError('Canonical holdings input required')
+    policy = inputs.get('ownership_summary_policy')
+    if 'ownership_summary_policy' in inputs and policy != OWNERSHIP_POLICY: raise ValueError('Unreviewed ownership summary policy')
     generated = inputs['generated_at'];stamp = clock(generated)
+    summary = OwnershipSummary(generated, len(catalog.ETF_UNIVERSE)) if policy else None
     query_date = native.day(inputs['query_date'])
     if query_date > stamp.date(): raise ValueError('Query date after compilation')
     collections = inputs['collections']
@@ -84,6 +260,8 @@ def build(inputs, read, emit, previous=None):
             if retained:
                 fund['retained_previous_current'] = retained
                 fund['retention_note'] = 'Previously reconstructed snapshot, not part of this current collection. Original source clocks and units still apply.'
+        if summary is not None:
+            summary.add(ticker, current, prior, comparison, a['snapshot'], b['snapshot'], fund['comparison'], fund['configured_tag_unverified'])
         funds[ticker] = fund;row_count += len(current['rows'])
         for row in current['rows']:
             identity = row['identity_key']
@@ -121,7 +299,7 @@ def build(inputs, read, emit, previous=None):
     states = Counter(f['current']['quality']['status'] for f in funds.values())
     complete = states.get('complete_returned_snapshot', 0)
     deadlines = [f['current']['source_valid_until'] for f in funds.values() if f['current']['source_valid_until']]
-    return {'contract': CONTRACT, 'version': '1.0.0', 'engine': 'justhodl-etf-constituents', 'generated_at': generated,
+    result = {'contract': CONTRACT, 'version': '1.0.0', 'engine': 'justhodl-etf-constituents', 'generated_at': generated,
         'source_valid_until': min(deadlines) if deadlines else None, 'query_date': inputs['query_date'],
         'funds': funds, 'security_directory': directory_ref,
         'quality': {'status': 'partial' if complete else 'unavailable', 'configured_funds': len(funds),
@@ -144,6 +322,10 @@ def build(inputs, read, emit, previous=None):
         'dependency_graph': {'roots': ['ETF Global constituents original responses'],
             'views': ['dated fund snapshots', 'exact-identity memberships', 'unadjusted position comparisons'],
             'independent_investment_votes': 0}, **permissions()}
+
+    if summary is not None:
+        result.update(version='1.1.0', ownership_summary=summary.finish(emit))
+    return result
 
 
 def lookthrough(packet, generated_at, retained, previous):

@@ -18,7 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Qualified canonical holdings summary: model/store replay and offline benchmarks only; agent/shopiz/qualified-holdings-summary; draft, no deployment or UI | none | S-shopiz#qhs0930b | 2026-09-30 22:00 |
+| Qualified canonical holdings summary: model/store replay and offline benchmarks only; agent/shopiz/qualified-holdings-summary; draft, no deployment or UI | none | S-shopiz#qhs0930b | 2026-09-30 21:17 |
 | FI/FX complete FRED API source + evidence page, historical/new-normal original replay; China safe failure-context diagnosis. Native code/resources and original schedules preserved. | 6390–6392 | S-codex#fifx0930a | 2026-09-30 20:47 |
 | ETF desk daily phase dependency repair; agent/shopiz/etf-desk-phase; read-only probe then draft migration, no execution | 6380 probe; 6381 migration / 6382 rollback RESERVED (draft, not executed) | S-shopiz#edphase0930a | 2026-09-30 20:40 |
 | Khalid native Radar informational evidence only; agent/shopiz/khalid-provider-flow-evidence; draft, no deploy | none | S-shopiz#kpf0930r8 | 2026-09-30 19:10 |
