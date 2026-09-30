@@ -1,6 +1,6 @@
 {
   "contract": "private-constitution-policy-repair.v1",
-  "status": "complete_additive_policy_acceptance_passed_runner_application_pending",
+  "status": "exact_additive_policy_repair_applied_and_whole_readbacks_verified",
   "base_commit": "3c455b65a8434833293129116b7fd9c666ae365f",
   "source_files": {
     "aws/ops/staged/ops_6371_private_constitution_policy.py": {
@@ -37,5 +37,63 @@
     "deployment_static": 868,
     "deployment_shell": 15
   },
-  "deployment_log_sha256": "941f6b130700b10ce6449f6372e0c47a85a9c649ddc35679e1db8aa1c1ee04fd"
+  "deployment_log_sha256": "941f6b130700b10ce6449f6372e0c47a85a9c649ddc35679e1db8aa1c1ee04fd",
+  "source_commit": "9d65a40eee1e54ee4e9997646216f627c46856e9",
+  "acceptance": {
+    "source_commit": "9d65a40eee1e54ee4e9997646216f627c46856e9",
+    "ops_run": 36729787961,
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6371_private_constitution_policy.md",
+      "bytes": 113152,
+      "sha256": "bf3e2f2ef21023939d7d5e62464984fcca4df850a029ecb20cd06774e6c9c14a",
+      "commit": "1ab521508587ed7f126e756909a96b952369bf63"
+    },
+    "phases": {
+      "before": {
+        "complete_sdk_responses": 2,
+        "bytes": 41627,
+        "sha256": "5cd51e7bafac18e624c2e73ab4c508048feda0cdf5abeeb49aee70dba774d4c9",
+        "policy_text_sha256": [
+          "4b5f4659e00112153be62da35297e516c600f98c2820e19b1667de4f01242dda",
+          "4b5f4659e00112153be62da35297e516c600f98c2820e19b1667de4f01242dda"
+        ]
+      },
+      "after": {
+        "complete_sdk_responses": 2,
+        "bytes": 42339,
+        "sha256": "8daa8bbe76cf31c1b913ca29af46b9f2adf761359b8b57e4c7cf932e39ecad6e",
+        "policy_text_sha256": [
+          "4d02ce0ca212f86f0692105c062575d888c4d9907831d1d8c966b05fbfb046d1",
+          "4d02ce0ca212f86f0692105c062575d888c4d9907831d1d8c966b05fbfb046d1"
+        ]
+      }
+    },
+    "result": {
+      "actual_object_exposure_tested": false,
+      "added_private_resources": [
+        "brain-constitution.json",
+        "data/brain-constitution.json",
+        "history/archive/feed/brain-constitution.json/*",
+        "history/archive/feed/data/brain-constitution.json/*"
+      ],
+      "bucket_policy_update_atomic_with_other_writers": false,
+      "native_invocations": 0,
+      "object_head_requests": 0,
+      "object_lists": 0,
+      "object_reads": 0,
+      "policy_changed": true,
+      "preserved_statement_count": 31,
+      "private_definition_matches": true,
+      "private_reads": 0,
+      "schedule_changes": 0,
+      "target_policy_bytes": 19583,
+      "target_policy_sha256": "4d02ce0ca212f86f0692105c062575d888c4d9907831d1d8c966b05fbfb046d1"
+    },
+    "all_original_fields_preserved_except_four_additions": true,
+    "decoded_secret_findings": 0
+  },
+  "push_workflows_verified_success": {
+    "lambda_no_target": 36729788525,
+    "configuration_operation": 36729787961
+  }
 }

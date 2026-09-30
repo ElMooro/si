@@ -1,6 +1,6 @@
 {
   "contract": "snapshot-storage-cutover-audit.v1",
-  "status": "complete_read_only_configuration_captured_privacy_resource_gap_and_native_cutover_open",
+  "status": "complete_read_only_configuration_captured_privacy_gap_repaired_native_cutover_open",
   "base_commit": "3dd47fa16a9ba9666bb6c63c949d130a73265d79",
   "source_files": {
     "aws/ops/staged/ops_6370_snapshot_storage_configuration.py": {
@@ -219,5 +219,12 @@
     }
   },
   "configuration_stable_across_two_reads": true,
-  "decoded_configuration_secret_findings": 0
+  "decoded_configuration_secret_findings": 0,
+  "privacy_resource_gap_resolved_by": {
+    "audit": "docs/audit/2026-09-30/private-constitution-policy-repair.json",
+    "source_commit": "9d65a40eee1e54ee4e9997646216f627c46856e9",
+    "ops_run": 36729787961,
+    "policy_bytes": 19583,
+    "target_policy_sha256": "4d02ce0ca212f86f0692105c062575d888c4d9907831d1d8c966b05fbfb046d1"
+  }
 }
