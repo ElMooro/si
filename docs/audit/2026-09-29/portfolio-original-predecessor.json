@@ -1,0 +1,28 @@
+{
+  "scope": "Current pure risk model and wholly synthetic source packets only. Complete current code retained inertly; no Lambda/provider/account/current packet reads or archived-code execution.",
+  "base": "30b065e6d81443092cd543bcbc7f0bb94eb0607a",
+  "sources": [
+    {
+      "source": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "fixture": "tests/fixtures/pre-portfolio-original-portfolio_risk_model.py.txt",
+      "bytes": 21125,
+      "sha256": "7c1d89af0b37bb123371e06503f6b3dc1df6c97faf3f9cfb2b9aef936fe5e1e3"
+    },
+    {
+      "source": "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py",
+      "fixture": "tests/fixtures/pre-portfolio-original-lambda_function.py.txt",
+      "bytes": 12614,
+      "sha256": "8afaba9b8212579bbd6f77ecd2221d334933ec5b31ed6bba82b1b86e6fcda7bf"
+    }
+  ],
+  "synthetic_baseline": {
+    "fixture": "tests/fixtures/pre-portfolio-original-synthetic-bundle.json",
+    "bytes": 64228,
+    "sha256": "e46d875edf330486659ab47792a1abe6ebe5ae15b526a153561e182be849fb1d"
+  },
+  "complete_variants": {
+    "fixture": "tests/fixtures/pre-portfolio-original-complete-variants.json",
+    "bytes": 64127,
+    "sha256": "409449544e4c0bfb8b41f4948a6c24895d99a2f852f88851a35193fdbcd6242e"
+  }
+}
