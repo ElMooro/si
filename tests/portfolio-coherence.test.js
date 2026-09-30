@@ -40,6 +40,33 @@ function respond(p,index,snapshot,risk){p.requests[index].resolve(new Response(J
 async function settled(p){const deadline=Date.now()+1500;while(!p.run('loadController===null')){assert.ok(Date.now()<deadline,'UI did not settle');await new Promise(r=>setTimeout(r,1));}}
 async function enriched(value){const pair=copy();pair.snapshot.portfolio_summary={total_market_value:value};pair.risk.snapshot_binding={...pair.risk.snapshot_binding,...await binding.identity(pair.snapshot)};return pair;}
 
+test('accounting page distinguishes partial marks and P&L from a total account return',()=>{
+  const p=page();p.context.supplied={accounting:{schema_version:'holdings-accounting.v1'},positions:[{symbol:'AAA'},{symbol:'BBB'},{symbol:'CCC'}],portfolio_summary:{n_positions:3,priced_positions_count:2,basis_positions_count:2,pnl_eligible_positions_count:1,total_market_value:2200,total_pnl_dollars:100,total_pnl_pct:10,pnl_pct_basis:'SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN',accounting_coverage_status:'PARTIAL'}};
+  p.run('snapshot=supplied;renderTopMetrics();renderPositions()');
+  assert.match(p.elements.get('mv-accounting').textContent,/Marks 2\/3 · P&L 1\/3 · Partial coverage/);
+  assert.match(p.elements.get('mv-pnl').innerHTML,/10.00% of paired gross cost; not NAV return/);
+  assert.match(p.elements.get('pos-pnl-summary').innerHTML,/Eligible unrealized P&L/);
+  p.events.pagehide();
+});
+
+test('legacy or malformed accounting coverage cannot label percentages as established returns',()=>{
+  const p=page();
+  for(const summary of [{total_pnl_pct:2000}, {n_positions:1,priced_positions_count:true,basis_positions_count:1,pnl_eligible_positions_count:1}, {n_positions:1,priced_positions_count:1,basis_positions_count:0,pnl_eligible_positions_count:1}]){
+    p.context.supplied={positions:[{symbol:'AAA'}],accounting:{schema_version:'holdings-accounting.v1'},portfolio_summary:summary};
+    p.run('snapshot=supplied;renderTopMetrics()');
+    assert.match(p.elements.get('mv-accounting').textContent,/coverage unavailable/);assert.doesNotMatch(p.elements.get('mv-pnl').innerHTML,/2000/);
+  }
+  p.events.pagehide();
+});
+
+test('unknown P&L remains a dash and stop comparison never claims an execution',()=>{
+  const p=page();p.context.supplied={positions:[{symbol:'AAA',pnl_eligible:false,stop_hit:true}],portfolio_summary:{total_pnl_dollars:null}};
+  p.run('snapshot=supplied;renderTopMetrics();renderPositions()');
+  assert.match(p.elements.get('mv-pnl').innerHTML,/—/);assert.doesNotMatch(p.elements.get('mv-pnl').innerHTML,/\$0/);
+  assert.match(p.elements.get('positions-body').innerHTML,/P&amp;L unavailable/);assert.match(p.elements.get('positions-body').innerHTML,/CLOSE CROSSED STOP/);
+  assert.match(p.elements.get('positions-body').innerHTML,/execution unverified/);p.events.pagehide();
+});
+
 test('actual page accepts the complete native matching snapshot and retains no-NAV risk distinction',async()=>{
   const p=page(),{snapshot,risk}=copy();respond(p,0,snapshot,risk);await settled(p);
   assert.match(p.elements.get('risk-contract-title').textContent,/Holdings model/);

@@ -1,0 +1,2252 @@
+{
+  "scope": "Complete invented positions and provider frames; actual current handlers and model, all I/O mocked; no private or provider reads.",
+  "source_sha256": "df03da2444ee74bd21ba9afaf43261db6e1a5a58fb8201e415a40f527fc8ec28",
+  "frames": {
+    "complete": {
+      "snapshot": {
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "audit_version": "2026-09-30.2",
+        "generated_at_unix": 1790749294,
+        "elapsed_seconds": 0.0,
+        "portfolio_summary": {
+          "n_positions": 2,
+          "priced_positions_count": 2,
+          "basis_positions_count": 2,
+          "pnl_eligible_positions_count": 2,
+          "total_market_value": 200.0,
+          "total_market_value_scope": "all positions priced",
+          "total_cost_basis": 0.0,
+          "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+          "total_pnl_dollars": 200.0,
+          "total_pnl_pct": 10.0,
+          "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+          "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+          "pnl_pct_denominator": 2000.0,
+          "unpriced_positions": [],
+          "pnl_excluded_positions": [],
+          "unpriced_cost_basis": 0.0,
+          "unpriced_cost_basis_known_count": 0,
+          "stops_hit_count": 1,
+          "stops_hit": [
+            {
+              "symbol": "AAA",
+              "stop_loss": 120.0,
+              "current_price": 110.0
+            }
+          ],
+          "stops_not_evaluable": [],
+          "accounting_coverage_status": "COMPLETE",
+          "accounting_reason_codes": [],
+          "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+        },
+        "accounting": {
+          "schema_version": "holdings-accounting.v1",
+          "valuation_at": "2026-09-18T17:00:00+00:00",
+          "source_positions": [
+            {
+              "symbol": "AAA",
+              "qty": 10,
+              "cost_basis_per_share": 100,
+              "stop_loss": 120
+            },
+            {
+              "symbol": "BBB",
+              "qty": -10,
+              "cost_basis_per_share": 100,
+              "stop_loss": 95
+            }
+          ],
+          "source_prices": {
+            "BBB": {
+              "price": 90,
+              "as_of_unix_ms": 1789750800000.0
+            },
+            "AAA": {
+              "price": 110,
+              "as_of_unix_ms": 1789750800000.0
+            }
+          },
+          "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+          "assumptions_verified": false,
+          "allows_sizing": false
+        },
+        "capital_book": {
+          "schema_version": "1.0",
+          "status": "BLOCKED",
+          "allows_new_entries": false,
+          "reason_codes": [
+            "MISSING_RECONCILED_CAPITAL_LEDGER"
+          ],
+          "as_of": "2026-09-18T17:00:00+00:00",
+          "book_id": null,
+          "account_id": null,
+          "currency": null,
+          "equity_nav": null,
+          "cash": null,
+          "liabilities": null,
+          "reconciled_at": null,
+          "reserved_order_exposure": null,
+          "nav_history": [],
+          "open_orders": [],
+          "gross_exposure": 2000.0,
+          "net_exposure": 200.0,
+          "exposure_scope": "ALL_POSITIONS",
+          "positions": [
+            {
+              "symbol": "AAA",
+              "current_price": 110.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 0,
+              "qty": 10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": 1000.0,
+              "market_value": 1100.0,
+              "pnl_dollars": 100.0,
+              "pnl_pct": 10.0,
+              "position_type": "LONG",
+              "valuation_status": "PRICED",
+              "mark_age_h": 0.0,
+              "pnl_eligible": true,
+              "accounting_reason_codes": [],
+              "stop_loss": 120.0,
+              "stop_hit": true,
+              "stop_distance_pct": -8.33,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": 550.0,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": 55.0,
+              "gross_holdings_weight_scope": "ALL_HOLDINGS"
+            },
+            {
+              "symbol": "BBB",
+              "current_price": 90.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 1,
+              "qty": -10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": -1000.0,
+              "market_value": -900.0,
+              "pnl_dollars": 100.0,
+              "pnl_pct": 10.0,
+              "position_type": "SHORT",
+              "valuation_status": "PRICED",
+              "mark_age_h": 0.0,
+              "pnl_eligible": true,
+              "accounting_reason_codes": [],
+              "stop_loss": 95.0,
+              "stop_hit": false,
+              "stop_distance_pct": -5.26,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": -450.0,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": 45.0,
+              "gross_holdings_weight_scope": "ALL_HOLDINGS"
+            }
+          ],
+          "unpriced_positions": []
+        },
+        "positions": [
+          {
+            "symbol": "AAA",
+            "current_price": 110.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": 1100.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "LONG",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 120.0,
+            "stop_hit": true,
+            "stop_distance_pct": -8.33,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": 550.0,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 55.0,
+            "gross_holdings_weight_scope": "ALL_HOLDINGS"
+          },
+          {
+            "symbol": "BBB",
+            "current_price": 90.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 1,
+            "qty": -10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": -1000.0,
+            "market_value": -900.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "SHORT",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 95.0,
+            "stop_hit": false,
+            "stop_distance_pct": -5.26,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": -450.0,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 45.0,
+            "gross_holdings_weight_scope": "ALL_HOLDINGS"
+          }
+        ],
+        "watchlist": [],
+        "sector_concentration": [
+          {
+            "sector": "Unknown",
+            "value": 200.0,
+            "weight_pct": 100.0,
+            "weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV"
+          }
+        ],
+        "watchlist_sync": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": [],
+          "status": "SKIPPED_INVALID_SOURCE"
+        },
+        "counts": {
+          "positions": 2,
+          "watchlist": 0,
+          "auto_watch_S": 0,
+          "auto_watch_A": 0,
+          "manual_watch": 0
+        }
+      },
+      "risk": {
+        "engine": "justhodl-portfolio-risk",
+        "schema_version": "2.0.1",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "snapshot_binding": {
+          "contract": "portfolio-snapshot-value.v1",
+          "key": "portfolio/snapshot.json",
+          "generated_at": "2026-09-18T17:00:00+00:00",
+          "encoding": "typed-json-binary64.v1",
+          "value_sha256": "fb70937a82aa0b19d39b610cf850b9729776dfb543da3ec0dc0628936a5b6c63",
+          "encoded_bytes": 6253
+        },
+        "status": "AVAILABLE_HOLDINGS_MODEL",
+        "permissions": {
+          "sizing_eligible": false,
+          "may_recommend_trades": false,
+          "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+        },
+        "quality": {
+          "status": "partial",
+          "reason_codes": [],
+          "data_errors": {
+            "AAA": [],
+            "BBB": [],
+            "SPY": []
+          }
+        },
+        "risk_contract": {
+          "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+          "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+          "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+          "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+          "sample_count": 128,
+          "minimum_sample": 60,
+          "sample_start": "2026-03-23",
+          "sample_end": "2026-09-17",
+          "annualization_sessions": 252,
+          "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+          "missing_input_defaults": false,
+          "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+          "freshness": {
+            "bar_max_calendar_days": 5,
+            "mark_max_hours": 96,
+            "release_calendar_verified": false
+          }
+        },
+        "capital_basis": {
+          "status": "UNAVAILABLE",
+          "nav": null,
+          "currency": "USD",
+          "errors": [
+            "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+            "capital book missing book_id",
+            "capital book missing account_id",
+            "capital book missing currency",
+            "capital book reconciled_at missing, stale or future",
+            "reconciled NAV must be positive",
+            "invalid capital book cash",
+            "invalid capital book liabilities",
+            "invalid capital book reserved_order_exposure",
+            "drawdown requires two reconciled NAV observations from this book"
+          ]
+        },
+        "total_market_value": 200.0,
+        "gross_market_value": 2000.0,
+        "n_positions": 2,
+        "n_instruments": 2,
+        "holdings_risk": {
+          "daily_pnl_std_dollars": 4.4,
+          "annual_vol_pct_of_gross": 3.5,
+          "beta_spy_per_gross": 0.55,
+          "var_1d_99_dollars": 10.25,
+          "var_1d_95_dollars": 7.24
+        },
+        "portfolio_vol_annual_pct": null,
+        "portfolio_vol_daily_pct": null,
+        "portfolio_beta_spy": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_pct": null,
+        "var_1d_95_pct": null,
+        "position_metrics": {
+          "AAA": {
+            "annual_vol_pct": 6.36,
+            "beta_spy": 1.0,
+            "30d_max_drawdown_pct": -1.21,
+            "90d_max_drawdown_pct": -1.26,
+            "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+            "n_bars": 129,
+            "n_returns": 128,
+            "as_of": "2026-09-17",
+            "status": "AVAILABLE",
+            "errors": []
+          },
+          "BBB": {
+            "annual_vol_pct": 0.0,
+            "beta_spy": 0.0,
+            "30d_max_drawdown_pct": 0.0,
+            "90d_max_drawdown_pct": 0.0,
+            "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+            "n_bars": 129,
+            "n_returns": 128,
+            "as_of": "2026-09-17",
+            "status": "AVAILABLE",
+            "errors": []
+          }
+        },
+        "correlation_matrix": {
+          "AAA": {
+            "AAA": 1.0,
+            "BBB": null
+          },
+          "BBB": {
+            "AAA": null,
+            "BBB": null
+          }
+        },
+        "correlation_clusters": [],
+        "sector_concentration": [
+          {
+            "sector": "Unknown",
+            "weight_pct": 100.0
+          }
+        ],
+        "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+        "concentration_hhi": 10000.0,
+        "concentration_label": "Gross sector HHI (0..10000)",
+        "max_sector_concentration_pct": 100.0,
+        "historical_scenarios": {},
+        "stops_hit": [
+          {
+            "symbol": "AAA",
+            "current_price": 110.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": 1100.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "LONG",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 120.0,
+            "stop_hit": true,
+            "stop_distance_pct": -8.33,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": 550.0,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 55.0,
+            "gross_holdings_weight_scope": "ALL_HOLDINGS"
+          }
+        ],
+        "etf_lookthrough": {
+          "status": "UNVERIFIED",
+          "sector_lookthrough": [],
+          "geo_lookthrough": [],
+          "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+        },
+        "alerts_summary": {
+          "var_breach": null,
+          "stops_hit_count": 1,
+          "sector_concentration_breach": true,
+          "correlation_cluster_count": 0
+        }
+      }
+    },
+    "partial": {
+      "snapshot": {
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "audit_version": "2026-09-30.2",
+        "generated_at_unix": 1790749294,
+        "elapsed_seconds": 0.0,
+        "portfolio_summary": {
+          "n_positions": 3,
+          "priced_positions_count": 2,
+          "basis_positions_count": 2,
+          "pnl_eligible_positions_count": 1,
+          "total_market_value": 2000.0,
+          "total_market_value_scope": "PRICED positions only",
+          "total_cost_basis": 2000.0,
+          "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+          "total_pnl_dollars": 100.0,
+          "total_pnl_pct": 10.0,
+          "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+          "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+          "pnl_pct_denominator": 1000.0,
+          "unpriced_positions": [
+            "CCC"
+          ],
+          "pnl_excluded_positions": [
+            "BBB",
+            "CCC"
+          ],
+          "unpriced_cost_basis": 1000.0,
+          "unpriced_cost_basis_known_count": 1,
+          "stops_hit_count": 2,
+          "stops_hit": [
+            {
+              "symbol": "AAA",
+              "stop_loss": 120.0,
+              "current_price": 110.0
+            },
+            {
+              "symbol": "BBB",
+              "stop_loss": 120.0,
+              "current_price": 90.0
+            }
+          ],
+          "stops_not_evaluable": [
+            "CCC"
+          ],
+          "accounting_coverage_status": "PARTIAL",
+          "accounting_reason_codes": [],
+          "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+        },
+        "accounting": {
+          "schema_version": "holdings-accounting.v1",
+          "valuation_at": "2026-09-18T17:00:00+00:00",
+          "source_positions": [
+            {
+              "symbol": "AAA",
+              "qty": 10,
+              "cost_basis_per_share": 100,
+              "stop_loss": 120
+            },
+            {
+              "symbol": "BBB",
+              "qty": 10,
+              "cost_basis_per_share": null,
+              "stop_loss": 120
+            },
+            {
+              "symbol": "CCC",
+              "qty": 10,
+              "cost_basis_per_share": 100,
+              "stop_loss": 120
+            }
+          ],
+          "source_prices": {
+            "BBB": {
+              "price": 90,
+              "as_of_unix_ms": 1789750800000.0
+            },
+            "AAA": {
+              "price": 110,
+              "as_of_unix_ms": 1789750800000.0
+            }
+          },
+          "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+          "assumptions_verified": false,
+          "allows_sizing": false
+        },
+        "capital_book": {
+          "schema_version": "1.0",
+          "status": "BLOCKED",
+          "allows_new_entries": false,
+          "reason_codes": [
+            "MISSING_RECONCILED_CAPITAL_LEDGER"
+          ],
+          "as_of": "2026-09-18T17:00:00+00:00",
+          "book_id": null,
+          "account_id": null,
+          "currency": null,
+          "equity_nav": null,
+          "cash": null,
+          "liabilities": null,
+          "reconciled_at": null,
+          "reserved_order_exposure": null,
+          "nav_history": [],
+          "open_orders": [],
+          "gross_exposure": 2000.0,
+          "net_exposure": 2000.0,
+          "exposure_scope": "PRICED_POSITIONS_ONLY",
+          "positions": [
+            {
+              "symbol": "AAA",
+              "current_price": 110.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 0,
+              "qty": 10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": 1000.0,
+              "market_value": 1100.0,
+              "pnl_dollars": 100.0,
+              "pnl_pct": 10.0,
+              "position_type": "LONG",
+              "valuation_status": "PRICED",
+              "mark_age_h": 0.0,
+              "pnl_eligible": true,
+              "accounting_reason_codes": [],
+              "stop_loss": 120.0,
+              "stop_hit": true,
+              "stop_distance_pct": -8.33,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": null,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": 55.0,
+              "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+            },
+            {
+              "symbol": "BBB",
+              "current_price": 90.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 1,
+              "qty": 10.0,
+              "cost_basis_per_share": null,
+              "cost_basis_total": null,
+              "market_value": 900.0,
+              "pnl_dollars": null,
+              "pnl_pct": null,
+              "position_type": "LONG",
+              "valuation_status": "PRICED",
+              "mark_age_h": 0.0,
+              "pnl_eligible": false,
+              "accounting_reason_codes": [
+                "COST_BASIS_UNAVAILABLE"
+              ],
+              "stop_loss": 120.0,
+              "stop_hit": true,
+              "stop_distance_pct": -25.0,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": null,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": 45.0,
+              "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+            },
+            {
+              "symbol": "CCC",
+              "current_price": null,
+              "price_asof_unix_ms": null,
+              "price_provider": null,
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 2,
+              "qty": 10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": 1000.0,
+              "market_value": null,
+              "pnl_dollars": null,
+              "pnl_pct": null,
+              "position_type": "LONG",
+              "valuation_status": "UNPRICED",
+              "mark_age_h": null,
+              "pnl_eligible": false,
+              "accounting_reason_codes": [
+                "UNPRICED"
+              ],
+              "stop_loss": 120.0,
+              "stop_hit": null,
+              "stop_distance_pct": null,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": null,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": null,
+              "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+            }
+          ],
+          "unpriced_positions": [
+            "CCC"
+          ]
+        },
+        "positions": [
+          {
+            "symbol": "AAA",
+            "current_price": 110.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": 1100.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "LONG",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 120.0,
+            "stop_hit": true,
+            "stop_distance_pct": -8.33,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": null,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 55.0,
+            "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+          },
+          {
+            "symbol": "BBB",
+            "current_price": 90.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 1,
+            "qty": 10.0,
+            "cost_basis_per_share": null,
+            "cost_basis_total": null,
+            "market_value": 900.0,
+            "pnl_dollars": null,
+            "pnl_pct": null,
+            "position_type": "LONG",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": false,
+            "accounting_reason_codes": [
+              "COST_BASIS_UNAVAILABLE"
+            ],
+            "stop_loss": 120.0,
+            "stop_hit": true,
+            "stop_distance_pct": -25.0,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": null,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 45.0,
+            "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+          },
+          {
+            "symbol": "CCC",
+            "current_price": null,
+            "price_asof_unix_ms": null,
+            "price_provider": null,
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 2,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": null,
+            "pnl_dollars": null,
+            "pnl_pct": null,
+            "position_type": "LONG",
+            "valuation_status": "UNPRICED",
+            "mark_age_h": null,
+            "pnl_eligible": false,
+            "accounting_reason_codes": [
+              "UNPRICED"
+            ],
+            "stop_loss": 120.0,
+            "stop_hit": null,
+            "stop_distance_pct": null,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": null,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": null,
+            "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+          }
+        ],
+        "watchlist": [],
+        "sector_concentration": [
+          {
+            "sector": "Unknown",
+            "value": 2000.0,
+            "weight_pct": null,
+            "weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV"
+          }
+        ],
+        "watchlist_sync": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": [],
+          "status": "SKIPPED_INVALID_SOURCE"
+        },
+        "counts": {
+          "positions": 3,
+          "watchlist": 0,
+          "auto_watch_S": 0,
+          "auto_watch_A": 0,
+          "manual_watch": 0
+        }
+      },
+      "risk": {
+        "engine": "justhodl-portfolio-risk",
+        "schema_version": "2.0.1",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "snapshot_binding": {
+          "contract": "portfolio-snapshot-value.v1",
+          "key": "portfolio/snapshot.json",
+          "generated_at": "2026-09-18T17:00:00+00:00",
+          "encoding": "typed-json-binary64.v1",
+          "value_sha256": "79fd32335a517b1f6f5b528848cf3dc8b85228e3252e96417660176193f36c28",
+          "encoded_bytes": 8069
+        },
+        "status": "INCOMPLETE",
+        "permissions": {
+          "sizing_eligible": false,
+          "may_recommend_trades": false,
+          "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+        },
+        "quality": {
+          "status": "unavailable",
+          "reason_codes": [
+            "UNPRICED_OR_UNRECONCILED_POSITION"
+          ],
+          "data_errors": {
+            "AAA": [],
+            "BBB": [],
+            "SPY": []
+          }
+        },
+        "risk_contract": {
+          "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+          "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+          "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+          "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+          "sample_count": 128,
+          "minimum_sample": 60,
+          "sample_start": "2026-03-23",
+          "sample_end": "2026-09-17",
+          "annualization_sessions": 252,
+          "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+          "missing_input_defaults": false,
+          "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+          "freshness": {
+            "bar_max_calendar_days": 5,
+            "mark_max_hours": 96,
+            "release_calendar_verified": false
+          }
+        },
+        "capital_basis": {
+          "status": "UNAVAILABLE",
+          "nav": null,
+          "currency": "USD",
+          "errors": [
+            "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+            "capital book missing book_id",
+            "capital book missing account_id",
+            "capital book missing currency",
+            "capital book reconciled_at missing, stale or future",
+            "reconciled NAV must be positive",
+            "invalid capital book cash",
+            "invalid capital book liabilities",
+            "invalid capital book reserved_order_exposure",
+            "unpriced or unspecified position coverage",
+            "position missing valuation-grade signed exposure",
+            "drawdown requires two reconciled NAV observations from this book"
+          ]
+        },
+        "total_market_value": null,
+        "gross_market_value": null,
+        "n_positions": 3,
+        "n_instruments": 2,
+        "holdings_risk": {
+          "daily_pnl_std_dollars": null,
+          "annual_vol_pct_of_gross": null,
+          "beta_spy_per_gross": null,
+          "var_1d_99_dollars": null,
+          "var_1d_95_dollars": null
+        },
+        "portfolio_vol_annual_pct": null,
+        "portfolio_vol_daily_pct": null,
+        "portfolio_beta_spy": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_pct": null,
+        "var_1d_95_pct": null,
+        "position_metrics": {
+          "AAA": {
+            "annual_vol_pct": 6.36,
+            "beta_spy": 1.0,
+            "30d_max_drawdown_pct": -1.21,
+            "90d_max_drawdown_pct": -1.26,
+            "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+            "n_bars": 129,
+            "n_returns": 128,
+            "as_of": "2026-09-17",
+            "status": "AVAILABLE",
+            "errors": []
+          },
+          "BBB": {
+            "annual_vol_pct": 0.0,
+            "beta_spy": 0.0,
+            "30d_max_drawdown_pct": 0.0,
+            "90d_max_drawdown_pct": 0.0,
+            "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+            "n_bars": 129,
+            "n_returns": 128,
+            "as_of": "2026-09-17",
+            "status": "AVAILABLE",
+            "errors": []
+          },
+          "CCC": {
+            "annual_vol_pct": null,
+            "beta_spy": null,
+            "30d_max_drawdown_pct": null,
+            "90d_max_drawdown_pct": null,
+            "status": "UNAVAILABLE",
+            "errors": [
+              "EXPOSURE_NOT_VERIFIED"
+            ]
+          }
+        },
+        "correlation_matrix": {
+          "AAA": {
+            "AAA": 1.0,
+            "BBB": null
+          },
+          "BBB": {
+            "AAA": null,
+            "BBB": null
+          }
+        },
+        "correlation_clusters": [],
+        "sector_concentration": [],
+        "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+        "concentration_hhi": null,
+        "concentration_label": "Unavailable",
+        "max_sector_concentration_pct": null,
+        "historical_scenarios": {},
+        "stops_hit": [],
+        "etf_lookthrough": {
+          "status": "UNVERIFIED",
+          "sector_lookthrough": [],
+          "geo_lookthrough": [],
+          "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+        },
+        "alerts_summary": {
+          "var_breach": null,
+          "stops_hit_count": 0,
+          "sector_concentration_breach": null,
+          "correlation_cluster_count": 0
+        }
+      }
+    },
+    "unpriced": {
+      "snapshot": {
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "audit_version": "2026-09-30.2",
+        "generated_at_unix": 1790749294,
+        "elapsed_seconds": 0.0,
+        "portfolio_summary": {
+          "n_positions": 1,
+          "priced_positions_count": 0,
+          "basis_positions_count": 1,
+          "pnl_eligible_positions_count": 0,
+          "total_market_value": null,
+          "total_market_value_scope": "PRICED positions only",
+          "total_cost_basis": 1000.0,
+          "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+          "total_pnl_dollars": null,
+          "total_pnl_pct": null,
+          "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+          "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+          "pnl_pct_denominator": null,
+          "unpriced_positions": [
+            "AAA"
+          ],
+          "pnl_excluded_positions": [
+            "AAA"
+          ],
+          "unpriced_cost_basis": 1000.0,
+          "unpriced_cost_basis_known_count": 1,
+          "stops_hit_count": 0,
+          "stops_hit": [],
+          "stops_not_evaluable": [
+            "AAA"
+          ],
+          "accounting_coverage_status": "PARTIAL",
+          "accounting_reason_codes": [],
+          "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+        },
+        "accounting": {
+          "schema_version": "holdings-accounting.v1",
+          "valuation_at": "2026-09-18T17:00:00+00:00",
+          "source_positions": [
+            {
+              "symbol": "AAA",
+              "qty": 10,
+              "cost_basis_per_share": 100,
+              "stop_loss": 120
+            }
+          ],
+          "source_prices": {},
+          "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+          "assumptions_verified": false,
+          "allows_sizing": false
+        },
+        "capital_book": {
+          "schema_version": "1.0",
+          "status": "BLOCKED",
+          "allows_new_entries": false,
+          "reason_codes": [
+            "MISSING_RECONCILED_CAPITAL_LEDGER"
+          ],
+          "as_of": "2026-09-18T17:00:00+00:00",
+          "book_id": null,
+          "account_id": null,
+          "currency": null,
+          "equity_nav": null,
+          "cash": null,
+          "liabilities": null,
+          "reconciled_at": null,
+          "reserved_order_exposure": null,
+          "nav_history": [],
+          "open_orders": [],
+          "gross_exposure": null,
+          "net_exposure": null,
+          "exposure_scope": "PRICED_POSITIONS_ONLY",
+          "positions": [
+            {
+              "symbol": "AAA",
+              "current_price": null,
+              "price_asof_unix_ms": null,
+              "price_provider": null,
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 0,
+              "qty": 10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": 1000.0,
+              "market_value": null,
+              "pnl_dollars": null,
+              "pnl_pct": null,
+              "position_type": "LONG",
+              "valuation_status": "UNPRICED",
+              "mark_age_h": null,
+              "pnl_eligible": false,
+              "accounting_reason_codes": [
+                "UNPRICED"
+              ],
+              "stop_loss": 120.0,
+              "stop_hit": null,
+              "stop_distance_pct": null,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": null,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": null,
+              "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+            }
+          ],
+          "unpriced_positions": [
+            "AAA"
+          ]
+        },
+        "positions": [
+          {
+            "symbol": "AAA",
+            "current_price": null,
+            "price_asof_unix_ms": null,
+            "price_provider": null,
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": null,
+            "pnl_dollars": null,
+            "pnl_pct": null,
+            "position_type": "LONG",
+            "valuation_status": "UNPRICED",
+            "mark_age_h": null,
+            "pnl_eligible": false,
+            "accounting_reason_codes": [
+              "UNPRICED"
+            ],
+            "stop_loss": 120.0,
+            "stop_hit": null,
+            "stop_distance_pct": null,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": null,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": null,
+            "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+          }
+        ],
+        "watchlist": [],
+        "sector_concentration": [],
+        "watchlist_sync": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": [],
+          "status": "SKIPPED_INVALID_SOURCE"
+        },
+        "counts": {
+          "positions": 1,
+          "watchlist": 0,
+          "auto_watch_S": 0,
+          "auto_watch_A": 0,
+          "manual_watch": 0
+        }
+      },
+      "risk": {
+        "engine": "justhodl-portfolio-risk",
+        "schema_version": "2.0.1",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "snapshot_binding": {
+          "contract": "portfolio-snapshot-value.v1",
+          "key": "portfolio/snapshot.json",
+          "generated_at": "2026-09-18T17:00:00+00:00",
+          "encoding": "typed-json-binary64.v1",
+          "value_sha256": "96f9bb0756aed8dfce7b1b691ed0bd761a6009717a3c49d5644e0172022d610d",
+          "encoded_bytes": 3926
+        },
+        "status": "INCOMPLETE",
+        "permissions": {
+          "sizing_eligible": false,
+          "may_recommend_trades": false,
+          "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+        },
+        "quality": {
+          "status": "unavailable",
+          "reason_codes": [
+            "NO_GROSS_EXPOSURE",
+            "UNPRICED_OR_UNRECONCILED_POSITION"
+          ],
+          "data_errors": {
+            "SPY": []
+          }
+        },
+        "risk_contract": {
+          "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+          "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+          "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+          "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+          "sample_count": 128,
+          "minimum_sample": 60,
+          "sample_start": "2026-03-23",
+          "sample_end": "2026-09-17",
+          "annualization_sessions": 252,
+          "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+          "missing_input_defaults": false,
+          "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+          "freshness": {
+            "bar_max_calendar_days": 5,
+            "mark_max_hours": 96,
+            "release_calendar_verified": false
+          }
+        },
+        "capital_basis": {
+          "status": "UNAVAILABLE",
+          "nav": null,
+          "currency": "USD",
+          "errors": [
+            "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+            "capital book missing book_id",
+            "capital book missing account_id",
+            "capital book missing currency",
+            "capital book reconciled_at missing, stale or future",
+            "reconciled NAV must be positive",
+            "invalid capital book cash",
+            "invalid capital book liabilities",
+            "invalid capital book reserved_order_exposure",
+            "invalid capital book gross_exposure",
+            "invalid capital book net_exposure",
+            "unpriced or unspecified position coverage",
+            "position missing valuation-grade signed exposure",
+            "drawdown requires two reconciled NAV observations from this book"
+          ]
+        },
+        "total_market_value": null,
+        "gross_market_value": null,
+        "n_positions": 1,
+        "n_instruments": 0,
+        "holdings_risk": {
+          "daily_pnl_std_dollars": null,
+          "annual_vol_pct_of_gross": null,
+          "beta_spy_per_gross": null,
+          "var_1d_99_dollars": null,
+          "var_1d_95_dollars": null
+        },
+        "portfolio_vol_annual_pct": null,
+        "portfolio_vol_daily_pct": null,
+        "portfolio_beta_spy": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_pct": null,
+        "var_1d_95_pct": null,
+        "position_metrics": {
+          "AAA": {
+            "annual_vol_pct": null,
+            "beta_spy": null,
+            "30d_max_drawdown_pct": null,
+            "90d_max_drawdown_pct": null,
+            "status": "UNAVAILABLE",
+            "errors": [
+              "EXPOSURE_NOT_VERIFIED"
+            ]
+          }
+        },
+        "correlation_matrix": {},
+        "correlation_clusters": [],
+        "sector_concentration": [],
+        "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+        "concentration_hhi": null,
+        "concentration_label": "Unavailable",
+        "max_sector_concentration_pct": null,
+        "historical_scenarios": {},
+        "stops_hit": [],
+        "etf_lookthrough": {
+          "status": "UNVERIFIED",
+          "sector_lookthrough": [],
+          "geo_lookthrough": [],
+          "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+        },
+        "alerts_summary": {
+          "var_breach": null,
+          "stops_hit_count": 0,
+          "sector_concentration_breach": null,
+          "correlation_cluster_count": 0
+        }
+      }
+    },
+    "invalid": {
+      "snapshot": {
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "audit_version": "2026-09-30.2",
+        "generated_at_unix": 1790749294,
+        "elapsed_seconds": 0.0,
+        "portfolio_summary": {
+          "n_positions": 2,
+          "priced_positions_count": 0,
+          "basis_positions_count": 0,
+          "pnl_eligible_positions_count": 0,
+          "total_market_value": null,
+          "total_market_value_scope": "PRICED positions only",
+          "total_cost_basis": null,
+          "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+          "total_pnl_dollars": null,
+          "total_pnl_pct": null,
+          "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+          "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+          "pnl_pct_denominator": null,
+          "unpriced_positions": [
+            "AAA",
+            "record:2"
+          ],
+          "pnl_excluded_positions": [
+            "AAA",
+            "record:2"
+          ],
+          "unpriced_cost_basis": null,
+          "unpriced_cost_basis_known_count": 0,
+          "stops_hit_count": 0,
+          "stops_hit": [],
+          "stops_not_evaluable": [
+            "AAA",
+            null
+          ],
+          "accounting_coverage_status": "PARTIAL",
+          "accounting_reason_codes": [],
+          "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+        },
+        "accounting": {
+          "schema_version": "holdings-accounting.v1",
+          "valuation_at": "2026-09-18T17:00:00+00:00",
+          "source_positions": [
+            {
+              "symbol": "AAA",
+              "qty": true,
+              "cost_basis_per_share": 100,
+              "stop_loss": 120
+            },
+            {
+              "symbol": null,
+              "qty": 10,
+              "cost_basis_per_share": 100,
+              "stop_loss": 120
+            }
+          ],
+          "source_prices": {
+            "AAA": {
+              "price": 110,
+              "as_of_unix_ms": 1789750800000.0
+            }
+          },
+          "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+          "assumptions_verified": false,
+          "allows_sizing": false
+        },
+        "capital_book": {
+          "schema_version": "1.0",
+          "status": "BLOCKED",
+          "allows_new_entries": false,
+          "reason_codes": [
+            "MISSING_RECONCILED_CAPITAL_LEDGER"
+          ],
+          "as_of": "2026-09-18T17:00:00+00:00",
+          "book_id": null,
+          "account_id": null,
+          "currency": null,
+          "equity_nav": null,
+          "cash": null,
+          "liabilities": null,
+          "reconciled_at": null,
+          "reserved_order_exposure": null,
+          "nav_history": [],
+          "open_orders": [],
+          "gross_exposure": null,
+          "net_exposure": null,
+          "exposure_scope": "PRICED_POSITIONS_ONLY",
+          "positions": [
+            {
+              "symbol": "AAA",
+              "current_price": 110.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 0,
+              "qty": null,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": null,
+              "market_value": null,
+              "pnl_dollars": null,
+              "pnl_pct": null,
+              "position_type": null,
+              "valuation_status": "INVALID_POSITION",
+              "mark_age_h": 0.0,
+              "pnl_eligible": false,
+              "accounting_reason_codes": [
+                "QUANTITY_UNAVAILABLE"
+              ],
+              "stop_loss": 120.0,
+              "stop_hit": null,
+              "stop_distance_pct": null,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": null,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": null,
+              "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+            },
+            {
+              "symbol": null,
+              "source_record_index": 1,
+              "qty": 10.0,
+              "current_price": null,
+              "price_asof_unix_ms": null,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": null,
+              "market_value": null,
+              "pnl_dollars": null,
+              "pnl_pct": null,
+              "position_type": "LONG",
+              "valuation_status": "INVALID_POSITION",
+              "mark_age_h": null,
+              "pnl_eligible": false,
+              "accounting_reason_codes": [
+                "INVALID_OR_DUPLICATE_SYMBOL",
+                "INVALID_POSITION"
+              ],
+              "stop_loss": 120.0,
+              "stop_hit": null,
+              "stop_distance_pct": null,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": null,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": null,
+              "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+            }
+          ],
+          "unpriced_positions": [
+            "AAA",
+            "record:2"
+          ]
+        },
+        "positions": [
+          {
+            "symbol": "AAA",
+            "current_price": 110.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": null,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": null,
+            "market_value": null,
+            "pnl_dollars": null,
+            "pnl_pct": null,
+            "position_type": null,
+            "valuation_status": "INVALID_POSITION",
+            "mark_age_h": 0.0,
+            "pnl_eligible": false,
+            "accounting_reason_codes": [
+              "QUANTITY_UNAVAILABLE"
+            ],
+            "stop_loss": 120.0,
+            "stop_hit": null,
+            "stop_distance_pct": null,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": null,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": null,
+            "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+          },
+          {
+            "symbol": null,
+            "source_record_index": 1,
+            "qty": 10.0,
+            "current_price": null,
+            "price_asof_unix_ms": null,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": null,
+            "market_value": null,
+            "pnl_dollars": null,
+            "pnl_pct": null,
+            "position_type": "LONG",
+            "valuation_status": "INVALID_POSITION",
+            "mark_age_h": null,
+            "pnl_eligible": false,
+            "accounting_reason_codes": [
+              "INVALID_OR_DUPLICATE_SYMBOL",
+              "INVALID_POSITION"
+            ],
+            "stop_loss": 120.0,
+            "stop_hit": null,
+            "stop_distance_pct": null,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": null,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": null,
+            "gross_holdings_weight_scope": "PRICED_HOLDINGS_ONLY"
+          }
+        ],
+        "watchlist": [],
+        "sector_concentration": [],
+        "watchlist_sync": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": [],
+          "status": "SKIPPED_INVALID_SOURCE"
+        },
+        "counts": {
+          "positions": 2,
+          "watchlist": 0,
+          "auto_watch_S": 0,
+          "auto_watch_A": 0,
+          "manual_watch": 0
+        }
+      },
+      "risk": {
+        "engine": "justhodl-portfolio-risk",
+        "schema_version": "2.0.1",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "snapshot_binding": {
+          "contract": "portfolio-snapshot-value.v1",
+          "key": "portfolio/snapshot.json",
+          "generated_at": "2026-09-18T17:00:00+00:00",
+          "encoding": "typed-json-binary64.v1",
+          "value_sha256": "ab935cbaae316748d3a729d81ef87f41cb7aa9b3fcfb397391e07b649e31af1f",
+          "encoded_bytes": 5704
+        },
+        "status": "INCOMPLETE",
+        "permissions": {
+          "sizing_eligible": false,
+          "may_recommend_trades": false,
+          "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+        },
+        "quality": {
+          "status": "unavailable",
+          "reason_codes": [
+            "NO_GROSS_EXPOSURE",
+            "UNPRICED_OR_UNRECONCILED_POSITION",
+            "UNSUPPORTED_OR_AMBIGUOUS_INSTRUMENT"
+          ],
+          "data_errors": {
+            "SPY": []
+          }
+        },
+        "risk_contract": {
+          "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+          "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+          "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+          "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+          "sample_count": 128,
+          "minimum_sample": 60,
+          "sample_start": "2026-03-23",
+          "sample_end": "2026-09-17",
+          "annualization_sessions": 252,
+          "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+          "missing_input_defaults": false,
+          "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+          "freshness": {
+            "bar_max_calendar_days": 5,
+            "mark_max_hours": 96,
+            "release_calendar_verified": false
+          }
+        },
+        "capital_basis": {
+          "status": "UNAVAILABLE",
+          "nav": null,
+          "currency": "USD",
+          "errors": [
+            "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+            "capital book missing book_id",
+            "capital book missing account_id",
+            "capital book missing currency",
+            "capital book reconciled_at missing, stale or future",
+            "reconciled NAV must be positive",
+            "invalid capital book cash",
+            "invalid capital book liabilities",
+            "invalid capital book reserved_order_exposure",
+            "invalid capital book gross_exposure",
+            "invalid capital book net_exposure",
+            "unpriced or unspecified position coverage",
+            "position missing valuation-grade signed exposure",
+            "position missing valuation-grade signed exposure",
+            "drawdown requires two reconciled NAV observations from this book"
+          ]
+        },
+        "total_market_value": null,
+        "gross_market_value": null,
+        "n_positions": 2,
+        "n_instruments": 0,
+        "holdings_risk": {
+          "daily_pnl_std_dollars": null,
+          "annual_vol_pct_of_gross": null,
+          "beta_spy_per_gross": null,
+          "var_1d_99_dollars": null,
+          "var_1d_95_dollars": null
+        },
+        "portfolio_vol_annual_pct": null,
+        "portfolio_vol_daily_pct": null,
+        "portfolio_beta_spy": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_pct": null,
+        "var_1d_95_pct": null,
+        "position_metrics": {
+          "AAA": {
+            "annual_vol_pct": null,
+            "beta_spy": null,
+            "30d_max_drawdown_pct": null,
+            "90d_max_drawdown_pct": null,
+            "status": "UNAVAILABLE",
+            "errors": [
+              "EXPOSURE_NOT_VERIFIED"
+            ]
+          },
+          "None": {
+            "annual_vol_pct": null,
+            "beta_spy": null,
+            "30d_max_drawdown_pct": null,
+            "90d_max_drawdown_pct": null,
+            "status": "UNAVAILABLE",
+            "errors": [
+              "EXPOSURE_NOT_VERIFIED"
+            ]
+          }
+        },
+        "correlation_matrix": {},
+        "correlation_clusters": [],
+        "sector_concentration": [],
+        "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+        "concentration_hhi": null,
+        "concentration_label": "Unavailable",
+        "max_sector_concentration_pct": null,
+        "historical_scenarios": {},
+        "stops_hit": [],
+        "etf_lookthrough": {
+          "status": "UNVERIFIED",
+          "sector_lookthrough": [],
+          "geo_lookthrough": [],
+          "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+        },
+        "alerts_summary": {
+          "var_breach": null,
+          "stops_hit_count": 0,
+          "sector_concentration_breach": null,
+          "correlation_cluster_count": 0
+        }
+      }
+    },
+    "empty": {
+      "snapshot": {
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "audit_version": "2026-09-30.2",
+        "generated_at_unix": 1790749294,
+        "elapsed_seconds": 0.0,
+        "portfolio_summary": {
+          "n_positions": 0,
+          "priced_positions_count": 0,
+          "basis_positions_count": 0,
+          "pnl_eligible_positions_count": 0,
+          "total_market_value": 0.0,
+          "total_market_value_scope": "all positions priced",
+          "total_cost_basis": 0.0,
+          "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+          "total_pnl_dollars": 0.0,
+          "total_pnl_pct": null,
+          "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+          "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+          "pnl_pct_denominator": 0.0,
+          "unpriced_positions": [],
+          "pnl_excluded_positions": [],
+          "unpriced_cost_basis": 0.0,
+          "unpriced_cost_basis_known_count": 0,
+          "stops_hit_count": 0,
+          "stops_hit": [],
+          "stops_not_evaluable": [],
+          "accounting_coverage_status": "EMPTY",
+          "accounting_reason_codes": [],
+          "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+        },
+        "accounting": {
+          "schema_version": "holdings-accounting.v1",
+          "valuation_at": "2026-09-18T17:00:00+00:00",
+          "source_positions": [],
+          "source_prices": {},
+          "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+          "assumptions_verified": false,
+          "allows_sizing": false
+        },
+        "capital_book": {
+          "schema_version": "1.0",
+          "status": "BLOCKED",
+          "allows_new_entries": false,
+          "reason_codes": [
+            "MISSING_RECONCILED_CAPITAL_LEDGER"
+          ],
+          "as_of": "2026-09-18T17:00:00+00:00",
+          "book_id": null,
+          "account_id": null,
+          "currency": null,
+          "equity_nav": null,
+          "cash": null,
+          "liabilities": null,
+          "reconciled_at": null,
+          "reserved_order_exposure": null,
+          "nav_history": [],
+          "open_orders": [],
+          "gross_exposure": 0.0,
+          "net_exposure": 0.0,
+          "exposure_scope": "ALL_POSITIONS",
+          "positions": [],
+          "unpriced_positions": []
+        },
+        "positions": [],
+        "watchlist": [],
+        "sector_concentration": [],
+        "watchlist_sync": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": [],
+          "status": "SKIPPED_INVALID_SOURCE"
+        },
+        "counts": {
+          "positions": 0,
+          "watchlist": 0,
+          "auto_watch_S": 0,
+          "auto_watch_A": 0,
+          "manual_watch": 0
+        }
+      },
+      "risk": {
+        "engine": "justhodl-portfolio-risk",
+        "schema_version": "2.0.1",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "snapshot_binding": {
+          "contract": "portfolio-snapshot-value.v1",
+          "key": "portfolio/snapshot.json",
+          "generated_at": "2026-09-18T17:00:00+00:00",
+          "encoding": "typed-json-binary64.v1",
+          "value_sha256": "77cb853cf03b2241663babdd9fbb75d61eb5a994d7e241a6bd3989adc8416244",
+          "encoded_bytes": 2188
+        },
+        "status": "no_positions",
+        "permissions": {
+          "sizing_eligible": false,
+          "may_recommend_trades": false,
+          "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+        },
+        "quality": {
+          "status": "unavailable",
+          "reason_codes": [
+            "NO_GROSS_EXPOSURE",
+            "NO_POSITIONS"
+          ],
+          "data_errors": {
+            "SPY": []
+          }
+        },
+        "risk_contract": {
+          "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+          "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+          "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+          "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+          "sample_count": 128,
+          "minimum_sample": 60,
+          "sample_start": "2026-03-23",
+          "sample_end": "2026-09-17",
+          "annualization_sessions": 252,
+          "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+          "missing_input_defaults": false,
+          "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+          "freshness": {
+            "bar_max_calendar_days": 5,
+            "mark_max_hours": 96,
+            "release_calendar_verified": false
+          }
+        },
+        "capital_basis": {
+          "status": "UNAVAILABLE",
+          "nav": null,
+          "currency": "USD",
+          "errors": [
+            "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+            "capital book missing book_id",
+            "capital book missing account_id",
+            "capital book missing currency",
+            "capital book reconciled_at missing, stale or future",
+            "reconciled NAV must be positive",
+            "invalid capital book cash",
+            "invalid capital book liabilities",
+            "invalid capital book reserved_order_exposure",
+            "drawdown requires two reconciled NAV observations from this book"
+          ]
+        },
+        "total_market_value": null,
+        "gross_market_value": null,
+        "n_positions": 0,
+        "n_instruments": 0,
+        "holdings_risk": {
+          "daily_pnl_std_dollars": null,
+          "annual_vol_pct_of_gross": null,
+          "beta_spy_per_gross": null,
+          "var_1d_99_dollars": null,
+          "var_1d_95_dollars": null
+        },
+        "portfolio_vol_annual_pct": null,
+        "portfolio_vol_daily_pct": null,
+        "portfolio_beta_spy": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_pct": null,
+        "var_1d_95_pct": null,
+        "position_metrics": {},
+        "correlation_matrix": {},
+        "correlation_clusters": [],
+        "sector_concentration": [],
+        "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+        "concentration_hhi": null,
+        "concentration_label": "Unavailable",
+        "max_sector_concentration_pct": null,
+        "historical_scenarios": {},
+        "stops_hit": [],
+        "etf_lookthrough": {
+          "status": "UNVERIFIED",
+          "sector_lookthrough": [],
+          "geo_lookthrough": [],
+          "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+        },
+        "alerts_summary": {
+          "var_breach": null,
+          "stops_hit_count": 0,
+          "sector_concentration_breach": null,
+          "correlation_cluster_count": 0
+        }
+      }
+    },
+    "legacy": {
+      "snapshot": {
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "audit_version": "2026-09-30.2",
+        "generated_at_unix": 1790749294,
+        "elapsed_seconds": 0.0,
+        "portfolio_summary": {
+          "n_positions": 2,
+          "priced_positions_count": 2,
+          "basis_positions_count": 2,
+          "pnl_eligible_positions_count": 2,
+          "total_market_value": 200.0,
+          "total_market_value_scope": "all positions priced",
+          "total_cost_basis": 0.0,
+          "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+          "total_pnl_dollars": 200.0,
+          "total_pnl_pct": 10.0,
+          "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+          "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN",
+          "pnl_pct_denominator": 2000.0,
+          "unpriced_positions": [],
+          "pnl_excluded_positions": [],
+          "unpriced_cost_basis": 0.0,
+          "unpriced_cost_basis_known_count": 0,
+          "stops_hit_count": 1,
+          "stops_hit": [
+            {
+              "symbol": "AAA",
+              "stop_loss": 120.0,
+              "current_price": 110.0
+            }
+          ],
+          "stops_not_evaluable": [],
+          "accounting_coverage_status": "COMPLETE",
+          "accounting_reason_codes": [],
+          "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified"
+        },
+        "capital_book": {
+          "schema_version": "1.0",
+          "status": "BLOCKED",
+          "allows_new_entries": false,
+          "reason_codes": [
+            "MISSING_RECONCILED_CAPITAL_LEDGER"
+          ],
+          "as_of": "2026-09-18T17:00:00+00:00",
+          "book_id": null,
+          "account_id": null,
+          "currency": null,
+          "equity_nav": null,
+          "cash": null,
+          "liabilities": null,
+          "reconciled_at": null,
+          "reserved_order_exposure": null,
+          "nav_history": [],
+          "open_orders": [],
+          "gross_exposure": 2000.0,
+          "net_exposure": 200.0,
+          "exposure_scope": "ALL_POSITIONS",
+          "positions": [
+            {
+              "symbol": "AAA",
+              "current_price": 110.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 0,
+              "qty": 10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": 1000.0,
+              "market_value": 1100.0,
+              "pnl_dollars": 100.0,
+              "pnl_pct": 10.0,
+              "position_type": "LONG",
+              "valuation_status": "PRICED",
+              "mark_age_h": 0.0,
+              "pnl_eligible": true,
+              "accounting_reason_codes": [],
+              "stop_loss": 120.0,
+              "stop_hit": true,
+              "stop_distance_pct": -8.33,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": 550.0,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": 55.0,
+              "gross_holdings_weight_scope": "ALL_HOLDINGS"
+            },
+            {
+              "symbol": "BBB",
+              "current_price": 90.0,
+              "price_asof_unix_ms": 1789750800000.0,
+              "price_provider": "polygon:prev_close",
+              "price_open": null,
+              "price_high": null,
+              "price_low": null,
+              "volume": null,
+              "confluence_tier": null,
+              "source_record_index": 1,
+              "qty": -10.0,
+              "cost_basis_per_share": 100.0,
+              "cost_basis_total": -1000.0,
+              "market_value": -900.0,
+              "pnl_dollars": 100.0,
+              "pnl_pct": 10.0,
+              "position_type": "SHORT",
+              "valuation_status": "PRICED",
+              "mark_age_h": 0.0,
+              "pnl_eligible": true,
+              "accounting_reason_codes": [],
+              "stop_loss": 95.0,
+              "stop_hit": false,
+              "stop_distance_pct": -5.26,
+              "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+              "target_weight_pct": null,
+              "added_at": null,
+              "notes": null,
+              "weight_drift_pct": null,
+              "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+              "current_weight_pct": -450.0,
+              "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+              "gross_holdings_weight_pct": 45.0,
+              "gross_holdings_weight_scope": "ALL_HOLDINGS"
+            }
+          ],
+          "unpriced_positions": []
+        },
+        "positions": [
+          {
+            "symbol": "AAA",
+            "current_price": 110.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": 1100.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "LONG",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 120.0,
+            "stop_hit": true,
+            "stop_distance_pct": -8.33,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": 550.0,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 55.0,
+            "gross_holdings_weight_scope": "ALL_HOLDINGS"
+          },
+          {
+            "symbol": "BBB",
+            "current_price": 90.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 1,
+            "qty": -10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": -1000.0,
+            "market_value": -900.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "SHORT",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 95.0,
+            "stop_hit": false,
+            "stop_distance_pct": -5.26,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": -450.0,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 45.0,
+            "gross_holdings_weight_scope": "ALL_HOLDINGS"
+          }
+        ],
+        "watchlist": [],
+        "sector_concentration": [
+          {
+            "sector": "Unknown",
+            "value": 200.0,
+            "weight_pct": 100.0,
+            "weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV"
+          }
+        ],
+        "watchlist_sync": {
+          "added_S": [],
+          "added_A": [],
+          "removed_S": [],
+          "removed_A": [],
+          "status": "SKIPPED_INVALID_SOURCE"
+        },
+        "counts": {
+          "positions": 2,
+          "watchlist": 0,
+          "auto_watch_S": 0,
+          "auto_watch_A": 0,
+          "manual_watch": 0
+        }
+      },
+      "risk": {
+        "engine": "justhodl-portfolio-risk",
+        "schema_version": "2.0.1",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "snapshot_binding": {
+          "contract": "portfolio-snapshot-value.v1",
+          "key": "portfolio/snapshot.json",
+          "generated_at": "2026-09-18T17:00:00+00:00",
+          "encoding": "typed-json-binary64.v1",
+          "value_sha256": "9dbfb0412a958d828e68bc01a476bc6ee6668daeca8c42ce20940a121ade0f8c",
+          "encoded_bytes": 5697
+        },
+        "status": "AVAILABLE_HOLDINGS_MODEL",
+        "permissions": {
+          "sizing_eligible": false,
+          "may_recommend_trades": false,
+          "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+        },
+        "quality": {
+          "status": "partial",
+          "reason_codes": [],
+          "data_errors": {
+            "AAA": [],
+            "BBB": [],
+            "SPY": []
+          }
+        },
+        "risk_contract": {
+          "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+          "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+          "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+          "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+          "sample_count": 128,
+          "minimum_sample": 60,
+          "sample_start": "2026-03-23",
+          "sample_end": "2026-09-17",
+          "annualization_sessions": 252,
+          "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+          "missing_input_defaults": false,
+          "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+          "freshness": {
+            "bar_max_calendar_days": 5,
+            "mark_max_hours": 96,
+            "release_calendar_verified": false
+          }
+        },
+        "capital_basis": {
+          "status": "UNAVAILABLE",
+          "nav": null,
+          "currency": "USD",
+          "errors": [
+            "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+            "capital book missing book_id",
+            "capital book missing account_id",
+            "capital book missing currency",
+            "capital book reconciled_at missing, stale or future",
+            "reconciled NAV must be positive",
+            "invalid capital book cash",
+            "invalid capital book liabilities",
+            "invalid capital book reserved_order_exposure",
+            "drawdown requires two reconciled NAV observations from this book"
+          ]
+        },
+        "total_market_value": 200.0,
+        "gross_market_value": 2000.0,
+        "n_positions": 2,
+        "n_instruments": 2,
+        "holdings_risk": {
+          "daily_pnl_std_dollars": 4.4,
+          "annual_vol_pct_of_gross": 3.5,
+          "beta_spy_per_gross": 0.55,
+          "var_1d_99_dollars": 10.25,
+          "var_1d_95_dollars": 7.24
+        },
+        "portfolio_vol_annual_pct": null,
+        "portfolio_vol_daily_pct": null,
+        "portfolio_beta_spy": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null,
+        "var_1d_99_pct": null,
+        "var_1d_95_pct": null,
+        "position_metrics": {
+          "AAA": {
+            "annual_vol_pct": 6.36,
+            "beta_spy": 1.0,
+            "30d_max_drawdown_pct": -1.21,
+            "90d_max_drawdown_pct": -1.26,
+            "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+            "n_bars": 129,
+            "n_returns": 128,
+            "as_of": "2026-09-17",
+            "status": "AVAILABLE",
+            "errors": []
+          },
+          "BBB": {
+            "annual_vol_pct": 0.0,
+            "beta_spy": 0.0,
+            "30d_max_drawdown_pct": 0.0,
+            "90d_max_drawdown_pct": 0.0,
+            "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+            "n_bars": 129,
+            "n_returns": 128,
+            "as_of": "2026-09-17",
+            "status": "AVAILABLE",
+            "errors": []
+          }
+        },
+        "correlation_matrix": {
+          "AAA": {
+            "AAA": 1.0,
+            "BBB": null
+          },
+          "BBB": {
+            "AAA": null,
+            "BBB": null
+          }
+        },
+        "correlation_clusters": [],
+        "sector_concentration": [
+          {
+            "sector": "Unknown",
+            "weight_pct": 100.0
+          }
+        ],
+        "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+        "concentration_hhi": 10000.0,
+        "concentration_label": "Gross sector HHI (0..10000)",
+        "max_sector_concentration_pct": 100.0,
+        "historical_scenarios": {},
+        "stops_hit": [
+          {
+            "symbol": "AAA",
+            "current_price": 110.0,
+            "price_asof_unix_ms": 1789750800000.0,
+            "price_provider": "polygon:prev_close",
+            "price_open": null,
+            "price_high": null,
+            "price_low": null,
+            "volume": null,
+            "confluence_tier": null,
+            "source_record_index": 0,
+            "qty": 10.0,
+            "cost_basis_per_share": 100.0,
+            "cost_basis_total": 1000.0,
+            "market_value": 1100.0,
+            "pnl_dollars": 100.0,
+            "pnl_pct": 10.0,
+            "position_type": "LONG",
+            "valuation_status": "PRICED",
+            "mark_age_h": 0.0,
+            "pnl_eligible": true,
+            "accounting_reason_codes": [],
+            "stop_loss": 120.0,
+            "stop_hit": true,
+            "stop_distance_pct": -8.33,
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": null,
+            "added_at": null,
+            "notes": null,
+            "weight_drift_pct": null,
+            "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+            "current_weight_pct": 550.0,
+            "current_weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV",
+            "gross_holdings_weight_pct": 55.0,
+            "gross_holdings_weight_scope": "ALL_HOLDINGS"
+          }
+        ],
+        "etf_lookthrough": {
+          "status": "UNVERIFIED",
+          "sector_lookthrough": [],
+          "geo_lookthrough": [],
+          "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+        },
+        "alerts_summary": {
+          "var_breach": null,
+          "stops_hit_count": 1,
+          "sector_concentration_breach": true,
+          "correlation_cluster_count": 0
+        }
+      }
+    }
+  }
+}

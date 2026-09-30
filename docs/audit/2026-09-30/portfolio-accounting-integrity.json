@@ -1,7 +1,73 @@
 {
   "stage": 451,
-  "status": "seven_source_failures_reproduced_read_only_baseline_pending",
-  "predecessor_runtime": null,
+  "status": "full_source_and_isolated_browser_checks_passed_exact_deployment_pending",
+  "predecessor_runtime": {
+    "justhodl-portfolio-snapshot": {
+      "code_sha256": "WkXXjoo1LN8v71JfiNmMgNs9XofEKASafYauC584FhY=",
+      "source_files_checked": 3,
+      "handler_bytes": 36196,
+      "timeout": 180,
+      "memory_mb": 512,
+      "receipt": {
+        "status": "matched",
+        "commit": "99b780fbbaae0a6a6b6c1a7a16049f7884788b5f"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-portfolio-snapshot-hourly",
+          "state": "ENABLED",
+          "expression": "cron(40 * * * ? *)",
+          "native_targets": 1,
+          "qualified_targets": [
+            "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-snapshot:live"
+          ]
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "portfolio-snapshot-sched",
+          "state": "ENABLED",
+          "expression": "cron(40 * * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default",
+          "target_qualifier": "live"
+        }
+      ],
+      "function_name": "justhodl-portfolio-snapshot",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "active_alias": {
+        "alias": "live",
+        "version": "6",
+        "code_sha256": "WkXXjoo1LN8v71JfiNmMgNs9XofEKASafYauC584FhY="
+      }
+    },
+    "justhodl-portfolio-admin": {
+      "code_sha256": "tA2TVIR0t+z4pwkA7wkE0VEw/3gFFSXR2LCj26LrOdI=",
+      "source_files_checked": 1,
+      "handler_bytes": 15490,
+      "timeout": 30,
+      "memory_mb": 256,
+      "receipt": {
+        "status": "missing_predecessor_receipt"
+      },
+      "schedules": [],
+      "function_name": "justhodl-portfolio-admin",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  },
   "native_acceptance": null,
   "source_sha256": "910c3373f4f5a266f72146d34ab7d1e6aa5e644ab1c26bf40b13ef84fb8b049c",
   "source_bytes": 36196,
@@ -23,11 +89,89 @@
   "acceptance_scope": "Only native source packages, exact release receipts and original control-plane resources/schedules for snapshot and admin. Actual account/current/history/provider inputs remain excluded.",
   "actual_private_reads": 0,
   "native_invocations": 0,
-  "native_source_modified": false,
+  "native_source_modified": true,
   "baseline_failure": {
     "run": 36675814449,
     "report": "aws/ops/reports/latest/ops_6359_portfolio_accounting_runtime_acceptance.md",
     "reason": "The actual admin source package matches reviewed code and original 256 MiB/30-second settings, but its legacy release receipt is absent. The baseline incorrectly required a modern receipt.",
     "repair": "Operation 6360 records this explicit legacy baseline exception only before any change; both functions still require matched exact-commit receipts after the new deployment."
-  }
+  },
+  "baseline_run": 36676771818,
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py": {
+      "bytes": 41506,
+      "sha256": "df03da2444ee74bd21ba9afaf43261db6e1a5a58fb8201e415a40f527fc8ec28"
+    },
+    "aws/lambdas/justhodl-portfolio-admin/source/lambda_function.py": {
+      "bytes": 15490,
+      "sha256": "037f69b384d360728a91661504dccdd279981ac3537fa8a8d3d3928fab5718cf"
+    },
+    "portfolio/index.html": {
+      "bytes": 36414,
+      "sha256": "1e01f6f9a5e165b00b59437506b018f953d07aedc53a60bad779791fae82d788"
+    },
+    "scripts/validate_snapshot_candidate.py": {
+      "bytes": 4990,
+      "sha256": "7ed5c3358e427e1ceeaffdc35d9e6175ea11d8231ed3d1927a0c208c7b796a48"
+    }
+  },
+  "browser": {
+    "scope": "Whole invented inputs through current handler and risk model; no actual private data or provider requests",
+    "states": [
+      "complete",
+      "partial",
+      "unpriced",
+      "invalid",
+      "empty",
+      "legacy"
+    ],
+    "desktop_viewport_width": 1265,
+    "mobile": {
+      "viewport": 360,
+      "client_width": 345,
+      "scroll_width": 345,
+      "horizontal_page_overflow": false
+    },
+    "keyboard": "Enter activates Partial accounting; focus remains on the button",
+    "console_errors": [],
+    "screenshots": "Desktop and full mobile screenshot inspected in browser; no image file retained"
+  },
+  "tests": {
+    "snapshot": 36,
+    "snapshot_actual_handler": 4,
+    "admin": 8,
+    "risk": 80,
+    "risk_private_handler": 10,
+    "scenario": 24,
+    "frontend": 2026,
+    "deployment_static": 783,
+    "deployment_shell": 15,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "limitations": [
+    "Actual private publication, transaction IAM, account and provider data remain unverified",
+    "Legacy cash-equity/currency assumptions, fees, FX, income, tax lots and investment performance remain unverified",
+    "Snapshot publication ordering and admin input mutation validation require separate repairs",
+    "All ten institutional workstreams remain open"
+  ],
+  "browser_fixture": {
+    "path": "tests/fixtures/portfolio-accounting-browser-synthetic.json",
+    "bytes": 83584,
+    "sha256": "c551b030215550483877a7ccf536a11c961032217a793b1e8a32ff75aa065754"
+  },
+  "contract": "docs/contracts/portfolio-holdings-accounting.md",
+  "checks": {
+    "frontend": "940d043856db5139bb30d1289aecc3b26c4a24e60a72755332fad51816c3eb84",
+    "deployment": "c668ded899f910c2e73d1df00c2b424924aa16dc83873711815d1d4fa7f293d7",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "justhodl-portfolio-snapshot": "3cd9ca4835adea2675e6fcb44b8819fc191cf9e61afebb4f7ec329c87d10cb3f",
+    "justhodl-portfolio-admin": "74b88ba6cc98d7c3bff6831d7e57e836756fc0b8b7a13ecbdfc120fb07468b3c",
+    "justhodl-portfolio-risk": "9daa40d2e82e344a8460655b2bcf373032eddab868b8f36343b5de9f90c9efdc",
+    "justhodl-position-sizer": "d9aa1d340dcfc34fe847f960bb330381803a532a06ae81316d4a8f9a421f9d3b"
+  },
+  "source_inventory_sha256": "49c07a0e733ba9445dc726483d5e192ea399ff265fad54c236e6d2a72ec791d3"
 }

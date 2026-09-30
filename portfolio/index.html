@@ -122,7 +122,8 @@ footer a{color:var(--text-dim);text-decoration:none;}
   <div class="metric-row" id="metric-row">
     <div class="metric-box"><div class="metric-label">NET MARKED HOLDINGS</div>
       <div class="metric-value" id="mv-value">—</div>
-      <div class="metric-sub" id="mv-pnl">—</div></div>
+      <div class="metric-sub" id="mv-pnl">—</div>
+      <div class="metric-sub" id="mv-accounting" role="status">Accounting coverage unavailable</div></div>
     <div class="metric-box"><div class="metric-label">1-DAY 99% VAR</div>
       <div class="metric-value" id="mv-var">—</div>
       <div class="metric-sub" id="mv-var-pct">—</div></div>
@@ -257,15 +258,31 @@ function setUpdated(){
   document.getElementById('updated').textContent = Number.isFinite(stamp) ? new Date(stamp).toISOString() : 'unavailable';
 }
 
+function accountingCoverage(){
+  const ps=snapshot && snapshot.portfolio_summary;
+  const validCount=v=>Number.isSafeInteger(v) && v>=0;
+  if(!ps || !snapshot.accounting || snapshot.accounting.schema_version!=='holdings-accounting.v1' ||
+     !Array.isArray(snapshot.positions) || ps.n_positions!==snapshot.positions.length ||
+     ![ps.n_positions,ps.priced_positions_count,ps.basis_positions_count,ps.pnl_eligible_positions_count].every(validCount) ||
+     ps.priced_positions_count>ps.n_positions || ps.basis_positions_count>ps.n_positions ||
+     ps.pnl_eligible_positions_count>Math.min(ps.priced_positions_count,ps.basis_positions_count))
+    return {text:'Accounting coverage unavailable; legacy totals are unverified.',percent:null};
+  const partial=ps.priced_positions_count<ps.n_positions || ps.pnl_eligible_positions_count<ps.n_positions || ps.accounting_coverage_status==='PARTIAL';
+  return {text:`Marks ${ps.priced_positions_count}/${ps.n_positions} · P&L ${ps.pnl_eligible_positions_count}/${ps.n_positions} · ${partial?'Partial coverage':ps.n_positions?'Complete arithmetic coverage':'Empty holdings list'}. Instrument and currency assumptions unverified.`,
+    percent:ps.pnl_pct_basis==='SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN'?ps.total_pnl_pct:null};
+}
+
 function renderTopMetrics(){
-  for(const id of ['mv-value','mv-pnl','mv-var','mv-var-pct','mv-beta','mv-vol','mv-hhi','mv-hhi-label','mv-positions','mv-watchlist']) document.getElementById(id).textContent='—';
+  for(const id of ['mv-value','mv-pnl','mv-accounting','mv-var','mv-var-pct','mv-beta','mv-vol','mv-hhi','mv-hhi-label','mv-positions','mv-watchlist']) document.getElementById(id).textContent='—';
   if(!snapshot && !risk) return;
   const ps = (snapshot && snapshot.portfolio_summary) || {};
   document.getElementById('mv-value').textContent = fmtMoney(ps.total_market_value);
-  const pnlPct = ps.total_pnl_pct;
+  const coverage=accountingCoverage();
+  document.getElementById('mv-accounting').textContent=coverage.text;
+  const pnlPct = coverage.percent;
   const pnlD = ps.total_pnl_dollars;
   const pnlEl = document.getElementById('mv-pnl');
-  pnlEl.innerHTML = `<span class="${pnlClass(pnlD)}">${fmtMoney(pnlD)} (${fmtPct(pnlPct)})</span>`;
+  pnlEl.innerHTML = `Unrealized P&L <span class="${pnlClass(pnlD)}">${fmtMoney(pnlD)}</span> · ${fmtPct(pnlPct)} of paired gross cost; not NAV return`;
 
   if(risk){
     document.getElementById('mv-var').textContent = fmtMoney(risk.var_1d_99_dollars);
@@ -292,8 +309,8 @@ function renderAlerts(){
   if(a.stops_hit_count > 0){
     (risk.stops_hit || []).forEach(s => {
       zone.innerHTML += `<div class="alert-banner"><span class="alert-icon">📉</span>
-        <div class="alert-body"><div class="alert-title">STOP LOSS HIT — ${escapeHtml(s.symbol)}</div>
-        <div class="alert-detail">Current ${fmtMoney(s.current_price)} · Stop ${fmtMoney(s.stop_loss)}</div></div></div>`;
+        <div class="alert-body"><div class="alert-title">CLOSE CROSSED STOP — ${escapeHtml(s.symbol)}</div>
+        <div class="alert-detail">Marked close ${fmtMoney(s.current_price)} · Stop ${fmtMoney(s.stop_loss)} · Price comparison; execution unverified</div></div></div>`;
     });
   }
   if(a.var_breach === true && typeof risk.var_1d_99_pct==='number' && Number.isFinite(risk.var_1d_99_pct) && risk.var_1d_99_pct>5){
@@ -341,7 +358,7 @@ function renderPositions(){
 
   const psm = snapshot.portfolio_summary || {};
   document.getElementById('pos-pnl-summary').innerHTML =
-    `Total P&L: <span class="${pnlClass(psm.total_pnl_dollars)}">${fmtMoney(psm.total_pnl_dollars)} (${fmtPct(psm.total_pnl_pct)})</span>`;
+    `Eligible unrealized P&L: <span class="${pnlClass(psm.total_pnl_dollars)}">${fmtMoney(psm.total_pnl_dollars)}</span> · ${escapeHtml(accountingCoverage().text)}`;
 
   const metrics = (risk && risk.position_metrics) || {};
 
@@ -349,7 +366,8 @@ function renderPositions(){
     if(!validRecord(p)) return `<tr><td colspan="13">Position record ${index+1} unavailable: malformed holding or instrument identifier.</td></tr>`;
     const m = metrics[p.symbol] || {};
     let flags = '';
-    if(p.stop_hit === true) flags += '<span class="flag-stop">STOP HIT</span> ';
+    if(p.stop_hit === true) flags += '<span class="flag-stop" title="Previous close comparison; execution unverified">CLOSE CROSSED STOP</span> ';
+    if(p.pnl_eligible === false) flags += '<span class="dim">P&amp;L unavailable</span> ';
     if(p.confluence_tier === 'S') flags += '<span class="flag-S">⚡ CONFLUENCE S</span> ';
     if(p.confluence_tier === 'A') flags += '<span class="flag-A">⚡ A</span> ';
     return `<tr>

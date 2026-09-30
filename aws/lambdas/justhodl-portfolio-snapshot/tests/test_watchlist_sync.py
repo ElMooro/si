@@ -210,20 +210,12 @@ def load_current():
 
 
 class SourceReaderTests(unittest.TestCase):
-    def test_unreviewed_financial_and_publication_calculations_remain_unchanged(self):
+    def test_reviewed_accounting_repair_preserves_watchlist_and_source_helpers(self):
         root=SOURCE.parents[3]
         def functions(path):return {n.name:n for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
-        before=functions(root/'tests/fixtures/pre-snapshot-sync/lambda_function.py.txt');after=functions(SOURCE/'lambda_function.py')
-        self.assertEqual({name for name in before if ast.dump(before[name])!=ast.dump(after[name])},{'load_s3_json','sync_auto_watchlist','index_by_symbol','lambda_handler'})
-        handler=copy.deepcopy(after['lambda_handler'])
-        for node in ast.walk(handler):
-            if isinstance(node,ast.Dict):
-                pairs=[(k,v) for k,v in zip(node.keys,node.values) if not isinstance(k,ast.Constant) or k.value not in {'auto_source_generated_at','auto_sync_version'}]
-                node.keys=[k for k,v in pairs];node.values=[v for k,v in pairs]
-                for index,key in enumerate(node.keys):
-                    if isinstance(key,ast.Constant) and key.value=='audit_version':node.values[index]=ast.Constant('2026-09-09.1')
-                    if isinstance(key,ast.Constant) and key.value=='source' and isinstance(node.values[index],ast.Call):node.values[index].args.append(ast.Constant('MANUAL'))
-        self.assertEqual(ast.dump(handler),ast.dump(before['lambda_handler']))
+        before=functions(root/'tests/fixtures/pre-snapshot-accounting/lambda_function.py.txt');after=functions(SOURCE/'lambda_function.py')
+        self.assertEqual({name for name in before if ast.dump(before[name])!=ast.dump(after[name])},{'enrich_symbol','lambda_handler'})
+        self.assertEqual({name for name in after if name not in before},{'accounting_number','accounting_round','accounting_sum','accounting_source','accounting_symbol','build_holdings_accounting'})
     def test_complete_body_and_eof_are_required_and_closed(self):
         mod=load_current();raw=json.dumps(frame()).encode();body=io.BytesIO(raw)
         mod.s3.get_object=lambda **kw:{'Body':body,'ContentLength':len(raw)}

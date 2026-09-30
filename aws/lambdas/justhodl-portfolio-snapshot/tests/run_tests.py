@@ -8,8 +8,9 @@ suite=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(suite)
 if __name__ == "__main__":
     # Load before integration fixtures substitute boto3 in sys.modules.
-    import test_watchlist_sync
-    result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(test_watchlist_sync))
+    import test_watchlist_sync, test_accounting
+    cases=unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromModule(module) for module in (test_watchlist_sync,test_accounting))
+    result=unittest.TextTestRunner(verbosity=1).run(cases)
     if not result.wasSuccessful():raise SystemExit(1)
     suite.test_actual_handler_handles_mixed_priced_unpriced_book()
     suite.test_private_publication_failure_prevents_snapshot_write()

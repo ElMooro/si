@@ -145,7 +145,8 @@ def test_actual_handler_rejects_missing_future_stale_and_nonfinite_marks():
         row = payload["positions"][0]
         assert row["valuation_status"] == status, row
         assert row["market_value"] is None and row["pnl_dollars"] is None and row["stop_hit"] is None
-        assert payload["portfolio_summary"]["total_pnl_dollars"] == 0
+        assert payload["portfolio_summary"]["total_pnl_dollars"] is None
+        assert payload["portfolio_summary"]["pnl_eligible_positions_count"] == 0
 
 
 def test_validate_only_snapshot_skips_sync_and_all_writes():

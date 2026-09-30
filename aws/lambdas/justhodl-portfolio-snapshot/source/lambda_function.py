@@ -400,7 +400,8 @@ def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx
                     confluence_b_idx, regime_picks_idx, sentiment_idx):
     """Build a unified enriched record for one symbol."""
     rec = {"symbol": sym}
-    p = price_data.get(sym) or {}
+    p = price_data.get(sym)
+    p = p if isinstance(p, dict) else {}
     rec["current_price"] = p.get("price")
     # audit 2026-09-08 INST-08: carry the mark's provenance with the price
     rec["price_asof_unix_ms"] = p.get("as_of_unix_ms")
@@ -456,6 +457,178 @@ def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════
 
+def accounting_number(value):
+    """Only measured finite numbers; never coerce booleans, text or absence."""
+    if type(value) not in (int, float, Decimal):
+        return None
+    try:
+        result = float(value)
+        return result if math.isfinite(result) else None
+    except (ValueError, OverflowError):
+        return None
+
+
+def accounting_round(value, digits=2):
+    value = accounting_number(value)
+    return round(value, digits) if value is not None else None
+
+
+def accounting_sum(values, empty_book=False):
+    if not values:
+        return 0.0 if empty_book else None
+    try:
+        return accounting_number(math.fsum(values))
+    except (ValueError, OverflowError):
+        return None
+
+
+def accounting_source(value):
+    """Retain rejected source values without producing illegal JSON numbers."""
+    if isinstance(value, dict):
+        return {k: accounting_source(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [accounting_source(v) for v in value]
+    if type(value) in (float, Decimal) and accounting_number(value) is None:
+        return {"rejected_number_type": type(value).__name__, "representation": str(value)}
+    if type(value) is Decimal:
+        return {"source_number_type": "Decimal", "representation": str(value)}
+    return value
+
+
+def accounting_symbol(row):
+    value = row.get("symbol") if isinstance(row, dict) else None
+    return value if isinstance(value, str) and re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,14}", value) else None
+
+
+def build_holdings_accounting(positions, enriched, now):
+    """Descriptive legacy cash-equity arithmetic, not NAV or account returns.
+
+    Calculate each row once, aggregate unrounded eligible legs, round for display.
+    A missing or invalid input is retained and excluded, never replaced by zero.
+    """
+    if not isinstance(positions, list):
+        raise ValueError("A complete positions list is required")
+    records, values, costs, pnls, paired_costs, missing_costs = [], [], [], [], [], []
+    sectors, unpriced, unpaired, raw_values = {}, [], [], []
+    identities = [accounting_symbol(p) for p in positions]
+    counts = {}
+    for sym in identities:
+        if sym is not None: counts[sym] = counts.get(sym, 0) + 1
+    duplicates = {sym for sym, count in counts.items() if count > 1}
+    mark_now = now.timestamp()
+    for index, original in enumerate(positions):
+        p = original if isinstance(original, dict) else {}
+        sym = identities[index]
+        e = dict(enriched.get(sym, {"symbol": sym}))
+        reasons = []
+        identity_ok = sym is not None and sym not in duplicates
+        if not identity_ok: reasons.append("INVALID_OR_DUPLICATE_SYMBOL")
+        qty = accounting_number(p.get("qty"))
+        cost = accounting_number(p.get("cost_basis_per_share"))
+        if qty is None: reasons.append("QUANTITY_UNAVAILABLE")
+        if cost is None or cost < 0:
+            cost = None
+            reasons.append("COST_BASIS_UNAVAILABLE")
+        cost_total = accounting_number(qty * cost) if identity_ok and qty is not None and cost is not None else None
+        if identity_ok and qty is not None and cost is not None and cost_total is None:
+            reasons.append("COST_BASIS_OVERFLOW")
+        price = accounting_number(e.get("current_price"))
+        if price is not None and price <= 0: price = None
+        stamp_ms = accounting_number(e.get("price_asof_unix_ms"))
+        age_s = accounting_number(mark_now - stamp_ms / 1000) if stamp_ms is not None else None
+        mark_ok = price is not None and age_s is not None and -300 <= age_s <= 120 * 3600
+        status = ("PRICED" if mark_ok else "UNPRICED" if price is None else
+                  "STALE_MARK" if age_s is not None and age_s > 120 * 3600 else "INVALID_MARK")
+        market = accounting_number(qty * price) if identity_ok and qty is not None and mark_ok else None
+        if not identity_ok or qty is None:
+            status = "INVALID_POSITION"
+        elif mark_ok and market is None:
+            status = "INVALID_POSITION"
+            reasons.append("MARKET_VALUE_OVERFLOW")
+        if not mark_ok: reasons.append(status)
+        pnl = accounting_number(market - cost_total) if market is not None and cost_total is not None else None
+        if market is not None and cost_total is not None and pnl is None: reasons.append("PNL_OVERFLOW")
+        ratio = accounting_number(pnl / abs(cost_total) * 100) if pnl is not None and cost_total else None
+        stop = accounting_number(p.get("stop_loss"))
+        if stop is not None and stop <= 0: stop = None
+        if p.get("stop_loss") is not None and stop is None: reasons.append("STOP_PRICE_INVALID")
+        side = ("LONG" if qty >= 0 else "SHORT") if qty is not None else None
+        stop_hit = ((price <= stop) if side == "LONG" else (price >= stop)) if market is not None and qty != 0 and stop is not None else None
+        distance = accounting_number((price - stop) / stop * 100) if stop_hit is not None else None
+        target = accounting_number(p.get("target_weight_pct"))
+        if p.get("target_weight_pct") is not None and target is None: reasons.append("TARGET_WEIGHT_INVALID")
+        row = {
+            **e, "symbol": sym, "source_record_index": index, "qty": qty,
+            "current_price": price, "price_asof_unix_ms": stamp_ms,
+            "cost_basis_per_share": cost, "cost_basis_total": accounting_round(cost_total),
+            "market_value": accounting_round(market), "pnl_dollars": accounting_round(pnl),
+            "pnl_pct": accounting_round(ratio), "position_type": side,
+            "valuation_status": status, "mark_age_h": accounting_round(age_s / 3600, 1) if age_s is not None else None,
+            "pnl_eligible": pnl is not None, "accounting_reason_codes": reasons,
+            "stop_loss": stop, "stop_hit": stop_hit, "stop_distance_pct": accounting_round(distance),
+            "stop_comparison_scope": "PREVIOUS_CLOSE_NOT_EXECUTION",
+            "target_weight_pct": target, "added_at": p.get("added_at"), "notes": p.get("notes"),
+            "weight_drift_pct": None, "weight_drift_reason": "TARGET_DENOMINATOR_UNVERIFIED",
+        }
+        records.append(row); raw_values.append(market)
+        identity = sym if sym is not None else "record:" + str(index + 1)
+        if market is None:
+            unpriced.append(identity)
+            if cost_total is not None: missing_costs.append(abs(cost_total))
+        else:
+            values.append(market)
+            sector = e.get("sector") or p.get("sector")
+            sector = sector if isinstance(sector, str) and sector.strip() else "Unknown"
+            sectors.setdefault(sector, []).append(market)
+        if cost_total is not None: costs.append(cost_total)
+        if pnl is None: unpaired.append(identity)
+        else:
+            pnls.append(pnl); paired_costs.append(abs(cost_total))
+    count = len(records)
+    total = accounting_sum(values, not count)
+    gross = accounting_sum([abs(v) for v in values], not count)
+    total_cost = accounting_sum(costs, not count)
+    total_pnl = accounting_sum(pnls, not count)
+    denominator = accounting_sum(paired_costs, not count)
+    total_ratio = accounting_number(total_pnl / denominator * 100) if total_pnl is not None and denominator else None
+    aggregate_issues = [name for name, rows, value in (
+        ("MARKET_VALUE_AGGREGATE_OVERFLOW", values, total), ("GROSS_VALUE_AGGREGATE_OVERFLOW", values, gross),
+        ("COST_BASIS_AGGREGATE_OVERFLOW", costs, total_cost), ("PNL_AGGREGATE_OVERFLOW", pnls, total_pnl),
+        ("PNL_DENOMINATOR_OVERFLOW", paired_costs, denominator)) if rows and value is None]
+    for row, market in zip(records, raw_values):
+        row["current_weight_pct"] = accounting_round(market / total * 100) if market is not None and total and not unpriced else None
+        row["current_weight_scope"] = "SIGNED_NET_HOLDINGS_NOT_NAV"
+        row["gross_holdings_weight_pct"] = accounting_round(abs(market) / gross * 100) if market is not None and gross else None
+        row["gross_holdings_weight_scope"] = "PRICED_HOLDINGS_ONLY" if unpriced else "ALL_HOLDINGS"
+    concentration = []
+    for sector, legs in sectors.items():
+        value = accounting_sum(legs)
+        concentration.append({"sector": sector, "value": accounting_round(value),
+            "weight_pct": accounting_round(value / total * 100) if value is not None and total and not unpriced else None,
+            "weight_scope": "SIGNED_NET_HOLDINGS_NOT_NAV"})
+    concentration.sort(key=lambda row: (row["value"] is None, -(row["value"] or 0), row["sector"]))
+    stops = [{"symbol": row["symbol"], "stop_loss": row["stop_loss"], "current_price": row["current_price"]} for row in records if row["stop_hit"] is True]
+    summary = {
+        "n_positions": count, "priced_positions_count": len(values), "basis_positions_count": len(costs),
+        "pnl_eligible_positions_count": len(pnls),
+        "total_market_value": accounting_round(total),
+        "total_market_value_scope": "PRICED positions only" if unpriced else "all positions priced",
+        "total_cost_basis": accounting_round(total_cost), "total_cost_basis_scope": "Known signed quantity-times-unit-cost only",
+        "total_pnl_dollars": accounting_round(total_pnl), "total_pnl_pct": accounting_round(total_ratio),
+        "pnl_scope": "Rows with eligible quantity, mark and cost basis only; unrealized price P&L before fees, income and FX",
+        "pnl_pct_basis": "SUM_ABSOLUTE_ELIGIBLE_COST_NOT_NAV_RETURN", "pnl_pct_denominator": accounting_round(denominator),
+        "unpriced_positions": unpriced, "pnl_excluded_positions": unpaired,
+        "unpriced_cost_basis": accounting_round(accounting_sum(missing_costs, not unpriced)),
+        "unpriced_cost_basis_known_count": len(missing_costs),
+        "stops_hit_count": len(stops), "stops_hit": stops,
+        "stops_not_evaluable": [row["symbol"] for row, original in zip(records, positions) if isinstance(original, dict) and original.get("stop_loss") is not None and row["stop_hit"] is None],
+        "accounting_coverage_status": "EMPTY" if not count else "PARTIAL" if unpaired or unpriced or aggregate_issues else "COMPLETE",
+        "accounting_reason_codes": aggregate_issues,
+        "accounting_assumptions": "Legacy single-currency cash-equity arithmetic; instrument, currency and account reconciliation unverified",
+    }
+    return records, summary, concentration, accounting_round(gross)
+
+
 def lambda_handler(event, context):
     denied = private_http_denied(event)
     if denied:
@@ -495,8 +668,9 @@ def lambda_handler(event, context):
 
     # 4. Build unique symbol set + fetch prices in parallel
     all_symbols = set()
-    for p in positions: all_symbols.add(p["symbol"])
-    for w in watchlist: all_symbols.add(w["symbol"])
+    for row in positions + watchlist:
+        sym = accounting_symbol(row)
+        if sym is not None: all_symbols.add(sym)
     price_data = batch_fetch_prices(list(all_symbols))
     n_priced = sum(1 for v in price_data.values() if v)
     print(f"  prices fetched: {n_priced}/{len(all_symbols)}")
@@ -509,96 +683,19 @@ def lambda_handler(event, context):
             confluence_s_idx, confluence_a_idx, confluence_b_idx,
             regime_picks_idx, sentiment_idx)
 
-    # 6. Build POSITIONS list with P&L
-    position_records = []
-    total_value = 0.0
-    total_cost = 0.0
-    unpriced_cost = 0.0        # signed, for the P&L scope arithmetic
-    unpriced_cost_abs = 0.0    # absolute, for display
-    unpriced = []
-    sector_value = {}
-    STALE_MARK_H = 120.0   # a prev-close older than ~5 days is not a valuation-grade mark
-    for p in positions:
-        sym = p["symbol"]
-        e = enriched_by_sym.get(sym, {"symbol": sym})
-        qty = float(p.get("qty") or 0)
-        cost_per = float(p.get("cost_basis_per_share") or 0)
-        # audit 2026-09-08 INST-07/08: the basis is always qty x unit cost (a stale stored total is never trusted),
-        # the side follows the SIGN of the quantity, and a missing/stale price NEVER becomes a market price.
-        cost_total = qty * cost_per
-        side = "LONG" if qty >= 0 else "SHORT"
-        cur_price = e.get("current_price")
-        try:
-            cur_price = float(cur_price)
-            if not math.isfinite(cur_price) or cur_price <= 0:
-                cur_price = None
-        except (TypeError, ValueError):
-            cur_price = None
-        e["current_price"] = cur_price
-        mark_age_h = None
-        if e.get("price_asof_unix_ms"):
-            try:
-                mark_age_h = round((datetime.now(timezone.utc).timestamp() - float(e["price_asof_unix_ms"]) / 1000.0) / 3600.0, 1)
-            except Exception:
-                mark_age_h = None
-        priced = (cur_price is not None and mark_age_h is not None
-                  and math.isfinite(mark_age_h) and -0.0833 <= mark_age_h <= STALE_MARK_H)
-        valuation_status = ("PRICED" if priced else "UNPRICED" if cur_price is None else
-                            "STALE_MARK" if mark_age_h is not None and mark_age_h > STALE_MARK_H else "INVALID_MARK")
-        if priced:
-            market_value = qty * cur_price
-            pnl_dollars = market_value - cost_total
-            pnl_pct = (pnl_dollars / abs(cost_total)) * 100 if cost_total else None
-        else:
-            market_value = None
-            pnl_dollars = None
-            pnl_pct = None
-            unpriced.append(sym)
-            unpriced_cost += cost_total
-            unpriced_cost_abs += abs(cost_total)
-        stop = float(p["stop_loss"]) if p.get("stop_loss") is not None else None
-        stop_distance_pct = ((cur_price - stop) / stop) * 100 if (stop and priced) else None
-        stop_hit = None
-        if stop and priced:
-            stop_hit = (cur_price <= stop) if side == "LONG" else (cur_price >= stop)
-
-        rec = {
-            **e,
-            "qty": qty,
-            "cost_basis_per_share": cost_per,
-            "cost_basis_total": round(cost_total, 2),
-            "market_value": round(market_value, 2) if market_value is not None else None,
-            "pnl_dollars": round(pnl_dollars, 2) if pnl_dollars is not None else None,
-            "pnl_pct": round(pnl_pct, 2) if pnl_pct is not None else None,
-            "position_type": side,
-            "valuation_status": valuation_status,
-            "mark_age_h": mark_age_h,
-            "stop_loss": stop,
-            "stop_distance_pct": round(stop_distance_pct, 2) if stop_distance_pct is not None else None,
-            "stop_hit": stop_hit,          # None = not evaluable (no valuation-grade mark), never False by default
-            "target_weight_pct": float(p["target_weight_pct"]) if p.get("target_weight_pct") is not None else None,
-            "added_at": p.get("added_at"),
-            "notes": p.get("notes"),
-        }
-        position_records.append(rec)
-        if market_value is not None:
-            total_value += market_value
-        total_cost += cost_total
-        sec = e.get("sector") or p.get("sector") or "Unknown"
-        if market_value is not None:
-            sector_value[sec] = sector_value.get(sec, 0.0) + market_value
-
-    # Compute current weights
-    for rec in position_records:
-        rec["current_weight_pct"] = round((rec["market_value"] / total_value) * 100, 2) if (total_value and rec.get("market_value") is not None) else None
-        # Weight drift from target
-        if rec.get("target_weight_pct") is not None and rec.get("current_weight_pct") is not None:
-            rec["weight_drift_pct"] = round(rec["current_weight_pct"] - rec["target_weight_pct"], 2)
+    # Freeze one valuation clock for every row; eligibility uses unrounded seconds.
+    accounting_now = datetime.now(timezone.utc)
+    position_records, portfolio_summary, sector_concentration, gross_value = build_holdings_accounting(positions, enriched_by_sym, accounting_now)
+    total_value = portfolio_summary["total_market_value"]
+    total_pnl = portfolio_summary["total_pnl_dollars"]
+    unpriced = portfolio_summary["unpriced_positions"]
+    stops_hit = portfolio_summary["stops_hit"]
 
     # 7. Build WATCHLIST list
     watchlist_records = []
     for w in watchlist:
-        sym = w["symbol"]
+        sym = accounting_symbol(w)
+        w = w if isinstance(w, dict) else {}
         e = enriched_by_sym.get(sym, {"symbol": sym})
         watchlist_records.append({
             **e,
@@ -614,48 +711,20 @@ def lambda_handler(event, context):
         -(r.get("alpha_score") or 0),
     ))
 
-    # 8. Build sector concentration
-    sector_concentration = []
-    for sec, val in sorted(sector_value.items(), key=lambda x: -x[1]):
-        sector_concentration.append({
-            "sector": sec,
-            "value": round(val, 2),
-            "weight_pct": round((val / total_value) * 100, 2) if total_value else None,
-        })
-
-    # P&L is computed on the PRICED sleeve only: unpriced positions are excluded from BOTH sides
-    # (otherwise their cost would read as a loss against a zero mark -- audit 2026-09-08 INST-08)
-    priced_cost = total_cost - unpriced_cost
-    total_pnl = total_value - priced_cost
-    total_pnl_pct = (total_pnl / abs(priced_cost)) * 100 if priced_cost else None
-
-    # 9. Stops hit summary
-    stops_hit = [{"symbol": r["symbol"], "stop_loss": r["stop_loss"],
-                    "current_price": r["current_price"]}
-                   for r in position_records if r["stop_hit"]]
-
     elapsed = time.time() - started
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.1",
+        "audit_version": "2026-09-30.2",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
-        # Portfolio summary
-        "portfolio_summary": {
-            "n_positions": len(position_records),
-            "total_market_value": round(total_value, 2),
-            "total_market_value_scope": "PRICED positions only" if unpriced else "all positions priced",
-            "total_cost_basis": round(total_cost, 2),
-            "total_pnl_dollars": round(total_pnl, 2),
-            "total_pnl_pct": round(total_pnl_pct, 2) if total_pnl_pct is not None else None,
-            "pnl_scope": "PRICED positions only; unpriced exposure excluded (audit 2026-09-08 INST-08)",
-            "unpriced_positions": unpriced,
-            "unpriced_cost_basis": round(unpriced_cost_abs, 2),
-            "stops_hit_count": len(stops_hit),
-            "stops_hit": stops_hit,
-            "stops_not_evaluable": [r["symbol"] for r in position_records if r.get("stop_loss") is not None and r.get("stop_hit") is None],
+        "portfolio_summary": portfolio_summary,
+        "accounting": {
+            "schema_version": "holdings-accounting.v1", "valuation_at": accounting_now.isoformat(),
+            "source_positions": accounting_source(positions), "source_prices": accounting_source(price_data),
+            "nonfinite_source_encoding": "rejected_number_type plus exact source representation",
+            "assumptions_verified": False, "allows_sizing": False,
         },
 
         # A marked holdings sum is not account equity: no cash/liability/order ledger exists here.
@@ -666,8 +735,8 @@ def lambda_handler(event, context):
             "as_of": datetime.now(timezone.utc).isoformat(), "book_id": None, "account_id": None,
             "currency": None, "equity_nav": None, "cash": None, "liabilities": None,
             "reconciled_at": None, "reserved_order_exposure": None, "nav_history": [], "open_orders": [],
-            "gross_exposure": round(sum(abs(r["market_value"]) for r in position_records if r["market_value"] is not None), 2),
-            "net_exposure": round(total_value, 2),
+            "gross_exposure": gross_value,
+            "net_exposure": total_value,
             "exposure_scope": "PRICED_POSITIONS_ONLY" if unpriced else "ALL_POSITIONS",
             "positions": position_records, "unpriced_positions": unpriced,
         },
@@ -683,18 +752,19 @@ def lambda_handler(event, context):
         "counts": {
             "positions": len(position_records),
             "watchlist": len(watchlist_records),
-            "auto_watch_S": sum(1 for w in watchlist if w.get("source") == "AUTO_TIER_S"),
-            "auto_watch_A": sum(1 for w in watchlist if w.get("source") == "AUTO_TIER_A"),
-            "manual_watch": sum(1 for w in watchlist if w.get("source") == "MANUAL"),
+            "auto_watch_S": sum(1 for w in watchlist if isinstance(w, dict) and w.get("source") == "AUTO_TIER_S"),
+            "auto_watch_A": sum(1 for w in watchlist if isinstance(w, dict) and w.get("source") == "AUTO_TIER_A"),
+            "manual_watch": sum(1 for w in watchlist if isinstance(w, dict) and w.get("source") == "MANUAL"),
         },
     }
 
+    encoded = json.dumps(payload, separators=(",", ":"), allow_nan=False).encode("utf-8")
     if validation_only:
         return {"ok": True, "validation_only": True, "schema_version": "audit-accounting-1.0",
-                "status": payload["capital_book"]["status"], "artifact_size_bytes": len(json.dumps(payload).encode())}
+                "status": payload["capital_book"]["status"], "artifact_size_bytes": len(encoded)}
     publish_private("portfolio-snapshot", payload)
     s3.put_object(Bucket=S3_BUCKET, Key=SNAPSHOT_KEY,
-        Body=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+        Body=encoded,
         ContentType="application/json",
         CacheControl="private, no-store")
 
@@ -704,8 +774,8 @@ def lambda_handler(event, context):
         "success": True,
         "n_positions": len(position_records),
         "n_watchlist": len(watchlist_records),
-        "total_market_value": round(total_value, 2),
-        "total_pnl_dollars": round(total_pnl, 2),
+        "total_market_value": total_value,
+        "total_pnl_dollars": total_pnl,
         "stops_hit_count": len(stops_hit),
         "elapsed_seconds": round(elapsed, 2),
     })}
