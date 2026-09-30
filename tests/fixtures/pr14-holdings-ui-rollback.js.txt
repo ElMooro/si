@@ -207,7 +207,7 @@
       scope: 'Your assumed exposure and shock; not measured look-through exposure, a forecast, or a suggested allocation.'};
   }
   function render(p) {
-    return ownershipPanel() + heatPanel() + '<h2>Trace holdings before using them</h2><p data-hd-clock class="xr-state">' + esc(sourceState(p)) + ' · WAIT means abstention.</p>' +
+    return heatPanel() + '<h2>Trace holdings before using them</h2><p data-hd-clock class="xr-state">' + esc(sourceState(p)) + ' · WAIT means abstention.</p>' +
       '<p>' + p.quality.complete_returned_snapshots + ' of ' + p.quality.configured_funds + ' configured funds have complete returned current snapshots; ' +
       p.quality.reconstructed_current_rows + ' rows reconstructed. Compiled ' + esc(p.generated_at) + '.</p>' +
       '<p>No ticker is required to retain a row. Bonds, cash, swaps and other derivative records remain visible. The dates below describe the reported holdings, not today’s ownership.</p>' +
@@ -318,141 +318,6 @@
       '<p>Use the existing fund and security inspectors below for full rows and exact current/prior dates. Membership comparisons are reported observations; quantity and raw weight differences remain separate. Thirty-day query cutoffs are not daily changes; same-date revisions and corporate actions are not trades. Weight and value units remain unqualified. Fund overlap, fund-of-funds and leveraged/inverse strategies are not combined into exposure.</p>';
   }
 
-  // Summary limits are browser constants, never expanded by retained declarations.
-  const ownershipLimits = Object.freeze({manifest:524288, page:262144, records:100000, pages:768, total:50331648, sessionPages:32, sessionBytes:8388608});
-  const count = (v,max) => Number.isInteger(v) && v>=0 && v<=max;
-  const isoDay = v => typeof v==='string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0,10)===v;
-  const same = (a,b) => JSON.stringify(stable(a))===JSON.stringify(stable(b));
-  function summaryRef(ref, limit) {
-    if(!ref || !/^[a-f0-9]{64}$/.test(ref.sha256) || ref.key!==prefix+'directories/'+ref.sha256+'.json' || !count(ref.bytes,limit) || ref.bytes===0) throw Error('Summary reference/size differs');
-  }
-  async function ownershipManifest(p, fetcher, signal) {
-    if(!p.ownership_summary) throw Error('Ownership summary not available in this publication. Existing inspectors remain available.');
-    const ref=p.ownership_summary;
-    if(ref.status!=='complete'||ref.policy!=='qualified-membership.v1') throw Error('Ownership summary unavailable: '+(ref.reason||'unsupported policy/status'));
-    summaryRef(ref.manifest,ownershipLimits.manifest);
-    const m=await retained(ref.manifest,'directories',fetcher,signal), configured=Object.keys(p.funds).sort();
-    if(m.contract!=='etf-qualified-membership-summary.v1'||m.policy!==ref.policy||!same(Object.keys(m.funds||{}).sort(),configured)||m.configured_fund_count!==configured.length ||
-       !Number.isFinite(Date.parse(m.generated_at)) || Date.parse(m.generated_at)>Date.parse(p.generated_at) ||
-       flags.some(f=>m[f]!==false)||m.call!==null||m.portfolio_action!=='WAIT'||m.independent_investment_votes!==0 ||
-       !['source_classifications_verified','corporate_actions_verified','weight_unit_certified','market_value_currency_certified'].every(k=>m[k]===false)||
-       !Array.isArray(m.cohorts)||m.cohorts.length>ownershipLimits.pages||!count(m.record_count,ownershipLimits.records)||!count(m.page_count,ownershipLimits.pages)) throw Error('Summary manifest contract differs');
-    for(const t of configured){const f=m.funds[t],original=p.funds[t];
-      const current=original.current,quality=current.quality,stamp=Date.parse(m.generated_at);
-      if(f.qualification_exclusion===null&&(quality.status!=='complete_returned_snapshot'||quality.pagination_complete!==true||
-         !['missing_identity_rows','duplicate_identity_rows','rows_with_field_errors'].every(k=>quality[k]===0)||
-         Object.keys(current.effective_dates).length!==1||!Object.keys(current.effective_dates).every(d=>isoDay(d)&&Date.parse(d)<=stamp)||
-         !Number.isFinite(Date.parse(current.source_acquired_at))||Date.parse(current.source_acquired_at)>stamp||!(stamp<Date.parse(current.source_valid_until))||
-         !isoDay(current.processed_date)||Date.parse(current.processed_date)>Date.parse(current.source_acquired_at)))throw Error('Summary qualification differs from source metadata');
-      if(!same(f.current_snapshot,original.current.snapshot)||!same(f.prior_snapshot,original.prior.snapshot)||!same(f.comparison,original.comparison)||
-         !same(f.current_effective_dates,Object.keys(original.current.effective_dates).sort())||!same(f.prior_effective_dates,Object.keys(original.prior.effective_dates).sort())||
-         f.source_acquired_at!==original.current.source_acquired_at||f.source_valid_until!==original.current.source_valid_until||
-         !(f.qualification_exclusion===null||typeof f.qualification_exclusion==='string')) throw Error('Summary fund provenance differs');
-    }
-    let records=0,pages=0,bytes=ref.manifest.bytes;const ids=new Set(),keys=new Set();
-    for(const g of m.cohorts){
-      if(!['current_membership','dated_membership_comparison'].includes(g.kind)||!Array.isArray(g.effective_dates)||g.effective_dates.length!==(g.kind==='current_membership'?1:2)||!g.effective_dates.every(isoDay)||
-         !Array.isArray(g.eligible_funds)||!same(g.eligible_funds,[...new Set(g.eligible_funds)].sort())||g.eligible_funds.some(t=>!m.funds[t])||g.eligible_fund_count!==g.eligible_funds.length||
-         g.configured_fund_count!==configured.length||!count(g.record_count,ownershipLimits.records)||!Array.isArray(g.parts)||g.parts.length!==Math.ceil(g.record_count/200)||
-         ![g.source_valid_until,g.lower_bound_valid_until].every(d=>d===null||typeof d==='string'&&Number.isFinite(Date.parse(d)))) throw Error('Summary cohort/count contract differs');
-      const digest=await sha(new TextEncoder().encode(JSON.stringify(stable({kind:g.kind,effective_dates:g.effective_dates}))));
-      if(g.cohort_id!==digest||ids.has(digest))throw Error('Summary cohort identity differs');ids.add(digest);
-      if(g.kind==='current_membership'){
-        const eligible=configured.filter(t=>m.funds[t].qualification_exclusion===null&&same(m.funds[t].current_effective_dates,g.effective_dates));
-        const expiry=eligible.length?Math.min(...eligible.map(t=>Date.parse(m.funds[t].source_valid_until))):null;
-        if(!same(eligible,g.eligible_funds)||(expiry===null?g.source_valid_until!==null:Date.parse(g.source_valid_until)!==expiry)||
-           g.ranking_scope!==(eligible.length?'exact_within_eligible_date_cohort':'unranked_reported_observations'))throw Error('Summary eligible denominator differs');
-      }
-      for(const r of g.parts){summaryRef(r,ownershipLimits.page);if(keys.has(r.key))throw Error('Duplicate summary page');keys.add(r.key);bytes+=r.bytes;}
-      records+=g.record_count;pages+=g.parts.length;
-    }
-    if(records!==m.record_count||pages!==m.page_count||pages>ownershipLimits.pages||records>ownershipLimits.records||bytes>ownershipLimits.total)throw Error('Summary total coverage/byte bound differs');
-    return m;
-  }
-  function ownershipState(m,g,view,at=Date.now()) {
-    if(!['qualified','raw','lower'].includes(view))return 'Choose a supported measurement.';
-    if(!g||g.kind!=='current_membership')return 'Choose an exact economic-date cohort.';
-    if(Date.parse(m.generated_at)>at)return 'Publication clock is in the future.';
-    if(view==='qualified'&&(!g.eligible_fund_count||g.source_valid_until===null||!(at<Date.parse(g.source_valid_until))))return 'Qualified ranking unavailable: no eligible funds or source-check deadline expired.';
-    if(view==='lower'&&(g.lower_bound_valid_until===null||!(at<Date.parse(g.lower_bound_valid_until))))return 'Fresh known-presence lower bound unavailable: separate deadline missing or expired.';
-    return null;
-  }
-  function ownershipRows(doc,g,index,seen,previous) {
-    if(doc.contract!=='etf-qualified-membership-rows.v1'||doc.cohort_id!==g.cohort_id||doc.row_offset!==index*200||!Array.isArray(doc.rows)||doc.rows.length!==Math.min(200,g.record_count-index*200))throw Error('Summary page count/offset differs');
-    let prev=previous;const next=new Set(seen);
-    for(const r of doc.rows){
-      if(!/^[a-f0-9]{64}$/.test(r.identity_key)||next.has(r.identity_key)||!Array.isArray(r.reported_tickers)||r.reported_tickers.length>1000||!r.reported_tickers.every(t=>typeof t==='string'&&t.length<=512)||
-         ![r.source_asset_class,r.source_security_type].every(v=>v===null||typeof v==='string'&&v.length<=512)||
-         !count(r.raw_observed_fund_count,g.configured_fund_count)||!count(r.known_presence_lower_bound,r.raw_observed_fund_count)||
-         (g.eligible_fund_count?!count(r.qualified_fund_count,Math.min(g.eligible_fund_count,r.known_presence_lower_bound)):r.qualified_fund_count!==null)||
-         !['observed_in_both_count','observed_only_in_current_count','observed_only_in_prior_count'].every(k=>r[k]===null))throw Error('Summary row/count contract differs');
-      if(prev&&((prev.qualified_fund_count||0)<(r.qualified_fund_count||0)||((prev.qualified_fund_count||0)===(r.qualified_fund_count||0)&&prev.identity_key>=r.identity_key)))throw Error('Summary ordering differs');
-      next.add(r.identity_key);prev=r;
-    }
-    return {seen:next,previous:prev};
-  }
-  function ownershipSession() {
-    let token=0,controller=null,manifest=null,cohort=null,index=0,seen=new Set(),previous=null,requests=0,bytes=0;
-    const cache=new Map();let cacheBytes=0;
-    function cancel(){token++;controller?.abort();}
-    async function read(ref,limit,fetcher,signal){summaryRef(ref,limit);if(signal.aborted)throw Error('Cancelled');
-      const key=JSON.stringify(ref);if(cache.has(key))return cache.get(key).doc;
-      if(bytes+ref.bytes>ownershipLimits.sessionBytes||requests>=ownershipLimits.sessionPages)throw Error('Summary session budget reached; reload metadata to start another bounded attempt.');
-      bytes+=ref.bytes;requests++;const doc=await retained(ref,'directories',fetcher,signal);
-      if(signal.aborted)throw Error('Cancelled');
-      while(cacheBytes+ref.bytes>ownershipLimits.sessionBytes&&cache.size){const [k,v]=cache.entries().next().value;cacheBytes-=v.bytes;cache.delete(k);}
-      cache.set(key,{doc,bytes:ref.bytes});cacheBytes+=ref.bytes;return doc;
-    }
-    return {cancel,
-      async open(p,fetcher){cancel();const generation=token;controller=new AbortController();manifest=null;cohort=null;requests=bytes=0;
-        const activeSignal=controller.signal;await verifyPacket(p,fetcher,activeSignal);
-        // Metadata verifier performs its own bounded retained read (not page cache).
-        const m=await ownershipManifest(p,fetcher,activeSignal);
-        if(generation!==token)throw Error('Cancelled');manifest=m;return m;
-      },
-      select(id){cancel();cohort=manifest?.cohorts.find(g=>g.cohort_id===id&&g.kind==='current_membership');index=0;seen=new Set();previous=null;if(!cohort)throw Error('Choose a cohort');return cohort;},
-      async next(view,fetcher,at=null){cancel();const generation=token;controller=new AbortController();
-        const error=ownershipState(manifest,cohort,view,at??Date.now());if(error)throw Error(error);
-        if(index>=cohort.parts.length)throw Error('No more cohort pages');if(index>=ownershipLimits.sessionPages)throw Error('32-page browsing bound reached; use the source evidence for the remaining records.');
-        const doc=await read(cohort.parts[index],ownershipLimits.page,fetcher,controller.signal);
-        if(generation!==token)throw Error('Cancelled');
-        const validated=ownershipRows(doc,cohort,index,seen,previous);
-        const expired=ownershipState(manifest,cohort,view,at??Date.now());if(expired)throw Error(expired);
-        seen=validated.seen;previous=validated.previous;index++;
-        return {rows:doc.rows,page:index,loaded:seen.size,total:cohort.record_count,requests,bytes};
-      }
-    };
-  }
-  function ownershipPanel(){return '<section data-hd-ownership aria-label="Configured ownership cohorts"><h2>Configured-universe membership cohorts</h2><p>Rank reported memberships only within eligible funds sharing one economic date. A fresh source check does not establish current ownership. No whole-market ranking, trades or capital-flow inference.</p><button type="button" data-own-open>Load / retry summary metadata</button> <button type="button" data-own-cancel>Cancel</button><div data-own-status role="status">Not loaded. Existing publications may not yet contain a summary. No membership shards are fetched by this panel.</div><div data-own-controls hidden><label>Economic-date cohort<select data-own-cohort aria-label="Economic-date cohort"><option value="">Choose a date explicitly</option></select></label><label>Measurement<select data-own-view aria-label="Ownership measurement"><option value="qualified">Qualified memberships · eligible cohort only</option><option value="raw">Raw historical observations · unranked</option><option value="lower">Fresh known-presence lower bounds · unranked</option></select></label><button type="button" data-own-next>Load next 200 records</button></div><div data-own-coverage></div><div data-own-result></div></section>';}
-  function ownershipCoverage(m,g,at=Date.now()){
-    const excluded={};for(const f of Object.values(m.funds))if(f.qualification_exclusion)excluded[f.qualification_exclusion]=(excluded[f.qualification_exclusion]||0)+1;
-    const day=g.effective_dates[0],age=Math.floor((at-Date.parse(day))/86400000);
-    return '<p><b>'+g.eligible_fund_count+' eligible / '+m.configured_fund_count+' configured funds in this date cohort.</b> Economic date '+esc(day)+' · '+age+' days before this viewing date. '+(age<0?'Future economic date — not current ownership.':age>7?'Historical economic date — do not treat as current ownership.':'Reported dated observations; current ownership is not confirmed.')+'</p><p>Compiled '+esc(m.generated_at)+'. Eligible ranking expires '+esc(g.source_valid_until)+'. Fresh lower bounds separately expire '+esc(g.lower_bound_valid_until)+'.</p><p>Eligible funds: '+esc(g.eligible_funds.join(', ')||'None')+'. Other dates are separate cohorts.</p>'+table(['Global exclusion reason','Configured funds'],Object.entries(excluded),'Summary exclusions')+'<details><summary>Per-fund source clocks and exclusions</summary>'+table(['Fund','Economic dates','Source acquired','Source expires','Qualification / exclusion'],Object.entries(m.funds).map(([t,f])=>[t,f.current_effective_dates.join(', '),f.source_acquired_at,f.source_valid_until,f.qualification_exclusion||'Eligible only within its own economic-date cohort']),'Per-fund summary provenance')+'</details><p>Source classes are unverified; unknown remains unknown. Includes reported zero/short positions, cash, bonds and derivatives. No unit-qualified dollar/quantity totals, inferred asset classes, weight conversions, fund-of-funds expansion or leverage/inverse netting. Use existing inspectors for dated membership comparisons and separate quantity/weight observations.</p>';
-  }
-  function ownershipView(m,g,result,view,at=Date.now()){
-    const error=ownershipState(m,g,view,at);if(error)return '<p>'+esc(error)+'</p>';
-    const rows=view==='qualified'?result.rows:[...result.rows].sort((a,b)=>a.identity_key.localeCompare(b.identity_key));
-    const title=view==='qualified'?'Qualified reported memberships within eligible date cohort':view==='raw'?'Raw historical observations · not ranked':'Fresh known-presence lower bounds · not ranked';
-    return '<p>'+title+'. Page '+result.page+'; '+result.loaded+' / '+result.total+' retained records verified. Only this page is displayed; unloaded records are not a separate universe or a new ranking. '+(view!=='qualified'?'Page membership follows the retained qualified-order pagination; this is not a top raw/lower-bound list.':'Counts and order are supplied by the verified producer for this exact cohort.')+'</p>'+table(['Reported ticker / exact identity','Source class · unverified',view==='qualified'?'Qualified funds / eligible':view==='raw'?'Raw observed funds':'Known-presence lower bound'],rows.map(r=>[(r.reported_tickers.join(' / ')||'No ticker')+' · '+r.identity_key,r.source_asset_class??'Unknown',view==='qualified'?r.qualified_fund_count+' / '+g.eligible_fund_count:view==='raw'?r.raw_observed_fund_count:r.known_presence_lower_bound]),title);
-  }
-  function bindOwnership(panel,p,fetcher){
-    const host=panel.querySelector('[data-hd-ownership]'),q=s=>host.querySelector(s),session=ownershipSession();let generation=0,m=null,g=null,result=null,timer=null;
-    const clear=()=>{generation++;session.cancel();clearTimeout(timer);result=null;q('[data-own-result]').textContent='';};
-    const paint=()=>{if(!m||!g)return;q('[data-own-coverage]').innerHTML=ownershipCoverage(m,g);if(result)q('[data-own-result]').innerHTML=ownershipView(m,g,result,q('[data-own-view]').value);
-      clearTimeout(timer);const deadline=q('[data-own-view]').value==='qualified'?g.source_valid_until:q('[data-own-view]').value==='lower'?g.lower_bound_valid_until:null;
-      if(deadline&&Date.parse(deadline)>Date.now())timer=setTimeout(paint,Math.min(2147483647,Date.parse(deadline)-Date.now()));};
-    q('[data-own-cancel]').onclick=()=>{clear();q('[data-own-status]').textContent='Cancelled. Choose a cohort again or retry metadata.';};
-    q('[data-own-open]').onclick=async()=>{clear();m=g=null;q('[data-own-controls]').hidden=true;q('[data-own-coverage]').textContent='';const token=generation;q('[data-own-status]').textContent='Verifying publication and bounded summary metadata…';
-      try{const found=await session.open(p,fetcher);if(token!==generation)return;m=found;q('[data-own-controls]').hidden=false;q('[data-own-cohort]').innerHTML='<option value="">Choose a date explicitly</option>'+m.cohorts.filter(c=>c.kind==='current_membership').sort((a,b)=>b.effective_dates[0].localeCompare(a.effective_dates[0])).map(c=>'<option value="'+c.cohort_id+'">'+esc(c.effective_dates[0])+' · '+c.eligible_fund_count+' / '+m.configured_fund_count+' eligible</option>').join('');q('[data-own-status]').textContent='Metadata verified. Choose an economic date; no date is selected automatically. Each click loads at most 200 records / 256 KiB. At most 32 page requests / 8 MiB of page bytes per attempt across all cohorts. Separate proof/metadata bounds: two objects up to 16 MiB each plus a 512 KiB summary manifest.';}
-      catch(e){if(token===generation)q('[data-own-status]').textContent='Summary unavailable: '+e.message;}};
-    const select=()=>{clear();g=null;try{g=session.select(q('[data-own-cohort]').value);paint();q('[data-own-status]').textContent='Date selected; load a page explicitly.';}catch(e){q('[data-own-coverage]').textContent='';q('[data-own-status]').textContent=e.message;}};
-    q('[data-own-cohort]').onchange=select;q('[data-own-view]').onchange=select;
-    q('[data-own-next]').onclick=async()=>{const token=++generation;result=null;q('[data-own-result]').textContent='';q('[data-own-status]').textContent='Verifying next retained page…';
-      try{const r=await session.next(q('[data-own-view]').value,fetcher);if(token!==generation)return;result=r;paint();q('[data-own-status]').textContent='Verified '+r.loaded+' / '+r.total+' records; '+r.requests+' page requests / '+r.bytes+' bytes this attempt.';}
-      catch(e){if(token===generation)q('[data-own-status]').textContent='Summary page unavailable: '+e.message;}};
-    return clear;
-  }
-
   function bindScenario(host, getState) {
     const form = host.querySelector('[data-hd-scenario]'), output = host.querySelector('[data-hd-scenario-output]');
     const invalidate = () => {output.textContent = 'Selection, source or assumptions changed; recalculate your hypothetical scenario.';};
@@ -479,7 +344,7 @@
     if (!kinds[mode]) return;
     let packet = null, snap = null, selected = null, dir = null, controller = null, ticker = 'SPY', basis = 'current';
     let epoch = 0, rowEpoch = 0, securityEpoch = 0, publicationEpoch = 0, page = 0, searchPage = 0, matches = [], displayed = [], rowsCache = new Map();
-    const heat = heatSession();let heatEpoch=0, heatUntil=Infinity, clearOwnership=()=>{};
+    const heat = heatSession();let heatEpoch=0, heatUntil=Infinity;
     const fetcher = root.fetch.bind(root), signal = () => controller?.signal;
     const q = selector => panel.querySelector(selector);
     const invalidate = bindScenario(host, () => ({packet, ticker, basis, snapshot: snap, row: selected}));
@@ -560,7 +425,7 @@
       } catch (error) {if (token === securityEpoch) fail('[data-hd-search-results]', error);}
     }
     async function refresh() {
-      clearOwnership();heatEpoch++;heat.cancel();epoch++;rowEpoch++;securityEpoch++;controller?.abort();controller = new AbortController();
+      heatEpoch++;heat.cancel();epoch++;rowEpoch++;securityEpoch++;controller?.abort();controller = new AbortController();
       const publication = ++publicationEpoch, activeSignal = controller.signal;
       packet = null;snap = null;selected = null;dir = null;invalidate();
       panel.textContent = 'Checking retained ETF holdings evidence…';
@@ -569,7 +434,6 @@
         const candidate = await verifyPacket(loaded.doc, fetcher, activeSignal);
         if (publication !== publicationEpoch) return;
         packet = candidate;panel.innerHTML = render(packet);
-        try {clearOwnership=bindOwnership(panel,packet,fetcher);} catch(e) {q('[data-own-status]').textContent='Summary panel unavailable: '+e.message;}
         const clearHeat=()=>{heatEpoch++;heat.cancel();q('[data-hd-heat-result]').textContent='';q('[data-hd-heat-status]').textContent='Selection changed or cancelled; load to recompute the whole selected sample.';};
         q('[data-hd-heat-funds]').oninput=clearHeat;q('[data-hd-heat-date]').oninput=clearHeat;q('[data-hd-heat-cancel]').onclick=clearHeat;
         q('[data-hd-heat-load]').onclick=async()=>{
@@ -602,7 +466,7 @@
     await refresh();
   }
 
-  const api = {ownershipLimits, ownershipManifest, ownershipState, ownershipRows, ownershipSession, ownershipPanel, ownershipCoverage, ownershipView, bindOwnership, heatLimits, heatSelection, heatReason, heatMeasure, heatSession, heatView, kinds, typed, safe, load, retained, verifyPacket, snapshot, rowPart, directory, memberships, comparison,
+  const api = {heatLimits, heatSelection, heatReason, heatMeasure, heatSession, heatView, kinds, typed, safe, load, retained, verifyPacket, snapshot, rowPart, directory, memberships, comparison,
     searchRows, searchSecurities, snapshotView, rowTable, rowDetail, memberView, scenario, render, sourceState, table, esc, cash, bindScenario, boot};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.JHHoldings = api;

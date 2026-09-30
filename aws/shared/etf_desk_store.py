@@ -29,7 +29,11 @@ COMPILERS=(native,model,catalog,collector,flow_native,flow_model,flow_collect,fl
     holdings_native,holdings_model,holdings_collect,holdings_store,sys.modules[__name__])
 # Exact source-qualified candidate store; current code must still reconstruct
 # every original byte/result. Retained compiler source is never executed.
-COMPATIBLE_COMPILERS={'etf_desk_store':frozenset(('8efcdf2fb7ae5061de51b1e0a5e980b931da1c4025d358dfbfb4726240164750',))}
+COMPATIBLE_COMPILERS={
+    'etf_desk_store':frozenset(('8efcdf2fb7ae5061de51b1e0a5e980b931da1c4025d358dfbfb4726240164750',
+        'f613dd2ef7b3b284f41cb413618abb8870d29ddc24b1a498171676447f13c3e3')),
+    'etf_holdings_model':frozenset(('bbf0979393fcffae1694dac56e203013d6a7cfcdb6ab059553b6b3e501995c19',)),
+    'etf_holdings_store':frozenset(('d3e20272d4deac5e68fdda77df1ab030c1b88aa60fa1c991e3ef5e644fc98cbc',))}
 now=holdings_store.now
 code,missing,conflict,bounded=holdings_store.code,holdings_store.missing,holdings_store.conflict,holdings_store.bounded
 

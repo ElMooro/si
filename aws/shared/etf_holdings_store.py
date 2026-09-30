@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from datetime import datetime, timezone
 from pathlib import Path
-import json, re, sys, time
+import json, os, re, sys, time
 import etf_holdings_native as native
 import etf_holdings_model as model
 import etf_holdings_collect as collector
@@ -27,7 +27,8 @@ COMPATIBLE_IO_STORES = frozenset(('91f6e5d6ec12f30523b30221577cb42c245732ac9cb9a
     '7d05ac3f3547514a7c56320107a2db1ad3e11ba41a5c9838e8b485ac0fd40b10'))
 # The only numerical predecessor adds no different valid-data arithmetic; it lacked numeric expansion bounds.
 # Replay still recomputes originals and requires the complete retained output to match.
-COMPATIBLE_COMPILERS = {'etf_holdings_store': COMPATIBLE_IO_STORES,
+COMPATIBLE_COMPILERS = {'etf_holdings_store': COMPATIBLE_IO_STORES | frozenset(('d3e20272d4deac5e68fdda77df1ab030c1b88aa60fa1c991e3ef5e644fc98cbc',)),
+    'etf_holdings_model': frozenset(('bbf0979393fcffae1694dac56e203013d6a7cfcdb6ab059553b6b3e501995c19',)),
     'etf_holdings_native': frozenset(('55c8b5ba85517743476d4767f4904075b07b89db67333457a45cbbe18a841b77',))}
 
 
@@ -374,6 +375,10 @@ def run(client, bucket, kind, request_id, execution_id, credential='', remaining
             inputs = {'contract': 'etf-holdings-inputs.v1', 'kind': kind, 'generated_at': now(),
                 'query_date': acquisition.query_date, 'contexts': contexts, 'collections': collections,
                 'provider_requests': requests, 'original_provider_bytes': source_bytes, 'previous': previous}
+            # Acquisition-only publication brake; retained/recovery inputs are never rewritten.
+            # Only the exact configured string enables new summaries; absent/malformed is off.
+            if os.environ.get('ETF_OWNERSHIP_SUMMARY_ENABLED') == 'true':
+                inputs['ownership_summary_policy'] = model.OWNERSHIP_POLICY
         else:
             canonical = snapshot(client, bucket, model.CURRENT, read)
             try: previous = snapshot(client, bucket, model.LOOK_CURRENT, read)
