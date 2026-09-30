@@ -63,7 +63,7 @@ def test_html_installation_preserves_utf8_and_refuses_invalid_source_bytes():
         (root / 'jh-evidence-io.js').write_bytes(b'/* test complete I/O asset */\n')
         page = site / 'test.html'
         source = '<html><head><title>München — 東京 Á</title></head><body>€ → USD\n</body></html>'
-        doc = {'coverage': {}, 'pages': {'test.html': {'api_responses': []}}}
+        doc = {'coverage': {}, 'pages': {'test.html': {'api_responses': [], 'repository_assets': []}}}
         reader, writer = codepage_defaults()
         with patch.object(builder, 'ROOT', root), patch.object(builder, 'contract', lambda _: doc), patch.object(sys, 'argv', ['builder', '--site', str(site)]), reader, writer:
             page.write_bytes(source.encode('utf-8'))

@@ -71,3 +71,25 @@ then runs source graph, wiring, frontend and deployment checks. Timing evidence
 is diagnostic: local profiler times and separate Actions runs are not a
 controlled service-level benchmark. Release acceptance requires the exact
 successful Pages build and its public static manifest.
+
+## Exact served repository assets
+
+Source compilation hashes repository assets in the source checkout. During a
+Pages build, `bind_site_assets` makes a separate complete contract whose asset
+hashes describe the final built files. Both the served registry and embedded
+page contracts use that same bound document. The source registry is not mutated
+to disguise a build transform.
+
+This matters for `config/home-layout.json` and `config/section-registry.json`:
+the section baker compacts both and removes section/subsection `first_seen`
+bookkeeping from the latter. Navigation and engine manifests are regenerated
+earlier in the build. All five reviewed repository asset paths must exist within
+the site root and parse as unambiguous JSON before any site contract is written.
+Missing files, traversal, duplicate keys, nonfinite numbers and invalid UTF-8
+fail the build. No current engine packet is involved.
+
+`tests/deployment/test_served_asset_contract.py` retains the complete original
+7,666,551-byte live contract and its commit-bound build manifest, reproduces the
+two original hash mismatches, and checks that source and served contracts stay
+distinct. Live acceptance independently reproduces each declared build transform
+and then checks every hash against the exact served asset and build manifest.

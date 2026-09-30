@@ -1,0 +1,80 @@
+{
+  "schema": "served-repository-asset-binding-audit.v1",
+  "prepared_at": "2026-09-30T17:28:13.002685+00:00",
+  "base_commit": "c0087e1af923ac1899532ab7b47e12fd97a5ab2b",
+  "predecessors": [
+    {
+      "source": "build_page_data_contracts.py",
+      "fixture": "tests/fixtures/pre-served-asset-contracts.py.txt",
+      "bytes": 35546,
+      "sha256": "71fbfe19cd31973aaca0c3f56f66fb11e78cdf56ebc5f44b39d5294a4a605507"
+    },
+    {
+      "source": "stage474-live-contract.json",
+      "fixture": "tests/fixtures/pre-served-asset-live-contract.json",
+      "bytes": 7666551,
+      "sha256": "eac043b6b15a9f64927ba77b184ba17a5941d623c8c8384e0db2a5a7b35f8b7f"
+    },
+    {
+      "source": "stage474-difference-build-manifest.json",
+      "fixture": "tests/fixtures/pre-served-asset-live-build-manifest.json",
+      "bytes": 90869,
+      "sha256": "3fdf6f34a5519dc99f6dfb22c414528c05769b4e147b9ebada6ca5cac33141bb"
+    }
+  ],
+  "reproduction": {
+    "source": "c0087e1af923ac1899532ab7b47e12fd97a5ab2b",
+    "whole_pages": 599,
+    "only_changes": [
+      {
+        "page": "index.html",
+        "key": "config/home-layout.json",
+        "source_hash": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+        "served_hash": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+      },
+      {
+        "page": "index.html",
+        "key": "config/section-registry.json",
+        "source_hash": "886996bb301b1bc9ed26d389931b273bd86b606a049de4d08826e0891a3a028e",
+        "served_hash": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3"
+      }
+    ],
+    "all_other_fields_identical": true,
+    "same_manifest_before_after": true,
+    "manifest_sha256": "3fdf6f34a5519dc99f6dfb22c414528c05769b4e147b9ebada6ca5cac33141bb"
+  },
+  "repair": "The source compiler stays unchanged. Only the built registry and embedded HTML are bound to exact final built bytes after every referenced reviewed repository asset validates. No asset paths outside the five reviewed repository assets are read.",
+  "source_contract_and_engine_inventory_unchanged": true,
+  "tests": {
+    "focused": 112,
+    "deployment": 902,
+    "candidate_shell": 15,
+    "frontend": 2129,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "missing_or_stale_wires": 0,
+    "native_engine_changes": false,
+    "note": "An older UTF-8 installation fixture omitted repository_assets. It now declares its actual empty asset set; all original UTF-8/idempotence/invalid-byte assertions remain. The initial failing deployment log is retained outside the repository."
+  },
+  "changed_source": [
+    {
+      "path": "scripts/build_page_data_contracts.py",
+      "bytes": 37007,
+      "sha256": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+    },
+    {
+      "path": "tests/deployment/test_served_asset_contract.py",
+      "bytes": 5301,
+      "sha256": "f454961cc319e744aad73b73c6e1f8396e94e57f68952282f0a24a95062b564b"
+    },
+    {
+      "path": "tests/deployment/test_contract_builder_utf8.py",
+      "bytes": 4543,
+      "sha256": "d2db9925324781e92b02fdc4d8067e024d0286530c38b71e4749576632fa12b4"
+    }
+  ],
+  "release_acceptance": {
+    "status": "pending_exact_push_and_complete_coherent_live_static_build"
+  },
+  "scope": "Whole public static source/build contracts and invented fixtures only. This is artifact provenance, not market data health, native/private delivery, model edge or portfolio authority. All ten workstreams remain open."
+}

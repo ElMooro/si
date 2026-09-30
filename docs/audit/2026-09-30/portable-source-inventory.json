@@ -4443,7 +4443,7 @@
     ],
     "complete_navigation_source_replay_pages": 543
   },
-  "acceptance_rules": "Live comparison requires one unchanged build manifest before/after. Engine records/order match source except generation clock. Navigation is regenerated using current source and the recorded build date. Only those two generated assets may rebind repository-asset hashes to the exact served bytes; all other contract fields must match.",
+  "acceptance_rules": "Live comparison requires one unchanged build manifest before and after. All engine records/order match source except generation clock. All navigation entries replay from source at the build date. Every served repository asset must reproduce its exact declared source transformation and the served contract must hash those exact bytes. The four transformed artifacts are nav-manifest.json, engine-manifest.json, config/home-layout.json and config/section-registry.json. The vendor geometry asset is byte-identical to source. No other field is exempt.",
   "static_source_files": [
     {
       "path": "scripts/gen_engine_manifest.py",
@@ -4521,7 +4521,10 @@
     "missing_or_stale_wires": 0
   },
   "release_acceptance": {
-    "status": "pending_exact_push_and_coherent_live_static_build"
+    "status": "portable_order_source_repair_shipped_complete_static_acceptance_pending_asset_binding_repair",
+    "source_commit": "bc9a1470127f3fff8e6e222e78e2c80abb1b64ac",
+    "cancelled_pages_run": 36745621116,
+    "followup_audit": "docs/audit/2026-09-30/served-asset-bindings.json"
   },
   "scope": "Only source compilation, static evidence and retained complete public build captures. No native producer, private account/current consumer packet, provider request or schedule change. All ten institutional workstreams remain open."
 }

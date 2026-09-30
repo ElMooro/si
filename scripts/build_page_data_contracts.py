@@ -4,6 +4,7 @@ No network or runtime completeness claim. Dynamic/private/unresolved outputs rem
 """
 import argparse,ast,hashlib,json,os,re,shutil,sys
 from collections import defaultdict
+from copy import deepcopy
 from functools import lru_cache
 from types import MappingProxyType
 from pathlib import Path
@@ -362,6 +363,36 @@ def install_html(source,apis,page_contract=None,asset_version=None):
     tag='<meta charset="utf-8">'+page_tag+'<script id="jh-api-data-contract" type="application/json">'+encoded+'</script>'+evidence_tag+'<script src="/jh-data-inspector.js?v='+version+'" data-contract="page-data-contract.v1"></script>'
     return re.sub(r'<head\b[^>]*>',lambda m:m[0]+tag,source,count=1,flags=re.I) if re.search(r'<head\b',source,re.I) else tag+source
 
+def bind_site_assets(doc, site):
+    """Bind every referenced repository asset to its exact final served bytes.
+
+    Source compilation stays unchanged. Validate all built assets before writing
+    the site registry or embedding it. No live or current packet is read.
+    """
+    site=Path(site).resolve()
+    keys={asset['key'] for page in doc['pages'].values() for asset in page['repository_assets']}
+    if keys-set(REPOSITORY_ASSETS):raise ValueError('Unreviewed built repository asset')
+    hashes={}
+    def object_pairs(items):
+        obj={}
+        for key,value in items:
+            if key in obj:raise ValueError('Duplicate built asset JSON key')
+            obj[key]=value
+        return obj
+    def invalid(value):raise ValueError('Nonfinite built asset JSON number')
+    for key in sorted(keys):
+        path=(site/key).resolve()
+        try:path.relative_to(site)
+        except ValueError:raise ValueError('Built repository asset escapes site root') from None
+        raw=path.read_bytes()
+        json.loads(raw.decode('utf-8'),object_pairs_hook=object_pairs,parse_constant=invalid)
+        hashes[key]=hashlib.sha256(raw).hexdigest()
+    bound=deepcopy(doc)
+    for page in bound['pages'].values():
+        for asset in page['repository_assets']:asset['sha256']=hashes[asset['key']]
+    return bound
+
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--site');ap.add_argument('--check',action='store_true');a=ap.parse_args()
     doc=contract(ROOT);path=ROOT/'config/page-data-contracts.json'
@@ -371,7 +402,10 @@ def main():
         print(json.dumps(doc['coverage']));return
     tmp=path.with_suffix('.json.tmp');tmp.write_text(json.dumps(doc,separators=(',',':')),encoding='utf-8',newline='\n');os.replace(tmp,path)
     if a.site:
-        site=Path(a.site);(site/'config').mkdir(exist_ok=True);shutil.copyfile(path,site/'config/page-data-contracts.json');shutil.copyfile(ROOT/'jh-data-inspector.js',site/'jh-data-inspector.js');shutil.copyfile(ROOT/'jh-evidence-io.js',site/'jh-evidence-io.js')
+        site=Path(a.site);doc=bind_site_assets(doc,site)
+        (site/'config').mkdir(exist_ok=True)
+        (site/'config/page-data-contracts.json').write_text(json.dumps(doc,separators=(',',':')),encoding='utf-8',newline='\n')
+        shutil.copyfile(ROOT/'jh-data-inspector.js',site/'jh-data-inspector.js');shutil.copyfile(ROOT/'jh-evidence-io.js',site/'jh-evidence-io.js')
         for page in pages(site):
             route=page.relative_to(site).as_posix()
             source=page.read_text(encoding='utf-8')
