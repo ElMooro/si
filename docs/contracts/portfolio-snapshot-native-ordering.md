@@ -68,9 +68,10 @@ retry or rollback. The same native guard then checks the resulting settings.
 The policy is 20,366 bytes, below S3's 20,480-byte limit, with 114 bytes remaining.
 
 The reviewed path uses single `PutObject`. The exact current/archive scopes do
-not permit unconditional uploads, multipart setup, copy or replication writes;
+not permit unconditional uploads, multipart setup or replication writes;
 delete and version-delete are denied. This follows the documented conditional
-request keys and their multipart/copy limitations. References:
+request keys and their multipart requirements. CopyObject compatibility is not
+relied upon or tested by this single-PutObject path. References:
 [S3 conditional-write enforcement](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes-enforce.html)
 and [conditional write behavior](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html).
 

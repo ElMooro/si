@@ -1,5 +1,5 @@
 {
-  "status": "current_code_complete_invented_acceptance_passed_native_and_policy_cutover_pending",
+  "status": "exact_native_package_alias_and_scoped_storage_policy_accepted_actual_private_delivery_unverified",
   "predecessor_commit": "b030c0d4fdc358000abbfe81ee98df47eb7c8cb1",
   "source_files": {
     "aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py": {
@@ -169,5 +169,449 @@
     "Bucket policy changes cannot be claimed to cancel requests already admitted under the predecessor.",
     "Whole maximum-load native memory and actual private publication are unverified.",
     "Marked holdings remain unreconciled and provide no sizing authority."
-  ]
+  ],
+  "source_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+  "native_acceptance": {
+    "source_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6373_snapshot_ordering_runtime_acceptance.md",
+      "bytes": 1888,
+      "sha256": "db385f8a5c11b31386c1805b742af75e42baf374caafe0849b1961c94c80cf77",
+      "commit": "13bfe9d66a5321b0886bd41b460ce9c6a8c773a2"
+    },
+    "evidence": {
+      "all_original_resources_and_schedules_preserved": true,
+      "archive_history_reads": 0,
+      "current_packet_reads": 0,
+      "exact_native_package_verified": true,
+      "expected_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+      "native_invocations": 0,
+      "normal_private_publication_verified": false,
+      "private_reads": 0,
+      "provider_requests": 0,
+      "reviewed_snapshot_origin_verified": true,
+      "runtime": {
+        "code_sha256": "50s3yAY3al5CsdsVQpWr8aBGVBbbT0ezJ0KSCazkK+4=",
+        "source_files_checked": 6,
+        "handler_bytes": 70558,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-portfolio-snapshot-hourly",
+            "state": "ENABLED",
+            "expression": "cron(40 * * * ? *)",
+            "native_targets": 1,
+            "qualified_targets": [
+              "arn:aws:lambda:us-east-1:857687956942:function:justhodl-portfolio-snapshot:live"
+            ]
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "portfolio-snapshot-sched",
+            "state": "ENABLED",
+            "expression": "cron(40 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default",
+            "target_qualifier": "live"
+          }
+        ],
+        "function_name": "justhodl-portfolio-snapshot",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "active_alias": {
+          "alias": "live",
+          "version": "15",
+          "code_sha256": "50s3yAY3al5CsdsVQpWr8aBGVBbbT0ezJ0KSCazkK+4="
+        }
+      },
+      "schedule_changes": 0,
+      "worker_prerequisite": {
+        "function": "justhodl-portfolio-snapshot",
+        "worker": "justhodl-data-proxy",
+        "commit": "f3e77dcb361941e7d9bbf298c1f2ed93275bc0c4",
+        "status": "exact_prerequisite_matched",
+        "worker_invocations": 0,
+        "private_reads": 0
+      }
+    }
+  },
+  "policy_acceptance": {
+    "source_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6374_snapshot_conditional_storage.md",
+      "bytes": 118059,
+      "sha256": "bb241a4a89e1042fd1886c3a7716323da8c614dbc833386e60adb4150b71f6bc",
+      "commit": "a845955bbbb859400408dce5c6bc659f089a76e6"
+    },
+    "result": {
+      "added_guard_statements": [
+        "SnapshotCASv1",
+        "SnapshotHistoryCASv1",
+        "SnapshotHistoryNoDeletev1"
+      ],
+      "effective_write_authorization_tested": false,
+      "native_invocations": 0,
+      "native_storage_guard_passed": true,
+      "observed_policy_text_sha256": "64121bd40dfe8fa61bb198da119619783c3200ba8ba59cc7b076ed12b8df8c4c",
+      "policy_changed": true,
+      "policy_update_atomic_with_other_writers": false,
+      "pre_admitted_requests_cancelled": false,
+      "preserved_statement_count": 31,
+      "private_reads": 0,
+      "private_writes": 0,
+      "schedule_changes": 0,
+      "target_policy_bytes": 20366,
+      "target_policy_sha256": "36a510f6956017e575745d90a33a2e3def9b1633c811e089f1f3c6d97506402b"
+    },
+    "phases": {
+      "before": {
+        "responses": 2,
+        "bytes": 42259,
+        "sha256": "16577e74e4728e5ecf3de06dd3b0b7d5675213c4b1c4fff0a67051a5d6d9dfa1",
+        "policy_text_sha256": [
+          "4d02ce0ca212f86f0692105c062575d888c4d9907831d1d8c966b05fbfb046d1",
+          "4d02ce0ca212f86f0692105c062575d888c4d9907831d1d8c966b05fbfb046d1"
+        ]
+      },
+      "after": {
+        "responses": 2,
+        "bytes": 44001,
+        "sha256": "37251693cfefe2112be8c38ec5a59d3eb78d8ec5ef798e08ba6c504240c82085",
+        "policy_text_sha256": [
+          "64121bd40dfe8fa61bb198da119619783c3200ba8ba59cc7b076ed12b8df8c4c",
+          "64121bd40dfe8fa61bb198da119619783c3200ba8ba59cc7b076ed12b8df8c4c"
+        ]
+      }
+    },
+    "native_prerequisite_reverified": true,
+    "decoded_secret_findings": 0,
+    "all_predecessor_fields_preserved": true
+  },
+  "static_acceptance": {
+    "checked_at": "2026-09-30T15:35:54.410378+00:00",
+    "intended_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+    "served_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+    "assets": {
+      "portfolio-manager.html": {
+        "bytes": 30627,
+        "sha256": "4b956e3847f063606dbd98a187249820ce525711edcb2803a4c7692acecf5a0e",
+        "matches_manifest": true
+      },
+      "portfolio/index.html": {
+        "bytes": 48427,
+        "sha256": "57d23614d594cb7207abb2edcd5b94794eb3b34df5545d76eb71212d1311b035",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "7ef8ae40efc1bca43a5873a6411716296debab93e0aebd717574df7aea4da6b5",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "5e5ae8567b3d81969b0d7fc79b94c4c1d065b90196ef2330d7cd17020f83ae7f",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68345,
+        "sha256": "270a8e2793300b6117664d0c4cd3faf5a8c6ce3533fd6a5af54b3b92f88a7389",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "b8d959af3913354af0d744c240f0131b047e2bd4cf591f2c70711b18fc77a49a",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "ba99b3fc310729e52586bd17dbbe7377baa39d386263c9bc1836fcc62fc9ed4c",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "3f9f0a267d9db57187e370346a34af8ae3488c63f543c206671c7461b1e0a844",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "6ed8dc882770518218795f66ac1c4a1fc388d03173368d6aced94ac8e093163d",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-portfolio-research.js": {
+        "bytes": 5693,
+        "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-research-page.js": {
+        "bytes": 7876,
+        "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-quotes.js": {
+        "bytes": 7020,
+        "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-quotes-page.js": {
+        "bytes": 8073,
+        "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 11530,
+        "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3070592,
+        "sha256": "c179d4e25110198e89feac230b06231a2afd0df4cac3180fb26c2274dc200662",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7666551,
+        "sha256": "3532878ae8ccd9655f3475b4213b19e995ee645ba478f35acaf0f99202fb20de",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+    "intended_native_commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+    "static_sources_unchanged_between_commits": true
+  },
+  "unchanged_worker_acceptance": {
+    "commit": "f3e77dcb361941e7d9bbf298c1f2ed93275bc0c4",
+    "status": "matched",
+    "version_id": "610ebe97-88a9-4c15-81c2-8862a4a0e040",
+    "deployment_id": "ef35968d-64be-4c9c-8a50-ee8ced56f2e9",
+    "captured_at": "2026-09-30T14:00:29.250546+00:00",
+    "source_files": {
+      "index.js": {
+        "bytes": 214933,
+        "content_type": "application/javascript+module",
+        "sha256": "c2a7ce7e05baead99ae0da499da242dd41a852ba55f565c58a2b05d5e890ed51"
+      }
+    },
+    "configuration": {
+      "bindings": [
+        {
+          "configuration_sha256": "2ebdf56cd788ef3d29a88c7bd2bf1beaf0cf5297ca65ac6ece95b83977de6ca0",
+          "name": "ADMIN_TOKEN",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "55bdb46ab9466940dd61509719a63f2b67351e5c84b3cd47318dfa3f5367e37c",
+          "name": "BRAIN_OWNER_STORE",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "e065ee9a12724ecfa5467642506b88d3a69a5083dbd8fb8557fee827dee9dc68",
+          "name": "FMP_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "ad189337f7859e091772fef27616629d35abecbab7c67abd1fd1ba7d9d005ef5",
+          "name": "FRED_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "15b20cc5122c17b2925179e1092e80c244962f28586ef5490d859a5c95d379ea",
+          "name": "OWNER_EMAILS",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "691b0f25e76203a12b17b408b1873f3af38e420cc6c4be3138a93d01e6a9d60d",
+          "name": "POLYGON_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "da5792e7b1f325eb06018fb411cccec41ba2fb6d4e10677459fe23299b60ab53",
+          "name": "PRICE_PLAN_MAP",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "7be92833e7a9562786ab6ce4d61ff3316caf3b7ccea1043b8fbeafc06870d130",
+          "name": "STRIPE_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "f73495b93a3c8639378089f2667916d69dc5c57250e4d9bbeb8ed1d6d37d5769",
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "9ee1f0128229ee032808269a583294e95a8e4f49f5c56ac2666e41fccfb3a0c8",
+          "name": "SUPABASE_SERVICE_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "8c127714ed3f395eedfe25c1d7d35ef17325cad0b7163d2e6a32e6fea06b5efa",
+          "name": "SUPABASE_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "97a8cffb5ca622b53cd86061db7302e10013422134c3020399ccf5b018c2194c",
+          "name": "SYMDIR_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "63c6aad2f1ad0a595d18097340667a2bf6347b93409ba59d8e59d9ebc9f18f71",
+          "name": "USER_DATA",
+          "type": "kv_namespace"
+        },
+        {
+          "configuration_sha256": "2ca88993a16a6148b7aac2d7fd2a8d4b6b4defa66ffb8f575faf588598f072a2",
+          "name": "WORKSPACE_COORDINATOR",
+          "type": "durable_object_namespace"
+        }
+      ],
+      "compatibility_date": "2025-10-01",
+      "compatibility_flags": [],
+      "configuration_sha256": "2d0813beacba5c6ac4775ec4da73df51b76895bafe0e9dcf9cdf274f2ba9c599",
+      "schedule_count": 0,
+      "schedules_sha256": "6daa9ec137a94fc5962f6d05ab16df8dba70096ae34571ccd552ac130cd733c5"
+    },
+    "capture_artifact": {
+      "path": "aws/ops/reports/worker-source/release-36725595039.json",
+      "sha256": "54052634b4932f02d22d31d039befc0b246c7c0923c94bf778d12d3319efad5f"
+    },
+    "predecessor_kind": "previous_release",
+    "checked_at": "2026-09-30T15:31:36.959822+00:00",
+    "public_receipt_matches": true,
+    "complete_before_after_capture_verified": true,
+    "repository_input_files_checked": 17,
+    "local_build_matches": true,
+    "private_reads": 0,
+    "worker_invocations": 0,
+    "normal_private_publication_verified": false
+  },
+  "release_runs": {
+    "lambda": 36736831142,
+    "pages": 36736831011,
+    "worker_tests_only": 36736831078,
+    "native_acceptance": 36737376144,
+    "conditional_policy": 36737562843
+  },
+  "admin_unchanged_source_redeployment": {
+    "receipt": {
+      "actor": "ElMooro",
+      "code_sha256": "IHV5A/ZKbajIIdKa4z46AXvrpIuusZAsTf1TsAEXEDw=",
+      "commit": "9a15ce1210ca6d7da0770337e08da5782883ea6f",
+      "deployed_at": "2026-09-30T15:29:42Z",
+      "function": "justhodl-portfolio-admin",
+      "run_id": "36736831142",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36736831142",
+      "schema": "release-receipt.v1",
+      "source": {
+        "lambda_function.py": {
+          "bytes": 29794,
+          "sha256": "7e33636ca01bbd98923a68fbc5d1ae88024a5a6ccbae1efa59be6d51fd3db658"
+        }
+      },
+      "verified": true,
+      "workflow": "deploy-lambdas.yml",
+      "zip_bytes": 981567,
+      "zip_sha256_hex": "20757903f64a6da8c821d29ae33e3a017beba48baeb1902c4dfd53b00117103c"
+    },
+    "public_receipt_bytes": 662,
+    "public_receipt_sha256": "558ad94aaf53e7b3123f0e8890132b0c261d29e425b82ca3276b67a909036de8",
+    "scope": "CI also selected admin because its tests changed; exact public receipt verified, admin source remains byte-identical. No separate new admin control-plane capture or private packet read."
+  }
 }
