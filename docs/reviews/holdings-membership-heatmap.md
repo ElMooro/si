@@ -26,7 +26,7 @@ Canonical access from this environment previously returned HTTP 403 / Cloudflare
 
 Zero added scheduled invocations, vendor requests, S3 PUTs or recurring storage. Extra public GET/transfer is opt-in and bounded as above, excluding the unchanged page bootstrap/inspector requests. Synthetic ARKK+SPY cold load: 5 verified objects, 240,858 bytes; repeat: 0 network objects/bytes. This is a fixture measurement, not an estimate of actual ARK portfolios. Server-side response rejection/network transport framing may add overhead; no pricing commitment is made.
 
-The browser script remains a direct root static asset; both pages bump its query version to 20260930-membership1. No Lambda ZIP changes. Rollback is to revert this draft's three production files together and restore their previous asset version. No persistent data migration is involved.
+The browser script remains a direct root static asset; both pages bump its query version to 20260930-membership2. No Lambda ZIP changes. Rollback is to revert this draft's three production files together and restore their previous asset version. No persistent data migration is involved.
 
 ## Validation
 
@@ -38,3 +38,11 @@ The browser script remains a direct root static asset; both pages bump its query
 - Secret scan, targeted preflight, diff whitespace check and exact staged inventory passed before commit.
 
 Independent review and live acceptance are still required. No predictive qualification or capital permissions changed.
+
+## Independent review follow-up — absolute byte ceiling
+
+Reviewer P2 reproduced an initial-publication verification regression: a correctly hashed 17,825,792-byte padded output was accepted because manifest bytes replaced the loader ceiling. Three new regression tests failed against d5b56438d before the repair (including oversized acceptance and malformed bounds reaching transport).
+
+The loader now validates a positive integer declaration against a code-owned absolute 16 MiB constant before transport. Publication manifests also validate their output length explicitly, including missing declarations; no undefined/default bypass. Both streaming and nonstreaming actual-body limits remain enforced. Added cases cover over-limit, NaN, infinity, fractional, negative, zero, string, null/missing declarations and a legitimate exactly-16-MiB hashed publication. Query versions on both pages advance to membership2. No acquisition, risk, schedule or producer changes.
+
+Follow-up validation: 21 focused tests; full frontend suite and both-page 1440/390 synthetic browser previews rerun. Exact final counts and commit are recorded in the draft PR. Live acceptance remains blocked and no deployment is claimed.

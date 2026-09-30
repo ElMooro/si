@@ -34,7 +34,13 @@
   async function sha(raw) {
     return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256', raw)), b => b.toString(16).padStart(2, '0')).join('');
   }
-  async function load(key, fetcher, signal, maxBytes=16 * 1024 * 1024) {
+  const MAX_EVIDENCE_BYTES = 16 * 1024 * 1024;
+  function evidenceByteLimit(value) {
+    if (!Number.isInteger(value) || value <= 0 || value > MAX_EVIDENCE_BYTES) throw Error('Holdings evidence byte bound');
+    return Math.min(value, MAX_EVIDENCE_BYTES);
+  }
+  async function load(key, fetcher, signal, maxBytes=MAX_EVIDENCE_BYTES) {
+    maxBytes = evidenceByteLimit(maxBytes);
     if (!safe(key) && !Object.values(kinds).some(v => v.current === key)) throw Error('Unapproved holdings evidence path');
     const r = await fetcher('/' + key, {cache: safe(key) ? 'default' : 'no-store', signal});
     if (!r.ok) throw Error('Holdings evidence request failed');
@@ -69,6 +75,7 @@
         m.kind !== k || m.generated_at !== p.generated_at || m.output_sha256 !== p.replay.output_sha256) throw Error('Holdings run differs');
     const ref = m.output;
     if (ref?.key !== base + 'outputs/' + m.output_sha256 + '.json' || ref.sha256 !== m.output_sha256) throw Error('Holdings output identity differs');
+    evidenceByteLimit(ref.bytes);
     const out = await load(ref.key, fetcher, signal, ref.bytes);
     if (out.raw.byteLength !== ref.bytes || await sha(out.raw) !== ref.sha256) throw Error('Holdings output bytes differ');
     const {replay, ...body} = p;
