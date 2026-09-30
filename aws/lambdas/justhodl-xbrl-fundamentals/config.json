@@ -1,0 +1,1 @@
+{"description":"Build per-ticker point-in-time XBRL fundamentals from SEC EDGAR","env":{"S3_BUCKET":"justhodl-dashboard-live"},"function_name":"justhodl-xbrl-fundamentals","handler":"lambda_function.lambda_handler","memory":1024,"runtime":"python3.12","schedule":"cron(0 6 ? * SUN *)","timeout":900}
