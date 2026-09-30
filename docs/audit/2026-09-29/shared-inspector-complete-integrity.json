@@ -1,0 +1,92 @@
+{
+  "stage": 441,
+  "status": "source_and_isolated_browser_accepted_exact_static_deployment_pending",
+  "checked_at": "2026-09-30T00:12:01.415354+00:00",
+  "baseline_commit": "ae2e7a26b0fca89193167e8ccac3e910f43b7b25",
+  "predecessor": "shared-inspector-predecessor.json",
+  "source_findings": "shared-inspector-source-gap.json",
+  "improvements": [
+    "One shared strict UTF-8 JSON decoder rejects duplicate decoded keys, nonfinite overflow, invalid Unicode, trailing content and excessive depth. Complete valid fields, rows, null, false and zero remain inspectable.",
+    "Complete stream acquisition bounds registry bytes, received artifact bytes and gzip expansion, covers stalled headers/bodies, cancels abandoned readers and shares the artifact deadline across acquisition and decompression. Public route identity and private ownership/projection requirements remain intact.",
+    "A newer selection cancels earlier work. Response observation captures no extra request and preserves the caller response; older headers/bodies cannot replace newer captures, and failure of the latest capture explicitly clears earlier evidence. Owner identity changes still invalidate capture.",
+    "The builder installs exactly one content-versioned helper before the inspector and existing portfolio consumers. Scenario and portfolio adapters retain their original four-MiB limit; scenario arithmetic, SRI and native sources are unchanged."
+  ],
+  "tests": {
+    "new_frontend": 16,
+    "frontend": 1970,
+    "focused_frontend": 90,
+    "deployment_static": 731,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "native_portfolio_cases": 20,
+    "private_handler_checks": 10,
+    "native_scenario_cases": 24
+  },
+  "browser_acceptance": {
+    "scope": "Current source component and current original portfolio/scenario pages with wholly synthetic in-memory responses. CSP denies external connections; no authentication bootstrap or actual account data.",
+    "gzip": "All 160 leaves survive a genuine gzip body; last row 51 and Unicode, zero, null, false remain inspectable.",
+    "duplicate": "A duplicate field visibly clears the previous artifact and reports Output unavailable.",
+    "race": "A delayed selection is aborted; releasing its response cannot replace the new two-field evidence.",
+    "capture": "Exactly one mock request per page action. Original duplicate-key response still reaches caller; the capture replaces its prior measured zero with an explicit unavailable state.",
+    "keyboard": "Return activates the delayed-response release button.",
+    "mobile": {
+      "viewport": 360,
+      "document": 345,
+      "panel": 305,
+      "horizontal_overflow": false
+    },
+    "console_errors": 0,
+    "portfolio": "Current genuine synthetic model output still matches its snapshot binding and renders 9.31 USD holdings-only VaR, with account-NAV risk unavailable.",
+    "scenario": "Complete retained synthetic export imports and recalculates to -6.1% / -6100 USD / 93900 USD ending NAV with the identical reviewed model.",
+    "screenshots": [
+      "stage441-complete-gzip.png",
+      "stage441-inspector-race-failure.png",
+      "stage441-inspector-mobile.png"
+    ]
+  },
+  "source_identities": {
+    "jh-evidence-io.js": {
+      "bytes": 5002,
+      "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe"
+    },
+    "jh-data-inspector.js": {
+      "bytes": 34117,
+      "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5"
+    },
+    "jh-portfolio-scenario-io.js": {
+      "bytes": 3035,
+      "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e"
+    },
+    "scripts/build_page_data_contracts.py": {
+      "bytes": 33005,
+      "sha256": "79bfe3d14acde2773bb3cff05117838afd8ef747d22b5683e72f56f74b556798"
+    },
+    "portfolio/index.html": {
+      "bytes": 29496,
+      "sha256": "e246eb9691c9944342658693d3f06608b66c5884be778c74465eea18230a86fa"
+    },
+    "position-sizer.html": {
+      "bytes": 7624,
+      "sha256": "07d88e78e419cd681238d8699e3a553ac82b03708e286a0070dfdd431f032a25"
+    }
+  },
+  "boundaries": {
+    "native_changes": 0,
+    "native_invocations": 0,
+    "private_account_reads": 0,
+    "live_current_packet_reads": 0,
+    "provider_probes": 0,
+    "portfolio_writes": 0,
+    "paid_ai_requests": 0,
+    "access_policy_changes": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0
+  },
+  "limitations": [
+    "Exact static deployment remains pending. This stage changes browser/build code only; no native engine deployment is required.",
+    "The authenticated private-artifacts adapter still buffers upstream bytes before returning a response to this reader. Its earlier buffer is a separately reproduced next task; this change does not claim to bound that adapter.",
+    "A synchronous parser cannot be preempted by browser timers; accepted bytes and nesting are bounded and artifact elapsed time is checked after parsing. Rendering allocation is not exhaustively bounded. Numbers retain JavaScript binary64 semantics, not arbitrary precision.",
+    "Original caller parsers remain separate from the strict inspector capture. No provider observation, normal private publication, point-in-time qualification, independent evidence, portfolio reconciliation or trading skill is established. All ten platform workstreams remain open."
+  ]
+}

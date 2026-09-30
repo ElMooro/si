@@ -111,7 +111,7 @@ test('response observation matches exact reviewed API, performs no extra request
 test('owner response observation drops signed-out, wrong-kind and in-flight previous-owner responses',async()=>{
  let owner={uid:null,epoch:0},resolve,records=[];
  const contract={engine:'private',origin:'https://api.justhodl.ai',pathname:'/private-artifact',methods:['GET'],query:{kind:'brain'},owner_authenticated:true};
- const wrapped=inspector.observeResponses(async()=>({ok:true,clone:()=>({json:()=>new Promise(r=>{resolve=r;})})}),[contract],r=>records.push(r),()=>({...owner}));
+ const wrapped=inspector.observeResponses(async()=>({ok:true,clone:()=>new Response(new ReadableStream({start(controller){resolve=payload=>{controller.enqueue(new TextEncoder().encode(JSON.stringify(payload)));controller.close();};}}))}),[contract],r=>records.push(r),()=>({...owner}));
  await wrapped('https://api.justhodl.ai/private-artifact?kind=brain');assert.equal(resolve,undefined);
  owner={uid:'owner-a',epoch:1};await wrapped('https://api.justhodl.ai/private-artifact?kind=other');assert.equal(resolve,undefined);
  await wrapped('https://api.justhodl.ai/private-artifact?kind=brain');owner={uid:'owner-b',epoch:2};resolve({notes:['private-a']});await new Promise(r=>setImmediate(r));assert.equal(records.length,0);
@@ -123,7 +123,7 @@ test('head bootstrap captures first inline application response before DOM ready
  const config=new Element('script');config.textContent=JSON.stringify([apiContract]);let engineCalls=0,ownerChange;
  const contract={outputs:[],primary_producers:['first-engine'],api_responses:[apiContract]},pageConfig=new Element('script');pageConfig.textContent=JSON.stringify(contract);
  const doc={head,body,readyState:'loading',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-api-data-contract'?config:id==='jh-page-data-contract'?pageConfig:all(body,n=>n.id===id)[0],addEventListener:(event,fn)=>{(events[event]??=[]).push(fn);}};
- const context={document:doc,location:{pathname:'/first.html',href:'https://justhodl.ai/first.html',search:''},URL,URLSearchParams,console,
+ const context={document:doc,location:{pathname:'/first.html',href:'https://justhodl.ai/first.html',search:''},URL,URLSearchParams,console,JHEvidenceIO:require('../jh-evidence-io.js'),
   JustHodlAuth:{getUser:()=>({id:'owner-a'}),onChange:fn=>{ownerChange=fn;}},
   fetch:async url=>{if(url==='/config/page-data-contracts.json')throw new Error('Embedded page contract must avoid registry request');engineCalls++;return new Response(JSON.stringify({first_payload:{zero:0,all_rows:[1,2,3]}}),{status:200});}};
  vm.createContext(context);vm.runInContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);
@@ -202,7 +202,7 @@ test('standalone chart view loads its complete source contract without fetching 
  const output={engine:'source-engine',key:'data/fixture-public.json',access:'public'},requests=[];
  const contract={outputs:[output],primary_producers:['source-engine'],api_responses:[{engine:'dynamic-engine',origin:'https://api.justhodl.ai',pathname:'/quote'}]};
  const doc={head,body,readyState:'complete',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-page-data-contract'?embedded:all(body,n=>n.id===id)[0]};
- const context={document:doc,location:{pathname:'/engine-data.html',href:'https://justhodl.ai/engine-data.html?page=chart.html',search:'?page=chart.html'},URL,URLSearchParams,TextDecoder,Uint8Array,AbortController,setTimeout,clearTimeout,console,
+ const context={document:doc,location:{pathname:'/engine-data.html',href:'https://justhodl.ai/engine-data.html?page=chart.html',search:'?page=chart.html'},URL,URLSearchParams,TextDecoder,Uint8Array,AbortController,setTimeout,clearTimeout,console,JHEvidenceIO:require('../jh-evidence-io.js'),
   fetch:async(url,options)=>{requests.push({url,options});if(url==='/config/page-data-contracts.json')return new Response(JSON.stringify({schema_version:'page-data-contract.v1',pages:{'chart.html':contract}}));
     assert.equal(url,'/data/fixture-public.json?exact=1&nogen=1');return new Response(JSON.stringify({rows:[{value:0},{value:null,extra:false}]}),{headers:{'X-JH-Artifact-Key':output.key}});}};
  vm.runInNewContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);await new Promise(setImmediate);
@@ -261,8 +261,26 @@ test('standalone registry verifies exact build bytes and refuses a stale cached 
 });
 
 test('registry deadline covers a stalled response body even when abort is ignored',async()=>{
- for(const fetcher of [()=>new Promise(()=>{}),async()=>({ok:true,arrayBuffer:()=>new Promise(()=>{})})]){
+ for(const fetcher of [()=>new Promise(()=>{}),async()=>new Response(new ReadableStream({pull(){return new Promise(()=>{});}}))]){
   await assert.rejects(inspector.fetchRegistry(fetcher,null,null,5),/timed out/);
  }
  await assert.rejects(inspector.fetchRegistry(async()=>new Response('not JSON'),null,null));
+});
+
+test('actual inspector selection cancels abandoned work and clears old evidence on decoding failure',async()=>{
+ const vm=require('node:vm'),fs=require('node:fs'),head=new Element('head'),body=new Element('body'),embedded=new Element('script');
+ const outputs=['old','new','duplicate'].map(name=>({engine:'synthetic',key:'data/synthetic-'+name+'.json',access:'public'}));
+ embedded.textContent=JSON.stringify({outputs});let resolve,oldSignal,calls=0;
+ const doc={head,body,readyState:'complete',createElement:tag=>new Element(tag),getElementById:id=>id==='jh-page-data-contract'?embedded:all(body,n=>n.id===id)[0]};
+ const context={document:doc,location:{pathname:'/synthetic.html',href:'https://synthetic.invalid/synthetic.html',search:''},URL,URLSearchParams,AbortController,console,JHEvidenceIO:require('../jh-evidence-io.js'),
+  fetch:async(url,options)=>{calls++;const key=url.slice(1).split('?')[0],headers={'X-JH-Artifact-Key':key};
+   if(key===outputs[0].key){oldSignal=options.signal;return new Promise(r=>resolve=()=>r(new Response('{"old":true}',{headers})));}
+   return new Response(key===outputs[1].key?'{"newest":true,"zero":0}':'{"newest":true,"newest":false}',{headers});}};
+ vm.runInNewContext(fs.readFileSync(require.resolve('../jh-data-inspector.js'),'utf8'),context);await new Promise(setImmediate);
+ const choice=all(body,n=>n.attrs['aria-label']==='Engine output')[0],panel=all(body,n=>n.id==='jh-engine-data')[0];
+ choice.value='synthetic::'+outputs[0].key;const pending=choice.events.change();await new Promise(setImmediate);
+ choice.value='synthetic::'+outputs[1].key;await choice.events.change();assert.equal(oldSignal.aborted,true);assert.equal(panel.dataset.loadedOutput,outputs[1].key);
+ resolve();await pending;await new Promise(setImmediate);assert.equal(panel.dataset.loadedOutput,outputs[1].key);assert.match(body.textContent,/\/newest/);assert.ok(!body.textContent.includes('/old'));
+ choice.value='synthetic::'+outputs[2].key;await choice.events.change();assert.match(body.textContent,/Output unavailable: Duplicate JSON key/);assert.equal(panel.dataset.loadedOutput,undefined);assert.ok(!body.textContent.includes('/newest'));assert.equal(calls,3);
+ choice.value='synthetic::'+outputs[1].key;await choice.events.change();assert.equal(panel.dataset.loadedLeafPaths,'2');assert.match(body.textContent,/\/zero/);assert.equal(calls,4);
 });

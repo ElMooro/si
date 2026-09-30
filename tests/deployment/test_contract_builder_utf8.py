@@ -60,6 +60,7 @@ def test_html_installation_preserves_utf8_and_refuses_invalid_source_bytes():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td); site = root / 'site'; site.mkdir(); (root / 'config').mkdir()
         (root / 'jh-data-inspector.js').write_bytes(b'/* test asset */\n')
+        (root / 'jh-evidence-io.js').write_bytes(b'/* test complete I/O asset */\n')
         page = site / 'test.html'
         source = '<html><head><title>München — 東京 Á</title></head><body>€ → USD\n</body></html>'
         doc = {'coverage': {}, 'pages': {'test.html': {'api_responses': []}}}

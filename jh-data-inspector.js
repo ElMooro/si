@@ -1,7 +1,8 @@
 /* Complete, on-demand field inspection. Never truncates values or silently drops null/nested rows. */
 (function(global){
 'use strict';
-const PAGE=25;
+const PAGE=25,ARTIFACT_LIMIT=32*1024*1024;
+const evidence=typeof module!=='undefined'&&module.exports?require('./jh-evidence-io.js'):global.JHEvidenceIO;
 function type(v){return v===null?'null':Array.isArray(v)?'array':typeof v;}
 function ptr(base,key){return base+'/'+String(key).replace(/~/g,'~0').replace(/\//g,'~1');}
 function columns(rows){return [...new Set(rows.flatMap(r=>r&&typeof r==='object'&&!Array.isArray(r)?Object.keys(r):[]))];}
@@ -98,24 +99,18 @@ async function fetchRegistry(fetcher,commit,expectedHash,timeoutMs=20000){
  const pinned=typeof commit==='string'&&/^[a-f0-9]{40}$/.test(commit);
  if((commit&&!pinned)||(pinned&&!/^[a-f0-9]{64}$/.test(expectedHash||''))||(!pinned&&expectedHash))throw mismatch();
  const url='/config/page-data-contracts.json'+(pinned?'?build='+commit+'&sha256='+expectedHash:'');
- const controller=new AbortController();let timer;
- const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('Source registry request timed out'));},timeoutMs);});
- try{return await Promise.race([timeout,(async()=>{
-  const response=await fetcher(url,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
-  if(!response.ok)throw new Error('Page data contract unavailable');
-  const raw=await response.arrayBuffer();if(raw.byteLength>16*1024*1024)throw new Error('Source registry exceeds supported size');
-  if(pinned){
-   if(!global.crypto?.subtle)throw mismatch();
-   const digest=Array.from(new Uint8Array(await global.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');
-   if(digest!==expectedHash)throw mismatch();
-  }
-  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));
- })()]);}finally{clearTimeout(timer);}
+ const raw=await evidence.readComplete(signal=>fetcher(url,{cache:'no-store',credentials:'same-origin',signal}),{limit:16*1024*1024,timeoutMs});
+ if(pinned){
+  if(!global.crypto?.subtle)throw mismatch();
+  const digest=Array.from(new Uint8Array(await global.crypto.subtle.digest('SHA-256',raw)),x=>x.toString(16).padStart(2,'0')).join('');
+  if(digest!==expectedHash)throw mismatch();
+ }
+ return evidence.decode(raw,16*1024*1024);
 }
-async function fetchArtifact(entry,fetcher,privateClient){
+async function fetchArtifact(entry,fetcher,privateClient,signal){
  if(entry.access==='owner_authenticated'){
   if(!privateClient||privateClient.kindFor('/'+entry.key)!==entry.private_kind)throw new Error('Authenticated owner data route unavailable');
-  return privateClient.fetch('/'+entry.key,{cache:'no-store',credentials:'same-origin'});
+  return privateClient.fetch('/'+entry.key,{cache:'no-store',credentials:'same-origin',signal});
  }
  if(entry.access!=='public')throw new Error('Artifact access is not approved');
  const key=entry.key;
@@ -126,8 +121,11 @@ async function fetchArtifact(entry,fetcher,privateClient){
  // owner artifact. Cross-origin public reads carry no browser credentials.
  const sameOrigin=key.startsWith('data/');
  const url=(sameOrigin?'/'+key:'https://justhodl-data-proxy.raafouis.workers.dev/'+key)+'?exact=1&nogen=1';
- const response=await fetcher(url,{cache:'no-store',credentials:sameOrigin?'same-origin':'omit'});
- if(response.ok&&response.headers?.get('X-JH-Artifact-Key')!==key)throw new Error('Exact artifact identity is unverified; no alternate feed is accepted');
+ const response=await fetcher(url,{cache:'no-store',credentials:sameOrigin?'same-origin':'omit',signal});
+ if(response.ok&&response.headers?.get('X-JH-Artifact-Key')!==key){
+  try{Promise.resolve(response.body?.cancel?.()).catch(()=>{});}catch{}
+  throw new Error('Exact artifact identity is unverified; no alternate feed is accepted');
+ }
  return response;
 }
 function validateProjection(entry,data){
@@ -168,20 +166,28 @@ function indexedOutputs(entry,payload){
  return out;
 }
 function observeResponses(fetcher,contracts,onRecord,identity){
+ const generations=new Map();
  return async function(input,init){
   const raw=typeof input==='string'?input:input&&input.url;
   let url;try{url=new URL(raw,global.location&&global.location.href||'https://justhodl.ai/');}catch{}
   const method=String(init&&init.method||input&&input.method||'GET').toUpperCase();
   const entry=url&&contracts.find(c=>c.origin===url.origin&&c.pathname===url.pathname&&(c.methods||['GET']).includes(method)&&Object.entries(c.query||{}).every(([key,value])=>url.searchParams.get(key)===value));
-  const ownerBefore=identity();
-  const response=await fetcher.apply(this,arguments);
-  if(entry&&response.ok&&(!entry.owner_authenticated||ownerBefore.uid)){
-   // Observation only: no new request, no request body/header retention, no persistent storage.
-   try{response.clone().json().then(payload=>{
-    const current=identity();if(current.epoch!==ownerBefore.epoch||current.uid!==ownerBefore.uid)return;
-    const query=new URLSearchParams(url.search);['t','v','cb','_','ts'].forEach(k=>query.delete(k));
-    onRecord({engine:entry.engine,endpoint:entry.origin+entry.pathname,requestKey:entry.engine+'|'+method+'|'+entry.origin+entry.pathname+'|'+query.toString(),payload,received_at:new Date().toISOString(),owner_authenticated:!!entry.owner_authenticated});
-   }).catch(()=>{});}catch{}
+  const ownerBefore=identity();let requestKey,generation;
+  if(entry&&(!entry.owner_authenticated||ownerBefore.uid)){
+   const query=new URLSearchParams(url.search);['t','v','cb','_','ts'].forEach(k=>query.delete(k));
+   requestKey=entry.engine+'|'+method+'|'+entry.origin+entry.pathname+'|'+query.toString();
+   generation=(generations.get(requestKey)||0)+1;generations.set(requestKey,generation);
+  }
+  function record(payload,unavailable=false){
+   if(requestKey===undefined||generations.get(requestKey)!==generation)return;
+   const current=identity();if(current.epoch!==ownerBefore.epoch||current.uid!==ownerBefore.uid)return;
+   try{onRecord({engine:entry.engine,endpoint:entry.origin+entry.pathname,requestKey,payload,unavailable,received_at:new Date().toISOString(),owner_authenticated:!!entry.owner_authenticated});}catch{}
+  }
+  let response;try{response=await fetcher.apply(this,arguments);}catch(error){record(null,true);throw error;}
+  if(requestKey!==undefined){
+   // Observe only the caller's response. Never issue an extra request or abort its body.
+   if(!response.ok)record(null,true);
+   else try{decodeArtifactResponse(response.clone()).then(payload=>record(payload),()=>record(null,true));}catch{record(null,true);}
   }
   return response;
  };
@@ -228,7 +234,7 @@ function dependencyView(groups){
  }
  return view;
 }
-const api={type,columns,leafPaths,ptr,inspect,collectionView,ownershipRecords,ownershipView,fetchRegistry,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,inspectionSelection,selectedContract,dependencyView};
+const api={type,columns,leafPaths,ptr,inspect,collectionView,ownershipRecords,ownershipView,fetchRegistry,fetchArtifact,validateProjection,observeResponses,indexedOutputs,decodeArtifactResponse,loadArtifact,inspectionSelection,selectedContract,dependencyView};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 global.JHDataInspector=api;
 if(typeof document==='undefined')return;
@@ -243,13 +249,23 @@ function clearOwnerResponses(){ownerEpoch++;observed.clear();if(clearArtifact)cl
 function bindOwnerChanges(){const auth=global.JustHodlAuth;if(auth&&auth.onChange)auth.onChange(clearOwnerResponses);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindOwnerChanges);else bindOwnerChanges();
 const style=node('style');style.textContent='.jdi-panel{margin:24px auto;padding:16px;max-width:1200px;border:1px solid #52606d;border-radius:8px;color:inherit;background:var(--jh-panel,#121820);font:13px system-ui}.jdi-panel summary{cursor:pointer;padding:8px}.jdi-controls{display:flex;gap:12px;align-items:center;margin:8px 0}.jdi-panel button,.jdi-panel select,.jdi-panel input{padding:7px;margin:4px;max-width:100%;color:inherit;background:var(--jh-panel,#18212c);border:1px solid #667788}.jdi-scroll{overflow:auto;max-height:70vh}.jdi-table{border-collapse:collapse;width:100%}.jdi-table th,.jdi-table td{border:1px solid #52606d;padding:8px;vertical-align:top;text-align:left}.jdi-value{white-space:pre-wrap;overflow-wrap:anywhere}.jdi-detail{min-width:140px}.jdi-controls button:disabled{opacity:.4}.jdi-null{font-style:italic}.jdi-error{color:#ffb5a6}';document.head.append(style);
-async function decodeArtifactResponse(response){
- const bytes=new Uint8Array(await response.arrayBuffer());let decoded=bytes;
+async function decodeArtifact(open,options={}){
+ const {limit=ARTIFACT_LIMIT,timeoutMs=20000,signal}=options;
+ if(!Number.isSafeInteger(limit)||limit<1||limit>ARTIFACT_LIMIT)throw Error('Invalid artifact byte bound');
+ if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>60000)throw Error('Invalid artifact deadline');
+ const clock=()=>global.performance?.now?.()??Date.now(),deadline=clock()+timeoutMs;
+ const remaining=()=>{const n=Math.ceil(deadline-clock());if(n<1)throw Error('Artifact read timed out');if(signal?.aborted){const e=Error('Artifact read cancelled');e.name='AbortError';throw e;}return n;};
+ const bytes=await evidence.readComplete(open,{limit,timeoutMs:remaining(),signal});let decoded=bytes;
  if(bytes[0]===31&&bytes[1]===139){
   if(typeof DecompressionStream==='undefined')throw new Error('Gzip decoding unavailable in this browser');
-  decoded=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  decoded=await evidence.readComplete(()=>({ok:true,body:stream}),{limit,timeoutMs:remaining(),signal});
  }
- return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(decoded));
+ remaining();const value=evidence.decode(decoded,limit);remaining();return value;
+}
+async function decodeArtifactResponse(response,options={}){return decodeArtifact(()=>response,options);}
+async function loadArtifact(entry,fetcher,privateClient,options={}){
+ return validateProjection(entry,await decodeArtifact(signal=>fetchArtifact(entry,fetcher,privateClient,signal),options));
 }
 async function install(){
  const route=decodeURI(location.pathname).replace(/^\//,'')||'index.html';const canonical=route.endsWith('/')?route+'index.html':route;
@@ -291,7 +307,7 @@ async function install(){
   const apiSection=node('details');apiSection.append(node('summary','Complete API responses · current page session'));
   const apiChoice=node('select');apiChoice.setAttribute('aria-label','Observed engine API response');const apiBody=node('div');apiSection.append(apiChoice,apiBody);
   apiSection.append(node('p','Responses from this page’s existing requests. All returned fields are inspectable; request parameters, headers and bodies are not displayed. A new response replaces the previous response for the same request.'));
-  function showObserved(){const record=apiChoice.value===''?null:[...observed.values()][+apiChoice.value];if(record)inspect(apiBody,record.payload,record.engine+' · '+record.endpoint+' · received '+record.received_at);else apiBody.replaceChildren();}
+  function showObserved(){const record=apiChoice.value===''?null:[...observed.values()][+apiChoice.value];if(record?.unavailable)apiBody.replaceChildren(node('p','Latest response unavailable: complete, unambiguous JSON could not be captured. Previous evidence has been cleared.'));else if(record)inspect(apiBody,record.payload,record.engine+' · '+record.endpoint+' · received '+record.received_at);else apiBody.replaceChildren();}
   repaintObserved=()=>{const selected=apiChoice.value;const prompt=node('option','Choose an observed API response');prompt.value='';apiChoice.replaceChildren(prompt);[...observed.values()].forEach((record,i)=>{const option=node('option',record.engine+' · response '+(i+1)+' · '+record.received_at);option.value=String(i);apiChoice.append(option);});if(selected&&+selected<observed.size)apiChoice.value=selected;showObserved();};
   apiChoice.onchange=showObserved;repaintObserved();panel.append(apiSection);
  }
@@ -304,18 +320,18 @@ async function install(){
  if(contract.historical_or_dynamic_family_count)panel.append(node('p',contract.historical_or_dynamic_family_count+' historical or dynamic output families. Reviewed archive indexes expose their listed keys when opened; other families remain unresolved.'));
  if(contract.owner_authenticated_count)panel.append(node('p',contract.owner_authenticated_count+' owner outputs require sign-in and are fetched only through the authenticated account service.'));
  if(contract.restricted_count)panel.append(node('p',contract.restricted_count+' internal, sensitive or unapproved paths are withheld from this inspector.'));
- let run=0;clearArtifact=()=>{run++;body.replaceChildren();sourceEvidence.replaceChildren();delete panel.dataset.loadedOutput;delete panel.dataset.loadedLeafPaths;};
+ let run=0,activeRead;clearArtifact=()=>{run++;activeRead?.abort();activeRead=null;body.replaceChildren();sourceEvidence.replaceChildren();delete panel.dataset.loadedOutput;delete panel.dataset.loadedLeafPaths;};
  select.addEventListener('change',async()=>{
-  clearArtifact();const id=run,entry=contract.outputs.find(o=>o.engine+'::'+o.key===select.value);if(!entry)return;const key=entry.key;
+  clearArtifact();const id=run,entry=contract.outputs.find(o=>o.engine+'::'+o.key===select.value);if(!entry)return;const key=entry.key;activeRead=new AbortController();const signal=activeRead.signal;
   sourceEvidence.append(ownershipView(entry,buildCommit));
   body.replaceChildren(node('p','Loading '+key+'…'));
   try{
    if(entry.access==='owner_authenticated'&&!global.JustHodlPrivateArtifacts){
     await new Promise((resolve,reject)=>{const script=node('script');script.src='/private-artifacts.js?v=20260909';script.onload=resolve;script.onerror=()=>reject(new Error('Authenticated owner data service unavailable'));document.head.append(script);});
    }
+   if(id!==run||signal.aborted)return;
    const ownerAtRequest=currentOwner();
-   const r=await fetchArtifact(entry,global.fetch.bind(global),global.JustHodlPrivateArtifacts);if(!r.ok)throw new Error('HTTP '+r.status);
-   const data=validateProjection(entry,await decodeArtifactResponse(r));if(id!==run)return;
+   const data=await loadArtifact(entry,global.fetch.bind(global),global.JustHodlPrivateArtifacts,{signal});if(id!==run)return;
    const ownerNow=currentOwner();if(entry.access==='owner_authenticated'&&(!ownerAtRequest.uid||ownerAtRequest.uid!==ownerNow.uid||ownerAtRequest.epoch!==ownerNow.epoch))throw new Error('Owner session changed; reload the authenticated output');inspect(body,data,entry.engine+' → '+key+' · retrieved '+new Date().toISOString());
    const enumerated=indexedOutputs(entry,data);
    for(const output of enumerated){if(!contract.outputs.some(o=>o.engine===output.engine&&o.key===output.key)){contract.outputs.push(output);const option=node('option',output.engine+' · '+output.key+' · indexed archive');option.value=output.engine+'::'+output.key;select.append(option);}}
