@@ -56,4 +56,6 @@ def test_whole_predecessors_bind_the_reproduced_ack_failures_and_unchanged_measu
     def functions(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
     before=functions(ROOT/audit['fixtures']['aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py']['path']);after=functions(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py')
     assert before.keys()==after.keys() and {name for name in before if before[name]!=after[name]}=={'lambda_handler'}
-    assert audit['required_worker_commit']=='47446e46037aaa66e7b6071c6792b11da2037cfd'
+    assert audit['required_worker_source_commit']=='47446e46037aaa66e7b6071c6792b11da2037cfd'
+    assert audit['required_worker_commit']==audit['worker_redeployment_acceptance']['commit']
+    assert audit['worker_redeployment_acceptance']['local_build_matches'] is True

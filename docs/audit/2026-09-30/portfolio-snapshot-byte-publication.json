@@ -75,7 +75,7 @@
       "code_sha256": "mwNms/xd3LhH0oj1SuuRajn8vOVmjTHIGc+oNVy24nQ="
     }
   },
-  "required_worker_commit": "47446e46037aaa66e7b6071c6792b11da2037cfd",
+  "required_worker_commit": "faead4f66168eff2ee4c87b303882c21e9715c44",
   "normal_private_publication_verified": false,
   "publication_ordering_verified": false,
   "predecessor_admin_runtime": {
@@ -108,12 +108,12 @@
       "sha256": "09b041b825e6f183dfb5ede41718ba95658700ccb4df3a97d84477243a32acea"
     },
     "aws/ops/staged/ops_6369_portfolio_snapshot_bytes_runtime_acceptance.py": {
-      "bytes": 5080,
-      "sha256": "6f23cce89797bb66ea3a9244fb48c6ff90476e0c7bf9c146088ddfe6ccc3d822"
+      "bytes": 5121,
+      "sha256": "83012ca03679c1251bb0462cfb2e6cdc15a68afa4d77cd3f748d2aa483c95517"
     },
     "scripts/check_worker_prerequisite.py": {
-      "bytes": 9205,
-      "sha256": "0d6eec596011901cff691a104b84f1bbcd6fdfe90b6e3dd187b7cad204044bd4"
+      "bytes": 11136,
+      "sha256": "a72b2355a76e95254e80b1f13e70d11961e7e1843847beebb8c44593a2992974"
     },
     "scripts/deploy_lambdas.sh": {
       "bytes": 21650,
@@ -128,12 +128,12 @@
       "sha256": "699adeb3073ea28a27fa20ea3f101d3e044efded3a9ab3c8455ff68b6a0ae0ac"
     },
     "tests/deployment/test_worker_prerequisite.py": {
-      "bytes": 7776,
-      "sha256": "a8e843bf5eeda2c86a733941e71031467321d104d89e32747594b66c5e139d70"
+      "bytes": 11888,
+      "sha256": "e6a0b637547d002374d15e87f2d8c5b756d9ad7ef25879222303b316e9763c16"
     },
     "tests/deployment/test_snapshot_byte_publication_runtime.py": {
-      "bytes": 4531,
-      "sha256": "adba2d7f0588cd1d7041113b4aa2cf6464f325249864b8b97e0d837ebd631d93"
+      "bytes": 4714,
+      "sha256": "98b55aa4352cd4315d70dd648f288670de157df9a2d1e05779e00fba7cb13a1a"
     },
     "tests/deployment/test_portfolio_sector_runtime.py": {
       "bytes": 5297,
@@ -283,5 +283,159 @@
     "justhodl-portfolio-risk": "f61666411ec8a750c700669b52d7999b9fc10fe15003f09aefe36b418a7161c1",
     "justhodl-position-sizer": "1f019cb2d07059a06fe353a2b7122986ade1c43e7681c6998f4d39fbef49c803"
   },
-  "whole_native_memory_verified": false
+  "whole_native_memory_verified": false,
+  "required_worker_source_commit": "47446e46037aaa66e7b6071c6792b11da2037cfd",
+  "worker_redeployment_acceptance": {
+    "commit": "faead4f66168eff2ee4c87b303882c21e9715c44",
+    "status": "matched",
+    "version_id": "7c3b853d-8109-4a94-b9ec-fd86ece3e15d",
+    "deployment_id": "62161e0f-3ebf-4d24-819a-7feb8fa987cb",
+    "captured_at": "2026-09-30T12:39:38.539321+00:00",
+    "source_files": {
+      "index.js": {
+        "bytes": 204104,
+        "content_type": "application/javascript+module",
+        "sha256": "ffc6cb3a84abea0077d9d8b981cdb4eb12b6f0b2438e0c31d205f85c7904e805"
+      }
+    },
+    "configuration": {
+      "bindings": [
+        {
+          "configuration_sha256": "2ebdf56cd788ef3d29a88c7bd2bf1beaf0cf5297ca65ac6ece95b83977de6ca0",
+          "name": "ADMIN_TOKEN",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "55bdb46ab9466940dd61509719a63f2b67351e5c84b3cd47318dfa3f5367e37c",
+          "name": "BRAIN_OWNER_STORE",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "e065ee9a12724ecfa5467642506b88d3a69a5083dbd8fb8557fee827dee9dc68",
+          "name": "FMP_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "ad189337f7859e091772fef27616629d35abecbab7c67abd1fd1ba7d9d005ef5",
+          "name": "FRED_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "15b20cc5122c17b2925179e1092e80c244962f28586ef5490d859a5c95d379ea",
+          "name": "OWNER_EMAILS",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "691b0f25e76203a12b17b408b1873f3af38e420cc6c4be3138a93d01e6a9d60d",
+          "name": "POLYGON_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "da5792e7b1f325eb06018fb411cccec41ba2fb6d4e10677459fe23299b60ab53",
+          "name": "PRICE_PLAN_MAP",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "7be92833e7a9562786ab6ce4d61ff3316caf3b7ccea1043b8fbeafc06870d130",
+          "name": "STRIPE_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "f73495b93a3c8639378089f2667916d69dc5c57250e4d9bbeb8ed1d6d37d5769",
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "9ee1f0128229ee032808269a583294e95a8e4f49f5c56ac2666e41fccfb3a0c8",
+          "name": "SUPABASE_SERVICE_KEY",
+          "type": "secret_text"
+        },
+        {
+          "configuration_sha256": "8c127714ed3f395eedfe25c1d7d35ef17325cad0b7163d2e6a32e6fea06b5efa",
+          "name": "SUPABASE_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "97a8cffb5ca622b53cd86061db7302e10013422134c3020399ccf5b018c2194c",
+          "name": "SYMDIR_URL",
+          "type": "plain_text"
+        },
+        {
+          "configuration_sha256": "63c6aad2f1ad0a595d18097340667a2bf6347b93409ba59d8e59d9ebc9f18f71",
+          "name": "USER_DATA",
+          "type": "kv_namespace"
+        },
+        {
+          "configuration_sha256": "2ca88993a16a6148b7aac2d7fd2a8d4b6b4defa66ffb8f575faf588598f072a2",
+          "name": "WORKSPACE_COORDINATOR",
+          "type": "durable_object_namespace"
+        }
+      ],
+      "compatibility_date": "2025-10-01",
+      "compatibility_flags": [],
+      "configuration_sha256": "2d0813beacba5c6ac4775ec4da73df51b76895bafe0e9dcf9cdf274f2ba9c599",
+      "schedule_count": 0,
+      "schedules_sha256": "6daa9ec137a94fc5962f6d05ab16df8dba70096ae34571ccd552ac130cd733c5"
+    },
+    "capture_artifact": {
+      "path": "aws/ops/reports/worker-source/release-36716014442.json",
+      "sha256": "651e1f61fff62827543daf732e9503e4aa707fdb44c342c1970d8ffffe1d41de"
+    },
+    "checked_at": "2026-09-30T12:50:14.105533+00:00",
+    "public_receipt_matches": true,
+    "complete_before_after_capture_verified": true,
+    "repository_input_files_checked": 15,
+    "local_build_matches": true,
+    "private_reads": 0,
+    "worker_invocations": 0,
+    "normal_private_publication_verified": false
+  },
+  "failed_native_release": {
+    "commit": "faead4f66168eff2ee4c87b303882c21e9715c44",
+    "run": 36716014565,
+    "report": "aws/ops/reports/deploy-failures/faead4f-36716014565.md",
+    "snapshot_deployed": false,
+    "admin_deployed": true,
+    "cause": "The Worker test-only redeployment kept the complete code identical but issued a new exact release commit; the prerequisite incorrectly required the last source-edit commit."
+  },
+  "prerequisite_repair": {
+    "status": "tested_source_pending_native_release",
+    "whole_before": "tests/fixtures/pre-worker-release-identity/complete-reproduction.json",
+    "current_result": {
+      "function": "justhodl-portfolio-snapshot",
+      "worker": "justhodl-data-proxy",
+      "commit": "faead4f66168eff2ee4c87b303882c21e9715c44",
+      "status": "exact_prerequisite_matched",
+      "worker_invocations": 0,
+      "private_reads": 0
+    },
+    "tests": "tests/deployment/test_worker_prerequisite.py",
+    "test_only_worker_selection_corrected": false,
+    "deployment_static_tests": 835,
+    "deployment_shell_tests": 15,
+    "focused_prerequisite_tests": 11,
+    "native_regression_suites": [
+      {
+        "suite": "justhodl-portfolio-snapshot",
+        "unittest_cases": 175,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-portfolio-admin",
+        "unittest_cases": 55,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-portfolio-risk",
+        "unittest_cases": 96,
+        "passed": true
+      },
+      {
+        "suite": "justhodl-position-sizer",
+        "unittest_cases": 24,
+        "passed": true
+      }
+    ],
+    "deployment_log_sha256": "76c926ff9837744461c53678f743331d53b16c026b82499409eb1f880e9e72ac"
+  }
 }

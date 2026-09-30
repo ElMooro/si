@@ -49,7 +49,7 @@ def main():
     import boto3
     from ops_report import report
     baseline=json.loads((ROOT/'docs/audit/2026-09-30/portfolio-snapshot-byte-publication.json').read_bytes())
-    paths=[f'aws/lambdas/{fn}/source' for fn in FUNCTIONS]
+    paths=[f'aws/lambdas/{fn}/source' for fn in FUNCTIONS]+['scripts/check_worker_prerequisite.py']
     expected=subprocess.check_output(['git','log','-1','--format=%H','--',*paths],cwd=ROOT,text=True).strip()
     lam,s3,events,scheduler=[boto3.client(service,region_name='us-east-1') for service in ('lambda','s3','events','scheduler')]
     with report('ops_6369_portfolio_snapshot_bytes_runtime_acceptance') as result:

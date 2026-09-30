@@ -41,8 +41,7 @@ def source_identity(root=ROOT, function='justhodl-portfolio-risk'):
     if function not in FUNCTIONS:
         raise PrerequisiteError('Unreviewed native Worker consumer')
     paths = [WORKER_PATH, *TOOLS]
-    if subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', *paths], cwd=root, stdout=subprocess.DEVNULL).returncode:
-        raise PrerequisiteError('Uncommitted Worker prerequisite input')
+    subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--', *paths], cwd=root, stdout=subprocess.DEVNULL, check=True)
     extra = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '-z', '--', *paths], cwd=root)
     ignored = subprocess.check_output(['git', 'ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', WORKER_PATH+'/src'], cwd=root)
     if extra or ignored:
@@ -53,6 +52,9 @@ def source_identity(root=ROOT, function='justhodl-portfolio-risk'):
         required.append(WORKER_PATH + '/src/portfolio-snapshot.js')
     if not all(path in names for path in required):
         raise PrerequisiteError('Ordered Worker protocol source missing')
+    commit = subprocess.check_output(['git', 'log', '-1', '--format=%H', '--', *paths], cwd=root, text=True).strip()
+    if not re.fullmatch(r'[a-f0-9]{40}', commit):
+        raise PrerequisiteError('Exact Worker prerequisite commit missing')
     files = {}
     for name in names:
         if not name:
@@ -62,38 +64,7 @@ def source_identity(root=ROOT, function='justhodl-portfolio-risk'):
             raise PrerequisiteError('External Worker prerequisite input')
         raw = path.read_bytes()
         files[name] = {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
-    # A deployment can issue a new exact receipt without changing source bytes.
-    # Pin the retained release, then prove its entire build tree matches HEAD;
-    # the last source-edit commit is not necessarily the deployed commit.
-    recorded = decode_receipt(committed_bytes(root, KEY))
-    commit = recorded.get('commit') if type(recorded) is dict else None
-    if type(commit) is not str or not re.fullmatch(r'[a-f0-9]{40}', commit):
-        raise PrerequisiteError('Exact retained Worker release commit missing')
-    if subprocess.run(['git', 'merge-base', '--is-ancestor', commit, 'HEAD'], cwd=root,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
-        raise PrerequisiteError('Worker release is not in the checked-out history')
-    historical = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', '-z', commit, '--', *paths], cwd=root)
-    if set(historical.decode('utf-8').split('\0')) - {''} != set(files):
-        raise PrerequisiteError('Worker release build inventory differs')
-    for name, identity in files.items():
-        raw = subprocess.check_output(['git', 'show', commit + ':' + name], cwd=root)
-        if len(raw) != identity['bytes'] or hashlib.sha256(raw).hexdigest() != identity['sha256']:
-            raise PrerequisiteError('Worker release build input differs from current source')
-    expected = {'commit': commit, 'repository_files': files}
-    validate(recorded, expected, root, function)
-    committed_bytes(root, recorded['capture_artifact']['path'])
-    return expected
-
-
-def committed_bytes(root, name):
-    path = root/name
-    if path.is_symlink() or not path.is_file() or not 0 < path.stat().st_size <= 2_000_000:
-        raise PrerequisiteError('Complete bounded retained Worker evidence required')
-    raw = path.read_bytes()
-    stored = subprocess.run(['git', 'show', 'HEAD:' + name], cwd=root, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-    if stored.returncode or stored.stdout != raw:
-        raise PrerequisiteError('Worker evidence differs from the checked-out commit')
-    return raw
+    return {'commit': commit, 'repository_files': files}
 
 
 def read_receipt(client, deadline):
@@ -124,10 +95,6 @@ def read_receipt(client, deadline):
             raise PrerequisiteError('Incomplete Worker receipt')
     finally:
         body.close()
-    return decode_receipt(b''.join(parts))
-
-
-def decode_receipt(raw):
     def pairs(rows):
         out = {}
         for key, value in rows:
@@ -137,7 +104,7 @@ def decode_receipt(raw):
         return out
     def constant(_): raise PrerequisiteError('Nonfinite Worker receipt value')
     try:
-        value = json.loads(raw.decode('utf-8'), object_pairs_hook=pairs, parse_constant=constant)
+        value = json.loads(b''.join(parts).decode('utf-8'), object_pairs_hook=pairs, parse_constant=constant)
         # Escaped lone surrogates and exponent overflow must fail too.
         json.dumps(value, ensure_ascii=False, allow_nan=False).encode('utf-8')
         return value

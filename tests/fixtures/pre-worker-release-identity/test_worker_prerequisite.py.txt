@@ -63,14 +63,13 @@ def test_ordered_worker_prerequisite_uses_only_exact_public_receipt_and_closes_b
 
 def test_ordered_worker_source_identity_refuses_uncommitted_build_inputs():
     with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory); git, release = repository(root)
-        source = root/SCOPE['WORKER_PATH']/'src'
+        root = Path(directory); source = root/SCOPE['WORKER_PATH']/'src'; source.mkdir(parents=True)
+        (source/'portfolio-publication.js').write_text('export const synthetic = true;\n', encoding='utf-8')
+        def git(*args): return subprocess.check_output(['git', *args], cwd=root, stderr=subprocess.DEVNULL)
+        git('init'); git('add', '.'); git('-c', 'user.name=Synthetic', '-c', 'user.email=synthetic@example.invalid', 'commit', '-m', 'Synthetic')
         identity = SCOPE['source_identity'](root)
-        assert identity['commit'] == release
+        assert identity['commit'] == git('rev-parse', 'HEAD').decode().strip()
         (source/'unexpected.js').write_text('export const unexpected = true;\n', encoding='utf-8')
-        refuses(lambda: SCOPE['source_identity'](root))
-        (source/'unexpected.js').unlink()
-        (source/'portfolio-publication.js').write_text('export const changed = true;\n', encoding='utf-8')
         refuses(lambda: SCOPE['source_identity'](root))
 
 
@@ -90,11 +89,14 @@ def test_snapshot_requires_its_complete_worker_adapter_and_exact_receipt():
         assert SCOPE['validate'](receipt, expected, root, 'justhodl-portfolio-snapshot')['function']=='justhodl-portfolio-snapshot'
         refuses(lambda:SCOPE['validate'](receipt, expected, root, 'other'))
     with tempfile.TemporaryDirectory() as directory:
-        root=Path(directory);git,_=repository(root,snapshot=False);source=root/SCOPE['WORKER_PATH']/'src'
+        root=Path(directory); source=root/SCOPE['WORKER_PATH']/'src';source.mkdir(parents=True)
+        (source/'portfolio-publication.js').write_text('export const synthetic = true;\n',encoding='utf-8')
+        def git(*args):return subprocess.check_output(['git',*args],cwd=root,stderr=subprocess.DEVNULL)
+        git('init');git('add','.');git('-c','user.name=Synthetic','-c','user.email=synthetic@example.invalid','commit','-m','Synthetic')
         refuses(lambda:SCOPE['source_identity'](root,'justhodl-portfolio-snapshot'))
         (source/'portfolio-snapshot.js').write_text('export const syntheticSnapshot = true;\n',encoding='utf-8')
-        release=commit(git,'Synthetic snapshot');retain(root,git,release)
-        assert SCOPE['source_identity'](root,'justhodl-portfolio-snapshot')['commit']==release
+        git('add','.');git('-c','user.name=Synthetic','-c','user.email=synthetic@example.invalid','commit','-m','Synthetic snapshot')
+        assert SCOPE['source_identity'](root,'justhodl-portfolio-snapshot')['commit']==git('rev-parse','HEAD').decode().strip()
 
 
 def test_snapshot_origin_check_is_read_only_and_never_returns_environment_values():
@@ -113,83 +115,6 @@ def test_snapshot_prerequisite_runs_before_deploy_using_the_exact_function_ident
     shell=(ROOT/'scripts/deploy_lambdas.sh').read_text(encoding='utf-8')
     guard=shell.index('scripts/check_worker_prerequisite.py --function "$fn"')
     assert shell.index('[ "$fn" = "justhodl-portfolio-snapshot" ]')<guard<shell.index('aws lambda update-function-code')
-
-
-def commit(git, message):
-    git('add', '.')
-    git('-c', 'user.name=Synthetic', '-c', 'user.email=synthetic@example.invalid', 'commit', '-m', message)
-    return git('rev-parse', 'HEAD').decode().strip()
-
-
-def retain(root, git, release):
-    paths = [SCOPE['WORKER_PATH'], *SCOPE['TOOLS']]
-    names = git('ls-files', '-z', '--', *paths).decode().split('\0')
-    files = {name: {'bytes': len((root/name).read_bytes()), 'sha256': hashlib.sha256((root/name).read_bytes()).hexdigest()} for name in names if name}
-    capture = b'{"complete_invented_code_capture":true}\n'
-    path = 'aws/ops/reports/worker-source/release-123.json'
-    (root/path).parent.mkdir(parents=True, exist_ok=True); (root/path).write_bytes(capture)
-    receipt = {'commit': release, 'repository_files': files, 'contract': 'worker-release.v1', 'status': 'matched', 'worker': SCOPE['WORKER'],
-               'source_active_version_binding_verified': True, 'intended_repo_build_verified': True,
-               'capture_artifact': {'path': path, 'sha256': hashlib.sha256(capture).hexdigest()}}
-    (root/SCOPE['KEY']).parent.mkdir(parents=True, exist_ok=True)
-    (root/SCOPE['KEY']).write_text(json.dumps(receipt), encoding='utf-8')
-    commit(git, 'Retain exact invented release')
-    return receipt
-
-
-def repository(root, snapshot=True):
-    source = root/SCOPE['WORKER_PATH']/'src'; source.mkdir(parents=True)
-    (source/'portfolio-publication.js').write_text('export const synthetic = true;\n', encoding='utf-8')
-    if snapshot:
-        (source/'portfolio-snapshot.js').write_text('export const syntheticSnapshot = true;\n', encoding='utf-8')
-    def git(*args): return subprocess.check_output(['git', *args], cwd=root, stderr=subprocess.DEVNULL)
-    git('init'); git('config','core.autocrlf','false')
-    release=commit(git, 'Invented complete source'); retain(root,git,release)
-    return git, release
-
-
-def test_identical_code_redeployment_pins_its_new_exact_release_commit():
-    with tempfile.TemporaryDirectory() as directory:
-        root=Path(directory);git,first=repository(root)
-        (root/'test-only.txt').write_text('Complete invented test-only change\n',encoding='utf-8')
-        release=commit(git,'Test-only redeployment');receipt=retain(root,git,release)
-        assert first!=release
-        for function in SCOPE['FUNCTIONS']:
-            expected=SCOPE['source_identity'](root,function)
-            assert expected['commit']==release
-            assert SCOPE['validate'](receipt,expected,root,function)['status']=='exact_prerequisite_matched'
-            old=copy.deepcopy(receipt);old['commit']=first
-            refuses(lambda:SCOPE['validate'](old,expected,root,function))
-
-
-def test_release_identity_rejects_missing_dirty_or_unrelated_receipt():
-    with tempfile.TemporaryDirectory() as directory:
-        root=Path(directory);git,_=repository(root);path=root/SCOPE['KEY'];original=path.read_bytes()
-        path.unlink();refuses(lambda:SCOPE['source_identity'](root))
-        path.write_bytes(original+b' ');refuses(lambda:SCOPE['source_identity'](root))
-        receipt=json.loads(original);receipt['commit']='f'*40;path.write_text(json.dumps(receipt),encoding='utf-8')
-        commit(git,'Unrelated release claim');refuses(lambda:SCOPE['source_identity'](root))
-
-
-def test_release_identity_rejects_inventory_and_historical_source_mismatch():
-    for mode in ('inventory','source','claimed_identity'):
-        with tempfile.TemporaryDirectory() as directory:
-            root=Path(directory);git,release=repository(root);source=root/SCOPE['WORKER_PATH']/'src'
-            if mode=='inventory':(source/'another.js').write_text('export const another = true;\n',encoding='utf-8')
-            else:(source/'portfolio-publication.js').write_text('export const changed = true;\n',encoding='utf-8')
-            commit(git,'Changed current build inputs')
-            if mode=='claimed_identity':retain(root,git,release)  # Receipt claims current hashes at an older, different tree.
-            refuses(lambda:SCOPE['source_identity'](root))
-
-
-def test_release_identity_rejects_modified_capture_even_with_matching_local_receipt():
-    with tempfile.TemporaryDirectory() as directory:
-        root=Path(directory);git,_=repository(root);path=root/SCOPE['KEY'];receipt=json.loads(path.read_bytes())
-        capture=root/receipt['capture_artifact']['path'];capture.write_bytes(b'{"different_complete_capture":true}\n')
-        receipt['capture_artifact']['sha256']=hashlib.sha256(capture.read_bytes()).hexdigest()
-        path.write_text(json.dumps(receipt),encoding='utf-8')
-        # Both local hashes agree, but neither changed evidence object is the checked-in proof.
-        refuses(lambda:SCOPE['source_identity'](root))
 
 
 if __name__ == '__main__':
