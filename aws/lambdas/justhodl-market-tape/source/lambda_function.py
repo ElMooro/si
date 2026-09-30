@@ -36,11 +36,9 @@ def source_json(url, provider):
 def fmp_quote(symbol, now):
     """Fetch an FMP quote with latency timing and an honest freshness badge.
 
-    8/10: the old bespoke "fresh if age <= 900 else delayed" status is now
-    quote_meta.classify_badge(); the 900s boundary is preserved inside the
-    shared contract. FMP is passed as a non-realtime kind because exchange
-    real-time entitlement is not asserted, so fresh intraday quotes badge
-    DELAYED rather than LIVE.
+    Preserve lowercase renderer status; expose the badge additively. FMP
+    real-time entitlement is not asserted. Only the two equity indices use
+    equity-session rules; other instruments conservatively use quote age.
     """
     if not FMP_KEY:
         raise ValueError("quote provider unavailable")
@@ -60,16 +58,22 @@ def fmp_quote(symbol, now):
     age = (now - observed).total_seconds()
     if age < -300 or age > 7 * 86400:
         raise ValueError("quote is stale or future dated")
+    equity_index = symbol in ("^GSPC", "^IXIC")
+    badge = classify_badge(observed.isoformat(), "fmp", now=now) if equity_index else (
+        "DELAYED" if age <= 900 else "STALE")
     return {"value": value, "chg_pct": finite(row.get("changesPercentage", row.get("changePercentage"))),
             "change_basis": "provider_previous_close", "observation_date": observed.date().isoformat(),
             "observed_at": observed.isoformat(), "received_at": evidence["first_received_at"],
             "provider_symbol": symbol, "source": "FMP", "src": "FMP:" + symbol,
             "definition": row.get("name") or symbol, "evidence": {"quote": evidence},
             "latency_ms": latency_ms,
-            "quality": {"status": classify_badge(observed.isoformat(), "fmp"),
+            "badge": badge,
+            "quality": {"status": "fresh" if age <= 900 else "delayed",
                         "age_seconds": max(0, int(age)), "latency_ms": latency_ms,
-                        "basis": ("provider_timestamp; exchange real-time entitlement not asserted; "
-                                  "900s boundary via quote_meta")},
+                        "basis": ("provider_timestamp; real-time entitlement not asserted; "
+                                  "legacy 900s status; conservative age-only badge" if not equity_index else
+                                  "provider_timestamp; exchange real-time entitlement not asserted; "
+                                  "legacy 900s status; additive badge via quote_meta")},
             "sizing_eligible": False}
 
 
