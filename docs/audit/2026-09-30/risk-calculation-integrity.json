@@ -1,0 +1,143 @@
+{
+  "stage": 448,
+  "status": "source_and_full_checks_accepted_exact_deployment_pending",
+  "source_gap": "risk-calculation-source-gap.json",
+  "base_commit": "c412d5bb70681230f102fac6be5fe0c210fe33cb",
+  "model_version": "2.0.1",
+  "scope": "Current source, whole invented input/output fixtures, local UI contracts and receipt-only native acceptance. No actual account or current consumer packet reads.",
+  "changes": [
+    "Strict typed cash-equity identity shared by source acquisition and exposure validation",
+    "Malformed position lists and rows publish explicit INCOMPLETE research results and retain complete inputs",
+    "Malformed capital diagnostic metadata withholds NAV without erasing separately supported holdings observations",
+    "Scenario totals sum full-precision contributions before rounding, preserving lot-partition invariance",
+    "UI accepts the reviewed 2.0.1 contract while retaining support for 2.0.0 and unchanged research-only permissions",
+    "Old compiler-bound bundles remain unchanged and refuse mismatched compiler replay; current compiler can recalculate retained invented inputs under a new code identity",
+    "The original page preserves malformed supplied row positions and shows unknown list counts; valid empty arrays alone display an empty portfolio, and scenario rounding is visible"
+  ],
+  "source_files": {
+    "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py": {
+      "bytes": 25581,
+      "sha256": "66d3bb3b1344113d1118b03331a73c3e16c0086a4c90879380149e2126aca291"
+    },
+    "aws/lambdas/justhodl-portfolio-risk/source/lambda_function.py": {
+      "bytes": 17453,
+      "sha256": "17d98659b6bb430b16f7b1a5768340d170a6beb9ddae99041296350aa89e491a"
+    },
+    "jh-portfolio-risk-contract.js": {
+      "bytes": 5067,
+      "sha256": "6f0e335170f0d12f62bad6e6e93509e08194e6663a44bf1b508859312adb6b48"
+    },
+    "portfolio/index.html": {
+      "bytes": 30262,
+      "sha256": "31d4774d61bd2b07a3f348c9c8c1af312a71f908c5fbb6b30aa6b983d9f1d1d2"
+    }
+  },
+  "unchanged_publication_helper_sha256": "d501c99da4620926d29d2952eb9d68a61759c0eeca5aeb983135c8f7022d1027",
+  "unchanged_shared_capital_contract_sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65",
+  "limitations": [
+    "Binary64 arithmetic and two-decimal display remain; this is not exact decimal accounting",
+    "Supported scope remains USD cash equities/ETFs and hypothetical sector shocks, without options, FX, dividend/financing/liquidity losses or calibrated forecast edge",
+    "Normal private publication and independent account reconciliation remain unverified",
+    "No trade or sizing permission is added"
+  ],
+  "tests": {
+    "new_native_regressions": 12,
+    "native_unittest_total": 80,
+    "private_handler_checks": 10,
+    "scenario": 24,
+    "focused_frontend": 20,
+    "new_frontend_regressions": 4,
+    "frontend": 2009,
+    "deployment_static": 770,
+    "deployment_shell": 12,
+    "page_graphs": 599,
+    "companion_wires": 143
+  },
+  "native_acceptance": null,
+  "static_acceptance": null,
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "browser_acceptance": {
+    "scope": "Current original portfolio page, current private adapter and whole invented inputs/outputs at localhost only; CSP denies external connections.",
+    "browser": "Codex in-app browser",
+    "cases": [
+      {
+        "name": "malformed position row",
+        "title": "Incomplete risk inputs \u00b7 research only",
+        "holdings": "2 supplied records \u00b7 1 invalid",
+        "rendered_rows": 2
+      },
+      {
+        "name": "malformed position list",
+        "title": "Incomplete risk inputs \u00b7 research only",
+        "holdings": "Holdings count unavailable"
+      },
+      {
+        "name": "boolean multiplier",
+        "title": "Incomplete risk inputs \u00b7 research only",
+        "scenario_amount": null
+      },
+      {
+        "name": "100 invented lots",
+        "title": "Holdings model \u00b7 research only",
+        "rendered_rows": 100,
+        "scenario_amount_dollars": -26.5,
+        "scenario_pct_of_gross": -26.5
+      },
+      {
+        "name": "malformed capital metadata",
+        "title": "Holdings model \u00b7 research only",
+        "account_nav": null
+      },
+      {
+        "name": "recovered valid invented book",
+        "title": "Holdings model \u00b7 research only",
+        "rendered_rows": 1
+      }
+    ],
+    "desktop": {
+      "client_width": 1265,
+      "scroll_width": 1265
+    },
+    "mobile": {
+      "viewport_width": 360,
+      "client_width": 345,
+      "scroll_width": 345,
+      "full_page_screenshot_inspected": true,
+      "malformed_row_preserved": true
+    },
+    "keyboard_tab_focus": "Boolean multiplier",
+    "console_errors_or_warnings": [],
+    "viewport_override_reset": true,
+    "actual_private_reads": 0,
+    "actual_provider_requests": 0,
+    "native_invocations": 0
+  },
+  "checks": {
+    "frontend": "d7862d692b5507f8eaeaec2220060ece8283e9a56994d2f454f422f0ca520792",
+    "deployment": "20ad23a21f9b82cf8feac15925f706ea77805d4a668bb642834854ebb914f5a6",
+    "graphs": "b33aae12bbbfc99c8f74b9c516f75c51553df42a7aa9002289e6e7d5d62e30b5",
+    "wiring": "696f89bfb81738e10fe15ad434a770db6416d9d92a68e291a81b67e2c5512233",
+    "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
+    "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
+    "justhodl-portfolio-risk": "5d0575feece4032f5e55d7b2815afd90d4723fba77c3664d5fd0b3ed8dd56ace"
+  },
+  "unchanged_original_model_functions": [
+    "canonical",
+    "digest",
+    "rounded",
+    "source_value_bytes",
+    "source_document",
+    "read_bars",
+    "interval_returns",
+    "pair_values",
+    "correlation",
+    "beta",
+    "drawdown",
+    "snapshot_value_identity",
+    "code_identity",
+    "freeze",
+    "replay"
+  ],
+  "contract": "docs/contracts/portfolio-risk-calculation.md"
+}

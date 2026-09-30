@@ -308,9 +308,16 @@ function renderAlerts(){
 function renderPositions(){
   document.getElementById('pos-count').textContent = 'Holdings count unavailable';
   if(!snapshot) return;
-  const positions = snapshot.positions || [];
+  const positions = snapshot.positions;
   const tbody = document.getElementById('positions-body');
-  document.getElementById('pos-count').textContent = `${positions.length} holdings`;
+  if(!Array.isArray(positions)){
+    tbody.innerHTML = '<tr><td colspan="13">Holdings list unavailable. Missing or malformed positions do not mean an empty portfolio.</td></tr>';
+    document.getElementById('pos-pnl-summary').textContent = '';
+    return;
+  }
+  const validRecord=p=>p && typeof p==='object' && !Array.isArray(p) && typeof p.symbol==='string' && p.symbol.trim();
+  const invalid=positions.filter(p=>!validRecord(p)).length;
+  document.getElementById('pos-count').textContent = invalid ? `${positions.length} supplied records · ${invalid} invalid` : `${positions.length} holdings`;
 
   if(positions.length === 0){
     tbody.innerHTML = `<tr><td colspan="13"><div class="empty-state">
@@ -327,7 +334,8 @@ function renderPositions(){
 
   const metrics = (risk && risk.position_metrics) || {};
 
-  tbody.innerHTML = positions.map(p => {
+  tbody.innerHTML = positions.map((p,index) => {
+    if(!validRecord(p)) return `<tr><td colspan="13">Position record ${index+1} unavailable: malformed holding or instrument identifier.</td></tr>`;
     const m = metrics[p.symbol] || {};
     let flags = '';
     if(p.stop_hit === true) flags += '<span class="flag-stop">STOP HIT</span> ';
@@ -377,6 +385,7 @@ function renderScenarios(){
     <div class="scenario-card">
       <div class="scenario-name">${escapeHtml(s.name)}</div>
       <div class="scenario-meta">Assumed SPY shock: ${metricText(s.spy_return_pct)}% · ${metricText(s.duration_days)} days</div><p>${escapeHtml(s.basis||"Unverified scenario")}</p>
+      ${typeof s.rounding==='string' ? `<p class="scenario-meta">${escapeHtml(s.rounding)}</p>` : ''}
       <div class="scenario-pnl ${pnlClass(s.projected_pnl_dollars)}">${fmtMoney(s.projected_pnl_dollars)}</div>
       <div class="scenario-meta">${fmtPct(s.pct_of_gross_exposure)} of gross holdings</div><div class="scenario-meta ${pnlClass(s.projected_pnl_pct)}">${fmtPct(s.projected_pnl_pct)} on reconciled NAV</div>
     </div>`).join('');

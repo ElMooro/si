@@ -27,7 +27,7 @@
     return {current:false,title:'Risk unavailable',detail:reason+' Missing data does not mean zero risk.',holdings:null};
   }
   function view(doc, now=Date.now()){
-    if(!object(doc) || doc.engine!=='justhodl-portfolio-risk' || doc.schema_version!=='2.0.0') return unavailable('A supported identified risk contract is required.');
+    if(!object(doc) || doc.engine!=='justhodl-portfolio-risk' || !['2.0.0','2.0.1'].includes(doc.schema_version)) return unavailable('A supported identified risk contract is required.');
     const stamp=timestamp(doc.generated_at), age=(now-stamp)/3600000;
     if(!finite(now) || !finite(age) || age < -5/60 || age > 4) return unavailable('The risk publication time is invalid or outside the four-hour display window.');
     if(!object(doc.permissions) || doc.permissions.sizing_eligible!==false || doc.permissions.may_recommend_trades!==false) return unavailable('Explicit research-only permissions are required.');

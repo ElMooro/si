@@ -22,7 +22,7 @@ class SnapshotBinding(unittest.TestCase):
     def test_complete_predecessor_math_is_unchanged(self):
         before=deepcopy(self.predecessor['bundle']['inputs'])
         output=model.build(**before);binding=output.pop('snapshot_binding')
-        self.assertEqual(output,self.predecessor['output'])
+        self.assertEqual(output,{**self.predecessor['output'], 'schema_version':'2.0.1'})
         self.assertEqual(binding,{'contract':'portfolio-snapshot-value.v1','key':'portfolio/snapshot.json',
             'generated_at':before['snapshot']['generated_at'],**model.snapshot_value_identity(before['snapshot'])})
         self.assertEqual(before,self.predecessor['bundle']['inputs'])
@@ -32,7 +32,7 @@ class SnapshotBinding(unittest.TestCase):
         # Retain the whole old compiler-bound bundle; execute only current code.
         with self.assertRaisesRegex(ValueError,'code/schema mismatch'):model.replay(retained['bundle'])
         current,output=model.freeze(**retained['bundle']['inputs'])
-        self.assertEqual(model.replay(current),output);self.assertEqual(output,retained['output'])
+        self.assertEqual(model.replay(current),output);self.assertEqual(output,{**retained['output'], 'schema_version':'2.0.1'})
         bundle,output=model.freeze(**self.predecessor['bundle']['inputs'])
         self.assertEqual(model.replay(bundle),output)
         altered=deepcopy(bundle);altered['inputs']['snapshot']['positions'][0]['qty']+=1

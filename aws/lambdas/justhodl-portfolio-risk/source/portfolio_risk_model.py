@@ -15,7 +15,7 @@ import statistics
 from capital_contract import capital_book_view, finite, timestamp
 from instrument_identity import resolve_instrument
 
-VERSION = '2.0.0'
+VERSION = '2.0.1'
 MIN_RETURNS = 60
 MAX_BAR_AGE_DAYS = 5
 MAX_MARK_AGE_H = 96
@@ -176,10 +176,25 @@ def drawdown(closes, count):
     return worst * 100
 
 
+def cash_equity_identity(position):
+    """A boolean ticker or multiplier cannot acquire numeric/string meaning."""
+    if not isinstance(position, dict) or type(position.get('symbol')) is not str:
+        return None
+    category = position.get('asset_class')
+    if category is not None and type(category) is not str:
+        return None
+    if position.get('currency', 'USD') != 'USD' or finite(position.get('multiplier', 1)) != 1:
+        return None
+    identity = resolve_instrument(position['symbol'], category)
+    return identity if identity and identity['asset_class'] == 'equity' else None
+
+
 def exposure_view(snapshot, now):
     positions = snapshot.get('positions')
     errors, signed, gross, sectors = [], {}, {}, {}
-    if not isinstance(positions, list) or not positions:
+    if not isinstance(positions, list):
+        return {}, {}, {}, ['POSITIONS_LIST_REQUIRED']
+    if not positions:
         return {}, {}, {}, ['NO_POSITIONS']
     age = timestamp(snapshot.get('generated_at'))
     if age is None or not -300 <= (now-age).total_seconds() <= MAX_MARK_AGE_H*3600:
@@ -187,9 +202,8 @@ def exposure_view(snapshot, now):
     for p in positions:
         if not isinstance(p, dict):
             errors.append('INVALID_POSITION'); continue
-        sym = p.get('symbol')
-        identity = resolve_instrument(sym, p.get('asset_class'))
-        if not identity or identity['asset_class'] != 'equity' or p.get('currency', 'USD') != 'USD' or p.get('multiplier', 1) != 1:
+        identity = cash_equity_identity(p)
+        if not identity:
             errors.append('UNSUPPORTED_OR_AMBIGUOUS_INSTRUMENT'); continue
         sym = identity['symbol']
         value, qty, price = finite(p.get('market_value')), finite(p.get('qty')), finite(p.get('current_price'))
@@ -201,9 +215,24 @@ def exposure_view(snapshot, now):
             errors.append('STALE_OR_UNDATED_MARK'); continue
         signed[sym] = signed.get(sym, 0) + value
         gross[sym] = gross.get(sym, 0) + abs(value)
-        sector = str(p.get('sector') or 'Unknown')
+        sector = p.get('sector')
+        if sector is not None and type(sector) is not str:
+            errors.append('INVALID_SECTOR_CLASSIFICATION')
+            sector = None
+        sector = sector or 'Unknown'
         sectors[sector] = sectors.get(sector, 0) + abs(value)
     return signed, gross, sectors, sorted(set(errors))
+
+
+def risk_capital_book(snapshot, now):
+    """Malformed diagnostic metadata is an unavailable NAV, never a crash."""
+    book = snapshot.get('capital_book')
+    if isinstance(book, dict) and 'reason_codes' in book:
+        reasons = book['reason_codes']
+        if type(reasons) is not list or any(type(reason) is not str for reason in reasons):
+            return {'status': 'BLOCKED', 'errors': ['INVALID_CAPITAL_BOOK_REASON_CODES'],
+                    'contract': book, 'equity_nav': None, 'signed_weights': {}}
+    return capital_book_view(snapshot, now)
 
 
 def snapshot_value_identity(value):
@@ -251,6 +280,10 @@ def snapshot_value_identity(value):
 
 def build(snapshot, packets, generated_at, scenarios):
     snapshot_identity = snapshot_value_identity(snapshot)
+    if type(snapshot) is not dict:
+        raise ValueError('Complete snapshot must be an object')
+    positions = snapshot.get('positions')
+    position_rows = positions if isinstance(positions, list) else []
     now = timestamp(generated_at)
     if now is None:
         raise ValueError('timezone-aware evaluation time required')
@@ -268,7 +301,7 @@ def build(snapshot, packets, generated_at, scenarios):
     metrics = {str(p.get('symbol')): {'annual_vol_pct': None, 'beta_spy': None,
                '30d_max_drawdown_pct': None, '90d_max_drawdown_pct': None,
                'status': 'UNAVAILABLE', 'errors': ['EXPOSURE_NOT_VERIFIED']}
-               for p in snapshot.get('positions') or [] if isinstance(p, dict)}
+               for p in position_rows if isinstance(p, dict)}
     for sym in sorted(signed):
         values = list(returns[sym].values())
         ready = len(values) >= MIN_RETURNS and bool(calendar) and max(closes[sym], default='') == calendar[-1]
@@ -299,7 +332,7 @@ def build(snapshot, packets, generated_at, scenarios):
     daily = statistics.stdev(pnl) if pnl else None
     gross_returns = {key: value/gross for key, value in zip(keys, pnl)} if pnl and gross else {}
     gross_beta = beta(gross_returns, returns['SPY']) if gross_returns else None
-    book = capital_book_view(snapshot, now)
+    book = risk_capital_book(snapshot, now)
     nav, nav_errors = None, list(book['errors'])
     bc = book['contract']
     if book['status'] == 'READY':
@@ -314,18 +347,27 @@ def build(snapshot, packets, generated_at, scenarios):
     hhi = sum((v/gross*100)**2 for v in sectors.values()) if concentration else None
     projections = {}
     for sid, scenario in scenarios.items():
-        parts, unmodeled = [], []
-        for p in snapshot.get('positions') or []:
-            shock = finite(scenario.get('sector_returns', {}).get(p.get('sector')))
+        parts, unmodeled, contributions = [], [], []
+        for index, p in enumerate(position_rows):
+            if not isinstance(p, dict):
+                parts.append({'symbol': None, 'sector': None, 'scenario_return': None,
+                              'scenario_pnl': None, 'input_index': index, 'status': 'INVALID_POSITION'})
+                unmodeled.append(None)
+                continue
+            sector = p.get('sector')
+            shock = finite(scenario.get('sector_returns', {}).get(sector)) if type(sector) is str else None
             mv = finite(p.get('market_value'))
             valid = shock is not None and mv is not None and not exposure_errors
             parts.append({'symbol': p.get('symbol'), 'sector': p.get('sector'), 'scenario_return': rounded(shock*100 if shock is not None else None),
                           'scenario_pnl': rounded(mv*shock, 2) if valid else None})
-            if not valid: unmodeled.append(p.get('symbol'))
+            if valid: contributions.append(mv*shock)
+            else: unmodeled.append(p.get('symbol'))
         complete = bool(parts) and not unmodeled
-        total = sum(row['scenario_pnl'] for row in parts) if complete else None
+        # Lot display precision must not change portfolio consequences.
+        total = math.fsum(contributions) if complete else None
         projections[sid] = {'name': scenario['name'], 'duration_days': scenario['duration_days'],
                             'basis': 'Hypothetical static sector shocks; historical calibration and classification not verified',
+                            'rounding': 'Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding',
                             'historical_replay_verified': False, 'probability': None,
                             'spy_return_pct': rounded(scenario['spy_return']*100),
                             'projected_pnl_dollars': rounded(total, 2), 'projected_pnl_pct': rounded(total/nav*100, 2) if total is not None and nav else None,
@@ -336,7 +378,7 @@ def build(snapshot, packets, generated_at, scenarios):
         'engine': 'justhodl-portfolio-risk', 'schema_version': VERSION, 'generated_at': generated_at,
         'snapshot_binding': {'contract': 'portfolio-snapshot-value.v1', 'key': 'portfolio/snapshot.json',
                              'generated_at': snapshot.get('generated_at'), **snapshot_identity},
-        'status': 'no_positions' if not snapshot.get('positions') else 'AVAILABLE_HOLDINGS_MODEL' if modeled else 'INCOMPLETE',
+        'status': 'no_positions' if isinstance(positions, list) and not positions else 'AVAILABLE_HOLDINGS_MODEL' if modeled else 'INCOMPLETE',
         'permissions': {'sizing_eligible': False, 'may_recommend_trades': False, 'reason': 'Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability'},
         'quality': {'status': 'partial' if modeled else 'unavailable', 'reason_codes': sorted(set(errors)), 'data_errors': data_errors},
         'risk_contract': {'scope': 'USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX',
@@ -351,7 +393,7 @@ def build(snapshot, packets, generated_at, scenarios):
         'capital_basis': {'status': 'RECONCILED' if nav else 'UNAVAILABLE', 'nav': nav, 'currency': 'USD', 'errors': nav_errors},
         'total_market_value': rounded(net, 2) if not exposure_errors else None,
         'gross_market_value': rounded(gross, 2) if not exposure_errors else None,
-        'n_positions': len(snapshot.get('positions') or []), 'n_instruments': len(signed),
+        'n_positions': len(positions) if isinstance(positions, list) else None, 'n_instruments': len(signed),
         'holdings_risk': {'daily_pnl_std_dollars': rounded(daily, 2),
                           'annual_vol_pct_of_gross': rounded(annual/gross*100, 2) if annual is not None and gross else None,
                           'beta_spy_per_gross': rounded(gross_beta),
@@ -369,7 +411,7 @@ def build(snapshot, packets, generated_at, scenarios):
         'concentration_hhi': rounded(hhi, 1), 'concentration_label': 'Gross sector HHI (0..10000)' if hhi is not None else 'Unavailable',
         'max_sector_concentration_pct': concentration[0]['weight_pct'] if concentration else None,
         'historical_scenarios': projections,
-        'stops_hit': [p for p in snapshot.get('positions') or [] if p.get('stop_hit') is True] if not exposure_errors else [],
+        'stops_hit': [p for p in position_rows if p.get('stop_hit') is True] if not exposure_errors else [],
         'etf_lookthrough': {'status': 'UNVERIFIED', 'sector_lookthrough': [], 'geo_lookthrough': [], 'note': 'ETF constituent vintages and coverage have not been reconciled to this book'},
     }
     seen = set()

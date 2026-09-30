@@ -1,0 +1,1476 @@
+{
+  "scope": "Complete outputs from all six wholly invented predecessor input cases; no account data",
+  "packets": {
+    "baseline": {
+      "engine": "justhodl-portfolio-risk",
+      "schema_version": "2.0.1",
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "snapshot_binding": {
+        "contract": "portfolio-snapshot-value.v1",
+        "key": "portfolio/snapshot.json",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "encoding": "typed-json-binary64.v1",
+        "value_sha256": "0bba176dc5a404b6b3c0340d1dea1694c3c39cda2ea0113bb589cfcf98e0f250",
+        "encoded_bytes": 230
+      },
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "permissions": {
+        "sizing_eligible": false,
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+      },
+      "quality": {
+        "status": "partial",
+        "reason_codes": [],
+        "data_errors": {
+          "AAA": [],
+          "SPY": []
+        }
+      },
+      "risk_contract": {
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "sample_count": 128,
+        "minimum_sample": 60,
+        "sample_start": "2026-03-23",
+        "sample_end": "2026-09-17",
+        "annualization_sessions": 252,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "missing_input_defaults": false,
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        }
+      },
+      "capital_basis": {
+        "status": "UNAVAILABLE",
+        "nav": null,
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ]
+      },
+      "total_market_value": 1000.0,
+      "gross_market_value": 1000.0,
+      "n_positions": 1,
+      "n_instruments": 1,
+      "holdings_risk": {
+        "daily_pnl_std_dollars": 4.0,
+        "annual_vol_pct_of_gross": 6.36,
+        "beta_spy_per_gross": 1.0,
+        "var_1d_99_dollars": 9.31,
+        "var_1d_95_dollars": 6.59
+      },
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "portfolio_beta_spy": null,
+      "var_1d_99_dollars": null,
+      "var_1d_95_dollars": null,
+      "var_1d_99_pct": null,
+      "var_1d_95_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "annual_vol_pct": 6.36,
+          "beta_spy": 1.0,
+          "30d_max_drawdown_pct": -1.21,
+          "90d_max_drawdown_pct": -1.26,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "n_bars": 129,
+          "n_returns": 128,
+          "as_of": "2026-09-17",
+          "status": "AVAILABLE",
+          "errors": []
+        }
+      },
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": 1.0
+        }
+      },
+      "correlation_clusters": [],
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "max_sector_concentration_pct": 100.0,
+      "historical_scenarios": {
+        "sector_shock": {
+          "name": "Invented sector shock",
+          "duration_days": 1,
+          "basis": "Hypothetical static sector shocks; historical calibration and classification not verified",
+          "rounding": "Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding",
+          "historical_replay_verified": false,
+          "probability": null,
+          "spy_return_pct": -10.0,
+          "projected_pnl_dollars": -265.0,
+          "projected_pnl_pct": null,
+          "pct_of_gross_exposure": -26.5,
+          "unmodeled_symbols": [],
+          "per_position": [
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -265.0
+            }
+          ]
+        }
+      },
+      "stops_hit": [],
+      "etf_lookthrough": {
+        "status": "UNVERIFIED",
+        "sector_lookthrough": [],
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+      },
+      "alerts_summary": {
+        "var_breach": null,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": true,
+        "correlation_cluster_count": 0
+      }
+    },
+    "boolean_multiplier": {
+      "engine": "justhodl-portfolio-risk",
+      "schema_version": "2.0.1",
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "snapshot_binding": {
+        "contract": "portfolio-snapshot-value.v1",
+        "key": "portfolio/snapshot.json",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "encoding": "typed-json-binary64.v1",
+        "value_sha256": "520326c1d04fd096888d0d94491afc72c090caa554ea0c59a2483b7bf56088cc",
+        "encoded_bytes": 245
+      },
+      "status": "INCOMPLETE",
+      "permissions": {
+        "sizing_eligible": false,
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+      },
+      "quality": {
+        "status": "unavailable",
+        "reason_codes": [
+          "NO_GROSS_EXPOSURE",
+          "UNSUPPORTED_OR_AMBIGUOUS_INSTRUMENT"
+        ],
+        "data_errors": {
+          "SPY": []
+        }
+      },
+      "risk_contract": {
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "sample_count": 128,
+        "minimum_sample": 60,
+        "sample_start": "2026-03-23",
+        "sample_end": "2026-09-17",
+        "annualization_sessions": 252,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "missing_input_defaults": false,
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        }
+      },
+      "capital_basis": {
+        "status": "UNAVAILABLE",
+        "nav": null,
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ]
+      },
+      "total_market_value": null,
+      "gross_market_value": null,
+      "n_positions": 1,
+      "n_instruments": 0,
+      "holdings_risk": {
+        "daily_pnl_std_dollars": null,
+        "annual_vol_pct_of_gross": null,
+        "beta_spy_per_gross": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null
+      },
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "portfolio_beta_spy": null,
+      "var_1d_99_dollars": null,
+      "var_1d_95_dollars": null,
+      "var_1d_99_pct": null,
+      "var_1d_95_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "annual_vol_pct": null,
+          "beta_spy": null,
+          "30d_max_drawdown_pct": null,
+          "90d_max_drawdown_pct": null,
+          "status": "UNAVAILABLE",
+          "errors": [
+            "EXPOSURE_NOT_VERIFIED"
+          ]
+        }
+      },
+      "correlation_matrix": {},
+      "correlation_clusters": [],
+      "sector_concentration": [],
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": null,
+      "concentration_label": "Unavailable",
+      "max_sector_concentration_pct": null,
+      "historical_scenarios": {
+        "sector_shock": {
+          "name": "Invented sector shock",
+          "duration_days": 1,
+          "basis": "Hypothetical static sector shocks; historical calibration and classification not verified",
+          "rounding": "Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding",
+          "historical_replay_verified": false,
+          "probability": null,
+          "spy_return_pct": -10.0,
+          "projected_pnl_dollars": null,
+          "projected_pnl_pct": null,
+          "pct_of_gross_exposure": null,
+          "unmodeled_symbols": [
+            "AAA"
+          ],
+          "per_position": [
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": null
+            }
+          ]
+        }
+      },
+      "stops_hit": [],
+      "etf_lookthrough": {
+        "status": "UNVERIFIED",
+        "sector_lookthrough": [],
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+      },
+      "alerts_summary": {
+        "var_breach": null,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": null,
+        "correlation_cluster_count": 0
+      }
+    },
+    "null_position": {
+      "engine": "justhodl-portfolio-risk",
+      "schema_version": "2.0.1",
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "snapshot_binding": {
+        "contract": "portfolio-snapshot-value.v1",
+        "key": "portfolio/snapshot.json",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "encoding": "typed-json-binary64.v1",
+        "value_sha256": "e79abe47dcd7a2688a7ddf6d315441e2ddf771252abf0a54f025873d32ee39d0",
+        "encoded_bytes": 231
+      },
+      "status": "INCOMPLETE",
+      "permissions": {
+        "sizing_eligible": false,
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+      },
+      "quality": {
+        "status": "unavailable",
+        "reason_codes": [
+          "INVALID_POSITION"
+        ],
+        "data_errors": {
+          "AAA": [],
+          "SPY": []
+        }
+      },
+      "risk_contract": {
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "sample_count": 128,
+        "minimum_sample": 60,
+        "sample_start": "2026-03-23",
+        "sample_end": "2026-09-17",
+        "annualization_sessions": 252,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "missing_input_defaults": false,
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        }
+      },
+      "capital_basis": {
+        "status": "UNAVAILABLE",
+        "nav": null,
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ]
+      },
+      "total_market_value": null,
+      "gross_market_value": null,
+      "n_positions": 2,
+      "n_instruments": 1,
+      "holdings_risk": {
+        "daily_pnl_std_dollars": null,
+        "annual_vol_pct_of_gross": null,
+        "beta_spy_per_gross": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null
+      },
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "portfolio_beta_spy": null,
+      "var_1d_99_dollars": null,
+      "var_1d_95_dollars": null,
+      "var_1d_99_pct": null,
+      "var_1d_95_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "annual_vol_pct": 6.36,
+          "beta_spy": 1.0,
+          "30d_max_drawdown_pct": -1.21,
+          "90d_max_drawdown_pct": -1.26,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "n_bars": 129,
+          "n_returns": 128,
+          "as_of": "2026-09-17",
+          "status": "AVAILABLE",
+          "errors": []
+        }
+      },
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": 1.0
+        }
+      },
+      "correlation_clusters": [],
+      "sector_concentration": [],
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": null,
+      "concentration_label": "Unavailable",
+      "max_sector_concentration_pct": null,
+      "historical_scenarios": {
+        "sector_shock": {
+          "name": "Invented sector shock",
+          "duration_days": 1,
+          "basis": "Hypothetical static sector shocks; historical calibration and classification not verified",
+          "rounding": "Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding",
+          "historical_replay_verified": false,
+          "probability": null,
+          "spy_return_pct": -10.0,
+          "projected_pnl_dollars": null,
+          "projected_pnl_pct": null,
+          "pct_of_gross_exposure": null,
+          "unmodeled_symbols": [
+            "AAA",
+            null
+          ],
+          "per_position": [
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": null
+            },
+            {
+              "symbol": null,
+              "sector": null,
+              "scenario_return": null,
+              "scenario_pnl": null,
+              "input_index": 1,
+              "status": "INVALID_POSITION"
+            }
+          ]
+        }
+      },
+      "stops_hit": [],
+      "etf_lookthrough": {
+        "status": "UNVERIFIED",
+        "sector_lookthrough": [],
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+      },
+      "alerts_summary": {
+        "var_breach": null,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": null,
+        "correlation_cluster_count": 0
+      }
+    },
+    "string_positions": {
+      "engine": "justhodl-portfolio-risk",
+      "schema_version": "2.0.1",
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "snapshot_binding": {
+        "contract": "portfolio-snapshot-value.v1",
+        "key": "portfolio/snapshot.json",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "encoding": "typed-json-binary64.v1",
+        "value_sha256": "c4d6c883a60ec1ee2b8b7458a0aced516453c28e3f28915f13f86db480a45d26",
+        "encoded_bytes": 66
+      },
+      "status": "INCOMPLETE",
+      "permissions": {
+        "sizing_eligible": false,
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+      },
+      "quality": {
+        "status": "unavailable",
+        "reason_codes": [
+          "NO_GROSS_EXPOSURE",
+          "POSITIONS_LIST_REQUIRED"
+        ],
+        "data_errors": {
+          "SPY": []
+        }
+      },
+      "risk_contract": {
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "sample_count": 128,
+        "minimum_sample": 60,
+        "sample_start": "2026-03-23",
+        "sample_end": "2026-09-17",
+        "annualization_sessions": 252,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "missing_input_defaults": false,
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        }
+      },
+      "capital_basis": {
+        "status": "UNAVAILABLE",
+        "nav": null,
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ]
+      },
+      "total_market_value": null,
+      "gross_market_value": null,
+      "n_positions": null,
+      "n_instruments": 0,
+      "holdings_risk": {
+        "daily_pnl_std_dollars": null,
+        "annual_vol_pct_of_gross": null,
+        "beta_spy_per_gross": null,
+        "var_1d_99_dollars": null,
+        "var_1d_95_dollars": null
+      },
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "portfolio_beta_spy": null,
+      "var_1d_99_dollars": null,
+      "var_1d_95_dollars": null,
+      "var_1d_99_pct": null,
+      "var_1d_95_pct": null,
+      "position_metrics": {},
+      "correlation_matrix": {},
+      "correlation_clusters": [],
+      "sector_concentration": [],
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": null,
+      "concentration_label": "Unavailable",
+      "max_sector_concentration_pct": null,
+      "historical_scenarios": {
+        "sector_shock": {
+          "name": "Invented sector shock",
+          "duration_days": 1,
+          "basis": "Hypothetical static sector shocks; historical calibration and classification not verified",
+          "rounding": "Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding",
+          "historical_replay_verified": false,
+          "probability": null,
+          "spy_return_pct": -10.0,
+          "projected_pnl_dollars": null,
+          "projected_pnl_pct": null,
+          "pct_of_gross_exposure": null,
+          "unmodeled_symbols": [],
+          "per_position": []
+        }
+      },
+      "stops_hit": [],
+      "etf_lookthrough": {
+        "status": "UNVERIFIED",
+        "sector_lookthrough": [],
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+      },
+      "alerts_summary": {
+        "var_breach": null,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": null,
+        "correlation_cluster_count": 0
+      }
+    },
+    "rounded_scenario_lots": {
+      "engine": "justhodl-portfolio-risk",
+      "schema_version": "2.0.1",
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "snapshot_binding": {
+        "contract": "portfolio-snapshot-value.v1",
+        "key": "portfolio/snapshot.json",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "encoding": "typed-json-binary64.v1",
+        "value_sha256": "ab483847f0c65d4cbb55895e4613825c1b4469a02f7d2c146253bc968edf65e6",
+        "encoded_bytes": 16765
+      },
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "permissions": {
+        "sizing_eligible": false,
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+      },
+      "quality": {
+        "status": "partial",
+        "reason_codes": [],
+        "data_errors": {
+          "AAA": [],
+          "SPY": []
+        }
+      },
+      "risk_contract": {
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "sample_count": 128,
+        "minimum_sample": 60,
+        "sample_start": "2026-03-23",
+        "sample_end": "2026-09-17",
+        "annualization_sessions": 252,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "missing_input_defaults": false,
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        }
+      },
+      "capital_basis": {
+        "status": "UNAVAILABLE",
+        "nav": null,
+        "currency": "USD",
+        "errors": [
+          "reconciled capital book unavailable: MISSING_RECONCILED_CAPITAL_LEDGER",
+          "capital book missing book_id",
+          "capital book missing account_id",
+          "capital book missing currency",
+          "capital book as_of missing, stale or future",
+          "capital book reconciled_at missing, stale or future",
+          "reconciled NAV must be positive",
+          "invalid capital book cash",
+          "invalid capital book liabilities",
+          "invalid capital book reserved_order_exposure",
+          "invalid capital book gross_exposure",
+          "invalid capital book net_exposure",
+          "positions must be a complete list",
+          "unpriced or unspecified position coverage",
+          "complete open orders are required",
+          "drawdown requires two reconciled NAV observations from this book"
+        ]
+      },
+      "total_market_value": 100.0,
+      "gross_market_value": 100.0,
+      "n_positions": 100,
+      "n_instruments": 1,
+      "holdings_risk": {
+        "daily_pnl_std_dollars": 0.4,
+        "annual_vol_pct_of_gross": 6.36,
+        "beta_spy_per_gross": 1.0,
+        "var_1d_99_dollars": 0.93,
+        "var_1d_95_dollars": 0.66
+      },
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "portfolio_beta_spy": null,
+      "var_1d_99_dollars": null,
+      "var_1d_95_dollars": null,
+      "var_1d_99_pct": null,
+      "var_1d_95_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "annual_vol_pct": 6.36,
+          "beta_spy": 1.0,
+          "30d_max_drawdown_pct": -1.21,
+          "90d_max_drawdown_pct": -1.26,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "n_bars": 129,
+          "n_returns": 128,
+          "as_of": "2026-09-17",
+          "status": "AVAILABLE",
+          "errors": []
+        }
+      },
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": 1.0
+        }
+      },
+      "correlation_clusters": [],
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "max_sector_concentration_pct": 100.0,
+      "historical_scenarios": {
+        "sector_shock": {
+          "name": "Invented sector shock",
+          "duration_days": 1,
+          "basis": "Hypothetical static sector shocks; historical calibration and classification not verified",
+          "rounding": "Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding",
+          "historical_replay_verified": false,
+          "probability": null,
+          "spy_return_pct": -10.0,
+          "projected_pnl_dollars": -26.5,
+          "projected_pnl_pct": null,
+          "pct_of_gross_exposure": -26.5,
+          "unmodeled_symbols": [],
+          "per_position": [
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            },
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -0.27
+            }
+          ]
+        }
+      },
+      "stops_hit": [],
+      "etf_lookthrough": {
+        "status": "UNVERIFIED",
+        "sector_lookthrough": [],
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+      },
+      "alerts_summary": {
+        "var_breach": null,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": true,
+        "correlation_cluster_count": 0
+      }
+    },
+    "null_book_reasons": {
+      "engine": "justhodl-portfolio-risk",
+      "schema_version": "2.0.1",
+      "generated_at": "2026-09-18T17:00:00+00:00",
+      "snapshot_binding": {
+        "contract": "portfolio-snapshot-value.v1",
+        "key": "portfolio/snapshot.json",
+        "generated_at": "2026-09-18T17:00:00+00:00",
+        "encoding": "typed-json-binary64.v1",
+        "value_sha256": "890017099c7fee9b9c16d8f73ff6d54b86742bdd7e8a196f05454270082b2141",
+        "encoded_bytes": 266
+      },
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "permissions": {
+        "sizing_eligible": false,
+        "may_recommend_trades": false,
+        "reason": "Price-risk observations and hypothetical shocks do not establish forecast edge or account suitability"
+      },
+      "quality": {
+        "status": "partial",
+        "reason_codes": [],
+        "data_errors": {
+          "AAA": [],
+          "SPY": []
+        }
+      },
+      "risk_contract": {
+        "scope": "USD cash equities/ETFs; current signed quantities, multiplier 1; no options/FX",
+        "currency_basis": "Legacy snapshot Polygon US-stock marks are USD; explicit other currencies rejected",
+        "return_basis": "Split-adjusted daily price returns; dividends, financing, fees and liquidity losses excluded",
+        "alignment": "Matching interval endpoints on observed SPY sessions; one common sample",
+        "sample_count": 128,
+        "minimum_sample": 60,
+        "sample_start": "2026-03-23",
+        "sample_end": "2026-09-17",
+        "annualization_sessions": 252,
+        "model": "Normal zero-mean 1-day delta-normal VaR; not maximum possible loss or a calibrated tail guarantee",
+        "missing_input_defaults": false,
+        "netting": "Duplicate symbol lots summed; gross exposure sums absolute lots",
+        "freshness": {
+          "bar_max_calendar_days": 5,
+          "mark_max_hours": 96,
+          "release_calendar_verified": false
+        }
+      },
+      "capital_basis": {
+        "status": "UNAVAILABLE",
+        "nav": null,
+        "currency": "USD",
+        "errors": [
+          "INVALID_CAPITAL_BOOK_REASON_CODES"
+        ]
+      },
+      "total_market_value": 1000.0,
+      "gross_market_value": 1000.0,
+      "n_positions": 1,
+      "n_instruments": 1,
+      "holdings_risk": {
+        "daily_pnl_std_dollars": 4.0,
+        "annual_vol_pct_of_gross": 6.36,
+        "beta_spy_per_gross": 1.0,
+        "var_1d_99_dollars": 9.31,
+        "var_1d_95_dollars": 6.59
+      },
+      "portfolio_vol_annual_pct": null,
+      "portfolio_vol_daily_pct": null,
+      "portfolio_beta_spy": null,
+      "var_1d_99_dollars": null,
+      "var_1d_95_dollars": null,
+      "var_1d_99_pct": null,
+      "var_1d_95_pct": null,
+      "position_metrics": {
+        "AAA": {
+          "annual_vol_pct": 6.36,
+          "beta_spy": 1.0,
+          "30d_max_drawdown_pct": -1.21,
+          "90d_max_drawdown_pct": -1.26,
+          "drawdown_basis": "30/90 observed sessions; split-adjusted price, not account drawdown",
+          "n_bars": 129,
+          "n_returns": 128,
+          "as_of": "2026-09-17",
+          "status": "AVAILABLE",
+          "errors": []
+        }
+      },
+      "correlation_matrix": {
+        "AAA": {
+          "AAA": 1.0
+        }
+      },
+      "correlation_clusters": [],
+      "sector_concentration": [
+        {
+          "sector": "Technology",
+          "weight_pct": 100.0
+        }
+      ],
+      "concentration_basis": "Absolute marked lot exposure / gross marked exposure; not NAV and not ETF look-through",
+      "concentration_hhi": 10000.0,
+      "concentration_label": "Gross sector HHI (0..10000)",
+      "max_sector_concentration_pct": 100.0,
+      "historical_scenarios": {
+        "sector_shock": {
+          "name": "Invented sector shock",
+          "duration_days": 1,
+          "basis": "Hypothetical static sector shocks; historical calibration and classification not verified",
+          "rounding": "Binary64 arithmetic; total sums unrounded position contributions before two-decimal display rounding",
+          "historical_replay_verified": false,
+          "probability": null,
+          "spy_return_pct": -10.0,
+          "projected_pnl_dollars": -265.0,
+          "projected_pnl_pct": null,
+          "pct_of_gross_exposure": -26.5,
+          "unmodeled_symbols": [],
+          "per_position": [
+            {
+              "symbol": "AAA",
+              "sector": "Technology",
+              "scenario_return": -26.5,
+              "scenario_pnl": -265.0
+            }
+          ]
+        }
+      },
+      "stops_hit": [],
+      "etf_lookthrough": {
+        "status": "UNVERIFIED",
+        "sector_lookthrough": [],
+        "geo_lookthrough": [],
+        "note": "ETF constituent vintages and coverage have not been reconciled to this book"
+      },
+      "alerts_summary": {
+        "var_breach": null,
+        "stops_hit_count": 0,
+        "sector_concentration_breach": true,
+        "correlation_cluster_count": 0
+      }
+    }
+  }
+}

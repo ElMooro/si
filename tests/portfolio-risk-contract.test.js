@@ -6,6 +6,30 @@ const contract=require('../jh-portfolio-risk-contract.js');
 const now=Date.parse('2026-09-18T18:00:00Z');
 const fixtures=JSON.parse(fs.readFileSync('tests/fixtures/risk-browser-native-synthetic.json','utf8'));
 const copy=name=>structuredClone(fixtures.packets[name||'holdings_without_nav']);
+
+test('risk 2.0.1 complete calculation repairs remain displayable without loosening permissions',()=>{
+  const updated=JSON.parse(fs.readFileSync('tests/fixtures/risk-calculation-native-synthetic.json','utf8'));
+  for(const packet of Object.values(updated.packets)){
+    const before=JSON.stringify(packet),result=contract.view(packet,now);
+    assert.equal(packet.schema_version,'2.0.1');assert.equal(result.current,true,result.detail);
+    assert.match(result.title,/research only/);assert.equal(JSON.stringify(packet),before);
+    assert.equal(contract.view({...packet,permissions:{sizing_eligible:true,may_recommend_trades:false}},now).current,false);
+    assert.equal(contract.view({...packet,schema_version:'2.0.2'},now).current,false);
+  }
+  assert.equal(updated.packets.rounded_scenario_lots.historical_scenarios.sector_shock.projected_pnl_dollars,-26.5);
+});
+
+test('incomplete malformed positions show an explanation rather than measured zero risk',()=>{
+  const packets=JSON.parse(fs.readFileSync('tests/fixtures/risk-calculation-native-synthetic.json','utf8')).packets;
+  for(const name of ['boolean_multiplier','null_position','string_positions']){
+    const result=contract.view(packets[name],now);
+    assert.match(result.title,/Incomplete risk inputs/);
+    assert.equal(contract.number(result.holdings.var_1d_99_dollars),'—');
+  }
+  const result=contract.view(packets.null_book_reasons,now);
+  assert.match(result.detail,/Account NAV unavailable/);
+  assert.ok(result.holdings.var_1d_99_dollars>0);
+});
 test('risk UI preserves zero but refuses missing, stale and legacy contracts',()=>{
   assert.equal(contract.number(0),'0.00'); assert.equal(contract.number(null),'—');
   const doc=copy();
@@ -92,6 +116,41 @@ function context(path){
     JHScenarioIO:{decode(){},readComplete(){return new Promise(()=>{});}},setInterval(){},fetch(){return new Promise(()=>{});}});
   vm.runInContext(scripts,scope);return {scope,elements};
 }
+
+test('actual page keeps malformed supplied rows visible and never invents an empty portfolio',()=>{
+  const cases=JSON.parse(fs.readFileSync('tests/fixtures/pre-risk-calculation/complete-synthetic.json','utf8'));
+  const outputs=JSON.parse(fs.readFileSync('tests/fixtures/risk-calculation-native-synthetic.json','utf8')).packets;
+  for(const [name,row] of Object.entries(cases)){
+    const {scope,elements}=context('portfolio/index.html');
+    scope.suppliedSnapshot=row.inputs.snapshot;scope.suppliedRisk=outputs[name];
+    const before=JSON.stringify(row.inputs.snapshot);
+    vm.runInContext('snapshot=suppliedSnapshot;risk=suppliedRisk;renderPositions();renderScenarios();',scope);
+    assert.equal(JSON.stringify(row.inputs.snapshot),before);
+    if(name==='string_positions'){
+      assert.match(elements.get('positions-body').innerHTML,/Holdings list unavailable/);
+      assert.doesNotMatch(elements.get('positions-body').innerHTML,/No positions yet/);
+    }
+    if(name==='null_position'){
+      assert.equal(elements.get('pos-count').textContent,'2 supplied records · 1 invalid');
+      assert.match(elements.get('positions-body').innerHTML,/Position record 2 unavailable/);
+      assert.match(elements.get('positions-body').innerHTML,/AAA/);
+    }
+    assert.match(elements.get('scenarios-grid').innerHTML,/unrounded position contributions/);
+  }
+});
+
+test('actual page recovers from invalid position lists and escapes scenario metadata',()=>{
+  const {scope,elements}=context('portfolio/index.html');
+  for(const positions of [null,false,true,0,'AAA',{}]){
+    scope.supplied=positions;vm.runInContext('snapshot={positions:supplied};renderPositions();',scope);
+    assert.match(elements.get('positions-body').innerHTML,/Holdings list unavailable/);
+    assert.equal(elements.get('pos-count').textContent,'Holdings count unavailable');
+  }
+  vm.runInContext('snapshot={positions:[]};renderPositions();',scope);
+  assert.equal(elements.get('pos-count').textContent,'0 holdings');assert.match(elements.get('positions-body').innerHTML,/No positions yet/);
+  vm.runInContext(`risk={historical_scenarios:{x:{name:'Synthetic',rounding:'<img src=x onerror=bad>'}}};renderScenarios();`,scope);
+  assert.match(elements.get('scenarios-grid').innerHTML,/&lt;img/);assert.doesNotMatch(elements.get('scenarios-grid').innerHTML,/<img/);
+});
 test('actual portfolio page renders absent NAV as unavailable, not 0% risk',()=>{
   const {scope,elements}=context('portfolio/index.html');
   vm.runInContext(`snapshot={portfolio_summary:{},counts:{}};risk={var_1d_99_pct:null,var_1d_99_dollars:null,portfolio_beta_spy:0,portfolio_vol_annual_pct:null,concentration_hhi:0};renderTopMetrics();`,scope);

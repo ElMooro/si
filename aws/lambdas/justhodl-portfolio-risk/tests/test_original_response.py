@@ -45,10 +45,10 @@ class OriginalResponse(unittest.TestCase):
         self.assertEqual(self.fetch(response,open_hook),{'error':'SOURCE_REQUEST_FAILED','error_type':kind})
     def test_complete_frozen_valid_output_remains_exact(self):
         inputs=deepcopy(self.retained['bundle']['inputs'])
-        self.assertEqual(model.build(**inputs),self.retained['output'])
+        self.assertEqual(model.build(**inputs),{**self.retained['output'], 'schema_version':'2.0.1'})
         self.assertEqual(inputs,self.retained['bundle']['inputs'])
         bundle,out=model.freeze(**inputs);self.assertEqual(model.replay(bundle),out)
-        self.assertEqual(out,self.retained['output'])
+        self.assertEqual(out,{**self.retained['output'], 'schema_version':'2.0.1'})
         with self.assertRaisesRegex(ValueError,'code/schema mismatch'):model.replay(self.retained['bundle'])
     def test_all_three_frozen_defects_reject_before_risk(self):
         variants=json.loads((ROOT/'tests/fixtures/pre-portfolio-original-complete-variants.json').read_bytes())
@@ -142,14 +142,14 @@ class OriginalResponse(unittest.TestCase):
                 b'HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n20\r\n{}']:
             response=http.client.HTTPResponse(Socket(message));response.begin();out=self.fetch(response)
             self.assertEqual(out['error'],'SOURCE_REQUEST_FAILED');self.assertEqual(set(out),{'error','error_type'})
-    def test_math_and_snapshot_implementation_remain_identical(self):
+    def test_all_other_original_source_math_and_snapshot_functions_remain_identical(self):
         import ast
-        prior=ast.parse((ROOT/'tests/fixtures/pre-portfolio-original-portfolio_risk_model.py.txt').read_text(encoding='utf-8'))
+        prior=ast.parse((ROOT/'tests/fixtures/pre-risk-calculation/stage448-predecessor-portfolio_risk_model.py.txt').read_text(encoding='utf-8'))
         current=ast.parse((ROOT/'aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py').read_text(encoding='utf-8'))
         before={n.name:ast.dump(n,include_attributes=False) for n in prior.body if isinstance(n,ast.FunctionDef)}
         after={n.name:ast.dump(n,include_attributes=False) for n in current.body if isinstance(n,ast.FunctionDef)}
-        for name,code in before.items():
-            if name!='read_bars':self.assertEqual(after[name],code,name)
+        self.assertEqual({name for name,code in before.items() if after[name]!=code},{'build','exposure_view'})
+        self.assertEqual(set(after)-set(before),{'cash_equity_identity','risk_capital_book'})
 
 
 if __name__=='__main__':unittest.main()

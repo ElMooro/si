@@ -1,0 +1,77 @@
+{
+  "scope": "Current pure source executed only with whole invented inputs; no private/provider/current packet reads or native invocation. Frozen source remains inert.",
+  "sources": [
+    {
+      "path": "aws/lambdas/justhodl-portfolio-risk/source/portfolio_risk_model.py",
+      "bytes": 23524,
+      "sha256": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4",
+      "frozen": "stage448-predecessor-portfolio_risk_model.py.txt",
+      "fixture": "tests/fixtures/pre-risk-calculation/stage448-predecessor-portfolio_risk_model.py.txt"
+    },
+    {
+      "path": "aws/shared/capital_contract.py",
+      "bytes": 14670,
+      "sha256": "7b762043f60fa2bacbc8b92bb29adc07f2985b78f5524b2adbb73be4bf415b65",
+      "frozen": "stage448-predecessor-capital_contract.py.txt",
+      "fixture": "tests/fixtures/pre-risk-calculation/stage448-predecessor-capital_contract.py.txt"
+    },
+    {
+      "path": "jh-portfolio-risk-contract.js",
+      "bytes": 5048,
+      "sha256": "f675fefc75292d3f1d516d8adb075eeb0cb830e14caf108bb154bc019ead68aa",
+      "frozen": "stage448-predecessor-jh-portfolio-risk-contract.js.txt",
+      "fixture": "tests/fixtures/pre-risk-calculation/stage448-predecessor-jh-portfolio-risk-contract.js.txt"
+    }
+  ],
+  "complete_synthetic": {
+    "file": "stage448-complete-synthetic.json",
+    "bytes": 416819,
+    "sha256": "3fdbcd8651fe26f40fd71193aa98ee282c6419b5dde1b3d16cdbd218c66e5696",
+    "fixture": "tests/fixtures/pre-risk-calculation/complete-synthetic.json"
+  },
+  "findings": {
+    "baseline": {
+      "exception": null,
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "scenario_pnl_dollars": -265.0
+    },
+    "boolean_multiplier": {
+      "exception": null,
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "scenario_pnl_dollars": -265.0
+    },
+    "null_position": {
+      "exception": {
+        "class": "AttributeError",
+        "message": "'NoneType' object has no attribute 'get'"
+      },
+      "status": null,
+      "scenario_pnl_dollars": null
+    },
+    "string_positions": {
+      "exception": {
+        "class": "AttributeError",
+        "message": "'str' object has no attribute 'get'"
+      },
+      "status": null,
+      "scenario_pnl_dollars": null
+    },
+    "rounded_scenario_lots": {
+      "exception": null,
+      "status": "AVAILABLE_HOLDINGS_MODEL",
+      "scenario_pnl_dollars": -27.0,
+      "expected_unrounded_total_dollars": -26.5
+    },
+    "null_book_reasons": {
+      "exception": {
+        "class": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      },
+      "status": null,
+      "scenario_pnl_dollars": null
+    }
+  },
+  "actual_private_reads": 0,
+  "actual_network_requests": 0,
+  "native_invocations": 0
+}

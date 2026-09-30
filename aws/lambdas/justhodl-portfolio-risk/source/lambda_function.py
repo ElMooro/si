@@ -11,7 +11,7 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
-from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars, snapshot_value_identity, MAX_SOURCE_BYTES, source_document
+from portfolio_risk_model import VERSION, ARCHIVE_PREFIX, canonical, freeze, replay, read_bars, snapshot_value_identity, MAX_SOURCE_BYTES, source_document, cash_equity_identity
 from portfolio_publication import reserve_publication, publish_ordered, publication_request, opaque_etag
 
 S3_BUCKET = "justhodl-dashboard-live"
@@ -307,11 +307,14 @@ def _run_private(event, context):
     if not isinstance(snapshot, dict):
         raise ValueError('invalid private snapshot')
     symbols = {'SPY'}
-    for row in snapshot.get('positions') or []:
-        identity = resolve_instrument(row.get('symbol'), row.get('asset_class'))
-        if identity and identity['asset_class'] == 'equity':
+    positions = snapshot.get('positions')
+    identified = False
+    for row in positions if isinstance(positions, list) else []:
+        identity = cash_equity_identity(row)
+        if identity:
+            identified = True
             symbols.add(identity['provider_symbols']['polygon'])
-    packets = batch_fetch_bars(sorted(symbols), 180) if snapshot.get('positions') else {}
+    packets = batch_fetch_bars(sorted(symbols), 180) if identified else {}
     bundle, payload = freeze(snapshot, packets, datetime.now(timezone.utc).isoformat(), SCENARIOS)
     replay(bundle)
     payload['replay'] = retain_bundle(bundle)

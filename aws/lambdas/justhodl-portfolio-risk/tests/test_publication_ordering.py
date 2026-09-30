@@ -194,12 +194,19 @@ class PublicationOrdering(unittest.TestCase):
         with patch.object(pub.time, 'monotonic', return_value=20):
             with self.assertRaises(pub.PublicationUnavailable): pub.read_bytes(body, 10, 20)
         self.assertTrue(body.closed)
-    def test_model_and_both_complete_retained_replays_are_unchanged(self):
-        raw = (Path(__file__).resolve().parents[1]/'source/portfolio_risk_model.py').read_bytes()
+    def test_whole_predecessors_remain_inert_and_unchanged_inputs_recalculate(self):
+        raw = (ROOT/'tests/fixtures/pre-risk-calculation/stage448-predecessor-portfolio_risk_model.py.txt').read_bytes()
         self.assertEqual(hashlib.sha256(raw).hexdigest(), '9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4')
         for name in ['old', 'new']:
-            bundle = self.fixture[name+'_bundle']; output = model.replay(bundle)
-            self.assertEqual(model.digest(output), bundle['output_sha256'])
+            bundle = self.fixture[name+'_bundle']
+            with self.assertRaisesRegex(ValueError,'code/schema mismatch'): model.replay(bundle)
+            current,output = model.freeze(**bundle['inputs'])
+            self.assertEqual(model.replay(current),output)
+            expected = copy.deepcopy(self.fixture[name+'_payload'])
+            expected.pop('replay'); expected.pop('alerts_sent')
+            expected['schema_version'] = '2.0.1'
+            self.assertEqual(output,expected)
+
 
 
 if __name__ == '__main__': unittest.main()
