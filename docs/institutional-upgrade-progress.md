@@ -6768,3 +6768,9 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - `Errors`: sum of reported points 0.0, with 1 reported and 14 unreported minute bins. Missing bins are not treated as zero.
 - `Throttles`: sum of reported points 0.0, with 1 reported and 14 unreported minute bins. Missing bins are not treated as zero.
 - Duration mean across reported samples: 89383.88 ms. Function-level metric evidence cannot identify the triggering event or executing code revision. A caught application error can also return without a Lambda error. Publication, source correctness, schedule causation and investment qualification remain unverified; no recovery is inferred.
+
+
+## Stage 485: bind FI/FX API recovery to complete post-release originals
+
+- Read-only operation 6392 qualifies only a complete post-release original run under all fourteen exact current compiler hashes. Before that run exists, the complete public manifest inventory yields pending, without fetching original response bodies or forcing another execution.
+- The unshipped prototype was shown to accept a wrong-series URL through a prefix-only check. The reviewed candidate binds the exact official request, series, typed controls, acquisition clock, complete population and independent proof. Eight whole invented regression cases pass in isolation. All 948 deployment, fifteen shell, 58 native and eight focused checks pass. Runner evidence remains pending. Current-pointer delivery, triggering event, first-release availability and investment authority remain unverified.

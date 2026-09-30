@@ -1,0 +1,40 @@
+{
+  "schema": "fifx-api-delivery-qualification.v1",
+  "prepared_at": "2026-09-30T22:07:46.240475+00:00",
+  "base_commit": "fc0426e2910f71c601b6c8505371d44d6efc2e6e",
+  "operation": 6392,
+  "native_source_commit": "1129b6d6a66f4afe9ff0c35f368fc45530a5c964",
+  "release_cutoff": "2026-09-30T21:37:13Z",
+  "source": [
+    {
+      "path": "aws/ops/checks/fifx_api_delivery.py",
+      "bytes": 6345,
+      "sha256": "5c89e7dd7a2785ebad1e19107d399ea56191d6752a37eee477645f2da15f99bb"
+    },
+    {
+      "path": "aws/ops/staged/ops_6392_fifx_api_original_qualification.py",
+      "bytes": 2859,
+      "sha256": "785554cfd14ec06b11b73fa1d259c0416a2726fa3a767cf4dd32e8f44af9d95e"
+    }
+  ],
+  "reproduced_unshipped_prototype_bug": "Prefix-only URL validation accepted a different FRED series despite a matching count; exact request, acquisition-window and proof binding now required.",
+  "tests": {
+    "focused": 8,
+    "deployment": 948,
+    "native": 58,
+    "candidate_shell": 15,
+    "preflight": "pass"
+  },
+  "acceptance": {
+    "runner": "pending",
+    "api_originals_verified": false
+  },
+  "scope": {
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "current_private_account_consumer_reads": 0,
+    "native_writes": 0,
+    "archive_writes": 0,
+    "schedule_changes": 0
+  }
+}
