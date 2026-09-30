@@ -508,7 +508,7 @@ Provider credentials must be read from managed environment or SSM configuration;
 - BLS: `managed configuration only`
 - BEA: `managed configuration only`
 - Census: `managed configuration only`
-- Telegram bot: `8679881066:AAHTE6TAhDqs0FuUelTL6Ppt1x8ihis1aGs`, chat_id `8678089260` at `/justhodl/telegram/chat_id`
+- Telegram bot: `[REDACTED — rotate via @BotFather, see SSM /justhodl/telegram/bot_token]`, chat_id `867808...[REDACTED]` at `/justhodl/telegram/chat_id`
 
 ## PROTECTED / DO NOT TOUCH WITHOUT EXPLICIT APPROVAL
 
