@@ -1,0 +1,163 @@
+{
+  "schema": "term-premium-browser-integrity.v1",
+  "prepared_at": "2026-09-30T18:35:37.274346+00:00",
+  "base_commit": "aaefd60b2c3080a9f09e3ba85f1018569f92c42f",
+  "predecessors": {
+    "jh-term-premium-research.js": {
+      "fixture": "tests/fixtures/pre-term-premium-browser-integrity.js.txt",
+      "bytes": 18623,
+      "sha256": "a6c7e5c259b5bdd6f37ce51d36990b2dc107b827645bcb8f9532bbffe0a611d1"
+    },
+    "term-premium.html": {
+      "fixture": "tests/fixtures/pre-term-premium-browser-integrity.html.txt",
+      "bytes": 4975,
+      "sha256": "7073c8647dcbc90460934651a2bb273c455b1ac17965c3caaa5e42f0a703667c"
+    }
+  },
+  "complete_invented_fixture": {
+    "path": "tests/fixtures/term-premium-browser-whole-inputs.json",
+    "bytes": 3135191,
+    "sha256": "9c133ef4bd4e9fa297dfc3bcc0e24567c370536ba87c01800d18885d1d962eea"
+  },
+  "reproduced_faults": {
+    "duplicate_json_accepted": {
+      "whole": 2
+    },
+    "late_response_cancel_count": 0,
+    "old_original_proof_survived_new_packet": true,
+    "first_source": "ed84cbff6ebacab6920298717836c01e28e0a71b1f1a8eddda9680c0259fa777",
+    "second_source": "bf9bf8177447ccbd8afcb4dcb10fb6bca6cd77f74de08a5fa563039716ab1f78",
+    "whole_input_fixture": "stage478-invented-inputs.json"
+  },
+  "source": [
+    {
+      "path": "jh-term-premium-research.js",
+      "bytes": 20425,
+      "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780"
+    },
+    {
+      "path": "term-premium.html",
+      "bytes": 5023,
+      "sha256": "05297665848711f2d6ec26ef84dd5cdfe4f02cbe55234a5e02f40112b24f77c6"
+    },
+    {
+      "path": "tests/term-premium-native-view.test.js",
+      "bytes": 7618,
+      "sha256": "2222f1012a914e7a7323b20a657fa4cfb89dbc54962031ee9d757a0a0eb43e5d"
+    },
+    {
+      "path": "tests/term-premium-browser-integrity.test.js",
+      "bytes": 10593,
+      "sha256": "55e00203edf0498cdd98d6868ec9de76c8e2780dcaaa402d6d0a3baac9027974"
+    }
+  ],
+  "tests": {
+    "focused_browser": 24,
+    "new_browser_integrity_cases": 12,
+    "frontend": 2141,
+    "deployment": 913,
+    "candidate_shell": 15,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "missing_or_stale_wires": 0,
+    "native_engine_changes": false
+  },
+  "whole_original_browser_module_replay": {
+    "archive_references": {
+      "checked_at": "2026-09-30T18:32:23.764450+00:00",
+      "accepted_runner": 36757193638,
+      "files": {
+        "manifest": {
+          "key": "data/term-premium-research/runs/e0e89fd3bf4d70fff08146ca5920a22cdab9311988a62affce30eec701d491fa.json",
+          "sha256": "e0e89fd3bf4d70fff08146ca5920a22cdab9311988a62affce30eec701d491fa",
+          "bytes": 4659,
+          "http_status": 200
+        },
+        "view": {
+          "bytes": 320592,
+          "key": "data/term-premium-research/views/078d7e362fc47862f21db60c92b9df34498bc06a7376631cd11ed28baef9c3d8.json",
+          "sha256": "078d7e362fc47862f21db60c92b9df34498bc06a7376631cd11ed28baef9c3d8",
+          "http_status": 200
+        },
+        "ACM Daily": {
+          "bytes": 11632897,
+          "key": "data/term-premium-research/tables/58bfcc09aaff70e403d93a3837c37d75dbb92a1143500136043ba5a3e470d811.json",
+          "sha256": "58bfcc09aaff70e403d93a3837c37d75dbb92a1143500136043ba5a3e470d811",
+          "http_status": 200
+        },
+        "ACM Monthly": {
+          "bytes": 558934,
+          "key": "data/term-premium-research/tables/03ce5fdcf85e1ff9e608acdea35b22b3b386b48a5811fde0fac1c03b68aa8f54.json",
+          "sha256": "03ce5fdcf85e1ff9e608acdea35b22b3b386b48a5811fde0fac1c03b68aa8f54",
+          "http_status": 200
+        }
+      },
+      "scope": "Only the four exact content-addressed original public artifacts previously accepted by the runner; no current/private/consumer packet or provider request."
+    },
+    "scope": "Offline browser-module replay of whole previously verified original view and both tables. No live/current/consumer packet read. Elapsed times describe this local check, not a service-level performance claim.",
+    "tables": {
+      "ACM Daily": {
+        "rows": 16287,
+        "columns": 31,
+        "bytes": 11632897,
+        "all_fields_and_cells_equal": true,
+        "complete_history_chart_generated": true,
+        "elapsed_ms": 543.7425000000001
+      },
+      "ACM Monthly": {
+        "rows": 783,
+        "columns": 31,
+        "bytes": 558934,
+        "all_fields_and_cells_equal": true,
+        "complete_history_chart_generated": true,
+        "elapsed_ms": 31.190900000000056
+      }
+    },
+    "rows": 17070,
+    "series": 60,
+    "reads": [
+      "data/term-premium-research/runs/e0e89fd3bf4d70fff08146ca5920a22cdab9311988a62affce30eec701d491fa.json",
+      "data/term-premium-research/views/078d7e362fc47862f21db60c92b9df34498bc06a7376631cd11ed28baef9c3d8.json",
+      "data/term-premium-research/tables/58bfcc09aaff70e403d93a3837c37d75dbb92a1143500136043ba5a3e470d811.json",
+      "data/term-premium-research/tables/03ce5fdcf85e1ff9e608acdea35b22b3b386b48a5811fde0fac1c03b68aa8f54.json"
+    ],
+    "elapsed_ms": 636.8134
+  },
+  "isolated_browser_qa": {
+    "scope": "Isolated browser with the complete invented native fixture; navigation chrome stubbed, fixed test clock, CSP prohibits external connections. This is not authenticated/current production delivery acceptance.",
+    "desktop": {
+      "viewport_width": 1280,
+      "document_width": 1265,
+      "horizontal_overflow": false
+    },
+    "mobile": {
+      "viewport_width": 390,
+      "document_width": 375,
+      "horizontal_overflow": false,
+      "long_workbook_hash_wrapped": true
+    },
+    "verified": [
+      "Original workbook proof matches the first invented hash",
+      "Second publication clears old proof and updates acquisition/publication clocks",
+      "Daily table loads all 300 rows and pagination reaches 51\u2013100",
+      "Frequency change clears the old notice; monthly table loads all 20 rows",
+      "Search ACMTP10 returns both daily and monthly series",
+      "Second original proof matches the different second workbook hash",
+      "Simulated publication failure clears bound readings and proof",
+      "Successful recovery restores the current view"
+    ],
+    "console_errors_or_warnings": [],
+    "viewport_reset": true,
+    "temporary_tab_closed": true,
+    "owned_preview_server_stopped": true
+  },
+  "source_inventory": {
+    "all_893_engine_records_unchanged": true,
+    "all_599_page_definitions_unchanged": true,
+    "inventory_hash_bindings_updated": 2
+  },
+  "release_acceptance": {
+    "status": "pending_exact_pages_build_and_live_static_verification"
+  },
+  "scope": "Strict bounded browser evidence, request lifecycle and publication-bound notices. Original retained archives and whole invented inputs only; no actual current/private/consumer packets, provider requests, native invokes, schedules or investment authority changes. All ten workstreams remain open."
+}

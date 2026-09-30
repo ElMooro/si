@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Term Premium Research | JustHodl</title><link rel="stylesheet" href="/jh-term-premium-research.css">
+</head><body><main id="term-research" class="term-wrap">
+<header><div class="term-eyebrow">JUSTHODL / RATES RESEARCH</div><h1>Term premium</h1>
+<p class="term-intro">Explore the NY Fed's ACM yield decomposition across ten maturities, with daily and monthly observations from the complete original workbook.</p>
+<div class="term-toolbar"><span class="term-badge">Research measurements</span><button id="term-refresh" type="button">Refresh publication</button><a href="/yield-curve.html">Yield curve research ↗</a></div></header>
+<p id="term-status" class="term-status" role="status">Verifying publication…</p>
+<section id="term-legacy" hidden aria-label="Legacy snapshot"></section>
+<section id="term-native" hidden>
+<div id="term-metadata" class="term-meta"></div>
+<div class="term-controls"><label>Frequency<select id="term-frequency" aria-label="Frequency"><option value="D">Daily</option><option value="M">Monthly</option></select></label>
+<label>Component<select id="term-family" aria-label="Component"><option value="ACMTP">Term premium</option><option value="ACMY">Fitted yield</option><option value="ACMRNY">Risk-neutral yield</option></select></label>
+<label>Maturity<select id="term-tenor"><option value="1">1 year</option><option value="2">2 years</option><option value="3">3 years</option><option value="4">4 years</option><option value="5">5 years</option><option value="6">6 years</option><option value="7">7 years</option><option value="8">8 years</option><option value="9">9 years</option><option value="10" selected>10 years</option></select></label></div>
+<div id="term-reading"></div><div class="term-columns"><section class="term-panel"><h2>Across maturities</h2><div id="term-curve"></div></section>
+<section class="term-panel"><h2>Changes between observations</h2><p class="term-muted">Steps count numeric observations. Actual dates and calendar distance are shown below.</p><div id="term-changes" class="term-scroll"></div></section></div>
+<section class="term-panel"><div class="term-toolbar"><h2>Complete model inventory</h2><label>Search series<input id="term-search" type="search" placeholder="ACMTP10, monthly, fitted…"></label></div><div id="term-inventory" class="term-scroll"></div></section>
+<section class="term-panel"><h2>Original observations</h2><p class="term-muted">Load the whole selected worksheet, including missing and future-dated rows. Charts and the table use the complete returned history of this acquired model vintage.</p>
+<button id="term-load-history" type="button">Load complete worksheet</button><button id="term-verify-source" type="button">Verify original workbook</button><p id="term-history-status" role="status"></p>
+<div id="term-history-chart"></div><div id="term-history" class="term-scroll"></div><div class="term-toolbar"><button id="term-older" type="button" disabled>Older observations</button><button id="term-newer" type="button" disabled>Newer observations</button><span id="term-pagination"></span></div></section>
+</section>
+<section class="term-panel term-method"><h2>What this research can support</h2><p>The fitted yield is decomposed into risk-neutral yield and term premium in the Adrian–Crump–Moench model. These are model-implied zero-coupon estimates, distinct from Treasury constant-maturity par yields. Reconciliation is an arithmetic check, not proof of a causal explanation.</p>
+<p>Daily and monthly series, different maturities and the three components share one fitted model. They are not independent signals. The retained workbook is one acquired vintage: historical values may have been revised, and this history is not a point-in-time backtest.</p>
+<p>Source observation dates, acquisition time and publication time are separate. Daily observations have a seven-calendar-day ceiling, monthly observations a 70-day ceiling; acquisitions expire after 26 hours. Release-calendar validation remains unavailable. A failed acquisition or regressed source withholds current readings.</p>
+<p><strong>Portfolio consequence: unavailable.</strong> These measurements have no qualified forecast, Calls vote, target weight or execution permission. WAIT means abstain. Decisions require independently tested evidence and portfolio-specific risk inputs.</p>
+<p><a href="https://www.newyorkfed.org/research/data_indicators/term-premia-tabs">NY Fed dataset and model</a> · <a href="https://libertystreeteconomics.newyorkfed.org/2014/05/treasury-term-premia-1961-present/">Official methodology</a> · <a href="/data/term-premium.json?exact=1&nogen=1">Current research packet</a></p></section>
+</main><script src="/jh-term-premium-research.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>

@@ -55,7 +55,7 @@ test('worksheet and source inspection reject missing or changed artifacts',async
 });
 test('bounded transport and body timeouts do not rely on AbortSignal cooperation',async()=>{
   await assert.rejects(api.bytes('/test',()=>new Promise(()=>{}),100,5),/timed out/);
-  const stalled=async()=>({ok:true,headers:new Headers(),body:{getReader:()=>({read:()=>new Promise(()=>{}),cancel:()=>Promise.resolve()})}});
+  const stalled=async()=>({ok:true,status:200,headers:new Headers(),body:{getReader:()=>({read:()=>new Promise(()=>{}),cancel:()=>Promise.resolve()})}});
   await assert.rejects(api.bytes('/test',stalled,100,5),/timed out/);
   await assert.rejects(api.bytes('/test',async()=>new Response('123456'),3),/bound/);
 });
