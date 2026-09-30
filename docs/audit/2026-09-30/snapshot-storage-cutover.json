@@ -1,6 +1,6 @@
 {
   "contract": "snapshot-storage-cutover-audit.v1",
-  "status": "complete_invented_configuration_acceptance_passed_runner_capture_pending",
+  "status": "complete_read_only_configuration_captured_privacy_resource_gap_and_native_cutover_open",
   "base_commit": "3dd47fa16a9ba9666bb6c63c949d130a73265d79",
   "source_files": {
     "aws/ops/staged/ops_6370_snapshot_storage_configuration.py": {
@@ -34,5 +34,190 @@
     "deployment_static": 861,
     "deployment_shell": 15
   },
-  "deployment_log_sha256": "3fd2ffeaa843ca485911b45b257b8738bd69c47ac2ca667b540a1ff119f3b594"
+  "deployment_log_sha256": "3fd2ffeaa843ca485911b45b257b8738bd69c47ac2ca667b540a1ff119f3b594",
+  "source_commit": "03626a22856e06a389be7e4b37d49caad77fe9ae",
+  "ops_run": 36727721012,
+  "report": {
+    "path": "aws/ops/reports/latest/ops_6370_snapshot_storage_configuration.md",
+    "bytes": 76041,
+    "sha256": "9375ebe644bd7f546a7d8b56b784c210043e5020b4cbdcb33e0ef50645572291",
+    "commit": "9f2ddd29d6fef2cb35e87bf613defa7975ae7c92"
+  },
+  "capture": {
+    "bytes": 56438,
+    "sha256": "1acba787edb8824bbef0091ce0c5327dbc87703fee0dcb855b972dd240bc9ee0"
+  },
+  "policy": {
+    "bytes": 19275,
+    "sha256": "4b5f4659e00112153be62da35297e516c600f98c2820e19b1667de4f01242dda",
+    "statement_count": 31,
+    "conditional_write_guard_present": false,
+    "snapshot_current_and_archive_private_scope_present": true,
+    "private_statement_missing_resource_suffixes": [
+      "brain-constitution.json",
+      "data/brain-constitution.json",
+      "history/archive/feed/brain-constitution.json/*",
+      "history/archive/feed/data/brain-constitution.json/*"
+    ]
+  },
+  "configuration": {
+    "get_bucket_versioning": {
+      "Status": "Enabled"
+    },
+    "get_public_access_block": {
+      "PublicAccessBlockConfiguration": {
+        "BlockPublicAcls": false,
+        "IgnorePublicAcls": false,
+        "BlockPublicPolicy": false,
+        "RestrictPublicBuckets": false
+      }
+    },
+    "get_bucket_replication": {
+      "status": "absent",
+      "error_code": "ReplicationConfigurationNotFoundError"
+    },
+    "get_bucket_ownership_controls": {
+      "OwnershipControls": {
+        "Rules": [
+          {
+            "ObjectOwnership": "BucketOwnerEnforced"
+          }
+        ]
+      }
+    },
+    "get_bucket_lifecycle_configuration": {
+      "TransitionDefaultMinimumObjectSize": "all_storage_classes_128K",
+      "Rules": [
+        {
+          "ID": "archive-to-glacier-deep-after-90d",
+          "Filter": {
+            "Prefix": "archive/"
+          },
+          "Status": "Enabled",
+          "Transitions": [
+            {
+              "Days": 90,
+              "StorageClass": "DEEP_ARCHIVE"
+            }
+          ],
+          "AbortIncompleteMultipartUpload": {
+            "DaysAfterInitiation": 7
+          }
+        },
+        {
+          "ID": "expire-old-versions-after-30d",
+          "Filter": {},
+          "Status": "Enabled",
+          "AbortIncompleteMultipartUpload": {
+            "DaysAfterInitiation": 7
+          }
+        },
+        {
+          "Expiration": {
+            "Days": 30
+          },
+          "ID": "expire-screener-snapshots-30d",
+          "Filter": {
+            "Prefix": "screener/snapshots/"
+          },
+          "Status": "Enabled"
+        },
+        {
+          "ID": "jh-noncurrent-14d",
+          "Filter": {},
+          "Status": "Enabled",
+          "AbortIncompleteMultipartUpload": {
+            "DaysAfterInitiation": 3
+          }
+        },
+        {
+          "ID": "justhodl-e9-warm-ia",
+          "Filter": {
+            "Prefix": "data/warm/"
+          },
+          "Status": "Enabled",
+          "Transitions": [
+            {
+              "Days": 30,
+              "StorageClass": "STANDARD_IA"
+            }
+          ]
+        },
+        {
+          "ID": "justhodl-e9-raw-glacier-ir",
+          "Filter": {
+            "Prefix": "data/raw/"
+          },
+          "Status": "Enabled",
+          "Transitions": [
+            {
+              "Days": 45,
+              "StorageClass": "GLACIER_IR"
+            }
+          ]
+        },
+        {
+          "ID": "justhodl-e9-attic-ia",
+          "Filter": {
+            "Prefix": "data/attic/"
+          },
+          "Status": "Enabled",
+          "Transitions": [
+            {
+              "Days": 30,
+              "StorageClass": "STANDARD_IA"
+            }
+          ]
+        },
+        {
+          "Expiration": {
+            "ExpiredObjectDeleteMarker": true
+          },
+          "ID": "ops5027-purge-dead-versions-providers",
+          "Filter": {
+            "Prefix": "data/providers/"
+          },
+          "Status": "Enabled",
+          "NoncurrentVersionExpiration": {
+            "NoncurrentDays": 1
+          },
+          "AbortIncompleteMultipartUpload": {
+            "DaysAfterInitiation": 1
+          }
+        },
+        {
+          "Expiration": {
+            "ExpiredObjectDeleteMarker": true
+          },
+          "ID": "ops5164-purge-dead-versions-data",
+          "Filter": {
+            "Prefix": "data/"
+          },
+          "Status": "Enabled",
+          "NoncurrentVersionExpiration": {
+            "NoncurrentDays": 1
+          }
+        }
+      ]
+    },
+    "get_bucket_encryption": {
+      "ServerSideEncryptionConfiguration": {
+        "Rules": [
+          {
+            "ApplyServerSideEncryptionByDefault": {
+              "SSEAlgorithm": "AES256"
+            },
+            "BucketKeyEnabled": false,
+            "BlockedEncryptionTypes": {
+              "EncryptionType": [
+                "SSE-C"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configuration_stable_across_two_reads": true,
+  "decoded_configuration_secret_findings": 0
 }
