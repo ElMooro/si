@@ -412,11 +412,13 @@ footer a{margin:0 10px}
 
 <script>
 (function () {
-  const FEED = "https://justhodl-data-proxy.raafouis.workers.dev/data/bond-warroom.json";
-  const FEED_S3 = "https://justhodl-dashboard-live.s3.amazonaws.com/data/bond-warroom.json";
+  const FEED = "/data/bond-warroom.json";
   const AD = "/auctions.html";
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const finite = value => typeof value === "number" && Number.isFinite(value);
+  const measured = value => finite(value) ? String(value) : "unavailable";
+  const ownField = (parent, key) => parent !== null && typeof parent === "object" && !Array.isArray(parent) && Object.prototype.hasOwnProperty.call(parent, key) ? parent[key] : undefined;
   const ago = iso => { if (!iso) return ""; const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
   const fmtLevel = r => r.kind === "price" ? r.last.toFixed(2) : r.kind === "index" ? r.last.toFixed(r.last >= 100 ? 1 : 2) : (r.unit === "bp" && (r.kind === "spread") ? (r.last * 100).toFixed(0) + "bp" : r.last.toFixed(3) + "%");
   const fmtChg = (v, unit) => v == null ? "—" : (v > 0 ? "+" : "") + (unit === "bp" ? v.toFixed(1) + "bp" : unit === "pct" ? v.toFixed(2) + "%" : v.toFixed(1));
@@ -467,14 +469,18 @@ footer a{margin:0 10px}
     const A = D.auction || {}, v = A.verdict || {};
     $("wr-auction-date").textContent = A.today ? `${A.today} · ${ago(A.generated_at)}` : "";
     const tagClass = t => /BULLISH|EASY|STRONG|MAX FILL|INJECTION/.test(t) ? "bull" : /WEAK|TAIL|BEARISH/.test(t) ? "bear" : "";
-    const preds = (A.prediction || []).map(p => `<span>${esc(p.name)} <b class="${p.call === "↑" ? "up" : p.call === "↓" ? "down" : "flat"}">${p.call}${p.d1 && p.d1.median != null ? " " + (p.d1.median > 0 ? "+" : "") + p.d1.median.toFixed(2) + "%" : ""}</b></span>`).join("");
+    const preds = (A.prediction || []).map(p => {
+      const call = typeof p.call === "string" && p.call.trim() ? p.call : "unavailable";
+      const median = ownField(p.d1, "median");
+      return `<span>${esc(p.name)} <b class="${p.call === "↑" ? "up" : p.call === "↓" ? "down" : "flat"}">${esc(call)}${finite(median) ? " " + (median > 0 ? "+" : "") + median.toFixed(2) + "%" : " · median unavailable"}</b></span>`;
+    }).join("");
     $("wr-auction").innerHTML = `<div class="l"><span>Treasury auction desk</span><span>${esc($("wr-auction-date").textContent)}</span></div>
       <div class="h">${esc(v.headline || "No operations today")}</div>
       <div>${(v.tags || []).map(t => `<span class="wr-tag ${tagClass(t)}">${esc(t)}</span>`).join("")}</div>
       ${(A.auctions || []).map(a => `<div style="margin-top:4px">${esc(a.term)} ${esc(a.type)} <b>${esc(a.grade)}</b> · BTC ${a.btc == null ? "—" : a.btc.toFixed(2)} · tail ${a.tail_bp == null ? "—" : (a.tail_bp > 0 ? "+" : "") + a.tail_bp.toFixed(1) + "bp"}</div>`).join("")}
       ${(A.buybacks || []).map(b => `<div style="margin-top:4px">Buyback <b>$${(b.accepted / 1e9).toFixed(1)}B</b> accepted (${b.fill_pct == null ? "—" : b.fill_pct.toFixed(0) + "% of max"}, ${b.coverage == null ? "—" : b.coverage.toFixed(1) + "x offered"})</div>`).join("")}
       ${preds ? `<div class="wr-pred"><span style="color:var(--fg-3)">next-day read:</span>${preds}</div>` : ""}
-      ${A.composite_now ? `<div style="margin-top:6px;font-size:11px;color:var(--fg-3)">auction-stress composite ${A.composite_now.composite} · <a href="${AD}" style="color:var(--cyan,#22d3ee)">open the auction desk →</a></div>` : `<div style="margin-top:6px;font-size:11px"><a href="${AD}" style="color:var(--cyan,#22d3ee)">open the auction desk →</a></div>`}`;
+      <div style="margin-top:6px;font-size:11px;color:var(--fg-3)">auction-stress composite ${measured(ownField(A.composite_now, "composite"))} · <a href="${AD}" style="color:var(--cyan,#22d3ee)">open the auction desk →</a></div>`;
     const P = D.panels || {};
     $("wr-grid").innerHTML = PANELS.map(([key, title]) => {
       const rows = P[key] || [];
@@ -488,11 +494,14 @@ footer a{margin:0 10px}
     }).join("");
     const M = D.methodology || {};
     const F = D.fleet || {};
-    $("wr-foot").innerHTML = `<b>How to read it.</b> ${esc(M.dod || "")}. Flags: ${esc(M.flags || "")}. Stocks call: ${esc(M.equity_risk || "")}. Eurodollar: ${esc(M.eurodollar || "")}. Heartbeat: ${esc(M.heartbeat || "")}. Fleet inputs: eurodollar-plumbing ${F.eurodollar_plumbing && F.eurodollar_plumbing.composite_score != null ? F.eurodollar_plumbing.composite_score : "—"}, USD-funding stress z ${F.usd_funding_stress_z == null ? "—" : F.usd_funding_stress_z}, crisis-plumbing ${F.crisis_plumbing && F.crisis_plumbing.composite_stress_score != null ? F.crisis_plumbing.composite_stress_score : "—"}. Engine justhodl-bond-warroom v${esc(D.version)}${(D.notes || []).length ? " · notes: " + esc((D.notes || []).join(" | ")).slice(0, 300) : ""}`;
+    // Current public schema exposes a stress_z object; older feeds used a scalar.
+    const stress = F.usd_funding_stress_z;
+    const stressZ = stress && typeof stress === "object" && !Array.isArray(stress) ? stress.sum_z : stress;
+    $("wr-foot").innerHTML = `<b>How to read it.</b> ${esc(M.dod || "")}. Flags: ${esc(M.flags || "")}. Stocks call: ${esc(M.equity_risk || "")}. Eurodollar: ${esc(M.eurodollar || "")}. Heartbeat: ${esc(M.heartbeat || "")}. Fleet inputs: eurodollar-plumbing ${F.eurodollar_plumbing && F.eurodollar_plumbing.composite_score != null ? F.eurodollar_plumbing.composite_score : "—"}, USD-funding stress z ${measured(stressZ)}, crisis-plumbing ${F.crisis_plumbing && F.crisis_plumbing.composite_stress_score != null ? F.crisis_plumbing.composite_stress_score : "—"}. Engine justhodl-bond-warroom v${esc(D.version)}${(D.notes || []).length ? " · notes: " + esc((D.notes || []).join(" | ")).slice(0, 300) : ""}`;
   }
   async function load() {
     let D = null;
-    for (const u of [FEED, FEED_S3]) { try { const r = await fetch(u + "?t=" + Math.floor(Date.now() / 60000)); if (r.ok) { D = await r.json(); break; } } catch (e) {} }
+    try { const r = await fetch(FEED + "?t=" + Math.floor(Date.now() / 60000)); if (r.ok) D = await r.json(); } catch (e) {}
     if (!D) { $("wr-headline").textContent = "War-room feed unavailable — the engine has not published yet."; return; }
     window.__BOND_WARROOM = D;
     try { render(D); } catch (e) { $("wr-headline").textContent = "Render error: " + e.message; }
