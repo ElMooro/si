@@ -7,11 +7,12 @@ const source = fs.readFileSync(path.join(__dirname, '../private-artifacts.js'), 
 function setup({uid='owner-a', fetcher, dynamic=false}={}) {
   const state={uid,calls:[],loads:[],reloads:0,inits:0,handlers:{},panels:[]};
   const auth={async init(){state.inits++;},getUser(){return state.uid?{id:state.uid}:null;},async getAccessToken(){return 'fixture-'+state.uid;},onChange(fn){state.change=fn;},openSignIn(){state.signIn=true;}};
-  const element=()=>({style:{},children:[],setAttribute(){},appendChild(child){this.children.push(child);}});
+  const element=()=>({style:{},children:[],setAttribute(){},appendChild(child){this.children.push(child);},remove(){const at=state.panels.indexOf(this);if(at>=0)state.panels.splice(at,1);}});
   const document={baseURI:'https://justhodl.ai/portfolio/index.html',documentElement:element(),getElementById(id){return state.panels.find(p=>p.id===id);},createElement:element,
     body:{prepend(node){state.panels.push(node);}},addEventListener(name,fn){state.handlers[name]=fn;},head:{appendChild(script){state.loads.push(script.src);if(script.src.startsWith('/auth-config'))window.JUSTHODL_AUTH_CONFIG={};else if(script.src.includes('supabase'))window.supabase={};else if(script.src.startsWith('/auth.js'))window.JustHodlAuth=auth;script.onload();}}};
   const location={hostname:'justhodl.ai',href:document.baseURI,reload(){state.reloads++;}};
   const window={fetch:async(input,init)=>{state.calls.push({input,init});return fetcher?fetcher(input,init):Response.json({positions:[{ticker:'FIXTURE',quantity:7}]});},addEventListener(name,fn){state.handlers[name]=fn;}};
+  window.JHEvidenceIO=require('../jh-evidence-io.js');
   if(!dynamic)window.JustHodlAuth=auth;
   const context=vm.createContext({window,document,location,URL,Request,Response,console});vm.runInContext(source,context);
   return {state,window,document,auth};

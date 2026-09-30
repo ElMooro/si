@@ -95,11 +95,111 @@
     })().catch(error => { ready = null; throw error; });
     return ready;
   }
+  // Read-only acquisition keeps the complete-body owner check without an unbounded buffer.
+  // Public requests and the existing account mutation path below are unchanged.
+  const PRIVATE_READ_LIMIT = 32 * 1024 * 1024, PRIVATE_READ_TIMEOUT = 12000;
+  let evidenceReady = null;
+  const readStates = new Map();
+  let readPanel = null, readPanelStatus = null, readRenderPending = false;
+  let separateOperationNotice = false;
+  const originalAccessStatus = showAccessStatus;
+  // The unchanged mutation handler reports through this binding. A read recovery
+  // must not erase its error, even if it reused an already visible read notice.
+  showAccessStatus = function (status) { separateOperationNotice = true; originalAccessStatus(status); };
+  function renderReadNotices() {
+    if (separateOperationNotice) return;
+    if (!document.body) {
+      if (!readRenderPending) {
+        readRenderPending = true;
+        document.addEventListener('DOMContentLoaded', () => { readRenderPending = false; renderReadNotices(); }, {once: true});
+      }
+      return;
+    }
+    const statuses = [...readStates.values()].map(row => row.status);
+    const status = [401, 403, 503].find(value => statuses.includes(value)) || null;
+    const current = document.getElementById('private-account-status');
+    // Never remove a notice installed by the separate, unchanged mutation path.
+    if (current && current !== readPanel) return;
+    if (current === readPanel && current && status === readPanelStatus) return;
+    if (current && current === readPanel) current.remove();
+    readPanel = null; readPanelStatus = null;
+    if (status) {
+      originalAccessStatus(status);
+      readPanel = document.getElementById('private-account-status'); readPanelStatus = status;
+    }
+  }
+  function beginReadState(method, key) {
+    const id = method + '|' + key, previous = readStates.get(id);
+    const row = {generation: (previous?.generation || 0) + 1, status: previous?.status || null};
+    readStates.set(id, row);
+    return status => {
+      if (readStates.get(id) !== row) return;
+      row.status = [401, 403, 503].includes(status) ? status : null;
+      renderReadNotices();
+    };
+  }
+  function cancelledRead() { const error = new Error('Private read cancelled'); error.name = 'AbortError'; return error; }
+  async function readIO(signal, timeoutMs) {
+    if (signal?.aborted) throw cancelledRead();
+    if (window.JHEvidenceIO?.readComplete) return window.JHEvidenceIO;
+    if (!evidenceReady) evidenceReady = loadScript('/jh-evidence-io.js?v=20260930').then(() => {
+      if (typeof window.JHEvidenceIO?.readComplete !== 'function') throw new Error('Complete reader unavailable');
+      return window.JHEvidenceIO;
+    }).catch(error => { evidenceReady = null; throw error; });
+    let timer, onAbort;
+    const interrupted = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Private reader loading timed out')), timeoutMs);
+      onAbort = () => reject(cancelledRead()); signal?.addEventListener('abort', onAbort, {once: true});
+    });
+    try { return await Promise.race([evidenceReady, interrupted]); }
+    finally { clearTimeout(timer); signal?.removeEventListener('abort', onAbort); }
+  }
+  async function privateRead(kind, ownerApi, method, signal) {
+    const clock = () => window.performance?.now?.() ?? Date.now(), deadline = clock() + PRIVATE_READ_TIMEOUT;
+    const remaining = () => { const ms = Math.ceil(deadline - clock()); if (ms < 1) throw new Error('Private read timed out'); return ms; };
+    let response, auth, uid, report = () => {};
+    try {
+      if (signal?.aborted) throw cancelledRead();
+      report = beginReadState(method, kind || ownerApi);
+      const io = await readIO(signal, remaining());
+      const raw = await io.readComplete(async requestSignal => {
+        auth = await authReady();
+        if (requestSignal.aborted) throw cancelledRead();
+        uid = auth.getUser()?.id;
+        if (!uid) response = unavailable('Sign in to view your private account data.', 401);
+        else {
+          const token = await auth.getAccessToken();
+          if (requestSignal.aborted) throw cancelledRead();
+          if (!token || auth.getUser()?.id !== uid) response = unavailable('Account session changed.', 401);
+          else response = await nativeFetch(PRIVATE_API + (ownerApi || '/private-artifact?kind=' + encodeURIComponent(kind)), {
+            method, headers: {Authorization: 'Bearer ' + token, ...(ownerApi ? {'Content-Type':'application/json'} : {})}, cache: 'no-store', signal: requestSignal,
+          });
+        }
+        // Preserve complete denial bodies and HTTP status. No response is parsed as JSON here.
+        // HEAD and bodyless HTTP statuses still close any unexpected supplied body.
+        if (method === 'HEAD' || [204, 205, 304].includes(response.status)) {
+          try { Promise.resolve(response.body?.cancel?.()).catch(() => {}); } catch (_) {}
+          return {ok: true, body: new Response('').body};
+        }
+        return {ok: true, body: response.body};
+      }, {limit: PRIVATE_READ_LIMIT, timeoutMs: remaining(), signal});
+      if (signal?.aborted) throw cancelledRead();
+      remaining();
+      if (uid && auth.getUser()?.id !== uid) return unavailable('Account session changed.', 401);
+      report(response.status);
+      return new Response(method === 'HEAD' || [204, 205, 304].includes(response.status) ? null : raw, {status: response.status, headers: response.headers});
+    } catch (error) {
+      if (signal?.aborted || error?.name === 'AbortError') throw cancelledRead();
+      if (uid && auth.getUser()?.id !== uid) return unavailable('Account session changed.', 401);
+      report(503); return unavailable('Private account data is temporarily unavailable.', 503);
+    }
+  }
   async function privateFetch(input, init) {
     const kind = kindFor(input), ownerApi = ownerApiFor(input);
     if (!kind && !ownerApi) return nativeFetch(input, init);
     const method = String(init?.method || input?.method || 'GET').toUpperCase();
     if (!(ownerApi ? ['GET', 'POST'] : ['GET', 'HEAD']).includes(method)) return unavailable('private operation does not support this method', 405);
+    if (method === 'GET' || method === 'HEAD') return privateRead(kind, ownerApi, method, init?.signal || input?.signal);
     try {
       const auth = await authReady(), uid = auth.getUser()?.id;
       if (!uid) { showAccessStatus(401); return unavailable('Sign in to view your private account data.', 401); }

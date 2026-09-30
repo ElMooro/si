@@ -60,6 +60,29 @@ remain. Oversize or unsupported documents are unavailable, never described as
 partially complete. Deployment and synthetic acceptance do not certify live
 provider data, historical vintages, trading edge or account reconciliation.
 
-The existing authenticated adapter currently buffers upstream bytes before it
-returns its response. These reader bounds apply to the supplied response; that
-earlier adapter buffer remains a separately tracked repair.
+## Authenticated read adapter
+
+The authenticated adapter now uses the same reader for its upstream GET/HEAD
+acquisition, before returning a response to a consumer. Its thirty-two-MiB cap
+and twelve-second budget include helper loading, authentication, headers and
+the complete response body. It retains a complete bounded body so it can check
+the owner again before releasing bytes. Smaller downstream limits, including
+the portfolio page's four-MiB bound, remain in force.
+
+Cancellation rejects with AbortError, performs no delayed authenticated request
+after auth/token resolution, and does not manufacture an outage notice. Failed
+or oversized reads return the existing fixed 503 shape; upstream HTTP denials
+retain their complete body and status. No source diagnostics are inserted into
+the access notice. HEAD and bodyless HTTP statuses retain empty-body semantics.
+
+Read notices track the latest request separately for each method and approved
+feed. Recovery clears a read-owned notice only when no tracked feed still needs
+that notice. Older completions cannot restore an obsolete read notice, and a
+notice owned by the separate mutation path is not removed by read recovery.
+This does not rewrite a caller's response; callers still need their own state
+guards. The original public-fetch, account-write and routing implementations
+remain unchanged. No new private routes or permissions are introduced.
+
+Normal account publication and actual owner-session operation remain unverified
+by synthetic acceptance. No account data is needed to exercise these byte,
+deadline, identity-change and UI recovery contracts.

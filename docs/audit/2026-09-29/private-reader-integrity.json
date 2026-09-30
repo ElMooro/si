@@ -1,0 +1,78 @@
+{
+  "stage": 442,
+  "status": "source_and_isolated_browser_accepted_exact_static_deployment_pending",
+  "checked_at": "2026-09-30T00:40:53.111218+00:00",
+  "predecessor": {
+    "base": "4090dd8cc2870b74070ec5a03470fca8386d415e",
+    "source": "private-artifacts.js",
+    "fixture": "tests/fixtures/pre-private-reader-private-artifacts.js.txt",
+    "bytes": 8023,
+    "sha256": "240e5536c4b33210f8e4fb5587e8bab4d455da146fbed13c74937ce275696e6d"
+  },
+  "source_findings": "private-reader-source-gap.json",
+  "improvements": [
+    "Authenticated GET/HEAD acquisition now consumes complete bounded streams before the original owner recheck. Its thirty-two-MiB limit and twelve-second budget cover helper bootstrap, auth, headers and body, with cancellation and disposal of late responses.",
+    "Cancellation stays AbortError and produces no fabricated outage notice. Auth/token waits cannot later dispatch cancelled data requests. Oversize or broken bodies use the existing fixed 503 shape; HTTP denials preserve their complete bytes and status, and HEAD/bodyless responses preserve empty-body semantics.",
+    "Read-owned notices recover per method/feed. An older failure cannot replace newer successful state; a recovered feed does not hide another failure. Notices associated with the separate mutation path are preserved, including when a mutation error reused an existing read notice.",
+    "A missing shared reader loads once from the same site, fails within its budget and never triggers a data request if unavailable. Public request routing, authorization, private kinds, and the original mutation implementation remain byte-identical apart from the new read-only branch."
+  ],
+  "tests": {
+    "new_frontend": 17,
+    "frontend": 1987,
+    "focused_frontend": 41,
+    "deployment_static": 731,
+    "candidate_shell": 12,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "native_portfolio_cases": 20,
+    "private_handler_checks": 10,
+    "native_scenario_cases": 24
+  },
+  "browser_acceptance": {
+    "scope": "Original portfolio page and final current authentication adapter, reader, binding and risk scripts. Invented in-memory auth and API responses only; external connections denied by CSP.",
+    "matching": "Full native synthetic matching snapshot and risk remain coherent, including measured-zero BBB risk.",
+    "cancellation": "Delayed original AAA requests were cancelled and then released after BBB completed. BBB remained and no outage notice was displayed.",
+    "failure": "Synthetic HTTP 503 clears risk/holdings values and shows an unavailable notice.",
+    "recovery_bug_found": "Before the notice repair, successful BBB recovery left the old outage banner visible. Screenshot stage442-stale-notice-before.png records the reproduced candidate behavior.",
+    "recovery": "Final source clears the stale read notice after both feeds recover; Return activates recovery. Node regressions separately cover partial recovery, denial-type changes, old failures and mutation-notice overlap.",
+    "desktop": {
+      "viewport": 1280,
+      "document": 1265,
+      "horizontal_overflow": false
+    },
+    "mobile": {
+      "viewport": 360,
+      "document": 345,
+      "horizontal_overflow": false
+    },
+    "console_errors": 0,
+    "screenshots": [
+      "stage442-private-reader-recovered.png",
+      "stage442-private-reader-mobile.png"
+    ]
+  },
+  "source_identity": {
+    "path": "private-artifacts.js",
+    "bytes": 13930,
+    "sha256": "03d31c2d1e32662ac80b59a009c6d3f7f27eb664d10a2ac00577c7295ce72b7b"
+  },
+  "unchanged_shared_reader_sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+  "boundaries": {
+    "native_changes": 0,
+    "native_invocations": 0,
+    "actual_private_account_reads": 0,
+    "live_current_packet_reads": 0,
+    "provider_probes": 0,
+    "actual_account_mutations": 0,
+    "paid_ai_requests": 0,
+    "access_policy_changes": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0
+  },
+  "limitations": [
+    "Exact static deployment remains pending. Native sources and the five-minute portfolio refresh cadence are unchanged.",
+    "The thirty-two-MiB complete private read is intentionally retained until the owner recheck; it is not a zero-copy memory guarantee. Downstream four-MiB portfolio limits remain separate.",
+    "This adapter preserves response bytes; the caller must validate JSON and apply its own generation/current-owner display guard. The inspector and portfolio pages already have those guards. Mutation response handling remains unchanged and does not inherit the new read limits.",
+    "Normal private publication, actual owner sessions, provider data, account reconciliation and model skill remain unverified. All ten institutional acceptance workstreams remain open."
+  ]
+}
