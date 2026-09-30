@@ -1,0 +1,166 @@
+{
+  "schema": "fifx-public-archive-acceptance.v1",
+  "prepared_at": "2026-09-30T18:55:23.816534+00:00",
+  "base_commit": "0d48b495a31b663422685195c8039b2b65d8c366",
+  "native_source_unchanged": true,
+  "native_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "zU/OjHmAvfo6UQwz/3mWnOcuk1GXagJ5xXNJlSWHbBw=",
+    "commit": "3be085cd8e35efe29869483ebb485e8d215ad495",
+    "deployed_at": "2026-09-28T21:53:24Z",
+    "function": "justhodl-fifx-vol-migration",
+    "run_id": "36488864863",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36488864863",
+    "schema": "release-receipt.v1",
+    "source": {
+      "fifx_acquire.py": {
+        "bytes": 4747,
+        "sha256": "810bba6d56ce5d32c7072034d7bcc828f63000c681fdb8cc5148f2b191e566ec"
+      },
+      "fifx_candidate.py": {
+        "bytes": 8455,
+        "sha256": "c4df8f0e925206609239438b2947f591eecb28963fb8e7c663bc0f46b5fc87b0"
+      },
+      "fifx_catalog.py": {
+        "bytes": 4744,
+        "sha256": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243"
+      },
+      "fifx_model.py": {
+        "bytes": 6665,
+        "sha256": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f"
+      },
+      "fifx_originals.py": {
+        "bytes": 9034,
+        "sha256": "2df108390efde84a19f5e748888ca7ada6ba4c474cda3ed5fc6939d82ab1af51"
+      },
+      "fifx_qualification.py": {
+        "bytes": 777,
+        "sha256": "6cd54de9639b8b61822cccb7711437b8f5acb8cec17ef1ede322274e71b48c9c"
+      },
+      "fifx_store.py": {
+        "bytes": 17163,
+        "sha256": "46421fb3b919245412532b1410366524eda9ba6b1cb46214dff6de6183afe6f7"
+      },
+      "fifx_timezones.py": {
+        "bytes": 13766,
+        "sha256": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a"
+      },
+      "lambda_function.py": {
+        "bytes": 1496,
+        "sha256": "5247bcdce1011b4cc07adb94ab7cf53bc2ea1b0599fc6923aed4ebb607680359"
+      },
+      "verify_fifx_arithmetic.py": {
+        "bytes": 13054,
+        "sha256": "d8a1a79f06472b635143f81d88467afedb3e274f1599998fe598767a00f19204"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 906586,
+    "zip_sha256_hex": "cd4fce8c7980bdfa3a510c33ff79969ce72e9351976a0279c573499525876c1c"
+  },
+  "operation": 6378,
+  "source": [
+    {
+      "path": "aws/ops/checks/fifx_archive_acceptance.py",
+      "bytes": 7175,
+      "sha256": "5b2306c78f1ee1dc8b18eb5363cf0896e1dd9cba39ee77941f31448f722f0f21"
+    },
+    {
+      "path": "aws/ops/staged/ops_6378_fifx_original_archive_acceptance.py",
+      "bytes": 4145,
+      "sha256": "57558ea26e2171fd9bb4d27d4f9a604c941921e8469a2ae65aeace0c654881b9"
+    },
+    {
+      "path": "tests/deployment/test_fifx_public_archive_acceptance.py",
+      "bytes": 13039,
+      "sha256": "8b6326ba0c337d47d14216fa0c3df1f029ae53b319b84439c28efff30b1169dc"
+    }
+  ],
+  "tests": {
+    "focused_archive": 11,
+    "native": 22,
+    "deployment": 924,
+    "combined_frontend": 2151,
+    "merged_brief_native": 14,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "candidate_shell": 15,
+    "ops_preflight": "pass"
+  },
+  "acceptance": {
+    "status": "pending_read_only_runner",
+    "current_publication_verified": false,
+    "source_recovery_verified": false
+  },
+  "combined_test_base": "96437ab742796b20603a2e4248f29581d0417b7a",
+  "combined_metadata_repair": {
+    "base": "96437ab742796b20603a2e4248f29581d0417b7a",
+    "unchanged_engine_records": 893,
+    "unchanged_page_contract_definitions": 599,
+    "refreshed_manifest_asset_hashes": 2,
+    "inherited_brief_source_line_delta": 4,
+    "dependency_input_changes": [
+      {
+        "before": {
+          "bytes": 5423,
+          "path": "aws/lambdas/justhodl-brief-compiler/source/brief_contract.py",
+          "sha256": "9d5b0844a96c5b489217c06c8ef00fd210ca612ac472daa0446e867c0dc15c0a"
+        },
+        "after": {
+          "bytes": 5615,
+          "path": "aws/lambdas/justhodl-brief-compiler/source/brief_contract.py",
+          "sha256": "3997b445f7e591b74744564b7c40c18883af1ff9a956f1ef838dad846943271f"
+        }
+      },
+      {
+        "before": {
+          "bytes": 5423,
+          "path": "aws/shared/brief_contract.py",
+          "sha256": "9d5b0844a96c5b489217c06c8ef00fd210ca612ac472daa0446e867c0dc15c0a"
+        },
+        "after": {
+          "bytes": 5615,
+          "path": "aws/shared/brief_contract.py",
+          "sha256": "3997b445f7e591b74744564b7c40c18883af1ff9a956f1ef838dad846943271f"
+        }
+      },
+      {
+        "before": {
+          "bytes": 2778,
+          "path": "aws/shared/test_brief_contract.py",
+          "sha256": "dde63172a3d857de66fb47028d4d10cd628c487aa55ff4e299ebd0035ac1fde4"
+        },
+        "after": {
+          "bytes": 6028,
+          "path": "aws/shared/test_brief_contract.py",
+          "sha256": "76f49dc14f3961e293cf9440338ccd0705baf8faa9f63a5183b03ccc3f9ee87e"
+        }
+      },
+      {
+        "before": {
+          "bytes": 108690,
+          "path": "bonds.html",
+          "sha256": "2703d4c4951bdbf79f5447d5705d21cdff29ef6e6364782a8e7bd172f9efa04e"
+        },
+        "after": {
+          "bytes": 109061,
+          "path": "bonds.html",
+          "sha256": "d67a6e329f6c1351cfafba1eb3e2bd67fb7fa62c06ee1dc51d72c5a011f6129d"
+        }
+      },
+      {
+        "before": {
+          "bytes": 3070592,
+          "path": "engine-manifest.json",
+          "sha256": "473b3fff3f3d2fb337e04abec0f696bac752d43fa8321edc8cb1d28aa60cc7e6"
+        },
+        "after": {
+          "bytes": 3070592,
+          "path": "engine-manifest.json",
+          "sha256": "197d2292680e41ae3357cf951a859f924400b4af834b7f44004974d1c8054725"
+        }
+      }
+    ]
+  }
+}
