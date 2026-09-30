@@ -105,7 +105,7 @@ def test_quote_status_badge_clocks_and_crypto_weekend_boundaries():
                 env["source_json"] = lambda *a: ([{**quote(symbol), "timestamp": stamp}], {"first_received_at": now.isoformat()})
                 result = env["fmp_quote"](symbol, now)
                 assert result["quality"]["status"] == ("fresh" if age <= 900 else "delayed")
-                expected = ("DELAYED" if age <= 900 else "STALE") if symbol == "BTCUSD" else classify_badge(
+                expected = ("DELAYED" if age <= 900 else "STALE") if symbol not in ("^GSPC", "^IXIC") else classify_badge(
                     datetime.fromtimestamp(stamp, timezone.utc).isoformat(), "fmp", now=now)
                 assert result["badge"] == expected and result["quality"]["age_seconds"] == max(0, age)
                 assert result["sizing_eligible"] is False
@@ -118,6 +118,23 @@ def test_quote_status_badge_clocks_and_crypto_weekend_boundaries():
     by_label = {r["label"]: r for r in weekend["items"]}
     assert by_label["BTC"]["badge"] == "STALE"
     assert by_label["SPX"]["badge"] == by_label["COMP"]["badge"] == "SESSION"
+
+
+def test_only_verified_equity_indices_use_equity_session_badges():
+    env = load()
+    after_close = datetime(2026, 9, 18, 20, 30, tzinfo=timezone.utc)
+    sunday = datetime(2026, 9, 20, 16, tzinfo=timezone.utc)
+    for now in (after_close, sunday):
+        for symbol in ("GCUSD", "BTCUSD", "UNKNOWN", "^GSPC", "^IXIC"):
+            for age, conservative_badge in ((0, "DELAYED"), (900, "DELAYED"), (901, "STALE"), (3600, "STALE")):
+                env["source_json"] = lambda *a: ([{**quote(symbol), "timestamp": now.timestamp() - age}], {"first_received_at": now.isoformat()})
+                result = env["fmp_quote"](symbol, now)
+                if symbol in ("GCUSD", "BTCUSD", "UNKNOWN"):
+                    assert result["badge"] == conservative_badge, (symbol, now, age, result["badge"])
+                elif age == 3600:
+                    assert result["badge"] == "SESSION"
+                assert result["quality"]["status"] == ("fresh" if age <= 900 else "delayed")
+                assert result["sizing_eligible"] is False
 
 
 def test_index_identity_and_legacy_macro_values_cannot_be_mislabeled():

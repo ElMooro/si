@@ -48,5 +48,6 @@ print(json.dumps([s['run_tape'](now=n,quote_age=a) for n,a in cases]))
   }
  }
  assert.equal(packets[2].items.find(r=>r.label==='BTC').badge,'STALE');
+ assert.equal(packets[2].items.find(r=>r.label==='GOLD').badge,'STALE');
  assert.equal(packets[2].items.find(r=>r.label==='SPX').badge,'SESSION');
 });
