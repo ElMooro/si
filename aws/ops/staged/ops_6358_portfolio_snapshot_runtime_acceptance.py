@@ -30,7 +30,7 @@ def validate(actual,expected=None,baseline=None):
     if expected is not None and actual['receipt'].get('commit')!=expected:
         raise ValueError('Exact intended source commit required')
     if baseline is not None:
-        if actual['source_files_checked']!=baseline['source_files_checked']:raise ValueError('Expected the unchanged reviewed source closure')
+        if baseline['source_files_checked']!=3 or actual['source_files_checked']!=3:raise ValueError('Expected the original three-member source closure')
         for key in ('timeout','memory_mb','runtime','handler','architectures','role','ephemeral_storage_mb'):
             if actual.get(key)!=baseline[key]:raise ValueError('Original runtime differs: '+key)
         def ordered(rows):return sorted(rows,key=lambda v:(v['kind'],v.get('group','default'),v['name']))

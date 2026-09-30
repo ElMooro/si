@@ -75,6 +75,14 @@ case "$candidate_version" in
     ;;
 esac
 
+validation_mode=$(jq -r '.release_validation.mode // "native_validate_only"' "$config")
+case "$validation_mode" in
+  offline_snapshot_v1)
+    # Fixed reviewed function and complete ZIP/fixture checks; no Lambda invoke.
+    python3 scripts/validate_snapshot_candidate.py --function "$fn" --schema "$expected_schema" \
+      --config "$config" --zip "$tmp/deploy.zip" > "$validation_payload"
+    ;;
+  native_validate_only)
 echo "Invoking pinned $fn candidate version $candidate_version in read-only validation mode"
 aws lambda invoke \
   --function-name "$fn" \
@@ -95,6 +103,13 @@ if jq -e '.FunctionError != null' "$validation_meta" > /dev/null 2>&1; then
   echo "Validation response withheld; use metadata-only runtime diagnostics for source errors"
   exit 1
 fi
+
+    ;;
+  *)
+    echo "::error::Unrecognized candidate validation mode; promotion refused"
+    exit 1
+    ;;
+esac
 
 if ! jq -e --arg schema "$expected_schema" '
   (if has("statusCode") then
@@ -228,5 +243,5 @@ fi
 trap - ERR
 proof_dir="${GITHUB_WORKSPACE:-$tmp}/release-evidence"
 mkdir -p "$proof_dir"
-jq -n --arg function "$fn" --arg version "$candidate_version" --arg code_sha256 "$candidate_sha" --arg schema "$expected_schema" --arg commit "${GITHUB_SHA:-local-test}" '{function:$function,version:$version,code_sha256:$code_sha256,validation_schema:$schema,commit_sha:$commit,validation_only:true,alias:"live"}' > "$proof_dir/$fn.json"
+jq -n --arg function "$fn" --arg version "$candidate_version" --arg code_sha256 "$candidate_sha" --arg schema "$expected_schema" --arg validation_mode "$validation_mode" --arg commit "${GITHUB_SHA:-local-test}" '{function:$function,version:$version,code_sha256:$code_sha256,validation_schema:$schema,validation_mode:$validation_mode,commit_sha:$commit,validation_only:true,alias:"live"}' > "$proof_dir/$fn.json"
 echo "  ✅ $fn live alias promoted to validated version $candidate_version"

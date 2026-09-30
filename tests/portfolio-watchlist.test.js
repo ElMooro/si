@@ -11,6 +11,22 @@ function context(snapshot=prior.complete.input){
 }
 function symbols(ctx){return [...ctx.body().matchAll(/href="\/stock\/\?symbol=([^"]+)"/g)].map(m=>decodeURIComponent(m[1]));}
 
+test('automatic watchlist source failures and unknown acknowledgements remain distinct',()=>{
+ const states={SKIPPED_INVALID_SOURCE:/source data is incomplete/,CONFLICT:/concurrent edit/,WRITE_UNCONFIRMED:/write outcome is uncertain/,APPLIED:/revision applied/,UNCHANGED:/revision unchanged/};
+ for(const [status,expected] of Object.entries(states)){
+  const ctx=context({watchlist:[],watchlist_sync:{status,provenance:{source_generated_at:'2026-09-30T05:00:00Z'}}});
+  const text=ctx.elements.get('watch-sync-status').textContent;assert.match(text,expected);assert.match(text,/2026-09-30T05:00:00Z/);assert.match(text,/qualification is unverified/);
+ }
+});
+
+test('legacy and hostile sync metadata cannot impersonate a successful update',()=>{
+ for(const state of [null,[],{},{status:'toString'},{status:'constructor'},{status:'<img src=x>'}]){
+  const ctx=context({watchlist:[],watchlist_sync:state});assert.match(ctx.elements.get('watch-sync-status').textContent,/status unavailable/);
+ }
+ const ctx=context({watchlist:[],watchlist_sync:{status:'APPLIED',provenance:{source_generated_at:'<script>invented</script>'}}});
+ assert.equal(ctx.elements.get('watch-sync-status').innerHTML,'');assert.match(ctx.elements.get('watch-sync-status').textContent,/<script>/);
+});
+
 test('whole predecessor reproduction stays byte-bound and inert',()=>{
  const evidence=JSON.parse(fs.readFileSync('docs/audit/2026-09-30/watchlist-source-gap.json','utf8'));
  for(const row of [evidence.source,evidence.complete_synthetic]){

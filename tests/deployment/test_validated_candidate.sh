@@ -19,7 +19,7 @@ operation="$2"
 shift 2
 case "$service/$operation" in
   lambda/get-function-configuration)
-    printf '%s\n' '{"State":"Active","LastUpdateStatus":"Successful","RevisionId":"candidate-revision","CodeSha256":"47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=","FunctionArn":"arn:aws:lambda:us-east-1:123456789012:function:justhodl-khalid-risk"}'
+    printf '{"State":"Active","LastUpdateStatus":"Successful","RevisionId":"candidate-revision","CodeSha256":"%s","FunctionArn":"arn:aws:lambda:us-east-1:123456789012:function:%s"}\n' "${MOCK_CANDIDATE_SHA:-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=}" "${MOCK_FN:-justhodl-khalid-risk}"
     ;;
   lambda/publish-version)
     printf '%s\n' '42'
@@ -98,6 +98,7 @@ JSON
 
 run_candidate() {
   PATH="$work/bin:$PATH" \
+  GITHUB_WORKSPACE="$work/output" \
   MOCK_AWS_LOG="$work/aws.log" \
   MOCK_DIRECT="${MOCK_DIRECT:-0}" \
   MOCK_MALFORMED_BODY="${MOCK_MALFORMED_BODY:-0}" \
@@ -105,8 +106,10 @@ run_candidate() {
   MOCK_VALIDATION_OK="${MOCK_VALIDATION_OK:-1}" \
   MOCK_ALIAS_EXISTS="${MOCK_ALIAS_EXISTS:-1}" \
   MOCK_SCHEDULE_FAIL="${MOCK_SCHEDULE_FAIL:-0}" \
+  MOCK_CANDIDATE_SHA="${MOCK_CANDIDATE_SHA:-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=}" \
+  MOCK_FN="${MOCK_FN:-justhodl-khalid-risk}" \
     bash "$root/scripts/deploy_validated_candidate.sh" \
-      justhodl-khalid-risk us-east-1 "$work/output" "${MOCK_CONFIG:-$work/config.json}" 1.0.0
+      "${MOCK_FN:-justhodl-khalid-risk}" us-east-1 "$work/output" "${MOCK_CONFIG:-$work/config.json}" "${MOCK_EXPECTED_SCHEMA:-1.0.0}"
 }
 
 # Success: the exact pins and numbered qualifier are used, and Scheduler sees
@@ -207,4 +210,33 @@ test "$(grep -c '^lambda invoke ' "$work/aws.log")" -eq 1
 grep -q -- '--qualifier 42' "$work/aws.log"
 ! grep -q '^s3 ' "$work/aws.log"
 
-echo "Validated candidate shell tests passed: 12"
+# Unknown validation modes cannot silently fall back to a native invocation.
+printf '%s\n' '{"release_validation":{"mode":"unreviewed"}}' > "$work/unknown-mode.json"
+: > "$work/aws.log"
+if MOCK_CONFIG="$work/unknown-mode.json" run_candidate > "$work/unknown-mode.out" 2>&1; then exit 1; fi
+! grep -q '^lambda invoke ' "$work/aws.log"
+! grep -q '^lambda update-alias ' "$work/aws.log"
+
+# The real offline validator checks the whole package and current invented
+# regression suite. Only AWS control-plane operations are mocked here.
+python3 - "$root" "$work/output/deploy.zip" <<'PY'
+from pathlib import Path
+import importlib.util,sys,zipfile
+root=Path(sys.argv[1]);spec=importlib.util.spec_from_file_location('offline_snapshot',root/'scripts/validate_snapshot_candidate.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+with zipfile.ZipFile(sys.argv[2],'w',compression=zipfile.ZIP_DEFLATED) as archive:
+    for name,path in mod.package_sources(root).items():archive.writestr(name,path.read_bytes())
+PY
+offline_sha=$(openssl dgst -sha256 -binary "$work/output/deploy.zip" | openssl base64 -A)
+: > "$work/aws.log"
+MOCK_CONFIG="$root/aws/lambdas/justhodl-portfolio-snapshot/config.json" MOCK_FN=justhodl-portfolio-snapshot MOCK_EXPECTED_SCHEMA=audit-accounting-1.0 MOCK_CANDIDATE_SHA="$offline_sha" run_candidate > "$work/offline-success.out"
+! grep -q '^lambda invoke ' "$work/aws.log"
+grep -q '^lambda update-alias ' "$work/aws.log"
+jq -e '.validation_mode == "offline_snapshot_v1"' "$work/output/release-evidence/justhodl-portfolio-snapshot.json" >/dev/null
+
+# The mode is limited to the reviewed function, even with identical ZIP bytes.
+: > "$work/aws.log"
+if MOCK_CONFIG="$root/aws/lambdas/justhodl-portfolio-snapshot/config.json" MOCK_FN=justhodl-khalid-risk MOCK_EXPECTED_SCHEMA=audit-accounting-1.0 MOCK_CANDIDATE_SHA="$offline_sha" run_candidate > "$work/offline-wrong-function.out" 2>&1; then exit 1; fi
+! grep -q '^lambda invoke ' "$work/aws.log"
+! grep -q '^lambda update-alias ' "$work/aws.log"
+
+echo "Validated candidate shell tests passed: 15"

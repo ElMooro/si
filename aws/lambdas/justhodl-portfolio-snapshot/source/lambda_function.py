@@ -51,8 +51,221 @@ AUTO_WATCH_TIER_S_LIMIT = 10
 AUTO_WATCH_TIER_A_LIMIT = 15
 
 s3 = boto3.client("s3", region_name="us-east-1")
+ddb_client = boto3.client("dynamodb", region_name="us-east-1")
 ddb_res = boto3.resource("dynamodb", region_name="us-east-1")
 table = ddb_res.Table(TABLE_NAME)
+
+
+import hashlib
+import json
+import math
+import re
+import uuid
+from datetime import datetime, timezone
+
+SOURCE_KEY = "screener/alpha-score.json"
+META_KEY = {"pk": "SYNC_META", "sk": "AUTO_WATCHLIST_V1"}
+MAX_ALPHA_AGE_H = 3
+MAX_SCREEN_AGE_H = 120
+LIMITS = {"S": AUTO_WATCH_TIER_S_LIMIT, "A": AUTO_WATCH_TIER_A_LIMIT}
+AUTO = {"AUTO_TIER_S", "AUTO_TIER_A"}
+
+
+def stamp(value):
+    if not isinstance(value, str) or len(value) > 64:
+        raise ValueError("SOURCE_CLOCK_INVALID")
+    try:
+        out = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if out.tzinfo is None or out.utcoffset() is None:
+            raise ValueError()
+        return out.astimezone(timezone.utc)
+    except (ValueError, OverflowError):
+        raise ValueError("SOURCE_CLOCK_INVALID") from None
+
+
+def source_frame(data, now):
+    if not isinstance(data, dict):
+        raise ValueError("SOURCE_NOT_OBJECT")
+    rows = data.get("stocks")
+    if not isinstance(rows, list) or not rows or len(rows) > 20000:
+        raise ValueError("SOURCE_UNIVERSE_UNAVAILABLE")
+    if type(data.get("count")) is not int or data["count"] != len(rows):
+        raise ValueError("SOURCE_COUNT_MISMATCH")
+    if not isinstance(data.get("model_version"), str) or not data["model_version"].strip():
+        raise ValueError("SOURCE_VERSION_UNAVAILABLE")
+    generated = stamp(data.get("generated_at"))
+    inputs = data.get("inputs")
+    screen = stamp(inputs.get("screener_generated_at") if isinstance(inputs, dict) else None)
+    for clock, maximum in ((generated, MAX_ALPHA_AGE_H), (screen, MAX_SCREEN_AGE_H)):
+        if not -300 <= (now - clock).total_seconds() <= maximum * 3600:
+            raise ValueError("SOURCE_CLOCK_OUTSIDE_POLICY")
+    if (screen - generated).total_seconds() > 300:
+        raise ValueError("SOURCE_CLOCK_ORDER_INVALID")
+    if "quality" in data:
+        quality = data["quality"]
+        if not isinstance(quality, dict) or quality.get("status") != "fresh":
+            raise ValueError("SOURCE_EXPLICIT_QUALITY_INELIGIBLE")
+    desired, seen, counts, scored = {}, set(), {t: 0 for t in "SABCD"}, 0
+    previous_score = math.inf
+    unscored_started = False
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("SOURCE_ROW_INVALID")
+        symbol, score, tier = row.get("symbol"), row.get("alpha_score"), row.get("tier")
+        if not isinstance(symbol, str) or not re.fullmatch(r"[A-Z0-9][A-Z0-9.\-]{0,31}", symbol) or symbol in seen:
+            raise ValueError("SOURCE_IDENTITY_INVALID_OR_DUPLICATE")
+        seen.add(symbol)
+        if score is None:
+            if tier != "—" or row.get("rank") is not None:
+                raise ValueError("SOURCE_UNSCORED_ROW_INVALID")
+            unscored_started = True
+            continue
+        if type(score) not in (int, float) or not 0 <= score <= 100 or not math.isfinite(score):
+            raise ValueError("SOURCE_SCORE_INVALID")
+        expected = "S" if score >= 90 else "A" if score >= 80 else "B" if score >= 70 else "C" if score >= 50 else "D"
+        scored += 1
+        if tier != expected or type(row.get("rank")) is not int or row["rank"] != scored or score > previous_score or unscored_started:
+            raise ValueError("SOURCE_RANK_OR_TIER_INCONSISTENT")
+        previous_score = score
+        counts[tier] += 1
+        if tier in LIMITS and counts[tier] <= LIMITS[tier]:
+            desired[symbol] = "AUTO_TIER_" + tier
+    if type(data.get("scored_count")) is not int or data["scored_count"] != scored or not scored:
+        raise ValueError("SOURCE_SCORED_COUNT_INVALID")
+    distribution = data.get("tier_distribution")
+    if not isinstance(distribution, dict) or set(distribution) != set(counts) or any(type(distribution[t]) is not int or distribution[t] != counts[t] for t in counts):
+        raise ValueError("SOURCE_TIER_COUNTS_MISMATCH")
+    try:
+        raw = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    except (TypeError, ValueError, UnicodeError):
+        raise ValueError("SOURCE_NOT_FINITE_JSON") from None
+    return desired, {"source_key": SOURCE_KEY, "source_generated_at": generated.isoformat(),
+                     "screener_generated_at": screen.isoformat(), "source_sha256": hashlib.sha256(raw).hexdigest(),
+                     "source_count": len(rows), "source_model_version": data["model_version"],
+                     "age_policy_hours": {"alpha": MAX_ALPHA_AGE_H, "screener": MAX_SCREEN_AGE_H},
+                     "investment_qualified": False}
+
+
+def observed_condition(item):
+    """Compare all observed fields and absence of standard owner-edit fields."""
+    names, values, terms = {}, {}, []
+    fields = set(item) | {"source", "symbol", "added_at", "notes", "source_generated_at", "sync_version"}
+    for index, field in enumerate(sorted(fields)):
+        alias, placeholder = "#f" + str(index), ":v" + str(index)
+        names[alias] = field
+        if field in item:
+            values[placeholder] = item[field]
+            terms.append(alias + " = " + placeholder)
+        else:
+            terms.append("attribute_not_exists(" + alias + ")")
+    return {"ConditionExpression": " AND ".join(terms), "ExpressionAttributeNames": names, "ExpressionAttributeValues": values}
+
+
+def plan(existing, meta, desired, provenance, now, table_name, version):
+    if meta is not None:
+        if not isinstance(meta, dict) or meta.get("pk") != META_KEY["pk"] or meta.get("sk") != META_KEY["sk"] or not isinstance(meta.get("version"), str) or not re.fullmatch(r"[0-9a-f-]{36}", meta["version"]) or not isinstance(meta.get("source_sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", meta["source_sha256"]):
+            raise ValueError("SYNC_CHECKPOINT_INVALID")
+        prior, incoming = stamp(meta.get("source_generated_at")), stamp(provenance["source_generated_at"])
+        if incoming < prior:
+            raise ValueError("SOURCE_REVISION_OLDER_THAN_CHECKPOINT")
+        if incoming == prior:
+            if meta["source_sha256"] != provenance["source_sha256"]:
+                raise ValueError("SOURCE_REVISION_CONTENT_CONFLICT")
+            return [], {"status": "UNCHANGED", "reason_codes": [], "added_S": [], "added_A": [], "removed_S": [], "removed_A": [], "provenance": provenance}
+    indexed = {}
+    for row in existing:
+        if not isinstance(row, dict) or row.get("pk") != "WATCHLIST" or not isinstance(row.get("symbol"), str) or row.get("sk") != row["symbol"] or row["symbol"] in indexed:
+            raise ValueError("EXISTING_WATCHLIST_IDENTITY_INVALID")
+        indexed[row["symbol"]] = row
+    changes = {"added_S": [], "added_A": [], "removed_S": [], "removed_A": []}
+    operations = []
+    for symbol in sorted(set(indexed) | set(desired)):
+        old, new_source = indexed.get(symbol), desired.get(symbol)
+        if old is not None and old.get("source") not in AUTO:
+            continue  # Manual and unrecognized owners are both protected.
+        key = {"pk": "WATCHLIST", "sk": symbol}
+        if old is not None and new_source is None:
+            operations.append({"Delete": {"TableName": table_name, "Key": key, **observed_condition(old)}})
+            changes["removed_" + old["source"][-1]].append(symbol)
+        elif old is None and new_source is not None:
+            operations.append({"Put": {"TableName": table_name, "Item": {**key, "symbol": symbol, "source": new_source, "added_at": now.isoformat(), "source_generated_at": provenance["source_generated_at"], "sync_version": version}, "ConditionExpression": "attribute_not_exists(pk)"}})
+            changes["added_" + new_source[-1]].append(symbol)
+        elif old is not None:
+            condition = observed_condition(old)
+            condition["ExpressionAttributeNames"].update({"#new_source": "source", "#new_clock": "source_generated_at", "#new_version": "sync_version"})
+            condition["ExpressionAttributeValues"].update({":new_source": new_source, ":new_clock": provenance["source_generated_at"], ":new_version": version})
+            operations.append({"Update": {"TableName": table_name, "Key": key, "UpdateExpression": "SET #new_source = :new_source, #new_clock = :new_clock, #new_version = :new_version", **condition}})
+            if old["source"] != new_source:
+                changes["removed_" + old["source"][-1]].append(symbol)
+                changes["added_" + new_source[-1]].append(symbol)
+    checkpoint = {**(meta or {}), **META_KEY, "version": version, "source_generated_at": provenance["source_generated_at"], "source_sha256": provenance["source_sha256"], "updated_at": now.isoformat()}
+    guard = {"ConditionExpression": "attribute_not_exists(pk)"} if meta is None else {"ConditionExpression": "#v = :v AND #c = :c AND #h = :h", "ExpressionAttributeNames": {"#v": "version", "#c": "source_generated_at", "#h": "source_sha256"}, "ExpressionAttributeValues": {":v": meta["version"], ":c": meta["source_generated_at"], ":h": meta["source_sha256"]}}
+    operations.insert(0, {"Put": {"TableName": table_name, "Item": checkpoint, **guard}})
+    if len(operations) > 100:
+        raise ValueError("SYNC_TRANSACTION_TOO_LARGE")
+    return operations, {**changes, "status": "APPLIED", "reason_codes": [], "provenance": provenance, "sync_version": version, "transaction_operations": len(operations)}
+
+
+def sync_watchlist(table, client, data, now=None):
+    now = now or datetime.now(timezone.utc)
+    empty = {"added_S": [], "added_A": [], "removed_S": [], "removed_A": []}
+    try:
+        desired, provenance = source_frame(data, now)
+    except ValueError as error:
+        return {**empty, "status": "SKIPPED_INVALID_SOURCE", "reason_codes": [str(error)], "write_attempted": False}
+    try:
+        response = table.get_item(Key=META_KEY, ConsistentRead=True)
+        if not isinstance(response, dict):
+            raise ValueError("SYNC_CHECKPOINT_READ_INVALID")
+        meta = response.get("Item")
+        existing, last, seen_pages = [], None, set()
+        while True:
+            args = {"KeyConditionExpression": "pk = :pk", "ExpressionAttributeValues": {":pk": "WATCHLIST"}, "ConsistentRead": True}
+            if last is not None:
+                args["ExclusiveStartKey"] = last
+            response = table.query(**args)
+            if not isinstance(response, dict) or not isinstance(response.get("Items"), list):
+                raise ValueError("WATCHLIST_READ_INCOMPLETE")
+            existing.extend(response["Items"])
+            if len(existing) > 20000:
+                raise ValueError("WATCHLIST_READ_BOUND_EXCEEDED")
+            last = response.get("LastEvaluatedKey")
+            if not last:
+                break
+            marker = json.dumps(last, sort_keys=True, default=str)
+            if marker in seen_pages:
+                raise ValueError("WATCHLIST_PAGINATION_REPEATED")
+            seen_pages.add(marker)
+        version = str(uuid.uuid4())
+        operations, result = plan(existing, meta, desired, provenance, now, table.name, version)
+        if not operations:
+            return {**result, "write_attempted": False}
+        from boto3.dynamodb.types import TypeSerializer
+        serializer = TypeSerializer()
+        wire = []
+        for operation in operations:
+            kind, body = next(iter(operation.items()))
+            out = dict(body)
+            for field in ("Item", "Key", "ExpressionAttributeValues"):
+                if field in out:
+                    out[field] = {k: serializer.serialize(v) for k, v in out[field].items()}
+            wire.append({kind: out})
+        if len(json.dumps(wire, default=str).encode("utf-8")) > 3_500_000:
+            raise ValueError("SYNC_TRANSACTION_BYTE_BOUND")
+    except ValueError as error:
+        return {**empty, "status": "SKIPPED_INVALID_STATE", "reason_codes": [str(error)], "provenance": provenance, "write_attempted": False}
+    except Exception:
+        return {**empty, "status": "SKIPPED_READ_OR_PREPARE_ERROR", "reason_codes": ["SYNC_READ_OR_PREPARE_FAILED"], "provenance": provenance, "write_attempted": False}
+    try:
+        acknowledgement = client.transact_write_items(TransactItems=wire, ClientRequestToken=version)
+        metadata = acknowledgement.get("ResponseMetadata") if isinstance(acknowledgement, dict) else None
+        if not isinstance(metadata, dict) or type(metadata.get("HTTPStatusCode")) is not int or metadata["HTTPStatusCode"] != 200:
+            raise ValueError("Transaction acknowledgement unavailable")
+    except Exception as error:
+        code = getattr(error, "response", {}).get("Error", {}).get("Code")
+        conflict = code in {"TransactionCanceledException", "ConditionalCheckFailedException"}
+        return {**empty, "status": "CONFLICT" if conflict else "WRITE_UNCONFIRMED", "reason_codes": ["SYNC_TRANSACTION_REJECTED" if conflict else "SYNC_ACKNOWLEDGEMENT_UNAVAILABLE"], "provenance": provenance, "write_attempted": True}
+    return {**result, "write_attempted": True}
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -68,11 +281,51 @@ def _scrub_decimals(obj):
 
 
 def load_s3_json(key, default=None):
+    body = None
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
-    except Exception as e:
-        print(f"  [s3:{key}] {str(e)[:120]}")
+        response = s3.get_object(Bucket=S3_BUCKET, Key=key)
+        body = response["Body"]
+        expected = response.get("ContentLength")
+        if type(expected) is not int or not 0 <= expected <= 32 * 1024 * 1024:
+            raise ValueError("invalid source byte length")
+        chunks, size, deadline = [], 0, time.monotonic() + 20
+        while True:
+            if time.monotonic() > deadline:
+                raise ValueError("source acceptance deadline exceeded")
+            chunk = body.read(min(65536, 32 * 1024 * 1024 + 1 - size))
+            if not isinstance(chunk, bytes):
+                raise ValueError("source stream type invalid")
+            if time.monotonic() > deadline:
+                raise ValueError("source acceptance deadline exceeded")
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+            if size > 32 * 1024 * 1024:
+                raise ValueError("source byte bound exceeded")
+        if size != expected:
+            raise ValueError("incomplete source body")
+        def pairs(rows):
+            out = {}
+            for name, value in rows:
+                if name in out:
+                    raise ValueError("duplicate source member")
+                out[name] = value
+            return out
+        def invalid_constant(value):
+            raise ValueError("nonfinite source number")
+        out = json.loads(b"".join(chunks).decode("utf-8"), object_pairs_hook=pairs, parse_constant=invalid_constant)
+        # Reject numeric overflow, lone surrogates and non-object sidecars.
+        json.dumps(out, allow_nan=False, ensure_ascii=False).encode("utf-8")
+        if not isinstance(out, dict):
+            raise ValueError("source sidecar is not an object")
+        return out
+    except Exception:
+        print(f"  [s3:{key}] source unavailable or invalid")
         return default
+    finally:
+        if body is not None:
+            body.close()
 
 
 def query_pk(pk):
@@ -131,55 +384,8 @@ def batch_fetch_prices(symbols, max_workers=10):
 # ═══════════════════════════════════════════════════════════════════════
 
 def sync_auto_watchlist(alpha_data):
-    """Update WATCHLIST entries based on current alpha-score TIER S/A.
-    Strategy:
-      1. Query existing AUTO_* watchlist entries
-      2. Compute new desired set from alpha-score TIER S/A
-      3. Add missing, remove stale, leave MANUAL untouched
-    Returns dict of changes."""
-    desired_s = set()
-    desired_a = set()
-    for s in (alpha_data.get("stocks") or []):
-        if s.get("tier") == "S" and len(desired_s) < AUTO_WATCH_TIER_S_LIMIT:
-            desired_s.add(s["symbol"])
-        elif s.get("tier") == "A" and len(desired_a) < AUTO_WATCH_TIER_A_LIMIT:
-            desired_a.add(s["symbol"])
-
-    existing = query_pk("WATCHLIST")
-    existing_auto_s = {i["symbol"] for i in existing if i.get("source") == "AUTO_TIER_S"}
-    existing_auto_a = {i["symbol"] for i in existing if i.get("source") == "AUTO_TIER_A"}
-    existing_manual = {i["symbol"] for i in existing if i.get("source") == "MANUAL"}
-
-    changes = {"added_S": [], "added_A": [], "removed_S": [], "removed_A": []}
-
-    # Remove stale AUTO entries
-    with table.batch_writer() as batch:
-        for sym in existing_auto_s - desired_s:
-            if sym in existing_manual: continue  # don't kill manual
-            batch.delete_item(Key={"pk": "WATCHLIST", "sk": sym})
-            changes["removed_S"].append(sym)
-        for sym in existing_auto_a - desired_a:
-            if sym in existing_manual: continue
-            batch.delete_item(Key={"pk": "WATCHLIST", "sk": sym})
-            changes["removed_A"].append(sym)
-
-    # Add new AUTO entries (only if not already manual)
-    now_iso = datetime.now(timezone.utc).isoformat()
-    with table.batch_writer() as batch:
-        for sym in desired_s - existing_auto_s - existing_manual:
-            batch.put_item(Item={
-                "pk": "WATCHLIST", "sk": sym, "symbol": sym,
-                "source": "AUTO_TIER_S", "added_at": now_iso,
-            })
-            changes["added_S"].append(sym)
-        for sym in desired_a - existing_auto_a - existing_manual:
-            batch.put_item(Item={
-                "pk": "WATCHLIST", "sk": sym, "symbol": sym,
-                "source": "AUTO_TIER_A", "added_at": now_iso,
-            })
-            changes["added_A"].append(sym)
-
-    return changes
+    """Preserve existing rows on invalid input; atomically protect owner edits."""
+    return {"schema_version": "watchlist-sync.v1", **sync_watchlist(table, ddb_client, alpha_data)}
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -187,7 +393,7 @@ def sync_auto_watchlist(alpha_data):
 # ═══════════════════════════════════════════════════════════════════════
 
 def index_by_symbol(rows, sym_key="symbol"):
-    return {r[sym_key]: r for r in rows if sym_key in r}
+    return {r[sym_key]: r for r in rows if isinstance(r, dict) and isinstance(r.get(sym_key), str)} if isinstance(rows, list) else {}
 
 
 def enrich_symbol(sym, price_data, alpha_idx, confluence_s_idx, confluence_a_idx,
@@ -396,7 +602,9 @@ def lambda_handler(event, context):
         e = enriched_by_sym.get(sym, {"symbol": sym})
         watchlist_records.append({
             **e,
-            "source": w.get("source", "MANUAL"),
+            "source": w.get("source"),
+            "auto_source_generated_at": w.get("source_generated_at"),
+            "auto_sync_version": w.get("sync_version"),
             "added_at": w.get("added_at"),
             "notes": w.get("notes"),
         })
@@ -430,7 +638,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-09.1",
+        "audit_version": "2026-09-30.1",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 

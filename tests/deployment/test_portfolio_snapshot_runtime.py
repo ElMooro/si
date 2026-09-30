@@ -7,7 +7,7 @@ if not PATH.exists():PATH=ROOT/'aws/ops/STAGED/ops_6358_portfolio_snapshot_runti
 
 
 def evidence():
-    return {'function_name':'justhodl-portfolio-snapshot','receipt':{'status':'matched','commit':'a'*40},'source_files_checked':7,
+    return {'function_name':'justhodl-portfolio-snapshot','receipt':{'status':'matched','commit':'a'*40},'source_files_checked':3,
         'memory_mb':512,'timeout':180,'runtime':'python3.12','handler':'lambda_function.lambda_handler',
         'architectures':['x86_64'],'role':'synthetic-role','ephemeral_storage_mb':512,
         'schedules':[{'name':'justhodl-portfolio-snapshot-hourly','kind':'EventBridge rule','expression':'cron(40 * * * ? *)',
@@ -28,8 +28,8 @@ def test_portfolio_snapshot_acceptance_rejects_nonreceipt_reads_before_client_ca
 
 
 def test_portfolio_snapshot_runtime_rejects_commit_source_resource_and_schedule_drift():
-    scope=runpy.run_path(str(PATH));validate=scope['validate'];original=evidence();baseline=copy.deepcopy(original);baseline['source_files_checked']=7;validate(original);validate(original,'a'*40,baseline)
-    for field,value in [('function_name','other'),('source_files_checked',True),('source_files_checked',6),('source_files_checked',8),('memory_mb',256),('timeout',90),('role','other-role'),('schedules',[]),('receipt',{'status':'matched','commit':'b'*40})]:
+    scope=runpy.run_path(str(PATH));validate=scope['validate'];original=evidence();baseline=copy.deepcopy(original);baseline['source_files_checked']=3;validate(original);validate(original,'a'*40,baseline)
+    for field,value in [('function_name','other'),('source_files_checked',True),('source_files_checked',2),('source_files_checked',4),('memory_mb',256),('timeout',90),('role','other-role'),('schedules',[]),('receipt',{'status':'matched','commit':'b'*40})]:
         bad=copy.deepcopy(original);bad[field]=value
         try:validate(bad,'a'*40,baseline)
         except ValueError:pass

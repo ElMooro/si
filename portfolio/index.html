@@ -217,6 +217,7 @@ footer a{color:var(--text-dim);text-decoration:none;}
       <span id="watch-page-status" role="status" aria-live="polite">Watchlist data unavailable.</span>
       <button type="button" id="watch-next" aria-controls="watch-table" onclick="changeWatchPage(1)" disabled>Next watchlist page</button>
     </nav>
+    <p id="watch-sync-status" role="status" aria-live="polite" style="margin:0;padding:12px 16px;color:var(--muted);font-size:12px;overflow-wrap:anywhere;">Automatic watchlist sync status unavailable.</p>
   </div>
 
 </main>
@@ -443,6 +444,12 @@ function changeWatchPage(delta){
   renderWatchlist();
 }
 function renderWatchlist(){
+  const syncState=snapshot && snapshot.watchlist_sync;
+  const syncText=document.getElementById('watch-sync-status');
+  const syncLabels={APPLIED:'Automatic watchlist revision applied.',UNCHANGED:'Automatic watchlist source revision unchanged.',CONFLICT:'Automatic update withheld because a concurrent edit conflicted.',SKIPPED_INVALID_SOURCE:'Automatic update withheld: source data is incomplete or outside its age policy.',SKIPPED_INVALID_STATE:'Automatic update withheld: stored state could not be safely reconciled.',SKIPPED_READ_OR_PREPARE_ERROR:'Automatic update withheld: a complete source or stored state was unavailable.',WRITE_UNCONFIRMED:'Automatic update acknowledgement unavailable; the write outcome is uncertain.'};
+  const syncLabel=syncState && typeof syncState==='object' && !Array.isArray(syncState) && typeof syncState.status==='string' && Object.hasOwn(syncLabels,syncState.status) ? syncLabels[syncState.status] : 'Automatic watchlist sync status unavailable.';
+  const sourceClock=syncState && syncState.provenance && syncState.provenance.source_generated_at;
+  syncText.textContent=syncLabel+(typeof sourceClock==='string' && sourceClock.trim() ? ` Source generated: ${sourceClock}.` : '')+' Automatic entries are research rankings; investment qualification is unverified.';
   document.getElementById('watch-count').textContent = 'Watchlist count unavailable';
   const body = document.getElementById('watch-body');
   const previous=document.getElementById('watch-prev'),next=document.getElementById('watch-next'),status=document.getElementById('watch-page-status');

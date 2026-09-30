@@ -76,7 +76,13 @@ for fn in $DEPLOY_TARGETS; do
 
   cp -rT "$dir/source" "$staging"
 
-  (cd "$staging" && zip -qr "$tmp/deploy.zip" .)
+  if [ "$fn" = "justhodl-portfolio-snapshot" ]; then
+    # Offline source validation compares the complete reproducible ZIP; local
+    # test interpreter caches are build products, never release inputs.
+    (cd "$staging" && zip -qr "$tmp/deploy.zip" . -x '__pycache__/*' '*/__pycache__/*' '*.pyc')
+  else
+    (cd "$staging" && zip -qr "$tmp/deploy.zip" .)
+  fi
   echo "Built $(du -h $tmp/deploy.zip | cut -f1) zip for $fn (with shared/ bundle)"
 
   if [ -d aws/shared ]; then
