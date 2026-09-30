@@ -68,6 +68,25 @@ test('missing and malformed composite values are unavailable, including a missin
   const data = packet(); delete data.auction.composite_now;
   assert.match((await render(data)).html('wr-auction'), /auction-stress composite unavailable/);
 });
+test('malformed median parent values cannot fabricate a measured zero', async () => {
+  for (const parent of [undefined, null, 0, 1, false, true, '', '0', [], [0],
+    Object.assign([], {median: 0}), Object.create({median: 0})]) {
+    const data = packet(); data.auction.prediction[0].d1 = parent;
+    const result = await render(data);
+    assert.match(result.html('wr-auction'), /median unavailable/);
+    assert.doesNotMatch(result.html('wr-auction'), /0\.00%/);
+    assert.doesNotMatch(result.elements.get('wr-headline').textContent, /Render error/);
+  }
+});
+test('malformed composite parent values cannot fabricate a measured zero', async () => {
+  for (const parent of [undefined, null, 0, 1, false, true, '', '0', [], [0],
+    Object.assign([], {composite: 0}), Object.create({composite: 0})]) {
+    const data = packet(); data.auction.composite_now = parent;
+    const html = (await render(data)).html('wr-auction');
+    assert.match(html, /auction-stress composite unavailable/);
+    assert.doesNotMatch(html, /auction-stress composite 0/);
+  }
+});
 test('funding stress uses sum_z, preserves finite legacy scalars and rejects unmeasured values', async () => {
   for (const [value, expected] of [[{sum_z: 4.58, mean_z: 0.92}, '4.58'], [{sum_z: 0}, '0'], [0, '0'], [-1.5, '-1.5'],
     [null, 'unavailable'], [undefined, 'unavailable'], [{mean_z: 1}, 'unavailable'], [{sum_z: '4.58'}, 'unavailable'],
