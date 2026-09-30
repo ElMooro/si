@@ -1,0 +1,171 @@
+{
+  "source_sha256": "779c4d72588c245bd2d40860a663f931e0d6ededc5342d582fa32643a3c16ada",
+  "source_bytes": 23226,
+  "scope": "Current reviewed source executed only against a complete invented in-memory table; no AWS, private packets or providers. Whole source retained inertly after this reproduction.",
+  "cases": [
+    {
+      "name": "failed_alpha_read",
+      "alpha": {},
+      "initial_watchlist": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-30T04:00:00+00:00",
+          "notes": "complete invented original note"
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T03:00:00+00:00",
+          "notes": "complete invented manual note"
+        }
+      ],
+      "concurrent_write": null,
+      "result": {
+        "added_S": [],
+        "added_A": [],
+        "removed_S": [
+          "AAA"
+        ],
+        "removed_A": []
+      },
+      "storage_calls": [
+        {
+          "delete": {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        }
+      ],
+      "final_watchlist": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T03:00:00+00:00",
+          "notes": "complete invented manual note"
+        }
+      ]
+    },
+    {
+      "name": "empty_unqualified_universe",
+      "alpha": {
+        "stocks": []
+      },
+      "initial_watchlist": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-30T04:00:00+00:00",
+          "notes": "complete invented original note"
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T03:00:00+00:00",
+          "notes": "complete invented manual note"
+        }
+      ],
+      "concurrent_write": null,
+      "result": {
+        "added_S": [],
+        "added_A": [],
+        "removed_S": [
+          "AAA"
+        ],
+        "removed_A": []
+      },
+      "storage_calls": [
+        {
+          "delete": {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        }
+      ],
+      "final_watchlist": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T03:00:00+00:00",
+          "notes": "complete invented manual note"
+        }
+      ]
+    },
+    {
+      "name": "concurrent_manual_conversion",
+      "alpha": {
+        "stocks": []
+      },
+      "initial_watchlist": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "AAA",
+          "symbol": "AAA",
+          "source": "AUTO_TIER_S",
+          "added_at": "2026-09-30T04:00:00+00:00",
+          "notes": "complete invented original note"
+        },
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T03:00:00+00:00",
+          "notes": "complete invented manual note"
+        }
+      ],
+      "concurrent_write": {
+        "pk": "WATCHLIST",
+        "sk": "AAA",
+        "symbol": "AAA",
+        "source": "MANUAL",
+        "added_at": "2026-09-30T04:58:00+00:00",
+        "notes": "invented owner edit after query"
+      },
+      "result": {
+        "added_S": [],
+        "added_A": [],
+        "removed_S": [
+          "AAA"
+        ],
+        "removed_A": []
+      },
+      "storage_calls": [
+        {
+          "delete": {
+            "Key": {
+              "pk": "WATCHLIST",
+              "sk": "AAA"
+            }
+          }
+        }
+      ],
+      "final_watchlist": [
+        {
+          "pk": "WATCHLIST",
+          "sk": "BBB",
+          "symbol": "BBB",
+          "source": "MANUAL",
+          "added_at": "2026-09-30T03:00:00+00:00",
+          "notes": "complete invented manual note"
+        }
+      ]
+    }
+  ]
+}

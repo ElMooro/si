@@ -1,0 +1,23 @@
+{
+  "stage": 450,
+  "status": "source_defects_reproduced_read_only_native_baseline_pending",
+  "predecessor_runtime": null,
+  "native_acceptance": null,
+  "source_sha256": "779c4d72588c245bd2d40860a663f931e0d6ededc5342d582fa32643a3c16ada",
+  "source_bytes": 23226,
+  "complete_invented_reproduction": {
+    "path": "tests/fixtures/pre-snapshot-sync/complete-synthetic.json",
+    "bytes": 4210,
+    "sha256": "d51ecabab876ffdb1703be40b76698004b3e2ba443994ba09c3a62dfed13e6fd"
+  },
+  "findings": [
+    "A failed alpha-score load returns {}, which removes all existing AUTO entries",
+    "An unqualified empty stocks array causes the same deletion",
+    "Unconditional batch deletes remove an owner manual conversion made after the query"
+  ],
+  "acceptance_scope": "Exact release receipt, complete native source package, resources and existing schedule bindings only; no actual private/current/provider data or producer invocation.",
+  "next_change": "Validate complete source input and protect manual edits before automatic watchlist mutation. The current candidate release path invokes validate_only, which reads private sources; a reviewed offline package validation path is required before any native code deployment.",
+  "actual_private_reads": 0,
+  "native_invocations": 0,
+  "native_source_modified": false
+}

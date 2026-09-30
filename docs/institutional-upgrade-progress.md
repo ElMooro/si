@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-September 30 UTC, after Stage 448 exact native/static acceptance: all ten workstreams remain open. Portfolio risk 2.0.1 source e1563cea63933637ed7be5c945e6dd3f9a272bf8 matches its exact seven-member native package and 24 static assets; original resources and both hourly :43 bindings are preserved. Typed instrument validation, incomplete-input diagnostics and unrounded scenario aggregation are code/page accepted. The existing ordered publisher is unchanged. Native 80 plus ten private-handler checks, scenario 24, frontend 2,009 and deployment 770/twelve shell pass, with isolated desktop/mobile recovery checks. Actual private publication, independent account reconciliation and investment performance remain unverified. The next reproduced page defect is a watchlist declaring 105 entries but rendering only 30, with malformed-input crashes and missing data shown as an empty list.
+September 30 UTC, after Stage 449 exact static acceptance: all ten workstreams remain open. The watchlist source ff24a8a81e4966542030ccb7b0a8c256cc834f6e matches all 24 checked public static assets. Every supplied record is reachable; missing lists remain unknown and invalid records retain their source positions. Desktop/mobile keyboard and recovery checks passed with complete invented inputs. Portfolio risk remains on the previously accepted 2.0.1 native package. Source review now reproduces snapshot auto-watchlist deletion after an unavailable alpha feed, including a concurrent owner manual conversion. Read-only native baseline and a protected repair are next. Actual private publication, independent account reconciliation and investment performance remain unverified.
 
 ### Retained Stage 371 checkpoint
 
@@ -6269,3 +6269,14 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - The original page declared 105 supplied watchlist entries but silently displayed only 30. A string list was labeled seven entries before throwing, a null record crashed rendering, and a missing list appeared as an empty watchlist. The complete 59,431-byte invented reproduction and whole original page are retained inertly.
 - The replacement preserves every supplied record and its order, with 25-row pages, explicit complete ranges and keyboard controls. Invalid rows retain their absolute positions; missing lists stay unavailable; only explicit empty arrays mean empty. Refresh clamps page bounds, failure clears old rows, measured zeros remain visible and missing source metadata is not relabeled manual.
 - Twelve new frontend cases, all 49 focused cases, the full 2,021 frontend suite and deployment 770/twelve shell checks pass. All 599 source page graphs and 143 companion wires pass. Isolated browser checks traverse every one of 105 records, test shrinking and malformed inputs, and verify mobile keyboard navigation without page overflow or console errors. Exact static deployment acceptance is pending. Native portfolio code, resources, schedules and authority remain unchanged. Evidence: `docs/audit/2026-09-30/watchlist-integrity.json`.
+
+
+### Stage 449 complete watchlist static acceptance
+
+- Source `ff24a8a81e4966542030ccb7b0a8c256cc834f6e`, Pages 36671651321, matches all 24 whole static assets at 2026-09-30T05:07:24.908368+00:00. The complete 105-entry invented watchlist is reachable across five pages; shrinking, malformed/missing/empty inputs and recovery are checked. Mobile keyboard navigation has no page overflow or console errors. Frontend 2,021 and deployment 770/twelve shell checks pass. Native portfolio files remain byte-identical to Stage 448.
+- No actual private account or current packet was read and no native producer invoked. Display completeness is not data or investment qualification. Evidence: `docs/audit/2026-09-30/watchlist-integrity.json`.
+
+### Stage 450 snapshot mutation baseline candidate
+
+- Current source removes automatic watchlist entries when the alpha feed is unavailable or unqualified empty. Complete invented races also reproduce deletion of an owner's manual conversion after the sync query. Whole source and all three complete invented cases are retained inertly. No native source is changed yet.
+- Operation 6358 is restricted to the exact release receipt, complete native package and existing runtime/schedule bindings. It never reads account/current/history/provider packets or invokes a producer. The existing release candidate's validation mode reads actual private sources, so a reviewed offline package validation path is required before shipping the engine repair. Evidence: `docs/audit/2026-09-30/portfolio-snapshot-sync-integrity.json`.
