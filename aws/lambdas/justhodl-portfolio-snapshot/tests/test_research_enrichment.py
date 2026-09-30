@@ -48,7 +48,7 @@ class Research(unittest.TestCase):
     def test_only_enrichment_reader_index_and_handler_change(self):
         def functions(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(ROOT/'tests/fixtures/pre-snapshot-research-enrichment/lambda_function.py.txt');after=functions(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py')
-        self.assertEqual(set(after)-set(before),{'research_text','research_join','research_value'});self.assertEqual({k for k in before if before[k]!=after[k]},{'load_s3_json','index_by_symbol','enrich_symbol','lambda_handler'})
+        self.assertEqual(set(after)-set(before),{'research_text','research_join','research_value','validate_snapshot_publication'});self.assertEqual({k for k in before if before[k]!=after[k]},{'load_s3_json','index_by_symbol','enrich_symbol','lambda_handler'})
     def test_source_signal_and_risk_arrays_are_preserved_whole(self):
         row={'symbol':'AAA','top_signals':['s'+str(i) for i in range(105)],'risk_flags':['r'+str(i) for i in range(105)]}
         result=self.enrich(alpha=[row]);self.assertEqual(result['top_signals'],row['top_signals']);self.assertEqual(result['risk_flags'],row['risk_flags'])

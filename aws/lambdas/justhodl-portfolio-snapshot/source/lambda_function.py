@@ -515,6 +515,52 @@ def fetch_polygon_latest(symbol):
     except Exception:evidence['reason_code']='TRANSPORT_OR_SOURCE_UNAVAILABLE'
     evidence['completed_at']=datetime.now(timezone.utc).isoformat()
     return output
+SNAPSHOT_IDENTITY_MAX_BYTES=32*1024*1024
+SNAPSHOT_IDENTITY_MAX_DEPTH=128
+
+
+def validate_snapshot_publication(payload):
+    """Require the complete frame to fit the existing risk/browser value contract.
+
+    Count typed-json-binary64.v1 bytes without a second identity buffer or a
+    self-referential hash field. Keys and every occurrence are counted; no data
+    is rounded, dropped or truncated. This is compatibility, not qualification.
+    """
+    size=0
+    def add(count):
+        nonlocal size
+        size+=count
+        if size>SNAPSHOT_IDENTITY_MAX_BYTES:
+            raise ValueError('Complete snapshot exceeds consumer identity byte bound')
+    def text(value):
+        try:length=len(value.encode('utf-8','strict'))
+        except UnicodeError:raise ValueError('Complete snapshot contains unsupported Unicode') from None
+        add(2+len(str(length))+length)
+    def visit(value,depth=0):
+        if depth>SNAPSHOT_IDENTITY_MAX_DEPTH:
+            raise ValueError('Complete snapshot exceeds consumer nesting bound')
+        if value is None or type(value) is bool:add(1)
+        elif type(value) in (int,float):
+            if type(value) is int and abs(value)>2**53-1:
+                raise ValueError('Complete snapshot contains a consumer-unsafe number')
+            number=float(value)
+            if not math.isfinite(number) or (number.is_integer() and abs(number)>2**53-1):
+                raise ValueError('Complete snapshot contains a consumer-unsafe number')
+            add(9)
+        elif type(value) is str:text(value)
+        elif type(value) is list:
+            add(2+len(str(len(value))))
+            for item in value:visit(item,depth+1)
+        elif type(value) is dict:
+            add(2+len(str(len(value))))
+            for key,item in value.items():
+                if type(key) is not str:raise ValueError('Complete snapshot object key is unsupported')
+                text(key);visit(item,depth+1)
+        else:raise ValueError('Complete snapshot contains an unsupported value type')
+    visit(payload)
+    return size
+
+
 def batch_fetch_prices(symbols, max_workers=10):
     """Parallel price fetch."""
     if not symbols: return {}
@@ -946,7 +992,7 @@ def lambda_handler(event, context):
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "audit_version": "2026-09-30.5",
+        "audit_version": "2026-09-30.6",
         "generated_at_unix": int(time.time()),
         "elapsed_seconds": round(elapsed, 2),
 
@@ -1009,6 +1055,8 @@ def lambda_handler(event, context):
         },
     }
 
+    # Both publication sinks must receive a frame the current consumers can represent.
+    validate_snapshot_publication(payload)
     encoded = json.dumps(payload, separators=(",", ":"), allow_nan=False).encode("utf-8")
     # Match the existing mirror's spaced JSON encoding before either sink writes.
     if len(json.dumps(payload, allow_nan=False).encode("utf-8")) > SNAPSHOT_MIRROR_MAX_BYTES:

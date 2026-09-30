@@ -42,7 +42,7 @@ class QuoteReads(unittest.TestCase):
     def test_only_quote_related_functions_change_from_predecessor(self):
         def functions(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8')).body if isinstance(n,ast.FunctionDef)}
         before=functions(ROOT/'tests/fixtures/pre-snapshot-quote-read/lambda_function.py.txt');after=functions(ROOT/'aws/lambdas/justhodl-portfolio-snapshot/source/lambda_function.py')
-        self.assertEqual(set(after)-set(before),{'parse_previous_close','read_previous_close_body','research_text','research_join','research_value'});self.assertEqual({k for k in before if before[k]!=after[k]},{'fetch_polygon_latest','enrich_symbol','lambda_handler','load_s3_json','index_by_symbol'})
+        self.assertEqual(set(after)-set(before),{'parse_previous_close','read_previous_close_body','research_text','research_join','research_value','validate_snapshot_publication'});self.assertEqual({k for k in before if before[k]!=after[k]},{'fetch_polygon_latest','enrich_symbol','lambda_handler','load_s3_json','index_by_symbol'})
     def test_one_adjusted_previous_day_bar_has_explicit_time_basis(self):
         result=self.parsed();self.assertEqual(result['price'],110);self.assertEqual(result['volume'],0);self.assertEqual(result['price_basis'],'SPLIT_ADJUSTED_PREVIOUS_DAY_CLOSE');self.assertEqual(result['price_timestamp_basis'],'AGGREGATE_WINDOW_START_UTC_MS');self.assertIsNone(result['currency'])
     def test_ticker_mismatch_in_envelope_or_bar_is_ineligible(self):
