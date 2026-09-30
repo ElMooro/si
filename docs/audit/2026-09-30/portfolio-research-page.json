@@ -1,6 +1,6 @@
 {
   "stage": 457,
-  "status": "current_source_and_invented_browser_checks_passed_exact_static_release_pending",
+  "status": "exact_static_source_release_accepted_actual_private_and_file_save_unverified",
   "predecessor_site_commit": "3ac6d7d9dabcc4a6f705e18f248ef804ebc5b51c",
   "native_snapshot_source_commit": "3ac6d7d9dabcc4a6f705e18f248ef804ebc5b51c",
   "native_snapshot_runtime": {
@@ -153,5 +153,207 @@
   },
   "investment_qualification": "BLOCKED",
   "normal_private_publication_verified": false,
-  "additional_data_requests": 0
+  "additional_data_requests": 0,
+  "source_commit": "6f7b487042bdb4e25ffed8f9b336b6f3b67eca0f",
+  "static_acceptance": {
+    "checked_at": "2026-09-30T09:36:35.047770+00:00",
+    "intended_commit": "6f7b487042bdb4e25ffed8f9b336b6f3b67eca0f",
+    "served_commit": "6f7b487042bdb4e25ffed8f9b336b6f3b67eca0f",
+    "assets": {
+      "portfolio-manager.html": {
+        "bytes": 30627,
+        "sha256": "4146e489e14b3391654e2b4b02869b338de63f0ef825df6353df8ad3a627417b",
+        "matches_manifest": true
+      },
+      "portfolio/index.html": {
+        "bytes": 45351,
+        "sha256": "219db606f57da9e1337a28a1987efb3d1be5f51bcef15674daf3b5d965b5ba64",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "c3c826183f631fc8581f95f7d6ef18bcd10b6bc5057aa22ec3c90a9138ae6deb",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "9cbe558a4ab33ff2d3863cccbdcaea377cd030c3d38d900f8a4e5e79f97f20d0",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68345,
+        "sha256": "214a35ac02ed6f33259899d5e3b14a61029f83cd457e305ff9dab5b25ee4381d",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "78ab9d0ff81db45243c00ea4443dd7cd72e260e8a86ce3069865b4fa51b316c0",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "9e8c92f3123b5706f20e10ba18e16f243d4646cc4496d2a76096913305d30ad9",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "bbe1f62d3958c02c2fcefab593722435539f31611a42252ba3fa6c809903f449",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "846e453f3bb0882e8649fb306064c8b647a5495fb2a82b7d9f767f03762f6214",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "jh-portfolio-research.js": {
+        "bytes": 5693,
+        "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-research-page.js": {
+        "bytes": 7876,
+        "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 5067,
+        "sha256": "6f0e335170f0d12f62bad6e6e93509e08194e6663a44bf1b508859312adb6b48",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3069098,
+        "sha256": "6399462fc7e43356fda74f8fbbeb212e7911f7d36e2eeae0b6df70fe0f66c5c1",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7666089,
+        "sha256": "844e0a41e81c5b56f2a06eb06372de306beeb1d7f344684f6c967b2245838fd3",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
+  "unchanged_native_receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "gncVDSmFytxfEEclPw43q23AeIBpeDi/QRMEzziLlvA=",
+    "commit": "3ac6d7d9dabcc4a6f705e18f248ef804ebc5b51c",
+    "deployed_at": "2026-09-30T08:56:47Z",
+    "function": "justhodl-portfolio-snapshot",
+    "run_id": "36692635430",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36692635430",
+    "schema": "release-receipt.v1",
+    "source": {
+      "lambda_function.py": {
+        "bytes": 59824,
+        "sha256": "53b94ef1cf3ddb91a0f1ed1ac252e6a7d2e4f0f6d11f82e139706b33b54dd640"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 966137,
+    "zip_sha256_hex": "8277150d2985cadc5f1047253f0e37ab6dc07880697838bf411304cf388b96f0"
+  },
+  "release_runs": {
+    "lambda_workflow": 36696616107,
+    "pages": 36696616178
+  },
+  "browser_images": {
+    "desktop": {
+      "path": "docs/audit/2026-09-30/portfolio-research-page-desktop.jpg",
+      "bytes": 311751,
+      "sha256": "47f921d7420ab669004d70178c4b05f2631422eb1c7dfcfbefcad8fc3979889b",
+      "scope": "Isolated invented data; not a live account screenshot."
+    },
+    "mobile": {
+      "path": "docs/audit/2026-09-30/portfolio-research-page-mobile.jpg",
+      "bytes": 33499,
+      "sha256": "21ab4b24c1eb8bf240e1bbe3f3e48c29f20cd7e4661672ab4965a8141619f94d",
+      "scope": "Isolated invented data; not a live account screenshot."
+    }
+  }
 }
