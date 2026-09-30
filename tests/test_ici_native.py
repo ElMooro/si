@@ -16,7 +16,7 @@ class Memory:
     def __init__(self):self.data={};self.writes=[];self.cas_conflict=False
     def get_object(self,Bucket,Key):
         if Key not in self.data:raise StorageError('NoSuchKey')
-        raw=self.data[Key];return {'Body':BytesIO(raw),'ETag':hashlib.md5(raw).hexdigest()}
+        raw=self.data[Key];return {'Body':BytesIO(raw),'ContentLength':len(raw),'ETag':hashlib.md5(raw).hexdigest()}
     def put_object(self,Bucket,Key,Body,**kw):
         raw=bytes(Body)
         if kw.get('IfNoneMatch')=='*' and Key in self.data:raise StorageError('PreconditionFailed')

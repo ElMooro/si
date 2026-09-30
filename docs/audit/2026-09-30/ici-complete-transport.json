@@ -1,0 +1,133 @@
+{
+  "schema": "ici-complete-transport.v1",
+  "prepared_at": "2026-09-30T22:54:59.330608+00:00",
+  "base_commit": "b40b2ea7d89e30d1e185cf53539bee1f06632a79",
+  "previous_native_commit": "0935a93566034d57ee4069161378ce13f62e907d",
+  "operation": 6395,
+  "reproductions": [
+    {
+      "source_sha256": "49f88eb8582333b478bbfedb2823ed859d1ebfe79a624907d627be3b7f0880a4",
+      "whole_invented_bytes": "{\"observations\":[1,2,3],\"unit\":\"usd_mn\"}",
+      "fragmented_result": "{\"obser",
+      "fragmented_truncation_accepted": true,
+      "incorrect_s3_length_accepted": true,
+      "stream_closed": true,
+      "scope": "Complete invented fixture only; no network, AWS clients, current/private/account inputs or writes."
+    },
+    {
+      "original_error": "TimeoutError",
+      "observed_error": "StorageError",
+      "original_cause_masked": true
+    }
+  ],
+  "source": [
+    {
+      "path": "tests/fixtures/pre-ici-complete-transport-store.py.txt",
+      "bytes": 13301,
+      "sha256": "49f88eb8582333b478bbfedb2823ed859d1ebfe79a624907d627be3b7f0880a4"
+    },
+    {
+      "path": "tests/fixtures/pre-ici-complete-transport-native-tests.py.txt",
+      "bytes": 10219,
+      "sha256": "7aad36dbe64b42af098c19213e2eda1177c609c6e352553f4e7d1afc38772c54"
+    },
+    {
+      "path": "tests/fixtures/pre-ici-complete-transport-runner.py.txt",
+      "bytes": 269,
+      "sha256": "8bff7d5ddaa43d1e3628aef22878ae8e683bff32f39ca0fe5e9e7e89cac9905d"
+    },
+    {
+      "path": "aws/lambdas/justhodl-ici-flows/source/ici_store.py",
+      "bytes": 15868,
+      "sha256": "5e1fc3fc3884952561aca9ec3229c6349f119aa936108fd0b64129502f67fb44"
+    },
+    {
+      "path": "tests/test_ici_native.py",
+      "bytes": 10244,
+      "sha256": "be7f13a0e5668a5883b61b6abb6352a98d01ecaf7473f080679effd8283643b4"
+    },
+    {
+      "path": "aws/lambdas/justhodl-ici-flows/tests/run_tests.py",
+      "bytes": 293,
+      "sha256": "27b2f7a8779082c56067cc31a1534d92da7deb2ab575fddfc5dc5c434ea622c9"
+    },
+    {
+      "path": "tests/test_ici_transport.py",
+      "bytes": 9045,
+      "sha256": "aff2720d244705202f9cfde18d279ad2ed7d74e50d67585203ef773bccf99693"
+    },
+    {
+      "path": "aws/ops/staged/ops_6395_ici_complete_transport_acceptance.py",
+      "bytes": 3523,
+      "sha256": "4bda7b5386a8464d92a9831221ae252a5c8c519ed729aa2cfe6e9f40ea16bd6e"
+    },
+    {
+      "path": "tests/deployment/test_ici_transport_operation.py",
+      "bytes": 3892,
+      "sha256": "c306bc7e13a2e710d359c260b1bc4cfd5f2e72c9615fe2e3637771c6f20db620"
+    }
+  ],
+  "reader_capacity": {
+    "invented": true,
+    "complete_bytes": 8388608,
+    "fragment_bytes": 4096,
+    "elapsed_seconds": 0.015000000001236913,
+    "traced_reader_peak_bytes": 17033339,
+    "existing_input_buffer_excluded_from_traced_peak": true,
+    "original_socket_timeout_seconds": 30,
+    "original_native_memory_mb": 256,
+    "whole_lambda_memory_or_latency_verified": false,
+    "network_requests": 0,
+    "scope": "Local complete reader only; full native engine runtime and AWS networking are not benchmarked."
+  },
+  "tests": {
+    "isolated_transport": 11,
+    "isolated_existing_native": 9,
+    "isolated_arithmetic": 7,
+    "isolated_operation": 6,
+    "native": 33,
+    "deployment": 962,
+    "metadata": {
+      "base": "b40b2ea7d89e30d1e185cf53539bee1f06632a79",
+      "checks": [
+        "manifest",
+        "contracts",
+        "dependency",
+        "contracts-check",
+        "page-scripts",
+        "wiring"
+      ],
+      "source_inventory": {
+        "base": "b40b2ea7d89e30d1e185cf53539bee1f06632a79",
+        "engine_count": 897,
+        "source_changed_engines": [
+          "justhodl-ici-flows"
+        ],
+        "preserved_unchanged_records": 896,
+        "method": "Exact current ownership compiler over complete changed engine; all other source/config/compiler inputs unchanged from the exact live-accepted full inventory."
+      },
+      "changed_engine_records": [
+        "justhodl-ici-flows"
+      ]
+    },
+    "candidate_shell": 15,
+    "operation": 6,
+    "preflight": "pass",
+    "frontend": "2199 prior checks remain accepted; no frontend source changed"
+  },
+  "acceptance": {
+    "native_receipt": "pending",
+    "runner": "pending",
+    "normal_publication": "not_verified"
+  },
+  "scope": {
+    "measurement_changes": 0,
+    "additional_provider_requests": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "verification_private_current_account_consumer_reads": 0,
+    "verification_native_invocations": 0,
+    "verification_provider_requests": 0,
+    "verification_data_writes": 0
+  }
+}

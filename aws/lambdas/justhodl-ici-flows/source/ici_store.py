@@ -5,7 +5,7 @@ and the unvintaged legacy histories untouched. Raw publisher HTML stays private.
 """
 from datetime import datetime,timezone
 from pathlib import Path
-import hashlib,json,re,urllib.request,urllib.error
+import hashlib,json,re,time,urllib.request,urllib.error
 import ici_research as model
 import verify_ici_research as independent
 from ici_qualification import QUALIFIED
@@ -37,11 +37,35 @@ def strict(raw):
     return out
 
 
-def bounded(stream):
-    try:raw=stream.read(MAX+1)
+def bounded(stream,*,expected_length=None):
+    """Accept a whole bounded binary body; short reads are fragments, not EOF.
+
+    The elapsed limit is checked around reads, not a process cancellation claim.
+    The native HTTP/S3 socket timeouts still bound each blocking read.
+    """
+    try:
+        if expected_length is not None and (type(expected_length) is not int or not 0<expected_length<=MAX):
+            raise ValueError('Exact bounded artifact length required')
+        deadline=time.monotonic()+30;raw=bytearray()
+        while True:
+            if time.monotonic()>=deadline:raise ValueError('Whole artifact read deadline exceeded')
+            requested=min(64*1024,MAX+1-len(raw));chunk=stream.read(requested)
+            if time.monotonic()>=deadline:raise ValueError('Whole artifact read deadline exceeded')
+            if type(chunk) is not bytes or len(chunk)>requested:raise ValueError('Exact binary fragment required')
+            if not chunk:break
+            raw.extend(chunk)
+            if len(raw)>MAX:raise ValueError('Complete artifact exceeds byte bound')
+        if not raw or expected_length is not None and len(raw)!=expected_length:
+            raise ValueError('Whole body differs from declared length')
+        return bytes(raw)
     finally:stream.close()
-    if not 0<len(raw)<=MAX:raise ValueError('Complete bounded artifact required')
-    return raw
+
+
+def stored(response):
+    body=response['Body'];length=response.get('ContentLength')
+    if type(length) is not int or not 0<length<=MAX:
+        body.close();raise ValueError('Exact S3 ContentLength required')
+    return bounded(body,expected_length=length)
 
 
 def qualified():
@@ -58,7 +82,7 @@ def reader(client,bucket):
         if not isinstance(key,str) or not (key==CURRENT or re.fullmatch(re.escape(PRIVATE)+r'[a-f0-9]{64}\.bin',key)
             or re.fullmatch(re.escape(PREFIX)+r'(?:runs|inputs|outputs|proofs|compilers)/[a-f0-9]{64}\.(?:json|py)',key)):
             raise ValueError('Unapproved ICI artifact')
-        return bounded(client.get_object(Bucket=bucket,Key=key)['Body'])
+        return stored(client.get_object(Bucket=bucket,Key=key))
     return read
 
 
@@ -140,7 +164,7 @@ def seal(client,bucket,inputs):
 def head(client,bucket):
     try:
         obj=client.get_object(Bucket=bucket,Key=CURRENT)
-        return bounded(obj['Body']),obj['ETag']
+        return stored(obj),obj['ETag']
     except Exception as exc:
         if missing(exc):return None,None
         raise
@@ -157,7 +181,7 @@ def predecessors(client,bucket):
             # Carry original legacy references, without rewriting/truncating histories.
             return {**old.get('predecessors',{}),'previous_packet':out['previous_packet']}
     for name,key in (('legacy_mmf','data/history/ici-mmf.json'),('legacy_flows','data/history/ici-flows.json')):
-        try:body=bounded(client.get_object(Bucket=bucket,Key=key)['Body'])
+        try:body=stored(client.get_object(Bucket=bucket,Key=key))
         except Exception as exc:
             if missing(exc):continue
             raise
@@ -203,12 +227,26 @@ def acquire(kind):
     request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 JustHodl-source-research/1.0','Accept-Encoding':'identity'})
     try:response=urllib.request.build_opener(NoRedirect()).open(request,timeout=30)
     except urllib.error.HTTPError as exc:response=exc
-    with response:
-        if response.geturl()!=url:raise ValueError('Unreviewed source redirect')
+    handed_to_reader=False
+    try:
+        status=response.status
+        if response.geturl()!=url or type(status) is not int or not 200<=status<=599 or status==206:
+            raise ValueError('Whole exact-source HTTP response required')
+        def values(name):
+            if hasattr(response.headers,'get_all'):return response.headers.get_all(name) or []
+            return [response.headers[name]] if name in response.headers else []
+        lengths=values('Content-Length');encoding=values('Content-Encoding');transfer=values('Transfer-Encoding')
+        if (len(lengths)>1 or lengths and (type(lengths[0]) is not str or not re.fullmatch('[0-9]+',lengths[0]))
+            or len(encoding)>1 or encoding and (type(encoding[0]) is not str or encoding[0].strip().lower() not in ('','identity'))
+            or len(transfer)>1 or transfer and (type(transfer[0]) is not str or transfer[0].strip().lower()!='chunked')
+            or transfer and lengths or values('Content-Range')):
+            raise ValueError('Unambiguous whole unencoded HTTP response required')
+        expected=int(lengths[0]) if lengths else None
         headers={k:response.headers.get(k) for k in ('Content-Type','Content-Length','ETag','Last-Modified')}
-        raw=bounded(response)
-        if headers['Content-Length'] is not None and int(headers['Content-Length'])!=len(raw):raise ValueError('Incomplete HTTP response')
-    return raw,{'url':url,'http_status':response.status,'acquired_at':now(),'response_headers':headers}
+        handed_to_reader=True;raw=bounded(response,expected_length=expected)
+    finally:
+        if not handed_to_reader:response.close()
+    return raw,{'url':url,'http_status':status,'acquired_at':now(),'response_headers':headers}
 
 
 def run(client,bucket,request_id):
@@ -219,7 +257,7 @@ def run(client,bucket,request_id):
     def journal(claim=False):
         raw=encode(progress)
         client.put_object(Bucket=bucket,Key=key,Body=raw,ContentType='application/json',CacheControl='no-store',**({'IfNoneMatch':'*'} if claim else {}))
-        if bounded(client.get_object(Bucket=bucket,Key=key)['Body'])!=raw:raise ValueError('Native request journal differs')
+        if stored(client.get_object(Bucket=bucket,Key=key))!=raw:raise ValueError('Native request journal differs')
     try:journal(True)
     except Exception as exc:
         if conflict(exc):return {'published':False,'status':'duplicate_request','provider_requests':0}
@@ -239,4 +277,10 @@ def run(client,bucket,request_id):
             'paid_ai_calls':0,'account_reads':0,'notifications_sent':0,'history_writes':0}
         progress.update(status='complete',result=result);journal();return result
     except Exception as exc:
-        progress.update(status='failed',error_type=type(exc).__name__);journal();raise
+        progress.update(status='failed',error_type=type(exc).__name__)
+        try:journal()
+        except Exception:
+            # Preserve the first source/storage failure if diagnostics also fail.
+            try:exc.add_note('ICI failure journal could not be verified')
+            except Exception:pass
+        raise
