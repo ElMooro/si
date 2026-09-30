@@ -1,6 +1,6 @@
 {
   "stage": 447,
-  "status": "source_and_full_checks_accepted_exact_deployment_pending",
+  "status": "exact_native_and_static_assets_accepted_normal_private_publication_unverified",
   "base_commit": "4d628d44ff5a8ba0cac7c5db482a2936b25b1973",
   "worker_prerequisite_commit": "8b1796470c5dd854a335edf5244f263da340d6ce",
   "scope": "Native publisher source, whole synthetic fixtures and offline protocol/HTTP/storage tests. No real private/current/provider data or native invocation.",
@@ -61,8 +61,203 @@
     "Native receipt prerequisite requires Worker evidence already retained in the checkout; deploy the backward-compatible Worker phase first",
     "Actual normal private publication and runtime SDK behavior remain unverified by read-only acceptance"
   ],
-  "native_acceptance": null,
-  "static_acceptance": null,
+  "native_acceptance": {
+    "actual_runtime": {
+      "code_sha256": "1MIMgnno1LFHc0mogNLccKHlUKLW+1Gu9qfpFIhXbvw=",
+      "source_files_checked": 7,
+      "handler_bytes": 17410,
+      "timeout": 300,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "f6193132799cbf1cdfa80ad42753b9bdafcfd800"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-portfolio-risk-hourly",
+          "state": "ENABLED",
+          "expression": "cron(43 * * * ? *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "portfolio-risk-sched",
+          "state": "ENABLED",
+          "expression": "cron(43 * * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-portfolio-risk",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "f6193132799cbf1cdfa80ad42753b9bdafcfd800",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_package_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "static_acceptance": {
+    "checked_at": "2026-09-30T04:25:40.648860+00:00",
+    "intended_commit": "f6193132799cbf1cdfa80ad42753b9bdafcfd800",
+    "served_commit": "f6193132799cbf1cdfa80ad42753b9bdafcfd800",
+    "assets": {
+      "portfolio/index.html": {
+        "bytes": 36000,
+        "sha256": "3d54351f830eeade779fd4af25a989f9a1d7a0c412c837d1572eabc3176a4f68",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "502a6a921da29415f08173efd61bd0f99b70d4bcbed63fdb7d8f86ac77d69233",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "070ec012bd85f65301e1fa57c8f1987d218f7c58dc5b5fb49c03a98e84ab9116",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68249,
+        "sha256": "cff0036b7d4aa556b27977b8533aee08bba645f03180b145ba51b66226fb7106",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "48021c387ea556f1c036fa77797c52baba93b2ef3984cef74caf11f4e0fac95e",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "7cf4784289b6d63293854fc04b0be874dea1c53367225ebc95bba2ae8bffeb99",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "35e9a8504b5ed7163b5d3414a1eb8f000f875d1a92c7ed490e15fe2196edb403",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "c3313315e178605e2f9b5c8338bc18b66eb6fa93e6bafde76da031eab857777a",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 5048,
+        "sha256": "f675fefc75292d3f1d516d8adb075eeb0cb830e14caf108bb154bc019ead68aa",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3069091,
+        "sha256": "18b3d3fbafc9e71245c0affd6c9aa4b9e07e84a649a70490e3bc747c080bed82",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7666087,
+        "sha256": "40838aea630e2a55555e9d21cbb9dae3a196f1e46be13d3c0d822b753851d4c5",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
   "actual_private_reads": 0,
   "native_invocations": 0,
   "model_sha256": "9fe0b098fa1ffa9a666e8e843f1c9ea52724ac5f065c638101afef217c7dc6a4",
@@ -85,5 +280,11 @@
     "contract-check": "9839be31906b17757fb5764e5236aa08a2e70c002c4b2280cc765375cd90737e",
     "dependencies": "44644b926b0ac1c8d911baadf9d839d2026e36c9cfadd42a600858eabb95ac24",
     "native-full": "2e0c979c7cb7e681269ea88b3cb4c297d13063bf040d74cdc5c77a9f171e823b"
-  }
+  },
+  "source_commit": "f6193132799cbf1cdfa80ad42753b9bdafcfd800",
+  "native_acceptance_run": 36668617032,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6356_portfolio_ordering_runtime_acceptance.md",
+  "native_report_commit": "6b86e5a3deabd2f52c638c454340e0b4de5cc98a",
+  "lambda_run": 36668372958,
+  "pages_run": 36668373016
 }

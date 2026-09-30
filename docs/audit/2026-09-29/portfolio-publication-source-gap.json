@@ -44,12 +44,20 @@
     "exact_native_package_verified": true,
     "complete_synthetic_tests": 8
   },
-  "publication_ordering_repair": "open",
+  "publication_ordering_repair": "code_and_exact_deployment_accepted_normal_private_publication_unverified",
   "mirror_protocol_prerequisite": {
     "source_commit": "8b1796470c5dd854a335edf5244f263da340d6ce",
     "evidence": "portfolio-mirror-ordering.json",
     "exact_worker_deployed_bytes_verified": true,
-    "native_adapter_upgraded": false,
+    "native_adapter_upgraded": true,
+    "normal_private_publication_verified": false
+  },
+  "native_ordering_repair": {
+    "source_commit": "f6193132799cbf1cdfa80ad42753b9bdafcfd800",
+    "evidence": "../2026-09-30/portfolio-native-ordering.json",
+    "exact_native_package_verified": true,
+    "ordering_cases": 18,
+    "transport_cases": 6,
     "normal_private_publication_verified": false
   }
 }
