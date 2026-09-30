@@ -6308,6 +6308,20 @@
      "path": null
     }
    ]
+  },
+  {
+   "kind": "events",
+   "name": "justhodl-etf-global-desk-daily",
+   "expr": "cron(5 23 * * ? *)",
+   "state": "ENABLED",
+   "targets": [
+    {
+     "id": "audit-justhodl-etf-global-desk",
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-global-desk",
+     "input": null,
+     "path": null
+    }
+   ]
   }
  ],
  "schedules": [

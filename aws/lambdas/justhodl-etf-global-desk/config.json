@@ -20,8 +20,8 @@
     ]
   },
   "schedule": {
-    "expression": "cron(20 22 * * ? *)",
+    "expression": "cron(5 23 * * ? *)",
     "name": "justhodl-etf-global-desk-daily",
-    "description": "18:20 ET daily \u2014 after ETF Global EOD window, before constituents pressure"
+    "description": "23:05 UTC daily \u2014 after canonical ETF holdings; unchanged once-daily collection scope"
   }
 }
