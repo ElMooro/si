@@ -170,56 +170,56 @@
     "normal_private_publication_verified": false
   },
   "static_acceptance": {
-    "checked_at": "2026-09-30T13:58:46.546004+00:00",
-    "intended_commit": "8aca6321b80feda6679ed0b23d0a8590c47a9fa5",
-    "served_commit": "8aca6321b80feda6679ed0b23d0a8590c47a9fa5",
+    "checked_at": "2026-09-30T14:04:54.546762+00:00",
+    "intended_commit": "f3e77dcb361941e7d9bbf298c1f2ed93275bc0c4",
+    "served_commit": "f3e77dcb361941e7d9bbf298c1f2ed93275bc0c4",
     "assets": {
       "portfolio-manager.html": {
         "bytes": 30627,
-        "sha256": "9f541f84b580f65f8cee05e22d4f78888493f4c89f905b61337c165fb61d82dd",
+        "sha256": "dc17bac97def617defcc424790a09c56f295e650ab76f9e74a61dd21b83797af",
         "matches_manifest": true
       },
       "portfolio/index.html": {
         "bytes": 48196,
-        "sha256": "a0dbc13e854a3b3d9b786d5920874920b754e50b566cd1a8119653bbfd47c87a",
+        "sha256": "d68392b0ca3d091f8188ced39c2309ba90b13bc31046d293536f4eac219a16f3",
         "matches_manifest": true,
         "helper_content_version_matches_reviewed_source": true
       },
       "position-sizer.html": {
         "bytes": 11687,
-        "sha256": "47c8c75a1d10020a3e97b4b9d7b4f32890c829cca9d09cffa6e4f5c8048dd9c8",
+        "sha256": "c7586fbf7458b742afa7146db9e965457b24d3cfaa23a4bfa1fb825dbfafcc30",
         "matches_manifest": true,
         "model_sri_matches_reviewed_source": true
       },
       "cb-injection.html": {
         "bytes": 14823,
-        "sha256": "e1da251659419f3866273e42d23bf14e9f3b931261b182daea7712b274a595d2",
+        "sha256": "5aeb3a1c637350c3777515caf11830676c7506040b6b121d4a16a6be2f322f5f",
         "matches_manifest": true
       },
       "liquidity.html": {
         "bytes": 68345,
-        "sha256": "62bee2ddd68f4bf134da1569abe2758a4d384ce960b37dc7041b2030c8386c83",
+        "sha256": "dcac55a70eb8b668b224796b6cfd4227d94b892d501d530af05b32c2c4f49545",
         "matches_manifest": true
       },
       "calls.html": {
         "bytes": 28187,
-        "sha256": "24a46e7dea6c4b0085e0dbcf9e880ecc8a0fa789474a7aacbc8c20c347342749",
+        "sha256": "00e0a7b8522aa0ec18e5cd69192f84667a0c755a118f9bef583c2bde91a5e536",
         "matches_manifest": true
       },
       "engine-data.html": {
         "bytes": 3125,
-        "sha256": "30f5d3c5cfeba5e2869273514641503a8093fa50afbc86556c258dcfd5a12f30",
+        "sha256": "3b0951072ce0383551dd029db91feca3ad8b73681ccd62fd5d95c3a9e7592495",
         "matches_manifest": true
       },
       "capitulation.html": {
         "bytes": 9023,
-        "sha256": "2cdc0e5e21581c582545c449446909fed17a9441653734b990b836778a976dd4",
+        "sha256": "7a026bcf799b7344a602e54ce328fa19a88307862935d0292791bb201cf95e1d",
         "matches_manifest": true,
         "embedded_primary_contract_matches_source": true
       },
       "market-extremes.html": {
         "bytes": 10103,
-        "sha256": "22efc8ae855e1d9f0ecb3aa063add0d1b6335bb4f794442718ef3fb98ea29ae4",
+        "sha256": "658a83ad0eb2787b4e7e6084ab2972844318c14ed05fb60382d765e9750a784a",
         "matches_manifest": true,
         "embedded_primary_contract_matches_source": true
       },
@@ -333,12 +333,12 @@
       },
       "engine-manifest.json": {
         "bytes": 3069098,
-        "sha256": "4ac921216bc98ba8533c642966a6630186f83fc286b93ee8c3de7a2165398e31",
+        "sha256": "51f3b1ddf103d969155a3075122a7a2c508fe21f2351f9d13737b77c7b165801",
         "matches_manifest": true
       },
       "config/page-data-contracts.json": {
         "bytes": 7666089,
-        "sha256": "907a759b51acaa612e6cdf4c883186695548230227d67d42717888540f58429b",
+        "sha256": "c12e9d8aa74961bbfff7790852bb26f1330570a063656b190bff8b48a4868270",
         "matches_manifest": true
       }
     },
@@ -352,5 +352,11 @@
     "aws/ops/reports/worker-source/release-36725595039.json",
     "data/ops/releases/worker-justhodl-data-proxy.json"
   ],
-  "normal_private_publication_verified": false
+  "normal_private_publication_verified": false,
+  "pages_run": 36725594993,
+  "push_workflows_verified_success": {
+    "lambda_no_target": 36725594979,
+    "worker": 36725595039,
+    "pages": 36725594993
+  }
 }
