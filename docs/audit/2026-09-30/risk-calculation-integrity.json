@@ -1,6 +1,6 @@
 {
   "stage": 448,
-  "status": "source_and_full_checks_accepted_exact_deployment_pending",
+  "status": "exact_native_and_static_assets_accepted_normal_private_publication_unverified",
   "source_gap": "risk-calculation-source-gap.json",
   "base_commit": "c412d5bb70681230f102fac6be5fe0c210fe33cb",
   "model_version": "2.0.1",
@@ -53,8 +53,203 @@
     "page_graphs": 599,
     "companion_wires": 143
   },
-  "native_acceptance": null,
-  "static_acceptance": null,
+  "native_acceptance": {
+    "actual_runtime": {
+      "code_sha256": "4Uu9VGE/F3sWlOpvXvSd9GaSuwgTQibpPHROmOdcM1c=",
+      "source_files_checked": 7,
+      "handler_bytes": 17453,
+      "timeout": 300,
+      "memory_mb": 1024,
+      "receipt": {
+        "status": "matched",
+        "commit": "e1563cea63933637ed7be5c945e6dd3f9a272bf8"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-portfolio-risk-hourly",
+          "state": "ENABLED",
+          "expression": "cron(43 * * * ? *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "portfolio-risk-sched",
+          "state": "ENABLED",
+          "expression": "cron(43 * * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ],
+      "function_name": "justhodl-portfolio-risk",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    },
+    "expected_commit": "e1563cea63933637ed7be5c945e6dd3f9a272bf8",
+    "phase": "post_change",
+    "all_original_resources_and_schedules_preserved": true,
+    "archive_history_reads": 0,
+    "current_packet_reads": 0,
+    "exact_native_package_verified": true,
+    "native_invocations": 0,
+    "native_publication_verified": false,
+    "original_resources_and_bindings_recorded": true,
+    "private_reads": 0,
+    "provider_requests": 0,
+    "schedule_changes": 0
+  },
+  "static_acceptance": {
+    "checked_at": "2026-09-30T04:49:30.203009+00:00",
+    "intended_commit": "e1563cea63933637ed7be5c945e6dd3f9a272bf8",
+    "served_commit": "e1563cea63933637ed7be5c945e6dd3f9a272bf8",
+    "assets": {
+      "portfolio/index.html": {
+        "bytes": 36766,
+        "sha256": "e793635d6e12dc3f953594305d1035f3f25d5f831cfad7037180cdef09e612fc",
+        "matches_manifest": true,
+        "helper_content_version_matches_reviewed_source": true
+      },
+      "position-sizer.html": {
+        "bytes": 11687,
+        "sha256": "a46d6a03c2f2a3ec2b09cc579b7bdb7d1b3235e2593accb8ad8ef9d0dab6af02",
+        "matches_manifest": true,
+        "model_sri_matches_reviewed_source": true
+      },
+      "cb-injection.html": {
+        "bytes": 14823,
+        "sha256": "500dac7f712e5bf488b4990a27d853f89787561d5d1fed1216960b1350d484cf",
+        "matches_manifest": true
+      },
+      "liquidity.html": {
+        "bytes": 68249,
+        "sha256": "de8950b908dbc7c92c3e15bc48c497e39cbd3b66eb43d8bba5258b0f8e18ede7",
+        "matches_manifest": true
+      },
+      "calls.html": {
+        "bytes": 28187,
+        "sha256": "2b3eadd67f1e49e925f9fde5cc08498ad3c9def0fe236b87be90b175a224bea3",
+        "matches_manifest": true
+      },
+      "engine-data.html": {
+        "bytes": 3125,
+        "sha256": "2c411756bf8e50e8b6e3caa4785c13aea4e2d0ce8ca60647d175cdf595a43b8b",
+        "matches_manifest": true
+      },
+      "capitulation.html": {
+        "bytes": 9023,
+        "sha256": "29df1e729d01fa9e3e3098a5798b2ebbd8becb50aa9cb7d6d2da2d52aa8db96a",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "market-extremes.html": {
+        "bytes": 10103,
+        "sha256": "2f03c1bd48128202edd39531337f08afc7536f7de89fffd2afd0701abeae3e6f",
+        "matches_manifest": true,
+        "embedded_primary_contract_matches_source": true
+      },
+      "private-artifacts.js": {
+        "bytes": 13930,
+        "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-evidence-io.js": {
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-binding.js": {
+        "bytes": 3954,
+        "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-risk-contract.js": {
+        "bytes": 5067,
+        "sha256": "6f0e335170f0d12f62bad6e6e93509e08194e6663a44bf1b508859312adb6b48",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario.js": {
+        "bytes": 7387,
+        "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-io.js": {
+        "bytes": 3035,
+        "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-portfolio-scenario-page.js": {
+        "bytes": 9325,
+        "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-research.js": {
+        "bytes": 15703,
+        "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-cb-page.js": {
+        "bytes": 1072,
+        "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-liquidity-research.js": {
+        "bytes": 6746,
+        "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "calls-page.js": {
+        "bytes": 13589,
+        "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-public-brief.js": {
+        "bytes": 25766,
+        "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-extremes-research.js": {
+        "bytes": 16212,
+        "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "jh-data-inspector.js": {
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "matches_manifest": true,
+        "matches_source_after_declared_build_transform": true
+      },
+      "engine-manifest.json": {
+        "bytes": 3069091,
+        "sha256": "3004763c7bcd380c2022e406060f3c16b35df9cb54e3aa0869b4e8bd213ad439",
+        "matches_manifest": true
+      },
+      "config/page-data-contracts.json": {
+        "bytes": 7666087,
+        "sha256": "4f19e57b5d465025a29c06e56fc88f010440af8c9d064be0383c6343d77829f2",
+        "matches_manifest": true
+      }
+    },
+    "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests."
+  },
   "actual_private_reads": 0,
   "native_invocations": 0,
   "browser_acceptance": {
@@ -139,5 +334,11 @@
     "freeze",
     "replay"
   ],
-  "contract": "docs/contracts/portfolio-risk-calculation.md"
+  "contract": "docs/contracts/portfolio-risk-calculation.md",
+  "source_commit": "e1563cea63933637ed7be5c945e6dd3f9a272bf8",
+  "native_acceptance_run": 36670374767,
+  "native_acceptance_report": "aws/ops/reports/latest/ops_6357_portfolio_calculation_runtime_acceptance.md",
+  "native_report_commit": "c8f4b7173e2244f08be24e09b4f993760704fd7d",
+  "lambda_run": 36670117063,
+  "pages_run": 36670117094
 }
