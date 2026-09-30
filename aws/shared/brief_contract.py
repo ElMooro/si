@@ -37,6 +37,10 @@ def freshness(as_of, ttl_h, now=None):
         return "EXPIRED"
     now = now or datetime.now(timezone.utc)
     age_h = (now - dt).total_seconds() / 3600.0
+    # Future observations are unusable, like missing timestamps. Keep the
+    # existing enum so required inputs follow the compiler's EXPIRED gate.
+    if age_h < 0:
+        return "EXPIRED"
     if age_h <= ttl_h:
         return "FRESH"
     if age_h <= ttl_h * 2:
