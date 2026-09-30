@@ -69,10 +69,21 @@ test('expiry is reevaluated after the page request, including cached pages',asyn
   s.select(g.cohort_id);await assert.rejects(s.next('lower',f.fetcher),/expired/);assert.equal((await s.next('raw',f.fetcher)).page,1);
  }finally{Date.now=real;}
 });
-test('32-page navigation ceiling cannot be expanded by manifest declarations',async()=>{
- const f=fixture(),m=f.manifest(),g=current(m);g.record_count=6600;g.parts=[];m.cohorts=[g];m.record_count=6600;m.page_count=33;
+test('32-page request ceiling spans cohorts; cache hits do not spend or reset it',async()=>{
+ const f=fixture(),m=f.manifest(),g=current(m);g.record_count=6600;g.parts=[];const other=m.cohorts.find(c=>c!==g);m.cohorts=[g,other];m.record_count=6600+other.record_count;m.page_count=33+other.parts.length;
  for(let page=0;page<33;page++)g.parts.push(f.put({contract:'etf-qualified-membership-rows.v1',cohort_id:g.cohort_id,row_offset:page*200,rows:Array.from({length:200},(_,i)=>({identity_key:(page*200+i).toString(16).padStart(64,'0'),reported_tickers:[],source_asset_class:null,source_security_type:null,raw_observed_fund_count:1,known_presence_lower_bound:1,qualified_fund_count:1,observed_in_both_count:null,observed_only_in_current_count:null,observed_only_in_prior_count:null}))}));
  m.limits={pages:999999,total_bytes:999999999};f.resign(m);const s=A.ownershipSession();await s.open(f.p,f.fetcher);s.select(g.cohort_id);
  for(let i=0;i<32;i++)assert.equal((await s.next('qualified',f.fetcher,time(f.p))).page,i+1);
  let calls=0;await assert.rejects(s.next('qualified',async()=>{calls++;},time(f.p)),/32-page/);assert.equal(calls,0);
+ // Changing the cohort resets the cursor, never the network budget.
+ const counted=async(k,o)=>{calls++;return f.fetcher(k,o);};
+ for(let i=0;i<3;i++){
+  s.select(other.cohort_id);await assert.rejects(s.next('raw',counted,time(f.p)),/budget/);assert.equal(calls,0);
+  s.select(g.cohort_id);const cached=await s.next('qualified',counted,time(f.p));assert.equal(cached.requests,32);assert.equal(calls,0);
+ }
+ // Only explicit metadata retry starts a new budget; immutable cache survives.
+ await s.open(f.p,f.fetcher);s.select(g.cohort_id);
+ assert.equal((await s.next('qualified',counted,time(f.p))).requests,0);assert.equal(calls,0);
+ s.select(other.cohort_id);const fresh=await s.next('raw',counted,time(f.p));assert.equal(fresh.requests,1);assert.equal(calls,1);
+ s.select(other.cohort_id);assert.equal((await s.next('raw',counted,time(f.p))).requests,1);assert.equal(calls,1);
 });

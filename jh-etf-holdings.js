@@ -397,7 +397,7 @@
     function cancel(){token++;controller?.abort();}
     async function read(ref,limit,fetcher,signal){summaryRef(ref,limit);if(signal.aborted)throw Error('Cancelled');
       const key=JSON.stringify(ref);if(cache.has(key))return cache.get(key).doc;
-      if(bytes+ref.bytes>ownershipLimits.sessionBytes||requests>=ownershipLimits.sessionPages+1)throw Error('Summary session budget reached; reload metadata to start another bounded attempt.');
+      if(bytes+ref.bytes>ownershipLimits.sessionBytes||requests>=ownershipLimits.sessionPages)throw Error('Summary session budget reached; reload metadata to start another bounded attempt.');
       bytes+=ref.bytes;requests++;const doc=await retained(ref,'directories',fetcher,signal);
       if(signal.aborted)throw Error('Cancelled');
       while(cacheBytes+ref.bytes>ownershipLimits.sessionBytes&&cache.size){const [k,v]=cache.entries().next().value;cacheBytes-=v.bytes;cache.delete(k);}
@@ -443,7 +443,7 @@
       if(deadline&&Date.parse(deadline)>Date.now())timer=setTimeout(paint,Math.min(2147483647,Date.parse(deadline)-Date.now()));};
     q('[data-own-cancel]').onclick=()=>{clear();q('[data-own-status]').textContent='Cancelled. Choose a cohort again or retry metadata.';};
     q('[data-own-open]').onclick=async()=>{clear();m=g=null;q('[data-own-controls]').hidden=true;q('[data-own-coverage]').textContent='';const token=generation;q('[data-own-status]').textContent='Verifying publication and bounded summary metadata…';
-      try{const found=await session.open(p,fetcher);if(token!==generation)return;m=found;q('[data-own-controls]').hidden=false;q('[data-own-cohort]').innerHTML='<option value="">Choose a date explicitly</option>'+m.cohorts.filter(c=>c.kind==='current_membership').sort((a,b)=>b.effective_dates[0].localeCompare(a.effective_dates[0])).map(c=>'<option value="'+c.cohort_id+'">'+esc(c.effective_dates[0])+' · '+c.eligible_fund_count+' / '+m.configured_fund_count+' eligible</option>').join('');q('[data-own-status]').textContent='Metadata verified. Choose an economic date; no date is selected automatically. Each click loads at most 200 records / 256 KiB. At most 32 pages / 8 MiB per attempt.';}
+      try{const found=await session.open(p,fetcher);if(token!==generation)return;m=found;q('[data-own-controls]').hidden=false;q('[data-own-cohort]').innerHTML='<option value="">Choose a date explicitly</option>'+m.cohorts.filter(c=>c.kind==='current_membership').sort((a,b)=>b.effective_dates[0].localeCompare(a.effective_dates[0])).map(c=>'<option value="'+c.cohort_id+'">'+esc(c.effective_dates[0])+' · '+c.eligible_fund_count+' / '+m.configured_fund_count+' eligible</option>').join('');q('[data-own-status]').textContent='Metadata verified. Choose an economic date; no date is selected automatically. Each click loads at most 200 records / 256 KiB. At most 32 page requests / 8 MiB of page bytes per attempt across all cohorts. Separate proof/metadata bounds: two objects up to 16 MiB each plus a 512 KiB summary manifest.';}
       catch(e){if(token===generation)q('[data-own-status]').textContent='Summary unavailable: '+e.message;}};
     const select=()=>{clear();g=null;try{g=session.select(q('[data-own-cohort]').value);paint();q('[data-own-status]').textContent='Date selected; load a page explicitly.';}catch(e){q('[data-own-coverage]').textContent='';q('[data-own-status]').textContent=e.message;}};
     q('[data-own-cohort]').onchange=select;q('[data-own-view]').onchange=select;
