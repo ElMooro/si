@@ -286,4 +286,71 @@ class Tests(unittest.TestCase):
         self.assertEqual({key:m.data[key] for key in before},before)
 
 
+    def outcome(self,printed):
+        rows=[call for call in printed.call_args_list if call.args and call.args[0]==store.PUBLICATION_OUTCOME_PREFIX]
+        self.assertEqual(len(rows),1);return store.strict(rows[0].args[1].encode('utf-8'))
+
+    def test_publication_witness_binds_every_verified_output_without_changing_return(self):
+        with patch.object(store,'print',create=True) as printed:m,p,result=self.execute()
+        witness=self.outcome(printed)
+        self.assertEqual(result,{'published':True,'contract':store.CONTRACT,'provider_attempts':len(self.calls),'portfolio_action':'WAIT','multiple_head_atomic':False})
+        self.assertEqual(witness['contract'],'china-publication-outcome.v1');self.assertEqual(witness['status'],'producer_readbacks_verified')
+        self.assertEqual(witness['calculation_at'],AT);self.assertEqual(witness['compiler_sha256'],store.compiler_hashes())
+        self.assertEqual(witness['outputs'],[{'key':key,'bytes':len(m.data[key]),'sha256':store.sha(m.data[key])} for key in sorted(store.KEYS)])
+        for key in ('multiple_head_atomic','independent_source_replay_verified','current_pointer_independently_verified','schedule_causation_verified','investment_authority'):self.assertIs(witness[key],False)
+        self.assertNotIn('fixture-only-secret',str(witness));self.assertNotIn(store.PRIVATE,str(witness))
+        self.assertIsNone(witness['request_id']);self.assertIsNone(witness['function_version'])
+
+    def test_failed_or_partial_publication_never_emits_success_witness(self):
+        for target in (store.KEYS[1],store.HEAD):
+            m=Memory();before=deepcopy(m.data)
+            def deny(key):
+                if key==target:m.denied.add(key)
+            m.race=deny
+            with patch.object(store,'print',create=True) as printed:
+                with self.assertRaises(Error):self.execute(m)
+            self.assertFalse(printed.called);self.assertEqual(m.data[store.HEAD],before[store.HEAD])
+            if target==store.HEAD:self.assertNotEqual(m.data[store.KEYS[1]],before[store.KEYS[1]])
+
+    def test_log_sink_failure_does_not_change_verified_publication(self):
+        with patch.object(store,'print',side_effect=OSError('invented log sink failure'),create=True):m,p,result=self.execute()
+        self.assertTrue(result['published']);self.assertEqual(p['contract'],store.CONTRACT)
+        self.assertEqual(len(store.strict(m.data[store.KEYS[1]])['snapshots']),301)
+
+    def test_context_identity_is_bounded_and_never_leaks_unknown_fields(self):
+        outputs={store.HEAD:b'{}',store.KEYS[1]:b'{}'};compilers=store.compiler_hashes()
+        valid=SimpleNamespace(aws_request_id='12345678-1234-1234-1234-123456789abc',function_version='$LATEST',private='fixture-only-secret')
+        with patch.object(store,'print',create=True) as printed:self.assertTrue(store._emit_publication_outcome(outputs,compilers,AT,1,valid))
+        witness=self.outcome(printed);self.assertEqual(witness['request_id'],valid.aws_request_id);self.assertEqual(witness['function_version'],'$LATEST')
+        bad=SimpleNamespace(aws_request_id='fixture-only-secret',function_version='fixture-only-secret')
+        with patch.object(store,'print',create=True) as printed:self.assertTrue(store._emit_publication_outcome(outputs,compilers,AT,1,bad))
+        witness=self.outcome(printed);self.assertIsNone(witness['request_id']);self.assertIsNone(witness['function_version']);self.assertNotIn('fixture-only-secret',str(witness))
+
+    def test_malformed_witness_metadata_refuses_without_affecting_writer(self):
+        outputs={store.HEAD:b'{}',store.KEYS[1]:b'{}'};compilers=store.compiler_hashes()
+        cases=[({**outputs,'portfolio/snapshot.json':b'invented'},compilers,1),({store.HEAD:b'{}'},compilers,1),
+          ({**outputs,store.HEAD:b''},compilers,1),(outputs,{**compilers,'unknown.py':'a'*64},1),(outputs,compilers,True),(outputs,compilers,65)]
+        for raw,hashes,count in cases:
+            with patch.object(store,'print',create=True) as printed:self.assertFalse(store._emit_publication_outcome(raw,hashes,AT,count,None))
+            self.assertFalse(printed.called)
+
+    def test_whole_predecessor_measurements_history_and_return_are_identical(self):
+        raw=(ROOT/'tests/fixtures/pre-china-publication-outcome-store.py.txt').read_bytes()
+        self.assertEqual(store.sha(raw),'e7ba58170bb1316057486783087d0f6999791fb3f88a43f0a64299af24fde98c')
+        old=ModuleType('pre_outcome_store');old.__file__=str(SOURCE/'china_store.py');exec(compile(raw,old.__file__,'exec'),old.__dict__)
+        first=Memory();self.calls=[];self.module.s3=first;self.module.FRED_KEY='fixture-only-secret'
+        # Compare complete outputs at the same original acquisition clock.
+        actual_datetime=store.datetime
+        class Fixed(actual_datetime):
+            @classmethod
+            def now(cls,tz=None):
+                at=actual_datetime.fromisoformat(AT)
+                return at.astimezone(tz) if tz else at.replace(tzinfo=None)
+        with patch.object(old,'datetime',Fixed),patch.object(store,'datetime',Fixed):
+            with patch.object(self.module,'os',SimpleNamespace(environ={})):before=old.run(self.module,at=AT,opener=self.source)
+            with patch.object(store,'print',create=True):after,packet,result=self.execute()
+        self.assertEqual(before,result)
+        for key in store.KEYS:self.assertEqual(first.data[key],after.data[key],key)
+
+
 if __name__=='__main__':unittest.main()

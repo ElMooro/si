@@ -6782,3 +6782,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Observed qualification: `pending_new_normal_originals`; API originals verified: `false`. All 3 retained public manifests were checked without a current-pointer read.
 - No post-cutoff original run exists in this inspected complete inventory. Only 3 whole manifest objects were read; no original response bodies were fetched. New source delivery remains pending the original next publication. This is not a recovery claim.
 - No provider request, native invocation, current/private/account/consumer read, data write or schedule change occurred. Current pointer, trigger causation, point-in-time history and investment authority remain unverified. All ten institutional workstreams remain OPEN.
+
+
+## Stage 486: explicit China producer readback outcomes
+
+- The existing September 30 evidence confirms execution, without establishing publication. The writer now emits a bounded positive record only after every existing conditional write and complete readback succeeds. It identifies clocks, known compiler hashes and public output hashes/sizes, with no source body or private/account values. It never calls that independent source replay or current-pointer proof.
+- Six new native regressions prove unchanged complete output bytes and return under identical original clocks, no success after partial writes, harmless logging failure, safe context handling and rejection of malformed witness metadata. All 24 native, eight reader, 956 deployment, fifteen shell and 2,199 frontend checks pass. The complete source metadata, 599 page graphs and 143 companion wires are rebuilt/checked against the combined source base. Exact deployment and runner acceptance remain pending.
+- Read-only operation 6394 validates the exact new package and unchanged original resource/schedule configuration. It reads only strict outcome events from October 1 14:30–14:45 UTC, and makes no log query until the window closes. No producer invocation, provider probe, current/private/account/consumer read, native data write or schedule change is used for verification.

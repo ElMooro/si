@@ -1,24 +1,24 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-09-30T21:23:09 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-09-30T22:42:47 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `f21e99c4549a0b7bfd467124d3e34d28dc4747cb30c690fbf1d00ba9a500d147`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `5534673de3fc4b612582138294556716678d2f9fbcd1137c9c731a99586c1bca`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
 | metric | count |
 |---|---|
 | duplicate writers | 15 |
-| engines | 896 |
+| engines | 897 |
 | engines without consumer | 33 |
 | engines without schedule | 259 |
-| keys | 2055 |
-| orphan engine refs | 531 |
+| keys | 2059 |
+| orphan engine refs | 532 |
 | orphan page refs | 105 |
 | pages | 599 |
 | two cycles | 66 |
 | unused outputs | 158 |
-| writers | 1431 |
+| writers | 1434 |
 
 ## Pages referencing keys no engine writes (orphan page references -- missing or obsolete outputs, or written outside aws/lambdas)
 
@@ -236,6 +236,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `data/ciss-research/legacy-unvalidated/*.json` <- justhodl-ciss-ai, justhodl-ciss-stress
 - `data/ciss-research/runs/*.json` <- justhodl-ciss-stress
 - `data/conviction/snapshots/*.json` <- justhodl-alpha-compass
+- `data/corporate-actions/*.json` <- justhodl-corporate-actions
 - `data/credit-research/inputs/*.json` <- justhodl-credit-stress
 - `data/credit-research/outputs/*.json` <- justhodl-credit-stress
 - `data/credit-research/runs/*.json` <- justhodl-credit-stress

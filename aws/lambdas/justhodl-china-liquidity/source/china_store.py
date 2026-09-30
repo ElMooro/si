@@ -410,6 +410,7 @@ def _run(module,event=None,context=None,at=None,opener=None,diagnostic=None):
         diagnostic['stage']='verify_publication_readback'
         check=get(client,bucket,key)
         if check is None or check['raw']!=raw_output[key]:raise EvidenceError('Published readback differs; foreign writer is never rolled back')
+    _emit_publication_outcome(raw_output,compilers,at,len(session.http),context)
     return {'published':True,'contract':CONTRACT,'provider_attempts':len(session.http),'portfolio_action':'WAIT','multiple_head_atomic':False}
 
 
@@ -485,3 +486,36 @@ def replay(module,client,bucket,packet):
     return {'status':'complete_native_sources_and_china_calendars_replayed','provider_attempts':len(session.http),'complete_native_outputs':len(output),
             'china_observations':sum(row['returned_rows'] for row in session.review['series'].values()),'provider_requests':0,'public_writes':0,
             'original_vintage_verified':False,'forecast_qualified':False}
+
+
+PUBLICATION_OUTCOME_PREFIX='[china-research] publication outcome:'
+
+
+def _emit_publication_outcome(outputs,compilers,at,attempts,context):
+    """Observe completed readbacks without changing publication or its return.
+
+    Only hashes and bounded public identities enter the record. A logging fault
+    cannot convert already-verified writes into an application failure.
+    """
+    try:
+        if (type(outputs) is not dict or not {HEAD,KEYS[1]}<=set(outputs)<=set(KEYS)
+            or any(type(raw) is not bytes or not 0<len(raw)<=LIMIT for raw in outputs.values())
+            or type(compilers) is not dict or set(compilers)!=set(COMPILERS)
+            or any(type(v) is not str or not re.fullmatch('[a-f0-9]{64}',v) for v in compilers.values())
+            or type(attempts) is not int or not 1<=attempts<=64):return False
+        completed=datetime.now(timezone.utc)
+        if measurements.clock(at)>completed:return False
+        request_id=getattr(context,'aws_request_id',None)
+        if type(request_id) is not str or not re.fullmatch('[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}',request_id):request_id=None
+        version=getattr(context,'function_version',None)
+        if type(version) is not str or not re.fullmatch(r'(?:\$LATEST|[1-9][0-9]*)',version):version=None
+        witness={'contract':'china-publication-outcome.v1','status':'producer_readbacks_verified',
+                 'calculation_at':at,'verified_at':completed.isoformat(),'request_id':request_id,'function_version':version,
+                 'compiler_sha256':dict(compilers),'provider_attempts':attempts,
+                 'outputs':[{'key':key,'bytes':len(outputs[key]),'sha256':sha(outputs[key])} for key in sorted(outputs)],
+                 'multiple_head_atomic':False,'independent_source_replay_verified':False,
+                 'current_pointer_independently_verified':False,'schedule_causation_verified':False,'investment_authority':False}
+        print(PUBLICATION_OUTCOME_PREFIX,encode(witness).decode('utf-8'))
+        return True
+    except Exception:
+        return False

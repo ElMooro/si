@@ -1,0 +1,132 @@
+{
+  "schema": "china-publication-outcome.v1",
+  "prepared_at": "2026-09-30T22:27:56.232549+00:00",
+  "base_commit": "1d7b98d01a25a68b2746d6ffa56fd96b4c99addf",
+  "previous_native_source_commit": "b84b1513c115572e3cfffb5a5c66389134ea895f",
+  "operation": 6394,
+  "source": [
+    {
+      "path": "tests/fixtures/pre-china-publication-outcome-store.py.txt",
+      "bytes": 34806,
+      "sha256": "e7ba58170bb1316057486783087d0f6999791fb3f88a43f0a64299af24fde98c"
+    },
+    {
+      "path": "tests/fixtures/pre-china-publication-outcome-tests.py.txt",
+      "bytes": 20906,
+      "sha256": "c1bd7cd49cb6f106242216132cf42c14cdde8a1eb10b5c6dff00a87f329a15c6"
+    },
+    {
+      "path": "aws/lambdas/justhodl-china-liquidity/source/china_store.py",
+      "bytes": 36958,
+      "sha256": "c5a38f6b99c8e053761865f4ba49f02d0e64f2f33a7580e8c63335b918b6cde1"
+    },
+    {
+      "path": "aws/lambdas/justhodl-china-liquidity/tests/run_tests.py",
+      "bytes": 26335,
+      "sha256": "8260a1c155a3b01f94bd1bf1321b628e9105353e405a726eaa3005dc86c4f7f1"
+    },
+    {
+      "path": "aws/ops/staged/ops_6394_china_publication_outcome_acceptance.py",
+      "bytes": 9390,
+      "sha256": "a4e18c0f2ba5bd39a354642dd2565d2afd8668bfc38b614a2cbbbf9bb1a65ed2"
+    },
+    {
+      "path": "tests/deployment/test_china_publication_outcome.py",
+      "bytes": 7241,
+      "sha256": "4768b3888417a33d2bf4548c4ab65e8635687b5a6d2e76b61b046cafed17bd5e"
+    }
+  ],
+  "change": "Add a bounded publication outcome only after complete existing native writes and readbacks; logging failure does not change publication outcome.",
+  "native_regression": {
+    "whole_predecessors": 2,
+    "whole_output_and_return_comparison": "identical under equal original clocks and compiler identities",
+    "native_cases": 24
+  },
+  "tests": {
+    "focused": 8,
+    "deployment": 956,
+    "native": 24,
+    "candidate_shell": 15,
+    "frontend": 2199,
+    "preflight": "pass",
+    "generated_metadata": {
+      "base": "a3f9fa56c26e2a9fc83ce2b66fcfa00bcfae677e",
+      "checks": [
+        "manifest",
+        "contracts",
+        "dependency",
+        "contracts-check",
+        "page-scripts",
+        "wiring"
+      ],
+      "engines": 897,
+      "changed_engine_records": [
+        "justhodl-corporate-actions",
+        "justhodl-etf-constituents",
+        "justhodl-etf-global-desk",
+        "justhodl-flow-lookthrough",
+        "justhodl-market-tape",
+        "justhodl-price-redundancy"
+      ],
+      "peer_integration": {
+        "prior_full_test_base": "ffdfdd35bb4b77550cea0628a0f83a0d23d0027a",
+        "integration_base": "a3f9fa56c26e2a9fc83ce2b66fcfa00bcfae677e",
+        "reviewed_paths": [
+          "aws/lambdas/justhodl-etf-constituents/config.json",
+          "aws/lambdas/justhodl-etf-constituents/tests/run_tests.py",
+          "aws/lambdas/justhodl-etf-global-desk/tests/run_tests.py",
+          "aws/lambdas/justhodl-flow-lookthrough/tests/run_tests.py",
+          "aws/shared/etf_desk_store.py",
+          "aws/shared/etf_holdings_model.py",
+          "aws/shared/etf_holdings_store.py",
+          "aws/shared/tests/test_etf_ownership_summary.py",
+          "docs/SESSION_CLAIMS.md",
+          "docs/reviews/qualified-holdings-summary-benchmarks.json",
+          "docs/reviews/qualified-holdings-summary.md",
+          "etf-holdings.html",
+          "flow-lookthrough.html",
+          "jh-etf-holdings.js",
+          "tests/benchmark_holdings_summary.py",
+          "tests/build_ownership_ui_fixture.py",
+          "tests/etf-holdings.test.js",
+          "tests/fixtures/holdings-summary-desk-predecessor-synthetic.json.gz",
+          "tests/fixtures/holdings-summary-predecessor-synthetic.json.gz",
+          "tests/fixtures/ownership-summary-ui-synthetic.json.gz",
+          "tests/fixtures/pr14-holdings-ui-rollback.js.txt",
+          "tests/ownership-summary-browser.cjs",
+          "tests/ownership-summary-fixture.cjs",
+          "tests/ownership-summary-ui.test.js"
+        ],
+        "affected_other_engines": [
+          "justhodl-etf-constituents",
+          "justhodl-etf-global-desk",
+          "justhodl-flow-lookthrough"
+        ],
+        "china_tested_source_bytes_unchanged": true,
+        "manifest_complete_engine_count": 897,
+        "preserved_unaffected_records": 894,
+        "method": "Exact current compiler rerun over every affected importer and real shared source closure. All other input sources and fully compiled records remain unchanged. Full deployment and frontend suites rerun after metadata."
+      },
+      "peer_native_cases": {
+        "justhodl-etf-constituents": 53,
+        "justhodl-etf-global-desk": 70,
+        "justhodl-flow-lookthrough": 53
+      }
+    }
+  },
+  "acceptance": {
+    "native_release": "pending",
+    "runner": "pending",
+    "normal_outcome": "pending_original_window"
+  },
+  "scope": {
+    "measurement_changes": 0,
+    "resource_changes": 0,
+    "schedule_changes": 0,
+    "verification_native_invocations": 0,
+    "verification_provider_requests": 0,
+    "verification_current_private_account_consumer_reads": 0,
+    "verification_native_writes": 0
+  },
+  "tested_base_commit": "a3f9fa56c26e2a9fc83ce2b66fcfa00bcfae677e"
+}
