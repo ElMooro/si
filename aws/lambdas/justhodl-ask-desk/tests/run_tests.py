@@ -9,3 +9,7 @@ if __name__ == '__main__':
     from pathlib import Path
     import subprocess, sys
     subprocess.run([sys.executable,str(Path(__file__).resolve().parents[4]/'tests/test_signal_board_interpretation_consumers.py')],check=True)
+
+if __name__ == "__main__":
+    import subprocess, sys
+    subprocess.run([sys.executable, str(ROOT / "tests/test_harness_mode_a_withdrawal.py")], check=True)
