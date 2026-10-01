@@ -109,9 +109,8 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
 .heatmap-cell:hover{outline:2px solid var(--cyan);z-index:1;position:relative}
 .heatmap-legend{display:flex;align-items:center;gap:14px;margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--fg-3);justify-content:center}
 .legend-bar{display:inline-block;height:14px;width:200px;background:linear-gradient(to right,#ff5c7a,#3a4458,#38ffa8);border-radius:2px;border:1px solid var(--border)}
-.heatmap-toggle{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:flex-end}
+.heatmap-toggle{display:flex;gap:8px;margin-bottom:14px;justify-content:flex-end}
 .heatmap-toggle button{font-family:var(--font-mono);font-size:10px;padding:5px 12px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg-3);cursor:pointer;border-radius:3px;letter-spacing:.5px;transition:all .15s;text-transform:uppercase}
-.heatmap-toggle button:focus-visible,.heatmap-wrap:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .heatmap-toggle button:hover{border-color:var(--border-hover);color:var(--fg-1)}
 .heatmap-toggle button.active{background:var(--bg-glow);border-color:var(--cyan);color:var(--cyan)}
 
@@ -247,17 +246,17 @@ footer a{margin:0 10px}
       <div class="sub">60-day rolling correlations · click toggle to compare</div>
     </div>
     <div class="heatmap-toggle">
-      <button id="hm-latest" type="button" aria-pressed="true" class="active">LATEST WINDOW</button>
-      <button id="hm-prior" type="button" aria-pressed="false">PRIOR WINDOW (60d ago)</button>
-      <button id="hm-delta" type="button" aria-pressed="false">Δ DELTA (latest – prior)</button>
+      <button id="hm-latest" class="active">LATEST WINDOW</button>
+      <button id="hm-prior">PRIOR WINDOW (60d ago)</button>
+      <button id="hm-delta">Δ DELTA (latest – prior)</button>
     </div>
-    <div class="heatmap-wrap" tabindex="0" role="region" aria-label="Correlation heatmap; scroll horizontally for all columns">
+    <div class="heatmap-wrap">
       <table id="heatmap-table" class="heatmap-table"></table>
       <div class="heatmap-legend">
         <span>−1.0</span>
         <span class="legend-bar"></span>
         <span>+1.0</span>
-        <span style="margin-left:30px"><span id="hm-mode-label" role="status" aria-live="polite">latest 60d window</span></span>
+        <span style="margin-left:30px"><span id="hm-mode-label">latest 60d window</span></span>
       </div>
     </div>
   </div>
@@ -409,61 +408,41 @@ function renderTopBreaks(d) {
 }
 
 function renderHeatmap(d, mode) {
-  mode = ['latest', 'prior', 'delta'].includes(mode) ? mode : 'latest';
   HM_MODE = mode;
-  const insts = Array.isArray(d.instruments) ? d.instruments : [];
-  const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const insts = d.instruments || [];
   const labels = d.labels || {};
   const matrix = mode === 'delta' ? d.delta_matrix : (mode === 'prior' ? null : d.latest_matrix);
   const title = mode === 'delta'
     ? 'Δ DELTA: latest 60d minus prior 60d'
     : mode === 'prior'
-      ? '(prior matrix not stored in this schema)'
+      ? '(prior matrix not stored — recompute via API)'
       : 'latest 60d window correlations';
 
   document.getElementById('hm-mode-label').textContent = title;
-  document.querySelectorAll('.heatmap-toggle button').forEach(btn => {
-    btn.classList.remove('active');
-    btn.setAttribute('aria-pressed', 'false');
-  });
+  document.querySelectorAll('.heatmap-toggle button').forEach(btn => btn.classList.remove('active'));
   const btnId = mode === 'delta' ? 'hm-delta' : (mode === 'prior' ? 'hm-prior' : 'hm-latest');
   const btnEl = document.getElementById(btnId);
-  if (btnEl) {
-    btnEl.classList.add('active');
-    btnEl.setAttribute('aria-pressed', 'true');
-  }
+  if (btnEl) btnEl.classList.add('active');
 
   const table = document.getElementById('heatmap-table');
-  // Replace the entire view on every selection/refresh, including warming packets.
-  // The producer publishes latest/delta only; never synthesize a prior matrix.
-  const complete = insts.length > 0 && Array.isArray(matrix) && matrix.length === insts.length
-    && matrix.every(row => Array.isArray(row) && row.length === insts.length);
-  if (!complete || d.status === 'warming_up') {
-    const view = mode === 'delta' ? 'Delta' : mode === 'prior' ? 'Prior' : 'Latest';
-    const reason = mode === 'prior'
-      ? 'Prior matrix is not published in the current schema.'
-      : `${view} matrix is unavailable or incomplete in this packet.`;
-    const context = d.status === 'warming_up'
-      ? ` Detector warming up: ${typeof d.message === 'string' && d.message ? d.message : 'insufficient aligned data'}.`
-      : '';
-    table.innerHTML = `<tbody><tr><td style="padding:24px;color:var(--fg-3);font-family:var(--font-mono);font-size:11px">${escape(reason + context)}</td></tr></tbody>`;
+  if (!matrix) {
+    table.innerHTML = `<tr><td style="padding:24px;color:var(--fg-3);font-family:var(--font-mono);font-size:11px">Prior matrix not available in current schema. Try LATEST or DELTA.</td></tr>`;
     return;
   }
 
   let html = '<thead><tr><th></th>';
   for (const inst of insts) {
-    html += `<th>${escape(inst)}</th>`;
+    html += `<th>${inst}</th>`;
   }
   html += '</tr></thead><tbody>';
   for (let i = 0; i < insts.length; i++) {
-    html += `<tr><th class="row-header">${escape(labels[insts[i]] || insts[i])}</th>`;
+    html += `<tr><th class="row-header">${labels[insts[i]] || insts[i]}</th>`;
     for (let j = 0; j < insts.length; j++) {
-      const raw = matrix[i][j];
-      const v = typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+      const v = matrix[i] && matrix[i][j];
       const color = mode === 'delta' ? deltaColor(v) : corrColor(v);
       const display = v == null ? '—' : v.toFixed(2);
       const tooltip = `${insts[i]} ↔ ${insts[j]}: ${display}`;
-      html += `<td class="heatmap-cell" style="background:${color}" title="${escape(tooltip)}">${display}</td>`;
+      html += `<td class="heatmap-cell" style="background:${color}" title="${tooltip}">${display}</td>`;
     }
     html += '</tr>';
   }
@@ -690,8 +669,6 @@ async function loadData() {
     document.getElementById('updated').textContent = fmtAge(d.generated_at);
     document.getElementById('footer-ts').textContent = d.generated_at || '—';
 
-    renderHeatmap(d, HM_MODE);
-
     if (d.status === 'warming_up') {
       setError(`Detector warming up: ${d.message || 'insufficient aligned data'}`);
       return;
@@ -701,6 +678,7 @@ async function loadData() {
     renderStats(d);
     renderTopBreaks(d);
     renderImplications(d);
+    renderHeatmap(d, 'latest');
     renderHistoryChart(d);
   } catch (e) {
     console.error(e);
