@@ -454,19 +454,27 @@
     return rows.map(function(b){ return roundBar(b, t); });
   }
   function rvolAt(d, i, n){
-    n=n||20;
-    var look=Math.min(n, i), avg=0, j;
-    if(!look) return 1;
-    for(j=i-look;j<i;j++) avg+=d[j].volume||0;
-    avg/=look;
-    return avg?(d[i].volume||0)/avg:1;
+    n=n===undefined?20:n;
+    if(!Array.isArray(d)||!Number.isInteger(i)||!Number.isInteger(n)||n<1||i<n||i>=d.length)return null;
+    var latest=d[i]&&d[i].volume,total=0,j,value;
+    if(typeof latest!=="number"||!Number.isFinite(latest)||latest<0)return null;
+    for(j=i-n;j<i;j++){
+      value=d[j]&&d[j].volume;
+      if(typeof value!=="number"||!Number.isFinite(value)||value<0)return null;
+      total+=value;
+    }
+    var mean=total/n;
+    if(!Number.isFinite(mean)||mean<=0)return null;
+    var ratio=latest/mean;
+    return Number.isFinite(ratio)&&!(ratio===0&&latest!==0)?ratio:null;
   }
   function hollowPaint(b, bg){
     var up=b.close>=b.open;
     return {time:b.time,open:b.open,high:b.high,low:b.low,close:b.close, color:up?bg:DN, borderColor:up?UP:DN, wickColor:up?UP:DN};
   }
   function volCandlePaint(b, r){
-    var up=b.close>=b.open, hot=r>=2.5, busy=r>=1.6, thin=r<0.65, body, edge;
+    var known=typeof r==="number"&&Number.isFinite(r)&&r>=0;
+    var up=b.close>=b.open, hot=known&&r>=2.5, busy=known&&r>=1.6, thin=known&&r<0.65, body, edge;
     if(up){
       if(hot){ body="#00c896"; edge="#14e0aa"; }
       else if(busy){ body="#0b9e86"; edge="#089981"; }
@@ -645,7 +653,16 @@
   function vwap(d){ var o=[],pv=0,vv=0,i; for(i=0;i<d.length;i++){ var tp=(d[i].high+d[i].low+d[i].close)/3; pv+=tp*d[i].volume; vv+=d[i].volume; if(vv)o.push({time:d[i].time,value:pv/vv}); } return o; }
   function twap(d){ var o=[],s=0,i; for(i=0;i<d.length;i++){ s+=(d[i].high+d[i].low+d[i].close)/3; o.push({time:d[i].time,value:s/(i+1)}); } return o; }
   function cvd(d){ var o=[],v=0,i; for(i=0;i<d.length;i++){ var hl=d[i].high-d[i].low; var buy=hl? ((d[i].close-d[i].low)/hl)*d[i].volume : d[i].volume*0.5; v+= buy-(d[i].volume-buy); o.push({time:d[i].time,value:v}); } return o; }
-  function rvolSeries(d,n){ n=n||20; var o=[],s=0,i; for(i=0;i<d.length;i++){ s+=d[i].volume; if(i>=n) s-=d[i-n].volume; if(i>=n-1){ var avg=s/n; o.push({time:d[i].time,value:avg?d[i].volume/avg:1}); } } return o; }
+  function rvolSeries(d,n){
+    if(!Array.isArray(d))return [];
+    var out=[],i,value;
+    for(i=0;i<d.length;i++){
+      if(!d[i]||typeof d[i].time!=="number"||!Number.isFinite(d[i].time)||(i&&d[i].time<=d[i-1].time))return [];
+      value=rvolAt(d,i,n);
+      out.push(value===null?{time:d[i].time}:{time:d[i].time,value:value});
+    }
+    return out;
+  }
   function atr(d,n){ var o=[],tr=[],i; for(i=0;i<d.length;i++){ var prev=i?d[i-1].close:d[i].close; tr.push(Math.max(d[i].high-d[i].low, Math.abs(d[i].high-prev), Math.abs(d[i].low-prev))); } var s=0; for(i=0;i<tr.length;i++){ s+=tr[i]; if(i>=n)s-=tr[i-n]; if(i>=n-1)o.push({time:d[i].time,value:s/n}); } return o; }
   function rsi(d,n){ var o=[],g=0,l=0,i; for(i=1;i<d.length;i++){ var ch=d[i].close-d[i-1].close, gv=Math.max(ch,0), lv=Math.max(-ch,0); if(i<=n){ g+=gv; l+=lv; if(i===n){ g/=n; l/=n; o.push({time:d[i].time,value:l?100-100/(1+g/l):100}); } } else { g=(g*(n-1)+gv)/n; l=(l*(n-1)+lv)/n; o.push({time:d[i].time,value:l?100-100/(1+g/l):100}); } } return o; }
   function macd(d,fast,slow,sig){
@@ -2253,7 +2270,7 @@
           priceFormat:pxF
         });
         if(kind==="volcandle"){
-          c.setData(display.map(function(b,ix){ return volCandlePaint(b, rvolAt(display, ix, 20)); }));
+          c.setData(display.map(function(b,ix){ return volCandlePaint(b, rvolAt(d, ix, 20)); }));
         } else if(kind==="hollow"){
           c.setData(display.map(function(b){ return hollowPaint(b, bgFill); }));
         } else {
@@ -2644,12 +2661,10 @@
     var vw=vwapPts.length?vwapPts[vwapPts.length-1].value:null;
     var vwLab=intra?"VWAP":"YTD VWAP";
     var tw=twap(d), twv=tw.length?tw[tw.length-1].value:null;
-    var vs=0, n=Math.min(20,d.length-1), i4;
-    for(i4=d.length-1-n;i4<d.length-1;i4++) if(i4>=0) vs+=d[i4].volume;
-    var rvol=n&&vs? last.volume/(vs/n):0;
+    var rvol=rvolAt(d,d.length-1,20);
     var deltaEst=last.high>last.low? ((last.close-last.low)/(last.high-last.low)*2-1)*last.volume : 0;
     var vsPx=vw? (last.close-vw)/vw : 0;
-    var heat=rvol>=2?"HOT": rvol>=1.4?"elevated": rvol>=0.8?"normal":"thin";
+    var heat=rvol===null?"":rvol>=2?"HOT":rvol>=1.4?"elevated":rvol>=0.8?"normal":"thin";
     var stance=vw==null?"—": last.close>vw?"above "+vwLab: last.close<vw?"below "+vwLab:"at "+vwLab;
     var loc=lastVP.poc==null?"—": last.close>lastVP.vah?"above value": last.close<lastVP.val?"below value":"in value";
     var dltTape=tape.delta;
@@ -2667,7 +2682,7 @@
       var yr=lastVsSpx.from?(window.jhInst&&window.jhInst.nyClock?window.jhInst.nyClock(lastVsSpx.from).y:new Date(lastVsSpx.from*1000).getUTCFullYear()):"";
       vsBit=" <span title='Price relative vs S&P 500 cash (GSPC). NY session join, no interpolation. RS rebased 100 at first overlap. Not SPY (1993).'>vs SPX 1d "+fmtXs(L.d1)+" · YTD "+fmtXs(L.ytd)+" · 1y "+fmtXs(L.y)+" · all "+fmtXs(L.all)+(yr?" · "+yr:"")+"</span>";
     }
-    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='vs 20-bar average'>RVOL "+(rvol?rvol.toFixed(2)+"x":"—")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
+    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='Current reported volume / mean of exactly the preceding 20 chart bars; units and source completeness unverified'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
     var qt=document.getElementById("qtick"); if(qt) qt.onclick=function(){ openSymSearch(active); };
     var qf=document.getElementById("qfin"); if(qf) qf.onclick=function(){ goSymbol(active,"fin"); };
     var qn=document.getElementById("qnote"); if(qn) qn.onclick=function(){ goSymbol(active,"notes"); };
@@ -2690,7 +2705,7 @@
         "<div class=cell><span>vs SPX all</span><span class='"+(LV.all>=0?"up":"dn")+"'>"+fmtXs(LV.all)+" · RS "+(LV.rs!=null?LV.rs.toFixed(1):"—")+"</span></div>"+
         "<div class=cell><span>β vs SPX 1y</span><span>"+(LV.beta!=null?LV.beta.toFixed(2):"—")+"</span></div>";
     }
-    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol?rvol.toFixed(2)+"x "+heat:"—")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
+    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol!==null?rvol.toFixed(2)+"x "+heat:"Unavailable")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
   }
   function paintOsc(d){
     var wrap=document.getElementById("oscwrap");
@@ -2816,7 +2831,17 @@
       else if(o.id==="mass") addO(massIndex(d,25), "#5d4037");
       else if(o.id==="copp") addO(coppock(d), "#1565c0");
       else if(o.id==="cvd"){ var cd=cvd(d); var h3=c.addHistogramSeries({}); h3.setData(cd.map(function(p,i){ var prev=i?cd[i-1].value:0; var step=p.value-prev; return {time:p.time,value:p.value,color:step>=0?UP:DN}; })); oscSeries.push(h3); }
-      else if(o.id==="rvol"){ addO(rvolSeries(d,20), "#2962ff"); bands(1,2); }
+      else if(o.id==="rvol"){
+        var rvPoints=rvolSeries(d,20),rvLast=rvPoints.length?rvPoints[rvPoints.length-1].value:null;
+        var rvKnown=typeof rvLast==="number"&&Number.isFinite(rvLast),rvLabel=head.querySelector(".osc-v");
+        if(rvLabel)rvLabel.textContent=rvKnown?rvLast.toFixed(2)+"x":"Unavailable";
+        head.title="Current reported volume / mean of exactly the preceding 20 chart bars; source volume units and defaults unverified";
+        var rvRuns=[],rvRun=[];
+        rvPoints.forEach(function(point){if(point.value===undefined){if(rvRun.length)rvRuns.push(rvRun);rvRun=[];}else rvRun.push(point);});
+        if(rvRun.length)rvRuns.push(rvRun);
+        rvRuns.forEach(function(run){var current=rvKnown&&run[run.length-1].time===rvPoints[rvPoints.length-1].time;var line=c.addLineSeries({color:"#2962ff",lineWidth:o.w||1,lastValueVisible:current,priceLineVisible:false,title:o.n,pointMarkersVisible:true,pointMarkersRadius:2,crosshairMarkerVisible:true,crosshairMarkerRadius:3});line.setData(run);oscSeries.push(line);});
+        [1,2].forEach(function(level){var reference=c.addLineSeries({color:"rgba(120,123,134,.4)",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false,title:level+"x prior mean"});reference.setData(rvPoints.map(function(point){return {time:point.time,value:level};}));oscSeries.push(reference);});
+      }
       else if(o.id==="bbw"){
         var bw=bbWidthSeries(d, o.p||20, o.mult||2);
         var bwa=bbWidthAvg(bw, o.p||20);
@@ -5255,12 +5280,10 @@
       for(iH=0;iH<lastBars.length;iH++) if(lastBars[iH].time===param.time){ bar=lastBars[iH]; ix=iH; break; }
     }
     if(bar){
-      var vsH=0, nH=Math.min(20, ix), jH;
-      for(jH=ix-nH;jH<ix;jH++) if(jH>=0) vsH+=lastBars[jH].volume;
-      var rH=nH&&vsH? bar.volume/(vsH/nH):0;
+      var rH=rvolAt(lastBars,ix,20);
       var atrV=valAt(lastAtrPts, param.time);
       var vwH=valAt(lastHudVwap, param.time);
-      extra="  ATR "+(atrV!=null?fmt(atrV):"—")+"  RVOL "+(rH?rH.toFixed(2)+"x":"—");
+      extra="  ATR "+(atrV!=null?fmt(atrV):"—")+"  RVOL "+(rH!==null?rH.toFixed(2)+"x":"Unavailable");
       if(vwH!=null && c) extra+="  VWAP "+((c-vwH)>=0?"+":"")+((c-vwH)/vwH*100).toFixed(2)+"%";
       if(lastVP.poc!=null) extra+="  POC "+fmt(lastVP.poc)+(c>lastVP.vah?" ↑VA": c<lastVP.val?" ↓VA":" inVA");
       if(lastAdr && lastAdr.adr) extra+="  ADR "+lastAdr.used.toFixed(0)+"%";
