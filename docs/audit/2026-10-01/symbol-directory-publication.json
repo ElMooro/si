@@ -1,6 +1,6 @@
 {
   "stage": 496,
-  "status": "full_candidate_checks_passed_exact_release_pending",
+  "status": "exact_native_conditional_publication_release_accepted_normal_publication_unverified",
   "baseline": {
     "base": "fdecdf7ddbfef6372dcdbeb997317474e90c687e",
     "native_source_commit": "bc52cf1f1cca773f6e6d9dcb2500e07744b27220",
@@ -91,5 +91,755 @@
       "foreign_operations_executed": 0,
       "local_desk_harness_missing_bash_corrected_with_existing_git_path": true
     }
+  },
+  "acceptance": {
+    "source_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+    "public_receipt": {
+      "actor": "ElMooro",
+      "code_sha256": "A0x7WUGijpE1fhVOHyzSf2va8FB1ex26wPkEXguzWQ0=",
+      "commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+      "deployed_at": "2026-10-01T04:20:24Z",
+      "function": "justhodl-symdir",
+      "run_id": "36814344417",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36814344417",
+      "schema": "release-receipt.v1",
+      "source": {
+        "directory_identity.py": {
+          "bytes": 4053,
+          "sha256": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51"
+        },
+        "directory_index.py": {
+          "bytes": 15712,
+          "sha256": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb"
+        },
+        "directory_publication.py": {
+          "bytes": 10105,
+          "sha256": "dcde7e1810e01c76daa24ebcf14b7345a8196f16a9c60e1dc28f93b46a5940a6"
+        },
+        "lambda_function.py": {
+          "bytes": 170573,
+          "sha256": "bb0758e3afa609b37a5908a9892a7858c763a317d9a4694a280a1170d4623dfc"
+        },
+        "warehouse_cache.py": {
+          "bytes": 9039,
+          "sha256": "1f5f733ccd5145296c3f9488eabd2e68f133f023d66b88a1f638b4830903e461"
+        },
+        "warehouse_routing.py": {
+          "bytes": 6122,
+          "sha256": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1"
+        }
+      },
+      "verified": true,
+      "workflow": "deploy-lambdas.yml",
+      "zip_bytes": 1215892,
+      "zip_sha256_hex": "034c7b5941a28e91357e154e1f2cd27f6bdaf050757b1dbac0f9045e0bb3590d"
+    },
+    "native": {
+      "run_id": 36814708347,
+      "operation_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+      "source_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+      "report_commit": "e227de0eee71c30f8f4196b91abdd818ea96a501",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6408_symdir_publication_acceptance.md",
+        "bytes": 5581,
+        "sha256": "dba349974534494c64a4de9518514d02f534e6316194202d04e92347f5aecd8a"
+      },
+      "evidence": {
+        "status": "exact_native_release_checked",
+        "expected_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "reviewed_source_hashes": {
+          "aws/lambdas/justhodl-symdir/source/lambda_function.py": "bb0758e3afa609b37a5908a9892a7858c763a317d9a4694a280a1170d4623dfc",
+          "aws/lambdas/justhodl-symdir/source/warehouse_routing.py": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1",
+          "aws/shared/treasury_fiscal_model.py": "aa7627c565fe088662bef508dde9cf993f59e3acdd8e855a8e75b2b42af25fa3",
+          "aws/lambdas/justhodl-symdir/source/directory_identity.py": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51",
+          "aws/lambdas/justhodl-symdir/source/directory_index.py": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb",
+          "aws/lambdas/justhodl-symdir/source/warehouse_cache.py": "1f5f733ccd5145296c3f9488eabd2e68f133f023d66b88a1f638b4830903e461",
+          "aws/lambdas/justhodl-symdir/source/directory_publication.py": "dcde7e1810e01c76daa24ebcf14b7345a8196f16a9c60e1dc28f93b46a5940a6"
+        },
+        "native_before": {
+          "code_sha256": "A0x7WUGijpE1fhVOHyzSf2va8FB1ex26wPkEXguzWQ0=",
+          "source_files_checked": 7,
+          "handler_bytes": 170573,
+          "timeout": 900,
+          "memory_mb": 6144,
+          "receipt": {
+            "status": "matched",
+            "commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-build",
+              "state": "ENABLED",
+              "expression": "cron(40 5 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-codelists",
+              "state": "ENABLED",
+              "expression": "rate(20 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredfresh",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredupdates",
+              "state": "ENABLED",
+              "expression": "rate(15 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-titles",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-ustbank",
+              "state": "ENABLED",
+              "expression": "cron(30 21 ? * MON-FRI *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-warm",
+              "state": "ENABLED",
+              "expression": "rate(5 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-symdir",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 2048
+        },
+        "native_after": {
+          "code_sha256": "A0x7WUGijpE1fhVOHyzSf2va8FB1ex26wPkEXguzWQ0=",
+          "source_files_checked": 7,
+          "handler_bytes": 170573,
+          "timeout": 900,
+          "memory_mb": 6144,
+          "receipt": {
+            "status": "matched",
+            "commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-build",
+              "state": "ENABLED",
+              "expression": "cron(40 5 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-codelists",
+              "state": "ENABLED",
+              "expression": "rate(20 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredfresh",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredupdates",
+              "state": "ENABLED",
+              "expression": "rate(15 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-titles",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-ustbank",
+              "state": "ENABLED",
+              "expression": "cron(30 21 ? * MON-FRI *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-warm",
+              "state": "ENABLED",
+              "expression": "rate(5 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-symdir",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 2048
+        },
+        "declared_settings": {
+          "function_name": "justhodl-symdir",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "timeout": 900,
+          "memory_mb": 6144,
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+        },
+        "declared_settings_match": true,
+        "all_observed_schedules_enabled": true,
+        "normal_publication_verified": false,
+        "source_replay_verified": false,
+        "investment_authority": false,
+        "native_invocations": 0,
+        "provider_requests": 0,
+        "current_packet_reads": 0,
+        "private_reads": 0,
+        "account_reads": 0,
+        "consumer_reads": 0,
+        "native_writes": 0,
+        "schedule_changes": 0,
+        "application_log_queries": 0,
+        "scope": "Exact native package, public release receipt and selected resource/schedule controls only. No environment values, signed package URL, symbol directory, index, master, original archive, current series, account artifacts or logs are returned."
+      }
+    },
+    "static": {
+      "platform": {
+        "checked_at": "2026-10-01T04:20:25.593832+00:00",
+        "intended_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "served_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "assets": {
+          "term-premium.html": {
+            "bytes": 11119,
+            "sha256": "1b77022d00ce6dfe09f412fe3e3a74646f342c21b90724c944df9e7356cba3a5",
+            "matches_manifest": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "e5754f0ed6a4089d2556829de04652573112503a0ea70ed46f9590da702bff52",
+            "matches_manifest": true,
+            "embedded_home_configuration_hashes_match_exact_served_files": true
+          },
+          "portfolio-manager.html": {
+            "bytes": 30627,
+            "sha256": "3efc730b77ec9d5f6cb6f45b6946df07bf3cc198f3938866fe5483d5979b845d",
+            "matches_manifest": true
+          },
+          "portfolio/index.html": {
+            "bytes": 48427,
+            "sha256": "9798de08d446052f1359fad298d7b1ddc320313a82d2438efa6b68d7e9d451eb",
+            "matches_manifest": true,
+            "helper_content_version_matches_reviewed_source": true
+          },
+          "position-sizer.html": {
+            "bytes": 11687,
+            "sha256": "72d327dbc5faeb81840baf5f49598249e171db1de83e494d3c0401f34e9c398d",
+            "matches_manifest": true,
+            "model_sri_matches_reviewed_source": true
+          },
+          "cb-injection.html": {
+            "bytes": 14823,
+            "sha256": "5bc80bfc9ea9a19bf24ee145faa07467f40b5a2055ecbdd10c7a0e6ea490b8cc",
+            "matches_manifest": true
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "2999a8fac844a977eb7878963a960e9b599f8ed614570e6d8aeb15d044e2de4d",
+            "matches_manifest": true
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "45ee01fc1f4f96c155cd78477376878b4593fee4fe39e17109a9410aae45a530",
+            "matches_manifest": true
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "76430c728c0a6ed13a971678dd0b2493ca087c357cdf63d5a035ad46b9f44e01",
+            "matches_manifest": true
+          },
+          "capitulation.html": {
+            "bytes": 9023,
+            "sha256": "26e69cb919a1cc6fd9818bdfe94f26dd4628185619138f4be56335db4f524aeb",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "market-extremes.html": {
+            "bytes": 10103,
+            "sha256": "84a736983049e584b53fce4ac0e2a6c693e9c224e3754c6fa177337486dc169c",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "jh-term-premium-research.js": {
+            "bytes": 20425,
+            "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-term-premium-research.css": {
+            "bytes": 3683,
+            "sha256": "33d5380d45b69ac06505bc84bd455cf09d769cc1679385b717de22e76b9ba49d",
+            "matches_manifest": true
+          },
+          "jh-portfolio-research.js": {
+            "bytes": 5693,
+            "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-research-page.js": {
+            "bytes": 7876,
+            "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes.js": {
+            "bytes": 7020,
+            "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes-page.js": {
+            "bytes": 8073,
+            "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "private-artifacts.js": {
+            "bytes": 13930,
+            "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-evidence-io.js": {
+            "bytes": 5002,
+            "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-binding.js": {
+            "bytes": 3954,
+            "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-risk-contract.js": {
+            "bytes": 11530,
+            "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario.js": {
+            "bytes": 7387,
+            "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-io.js": {
+            "bytes": 3035,
+            "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-page.js": {
+            "bytes": 9325,
+            "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-research.js": {
+            "bytes": 15703,
+            "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-page.js": {
+            "bytes": 1072,
+            "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-liquidity-research.js": {
+            "bytes": 6746,
+            "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "calls-page.js": {
+            "bytes": 13589,
+            "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-public-brief.js": {
+            "bytes": 25766,
+            "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-extremes-research.js": {
+            "bytes": 16212,
+            "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-data-inspector.js": {
+            "bytes": 34117,
+            "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "engine-manifest.json": {
+            "bytes": 3097621,
+            "sha256": "5d51e6de4e7ff133228681c656cdbb807710339ac41325a9b03d4256523c6b7c",
+            "matches_manifest": true,
+            "complete_inventory_matches_excluding_generated_at": true,
+            "inventory_replayed_from_commit_source": true,
+            "engines": 898
+          },
+          "nav-manifest.json": {
+            "bytes": 36315,
+            "sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20",
+            "matches_manifest": true
+          },
+          "assets/vendor/world-atlas-2.0.2-countries-110m.json": {
+            "bytes": 107761,
+            "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8",
+            "matches_manifest": true
+          },
+          "config/home-layout.json": {
+            "bytes": 562,
+            "sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2",
+            "matches_manifest": true
+          },
+          "config/section-registry.json": {
+            "bytes": 1305504,
+            "sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3",
+            "matches_manifest": true
+          },
+          "config/page-data-contracts.json": {
+            "bytes": 7720787,
+            "sha256": "6dad0614799691af134842c1db961d16c199823ab0d3c5859a33827ed5a4c844",
+            "matches_manifest": true,
+            "complete_contract_matches_source_and_exact_built_asset_bindings": true,
+            "pages": 599
+          },
+          "engines.html": {
+            "bytes": 961289,
+            "sha256": "6f34384d708ae1220d20c47cc80e8c0a9171d2c5117ff42e2c66b56daf97b994",
+            "matches_manifest": true
+          },
+          "config/engine-registry.json": {
+            "bytes": 196073,
+            "sha256": "575d25066bb8e5715509eae3db6c5231899a6329953c898256d51162545edb07",
+            "matches_manifest": true
+          }
+        },
+        "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+        "source_inventory_replay": {
+          "build_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+          "build_manifest_sha256": "87921f8a07443423cc120af8c8a5b04d7cd222011d7bb14987cf35b07b3706e7",
+          "whole_engine_records": 898,
+          "whole_page_contracts": 599,
+          "inventory_generated_at": "2026-10-01T04:19:12.993245+00:00",
+          "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+          "generators": {
+            "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+            "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+          },
+          "generated_repository_assets": {
+            "engine-manifest.json": "5d51e6de4e7ff133228681c656cdbb807710339ac41325a9b03d4256523c6b7c",
+            "nav-manifest.json": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+          },
+          "working_tree_unchanged": true
+        },
+        "generated_asset_bindings": {
+          "navigation_replayed_from_source_at_recorded_build_date": true,
+          "rows": [
+            {
+              "page": "index.html",
+              "key": "config/home-layout.json",
+              "source_sha256": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+              "built_sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+            },
+            {
+              "page": "index.html",
+              "key": "config/section-registry.json",
+              "source_sha256": "886996bb301b1bc9ed26d389931b273bd86b606a049de4d08826e0891a3a028e",
+              "built_sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3"
+            }
+          ]
+        },
+        "offline_build": {
+          "complete_engine_rows": 898,
+          "complete_source_registry_matches_manifest": true,
+          "all_concrete_outputs_unchecked_with_null_measurements": true,
+          "counts": {
+            "no-outs": 70,
+            "wired-unverified-feed": 670,
+            "declared-unverified": 158
+          },
+          "rails": [
+            {
+              "page": "calls.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            },
+            {
+              "page": "liquidity.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            }
+          ],
+          "source_references_are_not_runtime_health": true
+        },
+        "intended_static_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "static_sources_unchanged_between_commits": true,
+        "build_manifest_sha256": "87921f8a07443423cc120af8c8a5b04d7cd222011d7bb14987cf35b07b3706e7",
+        "same_build_manifest_before_after": true
+      },
+      "assets": {
+        "checked_at": "2026-10-01T04:20:25.539922+00:00",
+        "served_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "scope": "Whole China and FI/FX static HTML/script/style only, no page execution or current/private/consumer requests.",
+        "assets": {
+          "fifx-vol.html": {
+            "bytes": 11213,
+            "sha256": "0f2fd9ae6106eabd568e290c1890abaf90112027bd7f4d05c12c978487b001d2",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "bond-desk.html": {
+            "bytes": 30701,
+            "sha256": "e66928f86565e525829edd085f97a999ee7d040ea563e9f382788022d56e7a2e",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "978aaa103891bc504d10311251233fae2850c9893a661618145934de55202434",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "signal-board.html": {
+            "bytes": 20200,
+            "sha256": "1b4d6821a92043d60f28e84763f695d2fd570fd6dbc2fc2b240c25538f11cb14",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.js": {
+            "bytes": 21919,
+            "sha256": "fe2ba9e5342223027fb112de6fe75ae7372f32a82fec53a4432fd988f8cde837",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.css": {
+            "bytes": 3417,
+            "sha256": "297f89dbdb5f4336012d92428efd394dc48049ab2354094cd6f0d78974549831",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "51be7f43e7499ddb379e2cb05d9f2213395c37283b66f0ccef6ab838ba484633",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-china-calendar.js": {
+            "bytes": 13841,
+            "sha256": "57f47d02452bfb9e3212a6686428ccdd557d57d16cfda9b6490ed6733dfd123e",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.js": {
+            "bytes": 10079,
+            "sha256": "726ceb462d284de6f4e2925aa71f9d9c19bd2153b9d28949b1c343da276a2100",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.css": {
+            "bytes": 2372,
+            "sha256": "bbe76633cbc1ca39d8a7149e989beb0c171601006b38380219a6057f31eed52f",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          }
+        },
+        "build_manifest_sha256": "87921f8a07443423cc120af8c8a5b04d7cd222011d7bb14987cf35b07b3706e7"
+      },
+      "navigation": {
+        "checked_at": "2026-10-01T04:20:27.297170+00:00",
+        "served_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "scope": "Static navigation/home code and complete local dependency closure, no page execution or consumer data requests",
+        "assets": {
+          "auth-config.js": {
+            "bytes": 1406,
+            "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+            "matches_source_transform_and_build": true
+          },
+          "auth.js": {
+            "bytes": 20821,
+            "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+            "matches_source_transform_and_build": true
+          },
+          "home.js": {
+            "bytes": 95417,
+            "sha256": "cb25ef27d9c3cf7ad688bcec48d6adc683f1aacddc78bcfcff20ff495747abf9",
+            "matches_source_transform_and_build": true
+          },
+          "jh-market-tape.js": {
+            "bytes": 3401,
+            "sha256": "8e73601eeb861880a9d5ce3d12669a86b20e102daeeff3de5df8de450450fea1",
+            "matches_source_transform_and_build": true
+          },
+          "jh-nav-drawer.js": {
+            "bytes": 31948,
+            "sha256": "11f00277d99e195aeda4d580fb1115a1e03e5326d3570c1b191aab09cfd53f86",
+            "matches_source_transform_and_build": true
+          },
+          "jh-theme.css": {
+            "bytes": 10031,
+            "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+            "matches_source_transform_and_build": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "e5754f0ed6a4089d2556829de04652573112503a0ea70ed46f9590da702bff52",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "45ee01fc1f4f96c155cd78477376878b4593fee4fe39e17109a9410aae45a530",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "978aaa103891bc504d10311251233fae2850c9893a661618145934de55202434",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "51be7f43e7499ddb379e2cb05d9f2213395c37283b66f0ccef6ab838ba484633",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "2999a8fac844a977eb7878963a960e9b599f8ed614570e6d8aeb15d044e2de4d",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "76430c728c0a6ed13a971678dd0b2493ca087c357cdf63d5a035ad46b9f44e01",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          }
+        },
+        "dependency_mode": "topo",
+        "drawer_version": "529d2cc3",
+        "build_manifest_sha256": "87921f8a07443423cc120af8c8a5b04d7cd222011d7bb14987cf35b07b3706e7",
+        "verification_notes": [
+          "Temporary reconstruction explicitly reproduces Linux UTF-8/LF writes and the exact reskin skip rules; served bytes are never normalized.",
+          "The separate portfolio/index.html application does not declare the shared drawer; its whole static HTML is checked by platform acceptance."
+        ]
+      },
+      "chart": {
+        "checked_at": "2026-10-01T04:20:25.488518+00:00",
+        "served_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+        "build_manifest_sha256": "87921f8a07443423cc120af8c8a5b04d7cd222011d7bb14987cf35b07b3706e7",
+        "scope": "Whole static chart source and exact built HTML only. No browser execution, current data or provider requests.",
+        "assets": {
+          "jh-chart-catalog.js": {
+            "bytes": 35076,
+            "sha256": "14d4b80b1635931f3bec1fefdc69f609c5e65e7271270d4cdd00cff21398db10",
+            "md5": "cc667be5e100952e0ad86de89be5141b",
+            "matches_exact_build": true
+          },
+          "jh-chart-engine.js": {
+            "bytes": 354661,
+            "sha256": "a81ffe92db46278fb6136539693ffe33d59dbe2f1de8b82a7621936e01c47f62",
+            "md5": "1b3e5abda3d506c774bd34e04034ad4a",
+            "matches_exact_build": true
+          },
+          "chart.html": {
+            "bytes": 52322,
+            "sha256": "e8492935f3004838a95168e2398aa72d029bfbebe450a4709151ebc4083ad9fd",
+            "md5": "060e641b9041a3d12895d29b2aad9f60",
+            "matches_exact_build": true
+          }
+        }
+      }
+    },
+    "static_build_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+    "unique_static_files": 58,
+    "whole_static_generation_replay": {
+      "build_commit": "11bc431ce89ad57cf7a4858a2210fa58d95af6fe",
+      "build_manifest_sha256": "87921f8a07443423cc120af8c8a5b04d7cd222011d7bb14987cf35b07b3706e7",
+      "whole_engine_records": 898,
+      "whole_page_contracts": 599,
+      "inventory_generated_at": "2026-10-01T04:19:12.993245+00:00",
+      "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+      "generators": {
+        "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+        "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+      },
+      "generated_repository_assets": {
+        "engine-manifest.json": "5d51e6de4e7ff133228681c656cdbb807710339ac41325a9b03d4256523c6b7c",
+        "nav-manifest.json": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+      },
+      "working_tree_unchanged": true
+    },
+    "normal_publication_verified": false,
+    "production_capacity_verified": false,
+    "real_source_replay_verified": false,
+    "investment_authority": false
   }
 }

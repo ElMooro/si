@@ -7037,3 +7037,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 
 - Final Stage 496 candidate passes 85 native, five acceptance, 1013 deployment, fifteen shell and 2,244 frontend cases. The complete engine inventory, dependency map and page contracts were regenerated from this source; all 599 page graphs and 143 companion wires pass. Exact native/static release acceptance remains pending.
+
+
+### Stage 496 exact conditional publication release acceptance
+
+- Source `11bc431ce89ad57cf7a4858a2210fa58d95af6fe` is accepted with the exact public receipt and CodeSha256 `A0x7WUGijpE1fhVOHyzSf2va8FB1ex26wPkEXguzWQ0=`. Read-only 6408, run `36814708347`, confirms seven packaged sources, original 6144 MB / 900 seconds / 2048 MB temporary storage / Python 3.12 / x86_64 controls and all seven original schedules. Report commit: `e227de0eee71c30f8f4196b91abdd818ea96a501`.
+- All 58 inspected static artifacts match one complete Pages build `11bc431ce89ad57cf7a4858a2210fa58d95af6fe`, with complete source-inventory and page-contract replay. The source audit retains the full final test counts, whole overlapping-build reproduction and both integration-review corrections.
+- Upgraded publishers conditionally select complete immutable generations; old or conflicting builds cannot blindly replace newer heads. Legacy copies remain separate and can lag; failed copies raise without rolling back committed evidence. No actual current/private/account/consumer data, provider request or producer invocation was used. Normal publication, actual capacity, independent replay, uncooperative writers and legacy-reader migration remain unverified. All ten institutional workstreams remain OPEN; this grants no investment authority.
