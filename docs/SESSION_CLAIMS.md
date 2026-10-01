@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Chart volume event cache invalidation only: jh-chart-vol-events.js plus offline mutation/prefix/repeated-render tests and review evidence; codex/chart-volume-cache-correction; draft only, no thresholds/marker semantics/engine/SymDir/transport/decision/deploy changes | none | S-codex#vcache1001r8 | 2026-10-01 07:42 |
 | PR34 withheld-authority diagnostics accepted 1c890cf748; authorized release verification, policy/thresholds unchanged; no Katlin correction, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:46 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
@@ -66,6 +65,7 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+| PR35 evidence merged b16dfd3d7; PR36 scalar-bar cache correction released 14e29f79a. Pages 36833200528 / 36833350059 successful; five manifest-bound edge assets each and isolated synthetic Chromium 1440/390 correction accepted. Engine/SymDir untouched; RVOL owner handoff, full live-page QA and browser/mobile performance remain with parent. | none | S-codex#vcache1001r8 |
 | PR33 shared Khalid snapshot frontend released 98f8049edaa148b660008de4c6487549d0071062; Pages 36828680141 and five manifest-bound edge assets verified. Panel/script-reference implementation claim released; parent owns remaining managed-browser QA. Backend contract/decisions unchanged. | none | S-codex#kperf1001q7 |
 | Issuer binding read-only diagnosis: Lambda Active; no exact-target classic or function-prefix Scheduler binding found; arbitrary names outside scope. Run 36798403192; no engine/config changes. | 6400 | S-shopiz#issuer1001a |
 | provider-window sentinel v1.0.0 (weekly FRED-vs-bank diff, WINDOWED alerting) | 4850 | S-fable-A2 |
