@@ -1,6 +1,6 @@
 # Legacy ETF trading-activity proxy labels
 
-Review baseline: main `0035bf47da741a2916a0e34df173934e5ae297aa`; synthetic predecessor fixture generated from `39064c633`. Draft only: no deployment or live acceptance.
+Review baseline: main `0035bf47da741a2916a0e34df173934e5ae297aa`; synthetic predecessor fixture generated from `39064c633`. Original pre-release review evidence follows; see the release handoff below for deployment status.
 
 ## Problem and repair
 
@@ -47,3 +47,39 @@ No extra provider calls, Lambda invocation, S3 request, schedule, resource setti
 The additive fields do not repair pre-existing missing-to-zero behavior inside legacy calculations or legacy empty `netFlow=0`; the separate measurement describes unavailable values honestly. Old packets render without a clock, never with invented freshness. Display labels do not qualify stale or future data for investment use. Actual provider flow evidence, decisions, votes, scoring, vetoes, sizing and capital behavior are outside this change.
 
 Rollback is a normal revert of this single commit, restoring the previous writer and display files together. Readers remain compatible with either packet because legacy fields/enums are unchanged; the new script can be removed with its two references. No retained-policy/replay migration, provider rollback or AWS operation is required. Reverting would restore misleading wording, so use only if this change causes a regression. This draft must receive review before merge/deployment; live producer and page acceptance remain post-deployment conditions.
+
+
+## Release handoff — 2026-10-01
+
+PR21 reviewed head `e457eba9675e4d66f67c7b1535482d7c5e8ed0df` merged as `ca5462aebca056c1d097363a9068032886a0f0db` at 03:41:25 UTC. Its tree `824a50b443b27f9147a976c44d6c05ecbf83dd6d` exactly matched the final combined-tree staged inventory on main `51eff1e2045bbb8d7fef2f5a5d1e5e944a5435e8`. All nine reviewed files were unchanged. Final combined-tree checks: 2,243 frontend, 5 producer, 59 bridge, 73 brief-contract, 1,008 deployment and 15 shell tests; source/config, preflight, secrets, page syntax/wiring and inventory passed.
+
+- Lambda workflow [36811670782](https://github.com/ElMooro/si/actions/runs/36811670782): success.
+- Pages workflow [36811670778](https://github.com/ElMooro/si/actions/runs/36811670778): success, including actual deploy step.
+- Exact-commit page gate 36811670807 and stub guard 36811670753: success.
+- Factory exam [36811753630](https://github.com/ElMooro/si/actions/runs/36811753630): success, completed 03:49:16 UTC. This was a **scheduled** run on the merge SHA, not a push-triggered consequence. Both release-audit workflow runs (36811937932, 36812019730) also completed successfully. No run in that checked SHA set remains pending.
+
+**Release status: deployment workflows and edge assets verified; Lambda receipt and new natural output pending.** The canonical receipt request returned HTTP 403 and was not retried or redirected to another host. GitHub artifact/log download endpoints were also denied; no bypass attempted. Expected producer source SHA-256 is `e104280f4b42eafe6d5240b732348f589c823eef75cd46fe4c7a67caf499ee8a`. A green workflow alone is not described as independently verified Lambda receipt contents.
+
+At 03:46 UTC, the public build manifest named the exact merge SHA. `jh-etf-proxy-labels.js` and `jh-etf-engine.js` matched both manifest and reviewed source byte-for-byte. Both public HTML pages contained the exact commit marker, proxy disclaimer, helper reference, existing ETF link and scan IDs. Their raw edge bytes differ from build bytes solely by an injected Cloudflare analytics script (366 bytes) plus its following newline: removing exactly that identified injection yields each expected manifest hash. This is an explicitly normalized HTML comparison, not a raw-byte equality claim. No Cloudflare setting changed.
+
+### Parent managed-browser handoff
+
+Public URLs: https://justhodl.ai/livermore.html and https://justhodl.ai/wyckoff.html . Check both at 1440px and 390px with normal TLS/browser settings.
+
+Common visible marker: “ETF classifications below are daily price/volume trading-activity proxies, not measured fund inflows or outflows. Legacy ranking rules are unchanged.” Link: “Open dated ETF flow evidence” to `/etf.html`.
+
+- Livermore: visible preset “ETF price/volume proxy”; stored DOM selector remains `[data-p="liquid ETF inflow"]`. Brief textarea `#q`; “Save brief & scan tape” button `#go`; results `#out`; status `#meta`.
+- Wyckoff: existing accumulation/spring/etc. chips `#chips`; campaign textarea `#q`; “Save campaign & scan range” button `#go`; results `#out`; status `#meta`.
+- After an isolated public scan, result heading is “ETF trading-activity proxies”; rows use trading-activity/price-direction wording rather than raw HEAVY_INFLOW/OUTFLOW labels. Old packets without the new row clock must show “Bar time unavailable”; do not infer freshness or measured fund flows.
+
+**Read-only QA caveat:** both existing save-and-scan buttons call `persist()`, which writes local history and attempts a Brain PUT. Do not activate that path unmodified for this public read-only acceptance. In an isolated browser, disable persistence (`persist = async () => {}`) and block mutation requests before a scan, as done in synthetic tests; otherwise limit QA to initial visible controls/layout and leave scan acceptance pending. No private Brain contents or saved user history are needed. The local normal-sandbox Chromium launch was blocked before requesting a site; no sandbox/TLS override was used for live QA. Parent owns managed-browser acceptance.
+
+### Natural publication handoff
+
+The latest observed public feed was still `2026-09-30T11:35:42.721302+00:00`, with 69 rows and no new measurement metadata. Code deployment is not a fresh-output proof.
+
+Cadence evidence: `config/schedule-manifest.json` records enabled rule `justhodl-etf-flows-6h` with expression `cron(35 11 * * ? *)`; `aws/ops/reports/latest/ops_5213_fusion_r1_diag.md:71` independently records the same enabled rule/expression and an 11:35 publication. Despite the historical name, the recorded expression is **daily 11:35 UTC**, not six-hourly. No new live AWS schedule probe was performed.
+
+Parent's next public readback: **2026-10-01 11:37 UTC**, two minutes after the expected natural start. Check publication advances, root proxy metadata appears, and row source/bar clocks and null/zero distinctions are retained. Two minutes is a first check, not a completion guarantee (configured timeout 600 seconds). If unchanged, report it as pending; do not invoke the producer or alter schedules. Parent owns this check; no automation created.
+
+Costs remain additional existing-publication bytes plus one small same-origin script on each page; no extra provider request or schedule. Rollback remains a normal scoped revert of PR21, preserving unrelated releases and legacy decision contracts.
