@@ -2113,19 +2113,28 @@
     look.width=Math.max(el.clientWidth||el.parentElement.clientWidth||800, 40);
     look.height=Math.max(el.clientHeight||el.parentElement.clientHeight||420, 40);
     look.autoSize=true;
-    var c=LW.createChart(el, look);
+    var c=LW.createChart(el, look),closed=false,ro=null,timers=[];
     function fit(){
+      if(closed)return;
       var w=el.clientWidth, h=el.clientHeight;
       if(w>20 && h>20) try{ c.resize(w,h); }catch(e){}
     }
     if(typeof ResizeObserver!=="undefined"){
-      var ro=new ResizeObserver(fit);
+      ro=new ResizeObserver(fit);
       ro.observe(el);
       if(el.parentElement) ro.observe(el.parentElement);
     }
-    setTimeout(fit, 0);
-    setTimeout(fit, 250);
+    timers.push(setTimeout(fit, 0),setTimeout(fit, 250));
     window.addEventListener("resize", fit);
+    var remove=c.remove;
+    c.remove=function(){
+      if(closed)return;
+      closed=true;
+      if(ro)ro.disconnect();
+      timers.forEach(function(id){clearTimeout(id);});
+      window.removeEventListener("resize",fit);
+      return remove.apply(c,arguments);
+    };
     return c;
   }
   chart=mkChart(host);
@@ -3988,7 +3997,7 @@
       "<button id=btn-watch title=Watchlist style=display:none>List</button>"+
       "<button id=btn-co class='"+(chartOnly?"on":"")+"' style=display:none>Only</button>"+
       "<button id=btn-theme title=Theme>"+(dark?"Day":"Night")+"</button>"+
-      "<button id=btn-live class='"+(liveOn?"on":"")+"' style=display:none>Live</button>"+
+      "<button id=btn-live class='"+(liveOn?"on":"")+"' style=display:none>Auto refresh</button>"+
       "<button id=btn-dwin class='"+(dwinOn?"on":"")+"' style=display:none>Data</button>"+
       "<button id=btn-mini class='"+(miniOn?"on":"")+"' style=display:none>Nav</button>"+
       "<button id=btn-left class='"+(leftOn?"on":"")+"' style=display:none>L</button>"+
@@ -4087,7 +4096,7 @@
       renderTf();
     };
     document.getElementById("btn-theme").onclick=function(){ dark=!dark; applyTheme(true); renderTf(); };
-    document.getElementById("btn-live").onclick=function(){ liveOn=!liveOn; syncLivePill(); renderTf(); toast(liveOn?"Live tape on":"Live tape off"); };
+    document.getElementById("btn-live").onclick=function(){ liveOn=!liveOn; syncLivePill(); renderTf(); toast(liveOn?"Auto refresh on":"Auto refresh off"); };
     document.getElementById("btn-dwin").onclick=function(){ dwinOn=!dwinOn; var el=document.getElementById("dwin"); if(el) el.className=dwinOn?"on":""; renderTf(); };
     document.getElementById("btn-mini").onclick=function(){ miniOn=!miniOn; var el=document.getElementById("mini"); if(el) el.className=miniOn?"on":""; if(miniOn && lastBars.length) paintMini(lastBars); renderTf(); };
     document.getElementById("btn-left").onclick=function(){ leftOn=!leftOn; applyTheme(true); renderTf(); };
@@ -5230,7 +5239,7 @@
       "<label class=indrow><span>High / low marks</span><input type=checkbox id=s-hl "+(hiLo?"checked":"")+"></label>"+
       "<label class=indrow><span>Crosshair magnet</span><input type=checkbox id=s-xh "+(crossMode===1?"checked":"")+"></label>"+
       "<label class=indrow><span>Dark theme</span><input type=checkbox id=s-dark "+(dark?"checked":"")+"></label>"+
-      "<label class=indrow><span>Live tape</span><input type=checkbox id=s-live "+(liveOn?"checked":"")+"></label>"+
+      "<label class=indrow><span>Auto refresh</span><input type=checkbox id=s-live "+(liveOn?"checked":"")+"></label>"+
       "<label class=indrow><span>Data window</span><input type=checkbox id=s-dwin "+(dwinOn?"checked":"")+"></label>"+
       "<label class=indrow><span>Navigator</span><input type=checkbox id=s-mini "+(miniOn?"checked":"")+"></label>"+
       "<label class=indrow><span>Left scale</span><input type=checkbox id=s-left "+(leftOn?"checked":"")+"></label>"+
@@ -5847,22 +5856,30 @@
     syncLivePill();
   }
   function lastPrintAgeSec(){
-    var t=null, i;
-    if(tape && tape.prints && tape.prints.length){
-      for(i=0;i<tape.prints.length;i++){
-        var x=tape.prints[i] && tape.prints[i].t;
-        if(x && (t==null || x>t)) t=x;
-      }
-      if(t) return (Date.now()-(t>1e12?t:t*1000))/1000;
+    if(!tape||tape.sym!==active||!Array.isArray(tape.prints))return null;
+    var now=Date.now(),latest=null;
+    if(!Number.isFinite(now)||now<=0)return null;
+    for(var i=0;i<tape.prints.length;i++){
+      var t=tape.prints[i]&&tape.prints[i].t;
+      if(typeof t!=="number"||!Number.isFinite(t)||t<=0)continue;
+      var ms=t>1e12?t:t*1000;
+      if(!Number.isFinite(ms)||ms>now)continue;
+      if(latest===null||ms>latest)latest=ms;
     }
-    return 1e9;
+    return latest===null?null:(now-latest)/1000;
   }
   function syncLivePill(){
     var el=document.getElementById("livepill");
-    if(!el) return;
-    var fresh=!!liveOn && lastPrintAgeSec()<120;
-    el.className=fresh?"on":"";
-    el.innerHTML="<i></i> "+(fresh?"LIVE":"EOD");
+    if(!el)return;
+    var replaying=!!(replay&&replay.on),enabled=!!liveOn&&!replaying,age=lastPrintAgeSec();
+    var setting=replaying?"Replay is active; automatic price refresh is suspended.":enabled?"Automatic refresh is enabled.":"Automatic refresh is paused.";
+    var detail=age===null?"No usable timestamped tape entry for the selected symbol.":"Newest usable tape entry: "+Math.floor(age)+" seconds ago by its reported timestamp.";
+    var meaning="Refresh settings and tape-entry age do not establish real-time chart prices or exchange-session status.";
+    el.className=enabled?"on":"";
+    el.innerHTML="<i></i> "+(replaying?"REPLAY":enabled?"AUTO":"PAUSED");
+    el.title=setting+" "+detail+" "+meaning;
+    el.setAttribute("aria-label",setting+" "+meaning);
+    el.setAttribute("tabindex","0");
   }
   function clickStrat(id){
     if(!lastBars || lastBars.length<60){ toast("Need 60 bars for a backtest"); return; }
