@@ -16,6 +16,7 @@ import json, os, time, urllib.request
 from datetime import datetime, timezone
 import boto3
 from backtest_harness_authority import harness_context, alpha_context
+from meta_labeler_authority import meta_context
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -28,7 +29,7 @@ EXTRA_SOURCES = [
     ("data/research-papers.json", "AI research-paper library index (debated theses)"),
     ("data/stock-valuations.json", "S&P valuations + HP scores + underlooked boards"),
     ("data/backtest-harness.json", "Mode A qualification unavailable; unchanged Mode B live signal grades"),
-    ("data/meta-labeler.json", "gatekeeper model + pending TAKE/SKIP verdicts"),
+    ("data/meta-labeler.json", "Meta-labeler unavailable: historical performance and TAKE/SKIP withheld"),
     ("data/crisis-canaries.json", "30-canary crisis composite"),
     ("data/crisis-knowledge-base.json", "1091-rule crisis knowledge base"),
     ("data/transcripts-index.json", "index of past work-session transcripts"),
@@ -114,6 +115,8 @@ def fetch_slim(key):
             return json.dumps(__import__("signal_board_authority").context(d))
         if key == "data/backtest-harness.json":
             d = harness_context(d)
+        elif key == "data/meta-labeler.json":
+            d = meta_context(d)
         elif key == "data/alpha-decay.json":
             d = alpha_context(d)
         return json.dumps(slim(d), default=str)[:5200]

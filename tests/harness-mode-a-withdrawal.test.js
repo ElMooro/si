@@ -33,15 +33,15 @@ test('Mode A cannot promote missing, legacy, unknown, future or forged artifacts
     assert.equal((nodes.ta.innerHTML.match(/>BLOCKED</g)||[]).length,8);
     assert.doesNotMatch(nodes.ta.innerHTML,/PASS|FAIL|98765|DEPLOYABLE|<svg/);
     assert.doesNotMatch(nodes.note.textContent,/VALIDATED|DEPLOYABLE/);
-    assert.match(nodes.mg.innerHTML,/>TAKE</);
+    assert.equal(nodes.mg.innerHTML,'');
+    assert.match(nodes.mhero.textContent,/Meta-labeler unavailable/);
   }
 });
-test('Mode B zero values and meta-labeler rendered outputs match the predecessor',async()=>{
+test('Mode B zero values match the predecessor after separate meta-labeler withdrawal',async()=>{
   const packet={live_signal_types:live,rules:[],n_pass:0};
   const a=await render(before,packet),b=await render(current,packet);
-  for(const id of ['tb','mhero','mt','mg'])assert.equal(b[id].innerHTML,a[id].innerHTML,id);
-  const metaScript=s=>code(s).slice(code(s).indexOf("(async()=>{const M="));
-  assert.equal(metaScript(current),metaScript(before));
+  for(const id of ['tb'])assert.equal(b[id].innerHTML,a[id].innerHTML,id);
+
 });
 test('Existing navigation, table columns and meta controls are retained',()=>{
   const nav=s=>s.match(/<nav>[\s\S]*?<\/nav>/)[0];assert.equal(nav(current),nav(before));

@@ -1,0 +1,12 @@
+{
+  "description": "Cross-engine enrichment: pre-computed 360-degree ticker index",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "function_name": "justhodl-ticker-360",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "runtime": "python3.12",
+  "schedule": "cron(20 6,18 * * ? *)",
+  "timeout": 600
+}
