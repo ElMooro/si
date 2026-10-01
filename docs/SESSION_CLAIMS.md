@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| PR29 frontend performance follow-up: shared immutable qualification snapshot, one fetch/parse, deadline-safe bounded validation cache; khalid.js, jh-khalid-sniper.js, jh-chart-tvrail.js close cleanup, both script refs and tests; PR33 accepted e4e17f7c3; authorized frontend-only release verification; no backend contract/decisions changes | none | S-codex#kperf1001q7 | 2026-10-01 06:34 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
 | Canonical holdings qualification diagnostics only: versioned new-input counters and overlapping reasons; preserve old replay and desk supplement v1; agent/shopiz/holdings-qualification-diagnostics; draft only, no activation | none | S-shopiz#hqdiag1001g | 2026-10-01 05:10 |
@@ -65,6 +64,7 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+| PR33 shared Khalid snapshot frontend released 98f8049edaa148b660008de4c6487549d0071062; Pages 36828680141 and five manifest-bound edge assets verified. Panel/script-reference implementation claim released; parent owns remaining managed-browser QA. Backend contract/decisions unchanged. | none | S-codex#kperf1001q7 |
 | Issuer binding read-only diagnosis: Lambda Active; no exact-target classic or function-prefix Scheduler binding found; arbitrary names outside scope. Run 36798403192; no engine/config changes. | 6400 | S-shopiz#issuer1001a |
 | provider-window sentinel v1.0.0 (weekly FRED-vs-bank diff, WINDOWED alerting) | 4850 | S-fable-A2 |
 | catalyst-chain v1.0.0 (4-stage event->filing->street machine; 60 chains, 30 unpriced) | 4852-4853 | S-fable-A2 |
