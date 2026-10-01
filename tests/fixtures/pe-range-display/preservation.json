@@ -1,0 +1,50 @@
+{
+  "scope": "Entire preceding page and test bytes, exact add-only P/E presentation replacements. No application data captured.",
+  "pages": {
+    "alpha-scoreboard.html": {
+      "predecessor_sha256": "9f1ce543576e200882761b1ef4711a892d295cc1a735abaf73b3d6d6792fbde7",
+      "candidate_sha256": "d4ef5915a39499f4f079a0eff180826f6497f1fdbe7f54dec30f2e15b75cf39c",
+      "edits": [
+        [
+          "function drawer(sym){",
+          "function renderPERange(v){\n  const numeric=x=>typeof x==='number'&&Number.isFinite(x);\n  const low=v&&v.pe_low,high=v&&v.pe_high,position=v&&v.pe_pctile;\n  const open='<span class=\"pe-range-context\" style=\"max-width:100%;overflow-wrap:anywhere;white-space:normal\" title=\"Position within the reported positive annual P/E min-max range (0-100%, clamped), not a percentile.\">';\n  const close='<small style=\"display:block;font-size:inherit\">Reported annual range; window and comparability unverified.</small></span>';\n  if(!numeric(low)||!numeric(high)||low<=0||high<low)return open+'P/E range unavailable'+close;\n  const value=high>low&&numeric(position)&&position>=0&&position<=100?position+'%':'unavailable';\n  return open+'P/E range <b>'+low+'\u2013'+high+'\u00d7</b> \u00b7 position <b>'+value+'</b>'+close;\n}\nfunction drawer(sym){"
+        ],
+        [
+          "    (v.pe_low!=null&&v.pe_high!=null?'<span class=\"'+(v.pe_pctile!=null?(v.pe_pctile<40?'good':v.pe_pctile>80?'bad':''):'')+'\">own range <b>'+v.pe_low+'\\u2013'+v.pe_high+'</b> <i>'+(v.pe_pctile!=null?v.pe_pctile+'th pctile':'')+'</i></span>':'')+",
+          "    renderPERange(v)+"
+        ]
+      ],
+      "predecessor": "tests/fixtures/pe-range-display/alpha-scoreboard.html.txt",
+      "bytes": 40097
+    },
+    "opportunities.html": {
+      "predecessor_sha256": "215ac014e8dec3f717ba76c81a1cdab89842ec77812b25309dfb4aa3453f9c48",
+      "candidate_sha256": "58b530ef03e8d3d47cf2e1199be3c53e8f88d470621e3f13db039c885793449d",
+      "edits": [
+        [
+          "function deepDrawer(tk){",
+          "function renderPERange(v){\n  const numeric=x=>typeof x==='number'&&Number.isFinite(x);\n  const low=v&&v.pe_low,high=v&&v.pe_high,position=v&&v.pe_pctile;\n  const open='<span class=\"pe-range-context\" style=\"max-width:100%;overflow-wrap:anywhere;white-space:normal\" title=\"Position within the reported positive annual P/E min-max range (0-100%, clamped), not a percentile.\">';\n  const close='<small style=\"display:block;font-size:inherit\">Reported annual range; window and comparability unverified.</small></span>';\n  if(!numeric(low)||!numeric(high)||low<=0||high<low)return open+'P/E range unavailable'+close;\n  const value=high>low&&numeric(position)&&position>=0&&position<=100?position+'%':'unavailable';\n  return open+'P/E range <b>'+low+'\u2013'+high+'\u00d7</b> \u00b7 position <b>'+value+'</b>'+close;\n}\nfunction deepDrawer(tk){"
+        ],
+        [
+          "  if(v.pe_pctile!=null)qb.push('<span class=\"'+(v.pe_pctile<40?'g':v.pe_pctile>80?'b':'')+'\">P/E own range <b>'+v.pe_pctile+'th</b> <i>pctile</i></span>');",
+          "  qb.push(renderPERange(v));"
+        ]
+      ],
+      "predecessor": "tests/fixtures/pe-range-display/opportunities.html.txt",
+      "bytes": 48039
+    }
+  },
+  "previous_manifest_sha256": "534813b8a9343cb5bfd4bbffcefcf2b00fe022f34a42b1dffaeba1d88187aa4f",
+  "previous_tests_sha256": "41a956da5960dbb5912efe8c83747d02fd9d4fe12743f96b6cf3b2b29e6d6371",
+  "test_edits": [
+    [
+      "function render(name,f,extra={}){",
+      "function render(name,f,extra={},predecessor=false){"
+    ],
+    [
+      "const html=fs.readFileSync(path.join(W,name+'.html'),'utf8');",
+      "const html=fs.readFileSync(path.join(W,predecessor?'tests/fixtures/pe-range-display/'+name+'.html.txt':name+'.html'),'utf8');"
+    ]
+  ],
+  "added_tests_sha256": "db6ddeb20f3c3005df1c6232c4ea3354e3325905a4be1726831fac2e2ce9e84c"
+}

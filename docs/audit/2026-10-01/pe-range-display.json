@@ -1,0 +1,304 @@
+{
+  "stage": 533,
+  "status": "tested_source_batch_awaiting_static_release",
+  "scope": "P/E min-max range presentation only on Alpha Scoreboard and Opportunities. Legacy field names and producer calculations unchanged.",
+  "reason": "pe_pctile is a clamped linear position between reported positive annual P/E extrema, not an empirical percentile. Previous page interpolation also accepted arbitrary markup.",
+  "repairs": [
+    "Explicit range position with min/max and multiples unit; no unsupported good/bad coloring.",
+    "Finite numeric scalars only, preserved zero, tied/malformed range position unavailable.",
+    "Visible statement that observation window and comparability are unverified.",
+    "Complete preceding pages, tests and preservation manifest retained."
+  ],
+  "source_calculation": "aws/shared/equity_enrich.py:fetch_financials",
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "remaining": [
+    "Integrated gates and isolated browser QA",
+    "Commit-bound static HTML acceptance",
+    "Other valuation fields, statement comparability, false YoY and narrative qualification remain open"
+  ],
+  "validation": {
+    "checks": [
+      {
+        "suite": "contracts-build",
+        "exit": 0
+      },
+      {
+        "suite": "deployment",
+        "exit": 0
+      },
+      {
+        "suite": "frontend",
+        "exit": 0
+      },
+      {
+        "suite": "browser",
+        "exit": 0
+      },
+      {
+        "suite": "contracts",
+        "exit": 0
+      },
+      {
+        "suite": "scripts",
+        "exit": 0
+      },
+      {
+        "suite": "wiring",
+        "exit": 0
+      }
+    ],
+    "browser": {
+      "scope": "Actual drawer functions and complete inline styles, isolated DOM, invented inputs. No live page navigation, application packets or producer execution.",
+      "scenarios": 24,
+      "network_requests": 0,
+      "page_errors": 0,
+      "results": [
+        {
+          "page": "alpha-scoreboard",
+          "width": 390,
+          "case": "normal",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-alpha-scoreboard-normal-390.png",
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 25%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 390,
+          "case": "zero",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 0%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 390,
+          "case": "unavailable",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-alpha-scoreboard-unavailable-390.png",
+          "range_text": "P/E range unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 390,
+          "case": "malformed",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 390,
+          "case": "injection",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 390,
+          "case": "long-finite",
+          "screenshot": null,
+          "range_text": "P/E range 1.23456789e-16\u20131.7976931348623157e+308\u00d7 \u00b7 position 99.12345678901234%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 1280,
+          "case": "normal",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-alpha-scoreboard-normal-1280.png",
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 25%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 1280,
+          "case": "zero",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 0%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 1280,
+          "case": "unavailable",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-alpha-scoreboard-unavailable-1280.png",
+          "range_text": "P/E range unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 1280,
+          "case": "malformed",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 1280,
+          "case": "injection",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "alpha-scoreboard",
+          "width": 1280,
+          "case": "long-finite",
+          "screenshot": null,
+          "range_text": "P/E range 1.23456789e-16\u20131.7976931348623157e+308\u00d7 \u00b7 position 99.12345678901234%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": false
+        },
+        {
+          "page": "opportunities",
+          "width": 390,
+          "case": "normal",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-opportunities-normal-390.png",
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 25%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 390,
+          "case": "zero",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 0%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 390,
+          "case": "unavailable",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-opportunities-unavailable-390.png",
+          "range_text": "P/E range unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 390,
+          "case": "malformed",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 390,
+          "case": "injection",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 390,
+          "case": "long-finite",
+          "screenshot": null,
+          "range_text": "P/E range 1.23456789e-16\u20131.7976931348623157e+308\u00d7 \u00b7 position 99.12345678901234%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 1280,
+          "case": "normal",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-opportunities-normal-1280.png",
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 25%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 1280,
+          "case": "zero",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position 0%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 1280,
+          "case": "unavailable",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage533-browser-final\\pe-range-opportunities-unavailable-1280.png",
+          "range_text": "P/E range unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 1280,
+          "case": "malformed",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 1280,
+          "case": "injection",
+          "screenshot": null,
+          "range_text": "P/E range 10\u201330\u00d7 \u00b7 position unavailable\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        },
+        {
+          "page": "opportunities",
+          "width": 1280,
+          "case": "long-finite",
+          "screenshot": null,
+          "range_text": "P/E range 1.23456789e-16\u20131.7976931348623157e+308\u00d7 \u00b7 position 99.12345678901234%\nReported annual range; window and comparability unverified.",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "outer_keyboard_open": true
+        }
+      ]
+    },
+    "deployment_cases": 1026,
+    "shell_cases": 15,
+    "application_packet_reads": 0
+  }
+}

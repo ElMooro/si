@@ -467,15 +467,6 @@ function r1A(v){return v==null?'\u2014':Math.round(v*10)/10;}
 function bnA(v){if(v==null)return'\u2014';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
 function sparkA(vals,color){const v=(vals||[]).filter(x=>x!=null);if(v.length<2)return'';const w=180,h=34,mn=Math.min(...v),mx=Math.max(...v),rng=(mx-mn)||1;const pts=v.map((x,i)=>((i/(v.length-1))*w)+','+(h-2-((x-mn)/rng)*(h-4))).join(' ');return '<svg class="spark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="'+color+'" stroke-width="1.6" points="'+pts+'"/></svg>';}
 
-function renderPERange(v){
-  const numeric=x=>typeof x==='number'&&Number.isFinite(x);
-  const low=v&&v.pe_low,high=v&&v.pe_high,position=v&&v.pe_pctile;
-  const open='<span class="pe-range-context" style="max-width:100%;overflow-wrap:anywhere;white-space:normal" title="Position within the reported positive annual P/E min-max range (0-100%, clamped), not a percentile.">';
-  const close='<small style="display:block;font-size:inherit">Reported annual range; window and comparability unverified.</small></span>';
-  if(!numeric(low)||!numeric(high)||low<=0||high<low)return open+'P/E range unavailable'+close;
-  const value=high>low&&numeric(position)&&position>=0&&position<=100?position+'%':'unavailable';
-  return open+'P/E range <b>'+low+'–'+high+'×</b> · position <b>'+value+'</b>'+close;
-}
 function drawer(sym){
   const v=RESEARCH[sym]||{};
   if(!Object.keys(v).length) return '<div class="dwrap"><div class="acc">Research for '+escA(sym)+' is generating \u2014 check back shortly.</div></div>';
@@ -493,7 +484,7 @@ function drawer(sym){
   const peCls=(v.pe&&v.industry_pe)?(v.pe<v.industry_pe?'good':'bad'):'';
   let val='<div class="kv">'+
     '<span class="'+peCls+'">P/E <b>'+r1A(v.pe)+'</b> <i>vs ind '+(v.industry_pe==null?'\u2014':v.industry_pe)+'</i></span>'+
-    renderPERange(v)+
+    (v.pe_low!=null&&v.pe_high!=null?'<span class="'+(v.pe_pctile!=null?(v.pe_pctile<40?'good':v.pe_pctile>80?'bad':''):'')+'">own range <b>'+v.pe_low+'\u2013'+v.pe_high+'</b> <i>'+(v.pe_pctile!=null?v.pe_pctile+'th pctile':'')+'</i></span>':'')+
     (v.peg!=null?'<span class="'+(v.peg<1?'good':v.peg>2?'bad':'')+'">PEG <b>'+v.peg+'</b></span>':'')+
     (v.ev_ebitda!=null?'<span>EV/EBITDA <b>'+v.ev_ebitda+'\u00d7</b></span>':'')+
     '<span>P/S <b>'+r1A(v.ps)+'</b></span>'+

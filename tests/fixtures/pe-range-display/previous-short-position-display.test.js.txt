@@ -3,8 +3,8 @@ const parserModule={exports:{}};Function('exports','module',process.binding('nat
 const W=path.join(__dirname,'..'),widget=fs.readFileSync(path.join(W,'jh-short-position-context.js'),'utf8');
 const flags={calls_eligible:false,sizing_eligible:false,execution_eligible:false,forecast_qualified:false};
 function fixture(){return {row:{...flags,observation_freshness_verified:false,identity_verified:false,ticker:'TEST',reported_ticker_key:'TEST',source_row:'/by_ticker/TEST',short_interest_shares:100,settlement_date:'2026-09-15',latest_reported:true,days_to_cover:2,reported_days_to_cover:999,reported_reconstructed_ratio:2,days_to_cover_basis:'producer_reconstructed_ratio',reported_dtc_status:'provider_differs_from_reconstructed_ratio'},meta:{...flags,artifact:'data/short-interest-tickers.json',read_status:'parsed',context_status:'descriptive_only',source_contract:'short-interest-tickers.v1',context_contract:'short-position-consumer-context.v1',body_sha256:'a'.repeat(64),body_bytes:1000}};}
-function render(name,f,extra={},predecessor=false){
- const html=fs.readFileSync(path.join(W,predecessor?'tests/fixtures/pe-range-display/'+name+'.html.txt':name+'.html'),'utf8');
+function render(name,f,extra={}){
+ const html=fs.readFileSync(path.join(W,name+'.html'),'utf8');
  const ctx={window:{},RESEARCH:{TEST:{thesis:'Invented research status',short_position_context:f.row,...extra}},RMETA:{confirmation_feeds:{short_interest:f.meta}},RESEARCH_META:{short_interest:f.meta},SF:{},fetch(){throw Error('No network');}};vm.createContext(ctx);vm.runInContext(widget,ctx);
  let found=false;
  for(const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
@@ -38,60 +38,4 @@ test('whole page predecessors and exactly reviewed display edits remain',()=>{
   let expected=raw.toString('utf8');for(const [a,b] of item.edits){assert.equal(expected.split(a).length,2);expected=expected.replace(a,b);}
   const actual=fs.readFileSync(path.join(W,target));assert.equal(actual.toString('utf8'),expected);assert.equal(hash(actual),item.candidate_sha256);
  }
-});
-
-
-// Stage 533: actual drawer behavior, invented valuation inputs only.
-const pePages=['alpha-scoreboard','opportunities'];
-function peFragment(name,values){
- const html=render(name,fixture(),values);
- const match=html.match(/<span class="pe-range-context"[\s\S]*?<\/small><\/span>/);
- assert.ok(match,'Actual drawer must include the typed range renderer');return match[0];
-}
-test('retained predecessors reproduce false percentile labels and markup interpolation',()=>{
- for(const name of pePages){
-  const ordinary=render(name,fixture(),{pe_low:10,pe_high:30,pe_pctile:25},true);assert.match(ordinary,/25th/);assert.match(ordinary,/pctile/);
-  const unsafe=render(name,fixture(),{pe_low:10,pe_high:30,pe_pctile:'<img src=x onerror=alert(1)>'},true);assert.match(unsafe,/<img src=x onerror=alert\(1\)>/);
- }
-});
-test('actual drawers describe a range position and preserve measured zero',()=>{
- for(const name of pePages)for(const position of [0,25,100]){
-  const html=peFragment(name,{pe_low:10,pe_high:30,pe_pctile:position});assert.match(html,/10–30×/);assert.ok(html.includes('position <b>'+position+'%</b>'));
-  assert.match(html,/not a percentile/);assert.match(html,/window and comparability unverified/);assert.doesNotMatch(html,/th pctile|class="(?:good|bad|g|b)"/);
- }
-});
-test('malformed or out-of-range positions never become a number',()=>{
- for(const name of pePages)for(const value of [null,undefined,true,false,'0','25','',[],{},NaN,Infinity,-Infinity,-1,101]){
-  const html=peFragment(name,{pe_low:10,pe_high:30,pe_pctile:value});assert.match(html,/position <b>unavailable<\/b>/);
- }
-});
-test('invalid or missing ranges are withheld and a tied range has no position',()=>{
- for(const name of pePages){
-  for(const [low,high] of [[null,30],[10,null],[true,30],['10',30],[0,30],[-10,30],[30,10],[Infinity,30],[10,NaN]])assert.match(peFragment(name,{pe_low:low,pe_high:high,pe_pctile:25}),/P\/E range unavailable/);
-  assert.match(peFragment(name,{pe_low:10,pe_high:10,pe_pctile:25}),/10–10×<\/b> · position <b>unavailable/);
- }
-});
-test('untrusted P/E fields cannot inject markup into either drawer',()=>{
- for(const name of pePages)for(const key of ['pe_low','pe_high','pe_pctile']){
-  const values={pe_low:10,pe_high:30,pe_pctile:25,[key]:'"><img src=x onerror=alert(1)><script>bad()</script>'};
-  const html=peFragment(name,values);assert.doesNotMatch(html,/<img|<script|onerror|bad\(\)/);assert.match(html,/unavailable/);
- }
-});
-test('Stage 533 preserves complete preceding page, fixture and test bytes',()=>{
- const hash=v=>require('node:crypto').createHash('sha256').update(v).digest('hex');
- const spec=JSON.parse(fs.readFileSync(path.join(W,'tests/fixtures/pe-range-display/preservation.json'),'utf8'));
- const oldShort=fs.readFileSync(path.join(W,'tests/fixtures/pe-range-display/previous-short-preservation.json'));assert.equal(hash(oldShort),spec.previous_manifest_sha256);
- const expectedShort=JSON.parse(oldShort);const currentShort=JSON.parse(fs.readFileSync(path.join(W,'tests/fixtures/short-position-display/preservation.json')));
- for(const [target,item] of Object.entries(spec.pages)){
-  const raw=fs.readFileSync(path.join(W,item.predecessor));assert.equal(raw.length,item.bytes);assert.equal(hash(raw),item.predecessor_sha256);
-  let expected=raw.toString('utf8');for(const [a,b] of item.edits){assert.equal(expected.split(a).length,2);expected=expected.replace(a,b);}
-  assert.equal(fs.readFileSync(path.join(W,target),'utf8'),expected);assert.equal(hash(Buffer.from(expected)),item.candidate_sha256);
-  assert.equal(expectedShort.pages[target].candidate_sha256,item.predecessor_sha256);
-  expectedShort.pages[target].edits.push(...item.edits);expectedShort.pages[target].candidate_sha256=item.candidate_sha256;
- }
- assert.deepEqual(currentShort,expectedShort);
- const oldTest=fs.readFileSync(path.join(W,'tests/fixtures/pe-range-display/previous-short-position-display.test.js.txt'));assert.equal(hash(oldTest),spec.previous_tests_sha256);
- let expected=oldTest.toString('utf8');for(const [a,b] of spec.test_edits){assert.equal(expected.split(a).length,2);expected=expected.replace(a,b);}
- const added=fs.readFileSync(path.join(W,'tests/fixtures/pe-range-display/added-tests.js.txt'));assert.equal(hash(added),spec.added_tests_sha256);
- assert.equal(fs.readFileSync(__filename,'utf8'),expected+added.toString('utf8'));
 });
