@@ -70,8 +70,11 @@ header.hero .meta b{color:var(--t2);font-weight:500}
 .event-cat.AUCTION{background:var(--red-bg);color:var(--red)}
 .event-cat.WHATS_CHANGED{background:var(--cyan-bg);color:var(--cyan)}
 
-.event-time{font-family:var(--mono);font-size:11px;color:var(--t3);white-space:nowrap}
+.event-time{font-family:var(--mono);font-size:11px;color:var(--t3);text-align:right}
 .event-title{color:var(--t1);font-weight:600;font-size:15px;margin-bottom:4px}
+.event-title,.event-detail,.source-status{overflow-wrap:anywhere}
+.source-status{color:var(--t2);font-size:13px;margin-bottom:20px}
+.filter-btn:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .event-detail{color:var(--t2);font-size:13px;line-height:1.5}
 .event-detail .pill{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--bg3);padding:1px 6px;border-radius:3px;margin-right:4px;color:var(--t1)}
 .event-up{color:var(--green)}
@@ -80,10 +83,10 @@ header.hero .meta b{color:var(--t2);font-weight:500}
 .empty-feed{padding:60px;text-align:center;color:var(--t3);font-style:italic}
 
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-@media (max-width:700px){.kpi-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:700px){.kpi-grid{grid-template-columns:1fr 1fr}.kpi .val{font-size:16px!important}}
 .kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:14px;text-align:center}
 .kpi .lbl{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.kpi .val{font-family:var(--mono);font-size:24px;font-weight:600}
+.kpi .val{overflow-wrap:anywhere;font-family:var(--mono);font-size:24px;font-weight:600}
 
 footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-align:center;border-top:1px solid var(--brd)}
 </style>
@@ -129,18 +132,20 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
     <div class="meta">
       <span><b>Sources</b> 8 systems aggregated</span>
       <span><b>Refresh</b> every 5 min</span>
-      <span id="meta-updated"><b>Updated</b> —</span>
+      <span id="meta-updated"><b>Page retrieved</b> —</span>
     </div>
   </header>
 
   <div class="kpi-grid">
-    <div class="kpi"><div class="lbl">Events today</div><div class="val" id="kpi-events">—</div></div>
-    <div class="kpi"><div class="lbl">High severity</div><div class="val" id="kpi-high" style="color:var(--red)">—</div></div>
+    <div class="kpi"><div class="lbl">Loaded events</div><div class="val" id="kpi-events">—</div></div>
+    <div class="kpi"><div class="lbl">Loaded high severity</div><div class="val" id="kpi-high" style="color:var(--red)">—</div></div>
     <div class="kpi"><div class="lbl">Insider buys</div><div class="val" id="kpi-insider" style="color:var(--green)">—</div></div>
-    <div class="kpi"><div class="lbl">Active alerts</div><div class="val" id="kpi-alerts" style="color:var(--orange)">—</div></div>
+    <div class="kpi"><div class="lbl">Published alerts</div><div class="val" id="kpi-alerts" style="color:var(--orange)">—</div></div>
   </div>
 
-  <div class="filters">
+  <div id="source-status" class="source-status" role="status" aria-live="polite">Loading source availability…</div>
+
+  <div class="filters" aria-label="Filter events">
     <button class="filter-btn active" data-filter="all">All</button>
     <button class="filter-btn" data-filter="ALERT">🔴 Alerts</button>
     <button class="filter-btn" data-filter="INSIDER">💼 Insider</button>
@@ -164,23 +169,48 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
 const BUCKET = "https://justhodl-dashboard-live.s3.amazonaws.com";
 let _events = [];
 let _filter = "all";
+let _loading = false;
+let _sources = [];
+const SOURCE_NAMES = ['ALERT','INSIDER','EARNINGS','MACRO','DIVERGENCE','CORRELATION','AUCTION','WHATS_CHANGED'];
+const text = (v, fallback = '') => typeof v === 'string' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : fallback;
+const esc = v => text(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const number = v => typeof v === 'number' && Number.isFinite(v) ? v : null;
+const fixed = (v, n) => number(v) === null ? 'Unavailable' : v.toFixed(n);
+const severity = (v, fallback) => ['HIGH','MED','LOW','INFO'].includes(v) ? v : fallback;
+const record = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const rows = v => { if (!Array.isArray(v) || !v.every(record)) throw Error('Invalid rows'); return v; };
+function sourceClock(v){ const t = parseTime(v); return t ? t.toISOString() : 'Unavailable'; }
+
 
 async function fetchJson(key){
+  // Only history changes route. Companion sources keep their existing normal reads.
+  const url = key === 'data/alert-history.json' ? '/data/alert-history.json' : `${BUCKET}/${key}`;
   try{
-    const r = await fetch(`${BUCKET}/${key}?t=${Date.now()}`);
-    if(r.ok) return await r.json();
-  }catch(e){console.error(key, e)}
-  return null;
+    const r = await fetch(`${url}?t=${Date.now()}`);
+    if(!r.ok) return {data:null, state:r.status === 503 ? 'Unavailable or withheld (HTTP 503; cause unverified)' : `Unavailable (HTTP ${r.status})`};
+    let data;
+    try { data = await r.json(); } catch { return {data:null, state:'Unavailable (invalid JSON)'}; }
+    if(!record(data)) return {data:null, state:'Unavailable (invalid packet)'};
+    if(key === 'data/alert-history.json' && (data.public_alert_schema !== 'alert-history-public.v1' ||
+      !Array.isArray(data.alerts) || !data.alerts.every(a => record(a) &&
+        ['title','detail','severity','sent_at'].every(k => a[k] == null || typeof a[k] === 'string')))) {
+      return {data:null, state:'Unavailable (invalid public alert contract)'};
+    }
+    return {data, state:'Received'};
+  }catch { return {data:null, state:'Unavailable (fetch failed)'}; }
 }
 
 function parseTime(s){
-  try{ return new Date(s); }catch(e){ return null; }
+  if(typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(s)) return null;
+  const t = new Date(s);
+  return Number.isFinite(t.getTime()) ? t : null;
 }
 
 function fmtTime(t){
-  if(!t) return "—";
+  if(!t) return "time unavailable";
   const now = new Date();
   const diff = (now - t) / 1000;
+  if(diff < 0) return t.toISOString();
   if(diff < 60) return "just now";
   if(diff < 3600) return Math.floor(diff/60) + "m ago";
   if(diff < 86400) return Math.floor(diff/3600) + "h ago";
@@ -188,7 +218,10 @@ function fmtTime(t){
 }
 
 async function load(){
-  const [alerts, insider, earnings, macro, divergence, correl, auction, whatsChanged] = await Promise.all([
+  if(_loading) return;
+  _loading = true;
+  try {
+  _sources = await Promise.all([
     fetchJson("data/alert-history.json"),
     fetchJson("data/insider-trades.json"),
     fetchJson("data/earnings-tracker.json"),
@@ -199,46 +232,56 @@ async function load(){
     fetchJson("data/whats-changed.json"),
   ]);
 
-  document.getElementById("meta-updated").innerHTML = `<b>Updated</b> ${new Date().toLocaleString()}`;
+  const [alerts, insider, earnings, macro, divergence, correl, auction, whatsChanged] = _sources.map(s => s.data);
+  document.getElementById("meta-updated").innerHTML = `<b>Page retrieved</b> ${new Date().toLocaleString()}`;
 
   const events = [];
+  function section(index, build){
+    const start = events.length;
+    try { build(); } catch {
+      events.splice(start);
+      _sources[index] = {data:null, state:'Unavailable (invalid source values)'};
+      if(index === 1) insiderBuys = null;
+    }
+  }
 
   // 1. ALERTS (with timestamps)
-  let activeAlerts = 0;
+  let activeAlerts = alerts ? alerts.alerts.length : null;
   if(alerts && alerts.alerts){
     for(const a of alerts.alerts){
       const t = parseTime(a.sent_at);
-      if(t) activeAlerts++;
+
       events.push({
         cat: "ALERT",
-        sev: a.severity || "MED",
-        time: t || new Date(),
-        title: a.title || "Alert",
-        detail: a.detail || "",
+        sev: severity(a.severity, "MED"),
+        time: t, timeKind: "Sent",
+        title: text(a.title, "Alert"),
+        detail: text(a.detail),
         sortKey: t ? t.getTime() : 0,
       });
     }
   }
 
+  let insiderBuys = insider ? 0 : null;
+  section(1, () => {
   // 2. INSIDER (recent buys)
-  let insiderBuys = 0;
   if(insider){
     const trades = insider.recent_buys || insider.buys || insider.transactions || [];
-    if(Array.isArray(trades)){
-      for(const tr of trades.slice(0, 50)){
+    {
+      for(const tr of rows(trades).slice(0, 50)){
         const ttime = parseTime(tr.transaction_date || tr.filing_date || tr.date);
         const ticker = tr.ticker || tr.symbol;
         const insider_name = tr.name || tr.insider_name || tr.officer || "";
-        const value = tr.value || tr.transaction_value || tr.total_value;
-        const action = tr.transaction_type || tr.acquired_disposed || "BUY";
+        const value = number(tr.value ?? tr.transaction_value ?? tr.total_value);
+        const action = text(tr.transaction_type || tr.acquired_disposed, "BUY");
         if(action === "P" || action === "BUY" || (action || "").toLowerCase().includes("buy") || (action || "").toLowerCase().includes("acquir")){
           insiderBuys++;
           events.push({
             cat: "INSIDER",
             sev: value > 1e6 ? "HIGH" : value > 100000 ? "MED" : "LOW",
-            time: ttime || new Date(),
-            title: `Insider buy: ${ticker}`,
-            detail: `${insider_name} · ${value ? '$' + (value/1000).toFixed(0) + 'K' : 'amount n/a'}`,
+            time: ttime, timeKind: "Observation",
+            title: `Insider buy: ${text(ticker)}`,
+            detail: `${text(insider_name)} · ${value !== null ? '$' + (value/1000).toFixed(0) + 'K' : 'amount n/a'}`,
             sortKey: ttime ? ttime.getTime() : 0,
           });
         }
@@ -246,104 +289,128 @@ async function load(){
     }
   }
 
+  });
+
+  section(2, () => {
+
   // 3. EARNINGS (PEAD signals)
   if(earnings){
     const pead = earnings.pead_signals || [];
-    for(const p of pead.slice(0, 15)){
+    for(const p of rows(pead).slice(0, 15)){
       const ticker = p.ticker;
-      const sig = p.signal;
+      const sig = text(p.signal);
       if(!sig || sig === "INSUFFICIENT_DATA") continue;
       const eps = p.eps_surprise_pct;
       const ret1d = p.price_return_1d_pct;
       events.push({
         cat: "EARNINGS",
         sev: sig.includes("STRONG") ? "MED" : "INFO",
-        time: parseTime(p.report_date) || new Date(),
-        title: `${ticker} · ${sig.replace(/_/g,' ').toLowerCase()}`,
-        detail: `EPS surprise <span class="pill">${eps?.toFixed(1)}%</span> · 1d return <span class="${ret1d>0?'event-up':'event-down'}">${ret1d?.toFixed(2)}%</span>`,
+        time: parseTime(p.report_date), timeKind: "Report",
+        title: `${text(ticker)} · ${sig.replace(/_/g,' ').toLowerCase()}`,
+        detailHtml: `EPS surprise <span class="pill">${number(eps) === null ? "Unavailable" : fixed(eps,1) + "%"}</span> · 1d return <span class="${ret1d>0?'event-up':'event-down'}">${number(ret1d) === null ? "Unavailable" : fixed(ret1d,2) + "%"}</span>`,
         sortKey: 0,
       });
     }
   }
 
+  });
+
+  section(3, () => {
+
   // 4. MACRO (surprise composite)
   if(macro){
-    const composite = macro.composite || macro.composite_z;
+    const composite = number(macro.composite ?? macro.composite_z);
     const regime = macro.regime;
     if(composite != null){
       const sev = Math.abs(composite) >= 3 ? "HIGH" : Math.abs(composite) >= 2 ? "MED" : "LOW";
       events.push({
         cat: "MACRO",
         sev,
-        time: parseTime(macro.generated_at || macro.as_of) || new Date(),
+        time: parseTime(macro.as_of || macro.generated_at), timeKind: macro.as_of ? "Observation" : "Publication",
         title: `Macro surprise composite: ${composite >= 0 ? '+' : ''}${composite.toFixed(2)}σ`,
-        detail: `Regime: ${regime} · ${macro.regime_description || ''}`,
+        detail: `Regime: ${text(regime)} · ${text(macro.regime_description)}`,
         sortKey: 0,
       });
     }
   }
+
+  });
+
+  section(4, () => {
 
   // 5. DIVERGENCES
   if(divergence){
     const divs = divergence.divergences || divergence.active_divergences || [];
-    for(const d of divs.slice(0, 10)){
-      const z = d.residual_z || d.z_score;
-      const pair = d.pair || `${d.asset_y || ''} vs ${d.asset_x || ''}`;
+    for(const d of rows(divs).slice(0, 10)){
+      const z = number(d.residual_z ?? d.z_score);
+      const pair = d.pair || `${text(d.asset_y)} vs ${text(d.asset_x)}`;
       events.push({
         cat: "DIVERGENCE",
         sev: Math.abs(z) >= 2.5 ? "MED" : "LOW",
-        time: parseTime(divergence.generated_at) || new Date(),
-        title: `Divergence: ${pair}`,
-        detail: `Residual z = <span class="pill">${z >= 0 ? '+' : ''}${z?.toFixed(2)}</span>`,
+        time: parseTime(divergence.generated_at),
+        title: `Divergence: ${text(pair)}`,
+        detailHtml: `Residual z = <span class="pill">${z !== null && z >= 0 ? '+' : ''}${fixed(z,2)}</span>`,
         sortKey: 0,
       });
     }
   }
+
+  });
+
+  section(5, () => {
 
   // 6. CORRELATION
   if(correl){
     const breaks = correl.regime_breaks || [];
-    for(const b of breaks.slice(0, 10)){
+    for(const b of rows(breaks).slice(0, 10)){
       const ta = b.ticker_a, tb = b.ticker_b;
-      const delta = b.delta_30d_vs_90d;
+      const delta = number(b.delta_30d_vs_90d);
       events.push({
         cat: "CORRELATION",
         sev: Math.abs(delta || 0) >= 0.4 ? "HIGH" : "MED",
-        time: parseTime(correl.generated_at) || new Date(),
-        title: `Correlation regime break: ${ta}↔${tb}`,
-        detail: `30d-vs-90d Δ = <span class="pill">${delta >= 0 ? '+' : ''}${(delta || 0).toFixed(2)}</span>`,
+        time: parseTime(correl.generated_at),
+        title: `Correlation regime break: ${text(ta)}↔${text(tb)}`,
+        detailHtml: `30d-vs-90d Δ = <span class="pill">${delta !== null && delta >= 0 ? '+' : ''}${fixed(delta,2)}</span>`,
         sortKey: 0,
       });
     }
   }
 
+  });
+
+  section(6, () => {
+
   // 7. AUCTION
   if(auction){
-    const score = auction.composite_score;
+    const score = number(auction.composite_score);
     const regime = auction.regime;
     if(score != null){
       events.push({
         cat: "AUCTION",
         sev: score >= 60 ? "HIGH" : score >= 30 ? "MED" : "LOW",
-        time: parseTime(auction.generated_at) || new Date(),
+        time: parseTime(auction.generated_at),
         title: `Treasury auction stress: ${score}/100`,
-        detail: `Regime: ${regime} · ${auction.interpretation || ''}`,
+        detail: `Regime: ${text(regime)} · ${text(auction.interpretation)}`,
         sortKey: 0,
       });
     }
   }
 
+  });
+
+  section(7, () => {
+
   // 8. WHATS CHANGED
   if(whatsChanged){
     const changes = whatsChanged.changes || whatsChanged.diff || [];
     if(Array.isArray(changes)){
-      for(const c of changes.slice(0, 8)){
+      for(const c of rows(changes).slice(0, 8)){
         events.push({
           cat: "WHATS_CHANGED",
-          sev: c.severity || "INFO",
-          time: parseTime(whatsChanged.generated_at) || new Date(),
-          title: c.title || c.summary || c.field || "What changed",
-          detail: c.detail || c.description || JSON.stringify(c).slice(0, 150),
+          sev: severity(c.severity, "INFO"),
+          time: parseTime(whatsChanged.generated_at),
+          title: text(c.title) || text(c.summary) || text(c.field) || "What changed",
+          detail: text(c.detail) || text(c.description) || JSON.stringify(c).slice(0, 150),
           sortKey: 0,
         });
       }
@@ -354,14 +421,16 @@ async function load(){
         events.push({
           cat: "WHATS_CHANGED",
           sev: "INFO",
-          time: parseTime(whatsChanged.generated_at) || new Date(),
+          time: parseTime(whatsChanged.generated_at),
           title: "What changed today",
-          detail: summary,
+          detail: text(summary),
           sortKey: 0,
         });
       }
     }
   }
+
+  });
 
   // Sort newest first (mostly by sortKey or by sev)
   events.sort((a, b) => {
@@ -369,23 +438,30 @@ async function load(){
     if(a.sortKey) return -1;
     if(b.sortKey) return 1;
     const sevOrder = {HIGH:0, MED:1, LOW:2, INFO:3};
-    return (sevOrder[a.sev]||9) - (sevOrder[b.sev]||9);
+    return (sevOrder[a.sev] ?? 9) - (sevOrder[b.sev] ?? 9);
   });
 
   _events = events;
-  document.getElementById("kpi-events").textContent = events.length;
-  document.getElementById("kpi-high").textContent = events.filter(e => e.sev === "HIGH").length;
-  document.getElementById("kpi-insider").textContent = insiderBuys;
-  document.getElementById("kpi-alerts").textContent = activeAlerts;
+  const incomplete = _sources.some(s => !s.data);
+  const countLabel = n => incomplete ? n ? `${n} (partial)` : 'Unavailable' : n;
+  document.getElementById("kpi-events").textContent = countLabel(events.length);
+  document.getElementById("kpi-high").textContent = countLabel(events.filter(e => e.sev === "HIGH").length);
+  document.getElementById("kpi-insider").textContent = insiderBuys ?? "Unavailable";
+  document.getElementById("kpi-alerts").textContent = activeAlerts ?? "Unavailable";
 
+  document.getElementById('source-status').innerHTML = _sources.map((s,i) =>
+    `<div><b>${SOURCE_NAMES[i].replace('_',' ')}</b>: ${esc(s.state)} · Source publication: ${sourceClock(s.data?.generated_at)} · Source observation: ${sourceClock(s.data?.as_of)}</div>`).join('');
   render();
+  } finally { _loading = false; }
 }
 
 function render(){
   const feed = document.getElementById("feed");
   let list = _filter === "all" ? _events : _events.filter(e => e.cat === _filter);
   if(!list.length){
-    feed.innerHTML = `<div class="empty-feed">No events for this filter.</div>`;
+    const relevant = _filter === 'all' ? _sources : [_sources[SOURCE_NAMES.indexOf(_filter)]];
+    const unavailable = relevant.some(s => !s || !s.data);
+    feed.innerHTML = `<div class="empty-feed">${unavailable ? 'Source data unavailable; no complete event count.' : 'No events reported in the received feed for this filter.'}</div>`;
     return;
   }
   feed.innerHTML = list.slice(0, 200).map(e => `
@@ -393,20 +469,22 @@ function render(){
       <div class="event-card">
         <div class="event-head">
           <span class="event-cat ${e.cat}">${e.cat.replace('_',' ')}</span>
-          <span class="event-time">${fmtTime(e.time)}</span>
+          <span class="event-time">${e.timeKind || "Publication"}: ${esc(fmtTime(e.time))}</span>
         </div>
-        <div class="event-title">${e.title}</div>
-        <div class="event-detail">${e.detail || ''}</div>
+        <div class="event-title">${esc(e.title)}</div>
+        <div class="event-detail">${e.detailHtml || esc(e.detail)}</div>
       </div>
     </div>
   `).join("");
 }
 
 document.querySelectorAll(".filter-btn").forEach(b => {
+  b.setAttribute('aria-pressed', String(b.getAttribute('data-filter') === _filter));
   b.addEventListener("click", () => {
     document.querySelectorAll(".filter-btn").forEach(x => x.classList.remove("active"));
     b.classList.add("active");
     _filter = b.getAttribute("data-filter");
+    document.querySelectorAll('.filter-btn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     render();
   });
 });
