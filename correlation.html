@@ -293,6 +293,7 @@ footer a{margin:0 10px}
 const FEED_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/correlation-breaks.json?t=' + Date.now();
 let CURRENT_DATA = null;
 let HM_MODE = 'latest';
+let LOAD_GENERATION = 0;
 
 function fmtAge(iso) {
   if (!iso) return '—';
@@ -681,16 +682,21 @@ function renderImplications(d) {
 }
 
 async function loadData() {
+  const generation = ++LOAD_GENERATION;
   try {
     const res = await fetch(FEED_URL);
+    if (generation !== LOAD_GENERATION) return;
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const d = await res.json();
+    if (generation !== LOAD_GENERATION) return;
     CURRENT_DATA = d;
 
     document.getElementById('updated').textContent = fmtAge(d.generated_at);
     document.getElementById('footer-ts').textContent = d.generated_at || '—';
 
     renderHeatmap(d, HM_MODE);
+    document.getElementById('errorBanner').textContent = '';
+    document.getElementById('errorBanner').style.display = 'none';
 
     if (d.status === 'warming_up') {
       setError(`Detector warming up: ${d.message || 'insufficient aligned data'}`);
@@ -703,14 +709,19 @@ async function loadData() {
     renderImplications(d);
     renderHistoryChart(d);
   } catch (e) {
+    if (generation !== LOAD_GENERATION) return;
+    CURRENT_DATA = null;
+    renderHeatmap({}, HM_MODE);
+    document.getElementById('updated').textContent = 'Unavailable';
+    document.getElementById('footer-ts').textContent = 'Unavailable';
     console.error(e);
     setError('Failed to load: ' + e.message);
   }
 }
 
-document.getElementById('hm-latest').addEventListener('click', () => CURRENT_DATA && renderHeatmap(CURRENT_DATA, 'latest'));
-document.getElementById('hm-prior').addEventListener('click', () => CURRENT_DATA && renderHeatmap(CURRENT_DATA, 'prior'));
-document.getElementById('hm-delta').addEventListener('click', () => CURRENT_DATA && renderHeatmap(CURRENT_DATA, 'delta'));
+document.getElementById('hm-latest').addEventListener('click', () => renderHeatmap(CURRENT_DATA || {}, 'latest'));
+document.getElementById('hm-prior').addEventListener('click', () => renderHeatmap(CURRENT_DATA || {}, 'prior'));
+document.getElementById('hm-delta').addEventListener('click', () => renderHeatmap(CURRENT_DATA || {}, 'delta'));
 
 loadData();
 setInterval(loadData, 5 * 60 * 1000);

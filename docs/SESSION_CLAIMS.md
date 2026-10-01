@@ -19,7 +19,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
-| Backtest harness Mode A withdrawal PR30 accepted exact 868eb509bec7cc1b7a6c281a08819eaeb09bbebc; narrow release and public acceptance in progress; preserve Mode B/meta-labeler/live health/capital; no provider, schedule or paid/private QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
 | Canonical holdings qualification diagnostics only: versioned new-input counters and overlapping reasons; preserve old replay and desk supplement v1; agent/shopiz/holdings-qualification-diagnostics; draft only, no activation | none | S-shopiz#hqdiag1001g | 2026-10-01 05:10 |
 | Exact ETF desk read-only deployment/capacity probe; staged only, no dispatch until independent review; agent/shopiz/desk-capacity-readonly-probe; PR26 stays draft/unmerged | 6410 RESERVED | S-shopiz#edprobe1001f | 2026-10-01 04:26 |

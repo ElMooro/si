@@ -14,6 +14,18 @@ packet=valid;await page.evaluate(()=>loadData());assert.match(await page.locator
 for(const mode of ['latest','prior','delta','latest']){await page.locator('#hm-'+mode).click();if(mode==='prior')assert.equal(await page.locator('.heatmap-cell').count(),0);else{assert.equal(await page.locator('.heatmap-cell').count(),4);assert.match(await page.locator('#heatmap-table').innerText(),/0\.00/);}}
 assert.equal(feedReads,2);await page.locator('#heatmap-section').screenshot({path:'/tmp/correlation-valid-'+width+'.png'});
 packet=warm;await page.evaluate(()=>loadData());assert.match(await page.locator('#heatmap-table').innerText(),/Latest matrix is unavailable/);assert.equal(await page.locator('.heatmap-cell').count(),0);
+await page.evaluate(async ({valid,warm})=>{
+ const original=window.fetch;let release,started;const pending=new Promise(resolve=>release=resolve),began=new Promise(resolve=>started=resolve);
+ try {window.fetch=async()=>({ok:true,json:()=>{started();return pending;}});const older=loadData();await began;
+ window.fetch=async()=>({ok:true,json:async()=>({...warm,generated_at:'2026-10-01T03:00:00Z'})});await loadData();release(valid);await older;
+ } finally {window.fetch=original;}
+},{valid,warm});
+assert.equal(await page.locator('.heatmap-cell').count(),0);assert.equal(await page.locator('#footer-ts').innerText(),'2026-10-01T03:00:00Z');
+packet=valid;await page.evaluate(()=>loadData());assert.equal(await page.locator('.heatmap-cell').count(),4);
+await page.evaluate(async()=>{const original=window.fetch;try{window.fetch=async()=>{throw Error('Synthetic current refresh failure');};await loadData();}finally{window.fetch=original;}});
+for(const mode of ['prior','delta','latest','prior','latest']){await page.locator('#hm-'+mode).click();assert.equal(await page.locator('.heatmap-cell').count(),0);assert.equal(await page.locator('#hm-'+mode).getAttribute('aria-pressed'),'true');}
+assert.match(await page.locator('#errorBanner').innerText(),/Failed to load/);assert.equal(await page.locator('#footer-ts').innerText(),'Unavailable');
+packet=valid;await page.evaluate(()=>loadData());assert.equal(await page.locator('.heatmap-cell').count(),4);assert.equal(await page.locator('#errorBanner').isVisible(),false);
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
-console.log(JSON.stringify({width,missingViews:true,repeatedSwitches:true,validMatrices:true,refreshClearsStale:true,keyboard:true,noPageOverflow:true,feedReads,externalNetwork:false}));await page.close();
+console.log(JSON.stringify({width,missingViews:true,repeatedSwitches:true,validMatrices:true,refreshClearsStale:true,overlapGuard:true,failedRefreshSwitching:true,keyboard:true,noPageOverflow:true,feedReads,externalNetwork:false}));await page.close();
 }}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
