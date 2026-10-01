@@ -1,0 +1,95 @@
+{
+  "stage": 496,
+  "status": "full_candidate_checks_passed_exact_release_pending",
+  "baseline": {
+    "base": "fdecdf7ddbfef6372dcdbeb997317474e90c687e",
+    "native_source_commit": "bc52cf1f1cca773f6e6d9dcb2500e07744b27220",
+    "baseline_audit": "docs/audit/2026-10-01/provider-search-cache.json",
+    "acceptance_operation_reserved": 6408
+  },
+  "source": [
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/lambda_function.py",
+      "bytes": 170573,
+      "sha256": "bb0758e3afa609b37a5908a9892a7858c763a317d9a4694a280a1170d4623dfc"
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/warehouse_routing.py",
+      "bytes": 6122,
+      "sha256": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1"
+    },
+    {
+      "path": "aws/shared/treasury_fiscal_model.py",
+      "bytes": 14133,
+      "sha256": "aa7627c565fe088662bef508dde9cf993f59e3acdd8e855a8e75b2b42af25fa3"
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/directory_identity.py",
+      "bytes": 4053,
+      "sha256": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51"
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/directory_index.py",
+      "bytes": 15712,
+      "sha256": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb"
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/warehouse_cache.py",
+      "bytes": 9039,
+      "sha256": "1f5f733ccd5145296c3f9488eabd2e68f133f023d66b88a1f638b4830903e461"
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/directory_publication.py",
+      "bytes": 10105,
+      "sha256": "dcde7e1810e01c76daa24ebcf14b7345a8196f16a9c60e1dc28f93b46a5940a6"
+    }
+  ],
+  "scope_review": {
+    "changed_native_functions": [
+      "build"
+    ],
+    "all_other_functions_equal_to_complete_predecessor": true
+  },
+  "whole_predecessor": {
+    "path": "tests/fixtures/symbol-directory/pre-publication-lambda.py.txt",
+    "bytes": 171274,
+    "sha256": "707b36b8ddd2788e46a87f3961562a26e13a10b35139da7c7b031c6fa6a6182f"
+  },
+  "whole_reproduction": "tests/fixtures/symbol-directory/publication-reproduction.json",
+  "native_tests": 85,
+  "new_publication_cases": 16,
+  "review_fixes": [
+    "Publication retry clock is evaluated on each retry instead of freezing before a concurrent build finishes.",
+    "Failed compatibility copies raise through the whole native handler; the complete immutable generation remains committed."
+  ],
+  "storage_reference": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html",
+  "acceptance_operation": 6408,
+  "normal_publication_verified": false,
+  "production_capacity_verified": false,
+  "real_source_replay_verified": false,
+  "investment_authority": false,
+  "actual_data_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "validation": {
+    "base_commit": "96d10831a0bdaf190029d23fb715e7ccc991964e",
+    "native": 85,
+    "new_publication_cases": 16,
+    "focused_acceptance": 5,
+    "deployment": 1013,
+    "shell": 15,
+    "frontend": 2244,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "complete_engine_inventory_regenerated": true,
+    "preserved_incoming_changes": {
+      "disabled_etf_supplement_tests": 8,
+      "whole_etf_desk_tests": 78,
+      "katlin_native_tests": 47,
+      "katlin_price_priors_and_permissions_unchanged": true,
+      "actual_data_reads": 0,
+      "foreign_operations_executed": 0,
+      "local_desk_harness_missing_bash_corrected_with_existing_git_path": true
+    }
+  }
+}

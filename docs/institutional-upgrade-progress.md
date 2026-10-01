@@ -7026,3 +7026,14 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - A failed provider-search refresh retains or restores the old SQLite bytes; same-clock replacements use the full artifact identity. Manifest failure stays explicitly unavailable, and independent native search results remain usable. No actual index/catalog/master, private/current/account/consumer body, provider request or producer invocation was used. Normal service execution, actual AWS capacity/latency, independent real-source replay and concurrent manifest writer ordering remain unverified. All ten institutional workstreams remain OPEN; storage integrity grants no investment authority.
 
 - After the exact static inspection, concurrent ETF proxy-label merge `ca5462aebca056c1d097363a9068032886a0f0db` was reviewed and preserved. Its five native synthetic and four label/renderer cases pass. It changes a different engine and two other pages; this acceptance remains pinned to the stated native commit and observed static build, without claiming acceptance of subsequent live builds. Publication-order repair 6408 is reserved next.
+
+
+### Stage 496 conditional directory publication candidate
+
+- Two complete invented native builds reproduce an older manifest replacing a newer one. The whole 171,274-byte preceding handler, complete acquisition boundaries, every output body and the interleaving are retained. No actual provider, directory or consumer packet was accessed.
+- The candidate retains complete docs/index/catalog artifacts, selects a manifest with ETag conditions and orders participating builds by start and completion clocks. It retains legacy copies with independent conditional updates. These are explicitly not a multi-object transaction; uncooperative writers and legacy consumers remain outside the new guarantee.
+- Whole-handler integration caught a frozen retry-clock error, corrected by reevaluating time on each conflict retry. Review also caught scheduled success responses hiding copy errors. Copy failures now raise through the native handler after preserving the committed immutable generation; deliberate supersession remains explicit. All 85 native tests pass, including sixteen new publication cases. AST comparison confirms only the build function changes.
+- Exact seven-source acceptance 6408 is reserved. Full deployment checks, native release, normal publication, actual capacity, independent source replay and all ten institutional workstreams remain OPEN. No new investment authority, sources, schedules or AWS resources are introduced.
+
+
+- Final Stage 496 candidate passes 85 native, five acceptance, 1013 deployment, fifteen shell and 2,244 frontend cases. The complete engine inventory, dependency map and page contracts were regenerated from this source; all 599 page graphs and 143 companion wires pass. Exact native/static release acceptance remains pending.

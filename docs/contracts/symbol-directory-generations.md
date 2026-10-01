@@ -9,8 +9,10 @@ does the existing manifest name the exact pair, including sizes and SHA-256
 digests. The index also records its document digest, version and build clock.
 Legacy keys and fields remain for existing consumers. Immutable generation
 retention currently has no automatic pruning; capacity/lifecycle management is a
-separate operational concern. Concurrent publishers cannot mix one reader's pair,
-but last-writer ordering of the manifest is not a compare-and-swap guarantee.
+separate operational concern. Concurrent publishers cannot mix one reader's pair.
+The conditional publication candidate adds manifest ordering and separate legacy
+copy handling; see [symbol-directory-publication.md](symbol-directory-publication.md).
+Its native release acceptance is separate from the original generation repair.
 
 A reader pins one manifest and retrieves only that pair, even if another build
 publishes while it downloads. It verifies complete transport, compressed hashes,
