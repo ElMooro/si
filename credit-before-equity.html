@@ -107,7 +107,7 @@ document.getElementById('evidence').innerHTML='<h2 id="evidence-title">Evidence 
 +(notes.length?'<ul>'+notes.map(function(v){return '<li>'+esc(v)+'</li>';}).join('')+'</ul>':'<p>No degradation declared by the engine. This is not independent source verification.</p>')
 +'<p>Packet generated: '+(clock?esc(d.generated_at):'Unavailable')+'. This is the engine output time, not the observation time of its credit or equity inputs. Input source clocks and source freshness are not supplied by this packet.</p>'
 +'<p>Counts and signals below are reported by the engine. '+(degraded||issues.length?'Incomplete evidence must not be read as an absence of credit leads.':'')+'</p>';
-var num=function(v,dp){return finite(v)?v.toFixed(dp==null?2:dp):'Unavailable';};
+var num=function(v,dp,unit){return finite(v)?v.toFixed(dp==null?2:dp)+(unit||''):'Unavailable';};
 var countText=function(v){return count(v)?String(v):'Unavailable';};
 var sign=function(v){return finite(v)&&v>0?'+':'';};
 var sgCol=function(s){if(s==='CREDIT_LEADS_DOWN')return NEG;if(s==='CREDIT_LEADS_UP')return POS;if(s==='INSUFFICIENT_HISTORY')return MUT;return NEU;};
@@ -130,9 +130,9 @@ return '<div class="row"><div class="head"><span class="nm">'+text(x.ticker)+' <
 +'<span class="pill" style="color:'+sgCol(x.signal)+';border-color:'+sgCol(x.signal)+'">'+text(typeof x.signal==='string'?x.signal.replace(/_/g,' '):null)+'</span></span>'
 +'<span class="mono" style="color:'+cdCol(x.credit_direction)+'">credit '+text(x.credit_direction)+'</span></div>'
 +'<div class="meta">DD '+num(x.distance_to_default)+' ('+sign(x.d_distance_to_default)+num(x.d_distance_to_default)+')'
-+' · CDS '+num(x.synthetic_cds_bp,1)+'bp ('+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+')'
-+' · price '+sign(x.d_price_pct)+num(x.d_price_pct)+'%'
-+' · 5y PD '+num(x.default_prob_5y_pct,2)+'%'
++' · CDS '+num(x.synthetic_cds_bp,1,'bp')+' ('+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+')'
++' · price '+sign(x.d_price_pct)+num(x.d_price_pct,2,'%')
++' · 5y PD '+num(x.default_prob_5y_pct,2,'%')
 +' · regime '+text(x.regime)+' · vs '+text(x.prior_obs_date)+'</div></div>';}).join('')
 :'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">'+esc(empty)+'</span></div>';
 
@@ -140,7 +140,7 @@ document.getElementById('tb').innerHTML=rows.map(function(x){
 return '<tr><td style="color:'+ACC+'">'+text(x.ticker)+'</td><td>'+text(typeof x.name==='string'?x.name.slice(0,26):null)+'</td>'
 +'<td>'+num(x.distance_to_default)+'</td><td style="color:'+(finite(x.d_distance_to_default)&&x.d_distance_to_default>0?POS:(finite(x.d_distance_to_default)&&x.d_distance_to_default<0?NEG:MUT))+'">'+sign(x.d_distance_to_default)+num(x.d_distance_to_default)+'</td>'
 +'<td>'+num(x.synthetic_cds_bp,1)+'</td><td style="color:'+(finite(x.d_synthetic_cds_bp)&&x.d_synthetic_cds_bp<0?POS:(finite(x.d_synthetic_cds_bp)&&x.d_synthetic_cds_bp>0?NEG:MUT))+'">'+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+'</td>'
-+'<td style="color:'+(finite(x.d_price_pct)&&x.d_price_pct>0?POS:(finite(x.d_price_pct)&&x.d_price_pct<0?NEG:MUT))+'">'+sign(x.d_price_pct)+num(x.d_price_pct)+'%</td>'
++'<td style="color:'+(finite(x.d_price_pct)&&x.d_price_pct>0?POS:(finite(x.d_price_pct)&&x.d_price_pct<0?NEG:MUT))+'">'+sign(x.d_price_pct)+num(x.d_price_pct,2,'%')+'</td>'
 +'<td style="color:'+cdCol(x.credit_direction)+'">'+text(x.credit_direction)+'</td>'
 +'<td style="color:'+sgCol(x.signal)+'">'+text(typeof x.signal==='string'?x.signal.replace(/_/g,' '):null)+'</td></tr>';}).join('');
 
