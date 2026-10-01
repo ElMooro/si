@@ -75,6 +75,7 @@ test('32-page request ceiling spans cohorts; cache hits do not spend or reset it
  m.limits={pages:999999,total_bytes:999999999};f.resign(m);const s=A.ownershipSession();await s.open(f.p,f.fetcher);s.select(g.cohort_id);
  for(let i=0;i<32;i++)assert.equal((await s.next('qualified',f.fetcher,time(f.p))).page,i+1);
  let calls=0;await assert.rejects(s.next('qualified',async()=>{calls++;},time(f.p)),/32-page/);assert.equal(calls,0);
+ const backward=await s.previous('qualified',async()=>{calls++;throw Error('cache expected');},time(f.p));assert.equal(backward.page,31);assert.equal(backward.requests,32);assert.equal((await s.next('qualified',f.fetcher,time(f.p))).page,32);assert.equal(calls,0);
  // Changing the cohort resets the cursor, never the network budget.
  const counted=async(k,o)=>{calls++;return f.fetcher(k,o);};
  for(let i=0;i<3;i++){
@@ -98,4 +99,44 @@ test('reviewed PR14 UI-only downgrade verifies new publications and keeps select
   assert.equal(snap.indexed_rows,306);const html=old.render(p);
   assert.match(html,/data-hd-heat-load/);assert.doesNotMatch(html,/data-hd-ownership/);
  }
+});
+test('Previous revisits only verified pages without fetching or shrinking the verified prefix',async()=>{
+ const f=fixture(),s=A.ownershipSession(),keys=[],fetch=async(k,o)=>{keys.push(k);return f.fetcher(k,o);},m=await s.open(f.p,fetch),g=current(m);s.select(g.cohort_id);
+ await assert.rejects(s.previous('qualified',fetch,time(f.p)),/No previous/);
+ const first=await s.next('qualified',fetch,time(f.p));await s.next('qualified',fetch,time(f.p));const before=keys.length;
+ for(let i=0;i<3;i++){const back=await s.previous('qualified',fetch,time(f.p));assert.equal(back.page,1);assert.equal(back.loaded,307);assert.deepEqual(back.rows,first.rows);assert.equal(back.from,1);assert.equal(back.to,200);assert.equal(back.canPrevious,false);assert.equal(back.canNext,true);const forward=await s.next('qualified',fetch,time(f.p));assert.equal(forward.page,2);assert.equal(forward.canNext,false);}
+ assert.equal(keys.length,before);assert.equal(s.position().page,2);
+});
+test('pending Next cannot resurrect after Previous, date switch, cancel or metadata retry',async()=>{
+ for(const action of ['previous','date','cancel','retry']){
+  const f=fixture(),s=A.ownershipSession(),m=await s.open(f.p,f.fetcher),g=current(m);s.select(g.cohort_id);await s.next('raw',f.fetcher,time(f.p));
+  let release;const pending=s.next('raw',async(k)=>{await new Promise(r=>release=r);return f.fetcher(k);},time(f.p));
+  if(action==='previous')await assert.rejects(s.previous('raw',f.fetcher,time(f.p)),/No previous/);
+  if(action==='date')s.select(m.cohorts.find(c=>c.kind==='current_membership'&&c!==g).cohort_id);
+  if(action==='cancel')s.cancel();if(action==='retry')await s.open(f.p,f.fetcher);
+  release();await assert.rejects(pending,/Cancelled/);
+  assert.equal(s.position().page,['date','retry'].includes(action)?0:1);
+  s.select(g.cohort_id);assert.equal((await s.next('raw',f.fetcher,time(f.p))).page,1);
+ }
+});
+test('Previous enforces current expiry on cached evidence; raw navigation stays explicitly historical',async()=>{
+ const f=fixture(),s=A.ownershipSession(),m=await s.open(f.p,f.fetcher),g=current(m);s.select(g.cohort_id);await s.next('lower',f.fetcher,time(f.p));await s.next('lower',f.fetcher,time(f.p));
+ await assert.rejects(s.previous('lower',f.fetcher,Date.parse(g.lower_bound_valid_until)),/expired/);assert.equal(s.position().page,2);
+ const r=await s.previous('raw',async()=>{throw Error('Must use cache');},Date.parse(g.lower_bound_valid_until));assert.equal(r.page,1);
+ assert.match(A.ownershipView(m,g,r,'raw',time(f.p)),/Displayed records 1–200/);assert.match(A.ownershipView(m,g,r,'raw',time(f.p)),/not the qualified denominator/);
+});
+test('cohort controls expose Previous and distinguish page size from the fund denominator',()=>{
+ assert.match(A.ownershipPanel(),/data-own-previous[^>]*disabled>Previous/);
+ const f=fixture(),m=f.manifest(),g=current(m);assert.match(A.ownershipCoverage(m,g,time(f.p)),/qualified on other dates/);
+ assert.match(A.ownershipView(m,g,{page:2,rows:[],loaded:307,total:307},'qualified',time(f.p)),/eligible-fund denominator/);
+});
+test('Previous wins over a delayed third page and later forward progress still validates the prefix',async()=>{
+ const f=fixture(),m=f.manifest(),g=current(m),base=JSON.parse(f.artifacts[g.parts[0].key]).rows[0];g.record_count=600;g.parts=[];
+ for(let page=0;page<3;page++)g.parts.push(f.put({contract:'etf-qualified-membership-rows.v1',cohort_id:g.cohort_id,row_offset:page*200,rows:Array.from({length:200},(_,i)=>({...base,identity_key:(page*200+i).toString(16).padStart(64,'0')}))}));
+ m.record_count=m.cohorts.reduce((n,c)=>n+c.record_count,0);m.page_count=m.cohorts.reduce((n,c)=>n+c.parts.length,0);f.resign(m);
+ const s=A.ownershipSession();await s.open(f.p,f.fetcher);s.select(g.cohort_id);await s.next('raw',f.fetcher,time(f.p));await s.next('raw',f.fetcher,time(f.p));
+ let release;const pending=s.next('raw',async k=>{await new Promise(r=>release=r);return f.fetcher(k);},time(f.p));
+ const back=await s.previous('raw',f.fetcher,time(f.p));assert.equal(back.page,1);assert.equal(back.loaded,400);
+ release();await assert.rejects(pending,/Cancelled/);assert.equal(s.position().page,1);
+ assert.equal((await s.next('raw',f.fetcher,time(f.p))).page,2);const end=await s.next('raw',f.fetcher,time(f.p));assert.equal(end.page,3);assert.equal(end.loaded,600);
 });

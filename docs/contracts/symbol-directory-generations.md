@@ -9,8 +9,10 @@ does the existing manifest name the exact pair, including sizes and SHA-256
 digests. The index also records its document digest, version and build clock.
 Legacy keys and fields remain for existing consumers. Immutable generation
 retention currently has no automatic pruning; capacity/lifecycle management is a
-separate operational concern. Concurrent publishers cannot mix one reader's pair,
-but last-writer ordering of the manifest is not a compare-and-swap guarantee.
+separate operational concern. Concurrent publishers cannot mix one reader's pair.
+The conditional publication candidate adds manifest ordering and separate legacy
+copy handling; see [symbol-directory-publication.md](symbol-directory-publication.md).
+Its native release acceptance is separate from the original generation repair.
 
 A reader pins one manifest and retrieves only that pair, even if another build
 publishes while it downloads. It verifies complete transport, compressed hashes,
@@ -42,8 +44,9 @@ failed manifest read or invalid/regressing head raises an error while preserving
 the working cache; it no longer reports a successful check through an empty fallback.
 
 This is not recovery from process termination, host loss, disk corruption after
-checkpoint validation or an unrecoverable memory kill. It does not repair the
-separate SQLite provider-warehouse refresh. Temporary-space contention can defer
+checkpoint validation or an unrecoverable memory kill. The separate SQLite provider-warehouse refresh has its own candidate contract
+in [provider-search-cache.md](provider-search-cache.md) and requires separate
+release acceptance. Temporary-space contention can defer
 a refresh, and actual AWS population capacity/latency has not been measured.
 The reproducible optional synthetic benchmark is
 `python tests/benchmark_directory_index.py 500000`; it requires no provider or

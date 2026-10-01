@@ -134,6 +134,11 @@ class CycleBoundaries(unittest.TestCase):
                 return result
             previous,current=group(old),group(new)
             for name,nodes in previous.items():
+                if engine == 'katlin' and name in ('run_backtest', 'validation_summary'):
+                    from katlin_oos_test_support import assert_oos_only_change
+                    self.assertEqual(len(nodes), 1); self.assertEqual(len(current[name]), 1)
+                    assert_oos_only_change(self, nodes[0], current[name][0])
+                    continue
                 if engine=='katlin' and name in ('s3_json','s3_json_quiet'):
                     # The later price-source boundary has its own behavioural
                     # tests. Verify its exact narrow guard, then still compare

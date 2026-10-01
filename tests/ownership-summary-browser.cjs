@@ -9,7 +9,9 @@ const fixture=require('./ownership-summary-fixture.cjs'),root=path.resolve(__dir
   const {replay,...body}=look,base='data/holdings-lookthrough-research/',output=f.put(body,'outputs',base),run=JSON.parse(f.artifacts[replay.manifest_key]);run.output=output;run.output_sha256=output.sha256;look.replay={manifest_key:f.put(run,'runs',base).key,output_sha256:output.sha256};
   const page=await browser.newPage({viewport:{width,height:1000}}),errors=[],requests=[];
   page.on('pageerror',e=>errors.push(e.message));await page.clock.install({time:new Date(now)});
+  let pauseKey=null,releasePaused=null,pausedStarted=null;
   await page.route('**/*',async route=>{const key=new URL(route.request().url()).pathname.slice(1);requests.push(key);
+   if(key===pauseKey){pausedStarted();await new Promise(resolve=>releasePaused=resolve);}
    if(key==='data/etf-holdings-research.json'||key==='data/flow-lookthrough.json')return route.fulfill({contentType:'application/json',body:JSON.stringify(key.includes('lookthrough')?look:f.p)});
    if(f.artifacts[key])return route.fulfill({contentType:'application/json',body:f.artifacts[key]});
    if(['etf-holdings.html','flow-lookthrough.html','jh-etf-holdings.js','jh-sector-research.css'].includes(key))return route.fulfill({body:fs.readFileSync(path.join(root,key)),contentType:key.endsWith('.js')?'text/javascript':key.endsWith('.css')?'text/css':'text/html'});
@@ -22,12 +24,30 @@ const fixture=require('./ownership-summary-fixture.cjs'),root=path.resolve(__dir
   assert.match(await page.locator('[data-own-coverage]').innerText(),/1 eligible \/ 300 configured/);
   assert.match(await page.locator('[data-own-result]').innerText(),/200 \/ 307/);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  await page.screenshot({path:'/tmp/ownership-cohort-'+width+'-'+name+'.png'});
+  assert.equal(await page.locator('[data-own-previous]').isDisabled(),true);
+  await page.locator('[data-own-next]').click();await page.waitForFunction(()=>document.querySelector('[data-own-status]').textContent.includes('displaying 201–307'));
+  assert.equal(await page.locator('[data-own-next]').isDisabled(),true);
+  const cachedCount=requests.length;
+  for(let n=0;n<2;n++){
+   await page.locator('[data-own-previous]').click();await page.waitForFunction(()=>document.querySelector('[data-own-status]').textContent.includes('displaying 1–200'));
+   assert.equal(await page.locator('[data-own-previous]').isDisabled(),true);
+   await page.locator('[data-own-next]').click();await page.waitForFunction(()=>document.querySelector('[data-own-status]').textContent.includes('displaying 201–307'));
+  }
+  assert.equal(requests.length,cachedCount);
+  await page.locator('[data-own-previous]').click();await page.waitForFunction(()=>document.querySelector('[data-own-status]').textContent.includes('displaying 1–200'));
+  await page.locator('[data-own-open]').click();await page.waitForFunction(()=>document.querySelector('[data-own-status]').textContent.startsWith('Metadata verified'));
+  assert.equal(await page.locator('[data-own-previous]').isDisabled(),true);assert.equal(await page.locator('[data-own-next]').isDisabled(),true);
+  await page.locator('[data-own-cohort]').selectOption(g.cohort_id);await page.locator('[data-own-next]').click();await page.locator('[data-own-result] table').waitFor();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:'/tmp/ownership-navigation-'+width+'-'+name+'.png'});
   const before=requests.length;await page.locator('[data-own-view]').selectOption('lower');await page.locator('[data-own-next]').click();await page.locator('[data-own-result] table').waitFor();assert.equal(requests.length,before);
   await page.clock.fastForward(3600000);assert.match(await page.locator('[data-own-result]').innerText(),/lower bound unavailable/);
   await page.locator('[data-own-view]').selectOption('qualified');await page.locator('[data-own-next]').click();await page.locator('[data-own-result] table').waitFor();
   await page.locator('[data-own-cancel]').click();assert.equal(await page.locator('[data-own-result]').innerText(),'');
   await page.locator('[data-own-view]').selectOption('raw');await page.locator('[data-own-next]').click();await page.locator('[data-own-result] table').waitFor();assert.match(await page.locator('[data-own-result]').innerText(),/not ranked/);
+  pauseKey=f.p.ownership_summary.manifest.key;const paused=new Promise(resolve=>pausedStarted=resolve);
+  await page.locator('[data-own-open]').click();await paused;await page.locator('[data-own-cancel]').click();pauseKey=null;releasePaused();await new Promise(resolve=>setTimeout(resolve,100));
+  assert.match(await page.locator('[data-own-status]').innerText(),/^Cancelled/);assert.equal(await page.locator('[data-own-result]').innerText(),'');
   f.artifacts[f.p.ownership_summary.manifest.key]+=' ';await page.locator('[data-own-open]').click();await page.waitForFunction(()=>document.querySelector('[data-own-status]').textContent.startsWith('Summary unavailable:'));
   assert.equal(await page.locator('[data-own-result]').innerText(),'');
   assert.equal(await page.locator('[data-hd-heat-load]').count(),1);assert.ok(await page.locator('[data-hd-table] table').count());assert.deepEqual(errors,[]);

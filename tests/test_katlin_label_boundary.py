@@ -1,6 +1,7 @@
 """Offline counterexamples; invented prices/clocks, never historical evidence."""
 import ast
 import copy
+import hashlib
 from datetime import datetime, timedelta, timezone
 import importlib.util
 import json
@@ -12,7 +13,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "aws/lambdas/justhodl-katlin/source/lambda_function.py"
+PREDECESSOR = ROOT / "tests/fixtures/katlin-oos-before-availability.py.txt"
 spec = importlib.util.spec_from_file_location("boundary", ROOT / "scripts/research/katlin_label_boundary.py")
 boundary = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundary)
@@ -34,18 +35,20 @@ def observation(name, entry, horizons=(63, 126, 252), prices=None):
                        for h in horizons}}
 
 
-def native_fit():
-    # Compile ONLY the existing pure nested fit function, never import the Lambda
-    # (which creates cloud clients). The actual production arithmetic is exercised.
-    tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
+def retained_predecessor_fit():
+    # The historical defect belongs to the explicitly retained predecessor, not
+    # corrected production. Compile only its pure fit and selection expression.
+    body = PREDECESSOR.read_bytes()
+    assert hashlib.sha256(body).hexdigest() == "8d9f3fed0c664f24a2781719c92089b0f945f99df865525715c71fd9628c3e41"
+    tree = ast.parse(body.decode("utf-8"))
     run = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "run_backtest")
     fit = next(n for n in run.body if isinstance(n, ast.FunctionDef) and n.name == "fit")
     scope = {"mean": mean, "median": median, "FEATURES": ("fixture_bucket",), "rnd": round}
-    exec(compile(ast.Module(body=[fit], type_ignores=[]), str(SOURCE), "exec"), scope)
+    exec(compile(ast.Module(body=[fit], type_ignores=[]), str(PREDECESSOR), "exec"), scope)
     # Retain the real legacy training-selection expression as the counterexample.
     split = next(n.value for n in ast.walk(run) if isinstance(n, ast.Assign)
                  and any(isinstance(t, ast.Name) and t.id == "train" for t in n.targets))
-    return scope["fit"], compile(ast.Expression(body=split), str(SOURCE), "eval")
+    return scope["fit"], compile(ast.Expression(body=split), str(PREDECESSOR), "eval")
 
 
 def native_rows(rows, h):
@@ -58,7 +61,7 @@ class BoundaryTests(unittest.TestCase):
         return boundary.training_audit(rows, horizon=h, test_start_index=start, test_start_at=stamp(start))
 
     def test_test_price_mutation_changes_legacy_fit_but_not_eligible_fit(self):
-        fit, legacy = native_fit()
+        fit, legacy = retained_predecessor_fit()
         for h in (63, 126, 252):
             with self.subTest(horizon=h):
                 before = [100.0] * 1000
@@ -80,6 +83,43 @@ class BoundaryTests(unittest.TestCase):
                 clean_a = [r for r in a if r["id"] in aa["accepted_ids"]]
                 clean_b = [r for r in b if r["id"] in bb["accepted_ids"]]
                 self.assertEqual(fit(native_rows(clean_a, h), h), fit(native_rows(clean_b, h), h))
+
+    def test_current_production_still_withholds_invalid_oos(self):
+        # Reuse PR24's actual-producer replay with invented prices and local I/O
+        # stubs. This imports a test helper, never the cloud-initializing Lambda.
+        path = ROOT / "aws/lambdas/justhodl-katlin/tests/test_oos_boundary.py"
+        spec = importlib.util.spec_from_file_location("current_oos_replay", path)
+        replay = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(replay)
+        current, _, _ = replay.replay()
+        legacy, _, _ = replay.replay(legacy=True)
+
+        def assert_withheld(packet):
+            self.assertEqual(packet["oos"], {})
+            validation = packet.get("oos_validation") or {}
+            self.assertEqual(validation.get("contract"), "katlin-oos-boundary.v1")
+            self.assertEqual(validation.get("status"), "BLOCKED")
+            self.assertIs(validation.get("historical_availability_verified"), False)
+            self.assertIs(validation.get("validated_strategy"), False)
+            self.assertEqual(set(validation.get("folds", {})), {"63s", "126s"})
+            for fold in validation["folds"].values():
+                self.assertEqual(fold["eligible_training_observations"], 0)
+                self.assertIsNone(fold["split_decision_at"])
+                self.assertGreater(fold["missing_verified_label_availability"], 0)
+
+        assert_withheld(current)
+        self.assertTrue(legacy["oos"])
+        with self.assertRaises(AssertionError):
+            assert_withheld(legacy)
+        # The guard must reject reintroduced claims even alongside the new block.
+        mutant = copy.deepcopy(current)
+        mutant["oos"] = legacy["oos"]
+        with self.assertRaises(AssertionError):
+            assert_withheld(mutant)
+        mutant = copy.deepcopy(current)
+        mutant["oos_validation"]["validated_strategy"] = True
+        with self.assertRaises(AssertionError):
+            assert_withheld(mutant)
 
     def test_each_horizon_has_its_own_membership(self):
         row = observation("x", 200)

@@ -98,3 +98,27 @@ empty cohorts are tested. These are regression fixtures, not historical results.
   Keep its repair in a later independently scoped commit/PR; none is mixed here.
 - Review the proposal in `docs/research/khalid-event-study-proposal.md` before a
   historical study or evidence display on `khalid.html`. No gate is auto-relaxed.
+
+
+## Compatibility after PR24 production withdrawal
+
+PR19 now incorporates current main `5989f4076`: its validator stays
+unchanged and offline-only. The historical leakage counterexample now compiles
+the fit and training-selection expression from the explicit retained predecessor
+`tests/fixtures/katlin-oos-before-availability.py.txt` (SHA-256
+`8d9f3fed0c664f24a2781719c92089b0f945f99df865525715c71fd9628c3e41`).
+It no longer requires the removed production training expression to exist.
+
+A separate regression guard reuses PR24's invented-price actual-producer replay:
+current production must withhold OOS, publish the blocked availability contract,
+retain zero eligible training observations and make no validated-strategy claim.
+The guard is also tested against the actual predecessor and mutations that restore
+legacy OOS statistics or assert validated strategy status; all must be rejected.
+No Lambda is imported, no cloud client is created, and all replay I/O is stubbed.
+No production source, policy, schedule or artifact is changed by PR19.
+
+Nine boundary tests pass alongside the current-main Katlin suite, 65 Khalid
+tests, 2,244 frontend tests, 1,013 deployment checks plus 15 shell checks, and
+the actual renderer regression. Deployment tests used temporary dependencies,
+dummy credentials and an external-network deny guard; no cloud calls occurred. This is an
+offline regression repair requiring exact-head re-review, not performance evidence.

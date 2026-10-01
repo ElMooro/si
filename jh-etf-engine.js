@@ -1,4 +1,4 @@
-/* jh-etf-engine.js — ETF desk engine: prices, D/W/M/3M vs SPX, Polygon flows, A/D, pattern. */
+/* jh-etf-engine.js — ETF desk engine: prices, D/W/M/3M vs SPX, legacy Polygon price/volume proxies, A/D, pattern. */
 (function (w) {
   "use strict";
   if (w.JHEtf) return;
@@ -142,6 +142,9 @@
       return {
         ticker: t, name: g.name || (cx[t] && cx[t].name) || f.name || u.n, cat: u.c,
         px: px, h: h, vs: vs, ad: ad.phase, cmf: ad.cmf, pattern: pat,
+        flowDisplay: flowUsd != null ? "Legacy reported fund flow (unverified)" : (Object.keys(f).length ? "Price/volume activity proxy" : "Trading-activity proxy unavailable"),
+        flowMeasurement: flowUsd != null ? "legacy_fund_flow_unverified" : (Object.keys(f).length ? "price_volume_proxy" : "unavailable"),
+        flowAsOf: flowUsd != null ? (g.flow_effective || null) : ((f.price_volume_measurement || {}).as_of || null),
         flow: sig, flowRaw: g.flow_label || f.flow_signal || sig,
         flow1d: flowUsd, flow5d: g.flow_5d, flow21d: g.flow_21d,
         z: z, aum: aumUsd, er: g.er, issuer: g.issuer, nav: g.nav,
@@ -175,7 +178,7 @@
         history: "Warehouse / Yahoo daily bars",
         flows: paidLive
           ? "Massive ETF Global fund-flows · data/etf-desk.json"
-          : "justhodl-etf-flows $vol z (paid desk not live yet)",
+          : "Polygon daily price/volume activity proxy; not measured fund inflows/outflows",
         profiles: "Massive ETF Global profiles & exposure",
         holdings: "Massive ETF Global constituents",
         census: "justhodl-etf-census · data/etf-census-matrix.json"

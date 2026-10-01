@@ -35,8 +35,10 @@ td{padding:7px;border-bottom:1px solid var(--border)}td.num{font-family:var(--mo
     <span class="badge" id="meta"></span>
     <div class="saved" id="history"></div>
   </div>
+  <p class="sub">ETF classifications below are daily price/volume trading-activity proxies, not measured fund inflows or outflows. Legacy ranking rules are unchanged. <a href="/etf.html">Open dated ETF flow evidence</a>.</p>
   <div id="out">No scan yet.</div>
 </div>
+<script src="/jh-etf-proxy-labels.js"></script>
 <script>
 const PROXY="https://api.justhodl.ai";
 const LS="jh_wyckoff_v1";
@@ -112,12 +114,12 @@ async function scan(){
   Object.keys(eby).forEach(k=>{const r=eby[k]||{};r.ticker=r.ticker||k;r._s=scoreWyc(r,brief,'etf');if(r._s>0)etfs.push(r);});
   etfs.sort((a,b)=>b._s-a._s);
   document.getElementById('meta').textContent=stocks.length+' names · '+etfs.length+' ETFs · phase '+phaseHint(brief);
-  function table(title,rows){
+  function table(title,rows,etfProxy=false){
     if(!rows.length)return '<div class="box">'+title+': none in this campaign</div>';
     return '<div class="box"><b>'+title+'</b><table class="tbl"><thead><tr><th>Ticker</th><th>Tape</th><th>Inst %</th><th>Chg</th><th>Score</th></tr></thead><tbody>'+
-      rows.slice(0,40).map(r=>'<tr><td>'+esc(r.ticker)+'</td><td>'+esc(r.sector||r.flow_signal||r.name||'')+'</td><td class="num '+(r.inst_trans_pct>0?'pos':r.inst_trans_pct<0?'neg':'')+'">'+(r.inst_trans_pct==null?'—':Number(r.inst_trans_pct).toFixed(1))+'</td><td class="num">'+(r.change||r.chg||'—')+'</td><td class="num">'+r._s+'</td></tr>').join('')+'</tbody></table></div>';
+      rows.slice(0,40).map(r=>'<tr><td>'+esc(r.ticker)+'</td><td>'+esc(etfProxy ? (window.JHEtfProxyLabels ? window.JHEtfProxyLabels.describe(r) : 'Trading-activity proxy; classification unavailable') : (r.sector||r.flow_signal||r.name||''))+'</td><td class="num '+(r.inst_trans_pct>0?'pos':r.inst_trans_pct<0?'neg':'')+'">'+(r.inst_trans_pct==null?'—':Number(r.inst_trans_pct).toFixed(1))+'</td><td class="num">'+esc(r.change??r.chg??'—')+'</td><td class="num">'+r._s+'</td></tr>').join('')+'</tbody></table></div>';
   }
-  document.getElementById('out').innerHTML=table('Equities (Wyckoff range)',stocks)+table('ETFs / rotation vehicles',etfs);
+  document.getElementById('out').innerHTML=table('Equities (Wyckoff range)',stocks)+table('ETF trading-activity proxies',etfs,true);
 }
 document.getElementById('go').onclick=scan;
 </script>
