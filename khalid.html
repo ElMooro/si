@@ -206,9 +206,10 @@
               <a href="https://www.chicagofed.org/research/data/nfci/about" target="_blank" rel="noopener"><b>FINANCIAL CONDITIONS</b><span>Broad conditions are monitored with explicit cadence and freshness controls.</span></a>
             </div>
           </article>
+          <p class="k-disclaimer">Source timestamp age is measured at this Khalid publication against the source timestamp used by the existing input check (publication/as-of, or object-modification fallback). For Katlin, it is publication age, not original research age: a permission refresh does not renew research. FRESH and the producer TTL describe the existing input check, not independent freshness of research or upstream observations. Separate research, publication and upstream clocks are retained in Sniper → Scope source references when available.</p>
           <div class="k-table-wrap">
             <table>
-              <thead><tr><th>Input</th><th>Domain</th><th>Status</th><th>Age</th><th>SLA</th><th>Producer</th></tr></thead>
+              <thead><tr><th>Input</th><th>Domain</th><th>Source status</th><th>Source timestamp age</th><th>Producer TTL</th><th>Producer</th></tr></thead>
               <tbody id="input-table"></tbody>
             </table>
           </div>

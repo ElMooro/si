@@ -550,7 +550,11 @@
   function criterion(c) {
     var details = el("details", null, "sn-criterion");
     details.append(el("summary", c.label + " — " + c.status));
-    details.append(el("p", c.definition));
+    // Clarify the passing condition without mutating the revision-bound definition.
+    var description = c.id === "risk_permission" && c.definition === "Existing risk_allows_entries flag is true; this evidence never grants permission."
+      ? "Passing criterion: requires risk_allows_entries to be true; this evidence never grants permission."
+      : c.definition;
+    details.append(el("p", description));
     var dl = el("dl", null, "sn-facts");
     pair(dl, "Criterion", c.id); pair(dl, "Definition", c.definition_version); pair(dl, "Applicability", c.applicability);
     pair(dl, "Value", c.value); pair(dl, "Unit", c.unit); pair(dl, "Provenance", c.provenance); details.append(dl);

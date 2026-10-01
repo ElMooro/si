@@ -1,0 +1,36 @@
+{
+  "base": "4aeaaf1932469cd027636e8b3034e477b5340fce",
+  "scope": "UI wording only, draft; no merge or deployment",
+  "production_files": [
+    "jh-khalid-sniper.js",
+    "khalid.html"
+  ],
+  "changes": [
+    "Exact known risk_permission definition is rendered as a passing criterion requiring true; original status/value and definition object are untouched. Unrecognized definitions remain verbatim.",
+    "Method column headings identify source timestamp age and producer TTL; note distinguishes publication/as-of/object-modification fallback and Katlin publication age from research and upstream freshness."
+  ],
+  "backend_contract_string_changes_required": false,
+  "backend_sources_changed": false,
+  "policy_scoring_sizing_requests_changed": false,
+  "katlin_workstream_untouched": true,
+  "test_evidence": {
+    "targeted_tests": 3,
+    "intercepted_browser_cases": 4,
+    "viewports": [
+      "1440x1000",
+      "390x1000"
+    ],
+    "pages": [
+      "khalid.html",
+      "chart.html"
+    ],
+    "measured_false_fail_retained": true,
+    "method_values": "FRESH, 0.1h,36h retained in invented fixture",
+    "live_acceptance": false,
+    "frontend_tests": 2635,
+    "page_graphs_parsed": 599,
+    "wiring": "36 pages/143 wires, no missing or stale"
+  },
+  "review_repair": "Independent reviewer noted object-modification fallback; copy and regression now include it.",
+  "release_note": "Existing Pages build content-hash stamps shared scripts. No backend contract or manually changed cache tokens are needed."
+}
