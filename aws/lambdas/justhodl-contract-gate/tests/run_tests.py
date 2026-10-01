@@ -8,3 +8,7 @@ if __name__ == "__main__":
     for name, test in tests:
         test()
     print("Reviewed contract tests:", len(tests))
+
+if __name__ == "__main__":
+    import subprocess, sys
+    subprocess.run([sys.executable, str(ROOT / "tests/test_website_status_monitor.py")], check=True)
