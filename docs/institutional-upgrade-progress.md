@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 509: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503; OBV through Stage 504. Scalar point rendering, independent axis ownership, core volume missingness, delayed render ownership, accurate refresh-setting labels and mkChart resource cleanup are accepted through Stage 509 with 78 exact static artifacts, 898 engine records and 599 page contracts. Next: confirmed chart HTML injection, followed by legacy volume calculation windows/numerical qualification and crowded metadata; auxiliary async consumers remain separately unqualified. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 511: all ten institutional workstreams remain open. Prior native, edge, publication, chart observation, volume and render-lifecycle acceptance remains retained. The reproduced chart URL/label HTML injection paths are repaired and accepted with 78 exact static artifacts, 898 engine records and 599 page contracts. Next: rebase and finish the signed-volume Stage 510 prototype, then repair the reproduced documented FINRA dataset/category contract, benchmark-label misuse and Bond TRACE 30-row boundary. Other HTML sinks, numerical extremes, auxiliary consumers and mobile metadata remain unqualified. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7305,3 +7305,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - The signed-volume Stage 510 prototype remains unpublished, and must be rebased after this security repair. No actual/private/current-consumer data, producer invocation or investment authority change. All ten institutional workstreams OPEN.
 
 - Stage 511 combined checks passed 2,578 frontend cases, 1018 deployment and fifteen shell checks. Thirteen new behavior/preservation cases and fifteen offline desktop/mobile suites pass. Literal label/identity preservation is verified within this scope; exact static release remains pending.
+
+
+### Stage 511 exact static acceptance
+
+- Source `4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2` matches the exact served Pages build, run 36862246172. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- 2,578 frontend cases, 1018 deployment and fifteen shell checks pass. Thirteen new cases and fifteen offline real-library desktop/mobile suites verify literal symbols, notes, labels and quoted IDs, including query/hash entry, navigation recovery, alert deletion and comparison removal. The previous source fails all eight focused cases.
+- This closes the reproduced chart-label injection paths. It does not establish that every HTML sink, other page, annotation, URL, CSS value or dependency is safe. Long literal symbols still crowd mobile metadata. All ten institutional workstreams remain OPEN.
