@@ -1,66 +1,80 @@
-executing-against: c02ccf4439b2484815d31e3deb539202bf80877e
+executing-against: 4ce638b657a910b557e76a23929a8769fd315811
 {
-  "script": "1077_t360_v11_live",
-  "read_at": "2026-10-01T15:07:13Z",
-  "lambda": {
-    "last_modified": "2026-10-01T14:49:55.000+0000",
-    "code_sha": "wnOudss8Uhu1"
-  },
-  "before": {
-    "version": "1.1",
-    "generated_at": "2026-10-01T14:55:07Z",
-    "indexed_tickers": 734
-  },
+  "script": "1078_t360_v12",
+  "read_at": "2026-10-01T15:31:10Z",
+  "before_version": "1.1",
   "async_invoke": {
     "status_code": 202
   },
   "after": {
     "exists": true,
-    "version": "1.1",
-    "generated_at": "2026-10-01T14:55:07Z",
-    "universe_size": 734,
-    "indexed_tickers": 734,
-    "top_coverage": [
-      {
-        "ticker": "_SPX",
-        "coverage": 1
-      },
-      {
-        "ticker": "_NDX",
-        "coverage": 1
-      },
+    "version": "1.2",
+    "generated_at": "2026-10-01T15:31:11Z",
+    "universe_size": 735,
+    "indexed_tickers": 735,
+    "coverage_dist": {
+      "6": 5,
+      "7": 730
+    },
+    "top": [
       {
         "ticker": "ZS",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "ZONE",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "ZDPY",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "ZDGE",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "ZCSH",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "XYL",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "XRPNW",
-        "coverage": 1
+        "coverage": 7
       },
       {
         "ticker": "XOM",
-        "coverage": 1
+        "coverage": 7
+      },
+      {
+        "ticker": "XLABW",
+        "coverage": 7
+      },
+      {
+        "ticker": "XAIR",
+        "coverage": 7
       }
     ]
   }
 }
+ops 6026 -- justhodl-cryptoquant full Professional series pull
+── 1. Event invoke ──
+[15:40:13] ✅ Event invoke accepted
+── 2. Poll series bank (n>=200, generated_at after start) ──
+[15:40:34] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:40:54] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:41:14] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:41:34] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:41:55] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:42:15] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:42:35] n=344 generated_at=2026-09-30T21:05:07+00:00
+[15:42:55] n=344 generated_at=2026-10-01T15:40:14+00:00
+[15:42:56] ✅ series n=344 spec=410 onchain=344 generated_at=2026-10-01T15:40:14+00:00
+[15:42:56] sample: btc_a_sopr, btc_addresses_active, btc_addresses_count_inflow, btc_addresses_count_outflow, btc_addresses_count_receiver, btc_addresses_count_sender, btc_average_cap, btc_average_dormancy, btc_average_sa_cdd, btc_binary_cdd, btc_block_bytes, btc_block_count, btc_block_interval, btc_blockreward, btc_blockreward_usd, btc_cdd
+── RESULT ──
+[15:42:56] ✅ OPS 6026 PASS -- Professional series bank live (n>=200)
+
+→ Report written to aws/ops/reports/latest/6026_cq_full_series_pull.md
