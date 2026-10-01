@@ -280,7 +280,48 @@
     if (!(data.crypto_watch || []).length) crypto.append(line("CLEAR", "No crypto setup meets the long-horizon watch criteria."));
   }
 
+  function renderAuthorityDiagnostics(data) {
+    var box = $("risk-authority-diagnostics");
+    if (!box) {
+      box = node("article", "k-panel"); box.id = "risk-authority-diagnostics";
+      $("risk-board-method").before(box);
+    }
+    clear(box);
+    box.append(node("h3", "", data.risk_control && data.risk_control.mode === "DATA_HOLD" ? "DATA HOLD — risk authority explanations" : "Risk authority explanations"));
+    var packet = data.risk_authority_diagnostics, reference = data.risk_artifact || {};
+    function clock(v) { return typeof v === "string" && v.length <= 40 && /(?:Z|[+-]\d\d:\d\d)$/.test(v) && Number.isFinite(Date.parse(v)); }
+    var valid = packet && packet.schema_version === "khalid-risk-diagnostics.v1" && packet.artifact === "data/khalid-risk.json" &&
+      clock(packet.generated_at) && clock(packet.expires_at) && packet.generated_at === reference.generated_at &&
+      reference.artifact === packet.artifact && reference.authoritative === true &&
+      Array.isArray(packet.rows) && packet.rows.length === 4;
+    box.append(node("p", "k-note", valid ? "Dated risk publication: " + packet.generated_at + ". Explanation only; this does not grant entry permission." : "Risk explanations unavailable for this packet. Existing policy remains in force."));
+    var profiles = [
+      ["risk_gate", "Risk Gate", "risk-gate-research.v1", ["composite", "sizing_multiplier"], "Risk Gate withholds unqualified regime and sizing authority."],
+      ["bond_warroom", "Bond shortage classifier", null, ["eurodollar_shortage.score"], "The bond desk explicitly withholds offshore-dollar shortage classifier authority."],
+      ["eurodollar_stress", "Eurodollar Stress", "eurodollar-native-research.v1", ["composite_score"], "Eurodollar research withholds unvalidated stress scores and thresholds."],
+      ["credit_composite", "Credit Composite", "credit-composite-abstention.v1", ["composite", "composite_score"], "Credit donors have no qualified composite vote or sizing authority."]
+    ];
+    var suffix = " Dated observations do not replace the required numeric authority. The existing critical-input rejection remains in force.";
+    profiles.forEach(function (profile) {
+      var matches = valid ? packet.rows.filter(function (r) { return r && r.source_id === profile[0]; }) : [];
+      var row = matches.length === 1 ? matches[0] : {}, d = row.authority_diagnostic;
+      var known = row.status === "INVALID" && d && d.schema_version === "withheld-authority-diagnostic.v1" &&
+        d.code === "PRODUCER_AUTHORITY_WITHHELD" && d.effect === "EXPLANATION_ONLY" && d.source_id === profile[0] &&
+        d.producer_contract === profile[2] && Array.isArray(d.unavailable_authority_paths) &&
+        d.unavailable_authority_paths.length === profile[3].length && d.unavailable_authority_paths.every(function (v) { return typeof v === "string" && v.length <= 64; }) && JSON.stringify(d.unavailable_authority_paths) === JSON.stringify(profile[3]) &&
+        d.explanation === profile[4] + suffix && clock(row.source_as_of) &&
+        typeof row.age_h === "number" && Number.isFinite(row.age_h) && row.age_h >= 0 && row.age_h <= Number.MAX_SAFE_INTEGER &&
+        typeof row.max_age_h === "number" && Number.isFinite(row.max_age_h) && row.max_age_h > 0 && row.max_age_h <= Number.MAX_SAFE_INTEGER;
+      var item = node("div", "k-line"); item.dataset.sourceId = profile[0];
+      item.style.gridTemplateColumns = "1fr"; item.style.overflowWrap = "anywhere";
+      item.append(node("b", "", profile[1] + (known ? " · INVALID at publication" : " · Explanation unavailable")),
+        node("span", "", known ? profile[4] + " Source: " + row.source_as_of + "; age at publication: " + row.age_h + "h. Numeric authority remains withheld." : "Missing, unrecognized or inconsistent diagnostic; no neutral score inferred."));
+      box.append(item);
+    });
+  }
+
   function renderRisk(data) {
+    renderAuthorityDiagnostics(data);
     var risks = $("risk-list"), contradictions = $("contradiction-list"), catalysts = $("catalyst-list");
     clear(risks); clear(contradictions); clear(catalysts);
     (data.risks || []).slice(0, 14).forEach(function (x) { risks.append(line(x.severity || x.scope, x.risk)); });

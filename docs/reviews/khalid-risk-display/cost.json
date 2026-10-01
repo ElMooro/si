@@ -1,0 +1,23 @@
+{
+  "source_risk_generated_at": "2026-10-01T08:20:54.920046+00:00",
+  "source_khalid_generated_at": "2026-10-01T08:25:50.947661+00:00",
+  "baseline_compact_bytes": 20876202,
+  "with_projection_compact_bytes": 20878853,
+  "added_bytes": 2651,
+  "added_gzip_bytes": 662,
+  "projection_ms_per_call_runs": [
+    0.04722741699988546,
+    0.05069726319998154,
+    0.03830795840003702,
+    0.03828465059996233,
+    0.040186637599981624
+  ],
+  "median_ms": 0.040186637599981624,
+  "extra_reads": 0,
+  "extra_writes": 0,
+  "extra_provider_calls": 0,
+  "bounded_rows": 4,
+  "source_byte_increase": 3913,
+  "measurement_scope": "Author offline benchmark, five runs of 10000 projections; not independent latency or billing evidence. Gzip is an illustrative compression comparison, not a served compression guarantee.",
+  "new_backend_module_bytes": 3385
+}
