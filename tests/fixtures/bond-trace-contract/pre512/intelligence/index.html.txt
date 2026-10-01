@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intelligence — JustHodl.AI</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa;
+  --gold:#fbbf24; --orange:#fb923c; --pink:#ec4899;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:inherit;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+/* INTRO */
+.intro{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin-bottom:18px;}
+.intro h2{margin:0 0 6px 0;font-size:15px;font-weight:600;}
+.intro p{margin:0;color:var(--text-dim);font-size:12.5px;}
+
+/* TABS */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px;}
+.tab{padding:8px 14px;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;border-radius:4px;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.tab.active{color:var(--text);background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--border-hi);}
+
+.tab-pane{display:none;}
+.tab-pane.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px;}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:13px 15px;position:relative;}
+.kpi.accent{border-left:3px solid var(--accent);}
+.kpi.pos{border-left:3px solid var(--pos);} .kpi.neg{border-left:3px solid var(--neg);}
+.kpi.info{border-left:3px solid var(--info);} .kpi.gold{border-left:3px solid var(--gold);}
+.kpi.warning{border-left:3px solid var(--orange);}
+.kpi .label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);}
+.kpi .val{font-family:var(--font-mono);font-size:22px;font-weight:600;margin-top:6px;line-height:1.1;}
+.kpi .val.pos{color:var(--pos);} .kpi .val.neg{color:var(--neg);} .kpi .val.info{color:var(--info);} .kpi .val.gold{color:var(--gold);} .kpi .val.warning{color:var(--orange);}
+.kpi .sub{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-top:4px;}
+
+/* SECTION */
+.section-title{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-mute);margin:22px 0 10px 0;font-weight:500;display:flex;justify-content:space-between;align-items:center;}
+
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;}
+.panel h3{margin:0 0 14px 0;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.panel h3 .tag{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.5px;}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:8px 10px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);font-weight:500;border-bottom:1px solid var(--border);}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);} .t-info{color:var(--info);} .t-mute{color:var(--text-mute);}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 7px;border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:.3px;font-weight:500;}
+.pill.pos{background:rgba(0,230,118,.13);color:var(--pos);}
+.pill.neg{background:rgba(255,61,90,.13);color:var(--neg);}
+.pill.info{background:rgba(34,211,238,.13);color:var(--info);}
+.pill.gold{background:rgba(251,191,36,.13);color:var(--gold);}
+.pill.warning{background:rgba(251,146,60,.13);color:var(--orange);}
+.pill.mute{background:rgba(255,255,255,.05);color:var(--text-dim);}
+.pill.accent{background:rgba(167,139,250,.13);color:var(--accent);}
+
+/* INTERP NOTE */
+.interp{background:var(--panel-2);border-left:3px solid var(--accent);padding:11px 15px;font-size:12.5px;color:var(--text-dim);border-radius:0 4px 4px 0;margin:14px 0;line-height:1.55;}
+
+/* LOADING */
+.loading{color:var(--text-mute);font-family:var(--font-mono);font-size:11px;padding:32px;text-align:center;}
+.spin::after{content:" ⟳";animation:rot 1s linear infinite;display:inline-block;}
+@keyframes rot{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+
+/* GRADE */
+.grade{display:inline-block;width:38px;height:38px;border-radius:6px;font-family:var(--font-mono);font-size:18px;font-weight:700;text-align:center;line-height:38px;}
+.grade.a{background:rgba(0,230,118,.18);color:var(--pos);}
+.grade.b{background:rgba(34,211,238,.18);color:var(--info);}
+.grade.c{background:rgba(251,191,36,.18);color:var(--gold);}
+.grade.d{background:rgba(251,146,60,.18);color:var(--orange);}
+.grade.f{background:rgba(255,61,90,.18);color:var(--neg);}
+
+/* BAR */
+.bar-wrap{display:flex;align-items:center;gap:8px;}
+.bar{flex:1;height:6px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;position:relative;}
+.bar-fill{position:absolute;top:0;left:0;bottom:0;border-radius:3px;background:var(--info);}
+.bar-fill.pos{background:var(--pos);} .bar-fill.neg{background:var(--neg);} .bar-fill.gold{background:var(--gold);}
+.bar-fill.warning{background:var(--orange);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧠 INTELLIGENCE <span class="badge">v1</span></h1>
+  <div class="header-meta">
+    <span id="ts" class="t-mute">loading...</span>
+    <a href="/" class="nav-back">← justhodl.ai</a>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <h2>Research and risk overview</h2>
+    <p>Research views grouped by domain. Use each dedicated desk to inspect source dates, methodology and qualification. Some older views remain under review; displayed scores do not establish an investment recommendation.</p>
+  </div>
+
+  <div class="tabs">
+    <!-- MACRO -->
+    <button class="tab active" data-pane="defcon">🛡 DEFCON</button>
+    <button class="tab" data-pane="khalid">📊 Adaptive Khalid</button>
+    <button class="tab" data-pane="stress">💥 Stress Scenarios</button>
+    <button class="tab" data-pane="esi">📈 ESI</button>
+    <!-- VOL & FLOW -->
+    <button class="tab" data-pane="volsurface">🌊 Vol Surface</button>
+    <button class="tab" data-pane="internals">🫁 Market Internals</button>
+    <button class="tab" data-pane="heatmap">🔥 Sector Heatmap</button>
+    <!-- CREDIT & RATES -->
+    <button class="tab" data-pane="cds">🩸 CDS Proxy</button>
+    <button class="tab" data-pane="bondtrace">📉 Bond TRACE</button>
+    <button class="tab" data-pane="tic">🌍 TIC Flows</button>
+    <button class="tab" data-pane="auction">📜 Auction Grades</button>
+    <button class="tab" data-pane="lending">💰 Repo &amp; Lending</button>
+    <!-- FUNDAMENTALS -->
+    <button class="tab" data-pane="consensus">🎯 Analyst Consensus</button>
+    <button class="tab" data-pane="sellside">📑 Sell-side Views</button>
+    <button class="tab" data-pane="seasonality">📅 Seasonality</button>
+    <button class="tab" data-pane="liquidity">💧 Liquidity Profile</button>
+    <!-- BEHAVIORAL -->
+    <button class="tab" data-pane="political">🏛 Political Trades</button>
+    <button class="tab" data-pane="reversal">🎯 Reversal Radar</button>
+  </div>
+
+  <!-- ADAPTIVE KHALID -->
+  <div class="tab-pane active" id="pane-defcon">
+    <div class="kpi-grid" id="defcon-kpis"><div class="loading spin">loading crisis-composite</div></div>
+    <div class="panel">
+      <h3>Crisis composite components <span class="tag">7 risk engines fused into one DEFCON</span></h3>
+      <div id="defcon-table"></div>
+    </div>
+    <div class="interp" id="defcon-interp"></div>
+  </div>
+
+  <div class="tab-pane" id="pane-khalid">
+    <div class="kpi-grid" id="khalid-kpis"><div class="loading spin">loading khalid-adaptive</div></div>
+    <div class="panel">
+      <h3>Model validation <span class="tag">prospective evidence required</span></h3>
+      <div id="khalid-table"></div>
+    </div>
+    <div class="interp" id="khalid-interp"></div>
+  </div>
+
+  <!-- STRESS SCENARIOS -->
+  <div class="tab-pane" id="pane-stress">
+    <div class="kpi-grid" id="stress-kpis"><div class="loading spin">loading stress-scenarios</div></div>
+    <div class="panel">
+      <h3>Scenarios <span class="tag">probability-weighted</span></h3>
+      <div id="stress-table"></div>
+    </div>
+    <div class="panel">
+      <h3>Probability-weighted asset impact <span class="tag">top winners + losers</span></h3>
+      <div id="stress-impact"></div>
+    </div>
+  </div>
+
+  <!-- POLITICAL -->
+  <div class="tab-pane" id="pane-political">
+    <div class="kpi-grid" id="political-kpis"><div class="loading spin">loading political-trades</div></div>
+    <div class="panel">
+      <h3>Clusters <span class="tag">3+ members same ticker / 7 days</span></h3>
+      <div id="political-clusters"></div>
+    </div>
+    <div class="panel">
+      <h3>Large trades <span class="tag">≥ $500K</span></h3>
+      <div id="political-large"></div>
+    </div>
+    <div class="panel">
+      <h3>High-watch members <span class="tag">latest trades</span></h3>
+      <div id="political-hw"></div>
+    </div>
+  </div>
+
+  <!-- REVERSAL -->
+  <div class="tab-pane" id="pane-reversal">
+    <div class="kpi-grid" id="reversal-kpis"><div class="loading spin">loading reversal-radar</div></div>
+    <div class="panel">
+      <h3>Top-formation reasons <span class="tag">complacency, breadth, credit, vol</span></h3>
+      <div id="reversal-top"></div>
+    </div>
+    <div class="panel">
+      <h3>Bottom-formation reasons <span class="tag">capitulation, panic, washout</span></h3>
+      <div id="reversal-bottom"></div>
+    </div>
+    <div class="interp" id="reversal-interp"></div>
+  </div>
+
+  <!-- AUCTION -->
+  <div class="tab-pane" id="pane-auction">
+    <div class="kpi-grid" id="auction-kpis"><div class="loading spin">loading auction-grades</div></div>
+    <div class="panel">
+      <h3>Recent auctions <span class="tag">graded A-F</span></h3>
+      <div id="auction-table"></div>
+    </div>
+    <div class="panel">
+      <h3>By tenor bucket <span class="tag">avg score</span></h3>
+      <div id="auction-by-tenor"></div>
+    </div>
+  </div>
+
+  <!-- LENDING -->
+  <div class="tab-pane" id="pane-lending">
+    <div class="kpi-grid" id="lending-kpis"><div class="loading spin">loading repo-lending</div></div>
+    <div class="panel">
+      <h3>Component scores <span class="tag">0-100 each</span></h3>
+      <div id="lending-components"></div>
+    </div>
+    <div class="interp" id="lending-interp"></div>
+  </div>
+
+  <!-- ESI (Economic Surprise Index) -->
+  <div class="tab-pane" id="pane-esi">
+    <div class="kpi-grid" id="esi-kpis"><div class="loading spin">loading ESI</div></div>
+    <div class="panel">
+      <h3>By category <span class="tag">7d / 30d / 60d composites</span></h3>
+      <div id="esi-categories"></div>
+    </div>
+    <div class="interp" id="esi-interp"></div>
+  </div>
+
+  <!-- VOL SURFACE -->
+  <div class="tab-pane" id="pane-volsurface">
+    <div class="kpi-grid" id="volsurface-kpis"><div class="loading spin">loading vol-surface</div></div>
+    <div class="panel">
+      <h3>Underlyings <span class="tag">14 FRED distribution identities + VVIX / SKEW</span></h3>
+      <div id="volsurface-table" style="max-width:100%;overflow:auto"></div>
+    </div>
+    <p><a href="/volatility.html">Open Volatility Research and position scenarios</a></p>
+    <div class="interp" id="volsurface-interp"></div>
+  </div>
+
+  <!-- MARKET INTERNALS -->
+  <div class="tab-pane" id="pane-internals">
+    <div class="kpi-grid" id="internals-kpis"><div class="loading spin">loading market-internals</div></div>
+    <div class="panel">
+      <h3>Breadth components <span class="tag">A/D · McClellan · % above MAs · 52w H/L</span></h3>
+      <div id="internals-table"></div>
+    </div>
+    <div class="interp" id="internals-interp"></div>
+  </div>
+
+  <!-- SECTOR HEATMAP -->
+  <div class="tab-pane" id="pane-heatmap">
+    <div class="kpi-grid" id="heatmap-kpis"><div class="loading spin">loading sector-heatmap</div></div>
+    <div class="panel">
+      <h3>Sector rank <span class="tag">1d cap-weighted return</span></h3>
+      <div id="heatmap-rank"></div>
+    </div>
+    <div class="panel">
+      <h3>Leaders &amp; Laggers <span class="tag">today's intraday</span></h3>
+      <div id="heatmap-leaders"></div>
+    </div>
+    <div class="interp" id="heatmap-interp"></div>
+  </div>
+
+  <!-- CDS PROXY -->
+  <div class="tab-pane" id="pane-cds">
+    <div class="kpi-grid" id="cds-kpis"><div class="loading spin">loading cds-proxy</div></div>
+    <div class="panel">
+      <h3>Top reasons <span class="tag">credit-stress contributors</span></h3>
+      <div id="cds-reasons"></div>
+    </div>
+    <div class="interp" id="cds-interp"></div>
+  </div>
+
+  <!-- BOND TRACE -->
+  <div class="tab-pane" id="pane-bondtrace">
+    <div class="kpi-grid" id="bondtrace-kpis"><div class="loading spin">loading bond-trace</div></div>
+    <div class="panel">
+      <h3>ETF performance <span class="tag">HYG vs LQD</span></h3>
+      <div id="bondtrace-etfs"></div>
+    </div>
+    <div class="interp" id="bondtrace-interp"></div>
+  </div>
+
+  <!-- TIC FLOWS -->
+  <div class="tab-pane" id="pane-tic">
+    <div class="kpi-grid" id="tic-kpis"><div class="loading spin">loading tic-flows</div></div>
+    <div class="panel">
+      <h3>Top reasons <span class="tag">TIC stress drivers</span></h3>
+      <div id="tic-reasons"></div>
+    </div>
+    <div class="interp" id="tic-interp"></div>
+  </div>
+
+  <!-- ANALYST CONSENSUS -->
+  <div class="tab-pane" id="pane-consensus">
+    <div class="kpi-grid" id="consensus-kpis"><div class="loading spin">loading analyst-consensus</div></div>
+    <div class="panel">
+      <h3>Top consensus 25 <span class="tag">composite score</span></h3>
+      <div id="consensus-top"></div>
+    </div>
+    <div class="panel">
+      <h3>Strongest upgrades 30d <span class="tag">net positive grade changes</span></h3>
+      <div id="consensus-upgrades"></div>
+    </div>
+    <div class="interp" id="consensus-interp"></div>
+  </div>
+
+  <!-- SELL-SIDE VIEWS -->
+  <div class="tab-pane" id="pane-sellside">
+    <div class="kpi-grid" id="sellside-kpis"><div class="loading spin">loading sellside-views</div></div>
+    <div class="panel">
+      <h3>SPX year-end targets <span class="tag">consensus distribution</span></h3>
+      <div id="sellside-targets"></div>
+    </div>
+    <div class="interp" id="sellside-interp"></div>
+  </div>
+
+  <!-- SEASONALITY -->
+  <div class="tab-pane" id="pane-seasonality">
+    <div class="kpi-grid" id="seasonality-kpis"><div class="loading spin">loading seasonality</div></div>
+    <div class="panel">
+      <h3>Active patterns <span class="tag">month · presidential cycle · DOW</span></h3>
+      <div id="seasonality-patterns"></div>
+    </div>
+    <div class="interp" id="seasonality-interp"></div>
+  </div>
+
+  <!-- LIQUIDITY PROFILE -->
+  <div class="tab-pane" id="pane-liquidity">
+    <div class="kpi-grid" id="liquidity-kpis"><div class="loading spin">loading liquidity-profile</div></div>
+    <div class="panel">
+      <h3>Most liquid <span class="tag">top-scored by ADV + spread + consistency</span></h3>
+      <div id="liquidity-top"></div>
+    </div>
+    <div class="panel">
+      <h3>Least liquid <span class="tag">caution zone</span></h3>
+      <div id="liquidity-bottom"></div>
+    </div>
+    <div class="interp" id="liquidity-interp"></div>
+  </div>
+</main>
+
+<script src="/jh-volatility-research.js?v=20260920-native2"></script>
+<script>
+const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com/';
+const ENDPOINTS = {
+  defcon: 'data/crisis-composite.json',
+  capitulation: 'data/capitulation.json',
+  chinaLiq: 'data/china-liquidity.json',
+  bankStress: 'data/bank-stress.json',
+  khalid: 'data/khalid-adaptive.json',
+  stress: 'data/stress-scenarios.json',
+  political: 'data/political-trades.json',
+  reversal: 'data/reversal-radar.json',
+  auction: 'data/auction-grades.json',
+  lending: 'data/repo-lending.json',
+  // New Bloomberg modules
+  esi: 'data/esi.json',
+  volsurface: 'data/vol-surface.json',
+  internals: 'data/market-internals.json',
+  heatmap: 'data/sector-heatmap.json',
+  cds: 'data/cds-proxy.json',
+  bondtrace: 'data/bond-trace.json',
+  tic: 'data/tic-flows.json',
+  consensus: 'data/analyst-consensus.json',
+  sellside: 'data/sellside-views.json',
+  seasonality: 'data/seasonality.json',
+  liquidity: 'data/liquidity-profile.json',
+};
+
+const fmtPct = (n, dp=2) => n==null ? '—' : `${n>=0?'+':''}${n.toFixed(dp)}%`;
+const fmtNum = (n, dp=2) => n==null ? '—' : (typeof n==='number'?n.toFixed(dp):n);
+const fmtUSD = (n) => {
+  if (n==null) return '—';
+  if (n>=1e9) return `$${(n/1e9).toFixed(2)}B`;
+  if (n>=1e6) return `$${(n/1e6).toFixed(2)}M`;
+  if (n>=1e3) return `$${(n/1e3).toFixed(1)}K`;
+  return `$${n}`;
+};
+const ago = (iso) => {
+  if (!iso) return '—';
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(ms/60000);
+  if (m<60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if (h<24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+};
+
+// Tabs
+document.querySelectorAll('.tab').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('pane-'+b.dataset.pane).classList.add('active');
+  });
+});
+
+// Fetch all
+async function fetchJson(key) {
+  try {
+    const r = await fetch(S3+key+'?cb='+Math.floor(Date.now()/300000));
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) { console.error(key, e); return null; }
+}
+
+// ─── ADAPTIVE KHALID ──────────────────────────────────────────────
+function renderDefcon(cc, cap, ch, bs) {
+  if (!cc) return;
+  const lvl = cc.defcon_level, score = cc.master_crisis_score;
+  const dcls = lvl>=5?'pos':lvl===4?'info':lvl===3?'gold':lvl===2?'warning':'neg';
+  const scls = score>=80?'neg':score>=60?'warning':score>=40?'gold':score>=20?'info':'pos';
+  const capSig = cap?cap.signal:null;
+  const capCls = (capSig==='GENERATIONAL_BUY'||capSig==='STRONG_BUY')?'pos':capSig==='CAPITULATION_WAIT'?'warning':capSig==='ACCUMULATE'?'gold':'info';
+  const regCls = (r)=>(r==='EASING'||r==='ABUNDANT')?'pos':(r==='TIGHTENING'||r==='SCARCE'||r==='CONTRACTING')?'warning':'info';
+  const chReg = ch?ch.regime:null, bsReg = bs?bs.regime:null;
+  const ci = (ch&&ch.credit_impulse)?ch.credit_impulse.value_pp:null;
+  const rg = (bs&&bs.reserve_adequacy)?bs.reserve_adequacy.reserves_to_gdp_pct:null;
+  document.getElementById('defcon-kpis').innerHTML = `
+    <div class="kpi ${dcls}"><div class="label">DEFCON Level</div><div class="val ${dcls}">${lvl==null?'\u2014':lvl}</div><div class="sub">${cc.defcon_name||''}</div></div>
+    <div class="kpi ${scls}"><div class="label">Master Crisis Score</div><div class="val ${scls}">${fmtNum(score,1)}</div><div class="sub">trend ${cc.trend||'n/a'}</div></div>
+    <div class="kpi info"><div class="label">Capitulation research</div><div class="val" style="font-size:15px"><a href="/capitulation.html">Inspect dated evidence</a></div><div class="sub">No qualified market-turn score</div></div>
+    <div class="kpi ${chReg?regCls(chReg):'info'}"><div class="label">China Liquidity</div><div class="val" style="font-size:16px">${chReg||'\u2014'}</div><div class="sub">credit impulse ${ci==null?'\u2014':fmtNum(ci,1)+'pp'}</div></div>
+    <div class="kpi ${bsReg?regCls(bsReg):'info'}"><div class="label">Bank Funding</div><div class="val" style="font-size:16px">${bsReg||'\u2014'}</div><div class="sub">reserves/GDP ${rg==null?'\u2014':fmtNum(rg,1)+'%'}</div></div>
+  `;
+  const comps = cc.components||[];
+  document.getElementById('defcon-table').innerHTML = `<table>
+    <thead><tr><th>Risk Engine</th><th>Crisis Contribution</th><th>Weight</th><th>Status</th></tr></thead>
+    <tbody>${comps.map(c=>{
+      const v=c.crisis_contribution;
+      const vc=v==null?'t-mute':v>=60?'t-neg':v>=40?'t-info':'t-pos';
+      return `<tr><td class="t-info">${c.label||c.source}</td><td class="${vc}">${v==null?'n/a':fmtNum(v,0)}</td><td class="t-mute">${Math.round((c.weight||0)*100)}%</td><td class="t-mute">${c.available?(c.age_hours!=null?c.age_hours+'h old':'live'):'unavailable'}</td></tr>`;
+    }).join('')}</tbody></table>`;
+  const drivers = (cc.primary_drivers||[]).join(' \u00b7 ');
+  document.getElementById('defcon-interp').innerHTML = `<b>Reading:</b> DEFCON ${lvl} (${cc.defcon_name}) \u00b7 master crisis score ${fmtNum(score,1)}/100. Primary drivers: ${drivers}. ${cc.playbook||''}`;
+}
+
+function renderKhalid(d) {
+  if (!d || d.contract === 'adaptive-research-status.v1' || d.standard?.score == null || d.adaptive?.score == null) {
+    document.getElementById('khalid-kpis').innerHTML = '<div class="kpi info"><div class="label">Adaptive macro model</div><div class="val info">Unavailable</div><div class="sub">No validated score, regime, or divergence</div></div>';
+    document.getElementById('khalid-table').textContent = 'Legacy accuracy weights do not establish prospective investment performance. Numeric history has been retained unchanged.';
+    document.getElementById('khalid-interp').innerHTML = '<b>WAIT — abstain.</b> No allocation or trade follows from an unavailable score. <a href="/signal-scorecard.html">Inspect validation coverage</a> · <a href="/read.html">Inspect dated macro observations</a>';
+    return;
+  }
+  const std = d.standard||{}, ad = d.adaptive||{}, div = d.divergence||{};
+  const stdScore = std.score, adScore = ad.score, delta = div.score_delta;
+  const stdCls = stdScore>=60?'pos':stdScore>=45?'info':stdScore>=30?'warning':'neg';
+  const adCls = adScore>=60?'pos':adScore>=45?'info':adScore>=30?'warning':'neg';
+  const divCls = Math.abs(delta)>15?'warning':Math.abs(delta)>5?'info':'pos';
+
+  document.getElementById('khalid-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Standard</div><div class="val ${stdCls}">${stdScore}</div><div class="sub">${std.regime} · 75/15/10 blend</div></div>
+    <div class="kpi accent"><div class="label">Adaptive</div><div class="val ${adCls}">${adScore}</div><div class="sub">${ad.regime} · ${ad.n_signals_used} signals · calibrator-weighted</div></div>
+    <div class="kpi ${divCls}"><div class="label">Divergence</div><div class="val ${divCls}">${delta>=0?'+':''}${delta}</div><div class="sub">${div.interpretation}</div></div>
+    <div class="kpi gold"><div class="label">Raw composite</div><div class="val gold">${fmtNum(ad.raw_composite,3)}</div><div class="sub">−1 (bear) → +1 (bull)</div></div>
+  `;
+
+  const rows = (d.top_contributors||[]).map(c => `
+    <tr>
+      <td class="t-info">${c.signal_type}</td>
+      <td>${c.weight}</td>
+      <td>${(c.accuracy_60d*100).toFixed(1)}%</td>
+      <td class="t-mute">${c.n_60d}</td>
+      <td><span class="pill ${c.direction>0?'pos':c.direction<0?'neg':'mute'}">${c.direction>0?'BUY':c.direction<0?'SELL':'—'}</span></td>
+      <td>${c.confidence}</td>
+      <td class="${c.contribution>=0?'t-pos':'t-neg'}">${c.contribution>=0?'+':''}${c.contribution.toFixed(3)}</td>
+    </tr>`).join('');
+  document.getElementById('khalid-table').innerHTML = `
+    <table>
+      <thead><tr><th>Signal</th><th>Weight</th><th>Acc 60d</th><th>n</th><th>Dir</th><th>Conf</th><th>Contribution</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan=7 class=t-mute>no qualifying signals</td></tr>'}</tbody>
+    </table>`;
+
+  document.getElementById('khalid-interp').innerHTML = `<b>Reading:</b> standard ${stdScore} (${std.regime}) vs adaptive ${adScore} (${ad.regime}) → divergence ${delta>=0?'+':''}${delta}pt. ${div.interpretation}. ${Math.abs(delta)>15?'The learned weights are flagging something the hardcoded blend isn\'t — worth investigating top contributors.':'Hardcoded and learned weights are in agreement.'}`;
+}
+
+// ─── STRESS SCENARIOS ─────────────────────────────────────────────
+function renderStress(d) {
+  if (!d) return;
+  const scenarios = d.scenarios || {};
+  const top = d.top_scenario || {};
+  const impact = d.asset_impact || {};
+
+  // Find #2 scenario
+  const sorted = Object.entries(scenarios).sort((a,b)=>b[1].probability_pct-a[1].probability_pct);
+  const second = sorted[1] || [];
+
+  document.getElementById('stress-kpis').innerHTML = `
+    <div class="kpi pos"><div class="label">Top scenario</div><div class="val">${top.probability_pct}%</div><div class="sub">${top.name}</div></div>
+    <div class="kpi info"><div class="label">Runner-up</div><div class="val info">${second[1]?second[1].probability_pct:0}%</div><div class="sub">${second[1]?second[1].name:'—'}</div></div>
+    <div class="kpi gold"><div class="label">Scenarios tracked</div><div class="val gold">${Object.keys(scenarios).length}</div><div class="sub">probe-weighted against live data</div></div>
+    <div class="kpi accent"><div class="label">Top winner</div><div class="val pos">${(d.top_winners||['—'])[0]||'—'}</div><div class="sub">prob-weighted return</div></div>
+  `;
+
+  const rows = sorted.map(([k,s])=>{
+    const p = s.probability_pct;
+    const cls = p>=30?'pos':p>=15?'info':p>=5?'gold':'mute';
+    return `<tr>
+      <td><b>${s.name||k}</b></td>
+      <td><span class="pill ${cls}">${p}%</span></td>
+      <td class="t-mute">${s.probes_triggered||0}/${s.total_probes||0} probes</td>
+      <td class="t-info">${(s.top_winners||[]).slice(0,3).join(', ')}</td>
+      <td class="t-neg">${(s.top_losers||[]).slice(0,3).join(', ')}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('stress-table').innerHTML = `
+    <table>
+      <thead><tr><th>Scenario</th><th>Probability</th><th>Probes</th><th>Winners</th><th>Losers</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  // Impact table — top 8 winners and losers
+  const impacts = Object.entries(impact)
+    .filter(([k,v])=>typeof v==='number')
+    .sort((a,b)=>b[1]-a[1]);
+  const winners = impacts.slice(0,8);
+  const losers = impacts.slice(-8).reverse();
+  const renderImpactRow = ([t,v])=>`<tr><td><b>${t}</b></td><td class="${v>=0?'t-pos':'t-neg'}">${v>=0?'+':''}${v.toFixed(2)}%</td></tr>`;
+  document.getElementById('stress-impact').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div><div class="section-title" style="margin:0 0 8px">Winners</div><table>${winners.map(renderImpactRow).join('')}</table></div>
+      <div><div class="section-title" style="margin:0 0 8px">Losers</div><table>${losers.map(renderImpactRow).join('')}</table></div>
+    </div>`;
+}
+
+// ─── POLITICAL ────────────────────────────────────────────────────
+function renderPolitical(d) {
+  if (!d) return;
+  const stats = d.stats||{};
+  document.getElementById('political-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Senate / House</div><div class="val info">${stats.n_senate||0} / ${stats.n_house||0}</div><div class="sub">total ${stats.n_total||0}</div></div>
+    <div class="kpi accent"><div class="label">Clusters (3+ members)</div><div class="val">${stats.n_clusters||0}</div><div class="sub">7-day window</div></div>
+    <div class="kpi gold"><div class="label">Large trades (≥$500K)</div><div class="val gold">${stats.n_large_trades||0}</div><div class="sub">single-fill</div></div>
+    <div class="kpi warning"><div class="label">High-watch members</div><div class="val warning">${stats.n_high_watch||0}</div><div class="sub">Pelosi / Crenshaw / Cruz / etc</div></div>
+  `;
+
+  const clusters = (d.clusters||[]).map(c => `
+    <tr>
+      <td><b>${c.ticker}</b></td>
+      <td><span class="pill ${c.direction==='BUY'?'pos':c.direction==='SELL'?'neg':'mute'}">${c.direction||'MIXED'}</span></td>
+      <td>${c.n_members}</td>
+      <td class="t-mute">${(c.members||[]).slice(0,3).join(', ')}${c.members&&c.members.length>3?` +${c.members.length-3}`:''}</td>
+      <td>${c.n_trades}b/${c.n_sells||0}s</td>
+      <td>${fmtUSD(c.total_value_max_usd)}</td>
+      <td class="t-mute">${c.first_trade} → ${c.last_trade}</td>
+    </tr>`).join('');
+  document.getElementById('political-clusters').innerHTML = `<table><thead><tr><th>Ticker</th><th>Net</th><th>Members</th><th>Names</th><th>Buys/Sells</th><th>Max value</th><th>Window</th></tr></thead><tbody>${clusters||'<tr><td colspan=7 class=t-mute>no clusters yet</td></tr>'}</tbody></table>`;
+
+  const large = (d.large_trades||[]).map(t => `
+    <tr>
+      <td><span class="pill ${t.chamber==='SENATE'?'accent':'info'}">${t.chamber}</span></td>
+      <td><b>${t.member}</b></td>
+      <td><b>${t.ticker}</b></td>
+      <td><span class="pill ${t.transaction_type==='purchase'?'pos':'neg'}">${t.transaction_type}</span></td>
+      <td>${t.amount_range}</td>
+      <td class="t-mute">${t.transaction_date}</td>
+      <td class="t-mute">+${t.reporting_lag_days}d</td>
+    </tr>`).join('');
+  document.getElementById('political-large').innerHTML = `<table><thead><tr><th>Chamber</th><th>Member</th><th>Ticker</th><th>Action</th><th>Range</th><th>Date</th><th>Lag</th></tr></thead><tbody>${large||'<tr><td colspan=7 class=t-mute>no large trades</td></tr>'}</tbody></table>`;
+
+  // Last 10 high-watch trades
+  const hw = (d.high_watch_trades||[]).slice(0,10).map(t => `
+    <tr>
+      <td><span class="pill ${t.chamber==='SENATE'?'accent':'info'}">${t.chamber}</span></td>
+      <td><b>${t.member}</b></td>
+      <td><b>${t.ticker}</b></td>
+      <td><span class="pill ${t.transaction_type==='purchase'?'pos':'neg'}">${t.transaction_type}</span></td>
+      <td>${t.amount_range}</td>
+      <td class="t-mute">${t.transaction_date}</td>
+    </tr>`).join('');
+  document.getElementById('political-hw').innerHTML = `<table><thead><tr><th>Chamber</th><th>Member</th><th>Ticker</th><th>Action</th><th>Range</th><th>Date</th></tr></thead><tbody>${hw||'<tr><td colspan=6 class=t-mute>none yet</td></tr>'}</tbody></table>`;
+}
+
+// ─── REVERSAL RADAR ───────────────────────────────────────────────
+function renderReversal(d) {
+  if (!d) return;
+  const top = d.top_score||0, bot = d.bottom_score||0, state = d.state||'UNKNOWN';
+  const sCls = state==='TOP_WARNING'?'neg':state==='BOTTOM_FORMING'?'pos':state==='ELEVATED_RISK'?'warning':state==='OVERSOLD'?'gold':'mute';
+  const topCls = top>=65?'neg':top>=40?'warning':top>=15?'gold':'pos';
+  const botCls = bot>=65?'pos':bot>=40?'gold':'mute';
+  document.getElementById('reversal-kpis').innerHTML = `
+    <div class="kpi ${sCls}"><div class="label">State</div><div class="val ${sCls}">${state}</div><div class="sub">${ago(d.generated_at)}</div></div>
+    <div class="kpi ${topCls}"><div class="label">Top score</div><div class="val ${topCls}">${top}</div><div class="sub">market top probability 0-100</div></div>
+    <div class="kpi ${botCls}"><div class="label">Bottom score</div><div class="val ${botCls}">${bot}</div><div class="sub">market bottom probability 0-100</div></div>
+    <div class="kpi info"><div class="label">Differential</div><div class="val info">${(d.differential||0)>=0?'+':''}${d.differential||0}</div><div class="sub">top − bottom</div></div>
+  `;
+
+  const topR = (d.top_reasons||[]).map(r => `<tr><td><span class="pill warning">+</span></td><td>${r}</td></tr>`).join('');
+  document.getElementById('reversal-top').innerHTML = `<table><tbody>${topR||'<tr><td class=t-mute>no top-signal triggers</td></tr>'}</tbody></table>`;
+
+  const botR = (d.bottom_reasons||[]).map(r => `<tr><td><span class="pill pos">+</span></td><td>${r}</td></tr>`).join('');
+  document.getElementById('reversal-bottom').innerHTML = `<table><tbody>${botR||'<tr><td class=t-mute>no bottom-signal triggers</td></tr>'}</tbody></table>`;
+
+  document.getElementById('reversal-interp').innerHTML = `<b>Reading:</b> ${d.interpretation||''}`;
+}
+
+// ─── AUCTION GRADER ───────────────────────────────────────────────
+function gradeCls(letter) {
+  const l = (letter||'').toUpperCase().charAt(0);
+  if (l==='A') return 'a';
+  if (l==='B') return 'b';
+  if (l==='C') return 'c';
+  if (l==='D') return 'd';
+  return 'f';
+}
+function renderAuction(d) {
+  if (!d) return;
+  const s = d.summary||{};
+  document.getElementById('auction-kpis').innerHTML = `
+    <div class="kpi accent"><div class="label">Overall GPA</div><div class="val">${s.overall_gpa_letter||'?'}</div><div class="sub">avg ${s.average_score} / 4.0</div></div>
+    <div class="kpi pos"><div class="label">Strong (A/A-)</div><div class="val pos">${s.n_strong||0}</div><div class="sub">of ${d.n_graded||0} graded</div></div>
+    <div class="kpi neg"><div class="label">Failing</div><div class="val neg">${s.n_failing||0}</div><div class="sub">D+ or worse</div></div>
+    <div class="kpi info"><div class="label">Regime context</div><div class="val info">${d.regime_from_crisis_detector||'?'}</div><div class="sub">crisis composite ${d.composite_score_crisis||0}</div></div>
+  `;
+
+  const rows = (d.graded_auctions||[]).map(a => `
+    <tr>
+      <td class="t-mute">${a.auction_date}</td>
+      <td><b>${a.security_term||a.security_type}</b></td>
+      <td>${a.tenor_bucket?.replace(/_/g,' ')||'—'}</td>
+      <td>${fmtNum(a.bid_to_cover,2)}</td>
+      <td>${a.indirect_bidder_pct ? a.indirect_bidder_pct.toFixed(1)+'%' : '—'}</td>
+      <td>${a.tail_bps ? a.tail_bps.toFixed(2)+'bp' : '—'}</td>
+      <td>${fmtUSD(a.accepted_billions*1e9 || a.total_accepted_usd)}</td>
+      <td><span class="grade ${gradeCls(a.grade_letter)}">${a.grade_letter||'?'}</span></td>
+    </tr>`).join('');
+  document.getElementById('auction-table').innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>Term</th><th>Bucket</th><th>B/C</th><th>Indirect%</th><th>Tail</th><th>Accepted</th><th>Grade</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan=8 class=t-mute>no graded auctions</td></tr>'}</tbody>
+    </table>`;
+
+  // by-tenor
+  const tenors = d.by_tenor||{};
+  const tenorRows = Object.entries(tenors).map(([k, arr])=>{
+    if (!Array.isArray(arr) || arr.length===0) return '';
+    const avgScore = arr.reduce((s,a)=>s+(a.grade_numeric||0),0)/arr.length;
+    const cls = avgScore>=3?'pos':avgScore>=2?'info':avgScore>=1?'warning':'neg';
+    return `<tr>
+      <td><b>${k.replace(/_/g,' ')}</b></td>
+      <td>${arr.length}</td>
+      <td class="${cls.replace('pos','t-pos').replace('info','t-info').replace('warning','t-info').replace('neg','t-neg')}">${avgScore.toFixed(2)}</td>
+      <td><div class="bar-wrap"><div class="bar"><div class="bar-fill ${cls}" style="width:${Math.min(100,avgScore/4*100)}%"></div></div></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('auction-by-tenor').innerHTML = `<table><thead><tr><th>Bucket</th><th>n</th><th>Avg score</th><th></th></tr></thead><tbody>${tenorRows}</tbody></table>`;
+}
+
+// ─── REPO + LENDING ───────────────────────────────────────────────
+function renderLending(d) {
+  if (!d) return;
+  const reg = d.regime||'?';
+  const comp = d.composite_leverage_stress||0;
+  const compCls = comp>=70?'neg':comp>=50?'warning':comp>=30?'gold':'pos';
+  const regCls = reg.includes('STRESS')?'neg':reg.includes('TIGHT')?'warning':reg.includes('ABUNDANT')?'pos':'info';
+
+  const md = d.margin_debt||{};
+  const repo = d.repo||{};
+  const sl = d.securities_lending||{};
+  document.getElementById('lending-kpis').innerHTML = `
+    <div class="kpi ${regCls}"><div class="label">Regime</div><div class="val ${regCls}">${reg}</div><div class="sub">${ago(d.generated_at)}</div></div>
+    <div class="kpi ${compCls}"><div class="label">Composite stress</div><div class="val ${compCls}">${comp}</div><div class="sub">0 calm → 100 stress</div></div>
+    <div class="kpi accent"><div class="label">Margin debt</div><div class="val">${md.pct_of_market_cap ? md.pct_of_market_cap.toFixed(2) + '%' : '—'}</div><div class="sub">of S&amp;P cap · YoY ${md.yoy_growth_pct ? (md.yoy_growth_pct>=0?'+':'')+md.yoy_growth_pct.toFixed(1)+'%' : '—'}</div></div>
+    <div class="kpi info"><div class="label">Repo score</div><div class="val info">${repo.score||0}</div><div class="sub">funding stress proxy</div></div>
+  `;
+
+  const renderComp = (name, score, components, accentCls) => {
+    const compRows = Object.entries(components||{}).map(([k,v])=>`<tr><td>${k.replace(/_/g,' ')}</td><td class="t-mute">${typeof v==='number'?v.toFixed(2):v}</td></tr>`).join('');
+    return `<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span class="t-info"><b>${name}</b></span><span class="pill ${accentCls}">score ${score}</span></div><table>${compRows}</table></div>`;
+  };
+  document.getElementById('lending-components').innerHTML = `
+    ${renderComp('Margin debt', md.score||0, {
+      level_billions: md.level_billions,
+      level_date: md.level_date,
+      pct_of_market_cap: md.pct_of_market_cap,
+      yoy_growth_pct: md.yoy_growth_pct,
+      market_cap_trillions: md.market_cap_trillions,
+    }, md.score>=50?'warning':'pos')}
+    ${renderComp('Repo / funding stress', repo.score||0, repo.components||{}, repo.score>=50?'warning':'pos')}
+    ${renderComp('Securities lending', sl.score||0, sl.components||{}, sl.score>=50?'warning':'pos')}
+  `;
+
+  document.getElementById('lending-interp').innerHTML = `<b>Reading:</b> ${reg} regime · composite ${comp}/100. Margin debt is ${md.pct_of_market_cap ? md.pct_of_market_cap.toFixed(2)+'% of S&P cap (danger zone >2.5%)' : 'unavailable'}. YoY ${md.yoy_growth_pct ? (md.yoy_growth_pct>=0?'+':'')+md.yoy_growth_pct.toFixed(1)+'%' : '—'} ${md.yoy_growth_pct && md.yoy_growth_pct>25 ? '— leverage expanding fast' : ''}.`;
+}
+
+// ─── ESI ──────────────────────────────────────────────────────────
+function renderESI(d) {
+  if (!d) return;
+  const c60 = d.composite_60d, c30 = d.composite_30d, c7 = d.composite_7d;
+  const regime = d.regime || '—';
+  const reCls = regime.includes('STRONG_BEAT')?'pos':regime.includes('WEAK_MISS')?'neg':'info';
+  document.getElementById('esi-kpis').innerHTML = `
+    <div class="kpi ${reCls}"><div class="label">Regime</div><div class="val ${reCls}">${regime}</div><div class="sub">${d.n_events_60d||0} events / 60d</div></div>
+    <div class="kpi accent"><div class="label">60d Composite</div><div class="val">${fmtNum(c60,2)}</div><div class="sub">Z-score, time-decayed</div></div>
+    <div class="kpi info"><div class="label">30d Composite</div><div class="val">${fmtNum(c30,2)}</div><div class="sub">${d.n_events_30d||0} events</div></div>
+    <div class="kpi gold"><div class="label">7d Composite</div><div class="val">${fmtNum(c7,2)}</div><div class="sub">${d.n_events_7d||0} events</div></div>
+  `;
+  const cats = d.by_category || {};
+  const rows = Object.entries(cats).map(([k,v]) => `
+    <tr><td class="t-info">${k}</td><td>${fmtNum(v.composite,2)}</td><td class="t-mute">${v.n||0}</td>
+        <td>${v.latest?(v.latest.name||'—'):'—'}</td></tr>`).join('');
+  document.getElementById('esi-categories').innerHTML = `<table>
+    <thead><tr><th>Category</th><th>Avg Z</th><th>n</th><th>Latest event</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=4 class=t-mute>no category data</td></tr>'}</tbody></table>`;
+  document.getElementById('esi-interp').innerHTML = `<b>Reading:</b> ESI regime is <b>${regime}</b>. 30d composite ${fmtNum(c30,2)}σ vs 60d ${fmtNum(c60,2)}σ — ${(c30>c60)?'macro surprises accelerating positively':'momentum slowing'}. CESI typically leads SPY by 1-3mo.`;
+}
+
+// ─── VOL SURFACE ──────────────────────────────────────────────────
+async function renderVolSurface(d) {
+  const host=document.getElementById('volsurface-kpis');
+  if(!d){host.textContent='Verified volatility research unavailable.';return;}
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  try {
+    const api=window.JHVolatilityResearch;
+    await api.verifyPacket(d,window.fetch.bind(window),controller.signal);
+    host.textContent='Dated index research · trade and sizing authority withheld';
+    document.getElementById('volsurface-table').innerHTML=api.table(d);
+    document.getElementById('volsurface-interp').textContent='Source-defined index levels. Open Volatility Research for original-source evidence, dated comparisons and explicit vega scenarios.';
+  } catch(e){host.textContent='Verified volatility research unavailable.';}
+  finally{clearTimeout(timer);}
+}
+
+// ─── MARKET INTERNALS ─────────────────────────────────────────────
+function renderInternals(d) {
+  if (!d) return;
+  const bs = d.breadth_score, state = d.state;
+  const cls = bs>=70?'pos':bs>=50?'info':bs>=30?'warning':'neg';
+  const ad = d.ad_line||{}, mc = d.mcclellan||{};
+  const above50 = d.pct_above_50d, above200 = d.pct_above_200d;
+  const hl = d.new_52w_highs_lows || {};
+  document.getElementById('internals-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Breadth Score</div><div class="val ${cls}">${fmtNum(bs,0)}</div><div class="sub">${state}</div></div>
+    <div class="kpi info"><div class="label">A/D Line</div><div class="val">${fmtNum(ad.ad_diff_today,0)}</div><div class="sub">${ad.advances}↑ ${ad.declines}↓ · ratio ${fmtNum(ad.ad_ratio,2)}</div></div>
+    <div class="kpi accent"><div class="label">McClellan</div><div class="val">${fmtNum(mc.oscillator,1)}</div><div class="sub">${mc.interpretation||'—'}</div></div>
+    <div class="kpi gold"><div class="label">% above 50d</div><div class="val">${fmtNum(above50,1)}%</div><div class="sub">200d: ${fmtNum(above200,1)}%</div></div>
+    <div class="kpi info"><div class="label">52w H/L</div><div class="val">${hl.new_highs||0} / ${hl.new_lows||0}</div><div class="sub">net ${(hl.new_highs||0)-(hl.new_lows||0)}</div></div>
+  `;
+  document.getElementById('internals-table').innerHTML = `<table>
+    <thead><tr><th>Component</th><th>Value</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td class="t-info">Advance/Decline</td><td>${ad.advances}/${ad.declines}/${ad.unchanged||0}</td><td class="t-mute">${(ad.ad_ratio||0)>2?'broad rally':(ad.ad_ratio||0)<0.5?'broad selloff':'mixed tape'}</td></tr>
+      <tr><td class="t-info">McClellan Oscillator</td><td>${fmtNum(mc.oscillator,1)}</td><td class="t-mute">${mc.interpretation||'—'}</td></tr>
+      <tr><td class="t-info">Summation Index</td><td>${fmtNum(mc.summation_index,0)}</td><td class="t-mute">${(mc.summation_index||0)>0?'long-term breadth positive':'long-term breadth negative'}</td></tr>
+      <tr><td class="t-info">% above 50d MA</td><td>${fmtNum(above50,1)}%</td><td class="t-mute">${above50>70?'overbought':above50<30?'oversold':'neutral'}</td></tr>
+      <tr><td class="t-info">% above 200d MA</td><td>${fmtNum(above200,1)}%</td><td class="t-mute">${above200>70?'broad uptrend':above200<40?'broad downtrend':'mixed trend'}</td></tr>
+    </tbody></table>`;
+  document.getElementById('internals-interp').innerHTML = `<b>Reading:</b> breadth score ${fmtNum(bs,0)} = ${state}. ${ad.advances}↑ vs ${ad.declines}↓ A/D ratio ${fmtNum(ad.ad_ratio,2)}. ${(above50||0)>70 && (above200||0)>70?'Broad participation — risk-on confirmed.':(above50||0)<30?'Narrow breadth — risk concentrated in mega-caps only.':'Mixed breadth.'}`;
+}
+
+// ─── SECTOR HEATMAP ────────────────────────────────────────────────
+function renderHeatmap(d) {
+  if (!d) return;
+  const mr = d.market_regime || {};
+  const wcls = (mr.weighted_return_1d_pct||0)>=0.2?'pos':(mr.weighted_return_1d_pct||0)<=-0.2?'neg':'info';
+  const bcls = (mr.breadth_pct||0)>=60?'pos':(mr.breadth_pct||0)<=40?'neg':'info';
+  document.getElementById('heatmap-kpis').innerHTML = `
+    <div class="kpi ${wcls}"><div class="label">SPX 1d (cap-weighted)</div><div class="val ${wcls}">${fmtPct(mr.weighted_return_1d_pct)}</div><div class="sub">${mr.regime}</div></div>
+    <div class="kpi ${bcls}"><div class="label">Breadth</div><div class="val ${bcls}">${fmtNum(mr.breadth_pct,1)}%</div><div class="sub">${mr.advancers}↑ ${mr.decliners}↓</div></div>
+    <div class="kpi accent"><div class="label">Universe</div><div class="val">${d.n_tickers_total}</div><div class="sub">${d.n_tickers_with_1d} have 1d data</div></div>
+    <div class="kpi gold"><div class="label">Market cap</div><div class="val">${fmtUSD(d.total_market_cap_usd)}</div><div class="sub">S&amp;P 500 universe</div></div>
+  `;
+  const sr = d.sector_rank_1d || [];
+  const rows = sr.map(r => {
+    const cls = r.weighted_return_1d_pct>=0.5?'t-pos':r.weighted_return_1d_pct<=-0.5?'t-neg':'t-info';
+    return `<tr><td>${r.sector}</td><td class="${cls}">${fmtPct(r.weighted_return_1d_pct)}</td></tr>`;
+  }).join('');
+  document.getElementById('heatmap-rank').innerHTML = `<table>
+    <thead><tr><th>Sector</th><th>1d cap-weighted</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=2 class=t-mute>no sector data</td></tr>'}</tbody></table>`;
+  const ldr = (mr.leaders||[]).map(t=>`<tr><td class="t-info">${t.symbol}</td><td class="t-mute">${t.name||''}</td><td class="t-pos">${fmtPct(t.change_pct)}</td></tr>`).join('');
+  const lag = (mr.laggers||[]).map(t=>`<tr><td class="t-info">${t.symbol}</td><td class="t-mute">${t.name||''}</td><td class="t-neg">${fmtPct(t.change_pct)}</td></tr>`).join('');
+  document.getElementById('heatmap-leaders').innerHTML = `<table>
+    <thead><tr><th>Symbol</th><th>Name</th><th>1d %</th></tr></thead>
+    <tbody>${ldr}<tr><td colspan=3 class="t-mute" style="text-align:center;">— LAGGERS —</td></tr>${lag}</tbody></table>`;
+  document.getElementById('heatmap-interp').innerHTML = `<b>Reading:</b> ${mr.regime} regime · ${fmtNum(mr.breadth_pct,1)}% of caps advancing · cap-weighted market ${fmtPct(mr.weighted_return_1d_pct)}. ${sr[0]?'Top sector: '+sr[0].sector+' '+fmtPct(sr[0].weighted_return_1d_pct):''} · ${sr.length>0?'Bottom sector: '+sr[sr.length-1].sector+' '+fmtPct(sr[sr.length-1].weighted_return_1d_pct):''}.`;
+}
+
+// ─── CDS PROXY ─────────────────────────────────────────────────────
+function renderCDS(d) {
+  if (!d) return;
+  const reg = d.regime, cr = d.composite_credit_risk;
+  const cls = cr>=70?'neg':cr>=50?'warning':cr>=30?'gold':'pos';
+  document.getElementById('cds-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">composite ${cr}/100</div></div>
+    <div class="kpi info"><div class="label">HY OAS</div><div class="val">${fmtNum(d.hy_oas,2)}%</div><div class="sub">vs IG ${fmtNum(d.ig_oas,2)}%</div></div>
+    <div class="kpi accent"><div class="label">Spread Ratio</div><div class="val">${fmtNum(d.hy_ig_ratio,2)}</div><div class="sub">HY/IG = stress signal</div></div>
+  `;
+  const reasons = (d.top_reasons||[]).map(r=>`<li>${r}</li>`).join('');
+  document.getElementById('cds-reasons').innerHTML = `<ul>${reasons||'<li class="t-mute">no stress contributors</li>'}</ul>`;
+  document.getElementById('cds-interp').innerHTML = `<b>Reading:</b> credit ${reg} at ${cr}/100. HY OAS ${fmtNum(d.hy_oas,2)}% vs IG ${fmtNum(d.ig_oas,2)}% (ratio ${fmtNum(d.hy_ig_ratio,2)}). ${cr>=50?'Credit stress is meaningful — watch for further widening.':cr>=30?'Modest credit pressure but not panic.':'Credit markets calm.'}`;
+}
+
+// ─── BOND TRACE ────────────────────────────────────────────────────
+function renderBondTrace(d) {
+  if (!d) return;
+  const reg = d.regime, hyg = d.hyg||{}, lqd = d.lqd||{};
+  const ratio = d.hyg_lqd_ratio;
+  const cls = reg==='STRESS'?'neg':reg==='ELEVATED'?'warning':'pos';
+  document.getElementById('bondtrace-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">HY vs IG proxy</div></div>
+    <div class="kpi info"><div class="label">HYG</div><div class="val">${fmtNum(hyg.price,2)}</div><div class="sub">5d ${fmtPct(hyg.perf_5d_pct)} · 30d ${fmtPct(hyg.perf_30d_pct)}</div></div>
+    <div class="kpi accent"><div class="label">LQD</div><div class="val">${fmtNum(lqd.price,2)}</div><div class="sub">5d ${fmtPct(lqd.perf_5d_pct)} · 30d ${fmtPct(lqd.perf_30d_pct)}</div></div>
+    <div class="kpi gold"><div class="label">HYG/LQD</div><div class="val">${fmtNum(ratio,3)}</div><div class="sub">${ratio>1?'risk-on':'risk-off'}</div></div>
+  `;
+  document.getElementById('bondtrace-etfs').innerHTML = `<table>
+    <thead><tr><th>ETF</th><th>Price</th><th>5d</th><th>30d</th><th>90d</th></tr></thead>
+    <tbody>
+      <tr><td class="t-info">HYG (HY)</td><td>${fmtNum(hyg.price,2)}</td><td class="${hyg.perf_5d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_5d_pct)}</td><td class="${hyg.perf_30d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_30d_pct)}</td><td class="${hyg.perf_90d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_90d_pct)}</td></tr>
+      <tr><td class="t-info">LQD (IG)</td><td>${fmtNum(lqd.price,2)}</td><td class="${lqd.perf_5d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_5d_pct)}</td><td class="${lqd.perf_30d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_30d_pct)}</td><td class="${lqd.perf_90d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_90d_pct)}</td></tr>
+    </tbody></table>`;
+  document.getElementById('bondtrace-interp').innerHTML = `<b>Reading:</b> ${reg}. HYG/LQD ratio ${fmtNum(ratio,3)} ${ratio>1?'(HY outperforming IG = risk-on)':'(IG outperforming HY = defensive bid)'}. ${hyg.perf_5d_pct<-1?'Recent HY weakness — credit stress brewing.':'Credit ETFs stable.'}`;
+}
+
+// ─── TIC FLOWS ─────────────────────────────────────────────────────
+function renderTIC(d) {
+  if (!d) return;
+  const reg = d.regime, ts = d.composite_tic_stress;
+  const cls = ts>=70?'neg':ts>=50?'warning':'pos';
+  document.getElementById('tic-kpis').innerHTML = `
+    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">stress ${fmtNum(ts,0)}/100</div></div>
+    <div class="kpi info"><div class="label">Foreign holdings</div><div class="val">${fmtUSD(d.foreign_total_holdings_usd)||'—'}</div><div class="sub">USD vs prior</div></div>
+    <div class="kpi accent"><div class="label">Top holder</div><div class="val">${d.largest_holder||'—'}</div><div class="sub">${fmtUSD(d.largest_holder_amount_usd)}</div></div>
+  `;
+  const reasons = (d.top_reasons||[]).map(r=>`<li>${r}</li>`).join('');
+  document.getElementById('tic-reasons').innerHTML = `<ul>${reasons||'<li class="t-mute">no stress drivers</li>'}</ul>`;
+  document.getElementById('tic-interp').innerHTML = `<b>Reading:</b> ${reg} regime at ${fmtNum(ts,0)}/100. ${ts>=50?'Foreign demand softening — de-dollarization signal worth watching.':'Foreign Treasury demand intact.'}`;
+}
+
+// ─── ANALYST CONSENSUS ─────────────────────────────────────────────
+function renderConsensus(d) {
+  if (!d) return;
+  const top = d.top_consensus_25 || [];
+  const ups = d.strongest_upgrades_30d || [];
+  document.getElementById('consensus-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Universe</div><div class="val">${d.universe_size||0}</div><div class="sub">${d.n_with_data||0} with consensus data</div></div>
+    <div class="kpi accent"><div class="label">Top composite</div><div class="val">${top[0]?fmtNum(top[0].composite_score,0):'—'}</div><div class="sub">${top[0]?top[0].ticker:'—'}</div></div>
+    <div class="kpi gold"><div class="label">Strong upgrades</div><div class="val">${ups.length}</div><div class="sub">last 30 days</div></div>
+  `;
+  const tRows = top.slice(0,15).map(t => `<tr>
+    <td class="t-info">${t.ticker}</td>
+    <td>${fmtNum(t.composite_score,0)}</td>
+    <td class="${(t.upside_pct||0)>=0?'t-pos':'t-neg'}">${fmtPct(t.upside_pct,1)}</td>
+    <td class="t-mute">${t.rec||'—'}</td>
+    <td>${t.total_analysts||0}</td>
+    <td>${fmtNum(t.beat_pct_8q,0)}%</td>
+  </tr>`).join('');
+  document.getElementById('consensus-top').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Score</th><th>Upside</th><th>Rec</th><th>n analysts</th><th>Beat 8q</th></tr></thead>
+    <tbody>${tRows||'<tr><td colspan=6 class=t-mute>no data</td></tr>'}</tbody></table>`;
+  const uRows = ups.slice(0,10).map(u => `<tr>
+    <td class="t-info">${u.ticker}</td>
+    <td class="t-pos">+${u.net_upgrades}</td>
+    <td>${u.upgrades}↑ / ${u.downgrades}↓</td>
+    <td>${fmtNum(u.composite_score,0)}</td>
+  </tr>`).join('');
+  document.getElementById('consensus-upgrades').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Net</th><th>Up/Down 30d</th><th>Composite</th></tr></thead>
+    <tbody>${uRows||'<tr><td colspan=4 class=t-mute>no upgrades</td></tr>'}</tbody></table>`;
+  document.getElementById('consensus-interp').innerHTML = `<b>Reading:</b> ${d.n_with_data||0}/${d.universe_size||0} S&amp;P names have analyst consensus data. ${top[0]?'Top score: <b>'+top[0].ticker+'</b> at '+fmtNum(top[0].composite_score,0)+'/100 with '+fmtPct(top[0].upside_pct,1)+' upside.':'No top names.'} Revision momentum is one of the strongest documented equity alpha factors (Sharpe ~1.5).`;
+}
+
+// ─── SELL-SIDE VIEWS ──────────────────────────────────────────────
+function renderSellside(d) {
+  if (!d) return;
+  const sc = d.spx_consensus || {};
+  const sb = d.strategist_breakdown || sc.distribution || [];
+  document.getElementById('sellside-kpis').innerHTML = `
+    <div class="kpi accent"><div class="label">SPX target (median)</div><div class="val">${fmtNum(sc.median_target,0)}</div><div class="sub">${d.target_year||'EOY'} consensus</div></div>
+    <div class="kpi info"><div class="label">Mean target</div><div class="val">${fmtNum(sc.mean_target,0)}</div><div class="sub">${d.n_firms||0} sell-side firms</div></div>
+    <div class="kpi gold"><div class="label">Range</div><div class="val">${fmtNum(sc.range_low,0)}–${fmtNum(sc.range_high,0)}</div><div class="sub">low / high</div></div>
+  `;
+  const rows = (Array.isArray(sb)?sb:Object.entries(sb||{})).slice(0,15).map(row => {
+    if (Array.isArray(row)) {
+      return `<tr><td>${row[0]||'—'}</td><td>${row[1]?fmtNum(row[1],0):'—'}</td></tr>`;
+    }
+    if (typeof row === 'object') {
+      return `<tr><td class="t-info">${row.firm||row.name||'—'}</td><td>${fmtNum(row.target||row.spx_target,0)}</td><td class="t-mute">${row.published_date||row.as_of||''}</td></tr>`;
+    }
+    return '';
+  }).join('');
+  document.getElementById('sellside-targets').innerHTML = `<table>
+    <thead><tr><th>Firm</th><th>SPX target</th><th>As of</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=3 class=t-mute>no firm-level data</td></tr>'}</tbody></table>`;
+  document.getElementById('sellside-interp').innerHTML = `<b>Reading:</b> sell-side ${d.target_year||'EOY'} SPX median <b>${fmtNum(sc.median_target,0)}</b> · mean ${fmtNum(sc.mean_target,0)} · range ${fmtNum(sc.range_low,0)}–${fmtNum(sc.range_high,0)} across ${d.n_firms||0} firms.`;
+}
+
+// ─── SEASONALITY ──────────────────────────────────────────────────
+function renderSeasonality(d) {
+  if (!d) return;
+  // Actual sidecar uses current_period {month, presidential_year, day_of_week} +
+  // per_symbol {SYMBOL: {month_avg_pct, win_rate, ...}} + highest_favor_today []
+  const cp = d.current_period || {};
+  const ps = d.per_symbol || {};
+  const hf = d.highest_favor_today || d.active_patterns || d.patterns || [];
+  const symbols = Object.entries(ps);
+  // Cap-weight avg if we have it, else simple mean
+  let posCount = 0, totalMonthly = 0;
+  symbols.forEach(([s, v]) => {
+    if (typeof v.month_avg_pct === 'number') {
+      totalMonthly += v.month_avg_pct;
+      if (v.month_avg_pct > 0) posCount++;
+    }
+  });
+  const avgMonthly = symbols.length ? totalMonthly / symbols.length : null;
+  const bias = avgMonthly > 0.5 ? 'BULLISH' : avgMonthly < -0.5 ? 'BEARISH' : 'NEUTRAL';
+
+  document.getElementById('seasonality-kpis').innerHTML = `
+    <div class="kpi accent"><div class="label">Current bias</div><div class="val">${bias}</div><div class="sub">avg monthly ${fmtPct(avgMonthly)}</div></div>
+    <div class="kpi info"><div class="label">Month</div><div class="val">${cp.month||'—'}</div><div class="sub">Pres yr ${cp.presidential_year||'—'} · ${cp.day_of_week||''}</div></div>
+    <div class="kpi gold"><div class="label">${hf.length} favored</div><div class="val">${posCount}/${symbols.length}</div><div class="sub">positive seasonals</div></div>
+  `;
+  const rows = (Array.isArray(hf) ? hf.slice(0,15) : []).map(p => `<tr>
+    <td class="t-info">${p.symbol||p.pattern_name||p.name||'—'}</td>
+    <td class="${(p.month_avg_pct||p.expected_return||p.avg_return||0)>=0?'t-pos':'t-neg'}">${fmtPct(p.month_avg_pct||p.expected_return||p.avg_return)}</td>
+    <td>${p.win_rate?(p.win_rate<=1?fmtNum(p.win_rate*100,0)+'%':fmtNum(p.win_rate,0)+'%'):'—'}</td>
+    <td class="t-mute">${p.note||p.description||p.month||''}</td>
+  </tr>`).join('');
+  document.getElementById('seasonality-patterns').innerHTML = `<table>
+    <thead><tr><th>Symbol</th><th>Month avg</th><th>Win rate</th><th>Note</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan=4 class=t-mute>no patterns favored today</td></tr>'}</tbody></table>`;
+  document.getElementById('seasonality-interp').innerHTML = `<b>Reading:</b> seasonal bias <b>${bias}</b> for ${cp.month||'this month'} (presidential year ${cp.presidential_year||'?'}). ${posCount}/${symbols.length} symbols show positive historical monthly returns. ${hf.length||0} are most favored today.`;
+}
+
+// ─── LIQUIDITY PROFILE ────────────────────────────────────────────
+function renderLiquidity(d) {
+  if (!d) return;
+  // Actual sidecar uses top_100_liquid / bottom_50_illiquid arrays
+  const top = d.top_100_liquid || d.most_liquid || d.top_liquid || [];
+  const bot = d.bottom_50_illiquid || d.least_liquid || d.bottom_liquid || [];
+  const n = d.n_analyzed || d.n_scored || d.universe_size || 0;
+  // Median ADV computed across both lists if needed
+  let medADV = d.median_adv_usd;
+  let medScore = d.median_score;
+  if (!medADV && top.length) {
+    const advs = top.concat(bot).map(t => t.adv_usd||t.adv||t.dollar_volume).filter(x=>x!=null).sort((a,b)=>a-b);
+    if (advs.length) medADV = advs[Math.floor(advs.length/2)];
+  }
+  if (!medScore && top.length) {
+    const scores = top.concat(bot).map(t => t.liquidity_score||t.score).filter(x=>x!=null).sort((a,b)=>a-b);
+    if (scores.length) medScore = scores[Math.floor(scores.length/2)];
+  }
+  document.getElementById('liquidity-kpis').innerHTML = `
+    <div class="kpi info"><div class="label">Universe</div><div class="val">${n}</div><div class="sub">tickers scored</div></div>
+    <div class="kpi accent"><div class="label">Median ADV</div><div class="val">${fmtUSD(medADV)}</div><div class="sub">$ / day</div></div>
+    <div class="kpi gold"><div class="label">Median score</div><div class="val">${medScore?fmtNum(medScore,0):'—'}</div><div class="sub">0-100</div></div>
+  `;
+  const fmtRow = t => `<tr>
+    <td class="t-info">${t.symbol}</td>
+    <td>${fmtNum(t.liquidity_score||t.score,0)}</td>
+    <td>${fmtUSD(t.adv_usd||t.adv||t.dollar_volume)}</td>
+    <td>${fmtNum(t.spread_bps||t.bid_ask_bps||t.spread_proxy_bps,1)}</td>
+  </tr>`;
+  document.getElementById('liquidity-top').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Score</th><th>ADV</th><th>Spread bps</th></tr></thead>
+    <tbody>${top.slice(0,15).map(fmtRow).join('')||'<tr><td colspan=4 class=t-mute>no data</td></tr>'}</tbody></table>`;
+  document.getElementById('liquidity-bottom').innerHTML = `<table>
+    <thead><tr><th>Ticker</th><th>Score</th><th>ADV</th><th>Spread bps</th></tr></thead>
+    <tbody>${bot.slice(0,15).map(fmtRow).join('')||'<tr><td colspan=4 class=t-mute>no data</td></tr>'}</tbody></table>`;
+  document.getElementById('liquidity-interp').innerHTML = `<b>Reading:</b> median ADV ${fmtUSD(medADV)} · median score ${medScore?fmtNum(medScore,0):'—'}/100 across ${n} tickers. Lower scores = tighter execution risk (wider spread, lower volume).`;
+}
+
+// Boot
+(async () => {
+  const [k, s, p, r, a, l, esi, vs, mi, hm, cds, bt, tic, ac, ss, sn, lp, dc, cp, cl, bk] = await Promise.all([
+    fetchJson(ENDPOINTS.khalid), fetchJson(ENDPOINTS.stress),
+    fetchJson(ENDPOINTS.political), fetchJson(ENDPOINTS.reversal),
+    fetchJson(ENDPOINTS.auction), fetchJson(ENDPOINTS.lending),
+    fetchJson(ENDPOINTS.esi), fetchJson(ENDPOINTS.volsurface),
+    fetchJson(ENDPOINTS.internals), fetchJson(ENDPOINTS.heatmap),
+    fetchJson(ENDPOINTS.cds), fetchJson(ENDPOINTS.bondtrace),
+    fetchJson(ENDPOINTS.tic), fetchJson(ENDPOINTS.consensus),
+    fetchJson(ENDPOINTS.sellside), fetchJson(ENDPOINTS.seasonality),
+    fetchJson(ENDPOINTS.liquidity),
+    fetchJson(ENDPOINTS.defcon), fetchJson(ENDPOINTS.capitulation),
+    fetchJson(ENDPOINTS.chinaLiq), fetchJson(ENDPOINTS.bankStress),
+  ]);
+  if (k) renderKhalid(k);
+  if (s) renderStress(s);
+  if (p) renderPolitical(p);
+  if (r) renderReversal(r);
+  if (a) renderAuction(a);
+  if (l) renderLending(l);
+  if (esi) renderESI(esi);
+  renderVolSurface(vs);
+  if (mi) renderInternals(mi);
+  if (hm) renderHeatmap(hm);
+  if (cds) renderCDS(cds);
+  if (bt) renderBondTrace(bt);
+  if (tic) renderTIC(tic);
+  if (ac) renderConsensus(ac);
+  if (ss) renderSellside(ss);
+  if (sn) renderSeasonality(sn);
+  if (lp) renderLiquidity(lp);
+  if (dc) renderDefcon(dc, cp, cl, bk);
+  const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp,dc,cp,cl,bk].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
+  if (ts) document.getElementById('ts').textContent = `updated ${ago(ts)}`;
+})();
+</script>
+</body>
+</html>

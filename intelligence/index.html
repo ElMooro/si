@@ -808,23 +808,33 @@ function renderCDS(d) {
 
 // ─── BOND TRACE ────────────────────────────────────────────────────
 function renderBondTrace(d) {
-  if (!d) return;
-  const reg = d.regime, hyg = d.hyg||{}, lqd = d.lqd||{};
-  const ratio = d.hyg_lqd_ratio;
-  const cls = reg==='STRESS'?'neg':reg==='ELEVATED'?'warning':'pos';
+  const packet = d && typeof d === 'object' && !Array.isArray(d) ? d : {};
+  const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const finite = value => typeof value === 'number' && Number.isFinite(value);
+  const num = (value, dp=2) => finite(value) ? value.toFixed(dp) : 'Unavailable';
+  const pct = value => finite(value) ? `${value>0?'+':''}${value.toFixed(2)}%` : 'Unavailable';
+  const tone = value => finite(value) ? (value>0?'t-pos':value<0?'t-neg':'t-mute') : 't-mute';
+  const hyg = packet.hyg || {}, lqd = packet.lqd || {};
+  const ratio = packet.hyg_lqd_ratio && typeof packet.hyg_lqd_ratio === 'object' ? packet.hyg_lqd_ratio : {};
+  const regime = typeof packet.regime === 'string' ? packet.regime : 'Unavailable';
+  const dates = packet.trace && packet.trace.observation_dates || {};
+  const day = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value+'T00:00:00Z')) && new Date(value+'T00:00:00Z').toISOString().slice(0,10) === value ? value : 'Unavailable';
+  const generated = typeof packet.generated_at === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(packet.generated_at) && !Number.isNaN(Date.parse(packet.generated_at)) ? new Date(packet.generated_at).toISOString() : 'Unavailable';
   document.getElementById('bondtrace-kpis').innerHTML = `
-    <div class="kpi ${cls}"><div class="label">Regime</div><div class="val ${cls}">${reg}</div><div class="sub">HY vs IG proxy</div></div>
-    <div class="kpi info"><div class="label">HYG</div><div class="val">${fmtNum(hyg.price,2)}</div><div class="sub">5d ${fmtPct(hyg.perf_5d_pct)} · 30d ${fmtPct(hyg.perf_30d_pct)}</div></div>
-    <div class="kpi accent"><div class="label">LQD</div><div class="val">${fmtNum(lqd.price,2)}</div><div class="sub">5d ${fmtPct(lqd.perf_5d_pct)} · 30d ${fmtPct(lqd.perf_30d_pct)}</div></div>
-    <div class="kpi gold"><div class="label">HYG/LQD</div><div class="val">${fmtNum(ratio,3)}</div><div class="sub">${ratio>1?'risk-on':'risk-off'}</div></div>
+    <div class="kpi warning"><div class="label">Legacy proxy category</div><div class="val">${esc(regime)}</div><div class="sub">Unqualified heuristic · no sizing authority</div></div>
+    <div class="kpi info"><div class="label">HYG</div><div class="val">${num(hyg.price)}</div><div class="sub">5 observations ${pct(hyg.perf_5d_pct)} · 30 observations ${pct(hyg.perf_30d_pct)}</div></div>
+    <div class="kpi accent"><div class="label">LQD</div><div class="val">${num(lqd.price)}</div><div class="sub">5 observations ${pct(lqd.perf_5d_pct)} · 30 observations ${pct(lqd.perf_30d_pct)}</div></div>
+    <div class="kpi gold"><div class="label">HYG/LQD price ratio</div><div class="val">${num(ratio.value,3)}</div><div class="sub">5-observation change ${pct(ratio.change_5d_pct)}</div></div>
   `;
-  document.getElementById('bondtrace-etfs').innerHTML = `<table>
-    <thead><tr><th>ETF</th><th>Price</th><th>5d</th><th>30d</th><th>90d</th></tr></thead>
-    <tbody>
-      <tr><td class="t-info">HYG (HY)</td><td>${fmtNum(hyg.price,2)}</td><td class="${hyg.perf_5d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_5d_pct)}</td><td class="${hyg.perf_30d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_30d_pct)}</td><td class="${hyg.perf_90d_pct>=0?'t-pos':'t-neg'}">${fmtPct(hyg.perf_90d_pct)}</td></tr>
-      <tr><td class="t-info">LQD (IG)</td><td>${fmtNum(lqd.price,2)}</td><td class="${lqd.perf_5d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_5d_pct)}</td><td class="${lqd.perf_30d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_30d_pct)}</td><td class="${lqd.perf_90d_pct>=0?'t-pos':'t-neg'}">${fmtPct(lqd.perf_90d_pct)}</td></tr>
-    </tbody></table>`;
-  document.getElementById('bondtrace-interp').innerHTML = `<b>Reading:</b> ${reg}. HYG/LQD ratio ${fmtNum(ratio,3)} ${ratio>1?'(HY outperforming IG = risk-on)':'(IG outperforming HY = defensive bid)'}. ${hyg.perf_5d_pct<-1?'Recent HY weakness — credit stress brewing.':'Credit ETFs stable.'}`;
+  const row = (label, value) => `<tr><td class="t-info">${label}</td><td>${num(value.price)}</td><td class="${tone(value.perf_5d_pct)}">${pct(value.perf_5d_pct)}</td><td class="${tone(value.perf_30d_pct)}">${pct(value.perf_30d_pct)}</td><td class="${tone(value.perf_90d_pct)}">${pct(value.perf_90d_pct)}</td></tr>`;
+  document.getElementById('bondtrace-etfs').innerHTML = `<div role="region" aria-label="ETF price changes by observation count" tabindex="0" style="max-width:100%;overflow-x:auto"><table>
+    <thead><tr><th>ETF</th><th>Price</th><th>5 obs.</th><th>30 obs.</th><th>89 obs.*</th></tr></thead>
+    <tbody>${row('HYG (HY)',hyg)}${row('LQD (IG)',lqd)}</tbody></table></div>
+    <p class="t-mute">*The producer's legacy 90 label compares the latest close with 89 observations earlier. These are price changes, not total returns; aligned dates and source definitions remain unqualified.</p>`;
+  document.getElementById('bondtrace-interp').innerHTML = `<b>Research status: unqualified.</b> Daily aggregate observations and an ETF/OAS heuristic are separate inputs. The absolute HYG/LQD price ratio does not establish relative performance or a risk-on/risk-off call.
+    <br>FINRA Treasury observation: ${day(dates.treasury)} · Corporate breadth observation: ${day(dates.corporate)}.
+    <br>Packet generated: ${esc(generated)}. Generation time is not an observation date.
+    <br>No individual TRACE prints, dealer inventory, directional flows or validated equity drawdown probability are supplied. Calls and position sizing remain ineligible.`;
 }
 
 // ─── TIC FLOWS ─────────────────────────────────────────────────────
@@ -1001,7 +1011,7 @@ function renderLiquidity(d) {
   if (mi) renderInternals(mi);
   if (hm) renderHeatmap(hm);
   if (cds) renderCDS(cds);
-  if (bt) renderBondTrace(bt);
+  renderBondTrace(bt);
   if (tic) renderTIC(tic);
   if (ac) renderConsensus(ac);
   if (ss) renderSellside(ss);
