@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Katlin OOS label-boundary/availability correction authorized 2026-10-01 03:32; draft codex/katlin-oos-availability; preserve intentional full-history priors, paired decision regressions; no deploy until exact-head independent review and parent release | none | S-codex#koa1001r3 | 2026-10-01 03:35 |
 | Holdings cohort Previous/cache navigation and explicit dated coverage labels; agent/shopiz/holdings-cohort-navigation; frontend-only draft, no deploy or ops retry | none | S-shopiz#hnav1001a | 2026-10-01 03:07 |
 | Legacy ETF price/volume proxy provenance + Livermore/Wyckoff display labels; etf-flows writer and dormant jh-etf-engine annotations; no shared brief/compiler or vote changes; draft agent/shopiz/etf-proxy-labels | none | S-shopiz#proxy1001a | 2026-10-01 03:00 |
 | Official-stats evidence-only repair: preserve required legacy join and decision gates; additive canary clocks/qualification, tests; agent/shopiz/official-stats-evidence, draft only | none | S-shopiz#ose1001c | 2026-10-01 01:57 |
