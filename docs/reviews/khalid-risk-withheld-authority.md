@@ -4,7 +4,7 @@ Draft only. A null classifier is intentional abstention in these four producer c
 
 ## Source and live evidence
 
-Sources below are pinned to PR33 merge `98f8049edaa148b660008de4c6487549d0071062`; the draft base is its later documentation-only descendant. Public reads were taken on 2026-10-01. Exact fetch times, SHA256 hashes, selected public fields and producer release receipts are in [the evidence record](khalid-risk-withheld-authority-evidence.json). Live URLs can advance. These are independent current snapshots, **not** claimed to be the exact inputs of the earlier Khalid Risk publication.
+Sources below are pinned to PR33 merge `98f8049edaa148b660008de4c6487549d0071062`; the draft base is its later descendant fde532d4e, which also updated config/section-registry.json. Public reads were taken on 2026-10-01. Exact fetch times, SHA256 hashes, selected public fields and producer release receipts are in [the evidence record](khalid-risk-withheld-authority-evidence.json). Live URLs can advance. These are independent current snapshots, **not** claimed to be the exact inputs of the earlier Khalid Risk publication.
 
 | Independent failure | Active producer and public output | Consumer rejection |
 |---|---|---|

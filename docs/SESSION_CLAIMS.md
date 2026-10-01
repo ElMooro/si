@@ -18,8 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Khalid risk withdrawn-authority diagnostics only; codex/khalid-risk-diagnostics; additive health explanations, paired policy-preservation tests and public consumer trace; draft only, no Katlin correction, thresholds, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:19 |
-| PR29 frontend performance follow-up: shared immutable qualification snapshot, one fetch/parse, deadline-safe bounded validation cache; khalid.js, jh-khalid-sniper.js, jh-chart-tvrail.js close cleanup, both script refs and tests; PR33 accepted e4e17f7c3; authorized frontend-only release verification; no backend contract/decisions changes | none | S-codex#kperf1001q7 | 2026-10-01 06:34 |
+| PR34 withheld-authority diagnostics accepted 1c890cf748; authorized release verification, policy/thresholds unchanged; no Katlin correction, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:46 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
 | Canonical holdings qualification diagnostics only: versioned new-input counters and overlapping reasons; preserve old replay and desk supplement v1; agent/shopiz/holdings-qualification-diagnostics; draft only, no activation | none | S-shopiz#hqdiag1001g | 2026-10-01 05:10 |
@@ -31,7 +30,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | PR15/16 and PR17 public browser-only production QA at 1440/390; normal TLS, one staged probe, no AWS/app writes | 6396 | S-shopiz#browser0930a | 2026-09-30 23:40 |
 | Equity identity/recovery source 32aed755a accepted: 60 native regressions; exact public receipt, five native sources/original controls, 55 static files checked. Bond and equity prior reads/identity/conditional writes repaired. Normal publication and remaining legacy CUSIP/GLEIF/catalog qualification unverified. | 6397–6399 ACCEPTED | S-codex#symb0930a | 2026-10-01 01:07 |
 | Coverage inventory source 2d1f4c628 accepted: 39 native, 990 deployment and 2213 frontend checks; exact public receipt, three native sources/original controls, 55 static files verified. Normal publication and independent source replay remain unverified. | 6401–6402 ACCEPTED | S-codex#coverage1001a | 2026-10-01 01:42 |
-| Stage 500 bounded observation cache 2e113edac accepted with 66 exact static artifacts and whole invented failure/recovery fixtures. Next: unavailable-source inspection and scalar calendar projection. Normal execution, source qualification and all institutional workstreams OPEN. | 6403 baseline; 6404 failed; 6405–6409 accepted; no new operation needed or reserved | S-codex#symdir1001a | 2026-10-01 |
+| Stage 501 diagnostic frames/calendar groups 2cb92648c accepted with 70 exact static artifacts and whole invented cases. Next: general warehouse scalar measurement decoding. Normal execution, source qualification and all institutional workstreams OPEN. | 6403 baseline; 6404 failed; 6405–6409 accepted; no new operation needed or reserved | S-codex#symdir1001a | 2026-10-01 |
 | Qualified canonical holdings summary: model/store replay, offline benchmarks and dependent cohort UI in jh-etf-holdings.js / both existing pages; agent/shopiz/qualified-holdings-summary; combined draft, no deployment | none | S-shopiz#qhs0930b | 2026-09-30 21:17 |
 | FI/FX complete API source/page and post-release original qualification; China safe diagnostics/publication outcomes, ICI complete-source transport and UTF-8/atomic navigation generation + title rendering. Native resources, measurements and original schedules preserved. | 6390–6395 | S-codex#fifx0930a | 2026-09-30 20:47 |
 | ETF desk daily phase dependency repair; agent/shopiz/etf-desk-phase; read-only probe then draft migration, no execution | 6380 probe; 6381 migration / 6382 rollback RESERVED (draft, not executed) | S-shopiz#edphase0930a | 2026-09-30 20:40 |
@@ -66,6 +65,7 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+| PR33 shared Khalid snapshot frontend released 98f8049edaa148b660008de4c6487549d0071062; Pages 36828680141 and five manifest-bound edge assets verified. Panel/script-reference implementation claim released; parent owns remaining managed-browser QA. Backend contract/decisions unchanged. | none | S-codex#kperf1001q7 |
 | Issuer binding read-only diagnosis: Lambda Active; no exact-target classic or function-prefix Scheduler binding found; arbitrary names outside scope. Run 36798403192; no engine/config changes. | 6400 | S-shopiz#issuer1001a |
 | provider-window sentinel v1.0.0 (weekly FRED-vs-bank diff, WINDOWED alerting) | 4850 | S-fable-A2 |
 | catalyst-chain v1.0.0 (4-stage event->filing->street machine; 60 chains, 30 unpriced) | 4852-4853 | S-fable-A2 |

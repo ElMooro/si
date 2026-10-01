@@ -465,7 +465,7 @@
     catOrder.forEach(function (ck) {
       var rows = byCat[ck];
       if (!rows || !rows.length) return;
-      h += "<div class='card-title' style='margin:14px 0 8px'>" + esc(CATN[ck] || nice(ck)) + " · " + rows.length + "</div>";
+      h += "<div class='card-title' style='margin:14px 0 8px'>" + esc(Object.prototype.hasOwnProperty.call(CATN,ck)?CATN[ck]:nice(ck)) + " · " + rows.length + "</div>";
       h += "<div class='grid' style='grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:12px'>";
       rows.forEach(function (row) {
         var mm = m[row.id] || {};

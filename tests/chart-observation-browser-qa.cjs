@@ -78,11 +78,11 @@ const output={scope:'Whole chart HTML/CSS and seven complete modules. Every requ
   await page.evaluate(()=>paint(lastBars.slice()));assert.equal(await page.evaluate(()=>jhChartEvidence),null);
   assert.match(await page.locator('#quote').textContent(),/evidence unavailable/);
   await page.evaluate(()=>jhOpenSymbol('CQ:unknown_metric'));await page.waitForFunction(()=>document.querySelector('#quote').textContent.includes('no other series is substituted'));
-  assert.equal(await page.evaluate(()=>lastBars.length),0);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()),null);
+  assert.equal(await page.evaluate(()=>lastBars.length),0);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.valid),false);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.observations.reason),'unknown_series_identity');
   await page.goto('https://invented.justhodl.test/chart.html?s=CISS:MONTHLY');await page.waitForFunction(()=>JHStockDeskController.getModel()?.kind==='scalar_observations');
   const monthly=await page.evaluate(()=>JHStockDeskController.getModel());assert.deepEqual(monthly.bars.map(b=>new Date(b.time*1000).toISOString().slice(0,10)),['2024-01-31','2024-02-29','2024-03-31']);
   await page.goto('https://invented.justhodl.test/chart.html?s=CISS:UNKNOWN');await page.waitForFunction(()=>document.querySelector('#quote').textContent.includes('no other series is substituted'));
-  assert.equal(await page.evaluate(()=>lastBars.length),0);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()),null);
+  assert.equal(await page.evaluate(()=>lastBars.length),0);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.valid),false);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.observations.reason),'unknown_series_identity');
   const forbidden=requests.filter(r=>/\/ohlc|\/yf-ohlc|\/trades|\/aggTrades|\/klines|\/yahoo-fund/.test(r.path)&&/CQ|CISS|INVENTED|MONTHLY|UNKNOWN/i.test(r.query));assert.equal(forbidden.length,0);
   assert.equal(errors.length,0,JSON.stringify(errors));
   output.cases.push({width,requests,errors,whole_export:exported,whole_grouped:grouped,whole_monthly:monthly,layout,screenshot,plot_screenshot:plot,scalar_price_requests:forbidden.length,actual_network_requests:0});await context.close();
