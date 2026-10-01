@@ -1,0 +1,68 @@
+{
+  "status": "candidate_not_deployed",
+  "scope": "Source-owned structural monitor entry; not provider or investment qualification. The real monitor accepts deterministic unqualified status and rejects missing fields and self-granted authority in invented fixtures.",
+  "target": "data/ai-website-synthesis.json",
+  "function": "justhodl-contract-gate",
+  "prior_overlay": {
+    "path": "tests/fixtures/website-research-status/pre-monitor-reviewed-contracts.json",
+    "sha256": "8c19e0a01ad0f46a3f6dbfdc850d32136b01a63d3f7bc1b9efa5404cc2157f1c"
+  },
+  "source_policy": {
+    "path": "aws/lambdas/justhodl-contract-gate/source/reviewed_contracts.json",
+    "sha256": "38ea0574597e5ed19f4164f3130ded850951d67c82aabbedbd379492180e7b8b"
+  },
+  "baseline": {
+    "operation": 6415,
+    "run_id": 36883788319,
+    "report_commit": "b361c560f33715ecbb7bdf243f63d0349de8a24c"
+  },
+  "expected_controls": {
+    "function_name": "justhodl-contract-gate",
+    "runtime": "python3.12",
+    "handler": "lambda_function.lambda_handler",
+    "timeout": 600,
+    "memory_mb": 1024,
+    "architectures": [
+      "x86_64"
+    ],
+    "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+    "ephemeral_storage_mb": 512,
+    "schedules": [
+      {
+        "kind": "EventBridge rule",
+        "name": "justhodl-contract-gate-daily",
+        "state": "ENABLED",
+        "expression": "cron(0 13 * * ? *)",
+        "native_targets": 1
+      }
+    ]
+  },
+  "reviewed_source_hashes": {
+    "aws/lambdas/justhodl-contract-gate/source/lambda_function.py": "dd5b820a9b8f72a3dd2664e1ea73ec7658b9284a3cf134fbf84f32654aee64ec",
+    "aws/lambdas/justhodl-contract-gate/source/reviewed_contracts.json": "38ea0574597e5ed19f4164f3130ded850951d67c82aabbedbd379492180e7b8b",
+    "aws/lambdas/justhodl-contract-gate/source/reviewed_contracts.py": "4984a943dfdfe9edd27cd5eefa13c2302cce5c709c167a4c1245e5f1952faecc",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+    "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+    "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba"
+  },
+  "native_source_files": 5,
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "open_limits": [
+    "Existing twelve-hour publication bound preserved; this is not an observation freshness SLA.",
+    "Structural monitoring does not replay source measurements, verify derived metadata hashes or earn an investment vote.",
+    "The separate Calls producer, short-position consumer repairs and all ten institutional workstreams remain open."
+  ],
+  "validation": {
+    "preserved_contract_tests": 9,
+    "whole_monitor_tests": 6,
+    "native_acceptance_tests": 6,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass",
+    "actual_application_packets_read": 0,
+    "invented_cases_only": true
+  }
+}

@@ -537,68 +537,6 @@
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
       }
-    },
-    "data/ai-website-synthesis.json": {
-      "writers": [
-        "justhodl-ai-website-synthesis"
-      ],
-      "evidence": "Source-owned website-research-status.v1 producer and bounded replay, 2026-10-01; structure/availability only, not source quality or investment authority.",
-      "contract": {
-        "required_keys": [
-          "schema_version",
-          "contract",
-          "status",
-          "generated_at",
-          "model",
-          "producer_source_sha256",
-          "engines_loaded",
-          "engines_total",
-          "input_status",
-          "input_status_sha256",
-          "decision",
-          "synthesis",
-          "call",
-          "calls_eligible",
-          "sizing_eligible",
-          "execution_eligible",
-          "forecast_qualified"
-        ],
-        "required_types": {
-          "$": "object",
-          "generated_at": "timestamp",
-          "engines_loaded": "integer",
-          "engines_total": "integer",
-          "input_status": "object",
-          "synthesis": "object",
-          "decision": "object",
-          "call": "null",
-          "producer_source_sha256": "string",
-          "input_status_sha256": "string"
-        },
-        "required_values": {
-          "schema_version": "2.0",
-          "contract": "website-research-status.v1",
-          "model": "deterministic-research-status-v1",
-          "status": "unqualified",
-          "calls_eligible": false,
-          "sizing_eligible": false,
-          "execution_eligible": false,
-          "forecast_qualified": false,
-          "engines_total": 12,
-          "decision.action": "WAIT",
-          "decision.abstain": true,
-          "decision.eligible_votes": 0,
-          "synthesis.global_posture": "WAIT"
-        },
-        "rows_path": null,
-        "min_rows": 0,
-        "learned_rows": 0,
-        "max_age_hours": 12,
-        "bound_source": "preserved_existing_publication_bound_not_observation_SLA",
-        "timestamp_field": "generated_at",
-        "source_contract": "website-research-status.v1",
-        "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
-      }
     }
   },
   "retired": {
