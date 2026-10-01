@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-01T12:51:33.283069+00:00",
+  "observed_at": "2026-10-01T12:51:37.010821+00:00",
   "runs": [
     {
       "id": 36864172403,
@@ -4946,8 +4946,170 @@
             }
           ],
           "failure_diagnostics": {
-            "available": false,
-            "error_type": "HTTPError"
+            "available": true,
+            "function_failures": [
+              {
+                "function": "justhodl-factor-risk",
+                "aws_errors": [
+                  {
+                    "code": "ValidationException",
+                    "operation": "UpdateSchedule"
+                  }
+                ],
+                "validation_fields": [
+                  "target.roleArn"
+                ],
+                "stages": [
+                  "existing_function",
+                  "package_built",
+                  "scheduler"
+                ],
+                "configuration_errors": [],
+                "transport_flags": [
+                  "CONSTRAINT_FAILED"
+                ]
+              },
+              {
+                "function": "justhodl-research-backtest",
+                "aws_errors": [],
+                "validation_fields": [],
+                "stages": [
+                  "existing_function",
+                  "package_built",
+                  "candidate_invoked"
+                ],
+                "configuration_errors": [],
+                "transport_flags": [
+                  "CONNECTION_CLOSED"
+                ]
+              }
+            ],
+            "exception_types": [
+              "ValidationException"
+            ],
+            "aws_error_codes": [
+              "ValidationException"
+            ],
+            "missing_modules": [],
+            "traceback_locations": [],
+            "failed_test_names": [],
+            "javascript_test_locations": [],
+            "failed_javascript_test_numbers": [],
+            "validation_failures": [],
+            "failed_functions": [
+              "justhodl-factor-risk",
+              "justhodl-research-backtest"
+            ],
+            "deployed_functions": [
+              "alphavantage-market-agent",
+              "alphavantage-technical-analysis",
+              "bls-employment-api-v2",
+              "fmp-fundamentals-agent",
+              "justhodl-ai-brief",
+              "justhodl-ai-brief-router",
+              "justhodl-ai-chat",
+              "justhodl-ai-infra-stack",
+              "justhodl-alpha-score",
+              "justhodl-apex-fusion",
+              "justhodl-ask",
+              "justhodl-ask-desk",
+              "justhodl-attention-confluence",
+              "justhodl-backend-agent",
+              "justhodl-backtest-engine",
+              "justhodl-behavior-mirror",
+              "justhodl-best-setups",
+              "justhodl-bloomberg-v8",
+              "justhodl-bond-warroom",
+              "justhodl-brain-compiler",
+              "justhodl-brain-sync",
+              "justhodl-calibration-snapshotter",
+              "justhodl-canary-warroom",
+              "justhodl-catalyst-skew-premove",
+              "justhodl-compound-aggregator",
+              "justhodl-convergence-radar",
+              "justhodl-conviction-engine",
+              "justhodl-crypto-basis",
+              "justhodl-crypto-enricher",
+              "justhodl-crypto-funding",
+              "justhodl-debate-engine",
+              "justhodl-devils-advocate",
+              "justhodl-domain-barometers",
+              "justhodl-earnings-whisper",
+              "justhodl-ecb-derived",
+              "justhodl-engine-conflicts",
+              "justhodl-engine-fusion",
+              "justhodl-equity-research",
+              "justhodl-etf-constituents",
+              "justhodl-etf-true-flows",
+              "justhodl-euro-fragmentation",
+              "justhodl-eurodollar-plumbing",
+              "justhodl-event-coordinator",
+              "justhodl-firm-risk-board",
+              "justhodl-fleet-freshness-monitor",
+              "justhodl-fleet-monitor",
+              "justhodl-health-monitor",
+              "justhodl-history-api",
+              "justhodl-history-snapshotter",
+              "justhodl-journal-grader",
+              "justhodl-katlin",
+              "justhodl-khalid",
+              "justhodl-khalid-risk",
+              "justhodl-liquidity-capacity",
+              "justhodl-liquidity-credit-engine",
+              "justhodl-liquidity-inflection",
+              "justhodl-liquidity-profile",
+              "justhodl-massive-signals",
+              "justhodl-master-allocator",
+              "justhodl-master-ranker",
+              "justhodl-my-brief",
+              "justhodl-notes-intel",
+              "justhodl-options-confluence",
+              "justhodl-options-flow",
+              "justhodl-options-flow-scanner",
+              "justhodl-outcome-checker",
+              "justhodl-page-ai-commentary",
+              "justhodl-playbook-engine",
+              "justhodl-pm-decision",
+              "justhodl-portfolio-admin",
+              "justhodl-portfolio-catalysts",
+              "justhodl-portfolio-risk",
+              "justhodl-portfolio-sizer",
+              "justhodl-portfolio-snapshot",
+              "justhodl-position-sizer",
+              "justhodl-provider-catalog",
+              "justhodl-public-archive-index",
+              "justhodl-pump-mechanics",
+              "justhodl-regime-composite",
+              "justhodl-repo",
+              "justhodl-retail-sentiment",
+              "justhodl-risk-gate",
+              "justhodl-risk-sizer",
+              "justhodl-schedule-liveness",
+              "justhodl-scheduler",
+              "justhodl-sector-capital-fusion",
+              "justhodl-sector-rotation",
+              "justhodl-short-interest",
+              "justhodl-sizing-engine",
+              "justhodl-squeeze-fuel",
+              "justhodl-stealth-accumulation",
+              "justhodl-stock-analyzer",
+              "justhodl-stock-screener",
+              "justhodl-tax-plan",
+              "justhodl-theme-second-wave",
+              "justhodl-trade-journal",
+              "justhodl-trade-logger",
+              "justhodl-trade-tickets",
+              "justhodl-tradingview",
+              "justhodl-tv-workbench",
+              "justhodl-velocity-acceleration",
+              "justhodl-vol-regime",
+              "justhodl-watchlist",
+              "justhodl-wealth-plan",
+              "justhodl-whats-changed",
+              "nasdaq-datalink-agent",
+              "openbb-websocket-broadcast",
+              "openbb-websocket-handler"
+            ]
           }
         }
       ]
