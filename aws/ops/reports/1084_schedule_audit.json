@@ -1,0 +1,1445 @@
+{
+  "script": "1084_schedule_audit",
+  "read_at": "2026-10-01T19:13:48Z",
+  "expected": {
+    "justhodl-sec-8k-enrich-schedule": {
+      "exists": false
+    },
+    "justhodl-xbrl-fundamentals-schedule": {
+      "exists": false
+    },
+    "justhodl-cboe-options-chain-schedule": {
+      "exists": false
+    },
+    "justhodl-corporate-actions-schedule": {
+      "exists": false
+    },
+    "justhodl-etf-issuer-holdings-daily": {
+      "exists": false
+    },
+    "justhodl-microcap-float-squeeze-daily": {
+      "exists": false
+    },
+    "justhodl-transcript-query-weekly": {
+      "exists": false
+    },
+    "justhodl-ticker-360-schedule": {
+      "exists": false
+    }
+  },
+  "all_justhodl": [
+    {
+      "name": "justhodl-asia-trade-24h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-desk-results",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-beneish-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-boj-full-fanout",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bottom-signals",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst-chain-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cef-discount-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-census-us-15min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-chart-patterns-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-finra-full-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fiscaldata-full-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-insider-buyback-confluence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-insider-sell-cluster-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-khalid-risk-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-magic-formula-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-momentum-leaders-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-nyfed-full-history-nightly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-peer-comparison-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pjm-grid",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-plumbing-composite-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-prepump-summary-30min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-readthrough-sched",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-screen-builder-universe-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-signal-orthogonality-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-spx-ma-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-stealth-flow-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-tail-hedge-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ticker-deep-research-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-warroom-evening",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst-clusters-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-census-econ-dispatch",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-credit-equity-divergence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-dol-full-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-factor-risk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fedwatch-rate-probability-daily",
+      "state": "DISABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-impact-graph-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-index-recon-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-industry-boom-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-katlin-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-liquidity-reversal",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-market-tape-5min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-merger-arb-2x",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-merger-arb-risk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-phase-detector-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-physical-econ",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sec-filing-diff-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-spac-floor-warrant-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-student-rsi-1m",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-supply-chain-linkage-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-ustbank",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-treasury-noise-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-valuations-research-4h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-vol-radar-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-worldbank-full-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-pipeline",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-air-cargo-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bls-full-12h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-warroom-mid",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cannibals-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-corr-break-trades-2h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-distribution-composite-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-dividend-growth-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-dxy-predict",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-engine-fusion-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-factor-decomposition-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fiscaldata-full-2h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ka-metrics-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-lockup-expiration-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-nyfed-markets-hourly-s",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-official-pulse-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-options-flow-30m",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-provider-window-sentinel-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-smart-money-cluster-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-statcan-retry-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symbol-dictionary-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-thesis-engine-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-trade-nowcast-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-13f-clone-alpha-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-wall-prepare",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-boj-full-12h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-warroom-close",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-comeback-screener-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-congress-direct-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-credit-composite-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-crypto-etf-arb-30min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gap-fill-confirm-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gdelt-full-30m",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-geopolitical-risk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gsi-horizons-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-khalid-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-liquidity-capacity-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-market-extremes-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-market-machine",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ndx-spx-spread-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-nyfed-repo-deep-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ofr-stfm-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-portwatch-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-post-earnings-mean-rev-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-regime-conditional-router-2h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-risk-monitor-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-risk-radar-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-stock-buying",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-supabase-keepalive",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-supply-chain-graph-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-build",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-codelists",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-fredfresh",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sympathetic-momentum-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-vrp-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-vvix-vov-regime-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-52wk-quality-breakout-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-wall-post",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-crisis-ai-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-boom-stage-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-breadth-divergence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-buyback-yield-ranking-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst-skew-premove-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-chain-resumer-5min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-econ-calendar-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-finra-full-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gsi-calibrator-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-hedge-planner-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-holdings-originals-research",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-insider-industry-cluster-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-liq-indicators",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-liquidity-agent-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-live-pulse-15m",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ma-target-predictor-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-master-allocator-3h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-metals-miners-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-polygon-full-2h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-precatalyst-vol-expansion-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-predictability-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-public-archive-index-15min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sequence-alpha-detector-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-starmine-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-streaming-fanout-1min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-tic-full-12h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-top-signals",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-tv-watchlist-tracker-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-us10y-sentinel-5x",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-desk-late",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-backlog-miner",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bloomberg-v8-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-vol-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-calibration-fleet-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cro-digest-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ecb-rewalk-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-firm-book-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-forced-selling-bounce-30min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fortress-backtest-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-forward-orders-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-frbddp-full-12h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-freight-pulse-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-grid-queue-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-invest-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pair-trades-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pnl-attribution-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-powell-pivot-4h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pump-earnings-nlp-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-radar-backtest-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-report-research-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-risk-ratios-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sec-bulk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-share-flows-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-signal-fabric-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-squeeze-fuel-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-trend-engine-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-worldbank-full-2h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-market-read",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-asset-compass-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bis-crossborder-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-convergence-radar-30min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cycle-features-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-desk-returns-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-dxy-equity-divergence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-earnings-quality-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ecb-deep-10min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-feed-registry-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-hedge-pnl-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ipo-pipeline-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-katlin-backtest-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-khalid-metrics-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-playbook-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-repo-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sec-midas-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-skew-tail-hedging-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-smart-beta-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-spx-beaters-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-tv-bars-universe-refresh",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-vix9d-vix-inversion-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-accum-composite-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-desk-buyback",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-desk-morning",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-boe-full-12h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-warroom-early",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bottom-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst-classifier-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-crypto-opportunities-4h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cta-trend-exhaust-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-desk-allocator-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-divcut-warning-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-earnings-tone-velocity-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fifx-vol-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-firm-risk-board-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-foreign-flows-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gf-value-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-global-stress-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-inverse-harvester-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-katlin-permission-refresh",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-real-economy-collector",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sec-bulk-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-tail-risk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-theme-classifier-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-transcript-indexer-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-warroom-weights-monthly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-whales-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-website-synthesis-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-asia-leads-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-blackswan-watch",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-warroom-after-auction",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-consensus-bottom-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-earnings-iv-crush-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fed-pivot-factor-router-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-firm-stress-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-floor-audit-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fortress-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fx-decomposition-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gap-metrics-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-gold-equity-rotation-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-hist-banker-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-hot-money-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-imf-full-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-import-sentinel-10min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-macro-predict",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-portfolio-analytics-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-proven-portfolio-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pump-mechanics-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pump-positioning-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-quality-on-sale-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-reit-nav-discount-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-repo-market-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-risk-regime-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sector-tilt-research-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-short-book-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-sp500-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-spinoff-desk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-squeeze-pretrigger-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-src-mirror-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-stealth-accumulation-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-fredupdates",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-warm",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-13f-price-divergence-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-brief-router-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ai-inventory",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-tail-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-base-rates-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-beaters-grader-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cftc-deep-view-fri",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-congress-alpha-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cro-escalation-intraday",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-dollar-radar-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-earnings-cascade-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-eva-spread-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-failed-pattern-reversal-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-global-flows-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-imf-full-6h",
+      "state": "DISABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-jh-fusion-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-jhsignal-bridge-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-multi-tf-convergence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-nyfed-markets-full-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-oecd-retry-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-options-analytics-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-options-flow-sched",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pairs-arb-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-port-cargo-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pump-radar-brief-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-put-call-extreme-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-rating-change-cluster-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-symdir-titles",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-velocity-acceleration-hourly",
+      "state": "ENABLED",
+      "expression": null
+    }
+  ],
+  "total_schedules": 408,
+  "justhodl_count": 282,
+  "status": "COMPLETE"
+}

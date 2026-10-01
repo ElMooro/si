@@ -1,119 +1,226 @@
-executing-against: 2430e5010eeed56e92aa29d1bf195b086934bcf9
+executing-against: 600179075a54b5983d1a3e012582915b0da2dc0e
 {
-  "script": "1083_degraded_sweep",
-  "read_at": "2026-10-01T19:02:17Z",
-  "fix_window": "2026-10-01T13:54:00Z",
-  "units": [
-    {
-      "name": "SEC 8-K enrichment",
-      "lambda": "justhodl-sec-8k-enrich",
-      "schedule": {
-        "enabled": false,
-        "error": "not found"
-      },
-      "invocation": {
-        "invocations_since_fix": 10,
-        "errors_since_fix": 0,
-        "has_success": true
-      },
-      "artifact": {
-        "exists": false
-      },
-      "green": false,
-      "green_reasons": {
-        "schedule_ok": false,
-        "invocation_ok": true,
-        "artifact_ok": false
-      }
+  "script": "1084_schedule_audit",
+  "read_at": "2026-10-01T19:13:48Z",
+  "expected": {
+    "justhodl-sec-8k-enrich-schedule": {
+      "exists": false
     },
-    {
-      "name": "FINRA short-interest",
-      "lambda": "justhodl-short-interest",
-      "schedule": {
-        "enabled": "n/a (existing)"
-      },
-      "invocation": {
-        "invocations_since_fix": 0,
-        "errors_since_fix": 0,
-        "has_success": false
-      },
-      "artifact": {
-        "exists": false
-      },
-      "green": false,
-      "green_reasons": {
-        "schedule_ok": true,
-        "invocation_ok": false,
-        "artifact_ok": false
-      }
+    "justhodl-xbrl-fundamentals-schedule": {
+      "exists": false
     },
-    {
-      "name": "SEC XBRL",
-      "lambda": "justhodl-xbrl-fundamentals",
-      "schedule": {
-        "enabled": false,
-        "error": "not found"
-      },
-      "invocation": {
-        "invocations_since_fix": 0,
-        "errors_since_fix": 0,
-        "has_success": false
-      },
-      "artifact": {
-        "exists": false
-      },
-      "green": false,
-      "green_reasons": {
-        "schedule_ok": false,
-        "invocation_ok": false,
-        "artifact_ok": false
-      }
+    "justhodl-cboe-options-chain-schedule": {
+      "exists": false
     },
-    {
-      "name": "Corporate actions",
-      "lambda": "justhodl-corporate-actions",
-      "schedule": {
-        "enabled": false,
-        "error": "not found"
-      },
-      "invocation": {
-        "invocations_since_fix": 0,
-        "errors_since_fix": 0,
-        "has_success": false
-      },
-      "artifact": {
-        "exists": false
-      },
-      "green": false,
-      "green_reasons": {
-        "schedule_ok": false,
-        "invocation_ok": false,
-        "artifact_ok": false
-      }
+    "justhodl-corporate-actions-schedule": {
+      "exists": false
     },
-    {
-      "name": "ETF issuer holdings",
-      "lambda": "justhodl-etf-issuer-holdings",
-      "schedule": {
-        "enabled": false,
-        "error": "not found"
-      },
-      "invocation": {
-        "invocations_since_fix": 0,
-        "errors_since_fix": 0,
-        "has_success": false
-      },
-      "artifact": {
-        "exists": false
-      },
-      "green": false,
-      "green_reasons": {
-        "schedule_ok": false,
-        "invocation_ok": false,
-        "artifact_ok": false
-      }
+    "justhodl-etf-issuer-holdings-daily": {
+      "exists": false
+    },
+    "justhodl-microcap-float-squeeze-daily": {
+      "exists": false
+    },
+    "justhodl-transcript-query-weekly": {
+      "exists": false
+    },
+    "justhodl-ticker-360-schedule": {
+      "exists": false
     }
-  ],
-  "green_count": 0,
-  "total": 5
-}
+  },
+  "all_justhodl": [
+    {
+      "name": "justhodl-asia-trade-24h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-auction-desk-results",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-beneish-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-boj-full-fanout",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bottom-signals",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst-chain-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-cef-discount-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-census-us-15min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-chart-patterns-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-finra-full-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fiscaldata-full-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-insider-buyback-confluence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-insider-sell-cluster-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-khalid-risk-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-magic-formula-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-momentum-leaders-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-nyfed-full-history-nightly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-peer-comparison-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-pjm-grid",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-plumbing-composite-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-prepump-summary-30min",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-readthrough-sched",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-screen-builder-universe-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-signal-orthogonality-weekly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-spx-ma-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-stealth-flow-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-tail-hedge-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-ticker-deep-research-hourly",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-bond-warroom-evening",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-catalyst-clusters-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-census-econ-dispatch",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-credit-equity-divergence-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-dol-full-6h",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-factor-risk-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-fedwatch-rate-probability-daily",
+      "state": "DISABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-impact-graph-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-index-recon-daily",
+      "state": "ENABLED",
+      "expression": null
+    },
+    {
+      "name": "justhodl-industry-boom-daily",
+      "state": "ENABLED",
+      "expression": null
+
