@@ -1,4 +1,4 @@
-# Industry-case publication probe 6411 (draft, not dispatched)
+# Industry-case publication probe 6412 (draft, not dispatched)
 
 The ordinary public inspector still showed the August 18 v1.1.0 industry-case packet after the declared October 1 13:00 cadence. Repository config uses uppercase `Schedule`, which the lowercase deployment schedule guard does not check; the historical September 2 inventory recorded no bindings. Neither historical evidence nor a deployment receipt proves today's invocation or binding state. This staged script collects only bounded current metadata to distinguish those possibilities. It does not repair or invoke anything.
 
@@ -16,9 +16,9 @@ The script does not read Lambda configuration, environment, code, logs, receipts
 
 ## Runner and report contract
 
-Only `Run ops script (direct)` under workflow_dispatch in `ElMooro/si` passes the runtime guard. The script lives in `aws/ops/staged/`, outside the pending serial queue. Number 6411 is reserved in SESSION_CLAIMS. No workflow changes are included. Independent exact-head review and explicit parent release must precede any merge or dispatch.
+Only `Run ops script (direct)` under workflow_dispatch in `ElMooro/si` passes the runtime guard. The script lives in `aws/ops/staged/`, outside the pending serial queue. Number 6412 is reserved in SESSION_CLAIMS. No workflow changes are included. Independent exact-head review and explicit parent release must precede any merge or dispatch.
 
-A future reviewed direct dispatch would select `staged/ops_6411_industry_publication_readonly.py`. It emits the normal `aws/ops/reports/latest/ops_6411_industry_publication_readonly.md` report with GITHUB_SHA and probe-source SHA-256. Failed or incomplete reads exit nonzero after preserving sanitized results. A successful bounded read still does not assert the existence/absence of all triggers, completed publication, or observation freshness.
+A future reviewed direct dispatch would select `staged/ops_6412_industry_publication_readonly.py`. It emits the normal `aws/ops/reports/latest/ops_6412_industry_publication_readonly.md` report with GITHUB_SHA and probe-source SHA-256. Failed or incomplete reads exit nonzero after preserving sanitized results. A successful bounded read still does not assert the existence/absence of all triggers, completed publication, or observation freshness.
 
 ## Offline validation
 

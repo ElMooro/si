@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
-FILE = ROOT / 'aws/ops/staged/ops_6411_industry_publication_readonly.py'
+FILE = ROOT / 'aws/ops/staged/ops_6412_industry_publication_readonly.py'
 spec = importlib.util.spec_from_file_location('industry_probe', FILE)
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
 NOW = datetime(2026, 10, 1, 13, 6, 27, tzinfo=timezone.utc)

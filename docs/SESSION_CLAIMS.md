@@ -18,7 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Industry-case exact-output metadata, bounded metrics and binding inventory; staged read-only probe, draft and independent review before merge/dispatch; no invokes or AWS mutations. | 6411 RESERVED | S-codex#icpub1001k8 | 2026-10-01 13:13 |
+| Industry-case exact-output metadata, bounded metrics and binding inventory; staged read-only probe, draft and independent review before merge/dispatch; no invokes or AWS mutations. | 6412 RESERVED | S-codex#icpub1001k8 | 2026-10-01 13:13 |
 | Industry-case missing cls renderer helper only; restore league/drilldown and typed neutral display, actual-renderer tests; separate draft codex/industry-case-render-helper. PR43 and tape-reader notice unchanged; no backend/date/navigation/policy/cosmetic changes or deploy. | none | S-codex#iccls1001r7 | 2026-10-01 11:51 |
 | PR42 presentation-only publication/contract-withholding notice; tape-reader.html and opt-in jh-enhance path only, other 59 importers unchanged; separate draft codex/tape-reader-publication-notice. PR43 stays immutable. No backend/requests/schedules/deploy. | none | S-codex#trnotice1001p5 | 2026-10-01 10:57 |
 | Tape-truth observation qualification and industry-case projection; tape-truth.html, industry-case.html and only why.html IC_/TT_ modules with ticker bus preserved; separate draft codex/tape-truth-qualification. No math/provider/schedule/capital/LLM prompt changes. | none | S-codex#ttqual1001u4 | 2026-10-01 10:29 |
