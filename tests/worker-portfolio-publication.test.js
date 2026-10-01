@@ -56,7 +56,8 @@ async function fixture(legacy = '{"legacy":true,"zero":0,"null":null,"unknown":"
     USER_DATA: {
       async get(key, options) {
         if (key === 'owner:uids') return null;
-        assert.equal(key, KIND); state.reads++; if (state.barrier) await state.barrier;
+        assert.equal(key, KIND); state.reads++; state.readEntered?.();
+        if (state.barrier) await state.barrier;
         if (state.legacy === null) return null;
         assert.equal(options.type, 'arrayBuffer');
         return typeof state.legacy === 'string' ? encoder.encode(state.legacy).buffer : state.legacy;
@@ -68,7 +69,9 @@ async function fixture(legacy = '{"legacy":true,"zero":0,"null":null,"unknown":"
       get(name) { return { async fetch(request) {
         state.routes.push({ method: request.method, name });
         if (!objects.has(name)) objects.set(name, new WorkspaceCoordinator({ storage }, env));
-        return objects.get(name).fetch(request);
+        const response = objects.get(name).fetch(request);
+        state.enqueued?.(request.method);
+        return response;
       } }; },
     },
   };
@@ -251,13 +254,70 @@ test('publication identity must match complete snapshot binding, including value
   assert.ok(!f.storage.map.has('risk:current'));
 });
 
-test('external legacy await is serialized with later publication and reservations', async () => {
+function deferred() {
+  let resolve;
+  const promise = new Promise(done => { resolve = done; });
+  return { promise, resolve };
+}
+
+async function publicationInterleaving(newerFirst = false) {
   const f = await fixture(), first = await f.reserve(), second = await f.reserve();
-  let release; f.state.barrier = new Promise(resolve => { release = resolve; });
-  const old = f.publish(first), newer = f.publish(second);
-  await new Promise(resolve => setTimeout(resolve, 10)); assert.ok(!f.storage.map.has('risk:current'));
-  f.state.barrier = null; release(); assert.equal((await old).status, 200); assert.equal((await newer).status, 200);
-  assert.equal(await (await f.call()).text(), f.packet(second));
+  const entered = deferred(), release = deferred();
+  f.state.readEntered = entered.resolve;
+  f.state.barrier = release.promise;
+  const before = clone(f.storage.map), writes = f.storage.writes.length;
+  // publish() hashes asynchronously before dispatch. Invocation order alone is
+  // not queue order: prove the intended first request is inside its KV await.
+  const leading = f.publish(newerFirst ? second : first);
+  let trailing, reservation;
+  try {
+    await entered.promise;
+    const publicationQueued = deferred();
+    f.state.enqueued = publicationQueued.resolve;
+    trailing = f.publish(newerFirst ? first : second);
+    assert.equal(await publicationQueued.promise, 'PUT');
+    const reservationQueued = deferred();
+    f.state.enqueued = reservationQueued.resolve;
+    reservation = f.reserve();
+    assert.equal(await reservationQueued.promise, 'POST');
+    assert.equal(f.state.reads, 1);
+    assert.deepEqual(f.storage.map, before);
+    assert.equal(f.storage.writes.length, writes);
+    assert.ok(!f.storage.map.has('risk:current'));
+  } finally {
+    f.state.enqueued = null;
+    f.state.readEntered = null;
+    f.state.barrier = null;
+    release.resolve();
+    // Drain every started request even when a checkpoint assertion fails.
+    await Promise.allSettled([leading, trailing, reservation]);
+  }
+  assert.equal((await leading).status, 200);
+  const trailingResponse = await trailing;
+  assert.equal(trailingResponse.status, newerFirst ? 409 : 200);
+  if (newerFirst) assert.equal((await trailingResponse.json()).error, 'superseded_publication');
+  assert.equal((await reservation).revision, second.revision + 1);
+  assert.equal(f.state.reads, 1);
+  assert.equal(f.state.puts, 0);
+  assert.equal(f.storage.map.get('risk:current').revision, second.revision);
+  const expected = f.packet(second);
+  const get = await f.call();
+  assert.equal(await get.text(), expected);
+  assert.equal(get.headers.get('X-JH-Body-SHA256'), await f.p.riskDigest(encoder.encode(expected)));
+  f.restart();
+  assert.equal(await (await f.call()).text(), expected);
+}
+
+test('external legacy await is serialized with later publication and reservations', { timeout: 5000 }, async () => {
+  await publicationInterleaving();
+});
+
+test('external legacy await with newer arrival first rejects the superseded older packet', { timeout: 5000 }, async () => {
+  await publicationInterleaving(true);
+});
+
+test('external legacy await preserves both queue orders under repeated interleavings', { timeout: 15000 }, async () => {
+  for (let i = 0; i < 50; i++) await publicationInterleaving(i % 2 === 1);
 });
 
 test('complete request framing rejects length/encoding/oversize and cancels a stalled read', async () => {
