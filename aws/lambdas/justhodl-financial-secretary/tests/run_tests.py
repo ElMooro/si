@@ -129,6 +129,59 @@ class PresentationTests(unittest.TestCase):
         self.assertNotIn("Source action", html)
         self.assertNotIn("bad", html)
 
+    def test_json_fetch_full_render_score_edge_case_parity(self):
+        # Exercise real JSON decoding and fetch_tier2 field mapping, not just
+        # the formatter. Only the relevant score text may change in the email.
+        # NaN/Infinity are Python decoder extensions; huge integers are valid JSON.
+        cases = [(10**400, "Unavailable"), (-10**400, "Unavailable"),
+                 (True, "Unavailable"), (False, "Unavailable"), (None, "Missing"),
+                 (float("nan"), "Unavailable"), (float("inf"), "Unavailable"),
+                 (-float("inf"), "Unavailable"), (-1, "Unavailable"), (101, "Unavailable"),
+                 (-0.01, "Unavailable"), (100.01, "Unavailable"),
+                 (0, "0/100"), (0.0, "0/100"), (100, "100/100"), (100.0, "100/100"),
+                 (42.5, "42.5/100"), ("0", "Unavailable"), ([], "Unavailable")]
+
+        def fetched_scan(field, value):
+            source = dict(global_market={"btc_dominance": 50}, fear_greed={"current": 0},
+                          risk_score=0, generated_at="2040-01-02T12:00:00Z")
+            if field == "structured":
+                source["risk_score"] = dict(score=value, regime="Synthetic <regime>",
+                                           action="Synthetic <action>", signals=["Synthetic <signal>"])
+            elif field == "scalar":
+                source["risk_score"] = value
+            else:
+                source["fear_greed"]["current"] = value
+            raw = json.dumps(source).encode()
+
+            class SyntheticStore:
+                def get_object(self, *, Bucket, Key):
+                    return {"Body": io.BytesIO(raw if Key == "crypto-intel.json" else b'{"data":{}}')}
+
+            SCOPE["s3"] = SyntheticStore()
+            try:
+                payload = scan()
+                payload["tier2"] = SCOPE["fetch_tier2"]()
+                return payload
+            finally:
+                del SCOPE["s3"]
+
+        for field in ("scalar", "structured", "fear_greed"):
+            label = "FEAR/GREED" if field == "fear_greed" else "RISK SCORE"
+            prefix = f'{label}</div><div style="font-size:22px;font-weight:700">'
+            reference = SCOPE["build_email_html"](fetched_scan(field, 0))
+            self.assertEqual(reference.count(prefix + "0/100"), 1)
+            for value, expected in cases:
+                with self.subTest(field=field, value=repr(value)):
+                    payload = fetched_scan(field, value)
+                    before = json.dumps(payload, sort_keys=True)
+                    html = SCOPE["build_email_html"](payload)
+                    self.assertEqual(html, reference.replace(prefix + "0/100", prefix + expected, 1))
+                    self.assertEqual(json.dumps(payload, sort_keys=True), before)
+                    self.assertEqual(sum(cell.startswith("SYN") for cell in TableParser(html).cells), 15)
+                    if field == "structured":
+                        self.assertIn("Synthetic &lt;regime&gt;", html)
+                        self.assertNotIn("<regime>", html)
+
     def test_source_text_is_escaped(self):
         payload = scan()
         attack = '<img src=x onerror="alert(1)">&\''

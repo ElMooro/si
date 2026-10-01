@@ -1124,7 +1124,8 @@ def _display_score(value):
         return "Missing"
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return "Unavailable"
-    if not math.isfinite(value) or not 0 <= value <= 100:
+    # Bound integers before isfinite's float conversion (JSON ints are unbounded).
+    if not 0 <= value <= 100 or not math.isfinite(value):
         return "Unavailable"
     return f"{value:g}/100"
 

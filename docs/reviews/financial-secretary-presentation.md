@@ -78,7 +78,7 @@ escaping, source field passthrough, and UTC-date/LastModified baseline selection
 
 ## Validation
 
-- Secretary offline runner: **11 passed**.
+- Secretary offline runner: **12 passed**, including 57 JSON-to-fetch-to-full-render score edge cases.
 - Full deployment gate: **1,018 static checks and 15 mocked shell scenarios
   passed**, with `DEPLOY_TARGETS=justhodl-financial-secretary` and the reviewed
   base supplied as `GUARD_BASE_SHA`. The first attempt used a system Python in
@@ -87,7 +87,7 @@ escaping, source field passthrough, and UTC-date/LastModified baseline selection
 - Public-boundary regression runner: **15 passed**, with synthetic/mocked inputs.
 - Selected Lambda source and configuration validators: **passed**.
 - Python compilation, diff whitespace check, and tracked-file secret scan:
-  **passed** (13,648 tracked files, zero findings).
+  **passed** (13,717 tracked files, zero findings).
 - Ops preflight: **passed**, with two pre-existing root-key warnings matching
   the existing `flow-data.json` and `crypto-intel.json` reads. No I/O changed.
 - Local Chromium, 1100px viewport: original and draft rendered; the browser
@@ -95,7 +95,35 @@ escaping, source field passthrough, and UTC-date/LastModified baseline selection
   table rows including the header. External browser requests were blocked.
 
 Review source SHA-256:
-`41a584bb6d3f95f2666dd14b00907b78517fde6a5c33eb4d8d3279bc265c24d1`.
+`0c0cd5f1b9000fa8ef6dc9e9370042574a7f74387eba7d9a7c4aba0149ac1fc0`.
+
+## Independent review correction
+
+Review of `89af7b3972e12c68a3df0b111f2222aac71a89d0` found that
+`math.isfinite` converts integers to float before the original range rejection.
+JSON-valid positive and negative `10**400` therefore raised `OverflowError` and
+prevented the HTML from completing. The formatter now rejects numbers outside
+0–100 before this conversion. The only production change after that review is
+this condition ordering and its explanatory comment.
+
+The new regression failed on the rejected head in all six huge-integer cases,
+then passed after the correction. A separate extracted-original renderer check
+confirmed the original base and corrected renderer both complete all six cases. It traverses actual JSON decoding in
+`fetch_tier2` with an in-memory store, then the complete HTML renderer: scalar
+risk, structured risk score, and fear/greed each cover 19 values (57 cases),
+including both huge integers, booleans, null, NaN/infinities, out-of-range
+values, zero and 100 boundaries, a fractional score, string and list. Nonfinite
+JSON tokens exercise Python decoder extensions; huge integers use standard JSON.
+Entire HTML output equals the zero-reference render with only the relevant
+score text substituted; input nonmutation, 15 BUY rows and escaped structured
+labels are also checked. The nonpresentation AST pin remains unchanged.
+
+Correction gates rerun: 12 Secretary tests (57 full-render parity cases),
+1,018 deployment static checks, 15 mocked shell scenarios, and 15 public-boundary
+tests passed. Selected source/config validation, compilation, preflight, diff
+check, and secret scan also passed. Deployment gate `GUARD_BASE_SHA` was the
+rejected review head `89af7b3972e12c68a3df0b111f2222aac71a89d0`.
+No emails, invocations, provider calls, release or policy changes were made.
 
 ## Limits
 
