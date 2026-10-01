@@ -227,51 +227,6 @@ def source_timestamp(spec: dict, payload: dict, meta: dict) -> Any:
     return meta.get("last_modified")
 
 
-def withheld_authority_diagnostic(source_id: str, payload: dict) -> dict | None:
-    """Explain explicit producer abstention; never participate in acceptance or policy.
-
-    Missing scores alone do not establish withdrawal. Recognize only the known
-    contract and literal permission flags, or the bond desk's explicit block.
-    Do not copy producer free text, replay locations or arbitrary payload fields.
-    """
-    profiles = {
-        "risk_gate": ("risk-gate-research.v1", ("composite", "sizing_multiplier"),
-                      "Risk Gate withholds unqualified regime and sizing authority."),
-        "eurodollar_stress": ("eurodollar-native-research.v1", ("composite_score",),
-                              "Eurodollar research withholds unvalidated stress scores and thresholds."),
-        "credit_composite": ("credit-composite-abstention.v1", ("composite", "composite_score"),
-                             "Credit donors have no qualified composite vote or sizing authority."),
-    }
-    if source_id == "bond_warroom":
-        block = mapping(payload.get("eurodollar_shortage"))
-        if (block.get("state") != "UNQUALIFIED" or block.get("score") is not None
-                or block.get("calls_eligible") is not False or block.get("sizing_eligible") is not False):
-            return None
-        contract = None
-        paths = ["eurodollar_shortage.score"]
-        reason = "The bond desk explicitly withholds offshore-dollar shortage classifier authority."
-    elif source_id in profiles:
-        contract, paths, reason = profiles[source_id]
-        if (payload.get("contract") != contract or payload.get("calls_eligible") is not False
-                or payload.get("sizing_eligible") is not False
-                or any(payload.get(path) is not None for path in paths)):
-            return None
-        if source_id == "risk_gate" and payload.get("posture") != "UNAVAILABLE":
-            return None
-    else:
-        return None
-    return {
-        "schema_version": "withheld-authority-diagnostic.v1",
-        "code": "PRODUCER_AUTHORITY_WITHHELD",
-        "source_id": source_id,
-        "producer_contract": contract,
-        "unavailable_authority_paths": list(paths),
-        "explanation": reason + " Dated observations do not replace the required numeric authority. "
-                       "The existing critical-input rejection remains in force.",
-        "effect": "EXPLANATION_ONLY",
-    }
-
-
 def audit_sources(registry: dict, feeds: dict[str, dict], metas: dict[str, dict], now: datetime) -> tuple[list[dict], dict[str, dict]]:
     health = []
     active = {}
@@ -314,10 +269,6 @@ def audit_sources(registry: dict, feeds: dict[str, dict], metas: dict[str, dict]
             "freshness_basis": spec.get("freshness_basis", "artifact_timestamp"),
             "error": error,
         })
-        if status == "INVALID":
-            diagnostic = withheld_authority_diagnostic(source_id, payload)
-            if diagnostic is not None:
-                health[-1]["authority_diagnostic"] = diagnostic
     return health, active
 
 
