@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Holdings cohort Previous/cache navigation and explicit dated coverage labels; agent/shopiz/holdings-cohort-navigation; frontend-only draft, no deploy or ops retry | none | S-shopiz#hnav1001a | 2026-10-01 03:07 |
 | Official-stats evidence-only repair: preserve required legacy join and decision gates; additive canary clocks/qualification, tests; agent/shopiz/official-stats-evidence, draft only | none | S-shopiz#ose1001c | 2026-10-01 01:57 |
 | PR15/16 and PR17 public browser-only production QA at 1440/390; normal TLS, one staged probe, no AWS/app writes | 6396 | S-shopiz#browser0930a | 2026-09-30 23:40 |
 | Equity identity/recovery source 32aed755a accepted: 60 native regressions; exact public receipt, five native sources/original controls, 55 static files checked. Bond and equity prior reads/identity/conditional writes repaired. Normal publication and remaining legacy CUSIP/GLEIF/catalog qualification unverified. | 6397–6399 ACCEPTED | S-codex#symb0930a | 2026-10-01 01:07 |
