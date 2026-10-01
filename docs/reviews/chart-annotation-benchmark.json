@@ -1,0 +1,129 @@
+{
+  "node": "v24.19.0",
+  "scope": "Ordinary Node, whole chrome source, DOM contract stub. Excludes browser DOM parsing/layout/paint. Synthetic bars test workload size only; no market data, providers or predictive validation.",
+  "runs": [
+    {
+      "bars": 1000,
+      "versions": {
+        "predecessor": {
+          "legend": {
+            "median_ms": 0.04385,
+            "min_ms": 0.0316,
+            "max_ms": 0.06921,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "volume_help": {
+            "median_ms": 0.04258,
+            "min_ms": 0.02454,
+            "max_ms": 0.06305,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "classification_calls": 0,
+          "distribution_calls": 0
+        },
+        "current": {
+          "legend": {
+            "median_ms": 0.03742,
+            "min_ms": 0.03008,
+            "max_ms": 0.06262,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "volume_help": {
+            "median_ms": 0.02636,
+            "min_ms": 0.02387,
+            "max_ms": 0.05458,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "classification_calls": 0,
+          "distribution_calls": 0
+        }
+      }
+    },
+    {
+      "bars": 10000,
+      "versions": {
+        "current": {
+          "legend": {
+            "median_ms": 0.03391,
+            "min_ms": 0.02822,
+            "max_ms": 0.05836,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "volume_help": {
+            "median_ms": 0.02922,
+            "min_ms": 0.02385,
+            "max_ms": 0.06436,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "classification_calls": 0,
+          "distribution_calls": 0
+        },
+        "predecessor": {
+          "legend": {
+            "median_ms": 0.02678,
+            "min_ms": 0.02611,
+            "max_ms": 0.05396,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "volume_help": {
+            "median_ms": 0.02402,
+            "min_ms": 0.02307,
+            "max_ms": 0.05315,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "classification_calls": 0,
+          "distribution_calls": 0
+        }
+      }
+    },
+    {
+      "bars": 11536,
+      "versions": {
+        "predecessor": {
+          "legend": {
+            "median_ms": 0.02837,
+            "min_ms": 0.02642,
+            "max_ms": 0.04208,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "volume_help": {
+            "median_ms": 0.02567,
+            "min_ms": 0.02314,
+            "max_ms": 0.05993,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "classification_calls": 0,
+          "distribution_calls": 0
+        },
+        "current": {
+          "legend": {
+            "median_ms": 0.02938,
+            "min_ms": 0.0284,
+            "max_ms": 0.04338,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "volume_help": {
+            "median_ms": 0.02545,
+            "min_ms": 0.02304,
+            "max_ms": 0.04736,
+            "batches": 9,
+            "iterations_per_batch": 300
+          },
+          "classification_calls": 0,
+          "distribution_calls": 0
+        }
+      }
+    }
+  ]
+}
