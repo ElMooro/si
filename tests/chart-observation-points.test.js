@@ -8,11 +8,11 @@ function setup(){
  const elements=new Map(),charts=[],removed=[];
  const element=id=>{if(!elements.has(id))elements.set(id,{id,textContent:'',innerHTML:'',className:'',style:{},width:0});return elements.get(id);};
  const make=()=>{const chart={series:[],priceScale:()=>({applyOptions(){}}),applyOptions(){},subscribeClick(fn){this.click=fn;},timeScale:()=>({fitContent(){},setVisibleLogicalRange(){}}),remove(){this.removed=true;},removeSeries(s){removed.push(s);chart.series=chart.series.filter(x=>x!==s);}};
-  for(const type of ['Line','Area','Candlestick'])chart['add'+type+'Series']=options=>{const row={options,type,seriesType:()=>type,setData(data){this.data=serial(data);}};chart.series.push(row);return row;};charts.push(chart);return chart;};
- const context={active:'FRED:invented',tf:'1d',ACC:'#abc',barEvidence:new WeakMap(),series:[],oscCharts:[],oscSeries:[],lastVolShow:true,preserveView:false,lastBars:[],
+  for(const type of ['Line','Area','Candlestick'])chart['add'+type+'Series']=options=>{const row={options,type,applyOptions(o){Object.assign(this.options,o);},seriesType:()=>type,setData(data){this.data=serial(data);}};chart.series.push(row);return row;};charts.push(chart);return chart;};
+ const context={active:'FRED:invented',tf:'1d',ACC:'#abc',barEvidence:new WeakMap(),observationAxes:new WeakMap(),series:[],oscCharts:[],oscSeries:[],lastVolShow:true,preserveView:false,lastBars:[],
   window:{},document:{getElementById:element},chart:make(),scalarPanel(){},observationId:s=>s.startsWith('FRED:'),miniOn:true,miniChart:null,miniSeries:null,pal:()=>({bg:'#fff'}),LW:{createChart:make},
   TABS:[],compare:[],layout:2,chart2:null,chart3:null,chart4:null,mkChart:make,bindSync(){},paneEls:()=>[['p2','c2'],['p3','c3'],['p4','c4']]};
- vm.createContext(context);vm.runInContext(['observationText','paintObservations','paintMini','paintPanes','resampleToTf','uniq'].map(n=>funcs[n]).join('\n'),context);
+ vm.createContext(context);vm.runInContext(['observationText','observationAxisFormatter','bindObservationAxis','paintObservations','paintMini','paintPanes','resampleToTf','uniq'].map(n=>funcs[n]).join('\n'),context);
  return{c:context,charts,removed,element};
 }
 function points(options){assert.equal(options.lineVisible,false);assert.equal(options.pointMarkersVisible,true);assert.ok(options.pointMarkersRadius>0);assert.equal(options.priceLineVisible,false);}

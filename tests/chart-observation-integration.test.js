@@ -30,12 +30,12 @@ const named=Object.fromEntries(top.filter(x=>x.type==='FunctionDeclaration').map
 function engineContext(catalog){
  const requests=[],elements=new Map(),lineData=[];
  const el=id=>{if(!elements.has(id))elements.set(id,{textContent:'',innerHTML:'',className:'',style:{}});return elements.get(id);};
- const c={Date,Math,Map,WeakMap,barEvidence:new WeakMap(),barCache:{},active:'CQ:invented_metric',tf:'1d',lastSource:'old',
+ const c={Date,Math,Map,WeakMap,barEvidence:new WeakMap(),observationAxes:new WeakMap(),barCache:{},active:'CQ:invented_metric',tf:'1d',lastSource:'old',
   window:{JHChartCatalog:catalog},resolveSym:s=>({ticker:s,yahoo:s}),spec:id=>[id],warehouseSpec:()=>{throw Error('No market warehouse for observations');},fetchJson:async u=>{requests.push(u);throw Error('No market endpoint');},
   document:{getElementById:el},series:[],oscCharts:[],oscSeries:[],preserveView:false,ACC:'#ff9900',
-  chart:{priceScale:()=>({applyOptions(){}}),addLineSeries:()=>({setData:d=>lineData.push(d)}),timeScale:()=>({fitContent(){},setVisibleLogicalRange(){}})},
+  chart:{applyOptions(){},priceScale:()=>({applyOptions(){}}),addLineSeries:()=>({applyOptions(){},setData:d=>lineData.push(d)}),timeScale:()=>({fitContent(){},setVisibleLogicalRange(){}})},
   tape:{prints:[]},renderQR(){},paintMini(){},miniSeries:null,TFS:[['1d'],['1w'],['1M']],lastBars:[],lastVolShow:true,dwinOn:true};
- vm.createContext(c);vm.runInContext(['medianGap','expectedGap','barsFitTf','uniq','resampleToTf','identifyBars','klines','observationId','scalarPanel','clearObservationFrame','observationText','paintObservations','quoteUI','fillTape','lastPx','countdown','renderLegend','renderDwin','loadTape','paint','load','startReplay','renderCorr'].map(n=>named[n]).join('\n'),c);
+ vm.createContext(c);vm.runInContext(['medianGap','expectedGap','barsFitTf','uniq','resampleToTf','identifyBars','klines','observationId','scalarPanel','clearObservationFrame','observationText','observationAxisFormatter','bindObservationAxis','paintObservations','quoteUI','fillTape','lastPx','countdown','renderLegend','renderDwin','loadTape','paint','load','startReplay','renderCorr'].map(n=>named[n]).join('\n'),c);
  return {c,requests,elements,lineData,el};
 }
 test('failed or absent catalog never sends a scalar ID to market-price endpoints',async()=>{

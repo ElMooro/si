@@ -7224,3 +7224,13 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `78ff25d50f0837961993b510802f5a1f4bddf034` matches the exact served Pages build, run 36845399763. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - Combined checks passed 2,464 frontend cases, 1018 deployment and fifteen shell checks, including ten new rendering/preservation cases. Six offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
 - Scalar views no longer imply continuity across excluded or unreported periods. Single-point split panes and navigator recovery are repaired, while every source observation and existing calculation stays intact. Existing axis tick-formatting noise, crowded mobile metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 506: source-bound scalar axis labels (candidate)
+
+- Reproduced a theme switch changing an independent scalar pane to percentage labels when the main security chart uses YTD. Each scalar pane now retains its own frame-bound formatter.
+- Generated axis noise may be shortened only below a 0.05-pixel difference; exact source values retain their full numeric representation at every scale. Market arithmetic, observations and permissions are unchanged.
+- Thirteen new focused formatting/preservation cases and complete invented desktop/mobile browser cases cover the repair. Full combined checks and exact static release remain pending. Two early test expectations were corrected to distinguish harmless subpixel shortening from distinguishable zoomed ticks; the product rule did not change.
+- Visual review confirms clean scalar ticks and preserved split-pane units. Crowded mobile metadata, stale market-recovery loading text and unqualified extreme library scales stay open. No actual application/private/current-consumer/provider data or producer invocation. All ten institutional workstreams remain OPEN.
+
+- Stage 506 combined checks passed 2,477 frontend cases, 1018 deployment and fifteen shell checks. Thirteen new cases and seven offline desktop/mobile suites pass; exact static release remains pending.

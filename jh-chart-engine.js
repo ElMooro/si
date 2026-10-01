@@ -239,6 +239,7 @@
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null, volSeries=null;
   // Bind identity to the returned array, never to whichever ticker is selected later.
   var barEvidence=new WeakMap();
+  var observationAxes=new WeakMap();
   function identifyBars(d,sym,interval,source,observations){
     barEvidence.set(d,{symbol:sym,interval:interval,source:source||"unavailable",bars:d,published_at:new Date().toISOString()});
     if(observations) barEvidence.get(d).observations=observations;
@@ -1597,7 +1598,10 @@
     opts.rightPriceScale.scaleMargins={top:0.06,bottom:bot};
     opts.rightPriceScale.invertScaledValues=invert;
     opts.rightPriceScale.borderColor=p.border;
-    [chart,chart2,chart3,chart4].concat(oscCharts).forEach(function(c){ if(c) try{ c.applyOptions(opts); }catch(e){} });
+    [chart,chart2,chart3,chart4].concat(oscCharts).forEach(function(c){ if(c) try{
+      var formatter=observationAxes.get(c);
+      c.applyOptions(formatter?Object.assign({},opts,{localization:Object.assign({},opts.localization,{priceFormatter:formatter})}):opts);
+    }catch(e){} });
     if(mainSeries) try{
       mainSeries.applyOptions({
         upColor: kind==="hollow"?p.bg:UP,
@@ -2095,7 +2099,7 @@
       syncing=false;
     });
   }
-  function wipe(){ namedLines={}; series.forEach(function(s){ try{ chart.removeSeries(s); }catch(e){} }); series=[]; mainSeries=null; volSeries=null; }
+  function wipe(){ observationAxes.delete(chart); namedLines={}; series.forEach(function(s){ try{ chart.removeSeries(s); }catch(e){} }); series=[]; mainSeries=null; volSeries=null; }
 
   function addLine(pts, color, w, opt){
     if(!pts||!pts.length) return;
@@ -2216,10 +2220,37 @@
     return frame.symbol+" · "+String(row.close)+" · unit "+(e.unit||"unverified")+" · "+new Date(row.time*1000).toISOString().slice(0,10)+
       " UTC display coordinate"+sourceLabel+" · source frequency "+(e.source_frequency||"unverified")+" · market OHLC, trade volume and release time unavailable";
   }
+  function observationAxisFormatter(d,seriesApi){
+    var exact=new Set(d.map(function(b){return b.close;}));
+    return function(value){
+      if(typeof value!=="number"||!Number.isFinite(value))return "";
+      // Source labels retain the complete represented number. Only generated
+      // axis ticks may lose arithmetic noise, and only below 0.05 screen pixels.
+      if(exact.has(value))return String(value);
+      var candidates=[0,Number(value.toPrecision(12))];
+      try{
+        var at=seriesApi.priceToCoordinate(value);
+        if(typeof at==="number"&&Number.isFinite(at)){
+          for(var i=0;i<candidates.length;i++){
+            var candidate=candidates[i],there=seriesApi.priceToCoordinate(candidate);
+            if(typeof there==="number"&&Number.isFinite(there)&&Math.abs(at-there)<0.05)return String(candidate);
+          }
+        }
+      }catch(e){} // An unavailable/removed scale cannot authorize rounding.
+      return String(value);
+    };
+  }
+  function bindObservationAxis(target,seriesApi,d){
+    var formatter=observationAxisFormatter(d,seriesApi);
+    observationAxes.set(target,formatter);
+    target.applyOptions({localization:{priceFormatter:formatter}});
+    seriesApi.applyOptions({priceFormat:{type:"custom",formatter:formatter}});
+  }
   function paintObservations(d,saved){
     chart.priceScale("right").applyOptions({mode:0,scaleMargins:{top:0.06,bottom:0.04}});
     mainSeries=chart.addLineSeries({color:ACC,lineWidth:2,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,title:"",priceFormat:{type:"custom",formatter:function(x){return String(x);}},lastValueVisible:true,priceLineVisible:false});
     mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);
+    bindObservationAxis(chart,mainSeries,d);
     oscCharts.forEach(function(c){try{c.remove();}catch(e){}});oscCharts=[];oscSeries=[];
     var wrap=document.getElementById("oscwrap");if(wrap){wrap.className="";wrap.innerHTML="";}
     lastVolShow=false;
@@ -3302,7 +3333,7 @@
         if(observationId(sym)){
           refs[i].applyOptions({localization:{priceFormatter:function(value){return String(value);}}});
           var scalar=refs[i].addLineSeries({color:ACC,title:sym+" · source points",lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,priceLineVisible:false,priceFormat:{type:"custom",formatter:function(x){return String(x);}}});
-          scalar.setData(d.map(function(b){return {time:b.time,value:b.close};}));refs[i].timeScale().fitContent();continue;
+          scalar.setData(d.map(function(b){return {time:b.time,value:b.close};}));bindObservationAxis(refs[i],scalar,d);refs[i].timeScale().fitContent();continue;
         }
         var c=refs[i].addCandlestickSeries({upColor:UP,downColor:DN,borderVisible:true,borderUpColor:UP,borderDownColor:DN,wickVisible:true,wickUpColor:UP,wickDownColor:DN,lastValueVisible:true,priceLineVisible:true,priceLineWidth:1,priceFormat:pxFormat(d)});
         c.setData(roundBars(sanitizeBars(d))); refs[i].timeScale().fitContent();
