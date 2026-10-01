@@ -1,0 +1,18 @@
+{
+  "target": "aws/shared/short_interest_tickers.py",
+  "predecessor_sha256": "f0955d45924173a455610cfbb4456962f35b8fb25685897a0681abeba96df464",
+  "edits": [
+    [
+      "from decimal import Decimal, InvalidOperation",
+      "from decimal import Decimal, InvalidOperation, localcontext"
+    ],
+    [
+      "def _decimal_or_none(value):\n    \"\"\"Parse a provider decimal string; return None when unparseable.\"\"\"\n    if value is None or isinstance(value, bool):\n        return None\n    try:\n        result = Decimal(str(value))\n    except (InvalidOperation, ValueError, TypeError, ArithmeticError):\n        return None\n    return result if result.is_finite() else None\n",
+      "def _decimal_or_none(value):\n    \"\"\"Bound compatibility decimals before parsing, sorting or fixed-point output.\n\n    Canonical provider quantities are <1e30 with at most 24 decimal places;\n    reconstructed ratios/percentages can approach 1e56 and have 12 places.\n    Wider compatibility limits here bound allocation, not economic plausibility.\n    \"\"\"\n    if type(value) not in (str, int, float, Decimal):\n        return None\n    if isinstance(value, int) and value.bit_length() > 266:\n        return None\n    if isinstance(value, Decimal):\n        if not value.is_finite() or len(value.as_tuple().digits) > 128:\n            return None\n        text = str(value)\n    else:\n        text = str(value)\n    if (len(text) > 128 or not re.fullmatch(\n            r\"[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]{1,4})?\", text)):\n        return None\n    try:\n        result = Decimal(text)\n    except (InvalidOperation, ValueError, TypeError, ArithmeticError):\n        return None\n    if (not result.is_finite() or not -64 <= result.as_tuple().exponent <= 80\n            or (result != 0 and result.adjusted() >= 80)):\n        return None\n    return result\n\n\ndef _exact_crowding_product(shares, days):\n    \"\"\"Keep compatibility-list ordering independent of ambient Decimal precision.\"\"\"\n    with localcontext() as context:\n        context.prec = 256\n        context.Emax = 999999\n        context.Emin = -999999\n        return shares * days"
+    ],
+    [
+      "key=lambda r: si_of(r) * dtc_of(r), reverse=True,",
+      "key=lambda r: _exact_crowding_product(si_of(r), dtc_of(r)), reverse=True,"
+    ]
+  ]
+}

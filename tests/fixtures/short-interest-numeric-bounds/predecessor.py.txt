@@ -15,7 +15,7 @@ Consumers must treat the artifact as measurements, not signals.
 """
 
 from datetime import date, datetime, timezone
-from decimal import Decimal, InvalidOperation, localcontext
+from decimal import Decimal, InvalidOperation
 import json, re
 
 from short_interest_measurements import POINT_FIELDS, GRAIN
@@ -45,42 +45,15 @@ def _utcnow():
 
 
 def _decimal_or_none(value):
-    """Bound compatibility decimals before parsing, sorting or fixed-point output.
-
-    Canonical provider quantities are <1e30 with at most 24 decimal places;
-    reconstructed ratios/percentages can approach 1e56 and have 12 places.
-    Wider compatibility limits here bound allocation, not economic plausibility.
-    """
-    if type(value) not in (str, int, float, Decimal):
-        return None
-    if isinstance(value, int) and value.bit_length() > 266:
-        return None
-    if isinstance(value, Decimal):
-        if not value.is_finite() or len(value.as_tuple().digits) > 128:
-            return None
-        text = str(value)
-    else:
-        text = str(value)
-    if (len(text) > 128 or not re.fullmatch(
-            r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]{1,4})?", text)):
+    """Parse a provider decimal string; return None when unparseable."""
+    if value is None or isinstance(value, bool):
         return None
     try:
-        result = Decimal(text)
+        result = Decimal(str(value))
     except (InvalidOperation, ValueError, TypeError, ArithmeticError):
         return None
-    if (not result.is_finite() or not -64 <= result.as_tuple().exponent <= 80
-            or (result != 0 and result.adjusted() >= 80)):
-        return None
-    return result
+    return result if result.is_finite() else None
 
-
-def _exact_crowding_product(shares, days):
-    """Keep compatibility-list ordering independent of ambient Decimal precision."""
-    with localcontext() as context:
-        context.prec = 256
-        context.Emax = 999999
-        context.Emin = -999999
-        return shares * days
 
 def _point_dict(point):
     """Map a compact observation list to a field-name dict.
@@ -265,7 +238,7 @@ def build_ranked_lists(by_ticker, limit=20):
     )[:limit]
     squeeze_risk = sorted(
         (r for r in current if si_of(r) is not None and dtc_of(r) is not None),
-        key=lambda r: _exact_crowding_product(si_of(r), dtc_of(r)), reverse=True,
+        key=lambda r: si_of(r) * dtc_of(r), reverse=True,
     )[:limit]
     rising = sorted(
         (r for r in current if pct_of(r) is not None and pct_of(r) > 0),
