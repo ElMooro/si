@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 scope.update(runpy.run_path(str(Path(__file__).with_name("test_provider_flow_evidence.py"))))
 scope.update(runpy.run_path(str(Path(__file__).with_name("test_qualification.py"))))
 scope.update(runpy.run_path(str(Path(__file__).with_name("test_risk_diagnostics.py"))))
+scope.update(runpy.run_path(str(Path(__file__).with_name("test_user_scope_evidence.py"))))
 tests = sorted(
     (name, fn)
     for name, fn in scope.items()

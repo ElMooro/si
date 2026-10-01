@@ -72,6 +72,7 @@ def test_full_handler_parity_only_additive_publication():
     text = (SOURCE / "lambda_function.py").read_text(encoding="utf-8")
     text = text.replace("from qualification import publish_qualification\n", "").replace("    publish_qualification(output, ranked)\n", "")
     text = text.replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n', "")
+    text = text.replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', "")
     assert hashlib.sha256(text.encode()).hexdigest() == "6af9e26abfe5a798e51e969cb9aeeff751248d992b54cacc09acf003c207caad"
     module = types.ModuleType("pre_qualification_handler"); module.__file__ = str(SOURCE / "lambda_function.py")
     exec(compile(text, module.__file__, "exec"), module.__dict__)
@@ -81,6 +82,7 @@ def test_full_handler_parity_only_additive_publication():
             feeds = {"fortress": {"board": [raw], "etfs": [], "ledger": []}, "khalid_risk": risk}
             metas = {k: {"last_modified": NOW.isoformat(), "error": None} for k in feeds}
             a = module.build_output(feeds, metas, NOW, []); b = candidate.build_output(feeds, metas, NOW, [])
+            del b["user_scope_evidence"]
             del b["risk_authority_diagnostics"]
             del b["qualification_evidence"]; assert a == b
 

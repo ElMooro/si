@@ -102,6 +102,7 @@ def test_full_output_decision_parity_against_preintegration_handler():
     # Separately tested additive qualification projection; preserve this baseline digest.
     baseline_text=baseline_text.replace('from qualification import publish_qualification\n','').replace('    publish_qualification(output, ranked)\n','')
     baseline_text=baseline_text.replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n', "")
+    baseline_text=baseline_text.replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', "")
     import hashlib
     assert hashlib.sha256(baseline_text.encode()).hexdigest() == 'e399a30dcfbb4526317d88836539e15a2b0a574d5d1d4f4c14ea3cf8a71adc04'
     module=types.ModuleType('pre_provider_evidence');module.__file__=str(SOURCE/'lambda_function.py')
@@ -112,7 +113,7 @@ def test_full_output_decision_parity_against_preintegration_handler():
             feeds={'capital_flow':radar,'khalid_risk':risk,'fortress':{'board':[base_row()],'etfs':[],'ledger':[]}}
             metas={k:{'last_modified':NOW.isoformat(),'error':None} for k in feeds}
             before=copy.deepcopy(feeds);a=module.build_output(feeds,metas,NOW,[]);b=candidate.build_output(feeds,metas,NOW,[])
-            del b['risk_authority_diagnostics'];del b['provider_flow_research'];del b['qualification_evidence'];assert a==b and feeds==before
+            del b['user_scope_evidence'];del b['risk_authority_diagnostics'];del b['provider_flow_research'];del b['qualification_evidence'];assert a==b and feeds==before
 
 
 def test_loader_error_with_retained_payload_is_unavailable():
