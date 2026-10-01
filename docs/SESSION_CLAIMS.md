@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Offline Khalid technical-only pilot on retained public BTC/ETH/AAPL/SPY files; no producer, page, flow semantics or holdings changes; separate branch codex/khalid-technical-pilot; PR19 stays fixed | none | S-codex#kte1001p2 | 2026-10-01 03:26 |
 | Offline Katlin label-boundary evidence validator and mutation tests only; production backtest feeds live priors, so source/consumers untouched; draft PR #19 awaiting independent review | none | S-codex#klb1001n4 | 2026-10-01 03:20 |
 | Legacy ETF price/volume proxy provenance + Livermore/Wyckoff display labels; etf-flows writer and dormant jh-etf-engine annotations; no shared brief/compiler or vote changes; draft agent/shopiz/etf-proxy-labels | none | S-shopiz#proxy1001a | 2026-10-01 03:00 |
 | Official-stats evidence-only repair: preserve required legacy join and decision gates; additive canary clocks/qualification, tests; agent/shopiz/official-stats-evidence, draft only | none | S-shopiz#ose1001c | 2026-10-01 01:57 |
