@@ -1,0 +1,344 @@
+{
+  "observed_utc": "2026-10-01T16:34:16.260188+00:00",
+  "commit": "cda961504c2156afdc427862e84b7ed5557bb329",
+  "expected_news_sha256": "655d5a1310633233d418295260d790bd11f90698dc9c12b1ce4b769c673804a5",
+  "served_news_sha256": "d02770566ad6c06b9a3ce7e75acd68a77d1a377719230e494a086f96b8e70955",
+  "beacon_removed_count": 1,
+  "normalized_news_sha256": "655d5a1310633233d418295260d790bd11f90698dc9c12b1ce4b769c673804a5",
+  "news_hash_match": true,
+  "requests": [
+    {
+      "path": "build-manifest.json",
+      "status": 200,
+      "bytes": 368856,
+      "sha256": "adf7088ddf5d31e38b047abc2d5fd99fa1d0292d2697b7b1a7f4b405fcf86b7c"
+    },
+    {
+      "path": "news.html",
+      "status": 200,
+      "bytes": 50600,
+      "sha256": "d02770566ad6c06b9a3ce7e75acd68a77d1a377719230e494a086f96b8e70955"
+    },
+    {
+      "path": "jh-evidence-io.js?v=c9fe373a4b12ca8c",
+      "status": 200,
+      "bytes": 5002,
+      "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe"
+    },
+    {
+      "path": "jh-data-inspector.js?v=dd7fc12b2955aa97",
+      "status": 200,
+      "bytes": 34117,
+      "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5"
+    },
+    {
+      "path": "jh-chart-theme.js?v=7e983f03",
+      "status": 200,
+      "bytes": 5238,
+      "sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d"
+    },
+    {
+      "path": "jh-page-ai.js?v=7d12539d",
+      "status": 200,
+      "bytes": 12374,
+      "sha256": "0d4021b341d5020a6a32c5f7babac750642f8d2d2faa8e3ff2fee75397042181"
+    },
+    {
+      "path": "jh-nav-drawer.js?v=1e52a040",
+      "status": 200,
+      "bytes": 31948,
+      "sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92"
+    },
+    {
+      "path": "sidebar.js?v=b6cb50e8",
+      "status": 200,
+      "bytes": 12987,
+      "sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119"
+    },
+    {
+      "path": "jh-sections.js?v=75469620",
+      "status": 200,
+      "bytes": 21723,
+      "sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43"
+    },
+    {
+      "path": "jh-right-rail.js?v=8c6a5a3b",
+      "status": 200,
+      "bytes": 4776,
+      "sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e"
+    },
+    {
+      "path": "jh-footer.js?v=677b9e51",
+      "status": 200,
+      "bytes": 3650,
+      "sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd"
+    }
+  ],
+  "shared_assets": [
+    {
+      "path": "jh-evidence-io.js",
+      "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-data-inspector.js",
+      "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-chart-theme.js",
+      "sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-page-ai.js",
+      "sha256": "0d4021b341d5020a6a32c5f7babac750642f8d2d2faa8e3ff2fee75397042181",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-nav-drawer.js",
+      "sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+      "manifest_match": true
+    },
+    {
+      "path": "sidebar.js",
+      "sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-sections.js",
+      "sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-right-rail.js",
+      "sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+      "manifest_match": true
+    },
+    {
+      "path": "jh-footer.js",
+      "sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+      "manifest_match": true
+    }
+  ],
+  "pull_request": "https://github.com/ElMooro/si/pull/59",
+  "accepted_head": "7d6227779a95c8577e73ae84bc9f5bcb54978a11",
+  "accepted_and_merged_tree": "6fbbb380eb268be73ee377ebfbfd3abc8009dd98",
+  "merged_head": "cda961504c2156afdc427862e84b7ed5557bb329",
+  "pages_run": 36892457019,
+  "page_gate_run": 36892456985,
+  "frontend_tests_passed": 2661,
+  "focused_tests_passed": 11,
+  "page_graphs_checked": 599,
+  "production_change": "Exactly two lines: retrieval label explicitly UTC and Date.toISOString() instead of Date.toLocaleString().",
+  "offline_browser": {
+    "baselineRequests": [
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/alert-history.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-trades.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/earnings-tracker.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-surprise.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/divergence/current.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/correlation-surface.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis.json",
+      "https://justhodl-dashboard-live.s3.amazonaws.com/data/whats-changed.json"
+    ],
+    "acceptance": [
+      {
+        "width": 1440,
+        "timezoneId": "America/New_York",
+        "retrievalTimezone": "UTC",
+        "consumerRequestsPerLoad": 8,
+        "cycles": 3,
+        "keyboard": "passed",
+        "horizontalOverflow": false,
+        "scriptErrors": [],
+        "hostileText": "literal",
+        "states": [
+          "nonempty",
+          "503",
+          "empty-recovery"
+        ]
+      },
+      {
+        "width": 390,
+        "timezoneId": "America/New_York",
+        "retrievalTimezone": "UTC",
+        "consumerRequestsPerLoad": 8,
+        "cycles": 3,
+        "keyboard": "passed",
+        "horizontalOverflow": false,
+        "scriptErrors": [],
+        "hostileText": "literal",
+        "states": [
+          "nonempty",
+          "503",
+          "empty-recovery"
+        ]
+      }
+    ],
+    "scope": "Actual inline consumer in Chromium; shared scripts/fonts intercepted, zero live/provider reads"
+  },
+  "live_browser": "Original PR58 normal live behavior accepted by parent in trusted browser. This UTC follow-up still needs parent confirmation of visible UTC label and retrieval-only advancement; executor certificate-failing route was not retried or bypassed.",
+  "normalization": "Remove exactly one injected Cloudflare Insights beacon script and its trailing newline; no other HTML normalization.",
+  "jobs": [
+    {
+      "name": "build",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Node 22",
+          "conclusion": "success"
+        },
+        {
+          "name": "Block published credentials",
+          "conclusion": "success"
+        },
+        {
+          "name": "Brain publication boundaries",
+          "conclusion": "success"
+        },
+        {
+          "name": "Frontend + worker behavioural tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Public page source syntax and regression gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Required sovereign page dependency reaches the artifact",
+          "conclusion": "success"
+        },
+        {
+          "name": "Engine wiring registry must match what the pages declare (audit 2026-09-08 C-6)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Offline build boundary regression gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Assemble lean site artifact",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Bake section numbers into every page + ship home layout/registry (ops 5200)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Preserve homepage source (offline; no market snapshot)",
+          "conclusion": "success"
+        },
+        {
+          "name": "CI gate \u2014 template leaks + dead-paint ratchet",
+          "conclusion": "success"
+        },
+        {
+          "name": "Bake right-rail source references (offline)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Bake engine directory (source references; availability unchecked)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Preserve provider page source (offline; no live inventory snapshot)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Reskin legacy palette -> Amber (all pages; index+screener untouched)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Bake SEO layer (canonical/OG/description + sitemap)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build complete producer-to-page data contracts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Final built page syntax gate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stamp every page and asset in commit-bound build manifest",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-pages-artifact@v3",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Node 22",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "deploy",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/deploy-pages@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Report deploy outcome",
+          "conclusion": "success"
+        },
+        {
+          "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Fail this run when Pages was not deployed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "self-heal",
+      "conclusion": "skipped",
+      "steps": []
+    }
+  ],
+  "source_limits": "All requests/data/source clocks/event clocks/availability/guard/privacy/freshness behavior unchanged. No guarded feed or bucket reads by this follow-up.",
+  "cost": "No added provider, backend or recurring page requests; no Lambda invocations or test sends. Usual CI/Pages/static verification service cost not measured."
+}

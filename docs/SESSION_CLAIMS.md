@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| News Flow retrieval timestamp UTC label only; codex/news-retrieval-utc; focused regression, independent exact-head review and authorized Pages release. Requests/source clocks/policies unchanged. | none | S-codex#newsutc1001q3 | 2026-10-01 16:27 |
 | Katlin PR56 regime/credit/vol abstention released and parent natural UI accepted at15:22:39; PR57 version2.5.2 source4432045e3 released via run36885982234 with exact receipt. Auction/rawgate votes excluded. See docs/reviews/katlin-version-identification.md. New identifier normal-UI check remains with parent; verification handoff only, no active code edits. Denied raw route stays stopped. | none | S-codex#kvote1001r4 | 2026-10-01 15:00 |
 | Katlin alert permission PR54 released; PR57 additive engine_version1.0.0 source4432045e3 released via replacement run36887298076 with exact receipt. Initial pending run cancelled by concurrency; HTTP500 requeue had no run; successful retry used same path. No behavior/schema/transport changes. Guarded history503/natural acceptance remains parent verification handoff only; no active code edits. See docs/reviews/katlin-version-identification.md. | none | S-codex#kalert1001q6 | 2026-10-01 15:00 |
 | PR49 industry producer/page repair accepted ac90ff8eb; authorized code/page release via existing pinned industry-only Lambda and explicit Pages dispatch. Standard configuration reconciliation allowed; no schedules, paid activation, invokes, IAM/security policy changes or tape redeploy. Verification pending. | none | S-codex#icrepair1001q9 | 2026-10-01 |
@@ -79,6 +78,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+- S-codex#newsutc1001q3 — PR59 explicit UTC retrieval label released `cda961504`; accepted `7d6227779`, identical merge tree, 2661 frontend tests, synthetic 1440/390 America/New_York pass, Pages36892457019/page-gate36892456985 success, exact served manifest/page + nine scripts verified. Parent trusted-browser UTC-label confirmation pending; executor TLS-failing route not retried. Original PR58 live behavior accepted by parent. No data/request/clock-policy changes. See docs/reviews/news-retrieval-utc.md.
 
 - S-codex#news1001f8 — PR58 safe News Flow consumer released `61d047c85`; independent exact-head review, 2660 frontend tests, Pages36890332392/page-gate36890332605 success, manifest-bound HTML + nine scripts verified. Synthetic desktop/mobile passed; live Chromium GET https://justhodl.ai/news.html blocked by ERR_CERT_AUTHORITY_INVALID, no certificate bypass or history read. Implementation claim released; trusted-TLS live browser acceptance remains pending. Producer/guard/storage/delivery untouched. See docs/reviews/news-public-history-consumer.md.
 
