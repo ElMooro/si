@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, through Stage 536: prior native releases, FI/FX original-source replay, P/E and Crypto display repairs and the six-engine market-cap-proxy semantic correction have scoped acceptance recorded. All ten institutional workstreams remain OPEN. Funding source intervals, missing/non-finite values and page schema mismatch are next. Normal publication, complete source qualification, independent-evidence validation, out-of-sample efficacy and reconciled portfolio consequences remain separate work. Private/account/current-consumer packets remain outside these checks.
+October 1 UTC, through Stage 537: prior native releases, FI/FX original-source replay, P/E and Crypto display repairs, six-engine market-cap-proxy semantics and five-engine per-event funding semantics have scoped acceptance recorded. All ten institutional workstreams remain OPEN. Next: immutable public funding originals bound to reviewed compiler bytes and complete deterministic replay. Normal publication, source qualification, independent-evidence validation, out-of-sample efficacy and reconciled portfolio consequences remain separate work. Private/account/current-consumer packets remain outside these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7654,3 +7654,12 @@ The next funding repair has four invented reproductions: absent fundingRate beco
 ### Stage 537 funding observation repair
 
 The prior Crypto producer silently made missing rates zero/SHORT, discarded event clocks and annualized every contract as eight hours; the page read an absent field. The candidate retains bounded, explicitly complete original response bytes (or an explicitly incomplete prefix), source identity and acquisition/event clocks, rejects lossy/non-finite values and preserves zero. It keeps current OKX endpoint rates separate from Bybit last-settled history and retains every attempted source. No comparable market mean, annual yield or positioning vote is inferred. Five consumers and Crypto/Desk page displays use explicit descriptive contracts; required-input risk output abstains. All unrelated bytes and previous preservation assertions remain accounted for. Exact code/static and normal-publication acceptance are separate and not yet claimed. All institutional workstreams remain OPEN.
+
+
+### Stage 537 exact funding code and page acceptance
+
+Source `f29b3afff43b74dd0075568772943229b62e25c9` shipped five engines, the shared reported-funding helper, two pages and retained predecessor/test evidence in one native Git batch. The named native check (run `36941541466`) matched every release receipt to that source and checked all 58 packaged source members twice, with original resource controls and complete schedules unchanged. Both complete served HTML artifacts and changed helpers match build `f29b3afff43b74dd0075568772943229b62e25c9`.
+
+The final 2728 frontend tests, 1029 deployment plus fifteen shell checks, five engine runners, 599 page graphs, 899 engine contracts, 143 wiring declarations, thirty semantic/consumer cases and nine native-acceptance cases pass. Four retained defect reproductions and ten new JavaScript cases cover the original funding errors. Forty isolated browser scenarios cover typed zero/tiny/negative rates, source-event basis, unavailable/legacy/malformed input, hostile markup, mobile layout and keyboard inspection. The first focused JavaScript check exposed a missing escaping function; it was fixed before the complete final gate. Funding averages, annualization and positioning votes remain unavailable because source intervals and comparability are unqualified. Complete original responses or explicitly incomplete prefixes are retained in the descriptive packet; historical immutable retention is the next step.
+
+This is exact code/static acceptance, not proof of normal publication, source authenticity/timing, predictive edge, reconciled portfolio consequences or sizing authority. No producer, paid model or message was invoked. No actual application/private/account packet was read. All ten institutional workstreams remain OPEN.
