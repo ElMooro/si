@@ -20,6 +20,7 @@ from datetime import datetime, timezone, timedelta
 from urllib.parse import urlencode, quote
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
+from html import escape
 
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 POLY_KEY = os.environ.get("POLYGON_API_KEY", "")
@@ -1108,6 +1109,49 @@ def send_email(subject, html_body):
         return False
 
 
+def _display_text(value):
+    """Escape source text at the HTML boundary; never stringify containers."""
+    if value is None or value == "":
+        return "Missing"
+    if not isinstance(value, (str, int, float)) or isinstance(value, bool):
+        return "Unavailable"
+    return escape(str(value), quote=True)
+
+
+def _display_score(value):
+    """Accept finite numeric scores only, preserving genuine zero."""
+    if value is None:
+        return "Missing"
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return "Unavailable"
+    # Bound integers before isfinite's float conversion (JSON ints are unbounded).
+    if not 0 <= value <= 100 or not math.isfinite(value):
+        return "Unavailable"
+    return f"{value:g}/100"
+
+
+def _crypto_risk_html(value):
+    """Render the crypto-intel score/regime/action/signals contract as text.
+
+    Numeric legacy scores remain supported. This is display only: no risk
+    calculation, action inference, or substitution of a default score.
+    """
+    if not isinstance(value, dict):
+        return _display_score(value)
+    score = _display_score(value.get("score"))
+    details = []
+    for field in ("regime", "action"):
+        if field in value:
+            details.append(f"Source {field}: {_display_text(value[field])}")
+    if "signals" in value:
+        signals = value["signals"]
+        text = "; ".join(_display_text(s) for s in signals) if isinstance(signals, list) else "Unavailable"
+        details.append(f"Source signals: {text or 'none'}")
+    if details:
+        score += '<div style="font-size:11px;color:#888">' + "<br>".join(details) + "</div>"
+    return score
+
+
 def build_email_html(scan):
     liq = scan.get("liquidity", {})
     risk = scan.get("risk", {})
@@ -1122,41 +1166,43 @@ def build_email_html(scan):
 
     rows = "".join([
         f'<tr>'
-        f'<td style="padding:6px;border-bottom:1px solid #333;color:#00ddff;font-weight:700">{r["ticker"]}</td>'
-        f'<td style="padding:6px;border-bottom:1px solid #333">{r["name"]}</td>'
+        f'<td style="padding:6px;border-bottom:1px solid #333;color:#00ddff;font-weight:700">{_display_text(r["ticker"])}</td>'
+        f'<td style="padding:6px;border-bottom:1px solid #333">{_display_text(r["name"])}</td>'
         f'<td style="padding:6px;border-bottom:1px solid #333;font-family:monospace">${r["price"]:,.2f}</td>'
-        f'<td style="padding:6px;border-bottom:1px solid #333;color:#00ff88">+{r["upside_pct"]}%</td>'
-        f'<td style="padding:6px;border-bottom:1px solid #333;color:#ff4444">-{r["downside_pct"]}%</td>'
-        f'<td style="padding:6px;border-bottom:1px solid #333;color:#00ddff">{r["risk_reward"]}x</td>'
-        f'<td style="padding:6px;border-bottom:1px solid #333;font-size:11px">{", ".join(r["reasons"][:2])}</td>'
+        f'<td style="padding:6px;border-bottom:1px solid #333;color:#00ff88">+{_display_text(r["upside_pct"])}%</td>'
+        f'<td style="padding:6px;border-bottom:1px solid #333;color:#ff4444">-{_display_text(r["downside_pct"])}%</td>'
+        f'<td style="padding:6px;border-bottom:1px solid #333;color:#00ddff">{_display_text(r["risk_reward"])}x</td>'
+        f'<td style="padding:6px;border-bottom:1px solid #333;font-size:11px">{", ".join(_display_text(s) for s in r["reasons"][:2])}</td>'
         f'</tr>'
         for r in top_buys
     ])
-    ai_html = (ai or "").replace("\n", "<br>")
+    ai_html = escape(ai or "", quote=True).replace("\n", "<br>")
 
     deltas_html = ""
     if deltas.get("available"):
         dl = deltas
-        regime_line = f"<li>Regime: <b>{dl.get('regime_change') or 'unchanged'}</b></li>" if dl.get("regime_change") else ""
-        new_picks = ", ".join(dl.get("new_picks", [])) or "none"
-        dropped = ", ".join(dl.get("dropped_picks", [])) or "none"
+        regime_line = f"<li>Regime: <b>{_display_text(dl.get('regime_change'))}</b></li>" if dl.get("regime_change") else ""
+        new_picks = ", ".join(_display_text(t) for t in dl.get("new_picks", [])) or "none"
+        dropped = ", ".join(_display_text(t) for t in dl.get("dropped_picks", [])) or "none"
         picks_perf_lines = "".join([
-            f"<li>{p['ticker']}: ${p['yesterday_price']:.2f} → ${p['today_price']:.2f} "
+            f"<li>{_display_text(p['ticker'])}: ${p['yesterday_price']:.2f} → ${p['today_price']:.2f} "
             f"<span style='color:{'#00ff88' if p['hit'] else '#ff4444'}'>({p['pct']:+.2f}%)</span></li>"
             for p in dl.get("yesterday_picks_performance", [])
-        ]) or "<li>No picks yet from yesterday</li>"
+        ]) or "<li>No paired prices available</li>"
         deltas_html = f"""
 <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
-  <h2 style="color:#00ddff">VS YESTERDAY</h2>
+  <h2 style="color:#00ddff">VS PRIOR-DATE SNAPSHOT</h2>
+  <p style="font-size:12px;color:#aaa">Baseline scan timestamp: {_display_text(dl.get('yesterday_date'))}. Selected by latest modification among archive keys containing yesterday's UTC date; not necessarily the previous email. Scan timestamps and archive filenames use fixed UTC−05:00 (legacy ET label).</p>
+  <p style="font-size:12px;color:#aaa">Top-10 cohort = BUY entries within the first 10 ranked recommendations, not the first 10 BUYs. Leaving this cohort does not mean removal from all recommendations.</p>
   <ul style="line-height:1.6;font-size:13px">
     <li>Net Liquidity: <b>${dl['net_liq_delta']:+.0f}B</b></li>
     <li>Risk score: <b>{dl['risk_delta']:+.1f}</b></li>
     {regime_line}
-    <li>New picks today: <b>{new_picks}</b></li>
-    <li>Dropped: <b>{dropped}</b></li>
-    <li>Hit rate on yesterday's top picks: <b>{dl.get('hit_rate_pct', 0):.0f}%</b></li>
+    <li>Entered top-10 cohort: <b>{new_picks}</b></li>
+    <li>Left top-10 cohort: <b>{dropped}</b></li>
+    <li>Positive price-change rate for baseline BUY entries within the first 5 ranks with paired prices: <b>{dl.get('hit_rate_pct', 0):.0f}%</b></li>
   </ul>
-  <div style="margin-top:12px;font-size:12px;color:#aaa">Yesterday's top picks performance:</div>
+  <div style="margin-top:12px;font-size:12px;color:#aaa">Baseline BUY entries within the first 5 ranks with paired prices:</div>
   <ul style="line-height:1.6;font-size:12px">{picks_perf_lines}</ul>
 </div>
 """
@@ -1166,7 +1212,7 @@ def build_email_html(scan):
     if freshness:
         freshness_html = f"""
 <div style="font-size:10px;color:#666;text-align:center;margin-top:16px">
-Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('crypto', '?')} · FRED {freshness.get('fred_latest', '?')} (FRED series typically lag 1-2 days)
+Reported feed descriptions (not observation timestamps): stocks {_display_text(freshness.get('stocks'))} · crypto {_display_text(freshness.get('crypto'))}. Latest FRED observation date across series: {_display_text(freshness.get('fred_latest'))}; individual series may be older.
 </div>
 """
 
@@ -1188,13 +1234,14 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
         pc_color = "#ff8800" if (pc is not None and pc < 0.5) else "#44cc44" if (pc is not None and pc > 1.0) else "#e0e0e0"
         gex_color = "#44cc44" if "POSITIVE" in str(gex_reg).upper() else "#ff8800" if "NEGATIVE" in str(gex_reg).upper() else "#e0e0e0"
         trsigs = opts.get("trading_signals") or []
-        sig_lines = "".join([f"<li style='font-size:12px'><b>{s['type']}</b> ({s['strength']}): {s['message'][:100]}</li>" for s in trsigs[:4]]) or "<li style='font-size:12px;color:#888'>No active signals</li>"
+        sig_lines = "".join([f"<li style='font-size:12px'><b>{_display_text(s['type'])}</b> ({_display_text(s['strength'])}): {_display_text(s['message'][:100])}</li>" for s in trsigs[:4]]) or "<li style='font-size:12px;color:#888'>No active signals</li>"
         tier2_html += f"""
 <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
   <h2 style="color:#00ddff">OPTIONS FLOW</h2>
+  <p style="font-size:11px;color:#888">Options source timestamp (as supplied): {_display_text(opts.get("timestamp"))}; not an observation-time guarantee.</p>
   <table style="width:100%;font-size:13px"><tr>
-    <td style="padding:6px"><div style="color:#888;font-size:11px">PUT/CALL RATIO</div><div style="font-size:22px;font-weight:700;color:{pc_color}">{pc:.2f}</div><div style="font-size:11px;color:#888">{pc_sig}</div></td>
-    <td style="padding:6px"><div style="color:#888;font-size:11px">GAMMA REGIME</div><div style="font-size:18px;font-weight:700;color:{gex_color}">{gex_reg}</div><div style="font-size:11px;color:#888">Max gamma @ ${max_gex} · SPY ${spy_p}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">PUT/CALL RATIO</div><div style="font-size:22px;font-weight:700;color:{pc_color}">{pc:.2f}</div><div style="font-size:11px;color:#888">{_display_text(pc_sig)}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">GAMMA REGIME</div><div style="font-size:18px;font-weight:700;color:{gex_color}">{_display_text(gex_reg)}</div><div style="font-size:11px;color:#888">Max gamma @ ${_display_text(max_gex)} · SPY ${_display_text(spy_p)}</div></td>
   </tr></table>
   <div style="margin-top:12px;font-size:12px;color:#aaa">Top signals:</div>
   <ul style="line-height:1.5">{sig_lines}</ul>
@@ -1204,22 +1251,23 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
     if crypto_i.get("btc_dominance") is not None:
         btc_dom = crypto_i.get("btc_dominance")
         mcap_chg = crypto_i.get("mcap_change_24h")
-        fg_v = crypto_i.get("fear_greed_value") or "—"
+        fg_v = _display_score(crypto_i.get("fear_greed_value"))
         fg_l = crypto_i.get("fear_greed_label") or ""
         sc_sig = crypto_i.get("stablecoin_net_signal") or "—"
         sc_color = "#44cc44" if "INFLOW" in str(sc_sig).upper() else "#ff8800" if "OUTFLOW" in str(sc_sig).upper() else "#e0e0e0"
         mcap_color = "#44cc44" if (mcap_chg or 0) > 0 else "#ff4444"
-        crypto_risk = crypto_i.get("risk_score") or "—"
+        crypto_risk = _crypto_risk_html(crypto_i.get("risk_score"))
         movers = crypto_i.get("top_movers") or []
-        mover_rows = "".join([f"<tr><td style='padding:4px;color:#00ddff'>{m['symbol']}</td><td style='padding:4px;font-family:monospace'>${m['price']:,.4f}</td><td style='padding:4px;color:{'#00ff88' if (m.get('change_24h') or 0) > 0 else '#ff4444'}'>{(m.get('change_24h') or 0):+.2f}%</td></tr>" for m in movers[:8]])
+        mover_rows = "".join([f"<tr><td style='padding:4px;color:#00ddff'>{_display_text(m['symbol'])}</td><td style='padding:4px;font-family:monospace'>${m['price']:,.4f}</td><td style='padding:4px;color:{'#00ff88' if (m.get('change_24h') or 0) > 0 else '#ff4444'}'>{(m.get('change_24h') or 0):+.2f}%</td></tr>" for m in movers[:8]])
         tier2_html += f"""
 <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
   <h2 style="color:#00ddff">CRYPTO INTEL</h2>
+  <p style="font-size:11px;color:#888">Crypto source generated at (UTC): {_display_text(crypto_i.get("timestamp"))}; not the scan time or each input observation time.</p>
   <table style="width:100%;font-size:13px"><tr>
     <td style="padding:6px"><div style="color:#888;font-size:11px">BTC DOMINANCE</div><div style="font-size:22px;font-weight:700">{btc_dom:.1f}%</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">TOTAL MCAP 24h</div><div style="font-size:22px;font-weight:700;color:{mcap_color}">{(mcap_chg or 0):+.2f}%</div></td>
-    <td style="padding:6px"><div style="color:#888;font-size:11px">FEAR/GREED</div><div style="font-size:22px;font-weight:700">{fg_v}</div><div style="font-size:11px;color:#888">{fg_l}</div></td>
-    <td style="padding:6px"><div style="color:#888;font-size:11px">STABLECOIN FLOW</div><div style="font-size:18px;font-weight:700;color:{sc_color}">{sc_sig}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">FEAR/GREED</div><div style="font-size:22px;font-weight:700">{fg_v}</div><div style="font-size:11px;color:#888">{_display_text(fg_l)}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">STABLECOIN FLOW</div><div style="font-size:18px;font-weight:700;color:{sc_color}">{_display_text(sc_sig)}</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">RISK SCORE</div><div style="font-size:22px;font-weight:700">{crypto_risk}</div></td>
   </tr></table>
   <div style="margin-top:12px;font-size:12px;color:#aaa">Top coins:</div>
@@ -1236,8 +1284,8 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
             ldrs, lags = [], []
 
     if ldrs or lags:
-        ldrs_html = "".join([f"<li style='color:#00ff88'>{l}</li>" for l in ldrs]) or "<li style='color:#888'>—</li>"
-        lags_html = "".join([f"<li style='color:#ff4444'>{l}</li>" for l in lags]) or "<li style='color:#888'>—</li>"
+        ldrs_html = "".join([f"<li style='color:#00ff88'>{_display_text(l)}</li>" for l in ldrs]) or "<li style='color:#888'>—</li>"
+        lags_html = "".join([f"<li style='color:#ff4444'>{_display_text(l)}</li>" for l in lags]) or "<li style='color:#888'>—</li>"
         tier2_html += f"""
 <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px;margin:20px 0">
   <h2 style="color:#00ddff">SECTOR ROTATION</h2>
@@ -1258,17 +1306,18 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
 
     return f"""<!DOCTYPE html><html><body style="background:#0a0a0f;color:#e0e0e0;font-family:sans-serif;padding:20px">
 <div style="max-width:800px;margin:0 auto">
-<h1 style="color:#00ddff">JUSTHODL SECRETARY v2 | {ts}</h1>
+<h1 style="color:#00ddff">JUSTHODL SECRETARY v2 | {_display_text(ts)}</h1>
+<p style="font-size:12px;color:#aaa">Scan clock: fixed UTC−05:00 (producer labels it ET). Source generation times and observation dates are separate clocks.</p>
 <div style="display:flex;gap:12px;margin:20px 0">
 <div style="flex:1;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center">
 <div style="color:#888;font-size:11px">NET LIQUIDITY</div>
 <div style="font-size:24px;font-weight:700;color:{lc}">{net_liq_display}</div>
-<div style="color:{lc}">{regime_display}</div>
+<div style="color:{lc}">{_display_text(regime_display)}</div>
 </div>
 <div style="flex:1;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center">
 <div style="color:#888;font-size:11px">RISK</div>
 <div style="font-size:24px;font-weight:700;color:{rc}">{risk.get('composite', 0):.0f}/100</div>
-<div style="color:{rc}">{risk.get('level', '--')}</div>
+<div style="color:{rc}">{_display_text(risk.get('level', '--'))}</div>
 </div>
 <div style="flex:1;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;text-align:center">
 <div style="color:#888;font-size:11px">VIX</div>
@@ -1282,7 +1331,7 @@ Data freshness: stocks {freshness.get('stocks', '?')} · crypto {freshness.get('
 <div style="font-size:13px;line-height:1.7">{ai_html}</div>
 </div>
 <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:20px">
-<h2 style="color:#00ddff">TOP RECOMMENDATIONS (vol-adjusted targets)</h2>
+<h2 style="color:#00ddff">TOP BUY RECOMMENDATIONS (first 15 BUYs; vol-adjusted targets)</h2>
 <table style="width:100%;border-collapse:collapse;font-size:12px">
 <tr style="color:#888"><th style="padding:6px;text-align:left">Ticker</th><th>Name</th><th>Price</th><th>Upside</th><th>Downside</th><th>R:R</th><th>Why (this ticker specifically)</th></tr>
 {rows}

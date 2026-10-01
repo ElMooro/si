@@ -53,6 +53,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 
 | Offline Katlin label-boundary evidence validator and mutation tests only; production backtest feeds live priors, so source/consumers untouched; draft PR #19 awaiting independent review | none | S-codex#klb1001n4 | 2026-10-01 03:20 |
 
+| Financial Secretary presentation only: explicit top-10 BUY cohort/baseline labels, typed crypto risk and escaped rendering with synthetic tests; codex/secretary-presentation; draft only, no policy, delivery, invokes or deployment | none | S-codex#fsp1001n7 | 2026-10-01 08:55 |
+
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/
 jget/S_), then one async IIFE where EVERY section is wrapped in
