@@ -24,6 +24,9 @@
   var COLOR = ME.getAttribute("data-color") || "#eab308";
   var MAXN = parseInt(ME.getAttribute("data-max") || "20", 10);
   var CRISIS = ME.getAttribute("data-crisis") === "1";
+  var CONTRACT = ME.getAttribute("data-contract");
+  var STRICT = ME.getAttribute("data-strict-numbers") === "1";
+  var FOOTNOTE = ME.getAttribute("data-footnote");
   var METRICS = ME.getAttribute("data-metrics");
   var PX = "https://justhodl-data-proxy.raafouis.workers.dev";
   var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
@@ -31,7 +34,7 @@
 
   function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function dig(o, path){ if(!o||!path) return undefined; return path.split(".").reduce(function(a,k){return a==null?undefined:a[k];}, o); }
-  function num(v){ var n=typeof v==="number"?v:parseFloat(String(v).replace(/[, %$]/g,"")); return isFinite(n)?n:null; }
+  function num(v){ if(STRICT) return typeof v === "number" && Number.isFinite(v) ? v : null; var n=typeof v==="number"?v:parseFloat(String(v).replace(/[, %$]/g,"")); return isFinite(n)?n:null; }
   function fmt(v){ var a=Math.abs(v); return a>=1e9?(v/1e9).toFixed(2)+"B":a>=1e6?(v/1e6).toFixed(2)+"M":a>=1e3?(v/1e3).toFixed(1)+"k":a>=1?(Math.round(v*100)/100).toString():(Math.round(v*1000)/1000).toString(); }
 
   async function getJSON(p){
@@ -68,7 +71,7 @@
         +'<div style="flex:1;background:#0b0b0b;border-radius:4px;overflow:hidden;'+(anyNeg?'display:flex;justify-content:'+(it.v<0?'flex-end':'flex-start'):'')+'"><div style="width:'+w+'%;height:17px;background:linear-gradient(90deg,'+col+'55,'+col+')"></div></div>'
         +'<div style="width:74px;text-align:right;color:#e5e5e5">'+fmt(it.v)+'</div></div>';
     });
-    html+='</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#666;margin-top:6px;text-align:right">'+(keepOrder?'live data':'top '+items.length+' by magnitude · live data')+'</div>';
+    html+='</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#666;margin-top:6px;text-align:right">'+esc(FOOTNOTE || (keepOrder?'live data':'top '+items.length+' by magnitude · live data'))+'</div>';
     body.innerHTML=html;
   }
 
@@ -103,6 +106,7 @@
     if(!data){ return; }
     var c=card(); mount(c); var body=document.getElementById("jhviz-body");
     try{
+      if(CONTRACT && data.measurement_contract !== CONTRACT){ body.innerHTML='<div style="color:#777;font-size:11px">Updated aggregate-activity data unavailable.</div>'; return; }
       if(LINE){ var pts=toSeries(dig(data,LINE)); if(pts&&pts.length>1){ renderLine(body,pts); return; } body.innerHTML='<div style="color:#777;font-size:11px">No time-series available.</div>'; return; }
       if(METRICS){ var mi=METRICS.split("|").map(function(seg){ var i=seg.indexOf(":"); return {label:seg.slice(i+1), v:num(dig(data,seg.slice(0,i)))}; }); renderBars(body, mi, true); return; }
       if(BARS){ var sp=BARS.split(":"); var arr=dig(data,sp[0]);
