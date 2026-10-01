@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Industry-case exact-output metadata, bounded metrics and binding inventory; staged read-only probe, draft and independent review before merge/dispatch; no invokes or AWS mutations. | 6412 RESERVED | S-codex#icpub1001k8 | 2026-10-01 13:13 |
 | Industry-case missing cls renderer helper only; restore league/drilldown and typed neutral display, actual-renderer tests; separate draft codex/industry-case-render-helper. PR43 and tape-reader notice unchanged; no backend/date/navigation/policy/cosmetic changes or deploy. | none | S-codex#iccls1001r7 | 2026-10-01 11:51 |
 | PR42 presentation-only publication/contract-withholding notice; tape-reader.html and opt-in jh-enhance path only, other 59 importers unchanged; separate draft codex/tape-reader-publication-notice. PR43 stays immutable. No backend/requests/schedules/deploy. | none | S-codex#trnotice1001p5 | 2026-10-01 10:57 |
 | Tape-truth observation qualification and industry-case projection; tape-truth.html, industry-case.html and only why.html IC_/TT_ modules with ticker bus preserved; separate draft codex/tape-truth-qualification. No math/provider/schedule/capital/LLM prompt changes. | none | S-codex#ttqual1001u4 | 2026-10-01 10:29 |
@@ -70,6 +69,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+- S-codex#icpub1001k8 — ops 6412 read-only publication proof completed via run 36868538905; report committed 52720ab7b. Proof INCOMPLETE: metric datapoints absent/unknown, original Aug18 object metadata, no matching bindings in bounded checked scopes; no global absence claim. No invoke or AWS mutation.
 | PR42 exact reviewed 90070667936 released ee9144908; Lambda 36848417010 receipt/source hash verified and Pages 36848417048 manifest-bound page/script verified (HTML adds Cloudflare beacon). Captured-edge Chromium 1440/390 legacy table/enhancement withholding passed. Natural v2 publication/count coverage and parent managed-browser acceptance pending; no manual invocation/schedule change. Tape-truth remains read-only plan. | none | S-codex#tape1001q42 |
 | PR41 help accessibility f9ce45c43 released 941ce0618; Pages 36842446840 success and six manifest-bound edge assets verified. Implementation claim released; parent owns actual managed-browser focus/confinement/restoration/obstruction acceptance. Exact 1440/390 and unsupported-browser live coverage pending; engine/classifiers unchanged. | none | S-codex#ha11001k4 |
 | PR37 reviewed warning/help 0af0c5007 released fd6d7b6b4; Pages 36839194444 success and six manifest-bound edge assets verified. Engine/classifiers/markers preserved. Implementation claim released; managed-browser visibility/toggles/obstruction and exact-width desktop/mobile acceptance remain with parent. | none | S-codex#vtime1001h9 |
