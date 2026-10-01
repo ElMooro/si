@@ -25,8 +25,6 @@
   var MAXN = parseInt(ME.getAttribute("data-max") || "20", 10);
   var CRISIS = ME.getAttribute("data-crisis") === "1";
   var CONTRACT = ME.getAttribute("data-contract");
-  var NOTICE = ME.getAttribute("data-publication-notice") === "tape-reader" && CONTRACT === "tape-reader-activity.v2" && FEED === "data/tape-reader.json";
-  var NOTICE_ERROR = null, NOTICE_PENDING = false;
   var STRICT = ME.getAttribute("data-strict-numbers") === "1";
   var FOOTNOTE = ME.getAttribute("data-footnote");
   var METRICS = ME.getAttribute("data-metrics");
@@ -38,19 +36,6 @@
   function dig(o, path){ if(!o||!path) return undefined; return path.split(".").reduce(function(a,k){return a==null?undefined:a[k];}, o); }
   function num(v){ if(STRICT) return typeof v === "number" && Number.isFinite(v) ? v : null; var n=typeof v==="number"?v:parseFloat(String(v).replace(/[, %$]/g,"")); return isFinite(n)?n:null; }
   function fmt(v){ var a=Math.abs(v); return a>=1e9?(v/1e9).toFixed(2)+"B":a>=1e6?(v/1e6).toFixed(2)+"M":a>=1e3?(v/1e3).toFixed(1)+"k":a>=1?(Math.round(v*100)/100).toString():(Math.round(v*1000)/1000).toString(); }
-
-function tapePublication(packet, now = Date.now()) {
-  const value = packet && packet.as_of;
-  const m = typeof value === 'string' && /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
-  if (!m) return 'Publication time unavailable.';
-  const year=+m[1], month=+m[2], day=+m[3], offset=m[7];
-  const days=new Date(Date.UTC(year<100?year+400:year,month,0)).getUTCDate();
-  const stamp=Date.parse(value);
-  if (year<1 || month<1 || month>12 || day<1 || day>days || +m[4]>23 || +m[5]>59 || +m[6]>59 ||
-      (offset!=='Z' && (+offset.slice(1,3)>23 || +offset.slice(4,6)>59)) || !Number.isFinite(stamp)) return 'Publication time unavailable.';
-  if (stamp>now) return 'Publication time unavailable (future timestamp).';
-  return 'Packet publication time: '+value+' (not observation freshness).';
-}
 
   async function getJSON(p){
     var u=[ "https://justhodl.ai/"+p, PX+"/"+p, S3+"/"+p ];
@@ -118,16 +103,9 @@ function tapePublication(packet, now = Date.now()) {
   }
 
   function run(data){
-    if(!data && !NOTICE){ return; }
-    var body=NOTICE?document.getElementById("jhviz-body"):null;
-    if(!body){var c=card(); mount(c); body=document.getElementById("jhviz-body");}
+    if(!data){ return; }
+    var c=card(); mount(c); var body=document.getElementById("jhviz-body");
     try{
-      if(NOTICE){
-        var message = NOTICE_PENDING ? "Checking packet publication…" : NOTICE_ERROR ? NOTICE_ERROR
-          : !data || data.measurement_contract !== CONTRACT ? "Qualification withheld — awaiting a compatible publication."
-          : !Array.isArray(data.top_loud_tape) ? "Qualification withheld — compatible activity rows unavailable." : null;
-        if(message){body.innerHTML='<div style="color:#777;font-size:11px">'+esc(message)+' '+esc(NOTICE_PENDING?'':NOTICE_ERROR?'Publication time unavailable.':tapePublication(data))+'</div>';return;}
-      }
       if(CONTRACT && data.measurement_contract !== CONTRACT){ body.innerHTML='<div style="color:#777;font-size:11px">Updated aggregate-activity data unavailable.</div>'; return; }
       if(LINE){ var pts=toSeries(dig(data,LINE)); if(pts&&pts.length>1){ renderLine(body,pts); return; } body.innerHTML='<div style="color:#777;font-size:11px">No time-series available.</div>'; return; }
       if(METRICS){ var mi=METRICS.split("|").map(function(seg){ var i=seg.indexOf(":"); return {label:seg.slice(i+1), v:num(dig(data,seg.slice(0,i)))}; }); renderBars(body, mi, true); return; }
@@ -136,21 +114,9 @@ function tapePublication(packet, now = Date.now()) {
       if(arr&&!Array.isArray(arr)&&typeof arr==='object'){var _e=Object.keys(arr).filter(function(k){return typeof arr[k]==='number';}).map(function(k){var o={};o.__k=k;o.__v=arr[k];return o;});if(_e.length>=3){arr=_e;sp[1]=sp[1]||'__k';sp[2]=sp[2]||'__v';}}
       if(!Array.isArray(arr)){ body.innerHTML='<div style="color:#777;font-size:11px">No data.</div>'; return; }
         var items=arr.map(function(o){ return {label:String(dig(o,sp[1])!=null?dig(o,sp[1]):o[sp[1]]), v:num(dig(o,sp[2]))}; });
-        renderBars(body,items);
-        if(NOTICE)body.innerHTML+='<div style="color:#777;font-size:11px">'+esc(tapePublication(data))+'</div>';
-        return; }
+        renderBars(body,items); return; }
     }catch(e){ body.innerHTML='<div style="color:#777;font-size:11px">chart error</div>'; }
   }
 
-  if(NOTICE){
-    function updateNotice(){
-      var state=globalThis.__JH_TAPE_READER_STATE;
-      NOTICE_PENDING=!state; NOTICE_ERROR=state&&state.error;
-      run(state&&state.packet);
-    }
-    globalThis.addEventListener('jh:tape-reader-state',updateNotice);
-    updateNotice();
-  }else{
-    (async function(){ var d=await getJSON(FEED); run(d); })();
-  }
+  (async function(){ var d=await getJSON(FEED); run(d); })();
 })();

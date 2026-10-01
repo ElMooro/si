@@ -207,18 +207,54 @@ function render() {
   });
 }
 
+function tapePublication(packet, now = Date.now()) {
+  const value = packet && packet.as_of;
+  const m = typeof value === 'string' && /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!m) return 'Publication time unavailable.';
+  const year=+m[1], month=+m[2], day=+m[3], offset=m[7];
+  const days=new Date(Date.UTC(year<100?year+400:year,month,0)).getUTCDate();
+  const stamp=Date.parse(value);
+  if (year<1 || month<1 || month>12 || day<1 || day>days || +m[4]>23 || +m[5]>59 || +m[6]>59 ||
+      (offset!=='Z' && (+offset.slice(1,3)>23 || +offset.slice(4,6)>59)) || !Number.isFinite(stamp)) return 'Publication time unavailable.';
+  if (stamp>now) return 'Publication time unavailable (future timestamp).';
+  return 'Packet publication time: '+value+' (not observation freshness).';
+}
+
+function publishTapeState(packet, error = null) {
+  globalThis.__JH_TAPE_READER_STATE = {packet, error};
+  if (typeof globalThis.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+    globalThis.dispatchEvent(new CustomEvent('jh:tape-reader-state'));
+  }
+}
+function clearActivity() {
+  DATA = null;
+  ['nUniverse','nLoud','nSize','adRatio','topScore'].forEach(id => { document.getElementById(id).textContent = '—'; });
+}
+let LOAD_GENERATION = 0;
 async function load() {
+  const generation = ++LOAD_GENERATION;
+  let phase = 'request';
   try {
     const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
+    phase = 'parse';
     const packet = await r.json();
-    if (packet.measurement_contract !== 'tape-reader-activity.v2' || !Array.isArray(packet.top_loud_tape)) {
-      throw new Error('Updated aggregate-activity data unavailable');
+    if (generation !== LOAD_GENERATION) return;
+    phase = 'display';
+    if (!packet || packet.measurement_contract !== 'tape-reader-activity.v2' || !Array.isArray(packet.top_loud_tape)) {
+      clearActivity();
+      const message = packet && packet.measurement_contract === 'tape-reader-activity.v2'
+        ? 'Qualification withheld — compatible activity rows unavailable.'
+        : 'Qualification withheld — awaiting a compatible publication.';
+      document.getElementById('metaLine').textContent = tapePublication(packet);
+      document.getElementById('tableHost').innerHTML = `<div class="loader">${esc(message)} ${esc(tapePublication(packet))}</div>`;
+      publishTapeState(packet);
+      return;
     }
     DATA = packet;
     document.getElementById('metaLine').innerHTML =
-      `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
-      `${DATA.n_with_data} tickers scored from ${DATA.n_universe} universe · ${DATA.duration_s}s`;
+      `<strong>${esc(tapePublication(DATA))}</strong> · ` +
+      `${esc(DATA.n_with_data)} tickers scored from ${esc(DATA.n_universe)} universe · ${esc(DATA.duration_s)}s`;
     document.getElementById('nUniverse').textContent = fmt(DATA.n_universe, 0);
     document.getElementById('nLoud').textContent = fmt(DATA.n_with_data, 0);
     const available = DATA.top_loud_tape.filter(sizeAvailable).length;
@@ -228,12 +264,15 @@ async function load() {
     const top = DATA.top_loud_tape && DATA.top_loud_tape[0];
     document.getElementById('topScore').textContent = top ? fmt(top.score, 0) : '—';
     render();
+    publishTapeState(packet);
   } catch (e) {
-    DATA = null;
-    ['nUniverse','nLoud','nSize','adRatio','topScore'].forEach(id => { document.getElementById(id).textContent = '—'; });
-    document.getElementById('metaLine').textContent = 'Aggregate-activity data unavailable';
-    document.getElementById('tableHost').innerHTML =
-      `<div class="loader">Failed: ${esc(e.message)}</div>`;
+    if (generation !== LOAD_GENERATION) return;
+    clearActivity();
+    document.getElementById('metaLine').textContent = 'Publication time unavailable.';
+    const message = phase === 'parse' ? 'Data response could not be parsed as JSON.'
+      : phase === 'display' ? 'Activity display failed: '+e.message : 'Data request failed: '+e.message;
+    document.getElementById('tableHost').innerHTML = `<div class="loader">${esc(message)}</div>`;
+    publishTapeState(null, message);
     console.error(e);
   }
 }
@@ -245,7 +284,7 @@ setInterval(load, 5*60*1000);
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
-  <script src="/jh-enhance.js" data-feed="data/tape-reader.json" data-bars="top_loud_tape:ticker:score" data-title="Tape reader — aggregate activity score" data-sub="Daily grouped-bar activity; unavailable size contributes no size points" data-contract="tape-reader-activity.v2" data-strict-numbers="1" data-footnote="Published daily aggregate activity; no participant or trade-direction inference" ></script>
+  <script src="/jh-enhance.js" data-feed="data/tape-reader.json" data-bars="top_loud_tape:ticker:score" data-title="Tape reader — aggregate activity score" data-sub="Daily grouped-bar activity; unavailable size contributes no size points" data-contract="tape-reader-activity.v2" data-publication-notice="tape-reader" data-strict-numbers="1" data-footnote="Published daily aggregate activity; no participant or trade-direction inference" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
