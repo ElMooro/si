@@ -11,7 +11,7 @@ const feeds={'insider-trades.json':{recent_buys:[{ticker:'TEST',name:'Synthetic 
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
  const evidence=[];
  for(const width of [1440,390]){
-  const page=await browser.newPage({viewport:{width,height:1000}}),requests=[],errors=[];
+  const page=await browser.newPage({viewport:{width,height:1000},timezoneId:'America/New_York'}),requests=[],errors=[];
   let history=good,status=200;
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',async route=>{
@@ -27,6 +27,7 @@ const feeds={'insider-trades.json':{recent_buys:[{ticker:'TEST',name:'Synthetic 
   await page.goto('https://news.synthetic/news.html');
   await page.waitForFunction(()=>document.querySelector('#kpi-alerts').textContent==='1');
   assert.equal(requests.length,8);
+  assert.match(await page.locator('#meta-updated').innerText(),/^Page retrieved \(UTC\) \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
   assert.ok(requests.includes('https://news.synthetic/data/alert-history.json')); 
   assert.equal(await page.locator('#feed .event').count(),8);
   assert.equal(await page.locator('#feed img').count(),0);
@@ -47,7 +48,7 @@ const feeds={'insider-trades.json':{recent_buys:[{ticker:'TEST',name:'Synthetic 
   assert.equal(await page.locator('#kpi-alerts').innerText(),'0');
   assert.ok((await page.locator('#feed').innerText()).includes('No events reported'));
   assert.equal(requests.length,24);assert.deepEqual(errors,[]);
-  evidence.push({width,consumerRequestsPerLoad:8,cycles:3,keyboard:'passed',horizontalOverflow:false,scriptErrors:errors,hostileText:'literal',states:['nonempty','503','empty-recovery']});
+  evidence.push({width,timezoneId:'America/New_York',retrievalTimezone:'UTC',consumerRequestsPerLoad:8,cycles:3,keyboard:'passed',horizontalOverflow:false,scriptErrors:errors,hostileText:'literal',states:['nonempty','503','empty-recovery']});
   await page.close();
  }
  // Execute predecessor with benign synthetic data to compare actual fetch requests, without unsafe content.

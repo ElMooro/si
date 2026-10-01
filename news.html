@@ -132,7 +132,7 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
     <div class="meta">
       <span><b>Sources</b> 8 systems aggregated</span>
       <span><b>Refresh</b> every 5 min</span>
-      <span id="meta-updated"><b>Page retrieved</b> —</span>
+      <span id="meta-updated"><b>Page retrieved (UTC)</b> —</span>
     </div>
   </header>
 
@@ -233,7 +233,7 @@ async function load(){
   ]);
 
   const [alerts, insider, earnings, macro, divergence, correl, auction, whatsChanged] = _sources.map(s => s.data);
-  document.getElementById("meta-updated").innerHTML = `<b>Page retrieved</b> ${new Date().toLocaleString()}`;
+  document.getElementById("meta-updated").innerHTML = `<b>Page retrieved (UTC)</b> ${new Date().toISOString()}`;
 
   const events = [];
   function section(index, build){
