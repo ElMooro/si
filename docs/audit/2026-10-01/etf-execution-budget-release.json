@@ -1,0 +1,228 @@
+{
+  "accepted_head": "9439fbe0414d67bfe60d7ac738c33251937c436f",
+  "merged_head": "f7a23496153d32fdcfe4bc62ece6a475068c9ee0",
+  "pull_request": 60,
+  "deploy_run": 36896816094,
+  "source": {
+    "aws/shared/etf_desk_store.py": {
+      "sha256": "32e591e87affd1614731d59350cde0b62434370bd909f1419f74fe7e4b05722c",
+      "bytes": 35189
+    },
+    "aws/shared/etf_desk_model.py": {
+      "sha256": "56938722dec09268dfa8b1042b68308a9e6f593d5ec85cd54f4465c0e63d53e9",
+      "bytes": 16895
+    },
+    "aws/lambdas/justhodl-etf-global-desk/source/lambda_function.py": {
+      "sha256": "c4718b334a4705af64cc20b12492c9ed51eeaf1f1e1ff5da8b94ae06848a531a",
+      "bytes": 2430
+    },
+    "aws/lambdas/justhodl-etf-global-desk/config.json": {
+      "sha256": "c559a2fb203b218abf3ea5f39c2dbe9152b9e37ec3f50fab4eb3f065c4aaac7a",
+      "bytes": 822
+    }
+  },
+  "receipt_url": "https://justhodl.ai/data/ops/releases/justhodl-etf-global-desk.json",
+  "receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "+yyFiixzxmpR80xLvSwMN3zWKSEYUfuEIfS0hW4tyUo=",
+    "commit": "f7a23496153d32fdcfe4bc62ece6a475068c9ee0",
+    "deployed_at": "2026-10-01T17:08:25Z",
+    "function": "justhodl-etf-global-desk",
+    "run_id": "36896816094",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36896816094",
+    "schema": "release-receipt.v1",
+    "source": {
+      "lambda_function.py": {
+        "bytes": 2430,
+        "sha256": "c4718b334a4705af64cc20b12492c9ed51eeaf1f1e1ff5da8b94ae06848a531a"
+      },
+      "legacy_etf_global_desk.py": {
+        "bytes": 68555,
+        "sha256": "0accf41db950f91151191b7d6da5f07e30ec0ee7c56e6c6b383a0a072c3b1d25"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 1071464,
+    "zip_sha256_hex": "fb2c858a2c73c66a51f34c4bbd2c0c377cd629211851fb8421f4b4856e2dc94a"
+  },
+  "receipt_checks": {
+    "commit": true,
+    "run_id": true,
+    "verified": true,
+    "function": true,
+    "zip_digest": true,
+    "handler_source": true
+  },
+  "natural_publication_checkpoint": {
+    "url": "https://justhodl.ai/data/etf-desk-research.json",
+    "observed_at": "2026-10-01T17:10:11.074472+00:00",
+    "bytes": 5069674,
+    "contract": "etf-desk-original-research.v1",
+    "generated_at": "2026-09-30T23:06:42.280474+00:00",
+    "quality": {
+      "additional_funds": [
+        "BKLN",
+        "BND",
+        "ECH",
+        "EFNL",
+        "EPU",
+        "FALN",
+        "FXE",
+        "FXY",
+        "IEFA",
+        "MOAT",
+        "PPLT",
+        "QQQM",
+        "RSP",
+        "SGOV",
+        "USHY",
+        "VCIT"
+      ],
+      "canonical_overlap": 100,
+      "configured_funds": 116,
+      "flows_current_eligible": 116,
+      "funds_with_current_profiles_flows_holdings": 116,
+      "holdings_complete": 116,
+      "independent_investment_votes": 0,
+      "profile_fee_scale_certified": false,
+      "profiles_current_eligible": 116,
+      "status": "partial",
+      "weight_unit_certified": false
+    },
+    "replay": {
+      "manifest_key": "data/etf-desk-research/runs/32ffa0a0f37b801ea637684a0a07641fd36f0ddbcea916323771ff5c34776652.json",
+      "output_sha256": "bb1d79a13158499387dcd062dbd10c8cf82745acd134a70f4eb7fd2d1c02b305"
+    },
+    "fund_count": 116,
+    "supplement_present": false,
+    "next_natural_schedule_utc": "2026-10-01T23:05:00Z",
+    "new_code_natural_publication_verified": false
+  },
+  "workflow": {
+    "conclusion": "success",
+    "jobs": [
+      {
+        "completedAt": "2026-10-01T17:08:50Z",
+        "conclusion": "success",
+        "databaseId": 110485759513,
+        "name": "Deploy changed Lambdas",
+        "startedAt": "2026-10-01T17:05:36Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Checkout",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Pin exact recovery checkout",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Configure AWS credentials",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Detect changed Lambdas",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run deployment preflight tests",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Prime selected governed aliases before any code staging",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve long validation connections on the ephemeral runner",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Deploy each changed Lambda",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve numbered candidate release evidence",
+            "number": 11,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Commit Function URL patches back",
+            "number": 12,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Summary",
+            "number": 13,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Configure AWS credentials",
+            "number": 25,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Checkout",
+            "number": 26,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 27,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ElMooro/si/actions/runs/36896816094/job/110485759513"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/ElMooro/si/actions/runs/36896816094"
+  },
+  "shared_hashes_independently_read_back_from_deployed_package": false,
+  "tests": {
+    "desk": 48,
+    "native_lambda": 93,
+    "deployment_static": 1018,
+    "candidate_shell": 15,
+    "broader_shared": {
+      "run": 404,
+      "failures": 2,
+      "both_reproduced_on_unchanged_base": true
+    }
+  }
+}

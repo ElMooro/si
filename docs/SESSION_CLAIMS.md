@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| ETF desk execution-budget defect repair only; codex/etf-execution-budget; coordinated scoped takeover of completed S-shopiz ETF implementations per user delegation. 2026-10-01 16:57 UTC remote history has no matching desk code activity in preceding 6h; PR26 head71034757 remains draft/unmerged and disabled. Preserve qhs0930b/edphase0930a evening verification and all other lanes. Offline adversarial tests, independent exact-head draft review, then normal scoped Actions release only; no ops/provider calls or manual invocation. | none | S-codex#ebguard1001r2 | 2026-10-01 16:57 |
 | Katlin PR56 regime/credit/vol abstention released and parent natural UI accepted at15:22:39; PR57 version2.5.2 source4432045e3 released via run36885982234 with exact receipt. Auction/rawgate votes excluded. See docs/reviews/katlin-version-identification.md. New identifier normal-UI check remains with parent; verification handoff only, no active code edits. Denied raw route stays stopped. | none | S-codex#kvote1001r4 | 2026-10-01 15:00 |
 | Katlin alert permission PR54 released; PR57 additive engine_version1.0.0 source4432045e3 released via replacement run36887298076 with exact receipt. Initial pending run cancelled by concurrency; HTTP500 requeue had no run; successful retry used same path. No behavior/schema/transport changes. Guarded history503/natural acceptance remains parent verification handoff only; no active code edits. See docs/reviews/katlin-version-identification.md. | none | S-codex#kalert1001q6 | 2026-10-01 15:00 |
 | PR49 industry producer/page repair accepted ac90ff8eb; authorized code/page release via existing pinned industry-only Lambda and explicit Pages dispatch. Standard configuration reconciliation allowed; no schedules, paid activation, invokes, IAM/security policy changes or tape redeploy. Verification pending. | none | S-codex#icrepair1001q9 | 2026-10-01 |
@@ -79,6 +78,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+- S-codex#ebguard1001r2 — ETF execution-budget repair PR60 accepted 9439fbe0414d67bfe60d7ac738c33251937c436f; merge f7a23496153d32fdcfe4bc62ece6a475068c9ee0; normal desk-only run 36896816094 and exact public receipt verified. 93 native/1018 deployment/15 shell tests pass. 17:10 UTC public baseline remains Sep30, 116 funds, supplement absent. Oct1 23:05 UTC natural execution/replay and full-workload memory evidence pending; PR26 disabled/unmerged. Preserve all qhs0930b/edphase0930a evening handoffs. See docs/reviews/etf-execution-budget.md.
 
 - S-codex#newsutc1001q3 — PR59 explicit UTC retrieval label released `cda961504`; accepted `7d6227779`, identical merge tree, 2661 frontend tests, synthetic 1440/390 America/New_York pass, Pages36892457019/page-gate36892456985 success, exact served manifest/page + nine scripts verified. Parent trusted-browser UTC-label confirmation pending; executor TLS-failing route not retried. Original PR58 live behavior accepted by parent. No data/request/clock-policy changes. See docs/reviews/news-retrieval-utc.md.
 
