@@ -16,7 +16,9 @@ class Fake:
         return {'LastModified':'2020-01-01','ContentLength':12,'Metadata':{'secret':SECRET},'ETag':SECRET}
     def get_function_configuration(self,FunctionName):
         cfg=json.loads((p.ROOT/'aws/lambdas'/FunctionName/'config.json').read_text(encoding='utf-8'))
-        return {'Environment':{'Variables':dict(cfg['env'],PRIVATE=SECRET)},'CodeSha256':'hash'}
+        return {'Environment':{'Variables':dict(cfg['env'],PRIVATE=SECRET)},'CodeSha256':'hash','MemorySize':cfg['memory'],'Timeout':cfg['timeout'],
+                'Architectures':cfg['architectures'],'TracingConfig':{'Mode':'Active'},
+                'DeadLetterConfig':{'TargetArn':'arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default'}}
 class Tests(unittest.TestCase):
     def test_four_reads_and_strict_projection(self):
         fake=Fake();out=Output();reader=p.probe.Reader()
@@ -25,6 +27,7 @@ class Tests(unittest.TestCase):
         self.assertNotIn(SECRET,str(out.rows))
         for row in out.rows:
             if 'declared_setting_matches' in row:self.assertTrue(all(row['declared_setting_matches'].values()))
+            if 'cost_detector_release_controls' in row:self.assertTrue(all(row['cost_detector_release_controls'].values()))
     def test_partial_environment_error_stops(self):
         class Error(Fake):
             def get_function_configuration(self,**kw):return {'Environment':{'Error':{'Message':SECRET}}}
