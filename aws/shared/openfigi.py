@@ -11,17 +11,20 @@ error placeholders) on auth/network/schema failures so callers degrade
 to explicit "unresolved" states instead of inventing identifiers.
 
 Keyless mode: without an SSM key the client still works at the anonymous
-rate limit (5 requests/min, 10 jobs/request on /v3/mapping); 429s are
+conservative six-second request pacing (10 jobs/request); 429s are
 honored with Retry-After backoff (max 3 retries).
 
 Zero third-party deps beyond boto3/urllib.
 """
 import json
+import math
+import re
 import time
 import urllib.error
 import urllib.request
 
 import boto3
+from botocore.config import Config
 
 SSM_PARAM = "/justhodl/openfigi/api-key"
 MAPPING_URL = "https://api.openfigi.com/v3/mapping"
@@ -47,7 +50,8 @@ def get_api_key():
     global _API_KEY
     if _API_KEY is _UNSET:
         try:
-            ssm = boto3.client("ssm", region_name="us-east-1")
+            ssm = boto3.client("ssm", region_name="us-east-1", config=Config(
+                connect_timeout=2, read_timeout=3, retries={"total_max_attempts": 1}))
             _API_KEY = ssm.get_parameter(
                 Name=SSM_PARAM, WithDecryption=True)["Parameter"]["Value"]
         except Exception:
@@ -55,29 +59,101 @@ def get_api_key():
     return _API_KEY
 
 
-def _post(url, payload, api_key, timeout=25):
-    """POST JSON and parse the JSON response, with 429 Retry-After backoff.
+def _remaining(deadline):
+    if deadline is None:
+        return float("inf")
+    if type(deadline) not in (int, float) or not math.isfinite(deadline):
+        return 0.0
+    return max(0.0, deadline - time.monotonic())
 
-    Returns the parsed response, or None after _MAX_RETRIES throttled
-    attempts or on any non-retryable failure. Never raises.
+
+def _sleep_within(seconds, deadline):
+    if not math.isfinite(seconds) or seconds < 0 or seconds >= _remaining(deadline):
+        return False
+    time.sleep(seconds)
+    return True
+
+
+def _json_pairs(items):
+    result = {}
+    for key, value in items:
+        if key in result:
+            raise ValueError("Duplicate response field")
+        result[key] = value
+    return result
+
+
+def _json_constant(value):
+    raise ValueError("Nonfinite response number")
+
+
+def _response_json(response, deadline):
+    if getattr(response, "status", 200) != 200:
+        raise ValueError("Whole successful HTTP response required")
+    headers = getattr(response, "headers", {})
+    if headers.get("Content-Range"):
+        raise ValueError("Partial response refused")
+    declared = headers.get("Content-Length")
+    length = int(declared) if declared is not None else None
+    limit = 16 * 1024 * 1024
+    if length is not None and not 0 <= length <= limit:
+        raise ValueError("Response exceeds byte bound")
+    chunks, total = [], 0
+    # read1 returns available bytes rather than waiting to fill a large buffer,
+    # allowing a cooperative deadline check between socket reads.
+    read = getattr(response, "read1", response.read)
+    while True:
+        if _remaining(deadline) <= 0:
+            raise ValueError("Response deadline exceeded")
+        chunk = read(min(65536, limit + 1 - total))
+        if not isinstance(chunk, bytes):
+            raise ValueError("Binary response required")
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > limit or (length is not None and total > length):
+            raise ValueError("Response length exceeded")
+        chunks.append(chunk)
+    if length is not None and total != length:
+        raise ValueError("Incomplete HTTP response")
+    return json.loads(b"".join(chunks), object_pairs_hook=_json_pairs, parse_constant=_json_constant)
+
+
+def _post(url, payload, api_key, timeout=25, deadline=None):
+    """Return a whole parsed response or None; failure is never a negative match.
+
+    Cooperative request/backoff deadline. A server Retry-After longer than the
+    allowed wait is deferred, never shortened into an early retry.
     """
     headers = {"Content-Type": "application/json"}
     if api_key:
         headers["X-OPENFIGI-APIKEY"] = api_key
-    body = json.dumps(payload).encode()
+    try:
+        body = json.dumps(payload, allow_nan=False).encode()
+    except (TypeError, ValueError):
+        return None
     wait = 1.0
     for attempt in range(_MAX_RETRIES + 1):
+        remaining = _remaining(deadline)
+        if remaining <= 0.1:
+            return None
         req = urllib.request.Request(url, data=body, headers=headers)
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                return json.loads(r.read())
+            with urllib.request.urlopen(req, timeout=min(timeout, remaining, 5 if deadline is not None else timeout)) as r:
+                return _response_json(r, deadline)
         except urllib.error.HTTPError as e:
+            retry_after = e.headers.get("Retry-After") if e.headers else None
+            e.close()
             if e.code == 429 and attempt < _MAX_RETRIES:
                 try:
-                    wait = max(float(e.headers.get("Retry-After") or 0), wait)
+                    delay = float(retry_after) if retry_after is not None else wait
                 except (TypeError, ValueError):
-                    pass
-                time.sleep(min(wait, 60.0))
+                    return None
+                if not math.isfinite(delay) or delay < 0:
+                    return None
+                wait = max(delay, wait, (_KEYED_PACE if api_key else _ANON_PACE) if url == MAPPING_URL else 0)
+                if wait > 60 or not _sleep_within(wait, deadline):
+                    return None
                 wait *= 2
                 continue
             return None
@@ -86,21 +162,22 @@ def _post(url, payload, api_key, timeout=25):
     return None
 
 
-def mapping(jobs, api_key=None):
-    """Map identifiers via OpenFIGI v3 /mapping.
+_NEXT_MAPPING_AT = 0.0
 
-    jobs: list of job dicts, e.g.
-        {"idType": "TICKER", "idValue": "AAPL", "exchCode": "US"}
-        {"idType": "ID_CUSIP", "idValue": "037833100"}
-    Batching is automatic: 100 jobs/request with a key, 10/request
-    anonymous, with polite pacing between batches.
 
-    Returns a flat list of per-job result dicts in input order
-    (each like {"data": [...]} or {"error": "..."}), or None when every
-    batch failed. Callers treat missing/empty "data" as no-match.
+def mapping(jobs, api_key=None, deadline=None):
+    """Return one result per job, in order; invalid batches produce only errors.
+
+    Legacy all-request-failed None remains supported. Missing data is NOT proof
+    of no match: only the documented nonempty warning is a negative result.
+    Existing batch sizes and request pacing are retained. Pacing is enforced
+    between calls too, including failed requests; there is no final blind sleep.
     """
+    global _NEXT_MAPPING_AT
     if not jobs:
         return []
+    if _remaining(deadline) <= 0.1:
+        return [{"error": "deadline exhausted"} for _ in jobs]
     key = api_key if api_key is not None else get_api_key()
     size = _KEYED_BATCH if key else _ANON_BATCH
     pace = _KEYED_PACE if key else _ANON_PACE
@@ -108,17 +185,61 @@ def mapping(jobs, api_key=None):
     any_ok = False
     for i in range(0, len(jobs), size):
         batch = jobs[i:i + size]
-        res = _post(MAPPING_URL, batch, key)
+        delay = max(0.0, _NEXT_MAPPING_AT - time.monotonic())
+        if _remaining(deadline) <= 0.1 or (delay and not _sleep_within(delay, deadline)):
+            out.extend({"error": "deadline exhausted"} for _ in batch)
+            any_ok = True
+            continue
+        # Advance before the request; a failure must not bypass rate pacing.
+        _NEXT_MAPPING_AT = time.monotonic() + pace
+        res = _post(MAPPING_URL, batch, key, deadline=deadline)
+        _NEXT_MAPPING_AT = max(_NEXT_MAPPING_AT, time.monotonic() + pace)
         if res is None:
             out.extend({"error": "request failed"} for _ in batch)
-            continue
-        any_ok = True
-        if isinstance(res, list):
-            out.extend(res)
+        elif not isinstance(res, list) or len(res) != len(batch) or not all(isinstance(r, dict) for r in res):
+            out.extend({"error": "response cardinality or shape differs"} for _ in batch)
+            any_ok = True
         else:
-            out.extend({"error": "unexpected response shape"} for _ in batch)
-        time.sleep(pace)
+            out.extend(res)
+            any_ok = True
     return out if any_ok else None
+
+
+def resolution(item):
+    """Retain the complete job response and refuse ambiguous security identity."""
+    base = {"schema": "openfigi-resolution.v1", "response": item}
+    if not isinstance(item, dict):
+        return {**base, "status": "error", "reason": "invalid response"}
+    keys = [key for key in ("data", "warning", "error") if key in item]
+    if len(keys) != 1:
+        return {**base, "status": "error", "reason": "contradictory or absent result"}
+    if keys == ["error"]:
+        return {**base, "status": "error", "reason": "provider error"}
+    if keys == ["warning"]:
+        if isinstance(item["warning"], str) and item["warning"].strip():
+            return {**base, "status": "no_match", "reason": "provider warning"}
+        return {**base, "status": "error", "reason": "invalid warning"}
+    rows = item["data"]
+    if not isinstance(rows, list) or not rows or any(
+            not isinstance(row, dict) or not isinstance(row.get("figi"), str)
+            or not re.fullmatch(r"BBG[A-Z0-9]{9}", row["figi"]) for row in rows):
+        return {**base, "status": "error", "reason": "invalid candidate data"}
+    # Even duplicate identifiers can carry conflicting descriptors. Keep all
+    # candidates and require one whole row rather than choosing the first.
+    if len(rows) != 1:
+        return {**base, "status": "ambiguous", "reason": "multiple candidate rows"}
+    return {**base, "status": "resolved", "security": dict(rows[0])}
+
+
+def resolve_cusip(cusip, api_key=None, deadline=None):
+    """Structured CUSIP resolution; no issuer-preference heuristic."""
+    c = cusip.strip().upper() if isinstance(cusip, str) else ""
+    query = {"idType": "ID_CUSIP", "idValue": c}
+    if not re.fullmatch(r"[A-Z0-9*@#]{8}[0-9]", c):
+        return {"schema": "openfigi-resolution.v1", "status": "error", "reason": "invalid CUSIP shape", "query": query}
+    result = mapping([query], api_key=api_key, deadline=deadline)
+    item = result[0] if isinstance(result, list) and len(result) == 1 else {"error": "request failed"}
+    return {**resolution(item), "query": query}
 
 
 def search(query, api_key=None):
@@ -156,50 +277,19 @@ def ticker_to_figi(ticker, api_key=None):
 
 
 def cusip_to_security(cusip, api_key=None):
-    """Resolve a 9-character CUSIP to security descriptors (bond-aware).
+    """Compatibility projection for a unique resolution only.
 
-    A single CUSIP root can map to several securities (equity + debt).
-    Preference order: marketSector == "Corp" with
-    securityType == "Corporate Bond" first, then any "Corp" row, then the
-    first hit.
-
-    Returns dict {ticker, figi, name, security_type, market_sector,
-    coupon, maturity}, or None on no-match / malformed CUSIP / failure.
-    Unresolvable CUSIPs are the caller's cue to record {"no_match": True};
-    identifiers are never invented here.
+    None covers failed, ambiguous and no-match outcomes; callers must use
+    resolve_cusip to distinguish them. None must never create no_match=True.
     """
-    c = (cusip or "").upper().strip()
-    if len(c) != 9:
+    result = resolve_cusip(cusip, api_key=api_key)
+    if result["status"] != "resolved":
         return None
-    res = mapping([{"idType": "ID_CUSIP", "idValue": c}], api_key=api_key)
-    if not res or not isinstance(res, list):
-        return None
-    item = res[0]
-    rows = item.get("data") if isinstance(item, dict) else None
-    cands = [r for r in rows if isinstance(r, dict)] if rows else []
-    if not cands:
-        return None
-
-    def _rank(r):
-        ms = (r.get("marketSector") or "").strip().lower()
-        st = (r.get("securityType") or "").strip().lower()
-        if ms == "corp" and st == "corporate bond":
-            return 0
-        if ms == "corp":
-            return 1
-        return 2
-
-    best = min(cands, key=_rank)
-    return {
-        "ticker": best.get("ticker"),
-        "figi": best.get("figi"),
-        "name": best.get("name"),
-        "security_type": best.get("securityType"),
-        "market_sector": best.get("marketSector"),
-        "coupon": best.get("coupon"),
-        "maturity": best.get("maturity"),
-    }
+    row = result["security"]
+    return {"ticker": row.get("ticker"), "figi": row["figi"], "name": row.get("name"),
+            "security_type": row.get("securityType"), "market_sector": row.get("marketSector"),
+            "coupon": row.get("coupon"), "maturity": row.get("maturity")}
 
 
 __all__ = ["get_api_key", "mapping", "search", "ticker_to_figi",
-           "cusip_to_security"]
+           "cusip_to_security", "resolve_cusip", "resolution"]

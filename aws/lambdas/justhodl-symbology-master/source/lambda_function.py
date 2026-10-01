@@ -234,76 +234,30 @@ BOND_CUSIP_QUEUE_KEY = "data/_state/bond-cusip-queue.json"
 BOND_CUSIP_MASTER_KEY = "data/symbology/bond-cusips.json"
 
 
-def enrich_bond_cusips(limit=100):
-    """Resolve pending bond CUSIPs via OpenFIGI ID_CUSIP mapping (9/10).
+def enrich_bond_cusips(limit=100, context=None):
+    """Optional structured enrichment; preserve the primary equity publication.
 
-    Reads the pending queue from data/_state/bond-cusip-queue.json (a JSON
-    list of 9-char CUSIP strings; absent/malformed queue is a graceful
-    no-op), resolves up to `limit` new CUSIPs per run through the shared
-    openfigi.cusip_to_security helper, and merges results into
-    data/symbology/bond-cusips.json with carry-forward of previously
-    resolved entries.
-
-    Unresolvable CUSIPs are recorded as {"no_match": True} — explicit,
-    never invented. Fail-soft: any failure returns stats with an error
-    note and never touches the existing equity symbology logic.
+    Requires a real remaining-time clock, reserves twenty seconds for the final
+    equity write, and caps the optional work at forty seconds. Dedicated bounded
+    S3/SSM clients prevent legacy default storage retries consuming that reserve.
+    This is a cooperative deadline, not a claim of deterministic network latency.
     """
-    stats = {"resolved": 0, "no_match": 0, "errors": 0, "remaining": 0}
+    counts = {"resolved": 0, "no_match": 0, "errors": 0, "remaining": None}
     try:
+        from botocore.config import Config
         import openfigi
-    except Exception as e:
-        stats["error"] = (f"openfigi module unavailable: "
-                          f"{type(e).__name__}")
-        return stats
-    try:
-        raw_q = json.loads(s3.get_object(
-            Bucket=BUCKET, Key=BOND_CUSIP_QUEUE_KEY)["Body"].read())
+        from bond_symbology import enrich
+        if context is None or not callable(getattr(context, 'get_remaining_time_in_millis', None)):
+            return {**counts, "status": "deferred", "reason": "remaining_time_unavailable", "published": False}
+        remaining = context.get_remaining_time_in_millis()
+        if type(remaining) not in (int, float) or not 30000 < remaining <= 900000:
+            return {**counts, "status": "deferred", "reason": "insufficient_time", "published": False}
+        deadline = time.monotonic() + min(40, remaining / 1000 - 20)
+        client = boto3.client("s3", region_name="us-east-1", config=Config(
+            connect_timeout=2, read_timeout=3, retries={"total_max_attempts": 1}))
+        return enrich(client, BUCKET, openfigi.resolve_cusip, deadline=deadline, limit=limit)
     except Exception:
-        return {**stats, "note": "no queue file"}
-    if not isinstance(raw_q, list):
-        return {**stats, "note": "queue malformed"}
-    seen = set()
-    queue = []
-    for c in raw_q:
-        cu = str(c).upper().strip() if isinstance(c, str) else ""
-        if len(cu) == 9 and cu not in seen:
-            seen.add(cu)
-            queue.append(cu)
-    try:
-        prior_doc = json.loads(s3.get_object(
-            Bucket=BUCKET, Key=BOND_CUSIP_MASTER_KEY)["Body"].read())
-        prior = prior_doc.get("by_cusip") or {}
-    except Exception:
-        prior = {}
-    if not isinstance(prior, dict):
-        prior = {}
-    by_cusip = dict(prior)
-    todo = [c for c in queue if c not in by_cusip][:limit]
-    for c in todo:
-        try:
-            hit = openfigi.cusip_to_security(c)
-        except Exception as e:
-            stats["errors"] += 1
-            print("bond cusip err:", c, str(e)[:60])
-            continue
-        if hit:
-            by_cusip[c] = hit
-            stats["resolved"] += 1
-        else:
-            by_cusip[c] = {"no_match": True}
-            stats["no_match"] += 1
-        time.sleep(0.35)
-    doc = {"generated_at": datetime.now(timezone.utc).isoformat(
-               timespec="seconds"),
-           "schema_version": "1.0",
-           "n_cusips": len(by_cusip),
-           "by_cusip": by_cusip}
-    s3.put_object(Bucket=BUCKET, Key=BOND_CUSIP_MASTER_KEY,
-                  Body=json.dumps(doc, default=str).encode(),
-                  ContentType="application/json", CacheControl="no-cache")
-    stats["remaining"] = len([c for c in queue if c not in by_cusip])
-    stats["n_cusips"] = len(by_cusip)
-    return stats
+        return {**counts, "status": "deferred", "reason": "optional_enrichment_failed", "errors": 1, "published": False}
 
 
 def lambda_handler(event, context):
@@ -341,7 +295,7 @@ def lambda_handler(event, context):
         pass
     figi_stats = enrich_figi(by_ticker)
     cusip_stats = enrich_cusip_chain(by_ticker)
-    bond_cusip_stats = enrich_bond_cusips()
+    bond_cusip_stats = enrich_bond_cusips(context=context)
     n = len(by_ticker)
     doc = {"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "spec": "E1 v1 — SEC spine; OpenFIGI/CUSIP enrichment in later "
