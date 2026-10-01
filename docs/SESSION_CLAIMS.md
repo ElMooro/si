@@ -18,15 +18,14 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Desk extra-funds-only ownership supplement: benchmark existing 16 extra holdings; unchanged canonical qualifications/UI; agent/shopiz/desk-extra-ownership-summary, draft only | none | S-shopiz#dex1001a | 2026-10-01 03:15 |
 | Legacy ETF price/volume proxy provenance + Livermore/Wyckoff display labels; etf-flows writer and dormant jh-etf-engine annotations; no shared brief/compiler or vote changes; draft agent/shopiz/etf-proxy-labels | none | S-shopiz#proxy1001a | 2026-10-01 03:00 |
 | Official-stats evidence-only repair: preserve required legacy join and decision gates; additive canary clocks/qualification, tests; agent/shopiz/official-stats-evidence, draft only | none | S-shopiz#ose1001c | 2026-10-01 01:57 |
 | PR15/16 and PR17 public browser-only production QA at 1440/390; normal TLS, one staged probe, no AWS/app writes | 6396 | S-shopiz#browser0930a | 2026-09-30 23:40 |
 | Equity identity/recovery source 32aed755a accepted: 60 native regressions; exact public receipt, five native sources/original controls, 55 static files checked. Bond and equity prior reads/identity/conditional writes repaired. Normal publication and remaining legacy CUSIP/GLEIF/catalog qualification unverified. | 6397–6399 ACCEPTED | S-codex#symb0930a | 2026-10-01 01:07 |
 | Coverage inventory source 2d1f4c628 accepted: 39 native, 990 deployment and 2213 frontend checks; exact public receipt, three native sources/original controls, 55 static files verified. Normal publication and independent source replay remain unverified. | 6401–6402 ACCEPTED | S-codex#coverage1001a | 2026-10-01 01:42 |
 | Symbol-directory identifier/search c814ee9d1 and generation/cache 201767376 accepted: five current native sources/seven schedules and 58 unchanged static assets. Immutable pair selection and rollback covered by complete invented fixtures; normal publication, actual capacity, concurrent writer ordering remain OPEN. Separate warehouse refresh now active: complete invented reproductions show prior-file loss, same-clock identity mismatch and hidden manifest failure. No actual private/current/account/consumer artifacts or native invokes. | 6403 baseline; 6404 failed; 6405 identifier/search accepted; 6406 generation/cache ACCEPTED; 6407 provider-cache recovery RESERVED / ACTIVE | S-codex#symdir1001a | 2026-10-01 01:42 |
-| Qualified canonical holdings summary: model/store replay, offline benchmarks and dependent cohort UI in jh-etf-holdings.js / both existing pages; agent/shopiz/qualified-holdings-summary; combined draft, no deployment | none | S-shopiz#qhs0930b | 2026-09-30 21:17 |
 | FI/FX complete API source/page and post-release original qualification; China safe diagnostics/publication outcomes, ICI complete-source transport and UTF-8/atomic navigation generation + title rendering. Native resources, measurements and original schedules preserved. | 6390–6395 | S-codex#fifx0930a | 2026-09-30 20:47 |
-| ETF desk daily phase dependency repair; agent/shopiz/etf-desk-phase; read-only probe then draft migration, no execution | 6380 probe; 6381 migration / 6382 rollback RESERVED (draft, not executed) | S-shopiz#edphase0930a | 2026-09-30 20:40 |
 | Khalid native Radar informational evidence only; agent/shopiz/khalid-provider-flow-evidence; draft, no deploy | none | S-shopiz#kpf0930r8 | 2026-09-30 19:10 |
 | brief_contract future timestamps only; draft review branch agent/shopiz/brief-future-timestamps (no ops/deploy) | none | S-shopiz#bft0930 | 2026-09-30 17:38 |
 | Factory discipline in the student tick (factory_doctrine.verdict, spawn caps), evidence contract, reading receipts, governed outside voice, official prints lane (scripts/factory_official_prints.py + factory-official-prints.yml), gate | 5520-5526 | S-claude-factory#9k2f | 2026-09-13 18:2x |
@@ -55,6 +54,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+PR15 desk phase and PR16 canonical ownership summary: prior deployment acceptance completed per parent; former claims S-shopiz#edphase0930a and S-shopiz#qhs0930b released on 2026-10-01.
 | Issuer binding read-only diagnosis: Lambda Active; no exact-target classic or function-prefix Scheduler binding found; arbitrary names outside scope. Run 36798403192; no engine/config changes. | 6400 | S-shopiz#issuer1001a |
 | provider-window sentinel v1.0.0 (weekly FRED-vs-bank diff, WINDOWED alerting) | 4850 | S-fable-A2 |
 | catalyst-chain v1.0.0 (4-stage event->filing->street machine; 60 chains, 30 unpriced) | 4852-4853 | S-fable-A2 |
