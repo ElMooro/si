@@ -169,7 +169,7 @@ class Tests(unittest.TestCase):
 
     def test_whole_native_warm_cannot_call_failed_warehouse_manifest_ready(self):
         module=self.native();module.warehouse_search('invented',10)
-        before=self.active.read_bytes();module.load_index=lambda force=False:module._IDX
+        before=self.active.read_bytes();module.load_index=lambda force=False,check=False:module._IDX
         module.s3.get_object=lambda **kw:(_ for _ in ()).throw(OSError('Invented manifest outage'))
         result=module.lambda_handler({'mode':'warm','queryStringParameters':{'force':'1'}},None)
         self.assertFalse(result['warehouse_ready']);self.assertEqual(result['warehouse_integrity']['status'],'unavailable')

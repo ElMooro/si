@@ -351,22 +351,28 @@
     return matches.length === 1 ? matches[0] : "";
   }
 
-  function ensureIndex() {
-    if (IDX_P) return IDX_P;
-    var jobs = [
-      loadJson("/data/symbology/master.json").catch(function () { return null; }),
-      loadJson("/data/indicator-bus.json").catch(function () { return null; }),
-      loadJson("/data/provider-catalog.json").catch(function () { return null; }),
-      loadJson(PROXY + "/data/symdir/instruments.json.gz").catch(function () { return loadJson("/data/symdir/instruments.json.gz").catch(function () { return null; }); }),
-      loadCQ().catch(function () { return null; })
-    ];
-    if (global.JHCqFuse && typeof global.JHCqFuse.load === "function") {
-      jobs.push(global.JHCqFuse.load().catch(function () { return null; }));
+  function catalogPopulation(key, doc) {
+    var value, master=key==="master"?doc:null, bus=key==="bus"?doc:null;
+    var catalog=key==="providers"?doc:null, instr=key==="instruments"?doc:null;
+    function object(x) { return x && typeof x==="object" && !Array.isArray(x); }
+    if (!object(doc)) throw new Error("invalid_catalog_object");
+    if (key==="master" && !object(doc.by_ticker)) throw new Error("invalid_ticker_population");
+    if (key==="bus" && !object(doc.indicators)) throw new Error("invalid_indicator_population");
+    if (key==="providers" && (!Array.isArray(doc.providers) || doc.providers.some(function(row) {
+      return !object(row) || typeof row.slug!=="string" || !row.slug.trim() ||
+        (row.name!=null && typeof row.name!=="string");
+    }))) throw new Error("invalid_provider_population");
+    if (key==="instruments" && (!Array.isArray(doc.rows) || doc.rows.some(function(row) {
+      return !Array.isArray(row) || typeof row[0]!=="string" || !row[0].trim() ||
+        row.slice(1,5).some(function(v) { return v!=null && typeof v!=="string"; });
+    }))) throw new Error("invalid_instrument_population");
+    if (key==="cq") {
+      if (!object(doc.series)) throw new Error("invalid_onchain_population");
+      return doc;
     }
-    IDX_P = Promise.all(jobs).then(function (pack) {
-      var master = pack[0], bus = pack[1], catalog = pack[2], instr = pack[3];
+    if (key==="fuse") return doc;
       if (master && master.by_ticker && typeof master.by_ticker === "object" && !Array.isArray(master.by_ticker)) {
-        SYM = [];
+        value = [];
         Object.keys(master.by_ticker).forEach(function (t) {
           var r = master.by_ticker[t];
           if (!r || typeof r !== "object" || Array.isArray(r)) r = {};
@@ -381,7 +387,7 @@
           if (isin) ids.push("ISIN " + isin);
           if (ids.length) ids.unshift("Unverified identifier candidates");
           ids.push("SEC ticker source · security relationship unverified");
-          SYM.push({
+          value.push({
             s: t,
             n: name,
             figi: figi,
@@ -393,7 +399,7 @@
         });
       }
       if (bus && bus.indicators) {
-        IND = [];
+        value = [];
         Object.keys(bus.indicators).forEach(function (k) {
           var row = bus.indicators[k] || {};
           var src = String(row.src || "");
@@ -408,11 +414,11 @@
             chart = "FRED:" + k;
             extra = "FRED warehouse · full history when present";
           }
-          IND.push({ s: k, n: k, chart: chart, extra: extra, type: type, cat: cat });
+          value.push({ s: k, n: k, chart: chart, extra: extra, type: type, cat: cat });
         });
       }
       if (catalog && Array.isArray(catalog.providers)) {
-        PROV = catalog.providers.map(function (p) {
+        value = catalog.providers.map(function (p) {
           return {
             slug: p.slug,
             name: p.name || p.slug,
@@ -422,7 +428,7 @@
         });
       }
       if (instr && Array.isArray(instr.rows)) {
-        INST = instr.rows.map(function (r) {
+        value = instr.rows.map(function (r) {
           return {
             s: r[0],
             n: r[1] || "",
@@ -435,8 +441,85 @@
           };
         });
       }
-      return { n_sym: SYM ? SYM.length : 0, n_ind: IND ? IND.length : 0, n_inst: INST ? INST.length : 0, n_prov: PROV ? PROV.length : 0 };
+    return value;
+  }
+
+  // Per-source download checks. None of these clocks qualifies observation freshness.
+  var INDEX_STATE = {}, INDEX_REVISION=0, INDEX_INTERVAL_MS = 300000, INDEX_RETRY_MS = 30000;
+  function catalogClock() {
+    return {wall:Date.now(), mono:global.performance && typeof global.performance.now==="function" ? global.performance.now() : Date.now()};
+  }
+  function catalogAge(now, then) {
+    if (!then || now.wall<then.wall || now.mono<then.mono) return null;
+    var age=Math.max(now.wall-then.wall,now.mono-then.mono);
+    return isFinite(age) ? age : null;
+  }
+  function catalogTimed(job) {
+    return new Promise(function(resolve,reject) {
+      var controller=typeof global.AbortController==="function" ? new global.AbortController() : null;
+      var settled=false, timer=global.setTimeout(function() {
+        if (settled) return; settled=true;
+        if (controller) controller.abort();
+        reject(new Error("catalog_timeout"));
+      },10000);
+      Promise.resolve().then(function() { return job(controller && controller.signal); }).then(function(value) {
+        if (settled) return; settled=true;global.clearTimeout(timer);resolve(value);
+      },function(error) {
+        if (settled) return; settled=true;global.clearTimeout(timer);reject(error);
+      });
     });
+  }
+  function catalogSpecs() {
+    var specs=[
+      {key:"master",label:"Security directory",load:function(signal) { return loadJson("/data/symbology/master.json",signal); },put:function(value) { SYM=value; }},
+      {key:"bus",label:"Indicator directory",load:function(signal) { return loadJson("/data/indicator-bus.json",signal); },put:function(value) { IND=value; }},
+      {key:"providers",label:"Provider directory",load:function(signal) { return loadJson("/data/provider-catalog.json",signal); },put:function(value) { PROV=value; }},
+      {key:"instruments",label:"Instrument directory",load:function(signal) {
+        return loadJson(PROXY+"/data/symdir/instruments.json.gz",signal).catch(function(error) {
+          if (signal && signal.aborted) throw error;
+          return loadJson("/data/symdir/instruments.json.gz",signal);
+        });
+      },put:function(value) { INST=value; }},
+      {key:"cq",label:"On-chain catalog",load:function(signal) { return loadJson("/data/cryptoquant-series.json",signal); },put:function(value) { CQ=value; }}
+    ];
+    if (global.JHCqFuse && typeof global.JHCqFuse.load==="function") {
+      specs.push({key:"fuse",label:"On-chain enrichment",load:function() { return global.JHCqFuse.load(); },put:function() {}});
+    }
+    return specs;
+  }
+  function indexStatus() {
+    var now=catalogClock(), sources=catalogSpecs().map(function(spec) {
+      var state=INDEX_STATE[spec.key]||{}, age=catalogAge(now,state.checked), attempt=catalogAge(now,state.attempted);
+      var due=age===null || age>=INDEX_INTERVAL_MS;
+      var status=state.loading ? "loading" : state.error ? (state.loaded ? "cached" : "unavailable") :
+        !state.loaded ? "unavailable" : due ? "cached" : "download_checked";
+      // The optional module owns its cache; a returned object proves no new download.
+      if(spec.key==="fuse" && state.loaded && !state.loading && !state.error) status="enrichment_unverified";
+      return {id:spec.key,label:spec.label,status:status,loaded:!!state.loaded,
+        checked_at:spec.key!=="fuse" && state.checked ? new Date(state.checked.wall).toISOString() : null,
+        age_s:spec.key==="fuse" || age===null ? null : Math.floor(age/1000),
+        retry_after_s:state.error && attempt!==null ? Math.max(0,Math.ceil((INDEX_RETRY_MS-attempt)/1000)) : 0,
+        error:state.error||null,source_freshness_verified:false};
+    });
+    return {revision:INDEX_REVISION,sources:sources,source_freshness_verified:false,refresh_interval_s:INDEX_INTERVAL_MS/1000,
+      n_sym:SYM===null?null:SYM.length,n_ind:IND===null?null:IND.length,n_inst:INST===null?null:INST.length,n_prov:PROV===null?null:PROV.length};
+  }
+  function ensureIndex() {
+    if (IDX_P) return IDX_P;
+    var jobs=catalogSpecs().map(function(spec) {
+      var state=INDEX_STATE[spec.key] || (INDEX_STATE[spec.key]={}), now=catalogClock();
+      var age=catalogAge(now,state.attempted), bound=state.error ? INDEX_RETRY_MS : INDEX_INTERVAL_MS;
+      if (age!==null && age<bound) return Promise.resolve();
+      state.loading=true;state.attempted=now;
+      return catalogTimed(spec.load).then(function(doc) {
+        var value=catalogPopulation(spec.key,doc);
+        spec.put(value);state.loaded=true;state.checked=now;state.error=null;
+      }).catch(function() {
+        // Preserve the complete previous population, never a partially parsed replacement.
+        state.error="download_or_validation_failed";state.attempted=catalogClock();
+      }).then(function() { state.loading=false;INDEX_REVISION++; });
+    });
+    IDX_P=Promise.all(jobs).then(function() { IDX_P=null;return indexStatus(); },function(error) { IDX_P=null;throw error; });
     return IDX_P;
   }
 
@@ -572,8 +655,8 @@
     return out;
   }
 
-  function loadJson(url) {
-    return fetch(url, { cache: "no-store" }).then(function (r) {
+  function loadJson(url, signal) {
+    return fetch(url, { cache: "no-store", signal: signal || undefined }).then(function (r) {
       if (!r.ok) throw new Error("http " + r.status);
       return r.json();
     });
@@ -685,6 +768,7 @@
     search: search,
     suggest: suggest,
     ensureIndex: ensureIndex,
+    indexStatus: indexStatus,
     lookupSym: lookupSym,
     keepId: keepId,
     isWarehouse: isWarehouse,

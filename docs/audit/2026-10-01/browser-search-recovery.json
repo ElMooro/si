@@ -1,0 +1,130 @@
+{
+  "status": "full_candidate_checks_passed_exact_static_release_pending",
+  "source": [
+    {
+      "path": "jh-chart-catalog.js",
+      "bytes": 40440,
+      "sha256": "1d2ef8aac3f04665bf79e5e75137ab029dfe513d749ad913c83a69735d543ff6"
+    },
+    {
+      "path": "jh-chart-engine.js",
+      "bytes": 359611,
+      "sha256": "d2303460b6ba774ed4b99fd0d12c8cc075531f1a7c639c69255ebaa40b309d74"
+    }
+  ],
+  "retained_predecessors": [
+    {
+      "path": "tests/fixtures/symbol-directory/pre-browser-cache.js.txt",
+      "bytes": 35076,
+      "sha256": "26693a87560b70be2defdaefa5e42c31a9612798db0326a265fa2cc4f0ee356d"
+    },
+    {
+      "path": "tests/fixtures/symbol-directory/pre-search-status-engine.js.txt",
+      "bytes": 354661,
+      "sha256": "a81ffe92db46278fb6136539693ffe33d59dbe2f1de8b82a7621936e01c47f62"
+    },
+    {
+      "path": "tests/fixtures/symbol-directory/browser-cache-reproduction.json",
+      "bytes": 2559,
+      "sha256": "e30ad922b1adb9728b1d3914f7abeb2874996659339c671e08968897a06a28ae"
+    }
+  ],
+  "browser_evidence": [
+    {
+      "path": "docs/audit/2026-10-01/browser-search-offline.json",
+      "bytes": 104336,
+      "sha256": "bd5cb1b493eae847191d0220e50bc89d8f0b4eaed30f8d79e784d9c3a786b3da"
+    },
+    {
+      "path": "docs/audit/2026-10-01/browser-search-recovery-offline.json",
+      "bytes": 124461,
+      "sha256": "4c498873bd0f53ff4345d8cf9fbad4b93503fee5b5f73741cbae835ed36991cf"
+    }
+  ],
+  "scope": "Browser catalog recovery and search integrity presentation only; complete invented fixtures and source/static acceptance.",
+  "validation_pending": [
+    "exact_static_release"
+  ],
+  "actual_network_data_requests": 0,
+  "producer_invocations": 0,
+  "private_reads": 0,
+  "account_reads": 0,
+  "consumer_reads": 0,
+  "source_freshness_verified": false,
+  "independent_source_replay_verified": false,
+  "investment_authority": false,
+  "open": [
+    "Normal browser execution against actual packets",
+    "Source identity and observation freshness qualification",
+    "Actual population capacity and latency",
+    "On-chain enrichment and standalone CISS cache refresh",
+    "All ten institutional workstreams"
+  ],
+  "validation": {
+    "deployment": 1018,
+    "shell": 15,
+    "frontend": 2283,
+    "native": 104,
+    "new_search_regressions": 26,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "base_commit": "cd48b871ea04c141d7e82fd6e5241a350b56908c",
+    "browser": {
+      "source": {
+        "chart.html": "258e79fa09c1c537c7e13e364c371c2580e4c1aee1973e6a8c905d50bb33bc5f",
+        "jh-chart-catalog.js": "1d2ef8aac3f04665bf79e5e75137ab029dfe513d749ad913c83a69735d543ff6",
+        "jh-chart-engine.js": "d2303460b6ba774ed4b99fd0d12c8cc075531f1a7c639c69255ebaa40b309d74",
+        "tests/chart-search-browser-qa.cjs": "7607880ef1eec70d074537e9d00cdf7e91459e3fed454228334e7df156c1c559",
+        "tests/chart-search-recovery-browser-qa.cjs": "ac5b73a93c46215cb666d217c51a599d447602f2b111cb5e86998bf7ef002c27"
+      },
+      "whole_suites": 2,
+      "widths": [
+        1440,
+        390
+      ],
+      "actual_network_data_requests": 0
+    },
+    "generators": [
+      "native",
+      "inventory-build",
+      "contracts-build",
+      "dependency-build",
+      "contracts-check",
+      "page-scripts",
+      "wiring",
+      "deployment",
+      "frontend",
+      "incoming-labels",
+      "incoming-desk",
+      "deployment-after-incoming"
+    ],
+    "incoming_review": {
+      "paths": [
+        "aws/ops/reports/latest/ops_6410_etf_desk_capacity_readonly.md",
+        "aws/ops/staged/ops_6410_etf_desk_capacity_readonly.py",
+        "docs/SESSION_CLAIMS.md",
+        "docs/audit/katlin-label-boundary-research.md",
+        "docs/research/khalid-event-study-proposal.md",
+        "docs/reviews/etf-desk-capacity-readonly-probe.md",
+        "scripts/research/katlin_label_boundary.py",
+        "tests/ops/test_etf_desk_capacity_readonly.py",
+        "tests/test_katlin_label_boundary.py"
+      ],
+      "report_body_read": false,
+      "producer_or_probe_invocations": 0,
+      "source_and_generators_unchanged": true,
+      "sha256": {
+        "aws/ops/staged/ops_6410_etf_desk_capacity_readonly.py": "f69d0f8ea14c7515d7037b1875135e70a7e18a7a84c052d4acf2a9b73eb50f3b",
+        "docs/SESSION_CLAIMS.md": "f0829a1c00b6eb534e0ab3973412e0b2b4b65202ff0edd4a35209c0af8ed2eb4",
+        "docs/audit/katlin-label-boundary-research.md": "29da7968e97b82a64f2cb739b21aa4ca26699f5fce6f98de53e76c4e0571ed36",
+        "docs/research/khalid-event-study-proposal.md": "a966d633247bae83c0277eb62497148b03e51492d4effc18c00f3a46cc46da1d",
+        "docs/reviews/etf-desk-capacity-readonly-probe.md": "010d0a32103237988a6344fd63394c0891e3fafa8a4e2d004154b25a0d55d994",
+        "scripts/research/katlin_label_boundary.py": "3b1928edf01a535b5c46bb1227ae0c5306e2c6e7df49eb4e839dd335a4fc39a8",
+        "tests/ops/test_etf_desk_capacity_readonly.py": "caa6a173f76dc82b9a36ae1e4ed195f38f5a3bce9460f2230dcbe8088287a63e",
+        "tests/test_katlin_label_boundary.py": "2d6b743328ebc175fcce8e7418e40155943013e66ef8582249e86c145a90d0ab"
+      },
+      "offline_label_tests": 9,
+      "mocked_desk_tests": 16
+    }
+  }
+}

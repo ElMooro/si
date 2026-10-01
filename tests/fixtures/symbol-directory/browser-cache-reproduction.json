@@ -1,0 +1,113 @@
+{
+  "source_bytes": 35076,
+  "source_sha256": "26693a87560b70be2defdaefa5e42c31a9612798db0326a265fa2cc4f0ee356d",
+  "whole_inputs": {
+    "/data/symbology/master.json": {
+      "by_ticker": {
+        "ZZRECOVERED": {
+          "name": "Invented recovered issuer"
+        }
+      }
+    },
+    "/data/indicator-bus.json": {
+      "indicators": {}
+    },
+    "/data/provider-catalog.json": {
+      "providers": []
+    },
+    "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz": {
+      "rows": [],
+      "cols": []
+    },
+    "/data/symdir/instruments.json.gz": {
+      "rows": [],
+      "cols": []
+    },
+    "/data/cryptoquant-series.json": {
+      "series": {}
+    }
+  },
+  "whole_failed_session_requests": [
+    {
+      "url": "/data/symbology/master.json",
+      "available": false
+    },
+    {
+      "url": "/data/indicator-bus.json",
+      "available": false
+    },
+    {
+      "url": "/data/provider-catalog.json",
+      "available": false
+    },
+    {
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz",
+      "available": false
+    },
+    {
+      "url": "/data/cryptoquant-series.json",
+      "available": false
+    },
+    {
+      "url": "/data/symdir/instruments.json.gz",
+      "available": false
+    }
+  ],
+  "whole_fresh_session_requests": [
+    {
+      "url": "/data/symbology/master.json",
+      "available": true
+    },
+    {
+      "url": "/data/indicator-bus.json",
+      "available": true
+    },
+    {
+      "url": "/data/provider-catalog.json",
+      "available": true
+    },
+    {
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz",
+      "available": true
+    },
+    {
+      "url": "/data/cryptoquant-series.json",
+      "available": true
+    }
+  ],
+  "whole_first_load": {
+    "n_sym": 0,
+    "n_ind": 0,
+    "n_inst": 0,
+    "n_prov": 0
+  },
+  "whole_after_recovery_load": {
+    "n_sym": 0,
+    "n_ind": 0,
+    "n_inst": 0,
+    "n_prov": 0
+  },
+  "whole_after_recovery_suggestions": [],
+  "whole_new_session_load": {
+    "n_sym": 1,
+    "n_ind": 0,
+    "n_inst": 0,
+    "n_prov": 0
+  },
+  "whole_new_session_suggestions": [
+    {
+      "s": "ZZRECOVERED",
+      "name": "Invented recovered issuer",
+      "extra": "SEC ticker source · security relationship unverified",
+      "type": "stock",
+      "cat": "stocks",
+      "suggest": true,
+      "score": 100
+    }
+  ],
+  "outcome": {
+    "same_session_never_retries": true,
+    "same_complete_sources_work_in_new_session": true
+  },
+  "actual_network_requests": 0
+}

@@ -1,8 +1,8 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-10-01T03:21:24 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-10-01T05:01:19 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `34931e97058e4db6ffe476e4bb3895e069e691a5852984ed2bd09fd40079d177`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `f829a29a08fae8ff7c4de3c53e393b327e9d100c6b0868b0588a8c60200d746a`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
@@ -12,8 +12,8 @@ Potential transitive dependencies from candidate code references. Unproven write
 | engines | 898 |
 | engines without consumer | 33 |
 | engines without schedule | 259 |
-| keys | 2063 |
-| orphan engine refs | 533 |
+| keys | 2064 |
+| orphan engine refs | 534 |
 | orphan page refs | 105 |
 | pages | 599 |
 | two cycles | 66 |
@@ -499,6 +499,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `data/structural-presignals.json` <- justhodl-global-flow-desk
 - `data/symbol-map.json` <- justhodl-symbol-dictionary, justhodl-symdir, justhodl-thesis-engine, justhodl-wl-engines
 - `data/symdir/_state/codelists-*-*.json` <- justhodl-symdir
+- `data/symdir/artifacts/*/instruments.json.gz` <- justhodl-symdir
 - `data/symdir/cl/*/*.json` <- justhodl-symdir
 - `data/symdir/cl/ecb/*.json` <- justhodl-symdir
 - `data/symdir/cl/eurostat/*.json` <- justhodl-symdir

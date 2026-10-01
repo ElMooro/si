@@ -189,7 +189,9 @@ class Tests(unittest.TestCase):
             self.assertEqual(raw,stored[PREFIX+name+'.pkl.gz'])
         keys=list(puts)
         self.assertLess(keys.index(metadata['files']['index']['key']),keys.index(PREFIX+'docs.pkl.gz'))
-        self.assertEqual(keys[-1],PREFIX+'manifest.json')
+        self.assertLess(keys.index(PREFIX+'manifest.json'),keys.index(PREFIX+'docs.pkl.gz'))
+        self.assertLess(keys.index(report['instrument_generation']['key']),keys.index(PREFIX+'manifest.json'))
+        self.assertTrue(report['publication']['aliases_complete'])
         stored[PREFIX+'docs.pkl.gz']=b'Invented mutable generation mismatch'
         stored[PREFIX+'index.pkl.gz']=b'Invented old postings'
         reads=[]
