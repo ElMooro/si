@@ -1,0 +1,507 @@
+{
+  "stage": 534,
+  "status": "tested_source_batch_awaiting_static_release",
+  "scope": "Crypto risk/Fear-Greed/dominance, coin score/price and RSI/Bollinger/StochRSI/ATR presentation. Engines and observation history unchanged. All duplicate dominance consumers and sentiment display transformations included after whole-render/browser regression.",
+  "repairs": [
+    "Missing or malformed values do not become neutral 50 or zero prices. Valid zero preserved.",
+    "Scores/RSI/StochRSI/Fear-Greed/dominance constrained to finite numeric 0\u2013100; Bollinger position retains finite values outside bands.",
+    "Indicator bar CSS corrected; width is visibly documented as clamped while reported value remains visible.",
+    "Very small nonzero prices use exponential notation rather than rounding to zero.",
+    "Risk and sentiment text labels escaped; invalid scores cannot borrow stored regime/action labels.",
+    "Technical table gets a labeled keyboard-accessible horizontal scroll region.",
+    "Whole preceding page and preservation manifest retained; no original assertions removed.",
+    "Duplicate dominance panels preserve genuine zero, reject invalid typed values and totals; remainder formula and comparability limits explicit.",
+    "Sentiment component transformations state their formulas/category positions and preserve unavailable source inputs.",
+    "Mobile sentiment labels wrap separately from their value; value text stays on one line."
+  ],
+  "source_qualified": false,
+  "normal_publication_verified": false,
+  "investment_authority": false,
+  "remaining": [
+    "Full integrated checks and browser inspection",
+    "Exact commit-bound static release verification",
+    "Funding/stablecoin/MVRV defaults, other unsafe fields, source timing and economic validity remain open"
+  ],
+  "pre_release_findings": [
+    "Initial browser test used End instead of ArrowRight for horizontal scrolling; corrected keyboard action.",
+    "Full DOM test found duplicate unsafe dominance consumers not covered by first helper tests; all same-field consumers now repaired and regression tested.",
+    "Exponential price was uppercased by existing title CSS; browser expectation accepts E/e without changing value.",
+    "Screenshot review found mobile Unavailable wrapping; value no longer flex-shrinks. Initial unfinished integrated run was stopped before edits; complete final gates will run again."
+  ],
+  "browser_scenarios": 48,
+  "validation": {
+    "checks": [
+      {
+        "suite": "contracts-build",
+        "exit": 0
+      },
+      {
+        "suite": "deployment",
+        "exit": 0
+      },
+      {
+        "suite": "frontend",
+        "exit": 0
+      },
+      {
+        "suite": "browser",
+        "exit": 0
+      },
+      {
+        "suite": "contracts",
+        "exit": 0
+      },
+      {
+        "suite": "scripts",
+        "exit": 0
+      },
+      {
+        "suite": "wiring",
+        "exit": 0
+      }
+    ],
+    "browser": {
+      "scope": "Complete actual render function with invented packets and full inline CSS; overview and technicals inspected in isolated DOM. No live application/provider packet reads.",
+      "scenarios": 48,
+      "network_requests": 0,
+      "page_errors": 0,
+      "results": [
+        {
+          "name": "normal",
+          "width": 390,
+          "pane": "overview",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-overview-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "normal",
+          "width": 390,
+          "pane": "technicals",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-technicals-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": true
+        },
+        {
+          "name": "normal",
+          "width": 390,
+          "pane": "sentiment",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-sentiment-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "normal",
+          "width": 390,
+          "pane": "global",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-global-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 390,
+          "pane": "overview",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-overview-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 390,
+          "pane": "technicals",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-technicals-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": true
+        },
+        {
+          "name": "zero",
+          "width": 390,
+          "pane": "sentiment",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-sentiment-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 390,
+          "pane": "global",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-global-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 390,
+          "pane": "overview",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-overview-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 390,
+          "pane": "technicals",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-technicals-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": true
+        },
+        {
+          "name": "unavailable",
+          "width": 390,
+          "pane": "sentiment",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-sentiment-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 390,
+          "pane": "global",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-global-390.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 390,
+          "pane": "overview",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 390,
+          "pane": "technicals",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": true
+        },
+        {
+          "name": "malformed",
+          "width": 390,
+          "pane": "sentiment",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 390,
+          "pane": "global",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 390,
+          "pane": "overview",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 390,
+          "pane": "technicals",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": true
+        },
+        {
+          "name": "injection",
+          "width": 390,
+          "pane": "sentiment",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 390,
+          "pane": "global",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 390,
+          "pane": "overview",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 390,
+          "pane": "technicals",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": true
+        },
+        {
+          "name": "outside",
+          "width": 390,
+          "pane": "sentiment",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 390,
+          "pane": "global",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "normal",
+          "width": 1280,
+          "pane": "overview",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-overview-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "normal",
+          "width": 1280,
+          "pane": "technicals",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-technicals-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "normal",
+          "width": 1280,
+          "pane": "sentiment",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-sentiment-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "normal",
+          "width": 1280,
+          "pane": "global",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-normal-global-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 1280,
+          "pane": "overview",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-overview-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 1280,
+          "pane": "technicals",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-technicals-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 1280,
+          "pane": "sentiment",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-sentiment-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "zero",
+          "width": 1280,
+          "pane": "global",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-zero-global-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 1280,
+          "pane": "overview",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-overview-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 1280,
+          "pane": "technicals",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-technicals-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 1280,
+          "pane": "sentiment",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-sentiment-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "unavailable",
+          "width": 1280,
+          "pane": "global",
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage534-browser-final\\crypto-measurements-unavailable-global-1280.png",
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 1280,
+          "pane": "overview",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 1280,
+          "pane": "technicals",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 1280,
+          "pane": "sentiment",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "malformed",
+          "width": 1280,
+          "pane": "global",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 1280,
+          "pane": "overview",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 1280,
+          "pane": "technicals",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 1280,
+          "pane": "sentiment",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "injection",
+          "width": 1280,
+          "pane": "global",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 1280,
+          "pane": "overview",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 1280,
+          "pane": "technicals",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 1280,
+          "pane": "sentiment",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        },
+        {
+          "name": "outside",
+          "width": 1280,
+          "pane": "global",
+          "screenshot": null,
+          "no_overflow": true,
+          "no_markup_execution": true,
+          "keyboard_table_scroll": false
+        }
+      ]
+    },
+    "deployment_cases": 1026,
+    "shell_cases": 15,
+    "application_packet_reads": 0
+  }
+}

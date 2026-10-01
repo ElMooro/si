@@ -7618,3 +7618,7 @@ No producer invocation, provider request, schedule acceleration, current/private
 ## Stage 533: truthful P/E range presentation
 
 Two research drawers previously called a linear min-max position an ordinal percentile and interpolated untyped values into HTML. The candidate names the measure as a reported annual P/E range position, preserves zero, rejects malformed fields and shows the unknown window/comparability. Engine calculation and legacy packet keys are unchanged. Complete predecessors and existing tests are retained. Browser, integrated and exact static acceptance are pending; other valuation fields, source comparability and all institutional workstreams remain open.
+
+## Stage 534: Crypto numeric presentation integrity
+
+The candidate removes fabricated neutral score/oscillator readings and zero prices, preserves genuine zero, distinguishes bounded oscillators from Bollinger position outside its bands, and fixes invalid bar CSS. It escapes the changed risk/sentiment labels and makes the technical table horizontally keyboard-scrollable. Full preceding page/manifest retained, with invented regression inputs only. Integrated/browser/static acceptance pending. Funding, stablecoin/MVRV defaults, other unsafe renderers and all ten institutional workstreams remain open.
