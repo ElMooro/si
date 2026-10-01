@@ -26,11 +26,11 @@ import ticker_360
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/ticker-360.json"
-VERSION = "1.0"
+VERSION = "1.1"
 
 s3 = boto3.client("s3", "us-east-1")
 
-MIN_COVERAGE = 2  # only index tickers seen by 2+ domains ("full picture" names)
+MIN_COVERAGE = 1  # index every ticker with 1+ domain; consumers filter by coverage_count
 
 
 def _compact_td(td):
