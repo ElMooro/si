@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 501: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497. Browser search, exact CQ/CISS scalar identity, bounded download recovery and unavailable-source inspection/calendar grouping are accepted through Stage 501. The inspected static build includes 898 engine records, 599 page contracts and 70 complete artifacts. Next: general warehouse chart measurement decoding and identity; broader legacy chart/page correctness remains open. Actual normal execution/capacity, independent source qualification and reconciled portfolio consequences remain unverified. Original-publication windows are unchanged: Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 502: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497. Browser search, CQ/CISS and general warehouse scalar identity/value/date decoding, bounded download recovery and source inspection are accepted through Stage 502. The inspected static build includes 898 engine records, 599 page contracts and 71 complete artifacts. Next: legacy market-volume calculation defects retained in PR35; scalar presentation gaps/axis formatting and wider page correctness remain open. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7162,3 +7162,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Stage 502 combined source passed 2,398 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Twenty new warehouse/preservation regressions and five offline desktop/mobile suites pass, including the pinned drawing library. Exact static release acceptance remains pending.
 
 - Stage 502 combined source passed 2,406 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Twenty new warehouse/preservation regressions and five offline desktop/mobile suites pass, including the pinned drawing library. Exact static release acceptance remains pending.
+
+
+### Stage 502 exact static acceptance
+
+- Source `50bfd36472a509bc620abbc9ac50d8ce47669416` is accepted against its exact served Pages build (successful Pages run 36835533154). All 71 inspected complete static artifacts match one manifest. The complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Final combined source passed 2,406 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Twenty new warehouse/preservation regressions and five desktop/mobile offline suites pass. Tests use complete invented packets, include the pinned drawing library, and preserve prior source and peer changes. No actual application/private/current-consumer data or producer invocation was involved.
+- General warehouse measurements preserve complete received evidence, validate values/dates/identities and display bounded cache failures. Source spelling and explicit macro aliases remain traceable. Native upstream normalization still prevents original-provider precision/revision qualification. Gap-aware scalar presentation, floating-point axis formatting, legacy market-volume calculations and wider platform correctness remain open. All ten institutional workstreams remain OPEN.
