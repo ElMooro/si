@@ -224,5 +224,92 @@
       "failures": 2,
       "both_reproduced_on_unchanged_base": true
     }
+  },
+  "expected_natural_run_compilers": {
+    "etf_profile_native": {
+      "sha256": "243e928b1bf3b2cab742e4a2f02c3123547ea3a831db86d67060b4f86a31d945",
+      "key": "data/etf-desk-research/compilers/243e928b1bf3b2cab742e4a2f02c3123547ea3a831db86d67060b4f86a31d945.py",
+      "bytes": 18012
+    },
+    "etf_desk_model": {
+      "sha256": "56938722dec09268dfa8b1042b68308a9e6f593d5ec85cd54f4465c0e63d53e9",
+      "key": "data/etf-desk-research/compilers/56938722dec09268dfa8b1042b68308a9e6f593d5ec85cd54f4465c0e63d53e9.py",
+      "bytes": 16895
+    },
+    "etf_desk_catalog": {
+      "sha256": "bf9d488c5df119207170788ff8d18a846ce08f5c6d8f3e16039815760be3bbb0",
+      "key": "data/etf-desk-research/compilers/bf9d488c5df119207170788ff8d18a846ce08f5c6d8f3e16039815760be3bbb0.py",
+      "bytes": 1026
+    },
+    "etf_profile_collect": {
+      "sha256": "5e250172a7cdcdb4d7b4b9ffd45c07a20e5a81c648b5028d8fd64a21296eafed",
+      "key": "data/etf-desk-research/compilers/5e250172a7cdcdb4d7b4b9ffd45c07a20e5a81c648b5028d8fd64a21296eafed.py",
+      "bytes": 5465
+    },
+    "provider_flow_native": {
+      "sha256": "967fccc7b02ad56afb8d8b2d1341975f3afb78495fc7983339203e33c9afe944",
+      "key": "data/etf-desk-research/compilers/967fccc7b02ad56afb8d8b2d1341975f3afb78495fc7983339203e33c9afe944.py",
+      "bytes": 14099
+    },
+    "provider_flow_model": {
+      "sha256": "09178f209d6c607b3d32612751f72bf725b521220ecd4929b8f8a0737766b773",
+      "key": "data/etf-desk-research/compilers/09178f209d6c607b3d32612751f72bf725b521220ecd4929b8f8a0737766b773.py",
+      "bytes": 15171
+    },
+    "provider_flow_collect": {
+      "sha256": "0dd91c58b5e7aff0ce5b1b6fb43ce043882472f9dc24647a6859f2da50349d75",
+      "key": "data/etf-desk-research/compilers/0dd91c58b5e7aff0ce5b1b6fb43ce043882472f9dc24647a6859f2da50349d75.py",
+      "bytes": 4323
+    },
+    "provider_flow_store": {
+      "sha256": "29afbcbd1adf4e07db6d64cd9036c00e01c0ea47aaf1852555bcac6050b21a0c",
+      "key": "data/etf-desk-research/compilers/29afbcbd1adf4e07db6d64cd9036c00e01c0ea47aaf1852555bcac6050b21a0c.py",
+      "bytes": 18543
+    },
+    "provider_flow_catalog": {
+      "sha256": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b",
+      "key": "data/etf-desk-research/compilers/ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b.py",
+      "bytes": 60738
+    },
+    "etf_holdings_native": {
+      "sha256": "fff9d2e38fef965136c960928383872efc0ad6cc73ce70322e5610b90954980d",
+      "key": "data/etf-desk-research/compilers/fff9d2e38fef965136c960928383872efc0ad6cc73ce70322e5610b90954980d.py",
+      "bytes": 16012
+    },
+    "etf_holdings_model": {
+      "sha256": "eff34b5dec0d24be3f4e4e19f4b25dd77adad827b54635dc0c5fd20b3f54e7b2",
+      "key": "data/etf-desk-research/compilers/eff34b5dec0d24be3f4e4e19f4b25dd77adad827b54635dc0c5fd20b3f54e7b2.py",
+      "bytes": 28681
+    },
+    "etf_holdings_collect": {
+      "sha256": "fc2c342232fbe710c6939961929b3156a5c0be8f711429aa04c21e501211572e",
+      "key": "data/etf-desk-research/compilers/fc2c342232fbe710c6939961929b3156a5c0be8f711429aa04c21e501211572e.py",
+      "bytes": 5489
+    },
+    "etf_holdings_store": {
+      "sha256": "c32227d329237efdf080399609c8bbeb1ce8e5efcbe8636dad3f95fd0b7a00aa",
+      "key": "data/etf-desk-research/compilers/c32227d329237efdf080399609c8bbeb1ce8e5efcbe8636dad3f95fd0b7a00aa.py",
+      "bytes": 26247
+    },
+    "etf_desk_store": {
+      "sha256": "32e591e87affd1614731d59350cde0b62434370bd909f1419f74fe7e4b05722c",
+      "key": "data/etf-desk-research/compilers/32e591e87affd1614731d59350cde0b62434370bd909f1419f74fe7e4b05722c.py",
+      "bytes": 35189
+    }
+  },
+  "expected_natural_run_compiler_count": 14,
+  "broader_shared_failure_details": {
+    "base_commit": "0aa2ede5be887d506c32a7cc6742b2e475db2f60",
+    "broad_run": 404,
+    "failures": 2,
+    "base_targeted_run": 10,
+    "base_targeted_failures": 2,
+    "tests": [
+      "test_risk_regime_authority.Tests.test_actual_signal_denominator",
+      "test_risk_regime_authority.Tests.test_real_normalizers_abstain_before_label_fallback"
+    ],
+    "error": "AssertionError: production function missing",
+    "helper": "test_inflection_authority.functions",
+    "note": "AST fixture expected normalizer/handler functions absent from existing production sources; no ETF involvement. Broad suite was not fully green."
   }
 }
