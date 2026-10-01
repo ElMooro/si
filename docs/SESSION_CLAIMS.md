@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Backtest harness Mode A withdrawal PR30 accepted exact 868eb509bec7cc1b7a6c281a08819eaeb09bbebc; narrow release and public acceptance in progress; preserve Mode B/meta-labeler/live health/capital; no provider, schedule or paid/private QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 |
 | Canonical holdings qualification diagnostics only: versioned new-input counters and overlapping reasons; preserve old replay and desk supplement v1; agent/shopiz/holdings-qualification-diagnostics; draft only, no activation | none | S-shopiz#hqdiag1001g | 2026-10-01 05:10 |
 | Exact ETF desk read-only deployment/capacity probe; staged only, no dispatch until independent review; agent/shopiz/desk-capacity-readonly-probe; PR26 stays draft/unmerged | 6410 RESERVED | S-shopiz#edprobe1001f | 2026-10-01 04:26 |
 | Katlin OOS label-boundary/availability correction authorized 2026-10-01 03:32; draft codex/katlin-oos-availability; preserve intentional full-history priors, paired decision regressions; no deploy until exact-head independent review and parent release | none | S-codex#koa1001r3 | 2026-10-01 03:35 |

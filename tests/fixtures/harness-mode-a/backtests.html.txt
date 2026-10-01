@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Backtest Harness — qualification unavailable — JustHodl AI</title>
+<title>Backtest Harness — walk-forward validation — JustHodl AI</title>
 <style>
 :root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--green:#34d399;--cyan:#22d3ee;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
@@ -23,21 +23,20 @@ td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;font-f
 .note{color:var(--fg3);font-size:11px;margin-top:18px;line-height:1.7;max-width:980px}
 .loading{color:var(--fg3);font-family:var(--mono)}
 svg.spark{vertical-align:middle}
-#mgrid>div{min-width:0}@media(max-width:600px){header{flex-wrap:wrap;gap:10px}nav{display:flex;flex-wrap:wrap;gap:8px}nav a{margin-left:0}}
 </style></head><body>
 <header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/backtests.html" class="on">🧪 Backtests</a><a href="/signal-board.html">Board</a><a href="/engines.html">🧭 Engines</a><a href="/valuations.html">💰 Valuations</a></nav></header>
 <div class="wrap">
-<h1>Backtest Harness — <span class="grad">Mode A qualification unavailable</span></h1>
-<p class="sub">Mode A qualification is <b>BLOCKED</b>. Selected configurations, out-of-sample statistics and deployability claims are withheld because training-label availability, session alignment and the statistical/portfolio methodology are not established. <b>Zero qualified rules does not mean the rules failed a valid backtest.</b> Mode B grading below is unchanged.</p>
-<div class="hero" id="hero"><span class="loading">Mode A unavailable · 0 qualified rules</span></div>
-<div class="sec">Mode A — Rule Archetypes (qualification blocked)</div>
+<h1>Backtest Harness — <span class="grad">walk-forward, deflated, out-of-sample</span></h1>
+<p class="sub">Eight signal archetypes (mapping to the desk's engine families) validated <b>anchored walk-forward</b>: parameters are chosen on the train window only, then applied to sequential out-of-sample folds. Trades are 21-day excess returns vs SPY pooled across a 1,500-name universe. <b>PASS</b> requires the OOS Sharpe to clear the Bailey/López-de-Prado expected-max-Sharpe under the number of trials — the deflated-Sharpe gate that, on random walks, passes nothing.</p>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+<div class="sec">Mode A — Rule Archetypes (out-of-sample)</div>
 <div style="overflow-x:auto"><table><thead><tr><th>Rule</th><th>Family</th><th>OOS trades</th><th>Hit %</th><th>Avg excess</th><th>OOS Sharpe</th><th>Gate (E[maxSR])</th><th>Max DD</th><th>Equity (OOS)</th><th>Verdict</th></tr></thead><tbody id="ta"></tbody></table></div>
 <div class="sec">Mode B — Live Signal Types (independently re-graded, 21d excess vs SPY)</div>
 <div style="overflow-x:auto"><table><thead><tr><th>Signal type</th><th>Graded</th><th>Pending</th><th>Hit %</th><th>Avg excess %</th><th>Median %</th><th>Artifacts</th></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="sec">Meta-Labeler — the gatekeeper (López de Prado)</div>
 <div class="hero" id="mhero"><span class="loading">…</span></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:12px" id="mgrid">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px" id="mgrid">
 <div><div class="sec" style="color:var(--violet)">Per-type: base vs gated hit % (test)</div>
 <div style="overflow-x:auto"><table><thead><tr><th>Type</th><th>n test</th><th>Base hit</th><th>Gated hit</th><th>Take %</th></tr></thead><tbody id="mt"></tbody></table></div></div>
 <div><div class="sec" style="color:var(--violet)">Pending signals — live verdicts</div>
@@ -53,33 +52,28 @@ function spark(c){if(!c||c.length<2)return'';const w=110,h=26,mn=Math.min(...c),
   const pts=c.map((v,i)=>`${(i/(c.length-1)*w).toFixed(1)},${(h-(v-mn)/sp*h).toFixed(1)}`).join(' ');
   const up=c[c.length-1]>=c[0];
   return `<svg class="spark" width="${w}" height="${h}"><polyline points="${pts}" fill="none" stroke="${up?'#34d399':'#ff5577'}" stroke-width="1.6"/></svg>`;}
-const modeAInventory=[
- ['momentum_breakout','trend/ignition'],['ma_cross','trend'],['pullback_in_uptrend','upside-radar'],
- ['deep_drawdown_buy','mean-reversion'],['relative_strength','momentum/leaders'],
- ['vol_squeeze_break','volatility-squeeze'],['momentum_consistency','quality-momentum'],['basing_breakout','pre-pump/basing']];
-function renderHarness(packet){
-  const D=packet&&typeof packet==='object'&&!Array.isArray(packet)?packet:{};
-  const count=v=>Number.isInteger(v)&&v>=0?v:'—';
+(async()=>{const D=await gj('data/backtest-harness.json');
+  if(!D){document.getElementById('hero').innerHTML='<span class="loading">harness pending first run</span>';return;}
   document.getElementById('hero').innerHTML=
-   `<div class="g"><b>0</b><div class="m">qualified Mode A rules · BLOCKED</div></div>
-    <div class="g"><b>${count(D.universe_n)}</b><div class="m">reported ticker universe</div></div>
-    <div class="g"><b>${count(D.days)}</b><div class="m">stored ring observations · alignment unverified</div></div>
-    <div class="g"><b>Unavailable</b><div class="m">Mode A OOS qualification</div></div>`;
-  document.getElementById('ta').innerHTML=modeAInventory.map(([rule,family])=>`<tr>
-    <td><b>${esc(rule)}</b></td><td style="color:var(--fg3);font-size:10px">${esc(family)}</td>
-    <td colspan="7">Unavailable — statistics withheld</td><td><span class="pill pF">BLOCKED</span></td></tr>`).join('');
-  const live=Array.isArray(D.live_signal_types)?D.live_signal_types.filter(r=>r&&typeof r==='object'):[];
-  document.getElementById('tb').innerHTML=live.map(r=>`<tr>
+   `<div class="g"><b class="${D.n_pass>0?'hi':''}">${D.n_pass}/${(D.rules||[]).length}</b><div class="m">archetypes PASS deflated gate</div></div>
+    <div class="g"><b>${D.universe_n}</b><div class="m">ticker universe</div></div>
+    <div class="g"><b>${D.days}</b><div class="m">trading days · ${D.folds} OOS folds</div></div>
+    <div class="g"><b>${D.horizon_days}d</b><div class="m">horizon · excess vs SPY</div></div>`;
+  document.getElementById('ta').innerHTML=(D.rules||[]).map(r=>{const o=r.oos||{};return `<tr>
+    <td><b>${esc(r.rule)}</b></td><td style="color:var(--fg3);font-size:10px">${esc(r.family)}</td>
+    <td>${o.n??'—'}</td><td>${o.hit??'—'}</td><td class="${(o.avg||0)>0?'hi':'lo'}">${o.avg??'—'}%</td>
+    <td class="${(o.sr||0)>0?'hi':'lo'}"><b>${o.sr??'—'}</b></td><td style="color:var(--fg3)">${r.deflated_gate_sr}</td>
+    <td class="${(o.maxdd||0)<-25?'lo':''}">${o.maxdd??'—'}%</td><td>${spark(o.curve)}</td>
+    <td><span class="pill ${r.PASS?'pP':'pF'}">${r.PASS?'PASS':'FAIL'}</span></td></tr>`;}).join('');
+  document.getElementById('tb').innerHTML=(D.live_signal_types||[]).map(r=>`<tr>
     <td><b>${esc(r.signal_type)}</b></td><td>${r.graded}</td><td style="color:var(--fg3)">${r.pending}</td>
     <td class="${(r.hit_pct||0)>=55?'hi':''}">${r.hit_pct??'—'}</td>
     <td class="${(r.avg_excess_pct||0)>0?'hi':'lo'}">${r.avg_excess_pct??'—'}</td>
     <td class="${(r.median_excess_pct||0)>0?'hi':'lo'}">${r.median_excess_pct??'—'}</td>
     <td style="color:var(--fg3)">${r.artifacts||0}</td></tr>`).join('')
     ||'<tr><td colspan="7" style="color:var(--fg3)">no graded live signals yet</td></tr>';
-  document.getElementById('note').textContent='Mode A remains unavailable for missing, legacy, unknown and withdrawn artifacts, regardless of PASS flags or publication timestamps. No corrected backtest or validated strategy is established. Label leakage/availability, ring alignment, Sharpe units/dependence, portfolio construction, survivorship and execution costs require separate review. Mode B and meta-labeler behavior are unchanged by this withdrawal.';
-}
-renderHarness(null);
-(async()=>{renderHarness(await gj('data/backtest-harness.json'));})();
+  document.getElementById('note').textContent=`${D.methodology} v${D.version} · ${D.generated_at} · ${D.duration_s}s`;
+})();
 (async()=>{const M=await gj('data/meta-labeler.json');
   if(!M){document.getElementById('mhero').innerHTML='<span class="loading">meta-labeler pending first run</span>';document.getElementById('mgrid').style.display='none';return;}
   const m=M.model||{};

@@ -9,7 +9,8 @@ Only 3 of ~67 graded signals are ALPHA_PROVEN. This engine guards exactly those
   2. DECAY TREND — snapshot each signal's live hit-rate/excess every run; compare
      today to the earliest snapshot >=10 days old. Edge falling on both axes =
      DECAYING. Builds a baseline over the first ~10 days (honest, no faked trend).
-  3. MODE A WITHDRAWAL — backtest qualification and deployability unavailable.
+  3. BACKTEST-vs-LIVE GAP — backtest-harness says these archetypes are deployable
+     (OOS deflated-Sharpe PASS). Are the live signals they map to delivering?
 
 Self-contained: maintains its own history (no DynamoDB scan). Writes
 data/alpha-decay.json. Telegram alert disabled (bot token compromised).
@@ -17,9 +18,8 @@ data/alpha-decay.json. Telegram alert disabled (bot token compromised).
 import json, time
 from datetime import datetime, timezone, timedelta
 import boto3
-from backtest_harness_authority import blocked_qualification
 
-VERSION = "1.1.0"
+VERSION = "1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/alpha-decay.json"
 HIST_KEY = "data/alpha-decay-history.json"
@@ -115,9 +115,24 @@ def lambda_handler(event, context):
         for r in decaying:
             if r["alpha_status"] == "ALPHA_PROVEN": r["PROVEN_DECAY_ALERT"] = True
 
-    # Mode A is withdrawn even when the stored harness still claims PASS.
-    # No extra reads, fits, or promotions; live scorecard/history remain above.
+    # 3. BACKTEST-vs-LIVE GAP
+    bh = _read("data/backtest-harness.json") or {}
+    live_map = bh.get("live_signal_types") or {}
     gap = []
+    for rule in (bh.get("rules") or []):
+        if not rule.get("PASS"):
+            continue
+        name = rule.get("rule")
+        mapped = live_map.get(name) if isinstance(live_map, dict) else None
+        live_sig = cur.get(mapped) if mapped else None
+        gap.append({"archetype": name, "family": rule.get("family"),
+                    "backtest_gate_sharpe": rule.get("deflated_gate_sr"), "backtest_says": "DEPLOYABLE",
+                    "mapped_live_signal": mapped,
+                    "live_status": (live_sig["alpha_status"] if live_sig else "no live mapping"),
+                    "live_excess_pct": (live_sig["excess"] if live_sig else None),
+                    "verdict": ("CAPTURED LIVE" if live_sig and live_sig.get("alpha_status") == "ALPHA_PROVEN"
+                                else "NOT SHOWING UP LIVE" if live_sig and (live_sig.get("excess") or 0) <= 0
+                                else "live-building / unmapped")})
 
     _write(HIST_KEY, {"snapshots": snaps, "updated": now.isoformat()}, cache="no-cache")
     n_proven_alert = sum(1 for p in proven_watch if p["alert"])
@@ -125,13 +140,13 @@ def lambda_handler(event, context):
     out = {"engine": "alpha-decay", "version": VERSION, "generated_at": now.isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "thesis": ("Out-of-sample watchdog: guards the 3 proven engines, flags any engine whose live edge is "
-                      "decaying vs its own recent baseline, while Mode A backtest qualification is unavailable."),
+                      "decaying vs its own recent baseline, and checks whether backtested-deployable archetypes deliver live."),
            "current_regime": regime, "history_depth_days": history_depth_days, "baseline_ready": bool(baseline),
            "stats": {"proven_engines": len(proven_watch), "proven_alerts": n_proven_alert, "decaying": len(decaying),
                      "improved": len(improved), "stable": len(holding), "proven_decay_alerts": n_proven_decay,
                      "backtest_pass_archetypes": len(gap)},
            "proven_engine_guard": proven_watch, "decaying": decaying[:25], "improved": improved[:15],
-           "backtest_vs_live": gap[:20], "mode_a_qualification": blocked_qualification(),
+           "backtest_vs_live": gap[:20],
            "note": ("Decay trend compares today to the earliest snapshot >=%d days old; until then it is BUILDING a "
                     "baseline. Telegram alerting disabled (bot token compromised)." % MIN_AGE_DAYS)}
     _write(OUT_KEY, out)
