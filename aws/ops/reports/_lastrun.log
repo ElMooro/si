@@ -1,25 +1,20 @@
-executing-against: e96a6caaafb84bedec2fb0888ecfafc023418ae6
+executing-against: 8fe2e85907ea498ee032b6a7f86cb326a1a2eca1
 {
-  "script": "1067_finra_rewire_verify",
-  "read_at": "2026-10-01T13:11:17Z",
-  "module": {
-    "breadth_dataset": "corporateMarketBreadth",
-    "date_field": "tradeReportDate"
+  "summary": {
+    "FAIL": 6,
+    "DEGRADED": 2,
+    "PASS": 2
   },
-  "breadth": {
-    "ok": true,
-    "tradeDate": "2026-09-30",
-    "advancing": 7888.0,
-    "declining": 17928.0,
-    "unchanged": 220.0,
-    "n_trades": 27918.0
-  },
-  "trace_aggregates": {
-    "ok": true,
-    "trade_date": "2026-09-30",
-    "n_prints": 27918,
-    "total_volume": 142472.815437,
-    "source": "corporateMarketBreadth"
-  },
-  "overall": "PASS"
+  "verdicts": {
+    "1/10 FRED macro regime": "FAIL",
+    "2/10 SEC 8-K enrichment": "DEGRADED",
+    "3/10 FINRA short-interest": "FAIL",
+    "4/10 SEC XBRL": "FAIL",
+    "5/10 CBOE options": "PASS",
+    "6/10 FINRA TRACE (bond)": "FAIL",
+    "7/10 Corporate actions": "FAIL",
+    "8/10 Price redundancy": "PASS",
+    "9/10 Symbology/OpenFIGI": "DEGRADED",
+    "10/10 ETF issuer holdings": "FAIL"
+  }
 }
