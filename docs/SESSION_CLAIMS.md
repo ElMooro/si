@@ -18,7 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Financial Secretary presentation only: explicit top-10 BUY cohort/baseline labels, typed crypto risk and escaped rendering with synthetic tests; codex/secretary-presentation; draft only, no policy, delivery, invokes or deployment | none | S-codex#fsp1001n7 | 2026-10-01 09:00 |
+| Financial Secretary presentation only: explicit top-10 BUY cohort/baseline labels, typed crypto risk and escaped rendering with synthetic tests; codex/secretary-presentation; draft only, no policy, delivery, invokes or deployment | none | S-codex#fsp1001n7 | 2026-10-01 08:55 |
 | Historical volume annotation honesty: jh-chart-indux.js warning/help only plus offline timing/prefix/parity evidence; codex/chart-annotation-honesty; draft only, no engine/SymDir/classifier/marker/transport/deploy changes | none | S-codex#vtime1001h9 | 2026-10-01 08:27 |
 | PR34 withheld-authority diagnostics accepted 1c890cf748; authorized release verification, policy/thresholds unchanged; no Katlin correction, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:46 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
