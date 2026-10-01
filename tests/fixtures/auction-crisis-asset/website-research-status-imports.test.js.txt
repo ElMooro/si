@@ -5,19 +5,14 @@ const root = path.join(__dirname, '..');
 const manifest = require('./fixtures/website-research-status/imports-preservation.json');
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 
-test('all eight complete pages change only reviewed asset cache parameters', () => {
+test('all eight complete pages change only the widget cache parameter', () => {
   assert.equal(manifest.pages.length, 8);
   for (const row of manifest.pages) {
     const prior = fs.readFileSync(path.join(root, row.predecessor));
     const current = fs.readFileSync(path.join(root, row.page));
     assert.equal(hash(prior), row.previous_sha256, row.page);
     assert.equal(prior.toString('utf8').split(manifest.old).length, 2, row.page);
-    let expected = prior.toString('utf8').replace(manifest.old, manifest.new);
-    for (const [old, fresh] of row.additional_replacements || []) {
-      assert.equal(expected.split(old).length, 2, row.page);
-      expected = expected.replace(old, fresh);
-    }
-    assert.equal(current.toString('utf8'), expected, row.page);
+    assert.equal(current.toString('utf8'), prior.toString('utf8').replace(manifest.old, manifest.new), row.page);
     assert.equal(hash(current), row.sha256, row.page);
   }
 });
@@ -37,9 +32,4 @@ test('the correlation preservation gate retains every previous assertion', () =>
     assert.equal(current.split(fresh).length,2);current=current.replace(fresh,old);
   }
   assert.equal(current,prior);
-});
-
-test('Auction Crisis follows the actual content stamper through two source revisions', () => {
-  const output=execFileSync('python3',['-B','tests/test_auction_crisis_asset_version.py'],{cwd:root,encoding:'utf8'});
-  assert.match(output,/Auction Crisis stale import reproduced; two content versions and idempotence verified/);
 });

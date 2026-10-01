@@ -1,0 +1,48 @@
+{
+  "old": "/auction-crisis.js?t=20260929-issuance-inputs",
+  "new": "/auction-crisis.js?v=20261001-content",
+  "page": {
+    "predecessor": "tests/fixtures/auction-crisis-asset/auction-crisis.html.txt",
+    "previous_sha256": "d0068062a4449b298ab3ae50dbe57b9aa53a9ec45cfe3402b21ab9013026870e",
+    "bytes": 52733
+  },
+  "previous_sources": {
+    "auction-crisis.html": {
+      "predecessor": "tests/fixtures/auction-crisis-asset/auction-crisis.html.txt",
+      "previous_sha256": "d0068062a4449b298ab3ae50dbe57b9aa53a9ec45cfe3402b21ab9013026870e",
+      "bytes": 52733
+    },
+    "tests/fixtures/website-research-status/imports-preservation.json": {
+      "predecessor": "tests/fixtures/auction-crisis-asset/imports-preservation.json.txt",
+      "previous_sha256": "84bd1d57b2eca1815c5e49c769c52f578f329fb5fe49cba8e8c950f78652575b",
+      "bytes": 3958
+    },
+    "tests/website-research-status-imports.test.js": {
+      "predecessor": "tests/fixtures/auction-crisis-asset/website-research-status-imports.test.js.txt",
+      "previous_sha256": "84d2893c3cc24f1632a66a639152d3501ee63d051f9d42440f4faf3423335b5d",
+      "bytes": 1930
+    }
+  },
+  "test_edits": [
+    [
+      "all eight complete pages change only the widget cache parameter",
+      "all eight complete pages change only reviewed asset cache parameters"
+    ],
+    [
+      "    assert.equal(current.toString('utf8'), prior.toString('utf8').replace(manifest.old, manifest.new), row.page);",
+      "    let expected = prior.toString('utf8').replace(manifest.old, manifest.new);\n    for (const [old, fresh] of row.additional_replacements || []) {\n      assert.equal(expected.split(old).length, 2, row.page);\n      expected = expected.replace(old, fresh);\n    }\n    assert.equal(current.toString('utf8'), expected, row.page);"
+    ]
+  ],
+  "scope": "Only the static script cache parameter; no current-data fetches or calculation changes.",
+  "fred_test_adaptation": {
+    "path": "tests/auction-fred-evidence.test.js",
+    "predecessor": "tests/fixtures/auction-crisis-asset/auction-fred-evidence.test.js.txt",
+    "previous_sha256": "29689999f811487d7673f61bf8c18b77379091651dbc3353c6635757b3ed1588",
+    "sha256": "f9f7eb6d77cee6e2d73dc3c77ae14327681a20a61102793a6eaf9307fa71818e",
+    "replacement": [
+      "assert.match(html,/auction-crisis\\.js\\?t=20260929-issuance-inputs/);",
+      "assert.match(html,/src=\"\\/auction-crisis\\.js\\?v=20261001-content\" defer/);"
+    ],
+    "scope": "All original actual-renderer FRED tests retained; the script-tag assertion now requires the supported content-version URL and defer."
+  }
+}

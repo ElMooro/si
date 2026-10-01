@@ -1,0 +1,27 @@
+{
+  "status": "candidate_not_deployed",
+  "page": "auction-crisis.html",
+  "asset": "auction-crisis.js",
+  "old": "/auction-crisis.js?t=20260929-issuance-inputs",
+  "new": "/auction-crisis.js?v=20261001-content",
+  "scope": "Only the static script cache parameter; no current-data fetches or calculation changes.",
+  "no_page_execution": true,
+  "application_packet_reads": 0,
+  "investment_authority": false,
+  "normal_publication_verified": false,
+  "all_institutional_workstreams": "OPEN",
+  "regressions": "Full frontend suite caught a stale exact ?t assertion in the existing FRED renderer test. Only that URL assertion changed; every FRED sidecar, date, value and renderer check remains, with the complete predecessor retained.",
+  "generated_contract": "config/page-data-contracts.json is deterministically regenerated from current repository source; it makes no live availability or investment qualification claim.",
+  "validation": {
+    "frontend_tests": 2662,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "page_graphs": 599,
+    "page_contracts": 599,
+    "engine_inventory_records": 899,
+    "wiring": "36 pages / 143 declarations; no missing or stale declarations",
+    "whole_page_preservation": true,
+    "actual_asset_stamper": "legacy defect plus two new content versions and idempotence",
+    "frontend_fixture_policy": "Host-only invented industry fixture substitute; no captured peer packet read."
+  }
+}
