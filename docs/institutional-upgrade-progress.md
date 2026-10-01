@@ -7260,3 +7260,12 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `8724ecc74e20d259c19af65e4317508e7f9eaf27` matches the exact served Pages build, run 36852646529. All 74 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - Combined checks passed 2,504 frontend cases, 1018 deployment and fifteen shell checks, including twenty new volume/preservation cases. Nine offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
 - Missing volume remains unavailable through the core decoder, aggregation, histogram and moving-average windows. Removing obsolete series ownership prevents a prior-symbol profile from reappearing during symbol replacement. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 508: delayed chart response ownership (candidate)
+
+- Whole desktop/mobile reproduction confirms a prior benchmark response replacing the quote after a new symbol finished loading: the chart retained 305 while the quote reverted to 105 and the old volume. The complete invented inputs and predecessor are retained.
+- Main render continuations, shared benchmark state and post-paint load continuations now require the same sequence, symbol, interval and acquisition generation. Current optional-benchmark failure still permits rendering; stale success and stale failure cannot publish a tail.
+- Nineteen focused ownership checks pass. The unchanged predecessor fails sixteen of them, while the three current-data behavior checks still pass. Desktop/mobile candidate cases pass for delayed success, failure and calendar responses. Full regression and exact release remain pending; all institutional workstreams remain OPEN.
+
+- Stage 508 combined checks passed 2,526 frontend cases, 1018 deployment and fifteen shell checks. Twenty-two new cases and twelve offline desktop/mobile suites pass; exact static release remains pending.

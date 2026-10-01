@@ -2026,17 +2026,21 @@
     if(m==="fromhigh"||m==="fromlow"){ var out2=[]; for(var i=0;i<closes.length;i++){ var ext=m==="fromhigh"?-1e99:1e99, t0=closes[i].time-365*86400; for(var j=0;j<=i;j++){ if(closes[j].time<t0) continue; var v=closes[j].value; if(m==="fromhigh"){ if(v>ext)ext=v; } else if(v<ext) ext=v; } if(ext&&isFinite(ext)) out2.push({time:closes[i].time,value:(closes[i].value/ext-1)*100}); } return out2; }
     var n=BARS[m]||1, out3=[]; for(var i=n;i<closes.length;i++){ var then=closes[i-n].value; if(!then) continue; out3.push({time:closes[i].time,value:(closes[i].value/then-1)*100}); } return out3;
   }
-  async function loadSpxDaily(){
+  async function loadSpxDaily(current){
     var d=await klines("^GSPC","1d", true);
+    if(current&&!current())return [];
     if(!d||d.length<50) d=await klines("SPX","1d", true);
+    if(current&&!current())return [];
     lastSpxDaily=d||[];
     return lastSpxDaily;
   }
-  async function loadBench(tfId){
-    var daily=await loadSpxDaily();
+  async function loadBench(tfId,current){
+    var daily=await loadSpxDaily(current);
+    if(current&&!current())return [];
     var id=spec(tfId)[0];
     if(/^(1s|1m|3m|5m|15m|30m|45m|1h|2h|4h|12h)$/.test(id)){
       var spy=await klines("SPY", tfId, true);
+      if(current&&!current())return [];
       if(spy && spy.length>=20){ lastBenchName="SPY"; return spy; }
       lastBenchName="SPX";
       return [];
@@ -2045,10 +2049,13 @@
     if(id==="1d") return daily;
     return resampleToTf(daily||[], tfId);
   }
-  async function vsSpy(d){
-    spyBars=await loadBench(tf);
+  async function vsSpy(d,current){
+    var bench=await loadBench(tf,current);
+    if(current&&!current())return [];
+    spyBars=bench;
     var spy=spyBars||[];
-    if(spy.length<2) spy=await loadSpxDaily();
+    if(spy.length<2) spy=await loadSpxDaily(current);
+    if(current&&!current())return [];
     if(spy.length<2) return [];
     var j=alignSpy(d, spy);
     if(j.length<2) return [];
@@ -2299,7 +2306,8 @@
     if(window.JHStockDeskController)window.JHStockDeskController.refresh();
   }
   async function paint(d){
-    var seq=++paintSeq;
+    var seq=++paintSeq,paintSymbol=active,paintTf=tf,paintLoad=loadGen;
+    function current(){return seq===paintSeq&&paintSymbol===active&&paintTf===tf&&paintLoad===loadGen;}
     var identified=barEvidence.get(d);
     if(observationId(active) && (!identified || !identified.observations || identified.symbol!==active || identified.interval!==tf)){
       clearObservationFrame("Observation evidence unavailable for the selected series");return;
@@ -2398,15 +2406,18 @@
           if(INDS.some(function(i){ return i.id==="rsidiv"&&i.on&&!i.hide; })) mk=mk.concat(rsiDivMarks(display, 14), macdDivMarks(display));
           if(INDS.some(function(i){ return i.id==="earn"&&i.on&&!i.hide; })){
             try{ await loadCalendar(); }catch(e3){}
+              if(!current())return;
             mk=mk.concat(eventMarks(display, active, calCache));
           }
           if(INDS.some(function(i){ return (i.id==="news"||i.id==="dvd"||i.id==="split")&&i.on&&!i.hide; })){
             try{
               var dv=await loadDiv(active);
+              if(!current())return;
               if(INDS.some(function(i){ return i.id==="dvd"&&i.on&&!i.hide; })) mk=mk.concat(dvdMarks(display, dv));
               if(INDS.some(function(i){ return i.id==="news"&&i.on&&!i.hide; })) mk=mk.concat(newsMarks(display, dv));
               if(INDS.some(function(i){ return i.id==="split"&&i.on&&!i.hide; })) mk=mk.concat(splitMarks(display, dv));
             }catch(eN){}
+            if(!current())return;
           }
           lastPatPack=null; lastSdPack=null; lastSrPack=null;
           if(INDS.some(function(i){ return i.id==="pats"&&i.on&&!i.hide; }) && window.jhChartPatterns){
@@ -2447,9 +2458,11 @@
           if(INDS.some(function(i){ return (i.id==="ins"||i.id==="buyb")&&i.on&&!i.hide; }) && window.jhInst){
             try{
               var hv=await loadInstHarvest();
+              if(!current())return;
               if(INDS.some(function(i){ return i.id==="ins"&&i.on&&!i.hide; }) && hv.ins) mk=mk.concat(window.jhInst.insiderMarks(display, hv.ins, active));
               if(INDS.some(function(i){ return i.id==="buyb"&&i.on&&!i.hide; }) && hv.buyb) mk=mk.concat(window.jhInst.buybackMarks(display, hv.buyb, active));
             }catch(eH){}
+            if(!current())return;
           }
           if(window.jhCampaignMarks){
             try{
@@ -2465,13 +2478,13 @@
           }
           if(window.jhRsReady){
             window.jhRsReady(display).then(function(rs){
-              if(seq!==paintSeq) return;
+              if(!current()) return;
               if(rs&&rs.length&&c.setMarkers){ try{ c.setMarkers(mk.concat(rs)); }catch(e2){} }
             });
           }
           if(window.jhEtfFlowReady){
             window.jhEtfFlowReady(display).then(function(fl){
-              if(seq!==paintSeq) return;
+              if(!current()) return;
               if(fl&&fl.length&&c.setMarkers){ try{ c.setMarkers(mk.concat(fl)); }catch(e2){} }
             });
           }
@@ -2519,12 +2532,14 @@
         var intraSrc=d;
         if(!window.jhInst.isIntra(d)){
           try{ intraSrc=await klines(active, "5m", true); }catch(e5){ intraSrc=[]; }
+              if(!current())return;
         }
         lastOrLv=window.jhInst.sessionLevels(intraSrc);
         lastOrPack=lastOrLv?window.jhInst.orZones(lastOrLv):null;
       }
       if(window.jhInst && INDS.some(function(i){ return i.k==="eavwap"&&i.on; })){
         try{ await loadCalendar(); }catch(eAv){}
+              if(!current())return;
       }
       INDS.forEach(function(ind){
         if(!ind.on) return;
@@ -2683,6 +2698,7 @@
         try{
           if(chartId(compare[ci])===chartId(active) || bare(compare[ci])===bare(active)) continue;
           var cb=await klines(compare[ci], tf, true);
+              if(!current())return;
           if(!cb || cb.length<2) continue;
           var col=COLORS[(ci+1)%COLORS.length];
           var ls=chart.addLineSeries({
@@ -2692,26 +2708,30 @@
           ls.setData(cb.map(function(b){ return {time:b.time, value:b.close}; }));
           series.push(ls);
         }catch(e){}
+        if(!current())return;
       }
       /* H/L + VP after visible range: refreshHiLoVP */
       alerts.forEach(function(a){ if(!a.fired && a.sym===active) addPriceLine(a.price, "#ab47bc", "AL"); });
       var pos=paper.positions[active]; if(pos && pos.qty) addPriceLine(pos.avg, ACC, "AVG "+fmt(pos.avg));
       if(lastTest && lastTest.trades){ lastTest.trades.slice(-8).forEach(function(t){ addPriceLine(t.px, t.side==="buy"?UP:DN, t.side==="buy"?"B":"S"); }); }
     } else {
-      var pct= mode==="vsspy" ? await vsSpy(d) : computeChange(d, mode);
+      var pct= mode==="vsspy" ? await vsSpy(d,current) : computeChange(d, mode);
+      if(!current())return;
       var h=chart.addHistogramSeries({ priceFormat:{type:"percent"} });
       h.setData((pct||[]).map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));
       series.push(h); mainSeries=h;
     }
-    if(seq!==paintSeq) return;
+    if(!current()) return;
     if(preserveView && saved && saved.from!=null && saved.to!=null && saved.to>saved.from+1){
       try{ chart.timeScale().setVisibleLogicalRange(saved); }catch(e){ try{ chart.timeScale().fitContent(); }catch(e2){} }
     } else {
       try{ chart.timeScale().fitContent(); }catch(e){}
     }
-    try{ requestAnimationFrame(function(){ refreshHiLoVP(); }); }catch(eR){}
+    try{ requestAnimationFrame(function(){ if(current())refreshHiLoVP(); }); }catch(eR){}
     try{
-      spyBars=await loadBench(tf);
+      var bench=await loadBench(paintTf,current);
+      if(!current())return;
+      spyBars=bench;
       if(window.jhInst && lastSpxDaily && lastSpxDaily.length>=50){
         var dailyName=window.jhInst.dailyFrom?window.jhInst.dailyFrom(d):d;
         lastVsSpx=window.jhInst.vsSpxPack(dailyName, lastSpxDaily);
@@ -2720,6 +2740,7 @@
       }
       try{ window.lastVsSpx=lastVsSpx; window.lastBenchName=lastBenchName; }catch(eW){}
     }catch(e){}
+    if(!current())return;
     paintOsc(d);
     drawSVG();
     paintPat();
@@ -3313,6 +3334,7 @@
       }
       lastGoodTf=wantTf;
       await paint(d);
+      if(gen!==loadGen||want!==active||wantTf!==tf||d!==lastBars)return;
       preserveView=true;
       if(layout>1) paintPanes();
       loadTape(true);
@@ -4401,6 +4423,7 @@
       loadDraw(); renderTabs(); renderTf();
       setWatch(true);
       await paint(d);
+      if(gen!==loadGen||s!==active||tryTf!==tf||d!==lastBars)return;
       preserveView=true;
       if(layout>1) paintPanes();
       loadTape(true);
@@ -4408,6 +4431,7 @@
       wsub="watch"; wtab="list"; renderWtabs(); renderList();
       closeSymSearch();
     }catch(e){
+      if(gen!==loadGen)return;
       toast("No bars for "+s+(lastBars.length?" — keeping "+active:""));
       syncLivePill();
       closeSymSearch();
@@ -5811,6 +5835,7 @@
       if(!d.length) return;
       // Volume or interior-bar revisions also invalidate the retained frame.
       if(JSON.stringify(lastBars)!==JSON.stringify(d)){ await paint(d); }
+      if(gen!==loadGen||want!==active||wantTf!==tf||replay.on)return;
       loadTape(false);
     }catch(e){}
   }
